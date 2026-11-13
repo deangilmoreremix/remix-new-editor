@@ -1,0 +1,156 @@
+{
+  "id": "social-shorts",
+  "title": "Make short videos for TikTok, Reels and Shorts",
+  "goal": "You end up with a finished vertical short video (an MP4 exported from the Timeline Editor) with captions, ready to post on TikTok, Reels or YouTube Shorts.",
+  "bestFor": "Creators and small businesses who want regular short vertical videos and need ideas, clips, captions and a quick final cut.",
+  "whatYouNeed": [
+    "A MuAPI key saved in Settings -> API keys (generation and video tools use your own MuAPI credits; cost per model is not documented in the app)",
+    "An account with full access: Video Tools and Render show an upgrade prompt without it",
+    "A topic or a prompt idea (Viral Studio can give you ready-made prompts)",
+    "Optional: a long video of your own (50 MB or less) if you want AI Clipping to cut it into short segments"
+  ],
+  "studios": ["viral", "video", "videotools", "timeline"],
+  "steps": [
+    {
+      "n": 1,
+      "studio": "viral",
+      "action": "Find a trending prompt idea for your short video.",
+      "buttons": ["Videos", "Copy Prompt", "Create This Style"],
+      "details": "Open Smart Video Viral at #/viral. Click Videos to show only video prompts, use the search box or a category such as Product Ads or Cinematic, and click a card you like. Click Copy Prompt to copy the prompt, or click Create This Style to open the right studio with the prompt filled in (for video items this is Video Studio). Viral Studio only shows prompts; it does not generate anything itself. 'Exclude Chinese' is on by default and hides Chinese-language prompts.",
+      "result": "A prompt you like, copied or already filled into a studio.",
+      "handoff": "Click Create This Style to carry the prompt into Video Studio. If you used Copy Prompt, paste it into the prompt box in Video Studio."
+    },
+    {
+      "n": 2,
+      "studio": "video",
+      "action": "Generate a vertical clip in Video Studio.",
+      "buttons": ["Text to video", "Aspect ratio", "Generate", "Download", "Add AI Captions"],
+      "details": "In Video Studio (#/video) check the prompt box ('Describe the video you want to create') holds your prompt. Keep it to one subject and one action. Leave the default model on your first run. Set Aspect ratio to 9:16 for vertical. For more predictable results attach a clear start-frame image and use the 'Animate image' workflow; otherwise stay on 'Text to video'. Press Generate and wait for the result. Use Download to save the clip. You can also press Add AI Captions on the result.",
+      "result": "A short vertical clip saved on your computer.",
+      "handoff": "Download it (or find it in Library). To caption or clean it in Video Tools, upload it there with Source Video. To cut it together, import it in Timeline Editor in step 5. Make 2 to 4 clips by repeating this step."
+    },
+    {
+      "n": 3,
+      "studio": "videotools",
+      "action": "Optional: cut a long video into short segments with AI Clipping.",
+      "buttons": ["AI Clipping", "Source Video", "Process Video", "Download Video"],
+      "details": "Use this step only if you already have a long video of your own. Open Video Tools at #/videotools, stay on the Tools tab, click the model button at the top and choose AI Clipping. Under Source Video upload your video (50 MB or less) and press Process Video. When it finishes press Download Video. Video Tools does not generate new clips from text or images.",
+      "result": "Short segments cut from your long video.",
+      "handoff": "Download Video, then import the file in Timeline Editor in step 5."
+    },
+    {
+      "n": 4,
+      "studio": "videotools",
+      "action": "Add animated captions to a clip.",
+      "buttons": ["AI Captions", "Source Video", "Process Video", "Add AI Captions", "Download Video"],
+      "details": "In Video Tools choose the tool AI Captions (Vadoo), upload your clip under Source Video and press Process Video. You can also press Add AI Captions under the result of another tool when the result is a video file. Then press Download Video. This tool has no visible settings for language or caption style on the page.",
+      "result": "A captioned video saved on your computer.",
+      "handoff": "Download Video, then import the file in Timeline Editor in step 5."
+    },
+    {
+      "n": 5,
+      "studio": "timeline",
+      "action": "Assemble your clips into one short video.",
+      "buttons": ["New project", "Project name", "Edit", "Music Tool", "Add Track"],
+      "details": "Open Timeline Editor at #/timeline and click New project, type a Project name and open it, then go to the Edit tab. In the media pool click the import button at the bottom (tooltip 'Import media files') or double-click empty space in the pool, and pick your downloaded clips. Drag them onto a video track, press B (Blade) to cut out the slow parts and delete them. Add a soundtrack with the Music Tool (click its icon in the sidebar; the M key is Add Marker) or import a track you made in Audio Studio. Use Add Track to keep music on its own audio track.",
+      "result": "A tight vertical edit of your clips with music on the timeline.",
+      "handoff": "Stay in Timeline Editor and open the Export tab."
+    },
+    {
+      "n": 6,
+      "studio": "timeline",
+      "action": "Export the vertical video.",
+      "buttons": ["Export", "Preset", "Frame Rate", "Aspect ratio", "Render"],
+      "details": "Open the Export tab. Set Aspect ratio to 9:16, Preset to Standard and Frame Rate to 30 (these are the guide's quick social cut settings). Check the Contain or Cover fit so the picture fills the frame without bars. Click Render and wait for the progress to finish.",
+      "result": "You have a finished short vertical video, an MP4 you can play and download. The finished job appears in the Export tab progress area, where you click Open Export on the latest job: the finished video opens in a new browser tab, and you save it from there with your browser's download or Save video as option.",
+      "handoff": "This is the end of the journey. Post the file to your platform yourself, or use Publish to Social in Video Studio or Video Tools on a single clip."
+    }
+  ],
+  "checkpoints": [
+    "After step 1: the prompt is copied or filled into Video Studio.",
+    "After step 2: the clip is vertical (9:16) and plays.",
+    "After step 4: captions are readable on the clip.",
+    "After step 5: the clips play in order with no gaps.",
+    "After step 6: the exported MP4 is vertical and plays with sound."
+  ],
+  "troubleshooting": [
+    {
+      "problem": "'No prompts match your filters.' in Viral Studio",
+      "fix": "Click 'Reset All Filters' or widen your search. 'Exclude Chinese' is on by default and may hide results."
+    },
+    {
+      "problem": "'Please enter a prompt to generate a video.' in Video Studio",
+      "fix": "Type a prompt, or attach an image if you want image-to-video."
+    },
+    {
+      "problem": "Nothing happens on Generate and a sign-in box appears",
+      "fix": "Sign in, make sure your MuAPI key is saved in Settings -> API keys and your account has credits, then press Generate again."
+    },
+    {
+      "problem": "The 9:16 aspect ratio or the duration I want is missing",
+      "fix": "The selected model does not support it. Choose another model."
+    },
+    {
+      "problem": "Alert 'Upload a source video first' in Video Tools",
+      "fix": "Upload a video (50 MB or less) under Source Video or pick a Pexels stock video, then press Process Video."
+    },
+    {
+      "problem": "The Add AI Captions button is missing on a Video Tools result",
+      "fix": "It only appears when the result link looks like a video file. Use the AI Captions (Vadoo) tool instead."
+    },
+    {
+      "problem": "File is too large in Video Tools",
+      "fix": "Videos must be 50 MB or less. Trim or compress the clip before uploading."
+    },
+    {
+      "problem": "The Render button in Timeline Editor is greyed out",
+      "fix": "Add at least one clip to the timeline in the Edit tab first."
+    }
+  ],
+  "tips": [
+    "Prompts in Viral Studio were written for specific models, so results can differ in another model.",
+    "Use one subject and one action per prompt and keep your first test short.",
+    "Add AI Captions before posting for silent autoplay feeds.",
+    "Use the Draft preset for a quick test export and Standard for the final."
+  ],
+  "relatedJourneys": ["text-to-video", "photo-to-clip", "ugc-ad-batch", "explainer-promo", "product-ad"],
+  "academy": { "track": "04-ai-content-factories", "lesson": "02-tiktok-reels-factory" },
+  "intents": [
+    "make tiktok videos",
+    "make instagram reels with AI",
+    "make youtube shorts",
+    "make short vertical videos",
+    "get trending video ideas",
+    "add captions to my video",
+    "cut a long video into short clips",
+    "how do I make viral short videos"
+  ],
+  "notConfirmed": [
+    "Cost per model is not documented in the app; generation uses your own MuAPI credits.",
+    "How AI Clipping delivers several clips is not confirmed; the Video Tools page shows one result player.",
+    "Whether AI Clipping and AI Captions (Vadoo) offer language, length or caption-style options is not confirmed; the page shows no such options.",
+    "How long each clip is and how long generation takes depends on the model and is not documented.",
+    "There is no one-click hand-off from Video Studio or Video Tools into Timeline Editor that was found in code (Video Studio's Open in Render goes to Render Studio, which works on one video at a time), so files are downloaded and imported by hand.",
+    "Which export size each social platform requires is not documented in the app.",
+    "Exactly where the exported MP4 is stored and how long its link stays valid is not confirmed."
+  ],
+  "sourceFiles": [
+    "src/data/askKb/viral.json",
+    "src/data/askKb/video.json",
+    "src/data/askKb/videotools.json",
+    "src/data/askKb/timeline.json",
+    "src/data/askKb/render.json",
+    "src/data/askKb/library.json",
+    "src/data/askKb/_app.json",
+    "src/data/askAcademyMap.js",
+    "src/lib/studioPrefill.js",
+    "src/cinegen/components/edit/left-panel.tsx",
+    "src/cinegen/components/export/render-progress.tsx"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "askKb guides for viral, video, videotools, timeline, render, library, _app; studioPrefill.js; cinegen import and export progress",
+    "verifiedAt": "2026-11-13",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

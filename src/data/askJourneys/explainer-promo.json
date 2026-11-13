@@ -1,0 +1,149 @@
+{
+  "id": "explainer-promo",
+  "title": "Make an explainer or promo video from a prompt or your website",
+  "goal": "You end with a finished MP4 explainer or promo video, rendered in your browser and ready to download.",
+  "bestFor": "Founders, marketers and creators who want animated titles, charts, UI mockups or a product launch film made from a text description or from their own website, without filming anything.",
+  "whatYouNeed": [
+    "Your own OpenAI API key saved in Settings -> API keys (OpenAI API Key). Both Video Agent and Motion Director run on it and neither has a fallback platform key.",
+    "A MuAPI key (Settings -> API keys) is not used by these two studios. You only need it if you later add AI-generated clips from other studios; those generations use your own MuAPI credits.",
+    "For Path A (Video Agent): a clear idea of what should appear and move. Write the exact text, colors and any numbers you want in the prompt.",
+    "For Path B (Motion Director): your public website address (for example https://your-product.com), the length you want (for example 30 seconds) and a plan that includes SmartVideo GO.",
+    "A current Chrome-based browser. Both studios render the MP4 inside your own browser tab, so keep the tab open while it renders."
+  ],
+  "studios": ["video-agent", "motion-director"],
+  "steps": [
+    {
+      "n": 1,
+      "studio": "video-agent",
+      "action": "Path A (start here when you have an idea, not a website): describe your animation in Video Agent.",
+      "buttons": ["What do you want to create?", "Prompt Examples", "GPT-5.2 (Low Reasoning)", "Attach images"],
+      "details": "Open Video Agent from the Agents group in the side menu (#/video-agent). On 'What do you want to create?' type a specific description: the words on screen, colors, layout, and any numbers for charts. If you want a starting point, click one of the Prompt Examples chips (Typewriter text, Chat messages, Metric counters, Bar chart) and edit the wording. Leave the model on GPT-5.2 (Low Reasoning) for a first try, and use the paperclip (Attach images) only for looks you want to copy: up to 4 images, 10 MB each, and they are reference only, not placed in the video. If you want a logo in the animation, put its public web address in the prompt. Press Enter or click the arrow button.",
+      "result": "The agent writes the animation and it starts playing in the live preview.",
+      "handoff": "Stay in Video Agent. Go to step 2 to tune it."
+    },
+    {
+      "n": 2,
+      "studio": "video-agent",
+      "action": "Preview the animation and tune it by chatting.",
+      "buttons": ["Tune your animation...", "Use current frame of Preview as image in chat"],
+      "details": "Play the preview and ask for changes in the chat sidebar (Tune your animation...). Small changes such as colors, text, numbers or timing are applied as targeted edits. Ask for a full rewrite or say 'start fresh' for a big change of style. To point at a problem, click the button 'Use current frame of Preview as image in chat' so the agent sees the frame you mean. If the chart shows wrong numbers, type the exact values in your message.",
+      "result": "An animation you are happy with in the preview.",
+      "handoff": "Stay in Video Agent. Go to step 3 to set the length and render."
+    },
+    {
+      "n": 3,
+      "studio": "video-agent",
+      "action": "Set the length, then render and download the MP4.",
+      "buttons": ["Settings", "Duration (frames)", "FPS", "Render & Download", "Download video", "Saved to your library"],
+      "details": "Click Settings above the player. Set Duration (frames) (1 to 1000) and FPS (1 to 60); the dialog shows the video length, which is frames divided by FPS. Close it, then click Render & Download. It shows 'Rendering...' with a progress bar: keep the tab open and in front. When it is done the button becomes Download video. Click it to save the MP4. The status text then reads 'Saved to your library' when the upload worked.",
+      "result": "A finished MP4 explainer or motion-graphics video on your computer, also saved to your Library.",
+      "handoff": "Path A ends here. If you wanted a film built from your website instead, continue with step 4 (Path B). The two paths are alternatives: there is no one-click hand-off from Video Agent to Motion Director."
+    },
+    {
+      "n": 4,
+      "studio": "motion-director",
+      "action": "Path B (start here when you have a website): describe the film and give your site address in Motion Director.",
+      "buttons": ["Describe your motion video", "Aspect ratio", "Templates", "Use My Brand", "Generate"],
+      "details": "Motion Director is not in the side menu, so type #/motion-director in the address bar. In the box 'Describe your motion video' write what you want and include your full website address and length, for example 'Make a 30 second launch film for https://your-product.com'. If you do not say a length, 20 seconds is used (films are kept between 5 and 90 seconds). Choose an Aspect ratio (16:9, 9:16 or 1:1). Optional: Templates to pick shot cards (up to 12) or Use My Brand for your colors and logo. Click Generate. If a plan with SmartVideo GO is missing, an upgrade prompt appears instead.",
+      "result": "The director starts reading your site and planning the film.",
+      "handoff": "Stay in Motion Director and answer its questions in step 5."
+    },
+    {
+      "n": 5,
+      "studio": "motion-director",
+      "action": "Answer the director's questions and approve the storyboard.",
+      "buttons": ["Use Ink Press", "Let the director pick shots", "Work it out together", "Looks right - next", "Use my recommendation", "Looks right - write the storyboard"],
+      "details": "The director may ask which look to use. Pick Use Ink Press for a ready paper-and-ink launch film, Let the director pick shots if you have no preference, or Work it out together if you want to confirm the product check, visual direction and shot plan yourself. In the guided flow confirm with Looks right - next, Use my recommendation and finally Looks right - write the storyboard. Review the storyboard in the chat and type any changes. When the film appears, play it in the result card.",
+      "result": "A built film that plays in the chat.",
+      "handoff": "Click Open in Motion Workbench on the film card to edit and export (step 6)."
+    },
+    {
+      "n": 6,
+      "studio": "motion-director",
+      "action": "Edit the film if needed and export the MP4.",
+      "buttons": ["Open in Motion Workbench", "Edit agent", "Export video", "Fast draft (720p)", "Without music"],
+      "details": "Click Open in Motion Workbench. Use the Edit agent panel to change text or styling (for example 'make the headline bigger'), or select a clip on the timeline and change it in Properties. Ctrl/Cmd+Z undoes a change. Click Export video: it renders the MP4 in your browser and shows 'Exporting N%'. Tick Fast draft (720p) for a quicker draft export, or Without music if you do not want the soundtrack. Keep the tab open. If you see 'Export failed - Retry', click it again.",
+      "result": "You have a finished MP4 promo film (an exported file you can play and download). When the export shows 'Exported', use the option it offers to show or download the file.",
+      "handoff": "Done. Download the MP4 from the Exported message in Motion Workbench."
+    }
+  ],
+  "checkpoints": [
+    "Your OpenAI key is saved in Settings -> API keys before you start (use Test to check it).",
+    "The first preview shows the right text and colors before you spend time polishing.",
+    "The video length matches what you need (Video Agent: frames divided by FPS; Motion Director: the length you wrote in the prompt).",
+    "You kept the browser tab open and in front while rendering or exporting.",
+    "You have downloaded the MP4 and played it once from start to end."
+  ],
+  "troubleshooting": [
+    {
+      "problem": "Video Agent says 'The Video Agent uses your own OpenAI key...' or 'OpenAI rejected your API key'.",
+      "fix": "Save a valid key under Settings -> API keys (OpenAI API Key), wait up to about 15 seconds or click back into the window, then send the prompt again. If it was rejected, create a new key at OpenAI and replace it."
+    },
+    {
+      "problem": "Video Agent says 'No valid motion graphics prompt...'.",
+      "fix": "Your text was not a description of something visual. Rewrite it as what should appear and move, with colors, text and timing, or start from a Prompt Examples chip."
+    },
+    {
+      "problem": "The logo or picture I attached does not appear in the animation.",
+      "fix": "Attached images are reference only. Host the image online and put its public web address in the prompt so the code can load it."
+    },
+    {
+      "problem": "Render & Download shows an error or is very slow.",
+      "fix": "Use a current Chrome-based browser, keep the tab open, and lower Duration (frames) or FPS in Settings, then try again. If the status says 'Downloaded - couldn't save to library', the file still downloaded; keep it."
+    },
+    {
+      "problem": "Motion Director shows an upgrade prompt when I click Generate.",
+      "fix": "Your account needs a plan that includes SmartVideo GO. Upgrade the plan, or use Video Agent (Path A) instead."
+    },
+    {
+      "problem": "The Motion Director film does not look like my website.",
+      "fix": "Include the full address (https://yoursite.com) in your prompt and make sure the site is publicly reachable. Use Use My Brand for colors and logos if no site can be captured."
+    },
+    {
+      "problem": "Motion Director export is slow or shows 'Export failed - Retry'.",
+      "fix": "Keep the tab open, tick Fast draft (720p), remove shots tagged 'Slow to export' or shorten the film, then click Retry."
+    }
+  ],
+  "tips": [
+    "Pick Video Agent when you have an idea or data and want animated titles, charts, chat bubbles or a logo intro. Pick Motion Director when the video should show your real website pages and look like a launch film.",
+    "Keep the first Video Agent animation short and simple, then add detail with follow-up messages. Iterating is faster than regenerating.",
+    "Put exact colors, text and numbers in the prompt. The agent invents data when you do not give it.",
+    "Always give Motion Director a website address and a length. If unsure about style, choose Use Ink Press or Work it out together.",
+    "Neither studio creates live-action or photoreal AI footage. For that use Video Studio (see the text-to-video journey)."
+  ],
+  "relatedJourneys": ["product-ad", "text-to-video", "social-shorts"],
+  "academy": { "track": "", "lesson": "" },
+  "intents": [
+    "make an explainer video",
+    "make a promo video from my website",
+    "make a launch video for my product",
+    "turn my prompt into an animated video",
+    "animated bar chart video",
+    "make a logo intro",
+    "make a product promo video",
+    "which studio makes a video from my website",
+    "do I need an openai key for video agent",
+    "make a motion graphics video"
+  ],
+  "notConfirmed": [
+    "Cost per model is not documented. These two studios run on your own OpenAI key (your OpenAI account pays for usage); the guides do not state prices or credits for either.",
+    "Whether Video Agent also needs the VideoDB key: the Settings text mentions Video Agent for VideoDB, but the Video Agent guide only requires the OpenAI key.",
+    "How long a render or export takes; it depends on your device, duration, FPS and the shots used.",
+    "Whether a Motion Director export is also saved to your Library; only Video Agent is documented as saving to the library.",
+    "Exact size limits of the Motion Director attach button.",
+    "Which plan tiers include SmartVideo GO."
+  ],
+  "sourceFiles": [
+    "src/data/askKb/video-agent.json",
+    "src/data/askKb/motion-director.json",
+    "src/data/askKb/_app.json",
+    "src/components/studios/VideoAgentStudio/VideoAgentStudio.js",
+    "src/data/askAcademyMap.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the Video Agent and Motion Director studio guides, the app key facts, the Video Agent studio folder and the Academy map (no Academy track is mapped to these two studios).",
+    "verifiedAt": "2026-11-13",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

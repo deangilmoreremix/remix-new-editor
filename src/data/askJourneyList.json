@@ -1,0 +1,82 @@
+[
+ {
+  "id": "explainer-promo",
+  "title": "Make an explainer or promo video from a prompt or your website",
+  "studios": [
+   "video-agent",
+   "motion-director"
+  ]
+ },
+ {
+  "id": "photo-to-clip",
+  "title": "Turn a photo into an animated video clip",
+  "studios": [
+   "image",
+   "edit",
+   "animate",
+   "video"
+  ]
+ },
+ {
+  "id": "product-ad",
+  "title": "Make a product ad video",
+  "studios": [
+   "commercial",
+   "animate",
+   "audio",
+   "timeline"
+  ]
+ },
+ {
+  "id": "short-film",
+  "title": "Make a short film from a story",
+  "studios": [
+   "storyboard",
+   "cinema-template",
+   "cinema",
+   "audio",
+   "timeline"
+  ]
+ },
+ {
+  "id": "social-shorts",
+  "title": "Make short videos for TikTok, Reels and Shorts",
+  "studios": [
+   "viral",
+   "video",
+   "videotools",
+   "timeline"
+  ]
+ },
+ {
+  "id": "talking-video",
+  "title": "Make a talking video from a photo",
+  "studios": [
+   "image",
+   "character",
+   "audio",
+   "lipsync",
+   "avatar"
+  ]
+ },
+ {
+  "id": "text-to-video",
+  "title": "Make a video from a text description",
+  "studios": [
+   "image",
+   "video"
+  ]
+ },
+ {
+  "id": "ugc-ad-batch",
+  "title": "Make a batch of UGC-style ad videos",
+  "studios": [
+   "character",
+   "video",
+   "audio",
+   "lipsync",
+   "library",
+   "timeline"
+  ]
+ }
+]

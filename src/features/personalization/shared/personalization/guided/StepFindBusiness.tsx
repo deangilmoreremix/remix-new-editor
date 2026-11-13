@@ -5,6 +5,7 @@ import { Building2, Globe, MapPin, Search, Star } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { BUSINESS_NICHES } from '../businessNiches'
 import { ownershipBadgeStyle, ownershipLabel } from '../ownershipBadge'
+import { isOwnedWebsite, nonOwnedWebsiteMessage } from '../websiteClassification'
 import type { BusinessOwnership, DiscoveredAsset } from '../types'
 import { DiscoveredAssetGrid, type DiscoveredAssetDropZone } from '../DiscoveredAssetGrid'
 import { ResumeProjectBanner } from '../ResumeProjectBanner'
@@ -63,7 +64,6 @@ export function StepFindBusiness({
     selectBusiness,
     researchBusiness,
     runDiscoveryWorkflow,
-    discoverAssets,
     discoveryStatus,
     discoveryError,
     discoveredAssets = [],
@@ -78,6 +78,7 @@ export function StepFindBusiness({
     importConfirmation,
     access,
     setViewMode,
+    websiteLookup,
   } = ctx
 
   const [searchNiche, setSearchNiche] = useState('')
@@ -91,6 +92,11 @@ export function StepFindBusiness({
 
   const businessName = clientForm.businessName || clientForm.name || ''
   const website = clientForm.website || ''
+  // A pasted Facebook/Instagram/Yelp URL is not the business's own website.
+  const websiteHint = website.trim() ? nonOwnedWebsiteMessage(website.trim()) : null
+  const lookupForSelected = websiteLookup && selectedBusiness && websiteLookup.businessId === selectedBusiness.id
+    ? websiteLookup
+    : null
   const research = businessResearch
   const discoveredCount = discoveredAssets.filter((asset) => !asset.rejected).length
   // "Logo found" must reflect the DISCOVERED assets: a discovery run that
@@ -141,7 +147,9 @@ export function StepFindBusiness({
     if (!website.trim() || busy) return
     setBusy(true)
     try {
-      await discoverAssets(website.trim())
+      // The full workflow (as in Advanced Editing's Find My Brand): fills the
+      // business name and details, then finds and places the logo and photos.
+      await runDiscoveryWorkflow(website.trim())
     } catch {
       /* errors surface through discoveryError */
     } finally {
@@ -251,6 +259,9 @@ export function StepFindBusiness({
                       {[business.category, [business.city, business.region].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
                     </div>
                     {business.phone && <div style={{ color: C.muted2, fontSize: 11 }}>{business.phone}</div>}
+                    {!isOwnedWebsite(business.website) && (business.facebook || business.instagram || business.website) && (
+                      <div style={{ color: C.muted2, fontSize: 11 }}>Social page only — we'll look for its website</div>
+                    )}
                     {business.ownership && (
                       <div style={{ marginTop: 4 }}>
                         <span style={ownershipBadgeStyle(business.ownership)}>
@@ -287,6 +298,14 @@ export function StepFindBusiness({
         </div>
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto]" style={{ gap: 10, alignItems: 'end' }}>
           <div>
+            <label style={labelStyle} htmlFor="guided-business-name-step1">Business name</label>
+            <input
+              id="guided-business-name-step1"
+              value={clientForm.businessName || ''}
+              onChange={(event) => updateClientForm({ ...clientForm, businessName: event.target.value })}
+              placeholder="Your business name"
+              style={{ ...inputStyle, marginBottom: 10 }}
+            />
             <label style={labelStyle} htmlFor="guided-business-website">Website</label>
             <input
               id="guided-business-website"
@@ -301,6 +320,7 @@ export function StepFindBusiness({
               type="button"
               onClick={handleWebsiteDiscovery}
               disabled={!website.trim() || busy}
+              title={!website.trim() ? 'Enter your website first' : undefined}
               style={{ ...primaryButtonStyle, opacity: !website.trim() || busy ? 0.5 : 1 }}
             >
               {busy && discoveryStatus === 'discovering' ? 'Finding…' : 'Find my brand'}
@@ -310,6 +330,7 @@ export function StepFindBusiness({
               type="button"
               onClick={handleFindAssets}
               disabled={!website.trim() || busy}
+              title={!website.trim() ? 'Enter your website first' : undefined}
               style={{ ...primaryButtonStyle, opacity: !website.trim() || busy ? 0.5 : 1 }}
             >
               {busy && discoveryStatus === 'discovering' ? 'Finding…' : 'Find business assets'}
@@ -319,6 +340,20 @@ export function StepFindBusiness({
         <p style={hintStyle}>
           We read the public page for your logo, photos and business details. Nothing is generated and nothing is charged.
         </p>
+        {websiteHint && (
+          <p style={{ ...hintStyle, color: C.danger }}>{websiteHint}</p>
+        )}
+        {lookupForSelected?.status === 'searching' && (
+          <p style={{ ...hintStyle, color: C.cyan }}>Looking for {lookupForSelected.businessName}'s website…</p>
+        )}
+        {lookupForSelected?.status === 'found' && lookupForSelected.website && (
+          <p style={{ ...hintStyle, color: C.cyan }}>Found {lookupForSelected.businessName}'s website: {lookupForSelected.website}</p>
+        )}
+        {(lookupForSelected?.status === 'not_found' || lookupForSelected?.status === 'error') && !website.trim() && (
+          <p style={hintStyle}>
+            We couldn't find {lookupForSelected.businessName}'s own website{selectedBusiness?.facebook || selectedBusiness?.instagram ? ' — only a social media page is listed' : ''}. Enter it above to find its brand assets.
+          </p>
+        )}
         {research && research.status === 'researching' && (
           <p style={{ ...hintStyle, color: C.cyan }}>Reading your website…</p>
         )}

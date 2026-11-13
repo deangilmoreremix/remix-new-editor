@@ -1,5 +1,6 @@
 // Template videos library: turning a picked clip into a timeline asset, and placing it at the playhead.
 // Kept apart from timeline-editor.tsx so the placement rules are unit-testable with the real timeline operations.
+import { useCallback, type MutableRefObject } from 'react';
 import type { Timeline } from '@cinegen/types/timeline';
 import { clipEndTime } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
@@ -41,4 +42,18 @@ export function placeTemplateVideo(timeline: Timeline, asset: Asset, at: number)
   const added = withTrack.tracks.find((t) => !known.has(t.id));
   if (!added) return timeline;
   return addClipToTrack(withTrack, added.id, asset, at);
+}
+
+/** The editor's "pick a template video" handler: asset into the media pool, clip at the playhead (kept here so timeline-editor.tsx stays close to CineGen). */
+export function usePickTemplateVideo({ dispatch, setTimeline, timelineRef, currentTime }: {
+  dispatch: (action: { type: 'ADD_ASSET'; asset: Asset }) => void;
+  setTimeline: (timeline: Timeline) => void;
+  timelineRef: MutableRefObject<Timeline>;
+  currentTime: number;
+}) {
+  return useCallback((item: TemplateVideo) => {
+    const asset = templateVideoAsset(item);
+    dispatch({ type: 'ADD_ASSET', asset });
+    setTimeline(placeTemplateVideo(timelineRef.current, asset, currentTime));
+  }, [dispatch, setTimeline, timelineRef, currentTime]);
 }

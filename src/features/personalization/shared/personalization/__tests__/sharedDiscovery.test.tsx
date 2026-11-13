@@ -40,7 +40,7 @@ beforeAll(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
 })
 
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -76,6 +76,18 @@ vi.mock('@ohb/lib/authConfig', () => ({
 
 vi.mock('@ohb/packages/studio/src/muapi', () => ({
   uploadFile: vi.fn().mockResolvedValue('https://uploaded.example.com/asset.png'),
+}))
+
+// The "asset summaries… still work" test applies an image edit, which uploads
+// through the durable-storage service. With no storage backend that rejects
+// (correct in the app, where the editor modal catches it); here the upload is
+// stubbed because this file tests discovery, not storage. See
+// editedAssetUploadFailure.test.tsx for the failure path.
+vi.mock('../assetUploadService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../assetUploadService')>()),
+  uploadPersonalizationAsset: vi.fn().mockResolvedValue({
+    url: 'https://uploaded.example.com/asset.png',
+  }),
 }))
 
 URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test')
@@ -513,11 +525,14 @@ describe('free discovery in the shared modal — anonymous mode', () => {
     expect(screen.queryAllByTestId('find-my-brand-progress').length).toBe(0)
 
     // The form was populated through the existing selectBusiness mapping:
-    // website is the normalised input, businessName the hostname.
+    // website is the normalised input. The hostname placeholder name is then
+    // replaced by the name the site publishes (its page title).
     expect(ctx().clientForm.website).toBe('https://sunsetrealty.example.com')
-    expect(ctx().clientForm.businessName).toBe('sunsetrealty.example.com')
+    expect(ctx().clientForm.businessName).toBe('Sunset Realty')
     // Research + discovery both happened (one server round trip).
     expect(ctx().businessResearch.status).toBe('done')
+    // (Auto-placing the logo/photos into empty cards is covered by
+    // businessAutoLoad.test.tsx, which stubs the browser image-load check.)
     expect(ctx().discoveredAssets.length).toBe(4)
     expect(requestedUrls('/api/demo/discover').length).toBe(1)
   })
@@ -564,6 +579,139 @@ describe('free discovery in the shared modal — anonymous mode', () => {
     expect(requestedUrls('/api/demo/discover').length).toBe(1)
     expect(requestedUrls('/api/personalization/research-business').length).toBe(0)
     expect(requestedUrls('/api/personalization/discover-assets').length).toBe(0)
+  })
+
+  it('a social-only lead resolves its own website before discovery (never discovers on facebook.com)', async () => {
+    const baseFetch = (globalThis as any).fetch
+    ;(globalThis as any).fetch = vi.fn(async (url: string, init?: any) => {
+      if (typeof url === 'string' && url.includes('/api/personalization/find-businesses')) {
+        fetchCalls.push({ url, init })
+        return jsonResponse({
+          ...BUSINESS_SEARCH_RESPONSE,
+          businesses: [{
+            ...BUSINESS_SEARCH_RESPONSE.businesses[0],
+            website: undefined,
+            facebook: 'https://www.facebook.com/sunsetrealty',
+          }],
+        })
+      }
+      if (typeof url === 'string' && url.includes('/api/personalization/resolve-website')) {
+        fetchCalls.push({ url, init })
+        return jsonResponse({ ok: true, website: 'https://sunsetrealty.example.com', confidence: 'high' })
+      }
+      return baseFetch(url, init)
+    })
+
+    const container = await mountModal({ access: 'anonymous' })
+    await act(async () => {
+      fireEvent.click(screen.getByText(/find a local business/i))
+    })
+    await flush(30)
+    const niche = container.querySelector('#business-niche') as HTMLSelectElement
+    const location = container.querySelector('#business-location') as HTMLInputElement
+    await act(async () => {
+      fireEvent.change(niche, { target: { value: 'real-estate' } })
+      fireEvent.change(location, { target: { value: 'Hollywood, FL' } })
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Find Businesses'))
+    })
+    await flush(30)
+
+    expect(container.textContent).toContain('Social page only')
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Sunset Realty'))
+    })
+    await flush()
+
+    const resolveCalls = requestedUrls('/api/personalization/resolve-website')
+    expect(resolveCalls.length).toBe(1)
+    expect(JSON.parse(resolveCalls[0].init.body)).toMatchObject({ name: 'Sunset Realty', city: 'Hollywood', phone: '555-0100' })
+    expect(ctx().clientForm.website).toBe('https://sunsetrealty.example.com')
+    const discoverCalls = requestedUrls('/api/demo/discover')
+    expect(discoverCalls.length).toBe(1)
+    expect(discoverCalls[0].init.body).toContain('sunsetrealty.example.com')
+    expect(discoverCalls[0].init.body).not.toContain('facebook.com')
+  })
+
+  it('a website lookup that finishes after a newer selection does not replace that selection', async () => {
+    const baseFetch = (globalThis as any).fetch
+    let releaseFirstLookup: (() => void) | undefined
+    ;(globalThis as any).fetch = vi.fn(async (url: string, init?: any) => {
+      if (typeof url === 'string' && url.includes('/api/personalization/find-businesses')) {
+        fetchCalls.push({ url, init })
+        const base = BUSINESS_SEARCH_RESPONSE.businesses[0]
+        return jsonResponse({
+          ...BUSINESS_SEARCH_RESPONSE,
+          businesses: [
+            { ...base, id: 'biz-a', name: 'Alpha Realty', website: undefined, facebook: 'https://www.facebook.com/alpha' },
+            { ...base, id: 'biz-b', name: 'Bravo Realty', website: undefined, facebook: 'https://www.facebook.com/bravo' },
+          ],
+        })
+      }
+      if (typeof url === 'string' && url.includes('/api/personalization/resolve-website')) {
+        fetchCalls.push({ url, init })
+        const name = JSON.parse(init.body).name
+        if (name === 'Alpha Realty') {
+          // Alpha's lookup stays pending until the test releases it.
+          await new Promise<void>((resolve) => { releaseFirstLookup = resolve })
+          return jsonResponse({ ok: true, website: null })
+        }
+        return jsonResponse({ ok: true, website: 'https://bravorealty.example.com', confidence: 'high' })
+      }
+      return baseFetch(url, init)
+    })
+
+    const container = await mountModal({ access: 'anonymous' })
+    await act(async () => {
+      fireEvent.click(screen.getByText(/find a local business/i))
+    })
+    await flush(30)
+    await act(async () => {
+      fireEvent.change(container.querySelector('#business-niche') as HTMLSelectElement, { target: { value: 'real-estate' } })
+      fireEvent.change(container.querySelector('#business-location') as HTMLInputElement, { target: { value: 'Hollywood, FL' } })
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Find Businesses'))
+    })
+    await flush(30)
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Alpha Realty'))
+    })
+    await flush(10)
+    await act(async () => {
+      fireEvent.click(screen.getByText('Bravo Realty'))
+    })
+    await flush()
+    // (The mocked discovery payload names the selected business itself, so compare before/after.)
+    const before = { selected: ctx().selectedBusiness?.id, name: ctx().clientForm.businessName, error: ctx().discoveryError }
+    expect(before.selected).not.toBe('biz-a')
+
+    // Alpha's slow lookup now finishes without a website. It must not fall back to selecting Alpha.
+    await act(async () => {
+      releaseFirstLookup?.()
+    })
+    await flush()
+    expect(ctx().selectedBusiness?.id).toBe(before.selected)
+    expect(ctx().selectedBusiness?.id).not.toBe('biz-a')
+    expect(ctx().clientForm.businessName).toBe(before.name)
+    expect(ctx().discoveryError).toBe(before.error)
+  })
+
+  it('refuses to run discovery on a pasted Facebook URL', async () => {
+    const container = await mountModal({ access: 'anonymous' })
+    const urlInput = container.querySelector('#find-my-brand-url') as HTMLInputElement
+    await act(async () => {
+      fireEvent.change(urlInput, { target: { value: 'https://www.facebook.com/sunsetrealty' } })
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('find-my-brand-submit'))
+    })
+    await flush()
+    expect(requestedUrls('/api/demo/discover').length).toBe(0)
+    expect(ctx().discoveryError).toMatch(/Facebook page, not the business's own website/)
   })
 
   it('discovered assets land in Logo/Person/Products/Brand and drag between sections', async () => {
@@ -616,19 +764,17 @@ describe('free discovery in the shared modal — anonymous mode', () => {
 // ── 2. Authenticated mode ────────────────────────────────────────────────────
 
 describe('authenticated mode keeps the existing pipeline and controls', () => {
-  // Skipped in remix-new-editor: stale in OpenHiggsBolt itself: OpenHiggsBolt commit e632d00 made Find My Brand available in every modal (see the comment above #pz-find-my-brand in PersonalizationModal.tsx), which this assertion predates.
-  it.skip('uses research-business + discover-assets and renders today’s paid controls', async () => {
+  it('uses research-business + discover-assets and renders today’s paid controls', async () => {
     const container = await mountModal({ access: 'authenticated' })
 
-    // The access mode gates the paid surface, so "Find My Brand" is offered on
-    // the free (anonymous) landing surface; the authenticated surface keeps its
-    // existing Lead Finder entry exactly as today — no panel is added or moved
-    // there. Both run through this SAME modal implementation.
-    expect(container.querySelector('#pz-find-my-brand')).toBeNull()
+    // "Find My Brand" is the single primary starting action in EVERY modal
+    // (anonymous and authenticated alike; see PersonalizationModal.tsx). The
+    // authenticated surface additionally keeps its Lead Finder entry below.
+    expect(container.querySelector('#pz-find-my-brand')).toBeTruthy()
 
     // Drive the existing Lead Finder flow: audience → chooser → search → select.
     await act(async () => {
-      fireEvent.click(screen.getByText('Client'))
+      fireEvent.click(screen.getByRole('button', { name: 'Client' }))
     })
     await flush(20)
     await act(async () => {
@@ -647,27 +793,31 @@ describe('authenticated mode keeps the existing pipeline and controls', () => {
     })
     await flush(30)
 
-    // Authenticated selection is exactly today's behaviour: select only.
     await act(async () => {
       fireEvent.click(screen.getByText('Sunset Realty'))
     })
     await flush(30)
-    expect(requestedUrls('/api/personalization/research-business').length).toBe(0)
-    expect(requestedUrls('/api/personalization/discover-assets').length).toBe(0)
-    expect(ctx().clientForm.businessName).toBe('Sunset Realty')
 
-    // The manual research + discovery steps use the authenticated endpoints.
+    // Selecting a business runs the automated workflow in EVERY mode (commit
+    // 071b990, PersonalizationModal.handleSelectBusiness): populate the form,
+    // research the business and discover its assets in one run — on the
+    // authenticated endpoints, once each.
+    expect(ctx().clientForm.businessName).toBe('Sunset Realty')
+    expect(requestedUrls('/api/personalization/research-business').length).toBe(1)
+    expect(requestedUrls('/api/personalization/discover-assets').length).toBe(1)
+
+    // The manual controls remain and RE-RUN the same authenticated steps.
     await act(async () => {
-      fireEvent.click(screen.getByText('Research Business'))
+      fireEvent.click(screen.getByText('Research Complete'))
     })
     await flush(30)
-    expect(requestedUrls('/api/personalization/research-business').length).toBe(1)
+    expect(requestedUrls('/api/personalization/research-business').length).toBe(2)
 
     await act(async () => {
       fireEvent.click(screen.getByText('Find Business Assets'))
     })
     await flush(30)
-    expect(requestedUrls('/api/personalization/discover-assets').length).toBe(1)
+    expect(requestedUrls('/api/personalization/discover-assets').length).toBe(2)
     // The free endpoint is never used on the authenticated surface.
     expect(requestedUrls('/api/demo/discover').length).toBe(0)
 
@@ -687,7 +837,7 @@ describe('research merges additively into the client form', () => {
   /** Authenticated Lead Finder: audience → chooser → search → select. */
   const selectAuthenticatedBusiness = async (container: HTMLElement) => {
     await act(async () => {
-      fireEvent.click(screen.getByText('Client'))
+      fireEvent.click(screen.getByRole('button', { name: 'Client' }))
     })
     await flush(20)
     await act(async () => {
@@ -710,11 +860,12 @@ describe('research merges additively into the client form', () => {
     await flush(30)
   }
 
-  // Skipped in remix-new-editor: stale upstream, as above.
-  it.skip('never overwrites user-edited fields and never clobbers with missing values', async () => {
+  it('never overwrites user-edited fields and never clobbers with missing values', async () => {
     const container = await mountModal({ access: 'authenticated' })
     await selectAuthenticatedBusiness(container)
+    // The automated workflow already researched and filled the form.
     expect(ctx().clientForm.businessName).toBe('Sunset Realty')
+    expect(ctx().businessResearch.status).toBe('done')
 
     // The visitor edits the auto-populated form, including the website.
     // (The Phone field exists in both the profile and the CTA section, so the
@@ -730,10 +881,10 @@ describe('research merges additively into the client form', () => {
     })
     await flush(20)
 
-    // Research succeeds: a different canonical URL, a description and a
-    // different phone arrive.
+    // Research runs AGAIN after the edits (the automated run came first): a
+    // different canonical URL, a description and a different phone arrive.
     await act(async () => {
-      fireEvent.click(screen.getByText('Research Business'))
+      fireEvent.click(screen.getByText('Research Complete'))
     })
     await flush(30)
     expect(ctx().businessResearch.status).toBe('done')
@@ -748,8 +899,7 @@ describe('research merges additively into the client form', () => {
     expect(ctx().clientForm.brandDescription).toBe('Boutique brokerage for Hollywood, FL beachfront homes.')
   })
 
-  // Skipped in remix-new-editor: stale upstream: drives the pre-e632d00 authenticated Lead Finder flow ("Research Business" button).
-  it.skip('leaves existing values intact when research omits them', async () => {
+  it('leaves existing values intact when research omits them', async () => {
     const container = await mountModal({ access: 'authenticated' })
 
     // Pre-fill through the provider: an existing website + description.
@@ -759,11 +909,9 @@ describe('research merges additively into the client form', () => {
         brandDescription: 'Visitor-written description.',
       })
     })
+    // Selecting the business runs the automated research, which must merge
+    // additively into the pre-filled form.
     await selectAuthenticatedBusiness(container)
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Research Business'))
-    })
     await flush(30)
 
     // Nothing was clobbered: the visitor's website and description remain…
@@ -773,19 +921,12 @@ describe('research merges additively into the client form', () => {
     expect(ctx().businessResearch.result.title).toBe('Sunset Realty — Hollywood FL Homes')
   })
 
-  // Skipped in remix-new-editor: stale upstream, as above.
-  it.skip('selecting a new business clears the prior business reviewable discoveries', async () => {
+  it('selecting a new business clears the prior business reviewable discoveries', async () => {
     const container = await mountModal({ access: 'authenticated' })
     await selectAuthenticatedBusiness(container)
 
-    // First discovery run fills the reviewable list with business A's assets.
-    await act(async () => {
-      fireEvent.click(screen.getByText('Research Business'))
-    })
-    await flush(30)
-    await act(async () => {
-      fireEvent.click(screen.getByText('Find Business Assets'))
-    })
+    // Selecting business A already ran research + discovery automatically and
+    // filled the reviewable list with A's assets.
     await flush(30)
     expect(ctx().discoveredAssets.length).toBeGreaterThan(0)
     expect(ctx().discoveryStatus).toBe('reviewing')
@@ -874,10 +1015,10 @@ describe('shared modal stays contained across viewports', () => {
     await flush()
 
     expectNoFixedOverflow(container, 390)
-    // The narrow-viewport layout uses single-column responsive wrappers.
-    const overview = container.querySelector('#pz-overview') as HTMLElement | null
-    expect(overview?.className).toContain('grid-cols-1')
-    expect(overview?.className).toContain('lg:grid-cols-2')
+    // The narrow-viewport layout is a single column (two panes only from xl).
+    const layout = container.querySelector('.pz-adv-layout') as HTMLElement | null
+    expect(layout?.className).toContain('grid-cols-1')
+    expect(layout?.className).toContain('xl:grid-cols-')
     restoreViewport()
   })
 
@@ -899,10 +1040,22 @@ describe('pre-existing modal features survive the integration', () => {
     expect(screen.getByRole('heading', { name: 'What SmartVideo Will Use' })).toBeTruthy()
     expect(screen.getByText('No assets assigned yet.')).toBeTruthy()
 
-    // First/Last Frame + CTA sections
+    // First/Last Frame + CTA sections (on the Assets tab of Advanced Editing)
     expect(screen.getByText('5. First Frame')).toBeTruthy()
     expect(screen.getByText('6. Last Frame / CTA')).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('pz-tab-assets'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('pz-pill-assets-content'))
+    })
     expect(screen.getByRole('heading', { name: /CTA & Business Content/i })).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('pz-tab-create'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('pz-pill-create-output'))
+    })
 
     // Engine + audio control
     expect(container.querySelector('#pz-engine')).toBeTruthy()
@@ -910,9 +1063,22 @@ describe('pre-existing modal features survive the integration', () => {
       fireEvent.click(screen.getByText('Advanced Settings ›'))
     })
     await flush(20)
-    expect(screen.getByText('Preserve Audio')).toBeTruthy()
+    // The sound control only exists where it changes the video (Full presenter).
+    expect(screen.queryByText("Keep the original video's sound")).toBeNull()
+    await act(async () => {
+      ;(window as unknown as { __personalizationCtx: { setMode: (mode: string) => void } }).__personalizationCtx.setMode('full_body')
+    })
+    await flush(20)
+    expect(screen.getByText("Keep the original video's sound")).toBeTruthy()
 
-    // onRevert: edit a product asset, then revert it through the thumb control.
+    // onRevert: edit a product asset, then revert it through the thumb control
+    // (product thumbnails live on Assets → Your assets).
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('pz-tab-assets'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('pz-pill-assets-yours'))
+    })
     await act(async () => {
       ctx().addProductUrl('https://example.com/product.png')
     })

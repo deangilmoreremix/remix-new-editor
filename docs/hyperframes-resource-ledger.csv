@@ -93,10 +93,10 @@ code-morph,block,verified-export,yes,yes,no,0.999,1,SSIM >= 0.95 at all samples 
 code-particle-assemble,block,verified-export,yes,no,no,,,WebGL; three.js; no editable fields detected; not yet rendered through the production adapter path
 code-scroll,block,verified-export,yes,no,no,1.0,,export throughput 4.5 fps < 8
 code-shader-dissolve,block,verified-export,yes,no,no,,,WebGL; three.js; no editable fields detected; not yet rendered through the production adapter path
-code-slice-hero,block,unsupported,no,no,no,,,a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'
+code-slice-hero,block,verified-export,yes,yes,no,,6,SSIM >= 0.95 at all samples against native HyperFrames (block loaded from its own pinned folder); real 1080p browser export OK
 code-snippet-apple-terminal-pro,block,verified-export,yes,yes,no,0.974,6,SSIM >= 0.95 at all samples; MP4 export OK
-code-snippet-dark-2026,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline code-snippet-dark-2026: no __timelines entry
-code-snippet-dark-modern,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline code-snippet-dark-modern: no __timelines entry
+code-snippet-dark-2026,block,adapter-compatible,no,no,no,,,"renders and animates correctly (visual review) and 3 of 4 title fields are editable, but the real 1080p browser export runs at 1.6 fps (< 3 fps minimum), so it stays held back; the earlier ""no timeline"" reason was wrong"
+code-snippet-dark-modern,block,adapter-compatible,no,no,no,,,"renders and animates correctly (visual review) and 3 of 4 title fields are editable, but the real 1080p browser export runs at 1.6 fps (< 3 fps minimum), so it stays held back; the earlier ""no timeline"" reason was wrong"
 code-terminal-run,component,specialized,no,no,no,0.155,,worst-sample SSIM 0.155: content differs from native
 code-typing,block,verified-export,yes,yes,no,1.0,1,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 color-wheel,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline color-wheel: no __timelines entry (data-no-timeline block)
@@ -377,7 +377,7 @@ text-state-swap,component,verified-export,yes,yes,no,1.0,4,SSIM >= 0.95 at all s
 texture-mask-text,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 thermal-distortion,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
 thin-film,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline thin-film: no __timelines entry (data-no-timeline block)
-thread-message-stack,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline thread-message-stack: no __timelines entry
+thread-message-stack,block,verified-export,yes,yes,no,,7,"Visually verified (no SSIM: the native HyperFrames renderer produces a blank reference for this block); production render shows the full animation, 7 editable fields measured visible, real 1080p browser MP4 export OK"
 three-orbiting-cards,component,adapter-compatible,no,no,no,0.937,,worst-sample SSIM 0.937
 ticker-takeover,component,specialized,no,no,no,0.79,,worst-sample SSIM 0.790: content differs from native
 tiktok-follow,block,verified-export,yes,yes,no,0.987,6,SSIM >= 0.95 at all samples; MP4 export OK

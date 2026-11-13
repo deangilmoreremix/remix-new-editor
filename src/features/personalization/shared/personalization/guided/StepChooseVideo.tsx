@@ -16,6 +16,7 @@ import {
   tileStyle,
 } from './tokens'
 import { TemplateBrowser } from './TemplateBrowser'
+import { RecastOption } from './RecastOption'
 import {
   ALL_DEMOS_CATEGORY_ID,
   DEMO_CATEGORIES,
@@ -579,6 +580,7 @@ export function StepChooseVideo(): React.JSX.Element {
                     // so an id match would light up (and mount a second player for)
                     // a different demo.
                     const active = selectedUrl === demo.videoSrc
+                    const unavailable = !demo.videoSrc
                     return (
                       // A <div role="button"> rather than a real <button>: the card
                       // contains a native <video controls> and a play overlay
@@ -589,7 +591,9 @@ export function StepChooseVideo(): React.JSX.Element {
                         role="button"
                         tabIndex={0}
                         aria-pressed={active}
-                        aria-label={`Select ${demo.title}`}
+                        aria-disabled={unavailable || undefined}
+                        title={unavailable ? 'Video coming soon' : undefined}
+                        aria-label={unavailable ? `${demo.title} (video coming soon)` : `Select ${demo.title}`}
                         data-testid={`demo-card-${demo.legacyId}-${demo.slug}`}
                         data-demo-id={demo.id}
                         onClick={() => pickDemo(demo)}
@@ -611,6 +615,7 @@ export function StepChooseVideo(): React.JSX.Element {
                           // width of the grid and moves to the top — the customer
                           // sees the demo playing without scrolling.
                           ...(active ? { gridColumn: '1 / -1', order: -1 } : {}),
+                          ...(unavailable ? { opacity: 0.5, cursor: 'not-allowed' } : {}),
                         }}
                       >
                         <div style={{ position: 'relative' }}>
@@ -673,6 +678,7 @@ export function StepChooseVideo(): React.JSX.Element {
                         </div>
                         <div style={{ color: C.text, fontSize: 12, fontWeight: 700, marginTop: 8, lineHeight: 1.35 }}>{demo.title}</div>
                         {demo.durationLabel && <div style={{ color: C.muted2, fontSize: 10, marginTop: 2 }}>{demo.durationLabel}</div>}
+                        {unavailable && <div data-testid="demo-unavailable" style={{ color: C.muted2, fontSize: 10, marginTop: 2 }}>Video coming soon</div>}
                       </div>
                     )
                   })}
@@ -746,6 +752,9 @@ export function StepChooseVideo(): React.JSX.Element {
                   </div>
                   <div style={{ color: C.text, fontSize: 12, fontWeight: 700, marginTop: 8 }}>{entry.sourceDemoSlug || 'Saved video'}</div>
                   <div style={{ color: C.muted2, fontSize: 10, marginTop: 2 }}>From {entry.originStudio || 'your library'}</div>
+                  {entry.layersMissing && (
+                    <div data-testid="saved-video-layers-missing" style={{ color: '#fcd34d', fontSize: 10, marginTop: 2 }}>Without your on-video layers</div>
+                  )}
                 </button>
               )
             })}
@@ -779,6 +788,9 @@ export function StepChooseVideo(): React.JSX.Element {
         )}
       </div>
       )}
+
+      {/* Optional AI recast: skipping keeps the original video (the default). */}
+      {Boolean(selectedUrl) && source?.mediaType === 'video' && <RecastOption />}
     </div>
   )
 }

@@ -4,7 +4,7 @@
 >
 > | Item | Result |
 > |---|---|
-> | Enabled for customers | **118** = 69 blocks + 48 components + 1 starter project (flag OFF by default) |
+> | Enabled for customers | **118** = 69 blocks + 48 components + 1 starter project (ON for everyone) |
 > | Blocks | 210: 114 verified (84 + 30 recovered by generic adapter fixes) = 67 enabled + 47 held back (exact blocker per id in the ledger); 19 adapter-compatible, 25 specialized, 50 unsupported, 2 not-tested |
 > | Components | 238: 80 verified vs native HyperFrames, 37 host-dependent (blank standalone), 57 adapter-compatible, 62 specialized, 2 adapter errors; **7 enabled** (beat-accent, chat-message, conic-progress-ring, hw-arrow, hw-box-label, text-shimmer, yt-circle-pointer); 56 verified ones are held for browser-export throughput (4-8 fps at 1080p), 19 for blank standalone output, 17 for no measured editable effect |
 > | Starter projects | 9: 3 verified vs native (decision-tree, nyt-graph, product-promo); **1 enabled (product-promo, 12.2 fps, full-scene template, exported in the real editor)**; decision-tree/nyt-graph held for throughput (6.7/6.9 fps); play-mode, swiss-grid, vignelli, warm-grain adapter-compatible (SSIM 0.88-0.94: unfilled `__VIDEO_SRC__` footage slot and caption layout differences); kinetic-type unsupported (remote S3 image not pinned); path-traced-3d unsupported (WebGL path tracer, no timeline) |
@@ -28,10 +28,10 @@
 >
 > Corrections to earlier reporting: (1) "32 blocks failed MP4 export" was a classification bug: 31 of them were never exported (their SSIM was < 0.85, so they are `specialized`), 1 real export timeout; (2) 12 blocks were blocked for "remote images" because of `<link rel=preconnect href=fonts.gstatic.com>`; the manifest builder now ignores preconnect links; (3) `lower-third-bild`, `share-sheet-carousel`, `split-flap-board`, `freeze-frame-dressing` were removed from the enabled list because their built-in text cannot be edited, or edits had no measured effect, or the production-path render differed from native (SSIM 0.823).
 
-Status: integration branch `claude/hyperframes-timeline-integration`, based on `origin/claude/confident-fermi-3azaem` (d50eeb167). Not merged, not deployed. **OFF by default.**
+Status: integration branch `claude/hyperframes-timeline-integration`, based on `origin/claude/confident-fermi-3azaem` (d50eeb167). Merged to develop (PR #90). **ON for everyone** (see "Feature flag").
 
 ## Feature flag and rollback
-- ON: build env `VITE_HYPERFRAMES_TIMELINE=true`, or (QA) `localStorage['remix.hyperframes.v1']='1'`.
+- ON by default. Hide it in one browser (QA): `localStorage['remix.hyperframes.v1']='0'`. `VITE_HYPERFRAMES_TIMELINE` is no longer read. Emergency off for everyone: `VITE_HYPERFRAMES_RUNTIME_DISABLED=true` (build) or `localStorage['remix.hyperframes.kill']='1'`.
 - The flag only controls the library entry point ("HyperFrames animations…" in the overlay lane's add menu). Without it the editor is unchanged (verified: flag-off export matches the pristine build, see below).
 - Rollback: unset the env var / remove the localStorage key and redeploy; no data migration. Hard rollback: revert the branch (all changes additive). Projects that already contain `hyperframes` overlays keep them in `project.json`; older builds drop unknown overlay kinds via `normalizeOverlays` (they are not corrupted).
 
@@ -116,7 +116,7 @@ Full vitest: pristine 193 failing / 8 files; integration 193 failing in the same
 - Only Chromium tested; footage durability depends on storage upload (existing behaviour); WebGL/three.js/WebGPU items stay disabled; 4 starters need a footage slot / caption layout work; kinetic-type needs asset pinning; unmeasured editable fields are hidden.
 
 ## Viewing it on a preview deploy
-HyperFrames is off by default. On a preview, open the app, then in the browser console run `localStorage.setItem('remix.hyperframes.v1','1')` and reload. The Edit tab's "Add overlay…" menu then shows "HyperFrames animations…". Emergency off: `localStorage.setItem('remix.hyperframes.kill','1')`.
+The library is on by default: the Edit tab's "Add overlay…" menu shows "Animations…". Emergency off: `localStorage.setItem('remix.hyperframes.kill','1')`.
 
 Preview build trigger note: PR #90 now targets develop so Netlify builds a Deploy Preview.
 
@@ -145,3 +145,24 @@ The 14 `caption-*` demos and `halftone-dissolve` declare no (effective) variable
 ### Update: inline variable declarations, nicer library cards (118 HyperFrames + 149 RemotionUI = 267)
 Compositions that mount their component inline (component demos) declare the variables on the inner element; `BlockClip` now resolves customer `var.*` overrides against that element when the root declares none (this made 29 of 38 fields of 11 re-tested components visibly effective).
 Eight components that looked like a tiny element in a corner when shown alone (`avatar-group-hover`, `menu-morph`, `matrix-decode`, `per-word-crossfade`, `perspective-marquee`, `tabs-slide-indicator`, `top-down-letters`, `input-feedback`) now use their own demo scene; `badge-pop` was added. Hover previews of all 266 then-current cards were checked in the real library modal.
+
+
+## Update: placement of animations (lower thirds fix)
+Every animation (HyperFrames and RemotionUI) can now be placed in the frame: **Fit** (inside the frame / fill the frame / match width and sit at the bottom), **Left/right** and **Up/down** offsets (% of the frame), **Size** (%), plus a "Move" handle and a corner resize square on the video, "Reset position" and "Extend to end of video" in the settings panel.
+The overlay stores `geom: { x, y, scale, fit }` (optional; overlays saved earlier render as before). One function, `src/lib/hyperframes/placement.js`, is used by the preview, the handles and the export, so what you see is what is exported.
+Lower thirds and tickers default to `width-bottom`: they stay on the bottom edge in 16:9, 9:16 and 1:1, and are enlarged up to 2.2x in narrower frames so they are not tiny on a phone-shaped video (verified by a real 1080x1920 MP4 export, default and moved/resized).
+Lower thirds also got customer-facing field names and neutral starting text ("Your name", "Your title", a neutral avatar) from `src/lib/hyperframes/labels.json` (the master text stays the default; a new clip starts with the neutral text), and 640x360 thumbnails rendered over a video-like backdrop.
+Note: `lower-third-bild` is enabled (the earlier note that it was removed is out of date).
+
+## Update: blocks that ship their own folder (Stage 3, first fix)
+Eight blocks (`canopy-part-title`, `code-slice-hero`, `cuboid-carousel`, `frost-sequence-camera-orbit`, `glass-shard-title`, `lottie-character-walk`, `orbit-card`, `wireframe-portal-title`) keep their html and assets together in `compositions/<id>/`, but the vendoring put the html at `blocks/<id>.html` and the assets elsewhere, so scripts referenced as `assets/...` returned the app's HTML page ("Unexpected token '<'"): that was the real cause of several "script failed" classifications, not the blocks themselves.
+`eval-enable.py` now records such blocks as pinned **projects** (`project.folder`, dir `blocks/<id>`), `vendor-enabled.mjs` copies the folder with its layout (sha256 per file), and `native-refs.mjs` has a `block-folder` type. Re-measured against native HyperFrames (production-path SSIM, real 1080p export, field effects): `code-slice-hero` passes every gate and is now **enabled (119 HyperFrames items)**; `orbit-card` (0.943) and `cuboid-carousel` (0.81-0.94) are close but below 0.95; `glass-shard-title` and `lottie-character-walk` render but no field visibly changes the picture (blank/off-sample); `canopy-part-title`, `wireframe-portal-title`, `frost-sequence-camera-orbit` do not match native.
+Finding: headless Chromium here runs **WebGL** (software), so WebGL/three.js blocks CAN be verified (`enable-blocks.py` allows them when SSIM >= 0.95 and a real export succeeds); **WebGPU** blocks cannot (no real GPU), so they stay held back.
+
+
+## Stage 3, part 2: GSAP pilot (4 blocks reported "no timeline")
+The four non-shader blocks reported as having no seekable timeline (`code-snippet-dark-2026`, `code-snippet-dark-modern`, `thread-message-stack`, `vfx-iphone-device`) were re-run through the production path. The adapter was not the cause: the three GSAP blocks mount and seek correctly. `vfx-iphone-device` still fails (its 3D model files are not vendored). The native HyperFrames render of the other three is blank here, so SSIM cannot be computed; they were checked visually instead (documented exception, `visualReview: true` in the classification).
+- **`thread-message-stack` is enabled** (library 120 HyperFrames items): 7 editable fields (6 message texts + the first sender), all measured to change the picture; real 1080p export 13.2 fps.
+- New editing path for blocks that keep their text in a declarative JSON blob (`data-hf-primitive-data`): override key `data.<path>` (e.g. `data.messages.0.text`), validated like `cfg.*` (path allow-list, text/number only, no new keys, type must match) and patched into the JSON text before the block's scripts run (`patchDataBlob` in `config.js`). Element text edits are also re-applied after the block's scripts ran, so a title that a script writes from its own theme object stays editable.
+- **Held back:** both code-snippet blocks. Title/eyebrow/theme-file/window-title fields work (visible effect measured), the code body and file tree are fixed sample text, and the real export runs at 1.6 fps (< 3 fps minimum).
+- Library thumbnails (`public/hyperframes/thumbs/*.jpg`) were git-ignored by a global `*.jpg` rule, so they were missing on the deployed site (the URL returned the app shell). They are now tracked.

@@ -51,9 +51,9 @@ describe('TemplateVideosModal', () => {
   });
 
   it('shows a subcategory row for the chosen category and filters by it, with counts that add up', () => {
-    expect(screen.queryByRole('tablist', { name: 'Subcategories' })).toBeNull();
+    expect(screen.queryByRole('tablist', { name: 'Template video subcategories' })).toBeNull();
     fireEvent.click(tab(/^◈Commercial/));
-    const row = within(screen.getByRole('tablist', { name: 'Subcategories' }));
+    const row = within(screen.getByRole('tablist', { name: 'Template video subcategories' }));
     const chips = row.getAllByRole('tab').filter((c) => !/^All/.test(c.textContent ?? ''));
     expect(chips.length).toBeGreaterThan(3);
     const sum = chips.reduce((n, c) => n + Number((c.textContent ?? '').match(/(\d+)$/)?.[1] ?? 0), 0);
@@ -68,7 +68,7 @@ describe('TemplateVideosModal', () => {
   });
 
   it('filters by duration', () => {
-    fireEvent.change(screen.getByLabelText('Duration'), { target: { value: 'extra' } });
+    fireEvent.change(screen.getByLabelText('Clip length'), { target: { value: 'extra' } });
     const expected = ALL.filter((v) => durationBucket(v.duration) === 'extra').length;
     expect(expected).toBeGreaterThan(0);
     expect(screen.getByText(new RegExp(`of ${expected} videos`))).toBeTruthy();
@@ -115,7 +115,7 @@ describe('TemplateVideosPanel (reusable inside a bigger window, e.g. an Add-to-t
     render(<TemplateVideosPanel onPick={onPick} />);
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.queryByLabelText('Close library')).toBeNull();
-    expect(screen.getByRole('tablist', { name: 'Categories' })).toBeTruthy();
+    expect(screen.getByRole('tablist', { name: 'Template video categories' })).toBeTruthy();
     fireEvent.click(screen.queryAllByTestId(/^template-video-/)[0]);
     expect(onPick).toHaveBeenCalledTimes(1);
     expect((onPick.mock.calls[0][0] as TemplateVideo).videoSrc).toMatch(/^https:\/\//);

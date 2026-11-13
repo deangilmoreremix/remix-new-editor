@@ -1,6 +1,6 @@
 # RemotionUI animations in the timeline editor
 
-The Animations library (behind the same feature flag as the HyperFrames animations, off by default) also offers components from
+The Animations library (on for everyone, same switches as the HyperFrames animations) also offers components from
 **RemotionUI** (https://remotionui.com, package `remotion-ui`, MIT). They are placed, edited, saved, previewed and exported exactly like the
 other animations: same overlay lane, same sandboxed preview frame and export runner, same error toasts, same kill switches
 (`VITE_HYPERFRAMES_RUNTIME_DISABLED=true` or `localStorage remix.hyperframes.kill='1'` switch both families off; saved projects are never rewritten).
@@ -33,7 +33,7 @@ Result: see `docs/remotionui-resource-ledger.md` / `.csv` (one row per component
 ## Editable fields are measured
 Every inspector field was changed one at a time (first five per item) and the sandboxed render compared with the default (`scripts/remotionui/fields.py`, data in `src/lib/remotionui/fields.json`).
 Only fields that visibly change the picture are offered. An item with no effective field AND visible text was removed (27 items: wrappers whose only text is fixed demo content, and the transitions, whose demo is
-two placeholder scenes). Result: **149 enabled**, 147 with at least one effective field (83 with a text field, 69 with a color field); `confetti-burst` and `subtitle-translate` have no fields and showed no text.
+two placeholder scenes). Result (updated below): **149 enabled**, 147 with at least one effective field (83 with a text field, 69 with a color field); `confetti-burst` and `subtitle-translate` have no fields and showed no text.
 
 ## Not enabled, and why
 - **Need your own audio/video file** (audiograms, waveform and VU meters, beat grids, footage mattes, split screens with video): the library has no
@@ -59,3 +59,6 @@ python3 scripts/remotionui/make-thumbs.py <stills dir> && node scripts/remotionu
 - Demos use the docs' sample content; whether each item looks right with a customer's own text/data is only covered for the editable fields listed in the inspector.
 - Google Fonts are fetched at render time (the sandbox frames already allow `fonts.googleapis.com` / `fonts.gstatic.com`).
 - This has not been independently security-reviewed; vendored source is pinned by hash and runs only inside the sandboxed frames.
+
+## Update: transitions and wrapper effects restored (168 enabled)
+The transition demos now show two scenes whose text and colors are editable (`textA`, `textB`, `colorA`, `colorB`), so each has fields that visibly change the result (measured: 53 of 68 field tests changed the picture). 17 transitions were re-verified (real 1080p exports, 9-60 fps) and re-enabled, plus `blur-in` and `slide-left` (their demo text is an editable field). 168 of 217 are enabled. Still not enabled: 22 need your own audio/video file, 13 need WebGL/map/shader packages, 3 export failures, 3 too slow, and 8 wrapper/scene items without an effective field (`deploy-reveal`, `hero-loop`, `landing-code-showcase`, `pricing-focus`, `shake-emphasis`, `stagger-children`, `strikethrough-replace`, `tool-menu-slide`).

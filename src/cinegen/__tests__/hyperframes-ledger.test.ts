@@ -1,6 +1,6 @@
 // Keeps the three data files and the vendored folder consistent: every enabled block is verified, pinned, vendored and has only effective fields.
 import { describe, expect, it } from 'vitest';
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 // @ts-expect-error plain JSON
 import cls from '../../lib/hyperframes/catalog.classification.json';
@@ -22,7 +22,8 @@ describe('hyperframes ledger', () => {
   it('every enabled item is verified, pinned to the manifest hash, vendored, and editable or explicitly ready-to-use', () => {
     const base = join(process.cwd(), 'public/hyperframes');
     const demos = new Set(readdirSync(join(base, 'component-demos')));
-    const dirs = { block: new Set(readdirSync(join(base, 'blocks')).filter((f) => f.endsWith('.html')).map((f) => f.slice(0, -5))), component: new Set(readdirSync(join(base, 'components')).filter((f) => f.endsWith('.html')).map((f) => f.slice(0, -5))), example: new Set(readdirSync(join(base, 'examples'))) };
+    const folderBlocks = new Set(readdirSync(join(base, 'blocks')).filter((d) => existsSync(join(base, 'blocks', d, `${d}.html`))));
+    const dirs = { block: new Set([...readdirSync(join(base, 'blocks')).filter((f) => f.endsWith('.html')).map((f) => f.slice(0, -5)), ...folderBlocks]), component: new Set(readdirSync(join(base, 'components')).filter((f) => f.endsWith('.html')).map((f) => f.slice(0, -5))), example: new Set(readdirSync(join(base, 'examples'))) };
     const man = new Map((manifest.items as Array<{ id: string; sourceSha256: string; files: Array<{ path: string; sha256: string }> }>).map((i) => [i.id, i]));
     for (const i of en) {
       const t = (i.type ?? 'block') as 'block' | 'component' | 'example';

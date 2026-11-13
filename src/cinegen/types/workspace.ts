@@ -8,7 +8,7 @@ import type { DirectorShow } from './director';
 import type { ProjectSet } from './sets';
 import type { ProjectProviderUsage } from '@cinegen/lib/providers/project-usage';
 
-export type ProjectTab = 'elements' | 'create' | 'director' | 'edit' | 'llm' | 'export' | 'leads' | 'settings';
+export type ProjectTab = 'elements' | 'create' | 'director' | 'edit' | 'llm' | 'export' | 'leads' | 'analytics' | 'settings';
 
 export interface WorkflowSpace {
   id: string;

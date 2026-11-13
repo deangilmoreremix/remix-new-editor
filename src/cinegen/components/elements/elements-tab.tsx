@@ -4,6 +4,7 @@ import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { ElementCard } from './element-card';
 import { WEB_KINDS, WebKindsPanel, openWebKind, type WebKind, type WebKindItem } from './web-kinds'; // [remix] List Builder / Lead Generator
 import { ElementModal } from './element-modal';
+import { ElementModalCompact } from './element-modal-compact'; // [remix] CineGen's one-page modal (93ac07a)
 import { ElementContextMenu } from './element-context-menu';
 import { ElementDeleteConfirm } from './element-delete-confirm';
 import { ElementFolderBar } from './element-folder-bar';
@@ -39,6 +40,7 @@ export function ElementsTab() {
   const [webEditing, setWebEditing] = useState<WebKindItem | null>(null); // [remix]
   const [folder, setFolder] = useState<ElementFolderFilter>('all');
   const [modalOpen, setModalOpen] = useState(false);
+  const [studioDraft, setStudioDraft] = useState<{ name: string; type: ElementType; description: string } | null>(null); // [remix] 4-step studio opened from the compact modal
   const [editingElement, setEditingElement] = useState<Element | undefined>();
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null);
 
@@ -285,13 +287,24 @@ export function ElementsTab() {
         />
       )}
 
-      {modalOpen && (
-        <ElementModal
+      {modalOpen && !studioDraft && (
+        <ElementModalCompact
           projectId={projectId}
           element={editingElement}
           onSave={handleSave}
           onDelete={editingElement ? () => requestDelete([editingElement.id]) : undefined}
           onClose={handleClose}
+          onOpenStudio={setStudioDraft}
+        />
+      )}
+      {modalOpen && studioDraft && (
+        <ElementModal
+          projectId={projectId}
+          element={editingElement}
+          defaults={editingElement ? undefined : studioDraft}
+          onSave={(data) => { setStudioDraft(null); handleSave(data); }}
+          onDelete={editingElement ? () => requestDelete([editingElement.id]) : undefined}
+          onClose={() => { setStudioDraft(null); handleClose(); }}
         />
       )}
 

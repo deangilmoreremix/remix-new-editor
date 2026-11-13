@@ -83,7 +83,9 @@ vi.mock('remotion', async () => {
       outputRange: number[],
     ) => outputRange[outputRange.length - 1] ?? 1,
     spring: () => 1,
-    Easing: { out: () => (t: number) => t, cubic: 0 },
+    // The real easing functions: some upstream designs build eased curves
+    // when their module loads, so a stub would crash the import.
+    Easing: (await vi.importActual<typeof import('remotion')>('remotion')).Easing,
   }
 })
 

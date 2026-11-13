@@ -177,6 +177,31 @@ export function getBrand(id) {
   return listBrands().find(b => b.id === id) || null;
 }
 
+const LAST_BRAND_KEY = 'brand_last_used_id';
+
+/** Remember the brand the user last opened (tolerates unavailable storage). */
+export function rememberBrandId(id) {
+  try { if (id) localStorage.setItem(LAST_BRAND_KEY, String(id)); } catch { /* storage unavailable */ }
+}
+
+/**
+ * Which brand a brand page should open. The router calls these pages with no
+ * arguments, so the id arrives in the URL query (?brandId=, or ?id= on the Brand
+ * DNA page where `id` IS the brand). An id that was asked for is returned as-is
+ * (so a bad id still shows "Brand not found"); with none, fall back to the last
+ * brand opened, then the first brand.
+ */
+export function resolveBrandId(params = {}, { allowId = false } = {}) {
+  let q;
+  try { q = new URLSearchParams(window.location.search); } catch { q = new URLSearchParams(); }
+  const asked = params.brandId || (allowId ? params.id : null) || q.get('brandId') || (allowId ? q.get('id') : null);
+  if (asked) return asked;
+  let last = null;
+  try { last = localStorage.getItem(LAST_BRAND_KEY); } catch { /* storage unavailable */ }
+  if (last && getBrand(last)) return last;
+  return listBrands()[0]?.id || null;
+}
+
 export function saveBrand(dna) {
   const brands = listBrands();
   const idx = brands.findIndex(b => b.id === dna.id);

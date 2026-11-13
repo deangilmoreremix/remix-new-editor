@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DirectorBeatTime, DirectorBreakdownItem, DirectorMode, DirectorShow } from '@cinegen/types/director';
 import type { Element } from '@cinegen/types/elements';
 import { generateMuapiVideo } from '@cinegen/adapters/muapi-video'; // [remix]
+// @ts-expect-error plain JS key manager from the main app [remix]
+import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { DirectorStructureRail } from './director-structure-rail';
 import { DirectorScriptTab } from './director-script-tab';
@@ -285,6 +287,10 @@ export function DirectorTab() {
           connected = Boolean(getRunpodLtxPodId() && getRunpodLtxPodUrl() && getRunpodLtxPodAuthToken());
           error = connected ? undefined : 'Start an LTX-2.5 Pod session in Settings.';
           if (!cancelled) setHiggsfieldReady(Boolean(higgsfieldStatus.connected));
+        } else if (adapter.provider === 'muapi') {
+          // [remix] MuAPI runs on the user's own key (no account status call).
+          connected = Boolean(apiKeyManager.getMuapiKey?.());
+          error = connected ? undefined : 'Add your MuAPI key in Settings → API keys before generating.';
         } else {
           const status = await window.electronAPI.higgsfield.accountStatus();
           connected = status.connected;

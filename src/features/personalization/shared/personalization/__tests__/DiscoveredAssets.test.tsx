@@ -9,7 +9,7 @@ beforeAll(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
 })
 
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -1067,5 +1067,178 @@ describe('Discovered Assets Integration', () => {
     expect(c.discoveredAssets.length).toBe(1)
     expect(c.discoveredAssets[0].sourceUrl).toBeUndefined()
     expect(c.discoveredAssets[0].previewUrl).toBe('https://test.com/asset.png')
+  })
+  it('drops a discovery that finishes after the modal is closed', async () => {
+    await renderProvider()
+    await openSource()
+
+    let finish: (value: unknown) => void = () => {}
+    const pending = new Promise((resolve) => { finish = resolve })
+    const baseFetch = (globalThis as any).fetch
+    ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
+      if (typeof url === 'string' && url.includes('/api/personalization/discover-assets')) {
+        await pending
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            ok: true,
+            discoveredAssets: [{
+              id: 'late-1',
+              sourceUrl: 'https://old-business.com/logo.png',
+              previewUrl: 'https://old-business.com/logo.png',
+              sourceType: 'WEBSITE',
+              category: 'logo',
+              selected: true,
+              recommended: true,
+              rejected: false,
+            }],
+          }),
+        } as any
+      }
+      return baseFetch(url, options)
+    })
+
+    let c = (window as any).__personalizationCtx
+    let run: Promise<void> = Promise.resolve()
+    await act(async () => {
+      run = c.discoverAssets('https://old-business.com')
+    })
+    expect((window as any).__personalizationCtx.discoveryStatus).toBe('discovering')
+
+    await act(async () => {
+      ;(window as any).__personalizationCtx.closePersonalize()
+    })
+    await openSource()
+
+    await act(async () => {
+      finish(undefined)
+      await run
+    })
+
+    c = (window as any).__personalizationCtx
+    expect(c.discoveredAssets).toHaveLength(0)
+    expect(c.discoveryStatus).toBe('idle')
+    expect(c.assets.logos).toHaveLength(0)
+  })
+  it('picking a saved client clears the previous business selection', async () => {
+    await renderProvider()
+    await openSource()
+
+    await act(async () => {
+      ;(window as any).__personalizationCtx.selectBusiness({ id: 'url:https://acme.example', name: 'Acme Plumbing', website: 'https://acme.example' })
+    })
+    expect((window as any).__personalizationCtx.selectedBusiness?.name).toBe('Acme Plumbing')
+
+    await act(async () => {
+      ;(window as any).__personalizationCtx.selectClient('')
+    })
+    const c = (window as any).__personalizationCtx
+    expect(c.selectedBusiness).toBeNull()
+    expect(c.businessLoadSummary).toBeNull()
+    expect(c.businessSearchMode).not.toBe('selected')
+  })
+  it('an older discovery that finishes last does not replace the newer one', async () => {
+    await renderProvider()
+    await openSource()
+
+    const finishers: Array<(name: string) => void> = []
+    const baseFetch = (globalThis as any).fetch
+    ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
+      if (typeof url === 'string' && url.includes('/api/personalization/discover-assets')) {
+        const name = await new Promise<string>((resolve) => { finishers.push(resolve) })
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            ok: true,
+            discoveredAssets: [{ id: name, sourceUrl: `https://${name}.com/logo.png`, previewUrl: `https://${name}.com/logo.png`, sourceType: 'WEBSITE', category: 'logo', selected: true, recommended: true, rejected: false }],
+          }),
+        } as any
+      }
+      return baseFetch(url, options)
+    })
+
+    const ctx = () => (window as any).__personalizationCtx
+    let first: Promise<void> = Promise.resolve()
+    let second: Promise<void> = Promise.resolve()
+    await act(async () => { first = ctx().discoverAssets('https://older.com') })
+    await act(async () => { second = ctx().discoverAssets('https://newer.com') })
+    expect(finishers).toHaveLength(2)
+
+    await act(async () => { finishers[1]('newer'); await second })
+    expect(ctx().discoveredAssets.map((a: any) => a.id)).toEqual(['newer'])
+
+    await act(async () => { finishers[0]('older'); await first })
+    expect(ctx().discoveredAssets.map((a: any) => a.id)).toEqual(['newer'])
+  })
+
+  it('a business search that finishes after the modal is closed is dropped', async () => {
+    await renderProvider()
+    await openSource()
+
+    let finish: () => void = () => {}
+    const pending = new Promise<void>((resolve) => { finish = resolve })
+    const baseFetch = (globalThis as any).fetch
+    ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
+      if (typeof url === 'string' && url.includes('/api/personalization/find-businesses')) {
+        await pending
+        return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'b1', name: 'Old Search Plumbing' }] }) } as any
+      }
+      return baseFetch(url, options)
+    })
+
+    const ctx = () => (window as any).__personalizationCtx
+    let run: Promise<void> = Promise.resolve()
+    await act(async () => { run = ctx().findBusinesses('plumber', 'Tampa', 10) })
+    expect(ctx().businessSearchMode).toBe('searching')
+
+    await act(async () => { ctx().closePersonalize() })
+    await openSource()
+    expect(ctx().businessSearchMode).not.toBe('searching')
+
+    await act(async () => { finish(); await run })
+    expect(ctx().businessSearchMode).not.toBe('results')
+    expect(ctx().businessSearchResults).toHaveLength(0)
+  })
+  it('a cleared business search ignores a response that arrives afterwards', async () => {
+    await renderProvider()
+    await openSource()
+
+    let finish: () => void = () => {}
+    const pending = new Promise<void>((resolve) => { finish = resolve })
+    const baseFetch = (globalThis as any).fetch
+    ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
+      if (typeof url === 'string' && url.includes('/api/personalization/find-businesses')) {
+        await pending
+        return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'b1', name: 'Stale Plumbing' }] }) } as any
+      }
+      return baseFetch(url, options)
+    })
+
+    const ctx = () => (window as any).__personalizationCtx
+    let run: Promise<void> = Promise.resolve()
+    await act(async () => { run = ctx().findBusinesses('plumber', 'Tampa', 10) })
+    await act(async () => { ctx().clearBusinessSearch() })
+    await act(async () => { finish(); await run })
+
+    expect(ctx().businessSearchMode).toBe('idle')
+    expect(ctx().businessSearchResults).toHaveLength(0)
+  })
+
+  it('closing the project clears the business selection and search for the next one', async () => {
+    await renderProvider()
+    await openSource()
+    const ctx = () => (window as any).__personalizationCtx
+    await act(async () => {
+      ctx().selectBusiness({ id: 'url:https://acme.example', name: 'Acme Plumbing', website: 'https://acme.example' })
+    })
+    expect(ctx().selectedBusiness?.name).toBe('Acme Plumbing')
+
+    await act(async () => { ctx().closePersonalize() })
+    await openSource()
+    expect(ctx().selectedBusiness).toBeNull()
+    expect(ctx().businessSearchMode).toBe('idle')
+    expect(ctx().businessLoadSummary).toBeNull()
   })
 })

@@ -97,7 +97,7 @@ export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) 
           <span style={{ fontSize: 12, opacity: 0.6 }}>{ALL.length} videos</span>
         </div>
         <div style={{ fontSize: 12, opacity: 0.65, margin: '4px 0 12px' }}>Previews play as you scroll. Click a card to add it to the timeline.</div>
-        <div role="tablist" aria-label="Categories" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+        <div role="tablist" aria-label="Template video categories" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
           {tabs.map((c) => {
             const on = cat === (c === 'All' ? 'all' : c);
             return (
@@ -110,7 +110,7 @@ export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) 
           })}
         </div>
         {subTabs.length > 0 && (
-          <div role="tablist" aria-label="Subcategories" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '-4px 0 14px' }}>
+          <div role="tablist" aria-label="Template video subcategories" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '-4px 0 14px' }}>
             {['All', ...subTabs].map((c) => {
               const on = sub === (c === 'All' ? 'all' : c);
               return (
@@ -124,7 +124,7 @@ export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) 
         )}
         <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: 18, marginBottom: 10 }}>
           <div><div style={label}>Search</div><input type="text" placeholder="⌕  Search template videos…" aria-label="Search template videos" value={q} onChange={(e) => setQ(e.target.value)} style={field} /></div>
-          <div><div style={label}>Duration</div><select aria-label="Duration" value={dur} onChange={(e) => setDur(e.target.value)} style={field}><option value="all">Any length</option><option value="short">Up to 10s</option><option value="medium">10–20s</option><option value="long">20–30s</option><option value="extra">Over 30s</option></select></div>
+          <div><div style={label}>Duration</div><select aria-label="Clip length" value={dur} onChange={(e) => setDur(e.target.value)} style={field}><option value="all">Any length</option><option value="short">Up to 10s</option><option value="medium">10–20s</option><option value="long">20–30s</option><option value="extra">Over 30s</option></select></div>
           <div><div style={label}>Aspect ratio</div><select aria-label="Aspect ratio" value={ratio} onChange={(e) => setRatio(e.target.value)} style={field}><option value="all">All aspect ratios</option><option value="16:9">16:9 landscape</option><option value="9:16">9:16 portrait</option><option value="1:1">1:1 square</option></select></div>
         </div>
         <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>Showing {visible.length} of {list.length} videos</div>

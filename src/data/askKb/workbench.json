@@ -1,0 +1,411 @@
+{
+  "id": "workbench",
+  "name": "Workbench",
+  "route": "#/workbench",
+  "description": "Workbench is a multi-track video editor for the things you generate in SmartVideo. You drop your generated videos, images and audio onto a timeline, add motion cards, sound and themes, edit with an AI chat, and export an MP4 from your browser.",
+  "shortDescription": "Edit your generations with motion cards, sound and AI chat on a multi-track timeline.",
+  "fullDescription": "Workbench (the Motion Workbench) is a post-production editor shown inside SmartVideo. It has a library on the left (Media, Motion, Sound and Themes tabs), a live preview in the middle, a Properties inspector on the right and a multi-track timeline at the bottom. You bring in your own generations (images, videos and audio made in other studios) with the + Add your generations button or the Edit in Workbench option that appears after generating, or upload files from your computer. You can drag motion cards (title cards, caption strips, transitions and about 150 demo animation cards) onto the timeline, trim, split, change speed, adjust opacity and position, and change card text and colors. An AI chat called 'Edit with AI' applies edits you describe in plain language, and every AI edit can be undone. Export video renders an MP4 in your own browser and saves it to your library. The older CineGen Studio route (#/cinegen) now opens the Workbench. Note: Workbench is a timeline editor; it is not a node graph for chaining generation steps.",
+  "bestFor": "Creators who already have clips, images and audio from the other SmartVideo studios and want to assemble, caption and polish them into a finished video without leaving the app.",
+  "whenToUse": [
+    "You generated several clips or images in other studios and want to combine them into one video.",
+    "You want to add title cards, captions, transitions or motion effects from the Motion library.",
+    "You want to add or adjust sound: your own audio, the project's audio or background music options.",
+    "You want to trim, split, speed up or slow down clips (speed 0.25x to 4x).",
+    "You want to tell an AI 'trim the first clip to 3 seconds' or 'add a title card that says Hello' and have it applied for you.",
+    "You want to export a finished MP4 from your browser."
+  ],
+  "whenToUseAnother": [
+    "Use Timeline (#/timeline) when you want the full cut-and-export editor with its own AI chat modes (Ask, Search, Cut, Timeline); note Workbench is not the editor used for Director, Timeline or Video Agent results.",
+    "Use Director (#/director) when you want AI agents to analyse or cut an existing video (subtitles, highlights, dubbing).",
+    "Use Video Agent (#/video-agent) when you want a coded motion-graphics animation created from a prompt.",
+    "Use Motion Director (#/motion-director) when you want a promo film planned from your website; it has its own editor.",
+    "Use Video (#/video), Image (#/image) or Audio (#/audio) first when you do not have any media yet.",
+    "Use Library (#/library) to find and manage your past generations."
+  ],
+  "keyFeatures": [
+    "Multi-track timeline: upper tracks cover lower ones; drag clips, trim both ends, split, duplicate, move between tracks.",
+    "Library tabs: Media, Motion, Sound and Themes. Click an item to preview it; drag it onto the timeline to add it.",
+    "Motion cards: native text card, Ink Press title card, narration caption strip, warm-white flash transition and about 150 demo animation cards in categories.",
+    "Properties inspector: Content & style, Timing & speed (Start, Duration, Speed, In point), Layer (Opacity, Scale, Offset X, Offset Y).",
+    "Live preview with play controls; the preview matches the final render.",
+    "Edit with AI chat using your own OpenAI key; every AI edit can be undone.",
+    "+ Add your generations picker for images, videos and audio you made in SmartVideo studios.",
+    "Upload from computer (video, image, audio) with size limits.",
+    "Export video renders MP4 in your browser and saves it to your library.",
+    "Export JSON and Import for the project file; Undo and Redo; Reset to the sample project.",
+    "Interface language: English, Chinese or Russian.",
+    "Autosave in your browser."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "+ Add your generations",
+      "explanation": "A button in the bar above the editor opens a picker titled 'Add your generations' showing your recent generations (up to 120) as tiles with VIDEO, IMAGE or AUDIO badges. Click tiles to select them; the footer button reads 'Add to timeline' or 'Add N to timeline'. Close with the Close button.",
+      "whyToUse": "Quickest way to bring work from other studios onto the timeline.",
+      "inputRequired": "At least one saved generation.",
+      "restrictions": "If you have none it says 'No generations yet. Create something in any AI studio (Image, Video, Cinema, Audio...) first.' Generations from Director, Timeline and Video Agent are not offered because those studios keep their own editors."
+    },
+    {
+      "feature": "Edit in Workbench hand-off",
+      "explanation": "After a studio finishes a generation, its notification can offer 'Edit in Workbench', which opens the Workbench with that result ready to add. The hand-off expires after 10 minutes.",
+      "whyToUse": "Skip manual picking.",
+      "inputRequired": "A finished generation.",
+      "restrictions": "Not offered for Director, Timeline, Video Agent or Workbench's own exports."
+    },
+    {
+      "feature": "Library: Media, Motion, Sound, Themes",
+      "explanation": "Media holds your imported clips and an 'Upload from computer' drop area. Motion lists motion cards (native cards first, then demo cards by category); thumbnails are still frames and play when you hover. Sound lists project audio and BGM options, with a 'Find sounds on Freesound' link. Themes holds color palettes you can apply and save, with Import palette and Export palette. Hint: 'Click to preview, drag onto the timeline'.",
+      "whyToUse": "Everything you can add to your video lives here.",
+      "inputRequired": "None.",
+      "restrictions": "Cards marked 'tunable' have editable text and style fields; other demo cards can be trimmed, sped up, frozen and transformed but not re-worded. Some Sound features (such as project audio and Freesound downloading) belong to the developer workflow and may not apply to normal use."
+    },
+    {
+      "feature": "Timeline",
+      "explanation": "Toolbar buttons: Split (S) cuts the selected clip at the playhead, Duplicate (Ctrl/Cmd+D), Delete (Delete key), + Track (adds a track on top), Fit (zoom to fit) and a Zoom slider. Track headers let you drag to reorder, Hide track or Show track, and Delete track (asks for confirmation). Clips snap to other clips; drag the side handles to trim.",
+      "whyToUse": "Assemble and refine your edit.",
+      "inputRequired": "None.",
+      "restrictions": "Clips on the same track may overlap; use more tracks for layering. Speed is a constant speed change (no speed curves)."
+    },
+    {
+      "feature": "Properties inspector",
+      "explanation": "Select a clip to edit it. Content & style shows the card's own fields (text, colors, sizes). Timing & speed has Start, Duration, Speed, In point and a restore-original-duration button. Layer has Opacity, Scale, Offset X and Offset Y. A Delete clip button is at the bottom.",
+      "whyToUse": "Precise control of each clip.",
+      "inputRequired": "A selected clip.",
+      "restrictions": "With nothing selected it says 'Select a clip on the timeline to edit its text, colors, animation timing, speed and layer.'"
+    },
+    {
+      "feature": "Edit with AI (chat)",
+      "explanation": "Describe an edit such as 'Cut the intro to 2s and add a caption \"Summer sale\"'. The AI replies briefly and returns edit operations (update a clip, set card text, add, remove, split or move clips, add or remove tracks, rename the project or set its background). The app checks every operation and applies only valid ones, then shows a note such as '2 changes applied - Ctrl/Cmd+Z to undo' and, if some were skipped, how many. While it works it shows 'Editing...'. Suggestion buttons include 'Trim the first clip to 3 seconds', 'Add a title card at the start that says \"Hello\"', 'Slow the second clip down to half speed' and 'Fade the music to 40% volume'.",
+      "whyToUse": "Faster than clicking through panels for simple edits.",
+      "inputRequired": "Your own OpenAI key saved in Settings and a message.",
+      "restrictions": "Messages are cut at 4,000 characters, the last 12 chat turns are sent as history, and the project must be under about 200,000 characters of data ('Project is too large for AI editing.'). The AI can only reuse media files already in your project; it is told never to invent file addresses. Speed must stay between 0.25 and 4, opacity 0 to 1, durations at least 2 frames."
+    },
+    {
+      "feature": "Upload from computer",
+      "explanation": "Drop or choose a video, image or audio file in the Media tab. It is stored so the clip keeps working after reload. The status text shows 'Uploading <name>...' then '<name> saved', or 'Couldn't save <name> - <reason>'.",
+      "whyToUse": "Use your own footage, pictures or music.",
+      "inputRequired": "A media file.",
+      "restrictions": "Maximum sizes are 50 MB for video, 10 MB for images and 10 MB for audio. Wrong types show '<name> isn't a video, image or audio file.' and large files show '<name> is too large (max N MB for <type>).' Accepted extensions include mp4, mov, webm, m4v, mkv, ogv, 3gp (video), jpg, jpeg, png, gif, webp, svg, bmp, avif, heic (image) and mp3, wav, aac, ogg, flac, m4a, opus, aiff, aif (audio)."
+    },
+    {
+      "feature": "Export video",
+      "explanation": "The top bar Export video button renders the project to MP4 in your browser (tooltip 'Render the current project to MP4 in your browser'). It shows 'Exporting N%', then 'Exported - Download again'; on failure 'Export failed - Retry' or 'Export failed to start'. The finished MP4 is also uploaded to your library, with status text 'Saving export to your library...' then 'Export saved to your library'.",
+      "whyToUse": "Get your finished video.",
+      "inputRequired": "A project with clips.",
+      "restrictions": "Runs in your browser tab, so keep it open. If the upload fails you see 'Export downloaded - couldn't save to library (<reason>)'."
+    },
+    {
+      "feature": "Project tools",
+      "explanation": "Project name (click to edit), Undo and Redo (Ctrl/Cmd+Z and Shift+Ctrl/Cmd+Z), Export JSON, Import (project JSON) and Reset to sample. Interface language selector. Changes autosave in your browser.",
+      "whyToUse": "Back up and manage your project.",
+      "inputRequired": "A project JSON for Import.",
+      "restrictions": "Invalid files show 'Import failed: not a valid project JSON'."
+    }
+  ],
+  "howToUse": "1. Open Workbench from the Agents group in the side menu (#/workbench). Or click Edit in Workbench in a studio's generation notification. 2. Click + Add your generations, select the videos, images or audio you want and click Add to timeline. You can also use Upload from computer in the Media tab. 3. Click an item in the Media, Motion, Sound or Themes tabs to preview it, and drag it onto a track to add it. 4. Click a clip on the timeline and use Properties to change text, colors, Start, Duration, Speed, Opacity, Scale and position. 5. Drag clip edges to trim, press S to split at the playhead, Ctrl/Cmd+D to duplicate, Delete to remove. 6. To edit by chatting, open Edit with AI, type an instruction such as 'Trim the first clip to 3 seconds' and send it; press Ctrl/Cmd+Z if you do not like the result. 7. Press Space to play the preview. 8. Click Export video, wait for 'Exporting N%' to finish and download the MP4 (it is also saved to your library).",
+  "howToSteps": [
+    "Open Workbench or choose Edit in Workbench from a generation notification.",
+    "Add media with + Add your generations or Upload from computer.",
+    "Add motion cards and sound by dragging from the library onto tracks.",
+    "Select clips and fine-tune them in Properties.",
+    "Trim, split and rearrange on the timeline.",
+    "Optionally ask Edit with AI to make changes.",
+    "Preview with Space.",
+    "Click Export video and download the MP4."
+  ],
+  "gettingStarted": [
+    "Generate a couple of images or clips in other studios first so you have something to add.",
+    "Click + Add your generations, pick them and add them to the timeline.",
+    "Try the suggestion buttons in Edit with AI to see how chat editing works.",
+    "Learn four shortcuts: Space, S, Delete, Ctrl/Cmd+Z."
+  ],
+  "inputs": ["Generations from your library", "Uploaded files", "Motion cards", "Audio", "Theme palette", "AI chat message", "Project JSON"],
+  "requiredInputs": ["At least one clip or card on the timeline to export"],
+  "optionalInputs": ["Generations from your library", "Uploaded files", "Motion cards", "Audio", "Theme palette", "AI chat message (needs OpenAI key)", "Project JSON"],
+  "inputDetails": [
+    {
+      "name": "Generations from your library",
+      "description": "Images, videos and audio you created in SmartVideo studios.",
+      "required": false,
+      "whenToUse": "To assemble earlier work.",
+      "restrictions": "Not available for Director, Timeline, Video Agent or Workbench exports."
+    },
+    {
+      "name": "Uploaded files",
+      "description": "Your own video, image or audio files.",
+      "required": false,
+      "whenToUse": "When the material was not generated here.",
+      "restrictions": "Video 50 MB, image 10 MB, audio 10 MB maximum."
+    },
+    {
+      "name": "OpenAI API key",
+      "description": "Your own key, used only for the Edit with AI chat.",
+      "required": false,
+      "whenToUse": "Only if you use AI chat editing.",
+      "restrictions": "Without it you see 'AI editing uses your own OpenAI key. Add it in SmartVid -> Settings -> API keys (OpenAI API Key), then try again.' A rejected key gives 'OpenAI rejected your API key. Check it in SmartVid -> Settings -> API keys.' Rate limit or no credit gives 'Your OpenAI account is rate-limited or out of credit. Check your OpenAI billing, then try again.'"
+    },
+    {
+      "name": "Project JSON",
+      "description": "A saved project file.",
+      "required": false,
+      "whenToUse": "To restore or share a project.",
+      "restrictions": "Must be a valid project file."
+    }
+  ],
+  "generationModes": ["Manual timeline editing", "Edit with AI (chat edits)", "Library hand-off"],
+  "modeExplanations": [
+    {
+      "mode": "Manual timeline editing",
+      "description": "Drag, trim, split and adjust clips yourself.",
+      "useCase": "Precise control."
+    },
+    {
+      "mode": "Edit with AI (chat edits)",
+      "description": "You describe a change; the AI returns a list of validated edit operations that are applied to the project.",
+      "useCase": "Quick structural or text changes."
+    },
+    {
+      "mode": "Library hand-off",
+      "description": "Generations arrive from + Add your generations or Edit in Workbench, either as a new project or appended to the current one.",
+      "useCase": "Bringing in material from other studios."
+    }
+  ],
+  "modelCapabilities": "Workbench itself does not generate images or video. Only the Edit with AI chat uses a model: it calls the OpenAI Responses API with your own OpenAI key. The default model in the code is gpt-5.6-sol, and a deployment can override it with the environment variable OPENAI_RESPONSES_TEXT_MODEL. The model returns a short reply plus a list of edit operations (update clip, set text props, add clip, remove clip, split clip, move to track, add or remove track, set project name or background). The app validates every operation before applying it. Rendering uses Remotion in your browser.",
+  "outputs": [
+    "A multi-track edited project (autosaved in your browser)",
+    "An MP4 exported from your browser and saved to your library",
+    "A project JSON file (Export JSON)",
+    "A color palette JSON (Themes tab, Export palette)"
+  ],
+  "limitations": [
+    "Edit with AI needs your own OpenAI key; there is no fallback platform key.",
+    "Uploads are limited to 50 MB video, 10 MB image and 10 MB audio.",
+    "AI chat cannot invent media; it only reuses files already in the project.",
+    "Speed changes are constant (0.25x to 4x), with no speed curves.",
+    "Demo motion cards cannot be re-worded; only 'tunable' cards have text and style fields.",
+    "Export runs in your browser and needs the tab to stay open.",
+    "Director, Timeline and Video Agent results are not sent to Workbench.",
+    "It is a timeline editor, not a node graph for chaining generations."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "AI chat needs an OpenAI key",
+      "impact": "Without a key, chat replies with an error message instead of editing.",
+      "workaround": "Add your OpenAI key in Settings, API keys, or edit manually."
+    },
+    {
+      "limitation": "Large projects",
+      "impact": "Very large projects return 'Project is too large for AI editing.'",
+      "workaround": "Split work into smaller projects or edit manually."
+    },
+    {
+      "limitation": "Upload size limits",
+      "impact": "Big files are refused with a too-large message.",
+      "workaround": "Compress or trim the file first, or use a generation from your library."
+    },
+    {
+      "limitation": "Browser export",
+      "impact": "Long or heavy projects export slowly.",
+      "workaround": "Keep the tab open, close other heavy tabs, or shorten the project."
+    }
+  ],
+  "troubleshooting": [
+    "Editor area is blank or says 'Workbench is still loading...': wait a few seconds; if it persists reload the page.",
+    "'No generations yet': create something in an image, video, cinema or audio studio first, then reopen the picker.",
+    "AI chat says it uses your own OpenAI key: save your OpenAI key in Settings, API keys (OpenAI API Key) and try again.",
+    "AI chat says 'The AI returned an unreadable answer. Try rephrasing.': send the instruction again in simpler words.",
+    "AI chat says 'AI request timed out': try again with a smaller project or a shorter instruction (the request limit is 60 seconds).",
+    "Upload refused: check the file type and size (video 50 MB, image 10 MB, audio 10 MB).",
+    "'Export failed - Retry': click again, keep the tab open and reduce the project size.",
+    "Status says 'Export downloaded - couldn't save to library': the MP4 downloaded but upload failed; keep the file and check your connection.",
+    "'Please sign in to SmartVid to use AI editing.': sign in again."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "AI chat does not edit anything",
+      "steps": [
+        "Open Settings and confirm your OpenAI key is saved.",
+        "Make sure there are clips on the timeline for the AI to change.",
+        "Name the clip or track clearly in your instruction.",
+        "Read the note under the AI reply; skipped changes are counted there."
+      ]
+    },
+    {
+      "issue": "My generation is not in the picker",
+      "steps": [
+        "Check the generation was saved to your library.",
+        "Remember Director, Timeline and Video Agent results are excluded.",
+        "Reopen + Add your generations to refresh the list."
+      ]
+    },
+    {
+      "issue": "Export does not finish",
+      "steps": [
+        "Keep the tab in front.",
+        "Click Export again after a failure.",
+        "Shorten the project or remove heavy cards, then retry."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "I cannot change the text of a motion card",
+      "whyItHappens": "Demo cards without the 'tunable' tag have no text fields.",
+      "howToFix": "Use a native text card or a card marked tunable, or add a separate text card."
+    },
+    {
+      "problem": "Clips overlap and one is hidden",
+      "whyItHappens": "Upper tracks cover lower ones.",
+      "howToFix": "Reorder tracks by dragging the handle, hide a track, or move the clip to another track."
+    },
+    {
+      "problem": "The AI did not do what I asked",
+      "whyItHappens": "Invalid edits are skipped.",
+      "howToFix": "Press Ctrl/Cmd+Z, rephrase, or make the change manually."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Stitch three clips with a title",
+      "steps": [
+        "Open Workbench and click + Add your generations.",
+        "Select three video tiles and click Add 3 to timeline.",
+        "Open the Motion tab, preview a title card and drag it to a top track at the start.",
+        "Edit its text in Properties under Content & style.",
+        "Click Export video and download the MP4."
+      ]
+    },
+    {
+      "title": "Fix pacing with AI chat",
+      "steps": [
+        "Open Edit with AI.",
+        "Type 'Slow the second clip down to half speed' and send.",
+        "Check the note that says how many changes were applied.",
+        "Press Ctrl/Cmd+Z if you want to undo."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Social video from AI shots",
+      "description": "Combine several AI clips with captions and music.",
+      "steps": [
+        "Add your clips and an audio file.",
+        "Add a caption card from the Motion tab.",
+        "Trim to a target length and export."
+      ],
+      "expectedOutput": "A single MP4 ready to post."
+    },
+    {
+      "title": "Photo slideshow with transitions",
+      "description": "Make images flow with transition cards.",
+      "steps": [
+        "Add images from your generations.",
+        "Place a transition card between clips.",
+        "Adjust durations in Properties."
+      ],
+      "expectedOutput": "A slideshow MP4."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Do I need an API key?",
+      "answer": "Only for the Edit with AI chat, which uses your own OpenAI key. Manual editing and export need no key."
+    },
+    {
+      "question": "Where does my export go?",
+      "answer": "It is rendered in your browser, offered for download, and uploaded to your library."
+    },
+    {
+      "question": "What happened to CineGen Studio?",
+      "answer": "The #/cinegen address now opens the Workbench."
+    },
+    {
+      "question": "Can I undo AI edits?",
+      "answer": "Yes. Every AI edit can be undone with Ctrl/Cmd+Z."
+    },
+    {
+      "question": "How big can uploaded files be?",
+      "answer": "Up to 50 MB for video, 10 MB for images and 10 MB for audio."
+    },
+    {
+      "question": "Does my project save automatically?",
+      "answer": "It autosaves in your browser. Use Export JSON for a backup file."
+    },
+    {
+      "question": "Can I use the Workbench for Director or Video Agent output?",
+      "answer": "Those studios keep their own editors and are not offered in the Workbench hand-off or picker. You can still upload a downloaded file from your computer."
+    }
+  ],
+  "glossary": {
+    "Clip": "One piece of media or one motion card placed on a track.",
+    "Track": "A horizontal layer on the timeline. Upper tracks cover lower ones.",
+    "Playhead": "The marker showing the current time.",
+    "Motion card": "A ready-made animated element such as a title or transition.",
+    "Tunable": "A card whose text and style can be edited in Properties.",
+    "In point": "Where inside the source clip playback starts.",
+    "Theme": "A saved color palette that restyles the project."
+  },
+  "tips": [
+    "Hover Motion thumbnails to see them animate.",
+    "Use Fit to see the whole timeline.",
+    "Use Hide track to check what is underneath.",
+    "Use Export JSON before big experiments."
+  ],
+  "bestPractices": [
+    "Name your project at the top so exports are easy to find.",
+    "Keep text on top tracks and footage underneath.",
+    "Make AI edits one at a time so you can undo cleanly.",
+    "Keep the tab open during export."
+  ],
+  "relatedStudios": ["timeline", "library", "video", "image", "audio", "video-agent", "motion-director", "director", "content-library"],
+  "relatedStudioGuidance": [
+    {
+      "studio": "library",
+      "relationship": "Your saved generations appear in the Workbench picker.",
+      "whenToMove": "When you need to find or manage past generations.",
+      "why": "Workbench only shows recent items from the library."
+    },
+    {
+      "studio": "timeline",
+      "relationship": "Another editor with its own AI agent and chat modes.",
+      "whenToMove": "When you want the full cut-and-export editor.",
+      "why": "Timeline is a separate editor that keeps its own AI chat; Workbench is not used for Timeline results."
+    },
+    {
+      "studio": "video",
+      "relationship": "Creates AI video clips to edit here.",
+      "whenToMove": "When you need new footage.",
+      "why": "Workbench does not generate media."
+    }
+  ],
+  "notConfirmed": [
+    "Exact credit costs or plan requirements to use Workbench: no entitlement check was seen in the wrapper, but account-level gating was not verified.",
+    "The precise number of motion cards (the project notes say 150 demo cards plus 4 native cards; the footer shows the live count) and the exact category names.",
+    "The label of the tab or button that opens Edit with AI in the editor layout.",
+    "Whether the Sound tab's BGM options and Freesound link are usable in the hosted app, since they come from a developer workflow.",
+    "Whether the aspect ratio and frame rate can be changed by the user and what the defaults are.",
+    "The older apps/shotcraft guide describes a local developer workflow (dev server, Finder export); the hosted app instead exports in the browser, and only browser behavior is described here.",
+    "The studio registry describes Workbench as a node-based workspace; the code shows a multi-track timeline editor, and the code was trusted.",
+    "The exact model used in production, because the default gpt-5.6-sol can be overridden by an environment variable."
+  ],
+  "sourceFiles": [
+    "src/components/studios/WorkbenchStudio/WorkbenchStudio.js",
+    "src/lib/workbench.js",
+    "netlify/functions/workbench-chat.js",
+    "apps/shotcraft/workbench/README.md",
+    "apps/shotcraft/workbench/GUIDE.md",
+    "apps/shotcraft/workbench/src/i18n.ts",
+    "apps/shotcraft/workbench/src/panels/ChatPanel.tsx",
+    "apps/shotcraft/workbench/src/host/uploadRules.ts",
+    "src/lib/router.js",
+    "src/lib/studioRoutes.js",
+    "src/components/AppsHub.js",
+    "src/features/ask-smartvideo/studioRegistry.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the wrapper component, the hand-off library, the AI chat Netlify function, the embedded app's chat panel, upload rules, i18n strings, README and guide.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

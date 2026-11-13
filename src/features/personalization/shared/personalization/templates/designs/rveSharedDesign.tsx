@@ -34,13 +34,7 @@
 import React from 'react'
 import { AbsoluteFill } from 'remotion'
 import type { RemotionDesignComponentProps } from '../types'
-import { DESIGN_CREDIT_FONT_STACK, DESIGN_FONT_STACK, useDesignFonts } from './fonts'
-// Phase 3 decision D2: the OFL typeface attribution joins the rendered
-// credit line, so every repo-2 design carries it the same way the repo-1
-// designs do. `designs/fonts.ts` does not re-export it (it is not a font
-// *stack*), so the constant is imported from the typography module directly
-// — the same module the repo-1 credit reaches it through.
-import { DESIGN_FONT_ATTRIBUTION } from '../typography'
+import { DESIGN_FONT_STACK, useDesignFonts } from './fonts'
 
 /* -------------------------------------------------------------------------- */
 /* Attribution                                                                 */
@@ -206,67 +200,8 @@ export function rveMaxChars(
 }
 
 /* -------------------------------------------------------------------------- */
-/* Stage + credit                                                              */
+/* Stage                                                                       */
 /* -------------------------------------------------------------------------- */
-
-/**
- * The credit drawn inside every repo-2 design.
- *
- * It carries the two halves of the repo-2 credit (contract addition C10):
- *
- *  1. `RVE_ATTRIBUTION` — the same line the catalog carries in
- *     `source.attribution`;
- *  2. `RVE_UPSTREAM_CREDIT` — the upstream's own "Credit appreciated but not
- *     required" header, reproduced verbatim;
- *
- * and, under them, the verbatim MIT permission notice WITHOUT a copyright
- * line, because the upstream names no copyright holder.
- *
- * The notice is deliberately set as small print: the product's credits
- * surface is where a full-size rendering of it belongs (A6 C10 asks A11 to
- * aggregate the distinct `source.attribution` values in use). What matters
- * here is that the notice travels with the design.
- */
-export function RveCreditBlock(): React.ReactElement {
-  return (
-    <div
-      data-remotion-design-credit="rve"
-      style={{
-        position: 'absolute',
-        right: 8,
-        bottom: 6,
-        maxWidth: '72%',
-        textAlign: 'right',
-        fontFamily: DESIGN_CREDIT_FONT_STACK,
-        fontSize: 9,
-        lineHeight: 1.25,
-        fontWeight: 500,
-        letterSpacing: 0.2,
-        color: 'rgba(255,255,255,0.55)',
-        textShadow: '0 1px 3px rgba(0,0,0,0.65)',
-        pointerEvents: 'none',
-      }}
-    >
-      <div style={{ whiteSpace: 'nowrap' }}>{RVE_ATTRIBUTION}</div>
-      <div>{RVE_UPSTREAM_CREDIT}</div>
-      {/* Phase 3 decision D2: the bundled typeface is rendered by this design
-          too, so its OFL attribution travels with the credit line exactly as
-          it does in the repo-1 credit (`DesignCreditLine`). */}
-      <div style={{ whiteSpace: 'nowrap' }}>{DESIGN_FONT_ATTRIBUTION}</div>
-      <div
-        style={{
-          marginTop: 2,
-          fontSize: 6,
-          lineHeight: 1.2,
-          whiteSpace: 'pre-line',
-          opacity: 0.85,
-        }}
-      >
-        {RVE_LICENSE_NOTICE}
-      </div>
-    </div>
-  )
-}
 
 /**
  * The stage every repo-2 design renders into.
@@ -277,9 +212,7 @@ export function RveCreditBlock(): React.ReactElement {
  * the same composition-sized canvas scaled into the design box, and the same
  * "omit the transform when the box already is the composition" rule.
  *
- * The one difference is the credit: the shared stage draws the Phase 1
- * RenderComp line, which would be a false attribution for a React Video
- * Editor template, so this stage draws the repo-2 credit instead.
+ * No copyright or licence credit is drawn inside the design.
  */
 export function RveDesignStage({
   designId,
@@ -331,7 +264,6 @@ export function RveDesignStage({
       >
         {children}
       </AbsoluteFill>
-      <RveCreditBlock />
     </AbsoluteFill>
   )
 }

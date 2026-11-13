@@ -1,0 +1,206 @@
+{
+ "id": "explore",
+ "name": "Explore",
+ "route": "#/explore",
+ "description": "Explore is an inspiration page with three sections: Trending Templates, a Prompt Library of 12 ready-to-try image prompts, and Browse by Category.",
+ "shortDescription": "Inspiration: trending templates, 12 sample prompts, category cards.",
+ "fullDescription": "Explore (route #/explore) is headed \"Explore\" with the line \"Discover curated prompts, trending templates, and creative inspiration\". It has three sections. \"Trending Templates\" shows the first 8 templates of the template library as cards (TikTok Video Creator, Instagram Reel Generator, YouTube Thumbnail, Reaction Thumbnail, Short-Form Ad, Story Highlight Cover, Profile Picture Generator, Banner Creator); clicking one opens that template in the Template Studio. \"Prompt Library\" shows 12 curated prompts, each labelled with a category and a model name and a \"Try this prompt\" button that opens Image Studio with the prompt pre-filled. \"Browse by Category\" shows a card per template category with a template count. The old Community page now redirects to Explore. Explore does not generate anything itself.",
+ "bestFor": "Getting ideas, copying a good starting prompt into Image Studio, or jumping into a popular template.",
+ "whenToUse": [
+  "You do not know what to make yet.",
+  "You want a proven starting prompt for Image Studio.",
+  "You want to open one of the most popular templates quickly."
+ ],
+ "whenToUseAnother": [
+  "To see every tool, use Apps (#/apps).",
+  "To search or filter the full template catalog (categories and industry niches), use Templates (#/templates).",
+  "To write your own prompt from scratch, go straight to Image Studio (#/image)."
+ ],
+ "keyFeatures": [
+  "Trending Templates: 8 template cards with thumbnail, name and description.",
+  "Prompt Library: 12 curated prompts with category and model labels.",
+  "\"Try this prompt\" button that pre-fills Image Studio.",
+  "Browse by Category: a card per template category with its template count."
+ ],
+ "featureExplanations": [
+  {
+   "feature": "Trending Templates",
+   "explanation": "The first 8 templates in the library. Click a card to open it in the Template Studio at #/template/<template id>.",
+   "whyToUse": "Fast route into popular formats like TikTok videos or thumbnails.",
+   "inputRequired": "None to open; the template then asks for its own inputs.",
+   "restrictions": "The 8 shown are fixed by library order, not live popularity data."
+  },
+  {
+   "feature": "Prompt Library",
+   "explanation": "12 curated image prompts. Each shows \"Category / model\" (for example \"Cinematic / nano-banana\") above the prompt. Press \"Try this prompt\" to save the prompt for Image Studio and navigate there.",
+   "whyToUse": "Gives you a well-formed prompt to learn from or tweak.",
+   "inputRequired": "None",
+   "restrictions": "The prompt text is pre-filled into Image Studio; the model label is informational. Check the model selected in Image Studio before you press Generate."
+  },
+  {
+   "feature": "Browse by Category",
+   "explanation": "One card per template category. The card shows the category name and \"N templates\".",
+   "whyToUse": "To see which template categories exist.",
+   "inputRequired": "None",
+   "restrictions": "In the current code, clicking a category card opens the Apps hub (#/apps), not a filtered template list. Use Templates and its filter chips to filter by category."
+  }
+ ],
+ "howToUse": "1. Open Explore from the left side menu. 2. To use a prompt, find one in Prompt Library and click \"Try this prompt\"; Image Studio opens with the prompt filled in. 3. To use a template, click a card under Trending Templates. 4. In the destination studio, press Generate.",
+ "howToSteps": [
+  "Open Explore from the left side menu.",
+  "Scroll to Prompt Library and click \"Try this prompt\" on one you like.",
+  "In Image Studio check the prompt and the selected model, then press Generate.",
+  "Or click a Trending Templates card to open it in the Template Studio."
+ ],
+ "gettingStarted": [
+  "Click \"Try this prompt\" on any prompt card to see a full image workflow in a couple of clicks.",
+  "Make sure your MuAPI key is saved so generation works."
+ ],
+ "inputs": [
+  "None on this page"
+ ],
+ "requiredInputs": [],
+ "optionalInputs": [],
+ "inputDetails": [],
+ "generationModes": [],
+ "modeExplanations": [],
+ "modelCapabilities": "",
+ "outputs": [
+  "Navigation: opens Image Studio with a pre-filled prompt, or a template in Template Studio."
+ ],
+ "limitations": [
+  "Explore has no search box or filters.",
+  "Category cards do not filter templates.",
+  "Trending is a fixed list, not live statistics."
+ ],
+ "limitationDetails": [
+  {
+   "limitation": "Category cards open the Apps hub",
+   "impact": "You may expect a filtered template list.",
+   "workaround": "Go to Templates (#/templates) and click a category chip such as \"Social Media\"."
+  },
+  {
+   "limitation": "Niche categories show 0 templates",
+   "impact": "Industry categories (Restaurant & Cafe, Med Spa, Salon & Beauty, Fitness & Training, Real Estate, Dental, Chiropractic, Legal, Automotive, Fashion, Events, Luxury, Industry) are listed but are counted from the 52 standard templates only, so they show \"0 templates\".",
+   "workaround": "Open Templates and use the Industry filters there to see the niche templates."
+  }
+ ],
+ "troubleshooting": [
+  "Prompt did not appear in Image Studio: open Explore again and press \"Try this prompt\"; paste the prompt manually into the Image Studio box.",
+  "Category shows 0 templates: expected for industry categories; use Templates.",
+  "Template card opens \"Template not found\": go to Templates and pick another card."
+ ],
+ "troubleshootingSteps": [
+  {
+   "issue": "Try this prompt opens Image Studio but the box is empty",
+   "steps": [
+    "Copy the prompt text from Explore.",
+    "Paste it into the Image Studio prompt box.",
+    "Press Generate."
+   ]
+  }
+ ],
+ "commonProblems": [
+  {
+   "problem": "Category card sends me to Apps",
+   "whyItHappens": "Category cards link to the Apps hub in the current version.",
+   "howToFix": "Use Templates for category filtering."
+  }
+ ],
+ "exampleWorkflows": [
+  {
+   "title": "Make an image from a curated prompt",
+   "steps": [
+    "Open Explore.",
+    "In Prompt Library choose \"Cyberpunk street market at night, neon signs, rain reflections, detailed\".",
+    "Click \"Try this prompt\".",
+    "Press Generate in Image Studio.",
+    "Find the result in Library."
+   ]
+  },
+  {
+   "title": "Open a trending template",
+   "steps": [
+    "Open Explore.",
+    "Click \"TikTok Video Creator\".",
+    "Upload your photo, describe the video, press Generate."
+   ]
+  }
+ ],
+ "useCases": [
+  {
+   "title": "Find prompt inspiration",
+   "description": "Read 12 examples covering cinematic, sci-fi, art, lifestyle, fashion, fantasy, commercial, nature and style looks.",
+   "steps": [
+    "Open Explore.",
+    "Read the Prompt Library.",
+    "Try one."
+   ],
+   "expectedOutput": "An image generated from the curated prompt."
+  }
+ ],
+ "faqs": [
+  {
+   "question": "What is in the Prompt Library?",
+   "answer": "12 prompts. 1. [Cinematic / nano-banana] A samurai standing in cherry blossom rain, cinematic lighting, epic composition 2. [Sci-Fi / flux-dev] Cyberpunk street market at night, neon signs, rain reflections, detailed 3. [Art / nano-banana] Oil painting of a lighthouse in a storm, dramatic waves, Turner style 4. [Lifestyle / nano-banana] Cozy cabin interior with fireplace, snow outside window, warm lighting 5. [Sci-Fi / flux-dev] Astronaut floating in space with Earth reflection in visor, photorealistic 6. [Fashion / nano-banana] Fashion editorial, model in avant-garde geometric dress, studio lighting 7. [Fantasy / nano-banana] Ancient temple ruins overgrown with jungle, volumetric light rays 8. [Commercial / nano-banana] Product photo of luxury perfume bottle on marble, golden hour light 9. [Nature / flux-dev] Underwater coral reef with tropical fish, crystal clear water, natural light 10. [Sci-Fi / nano-banana] Steampunk clockwork city with airships, brass and copper tones, detailed 11. [Nature / nano-banana] Minimalist Japanese garden, zen stones, morning mist, peaceful atmosphere 12. [Style / nano-banana] GTA V loading screen style illustration of a man with sunglasses in Miami"
+  },
+  {
+   "question": "What does Try this prompt do?",
+   "answer": "It stores the prompt for Image Studio and opens Image Studio so it can be pre-filled."
+  },
+  {
+   "question": "Which templates are Trending?",
+   "answer": "TikTok Video Creator, Instagram Reel Generator, YouTube Thumbnail, Reaction Thumbnail, Short-Form Ad, Story Highlight Cover, Profile Picture Generator and Banner Creator."
+  },
+  {
+   "question": "What happened to Community?",
+   "answer": "The Community page was retired and its link now opens Explore."
+  }
+ ],
+ "glossary": {
+  "Prompt": "The text that describes what you want generated.",
+  "Template": "A pre-configured generator for a specific look or format.",
+  "nano-banana / flux-dev": "Model names shown on prompt cards."
+ },
+ "tips": [
+  "Edit the pre-filled prompt: swap the subject but keep the lighting and style words.",
+  "Try the same prompt with a different model in Image Studio to compare."
+ ],
+ "bestPractices": [
+  "Use curated prompts as patterns: subject, setting, lighting, style."
+ ],
+ "relatedStudios": [
+  "apps",
+  "templates",
+  "image",
+  "library"
+ ],
+ "relatedStudioGuidance": [
+  {
+   "studio": "image",
+   "relationship": "Destination of Try this prompt",
+   "whenToMove": "You picked a prompt.",
+   "why": "Image Studio generates the image."
+  },
+  {
+   "studio": "templates",
+   "relationship": "Full template catalog",
+   "whenToMove": "You want to filter or search templates.",
+   "why": "Templates has search and category/industry filters."
+  }
+ ],
+ "notConfirmed": [
+  "Which model is actually selected in Image Studio after Try this prompt is not set by Explore; only the prompt text is handed over."
+ ],
+ "sourceFiles": [
+  "src/components/ExplorePage.js",
+  "src/lib/templates.js",
+  "src/lib/router.js"
+ ],
+ "verification": {
+  "status": "code-review",
+  "evidence": "Read: src/components/ExplorePage.js, src/lib/templates.js, src/lib/router.js",
+  "verifiedAt": "2026-11-12",
+  "verifiedBy": "Code review (LLM-assisted)"
+ }
+}

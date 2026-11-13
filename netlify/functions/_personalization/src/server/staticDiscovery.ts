@@ -18,8 +18,9 @@ export class StaticDiscoveryProvider {
     openAiKey?: string
     openAiModel?: string
     deadlineAt?: number
+    onHomeHtml?: (html: string) => void
   }): Promise<DiscoveryResult> {
-    const { websiteUrl, maxPages, maxImages, openAiKey, openAiModel, deadlineAt } = options
+    const { websiteUrl, maxPages, maxImages, openAiKey, openAiModel, deadlineAt, onHomeHtml } = options
     const baseUrl = sanitizeUrl(websiteUrl)
 
     const results = await discoverBusinessAssets({
@@ -30,6 +31,7 @@ export class StaticDiscoveryProvider {
       openAiModel,
       enableBrowserFallback: false,
       deadlineAt,
+      onHomeHtml,
     })
 
     // The candidate list has to keep the page an image was found on, its
@@ -48,6 +50,8 @@ export class StaticDiscoveryProvider {
       altText: asset.altText,
       ogContext: asset.ogContext,
       isSiteLogo: asset.isSiteLogo,
+      contextText: asset.contextText,
+      similarGroup: asset.similarGroup,
       category: asset.category,
       confidence: asset.confidence,
       recommended: asset.recommended,

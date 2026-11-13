@@ -1,0 +1,229 @@
+{
+  "id": "personalizer",
+  "name": "Personalizer",
+  "route": "#/personalizer",
+  "description": "A drag-and-drop canvas for building personalized web pages and creatives. You place text, images, buttons, forms and videos, drop in {{tokens}} such as {{firstName}}, and preview the page as each contact would see it.",
+  "shortDescription": "Build a page on a canvas and personalize it per contact with tokens.",
+  "fullDescription": "Personalizer is a visual canvas editor. You add elements (Heading, Text, Image, Button, Form, Video, Spacer, Container) from the left sidebar, position them freely, and type tokens like {{firstName}} or {{company}} into text and link fields. Choose an Active Contact and the canvas shows the page with that person's details filled in; Preview Personalized refreshes it and Export HTML produces a standalone page. A Personalization hub in the sidebar holds client profiles, an asset library, AI Assist and website discovery. Content sent from other studios arrives as a Source panel with a Return button. The same personalization system (a modal with Find My Brand, Find Local Business, client profile, assets, prompt and engine sections) powers the Personalize buttons in other studios.",
+  "bestFor": "Marketers, agencies and freelancers who need many personalized variants of one page or creative, each filled with a contact's or client's own name, company, logo and offer.",
+  "whenToUse": [
+    "You want one landing page or creative that shows a different name, company or offer per contact.",
+    "You want to preview how a page looks for a specific contact before sending.",
+    "You received content from another studio and want to personalize it.",
+    "You need a quick standalone HTML export of a designed page.",
+    "You want to store client profiles and brand assets once and reuse them."
+  ],
+  "whenToUseAnother": [
+    "Use Lead Finder (#/leadfinder) when you need to find local businesses to personalize for.",
+    "Use Find My Brand (#/find-my-brand) when you only want to pull a business's logo, photos and branding from its website.",
+    "Use Timeline Editor (#/timeline) when the thing to personalize is a video edit.",
+    "Use Website Builder (#/website-builder) when you want a full website rather than one canvas page.",
+    "Use Video Render (#/render) to export an existing video."
+  ],
+  "keyFeatures": [
+    "Canvas with 8 element types: Heading, Text, Image, Button, Form, Video, Spacer, Container",
+    "Canvas size presets: Blank 1280x720, Landing Page 1280x800, Email 600x800, Social Post 1080x1080, Story 1080x1920, Banner 728x90, plus custom W and H with Apply Size",
+    "Token chips such as {{firstName}} that insert into the selected element",
+    "Active Contact dropdown (default - None -) to preview with real contact data",
+    "Preview Personalized and Export HTML actions",
+    "Save Canvas and Load Canvas (stored in your browser, with an integrity check)",
+    "Properties panel per element (position in percent, size in pixels, text, source URL, link URL, colors, fonts)",
+    "Upload image... / Replace asset... stored in your Asset Library",
+    "Personalization hub: client profiles, asset library, AI Assist, Discover from website",
+    "Source panel with Return to <studio> and Dismiss Source for content sent from other studios",
+    "Delete or Backspace removes the selected element"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Element palette",
+      "explanation": "Click Heading, Text, Image, Button, Form, Video, Spacer or Container in the sidebar to add that element. A toast says 'Added <name>'. New text elements start with the text 'Double-click to edit text. Use {{token}} for personalization.'",
+      "whyToUse": "Builds the page layout.",
+      "inputRequired": "None.",
+      "restrictions": "Spacer and similar elements do not support tokens."
+    },
+    {
+      "feature": "Canvas size",
+      "explanation": "Pick a preset (Blank, Landing Page, Email, Social Post, Story, Banner) or type W and H and click Apply Size. If a field is empty it falls back to 1280 by 720.",
+      "whyToUse": "Match the page to where it will be used.",
+      "inputRequired": "Optional width and height in pixels.",
+      "restrictions": "None stated."
+    },
+    {
+      "feature": "Tokens",
+      "explanation": "Tokens are placeholders in double curly braces. The chips in the sidebar cover names (firstName, lastName, fullName), company (company, companyName), title, email, location, industry, companySummary, painPoint, product, service, interest, buyingSignal, tone, brandColor, logoUrl, avatarUrl, image tokens (productImageUrl, brandImageUrl, ctaImageUrl, firstFrameUrl, lastFrameUrl), social links (github, linkedin, twitter, website) and business fields (businessName, businessPhone, productService, offer, ctaHeadline, callToAction, brandDescription). Select an element and click a chip, or type the token yourself. Older labels like {{First Name}} also still work.",
+      "whyToUse": "One design, many personalized results.",
+      "inputRequired": "A selected element and a contact with data.",
+      "restrictions": "If no element is selected you get 'Select an element first'; some element types give 'This element type does not support tokens'. Without a contact you see 'No contact selected - showing base content'."
+    },
+    {
+      "feature": "Active Contact and preview",
+      "explanation": "The Active Contact dropdown lists your saved profiles. Choosing one fills tokens with that contact's data. Preview Personalized refreshes the view and shows 'Preview updated'.",
+      "whyToUse": "Check the result for each recipient.",
+      "inputRequired": "At least one saved contact profile.",
+      "restrictions": "Empty token values may stay blank or show the base text."
+    },
+    {
+      "feature": "Export HTML",
+      "explanation": "Export HTML opens the personalized page in a new window as a standalone page titled Personalized Page.",
+      "whyToUse": "Share or host the page elsewhere.",
+      "inputRequired": "A built canvas.",
+      "restrictions": "If the browser blocks the window you see 'Popup blocked - please allow popups for this site'."
+    },
+    {
+      "feature": "Save Canvas / Load Canvas",
+      "explanation": "Save Canvas stores your elements and size in this browser and says 'Canvas saved'. Load Canvas restores it ('Canvas loaded'). The saved data has a checksum so damaged data is rejected.",
+      "whyToUse": "Continue later on the same browser.",
+      "inputRequired": "None.",
+      "restrictions": "Saved only in this browser (local storage); not shared across devices. Messages: 'Save failed - storage may be full', 'No saved canvas found', 'Saved canvas appears corrupted', 'Saved canvas integrity check failed', 'Failed to load canvas'."
+    },
+    {
+      "feature": "Properties panel",
+      "explanation": "Selecting an element shows '<type> Properties' with X (%), Y (%), Width (px), Height (px), plus Text, Source URL, Link URL, Background, Color, Font Size, Font Family and Font Weight where they apply, and 'Tokens in this element' listing detected tokens. X and Y are limited to 0-95 percent and width and height to at least 40.",
+      "whyToUse": "Fine tune each element.",
+      "inputRequired": "A selected element.",
+      "restrictions": "If nothing is selected: 'Select an element to edit its properties.'"
+    },
+    {
+      "feature": "Image upload",
+      "explanation": "On an Image element, Upload image... stores the file in your Asset Library so it can be reused across studios without re-uploading (hint: 'Stored in your Asset Library - reused across studios without re-uploading.'). The button then reads Replace asset...",
+      "whyToUse": "Use your own logos and photos.",
+      "inputRequired": "An image file.",
+      "restrictions": "If the upload fails the button shows an error message or 'Upload failed'."
+    },
+    {
+      "feature": "Personalization hub",
+      "explanation": "At the bottom of the sidebar. It holds client profiles ('No client profile yet. Create one to personalize every studio render.'), an asset library with categories such as Person, Logo, Product, Brand, First frame and Last frame, an AI Assist box (placeholder: describe the edit, e.g. 'remove the background and brighten the logo') and 'Discover from website', where you paste a website URL to import its images.",
+      "whyToUse": "Reuse client data and brand assets everywhere.",
+      "inputRequired": "Optional: client details, website URL.",
+      "restrictions": "Website discovery needs sign-in ('Sign in to run website discovery'). Messages include 'Enter a website URL to discover its images.', 'The discovery service is busy - try again in a moment.', 'Discovery timed out. The site may be too slow - try again.', 'No assets found on that page.'"
+    },
+    {
+      "feature": "Source handoff from other studios",
+      "explanation": "When another studio sends content here, a Source section lists the fields. Return to <studio> goes back, and Dismiss Source clears it ('Source content dismissed').",
+      "whyToUse": "Move generated content into personalization and back.",
+      "inputRequired": "Content sent from another studio.",
+      "restrictions": "Handoff lives only in the current tab (session storage). A bad route shows 'Invalid return route'."
+    },
+    {
+      "feature": "Personalization modal in other studios",
+      "explanation": "Personalize buttons in other studios open a full-screen modal. It has sections Overview, Discovered, Client Assets, Saved Assets, Preview, Business, Prompt, Output, Mode and Engine. You can pick Me, My Business or Client, save a client ('Save Client' or 'Update Client'), write a prompt and click Personalize Prompt, then generate. Output choices include Prompt, Video or Image, and Everything (prompt plus media plus assets plus CTA). Modes include Face Only, Full Presenter, Recreate For Client and Complete Personalization for video, and Keep This Design, Replace Face, Replace Person, Recreate For Client and Complete Personalization for images. The Engine section offers SmartVideo Recommended plus aspect ratio, resolution, quality and duration selectors.",
+      "whyToUse": "Turn a demo or creative into a version for a specific business.",
+      "inputRequired": "Business or client details and assets.",
+      "restrictions": "Results show Original and Personalized side by side; failures say 'We Could Not Complete This Personalization' while keeping your inputs."
+    }
+  ],
+  "howToUse": "1. Open Personalizer from the Apps hub or go to #/personalizer. 2. Choose a canvas size (for example Landing Page) or type W and H and click Apply Size. 3. Click Heading, Text, Image, Button, Form or Video in the sidebar to add elements. 4. Click an element and edit it in the Properties panel (text, Source URL, Link URL, colors, fonts, position). 5. Click a token chip such as {{firstName}} to insert it into the selected element, or type the token yourself. 6. Under Personalization choose an Active Contact. 7. Click Preview Personalized to check the result. 8. Click Save Canvas to keep your work in this browser. 9. Click Export HTML to open the finished page. 10. Press Delete to remove a selected element.",
+  "howToSteps": [
+    "Pick a canvas size.",
+    "Add elements from the palette.",
+    "Insert tokens into text or link fields.",
+    "Choose an Active Contact.",
+    "Click Preview Personalized.",
+    "Click Save Canvas and then Export HTML."
+  ],
+  "gettingStarted": [
+    "Start with the Landing Page preset and add a Heading containing {{firstName}}.",
+    "Create or pick a contact in the Personalization hub so previews have data.",
+    "Save Canvas early; storage is local to your browser."
+  ],
+  "inputs": ["Elements", "Tokens", "Contact profiles", "Images", "Canvas size", "Website URL (hub discovery)"],
+  "requiredInputs": [],
+  "optionalInputs": ["Active Contact", "Uploaded images", "Website URL", "Client profile", "AI Assist instruction"],
+  "inputDetails": [
+    {"name": "Active Contact", "description": "Which saved profile fills the tokens.", "required": false, "whenToUse": "When previewing or exporting for one person.", "restrictions": "Default is - None -, which shows base content."},
+    {"name": "Canvas size", "description": "Width and height in pixels.", "required": false, "whenToUse": "At the start.", "restrictions": "Defaults to 1280 x 720."},
+    {"name": "Tokens", "description": "Placeholders like {{company}} in text or URL fields.", "required": false, "whenToUse": "Where content should change per contact.", "restrictions": "Only some element types support tokens."},
+    {"name": "Image file", "description": "Uploaded to your Asset Library from an Image element.", "required": false, "whenToUse": "For logos and photos.", "restrictions": "Upload errors are shown on the button."},
+    {"name": "Website URL", "description": "Used by Discover from website to import images.", "required": false, "whenToUse": "To pull a brand's images.", "restrictions": "Requires sign-in."}
+  ],
+  "generationModes": [],
+  "modeExplanations": [
+    {"mode": "Canvas editor", "description": "Free-form page building with tokens.", "useCase": "Personalized landing pages and creatives."},
+    {"mode": "Personalization modal (other studios)", "description": "Prompt and asset personalization for generated images and videos.", "useCase": "Client-specific versions of demos."}
+  ],
+  "modelCapabilities": "",
+  "outputs": ["Standalone HTML page (Export HTML)", "Saved canvas in the browser", "Personalized prompts, images or videos (from the personalization modal in generative studios)"],
+  "limitations": [
+    "Saved canvases live in this browser only.",
+    "Token resolution needs a contact with data.",
+    "Website discovery needs sign-in.",
+    "Pop-up blockers can stop Export HTML."
+  ],
+  "limitationDetails": [
+    {"limitation": "Local-only save", "impact": "Clearing browser data loses the canvas.", "workaround": "Export HTML when finished."},
+    {"limitation": "Popup blocked", "impact": "Export HTML window does not open.", "workaround": "Allow popups for this site and click again."}
+  ],
+  "troubleshooting": [
+    "Select an element first: click an element on the canvas before inserting a token.",
+    "This element type does not support tokens: use a Text, Heading, Button or similar element.",
+    "No contact selected - showing base content: choose an Active Contact.",
+    "Popup blocked: allow popups for this site and click Export HTML again.",
+    "Save failed - storage may be full: free up browser storage or export your HTML.",
+    "Saved canvas integrity check failed: the saved data was altered or damaged; rebuild and save again.",
+    "Discovery asks you to sign in: sign in, then paste the website URL again."
+  ],
+  "troubleshootingSteps": [
+    {"issue": "Tokens show as raw {{text}}", "steps": ["Choose an Active Contact.", "Check the token name matches a chip (for example firstName).", "Click Preview Personalized."]},
+    {"issue": "Cannot load a saved canvas", "steps": ["Click Load Canvas.", "If you see No saved canvas found, it was never saved in this browser.", "If corrupted, rebuild the page."]}
+  ],
+  "commonProblems": [
+    {"problem": "Preview shows no personal details", "whyItHappens": "No contact is selected or the profile lacks that field.", "howToFix": "Pick a contact and fill in the missing field."},
+    {"problem": "Element cannot be moved off the edge", "whyItHappens": "X and Y are limited to 0-95 percent.", "howToFix": "Use width and height to resize instead."}
+  ],
+  "exampleWorkflows": [
+    {"title": "Personalized landing page", "steps": ["Choose the Landing Page preset.", "Add a Heading with 'Hi {{firstName}}'.", "Add Text mentioning {{company}}.", "Add a Button linking to your offer.", "Pick an Active Contact and click Preview Personalized.", "Click Export HTML."]},
+    {"title": "Brand-based personalization", "steps": ["Open the Personalization hub.", "Use Discover from website with the client's URL.", "Import the logo and photos.", "Drop the logo into an Image element and export."]}
+  ],
+  "useCases": [
+    {"title": "Cold outreach page", "description": "A page per prospect with their company and pain point.", "steps": ["Create tokens for company and painPoint.", "Preview each contact.", "Export HTML."], "expectedOutput": "One HTML page per contact."}
+  ],
+  "faqs": [
+    {"question": "What are tokens?", "answer": "Placeholders written like {{firstName}} that are replaced with a contact's real details when you preview or export."},
+    {"question": "Where is my canvas saved?", "answer": "Save Canvas stores it in your browser. It is not synced to other devices."},
+    {"question": "How do I delete an element?", "answer": "Select it and press Delete or Backspace; you will see 'Element deleted'."},
+    {"question": "What canvas sizes are available?", "answer": "Blank 1280x720, Landing Page 1280x800, Email 600x800, Social Post 1080x1080, Story 1080x1920 and Banner 728x90, or any custom size."}
+  ],
+  "glossary": {
+    "Token": "A placeholder in double curly braces that is replaced with a contact detail.",
+    "Canvas": "The free-form area where elements are placed.",
+    "Active Contact": "The profile used to fill tokens in the preview.",
+    "Handoff": "Content sent from another studio into Personalizer."
+  },
+  "tips": [
+    "Keep a few sample contacts so you can flip between them while previewing.",
+    "Use short, clear tokens like {{company}} in headings.",
+    "Save before you leave the page."
+  ],
+  "bestPractices": [
+    "Preview with at least two different contacts.",
+    "Export HTML as your backup copy.",
+    "Reuse uploaded images through the Asset Library."
+  ],
+  "relatedStudios": ["leadfinder", "find-my-brand", "website-builder", "timeline", "viral", "library"],
+  "relatedStudioGuidance": [
+    {"studio": "leadfinder", "relationship": "Finds the businesses to personalize for", "whenToMove": "You do not yet have prospects.", "why": "It searches by niche and location."},
+    {"studio": "find-my-brand", "relationship": "Pulls brand assets from a website", "whenToMove": "You only need logos and photos.", "why": "It is free and needs no sign-in."},
+    {"studio": "website-builder", "relationship": "Full site building", "whenToMove": "You need multiple pages.", "why": "Personalizer builds one canvas."}
+  ],
+  "notConfirmed": [
+    "Whether Export HTML includes uploaded images as hosted links or embedded data.",
+    "How form submissions from exported pages are handled.",
+    "Credit costs of generation in the personalization modal.",
+    "Exact token behavior when a contact field is empty."
+  ],
+  "sourceFiles": [
+    "src/components/Personalizer.js",
+    "src/components/personalize/tokenSchema.js",
+    "src/components/personalize/PersonalizationHubPanel.js",
+    "src/lib/personalizerHandoff.js",
+    "src/features/personalization/mount.jsx",
+    "src/features/personalization/shared/personalization/PersonalizationModal.tsx",
+    "src/components/AppsHub.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read Personalizer.js sidebar, actions and properties code, tokenSchema.js, hub panel strings and the modal source.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}
