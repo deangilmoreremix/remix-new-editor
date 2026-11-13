@@ -237,6 +237,8 @@ export function mergeDiscoveredAssets(prev: DiscoveredAsset[], next: DiscoveredA
       carried.editMetadata = old.editMetadata
       carried.originalPreviewUrl = old.originalPreviewUrl || asset.originalPreviewUrl
     }
+    // Verified transparency is kept even when no cutout was generated (an already-transparent image).
+    if (old.hasTransparency) carried.hasTransparency = true
     if (old.bgRemoval) carried.bgRemoval = old.bgRemoval
     if (old.bgOptOut) carried.bgOptOut = old.bgOptOut
     if (old.showOriginal) carried.showOriginal = old.showOriginal

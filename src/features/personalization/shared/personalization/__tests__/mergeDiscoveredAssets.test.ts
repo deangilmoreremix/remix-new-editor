@@ -17,6 +17,13 @@ describe('mergeDiscoveredAssets', () => {
     expect(merged[1].editedDataUrl).toBeUndefined() // new assets are untouched
   })
 
+  it('keeps verified transparency of an already-transparent image that got no cutout', () => {
+    const prev = [a({ id: '1', hasTransparency: true, bgRemoval: { status: 'skipped', message: 'Transparent' } })]
+    const merged = mergeDiscoveredAssets(prev, [a({ id: '1' })])
+    expect(merged[0].hasTransparency).toBe(true)
+    expect(merged[0].editedDataUrl).toBeUndefined()
+  })
+
   it('returns the new list as is when there was nothing before', () => {
     const next = [a({ id: '1' })]
     expect(mergeDiscoveredAssets([], next)).toBe(next)
