@@ -225,6 +225,21 @@ test.describe('Add to timeline modal', () => {
     await expect.poll(() => imgs.evaluateAll((els) => els.slice(0, 8).every((e) => e.complete && e.naturalWidth > 0))).toBe(true);
   });
 
+  test('the List Builder card preview shows the form only: no pointer-hint bubble over it, before or after 5 s, or on hover', async ({ page }) => {
+    await openModal(page, 'overlays');
+    const card = dialog(page).locator('.add-card-wrap', { hasText: 'List Builder' });
+    const hint = card.locator('.overlay-arrow');
+    await expect(card.locator('form')).toBeVisible();
+    await expect(hint).toHaveCount(0);
+    await page.waitForTimeout(6000); // the hint used to appear for the first 5 s, then fade
+    await expect(card.locator('form')).toBeVisible();
+    await expect(hint).toHaveCount(0);
+    await card.hover();
+    await page.waitForTimeout(1200);
+    await expect(card.locator('form')).toBeVisible();
+    await expect(hint).toHaveCount(0);
+  });
+
   for (const [name, selector] of [['Smart Speech', '.speech-modal'], ['Template Generator', '.modal-overlay.active'], ['Personalization', '.modal-overlay.active']]) {
     test(`the ${name} button opens its own modal`, async ({ page }) => {
       await page.getByRole('button', { name, exact: true }).click();

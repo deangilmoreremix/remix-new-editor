@@ -25,8 +25,12 @@ function fromZero(clips: OverlayClip[]): OverlayClip[] {
 }
 const spanOf = (clips: OverlayClip[]) => Math.max(1, ...clips.map((c) => c.end));
 
+/** The List Builder shows a "pointer hint" (dimmed backdrop, arrow and bubble) for its first seconds. That is right in the video but at card size it
+ *  overlaps the form and reads as jumbled text, so the preview copy turns it off. The overlay that is really added is made by createOverlay and keeps it. */
+const forPreview = (clips: OverlayClip[]): OverlayClip[] => clips.map((c) => (c.type === 'list-builder' ? { ...c, config: { ...(c.config as object), pointerEnabled: false } } : c));
+
 const kindPreview = (kind: OverlayKind): CardPreview => {
-  const make = () => fromZero([createOverlay(kind, 0, 6)]);
+  const make = () => forPreview(fromZero([createOverlay(kind, 0, 6)]));
   const d = spanOf(make());
   // forms are shown at once; animated overlays are shown a little way in
   return { kind: 'overlay', build: make, duration: d, still: kind === 'lead-form' || kind === 'list-builder' ? 0.2 : Math.min(d * 0.5, 2.5) };

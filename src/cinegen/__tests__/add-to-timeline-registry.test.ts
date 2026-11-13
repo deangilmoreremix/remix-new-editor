@@ -72,4 +72,12 @@ describe('add-to-timeline catalog', () => {
     for (const k of OVERLAY_KINDS) { const o = createOverlay(k.kind, 0, 10); expect(o.type, k.kind).toBe(k.kind); expect(o.end, k.kind).toBeGreaterThan(o.start); }
     for (const t of overlayTemplates()) { const made = createTemplateOverlays(t.id, 0, 10); expect(made.length, t.id).toBeGreaterThan(0); for (const o of made) expect(o.end, t.id).toBeGreaterThan(o.start); }
   });
+
+  it('the List Builder card preview has no pointer hint, but the overlay that gets added keeps it', () => {
+    const entry = buildCatalog(actions, { close: noop, askPhone: noop }).find((e) => e.id === 'list-builder')!;
+    const [shown] = entry.preview.build();
+    expect((shown.config as { pointerEnabled?: boolean }).pointerEnabled).toBe(false);
+    const added = createOverlay('list-builder', 0, 10);
+    expect((added.config as { pointerEnabled?: boolean }).pointerEnabled).not.toBe(false);
+  });
 });
