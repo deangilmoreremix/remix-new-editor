@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolveModelCapabilities, resolveAssetsForModel, capabilityOptionsForMode } from '../modelCapabilityResolver'
+import { resolveModelCapabilities, resolveAssetsForModel } from '../modelCapabilityResolver'
 import type { PersonalizationSource, AssetLibrary, GenerationOptions, PersonalizationAsset } from '../types'
 
 const EMPTY_SOURCE: PersonalizationSource = {
@@ -134,25 +134,6 @@ describe('resolveAssetsForModel', () => {
 
     expect(resolved.directInputs.image_url).toBe('https://example.com/identity.jpg')
     expect(resolved.directInputs.video_url).toBe('https://example.com/source.mp4')
-  })
-
-  it('resolves Face Only / Full Presenter against their dedicated models, not the source model', () => {
-    const source: PersonalizationSource = {
-      ...EMPTY_SOURCE,
-      mediaType: 'video',
-      sourceMedia: 'https://example.com/source.mp4',
-      model: 'seedance-2-t2v',
-    }
-    const identity = makeAsset({ url: 'https://example.com/identity.jpg', uploadedUrl: 'https://example.com/identity.jpg' })
-    const assets: AssetLibrary = { ...EMPTY_ASSETS, primaryIdentity: identity, identities: [identity] }
-    for (const mode of ['face_only', 'full_body'] as const) {
-      const options = capabilityOptionsForMode(source, { ...baseOptions, model: 'seedance-2-t2v' }, mode)
-      const caps = resolveModelCapabilities(source, options)
-      const resolved = resolveAssetsForModel(source, assets, mode, options, caps)
-      expect(resolved.directInputs.image_url).toBe('https://example.com/identity.jpg')
-    }
-    // Other modes keep the source's own model.
-    expect(capabilityOptionsForMode(source, { ...baseOptions, model: 'seedance-2-t2v' }, 'recreate').model).toBe('seedance-2-t2v')
   })
 
   it('routes identity image to direct inputs for full_body with kling-v3.0-pro-recast', () => {

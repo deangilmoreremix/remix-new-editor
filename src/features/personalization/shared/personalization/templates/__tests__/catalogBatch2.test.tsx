@@ -428,21 +428,11 @@ describe('batch 2 — safety', () => {
     expect(canvas.style.transform).toBe('')
   })
 
-  it('draws the React Video Editor credit line inside every design', () => {
+  it('draws no credit line inside any design', () => {
     for (const [id, Adapter] of adapters) {
       const { container, unmount } = render(<Adapter {...makeProps()} />)
-      const credit = container.querySelector('[data-remotion-design-credit]')
-      expect(credit, id).not.toBeNull()
-      const text = credit?.textContent ?? ''
-      expect(text, id).toContain('React Video Editor')
-      expect(text, id).toContain('MIT License')
-      expect(text, id).toContain('Credit appreciated but not required')
-      // The repo-2 permission notice travels with the design, and it carries
-      // no copyright line because the upstream names no holder.
-      expect(text, id).toContain('Permission is hereby granted')
-      expect(text, id).not.toMatch(/Copyright \(c\)/)
-      // The Phase 1 credit names a different upstream — it must not appear.
-      expect(text, id).not.toContain('RenderComp')
+      expect(container.querySelector('[data-remotion-design-credit]'), id).toBeNull()
+      expect(container.textContent ?? '', id).not.toContain('Permission is hereby granted')
       unmount()
     }
   })

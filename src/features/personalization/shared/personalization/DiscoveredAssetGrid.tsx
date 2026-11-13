@@ -350,6 +350,7 @@ export function DiscoveredAssetGrid({
   onDragEnd,
   dropZones,
   onDropToSection,
+  pageSize,
 }: {
   assets: DiscoveredAsset[]
   onToggle: (id: string) => void
@@ -366,7 +367,10 @@ export function DiscoveredAssetGrid({
   /** Drop targets rendered under the grid; used where the page has none of its own. */
   dropZones?: DiscoveredAssetDropZone[]
   onDropToSection?: (id: string, section: AssignedSection) => void
+  /** Show at most this many per category, with "Show more" (omitted: show all). */
+  pageSize?: number
 }) {
+  const [shownPerCategory, setShownPerCategory] = useState<Record<string, number>>({})
   const [dragOverZone, setDragOverZone] = useState<AssignedSection | null>(null)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const hasZones = Boolean(dropZones && dropZones.length > 0 && onDropToSection)
@@ -404,7 +408,7 @@ export function DiscoveredAssetGrid({
               {catLabel} ({items.length})
             </div>
             <div className="flex flex-wrap gap-2">
-              {items.map((asset) => (
+              {(pageSize ? items.slice(0, shownPerCategory[cat] ?? pageSize) : items).map((asset) => (
                 <DiscoveredAssetThumb
                   key={asset.id}
                   asset={asset}
@@ -424,6 +428,16 @@ export function DiscoveredAssetGrid({
                 />
               ))}
             </div>
+            {pageSize && items.length > (shownPerCategory[cat] ?? pageSize) && (
+              <button
+                type="button"
+                data-testid={`discovered-show-more-${cat}`}
+                onClick={() => setShownPerCategory((prev) => ({ ...prev, [cat]: (prev[cat] ?? pageSize) + pageSize }))}
+                style={{ marginTop: 8, color: C.cyan, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+              >
+                Show {Math.min(pageSize, items.length - (shownPerCategory[cat] ?? pageSize))} more {catLabel.toLowerCase()}
+              </button>
+            )}
           </div>
         )
       })}

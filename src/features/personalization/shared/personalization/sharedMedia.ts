@@ -41,6 +41,9 @@ export interface SharedMediaEntry {
   outputUrls: string[]
   outputType: string
   clientId?: string
+  /** The saved video is the generated clip without the on-video layers
+   *  (the layered version could not be stored). */
+  layersMissing?: boolean
   createdAt: string
 }
 
@@ -112,6 +115,7 @@ export function registerSharedMedia(entry: Partial<SharedMediaEntry>): SharedMed
     outputUrls: entry.outputUrls || [],
     outputType: entry.outputType || 'prompt',
     clientId: entry.clientId,
+    ...(entry.layersMissing ? { layersMissing: true } : {}),
     createdAt: entry.createdAt || new Date().toISOString(),
   }
   const data = readStorage()

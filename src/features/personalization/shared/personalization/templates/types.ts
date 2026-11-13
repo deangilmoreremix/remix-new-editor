@@ -24,6 +24,9 @@ export type RemotionDesignCategory =
   | 'lower-third'
   | 'promo-cta'
   | 'visual-effect'
+  | 'transition'
+  | 'data-visualization'
+  | 'full-scene'
   | 'other'
 
 /** Customer-facing brand field that feeds a design's text slot. */
@@ -116,6 +119,12 @@ export interface RemotionDesignPlacement {
   opacity: number
   /** Entrance animation applied to the layer itself. */
   animation?: PreviewAnimationId
+  /**
+   * Last composition frame the design layer is visible on. Leave unset for an
+   * overlay that stays for the whole clip. Full-scene cards and transitions
+   * set it so they play as an intro and then reveal the customer's video.
+   */
+  endFrame?: number
 }
 
 /** Whether the design can be previewed and exported in the browser. */

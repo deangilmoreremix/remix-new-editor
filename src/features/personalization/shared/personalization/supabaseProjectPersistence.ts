@@ -126,6 +126,9 @@ export interface PersonalizationProjectState {
   previewVideo?: PreviewVideoRef | null
   guidedStep?: number
   viewMode?: PersonalizationViewMode
+  /** The saved output is the generated clip without the on-video layers the
+   *  user approved (adding or storing them failed). */
+  layersMissing?: boolean
 }
 
 const API_ROUTE = '/api/personalization/project'
@@ -227,6 +230,7 @@ export function projectStateFromRow(row: unknown): PersonalizationProjectState |
     'previewVideo',
     'guidedStep',
     'viewMode',
+    'layersMissing',
   ]
   const isEnvelope = envelopeKeys.some((key) => key in generation)
   const generationSettings = isEnvelope ? asRecord(generation.settings) : generation
@@ -235,6 +239,7 @@ export function projectStateFromRow(row: unknown): PersonalizationProjectState |
   const previewVideo = isEnvelope ? generation.previewVideo : undefined
   const guidedStep = isEnvelope ? generation.guidedStep : undefined
   const viewMode = isEnvelope ? generation.viewMode : undefined
+  const layersMissing = isEnvelope && generation.layersMissing === true
 
   return {
     id: asString(r.id) ?? undefined,
@@ -309,6 +314,7 @@ export function projectStateFromRow(row: unknown): PersonalizationProjectState |
     previewVideo: (previewVideo as PreviewVideoRef | null | undefined) ?? null,
     guidedStep: typeof guidedStep === 'number' ? guidedStep : undefined,
     viewMode: viewMode as PersonalizationViewMode | undefined,
+    ...(layersMissing ? { layersMissing: true } : {}),
   }
 }
 
@@ -363,6 +369,7 @@ export function projectRowFromState(state: PersonalizationProjectState): SavedPr
       previewVideo: state.previewVideo ?? null,
       guidedStep: state.guidedStep ?? null,
       viewMode: state.viewMode ?? null,
+      ...(state.layersMissing ? { layersMissing: true } : {}),
     },
     outputType: state.outputType ?? 'prompt',
     mode: state.personalizationMode ?? null,

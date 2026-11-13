@@ -17,12 +17,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
+import { layoutLayerGeometry } from '../preview/presets'
 
 vi.mock('@ohb/packages/studio/src/muapi', () => ({ uploadFile: vi.fn() }))
 
 vi.mock('../assetUploadService', () => ({ uploadPersonalizationAsset: vi.fn() }))
 
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
 }))
 
@@ -351,9 +352,15 @@ describe('DemoPersonalizeProvider Restore default layout end-to-end', () => {
     expect(after.previewSettings.brandColors.primary).toBe('#abcdef')
     expect(after.previewSettings.brandColors.accent).toBe('#fedcba')
     // Text was re-seeded from the form/asset context, not from the dragged
-    // headline (the dragged headline was at x=0.5, y=0.85; the seed is default).
-    expect(restoredHeadline.x).toBe(0.08)
-    expect(restoredHeadline.y).toBe(0.4)
+    // headline (the dragged headline was at x=0.5, y=0.85); geometry is the
+    // layout's own default for the current aspect ratio.
+    const expectedHeadline = layoutLayerGeometry(
+      after.previewSettings.layout,
+      'headline',
+      after.previewSettings.aspectRatio,
+    ) ?? { x: 0.08, y: 0.4 }
+    expect(restoredHeadline.x).toBe(expectedHeadline.x)
+    expect(restoredHeadline.y).toBe(expectedHeadline.y)
   })
 })
 
@@ -372,5 +379,23 @@ describe('DemoPersonalizeProvider restore of rows saved without asset URLs', () 
     expect(ctx.assets.lastFrame ?? null).toBeNull()
     expect(ctx.assets.products).toHaveLength(1)
     expect(ctx.assets.products[0].url).toBe('https://cdn.example.com/legacy-product.png')
+  })
+})
+
+describe('DemoPersonalizeProvider restore of a video missing its layers', () => {
+  it('a saved video missing its approved layers comes back with the notice and nothing to publish', async () => {
+    await mountAndOpen(makeSavedEntry({ layersMissing: true }))
+    const ctx = (window as any).__personalizationCtx
+    expect(ctx.result.urls).toEqual(['https://cdn.example.com/result.mp4'])
+    expect(ctx.result.metadata.layersMissing).toBe(true)
+    expect(ctx.result.metadata.publishUrl).toBe('')
+    expect(String(ctx.result.metadata.layersNote)).toMatch(/on-video layers/)
+  })
+
+  it('a saved video with its layers restores without the notice', async () => {
+    await mountAndOpen(makeSavedEntry())
+    const ctx = (window as any).__personalizationCtx
+    expect(ctx.result.urls).toEqual(['https://cdn.example.com/result.mp4'])
+    expect(ctx.result.metadata?.layersMissing).toBeUndefined()
   })
 })
