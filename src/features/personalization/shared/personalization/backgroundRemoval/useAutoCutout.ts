@@ -243,7 +243,8 @@ export function useAutoCutout(
         const result = await removeAssetBackground(blob, {
           signal: controller.signal,
           onProgress: ({ progress }) => {
-            if (!mountedRef.current || progress - lastReported < 0.02) return
+            // A cancelled run's late progress must not overwrite a newer request for the same asset.
+            if (!mountedRef.current || controller.signal.aborted || progress - lastReported < 0.02) return
             lastReported = progress
             setBg(id, { status: 'running', progress, manual })
           },
