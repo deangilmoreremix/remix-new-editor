@@ -164,6 +164,25 @@ async function openViewer(url) {
   return { ctx, page: v };
 }
 
+const assetUrlsOf = (name) => {
+  const b = world.db.t.business_profiles.find((x) => x.name === name);
+  return world.db.t.business_assets.filter((x) => x.business_id === b.id).map((x) => x.storage_url).sort();
+};
+const viewerImages = (v) => v.locator('.watch-frame img').evaluateAll((els) => els.map((e) => ({ src: e.currentSrc || e.src, decoded: e.complete && e.naturalWidth > 0 })));
+const visibleText = (v) => v.locator('.watch-frame').innerText();
+
+async function expectViewerShows(v, who, other) {
+  await expect(v.locator('.watch-frame')).toContainText(`Hello ${who.first} from ${who.company}`, { timeout: 30000 });
+  await expect.poll(async () => (await viewerImages(v)).length).toBe(2);
+  const imgs = await viewerImages(v);
+  expect(imgs.every((i) => i.decoded)).toBe(true);                                         // the logo and the photo really render
+  expect(imgs.map((i) => i.src).sort()).toEqual(assetUrlsOf(who.name));                    // exactly this business's own images
+  const html = await v.content();
+  for (const leak of [other.name, other.first, other.company, ...assetUrlsOf(other.name)]) expect(html).not.toContain(leak);  // nothing of the other business anywhere in the page
+  expect(await v.locator('body').innerText()).not.toMatch(/\{\{|\}\}/);                    // never raw token syntax
+}
+
+
 test.describe('B/C. one source video, two businesses, personalized links', () => {
   test('provision Business B through the same picker', async () => {
     await provision('bizB', 'b-logo.svg', 'b-service.svg');
@@ -205,24 +224,6 @@ test.describe('B/C. one source video, two businesses, personalized links', () =>
     expect(world.db.t.video_recipients).toHaveLength(2);
     await page.screenshot({ path: shot('B2-links-created'), fullPage: true });
   });
-
-  const assetUrlsOf = (name) => {
-    const b = world.db.t.business_profiles.find((x) => x.name === name);
-    return world.db.t.business_assets.filter((x) => x.business_id === b.id).map((x) => x.storage_url).sort();
-  };
-  const viewerImages = (v) => v.locator('.watch-frame img').evaluateAll((els) => els.map((e) => ({ src: e.currentSrc || e.src, decoded: e.complete && e.naturalWidth > 0 })));
-  const visibleText = (v) => v.locator('.watch-frame').innerText();
-
-  async function expectViewerShows(v, who, other) {
-    await expect(v.locator('.watch-frame')).toContainText(`Hello ${who.first} from ${who.company}`, { timeout: 30000 });
-    await expect.poll(async () => (await viewerImages(v)).length).toBe(2);
-    const imgs = await viewerImages(v);
-    expect(imgs.every((i) => i.decoded)).toBe(true);                                         // the logo and the photo really render
-    expect(imgs.map((i) => i.src).sort()).toEqual(assetUrlsOf(who.name));                    // exactly this business's own images
-    const html = await v.content();
-    for (const leak of [other.name, other.first, other.company, ...assetUrlsOf(other.name)]) expect(html).not.toContain(leak);  // nothing of the other business anywhere in the page
-    expect(await v.locator('body').innerText()).not.toMatch(/\{\{|\}\}/);                    // never raw token syntax
-  }
 
   test('Business A opens its link in an independent browser and sees only its own logo, photo and text', async () => {
     const { ctx, page: v } = await openViewer(links.A);
