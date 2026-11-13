@@ -36,6 +36,8 @@ export function mountAskSmartVideo({ navigate, getPage }) {
   root.innerHTML = `
     <style>
       #ask-smartvideo-root .ask-body a.ask-cite{display:inline-block;min-width:16px;padding:0 4px;margin:0 1px;border-radius:6px;background:rgba(217,255,0,.15);color:#d9ff00;font-size:11px;text-align:center;text-decoration:none}
+      /* Desktop: the panel takes the launcher's corner (the launcher hides while it is open). */
+      @media (min-width:640px){#ask-smartvideo-root [data-ask="panel"]{bottom:1.25rem;max-height:calc(100vh - 2.5rem)}}
       #ask-smartvideo-root .ask-body p{margin:0 0 .5rem}#ask-smartvideo-root .ask-body ol,#ask-smartvideo-root .ask-body ul{margin:0 0 .5rem 1.1rem;padding:0}
       #ask-smartvideo-root .ask-body ol{list-style:decimal}#ask-smartvideo-root .ask-body ul{list-style:disc}
       #ask-smartvideo-root .ask-body code{background:rgba(255,255,255,.08);padding:0 4px;border-radius:4px}
@@ -46,7 +48,7 @@ export function mountAskSmartVideo({ navigate, getPage }) {
       <span>Ask SmartVideo</span>
     </button>
     <section data-ask="panel" role="dialog" aria-label="Ask SmartVideo" hidden
-      class="fixed inset-0 sm:inset-auto sm:bottom-20 sm:right-5 z-[70] flex flex-col bg-panel-bg border border-white/10 sm:rounded-2xl shadow-2xl sm:w-[400px] sm:h-[600px] sm:max-h-[calc(100vh-6rem)]">
+      class="fixed inset-0 sm:inset-auto sm:right-5 z-[70] flex flex-col bg-panel-bg border border-white/10 sm:rounded-2xl shadow-2xl sm:w-[400px] sm:h-[600px]">
       <header class="flex items-center justify-between px-4 py-3 border-b border-white/10">
         <div><div class="text-sm font-semibold text-white">Ask SmartVideo</div><div data-ask="context" class="text-xs text-muted"></div></div>
         <div class="flex gap-1">
@@ -187,6 +189,7 @@ export function mountAskSmartVideo({ navigate, getPage }) {
   const setOpen = (open) => {
     panel.hidden = !open;
     $('launcher').setAttribute('aria-expanded', String(open));
+    $('launcher').style.display = open ? 'none' : '';
     if (open) { renderAll(); input.focus(); }
   };
   const go = (url) => {

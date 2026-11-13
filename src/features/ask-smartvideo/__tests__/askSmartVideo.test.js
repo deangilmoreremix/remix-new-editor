@@ -200,6 +200,26 @@ describe('endpoint', () => {
     for await (const d of openAIDeltas(sseBody(['data: {"choices":[{"delta":{"con', 'tent":"Hi"}}]}\n', 'data: [DONE]\n']).body)) out.push(d);
     expect(out).toEqual(['Hi']);
   });
+  it('stops the OpenAI request when the client disconnects', async () => {
+    let signal;
+    const endless = () => new Response(new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"Hi "}}]}\n\n')); } }));
+    const fetchImpl = vi.fn(async (_u, init) => { signal = init.signal; return endless(); });
+    const r = await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }] }), { verify: verifyOk, fetchImpl });
+    const reader = r.body.getReader();
+    await reader.read(); await reader.read();
+    expect(signal.aborted).toBe(false);
+    await reader.cancel();
+    expect(signal.aborted).toBe(true);
+  });
+  it('gives a walkthrough more room than a short answer', async () => {
+    const bodyFor = async (q) => {
+      const fetchImpl = vi.fn(async () => sseBody(['data: [DONE]\n\n']));
+      await (await handle(req({ messages: [{ role: 'user', content: q }] }), { verify: verifyOk, fetchImpl })).text();
+      return JSON.parse(fetchImpl.mock.calls[0][1].body);
+    };
+    expect((await bodyFor('walk me through making a talking video from a photo')).max_tokens).toBeGreaterThanOrEqual(1200);
+    expect((await bodyFor('how do I remove the background')).max_tokens).toBe(700);
+  });
   it('rate limits per user', () => {
     const now = Date.now();
     for (let i = 0; i < 10; i++) expect(rateLimited('rl', now)).toBe(0);

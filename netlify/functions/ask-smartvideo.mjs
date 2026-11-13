@@ -83,10 +83,15 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
   const results = search(retrievalQuery(messages), { studioId, limit: 6 });
   const sources = results.map(publicSource);
   const enc = new TextEncoder();
+  // A whole walkthrough (many steps with exact button names) needs more room than a short answer.
+  const maxTokens = results.some((r) => r.chunk.kind === 'journey') ? 1400 : 700;
+  let upstreamAbort = null;
 
   const stream = new ReadableStream({
+    // The browser closed the panel / cleared the chat: stop the OpenAI request so the user's key isn't billed for it.
+    cancel() { upstreamAbort?.abort(); },
     async start(controller) {
-      const send = (e, d) => controller.enqueue(enc.encode(sse(e, d)));
+      const send = (e, d) => { try { controller.enqueue(enc.encode(sse(e, d))); } catch { /* the client went away */ } };
       try {
         send('sources', sources);
         if (!results.length) {
@@ -95,6 +100,7 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
           return;
         }
         const ac = new AbortController();
+        upstreamAbort = ac;
         const timer = setTimeout(() => ac.abort(), TIMEOUT_MS);
         try {
           const res = await fetchImpl('https://api.openai.com/v1/chat/completions', {
@@ -105,7 +111,7 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
               model: MODEL(),
               stream: true,
               temperature: 0.2,
-              max_tokens: 700,
+              max_tokens: maxTokens,
               messages: [{ role: 'system', content: `${SYSTEM_PROMPT}\n\nSOURCES:\n${buildSourcesBlock(results)}` }, ...messages],
             }),
           });
@@ -121,7 +127,7 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
       } catch (err) {
         send('error', { message: err?.name === 'AbortError' ? 'The assistant took too long. Try again.' : 'Connection lost. Try again.', code: 'upstream' });
       } finally {
-        controller.close();
+        try { controller.close(); } catch { /* already cancelled */ }
       }
     },
   });
