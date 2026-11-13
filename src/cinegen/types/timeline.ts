@@ -71,6 +71,8 @@ export interface Clip {
   /** [remix] Stage 1: compound clip. The clip is one object on the timeline; its content (start times relative to the clip, original
    *  track ids) is expanded to ordinary clips for playback and export (lib/editor/stage1/compound.ts, flattenCompounds). */
   compound?: CompoundContent;
+  /** [remix] Stage 2: unified keyframes (position, scale, rotation, opacity, crop, effect params; easing / bezier / spring) + procedural motion modifiers (lib/editor/stage2/anim.ts) */
+  anim?: import('../lib/editor/stage2/anim').ClipAnim;
 }
 
 export interface CompoundContent { clips: Clip[]; transitions: Transition[] }

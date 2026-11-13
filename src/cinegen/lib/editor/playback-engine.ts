@@ -2,7 +2,8 @@ import type { Timeline, Clip, Track } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 import { resolveFit } from '@cinegen/lib/occ/frame-geometry';
-import { clipTransformCss, clipTransformClipPath, fillCss } from '@cinegen/lib/occ/transform';
+import { fillCss } from '@cinegen/lib/occ/transform';
+import { clipPoseCss } from './stage2/anim'; // [remix] Stage 2: keys + motion modifiers on top of the clip transform
 import { interpolateProperty } from './timeline-operations';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { mediaDebug, mediaDebugWarn } from '@cinegen/lib/debug/media-debug';
@@ -779,9 +780,9 @@ export class PlaybackEngine {
       const scaleX = entry.clip.flipH ? -1 : 1;
       const scaleY = entry.clip.flipV ? -1 : 1;
       // [remix] clip position / scale / rotation / crop (and tracked path) per video element, so layouts with several visible clips work
-      const tcss = clipTransformCss(entry.clip.transform, clipTime);
-      el.style.transform = `scale(${scaleX}, ${scaleY})${tcss ? ` ${tcss}` : ''}`;
-      el.style.clipPath = clipTransformClipPath(entry.clip.transform) ?? '';
+      const pose = clipPoseCss(entry.clip, clipTime);
+      el.style.transform = `scale(${scaleX}, ${scaleY})${pose.transform ? ` ${pose.transform}` : ''}`;
+      el.style.clipPath = pose.clipPath ?? '';
       el.style.objectFit = resolveFit(entry.clip, this.timeline);
       this.syncFill(entry.clip.id, el, entry.clip.transform, opacity);
 

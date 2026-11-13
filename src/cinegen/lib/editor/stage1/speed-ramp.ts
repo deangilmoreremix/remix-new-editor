@@ -6,6 +6,7 @@ import type { Clip, Timeline } from '@cinegen/types/timeline';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 import { generateId } from '@cinegen/lib/utils/ids';
 import { calculateTimelineDuration } from '../timeline-operations';
+import { sliceAnim } from '../stage2/anim';
 
 export const RAMP_MIN_SPEED = 0.1;
 export const RAMP_MAX_SPEED = 8;
@@ -53,6 +54,7 @@ function pieces(clip: Clip, speeds: number[]): Clip[] {
       .filter((k) => { const u = k.time * clip.speed; return u >= a - EPS && (i === n - 1 ? true : u < b - EPS); })
       .map((k) => ({ ...k, time: Math.max(0, (k.time * clip.speed - a) / sp) }));
     const piece: Clip = { ...clip, id: i === 0 ? clip.id : generateId(), startTime: acc, trimStart: clip.trimStart + a, trimEnd: clip.trimEnd + (S - b), speed: sp, keyframes: kf, linkedClipIds: undefined };
+    if (clip.anim) piece.anim = sliceAnim(clip.anim, a / clip.speed, b / clip.speed, clip.speed / sp); // [remix] Stage 2
     if (i > 0) delete piece.fadeIn;
     if (i < n - 1) delete piece.fadeOut;
     acc += (b - a) / sp;

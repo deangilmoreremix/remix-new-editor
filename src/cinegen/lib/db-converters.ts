@@ -15,6 +15,7 @@ import type { Asset, MediaFolder } from '../types/project';
 import type { Timeline, Track, Clip, Keyframe, Transition } from '../types/timeline';
 import type { Element, ElementImage } from '../types/elements';
 import type { ExportJob, ExportPreset, ExportStatus } from '../types/export';
+import { normalizeAnim } from './editor/stage2/anim';
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -193,10 +194,13 @@ export function clipFromRow(
       const captions = json<Clip['captions']>(row['captions_json']);
       if (captions && typeof captions === 'object') out.captions = captions;
       // [remix] Stage 1: group id + compound content (one JSON column; absent on rows saved before they existed)
-      const s1 = json<{ groupId?: string; compound?: Clip['compound'] }>(row['stage1_json']);
+      const s1 = json<{ groupId?: string; compound?: Clip['compound']; anim?: unknown }>(row['stage1_json']);
       if (s1 && typeof s1 === 'object') {
         if (typeof s1.groupId === 'string' && s1.groupId) out.groupId = s1.groupId;
         if (s1.compound && Array.isArray(s1.compound.clips)) out.compound = s1.compound;
+        // [remix] Stage 2: unified keyframes + motion modifiers travel in the same JSON column (no schema change)
+        const anim = normalizeAnim(s1.anim);
+        if (anim) out.anim = anim;
       }
       return out;
     })(),
@@ -402,7 +406,7 @@ export function clipToRow(clip: Clip, timelineId: string): Record<string, unknow
     transform_json: clip.transform ? JSON.stringify(clip.transform) : null,
     captions_json: clip.captions ? JSON.stringify(clip.captions) : null,
     // [remix] Stage 1: group id + compound content
-    stage1_json: clip.groupId || clip.compound ? JSON.stringify({ groupId: clip.groupId, compound: clip.compound }) : null,
+    stage1_json: clip.groupId || clip.compound || clip.anim ? JSON.stringify({ groupId: clip.groupId, compound: clip.compound, anim: clip.anim }) : null,
   };
 }
 

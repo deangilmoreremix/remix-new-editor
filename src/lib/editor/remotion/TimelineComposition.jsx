@@ -37,7 +37,8 @@ import { CodeLayer } from './codeLayer.jsx';
 import { HyperframesLayer } from './hyperframes/HyperframesLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
-import { clipTransformCss, clipTransformClipPath } from '../../../cinegen/lib/occ/transform';
+import { clipPoseCss } from '../../../cinegen/lib/editor/stage2/anim';
+import { applyLottieEdits } from '../../../cinegen/lib/editor/stage2/lottie-edit';
 import { backgroundFillAppearance, backgroundFillFilter } from '../../../openchatcut/editor/backgroundFill';
 import { sampleKeyframes as sampleFxKey } from '../../../openchatcut/editor/keyframes';
 import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
@@ -239,12 +240,14 @@ function useJson(url) {
 }
 
 function StickerOverlay({ o, durationInFrames, effects }) {
-  const lottieData = useJson(o.kind === 'lottie' ? o.resolvedSrc : null);
+  const rawLottie = useJson(o.kind === 'lottie' ? o.resolvedSrc : null);
+  // [remix] Stage 2: colour / text replacement of the Lottie (same patcher as the editor preview)
+  const lottieData = useMemo(() => applyLottieEdits(rawLottie, { colors: o.lottieColors, texts: o.lottieTexts }), [rawLottie, o.lottieColors, o.lottieTexts]);
   if (!o.resolvedSrc) return null;
   return (
     <Animated o={o} durationInFrames={durationInFrames}>
       {o.kind === 'lottie'
-        ? (lottieData ? <Lottie animationData={lottieData} loop style={{ width: '100%', height: '100%' }} /> : null)
+        ? (lottieData ? <Lottie animationData={lottieData} loop playbackRate={Number(o.lottieSpeed) > 0 ? Number(o.lottieSpeed) : 1} style={{ width: '100%', height: '100%' }} /> : null)
         : <Img src={o.resolvedSrc} effects={effects} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
     </Animated>
   );
@@ -484,11 +487,11 @@ function OccFill({ layer, trimBefore, seqFrom }) {
   );
 }
 
-function OccTransform({ transform, children }) {
+function OccTransform({ transform, anim, children }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const css = clipTransformCss(transform, frame / fps);
-  const clipPath = clipTransformClipPath(transform);
+  // [remix] Stage 2: same pure pose function as the editor preview (keys, easing, motion modifiers); no anim = the previous transform CSS
+  const { transform: css, clipPath } = clipPoseCss({ transform, anim }, frame / fps);
   return css || clipPath ? <AbsoluteFill style={{ ...(css ? { transform: css } : {}), ...(clipPath ? { clipPath } : {}) }}>{children}</AbsoluteFill> : children;
 }
 
@@ -624,7 +627,7 @@ export function TimelineComposition({ model }) {
                 {/* [remix] clip blend mode (CSS mix-blend-mode, burned into export) */}
                 <AbsoluteFill style={layer.clipBlend ? { mixBlendMode: layer.clipBlend } : undefined}>
                   {layer.clipTransform?.fill !== undefined && layer.kind !== 'audio' && <OccFill layer={layer} trimBefore={trimBefore} seqFrom={from} />}
-                  <OccTransform transform={layer.clipTransform}>
+                  <OccTransform transform={layer.clipTransform} anim={layer.clipAnim}>
                   {layer.clipZoom
                     ? <OccZoom zoom={layer.clipZoom} durationInFrames={layer.durationInFrames}><MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} /></OccZoom>
                     : <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />}
