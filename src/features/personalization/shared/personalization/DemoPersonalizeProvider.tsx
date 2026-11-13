@@ -100,7 +100,7 @@ import { persistEditedPersonalizationAsset } from './editedAssetPersistence'
 import { normalizeUrl, TRACKING_PARAMS } from './urlNormalizer'
 import { createProjectPersistence, durableAssetUrls, loadProject, resolveRestoredAssetUrl, type LoadProjectResult, type PersonalizationProjectState } from './supabaseProjectPersistence'
 import { imageLoadsInBrowser } from './imageLoadProbe'
-import { useAutoCutout, type AutoCutoutControls } from './backgroundRemoval/useAutoCutout'
+import { useAutoCutout, shouldHoldAutoImport, AUTO_IMPORT_CUTOUT_WAIT_MS, type AutoCutoutControls } from './backgroundRemoval/useAutoCutout'
 import { buildPreviewInput } from './guided/buildPreviewInput'
 import { fitSettingsToClip, readClipMetadata } from './preview/fitSettingsToClip'
 import { chooseFinalOutputPath } from './finalOutput'
@@ -4244,10 +4244,27 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   // When a found business's discovery finishes, place the best logo and
   // photos into empty asset cards so the preview and overlays use them right
   // away. Everything stays reviewable in the Discovered Assets grid.
+  //
+  // Cut out first, then place: while on-device background removal is expected to
+  // run, placement waits (up to AUTO_IMPORT_CUTOUT_WAIT_MS) until the picked
+  // assets' cutouts have settled, so the cards and the preview get the
+  // transparent versions. Auto mode off, a declined/failed model or a slow
+  // download place the originals right away, exactly as before.
+  const [autoImportWaitTick, setAutoImportWaitTick] = useState(0)
+  const autoImportHoldSinceRef = useRef<number | null>(null)
   useEffect(() => {
     if (!autoImportPendingRef.current || discoveryStatus !== 'reviewing' || discoveredAssets.length === 0) return
-    autoImportPendingRef.current = false
     const picks = pickAutoImportAssets(discoveredAssets, assets)
+    if (picks.length > 0 && autoCutout.willAutoCutOut) {
+      if (autoImportHoldSinceRef.current === null) autoImportHoldSinceRef.current = Date.now()
+      const waited = Date.now() - autoImportHoldSinceRef.current
+      if (shouldHoldAutoImport(picks.map((asset) => asset.id), discoveredAssets, { willAutoCutOut: true, waitedMs: waited })) {
+        const timer = setTimeout(() => setAutoImportWaitTick((n) => n + 1), Math.max(0, AUTO_IMPORT_CUTOUT_WAIT_MS - waited))
+        return () => clearTimeout(timer)
+      }
+    }
+    autoImportHoldSinceRef.current = null
+    autoImportPendingRef.current = false
     let domain = ''
     try {
       domain = clientForm.website ? new URL(normalizeWebsiteInput(clientForm.website)).hostname.replace(/^www\./, '') : ''
@@ -4285,7 +4302,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         forgetUnplaced([])
         summarize([])
       })
-  }, [discoveryStatus, discoveredAssets, assets, importDiscoveredAssets, clientForm.website])
+  }, [discoveryStatus, discoveredAssets, assets, importDiscoveredAssets, clientForm.website, autoCutout.willAutoCutOut, autoImportWaitTick])
 
   const cancelDiscovery = useCallback(() => {
     setDiscoveredAssetsState([])
@@ -5017,6 +5034,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     //     mapping, so both paths fill the same fields with the same rules.
     selectBusiness(options?.business || businessRecordFromWebsite(website))
     autoImportPendingRef.current = true
+    autoImportHoldSinceRef.current = null // a new business starts a fresh wait
     const workflowSession = businessSessionRef.current
 
     setDiscoveryError(null)

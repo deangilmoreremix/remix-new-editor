@@ -357,7 +357,16 @@ export function useAutoCutout(
 
   const cancelAll = useCallback(() => {
     abortRef.current?.abort()
-    setAssets((prev) => prev.map((a) => (a.bgRemoval?.status === 'queued' ? { ...a, bgRemoval: { status: 'idle' } } : a)))
+    // Cancel must actually stop: every asset still waiting (or running) opts out of
+    // automatic processing, otherwise idle + auto-eligible would restart the queue at once.
+    // A manual "Remove BG" / Retry on an asset clears its opt-out again.
+    setAssets((prev) =>
+      prev.map((a) =>
+        !a.rejected && (a.bgRemoval?.status === 'queued' || a.bgRemoval?.status === 'running' || isAutoEligible(a))
+          ? { ...a, bgOptOut: true, bgRemoval: { status: 'idle' } }
+          : a,
+      ),
+    )
   }, [setAssets])
 
   const stats = useMemo<AutoCutoutStats>(() => {

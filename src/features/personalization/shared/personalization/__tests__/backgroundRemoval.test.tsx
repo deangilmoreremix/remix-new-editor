@@ -208,6 +208,25 @@ describe('useAutoCutout (auto queue)', () => {
     expect(state.order).toEqual([])
   })
 
+  it('Cancel really stops: nothing restarts, a manual request still works afterwards', async () => {
+    await mount([
+      asset({ id: 'a', previewUrl: 'https://shop.example/a.jpg', recommended: true }),
+      asset({ id: 'b', previewUrl: 'https://shop.example/b.jpg' }),
+    ])
+    await act(async () => latest.cutout.cancelAll())
+    await settle(400) // long enough for a restarted queue to have run
+    expect(state.order.length).toBeLessThanOrEqual(1) // at most the job that was already in flight
+    expect(latest.assets.every((a) => a.editedDataUrl === undefined || a.bgRemoval?.status === 'done')).toBe(true)
+    expect(latest.assets.filter((a) => a.bgRemoval?.status === 'queued' || a.bgRemoval?.status === 'running')).toHaveLength(0)
+    const processedBefore = state.order.length
+    await settle(300)
+    expect(state.order.length).toBe(processedBefore) // still nothing new started on its own
+
+    await act(async () => latest.cutout.requestRemoval(['b']))
+    await settle(0, () => latest.assets.find((a) => a.id === 'b')?.bgRemoval?.status === 'done')
+    expect(latest.assets.find((a) => a.id === 'b')!.hasTransparency).toBe(true)
+  })
+
   it('records a failure on the asset (with retry) without blocking the others', async () => {
     state.fail = { code: 'inference-failed' }
     await mount([asset({ id: 'one', previewUrl: 'https://shop.example/one.jpg' })])
