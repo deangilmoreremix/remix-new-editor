@@ -6,6 +6,20 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// The research provider's SSRF guard resolves every hostname before fetching it. These tests are about the
+// provider's behaviour, not the network, so DNS is answered locally (a public address) instead of asking real
+// DNS — otherwise they only pass on machines that can resolve example.com.
+vi.mock('node:dns', async (importOriginal) => {
+  const actual = (await importOriginal()) as typeof import('dns') & { default: { promises: Record<string, unknown> } }
+  const promises = {
+    ...actual.default.promises,
+    resolve4: vi.fn(async () => ['93.184.216.34']),
+    resolve6: vi.fn(async () => { const e = new Error('no AAAA') as Error & { code: string }; e.code = 'ENODATA'; throw e }),
+  }
+  return { ...actual, default: { ...actual.default, promises } }
+})
+
 import axios from 'axios'
 import { geocodeLocation } from '../nominatimProvider'
 import { discoverBusinesses } from '../overpassProvider'
