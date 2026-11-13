@@ -49,9 +49,9 @@ test.beforeAll(async ({ browser }) => {
   const seeded = await seedProject(page, {
     name: 'Spring Offer', videoUrl: world.video, seconds: 4,
     overlays: [
-      { kind: 'overlay-text', start: 0, end: 4, addon: { text: 'Hello {{FIRSTNAME}} from {{COMPANY}}' } },
-      { kind: 'overlay-personalized-image', start: 0, end: 4, addon: { src: '{{logoUrl}}', fit: 'contain' } },
-      { kind: 'overlay-personalized-image', start: 0, end: 4, addon: { src: '{{productImageUrl}}' } },
+      { kind: 'overlay-text', start: 0, end: 4, addon: { text: 'Hello {{FIRSTNAME}} from {{COMPANY}}', geometry: { left: 28, top: 4, width: 68, height: 14 } } },
+      { kind: 'overlay-personalized-image', start: 0, end: 4, addon: { src: '{{logoUrl}}', fit: 'contain', geometry: { left: 3, top: 4, width: 22, height: 22 } } },
+      { kind: 'overlay-personalized-image', start: 0, end: 4, addon: { src: '{{productImageUrl}}', geometry: { left: 62, top: 28, width: 34, height: 44 } } },
       // call-to-action destinations are tokens: each recipient gets their own number and website
       { kind: 'click-to-call', start: 0, end: 4, addon: { linkMode: 'phone', phoneNumber: '{{businessPhone}}', buttonText: 'Call {{COMPANY}}' } },
       { kind: 'overlay-text', start: 0, end: 4, addon: { text: 'Visit our website', linkMode: 'url', linkUrl: '{{website}}', geometry: { left: 5, top: 80, width: 40, height: 12 } } },
@@ -65,6 +65,25 @@ test.afterAll(async () => { await owner?.close(); });
 
 const fixtureFile = (name) => ({ name, mimeType: 'image/svg+xml', buffer: Buffer.from(IMAGES[`fixtures/${name}`]) });
 const grid = () => page.getByTestId('picker-grid');
+/**
+ * DOM presence is not enough: while the video plays, each personalization overlay must be ON SCREEN (inside the frame, a real
+ * size) and visible (opacity of itself and every ancestor), i.e. what a visitor would actually see.
+ */
+async function expectVisibleOnScreen(v) {
+  await v.locator('[data-bigplay]').click({ timeout: 3000 }).catch(() => {});
+  await expect.poll(async () => v.evaluate(() => {
+    const frame = document.querySelector('.watch-frame').getBoundingClientRect();
+    const visible = (el) => {
+      const r = el.getBoundingClientRect(); let o = 1;
+      for (let e = el; e && e !== document.body; e = e.parentElement) o *= parseFloat(getComputedStyle(e).opacity || '1');
+      return r.width > 20 && r.height > 8 && r.left >= frame.left - 2 && r.right <= frame.right + 2 && r.top >= frame.top - 2 && r.bottom <= frame.bottom + 2 && o > 0.6;
+    };
+    const images = [...document.querySelectorAll('.watch-frame img')].map(visible);
+    const text = [...document.querySelectorAll('.watch-frame *')].find((e) => e.children.length === 0 && /^Hello .+ from /.test(e.textContent || ''));
+    return { images, text: text ? visible(text) : false };
+  }), { timeout: 20000, intervals: [500] }).toEqual({ images: [true, true], text: true });
+}
+
 
 /** Upload one image through the picker (real file input -> storage -> library) under a category chip, then assign it to a slot. */
 async function uploadAndAssign(fileName, category, slotLabel) {
@@ -228,6 +247,7 @@ test.describe('B/C. one source video, two businesses, personalized links', () =>
   test('Business A opens its link in an independent browser and sees only its own logo, photo and text', async () => {
     const { ctx, page: v } = await openViewer(links.A);
     await expectViewerShows(v, BUSINESSES.A, BUSINESSES.B);
+    await expectVisibleOnScreen(v);                                                          // not just in the page: visible to the visitor
     await v.screenshot({ path: shot('C1-viewer-A') });
     await v.reload(); await v.locator('.watch-frame').waitFor();
     await expectViewerShows(v, BUSINESSES.A, BUSINESSES.B);                                  // still correct after a reload
@@ -242,6 +262,7 @@ test.describe('B/C. one source video, two businesses, personalized links', () =>
     const b = await openViewer(links.B); watch(b.page, 'B'); await b.page.reload();
     await expectViewerShows(a.page, BUSINESSES.A, BUSINESSES.B);
     await expectViewerShows(b.page, BUSINESSES.B, BUSINESSES.A);
+    await expectVisibleOnScreen(b.page);
     await b.page.screenshot({ path: shot('C2-viewer-B') });
     await a.page.waitForTimeout(1500);
     expect([...seen.A].length).toBeGreaterThan(0);
