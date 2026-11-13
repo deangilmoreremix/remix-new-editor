@@ -2,7 +2,7 @@
 // children its authors show (the registry itself ships no demo data). Overrides from the inspector are spread onto the root element.
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { splitSnippet, openingTag, firstElementEnd } from './jsx.mjs';
-import { SAMPLES, SAMPLE_IMPORTS, OVERRIDES, UNDEFINED_OK } from './samples.mjs';
+import { SAMPLES, SAMPLE_IMPORTS, OVERRIDES, UNDEFINED_OK, TEXT_WRAPPERS } from './samples.mjs';
 
 const usage = JSON.parse(readFileSync('src/lib/remotionui/docs-usage.json', 'utf8')).items;
 const cat = JSON.parse(readFileSync('src/lib/remotionui/catalog.json', 'utf8')).items;
@@ -40,10 +40,11 @@ for (const it of cat) {
   if (isTransition) {
     const ti = body.search(/<TransitionSeries\.Transition[\s/>]/); if (ti >= 0) { const sub = body.slice(ti); jsx = sub.slice(0, firstElementEnd(sub)); }
     src = `import React from 'react';\nimport { AbsoluteFill } from 'remotion';\n${have.has('TransitionSeries') ? '' : "import { TransitionSeries } from '@remotion/transitions';\n"}import { useVideoConfig } from '${SHIM}';\n${imps}\n` +
-      `const Scene = ({ a }) => (<AbsoluteFill style={{ background: a ? 'linear-gradient(135deg,#1d4ed8,#7c3aed)' : 'linear-gradient(135deg,#f97316,#ec4899)', color: '#fff', fontFamily: 'system-ui,sans-serif', fontSize: 120, fontWeight: 800, alignItems: 'center', justifyContent: 'center' }}>{a ? 'Scene A' : 'Scene B'}</AbsoluteFill>);\n` +
-      `export function Demo() {\n  const { durationInFrames } = useVideoConfig();\n  const half = Math.max(60, Math.floor(durationInFrames * 0.62));\n  return (\n    <TransitionSeries>\n      <TransitionSeries.Sequence durationInFrames={half}><Scene a /></TransitionSeries.Sequence>\n      ${jsx}\n      <TransitionSeries.Sequence durationInFrames={half}><Scene /></TransitionSeries.Sequence>\n    </TransitionSeries>\n  );\n}\n`;
+      `const Scene = ({ a, text, color }) => (<AbsoluteFill style={{ background: color, color: '#fff', fontFamily: 'system-ui,sans-serif', fontSize: 120, fontWeight: 800, alignItems: 'center', justifyContent: 'center' }}>{text}</AbsoluteFill>);\n` +
+      `export function Demo({ textA = 'Scene A', textB = 'Scene B', colorA = '#2563eb', colorB = '#f97316' }) {\n  const { durationInFrames } = useVideoConfig();\n  const half = Math.max(60, Math.floor(durationInFrames * 0.62));\n  return (\n    <TransitionSeries>\n      <TransitionSeries.Sequence durationInFrames={half}><Scene a text={textA} color={colorA} /></TransitionSeries.Sequence>\n      ${jsx}\n      <TransitionSeries.Sequence durationInFrames={half}><Scene text={textB} color={colorB} /></TransitionSeries.Sequence>\n    </TransitionSeries>\n  );\n}\n`;
   } else {
-    const m2 = mainTag || tag; const off = m2.start - tag.start; const withOverrides = `${jsx.slice(0, m2.close - tag.start)} {...__o}${jsx.slice(m2.close - tag.start)}`;
+    const m2 = mainTag || tag; const off = m2.start - tag.start; let withOverrides = `${jsx.slice(0, m2.close - tag.start)} {...__o}${jsx.slice(m2.close - tag.start)}`;
+    if (TEXT_WRAPPERS.includes(it.name)) { let n = 0; withOverrides = withOverrides.replace(/>([^<>{}\n]*[A-Za-z][^<>{}\n]*)</g, (_, t) => { n++; return `>{__o.text${n} ?? ${JSON.stringify(t.trim())}}<`; }); }
     const pre = `${extraImports ? extraImports + '\n' : ''}${useCommon.length ? `import { ${useCommon.join(', ')} } from "${SHIM}";\n` : ''}${stubs.length ? STUB + '\n' + stubs.map((t) => `const ${t} = __Stub(${JSON.stringify(t)});`).join('\n') + '\n' : ''}`;
     src = `import React from 'react';\n${imps}\n${pre}// GENERATED from the RemotionUI docs usage example for "${it.name}" (src/lib/remotionui/docs-usage.json)\nexport function Demo(__o) {\n${sampleCode ? sampleCode.split('\n').map((l) => '  ' + l).join('\n') + '\n' : ''}${before ? before.split('\n').map((l) => '  ' + l).join('\n') + '\n' : ''}  return (\n    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 96, fontWeight: 700 }}>\n${withOverrides.split('\n').map((l) => '      ' + l).join('\n')}\n    </div>\n  );\n}\n`;
   }

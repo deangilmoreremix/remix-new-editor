@@ -12,6 +12,11 @@ def pick(arg, t): return [k for k, v in man.items() if v['type'] == t] if arg ==
 for k in ([x for x in a.blocks.split(',') if x] if a.blocks else []):
     it = man[k]; files = [f for f in it['files'] if f['sha256']]
     if k in have: continue
+    main_t = next((f['target'] for f in it['files'] if f['path'] == it.get('mainFile')), '')
+    if main_t != f'compositions/{k}.html' and main_t.startswith(f'compositions/{k}/'):  # the block ships its own folder (assets next to its html): load it as a pinned project
+        en['items'].append({'id': k, 'type': 'block', 'title': it['title'], 'description': it['description'], 'tags': it['tags'], 'category': 'eval', 'dimensions': it['dimensions'], 'duration': it['duration'], 'sourceSha256': it['sourceSha256'], 'readyToUse': False,
+            'files': [{'path': f['path'], 'target': f['target'], 'sha256': f['sha256']} for f in files], 'editables': [],
+            'project': {'dir': f'blocks/{k}', 'entry': it['mainFile'], 'folder': True, 'files': {f['path']: f['sha256'] for f in files}}}); continue
     en['items'].append({'id': k, 'type': 'block', 'title': it['title'], 'description': it['description'], 'tags': it['tags'], 'category': 'eval', 'dimensions': it['dimensions'], 'duration': it['duration'], 'sourceSha256': it['sourceSha256'], 'readyToUse': False, 'files': [{'path': f['path'], 'target': f['target'], 'sha256': f['sha256']} for f in files], 'editables': []})
 for k in pick(a.components, 'component'):
     it = man[k]
