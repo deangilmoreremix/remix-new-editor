@@ -460,8 +460,10 @@ test.describe('F. bulk: 20 more businesses, one video, no new video files', () =
 
 test.describe('H. security and robustness, as a visitor sees it', () => {
   const urlWith = (q) => { const u = new URL(links.A); u.search = q; return u.toString(); };
-  const generic = async (url) => {
-    const { ctx, page: v } = await openViewer(url);
+  const generic = async (url) => {                       // works for a playing video and for the "not found" page
+    const ctx = await newContext(browserRef, world); const v = await ctx.newPage();
+    await v.goto(url, { waitUntil: 'domcontentloaded' });
+    await v.locator('.watch-frame, .watch-msg h1').first().waitFor({ timeout: 60000 });
     await v.waitForTimeout(1500);
     const html = await v.content(); const text = await v.locator('body').innerText();
     await ctx.close();
