@@ -315,3 +315,45 @@
 .cinegen-root .timeline-editor__snap-btn--active { border-left-width: 1px; }
 .cinegen-root button[class=""] { background: transparent; color: rgba(255, 255, 255, 0.85); border: 1px solid rgba(217, 255, 0, 0.25); border-radius: 8px; }
 .cinegen-root button[class=""]:hover:not(:disabled) { background: rgba(217, 255, 0, 0.06); border-color: rgba(217, 255, 0, 0.5); color: #fff; }
+
+/* ============================================================================================================
+   [remix] Export tab: wide two/three-column layout so every control and button is visible at once (was a 560px column with
+   120px selects that truncated "16:9 landscape" / "Contain (whole picture)" and pushed the buttons below the fold).
+   ============================================================================================================ */
+.cinegen-root .export-tab { padding: 28px 32px; }
+.cinegen-root .export-tab__panel { max-width: min(1120px, 100%); gap: 20px; }
+.cinegen-root .export-tab__subtitle { margin-top: -12px; }
+.cinegen-root .export-settings {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px 28px; align-items: start;
+}
+.cinegen-root .export-settings > .export-settings__section:has(.export-settings__presets),
+.cinegen-root .export-settings > .export-settings__section:has(input[type="checkbox"]),
+.cinegen-root .export-settings > .export-settings__render-btn { grid-column: 1 / -1; }
+.cinegen-root .export-settings__presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+/* selects: full width of their column, never truncated */
+.cinegen-root .export-settings__fps-select { width: 100%; max-width: 360px; min-width: 0; text-overflow: clip; }
+.cinegen-root .export-settings__section:has([data-testid="export-aspect"]),
+.cinegen-root .export-settings__section:has([data-testid="export-bitrate-mode"]) { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cinegen-root .export-settings__section:has([data-testid="export-aspect"]) > .export-settings__label,
+.cinegen-root .export-settings__section:has([data-testid="export-bitrate-mode"]) > .export-settings__label { flex: 0 0 100%; }
+.cinegen-root .export-settings__section:has([data-testid="export-aspect"]) > select,
+.cinegen-root .export-settings__section:has([data-testid="export-bitrate-mode"]) > select { flex: 1 1 170px; width: auto; }
+.cinegen-root .export-settings__section > select, .cinegen-root .export-settings__section > input { margin-left: 0 !important; }
+.cinegen-root .export-settings__render-btn { width: 100%; padding: 14px 32px; }
+/* FCPXML + Leads hint + progress: one tidy row each, visible without scrolling */
+.cinegen-root .export-tab__panel > div:not([class]) { flex-wrap: wrap; margin-top: 0 !important; }
+.cinegen-root .export-tab__hint { padding: 4px 0; text-align: left; }
+.cinegen-root .render-progress__cancel-btn, .cinegen-root .render-progress__download-btn {
+  background: transparent; color: rgba(255, 255, 255, 0.9); border: 1px solid rgba(217, 255, 0, 0.25); border-radius: 8px; padding: 6px 16px; text-decoration: none;
+}
+.cinegen-root .render-progress__download-btn { border-left: 2px solid #d9ff00; }
+/* top tabs must sit inside the 52px header, not overhang it */
+.cinegen-root .top-nav__tab { height: 34px; align-self: center; }
+
+/* Export: Render button must not spill past the panel (padding was added on top of width:100%). */
+.cinegen-root .export-settings__render-btn { box-sizing: border-box; }
+/* Top tabs: tighter, and on narrower windows anchored to the right of the title instead of centred over it. */
+.cinegen-root .top-nav__tab { padding: 0 11px; margin: 0; }
+@media (max-width: 1500px) {
+  .cinegen-root .top-nav__tabs { left: auto; right: 150px; transform: none; }
+}
