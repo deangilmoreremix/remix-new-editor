@@ -198,6 +198,9 @@ export function clipFromRow(
         if (typeof s1.groupId === 'string' && s1.groupId) out.groupId = s1.groupId;
         if (s1.compound && Array.isArray(s1.compound.clips)) out.compound = s1.compound;
       }
+      // [remix] Stage 4: clip EQ
+      const s4 = json<{ eq?: Clip['eq'] }>(row['stage4_json']);
+      if (s4 && typeof s4 === 'object' && s4.eq && Array.isArray(s4.eq.bands)) out.eq = s4.eq;
       return out;
     })(),
   };
@@ -265,6 +268,7 @@ export function timelineFromRows(
     markers,
     ...(tlRow['fit'] === 'contain' || tlRow['fit'] === 'cover' ? { fit: tlRow['fit'] as 'contain' | 'cover' } : {}),
     ...(typeof tlRow['aspect'] === 'string' ? { aspect: tlRow['aspect'] as string } : {}),
+    ...(typeof tlRow['master_volume'] === 'number' ? { masterVolume: tlRow['master_volume'] as number } : {}), // [remix] Stage 4
   };
 }
 
@@ -402,6 +406,7 @@ export function clipToRow(clip: Clip, timelineId: string): Record<string, unknow
     transform_json: clip.transform ? JSON.stringify(clip.transform) : null,
     captions_json: clip.captions ? JSON.stringify(clip.captions) : null,
     // [remix] Stage 1: group id + compound content
+    stage4_json: clip.eq ? JSON.stringify({ eq: clip.eq }) : null,
     stage1_json: clip.groupId || clip.compound ? JSON.stringify({ groupId: clip.groupId, compound: clip.compound }) : null,
   };
 }

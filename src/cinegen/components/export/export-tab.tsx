@@ -35,6 +35,7 @@ export function ExportTab() {
         fps,
         clips: exportClips,
         tracks: exportTracksFromTimeline(exportTimeline),
+        masterVolume: exportTimeline.masterVolume ?? 1, // [remix] Stage 4
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,

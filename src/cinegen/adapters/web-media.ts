@@ -7,6 +7,8 @@
 import { extractWaveformPeaks } from '@cinegen/lib/editor/waveform';
 import { extractFilmstripFrames } from '@cinegen/lib/editor/filmstrip';
 import { uploadFileToStorage } from '../../lib/supabase.js';
+import { generateProxyBlob } from '@cinegen/lib/perf/proxy-job'; // [remix] Stage 4: cancellable proxies
+import { jobs as longJobs } from '@cinegen/lib/perf/jobs';
 
 type JobEvent = { jobId: string; assetId?: string; jobType?: string; result?: unknown; error?: string };
 const completeListeners = new Set<(e: JobEvent) => void>();
@@ -146,7 +148,7 @@ async function runJob(assetId: string, url: string, jobType: string) {
       result = { peaks, peaksPath: `data:application/json,${encodeURIComponent(JSON.stringify(peaks.map((p) => Math.round(p * 1000) / 1000)))}` };
     }
     else if (jobType === 'generate_filmstrip') result = { frames: await extractFilmstripFrames(url) };
-    else if (jobType === 'generate_proxy') result = { outputPath: await proxyBlobUrl(url) };
+    else if (jobType === 'generate_proxy') result = { outputPath: await longJobs.run(`proxy:${assetId}`, 'Proxy', (signal, progress) => proxyBlobUrl(url, signal, progress)) };
     else result = {};
     emitComplete({ jobId, assetId, jobType, result });
   } catch (error) {
@@ -172,16 +174,8 @@ async function trimToBlobUrl(inputPath: string, startSec: number, endSec: number
 }
 
 /** A 640px-wide draft copy for smooth editing (CineGen's proxy playback), made with mediabunny. */
-async function proxyBlobUrl(url: string): Promise<string> {
-  const mb = await import('mediabunny');
-  const input = new mb.Input({ source: new mb.UrlSource(url), formats: mb.ALL_FORMATS });
-  const output = new mb.Output({ format: new mb.Mp4OutputFormat(), target: new mb.BufferTarget() });
-  const conversion = await mb.Conversion.init({ input, output, video: { width: 640, bitrate: 1_500_000, frameRate: 24 } });
-  if (!conversion.isValid) throw new Error('A proxy could not be made for this clip.');
-  await conversion.execute();
-  const buffer = (output.target as { buffer: ArrayBuffer | null }).buffer;
-  if (!buffer) throw new Error('The proxy produced no output.');
-  const blob = new Blob([buffer], { type: 'video/mp4' });
+async function proxyBlobUrl(url: string, signal?: AbortSignal, onProgress?: (p: number) => void): Promise<string> {
+  const blob = await generateProxyBlob(url, { signal, onProgress });
   const out = URL.createObjectURL(blob);
   webFiles.set(out, { name: 'proxy', type: blob.type, size: blob.size });
   return out;
@@ -233,6 +227,8 @@ export const webMediaApi = {
       for (const job of jobs) void runJob(a.assetId, a.inputPath, job);
       return { queued: jobs.length };
     },
+    /** [remix] Stage 4: cancel a running proxy job (or all of them). */
+    cancelProcessing: async (p?: unknown) => { const id = (p as { assetId?: string } | undefined)?.assetId; return { cancelled: id ? (longJobs.cancel(`proxy:${id}`) ? 1 : 0) : longJobs.cancelAll() }; },
     onJobComplete: (cb: unknown) => { const fn = cb as (e: JobEvent) => void; completeListeners.add(fn); return () => completeListeners.delete(fn); },
     onJobError: (cb: unknown) => { const fn = cb as (e: JobEvent) => void; errorListeners.add(fn); return () => errorListeners.delete(fn); },
     extractFrame: async (p: unknown) => {

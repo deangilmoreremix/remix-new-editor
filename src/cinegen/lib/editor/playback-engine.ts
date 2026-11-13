@@ -6,6 +6,7 @@ import { clipTransformCss, clipTransformClipPath, fillCss } from '@cinegen/lib/o
 import { interpolateProperty } from './timeline-operations';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { mediaDebug, mediaDebugWarn } from '@cinegen/lib/debug/media-debug';
+import { AudioFxGraph } from '@cinegen/lib/audio/audio-graph'; // [remix] Stage 4: master gain, clip EQ, meters
 
 export interface ActiveClipEntry {
   clip: Clip;
@@ -62,6 +63,9 @@ export class PlaybackEngine {
   private audioContainer: HTMLDivElement | null = null;
   private trackVolumes = new Map<string, number>();
   private audioContext: AudioContext | null = null;
+  private fx: AudioFxGraph | null = null; // [remix] Stage 4
+  /** [remix] Stage 4: meters / master volume graph; null until the first audio starts */
+  getAudioFx(): AudioFxGraph | null { return this.fx; }
   private mediaAudioNodes = new Map<HTMLMediaElement, { source: MediaElementAudioSourceNode; gain: GainNode }>();
   private audioGraphUnavailable = false;
 
@@ -480,6 +484,7 @@ export class PlaybackEngine {
 
     try {
       this.audioContext = new AudioContextCtor();
+      this.fx = new AudioFxGraph(this.audioContext); this.fx.setMaster(this.timeline?.masterVolume ?? 1); // [remix] Stage 4
       return this.audioContext;
     } catch (error) {
       this.audioGraphUnavailable = true;
@@ -498,8 +503,8 @@ export class PlaybackEngine {
     try {
       const source = audioContext.createMediaElementSource(el);
       const gain = audioContext.createGain();
-      source.connect(gain);
-      gain.connect(audioContext.destination);
+      if (this.fx) this.fx.wire(el, source, gain); // [remix] Stage 4: source -> [EQ] -> gain -> master -> destination
+      else { source.connect(gain); gain.connect(audioContext.destination); }
       const node = { source, gain };
       this.mediaAudioNodes.set(el, node);
       return node;
@@ -532,6 +537,7 @@ export class PlaybackEngine {
     try {
       node.gain.disconnect();
     } catch {}
+    this.fx?.release(el); // [remix] Stage 4
     this.mediaAudioNodes.delete(el);
   }
 
@@ -998,6 +1004,7 @@ export class PlaybackEngine {
 
   private updateAudioGraph(): void {
     if (!this.timeline) return;
+    this.fx?.setMaster(this.timeline.masterVolume ?? 1); // [remix] Stage 4
     // Cache track volumes and mute state for use in syncAudio
     for (const track of this.timeline.tracks) {
       if (track.kind !== 'audio') continue;
@@ -1058,6 +1065,7 @@ export class PlaybackEngine {
       if (videoEl && entry.asset.type === 'video' && timingMatches) {
         // Use the video element for audio — unmute it and set volume
         this.setMediaElementGain(videoEl, vol, vol === 0);
+        this.fx?.setEq(videoEl, entry.clip.eq); // [remix] Stage 4
         newVideoElsUsedForAudio.add(poolEntry.clipId);
 
         // Clean up any stale <audio> element for this clip
@@ -1085,6 +1093,7 @@ export class PlaybackEngine {
       }
 
       this.setMediaElementGain(el, vol);
+      this.fx?.setEq(el, entry.clip.eq); // [remix] Stage 4
       const ready = el.readyState >= 2;
       const driftThreshold = entry.asset.type === 'video'
         ? PlaybackEngine.VIDEO_AUDIO_DRIFT_CORRECTION_SECONDS
@@ -1254,6 +1263,7 @@ export class PlaybackEngine {
     this.audioContainer = null;
     this.audioContext?.close().catch(() => {});
     this.audioContext = null;
+    this.fx = null; // [remix] Stage 4
     this.mediaAudioNodes.clear();
 
     this.clearMetadataPreloadCache();
