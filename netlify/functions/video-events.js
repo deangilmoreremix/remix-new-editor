@@ -29,8 +29,14 @@ export const EVENT_TYPES = Object.freeze([
   'progress_25', 'progress_50', 'progress_75', 'progress_90',
   'replay', 'section_rewatch', 'cta_click', 'product_select', 'call_click',
   'overlay_click', 'lead_submit', 'error',
+  // Stage 7 (heatmap analytics): routed to ingest_video_heat_events(), not to the legacy event table.
+  'heat_click', 'cta_impression', 'scroll_depth',
 ]);
-const TYPES = new Set([...EVENT_TYPES, 'watch']);
+export const HEAT_TYPES = Object.freeze(['heat_click', 'cta_impression', 'scroll_depth', 'watch_buckets']);
+const HEAT = new Set(HEAT_TYPES);
+export const CTA_KINDS = Object.freeze(['book_call', 'visit_website', 'call_now', 'get_offer', 'contact', 'lead_capture', 'other']);
+const VIEWPORTS = new Set(['mobile', 'tablet', 'desktop']);
+const TYPES = new Set([...EVENT_TYPES, 'watch', 'watch_buckets']);
 export const MAX_BODY = 8192;
 export const MAX_EVENTS = 25;
 const VIDEO = /^[A-Za-z0-9_-]{8,32}$/;
@@ -48,10 +54,57 @@ const fail = (statusCode, error, message) => json(statusCode, { ok: false, error
 const num = (v, max) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max ? Math.round(v * 1000) / 1000 : null);
 const str = (v, n = 80) => (typeof v === 'string' && v.length ? v.slice(0, n) : null);
 
+const unit = (v) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? Math.round(v * 10000) / 10000 : null);
+
+/** Heat events carry a small, fixed props shape: normalized coordinates and CTA ids only. Never text, never form values. */
+function normalizeHeat(e) {
+  const p = e.props && typeof e.props === 'object' && !Array.isArray(e.props) ? e.props : {};
+  const props = {};
+  if (VIEWPORTS.has(p.vp)) props.vp = p.vp;
+  if (e.type === 'heat_click') {
+    const x = unit(p.x); const y = unit(p.y);
+    if (x == null || y == null) return null;
+    props.x = x; props.y = y;
+    props.pb = Number.isInteger(p.pb) && p.pb >= 1 && p.pb <= 40 ? p.pb : 1;
+    const cta = str(p.cta);
+    if (cta) {
+      props.cta = cta;
+      props.kind = CTA_KINDS.includes(p.kind) ? p.kind : 'other';
+      const label = str(p.label);
+      if (label) props.label = label;
+    }
+  } else if (e.type === 'cta_impression') {
+    const cta = str(p.cta);
+    if (!cta) return null;
+    props.cta = cta;
+    props.kind = CTA_KINDS.includes(p.kind) ? p.kind : 'other';
+    const label = str(p.label);
+    if (label) props.label = label;
+  } else if (e.type === 'scroll_depth') {
+    if (![25, 50, 75, 100].includes(p.v)) return null;
+    props.v = p.v;
+  } else { // watch_buckets: [[firstSecond, lastSecond], ...] seconds played (aggregated, never per tick)
+    if (!Array.isArray(p.r) || !p.r.length || p.r.length > 30) return null;
+    let total = 0;
+    const r = [];
+    for (const pair of p.r) {
+      if (!Array.isArray(pair) || pair.length !== 2 || !Number.isInteger(pair[0]) || !Number.isInteger(pair[1])) return null;
+      const [a, b] = pair;
+      if (a < 0 || b < a || b > 3599) return null;
+      total += b - a + 1;
+      r.push([a, b]);
+    }
+    if (total > 600) return null;
+    props.r = r;
+  }
+  return { type: e.type, seq: e.seq, props };
+}
+
 /** Re-shape one client event; returns null when invalid. */
 export function normalizeEvent(e) {
   if (!e || typeof e !== 'object' || !TYPES.has(e.type)) return null;
   if (!Number.isInteger(e.seq) || e.seq < 0 || e.seq > 999999) return null;
+  if (HEAT.has(e.type)) return normalizeHeat(e);
   if (e.type === 'watch') {
     const t0 = num(e.t0, 86400);
     const t1 = num(e.t1, 86400);
@@ -134,8 +187,11 @@ export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch,
     ['video-events-video', body.video, 1200],
   ])) return fail(429, 'rate_limited', 'Too many events, slow down');
 
+  const legacy = events.filter((e) => !HEAT.has(e.type));
+  const heat = events.filter((e) => HEAT.has(e.type));
   let result;
   try {
+    // Always runs (even for a heat-only batch): it resolves the video and creates the session row the heat events hang off.
     result = await rpc(cfg, fetchImpl, 'ingest_video_events', {
       p_video_id: body.video,
       p_session_key: body.session,
@@ -143,8 +199,15 @@ export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch,
       p_contact_id: contact,
       p_device: deviceClass(ua),
       p_referrer: referrer,
-      p_events: events,
+      p_events: legacy,
     });
+    if (result?.ok && heat.length) {
+      const h = await rpc(cfg, fetchImpl, 'ingest_video_heat_events', {
+        p_video_id: body.video, p_session_key: body.session, p_events: heat,
+      });
+      if (!h?.ok) return fail(400, h?.error || 'bad_request', 'Rejected');
+      result = { ...result, accepted: (result.accepted || 0) + (h.accepted || 0), duplicates: (result.duplicates || 0) + (h.duplicates || 0) };
+    }
   } catch (err) {
     console.error('[video-events] ingest failed:', err?.message);
     return fail(502, 'ingest_failed', 'Could not record events');
