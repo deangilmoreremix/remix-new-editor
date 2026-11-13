@@ -94,9 +94,13 @@ export function useRecipients(pub: ReturnType<typeof usePublished>, lib: Busines
 
   const importCsv = async () => {
     const { ContactImporterModal } = await import('../../../components/modals/ContactImporterModal.jsx');
+    let handled = false;   // the importer reports completion more than once (confirm + close); import each run exactly once
     new ContactImporterModal({
       onComplete: (result: ImportResult) => {
-        const have = new Set<string>(contacts.map((c) => String(c.contact?.email || c.variables?.email || '').toLowerCase()).filter(Boolean));
+        if (handled) return;
+        handled = true;
+        // compare against what is stored NOW (not a render-time snapshot), so a repeat can never double-add
+        const have = new Set<string>((listContactProfiles(contactStore) as Array<Record<string, any>>).map((c) => String(c.contact?.email || c.variables?.email || '').toLowerCase()).filter(Boolean));
         const { records, skipped, reason } = importedToRecords(result, have);
         records.forEach((r) => { contactStore.saveContact(r.contact); contactStore.saveProfile(r.profile); });
         refreshContacts();
