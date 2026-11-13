@@ -113,7 +113,9 @@ export function useLayoutQuality(inputProps: PreviewInputProps): LayoutQualitySt
   }, [sourcePath, source?.title])
 
   const zones = useMemo(
-    () => [...compositionZones(profile, settings.width, settings.height), ...(settings.protectedZones ?? [])],
+    // 'cover': PersonalizationComposition fills the frame with the footage (objectFit: 'cover'), so the
+    // subject zones must be mapped with the same crop, not the letterboxed 'contain' default.
+    () => [...compositionZones(profile, settings.width, settings.height, 'cover'), ...(settings.protectedZones ?? [])],
     [profile, settings.width, settings.height, settings.protectedZones],
   )
 
