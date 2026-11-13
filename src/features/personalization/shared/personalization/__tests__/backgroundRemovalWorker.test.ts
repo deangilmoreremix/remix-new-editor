@@ -115,6 +115,34 @@ describe('BG0 client worker path', () => {
     await expect(job).rejects.toMatchObject({ code: 'cancelled' })
   })
 
+  it("defaults to the fast quality on every device, and an explicit quality still wins", async () => {
+    const { removeAssetBackground } = await loadClient()
+    await removeAssetBackground(png())
+    await removeAssetBackground(png(), { quality: 'quality' })
+    const qualities = FakeWorker.instances[0].posted.filter((m) => m.type === 'remove').map((m) => m.quality)
+    expect(qualities).toEqual(['fast', 'quality'])
+  })
+
+  it('warms the model up with one tiny image, once, through the same queue', async () => {
+    const { prefetchBackgroundRemovalModel } = await loadClient()
+    await prefetchBackgroundRemovalModel()
+    await prefetchBackgroundRemovalModel()
+    await prefetchBackgroundRemovalModel()
+    const jobs = FakeWorker.instances[0].posted.filter((m) => m.type === 'remove')
+    expect(jobs).toHaveLength(1)
+    expect(jobs[0]).toMatchObject({ quality: 'fast' })
+    const warm = jobs[0].blob as Blob
+    expect(warm.type).toBe('image/png')
+    expect(warm.size).toBeGreaterThan(100)
+    expect(warm.size).toBeLessThan(20_000) // tiny
+  })
+
+  it('never surfaces a warm-up failure', async () => {
+    const { prefetchBackgroundRemovalModel } = await loadClient()
+    FakeWorker.mode = 'error-reply'
+    await expect(prefetchBackgroundRemovalModel()).resolves.toBeUndefined()
+  })
+
   it('maps an error reported by the worker to a typed failure (no main-thread retry)', async () => {
     const { removeAssetBackground } = await loadClient()
     FakeWorker.mode = 'error-reply'

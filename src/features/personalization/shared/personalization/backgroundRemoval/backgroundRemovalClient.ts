@@ -202,7 +202,8 @@ export function removeAssetBackground(
   } = {},
 ): Promise<BackgroundRemovalOutput> {
   const { signal, onProgress } = options
-  const quality = options.quality ?? (isConstrainedDevice() ? 'fast' : 'quality')
+  // 'fast' everywhere: noticeably quicker than 'quality' (slightly softer edges). An explicit option wins.
+  const quality = options.quality ?? 'fast'
 
   const run = async (): Promise<BackgroundRemovalOutput> => {
     if (signal?.aborted) throw new BackgroundRemovalFailure('cancelled', FRIENDLY.cancelled)
@@ -228,6 +229,33 @@ export function removeAssetBackground(
   // Keep the chain alive whether this job succeeds or fails.
   tail = job.catch(() => undefined)
   return job
+}
+
+// A small image with a clear subject. Used only to warm the model up: a flat image could make BG0
+// think a WebGPU run produced a corrupt (flat) mask and wrongly mark WebGPU as broken for this browser.
+const WARMUP_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAIAAABt+uBvAAACyklEQVR42u3cy04bMRQGYDtixRN1gZ+DS7mEi4CkDRNIQEoDbfZdFAgBxALCHVbcn8BdsO4b9CXYTheFUTTJRKU559gT/UcoQiA8zoePoxn7WD//+q2UUqHCa8fXgb/fI5ICQAACEIAABCAAAQhACAABCEAAAhCAAAQg8VicMUm/2j+wbvumnxw9cs1Nmff2dW/fyvdTP4oD5SdNL//S3T1RJv0gCPRpojNNc3AwiSP78tLx541dISZ9LwX0uU2ni8u/SO00rATQnQhQYdz8N00XpnqDfRzpW2agpY80NF2YtncYmfQNJ1DQokNCk8S0VedKt0yoFNMXq06szaBgmN4FF1BxjFenveUijxEXkIBOe/upAVp5Gz7cOrGrrCyZFACVRo1yFyVqo0x6k0sm0YiBVkeNvE7siquB8RRobcRlcrXGGp1RJu3JxZ1offtEkep9kY2gyohxO3xiV68UDUaQxCCiGUHVYeMhUJViEGX6Y3rmm6odpNjQc7OXP//5ISuZZX2+LgYgdiCCOag2bPyZgGI9qS0bfMzzDiIAAQhAAAIQgAAEIAABiOtWo3z9uo0wabOTfEQ9Kf+wuNXA3TyA+vxxR9gp+X2YgJQ/C4fBtfVw+ASbFss+vPmllNLf6fYo1j1YO4zyq7BJs2sRS88ik7QnUzXt9Ey/uyN/5ctUnd+ynm6gyl06u+2Irpij0+HdgidpxJFcXEALly4TbWHbpmAb8PyFaKJFV5mn1pHYSM5txJdcvEBzF1bAqLXlubpNE1Co1Ow5r1Frm7M8OqFSusZcL3bIXy82w1ov9k2k4vCIp+JwWqDi8KtUzWqTumY1K1OzuiFY9XxMV/U8JVb1vC5eN3/SW938pHDdfNXRyQun7z95YcLJyQtfPDgN+Gw6EWv8wLrtm67guGQcl4x1MQABCEAAAhCAEAACEIAABCAAAQhAiCj+ABiWc6Q+I5MtAAAAAElFTkSuQmCC'
+
+let prefetchStarted = false
+
+/**
+ * Downloads and initialises the model ahead of the first real asset by running ONE tiny removal
+ * through the same sequential queue (BG0 has no public warm-up call). Safe to call repeatedly: it
+ * only runs once per page load, and every failure is swallowed (a real job will report its own).
+ */
+export function prefetchBackgroundRemovalModel(): Promise<void> {
+  if (prefetchStarted) return Promise.resolve()
+  prefetchStarted = true
+  try {
+    const binary = atob(WARMUP_PNG_BASE64)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    return removeAssetBackground(new Blob([bytes], { type: 'image/png' }), { quality: 'fast' }).then(
+      () => undefined,
+      () => undefined,
+    )
+  } catch {
+    return Promise.resolve()
+  }
 }
 
 /** Whether BG0 can run here at all (WebAssembly is its floor). */

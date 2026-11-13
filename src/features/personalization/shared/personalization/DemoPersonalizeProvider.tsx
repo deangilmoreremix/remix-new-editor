@@ -100,6 +100,7 @@ import { persistEditedPersonalizationAsset } from './editedAssetPersistence'
 import { normalizeUrl, TRACKING_PARAMS } from './urlNormalizer'
 import { createProjectPersistence, durableAssetUrls, loadProject, resolveRestoredAssetUrl, type LoadProjectResult, type PersonalizationProjectState } from './supabaseProjectPersistence'
 import { imageLoadsInBrowser } from './imageLoadProbe'
+import { prefetchBackgroundRemovalModel } from './backgroundRemoval/backgroundRemovalClient'
 import { useAutoCutout, shouldHoldAutoImport, AUTO_IMPORT_CUTOUT_WAIT_MS, type AutoCutoutControls } from './backgroundRemoval/useAutoCutout'
 import { buildPreviewInput } from './guided/buildPreviewInput'
 import { fitSettingsToClip, readClipMetadata } from './preview/fitSettingsToClip'
@@ -1596,6 +1597,10 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   const [discoveryError, setDiscoveryError] = useState<string | null>(null)
   const [importConfirmation, setImportConfirmation] = useState<{ count: number; failedCount?: number; clientName?: string } | null>(null)
   const autoCutout = useAutoCutout(discoveredAssets, setDiscoveredAssetsState, { paused: discoveryStatus === 'importing', disabled: access === 'anonymous' })
+  // Warm the model up while the modal is open (never without consent, with auto mode off, or where unsupported).
+  useEffect(() => {
+    if (isOpen && autoCutout.willAutoCutOut) void prefetchBackgroundRemovalModel()
+  }, [isOpen, autoCutout.willAutoCutOut])
   const [visionStatus, setVisionStatus] = useState<'idle' | 'analyzing' | 'complete' | 'error'>('idle')
   const [visionError, setVisionError] = useState<string | null>(null)
 

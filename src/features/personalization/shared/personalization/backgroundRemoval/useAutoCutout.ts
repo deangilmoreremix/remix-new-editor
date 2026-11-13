@@ -101,7 +101,7 @@ export function isCutoutPending(a: DiscoveredAsset): boolean {
 }
 
 /** Longest the automatic placement of found assets waits for their cutouts. */
-export const AUTO_IMPORT_CUTOUT_WAIT_MS = 90_000
+export const AUTO_IMPORT_CUTOUT_WAIT_MS = 30_000
 
 /**
  * Should automatic placement of the picked assets keep waiting for their
