@@ -17,6 +17,7 @@ const ROUTE_MAP = {
   'Smart Video Scheduler': 'smart-video-scheduler',
 
   'Personalizer': 'personalizer',
+  'Personalized Video': 'personalized-video',
   'Contacts': 'contacts',
   'Social': 'social',
   'Landing': 'landing',
@@ -88,6 +89,7 @@ const pageLoaders = {
   'motion-director': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   'motion-director/workbench': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   personalizer: () => import('../components/Personalizer.js').then(m => m.Personalizer()),
+  'personalized-video': () => import('../components/PersonalizedVideoStudio.js').then(m => m.PersonalizedVideoStudio()),
   'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
