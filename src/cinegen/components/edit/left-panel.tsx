@@ -6,7 +6,8 @@ import { copyButtonLabel, useCopiedFlash } from '@cinegen/hooks/use-copied-flash
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { createSyncedTimeline } from '@cinegen/lib/editor/timeline-operations';
 import { BatchSyncDialog } from './batch-sync-dialog';
-import { filesToUrls } from '@cinegen/adapters/web-media'; // [remix]
+import { filesToUrls, fetchVideoUrl } from '@cinegen/adapters/web-media'; // [remix]
+import { AddVideoDialog } from './add-video-dialog'; // [remix]
 import {
   getAnalyzeVisionOnImportEnabled,
   getApiKey,
@@ -369,8 +370,9 @@ export function LeftPanel({
     if (currentFolderId === folderId) setCurrentFolderId(null);
   }, [onRemoveFolder, currentFolderId]);
 
-  const handleImport = useCallback(async (dropped?: string[]) => { // [remix] `dropped`: files dragged in from the desktop skip the dialog
-    if (!projectId || !onAddAsset) return;
+  const [addVideoOpen, setAddVideoOpen] = useState(false); // [remix]
+  const handleImport = useCallback(async (dropped?: string[]): Promise<Asset[]> => { // [remix] `dropped`: files dragged in from the desktop skip the dialog
+    if (!projectId || !onAddAsset) return [];
 
     const result = dropped ?? await window.electronAPI.dialog.showOpen({
       properties: ['openFile', 'multiSelections'],
@@ -382,10 +384,11 @@ export function LeftPanel({
       ],
     });
 
-    if (!result) return;
+    if (!result) return [];
 
     const filePaths = Array.isArray(result) ? result : [result];
-    if (filePaths.length === 0) return;
+    if (filePaths.length === 0) return [];
+    const createdAssets: Asset[] = []; // [remix]
 
     const autoTranscribeBatchId = `txn-batch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const defaultTranscriptionEngine = getDefaultTranscriptionEngine();
@@ -438,12 +441,24 @@ export function LeftPanel({
         folderId: currentFolderId ?? undefined,
       };
       onAddAsset(asset);
+      createdAssets.push(asset);
     }
 
     if (autoTranscribeAssetIds.length > 0) {
       transcriptionBatchAssetIdsRef.current.set(autoTranscribeBatchId, autoTranscribeAssetIds);
     }
+    return createdAssets;
   }, [projectId, currentFolderId, onAddAsset]);
+
+  // [remix] Desktop files dropped on the timeline are imported here (the media pool owns import), then placed by the timeline.
+  useEffect(() => {
+    const onImportFiles = (event: Event) => {
+      const { files, resolve } = (event as CustomEvent<{ files: File[]; resolve: (assets: Asset[]) => void }>).detail;
+      void filesToUrls(files).then((urls) => handleImport(urls)).then(resolve, () => resolve([]));
+    };
+    window.addEventListener('remix:import-files', onImportFiles);
+    return () => window.removeEventListener('remix:import-files', onImportFiles);
+  }, [handleImport]);
 
   const commitRename = useCallback(() => {
     if (!renamingId || !renameValue.trim()) { setRenamingId(null); return; }
@@ -1430,6 +1445,9 @@ export function LeftPanel({
         {visibleAssets.length === 0 && visibleFolders.length === 0 && (
           <div className="mp__empty">
             {searchQuery ? 'No results found' : currentFolderId ? 'Drag assets here or go back' : 'No assets imported'}
+            {!searchQuery && !currentFolderId && projectId && onAddAsset && (
+              <div><button type="button" className="mp__tool-btn" onClick={() => setAddVideoOpen(true)}>Add video: upload, drop or paste a link</button></div>
+            )}
           </div>
         )}
         {marquee && (() => {
@@ -1441,12 +1459,29 @@ export function LeftPanel({
         })()}
       </div>
 
+      {addVideoOpen && (
+        <AddVideoDialog
+          onClose={() => setAddVideoOpen(false)}
+          onFiles={async (files) => { await handleImport(await filesToUrls(files)); }}
+          onUrl={async (link) => {
+            const r = await fetchVideoUrl(link);
+            await handleImport(r.file ? await filesToUrls([r.file]) : [r.linkedUrl!]);
+            return r.note;
+          }}
+        />
+      )}
       {/* Bottom toolbar */}
       <div className="mp__toolbar">
         <div className="mp__toolbar-left">
           {projectId && onAddAsset && (
             <button className="mp__tool-btn" onClick={() => void handleImport()} title="Import media files">
               <ImportIcon />
+            </button>
+          )}
+          {projectId && onAddAsset && (
+            <button className="mp__tool-btn" onClick={() => setAddVideoOpen(true)} title="Add video (upload, drag and drop, or link)">
+              <ImportIcon />
+              <span style={{ marginLeft: 4, fontSize: 11 }}>Add video</span>
             </button>
           )}
           <button className="mp__tool-btn" onClick={handleCreateFolder} title="New folder">

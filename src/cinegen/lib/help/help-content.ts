@@ -85,6 +85,10 @@ export const HELP: Record<string, HelpEntry> = {
   // ── Media pool ───────────────────────────────────────────────────────────
   'import media files': e('Import media', 'Add video, audio or images to the project.', 'Opens a file picker. Imported files appear in the media pool and can be dragged onto the timeline. They stay in your browser; nothing is uploaded unless you use an AI tool that needs it.',
     ['Press the button and choose files (you can pick several).', 'Drag an asset from the media pool onto a track.']),
+  'add video (upload, drag and drop, or link)': e('Add video', 'Bring in a customer\'s video.', 'Opens one place to add a video by choosing a file, dragging it in, or pasting a link to the video file. It lands in the media pool.',
+    ['Press Add video.', 'Drop a file, click to browse, or paste a direct link (.mp4, .mov, .webm) and press Add link.', 'Drag the new asset from the media pool onto a track.']),
+  'add video': e('Add video', 'Bring in a customer\'s video.', 'Opens one place to add a video by choosing a file, dragging it in, or pasting a link to the video file. It lands in the media pool.',
+    ['Press Add video.', 'Drop a file, click to browse, or paste a direct link (.mp4, .mov, .webm) and press Add link.', 'Drag the new asset from the media pool onto a track.']),
   'new folder': e('New folder', 'Group assets in a folder.', 'Creates a folder in the media pool so large projects stay organised.', ['Press the button and name the folder.', 'Drag assets into it.']),
   'delete selected item': e('Delete from media pool', 'Remove the selected asset.', 'Removes the selected asset (or folder) from the media pool. Clips already on the timeline that use it are affected, so check before deleting.', ['Select an asset in the pool.', 'Press the button.']),
   'sort by': e('Sort', 'Choose how the media pool is ordered.', 'Orders assets by date, name or type.', ['Open the menu and choose a sort order.']),

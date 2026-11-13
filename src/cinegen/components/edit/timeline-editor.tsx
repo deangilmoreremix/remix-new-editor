@@ -527,6 +527,35 @@ export function TimelineEditor({
     [setTimeline, snapTime, probeAssetDuration],
   );
 
+  // [remix] Files dragged in from the desktop: import through the media pool, then place at the drop position.
+  const handleDesktopFilesDrop = useCallback((e: React.DragEvent) => {
+    const files = Array.from(e.dataTransfer.files).filter((f) => /^(video|audio|image)\//.test(f.type));
+    e.preventDefault(); e.stopPropagation();
+    if (files.length === 0) return;
+    const target = e.target as Element;
+    const trackEl = target.closest?.('.track-row[data-track-id]') as HTMLElement | null;
+    const clipsEl = trackEl?.querySelector('.track-row__clips') as HTMLElement | null;
+    let time = clipsEl ? Math.max(0, (e.clientX - clipsEl.getBoundingClientRect().left) / pxPerSecondRef.current) : currentTimeRef.current;
+    let trackId = trackEl?.getAttribute('data-track-id') ?? undefined;
+    void (async () => {
+      const assets = await new Promise<Asset[]>((resolve) => {
+        window.dispatchEvent(new CustomEvent('remix:import-files', { detail: { files, resolve } }));
+        setTimeout(() => resolve([]), 60_000);
+      });
+      for (const asset of assets) {
+        // wait until the new asset reaches this editor's state
+        for (let i = 0; i < 60 && !assetsRef.current.some((a) => a.id === asset.id); i += 1) await new Promise((r) => setTimeout(r, 50));
+        const tl = timelineRef.current;
+        const wantKind = asset.type === 'audio' ? 'audio' : 'video';
+        const track = tl.tracks.find((t) => t.id === trackId && !t.locked) ?? tl.tracks.find((t) => t.kind === wantKind && !t.locked);
+        if (!track) continue;
+        handleDropAsset(track.id, asset.id, time);
+        time += asset.duration && asset.duration > 0 ? asset.duration : 5;
+        trackId = track.id;
+      }
+    })();
+  }, [handleDropAsset]);
+
   // Throttled move to avoid re-rendering on every pointer pixel
   const moveRafRef = useRef<number | null>(null);
   const pendingMoveRef = useRef<{ clipId: string; trackId: string; startTime: number } | null>(null);
@@ -3209,6 +3238,7 @@ export function TimelineEditor({
   return (
     <div className="timeline-editor" ref={editorRef}
       onDragOverCapture={(e) => {
+        if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; return; } // [remix] desktop files
         if (!hasLibraryDrag(e.dataTransfer.types)) return;
         if ((e.target as Element).closest?.('.overlay-track')) return; // the Overlays row handles its own drops
         e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
@@ -3218,6 +3248,7 @@ export function TimelineEditor({
       }}
       onDragLeaveCapture={(e) => { if (!editorRef.current?.contains(e.relatedTarget as Node | null)) editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => n.classList.remove('lib-drop-target')); }}
       onDropCapture={(e) => {
+        if (e.dataTransfer.files.length > 0 && !hasLibraryDrag(e.dataTransfer.types)) { handleDesktopFilesDrop(e); return; } // [remix]
         if (!hasLibraryDrag(e.dataTransfer.types)) return;
         const target = e.target as Element;
         editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => n.classList.remove('lib-drop-target'));

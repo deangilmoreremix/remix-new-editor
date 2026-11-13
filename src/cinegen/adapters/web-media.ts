@@ -282,3 +282,27 @@ export async function filesToUrls(files: File[]): Promise<string[]> {
   }
   return urls;
 }
+
+/** [remix] A customer's video by URL. Fetched into a File when the host allows it (CORS) so it is stored, analysed and exported like an upload;
+ *  otherwise linked as-is (it still plays and can be cut, but thumbnails / export need the host to allow cross-origin reads). */
+export async function fetchVideoUrl(raw: string): Promise<{ file?: File; linkedUrl?: string; note?: string }> {
+  let url: URL;
+  try { url = new URL(raw.trim()); } catch { throw new Error('That is not a valid web address. Paste a full link that starts with https://'); }
+  if (!/^https?:$/.test(url.protocol)) throw new Error('Only http(s) links can be imported.');
+  if (/(^|\.)(youtube\.com|youtu\.be|vimeo\.com|tiktok\.com|instagram\.com|facebook\.com)$/i.test(url.hostname)) {
+    throw new Error('That is a web page, not a video file. Paste a direct link to the video file (ending in .mp4, .mov or .webm), or upload the file.');
+  }
+  try {
+    const res = await fetch(url.toString(), { mode: 'cors' });
+    if (!res.ok) throw new Error(`The link returned ${res.status}.`);
+    const blob = await res.blob();
+    const type = blob.type || (AUDIO_EXT.test(url.pathname) ? 'audio/mpeg' : IMAGE_EXT.test(url.pathname) ? 'image/jpeg' : 'video/mp4');
+    if (!/^(video|audio|image)\//.test(type)) throw new Error('That link is not a video, audio or image file.');
+    const name = decodeURIComponent(url.pathname.split('/').pop() || 'Customer video') || 'Customer video';
+    return { file: new File([blob], name, { type }) };
+  } catch (error) {
+    if (error instanceof Error && /returned \d+|not a video/.test(error.message)) throw error;
+    // blocked by CORS / network: keep the link
+    return { linkedUrl: url.toString(), note: 'The host does not allow downloads from this site, so the video is linked and streams from its source. Thumbnails and export may be limited; upload the file for the full feature set.' };
+  }
+}
