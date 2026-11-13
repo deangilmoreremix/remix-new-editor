@@ -91,24 +91,9 @@
   status = 200
   force = true
 
-# Template videos library (editor "Template videos" modal): the clips live on media.beatapi.io, which sends no CORS
-# headers, while the editor loads media with crossOrigin="anonymous" (waveforms, thumbnails, export). Serving them
-# same-origin through this rewrite keeps those reads working. Range requests pass through for seeking.
-[[redirects]]
-  from = "/cdn/beatapi/*"
-  to = "https://media.beatapi.io/:splat"
-  status = 200
-  force = true
-
-[[headers]]
-  for = "/cdn/beatapi/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    # The Remotion export runner is a sandboxed frame with an opaque origin: reading these clips (decoding frames into a
-    # canvas) from it is a cross-origin request, so it needs CORS (same reason as /assets/* and /hyperframes/*).
-    Access-Control-Allow-Origin = "*"
-
-# Local demo / template clips and posters (public/media/**), same export-runner CORS requirement as above.
+# Local demo / template clips and posters (public/media/**). The Remotion export runner is a sandboxed frame with an opaque origin,
+# so reading these (decoding frames into a canvas) is a cross-origin request and needs CORS (same reason as /assets/* and /hyperframes/*).
+# The Template videos library itself is hosted in the Supabase bucket demo-template-videos (public, CORS *), not here.
 [[headers]]
   for = "/media/*"
   [headers.values]

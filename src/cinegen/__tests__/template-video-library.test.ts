@@ -8,6 +8,7 @@ import { templateVideos, TEMPLATE_VIDEO_CATEGORIES, TEMPLATE_VIDEO_SUBCATEGORIES
 type Row = { id: string; slug: string; title: string; sourceTitle: string; category: string; subcategory: string; duration: number | null; aspectRatio: string; videoSrc: string; posterSrc: string | null };
 const rows = templateVideos as Row[];
 const root = resolve(__dirname, '../../..');
+const HOSTED = /^(https:\/\/bzxohkrxcwodllketcpz\.supabase\.co\/storage\/v1\/object\/public\/demo-template-videos\/(clips|posters)\/|\/media\/|\/cdn\/beatapi\/)/;
 
 describe('template video library', () => {
   it('matches the reviewed allowlist exactly (unique ids)', () => {
@@ -18,10 +19,10 @@ describe('template video library', () => {
     expect(rows.map((r) => r.id)).toEqual(allow.map((a) => `${a.set}:${a.slug}`));
   });
 
-  it('only uses same-origin media URLs (local /media or the /cdn/beatapi proxy), never the raw CDN host', () => {
+  it('only uses our own hosting (the demo-template-videos bucket, or repo /media in --local mode), never the raw CDN host', () => {
     for (const r of rows) {
       for (const u of [r.videoSrc, r.posterSrc]) {
-        expect(u, r.id).toMatch(/^\/(media|cdn\/beatapi)\//);
+        expect(u, r.id).toMatch(HOSTED);
         expect(u, r.id).not.toContain('media.beatapi.io');
       }
     }

@@ -94,7 +94,7 @@ describe('TemplateVideosModal', () => {
     expect(onPick).toHaveBeenCalledTimes(1);
     const picked = onPick.mock.calls[0][0] as TemplateVideo;
     expect(first.getAttribute('data-testid')).toBe(`template-video-${picked.id}`);
-    expect(picked.videoSrc).toMatch(/^\/(media|cdn\/beatapi)\//);
+    expect(picked.videoSrc).toMatch(/^(https:\/\/bzxohkrxcwodllketcpz\.supabase\.co\/storage\/v1\/object\/public\/demo-template-videos\/|\/media\/|\/cdn\/beatapi\/)/);
   });
 
   it('closes from the × button, the backdrop and Escape (but not from clicks inside the panel)', () => {

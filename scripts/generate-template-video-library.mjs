@@ -5,8 +5,8 @@
 //
 // scripts/template-video-allowlist.json lists the {set, slug} pairs that were reviewed and found to
 // carry no logo / watermark / caption overlay. Remote clips (https://media.beatapi.io/...) are rewritten
-// to the same-origin /cdn/beatapi/... path (see netlify.toml + vite.config.js) because the CDN sends no
-// CORS headers and the editor loads media with crossOrigin="anonymous".
+// to the same-origin /cdn/beatapi/... path only in --local mode (the CDN sends no CORS headers and the editor loads media with
+// crossOrigin="anonymous"); by default everything is hosted in the demo-template-videos bucket (public, CORS *).
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -19,10 +19,12 @@ const SETS = {
   mmxLegacy: { file: 'src/data/minimaxH3Demos.js', label: 'MiniMax H3' },
   sdLegacy: { file: 'src/data/seedanceDemos.js', label: 'Seedance' },
 };
-// Hosting: with --base-url=<url> (or TEMPLATE_VIDEO_BASE_URL) every clip/poster URL points at the demo-template-videos bucket
-// (layout: clips/<set>/<slug>.<ext>, posters/<set>/<slug>.<ext>, see scripts/upload-template-videos.mjs). Without it the
-// library points at the repo's /media files and the same-origin /cdn/beatapi proxy.
-const baseUrl = (process.argv.find((a) => a.startsWith('--base-url='))?.slice(11) ?? process.env.TEMPLATE_VIDEO_BASE_URL ?? '').replace(/\/$/, '');
+// Hosting: clips and posters are served from the Supabase Storage bucket `demo-template-videos` (a public bucket dedicated to this
+// library inside a project shared by many apps; layout clips/<set>/<slug>.<ext>, posters/<set>/<slug>.<ext>, see
+// scripts/upload-template-videos.mjs). Override with --base-url=<url> / TEMPLATE_VIDEO_BASE_URL, or pass --local to point at the repo's
+// /media files and the same-origin /cdn/beatapi proxy instead (development fallback).
+const DEFAULT_BASE_URL = 'https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos';
+const baseUrl = process.argv.includes('--local') ? '' : (process.argv.find((a) => a.startsWith('--base-url='))?.slice(11) ?? process.env.TEMPLATE_VIDEO_BASE_URL ?? DEFAULT_BASE_URL).replace(/\/$/, '');
 const extOf = (u) => (u.match(/\.[a-z0-9]+$/i) || [''])[0];
 const CDN = 'https://media.beatapi.io/';
 const PROXY = '/cdn/beatapi/';
