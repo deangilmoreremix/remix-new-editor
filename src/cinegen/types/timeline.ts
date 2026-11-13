@@ -73,6 +73,8 @@ export interface Clip {
   compound?: CompoundContent;
   /** [remix] Stage 4: 6-band parametric EQ (lib/audio/eq.ts). Preview: BiquadFilter chain; export: baked into the audio (lib/audio/eq-bake.ts). */
   eq?: import('../lib/audio/eq').ClipEq;
+  /** [remix] Stage 2: unified keyframes (position, scale, rotation, opacity, crop, effect params; easing / bezier / spring) + procedural motion modifiers (lib/editor/stage2/anim.ts) */
+  anim?: import('../lib/editor/stage2/anim').ClipAnim;
 }
 
 export interface CompoundContent { clips: Clip[]; transitions: Transition[] }

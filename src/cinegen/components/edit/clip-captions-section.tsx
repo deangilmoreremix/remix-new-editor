@@ -19,7 +19,7 @@ import '../../../openchatcut/captions/captionEditor.css';
 import { phrasesFromWords, translateCues, TRANSLATION_LANGUAGES } from '@cinegen/lib/occ/translate';
 
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12 } as const;
-const MOTIONS: CaptionMotionPreset[] = ['none', 'fade-up', 'pop', 'word-pop', 'karaoke-pulse'];
+const MOTIONS: CaptionMotionPreset[] = ['none', 'fade-up', 'pop', 'word-pop', 'karaoke-pulse', 'char-rise', 'char-pop', 'char-wave', 'word-rise'];
 
 export function ClipCaptionsSection({ clip, asset, onUpdate, onSeek }: { clip: Clip; asset: Asset | null; onUpdate: (u: { captions?: CaptionsData }) => void; onSeek?: (time: number) => void }) {
   const [busy, setBusy] = useState(false);

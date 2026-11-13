@@ -9,7 +9,7 @@ import { laneGroupsFromPages, type LanePage } from './lanes';
 import { activeCaptionPages, buildCaptionPages } from './captionPages';
 import { captionFlowStyle, captionTextStyle, containerStyle, effectivePreset } from './renderStyles';
 import { buildCaptionWordRuns } from './captionWordRuns';
-import { captionPageMotionStyle, captionWordMotionStyle } from './captionMotion';
+import { captionPageMotionStyle, captionWordMotionStyle, captionWordContent } from './captionMotion';
 
 const CAPTION_OVERLAY_STYLE = { pointerEvents: 'none', zIndex: 1 } as const;
 const CAPTION_WORD_RUN_STYLE = {
@@ -88,7 +88,7 @@ function WholeLineCaption({
         const text = previous ? joinCaptionWords([previous, word]).slice(previous.text.length) : word.text;
         return (
           <span key={word.id ?? index} style={captionWordMotionStyle(motionPreset, word, ms)}>
-            {text}
+            {captionWordContent(motionPreset, word, text, ms)}
           </span>
         );
       })}
@@ -127,7 +127,7 @@ function CaptionWordFlow({
                   ...captionWordMotionStyle(motionPreset, word, ms),
                 }}
               >
-                {word.text}
+                {captionWordContent(motionPreset, word, word.text, ms)}
               </span>
             );
           })}

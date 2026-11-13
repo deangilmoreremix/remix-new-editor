@@ -17,6 +17,7 @@ import { resolveToken, TOKEN_PATTERN } from '../../../components/personalize/tok
 import { personalizedImageLook } from '../../personalization/imageStyle.js';
 import { getAddon, addonOptions } from './registry.js';
 import { ensureFormFont } from './addonOverlay.js';
+import { applyLottieEdits } from '../../../cinegen/lib/editor/stage2/lottie-edit';
 import { buildLowerThirdLottie, lowerThirdFrame } from './lowerThirds.js';
 import { loadGlTransitions, createTransitionRenderer } from './glTransitionRenderer.js';
 import { ctaTarget } from './ctaLink.js';
@@ -333,6 +334,9 @@ function buildSticker(opts) {
   }
   if (opts.kind === 'lottie') {
     el.dataset.lottie = src;
+    // [remix] Stage 2: colour / text replacement + speed (cinegen/lib/editor/stage2/lottie-edit.ts)
+    el._lottieEdits = { colors: opts.lottieColors, texts: opts.lottieTexts };
+    el._lottieSpeed = Number(opts.lottieSpeed) > 0 ? Number(opts.lottieSpeed) : 1;
   } else {
     const img = document.createElement('img');
     img.src = src;
@@ -451,7 +455,8 @@ export async function finishOverlayElement(el, { playing = false } = {}) {
         fetch(el.dataset.lottie).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))),
       ]);
       if (!el.isConnected) return;
-      el._lottie = lottie.loadAnimation({ container: el, renderer: 'svg', loop: true, autoplay: playing, animationData: data });
+      el._lottie = lottie.loadAnimation({ container: el, renderer: 'svg', loop: true, autoplay: playing, animationData: applyLottieEdits(data, el._lottieEdits) });
+      if (el._lottieSpeed && el._lottieSpeed !== 1) el._lottie.setSpeed(el._lottieSpeed);
       if (!playing) el._lottie.goToAndStop(0, true);
     } catch (err) {
       el.classList.add('is-error');

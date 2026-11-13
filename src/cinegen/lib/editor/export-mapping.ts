@@ -14,6 +14,7 @@ import { resolveFit, LEGACY_FIT } from '@cinegen/lib/occ/frame-geometry';
 import { clipFxInstances } from '@cinegen/lib/occ/clip-fx';
 import { userLutTextSync } from '@cinegen/lib/occ/user-luts';
 import { pluginFxSnapshotSync, type FxSnapshot } from '@cinegen/lib/occ/plugins';
+import { hasAnim, poseOpacity, type ClipAnim } from './stage2/anim';
 
 export interface ExportTrackInfo { id: string; kind: 'video' | 'audio'; muted: boolean; solo: boolean; visible: boolean; volume: number }
 export interface ExportTransitionInfo { type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; clipAId: string; clipBId?: string; glType?: string; glDef?: unknown; glParams?: Record<string, number | boolean | number[]> }
@@ -21,6 +22,8 @@ export interface ExportClipInput {
   id?: string; name?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: 'video' | 'audio' | 'image';
   trackKind?: string; trackId?: string; linkedClipIds?: string[]; opacity?: number; flipH?: boolean; flipV?: boolean;
   kf?: Array<{ time: number; property: string; value: number }>;
+  /** [remix] Stage 2: unified keyframes + motion modifiers (lib/editor/stage2/anim.ts) */
+  anim?: ClipAnim;
   [k: string]: unknown;
 }
 export interface ExportItem { id: string; type: string; volume: number; keyframes?: Record<string, Array<{ t: number; v: number }>>; [k: string]: unknown }
@@ -42,7 +45,7 @@ export function exportClipsFromTimeline(timeline: Timeline, assets: Asset[]): Ex
       opacity: clip.opacity ?? 1, flipH: clip.flipH, flipV: clip.flipV,
       eq: clip.eq, // [remix] Stage 4: baked into the audio at export (lib/audio/export-audio.ts)
       fadeIn: clip.fadeIn, fadeOut: clip.fadeOut, kf: clip.keyframes, transform: clip.transform, fit: resolveFit(clip, timeline), fx: clip.fx,
-      lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions,
+      lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions, ...(clip.anim ? { anim: clip.anim } : {}),
     }];
   });
 }
@@ -63,7 +66,7 @@ export function silencedTrackIds(tracks: ExportTrackInfo[]): Set<string> {
 }
 
 
-type FxClip = { fx?: Array<{ id: string; def?: FxSnapshot; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number; def?: FxSnapshot } };
+type FxClip = { anim?: ClipAnim; fx?: Array<{ id: string; def?: FxSnapshot; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number; def?: FxSnapshot } };
 // OpenChatCut effects + LUT of an export clip, as plain {id, overrides} for the composition's GL layer.
 const occFxList = (c: FxClip) =>
   clipFxInstances(c as never).map(({ def, overrides, keys }) => ({
@@ -91,6 +94,7 @@ export function exportItem(c: ExportClipInput, i: number): ExportItem {
     occFx: occFxList(c as unknown as FxClip),
     ...(k.zoom ? { zoom: k.zoom } : {}),
     ...(k.transform ? { transform: k.transform } : {}),
+    ...(hasAnim(c.anim) ? { anim: c.anim } : {}), // [remix] Stage 2: the composition evaluates the same pose function as the preview
     fit: k.fit ?? LEGACY_FIT,
     ...(k.fadeIn ? { fadeIn: k.fadeIn } : {}), ...(k.fadeOut ? { fadeOut: k.fadeOut } : {}),
     ...(c.kf?.length ? { keyframes: kfToComposition(c.kf) } : {}),
@@ -120,17 +124,18 @@ function kfAt(kfs: Array<{ time: number; value: number }>, base: number, t: numb
  * Opacity over the clip as composition keyframes ({t,v}, seconds from the clip start, linear) = the preview's
  * (opacity keyframes or static opacity) x (transition ramps). Null when it is a constant 1 (nothing to send).
  */
-export function opacityEnvelope(opts: { base: number; kfs: Array<{ time: number; value: number }>; ramps: Ramp[]; duration: number }): Array<{ t: number; v: number }> | null {
+export function opacityEnvelope(opts: { base: number; kfs: Array<{ time: number; value: number }>; ramps: Ramp[]; duration: number; /** Stage 2: opacity of the clip itself at clip time t (unified keys + breathing), sampled every 1/30 s instead of the linear kfs */ sample?: (t: number) => number }): Array<{ t: number; v: number }> | null {
   const { base, ramps, duration } = opts;
   const kfs = [...opts.kfs].sort((a, b) => a.time - b.time);
   if (!(duration > 0)) return null;
-  if (!kfs.length && !ramps.length && Math.abs(base - 1) < 1e-6) return null;
+  if (!kfs.length && !ramps.length && !opts.sample && Math.abs(base - 1) < 1e-6) return null;
   const times = new Set<number>([0, duration]);
+  if (opts.sample) for (let t = 0; t < duration; t += 1 / 30) times.add(r4(t));
   for (const k of kfs) if (k.time > 0 && k.time < duration) times.add(r4(k.time));
   for (const r of ramps) {
     for (let i = 0; i <= 8; i++) { const t = r.t0 + ((r.t1 - r.t0) * i) / 8; if (t >= 0 && t <= duration) times.add(r4(t)); }
   }
-  const value = (t: number) => Math.max(0, Math.min(1, kfAt(kfs, base, t) * ramps.reduce((m, r) => m * rampAt(r, t), 1)));
+  const value = (t: number) => Math.max(0, Math.min(1, (opts.sample ? opts.sample(t) : kfAt(kfs, base, t)) * ramps.reduce((m, r) => m * rampAt(r, t), 1)));
   const out = [...times].sort((a, b) => a - b).map((t) => ({ t, v: r4(value(t)) }));
   return out.every((p) => p.v === 1) ? null : out;
 }
@@ -220,7 +225,10 @@ export function buildExportState(input: BuildExportStateInput, makeItem: (c: Exp
     if (!asAudio) {
       if (c.flipH) item.flipH = true;
       if (c.flipV) item.flipV = true;
-      const op = opacityEnvelope({ base: c.opacity ?? 1, kfs: (c.kf ?? []).filter((k) => k.property === 'opacity'), ramps: (c.id && ramps.get(c.id)) || [], duration: c.duration });
+      const kfs = (c.kf ?? []).filter((k) => k.property === 'opacity');
+      // [remix] Stage 2: animated opacity (unified keys with easing, breathing) is sampled with the same function the preview runs
+      const animOpacity = hasAnim(c.anim) && (!!c.anim.keys?.opacity?.length || !!c.anim.modifiers?.some((m) => m.enabled && m.type === 'breathing'));
+      const op = opacityEnvelope({ base: c.opacity ?? 1, kfs, ramps: (c.id && ramps.get(c.id)) || [], duration: c.duration, ...(animOpacity ? { sample: (t: number) => poseOpacity({ opacity: c.opacity ?? 1, keyframes: c.kf, anim: c.anim }, t) } : {}) });
       if (op) item.keyframes = { ...(item.keyframes ?? {}), opacity: op };
     }
     push(track ? track.id : asAudio ? '__a' : '__v', item);

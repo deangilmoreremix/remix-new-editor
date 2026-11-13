@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
-import type { CSSProperties } from 'react';
+import { createElement, type CSSProperties, type ReactNode } from 'react';
+import { TEXT_MOTION_PRESETS, isTextMotionPreset, splitUnits, unitStyle } from '../../cinegen/lib/editor/stage2/text-motion';
 import type { CaptionMotionPreset, CaptionPage } from './types';
 
 export const CAPTION_MOTION_OPTIONS = [
@@ -8,6 +9,10 @@ export const CAPTION_MOTION_OPTIONS = [
   { id: 'pop', label: '弹性入场' },
   { id: 'word-pop', label: '逐词弹出' },
   { id: 'karaoke-pulse', label: '卡拉 OK 脉冲' },
+  { id: 'char-rise', label: '逐字上浮' },
+  { id: 'char-pop', label: '逐字弹出' },
+  { id: 'char-wave', label: '逐字波浪' },
+  { id: 'word-rise', label: '逐词上浮' },
 ] as const satisfies ReadonlyArray<{ id: CaptionMotionPreset; label: string }>;
 
 const PRESETS = new Set<CaptionMotionPreset>(CAPTION_MOTION_OPTIONS.map((option) => option.id));
@@ -47,7 +52,7 @@ export function captionPageMotionStyle(
   page: CaptionPage,
   timelineMs: number,
 ): CSSProperties {
-  if (!preset || preset === 'none' || preset === 'word-pop' || preset === 'karaoke-pulse') {
+  if (!preset || preset === 'none' || preset === 'word-pop' || preset === 'karaoke-pulse' || isTextMotionPreset(preset)) {
     return EMPTY_STYLE;
   }
   const enter = easeOutCubic((timelineMs - page.start) / PAGE_ENTER_MS);
@@ -66,6 +71,11 @@ export function captionWordMotionStyle(
   timelineMs: number,
 ): CSSProperties {
   if (!preset || preset === 'none' || preset === 'fade-up' || preset === 'pop') return EMPTY_STYLE;
+  if (preset === 'word-rise') {
+    const s = unitStyle(TEXT_MOTION_PRESETS['word-rise'], 0, 1, timelineMs - word.start);
+    return { display: 'inline-block', opacity: s.opacity, ...(s.transform ? { transform: s.transform } : {}) };
+  }
+  if (isTextMotionPreset(preset)) return EMPTY_STYLE; // per-character presets animate inside the word (captionWordContent)
   if (preset === 'word-pop') {
     const enter = easeOutBack((timelineMs - word.start) / WORD_ENTER_MS);
     const visible = timelineMs >= word.start;
@@ -85,4 +95,19 @@ export function captionWordMotionStyle(
     transform: `scale(${Number(scale.toFixed(4))})`,
     transformOrigin: 'center bottom',
   };
+}
+
+/** [remix] Stage 2: the text of one caption word. Per-character presets split it into spans, each styled from the elapsed time since the word started. */
+export function captionWordContent(
+  preset: CaptionMotionPreset | undefined,
+  word: Pick<CaptionPage['words'][number], 'start' | 'end'>,
+  text: string,
+  timelineMs: number,
+): ReactNode {
+  if (!preset || !isTextMotionPreset(preset) || TEXT_MOTION_PRESETS[preset].unit !== 'char') return text;
+  const spec = TEXT_MOTION_PRESETS[preset];
+  const units = splitUnits(text, 'char');
+  return units.map((ch, i) => (/\s/u.test(ch)
+    ? ch
+    : createElement('span', { key: i, style: { display: 'inline-block', whiteSpace: 'pre', transformOrigin: 'center bottom', ...unitStyle(spec, i, units.length, timelineMs - word.start) } }, ch)));
 }

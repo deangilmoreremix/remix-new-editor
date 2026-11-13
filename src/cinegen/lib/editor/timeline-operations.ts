@@ -5,6 +5,7 @@ import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
 import { MIN_RATE as OCC_MIN_RATE, MAX_RATE as OCC_MAX_RATE } from '../../../openchatcut/editor/rateStretch';
 import { clipEffectiveDuration, clipEndTime, TRACK_COLORS, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '@cinegen/types/timeline';
 import { generateId } from '@cinegen/lib/utils/ids';
+import { poseOpacity, sliceAnim } from './stage2/anim';
 import type { Asset } from '@cinegen/types/project';
 
 /* Linked clip helpers */
@@ -236,6 +237,7 @@ export function splitClip(
     ...clip,
     trimEnd: clip.trimEnd + (clip.duration - clip.trimStart - clip.trimEnd - sourceSplitOffset),
     keyframes: clip.keyframes.filter((kf) => kf.time < sourceSplitOffset),
+    ...(clip.anim ? { anim: sliceAnim(clip.anim, 0, rel) } : {}), // [remix] Stage 2
     linkedClipIds: firstLinkedIds.length ? firstLinkedIds : undefined,
   };
 
@@ -247,6 +249,7 @@ export function splitClip(
     keyframes: clip.keyframes
       .filter((kf) => kf.time >= sourceSplitOffset)
       .map((kf) => ({ ...kf, time: kf.time - sourceSplitOffset })),
+    ...(clip.anim ? { anim: sliceAnim(clip.anim, rel, effDur) } : {}), // [remix] Stage 2
     linkedClipIds: secondLinkedIds.length ? secondLinkedIds : undefined,
   };
 
@@ -684,7 +687,7 @@ export function interpolateProperty(
   property: 'opacity' | 'volume',
   clipTime: number,
 ): number {
-  const value = interpolateKeyframes(clip, property, clipTime);
+  const value = property === 'opacity' && clip.anim ? poseOpacity(clip, clipTime) : interpolateKeyframes(clip, property, clipTime); // [remix] Stage 2: unified keys + modifiers
   // [remix] OpenChatCut fade-in/out multiplier (editor/clipFade.ts), seconds as the unit
   if (!clip.fadeIn && !clip.fadeOut) return value;
   return value * clipFadeFactor(clipTime, clipEffectiveDuration(clip), clip.fadeIn ?? 0, clip.fadeOut ?? 0);
@@ -965,7 +968,7 @@ export function createSyncedTimeline(
 export function updateClipProperties(
   timeline: Timeline,
   clipId: string,
-  updates: Partial<Pick<Clip, 'speed' | 'fadeIn' | 'fadeOut' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>,
+  updates: Partial<Pick<Clip, 'speed' | 'fadeIn' | 'fadeOut' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions' | 'anim' | 'keyframes'>>,
 ): Timeline {
   const clip = timeline.clips.find((c) => c.id === clipId);
   const linkedIds = new Set(getLinkedIds(clip));

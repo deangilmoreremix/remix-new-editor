@@ -8,6 +8,7 @@ import type { Clip, CompoundContent, Timeline, Transition } from '@cinegen/types
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 import { generateId } from '@cinegen/lib/utils/ids';
 import { calculateTimelineDuration } from '../timeline-operations';
+import { sliceAnim } from '../stage2/anim';
 
 const EPS = 1e-6;
 const MAX_DEPTH = 8;
@@ -75,6 +76,7 @@ function content(container: Clip, trackIds: Set<string>, idFor: (childId: string
       speed: child.speed * sp, opacity: child.opacity * container.opacity, volume: child.volume * container.volume,
       flipH: child.flipH !== container.flipH, flipV: child.flipV !== container.flipV, keyframes: kf,
     };
+    if (child.anim) next.anim = sliceAnim(child.anim, cutL, e - cs, 1 / sp); // [remix] Stage 2 keys follow the same window
     if (cutL > EPS) delete next.fadeIn; else if (next.fadeIn) next.fadeIn /= sp;
     if (cutR > EPS) delete next.fadeOut; else if (next.fadeOut) next.fadeOut /= sp;
     out.push(next);

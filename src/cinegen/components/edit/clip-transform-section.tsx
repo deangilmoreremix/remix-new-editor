@@ -1,8 +1,13 @@
 // [remix] Position / scale / rotation of the clip in the frame (with keyframes), and the tracked path made by OpenChatCut's tracker (Zoom → Follow subject → Pin).
-import { FLEX_CROP_EDGES, flexCropEdgeMax, flexCropInsetPatch, normalizedFlexCrop } from '../../../openchatcut/editor/flexCrop';
+import { FLEX_CROP_EDGES, flexCropEdgeMax, flexCropInsetPatch } from '../../../openchatcut/editor/flexCrop';
 import { DEFAULT_BACKGROUND_FILL_STRENGTH } from '../../../openchatcut/editor/backgroundFill';
 import type { Clip } from '@cinegen/types/timeline';
-import { IDENTITY_TRANSFORM, hasTransform, transformValuesAt, upsertKey, type ClipTransform } from '@cinegen/lib/occ/transform';
+import { IDENTITY_TRANSFORM, hasTransform, type ClipTransform } from '@cinegen/lib/occ/transform';
+import { clearProp, unifyLegacy } from '@cinegen/lib/editor/stage2/anim';
+import { editProps, readProp, type ClipPatch } from '@cinegen/lib/editor/stage2/prop-edit';
+import { useAutoKey } from '@cinegen/lib/editor/stage2/auto-key-store';
+
+const TR_IDS = ['x', 'y', 'scale', 'rotation'] as const;
 
 const ROWS: Array<{ key: 'x' | 'y' | 'scale' | 'rotation'; label: string; min: number; max: number; step: number; unit: string }> = [
   { key: 'x', label: 'Position X', min: -100, max: 100, step: 0.5, unit: '%' },
@@ -11,15 +16,19 @@ const ROWS: Array<{ key: 'x' | 'y' | 'scale' | 'rotation'; label: string; min: n
   { key: 'rotation', label: 'Rotation', min: -180, max: 180, step: 1, unit: '°' },
 ];
 
-export function ClipTransformSection({ clip, currentTime = 0, onUpdate }: { clip: Clip; currentTime?: number; onUpdate: (u: { transform?: ClipTransform }) => void }) {
+export function ClipTransformSection({ clip, currentTime = 0, onUpdate }: { clip: Clip; currentTime?: number; onUpdate: (u: ClipPatch) => void }) {
   const tr = clip.transform ?? IDENTITY_TRANSFORM;
+  const auto = useAutoKey();
   const t = Math.max(0, Math.min(currentTime - clip.startTime, (clip.duration - clip.trimStart - clip.trimEnd) / (clip.speed || 1)));
-  const cur = transformValuesAt(tr, t);
-  const keyed = !!tr.keys?.length;
+  // [remix] Stage 2: values / keys come from the unified model (Clip.anim, older transform keys folded in); auto-key is shared with the Animation section
+  const cur = { x: readProp(clip, 'x', t), y: readProp(clip, 'y', t), scale: readProp(clip, 'scale', t), rotation: readProp(clip, 'rotation', t) };
+  const u = unifyLegacy(clip);
+  const keyCount = Math.max(...TR_IDS.map((id) => (u.anim ?? clip.anim)?.keys?.[id]?.length ?? 0));
+  const keyed = keyCount > 0;
   const commit = (next: ClipTransform) => onUpdate({ transform: hasTransform(next) ? next : undefined });
-  // with keyframes, moving a slider edits the key at the playhead; without, it edits the base value
-  const set = (patch: Partial<typeof cur>) => commit(keyed ? upsertKey(tr, t, { ...cur, ...patch }) : { ...tr, ...patch });
-  const atKey = !!tr.keys?.some((k) => Math.abs(k.t - t) <= 0.02);
+  // a keyed property (or any, with auto-key on) edits the key at the playhead; otherwise the base value
+  const set = (patch: Partial<typeof cur>) => onUpdate(editProps(clip, patch, t, auto));
+  const atKey = TR_IDS.some((id) => (u.anim ?? clip.anim)?.keys?.[id]?.some((k) => Math.abs(k.t - t) <= 0.02));
   return (
     <div className="clip-properties-panel__section" data-testid="clip-transform">
       <div className="clip-properties-panel__section-title">Transform</div>
@@ -44,13 +53,13 @@ export function ClipTransformSection({ clip, currentTime = 0, onUpdate }: { clip
       {FLEX_CROP_EDGES.map((edge) => (
         <div className="clip-properties-panel__row" key={edge}>
           <span className="clip-properties-panel__label">Crop {edge}</span>
-          <input type="range" className="clip-properties-panel__slider" data-testid={`transform-crop-${edge}`} min={0} max={flexCropEdgeMax(tr.crop, edge)} step={0.005} value={normalizedFlexCrop(tr.crop)[edge]} onChange={(e) => commit({ ...tr, crop: flexCropInsetPatch(tr.crop, edge, parseFloat(e.target.value)).crop })} />
-          <span className="clip-properties-panel__value">{Math.round(normalizedFlexCrop(tr.crop)[edge] * 100)}%</span>
+          <input type="range" className="clip-properties-panel__slider" data-testid={`transform-crop-${edge}`} min={0} max={flexCropEdgeMax(tr.crop, edge)} step={0.005} value={readProp(clip, `crop${edge[0].toUpperCase()}${edge.slice(1)}`, t)} onChange={(e) => set({ [`crop${edge[0].toUpperCase()}${edge.slice(1)}`]: flexCropInsetPatch(tr.crop, edge, parseFloat(e.target.value)).crop?.[edge] ?? 0 } as never)} />
+          <span className="clip-properties-panel__value">{Math.round(readProp(clip, `crop${edge[0].toUpperCase()}${edge.slice(1)}`, t) * 100)}%</span>
         </div>
       ))}
       <div className="clip-properties-panel__row">
-        <button className="clip-properties-panel__toggle-btn" data-testid="transform-key" title="Record the current values as a keyframe at the playhead" onClick={() => commit(upsertKey(tr, t, cur))}>{atKey ? '◆ Update keyframe' : '◇ Add keyframe'}</button>
-        {keyed && <button className="clip-properties-panel__toggle-btn" onClick={() => commit({ ...tr, keys: undefined, ...(tr.keys?.length ? { x: cur.x, y: cur.y, scale: cur.scale, rotation: cur.rotation } : {}) })}>Clear {tr.keys!.length} key{tr.keys!.length === 1 ? '' : 's'}</button>}
+        <button className="clip-properties-panel__toggle-btn" data-testid="transform-key" title="Record the current values as a keyframe at the playhead" onClick={() => onUpdate(editProps(clip, cur, t, true))}>{atKey ? '◆ Update keyframe' : '◇ Add keyframe'}</button>
+        {keyed && <button className="clip-properties-panel__toggle-btn" onClick={() => { const c = { ...clip, ...u } as Clip; let anim = c.anim; for (const id of TR_IDS) anim = clearProp(anim, id); const base = { ...c, anim, transform: { ...(c.transform ?? IDENTITY_TRANSFORM), keys: undefined } } as Clip; onUpdate({ anim, transform: base.transform, ...editProps(base, cur, t, false) }); }}>Clear {keyCount} key{keyCount === 1 ? '' : 's'}</button>}
       </div>
       <div className="clip-properties-panel__row">
         {tr.path?.length ? <span style={{ fontSize: 11, opacity: 0.75, flex: 1 }}>Tracked path: {tr.path.length} keys</span> : <span style={{ flex: 1 }} />}
