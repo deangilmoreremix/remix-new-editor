@@ -26,7 +26,7 @@ export const linkStatusOf = (r: Recipient | null, now = Date.now()): LinkStatus 
 
 export function buildBulkRows(p: {
   contacts: Array<Record<string, any>>; businesses: BusinessRef[]; assets: Array<LibAsset & { business_id: string }>;
-  assignments: AssignmentRow[]; recipients: Recipient[]; requiredSlots: string[]; now?: number;
+  assignments: AssignmentRow[]; recipients: Recipient[]; requiredSlots: string[]; neededTokens?: Set<string> | null; now?: number;
 }): BulkRow[] {
   const byKey = new Map(p.businesses.map((b) => [b.business_key, b]));
   const assetsByBusiness: Record<string, Record<string, string>> = {};
@@ -42,7 +42,7 @@ export function buildBulkRows(p: {
   });
   const plan = planBulkLinks({
     contacts: infos.map(({ c, biz }) => ({ id: c.id, name: contactName(c), businessId: biz?.id, variables: c.variables ?? {} })),
-    assetsByBusiness, requiredSlots: p.requiredSlots,
+    assetsByBusiness, requiredSlots: p.requiredSlots, neededTokens: p.neededTokens ?? null,
     existing: p.recipients.filter((r) => r.contact_ref && live(r)).map((r) => ({ contactId: r.contact_ref, status: 'active' })),
   }) as Array<{ status: PlanStatus; missingSlots: string[]; variables: Record<string, string> }>;
   return infos.map(({ c, info, biz }, i) => {

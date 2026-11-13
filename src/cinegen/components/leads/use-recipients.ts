@@ -7,7 +7,7 @@ import { importedToRecords, type ImportResult } from '@cinegen/lib/leads/import-
 // @ts-expect-error plain JS
 import * as pubClient from '../../../lib/editor/publish/publishClient.js';
 // @ts-expect-error plain JS
-import { rowsToCreate, mergeAssetVariables } from '../../../lib/editor/publish/bulkLinks.js';
+import { rowsToCreate, mergeAssetVariables, tokensReadBy } from '../../../lib/editor/publish/bulkLinks.js';
 // @ts-expect-error plain JS
 import * as store from '../../../lib/personalization/businessAssetStore.js';
 // @ts-expect-error plain JS
@@ -20,7 +20,7 @@ import type { BusinessLibrary } from './use-business-library';
 const isMissingSchema = (e: unknown) => /relation .* does not exist|schema cache|could not find the (table|function)|column .* does not exist|PGRST20\d|42P01/i.test((e as Error)?.message || '');
 
 export function useRecipients(pub: ReturnType<typeof usePublished>, lib: BusinessLibrary) {
-  const { projectId } = useWorkspace();
+  const { projectId, state } = useWorkspace();
   const [contacts, setContacts] = useState<Array<Record<string, any>>>(() => listContactProfiles(contactStore));
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [businesses, setBusinesses] = useState<BusinessRef[]>([]);
@@ -59,7 +59,9 @@ export function useRecipients(pub: ReturnType<typeof usePublished>, lib: Busines
   // (assigning an image also rewrites that contact's profile, so re-read the contacts too)
   useEffect(() => { refreshContacts(); void reload(); }, [reload, refreshContacts, lib.assets, lib.assignments]);
 
-  const rows: BulkRow[] = useMemo(() => buildBulkRows({ contacts, businesses, assets, assignments, recipients, requiredSlots }), [contacts, businesses, assets, assignments, recipients, requiredSlots]);
+  // a link carries only the contact fields the video actually reads (a name and phone yes, an email no)
+  const neededTokens = useMemo(() => tokensReadBy(state.overlays ?? []) as Set<string>, [state.overlays]);
+  const rows: BulkRow[] = useMemo(() => buildBulkRows({ contacts, businesses, assets, assignments, recipients, requiredSlots, neededTokens }), [contacts, businesses, assets, assignments, recipients, requiredSlots, neededTokens]);
   const summary = useMemo(() => summarize(rows), [rows]);
   // image URLs carried by ACTIVE published links: the only assets that count as "used in a video"
   const usedUrls = useMemo(() => new Set(recipients.filter((r) => r.status === 'active').flatMap((r) => Object.values(r.variables ?? {})).filter((v) => /^https?:\/\//i.test(String(v)))), [recipients]);

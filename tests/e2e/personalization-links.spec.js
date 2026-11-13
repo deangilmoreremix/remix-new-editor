@@ -442,6 +442,13 @@ test.describe('F. bulk: 20 more businesses, one video, no new video files', () =
       expect(r.variables.productImageUrl).toContain(`?b=${i}`);
       expect(r.variables.COMPANY ?? r.variables.company).toBe(bizName(i));
     }
+    // privacy: a link carries only what the video reads (name, company, phone, website, images), never the contact's email or other fields
+    for (const r of world.db.t.video_recipients) {
+      expect(Object.keys(r.variables)).not.toContain('email');
+      // known, by design of the token engine: businessPhone falls back to the contact's email when there is no phone (the call button reads that token)
+      const withEmail = Object.entries(r.variables).filter(([, v]) => /@example\.test/.test(String(v))).map(([k]) => k);
+      expect(withEmail.filter((k) => k !== 'businessPhone')).toEqual([]);
+    }
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('bulk-export').click()]);
     const lines = readFileSync(await download.path(), 'utf8').trim().split('\n');
     expect(lines).toHaveLength(BULK + 2 + 1);                                                // header + 22

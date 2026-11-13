@@ -63,3 +63,31 @@ describe('assigned images win over mirrored contact variables', () => {
     expect(r.variables).toMatchObject({ logoUrl: 'https://new/logo.png', productImageUrl: 'https://new/p.png', avatarUrl: 'https://me/a.png', FIRSTNAME: 'Ann' });
   });
 });
+
+describe('a link carries only what the video reads', () => {
+  const contact = { id: 'c1', name: 'Ann', businessId: 'b1', variables: { firstName: 'Ann', company: 'Acme', email: 'ann@acme.test', phone: '+15550001', notes: 'private note', logoUrl: 'https://cdn.test/old.png' } };
+  const assets = { b1: { logoUrl: 'https://cdn.test/logo.png' } };
+
+  it('finds tokens in text, fallbacks, uppercase and call-to-action fields, under any accepted spelling', async () => {
+    const { tokensReadBy } = await import('../bulkLinks.js');
+    const read = tokensReadBy([
+      { addon: { text: 'Hello {{FIRSTNAME}} from {{d company "your company"}} {{up First Name}}', linkUrl: '{{website}}' } },
+      { addon: { phoneNumber: '{{phone}}', src: '{{logoUrl}}' } },
+    ]);
+    for (const k of ['firstName', 'company', 'website', 'businessPhone', 'logoUrl']) expect(read.has(k)).toBe(true);
+    expect(read.has('email')).toBe(false);
+  });
+
+  it('drops contact fields the video never reads (email, notes) but keeps phone via its alias and the assigned image', async () => {
+    const { tokensReadBy } = await import('../bulkLinks.js');
+    const needed = tokensReadBy([{ addon: { text: 'Hi {{firstName}} at {{company}}', phoneNumber: '{{businessPhone}}', src: '{{logoUrl}}' } }]);
+    const [row] = planBulkLinks({ contacts: [contact], assetsByBusiness: assets, requiredSlots: ['logoUrl'], neededTokens: needed });
+    expect(row.variables).toEqual({ firstName: 'Ann', company: 'Acme', phone: '+15550001', logoUrl: 'https://cdn.test/logo.png' });
+    expect(JSON.stringify(row.variables)).not.toMatch(/ann@acme|private note/);
+  });
+
+  it('keeps everything when no token set is given (old behaviour)', () => {
+    const [row] = planBulkLinks({ contacts: [contact], assetsByBusiness: assets, requiredSlots: ['logoUrl'] });
+    expect(row.variables.email).toBe('ann@acme.test');
+  });
+});
