@@ -101,19 +101,19 @@ export const createRecorderProject = () => {
     updateScene: (index: number, patch: Partial<SelectableScene>) =>
       setScenes((scenes) => scenes.map((s, i) => (i === index ? ({ ...s, ...patch } as SelectableScene) : s))),
 
-    moveScene: (index: number, delta: -1 | 1) =>
-      setScenes((scenes) => {
-        const target = index + delta;
-        if (target < 0 || target >= scenes.length) return scenes;
-        // Video scenes are tied to takes by order, so only swap scenes if it keeps that order.
-        const a = scenes[index]!;
-        const b = scenes[target]!;
-        if (a.type === "videoscene" && b.type === "videoscene") return scenes;
-        const next = scenes.slice();
-        next[index] = b;
-        next[target] = a;
-        return next;
-      }),
+    /** Swaps a scene with its neighbour. Video scenes are tied to takes by order, so two of them are never swapped. */
+    moveScene: (index: number, delta: -1 | 1): boolean => {
+      const scenes = store.getProps().scenes;
+      const target = index + delta;
+      const a = scenes[index];
+      const b = scenes[target];
+      if (!a || !b || (a.type === "videoscene" && b.type === "videoscene")) return false;
+      const next = scenes.slice();
+      next[index] = b;
+      next[target] = a;
+      store.setProps((p) => ({ ...p, scenes: next }));
+      return true;
+    },
 
     /** Removes a scene; for a video scene its take files are deleted too (like the Recorder). */
     removeScene: async (index: number) => {

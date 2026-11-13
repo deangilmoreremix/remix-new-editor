@@ -1,3 +1,4 @@
+/* global InputDeviceInfo, MediaStream, FileSystemFileHandle */
 // Capture helpers ported from Remotion Recorder (remotion-dev/recorder, src/helpers/*).
 // Pure browser code: no DOM rendering lives here, so it can be tested on its own.
 

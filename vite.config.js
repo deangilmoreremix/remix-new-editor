@@ -495,7 +495,7 @@ function securityHeaders() {
                 // [remix] microphone=(self): the timeline's voice-over recorder and Voice Director use the mic (same origin only)
                 res.setHeader(
                     'Permissions-Policy',
-                    'camera=(), microphone=(self)'
+                    'camera=(self), microphone=(self)'
                 );
                 
                 next();

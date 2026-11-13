@@ -4,7 +4,7 @@ import { useCaptionOverlay } from "./use-caption-overlay";
 
 export const SubsEditorFooter: React.FC<{
   fileName: string;
-}> = ({ fileName }) => {
+}> = () => {
   const overlay = useCaptionOverlay();
 
   const onCloseSubEditor = useCallback(() => {
@@ -35,9 +35,9 @@ export const SubsEditorFooter: React.FC<{
           flex: 1,
         }}
       >
-        Changes will be auto-saved to {fileName}.
+        Changes are saved automatically.
         <br />
-        {"Don't"} edit the file manually while using this editor.
+        They are included the next time you render the video.
       </div>
       <div>
         <button

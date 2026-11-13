@@ -7479,6 +7479,13 @@ export function TimelineEditorPage() {
           onComplete: (result) => {
             addRecordingToTimeline(result, state, showToast);
           },
+          // Recorder Studio's rendered video (captions, layouts, end card burned in).
+          onStudioExport: (result) => {
+            addRecordingToTimeline({
+              duration: result.durationInSeconds,
+              sources: [{ kind: 'studio', label: 'Recorder Studio', blob: result.blob, duration: result.durationInSeconds }]
+            }, state, showToast);
+          },
           onError: (error) => console.log(`Recording failed: ${error}`, 'error')
         });
         modal.open();
@@ -7875,7 +7882,8 @@ export function TimelineEditorPage() {
         alternative1: { name: 'Camera 2', type: 'video', clip: 'video' },
         alternative2: { name: 'Camera 3', type: 'video', clip: 'video' },
         audio: { name: 'Recorded Audio', type: 'audio', clip: 'audio' },
-        import: { name: 'Remotion Recorder', type: 'video', clip: 'video' }
+        import: { name: 'Remotion Recorder', type: 'video', clip: 'video' },
+        studio: { name: 'Recorder Studio', type: 'video', clip: 'video' }
       };
       const ensureTrack = ({ name, type }) => {
         let track = st.tracks.find((t) => t.name === name);

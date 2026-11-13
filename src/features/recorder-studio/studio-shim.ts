@@ -32,6 +32,9 @@ const MIME: Record<string, string> = {
 const notify = (name: string) => {
   folderListeners.forEach((l) => l());
   fileListeners.get(name)?.forEach((l) => l(files.get(name) ?? null));
+  // Rewriting a file replaces its blob URL (and revokes the old one), so the composition's
+  // metadata, which holds those URLs, must be recomputed.
+  getActiveProjectStore()?.bumpRevision();
 };
 
 export const registerBlobFile = (name: string, blob: Blob): StaticFile => {
@@ -57,6 +60,10 @@ export const clearProjectFiles = (prefix: string) => {
     });
   folderListeners.forEach((l) => l());
 };
+
+/** Original file name for a registered blob URL (blob URLs carry no extension), else the input. */
+export const nameForSource = (src: string): string =>
+  [...files.values()].find((f) => f.src === src)?.name ?? src;
 
 export const getStaticFiles = (): StaticFile[] => [...files.values()];
 

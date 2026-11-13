@@ -207,7 +207,8 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(self)"
+    # camera=(self): the Screen Recorder / Recorder Studio webcam view needs getUserMedia video on our own origin.
+    Permissions-Policy = "camera=(self), microphone=(self)"
 
 # Ensure the SPA fallback only fires when no file matches.
 # Netlify's default redirect behavior already skips existing files.

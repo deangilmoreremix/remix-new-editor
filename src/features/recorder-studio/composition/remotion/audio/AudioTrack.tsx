@@ -39,20 +39,24 @@ const calculateVolume =
       }
     }
 
-    const regularVolume = interpolate(
-      f,
-      [
-        0,
-        AUDIO_FADE_IN_FRAMES,
-        durationInFrames - AUDIO_FADE_IN_FRAMES,
-        durationInFrames - 1,
-      ],
-      [0, BACKGROUND_VOLUME, BACKGROUND_VOLUME, 0],
-      {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-      },
+    // Recorder Studio: very short clips (about 2 s or less) cannot fit a full fade in and out
+    // (interpolate needs strictly increasing input), so the fade shrinks to fit.
+    const fade = Math.min(
+      AUDIO_FADE_IN_FRAMES,
+      Math.floor((durationInFrames - 2) / 2),
     );
+    const regularVolume =
+      fade < 1
+        ? BACKGROUND_VOLUME
+        : interpolate(
+            f,
+            [0, fade, durationInFrames - 1 - fade, durationInFrames - 1],
+            [0, BACKGROUND_VOLUME, BACKGROUND_VOLUME, 0],
+            {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            },
+          );
 
     if (isLoudPart) {
       const loudPartDuration = isLoudPart[1] - isLoudPart[0];

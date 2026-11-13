@@ -1,6 +1,7 @@
 import { getImageDimensions } from "@remotion/media-utils";
 import type { BRoll, BRollWithDimensions } from "../../config/scenes";
 import { getVideoMetadata } from "../helpers/get-video-metadata";
+import { nameForSource } from "../../../studio-shim";
 
 const imageFileExtensions = [
   "jpg",
@@ -18,9 +19,8 @@ const videoFileExtensions = ["mp4", "webm", "mov", "mkv"];
 export const getBRollDimensions = async (
   bRoll: BRoll,
 ): Promise<BRollWithDimensions> => {
-  if (
-    imageFileExtensions.some((ext) => bRoll.source.toLowerCase().endsWith(ext))
-  ) {
+  const sourceName = nameForSource(bRoll.source).toLowerCase();
+  if (imageFileExtensions.some((ext) => sourceName.endsWith(ext))) {
     const { width, height } = await getImageDimensions(bRoll.source);
     return {
       ...bRoll,
@@ -30,9 +30,7 @@ export const getBRollDimensions = async (
     };
   }
 
-  if (
-    videoFileExtensions.some((ext) => bRoll.source.toLowerCase().endsWith(ext))
-  ) {
+  if (videoFileExtensions.some((ext) => sourceName.endsWith(ext))) {
     const metadata = await getVideoMetadata({
       src: bRoll.source,
       includeDuration: false,

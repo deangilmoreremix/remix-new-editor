@@ -90,6 +90,7 @@ const STYLES = `
 export class RecorderModal extends BaseModal {
   constructor(options = {}) {
     super({ title: 'Screen Recorder', size: 'large', showFooter: false, ...options });
+    this.onStudioExport = options.onStudioExport || (() => {});
 
     this.views = Object.fromEntries(PREFIXES.map((p) => [p, newView()]));
     this.audioDeviceId = storage.get(AUDIO_PREF_KEY) || null;
@@ -276,6 +277,7 @@ export class RecorderModal extends BaseModal {
           </div>
           <div class="rr-seg">
             <a class="rr-btn" href="${escapeHtml(RECORDER_APP_URL)}" target="_blank" rel="noopener noreferrer" data-tooltip="Opens the standalone Remotion Recorder app">↗ Full Recorder app</a>
+            <button class="rr-btn" data-act="open-studio" data-tooltip="Edit recordings with captions, layouts, chapters and an end card">🎬 Recorder Studio</button>
             <button class="rr-btn" data-act="import" data-tooltip="Add a video or audio file exported from the Recorder">⬆ Import</button>
             <input type="file" data-import-input accept="video/*,audio/*" multiple hidden>
           </div>
@@ -316,7 +318,8 @@ export class RecorderModal extends BaseModal {
         <button class="modal-btn modal-btn-secondary" data-act="discard">🗑 Discard</button>
         <button class="modal-btn modal-btn-secondary" data-act="retake">↺ Discard &amp; retake</button>
         <button class="modal-btn modal-btn-secondary" data-act="save">💾 Save files</button>
-        <button class="modal-btn modal-btn-primary" data-act="use-take">Use this take</button>`;
+        <button class="modal-btn modal-btn-secondary" data-act="use-take">Add to timeline</button>
+        <button class="modal-btn modal-btn-primary" data-act="edit-studio" data-tooltip="Add captions, layouts, chapters and an end card, then export">🎬 Edit in Studio</button>`;
     }
     const cams = this.activeViews().length;
     const mics = this.audioDeviceId && this.views.webcam.stream?.getAudioTracks().length ? 1 : 0;
@@ -510,6 +513,8 @@ export class RecorderModal extends BaseModal {
       case 'retake': this.discardTake().then(() => this.startRecording()); break;
       case 'save': this.saveTake(); break;
       case 'use-take': this.useTake(); break;
+      case 'edit-studio': this.editInStudio(); break;
+      case 'open-studio': this.openStudio(); break;
       case 'cancel-work': this.workAbort?.(); break;
       default: break;
     }
@@ -586,29 +591,36 @@ export class RecorderModal extends BaseModal {
     });
   }
 
-  async useTake() {
-    if (!this.takes || this.working) return;
+  // Remux every take (fixes MediaRecorder timestamps) and copy it out of file storage.
+  async prepareSources() {
     let aborted = false;
     this.workAbort = () => { aborted = true; this.convertAbort?.(); };
     const sources = [];
+    for (const take of this.takes) {
+      if (aborted) return null;
+      this.working = { title: `Converting ${VIEW_LABELS[take.prefix]}`, description: 'Starting…' };
+      this.refresh();
+      let blob = await convertTake({
+        src: take.file,
+        mimeType: take.mimeType,
+        onProgress: (p, abort) => {
+          this.convertAbort = abort;
+          const el = this.overlay?.querySelector('[data-working]');
+          if (el) el.textContent = `Converting ${VIEW_LABELS[take.prefix]} — ${Math.round(p * 100)}%`;
+        }
+      });
+      // Copy out of file storage so the file can be released safely.
+      if (blob === take.file) blob = new Blob([await take.file.arrayBuffer()], { type: take.file.type });
+      sources.push({ kind: take.prefix, label: VIEW_LABELS[take.prefix], blob, mimeType: take.mimeType, mirror: take.prefix === 'webcam' && this.mirror });
+    }
+    return aborted ? null : sources;
+  }
+
+  async useTake() {
+    if (!this.takes || this.working) return;
+    let sources;
     try {
-      for (const take of this.takes) {
-        if (aborted) break;
-        this.working = { title: `Converting ${VIEW_LABELS[take.prefix]}`, description: 'Starting…' };
-        this.refresh();
-        let blob = await convertTake({
-          src: take.file,
-          mimeType: take.mimeType,
-          onProgress: (p, abort) => {
-            this.convertAbort = abort;
-            const el = this.overlay?.querySelector('[data-working]');
-            if (el) el.textContent = `Converting ${VIEW_LABELS[take.prefix]} — ${Math.round(p * 100)}%`;
-          }
-        });
-        // Copy out of file storage so the file can be released safely.
-        if (blob === take.file) blob = new Blob([await take.file.arrayBuffer()], { type: take.file.type });
-        sources.push({ kind: take.prefix, label: VIEW_LABELS[take.prefix], blob, mimeType: take.mimeType, mirror: take.prefix === 'webcam' && this.mirror });
-      }
+      sources = await this.prepareSources();
     } catch (err) {
       this.working = null;
       this.error = `Could not prepare the take: ${err.message}`;
@@ -616,7 +628,7 @@ export class RecorderModal extends BaseModal {
       return;
     }
     this.working = null;
-    if (aborted || !sources.length) { this.refresh(); return; }
+    if (!sources?.length) { this.refresh(); return; }
 
     const primary = sources.find((s) => s.kind === 'display') || sources[0];
     const duration = this.duration;
@@ -631,6 +643,39 @@ export class RecorderModal extends BaseModal {
       sources
     });
     this.close();
+  }
+
+  // Hand the take to Recorder Studio (captions, layouts, chapters, end card, export).
+  async editInStudio() {
+    if (!this.takes || this.working) return;
+    let sources;
+    try {
+      sources = await this.prepareSources();
+    } catch (err) {
+      this.working = null;
+      this.error = `Could not prepare the take: ${err.message}`;
+      this.refresh();
+      return;
+    }
+    this.working = null;
+    if (!sources?.length) { this.refresh(); return; }
+    try {
+      const { getRecorderProject } = await import('../../features/recorder-studio/mount.tsx');
+      getRecorderProject().addTake({ sources });
+    } catch (err) {
+      this.error = `Could not open Recorder Studio: ${err.message}`;
+      this.refresh();
+      return;
+    }
+    await this.discardTake();
+    this.openStudio();
+  }
+
+  async openStudio() {
+    const { RecorderStudioModal } = await import('./RecorderStudioModal.jsx');
+    const onAddToTimeline = this.onStudioExport;
+    this.close();
+    new RecorderStudioModal({ onAddToTimeline }).open();
   }
 
   // Files rendered/exported by the standalone Remotion Recorder app go straight to the timeline.

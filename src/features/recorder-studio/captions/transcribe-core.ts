@@ -22,7 +22,10 @@ const loadTranscriber = (id: string, onProgress: (p: TranscribeProgress) => void
   const key = `${id}|${device ?? "auto"}`;
   if (cache?.id === key) return cache.promise;
   const promise = (async () => {
-    const { pipeline } = await import("@huggingface/transformers");
+    const { pipeline, env } = await import("@huggingface/transformers");
+    // Same settings as the editor's other in-browser models (src/lib/editor/ml/ml.worker.js).
+    env.allowLocalModels = false;
+    env.useBrowserCache = true;
     const hasWebGpu = typeof navigator !== "undefined" && "gpu" in navigator;
     const make = (dev: string) =>
       pipeline("automatic-speech-recognition", id, {

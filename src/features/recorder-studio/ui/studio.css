@@ -1,0 +1,37 @@
+/* Recorder Studio: uses the editor's design tokens so it matches the other drawers. */
+.rs-root { display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:16px; height:100%; min-height:0; padding:16px 20px; color:var(--text); font-family:var(--font); box-sizing:border-box; }
+@media (max-width: 960px) { .rs-root { grid-template-columns:1fr; overflow:auto; } }
+.rs-main { display:flex; flex-direction:column; gap:12px; min-width:0; min-height:0; }
+.rs-stage { position:relative; background:#000; border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--border-soft, var(--border)); display:flex; align-items:center; justify-content:center; flex:1; min-height:260px; }
+.rs-empty { padding:32px; text-align:center; color:var(--muted); font-size:14px; max-width:420px; }
+.rs-banner { position:absolute; left:12px; top:12px; right:12px; padding:8px 12px; border-radius:var(--radius-sm); background:rgba(0,0,0,.72); color:var(--text); font-size:12px; z-index:2; }
+.rs-banner.err { color:#fca5a5; }
+.rs-side { display:flex; flex-direction:column; min-height:0; border:1px solid var(--border-soft, var(--border)); border-radius:var(--radius-md); background:rgba(255,255,255,.02); }
+.rs-tabs { display:flex; border-bottom:1px solid var(--border-soft, var(--border)); }
+.rs-tab { flex:1; padding:10px 6px; font:inherit; font-size:12px; font-weight:600; color:var(--muted); background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; }
+.rs-tab.on { color:var(--text); border-bottom-color:var(--primary); }
+.rs-panel { padding:14px; overflow:auto; display:flex; flex-direction:column; gap:12px; min-height:0; flex:1; }
+.rs-label { font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
+.rs-field { display:flex; flex-direction:column; gap:4px; }
+.rs-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.rs-row > .rs-field { flex:1; min-width:110px; }
+.rs-input, .rs-select { width:100%; box-sizing:border-box; padding:7px 9px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--panel-soft, rgba(255,255,255,.04)); color:var(--text); font:inherit; font-size:13px; }
+.rs-btn { padding:7px 11px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--panel-soft, rgba(255,255,255,.04)); color:var(--text); cursor:pointer; font:inherit; font-size:12px; display:inline-flex; align-items:center; gap:6px; }
+.rs-btn:hover:not(:disabled) { border-color:var(--primary); }
+.rs-btn:disabled { opacity:.45; cursor:not-allowed; }
+.rs-btn.primary { background:var(--primary); color:var(--on-primary); border-color:var(--primary); font-weight:600; }
+.rs-btn.danger { color:#fca5a5; }
+.rs-check { display:flex; gap:8px; align-items:center; font-size:13px; cursor:pointer; }
+.rs-scenes { display:flex; flex-direction:column; gap:6px; }
+.rs-scene { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:var(--radius-sm); border:1px solid var(--border); background:transparent; color:var(--text); text-align:left; font:inherit; font-size:13px; cursor:pointer; }
+.rs-scene.sel { border-color:var(--primary); background:var(--primary-soft); }
+.rs-scene.live { box-shadow:inset 3px 0 0 var(--primary); }
+.rs-scene .rs-kind { font-size:11px; color:var(--muted); margin-left:auto; }
+.rs-hint { font-size:12px; color:var(--muted); line-height:1.45; }
+.rs-badge { font-size:11px; padding:2px 7px; border-radius:999px; border:1px solid var(--border); color:var(--muted); }
+.rs-badge.ok { color:var(--primary); border-color:var(--primary); }
+.rs-bar { height:6px; border-radius:3px; background:rgba(255,255,255,.1); overflow:hidden; }
+.rs-bar > i { display:block; height:100%; background:var(--primary); transition:width .2s; }
+.rs-card { border:1px solid var(--border-soft, var(--border)); border-radius:var(--radius-sm); padding:10px; display:flex; flex-direction:column; gap:8px; }
+.rs-video { width:100%; border-radius:var(--radius-sm); background:#000; }
+.rs-divider { height:1px; background:var(--border-soft, var(--border)); margin:2px 0; }

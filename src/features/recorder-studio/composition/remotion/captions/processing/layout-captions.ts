@@ -95,7 +95,10 @@ const cutCaptions = ({
       fontWeight: fontWeight as string,
       fontSize,
       additionalStyles,
-      validateFontIsLoaded: true,
+      // Recorder Studio: BoxedCaptions waits for our self-hosted fonts (WaitForFonts) before this runs.
+      // Remotion's own check compares against the page's inherited font and false-positives when the
+      // host page also uses Inter, so it is disabled here.
+      validateFontIsLoaded: false,
     });
 
     if (exceedsBox) {

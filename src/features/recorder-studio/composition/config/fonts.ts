@@ -1,33 +1,32 @@
-import {
-  loadFont as loadRegular,
-  fontFamily as regularFont,
-} from "@remotion/google-fonts/Inter";
-
-import {
-  loadFont as loadMonospace,
-  fontFamily as monospaceFont,
-} from "@remotion/google-fonts/RobotoMono";
-
-import {
-  fontFamily as endcardFont,
-  loadFont as loadEndcard,
-} from "@remotion/google-fonts/Inter";
 import { cancelRender, continueRender, delayRender } from "remotion";
+import { staticFile } from "../../studio-shim";
 
-const regular = loadRegular("normal", {
-  weights: ["600", "700"],
-});
-const monospace = loadMonospace("normal", {
-  weights: ["500"],
-});
-const endcard = loadEndcard("normal", {
-  weights: ["500"],
-});
+// Recorder Studio: fonts are self-hosted (public/recorder-studio/fonts, SIL OFL 1.1) instead of
+// fetched from Google at runtime, so previews and exports also work offline / behind a firewall.
+const regularFont = "Inter";
+const monospaceFont = "Roboto Mono";
+const endcardFont = "Inter";
+
+const loadFace = (family: string, weight: string, file: string) => {
+  const face = new FontFace(family, `url(${staticFile(`fonts/${file}`)}) format("woff2")`, {
+    weight,
+    style: "normal",
+  });
+  document.fonts.add(face);
+  return face.load();
+};
+
+const regular = Promise.all([
+  loadFace(regularFont, "600", "inter-latin-600-normal.woff2"),
+  loadFace(regularFont, "700", "inter-latin-700-normal.woff2"),
+]);
+const monospace = loadFace(monospaceFont, "500", "roboto-mono-latin-500-normal.woff2");
+const endcard = loadFace(endcardFont, "500", "inter-latin-500-normal.woff2");
 
 export const waitForFonts = async () => {
-  await regular.waitUntilDone();
-  await monospace.waitUntilDone();
-  await endcard.waitUntilDone();
+  await regular;
+  await monospace;
+  await endcard;
 };
 
 export const REGULAR_FONT: React.CSSProperties = {
