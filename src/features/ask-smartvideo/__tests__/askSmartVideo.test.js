@@ -121,6 +121,22 @@ describe('prompt safety', () => {
     expect(sanitizeMessages([{ role: 'user', content: 'a' }, { role: 'assistant', content: 'b' }])).toBeNull();
     expect(sanitizeMessages('x')).toBeNull();
   });
+  it.each([
+    ['GitHub fine-grained token', `github_pat_${'A1b2'.repeat(8)}`],
+    ['GitHub token', `ghp_${'a1B2'.repeat(6)}`],
+    ['GitLab token', `glpat-${'a1B2'.repeat(5)}`],
+    ['AWS access key id', 'AKIAABCDEFGHIJKLMNOP'],
+    ['Slack token', 'xoxb-1234567890-abcdefghij'],
+    ['Stripe key', `sk_live_${'a1B2c3D4e5'}`],
+    ['Bearer header', `Bearer ${'a1B2c3D4e5'.repeat(3)}`],
+  ])('redacts a pasted %s', (_n, secret) => {
+    const m = sanitizeMessages([{ role: 'user', content: `here: ${secret} how do I upscale` }]);
+    expect(m[0].content).toBe('here: [redacted secret] how do I upscale');
+  });
+  it('leaves normal text alone', () => {
+    const t = 'Open Image Studio, click Generate and pick a Bearer-style model. The sk-learn guide says AKIA is a prefix.';
+    expect(sanitizeMessages([{ role: 'user', content: t }])[0].content).toBe(t);
+  });
   it('index text contains no secret-looking strings', () => {
     expect(JSON.stringify(getIndex().docs.map((d) => d.text))).not.toMatch(/sk-[A-Za-z0-9_-]{20,}|whsec_|ghp_[A-Za-z0-9]{20,}/);
   });
@@ -210,6 +226,17 @@ describe('endpoint', () => {
     expect(signal.aborted).toBe(false);
     await reader.cancel();
     expect(signal.aborted).toBe(true);
+  });
+  it('does not give a long answer budget to a non-walkthrough question', async () => {
+    const fetchImpl = vi.fn(async () => sseBody(['data: [DONE]\n\n']));
+    await (await handle(req({ messages: [{ role: 'user', content: 'which video model is best' }] }), { verify: verifyOk, fetchImpl })).text();
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).max_tokens).toBe(700);
+  });
+  it('does not show the HTTP status number to the user', async () => {
+    const r = await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }] }), { verify: verifyOk, fetchImpl: async () => new Response('{}', { status: 503 }) });
+    const text = await r.text();
+    expect(text).toContain('event: error');
+    expect(text).not.toMatch(/HTTP \d{3}|503/);
   });
   it('gives a walkthrough more room than a short answer', async () => {
     const bodyFor = async (q) => {

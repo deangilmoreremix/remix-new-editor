@@ -84,7 +84,7 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
   const sources = results.map(publicSource);
   const enc = new TextEncoder();
   // A whole walkthrough (many steps with exact button names) needs more room than a short answer.
-  const maxTokens = results.some((r) => r.chunk.kind === 'journey') ? 1400 : 700;
+  const maxTokens = results.some((r) => r.chunk.kind === 'journey' && r.chunk.id.includes(':steps')) ? 1400 : 700;
   let upstreamAbort = null;
 
   const stream = new ReadableStream({
@@ -116,7 +116,7 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
             }),
           });
           if (!res.ok || !res.body) {
-            send('error', { message: openAIKeyError(res.status) || `The assistant is unavailable (HTTP ${res.status}).`, code: res.status === 401 ? 'bad_key' : 'upstream' });
+            send('error', { message: openAIKeyError(res.status) || 'The assistant is unavailable right now. Try again in a moment.', code: res.status === 401 ? 'bad_key' : 'upstream' });
             return;
           }
           for await (const text of openAIDeltas(res.body)) send('delta', { text });

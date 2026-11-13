@@ -21,7 +21,8 @@ const MAX_CHARS = 1400;
 const MIN_CHARS = 40;
 const imp = (rel) => import(pathToFileURL(path.join(ROOT, rel)).href);
 
-const SECRET_RE = /\b(sk-[A-Za-z0-9_-]{16,}|sk_(?:live|test)_[A-Za-z0-9]{10,}|rk_(?:live|test)_[A-Za-z0-9]{10,}|whsec_[A-Za-z0-9]{10,}|ghp_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{20,}|eyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{10,})/;
+const { secretRegex } = await imp('netlify/functions/_shared/secretPatterns.js');
+const SECRET_RE = secretRegex();
 
 // ── text helpers ─────────────────────────────────────────────────────────────
 const isEmpty = (v) => v == null || v === '' || (Array.isArray(v) && !v.length) || (typeof v === 'object' && !Array.isArray(v) && !Object.keys(v).length);

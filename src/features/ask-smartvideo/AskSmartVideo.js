@@ -159,7 +159,7 @@ export function mountAskSmartVideo({ navigate, getPage }) {
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         if (j.code === 'need_key') keycard.hidden = false;
-        throw new Error(res.status === 401 ? 'Please sign in to use Ask SmartVideo.' : j.error || `Ask SmartVideo is unavailable (HTTP ${res.status}).`);
+        throw new Error(res.status === 401 ? 'Please sign in to use Ask SmartVideo.' : j.error || 'Ask SmartVideo is unavailable right now. Try again in a moment.');
       }
       const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '';
       for (;;) {

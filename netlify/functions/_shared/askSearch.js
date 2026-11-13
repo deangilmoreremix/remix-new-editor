@@ -8,6 +8,7 @@
 // answer from irrelevant text.
 import indexJson from '../../../src/data/askIndex.json' with { type: 'json' };
 import { SYNONYM_GROUPS } from '../../../src/data/askIntents.js';
+import { secretRegex } from './secretPatterns.js';
 
 const STOP = new Set('a an the and or of to in on for with is are be do does how i my me you your it this that can what where when which from at by as if so but not use using want need make get create generate build produce please help'.split(' '));
 const K1 = 1.4;
@@ -203,7 +204,7 @@ export function buildSourcesBlock(results) {
     .join('\n');
 }
 
-const SECRET_RE = /\b(sk-[A-Za-z0-9_-]{16,}|sk_(?:live|test)_[A-Za-z0-9]{10,}|pk_(?:live|test)_[A-Za-z0-9]{10,}|AIza[0-9A-Za-z_-]{20,}|eyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{10,})/g;
+const SECRET_RE = secretRegex('g');
 export const redact = (s) => String(s).replace(SECRET_RE, '[redacted secret]');
 
 /** Last 6 turns, 1500 chars each, secrets redacted, must end on a non-empty user turn. */
