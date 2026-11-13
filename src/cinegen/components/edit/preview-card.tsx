@@ -73,9 +73,9 @@ function LiveStage({ preview, playing }: { preview: Extract<CardPreview, { kind:
   }, [playing, dur, still]);
   // portrait / square templates are letterboxed inside the 16:9 card so every card in the grid has the same size
   return (
-    <div data-preview-stage style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
+    <div data-preview-stage inert style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
       <div style={{ position: 'relative', height: '100%', aspectRatio: `${frame.width} / ${frame.height}`, maxWidth: '100%', overflow: 'hidden' }}>
-        <OverlayLayer overlays={overlays} currentTime={t} isPlaying={false} onPause={noop} frame={frame} />
+        <OverlayLayer overlays={overlays} currentTime={t} isPlaying={false} previewPlaying={playing} onPause={noop} frame={frame} />
       </div>
     </div>
   );

@@ -80,6 +80,7 @@ test.describe('Add to timeline modal', () => {
 
   test('tabs and counts: All is the sum of the others', async ({ page }) => {
     await openModal(page, 'all');
+    await expect.poll(() => tabCount(page, 'motion')).toBeGreaterThan(200); // the motion graphics load after the window opens
     const [all, animations, motion, overlays, endscreens] = await Promise.all(['all', 'animations', 'motion', 'overlays', 'endscreens'].map((t) => tabCount(page, t)));
     expect(overlays).toBe(10);
     expect(endscreens).toBe(13);
@@ -302,6 +303,41 @@ test.describe('Add to timeline modal', () => {
     await expect(dialog(page)).toBeHidden();
   });
 
+  test('focus moves into the window, Tab stays inside it, and focus returns to + Add when it closes', async ({ page }) => {
+    const insideWindow = () => page.evaluate(() => !!document.activeElement && !!document.activeElement.closest('[role="dialog"][aria-modal="true"]'));
+    await openModal(page, 'animations');
+    await expect.poll(insideWindow).toBe(true);
+    // the window holds hundreds of focusable cards, so test its two edges directly: Tab on the last control and Shift+Tab on the first
+    const edge = (which) => page.evaluate((w) => {
+      const d = document.querySelector('[role="dialog"][aria-modal="true"]');
+      const items = [...d.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter((e) => e.getClientRects().length > 0);
+      items[w === 'last' ? items.length - 1 : 0].focus();
+    }, which);
+    await edge('last');
+    await page.keyboard.press('Tab');
+    expect(await insideWindow(), 'Tab from the last control').toBe(true);
+    await edge('first');
+    await page.keyboard.press('Shift+Tab');
+    expect(await insideWindow(), 'Shift+Tab from the first control').toBe(true);
+    await page.evaluate(() => document.activeElement && document.activeElement.blur()); // focus lost to the page behind
+    await page.keyboard.press('Tab');
+    expect(await insideWindow(), 'Tab with focus outside').toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(dialog(page)).toBeHidden();
+    await expect(addButton(page)).toBeFocused();
+  });
+
+  test('card previews are inert: a form preview does not steal focus from the search field', async ({ page }) => {
+    await openModal(page, 'overlays');
+    const search = dialog(page).getByRole('textbox', { name: 'Search', exact: true });
+    await expect(search).toBeFocused();
+    await page.waitForTimeout(3000); // the Lead Generator preview mounts and used to focus its own input
+    await expect(search).toBeFocused();
+    await expect(page.locator('#help-tip-card')).toHaveCount(0); // the auto-focused search field must not pop a hover-help card over the cards
+    await expect(page.locator('.add-card [data-preview-stage][inert]').first()).toBeAttached();
+    expect(await page.locator('.add-card [data-preview-stage]:not([inert])').count()).toBe(0);
+  });
+
   for (const [name, selector] of [['Smart Speech', '.speech-modal'], ['Template Generator', '.modal-overlay.active'], ['Personalization', '.modal-overlay.active']]) {
     test(`the ${name} button opens its own modal`, async ({ page }) => {
       await page.getByRole('button', { name, exact: true }).click();
@@ -322,6 +358,24 @@ test.describe('Add to timeline modal: motion graphics fail to load', () => {
     await topTab(page, 'all').click();
     await expect(dialog(page).getByTestId('mg-load-error')).toBeVisible();
     broken = false;
+    await dialog(page).getByRole('button', { name: 'Retry' }).click();
+    await expect(dialog(page).getByTestId('mg-load-error')).toHaveCount(0);
+    await expect.poll(() => tabCount(page, 'motion')).toBeGreaterThan(200);
+  });
+});
+
+test.describe('Add to timeline modal: every motion graphics pack is down', () => {
+  test('shows the load message (not an empty list) and Retry recovers once the packs are back', async ({ page }) => {
+    let down = true;
+    await page.route(/\/occ-templates\/(social-shorts|koubo-scenes|openchatcut)-templates\.json/, (route) => (down ? route.fulfill({ status: 500, body: 'nope' }) : route.continue()));
+    await openEditor(page);
+    await openModal(page, 'motion');
+    await expect(dialog(page).getByTestId('mg-load-error')).toBeVisible();
+    // closing and reopening does not reuse a cached failure
+    await page.keyboard.press('Escape');
+    await openModal(page, 'motion');
+    await expect(dialog(page).getByTestId('mg-load-error')).toBeVisible();
+    down = false;
     await dialog(page).getByRole('button', { name: 'Retry' }).click();
     await expect(dialog(page).getByTestId('mg-load-error')).toHaveCount(0);
     await expect.poll(() => tabCount(page, 'motion')).toBeGreaterThan(200);

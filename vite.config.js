@@ -119,7 +119,8 @@ const stubLegacy = () => ({
       if (!fs.existsSync(pkgDir)) {
         console.warn('[STUB]', source, '<-', importer.replace(process.cwd() + '/', ''));
         // A package that package.json DECLARES but node_modules lacks is not legacy code: the stand-in is empty and features fail in odd ways.
-        if (declaredDependencies().has(pkgName)) console.error(`[STUB] "${pkgName}" is declared in package.json but not installed, so it was replaced by an empty module. Run "npm install" and restart.`);
+        const fullName = source.startsWith('@') ? source.split('/').slice(0, 2).join('/') : pkgName; // @scope/name, not just @scope
+        if (declaredDependencies().has(fullName)) console.error(`[STUB] "${fullName}" is declared in package.json but not installed, so it was replaced by an empty module. Run "npm install" and restart.`);
         if (process.env.STRICT_IMPORTS) {
           throw new Error(`Unresolved import "${source}" from ${importer.replace(process.cwd() + '/', '')}`);
         }

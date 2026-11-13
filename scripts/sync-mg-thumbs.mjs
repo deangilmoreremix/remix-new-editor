@@ -16,7 +16,7 @@ let n = 0
 for (const f of fs.readdirSync(SRC)) {
   if (!/\.(jpe?g|png|webp)$/i.test(f)) continue
   const to = path.join(OUT, f)
-  if (!fs.existsSync(to) || fs.statSync(to).size !== fs.statSync(path.join(SRC, f)).size) { fs.copyFileSync(path.join(SRC, f), to); n++ }
+  if (!fs.existsSync(to) || !fs.readFileSync(to).equals(fs.readFileSync(path.join(SRC, f)))) { fs.copyFileSync(path.join(SRC, f), to); n++ } // by content: a replaced picture with the same byte length is still copied
 }
 // remove copies whose source file no longer exists, so a deleted thumbnail does not linger
 const have = new Set(fs.readdirSync(SRC));
