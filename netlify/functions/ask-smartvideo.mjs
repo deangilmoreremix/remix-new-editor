@@ -8,7 +8,7 @@
  */
 import { verifyClerkToken } from './_shared/clerkAuth.js';
 import { userOpenAIKey, NEED_OPENAI_KEY, openAIKeyError } from './_shared/byok.js';
-import { search, sanitizeMessages, retrievalQuery, buildSourcesBlock, SYSTEM_PROMPT, NO_ANSWER } from './_shared/askSearch.js';
+import { search, hasWalkthroughSteps, sanitizeMessages, retrievalQuery, buildSourcesBlock, SYSTEM_PROMPT, NO_ANSWER } from './_shared/askSearch.js';
 
 const MODEL = () => process.env.ASK_SMARTVIDEO_MODEL || 'gpt-4o-mini';
 const TIMEOUT_MS = 45_000;
@@ -84,7 +84,7 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
   const sources = results.map(publicSource);
   const enc = new TextEncoder();
   // A whole walkthrough (many steps with exact button names) needs more room than a short answer.
-  const maxTokens = results.some((r) => r.chunk.kind === 'journey' && r.chunk.id.includes(':steps')) ? 1400 : 700;
+  const maxTokens = hasWalkthroughSteps(results) ? 1400 : 700;
   let upstreamAbort = null;
 
   const stream = new ReadableStream({

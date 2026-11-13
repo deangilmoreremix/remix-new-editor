@@ -15,6 +15,13 @@ const K1 = 1.4;
 const B = 0.75;
 // Questions that ask to be led through a whole job: favour the end-to-end walkthroughs.
 const WALKTHROUGH_RE = /\b(walk me through|walkthrough|step by step|start to finish|beginning to end|end to end|from scratch|how (do|can|would) i (make|create|produce)|make a video|create a video|make me a video)\b|\b(make|create|produce|build)\b[^.?!]{0,40}\b(videos?|films?|movies?|clips?|ads?|reels?|shorts?)\b|\bturn\b[^.?!]{0,40}\binto\b[^.?!]{0,20}\b(videos?|films?|movies?|clips?)\b/i;
+/**
+ * Which part of a walkthrough a chunk is: 'overview', 'steps', 'steps-2', 'help-1', ... (ids are `journey:<id>:<part>`,
+ * built by scripts/build-ask-index.mjs). One helper so the indexer's id format has a single reader.
+ */
+export const journeyPart = (chunk) => (chunk?.kind === 'journey' ? chunk.id.split(':')[2] || '' : '');
+export const hasWalkthroughSteps = (results) => results.some((r) => journeyPart(r.chunk).startsWith('steps'));
+
 export const isWalkthroughQuestion = (q) => WALKTHROUGH_RE.test(String(q || ''));
 export const MIN_SCORE = 10; // legit questions score 17+; unrelated text tops out around 6
 
@@ -154,7 +161,7 @@ export function search(query, { studioId = null, limit = 6, index = getIndex(), 
   const lead = out.find((r) => r.chunk.kind === 'journey');
   if (lead && (walk || out[0].chunk.kind === 'journey')) {
     const jid = lead.chunk.id.split(':')[1];
-    const part = (d) => d.id.split(':')[2] || '';
+    const part = journeyPart;
     const rank = (d) => {
       const p = part(d);
       const n = Number(p.split('-')[1] || 0);
@@ -204,8 +211,7 @@ export function buildSourcesBlock(results) {
     .join('\n');
 }
 
-const SECRET_RE = secretRegex('g');
-export const redact = (s) => String(s).replace(SECRET_RE, '[redacted secret]');
+export const redact = (s) => String(s).replace(secretRegex('g'), '[redacted secret]');
 
 /** Last 6 turns, 1500 chars each, secrets redacted, must end on a non-empty user turn. */
 export function sanitizeMessages(messages) {

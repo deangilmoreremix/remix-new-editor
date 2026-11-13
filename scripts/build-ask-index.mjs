@@ -22,7 +22,7 @@ const MIN_CHARS = 40;
 const imp = (rel) => import(pathToFileURL(path.join(ROOT, rel)).href);
 
 const { secretRegex } = await imp('netlify/functions/_shared/secretPatterns.js');
-const SECRET_RE = secretRegex();
+const SECRET_RE = secretRegex('', { strict: true }); // the validator is fatal on a match, so it uses the strict list
 
 // ── text helpers ─────────────────────────────────────────────────────────────
 const isEmpty = (v) => v == null || v === '' || (Array.isArray(v) && !v.length) || (typeof v === 'object' && !Array.isArray(v) && !Object.keys(v).length);

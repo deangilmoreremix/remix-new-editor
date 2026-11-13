@@ -7,7 +7,8 @@ import { NAV_GROUPS } from '../../../lib/studioRoutes.js';
 import { STUDIO_INTENTS, TRACK_INTENTS, SYNONYM_GROUPS } from '../../../data/askIntents.js';
 import { STUDIO_ACADEMY, TRACK_TITLES } from '../../../data/askAcademyMap.js';
 import { renderAnswer, parseSSE, starterPrompts, pickChips, isAcademyUrl, studioForRoute } from '../askCore.js';
-import { search, sanitizeMessages, buildSourcesBlock, retrievalQuery, MIN_SCORE, getIndex } from '../../../../netlify/functions/_shared/askSearch.js';
+import { search, sanitizeMessages, buildSourcesBlock, retrievalQuery, MIN_SCORE, getIndex, redact, journeyPart, hasWalkthroughSteps } from '../../../../netlify/functions/_shared/askSearch.js';
+import { secretRegex } from '../../../../netlify/functions/_shared/secretPatterns.js';
 import { handle, openAIDeltas, rateLimited } from '../../../../netlify/functions/ask-smartvideo.mjs';
 
 const ROOT = path.resolve(__dirname, '../../../..');
@@ -147,6 +148,35 @@ describe('prompt safety', () => {
   ])('redacts a pasted %s', (_n, secret) => {
     const m = sanitizeMessages([{ role: 'user', content: `here: ${secret} how do I upscale` }]);
     expect(m[0].content).toBe('here: [redacted secret] how do I upscale');
+  });
+  it.each([['bearer', 'bearer'], ['BEARER', 'BEARER'], ['Bearer', 'Bearer']])('redacts a pasted "%s <token>" in any letter case', (_n, word) => {
+    const m = sanitizeMessages([{ role: 'user', content: `${word} ${'a1B2c3D4e5'.repeat(3)} thanks` }]);
+    expect(m[0].content).toBe('[redacted secret] thanks');
+  });
+  it('a lone Bearer at the end of a line does not swallow the next line', () => {
+    const m = sanitizeMessages([{ role: 'user', content: 'header was Bearer\nhow do I upscale an image to a very large size' }]);
+    expect(m[0].content).toBe('header was Bearer\nhow do I upscale an image to a very large size');
+  });
+  it('the index validator is strict (no false positive on hyphenated text) but still catches real keys', () => {
+    const strict = secretRegex('', { strict: true });
+    expect(strict.test('see the sk-learn-guide-2024 page')).toBe(false);
+    expect(strict.test(`key sk-proj-${'a1B2c3D4e5'.repeat(5)}`)).toBe(true);
+    expect(strict.test(`token ghp_${'a1B2'.repeat(6)}`)).toBe(true);
+    expect(secretRegex('').test('see the sk-learn-guide-2024 page')).toBe(true); // redaction stays lenient
+  });
+  it('redact can be called repeatedly (no shared regex state)', () => {
+    const s = `x ${`ghp_${'a1B2'.repeat(6)}`} y`;
+    expect([redact(s), redact(s), redact(s)]).toEqual(['x [redacted secret] y', 'x [redacted secret] y', 'x [redacted secret] y']);
+  });
+  it('every journey in the index has a steps part, so walkthrough answers get the larger budget', () => {
+    const journeys = [...new Set(getIndex().docs.filter((d) => d.kind === 'journey').map((d) => d.id.split(':')[1]))];
+    expect(journeys.length).toBe(8);
+    for (const j of journeys) {
+      const chunks = getIndex().docs.filter((d) => d.kind === 'journey' && d.id.split(':')[1] === j);
+      expect(hasWalkthroughSteps(chunks.map((chunk) => ({ chunk }))), j).toBe(true);
+      expect(journeyPart(chunks.find((c) => c.id.endsWith(':overview')))).toBe('overview');
+    }
+    expect(hasWalkthroughSteps([{ chunk: { kind: 'studio', id: 'studio:edit:steps' } }])).toBe(false);
   });
   it('leaves normal text alone', () => {
     const t = 'Open Image Studio, click Generate and pick a Bearer-style model. The sk-learn guide says AKIA is a prefix.';

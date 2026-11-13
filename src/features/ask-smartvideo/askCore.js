@@ -64,7 +64,7 @@ export function parseSSE(buffer) {
 }
 
 // Pages that belong to a studio's guide without being a side-menu item or having the studio's own id.
-const GUIDE_ALIASES = { 'timeline-classic': 'timeline', openthorn: 'website-builder', 'cinegen': 'workbench', 'video-agent-studio': 'video-agent' };
+const GUIDE_ALIASES = { 'timeline-classic': 'timeline', openthorn: 'website-builder' };
 
 /**
  * Which studio guide applies to the page the user is on. The side menu knows most studios, but
