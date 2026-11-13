@@ -1,0 +1,189 @@
+{
+ "name": "Demo template videos",
+ "categories": {
+  "Action": [
+   "Aerial & FPV",
+   "Chases & Stunts",
+   "Battles & Disaster"
+  ],
+  "Commercial": [
+   "Luxury Goods",
+   "Product Reveals"
+  ],
+  "Animation": [
+   "Title Sequences",
+   "Illustrated & Craft"
+  ],
+  "Cinema": [
+   "Sci-Fi"
+  ],
+  "VFX": [
+   "Effects & Motion Graphics"
+  ],
+  "Social": [
+   "Music & Dance"
+  ]
+ },
+ "clips": [
+  {
+   "id": "mmx25:10-second-16-9-photoreal-cinematic-wide-shot-fly-735905",
+   "title": "Stealth Jet Cloak Flyby",
+   "originalTitle": "Action Film Study",
+   "category": "Action",
+   "subcategory": "Aerial & FPV",
+   "duration": 10.13,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/10-second-16-9-photoreal-cinematic-wide-shot-fly-735905.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/10-second-16-9-photoreal-cinematic-wide-shot-fly-735905.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@opener_ai",
+    "url": "https://x.com/opener_ai/status/2084441225667735905"
+   }
+  },
+  {
+   "id": "mmx25:16-9-luxury-fashion-commercial-using-as-exact-vi-969702",
+   "title": "Luxury Handbag Campaign",
+   "originalTitle": "Product Commercial Study",
+   "category": "Commercial",
+   "subcategory": "Luxury Goods",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/16-9-luxury-fashion-commercial-using-as-exact-vi-969702.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/16-9-luxury-fashion-commercial-using-as-exact-vi-969702.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Dustfinger2077",
+    "url": "https://x.com/Dustfinger2077/status/2086086171117969702"
+   }
+  },
+  {
+   "id": "mmx25:an-other-great-use-for-product-showcase-096175",
+   "title": "Ceramic Diffuser Reveal",
+   "originalTitle": "An other great use for : Product Showcase",
+   "category": "Commercial",
+   "subcategory": "Product Reveals",
+   "duration": 15.18,
+   "aspectRatio": "92:39",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/an-other-great-use-for-product-showcase-096175.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/an-other-great-use-for-product-showcase-096175.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@LudovicCreator",
+    "url": "https://x.com/LudovicCreator/status/2085425839236096175"
+   }
+  },
+  {
+   "id": "mmx25:been-testing-the-new-flux3-and-hailuo-minimax-h3-models-282651",
+   "title": "Highway Trike Rider POV",
+   "originalTitle": "Been testing the new Flux3 and Hailuo Minimax H3 models like crazy lately.",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 20.12,
+   "aspectRatio": "68:29",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/been-testing-the-new-flux3-and-hailuo-minimax-h3-models-282651.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/been-testing-the-new-flux3-and-hailuo-minimax-h3-models-282651.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@opener_ai",
+    "url": "https://x.com/opener_ai/status/2085228024690282651"
+   }
+  },
+  {
+   "id": "mmx25:bond-style-spy-thriller-op-art-anime-title-seque-295024",
+   "title": "Spy Thriller Title Sequence",
+   "originalTitle": "Bond-style spy-thriller op-art anime title sequence",
+   "category": "Animation",
+   "subcategory": "Title Sequences",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/bond-style-spy-thriller-op-art-anime-title-seque-295024.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/bond-style-spy-thriller-op-art-anime-title-seque-295024.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@doctorwasif",
+    "url": "https://x.com/doctorwasif/status/2085947083463295024"
+   }
+  },
+  {
+   "id": "mmx25:cinematic-sci-fi-suspense-video-a-realistic-spaceship-crew-in-024495",
+   "title": "Derelict Spaceship Boarding",
+   "originalTitle": "cinematic sci-fi suspense video. A realistic spaceship crew in full futuristic",
+   "category": "Cinema",
+   "subcategory": "Sci-Fi",
+   "duration": 14.47,
+   "aspectRatio": "26:15",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/cinematic-sci-fi-suspense-video-a-realistic-spaceship-crew-in-024495.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/cinematic-sci-fi-suspense-video-a-realistic-spaceship-crew-in-024495.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@cocktailpeanut",
+    "url": "https://x.com/cocktailpeanut/status/2085498501384024495"
+   }
+  },
+  {
+   "id": "mmx25:create-a-15-second-ultra-photorealistic-live-action-war-sequence-714552",
+   "title": "1940s Battlefield Advance",
+   "originalTitle": "Create a 15-second ultra-photorealistic live-action war sequence set in the",
+   "category": "Action",
+   "subcategory": "Battles & Disaster",
+   "duration": 15.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/create-a-15-second-ultra-photorealistic-live-action-war-sequence-714552.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/create-a-15-second-ultra-photorealistic-live-action-war-sequence-714552.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@RuzainaMeer",
+    "url": "https://x.com/RuzainaMeer/status/2087117707816714552"
+   }
+  },
+  {
+   "id": "mmx25:create-a-breathtaking-15-second-cinematic-flower-morph-sequence-using-622337",
+   "title": "Orchid Bloom Light Morph",
+   "originalTitle": "Create a breathtaking 15-second cinematic flower-morph sequence using the seven",
+   "category": "VFX",
+   "subcategory": "Effects & Motion Graphics",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/create-a-breathtaking-15-second-cinematic-flower-morph-sequence-using-622337.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/create-a-breathtaking-15-second-cinematic-flower-morph-sequence-using-622337.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Shinebynous",
+    "url": "https://x.com/Shinebynous/status/2085505725149622337"
+   }
+  },
+  {
+   "id": "mmx25:created-in-675674",
+   "title": "Red Tape Maze Animation",
+   "originalTitle": "meaningful 15-second vertical animation about learned helplessness inside system",
+   "category": "Animation",
+   "subcategory": "Illustrated & Craft",
+   "duration": 15.15,
+   "aspectRatio": "4:7",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-in-675674.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-in-675674.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@airina_xyz",
+    "url": "https://x.com/airina_xyz/status/2085309090511675674"
+   }
+  },
+  {
+   "id": "mmx25:created-this-with-minimax-h3-on-185447",
+   "title": "Neon Street Dance Promo",
+   "originalTitle": "Premium music commercial",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-this-with-minimax-h3-on-185447.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-this-with-minimax-h3-on-185447.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Inshrah_ali_",
+    "url": "https://x.com/Inshrah_ali_/status/2085595583927185447"
+   }
+  }
+ ]
+}

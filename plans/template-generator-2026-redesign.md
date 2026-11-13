@@ -93,3 +93,13 @@ The Supabase project ("VideoRemix Product") is shared by several apps, so everyt
   one line per scene. The call to action is kept separate and the model is told not to invent facts.
 - Saved templates keep the user's details. Tests: `src/test/niche-scripts.test.js`, `netlify/functions/__tests__/timeline-script.test.js`, plus
   wizard tests in `template-generator-modal-smoke.test.js`.
+
+## Video templates as a footage source (added)
+Step 1 now starts on **Video templates**: the public 184-clip library kept in the `demo-template-videos` Supabase Storage bucket
+(see `docs/template-videos.md`). Source module: `template-generator/videoTemplates.js`.
+- Reads `catalog.json` once (public, CORS `*`, no key, GET only). **Read-only:** this app never writes to, renames or deletes that bucket; it sits in the shared project.
+- Filters: category, subcategory, shape (landscape / portrait) and search. Tiles show the catalog's real poster and play the real clip on hover.
+- Credit (author + original post link) travels with each clip into the preview popup, the selection and saved templates (`source: 'template-video'`).
+- Failure to load shows a plain error with a retry on the next search; nothing is cached on failure.
+- Tests: `src/test/template-generator-video-templates.test.js` (fixture = real catalog entries, no live network).
+- Rights: the owner confirmed commercial-use permission; the published catalog's `rights` note still says to confirm (republishing it is the library owner's call).

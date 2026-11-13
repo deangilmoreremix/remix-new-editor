@@ -26,7 +26,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
       return { items: q.source === 'pixabay' ? [item(1, 'video', 'pixabay'), item(2, 'image', 'pixabay')] : [item(3), item(4, 'image')], hasMore: false };
     });
     const onConfirm = vi.fn();
-    const m = new TemplateGeneratorModal({ stockSearch, onConfirm });
+    const m = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch, onConfirm });
     m.open();
     m.s.started = true;
     m.paint();
@@ -54,7 +54,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
   });
 
   it('is called Template Generator, never Video Automation Creator', () => {
-    const m = new TemplateGeneratorModal({ stockSearch: async () => ({ items: [], hasMore: false }), templateStore: createTemplateStore(memory()) });
+    const m = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch: async () => ({ items: [], hasMore: false }), templateStore: createTemplateStore(memory()) });
     m.open();
     expect(document.body.textContent).toContain('Template Generator');
     expect(document.body.textContent).not.toMatch(/Video Automation Creator/);
@@ -63,7 +63,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
   it('saves a template, lists it under My templates, and reuses it with its footage and script', async () => {
     const templateStore = createTemplateStore(memory());
     const stockSearch = async () => ({ items: [item(1, 'video', 'pexels'), item(2, 'video', 'pexels')], hasMore: false });
-    const m = new TemplateGeneratorModal({ stockSearch, templateStore, onConfirm: vi.fn() });
+    const m = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch, templateStore, onConfirm: vi.fn() });
     m.open();
     m.s.started = true; m.paint();
     await m.runSearch(true);
@@ -83,7 +83,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
     expect(saved[0].transition.type).toBe('fade');
 
     // a brand-new modal: the template is in the library and reopens fully populated
-    const m2 = new TemplateGeneratorModal({ stockSearch, templateStore });
+    const m2 = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch, templateStore });
     m2.open();
     m2.ui.view = 'library'; m2.paint();
     expect(document.body.textContent).toContain('Weekend promo');
@@ -112,7 +112,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
       subscribe: (cb) => { fn = cb; return () => { fn = null; }; },
       sync: async () => { status = 'syncing'; fn?.(status, {}); pulled = true; status = 'synced'; fn?.(status, { changed: true }); },
     };
-    const m = new TemplateGeneratorModal({ stockSearch: async () => ({ items: [], hasMore: false }), templateStore });
+    const m = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch: async () => ({ items: [], hasMore: false }), templateStore });
     m.open();
     expect(pulled).toBe(true);
     m.ui.view = 'library'; m.paint();
@@ -147,7 +147,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
       const stockSearch = async (q) => ({ items: [item(q.source === 'pixabay' ? 1 : 3, 'video', q.source)], hasMore: false });
       const projectMedia = [{ id: 'p1', type: 'video', name: 'Intro take', url: 'https://x.test/intro.mp4', duration: 7, thumbnail: 'https://x.test/intro.jpg' }, { id: 'p2', type: 'image', name: 'Logo', url: 'https://x.test/logo.png' }];
       const onConfirm = vi.fn();
-      const m = new TemplateGeneratorModal({ stockSearch, templateStore: createTemplateStore(memory()), projectMedia, extraSources: [src.animations, src.endscreens], onConfirm, ...extra });
+      const m = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch, templateStore: createTemplateStore(memory()), projectMedia, extraSources: [src.animations, src.endscreens], onConfirm, ...extra });
       m.open(); m.s.started = true; m.paint();
       return { m, src, onConfirm };
     };
@@ -155,7 +155,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
     it('lists every source in the rail, in groups', () => {
       const { m } = open();
       const labels = [...document.querySelectorAll('.library__btn-item')].map((b) => b.textContent.trim());
-      expect(labels).toEqual(['Pixabay', 'Pexels', 'My media', 'Upload', 'Remote URL', 'AI Generate', 'Animations', 'End screens & forms']);
+      expect(labels).toEqual(['Video templates', 'Pixabay', 'Pexels', 'My media', 'Upload', 'Remote URL', 'AI Generate', 'Animations', 'End screens & forms']);
       expect(document.querySelector('.tg-rail-label').textContent).toBe('Motion & templates');
       m.destroy();
     });
@@ -246,7 +246,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
       expect(rec.animations.map((a) => a.id)).toEqual(['anim:2']);
       m.destroy();
 
-      const classic = new TemplateGeneratorModal({ templateStore, stockSearch: async () => ({ items: [], hasMore: false }) });  // no extra sources
+      const classic = new TemplateGeneratorModal({ defaultProvider: 'pixabay', templateStore, stockSearch: async () => ({ items: [], hasMore: false }) });  // no extra sources
       classic.open(); classic.useTemplate(rec.id);
       expect(classic.s.selectedAnimations).toEqual([]);
       expect(classic.ui.toast).toMatch(/1 animation.*Timeline Studio editor/);
@@ -257,7 +257,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
   describe('real previews (no mock images or videos)', () => {
     const openWith = (items, extra = {}) => {
       const stockSearch = async () => ({ items, hasMore: false });
-      const m = new TemplateGeneratorModal({ stockSearch, templateStore: createTemplateStore(memory()), ...extra });
+      const m = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch, templateStore: createTemplateStore(memory()), ...extra });
       m.open(); m.s.started = true; m.paint();
       return m;
     };
@@ -330,7 +330,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
 
   describe('written niche scripts, your details, and scene-aware AI', () => {
     const open = () => {
-      const m = new TemplateGeneratorModal({ stockSearch: async () => ({ items: [], hasMore: false }), templateStore: createTemplateStore(memory()) });
+      const m = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch: async () => ({ items: [], hasMore: false }), templateStore: createTemplateStore(memory()) });
       m.open(); m.s.started = true; m.s.step = STEPS.SCRIPT; m.paint();
       return m;
     };
@@ -458,7 +458,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
 
     it('your details are saved with a template and come back when it is reused', async () => {
       const store = createTemplateStore(memory());
-      const m = new TemplateGeneratorModal({ stockSearch: async () => ({ items: [], hasMore: false }), templateStore: store });
+      const m = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch: async () => ({ items: [], hasMore: false }), templateStore: store });
       m.open(); m.s.started = true; m.s.step = STEPS.SCRIPT; m.paint();
       m.pickScript('midnight_table_film');
       type('[data-bind="s.details.business_name"]', 'Luna Bistro');
@@ -468,7 +468,7 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
       const rec = store.list()[0];
       expect(rec.details.business_name).toBe('Luna Bistro');
       expect(rec.script.text).toContain('Luna Bistro');
-      const m2 = new TemplateGeneratorModal({ stockSearch: async () => ({ items: [], hasMore: false }), templateStore: store });
+      const m2 = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch: async () => ({ items: [], hasMore: false }), templateStore: store });
       m2.open(); m2.useTemplate(rec.id);
       expect(m2.s.details.business_name).toBe('Luna Bistro');
       m.destroy(); m2.destroy();

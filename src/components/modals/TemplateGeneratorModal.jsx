@@ -16,6 +16,7 @@ import {
 import {
   PROVIDERS, MEDIA_FILTERS, STOCK_HOME, createStockClient, remoteItem, probeVideo, kindFromUrlOrType,
 } from './template-generator/stock.js';
+import { loadTemplateCatalog, searchTemplateClips, TEMPLATE_SOURCE } from './template-generator/videoTemplates.js';
 import { snapshotTemplate, restoreTemplate, splitDurable } from './template-generator/templates.js';
 import { createSyncedTemplateStore, SYNC_STATUS } from './template-generator/sync.js';
 import { templateScript, placeholdersLeft, DETAIL_FIELDS } from '../../lib/nicheScripts/index.js';
@@ -47,6 +48,7 @@ const ICON = (name) => `/static/svgImages/template-generator/${name}.svg`;
 const STEP_ICONS = ['niche-templates-icon', 'niche-scripts-icon', 'overlays-icon', 'preview-icon'];
 
 const PROVIDER_BLURB = {
+  templates: 'Ready-made AI video clips: cinematic, commercial, social, action, animation, fashion, VFX.',
   pixabay: 'Free videos, photos, illustrations and vectors from Pixabay.',
   pexels: 'Free videos, photos and curated collections from Pexels.',
   upload: 'Use your own videos and images.',
@@ -75,6 +77,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this.extra = new Map((options.extraSources || []).map((x) => [x.id, x]));
     // The project's own videos / images ("My media"); an array, or a function returning one.
     this.projectMedia = options.projectMedia || null;
+    this.templateCatalog = options.templateCatalog || (() => loadTemplateCatalog());
     this.stock = options.stockSearch || createStockClient({ pexels: pexelsApi, pixabay: pixabayApi });
 
     this.ui = {
@@ -86,8 +89,11 @@ export class TemplateGeneratorModal extends BaseModal {
       tplName: '',
       tplDesc: '',
       tplMode: 'new',        // 'new' | 'update'
-      provider: 'pixabay',
+      provider: options.defaultProvider || 'templates',
       filter: 'all',
+      tplSub: 'all',
+      tplShape: 'all',
+      tplCatalog: null,
       query: '',
       results: [],
       collections: null,
@@ -384,6 +390,7 @@ export class TemplateGeneratorModal extends BaseModal {
           </div>
           <div class="generator-list video-list"><div class="list-items" id="tg-list">${this.renderProviderList()}</div></div>
           <div id="tg-tray">${this.renderSelectedStrip()}</div>
+          ${u.provider === 'templates' ? '<p class="tg-attribution">Third-party AI clips. The original author and post are shown on each clip and kept with it.</p>' : ''}
           ${STOCK_HOME[u.provider] ? `<p class="tg-attribution">Provided by <a href="${STOCK_HOME[u.provider]}" target="_blank" rel="noopener">${u.provider === 'pexels' ? 'Pexels' : 'Pixabay'}</a>. Credit is kept with each clip.</p>` : ''}
         </section>
       </div>`;
@@ -404,7 +411,7 @@ export class TemplateGeneratorModal extends BaseModal {
     const mine = this.projectMedia ? [['library', 'My media']] : [];
     const own = PROVIDERS.filter(([id]) => id === 'upload' || id === 'remote' || id === 'ai');
     const extras = [...this.extra.values()].map((x) => [x.id, x.label, x.group || 'Motion & templates', x.blurb]);
-    return { first: [...base, ...mine, ...own], extras };
+    return { first: [['templates', 'Video templates'], ...base, ...mine, ...own], extras };
   }
 
   renderRail() {
@@ -434,8 +441,24 @@ export class TemplateGeneratorModal extends BaseModal {
     }).filter((it) => (this.ui.filter === 'all' || (this.ui.filter === 'videos' ? it.kind === 'video' : it.kind === 'image')) && (!q || it.title.toLowerCase().includes(q)));
   }
 
+  renderTemplateControls() {
+    const u = this.ui;
+    const cat = u.tplCatalog;
+    const chip = (act, id, label, on) => `<button type="button" class="tg-chip${on ? ' is-active' : ''}" data-act="${act}" data-id="${esc(id)}">${esc(label)}</button>`;
+    const cats = cat ? Object.keys(cat.categories).filter((c) => cat.counts[c]) : [];
+    const subs = cat && u.filter !== 'all' ? (cat.categories[u.filter] || []) : [];
+    return `
+      <p class="tg-hint">${esc(PROVIDER_BLURB.templates)} Pick up to ${MAX_VIDEOS}; they play on hover.</p>
+      <div class="tg-chips" role="group" aria-label="Category">${chip('filter', 'all', 'All', u.filter === 'all')}${cats.map((c) => chip('filter', c, c, u.filter === c)).join('')}</div>
+      ${subs.length ? `<div class="tg-chips" role="group" aria-label="Subcategory">${chip('tpl-sub', 'all', `All ${u.filter}`, u.tplSub === 'all')}${subs.map((c) => chip('tpl-sub', c, c, u.tplSub === c)).join('')}</div>` : ''}
+      <div class="tg-chips" role="group" aria-label="Shape">${[['all', 'Any shape'], ['landscape', 'Landscape'], ['portrait', 'Portrait']].map(([id, l]) => chip('tpl-shape', id, l, u.tplShape === id)).join('')}</div>
+      <div class="library__search-box search-box tg-searchbox"><span aria-hidden="true">🔍</span>
+        <input type="search" id="tg-query" data-query="stock" placeholder="Search video templates…" value="${esc(u.query)}" autocomplete="off" aria-label="Search video templates"></div>`;
+  }
+
   renderProviderControls() {
     const u = this.ui;
+    if (u.provider === 'templates') return this.renderTemplateControls();
     if (u.provider === 'pixabay' || u.provider === 'pexels') {
       const filters = MEDIA_FILTERS[u.provider];
       return `
@@ -510,7 +533,7 @@ export class TemplateGeneratorModal extends BaseModal {
     if (u.loading) tail = '<div class="tg-loading" aria-busy="true">Loading…</div>';
     else if (u.error) tail = `<div class="tg-empty tg-empty--error">${esc(u.error)}</div>`;
     else if (!items.length) tail = `<div class="tg-empty">${this.emptyText()}</div>`;
-    else if (u.hasMore && (u.provider === 'pixabay' || u.provider === 'pexels' || this.extra.has(u.provider))) tail = '<button type="button" class="tg-more" data-act="load-more">Load more</button>';
+    else if (u.hasMore && (u.provider === 'templates' || u.provider === 'pixabay' || u.provider === 'pexels' || this.extra.has(u.provider))) tail = '<button type="button" class="tg-more" data-act="load-more">Load more</button>';
     const back = u.collectionId ? `<button type="button" class="tg-chip tg-back" data-act="collections-back">← ${esc(u.collectionTitle || 'Collections')}</button>` : '';
     return `${back}${cards}${tail}`;
   }
@@ -521,7 +544,8 @@ export class TemplateGeneratorModal extends BaseModal {
     if (u.provider === 'upload') return 'No uploads yet. Add your own videos or images above.';
     if (u.provider === 'remote') return 'Paste a link above to add a video or image.';
     if (u.provider === 'ai') return 'Describe an image above and generate it.';
-    return u.query ? 'Nothing found. Try another search.' : 'Nothing to show yet.';
+    if (u.provider === 'templates' && !u.query && u.filter === 'all') return 'The video templates could not be shown right now.';
+    return u.query || u.provider === 'templates' ? 'Nothing found. Try another search.' : 'Nothing to show yet.';
   }
 
   renderCollections() {
@@ -886,7 +910,8 @@ export class TemplateGeneratorModal extends BaseModal {
       const it = this.itemsById.get(p.id);
       if (!it) return '';
       const selected = this.s.selectedVideos.some((v) => v.id === it.id);
-      const credit = it.user ? `${it.kind === 'video' ? 'Video' : 'Photo'} by ${esc(it.user)}${it.source === 'pexels' || it.source === 'pixabay' ? ` on <a href="${esc(it.pageURL || STOCK_HOME[it.source])}" target="_blank" rel="noopener">${it.source === 'pexels' ? 'Pexels' : 'Pixabay'}</a>` : ''}` : '';
+      const credit = it.source === TEMPLATE_SOURCE ? (it.user || it.pageURL ? `Original by ${esc(it.user || 'the author')}${it.pageURL ? ` · <a href="${esc(it.pageURL)}" target="_blank" rel="noopener">original post</a>` : ''}` : '')
+        : it.user ? `${it.kind === 'video' ? 'Video' : 'Photo'} by ${esc(it.user)}${it.source === 'pexels' || it.source === 'pixabay' ? ` on <a href="${esc(it.pageURL || STOCK_HOME[it.source])}" target="_blank" rel="noopener">${it.source === 'pexels' ? 'Pexels' : 'Pixabay'}</a>` : ''}` : '';
       return `
         <div class="tg-popup" role="dialog" aria-modal="true" aria-label="Preview ${esc(it.title)}" data-act="popup-backdrop">
           <div class="tg-popup__card">
@@ -1101,7 +1126,9 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'close': this.onCancel?.(); this.close(); break;
       case 'next': this.goNext(); break;
       case 'provider': this.setProvider(id); break;
-      case 'filter': this.ui.filter = id; this.ui.collectionId = null; this.runSearch(true); this._refreshControls(); break;
+      case 'tpl-sub': this.ui.tplSub = id; this.runSearch(true); this._refreshControls(); break;
+      case 'tpl-shape': this.ui.tplShape = id; this.runSearch(true); this._refreshControls(); break;
+      case 'filter': this.ui.filter = id; this.ui.tplSub = 'all'; this.ui.collectionId = null; this.runSearch(true); this._refreshControls(); break;
       case 'load-more': this.ui.page += 1; this.runSearch(false); break;
       case 'collection': this.ui.collectionId = id; this.ui.collectionTitle = el.dataset.title || ''; this.runSearch(true); break;
       case 'collections-back': this.ui.collectionId = null; this.runSearch(true); break;
@@ -1309,24 +1336,32 @@ export class TemplateGeneratorModal extends BaseModal {
     if (this.ui.provider === id) return;
     this.ui.provider = id;
     this.ui.filter = 'all';
+    this.ui.tplSub = 'all';
     this.ui.collectionId = null;
     this.ui.error = null;
     this.paint();
-    if (id === 'pixabay' || id === 'pexels' || this.extra.has(id)) this.runSearch(true);
+    if (id === 'templates' || id === 'pixabay' || id === 'pexels' || this.extra.has(id)) this.runSearch(true);
   }
 
   async runSearch(reset = true) {
     const u = this.ui;
     if (u.provider === 'library') { this.paintList(); return; }
     const x = this.extra.get(u.provider);
-    if (u.provider !== 'pixabay' && u.provider !== 'pexels' && !x) return;
+    if (u.provider !== 'templates' && u.provider !== 'pixabay' && u.provider !== 'pexels' && !x) return;
     if (reset) { u.page = 1; u.results = []; u.collections = null; }
     const token = ++this._searchToken;
     u.loading = true;
     u.error = null;
     this.paintList();
     let res;
-    if (x) {
+    if (u.provider === 'templates') {
+      try {
+        const first = !u.tplCatalog;
+        u.tplCatalog = await this.templateCatalog();
+        if (first && token === this._searchToken) this._refreshControls();
+        res = searchTemplateClips(u.tplCatalog, { query: u.query, category: u.filter, subcategory: u.tplSub, orientation: u.tplShape, page: u.page });
+      } catch (err) { res = { items: [], hasMore: false, error: `${err?.message || 'The video templates could not be loaded'}. Check your connection and try again.` }; }
+    } else if (x) {
       try { res = await x.search({ query: u.query.trim(), filter: u.filter, page: u.page }); } catch (err) { res = { items: [], hasMore: false, error: err?.message || `${x.label} could not be loaded` }; }
     } else res = await this.stock({ source: u.provider, filter: u.filter, query: u.query, page: u.page, collectionId: u.collectionId });
     if (token !== this._searchToken) return; // a newer search replaced this one
