@@ -7863,7 +7863,7 @@ export function TimelineEditorPage() {
       const T = st.timelineSeconds || 45;
       const duration = Math.max(1, Number(result.duration) || 1);
       const startSec = (st.playheadPercent / 100) * T;
-      growTimelineTo(startSec + duration);
+      growTimelineTo(startSec + Math.max(duration, ...sources.map((x) => Number(x.duration) || 0)));
       const total = st.timelineSeconds || T;
       saveStateSnapshot(st);
 
@@ -7871,7 +7871,8 @@ export function TimelineEditorPage() {
         screen: { name: 'Screen', type: 'video', clip: 'video' },
         composite: { name: 'Screen', type: 'video', clip: 'video' },
         webcam: { name: 'Facecam', type: 'video', clip: 'video' },
-        audio: { name: 'Recorded Audio', type: 'audio', clip: 'audio' }
+        audio: { name: 'Recorded Audio', type: 'audio', clip: 'audio' },
+        import: { name: 'Remotion Recorder', type: 'video', clip: 'video' }
       };
       const ensureTrack = ({ name, type }) => {
         let track = st.tracks.find((t) => t.name === name);
@@ -7894,7 +7895,7 @@ export function TimelineEditorPage() {
           type: def.clip,
           src: URL.createObjectURL(source.blob),
           left: (startSec / total) * 100,
-          width: (duration / total) * 100,
+          width: (Math.max(1, Number(source.duration) || duration) / total) * 100,
           recorded: true
         };
         track.items.push(lastClip);

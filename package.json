@@ -30,6 +30,8 @@
     "dev:video-agent-studio:isolated": "cd apps/video-agent-studio && npm run dev:isolated",
     "build:video-agent-studio": "cd apps/video-agent-studio && npm run build",
     "test:video-agent-studio": "cd apps/video-agent-studio && npm test --if-present",
+    "install:remotion-recorder": "cd apps/remotion-recorder && npm install",
+    "dev:remotion-recorder": "cd apps/remotion-recorder && bun studio.ts",
     "lint:video-agent-studio": "cd apps/video-agent-studio && npm run lint --if-present",
     "verify:video-agent-studio": "node scripts/verify-video-agent-studio.mjs",
     "build:openthorn": "cd apps/openthorn && npx vite build --base=/openthorn/ && rm -rf ../../public/openthorn && cp -r dist ../../public/openthorn",

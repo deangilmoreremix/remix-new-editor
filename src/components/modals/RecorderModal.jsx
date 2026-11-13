@@ -23,6 +23,11 @@ const LAYOUTS = [
   { id: 'composite', label: 'Single video (PiP)', hint: 'Facecam baked into the screen recording as a corner overlay' }
 ];
 
+// The full Remotion Recorder runs as its own app (apps/remotion-recorder, `npm run dev:remotion-recorder`).
+const RECORDER_APP_URL = (() => {
+  try { return import.meta.env?.VITE_REMOTION_RECORDER_URL || 'http://localhost:4000'; } catch { return 'http://localhost:4000'; }
+})();
+
 const escapeHtml = (v) => String(v).replace(/[&<>"']/g, (c) => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
 ));
@@ -121,6 +126,8 @@ export class RecorderModal extends BaseModal {
         @keyframes rr-pulse { 50% { opacity:.3; } }
         .rr-take { display:flex; flex-direction:column; gap:6px; }
         .rr-take video, .rr-take audio { width:100%; border-radius:var(--radius-sm); background:#000; }
+        .rr-link { flex:1; display:flex; align-items:center; justify-content:center; padding:8px 10px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--panel-soft); color:var(--text); font-size:13px; text-decoration:none; }
+        .rr-link:hover { border-color:var(--primary); }
         .rr-err { color:var(--danger); font-size:13px; }
         .rr-hint { font-size:12px; color:var(--muted); margin-top:6px; }
       </style>
@@ -174,6 +181,17 @@ export class RecorderModal extends BaseModal {
             </select>
           </div>` : ''}
         </div>
+
+        ${!busy && !this.takes ? `
+        <div class="rr-full">
+          <span class="rr-label">Full Remotion Recorder</span>
+          <div class="rr-seg">
+            <a class="rr-link" href="${escapeHtml(RECORDER_APP_URL)}" target="_blank" rel="noopener noreferrer" data-tooltip="Opens the Remotion Recorder app in a new tab">↗ Open Remotion Recorder</a>
+            <button data-action="import" data-tooltip="Add a video or audio file exported from the Recorder">⬆ Import recording</button>
+            <input type="file" data-import-input accept="video/*,audio/*" multiple hidden>
+          </div>
+          <div class="rr-hint">Captions, layouts, end cards and chapters live in the Recorder. Render there, then import the file here.</div>
+        </div>` : ''}
 
         ${this.error ? `<div class="rr-err" role="alert">${escapeHtml(this.error)}</div>` : ''}
 
@@ -246,6 +264,8 @@ export class RecorderModal extends BaseModal {
     q('[data-device="mic"]')?.addEventListener('change', (e) => { this.selectedMic = e.target.value; });
     q('[data-quality]')?.addEventListener('change', (e) => { this.selectedQuality = e.target.value; });
 
+    q('[data-action="import"]')?.addEventListener('click', () => q('[data-import-input]')?.click());
+    q('[data-import-input]')?.addEventListener('change', (e) => this.importFiles(Array.from(e.target.files || [])));
     q('[data-action="start"]')?.addEventListener('click', () => this.beginCountdown());
     q('[data-action="cancel-countdown"]')?.addEventListener('click', () => this.cancelCountdown());
     q('[data-action="pause"]')?.addEventListener('click', () => this.setPaused(true));
@@ -280,6 +300,36 @@ export class RecorderModal extends BaseModal {
   stopPreview() {
     this.previewStream?.getTracks().forEach((t) => t.stop());
     this.previewStream = null;
+  }
+
+  // Files rendered/exported by the Remotion Recorder app go straight to the timeline.
+  async importFiles(files) {
+    if (!files.length) return;
+    const probe = (file) => new Promise((resolve) => {
+      const isAudio = file.type.startsWith('audio/');
+      const el = document.createElement(isAudio ? 'audio' : 'video');
+      const url = URL.createObjectURL(file);
+      const done = (duration) => { URL.revokeObjectURL(url); resolve(duration); };
+      el.preload = 'metadata';
+      el.onloadedmetadata = () => done(Number.isFinite(el.duration) ? el.duration : 0);
+      el.onerror = () => done(0);
+      el.src = url;
+    });
+    const sources = await Promise.all(files.map(async (file) => ({
+      kind: file.type.startsWith('audio/') ? 'audio' : 'import',
+      label: file.name.replace(/\.[^.]+$/, ''),
+      blob: file,
+      duration: await probe(file)
+    })));
+    this.onConfirm({
+      action: 'recordingComplete',
+      blob: sources[0].blob,
+      type: sources[0].kind,
+      duration: Math.max(...sources.map((x) => x.duration), 1),
+      layout: 'separate',
+      sources
+    });
+    this.close();
   }
 
   // ----- recording -------------------------------------------------------
