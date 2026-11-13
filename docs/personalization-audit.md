@@ -52,3 +52,29 @@ Added on top (applied 2026-11-12): `business_profiles`, `business_assets`, `asse
 Still open: `published_videos` keeps its public `SELECT ... where published = true` policy (the raw row, including webhook
 URLs, is readable by table query); `record_video_event` does not validate recipient tokens; no rate limit on
 `resolve_recipient`; 117 pre-existing tables in the project have RLS disabled (reported by the Supabase advisor, untouched).
+
+
+## Browser test results (real Chromium, real app; sign-in and Supabase are fixtures)
+
+`npx playwright test -c playwright.links.config.ts` (needs a dev server with dummy Supabase env; see the config header).
+Backend is `tests/e2e/fixtures/fakeSupabase.js`, which models the live project's behavior. The live database and
+every other external service were never contacted (any outgoing request is aborted and the last test fails if one occurred).
+
+24 passed, 1 `fixme`. Covered: assets (upload, assign, states, persistence across reload, isolation between businesses),
+publish + business/video link names, 22 personalized links from one video with no new media, anonymous visitors in separate
+browsers seeing only their own text, images, call number and website, lead form timing/pause/resume, refresh-images,
+draft save/preview/publish on the same URLs, 20-contact CSV import, export, revoke, and visitor-side security checks
+(invented/edited/expired/revoked tokens, hostile text, unpublished video, renamed link redirect).
+
+Bugs found by the browser test and fixed (separate commits): REST requests went out as anonymous (supabase-js Headers
+object); call/website destinations were not personalized; action notices vanished; early play taps were lost (two races);
+replaced images were pinned by a stale contact variable; CSV import added every contact twice.
+
+Open (not fixed, found by the browser test):
+- The Personalization Modal's `onComplete` fires only when a personalization run finishes and carries generated outputs;
+  assets found or assigned inside the modal stay in the modal's own saved project and are never written to the business
+  library (`test.fixme`). Decision needed on how to bridge them.
+- The remix-side Asset Finder client (`assetDiscoveryService.js`) and `personalizer-api.js` authenticate with a Supabase
+  Auth session, which does not exist under Clerk sign-in ("Sign in to use business asset discovery.").
+- Recipient links copy every contact variable (including email) into the recipient's own token payload.
+- Not browser-tested: MP4 export per recipient, real Business Finder / Asset Finder on real websites, the real database.

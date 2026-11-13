@@ -1,3 +1,4 @@
+/* global Buffer, structuredClone, URL, window */
 /**
  * In-memory stand-in for the Supabase project, used by the browser tests (tests/e2e/personalization-links.spec.js).
  *

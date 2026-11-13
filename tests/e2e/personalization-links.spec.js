@@ -1,3 +1,4 @@
+/* global Buffer, URL, window, CustomEvent, console */
 /**
  * Personalized links, end to end in a real browser (Chromium) against the real app.
  *
@@ -8,7 +9,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createWorld, newContext, openStudio, seedProject, openProject, dismissWelcome, APP } from './fixtures/harness.js';
+import { createWorld, newContext, openStudio, seedProject, openProject, dismissWelcome } from './fixtures/harness.js';
 import { BUSINESSES, IMAGES } from './fixtures/assets.js';
 import { SUPABASE_URL } from './fixtures/fakeSupabase.js';
 
@@ -151,7 +152,6 @@ test.describe('A. business assets', () => {
 });
 
 let links = {};            // { A: url, B: url }
-let sourceVideoUrls = [];  // video src seen by each viewer
 
 /** Open a published link as an anonymous visitor in its own browser context (no cookies, storage or sign-in shared with anyone). */
 async function openViewer(url) {
@@ -297,7 +297,6 @@ test.describe('D. interactive behavior in the published player', () => {
   });
 });
 
-const OLD_TEXT = 'Hello {{FIRSTNAME}} from {{COMPANY}}';
 const NEW_TEXT = 'Hello {{FIRSTNAME}} from {{COMPANY}} - NEW SPRING OFFER';
 
 test.describe('E. editing a published video: refresh images, save a draft, preview it, publish it', () => {

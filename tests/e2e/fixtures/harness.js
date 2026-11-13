@@ -1,3 +1,4 @@
+/* global process, window */
 import { FakeSupabase, signInAs, SUPABASE_URL } from './fakeSupabase.js';
 import { IMAGES } from './assets.js';
 import { readFileSync } from 'node:fs';
