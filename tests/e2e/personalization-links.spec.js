@@ -7,7 +7,8 @@
  * never contacted: any request that leaves the machine is aborted and recorded, and the last test fails if one was.
  */
 import { test, expect } from '@playwright/test';
-import { createWorld, newContext, openStudio, seedProject, openProject, dismissWelcome } from './fixtures/harness.js';
+import { readFileSync } from 'node:fs';
+import { createWorld, newContext, openStudio, seedProject, openProject, dismissWelcome, APP } from './fixtures/harness.js';
 import { BUSINESSES, IMAGES } from './fixtures/assets.js';
 import { SUPABASE_URL } from './fixtures/fakeSupabase.js';
 
@@ -292,5 +293,241 @@ test.describe('D. interactive behavior in the published player', () => {
     expect(JSON.stringify(lead.data)).not.toMatch(/Wilson|Sarah/);
     await v.screenshot({ path: shot('D2-lead-form') });
     await ctx.close();
+  });
+});
+
+const OLD_TEXT = 'Hello {{FIRSTNAME}} from {{COMPANY}}';
+const NEW_TEXT = 'Hello {{FIRSTNAME}} from {{COMPANY}} - NEW SPRING OFFER';
+
+test.describe('E. editing a published video: refresh images, save a draft, preview it, publish it', () => {
+  const imgsOf = async (url) => { const { ctx, page: v } = await openViewer(url); await expect.poll(async () => (await viewerImages(v)).length).toBe(2); const out = (await viewerImages(v)).map((i) => i.src).sort(); const text = await visibleText(v); await ctx.close(); return { out, text }; };
+  let before; let beforeB;
+
+  test('a new image for Business A reaches only Business A\'s link after "Refresh images"', async () => {
+    before = await imgsOf(links.A); beforeB = await imgsOf(links.B);
+    await page.getByRole('tab', { name: 'product', exact: true }).click();
+    await page.getByTestId('picker-upload').setInputFiles(fixtureFile('a-new.svg'));
+    const card = grid().locator('> div').first();
+    await expect(card.locator('[data-testid^="state-"]')).toHaveText('imported');
+    await card.locator('[data-testid^="use-"]').click();
+    await card.locator('[data-testid^="slots-for-"] button', { hasText: 'product image' }).click();
+    await page.getByTestId('replace-confirm').waitFor();                                     // the image Business A chose is not replaced silently
+    await page.getByTestId('replace-yes').click();
+    await expect(page.getByTestId('stale-bizA')).toBeVisible();                              // the link is flagged: its image is older than the library
+    await page.getByTestId('bulk-select-all').click();                                       // clear the selection, then pick A only
+    await page.getByLabel('Select Smith Roofing').check();
+    await page.getByTestId('bulk-refresh').click();
+    await expect(page.getByTestId('bulk-notice')).toContainText('Updated 1 link');
+    const afterA = await imgsOf(links.A); const afterB = await imgsOf(links.B);
+    const newUrl = world.db.t.business_assets.find((a) => /a-new|new/.test(a.storage_url) || a.meta?.name === 'a-new.svg')?.storage_url;
+    expect(afterA.out).toContain(newUrl);                                                    // A's published link shows the new image
+    expect(afterA.out).not.toEqual(before.out);
+    expect(afterB.out).toEqual(beforeB.out);                                                 // B's link is untouched
+    expect(afterA.text).toContain('Hello John from Smith Roofing');                          // text values were not touched
+    await page.screenshot({ path: shot('E1-refreshed'), fullPage: true });
+  });
+
+  test('a master-video change waits in a draft: the live link is unchanged until the draft is published', async () => {
+    // change the master text through the app's own storage API, then reload so the Studio picks it up
+    await page.evaluate(async ({ id, text }) => {
+      const api = window.electronAPI; const st = await api.db.loadProject(id);
+      st.workflow.overlays = st.workflow.overlays.map((o) => (o.type === 'overlay-text' && o.addon?.text?.startsWith('Hello') ? { ...o, addon: { ...o.addon, text } } : o));
+      await api.db.saveProject(id, st);
+    }, { id: projectId, text: NEW_TEXT });
+    await page.reload(); await dismissWelcome(page);
+    await page.getByRole('button', { name: /Leads/i }).click();
+    await page.getByTestId('draft-save').click();
+    await expect(page.getByTestId('edit-notice')).toContainText('Draft saved');
+    expect(world.db.t.published_video_drafts).toHaveLength(1);
+    expect(JSON.stringify(world.db.t.published_videos[0].project)).not.toContain('NEW SPRING OFFER');   // live row untouched
+    const live = await imgsOf(links.A);
+    expect(live.text).toContain('Hello John from Smith Roofing');
+    expect(live.text).not.toContain('NEW SPRING OFFER');                                     // the live link still shows the old version
+  });
+
+  test('preview the draft as Business A and as Business B before publishing', async () => {
+    const id = world.db.t.published_video_drafts[0].id;
+    await page.getByTestId(`draft-preview-${id}`).click();
+    const stage = page.getByTestId('draft-stage');
+    await page.getByTestId('draft-as').selectOption({ label: 'Smith Roofing' });
+    await expect(stage).toContainText('Hello John from Smith Roofing - NEW SPRING OFFER', { timeout: 30000 });
+    await expect(stage).not.toContainText('Wilson');
+    await page.screenshot({ path: shot('E2-draft-preview-A') });
+    await page.getByTestId('draft-as').selectOption({ label: 'Wilson Plumbing' });
+    await expect(stage).toContainText('Hello Sarah from Wilson Plumbing - NEW SPRING OFFER', { timeout: 30000 });
+    await expect(stage).not.toContainText('Smith');
+    await page.screenshot({ path: shot('E3-draft-preview-B') });
+    expect(world.db.t.published_videos[0].view_count).toBe(before ? world.db.t.published_videos[0].view_count : 0);
+    await page.getByRole('button', { name: /^close$/i }).click();
+  });
+
+  test('publishing the draft updates the SAME links; recipient links keep working; history records it', async () => {
+    const id = world.db.t.published_video_drafts[0].id;
+    const urlsBefore = world.db.t.video_recipients.map((r) => r.token).sort();
+    await page.getByTestId(`draft-publish-${id}`).click();
+    await page.getByTestId(`draft-publish-yes-${id}`).click();
+    await expect(page.getByTestId('edit-notice')).toContainText('now live');
+    expect(world.db.t.published_videos[0].revision).toBe(2);
+    expect(world.db.t.published_video_revisions.map((r) => r.revision).sort()).toEqual([1, 2]);
+    expect(world.db.t.video_recipients.map((r) => r.token).sort()).toEqual(urlsBefore);      // same tokens: nothing was re-issued
+    const a = await imgsOf(links.A); const b = await imgsOf(links.B);                        // the ORIGINAL urls
+    expect(a.text).toContain('Hello John from Smith Roofing - NEW SPRING OFFER');
+    expect(b.text).toContain('Hello Sarah from Wilson Plumbing - NEW SPRING OFFER');
+    expect(b.out).toEqual(beforeB.out);                                                      // B's own images are still B's
+    expect(await page.getByTestId('draft-save').isVisible()).toBe(true);
+    await page.screenshot({ path: shot('E4-published-draft'), fullPage: true });
+  });
+});
+
+const bizName = (i) => `Biz ${String(i).padStart(2, '0')}`;
+const BULK = 20;
+
+test.describe('F. bulk: 20 more businesses, one video, no new video files', () => {
+  const rowFor = (name) => page.locator('[data-testid^="row-"]', { hasText: name });
+
+  test('import 20 contacts from a CSV through the real importer; businesses with saved assets are ready', async () => {
+    // Stand-in for earlier Asset Finder imports: 20 businesses with saved, assigned assets (distinct URLs per business).
+    const base = `${SUPABASE_URL}/storage/v1/object/public/uploads/fixtures`;
+    for (let i = 1; i <= BULK; i++) {
+      const b = world.db.insert('business_profiles', { name: bizName(i), business_key: bizName(i).toLowerCase(), source: 'imported' }, OWNER);
+      const logo = world.db.insert('business_assets', { business_id: b.id, storage_url: `${base}/a-logo.svg?b=${i}`, category: 'logo', origin: 'discovered', state: 'assigned' }, OWNER);
+      const svc = world.db.insert('business_assets', { business_id: b.id, storage_url: `${base}/b-service.svg?b=${i}`, category: 'product', origin: 'discovered', state: 'assigned' }, OWNER);
+      world.db.insert('asset_assignments', { project_id: projectId, business_id: b.id, slot: 'logoUrl', asset_id: logo.id, manual: false }, OWNER);
+      world.db.insert('asset_assignments', { project_id: projectId, business_id: b.id, slot: 'productImageUrl', asset_id: svc.id, manual: false }, OWNER);
+    }
+    const csv = ['First Name,Last Name,Email,Company', ...Array.from({ length: BULK }, (_, k) => `Person${String(k + 1).padStart(2, '0')},Tester,person${k + 1}@example.test,${bizName(k + 1)}`)].join('\n');
+    await page.reload(); await dismissWelcome(page);
+    await page.getByRole('button', { name: /Leads/i }).click();
+    await page.getByTestId('bulk-import').click();
+    await page.locator('.source-card[data-source="csv"]').click();
+    await page.locator('input.csv-file-input').setInputFiles({ name: 'contacts.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) });
+    await page.locator('.next-btn').click();            // source -> mapping
+    await page.locator('.next-btn').click();            // mapping -> review
+    await page.locator('.import-btn').click();          // import
+    await expect(page.getByTestId('bulk-notice')).toContainText(`Added ${BULK} contacts`, { timeout: 30000 });
+    await expect(page.getByTestId('bulk-table').locator('tbody tr')).toHaveCount(BULK + 2);
+    await expect(page.getByTestId('bulk-summary')).toContainText(`${BULK} ready`);
+    await page.screenshot({ path: shot('F1-imported'), fullPage: true });
+  });
+
+  test('create 20 unique links in one step, each with only its own images; export the list', async () => {
+    const filesBefore = world.db.files.size;
+    await page.getByTestId('bulk-select-all').click();                                       // everything selected (2 already linked are skipped)
+    await page.getByTestId('bulk-create').click();
+    await expect(page.getByTestId('bulk-notice')).toContainText(`Created ${BULK} link`, { timeout: 30000 });
+    expect(world.db.t.video_recipients).toHaveLength(BULK + 2);
+    expect(new Set(world.db.t.video_recipients.map((r) => r.token)).size).toBe(BULK + 2);
+    expect(world.db.files.size).toBe(filesBefore);                                           // 22 links, zero new media
+    for (let i = 1; i <= BULK; i++) {
+      const r = world.db.t.video_recipients.find((x) => x.label === `Person${String(i).padStart(2, '0')} Tester`);
+      expect(r.variables.logoUrl).toContain(`?b=${i}`);
+      expect(r.variables.productImageUrl).toContain(`?b=${i}`);
+      expect(r.variables.COMPANY ?? r.variables.company).toBe(bizName(i));
+    }
+    const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('bulk-export').click()]);
+    const lines = readFileSync(await download.path(), 'utf8').trim().split('\n');
+    expect(lines).toHaveLength(BULK + 2 + 1);                                                // header + 22
+    expect(lines[0]).toBe('"name","url","status"');
+    const urls = lines.slice(1).map((l) => /"(http[^"]+)"/.exec(l)[1]);
+    expect(new Set(urls).size).toBe(BULK + 2);
+    expect(lines.join('\n')).not.toMatch(/@example\.test/);                                 // no emails in the export
+    await page.screenshot({ path: shot('F2-created'), fullPage: true });
+  });
+
+  test('revoking one link kills only that link: it falls back to the generic video, the others keep working', async () => {
+    const victim = world.db.t.video_recipients.find((r) => r.label === 'Person07 Tester');
+    const other = world.db.t.video_recipients.find((r) => r.label === 'Person08 Tester');
+    const base = new URL(links.A); const urlOf = (r) => `${base.origin}${base.pathname}?recipient=${r.token}`;
+    await rowFor('Person07').locator('[data-testid^="revoke-"]').first().click();
+    await rowFor('Person07').locator('[data-testid^="revoke-yes-"]').click();
+    await expect(page.getByTestId('bulk-notice')).toContainText('Link revoked');
+    expect(world.db.t.video_recipients.find((r) => r.id === victim.id).status).toBe('revoked');
+    const dead = await openViewer(urlOf(victim));
+    await expect(dead.page.locator('.watch-frame')).toBeVisible();
+    const deadHtml = await dead.page.content();
+    expect(deadHtml).not.toContain('Person07'); expect(deadHtml).not.toContain(bizName(7)); expect(deadHtml).not.toContain('?b=7');
+    expect(await dead.page.locator('body').innerText()).not.toMatch(/\{\{|\}\}/);
+    await dead.ctx.close();
+    const alive = await openViewer(urlOf(other));
+    await expect(alive.page.locator('.watch-frame')).toContainText(`Hello Person08 from ${bizName(8)}`, { timeout: 30000 });
+    expect(await alive.page.content()).not.toContain('Person07');
+    await alive.ctx.close();
+    await expect(rowFor('Person07').locator('[data-testid^="lstatus-"]')).toHaveText('revoked');
+    await page.screenshot({ path: shot('F3-revoked'), fullPage: true });
+  });
+});
+
+test.describe('H. security and robustness, as a visitor sees it', () => {
+  const urlWith = (q) => { const u = new URL(links.A); u.search = q; return u.toString(); };
+  const generic = async (url) => {
+    const { ctx, page: v } = await openViewer(url);
+    await v.waitForTimeout(1500);
+    const html = await v.content(); const text = await v.locator('body').innerText();
+    await ctx.close();
+    return { html, text };
+  };
+
+  test('an invented token, an edited link and a tampered query show the generic video, never anyone\'s details', async () => {
+    for (const q of [`?recipient=${'a1'.repeat(32)}`, `?recipient=${'ZZ'}`, '?recipient=', '?c=somebody&firstname=Mallory&company=Evil']) {
+      const { html, text } = await generic(urlWith(q));
+      expect(text).not.toMatch(/\{\{|\}\}/);
+      for (const secret of ['John', 'Smith', 'Sarah', 'Wilson', ...assetUrlsOf('Smith Roofing'), ...assetUrlsOf('Wilson Plumbing')]) expect(html).not.toContain(secret);
+    }
+    // a valid token plus injected values: the token's own values win, the query is ignored
+    const a = await openViewer(`${links.A}&firstname=Mallory&company=Evil`);
+    await expect(a.page.locator('.watch-frame')).toContainText('Hello John from Smith Roofing', { timeout: 30000 });
+    expect(await a.page.content()).not.toContain('Mallory'); expect(await a.page.content()).not.toContain('Evil');
+    await a.ctx.close();
+  });
+
+  test('hostile text in a recipient\'s values is shown as text, never executed', async () => {
+    const video = world.db.t.published_videos[0];
+    const evil = world.db.insert('video_recipients', { video_id: video.id, label: '<b>x</b>', variables: { FIRSTNAME: '<img src=x onerror="window.__xss=1">', COMPANY: '"><script>window.__xss=2</script>' } }, OWNER);
+    const base = new URL(links.A);
+    const ctx = await newContext(browserRef, world); const v = await ctx.newPage();
+    await v.goto(`${base.origin}${base.pathname}?recipient=${evil.token}`); await v.locator('.watch-frame').waitFor({ timeout: 60000 });
+    await expect(v.locator('.watch-frame')).toContainText('<img src=x onerror="window.__xss=1">', { timeout: 30000 });
+    expect(await v.evaluate(() => window.__xss)).toBeUndefined();
+    expect(await v.locator('.watch-frame img[src="x"]').count()).toBe(0);
+    await ctx.close();
+  });
+
+  test('an expired link and an unpublished video fall back safely', async () => {
+    const r = world.db.t.video_recipients.find((x) => x.label === 'Person08 Tester');
+    const base = new URL(links.A); const url = `${base.origin}${base.pathname}?recipient=${r.token}`;
+    r.expires_at = new Date(Date.now() - 60000).toISOString();
+    expect((await generic(url)).html).not.toContain('Person08');                              // expired: generic
+    r.expires_at = null;
+    await page.getByTestId('unpublish-btn').click();
+    await expect(page.getByTestId('publish-card').locator('.leads-pill')).toHaveText('Unpublished');
+    for (const u of [links.A, url]) {
+      const v = await generic(u);
+      expect(v.text).toContain('Video not found'); expect(v.html).not.toContain('John');
+    }
+    await page.getByTestId('unpublish-btn').click();                                          // republish
+    await expect(page.getByTestId('publish-card').locator('.leads-pill')).toHaveText('Live');
+    expect((await generic(links.A)).html).toContain('John');
+  });
+
+  test('renaming the video link keeps the old link working and keeps the recipient token', async () => {
+    await page.getByTestId('slug-input').fill('summer-offer');
+    await page.getByTestId('slug-save').click();
+    await expect(page.getByTestId('bulk-notice')).toContainText('old link keeps working');
+    const { ctx, page: v } = await openViewer(links.A);                                       // the OLD address
+    await expect(v.locator('.watch-frame')).toContainText('Hello John from Smith Roofing', { timeout: 30000 });
+    const now = new URL(v.url());
+    expect(now.pathname).toBe('/v/smith-roofing/summer-offer');                               // moved to the new address
+    expect(now.search).toBe(new URL(links.A).search);                                         // same recipient token
+    await ctx.close();
+  });
+
+  test('a business link name that is reserved or taken is refused with a clear message', async () => {
+    await page.getByTestId('slug-input').fill('watch');
+    await expect(page.getByTestId('slug-save')).toBeDisabled();
+    await page.getByTestId('slug-input').fill('summer-offer');
+  });
+
+  test('nothing left the machine: no request reached a real service', async () => {
+    expect(world.db.escaped).toEqual([]);
   });
 });
