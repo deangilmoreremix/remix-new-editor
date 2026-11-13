@@ -143,7 +143,7 @@ export function CampaignPage(params = {}) {
       body.querySelector('[data-asset-edit]').onclick = () => navigate('asset-edit', { id: asset.id, brandId: campaign.brandId });
       body.querySelector('[data-asset-animate]').onclick = () => {
         if (!asset.imageUrl) return;
-        try { sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: asset.imageUrl, prompt: asset.headline || '' })); } catch { /* storage unavailable */ }
+        try { sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: asset.imageUrl, sourceType: 'asset', sourceId: asset.id })); } catch { /* storage unavailable */ }
         navigate('animate');
       };
       card.appendChild(body);

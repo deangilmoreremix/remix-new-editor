@@ -129,3 +129,44 @@ describe('campaign persistence', () => {
     expect(src).toContain("navigate('asset-edit'");
   });
 });
+
+describe('scrape client + DNA editor safety', () => {
+  it('scrapeSite posts to same-origin /api/scrape, never VITE_BACKEND_URL', async () => {
+    vi.stubEnv('VITE_BACKEND_URL', 'https://render.example');
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ ok: true, data: { title: 'T', bodyText: 'B', screenshot: 'abc', logoCandidates: ['https://x/logo.png'] } }) }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { scrapeSite } = await import('../lib/brandAnalyzer.js');
+    const site = await scrapeSite('https://acme.test');
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/scrape');
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ url: 'https://acme.test' });
+    expect(site).toMatchObject({ title: 'T', screenshot: 'abc', logoCandidates: ['https://x/logo.png'] });
+    vi.unstubAllGlobals(); vi.unstubAllEnvs();
+  });
+  it('falls back to an empty scrape (and the model infers from the domain) when the endpoint fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 400, json: async () => ({ ok: false, error: 'blocked' }) })));
+    const { scrapeSite } = await import('../lib/brandAnalyzer.js');
+    const site = await scrapeSite('http://169.254.169.254/');
+    expect(site.title).toBe('');
+    expect(site.screenshot).toBeNull();
+    vi.unstubAllGlobals();
+  });
+  it('the DNA editor renders scraped brand names as text, not HTML', async () => {
+    localStorage.setItem('brand_dna_list', JSON.stringify([{ ...BRAND, brandName: '<img src=x onerror="window.__xss=1">Evil', industry: '<b>x</b>' }]));
+    window.history.replaceState({}, '', '/?id=b1#/brand-dna');
+    const { BrandDnaEditor } = await import('../components/BrandDnaEditor.js');
+    const el = BrandDnaEditor();
+    expect(el.querySelector('[data-brand-title]').textContent).toBe('<img src=x onerror="window.__xss=1">Evil');
+    expect(el.querySelector('[data-brand-title] img')).toBeNull();
+    expect(el.querySelector('[data-brand-industry] b')).toBeNull();
+  });
+  it('the DNA editor edits whole palettes and lists past campaigns', async () => {
+    localStorage.setItem('brand_campaigns', JSON.stringify([{ id: 'c1', brandId: 'b1', goal: 'sales', concepts: [{}, {}], createdAt: '2026-01-01T00:00:00Z' }]));
+    window.history.replaceState({}, '', '/?id=b1#/brand-dna');
+    const { BrandDnaEditor } = await import('../components/BrandDnaEditor.js');
+    const el = BrandDnaEditor();
+    const before = el.querySelectorAll('[data-palette="primary"] input[type=color]').length;
+    el.querySelector('[data-add-color="primary"]').click();
+    expect(el.querySelectorAll('[data-palette="primary"] input[type=color]').length).toBe(before + 1);
+    expect(el.querySelectorAll('[data-campaign-id]')).toHaveLength(1);
+  });
+});

@@ -4,10 +4,10 @@
 
 import { createStudioHeader } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { listBrands, saveAnimation, listAnimations } from '../lib/brandStore.js';
+import { listBrands, getBrand, saveAnimation, listAnimations, listCampaigns, listAssets, resolveBrandId } from '../lib/brandStore.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
-import { DEFAULT_PROMPTS } from '../lib/animate.js';
+import { DEFAULT_PROMPTS, SOURCE_PROMPTS } from '../lib/animate.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { i2vModels } from '../lib/models.js';
@@ -18,6 +18,7 @@ const DURATIONS = ['3', '5', '10', '12'];
 const SOURCE_TYPES = [
   { id: 'image', label: 'Upload image' },
   { id: 'photoshoot', label: 'From Photo Studio' },
+  { id: 'asset', label: 'From campaign asset' },
 ];
 
 export function AnimatePage() {
@@ -26,17 +27,18 @@ export function AnimatePage() {
   mountStudioChrome(container, { currentRoute: 'animate' });
 
   const brands = listBrands();
-  const selectedBrand = brands[0] || null;
+  // ?brandId= (from Brand DNA / an asset) or the last-used brand, not always the first one.
+  const selectedBrand = getBrand(resolveBrandId()) || brands[0] || null;
 
   // ---- State ----
   const state = {
     sourceImageUrl: null,
     sourceType: 'image',
     sourceId: null,
-    prompt: '',
+    prompt: SOURCE_PROMPTS.image,
     promptIndex: 0,
     duration: 5,
-    resolution: '480p',
+    resolution: '720p',
     negativePrompt: '',
     seed: undefined,
     steps: undefined,
@@ -62,6 +64,11 @@ export function AnimatePage() {
       const frame = JSON.parse(raw);
       if (frame?.imageUrl) {
         state.sourceImageUrl = frame.imageUrl;
+        if (frame.sourceType === 'asset') {
+          state.sourceType = 'asset';
+          state.sourceId = frame.sourceId || null;
+          state.prompt = SOURCE_PROMPTS.asset;
+        }
         if (frame.prompt) state.prompt = frame.prompt;
         if (frame.duration) state.duration = Math.min(12, Math.max(3, Math.round(frame.duration)));
       }
@@ -86,6 +93,8 @@ export function AnimatePage() {
     tab.className = `px-4 py-2 rounded-xl text-xs font-bold transition-all border ${state.sourceType === st.id ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
     tab.textContent = st.label;
     tab.onclick = () => {
+      // Keep a prompt the user wrote; swap only an untouched (empty or default) one for this source's default.
+      if (!state.prompt || Object.values(SOURCE_PROMPTS).includes(state.prompt)) { state.prompt = SOURCE_PROMPTS[st.id] || ''; promptInput.value = state.prompt; }
       state.sourceType = st.id;
       state.sourceImageUrl = null;
       state.sourceId = null;
@@ -140,6 +149,45 @@ export function AnimatePage() {
         const empty = document.createElement('div');
         empty.className = 'text-xs text-muted mb-2';
         empty.textContent = 'No photoshoots found. Create one in Photo Studio first.';
+        uploadSection.appendChild(empty);
+      }
+    } else if (state.sourceType === 'asset') {
+      const assets = selectedBrand ? listCampaigns(selectedBrand.id).flatMap((c) => listAssets(c.id)).filter((a) => a.imageUrl) : [];
+      if (assets.length > 0) {
+        const select = document.createElement('select');
+        select.dataset.assetSource = '';
+        select.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer mb-2';
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = 'Select a campaign asset...';
+        select.appendChild(blank);
+        assets.forEach((a) => {
+          const o = document.createElement('option');
+          o.value = a.id;
+          o.textContent = `${a.format || a.platform} · ${a.headline || 'Untitled'}`;
+          select.appendChild(o);
+        });
+        select.value = state.sourceId && assets.some((a) => a.id === state.sourceId) ? state.sourceId : '';
+        select.onchange = () => {
+          const asset = assets.find((a) => a.id === select.value);
+          if (asset) {
+            state.sourceImageUrl = asset.imageUrl;
+            state.sourceId = asset.id;
+            renderResult();
+          }
+        };
+        uploadSection.appendChild(select);
+        if (state.sourceImageUrl) {
+          const preview = document.createElement('img');
+          preview.src = state.sourceImageUrl;
+          preview.alt = 'Source image';
+          preview.className = 'mt-2 h-24 rounded-lg border border-white/10 object-cover';
+          uploadSection.appendChild(preview);
+        }
+      } else {
+        const empty = document.createElement('div');
+        empty.className = 'text-xs text-muted mb-2';
+        empty.textContent = 'No campaign assets found. Generate a campaign first.';
         uploadSection.appendChild(empty);
       }
     } else {

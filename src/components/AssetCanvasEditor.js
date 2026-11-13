@@ -264,13 +264,25 @@ export function AssetCanvasEditor(params = {}) {
       animate.textContent = 'Animate →';
       animate.onclick = () => {
         try {
-          sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: state.imageUrl, prompt: state.layout.headline.text || '' }));
+          sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: state.imageUrl, sourceType: 'asset', sourceId: asset.id }));
         } catch { /* storage unavailable */ }
         navigate('animate');
       };
       actions.appendChild(animate);
     }
+
+    const status = document.createElement('span');
+    status.id = 'canvas-status';
+    actions.appendChild(status);
+    const save = document.createElement('button');
+    save.className = 'btn-primary-modern px-4 py-1.5 text-sm';
+    save.dataset.action = 'save';
+    save.disabled = state.saving;
+    save.textContent = state.saving ? 'Saving…' : 'Save';
+    save.onclick = saveAssetEdits;
+    actions.appendChild(save);
     topBar.appendChild(actions);
+    renderStatus();
   }
 
   // ---- Side panel ----
@@ -379,25 +391,11 @@ export function AssetCanvasEditor(params = {}) {
     font.appendChild(select);
     side.appendChild(font);
 
-    const footer = document.createElement('div');
-    footer.className = 'sticky bottom-4 flex items-center justify-between rounded-xl border border-white/10 bg-[#111]/95 p-3 backdrop-blur';
-    const status = document.createElement('div');
-    status.id = 'canvas-status';
-    status.className = 'text-xs';
-    footer.appendChild(status);
-    const save = document.createElement('button');
-    save.className = 'btn-primary-modern px-4 py-1.5 text-sm';
-    save.dataset.action = 'save';
-    save.disabled = state.saving;
-    save.textContent = state.saving ? 'Saving…' : 'Save';
-    save.onclick = saveAssetEdits;
-    footer.appendChild(save);
-    side.appendChild(footer);
     renderStatus();
   }
 
   function renderStatus() {
-    const el = side.querySelector('#canvas-status');
+    const el = root.querySelector('#canvas-status');
     if (!el) return;
     el.textContent = state.status;
     el.className = `text-xs ${state.statusKind === 'error' ? 'text-red-400' : state.statusKind === 'ok' ? 'text-emerald-400' : 'text-secondary'}`;
@@ -429,7 +427,7 @@ export function AssetCanvasEditor(params = {}) {
       state.statusKind = 'error';
     } finally {
       state.saving = false;
-      renderSide();
+      renderTopBar();
     }
   }
 
@@ -438,7 +436,7 @@ export function AssetCanvasEditor(params = {}) {
     if (!concept || !platform) {
       state.status = 'This asset has no campaign concept to regenerate from';
       state.statusKind = 'error';
-      renderSide();
+      renderStatus();
       return;
     }
     state.busy = noText ? 'regenClean' : 'regen';

@@ -266,6 +266,14 @@ export function CampaignWizard(params = {}) {
 
       state.assets = results;
       renderAssets();
+      if (results.length > 0 && !assetSection.querySelector('[data-view-campaign]')) {
+        const view = document.createElement('button');
+        view.className = 'btn-secondary-modern mt-4';
+        view.dataset.viewCampaign = '';
+        view.textContent = 'View campaign';
+        view.onclick = () => navigate('campaign-page', { campaignId: state.campaignId });
+        assetSection.appendChild(view);
+      }
 
       if (errors.length > 0) {
         showToast(`${errors.length} platform(s) failed`, 'error');
@@ -309,6 +317,11 @@ export function CampaignWizard(params = {}) {
         state.selectedConcept = { ...state.concepts[index], index };
         state.step = 'assets';
         renderPlatforms();
+        render(); // reveal the platform + asset section
+        conceptList.querySelectorAll('button[data-action="select-concept"]').forEach((b, i) => {
+          b.textContent = i === index ? 'Selected' : 'Select';
+        });
+        assetSection.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
       };
     });
   }
@@ -384,7 +397,7 @@ export function CampaignWizard(params = {}) {
       actions.querySelector('[data-asset-edit]').onclick = () => navigate('asset-edit', { id: asset.id, brandId: brand.id });
       actions.querySelector('[data-asset-animate]').onclick = () => {
         if (!asset.imageUrl) return showToast('This asset has no image to animate', 'error');
-        try { sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: asset.imageUrl, prompt: asset.headline || '' })); } catch { /* storage unavailable */ }
+        try { sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: asset.imageUrl, sourceType: 'asset', sourceId: asset.id })); } catch { /* storage unavailable */ }
         navigate('animate');
       };
       card.appendChild(actions);
