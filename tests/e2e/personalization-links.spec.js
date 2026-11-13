@@ -165,10 +165,6 @@ test.describe('A. business assets', () => {
     await expect(page.getByTestId('leads-tab')).toBeVisible();                                    // back in the Studio, nothing lost
   });
 
-  // KNOWN GAP (found by this browser test, see the report): the modal's onComplete fires only when a personalization run
-  // finishes and carries generated outputs; assets found/assigned inside the modal live in the modal's own saved project
-  // (/api/personalization/project) and are never written to assetLibraryStore, so syncFromModal() has nothing to save.
-  test.fixme('assets found and assigned inside the modal land in the business library', async () => {});
 });
 
 let links = {};            // { A: url, B: url }
@@ -615,5 +611,46 @@ test.describe('H. security and robustness, as a visitor sees it', () => {
       expect(c.url).toBe('https://www.remotion.pro/api/track/register-usage-point');
       for (const secret of ['Smith', 'Wilson', 'John', 'Sarah', 'fixture.invalid', '+1555', ...world.db.t.video_recipients.map((r) => r.token)]) expect(c.body).not.toContain(secret);
     }
+  });
+});
+
+test.describe('I. assets found inside the Personalization Modal reach the business library', () => {
+  // The modal's discovery endpoint is a fixture that returns two images hosted by the fake storage (no real website is crawled);
+  // everything after it (review, assign, import, upload/link, library event) is the real modal code.
+  test('assets found and imported inside the modal land in the business library', async () => {
+    const found = [
+      { id: 'd1', sourceUrl: BUSINESSES.A.website, previewUrl: world.url('fixtures/a-new.svg'), sourceType: 'website', category: 'storefront', selected: true, recommended: true, rejected: false, assignedSection: 'brand', autoAssigned: true },
+      { id: 'd2', sourceUrl: BUSINESSES.A.website, previewUrl: world.url('fixtures/a-service.svg'), sourceType: 'website', category: 'service', selected: true, recommended: true, rejected: false, assignedSection: 'products', autoAssigned: true },
+    ];
+    await owner.route('**/api/personalization/discover-assets', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ discoveredAssets: found, providerUsed: 'FIXTURE', status: 'complete' }) }));
+    await selectContact(page, 'bizA');
+    await expect(page.getByTestId('picker-business')).toHaveText('Smith Roofing');
+    await page.getByRole('tab', { name: 'all', exact: true }).click();
+    const shown = await grid().locator('> div').count();
+    const before = world.db.t.business_assets.length;
+    await page.getByTestId('picker-find').click();
+    await expect(page.locator('#personalize-title')).toBeVisible({ timeout: 120000 });
+    const modal = page.locator('#remix-personalization-root');
+    await page.screenshot({ path: shot('A4-modal-open') });
+    const website = modal.locator('input[placeholder="https://joesroofing.com"]');           // the Client Profile website field (next to "Find business assets")
+    await website.fill(BUSINESSES.A.website);
+    await modal.getByRole('button', { name: /find business assets/i }).click();
+    await page.screenshot({ path: shot('A5-modal-discovered') });
+    await modal.getByRole('button', { name: /use selected assets/i }).click({ timeout: 30000 });
+    await expect.poll(() => world.db.t.business_assets.length, { timeout: 30000 }).toBe(before + 2);
+    await page.screenshot({ path: shot('A6-modal-imported') });
+    const smith = world.db.t.business_profiles.find((b) => b.name === BUSINESSES.A.name);
+    const added = world.db.t.business_assets.slice(before);
+    expect(added.map((a) => a.storage_url).sort()).toEqual([world.url('fixtures/a-new.svg'), world.url('fixtures/a-service.svg')].sort());   // durable, the images the modal reported
+    expect(added.every((a) => a.business_id === smith.id && a.origin === 'discovered' && a.state === 'imported')).toBe(true);
+    expect(added.some((a) => /^(blob|data):/.test(a.storage_url))).toBe(false);
+    await modal.getByRole('button', { name: /^cancel$/i }).first().click().catch(() => {});
+    await page.locator('#personalize-title').waitFor({ state: 'hidden', timeout: 10000 }).catch(async () => { await page.keyboard.press('Escape'); });
+    await expect(page.locator('#personalize-title')).toBeHidden();
+    // back in the Studio the picker shows them, marked as found (not uploaded, not yet used)
+    await page.getByRole('tab', { name: 'all', exact: true }).click();
+    await expect(grid().locator('> div')).toHaveCount(shown + 2);
+    await expect(grid()).toContainText('Found on website');
+    expect(world.db.escaped).toEqual([]);
   });
 });

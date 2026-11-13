@@ -3525,9 +3525,11 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // 4. Store the assets that carry bytes; linked website images are ready.
     const uploadErrors: string[] = []
     const storedAssets = createdAssets.filter((asset) => asset.file)
+    const durableUrls = new Map<string, string>()
     for (const asset of storedAssets) {
       try {
-        await uploadAsset(asset)
+        const durable = await uploadAsset(asset)
+        if (typeof durable === 'string') durableUrls.set(asset.id, durable)
       } catch (e) {
         const message = e instanceof Error ? e.message : 'Upload failed'
         uploadErrors.push(`${asset.name}: ${message}`)
@@ -3560,6 +3562,16 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         : summary)
     } else if (partialDownloadError) {
       setDiscoveryError(partialDownloadError)
+    }
+
+    // [remix] tell the host app which durable assets this import produced, so a studio can keep them in the
+    // business's persistent library (blob:/data: URLs never leave the modal: they cannot back a published link)
+    if (typeof window !== 'undefined') {
+      const imported = createdAssets.flatMap((a) => {
+        const url = durableUrls.get(a.id) || a.uploadedUrl || a.url
+        return /^https?:\/\//i.test(url || '') ? [{ url, role: a.role, sourceCategory: a.sourceCategory, sourceUrl: a.originalUrl, name: a.name, mimeType: a.mimeType, edited: a.edited }] : []
+      })
+      if (imported.length) window.dispatchEvent(new CustomEvent('remix:personalization-assets-imported', { detail: { assets: imported, clientName: clientForm.businessName || clientForm.name || null } }))
     }
 
     // The assets are in the session regardless of whether the durable upload

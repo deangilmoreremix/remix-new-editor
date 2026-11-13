@@ -158,6 +158,30 @@ export function useBusinessLibrary(): BusinessLibrary {
     m.openPersonalization({ studioId: 'timeline', studioName: 'Timeline Studio', appId: 'ai-video-agent', onComplete: () => { void syncFromModal(since); window.dispatchEvent(new CustomEvent('remix:contact-changed')); } });
   };
 
+  // Assets the modal imports (Business Finder / Find business assets / uploads) are saved to the active business's library as they arrive.
+  type ModalAsset = { url: string; role: string; sourceCategory?: string; sourceUrl?: string; name?: string; mimeType?: string; edited?: boolean };
+  const saveModalAssets = async (list: ModalAsset[]) => {
+    const fresh = contacts.getActiveProfile?.() ?? null;
+    const info = businessFromProfile(fresh);
+    if (!info || !signedIn) return;
+    await guard(async () => {
+      const client = await getClient();
+      const biz = await store.upsertBusiness(client, { ...info, source: 'business-finder' });
+      for (const a of list) {
+        if (!store.isDurableUrl(a.url)) continue;
+        await store.saveBusinessAsset(client, biz.id, a, { origin: a.edited ? 'uploaded' : 'discovered', state: 'imported' });
+      }
+      setBusiness(biz);
+      setAssets(await store.listBusinessAssets(client, biz.id));
+      setAssignments(await store.listAssignments(client, projectId, biz.id));
+    });
+  };
+  useEffect(() => {
+    const on = (e: Event) => { const list = (e as CustomEvent).detail?.assets; if (Array.isArray(list)) void saveModalAssets(list as ModalAsset[]); };
+    window.addEventListener('remix:personalization-assets-imported', on);
+    return () => window.removeEventListener('remix:personalization-assets-imported', on);
+  });
+
   // The overlay-lane "Personalization…" entry opens the same modal; it reports back through this event.
   useEffect(() => {
     const on = (e: Event) => { const since = Number((e as CustomEvent).detail?.since); if (Number.isFinite(since)) void syncFromModal(since); };

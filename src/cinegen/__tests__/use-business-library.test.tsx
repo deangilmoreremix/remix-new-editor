@@ -98,6 +98,26 @@ describe('useBusinessLibrary', () => {
     assetLibraryStore.removeAsset(old.id);
   });
 
+  it('saves assets the modal reports through its import event, to the ACTIVE business only, durable URLs only', async () => {
+    const { result } = renderHook(() => useBusinessLibrary());
+    await waitFor(() => expect(result.current.business?.name).toBe('Smith Roofing'));
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('remix:personalization-assets-imported', { detail: { assets: [
+        { url: 'https://smithroofing.com/logo.png', role: 'logo', sourceCategory: 'logo', sourceUrl: 'https://smithroofing.com/logo.png', name: 'logo.png' },
+        { url: 'https://cdn.test/smith-van.jpg', role: 'product_reference', sourceCategory: 'branded_vehicle', edited: true },
+        { url: 'blob:http://x/1', role: 'logo' },
+      ] } }));
+    });
+    await waitFor(() => expect(result.current.assets).toHaveLength(2));
+    expect(result.current.assets.map((a) => a.storage_url).sort()).toEqual(['https://cdn.test/smith-van.jpg', 'https://smithroofing.com/logo.png']);
+    expect(result.current.assets.find((a) => a.storage_url.includes('van'))?.origin).toBe('uploaded');
+    expect(result.current.assets.find((a) => a.storage_url.includes('logo'))?.origin).toBe('discovered');
+    expect(tables.business_assets.every((a) => a.business_id === result.current.business?.id)).toBe(true);
+    // the same import reported twice does not duplicate
+    await act(async () => { window.dispatchEvent(new CustomEvent('remix:personalization-assets-imported', { detail: { assets: [{ url: 'https://smithroofing.com/logo.png', role: 'logo' }] } })); });
+    await waitFor(() => expect(tables.business_assets).toHaveLength(2));
+  });
+
   it('rejects non-image uploads without touching storage', async () => {
     const { result } = renderHook(() => useBusinessLibrary());
     await waitFor(() => expect(result.current.business).toBeTruthy());
