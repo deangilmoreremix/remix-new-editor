@@ -88,10 +88,14 @@ const rpc = async (client, name, args) => {
 };
 
 /** The published video (current revision) that belongs to a project, or null. */
-export async function getProjectVideo(client, projectId) {
-  const { data, error } = await client.from('published_videos')
+export async function getProjectVideo(client, projectId, videoId = null) {
+  // A project can have several publications (one per published timeline): when the caller knows which one it is
+  // showing, use exactly that video instead of the most recently updated one.
+  let q = client.from('published_videos')
     .select('id, title, published, project, slug, privacy, revision, updated_at')
-    .eq('project_id', projectId).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+    .eq('project_id', projectId);
+  if (videoId) q = q.eq('id', videoId);
+  const { data, error } = await q.order('updated_at', { ascending: false }).limit(1).maybeSingle();
   if (error) throw new Error(error.message || 'Could not load the published video');
   if (!data) return null;
   const biz = await client.from('video_owner_profiles').select('business_slug').maybeSingle();
@@ -102,7 +106,7 @@ export async function getProjectVideo(client, projectId) {
  * @returns {{ status:'unpublished'|'ok', data?: ProjectAnalyticsData, hasTracking?: boolean, video? }}
  */
 export async function loadAnalytics(client, { projectRow, period = '30d', custom = null, now = new Date(), origin } = {}) {
-  const video = await getProjectVideo(client, projectRow.id);
+  const video = await getProjectVideo(client, projectRow.id, projectRow.videoId);
   if (!video) return { status: 'unpublished' };
   const { from, to } = periodRange(period, custom, now);
   const sections = projectSections(video.project);

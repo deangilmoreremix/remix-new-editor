@@ -167,3 +167,28 @@ describe('loadAnalytics', () => {
     await expect(loadAnalytics(c, { projectRow: ROW, now: NOW })).rejects.toThrow('permission denied');
   });
 });
+
+describe('getProjectVideo with several publications', () => {
+  it('uses the given video id instead of the most recently updated one', async () => {
+    const calls = [];
+    const row = { id: 'vidOLDER001', title: 'Older', published: true, project: {}, updated_at: '2026-01-01' };
+    const client = {
+      from(t) {
+        const api = {
+          select: () => api, order: () => api, limit: () => api,
+          eq: (c, v) => { calls.push([t, c, v]); return api; },
+          maybeSingle: async () => ({ data: t === 'published_videos' ? row : { business_slug: 'acme' }, error: null }),
+        };
+        return api;
+      },
+    };
+    const { getProjectVideo } = await import('../analyticsData.js');
+    const v = await getProjectVideo(client, 'proj-1', 'vidOLDER001');
+    expect(v.id).toBe('vidOLDER001');
+    expect(calls).toContainEqual(['published_videos', 'project_id', 'proj-1']);
+    expect(calls).toContainEqual(['published_videos', 'id', 'vidOLDER001']);
+    calls.length = 0;
+    await getProjectVideo(client, 'proj-1');
+    expect(calls.some(([, c]) => c === 'id')).toBe(false); // no id filter when none is given (classic editor behaviour)
+  });
+});

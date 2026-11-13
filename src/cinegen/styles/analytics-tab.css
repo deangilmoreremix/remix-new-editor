@@ -1,0 +1,30 @@
+/* [remix] Analytics tab. The Projects/Analytics views were built on the Timeline Editor's design tokens; CineGen's
+   palette is the same family (cyan #22d3ee, emerald, dark surfaces), so those tokens are mapped here, scoped to
+   this tab only, together with the few editor button/input classes the views use. */
+.cg-analytics{
+  --surface-1:rgba(255,255,255,.03);--surface-2:rgba(255,255,255,.05);--surface-3:rgba(255,255,255,.08);--surface-sunken:rgba(0,0,0,.2);
+  --border:rgba(255,255,255,.1);--border-soft:rgba(255,255,255,.06);--border-strong:rgba(255,255,255,.16);
+  --text:rgba(255,255,255,.86);--text-strong:#fff;--text-muted:rgba(255,255,255,.6);--text-dim:rgba(255,255,255,.45);--text-faint:rgba(255,255,255,.35);
+  --cyan:var(--accent,#22d3ee);--cyan-soft:rgba(34,211,238,.22);--cyan-faint:rgba(34,211,238,.1);--emerald:#34d399;
+  --accent-grad:linear-gradient(to right,var(--cyan),var(--emerald));--danger:#ef4444;--danger-soft:rgba(239,68,68,.2);
+  --success-soft:rgba(52,211,153,.1);--success-text:#bbf7d0;--success-dot:#86efac;
+  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:20px;--sp-6:24px;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;
+  --shadow-focus:0 0 0 4px rgba(34,211,238,.3);
+  height:100%;overflow:auto;padding:20px;color:var(--text);box-sizing:border-box;
+}
+.cg-analytics *{box-sizing:border-box}
+.cg-analytics__tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 auto 14px;max-width:1200px}
+.cg-analytics__tab{border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:99px;padding:7px 14px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.cg-analytics__tab:hover:not(.is-active){border-color:var(--cyan)}
+.cg-analytics__tab.is-active{background:var(--cyan-soft);border-color:rgba(34,211,238,.45);color:#cffafe}
+.cg-analytics__host{max-width:1200px;margin:0 auto}
+.cg-analytics__toast{max-width:1200px;margin:0 auto 10px;font-size:12px;color:var(--text-muted)}
+.cg-analytics__empty{max-width:520px;margin:48px auto;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.cg-analytics__empty h3{margin:0;font-size:16px;color:var(--text-strong)}.cg-analytics__empty p{margin:0;font-size:13px;color:var(--text-muted)}
+.cg-analytics__btn{background:var(--accent-grad);color:#03131a;border:0;border-radius:99px;padding:9px 18px;font:inherit;font-weight:700;cursor:pointer}
+/* classes shared with the Timeline Editor that the views render */
+.cg-analytics .mini-btn{border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:var(--r-sm);padding:6px 10px;font:inherit;font-size:12px;cursor:pointer}
+.cg-analytics .mini-btn:hover{border-color:var(--cyan)}
+.cg-analytics .primary-btn{background:var(--accent-grad);color:#03131a;border:0;border-radius:var(--r-md);padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+.cg-analytics .text-input,.cg-analytics select,.cg-analytics input[type=text],.cg-analytics input[type=date],.cg-analytics textarea{background:var(--surface-sunken);color:inherit;border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;font:inherit;font-size:12px}
+.cg-analytics .prj-skel i{display:block;height:120px;border-radius:12px;background:var(--surface-2);margin-bottom:10px}

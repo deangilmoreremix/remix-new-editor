@@ -23,7 +23,7 @@ async function withVideo(panel, ctx, deps, render) {
   wrap(panel, '<div class="prj-skel" aria-busy="true"><i></i><i></i></div>');
   try {
     const client = await deps.getClient();
-    const video = await getProjectVideo(client, ctx.project.id);
+    const video = await getProjectVideo(client, ctx.project.id, ctx.project.videoId);
     if (!video) { wrap(panel, `<div class="sv-card"><h3>Publish this video first</h3><p class="sv-subtitle">Viewer data is collected on the published video page. Publish it from Publish &amp; Share and this tab fills in as people watch.</p></div>`); return; }
     await render(client, video);
   } catch (err) {
@@ -187,7 +187,7 @@ export function shareTab(deps) {
     (async () => {
       try {
         const client = await deps.getClient();
-        const video = await getProjectVideo(client, ctx.project.id);
+        const video = await getProjectVideo(client, ctx.project.id, ctx.project.videoId);
         if (!alive) return;
         const isOpen = deps.getOpenProjectId?.() === ctx.project.id && !!deps.mountShare;
         const url = video ? canonicalUrl(video) : null;
