@@ -19,9 +19,9 @@ export function createWorld() {
 }
 
 /** A browser context behind the fake backend, optionally signed in. Viewers (no sub) are anonymous. */
-export async function newContext(browser, world, { sub = null, viewport = { width: 1400, height: 900 } } = {}) {
+export async function newContext(browser, world, { sub = null, viewport = { width: 1400, height: 900 }, bypassCSP = true } = {}) {
   // bypassCSP: the vite dev server sends a media-src CSP that blocks the player's silent data: audio (production sends none)
-  const context = await browser.newContext({ viewport, bypassCSP: true });
+  const context = await browser.newContext({ viewport, bypassCSP });
   await world.db.attach(context);
   if (sub) await signInAs(context, sub);
   return context;

@@ -8,7 +8,7 @@
  * never contacted: any request that leaves the machine is aborted and recorded, and the last test fails if one was.
  */
 import { test, expect } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createWorld, newContext, openStudio, seedProject, openProject, dismissWelcome } from './fixtures/harness.js';
 import { BUSINESSES, IMAGES } from './fixtures/assets.js';
@@ -504,6 +504,10 @@ test.describe('G. per-recipient MP4 export (rendered in the browser, inspected w
   }
 
   test('Business A and Business B each get their own MP4; the other business never appears', async () => {
+    if (process.env.E2E_DUMP_FIXTURE) {                                   // capture what the real publish path produced, for the production-build spec
+      const files = [...world.db.files].filter(([p]) => !p.endsWith('source.webm')).map(([p, f]) => [p, f.type, f.body.toString('base64')]);
+      writeFileSync('tests/e2e/fixtures/published-fixture.json', JSON.stringify({ tables: world.db.t, files }));
+    }
     await page.goto(`${process.env.E2E_BASE_URL || 'http://127.0.0.1:3100'}/?project=${projectId}&storage=db#/timeline`, { waitUntil: 'domcontentloaded' });
     await dismissWelcome(page);
     const fileA = await exportFor('bizA');
