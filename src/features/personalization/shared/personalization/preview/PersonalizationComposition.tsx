@@ -675,7 +675,9 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           )
         })}
         {settings.showEndCard ? (
-          <Sequence from={endCardStart} durationInFrames={endCardLen}>
+          // zIndex: layers are stacked up to stackOrder 65 * 100 + 99 (see layerZIndex), so
+          // the end card needs a higher level to stay on top of layers that run to the end.
+          <Sequence from={endCardStart} durationInFrames={endCardLen} style={{ zIndex: 10000 }}>
             <EndCard settings={settings} brand={brand} />
           </Sequence>
         ) : null}

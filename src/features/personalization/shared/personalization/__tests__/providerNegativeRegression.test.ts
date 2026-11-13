@@ -43,7 +43,7 @@ import type { PersonalizationSource, AssetLibrary, ResolvedAssets, GenerationOpt
 const openaiCalls: { endpoint: string; body?: unknown }[] = []
 
 vi.mock('@ohb/shared/personalization/openaiPersonalizationClient', () => {
-  const actual = vi.importActual('@/shared/personalization/openaiPersonalizationClient')
+  const actual = vi.importActual('@ohb/shared/personalization/openaiPersonalizationClient')
   return {
     ...(actual as any),
     createPersonalizationOpenAIClient: vi.fn(() => ({

@@ -5366,6 +5366,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
               setGeneration((prev) => ({ ...prev, progress: Math.max(88, Math.min(99, 88 + Math.round(percent / 9))), progressMessage: `Adding your layers to the video… ${percent}%` }))
             },
           })
+          // The modal was closed (or reopened) meanwhile, or the export was cancelled by
+          // closePersonalize(): stop before downloading, branding or writing a result.
+          if (stale() || (!exported.ok && exported.reason === 'cancelled')) return
           if (exported.ok) {
             // e.g. no audio codec this browser can encode: the video is silent.
             exportWarning = exported.warning || null
@@ -5399,6 +5402,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
               assets.primaryLogo?.file || assets.primaryLogo?.uploadedUrl || assets.primaryLogo?.url || null,
               apiKey,
             )
+            if (stale()) return
             if (endCardUrl) postProcessing = { ...postProcessing, endCard: endCardUrl }
           } catch {
             // Branding still runs without the end card.
@@ -5410,6 +5414,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
           postProcessing,
           apiKey,
         })
+        if (stale()) return
       }
 
       const finalUrl = burned?.url || postResult.finalUrl || genResult.url || ''
@@ -5438,6 +5443,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         } catch {
           // History keeps the generated clip (without the layers).
         }
+        if (stale()) return
       }
       // The layered video was made and downloaded, but storing it failed.
       const savedCopyMissingLayers = Boolean(burned && !layeredStored)
