@@ -39,6 +39,7 @@ export class FakeSupabase {
   constructor() {
     this.t = { published_videos: [], published_video_revisions: [], video_owner_profiles: [], video_slug_redirects: [], business_profiles: [], business_assets: [], asset_assignments: [], video_recipients: [], published_video_drafts: [], video_leads: [] };
     this.files = new Map();   // storage path -> { body: Buffer, type }
+    this.thirdParty = [];     // known library pings (Remotion usage tracking), aborted and recorded with their bodies
     this.escaped = [];        // requests that tried to leave the machine
     this.requests = [];       // [{method, path}] every Supabase request, for assertions ("no new video file", etc.)
     this.events = [];         // record_video_event calls
@@ -367,7 +368,10 @@ export class FakeSupabase {
   async attach(context) {
     await context.route((u) => !['127.0.0.1', 'localhost'].includes(u.hostname) && !/^(data|blob):/.test(u.protocol), (route) => {
       const u = new URL(route.request().url());
-      if (!/fonts\.(googleapis|gstatic)\.com$/.test(u.hostname)) this.escaped.push(`${route.request().method()} ${u.origin}${u.pathname}`);
+      if (u.hostname === 'www.remotion.pro' && u.pathname.startsWith('/api/track/')) {
+        // the Remotion library's own render usage ping (known third-party call, aborted here): keep the body so a test can check it carries no customer data
+        this.thirdParty.push({ url: `${u.origin}${u.pathname}`, body: route.request().postData() || '' });
+      } else if (!/fonts\.(googleapis|gstatic)\.com$/.test(u.hostname)) this.escaped.push(`${route.request().method()} ${u.origin}${u.pathname}`);
       return route.abort();
     });
     await context.route((u) => u.origin === SUPABASE_URL, (route) => this.handle(route));

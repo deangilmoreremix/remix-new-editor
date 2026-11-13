@@ -1,4 +1,4 @@
-/* global Buffer, URL, window, CustomEvent, console */
+/* global Buffer, URL, window, CustomEvent, console, process */
 /**
  * Personalized links, end to end in a real browser (Chromium) against the real app.
  *
@@ -9,6 +9,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { createWorld, newContext, openStudio, seedProject, openProject, dismissWelcome } from './fixtures/harness.js';
 import { BUSINESSES, IMAGES } from './fixtures/assets.js';
 import { SUPABASE_URL } from './fixtures/fakeSupabase.js';
@@ -478,6 +479,58 @@ test.describe('F. bulk: 20 more businesses, one video, no new video files', () =
   });
 });
 
+test.describe('G. per-recipient MP4 export (rendered in the browser, inspected with ffmpeg)', () => {
+  const sh = (cmd, args) => execFileSync(cmd, args, { encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 });
+  /** Average RGB of a crop (fractions of the frame) of the frame at `t` seconds. */
+  const avgColor = (file, t, [x, y, w, h]) => {
+    const raw = sh('ffmpeg', ['-v', 'error', '-ss', String(t), '-i', file, '-frames:v', '1',
+      '-vf', `crop=iw*${w}:ih*${h}:iw*${x}:ih*${y},scale=1:1`, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-']);
+    return { r: raw[0], g: raw[1], b: raw[2] };
+  };
+  const LOGO = [0.06, 0.07, 0.14, 0.14];            // centre of the logo overlay (geometry 3,4,22,22 %)
+  const PHOTO = [0.68, 0.34, 0.22, 0.32];           // centre of the service photo overlay (geometry 62,28,34,44 %)
+
+  async function exportFor(contactId) {
+    await selectContact(page, contactId);
+    await page.getByRole('button', { name: /^Export$/ }).click();
+    await page.getByTestId('export-auto-qa').uncheck().catch(() => {});
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 240000 }),
+      page.getByRole('button', { name: /^Render$/ }).click(),
+    ]);
+    const file = `test-results/links/export/${contactId}.mp4`;
+    await download.saveAs(file);
+    return file;
+  }
+
+  test('Business A and Business B each get their own MP4; the other business never appears', async () => {
+    await page.goto(`${process.env.E2E_BASE_URL || 'http://127.0.0.1:3100'}/?project=${projectId}&storage=db#/timeline`, { waitUntil: 'domcontentloaded' });
+    await dismissWelcome(page);
+    const fileA = await exportFor('bizA');
+    const fileB = await exportFor('bizB');
+    for (const f of [fileA, fileB]) {
+      const probe = JSON.parse(sh('ffprobe', ['-v', 'error', '-show_streams', '-show_format', '-of', 'json', f]).toString());
+      const v = probe.streams.find((s) => s.codec_type === 'video');
+      expect(v.codec_name).toBe('h264');
+      expect(Number(probe.format.duration)).toBeGreaterThan(3);
+      expect(Number(probe.format.duration)).toBeLessThan(6);
+    }
+    for (const t of [1, 2.5]) {
+      const aLogo = avgColor(fileA, t, LOGO); const bLogo = avgColor(fileB, t, LOGO);
+      const aPhoto = avgColor(fileA, t, PHOTO); const bPhoto = avgColor(fileB, t, PHOTO);
+      // A = rust-red logo + pale orange photo; B = blue logo + pale blue photo (fixture images)
+      expect(aLogo.r - aLogo.b, `A logo at ${t}s ${JSON.stringify(aLogo)}`).toBeGreaterThan(40);
+      expect(bLogo.b - bLogo.r, `B logo at ${t}s ${JSON.stringify(bLogo)}`).toBeGreaterThan(40);
+      expect(aPhoto.r - aPhoto.b, `A photo at ${t}s ${JSON.stringify(aPhoto)}`).toBeGreaterThan(8);
+      expect(bPhoto.b - bPhoto.r, `B photo at ${t}s ${JSON.stringify(bPhoto)}`).toBeGreaterThan(8);
+    }
+    sh('ffmpeg', ['-v', 'error', '-y', '-ss', '2', '-i', fileA, '-frames:v', '1', 'test-results/links/screens/G1-export-A.png']);
+    sh('ffmpeg', ['-v', 'error', '-y', '-ss', '2', '-i', fileB, '-frames:v', '1', 'test-results/links/screens/G2-export-B.png']);
+    await page.getByRole('button', { name: /Leads/i }).first().click();     // leave the owner page where the next scenarios expect it
+    await expect(leads()).toBeVisible();
+  });
+});
+
 test.describe('H. security and robustness, as a visitor sees it', () => {
   const urlWith = (q) => { const u = new URL(links.A); u.search = q; return u.toString(); };
   const generic = async (url) => {                       // works for a playing video and for the "not found" page
@@ -552,5 +605,11 @@ test.describe('H. security and robustness, as a visitor sees it', () => {
 
   test('nothing left the machine: no request reached a real service', async () => {
     expect(world.db.escaped).toEqual([]);
+    // the only outside call is the Remotion renderer's own usage ping during MP4 export; it must not carry any customer data
+    expect(world.db.thirdParty.length).toBeGreaterThan(0);
+    for (const c of world.db.thirdParty) {
+      expect(c.url).toBe('https://www.remotion.pro/api/track/register-usage-point');
+      for (const secret of ['Smith', 'Wilson', 'John', 'Sarah', 'fixture.invalid', '+1555', ...world.db.t.video_recipients.map((r) => r.token)]) expect(c.body).not.toContain(secret);
+    }
   });
 });
