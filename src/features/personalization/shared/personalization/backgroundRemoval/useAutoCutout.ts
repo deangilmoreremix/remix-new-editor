@@ -142,12 +142,14 @@ async function withSniffedType(blob: Blob): Promise<Blob> {
 export function useAutoCutout(
   assets: DiscoveredAsset[],
   setAssets: Dispatch<SetStateAction<DiscoveredAsset[]>>,
-  options: { paused?: boolean } = {},
+  options: { paused?: boolean; disabled?: boolean } = {},
 ): AutoCutoutControls {
   const paused = Boolean(options.paused)
+  const disabled = Boolean(options.disabled)
   const constrained = useMemo(() => isConstrainedDevice(), [])
   // BG0 decodes images with createImageBitmap; without it (old browsers, jsdom) nothing can run, so stay idle.
-  const supported = useMemo(() => typeof createImageBitmap === 'function', [])
+  // `disabled`: the caller cannot offer it here (e.g. signed-out visitors cannot reach the image download proxy).
+  const supported = useMemo(() => !disabled && typeof createImageBitmap === 'function', [disabled])
   const [autoEnabled, setAutoEnabledState] = useState<boolean>(() => readStored(AUTO_KEY) !== '0')
   const [consent, setConsent] = useState<BackgroundRemovalConsent>(() => {
     const stored = readStored(CONSENT_KEY)

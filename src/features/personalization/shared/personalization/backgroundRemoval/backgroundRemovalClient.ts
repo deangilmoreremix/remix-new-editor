@@ -142,6 +142,11 @@ function runInWorker(
         onProgress?.({ stage: data.stage, progress: data.progress, message: data.message })
       } else if (data.type === 'done') {
         cleanup()
+        // The result may already have been in flight when the caller aborted: honour the cancel.
+        if (signal?.aborted) {
+          reject(Object.assign(new Error('Cancelled'), { code: 'cancelled' }))
+          return
+        }
         resolve({ blob: data.blob, width: data.width, height: data.height, provider: data.provider, quality: data.quality, durationMs: data.durationMs })
       } else if (data.type === 'error') {
         cleanup()

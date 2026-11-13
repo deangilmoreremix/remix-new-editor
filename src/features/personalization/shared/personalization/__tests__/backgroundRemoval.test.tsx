@@ -76,9 +76,10 @@ let root: Root | null = null
 let container: HTMLDivElement | null = null
 let latest: { assets: DiscoveredAsset[]; cutout: AutoCutoutControls }
 
+let harnessDisabled = false
 function Harness({ initial, paused }: { initial: DiscoveredAsset[]; paused?: boolean }) {
   const [assets, setAssets] = useState(initial)
-  const cutout = useAutoCutout(assets, setAssets, { paused })
+  const cutout = useAutoCutout(assets, setAssets, { paused, disabled: harnessDisabled })
   latest = { assets, cutout }
   return null
 }
@@ -106,6 +107,7 @@ async function settle(ms = 120, done?: () => boolean) {
 const allDone = () => latest.assets.filter((a) => !a.rejected).every((a) => a.bgRemoval && a.bgRemoval.status !== 'running' && a.bgRemoval.status !== 'queued')
 
 beforeEach(() => {
+  harnessDisabled = false
   // BG0 decodes with createImageBitmap, which jsdom lacks; the hook stays idle without it.
   vi.stubGlobal('createImageBitmap', vi.fn())
   state.active = 0
@@ -296,6 +298,18 @@ describe('useAutoCutout (auto queue)', () => {
   })
 })
 
+describe('when the caller disables background removal (e.g. signed-out visitors)', () => {
+  it('stays idle: nothing is fetched or processed, and nothing waits for cutouts', async () => {
+    harnessDisabled = true
+    await mount([asset({ id: 'one', previewUrl: 'https://shop.example/one.jpg' })])
+    await settle(150)
+    expect(state.order).toEqual([])
+    expect(latest.cutout.supported).toBe(false)
+    expect(latest.cutout.willAutoCutOut).toBe(false)
+    expect(latest.assets[0].bgRemoval).toBeUndefined()
+  })
+})
+
 describe('browsers that cannot run background removal', () => {
   it('stay idle: no automatic processing, nothing waits for cutouts', async () => {
     vi.stubGlobal('createImageBitmap', undefined)
@@ -320,6 +334,8 @@ describe('DiscoveredAssetGrid with background removal', () => {
       declineConsent: vi.fn(),
       needsConsent: false,
       halted: false,
+      willAutoCutOut: true,
+      supported: true,
       stats: { total: 0, finished: 0, running: 0, queued: 0, failed: 0, active: false },
       modelMB: 192,
       requestRemoval: vi.fn(),
@@ -431,6 +447,18 @@ describe('DiscoveredAssetGrid with background removal', () => {
     renderGrid([asset({ id: 'raw', selected: true })], { cutout: { supported: false } })
     expect(container!.querySelector('[data-testid="background-removal-bar"]')).toBeNull()
     expect(container!.querySelector('[aria-label="Remove background"]')).toBeNull()
+  })
+
+  it('saves an asset once even if Save to Assets is clicked repeatedly', () => {
+    const { props } = renderGrid([cutAsset, asset({ id: 'other' })])
+    act(() => (container!.querySelector('[role="button"]') as HTMLElement).click())
+    const save = () => Array.from(document.querySelectorAll('button')).find((b) => /Save to Assets/.test(b.textContent || '')) as HTMLButtonElement
+    act(() => save().click())
+    expect(save().disabled).toBe(true)
+    act(() => save().click())
+    act(() => save().click())
+    expect(props.onSaveToAssets).toHaveBeenCalledTimes(1)
+    expect(props.onSaveToAssets).toHaveBeenCalledWith('cut')
   })
 
   it('renders exactly as before when background removal is not provided', () => {

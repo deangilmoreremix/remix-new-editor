@@ -101,6 +101,20 @@ describe('BG0 client worker path', () => {
     await expect(job).rejects.toMatchObject({ code: 'cancelled' })
   })
 
+  it('treats a result that arrives after the caller aborted as a cancellation', async () => {
+    const { removeAssetBackground } = await loadClient()
+    FakeWorker.mode = 'hold'
+    const controller = new AbortController()
+    const job = removeAssetBackground(png(), { signal: controller.signal })
+    await vi.waitFor(() => expect(FakeWorker.instances[0]?.posted.some((m) => m.type === 'remove')).toBe(true))
+    const worker = FakeWorker.instances[0]
+    const id = worker.posted.find((m) => m.type === 'remove')!.id
+    controller.abort() // the caller cancels...
+    // ...but the worker had already finished: its result is in flight and arrives anyway.
+    worker.emit('message', { data: { type: 'done', id, blob: new Blob(['CUT'], { type: 'image/png' }), width: 2, height: 2, provider: 'wasm', quality: 'quality', durationMs: 3 } })
+    await expect(job).rejects.toMatchObject({ code: 'cancelled' })
+  })
+
   it('maps an error reported by the worker to a typed failure (no main-thread retry)', async () => {
     const { removeAssetBackground } = await loadClient()
     FakeWorker.mode = 'error-reply'

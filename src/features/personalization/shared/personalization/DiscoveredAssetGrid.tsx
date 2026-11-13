@@ -314,6 +314,8 @@ export function DiscoveredAssetLightbox({
   onSaveToAssets?: (id: string) => void
 }) {
   const [compare, setCompare] = useState(false)
+  // One Save per asset: a second click while its import is pending would add the asset twice.
+  const [saving, setSaving] = useState<ReadonlySet<string>>(() => new Set())
   const asset = assets[index]
   const count = assets.length
   const go = (delta: number) => onIndexChange((index + delta + count) % count)
@@ -478,9 +480,14 @@ export function DiscoveredAssetLightbox({
         {onSaveToAssets && (
           <button
             type="button"
-            disabled={bgBusy}
-            onClick={() => { onSaveToAssets(asset.id); if (count <= 1) onClose() }}
-            style={{ ...actionStyle, opacity: bgBusy ? 0.5 : 1, cursor: bgBusy ? 'not-allowed' : 'pointer' }}
+            disabled={bgBusy || saving.has(asset.id)}
+            onClick={() => {
+              if (saving.has(asset.id)) return
+              setSaving((prev) => new Set(prev).add(asset.id))
+              onSaveToAssets(asset.id)
+              if (count <= 1) onClose()
+            }}
+            style={{ ...actionStyle, opacity: bgBusy || saving.has(asset.id) ? 0.5 : 1, cursor: bgBusy || saving.has(asset.id) ? 'not-allowed' : 'pointer' }}
           >
             Save to Assets
           </button>

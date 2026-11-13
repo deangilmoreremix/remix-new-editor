@@ -1595,7 +1595,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   const [discoveryStatus, setDiscoveryStatus] = useState<'idle' | 'discovering' | 'reviewing' | 'importing'>('idle')
   const [discoveryError, setDiscoveryError] = useState<string | null>(null)
   const [importConfirmation, setImportConfirmation] = useState<{ count: number; failedCount?: number; clientName?: string } | null>(null)
-  const autoCutout = useAutoCutout(discoveredAssets, setDiscoveredAssetsState, { paused: discoveryStatus === 'importing' })
+  const autoCutout = useAutoCutout(discoveredAssets, setDiscoveredAssetsState, { paused: discoveryStatus === 'importing', disabled: access === 'anonymous' })
   const [visionStatus, setVisionStatus] = useState<'idle' | 'analyzing' | 'complete' | 'error'>('idle')
   const [visionError, setVisionError] = useState<string | null>(null)
 
@@ -4255,7 +4255,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   useEffect(() => {
     if (!autoImportPendingRef.current || discoveryStatus !== 'reviewing' || discoveredAssets.length === 0) return
     const picks = pickAutoImportAssets(discoveredAssets, assets)
-    if (picks.length > 0 && autoCutout.willAutoCutOut) {
+    // Also wait while the model-download consent (phones / data-saver) is undecided: placing the
+    // originals now would remove the picks from the grid, and the consent prompt with them.
+    if (picks.length > 0 && (autoCutout.willAutoCutOut || autoCutout.needsConsent)) {
       if (autoImportHoldSinceRef.current === null) autoImportHoldSinceRef.current = Date.now()
       const waited = Date.now() - autoImportHoldSinceRef.current
       if (shouldHoldAutoImport(picks.map((asset) => asset.id), discoveredAssets, { willAutoCutOut: true, waitedMs: waited })) {
@@ -4302,7 +4304,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         forgetUnplaced([])
         summarize([])
       })
-  }, [discoveryStatus, discoveredAssets, assets, importDiscoveredAssets, clientForm.website, autoCutout.willAutoCutOut, autoImportWaitTick])
+  }, [discoveryStatus, discoveredAssets, assets, importDiscoveredAssets, clientForm.website, autoCutout.willAutoCutOut, autoCutout.needsConsent, autoImportWaitTick])
 
   const cancelDiscovery = useCallback(() => {
     setDiscoveredAssetsState([])
