@@ -1,3 +1,4 @@
+import { applyCustomFields, rotationCss, sourceMediaStyle } from './layerTransform'
 import { contractFor, layerZIndex, roleForLayer } from './mediaRoles'
 import { ownText, resolveLayerImageUrl, resolveLayerText } from './layerContent'
 import { endCardFrames } from './endCard'
@@ -58,6 +59,21 @@ const NOOP_SEQUENCE_MANAGER = {
   registerSequence: () => {},
   unregisterSequence: () => {},
   sequences: [],
+}
+
+/**
+ * `Internals.SequenceManager` only exists in some Remotion versions. The pinned
+ * 4.0.540 does not export it (only `SequenceManagerProvider`), and reading
+ * `.Provider` off `undefined` crashed the whole composition in a real browser
+ * (Player and web-renderer export alike) while jsdom tests, which mock it, kept
+ * passing. The no-op provider is a test-only workaround, so it is used when the
+ * runtime offers it and skipped otherwise.
+ */
+const SequenceManagerBoundary: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const Provider = (Internals as unknown as {
+    SequenceManager?: { Provider?: React.ComponentType<{ value: unknown; children?: React.ReactNode }> }
+  }).SequenceManager?.Provider
+  return Provider ? <Provider value={NOOP_SEQUENCE_MANAGER}>{children}</Provider> : <>{children}</>
 }
 
 interface EntranceState {
@@ -335,7 +351,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       return (
         <Img
           src={posterUrl}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', ...sourceMediaStyle(settings.sourceTransform) }}
         />
       )
     }
@@ -353,7 +369,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           src={toPlayablePreviewMediaUrl(videoUrl)}
           muted={false}
           onError={handleMediaError}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', ...sourceMediaStyle(settings.sourceTransform) }}
         />
       )
     }
@@ -361,7 +377,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       return (
         <Img
           src={posterUrl}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', ...sourceMediaStyle(settings.sourceTransform) }}
         />
       )
     }
@@ -432,7 +448,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
   const { start: endCardStart, length: endCardLen } = endCardFrames(settings.durationInFrames)
 
   return (
-    <Internals.SequenceManager.Provider value={NOOP_SEQUENCE_MANAGER}>
+    <SequenceManagerBoundary>
     <AbsoluteFill style={{ background: '#05070a' }}>
       {renderBackground()}
       {audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
@@ -448,7 +464,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           const isText = TEXT_LAYER_KINDS.includes(layer.kind)
           const isDesign = layer.kind === 'design'
           if (!isImage && !isText && !isDesign) return null
-          const text = isText ? resolveLayerText(layer, brand) : ''
+          const text = isText ? applyCustomFields(resolveLayerText(layer, brand), settings.customFields) : ''
           const imageUrl = isImage ? resolveLayerImageUrl(layer, brand) : ''
           if (isText && !text.trim()) return null
           // A headline/tagline with no text of its own that would only repeat
@@ -484,6 +500,15 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           if (entrance.translateX) transformParts.push(`translateX(${entrance.translateX}px)`)
           if (entrance.translateY) transformParts.push(`translateY(${entrance.translateY}px)`)
           if (entrance.scale !== 1) transformParts.push(`scale(${entrance.scale})`)
+          // Rotation is the customer's own placement. Designs are full-frame and are
+          // never rotated. An image's box is square, so it rotates about its centre
+          // right here; a text layer's wrapper is frame-tall (an AbsoluteFill), so it
+          // is rotated on the auto-height element inside it instead — otherwise the
+          // pivot would be the middle of the frame-tall box, far from the text, and
+          // the text would swing away. That inner element is the same box the editor
+          // stage rotates, so preview, stage and export agree.
+          const rotate = isDesign ? '' : rotationCss(layer.rotation)
+          if (rotate && isImage) transformParts.push(rotate)
 
           // The layer's media role decides stacking and image fitting.
           const designForRole = isDesign && layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined
@@ -588,7 +613,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
 
             const reveal = style ? revealFactors(style, frame, layer.startFrame + (layer.animationDelay || 0)) : { progress: 1, scale: 1 }
             // A reveal replaces the layer's own entrance animation.
-            const boxStyle = (style?.reveal === 'wipe' || style?.reveal === 'diagonal') ? { ...layerStyle, opacity: layer.opacity, transform: undefined } : layerStyle
+            const boxStyle = (style?.reveal === 'wipe' || style?.reveal === 'diagonal') ? { ...layerStyle, opacity: layer.opacity, transform: rotate || undefined } : layerStyle
             return (
               <AbsoluteFill key={layer.id} style={{ ...boxStyle, height: box.widthPx }}>
                 <div style={{ position: 'absolute', inset: 0, opacity: exit.opacity, transform: exit.scale !== 1 ? `scale(${exit.scale})` : undefined }}>
@@ -631,7 +656,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           if (layer.kind === 'cta') {
             return (
               <AbsoluteFill key={layer.id} style={layerStyle}>
-                <div style={{ width: '100%', textAlign: 'center' }}>
+                <div style={{ width: '100%', textAlign: 'center', transform: rotate || undefined }}>
                   <span
                     style={{
                       // The layer's color is the button color (default: accent);
@@ -667,6 +692,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
                   // Only break a word that cannot fit on a line by itself;
                   // `wordBreak: 'break-word'` split ordinary words mid-word.
                   overflowWrap: 'break-word',
+                  transform: rotate || undefined,
                 }}
               >
                 {text}
@@ -682,6 +708,6 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           </Sequence>
         ) : null}
       </AbsoluteFill>
-    </Internals.SequenceManager.Provider>
+    </SequenceManagerBoundary>
   )
 }

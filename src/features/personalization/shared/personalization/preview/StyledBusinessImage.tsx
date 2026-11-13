@@ -4,7 +4,7 @@ import {
   borderPx,
   borderRadiusCss,
   frameRect,
-  objectPosition,
+  imageMediaStyle,
   resolveBorderColor,
   hexToRgba,
   shadowCss,
@@ -86,7 +86,7 @@ export const StyledBusinessImage: React.FC<StyledBusinessImageProps> = ({
         width: '100%',
         height: '100%',
         objectFit: imageStyle.fit,
-        objectPosition: objectPosition(imageStyle),
+        ...imageMediaStyle(imageStyle),
         display: 'block',
       }}
     />
@@ -282,7 +282,7 @@ export const ImageCollage: React.FC<{
         return (
           <div key={i} data-styled-image="tile" style={{ position: 'absolute', left: t.x * boxWidth, top: t.y * boxHeight, width: w, height: h, borderRadius: radius, boxShadow: shadow }}>
             <div style={{ width: '100%', height: '100%', borderRadius: radius, overflow: 'hidden', boxSizing: 'border-box', border: border ? `${border}px solid ${resolveBorderColor(imageStyle.borderColor, brand)}` : undefined }}>
-              <ImageComponent src={urls[i]} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: objectPosition(imageStyle), display: 'block' }} />
+              <ImageComponent src={urls[i]} style={{ width: '100%', height: '100%', objectFit: 'cover', ...imageMediaStyle(imageStyle, true), display: 'block' }} />
             </div>
           </div>
         )
@@ -335,7 +335,7 @@ export const SplitPanel: React.FC<{
           filter: imageStyle.shadow === 'none' ? undefined : `drop-shadow(0 0 ${Math.round(compHeight * 0.02)}px rgba(0,0,0,0.35))`,
         }}
       >
-        <ImageComponent src={src} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: objectPosition(imageStyle), display: 'block' }} />
+        <ImageComponent src={src} style={{ width: '100%', height: '100%', objectFit: 'cover', ...imageMediaStyle(imageStyle, true), display: 'block' }} />
       </div>
       <div
         data-styled-image="split-line"

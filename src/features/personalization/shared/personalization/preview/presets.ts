@@ -6,6 +6,7 @@
  * every x/y pair describes the CENTER of a layer box.
  */
 
+import { normalizeCustomFields, normalizeRotation, normalizeSourceTransform } from './layerTransform'
 import { contractFor, roleForLayer } from './mediaRoles'
 import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle'
 import type {
@@ -929,6 +930,10 @@ function normalizeLayer(raw: unknown): PreviewLayer | null {
   if (raw.placementSource === 'manual' || raw.placementSource === 'recommended') {
     normalized.placementSource = raw.placementSource
   }
+  const rotation = normalizeRotation(raw.rotation)
+  if (rotation !== undefined) normalized.rotation = rotation
+  const groupId = nonEmptyString(raw.groupId)
+  if (groupId) normalized.groupId = groupId.slice(0, 64)
   return normalized
 }
 
@@ -1110,6 +1115,10 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
   if (zones) out.protectedZones = zones
   const hints = normalizeImageHints(raw.imageHints)
   if (hints) out.imageHints = hints
+  const sourceTransform = normalizeSourceTransform(raw.sourceTransform)
+  if (sourceTransform) out.sourceTransform = sourceTransform
+  const customFields = normalizeCustomFields(raw.customFields)
+  if (customFields) out.customFields = customFields
 
    return out
   } catch {

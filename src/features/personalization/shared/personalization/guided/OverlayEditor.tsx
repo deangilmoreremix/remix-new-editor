@@ -7,6 +7,9 @@ import type { ImageStyle } from '../preview/imageStyle'
 import { imageRoleForLayerKind, presetStyle, resolveImageLook } from '../preview/imagePresets'
 import { MEDIA_ROLE_CONTRACTS, roleForLayer } from '../preview/mediaRoles'
 import { ImageStyleControls } from './ImageStyleControls'
+import { LayerToolsPanel } from './LayerToolsPanel'
+import { applyCustomFields, rotationCss, sourceMediaStyle } from '../preview/layerTransform'
+import { computeSnap, groupMemberIds, layerRect, moveLayers, unionRect, type SnapGuide } from './layerOps'
 import { DesignLayerPlayer } from './DesignLayerPlayer'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import {
@@ -196,6 +199,10 @@ interface DragState {
   /** Safe-area-clamped snapshot taken when the drag started (no jump). */
   origin: PreviewLayer
   mode: 'move' | 'resize'
+  /** Every layer a move carries (the layer itself, its group, or the multi-selection). */
+  memberIds: string[]
+  /** The settings when the drag began; moves are always computed from here, so they never drift. */
+  originSettings: PersonalizationPreviewSettings
 }
 
 export interface OverlayEditorProps {
@@ -227,6 +234,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
   const {
     previewSettings,
     updatePreviewLayer,
+    editPreviewSettings,
     setPreviewLayerLocked,
     setRemotionDesign,
     undoPreview,
@@ -244,6 +252,14 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
   const [selectedId, setSelectedId] = useState<string>(() => settings.layers[0]?.id || '')
   const dragRef = useRef<DragState | null>(null)
   const [confirmRemoveDesign, setConfirmRemoveDesign] = useState(false)
+  // Extra layers selected with Shift/Ctrl/Cmd-click (the primary one is `selectedId`).
+  const [extraIds, setExtraIds] = useState<string[]>([])
+  const [snapGrid, setSnapGrid] = useState(false)
+  const [guides, setGuides] = useState<SnapGuide[]>([])
+  const settingsRef = useRef<PersonalizationPreviewSettings>(previewSettings)
+  settingsRef.current = previewSettings
+  const snapGridRef = useRef(false)
+  snapGridRef.current = snapGrid
 
   // The Layout Quality Check's "Show" selects the affected layer here.
   useEffect(() => {
@@ -262,6 +278,17 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
 
   const editableLayers = settings.layers.filter((layer) => layer.kind !== 'endCard')
   const selected = settings.layers.find((layer) => layer.id === selectedId) || settings.layers[0] || null
+  const selectionIds = Array.from(new Set([selected?.id, ...extraIds])).filter(
+    (id): id is string => !!id && settings.layers.some((l) => l.id === id),
+  )
+  const toggleSelect = (id: string) => {
+    if (id === selected?.id) {
+      if (extraIds.length) { setSelectedId(extraIds[0]); setExtraIds(extraIds.slice(1)) }
+      return
+    }
+    setExtraIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+  const selectOnly = (id: string) => { setSelectedId(id); setExtraIds([]) }
   const selectedDesign =
     selected?.kind === 'design' && selected.designId
       ? getRemotionDesignTemplate(selected.designId)
@@ -322,18 +349,51 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
       if (rect.width === 0 || rect.height === 0) return
       const dx = (event.clientX - drag.startX) / rect.width
       const dy = (event.clientY - drag.startY) / rect.height
-      if (drag.mode === 'move') {
+      if (drag.mode === 'move' && !editPreviewSettings) {
+        // No settings editor in context (a bare host): move just this layer.
         commitPosition(drag.layerId, offsetLayer(drag.origin, dx, dy, compW, compH))
+      } else if (drag.mode === 'move' && editPreviewSettings) {
+        // Moves are always computed from the settings the drag began with, for the
+        // layer, its whole group or the multi-selection, so members never drift apart.
+        const o = drag.originSettings
+        const members = new Set(drag.memberIds)
+        let ddx = dx
+        let ddy = dy
+        let nextGuides: SnapGuide[] = []
+        if (!event.altKey) {
+          const moved = moveLayers(o, drag.memberIds, dx, dy, compW, compH)
+          const box = unionRect(moved.layers.filter((l) => members.has(l.id) && l.visible).map((l) => layerRect(l, compW, compH)))
+          if (box) {
+            const others = o.layers
+              .filter((l) => !members.has(l.id) && l.visible && l.kind !== 'endCard' && l.kind !== 'design')
+              .map((l) => layerRect(clampLayerToBounds(l, compW, compH), compW, compH))
+            const snap = computeSnap(box, others, { grid: snapGridRef.current ? 0.05 : null })
+            ddx += snap.dx
+            ddy += snap.dy
+            nextGuides = snap.guides
+          }
+        }
+        setGuides(nextGuides)
+        const result = moveLayers(o, drag.memberIds, ddx, ddy, compW, compH)
+        const positions = new Map(result.layers.filter((l) => members.has(l.id)).map((l) => [l.id, { x: l.x, y: l.y }]))
+        editPreviewSettings((prev) => ({
+          ...prev,
+          layers: prev.layers.map((l) => {
+            const pos = positions.get(l.id)
+            return pos && !l.locked ? { ...l, x: pos.x, y: pos.y, placementSource: 'manual' as const } : l
+          }),
+        }))
       } else {
         const nextScale = drag.origin.scale * (1 + dx * 2)
         commitScale(drag.layerId, scaleLayerTo(drag.origin, nextScale, compW, compH))
       }
     },
-    [commitPosition, commitScale, compW, compH],
+    [commitPosition, commitScale, compW, compH, editPreviewSettings],
   )
 
   const endDrag = useCallback(() => {
     dragRef.current = null
+    setGuides((g) => (g.length ? [] : g))
   }, [])
 
   // Window-level listeners: a drag that leaves the stage (or the window)
@@ -366,7 +426,12 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
   const startDrag = (event: React.PointerEvent, layer: PreviewLayer, mode: 'move' | 'resize') => {
     event.preventDefault()
     event.stopPropagation()
-    setSelectedId(layer.id)
+    if (event.shiftKey || event.ctrlKey || event.metaKey) {
+      toggleSelect(layer.id) // additive selection: select, don't drag
+      return
+    }
+    const inSelection = selectionIds.includes(layer.id)
+    if (!inSelection) selectOnly(layer.id)
     const allowed = contractOf(layer)
     if (mode === 'move' ? !allowed.userMovable : !allowed.userResizable) return
     if (layer.locked) return // locked: selectable, but not draggable until unlocked
@@ -380,6 +445,10 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
       // out of the safe area.
       origin: clampLayerToBounds(layer, compW, compH),
       mode,
+      originSettings: settingsRef.current,
+      memberIds: Array.from(
+        new Set((inSelection ? selectionIds : [layer.id]).flatMap((id) => groupMemberIds(settingsRef.current.layers, id))),
+      ),
     }
     if (mode === 'move') {
       // Keep focus on the dragged box so arrow keys nudge straight after a drag.
@@ -471,7 +540,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
             <img
               src={inputProps.posterUrl}
               alt=""
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, ...sourceMediaStyle(settings.sourceTransform) }}
             />
           ) : (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, fontSize: 12 }}>
@@ -491,6 +560,26 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
             }}
           />
 
+          {guides.map((g) => (
+            <div
+              key={`${g.axis}-${g.at}`}
+              aria-hidden
+              data-testid="snap-guide"
+              data-axis={g.axis}
+              data-kind={g.kind}
+              style={{
+                position: 'absolute',
+                pointerEvents: 'none',
+                background: C.cyan,
+                opacity: 0.7,
+                zIndex: 50,
+                ...(g.axis === 'x'
+                  ? { left: `${g.at * 100}%`, top: 0, bottom: 0, width: 1 }
+                  : { top: `${g.at * 100}%`, left: 0, right: 0, height: 1 }),
+              }}
+            />
+          ))}
+
           {factor > 0 &&
             editableLayers.filter((layer) => layer.visible).map((layer) => {
               const isDesign = layer.kind === 'design'
@@ -498,7 +587,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
               // screen isn't drawn in the video, so here it's a faded "add
               // your text" placeholder you can still grab and move.
               const repeatsName = isRepeatedBusinessName(layer, brand, editableLayers)
-              const text = repeatsName ? `${LAYER_LABELS[layer.kind]} — add your text` : layerText(layer, brand)
+              const text = repeatsName ? `${LAYER_LABELS[layer.kind]} — add your text` : applyCustomFields(layerText(layer, brand), settings.customFields)
               const box = toStageBox(layer, compW, compH, stageWidth, isDesign || isImageLayerKind(layer.kind) ? undefined : text)
               const imageUrl = layerImageUrl(layer, brand)
               if (!isDesign && !isImageLayerKind(layer.kind) && !text.trim()) return null
@@ -542,9 +631,10 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                     width: box.width,
                     height: box.height,
                     cursor: contractOf(layer).userMovable ? 'move' : 'default',
-                    outline: isSelected ? `2px dashed ${C.cyan}` : 'none',
+                    outline: isSelected || extraIds.includes(layer.id) ? `2px ${isSelected ? 'dashed' : 'dotted'} ${C.cyan}` : 'none',
                     outlineOffset: 2,
                     opacity: layer.opacity,
+                    transform: isDesign ? undefined : rotationCss(layer.rotation) || undefined,
                     userSelect: 'none',
                   }}
                 >
@@ -658,19 +748,22 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                     setSelectedId(layer.id)
                   }
                 }}
-                onClick={() => setSelectedId(layer.id)}
+                onClick={(event) => (event.shiftKey || event.ctrlKey || event.metaKey ? toggleSelect(layer.id) : selectOnly(layer.id))}
                 style={{
                   ...softPanelStyle,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  border: `1px solid ${selected?.id === layer.id ? C.cyanBorder : C.border}`,
+                  border: `1px solid ${selected?.id === layer.id || extraIds.includes(layer.id) ? C.cyanBorder : C.border}`,
                   cursor: 'pointer',
                 }}
               >
                 <span style={{ color: C.text, fontSize: 12, fontWeight: 700, flex: 1 }}>{LAYER_LABELS[layer.kind]}</span>
                 {layerDesign ? (
                   <span style={{ color: C.muted, fontSize: 10 }}>{layerDesign.name}</span>
+                ) : null}
+                {layer.groupId ? (
+                  <span data-testid="layer-group-badge" style={{ color: C.muted, fontSize: 10 }}>{layer.groupId.replace('-', ' ')}</span>
                 ) : null}
                 {layer.kind === 'endCard' ? (
                   <span style={{ color: C.muted, fontSize: 10 }}>{settings.showEndCard ? 'On' : 'Off'}</span>
@@ -999,6 +1092,20 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                 {settings.showEndCard ? 'Turn off end card' : 'Turn on end card'}
               </button>
             </div>
+          )}
+
+          {editPreviewSettings && (
+            <LayerToolsPanel
+              settings={settings}
+              selected={selected ?? undefined}
+              selectionIds={selectionIds}
+              compW={compW}
+              compH={compH}
+              edit={editPreviewSettings}
+              onSelect={selectOnly}
+              snapGrid={snapGrid}
+              onSnapGridChange={setSnapGrid}
+            />
           )}
         </div>
       </div>

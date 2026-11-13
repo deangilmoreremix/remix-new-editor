@@ -97,6 +97,27 @@ export interface PreviewLayer {
    * own; `recommended` = the placement engine. Absent = the template default.
    */
   placementSource?: 'manual' | 'recommended'
+  /**
+   * Clockwise rotation in degrees about the layer box centre, -180..180.
+   * Absent = 0. Rendered by the shared composition, so preview and export match.
+   */
+  rotation?: number
+  /**
+   * Layers that share a `groupId` move together in the editor. Purely an
+   * editing relationship: every member still renders as its own layer.
+   */
+  groupId?: string
+}
+
+/**
+ * Reposition/zoom of the source footage (e.g. the presenter) inside the frame.
+ * `x`/`y` are the focal point as 0..1 fractions (0.5 = centred); `zoom` >= 1
+ * scales the footage about that point. Absent = the footage fills the frame.
+ */
+export interface SourceTransform {
+  x: number
+  y: number
+  zoom: number
 }
 
 /** A rectangle in normalized frame coordinates; (x, y) is the TOP-LEFT corner. */
@@ -188,6 +209,13 @@ export interface PersonalizationPreviewSettings {
    * editor, preview and export — style the same image the same way.
    */
   imageHints?: Record<string, ImageHints>
+  /** Reposition/zoom of the source footage (presenter). Absent = fills the frame. */
+  sourceTransform?: SourceTransform
+  /**
+   * User-defined personalization fields. Text layers may reference them as
+   * `{{key}}`; any other `{{token}}` is left untouched.
+   */
+  customFields?: Record<string, string>
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */

@@ -20,6 +20,7 @@
  *  - once the customer edits a style it is theirs (`auto` is cleared) and is
  *    never replaced automatically
  */
+import { clampImageZoom } from './layerTransform'
 import type { OverlayMediaRole } from './mediaRoles'
 
 /** The explicit purpose of an assigned business image (never inferred from a filename or discovery order). */
@@ -62,6 +63,8 @@ export interface ImageStyle {
   /** Crop focus 0..1 (0.5 = centre); matters for `cover`. */
   cropX: number
   cropY: number
+  /** Zoom 1..4 about the crop focus; applies only when the picture fills its shape (`cover`). Absent = 1. */
+  zoom?: number
   /** Border width as a fraction of the COMPOSITION height (0 = none). */
   borderWidth: number
   /** `brand-primary`, `brand-accent`, or a hex colour. */
@@ -173,6 +176,8 @@ export function normalizeImageStyle(raw: unknown, base: ImageStyle = ROUNDED_REC
     fill: typeof r.fill === 'string' && /^#[0-9a-f]{3,8}$/i.test(r.fill.trim()) ? r.fill.trim() : null,
   }
   if (style.radiusComp === undefined) delete style.radiusComp
+  const zoom = clampImageZoom(r.zoom)
+  if (zoom > 1) style.zoom = zoom
   if (Array.isArray(r.customRadii) && r.customRadii.length === 4) {
     style.customRadii = r.customRadii.map((v) => clamp(num(v, 0), 0, 0.5)) as [number, number, number, number]
   }
@@ -343,4 +348,19 @@ export function shadowBleedPx(style: ImageStyle, compH: number): number {
 /** CSS object-position from the crop focus. */
 export function objectPosition(style: ImageStyle): string {
   return `${Math.round(style.cropX * 100)}% ${Math.round(style.cropY * 100)}%`
+}
+
+/**
+ * Crop focus + zoom for the <img>. Zoom is applied only when the picture fills
+ * its shape (`cover`, or `forceCover` for tiles/split panels that always do),
+ * because only then does the shape's clip hide the overflow.
+ */
+export function imageMediaStyle(
+  style: ImageStyle,
+  forceCover = false,
+): { objectPosition: string; transform?: string; transformOrigin?: string } {
+  const pos = objectPosition(style)
+  const zoom = clampImageZoom(style.zoom)
+  if (zoom <= 1 || (!forceCover && style.fit !== 'cover')) return { objectPosition: pos }
+  return { objectPosition: pos, transform: `scale(${zoom})`, transformOrigin: pos }
 }

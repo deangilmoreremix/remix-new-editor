@@ -996,6 +996,12 @@ export type DemoPersonalizeContextValue = {
   setPreviewVideo: (video: PreviewVideoRef | null) => void
   setPreviewLayout: (layout: PreviewLayoutId) => void
   updatePreviewLayer: (layerId: string, patch: Partial<PreviewLayer>) => void
+  /**
+   * Applies a pure edit to the preview settings (duplicate, reorder, group, align,
+   * source transform, custom fields…). It goes through the same state — and so the
+   * same undo history, autosave and project persistence — as every other edit.
+   */
+  editPreviewSettings: (edit: (prev: PersonalizationPreviewSettings) => PersonalizationPreviewSettings) => void
   /** Locks/unlocks a layer: a locked layer is never moved by the editor, a reflow or the placement engine. */
   setPreviewLayerLocked: (layerId: string, locked: boolean) => void
   /** Regions of the footage the overlays must not cover (customer-marked subject areas). */
@@ -5747,6 +5753,14 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     }))
   }, [])
 
+  const editPreviewSettings = useCallback(
+    (edit: (prev: PersonalizationPreviewSettings) => PersonalizationPreviewSettings) => {
+      markSessionStarted()
+      setPreviewSettings((prev) => edit(prev))
+    },
+    [markSessionStarted],
+  )
+
   // Measure each ASSIGNED image once (aspect ratio, transparent corners, an existing frame)
   // and keep the result in the shared preview settings, so the gallery card, editor,
   // preview and export all style the same image identically. Files are never modified.
@@ -6530,6 +6544,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setPreviewVideo,
     setPreviewLayout,
     updatePreviewLayer,
+    editPreviewSettings,
     setPreviewLayerLocked,
     setPreviewProtectedZones,
     applyPreviewPlacements,
