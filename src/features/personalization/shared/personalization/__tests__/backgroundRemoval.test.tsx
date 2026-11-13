@@ -54,7 +54,7 @@ vi.mock('../alphaVerification', () => ({
 import { removeAssetBackground, BackgroundRemovalFailure } from '../backgroundRemoval/backgroundRemovalClient'
 import { loadImageBlob } from '../backgroundRemoval/loadImageBlob'
 import { useAutoCutout, type AutoCutoutControls } from '../backgroundRemoval/useAutoCutout'
-import { DiscoveredAssetGrid } from '../DiscoveredAssetGrid'
+import { DiscoveredAssetGrid, discoveredAssetDisplayUrl } from '../DiscoveredAssetGrid'
 
 function asset(overrides: Partial<DiscoveredAsset>): DiscoveredAsset {
   return {
@@ -228,6 +228,31 @@ describe('useAutoCutout (auto queue)', () => {
     await act(async () => latest.cutout.requestRemoval(['b']))
     await settle(0, () => latest.assets.find((a) => a.id === 'b')?.bgRemoval?.status === 'done')
     expect(latest.assets.find((a) => a.id === 'b')!.hasTransparency).toBe(true)
+  })
+
+  it('a request made right after Cancel is not wiped by the cancelled job finishing', async () => {
+    // The first job is stuck downloading; Cancel then an immediate request for the same asset.
+    let stall = true
+    vi.mocked(loadImageBlob).mockImplementation((url: string, options?: { signal?: AbortSignal }) =>
+      stall
+        ? new Promise<Blob>((_, reject) => {
+            options?.signal?.addEventListener('abort', () => {
+              stall = false
+              reject(Object.assign(new Error('aborted'), { name: 'AbortError' }))
+            })
+          })
+        : Promise.resolve(new Blob([url], { type: 'image/jpeg' })),
+    )
+    await mount([asset({ id: 'a', previewUrl: 'https://shop.example/a.jpg' })])
+    await settle(150)
+    expect(latest.assets[0].bgRemoval?.status).toBe('running')
+    await act(async () => latest.cutout.setAutoEnabled(false)) // only a manual request can restart it
+    await act(async () => {
+      latest.cutout.cancelAll()
+      latest.cutout.requestRemoval(['a'])
+    })
+    await settle(0, () => latest.assets.find((a) => a.id === 'a')?.bgRemoval?.status === 'done')
+    expect(latest.assets.find((a) => a.id === 'a')!.hasTransparency).toBe(true)
   })
 
   it('Cancel frees the queue even when an image download is stuck', async () => {
@@ -472,5 +497,16 @@ describe('DiscoveredAssetGrid with background removal', () => {
     })
     expect(container.querySelector('[data-testid="background-removal-bar"]')).toBeNull()
     expect(container.querySelector('[aria-label="Remove background"]')).toBeNull()
+  })
+})
+
+describe('discoveredAssetDisplayUrl', () => {
+  it('shows an AI edit even if the user had picked Original on the earlier cutout', () => {
+    const edited = asset({ showOriginal: true, originalPreviewUrl: 'https://x/orig.jpg', editedDataUrl: 'data:image/png;base64,AI', editMetadata: { operation: 'remove_background', engine: 'ai' } as never })
+    expect(discoveredAssetDisplayUrl(edited)).toBe('data:image/png;base64,AI')
+  })
+  it('still shows the original when a cutout exists and Original is picked', () => {
+    const cut = asset({ showOriginal: true, hasTransparency: true, originalPreviewUrl: 'https://x/orig.jpg', editedDataUrl: 'data:image/png;base64,CUT', editMetadata: { operation: 'remove_background', engine: 'bg0' } as never })
+    expect(discoveredAssetDisplayUrl(cut)).toBe('https://x/orig.jpg')
   })
 })

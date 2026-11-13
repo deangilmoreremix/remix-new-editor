@@ -226,7 +226,13 @@ export function useAutoCutout(
         if (blob.type !== 'image/jpeg') {
           const before = await verifyAlphaChannel(await blobToDataUrl(blob))
           if (before.hasTransparentPixels && before.transparentRatio > 0.02) {
-            patch(id, (a) => ({ ...a, hasTransparency: true, bgRemoval: { status: 'skipped', message: 'Transparent' } }))
+            if (controller.signal.aborted) throw new BackgroundRemovalFailure('cancelled', 'Cancelled')
+            // Only if the asset is still the one we checked (not edited or removed meanwhile).
+            patch(id, (a) =>
+              a.rejected || a.editedDataUrl !== baselineEdit
+                ? a
+                : { ...a, hasTransparency: true, bgRemoval: { status: 'skipped', message: 'Transparent' } },
+            )
             return
           }
         }
@@ -283,7 +289,10 @@ export function useAutoCutout(
             ? error
             : new BackgroundRemovalFailure('unknown', error instanceof Error ? error.message : 'Background removal failed.')
         if (failure.code === 'cancelled') {
-          finish({ status: 'idle' })
+          // Reset only our own run: a request made after Cancel has already re-queued the asset.
+          if (mountedRef.current) {
+            patch(id, (a) => (a.bgRemoval?.status === 'running' ? { ...a, bgRemoval: { status: 'idle' } } : a))
+          }
         } else {
           if (failure.needsReload && mountedRef.current) setHalted(true)
           finish({ status: 'error', message: failure.message })
