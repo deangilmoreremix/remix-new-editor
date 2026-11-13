@@ -9,6 +9,7 @@ import { snapshotFor } from '@cinegen/lib/occ/plugins';
 import { OccLibraryModal } from './occ-library-modal';
 import { importCubeFile, loadUserLuts, userLutIds } from '@cinegen/lib/occ/user-luts';
 import { t } from '../../../openchatcut/i18n/t';
+import { ColorScopesPanel } from './color-scopes-panel';
 
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12, fontFamily: 'inherit' } as const;
 
@@ -25,6 +26,7 @@ export function ClipEffectsSection({ clip, currentTime = 0, onUpdate }: Props) {
   const [, bump] = useState(0);
   const [lutError, setLutError] = useState('');
   const [library, setLibrary] = useState(false);
+  const [scopes, setScopes] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   useEffect(() => { void loadUserLuts().then((l) => l.length && bump((n) => n + 1)); }, []);
   const fx = clip.fx ?? [];
@@ -107,6 +109,10 @@ export function ClipEffectsSection({ clip, currentTime = 0, onUpdate }: Props) {
           <span className="clip-properties-panel__value">{Math.round(clip.lut.intensity * 100)}%</span>
         </div>
       )}
+      <div className="clip-properties-panel__row">
+        <button className="clip-properties-panel__toggle-btn" data-testid="toggle-scopes" aria-pressed={scopes} onClick={() => setScopes((v) => !v)}>{scopes ? 'Hide color scopes' : 'Color scopes…'}</button>
+      </div>
+      {scopes && <ColorScopesPanel />}
       <div className="clip-properties-panel__section-title" style={{ marginTop: 8 }}>Blend</div>
       <div className="clip-properties-panel__row">
         <select aria-label="Blend mode" style={selectStyle} value={clip.blendMode ?? 'normal'} onChange={(e) => onUpdate({ blendMode: e.target.value === 'normal' ? undefined : e.target.value })}>

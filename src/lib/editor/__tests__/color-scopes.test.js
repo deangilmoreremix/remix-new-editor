@@ -27,4 +27,21 @@ describe('computeScopes', () => {
     expect(s.waveform.data[1 * 256 + 0]).toBe(40);
     expect(s.stats.meanLuma).toBeCloseTo(127.5, 0);
   });
+  it('RGB parade keeps R, G and B in separate bands (pure red = only the red band at the top level)', () => {
+    const s = computeScopes(solid(30, 6, [255, 0, 0]), 30, 6, { waveformColumns: 6 });
+    const { columns: pc, data } = s.parade;
+    expect(pc).toBe(2);
+    const total = (ch, level) => { let n = 0; for (let c = 0; c < pc; c += 1) n += data[ch * pc * 256 + c * 256 + level]; return n; };
+    expect(total(0, 255)).toBe(180);
+    expect(total(1, 0)).toBe(180);
+    expect(total(2, 0)).toBe(180);
+    expect(total(1, 255) + total(2, 255)).toBe(0);
+  });
+  it('RGB parade columns follow x position (bright left / dark right)', () => {
+    const w = 20, h = 2; const d = new Uint8ClampedArray(w * h * 4);
+    for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) d.set(x < 10 ? [255, 255, 255, 255] : [0, 0, 0, 255], (y * w + x) * 4);
+    const s = computeScopes(d, w, h, { waveformColumns: 6 });
+    expect(s.parade.data[0 * 256 + 255]).toBe(20);
+    expect(s.parade.data[1 * 256 + 0]).toBe(20);
+  });
 });
