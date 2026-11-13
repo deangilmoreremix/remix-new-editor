@@ -32,8 +32,9 @@ export function planBulkLinks({ contacts = [], assetsByBusiness = {}, requiredSl
     const assets = {};
     for (const [slot, url] of Object.entries(own)) if (isHttp(url)) assets[slot] = url;
     const missingSlots = requiredSlots.filter((s) => !assets[s] && !isHttp(c.variables?.[s]));
-    // asset URLs win over free-text variables of the same name only when the contact has none of its own
-    const variables = sanitizeRecipientVariables({ ...assets, ...(c.variables || {}) });
+    // The business's assigned images for THIS video win over a same-named variable on the contact (those are mirrors of earlier
+    // assignments and would otherwise pin a replaced image). A contact-only image slot with no assignment is kept.
+    const variables = sanitizeRecipientVariables({ ...(c.variables || {}), ...assets });
     let status = 'ready';
     if (!c.id) status = 'invalid';
     else if (live.has(c.id)) status = 'already-linked';

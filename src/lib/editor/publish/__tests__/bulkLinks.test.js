@@ -55,3 +55,11 @@ describe('refreshing existing links from the library', () => {
     expect(mergeAssetVariables({ logoUrl: 'https://old/l.png' }, { logoUrl: 'blob:x' })).toEqual({});
   });
 });
+
+describe('assigned images win over mirrored contact variables', () => {
+  it('a replaced image is not pinned by an older copy on the contact; contact-only image slots stay', () => {
+    const contact = { id: 'c1', name: 'A', businessId: 'b1', variables: { logoUrl: 'https://old/logo.png', productImageUrl: 'https://old/p.png', avatarUrl: 'https://me/a.png', FIRSTNAME: 'Ann' } };
+    const [r] = planBulkLinks({ contacts: [contact], assetsByBusiness: { b1: { logoUrl: 'https://new/logo.png', productImageUrl: 'https://new/p.png' } }, requiredSlots: ['logoUrl'] });
+    expect(r.variables).toMatchObject({ logoUrl: 'https://new/logo.png', productImageUrl: 'https://new/p.png', avatarUrl: 'https://me/a.png', FIRSTNAME: 'Ann' });
+  });
+});

@@ -56,7 +56,8 @@ export function useRecipients(pub: ReturnType<typeof usePublished>, lib: Busines
     }, { quiet: true });
   }, [videoId, pub.signedIn, projectId, guard]);
   // re-read when the picker changed assets/assignments, so the table never shows a stale "ready"
-  useEffect(() => { void reload(); }, [reload, lib.assets, lib.assignments]);
+  // (assigning an image also rewrites that contact's profile, so re-read the contacts too)
+  useEffect(() => { refreshContacts(); void reload(); }, [reload, refreshContacts, lib.assets, lib.assignments]);
 
   const rows: BulkRow[] = useMemo(() => buildBulkRows({ contacts, businesses, assets, assignments, recipients, requiredSlots }), [contacts, businesses, assets, assignments, recipients, requiredSlots]);
   const summary = useMemo(() => summarize(rows), [rows]);
