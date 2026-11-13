@@ -19,7 +19,7 @@ const TABS = {
 };
 
 const dialog = (page) => page.getByRole('dialog', { name: 'Add to timeline' });
-const lane = (page) => page.locator('.overlay-lane [role="button"]');
+const lane = (page) => page.locator('[data-testid="overlay-lane"] [role="button"]');
 const addButton = (page) => page.getByRole('button', { name: 'Add to timeline', exact: true });
 // the modal's own tab strip is the first "Categories" tablist (the Animations panel has another one inside)
 const topTab = (page, name) => dialog(page).getByRole('tablist', { name: 'Categories' }).first().getByRole('tab', { name: TABS[name] });
@@ -238,6 +238,41 @@ test.describe('Add to timeline modal', () => {
     await page.waitForTimeout(1200);
     await expect(card.locator('form')).toBeVisible();
     await expect(hint).toHaveCount(0);
+  });
+
+  test('the Library sidebar has a Browse everything button that opens the modal', async ({ page }) => {
+    await page.getByTestId('open-library').first().click();
+    await page.getByTestId('library-open-add').click();
+    await expect(dialog(page)).toBeVisible();
+    await expect(topTab(page, 'all')).toBeVisible();
+  });
+
+  test('the modal covers the whole app (side rail included) and + Add is not cut off', async ({ page }) => {
+    await expect(addButton(page)).toHaveText('+ Add'); // fully visible, not "+ A…"
+    expect(await addButton(page).evaluate((e) => e.scrollWidth <= e.clientWidth + 1)).toBe(true);
+    await openModal(page, 'overlays');
+    // the corner and the left edge belong to the modal's backdrop, not to the app header or rail
+    for (const [x, y] of [[2, 2], [6, 360]]) {
+      expect(await page.evaluate(([px, py]) => !!document.elementFromPoint(px, py)?.closest('[role="dialog"][aria-modal="true"]'), [x, y]), `point ${x},${y}`).toBe(true);
+    }
+    // hovering the dialog must not pop an unrelated help card over it
+    await page.mouse.move(640, 300);
+    await page.waitForTimeout(900);
+    await expect(page.locator('.help-tooltip, [data-help-card]')).toHaveCount(0);
+  });
+
+  test('the BILD lower third (GSAP based) renders its title and shows no error notice', async ({ page }) => {
+    test.setTimeout(120_000);
+    await openModal(page, 'all');
+    await dialog(page).getByRole('textbox', { name: 'Search', exact: true }).fill('BILD');
+    await dialog(page).locator('.add-card-wrap', { hasText: 'BILD Style' }).first().locator('.add-card-plus').click();
+    await expect(dialog(page)).toBeHidden();
+    await expect(lane(page)).toHaveCount(1);
+    // the animation's own script runs inside the sandboxed preview frame; its text shows over the video
+    const frame = page.frameLocator('iframe.code-preview-frame').first();
+    await expect(frame.locator('#lb-main-text').first()).not.toBeEmpty({ timeout: 60_000 }); // the block's script set its title; with a missing gsap it never runs
+    await expect(frame.locator('#lb-main-text').first()).toBeVisible();
+    await expect(page.getByText(/could not be rendered|gsap\.timeline is not a function/i)).toHaveCount(0);
   });
 
   for (const [name, selector] of [['Smart Speech', '.speech-modal'], ['Template Generator', '.modal-overlay.active'], ['Personalization', '.modal-overlay.active']]) {

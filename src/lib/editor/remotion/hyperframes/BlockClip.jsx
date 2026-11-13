@@ -435,6 +435,10 @@ const applyVisibility = (host, t, wins) => {
   }
 };
 
+/** `gsap` is a declared dependency (package.json), but a checkout whose node_modules predates that declaration gets an EMPTY stand-in: the dev
+ *  server stubs unresolved imports (vite.config.js stubLegacy). Every block then died with the cryptic "gsap.timeline is not a function". */
+export const gsapAvailable = () => typeof gsap?.timeline === 'function' && typeof gsap?.set === 'function';
+
 const BLOCK_ID = /^[a-z0-9][a-z0-9-]{0,80}$/;
 const sha256Hex = async (buf) => { const d = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join(''); };
 
@@ -485,6 +489,7 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
     (async () => {
       try {
         if (!BLOCK_ID.test(String(name))) { report('refused', String(name).slice(0, 40), 'invalid block id'); return; }
+        if (!gsapAvailable()) { report('mount', name, 'the gsap package is not installed in this build, so animations cannot run. Run "npm install" and restart the dev server.'); return; }
         const base = project ? `/hyperframes/${project.dir}` : HF_BASE; // starter projects and components are vendored next to the blocks folder
         const pinned = async (url, sha, label, rel) => { // fetch one file and verify it against its pinned sha256 (fail closed); problems are attributed to the catalog item, the file named in the message
           const at = rel ? `${rel}: ` : '';

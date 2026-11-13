@@ -1,7 +1,7 @@
 // [remix] The Overlays lane under the timeline ruler: one block per overlay (Lead Generator, List Builder, CTA). Drag a block to
 // move it, drag its edges to trim, click to select (opens its settings), and add new ones at the playhead from the lane header.
 import { useMemo, useRef, useState } from 'react';
-import type { OverlayClip } from '@cinegen/types/workspace';
+import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
 import { isGateOverlay } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { decodeLibraryDrag, freeOverlayRow, hasLibraryDrag, LIBRARY_DND, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';

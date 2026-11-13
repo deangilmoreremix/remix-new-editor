@@ -2,7 +2,8 @@
 // the basic overlays and the End screen / Connect form templates. Smart Speech, Template Generator and Personalization have
 // their own modals (buttons in the overlay lane header), so they are not part of this one.
 // The cards come from add-to-timeline-registry.ts (every entry carries its own preview) and are drawn by preview-card.tsx.
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { hyperframesItems } from '@cinegen/lib/hyperframes/overlay';
 import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates';
 import { HyperframesPanel } from './hyperframes-modal';
@@ -24,6 +25,7 @@ const badge = (on: boolean): CSSProperties => ({ minWidth: 22, height: 20, paddi
 const grid: CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start' };
 
 export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; actions: AddToTimelineActions }) {
+  const titleId = useId();
   const hasAnimations = !!actions.onPickAnimation;
   const [tab, setTab] = useState<Tab>(hasAnimations ? 'animations' : 'motion');
   const [q, setQ] = useState('');
@@ -67,14 +69,15 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const pending = connect ? entries.find((e) => e.id === `tpl:${connect}`) : undefined;
   const renderCard = (e: CatalogEntry) => <PreviewCard key={e.id} preview={e.preview} title={e.label} sub={e.blurb} badge={e.badge} onClick={e.run} testId={e.testId} />;
 
-  return (
-    <div role="dialog" aria-label="Add to timeline" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
+  // Portaled to <body>: inside the editor the dialog sits in the edit tab's own stacking context and the app's side rail would paint over it.
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-labelledby={titleId} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
       <style>{CARD_CSS}</style>
       <div style={{ width: 'min(1480px, 96vw)', height: 'min(900px, 92vh)', display: 'flex', flexDirection: 'column', background: 'var(--bg-raised)', border: '1px solid var(--border-medium)', borderRadius: 26, color: INK, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '24px 28px', borderBottom: '1px solid var(--border-subtle)' }}>
           <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--accent-dim)', color: 'var(--accent)', display: 'grid', placeItems: 'center', fontSize: 20 }}>＋</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>Add to timeline</div>
+            <div id={titleId} style={{ fontSize: 20, fontWeight: 700 }}>Add to timeline</div>
             <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4, maxWidth: 720 }}>Animations, motion graphics, overlays, forms and end screens. Hover a card to preview it, click to place it at the playhead, then edit it in the panel.</div>
           </div>
           <button aria-label="Close" onClick={onClose} style={{ background: 'transparent', border: 0, color: 'inherit', fontSize: 22, cursor: 'pointer', padding: 6 }}>×</button>
@@ -136,6 +139,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

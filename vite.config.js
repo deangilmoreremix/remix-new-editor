@@ -91,6 +91,9 @@ const BROKEN_LEGACY_MATCHERS = [
   'lib/constants/timeline',
 ];
 
+let declaredCache = null;
+const declaredDependencies = () => (declaredCache ??= new Set(Object.keys(JSON.parse(fs.readFileSync(path.resolve('package.json'), 'utf8')).dependencies || {})));
+
 const stubLegacy = () => ({
   name: 'stub-legacy-unresolved',
   enforce: 'pre',
@@ -111,6 +114,8 @@ const stubLegacy = () => ({
       const pkgDir = path.resolve('node_modules', pkgName);
       if (!fs.existsSync(pkgDir)) {
         console.warn('[STUB]', source, '<-', importer.replace(process.cwd() + '/', ''));
+        // A package that package.json DECLARES but node_modules lacks is not legacy code: the stand-in is empty and features fail in odd ways.
+        if (declaredDependencies().has(pkgName)) console.error(`[STUB] "${pkgName}" is declared in package.json but not installed, so it was replaced by an empty module. Run "npm install" and restart.`);
         if (process.env.STRICT_IMPORTS) {
           throw new Error(`Unresolved import "${source}" from ${importer.replace(process.cwd() + '/', '')}`);
         }
