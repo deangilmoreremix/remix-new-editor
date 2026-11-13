@@ -18,6 +18,8 @@ import { CaptionsPanel } from './CaptionsPanel'
 import { ThumbnailGifPanel } from './ThumbnailGifPanel'
 import { RecipientLinksPanel } from './RecipientLinksPanel'
 import { EmailOutreachPanel } from './EmailOutreachPanel'
+import { BulkPanel } from './BulkPanel'
+import { OutreachFlowSection } from './OutreachFlowSection'
 import { PresenterStageBox } from './PresenterStageBox'
 import { applyCustomFields, rotationCss, sourceMediaStyle } from '../preview/layerTransform'
 import { maxScrollPx } from '../preview/websiteBackground'
@@ -1183,6 +1185,8 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
           {editPreviewSettings && <ThumbnailGifPanel inputProps={inputProps} edit={editPreviewSettings} />}
           <RecipientLinksPanel />
           <EmailOutreachPanel />
+          <BulkPanel inputProps={inputProps} />
+          <OutreachFlowSection />
         </div>
       </div>
 

@@ -112,3 +112,10 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Verified: 51 new unit tests, SQL 21/21, real SMTP + SQL check 8/8, 12/12 mutation checks. Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
 - NOT done: list sending (Stage 10), provider choice / DNS (SPF, DKIM, DMARC), real inbox delivery verification, applying the migration.
 
+### Stage 10 — Bulk personalization and outreach sequence
+- Authorization: the approved Stages 6–12 plan. No server, queue, scheduler or database added; nothing published, emailed or uploaded.
+- Added: `shared/personalization/bulk/{csv,zip,batchJob,recipientInput,outputPackage}.ts`, `guided/{BulkPanel,batchSteps,OutreachFlowPanel,OutreachFlowSection}`, `flow/outreachFlow.ts`, `scripts/stage10-bulk-check/` (real Chromium + IndexedDB + composition + page reload + ffprobe/unzip). Existing `@xyflow/react` used (lazy, on demand).
+- Fixed on the way: stored files vanishing in private windows (read-verify, re-verify done recipients, repair-and-resume instead of a short package), CSV width taken from data rows, hidden storage warning / batch run without storage, eager React Flow breaking 131 tests.
+- Verified: 64 new unit/panel tests, real-browser check 29/29 (interrupt mid-recipient, reload, resume, nothing finished redone, ZIP verified by unzip/python/ffprobe, per-recipient pixels, thumbnail identical to the single-video path), 19 unit mutations + 1 live mutation caught, broad suite 508 files / 6,391 tests. Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
+- NOT done: publishing a different rendered video per recipient (needs a storage decision), scheduler/automatic sending, list sending, per-recipient recordings (Recorder excluded), 1080p/long-clip measurements (Stage 12).
+
