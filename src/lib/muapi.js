@@ -126,7 +126,7 @@ export class MuapiClient {
         }
         const muapiUrl = import.meta.env.VITE_MUAPI_URL;
         if (!muapiUrl) {
-            console.warn('VITE_MUAPI_URL is not configured. Falling back to default muAPI URL.');
+            // Optional setting: the public MuAPI URL is a valid default, so no warning.
             this.muapiBaseUrl = 'https://api.muapi.ai/api/v1';
         } else {
             this.muapiBaseUrl = `${muapiUrl}/api/v1`;

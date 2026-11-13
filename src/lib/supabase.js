@@ -43,6 +43,8 @@ const DEFAULT_TOKEN_TTL_MS = 60 * 60 * 1000;
 
 let cachedToken = null; // { value, subject, expiresAt }
 let tokenInFlight = null;
+let tokenRetryAt = 0;
+const TOKEN_FAILURE_COOLDOWN_MS = 5 * 60 * 1000;
 
 /**
  * Authenticated user id from the Clerk singleton (null when signed out).
@@ -173,6 +175,9 @@ export async function getSupabaseAccessToken({ forceRefresh = false } = {}) {
   }
 
   if (tokenInFlight) return tokenInFlight;
+  // Exchange recently failed (e.g. 503 when SUPABASE_JWT_SECRET is unset):
+  // don't hammer the endpoint on every request; retry after a cooldown.
+  if (!forceRefresh && Date.now() < tokenRetryAt) return null;
 
   tokenInFlight = (async () => {
     try {
@@ -183,7 +188,10 @@ export async function getSupabaseAccessToken({ forceRefresh = false } = {}) {
         method: 'GET',
         headers: { Authorization: `Bearer ${clerkToken}` },
       });
-      if (!response || !response.ok) return null;
+      if (!response || !response.ok) {
+        tokenRetryAt = Date.now() + TOKEN_FAILURE_COOLDOWN_MS;
+        return null;
+      }
       const payload = await response.json();
       const value = payload?.token;
       if (!value) return null;

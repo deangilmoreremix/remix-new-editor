@@ -31,6 +31,7 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
     last = Date.now();
     try {
       const client = await getClient();
+      if (!client) return count;
       const { data, error } = await client.rpc('owner_unread_notifications');
       count = error ? count : Math.max(0, Number(data) || 0);
     } catch { /* keep the previous count; the bell is informational */ }

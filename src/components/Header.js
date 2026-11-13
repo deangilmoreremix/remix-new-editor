@@ -74,7 +74,8 @@ export function Header(navigate) {
   // Unread video alerts (owner-only; hidden when signed out).
   const bell = createNotificationsBell({
     navigate,
-    getClient: async () => { await primeSupabaseIdentity(); return supabase; },
+    // The RPC is granted to `authenticated` only: without a verified token it is a guaranteed 401.
+    getClient: async () => ((await primeSupabaseIdentity()) ? supabase : null),
   });
   rightPart.appendChild(bell.element);
   rightPart.appendChild(balanceChip);
