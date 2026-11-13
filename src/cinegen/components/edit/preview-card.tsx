@@ -43,6 +43,22 @@ function useLiveSlot(wanted: boolean): boolean {
   return has;
 }
 
+/** Cards that auto-play while on screen (Animations library): only a few at once, started one after another so renderers don't spin up in the same frame. */
+export const MAX_AUTOPLAY = 6;
+const autoplaying = new Set<symbol>();
+function useAutoSlot(wanted: boolean): boolean {
+  const [has, setHas] = useState(false);
+  useEffect(() => {
+    if (!wanted) return undefined;
+    const id = Symbol('auto');
+    let timer = 0;
+    const tryTake = () => { if (autoplaying.size < MAX_AUTOPLAY) { autoplaying.add(id); setHas(true); } else timer = window.setTimeout(tryTake, 700); };
+    timer = window.setTimeout(tryTake, 100 + Math.random() * 500);
+    return () => { window.clearTimeout(timer); autoplaying.delete(id); setHas(false); };
+  }, [wanted]);
+  return has;
+}
+
 function useInView(ref: React.RefObject<Element | null>): boolean {
   const [seen, setSeen] = useState(false);
   useEffect(() => {
@@ -81,15 +97,18 @@ function LiveStage({ preview, playing }: { preview: Extract<CardPreview, { kind:
   );
 }
 
-export function PreviewCard({ preview, title, sub, badge, onClick, testId, ariaLabel, footer }: {
-  preview: CardPreview; title: string; sub?: string; badge?: string; onClick: () => void; testId?: string; ariaLabel?: string; footer?: ReactNode;
+export function PreviewCard({ preview, title, sub, badge, onClick, testId, ariaLabel, footer, autoplay }: {
+  autoplay?: boolean; preview: CardPreview; title: string; sub?: string; badge?: string; onClick: () => void; testId?: string; ariaLabel?: string; footer?: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const visible = useInView(ref);
   const [hover, setHover] = useState(false);
-  const [playing, setPlaying] = useState(false);
+  const [hoverPlay, setHoverPlay] = useState(false);
   const [imgOk, setImgOk] = useState(true);
-  useEffect(() => { setPlaying(false); if (!hover) return undefined; const t = window.setTimeout(() => setPlaying(true), 250); return () => window.clearTimeout(t); }, [hover]);
+  useEffect(() => { setHoverPlay(false); if (!hover) return undefined; const t = window.setTimeout(() => setHoverPlay(true), 250); return () => window.clearTimeout(t); }, [hover]);
+
+  const auto = useAutoSlot(!!autoplay && visible);
+  const playing = hoverPlay || auto;
 
   const image = preview.image;
   const hasImage = !!image && imgOk;
@@ -104,7 +123,7 @@ export function PreviewCard({ preview, title, sub, badge, onClick, testId, ariaL
       style={{ position: 'relative', height: '100%', contentVisibility: 'auto', containIntrinsicSize: 'auto 260px' }}>
       <button type="button" className="add-card" onClick={onClick} aria-label={ariaLabel ?? title} data-testid={testId}
         style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', width: '100%', boxSizing: 'border-box', height: '100%' }}>
-        <div data-live={slot ? 'true' : 'false'} style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: STAGE_BG }}>
+        <div data-live={slot ? 'true' : 'false'} data-playing={wantLive && slot && playing ? 'true' : 'false'} style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: STAGE_BG }}>
           {showImage && <img src={image} alt="" loading="lazy" onError={() => setImgOk(false)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />}
           {wantLive && slot && <LiveStage preview={preview} playing={playing} />}
           {badge && <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.65)', color: '#fff', zIndex: 20 }}>{badge}</span>}

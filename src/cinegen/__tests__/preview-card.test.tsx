@@ -36,4 +36,17 @@ describe('PreviewCard live pool', () => {
     expect(screen.getByTestId('c-add').getAttribute('aria-label')).toContain('Add to the timeline');
     cleanup();
   });
+
+  it('autoplay cards play while visible, but only a few at once, and not when autoplay is off', async () => {
+    const mk = (n: number, autoplay: boolean) => Array.from({ length: n }, (_, i) => render(<PreviewCard key={`${autoplay}${i}`} autoplay={autoplay} preview={noImage} title={`a ${autoplay} ${i}`} onClick={() => undefined} />));
+    const off = mk(3, false);
+    await new Promise((r) => setTimeout(r, 800));
+    expect(document.querySelectorAll('[data-playing="true"]').length).toBe(0);
+    off.forEach((r) => r.unmount());
+    mk(9, true);
+    await waitFor(() => expect(document.querySelectorAll('[data-playing="true"]').length).toBe(6), { timeout: 3000 });
+    await new Promise((r) => setTimeout(r, 1000));
+    expect(document.querySelectorAll('[data-playing="true"]').length).toBe(6);
+    cleanup();
+  });
 });

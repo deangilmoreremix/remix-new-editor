@@ -30,6 +30,9 @@ const label: CSSProperties = { fontSize: 11, letterSpacing: '.06em', fontWeight:
 export function HyperframesPanel({ onPick }: { onPick: (item: HfItem) => void }) {
   const all = useMemo(() => hyperframesItems(), []);
   const [q, setQ] = useState('');
+  const [auto, setAuto] = useState<boolean>(() => {
+    try { if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false; return localStorage.getItem('remix.animations.autoplay') !== '0'; } catch { return true; }
+  });
   const [tag, setTag] = useState('all');
   const [type, setType] = useState('all');
   const [ratio, setRatio] = useState('all');
@@ -45,7 +48,8 @@ export function HyperframesPanel({ onPick }: { onPick: (item: HfItem) => void })
             <span style={{ flex: 1 }} />
             <span style={{ fontSize: 12, opacity: 0.6 }}>{all.length} animations</span>
           </div>
-          <div style={{ fontSize: 12, opacity: 0.65, margin: '4px 0 12px' }}>Hover a card to play it. Click a card to add it to the timeline.</div>
+          <div style={{ fontSize: 12, opacity: 0.65, margin: '4px 0 12px', display: 'flex', alignItems: 'center' }}><span>Previews play as you scroll. Click a card to add it to the timeline.</span>
+            <label style={{ fontSize: 12, opacity: 0.8, marginLeft: 12, cursor: 'pointer' }}><input type="checkbox" checked={auto} onChange={(e) => { setAuto(e.target.checked); try { localStorage.setItem('remix.animations.autoplay', e.target.checked ? '1' : '0'); } catch { /* ignore */ } }} /> Auto-play previews</label></div>
           <div role="tablist" aria-label="Categories" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
             {tags.map((c) => {
               const on = tag === (c === 'All' ? 'all' : c);
@@ -66,7 +70,7 @@ export function HyperframesPanel({ onPick }: { onPick: (item: HfItem) => void })
           <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>Showing {list.length} of {all.length} animations</div>
           <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0 }}>
             {list.map((i) => (
-              <PreviewCard key={i.id} preview={hfPreview(i)} title={i.title} badge={TYPE_LABEL[typeOf(i)]} sub={`${i.duration.toFixed(0)}s · ${aspectOf(i.dimensions.width, i.dimensions.height)}${i.slow ? ' · slower export' : ''}`} onClick={() => onPick(i)} testId={`animation-${i.id}`} />
+              <PreviewCard key={i.id} autoplay={auto} preview={hfPreview(i)} title={i.title} badge={TYPE_LABEL[typeOf(i)]} sub={`${i.duration.toFixed(0)}s · ${aspectOf(i.dimensions.width, i.dimensions.height)}${i.slow ? ' · slower export' : ''}`} onClick={() => onPick(i)} testId={`animation-${i.id}`} />
             ))}
             {!list.length && <span style={{ fontSize: 13, opacity: 0.7 }}>No animations match your search.</span>}
           </div>

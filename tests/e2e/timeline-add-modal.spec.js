@@ -208,6 +208,17 @@ test.describe('Add to timeline modal', () => {
     }
   });
 
+  test('Animations auto-play while visible (a few at a time), and the checkbox turns it off', async ({ page }) => {
+    await openModal(page, 'animations');
+    const playing = () => dialog(page).locator('[data-playing="true"]').count();
+    await expect.poll(playing, { timeout: 15000 }).toBeGreaterThan(0);
+    await page.waitForTimeout(2500);
+    expect(await playing()).toBeLessThanOrEqual(6);
+    expect(await page.locator('iframe.code-preview-frame').count()).toBeLessThanOrEqual(20);
+    await dialog(page).getByLabel('Auto-play previews').uncheck();
+    await expect.poll(playing, { timeout: 5000 }).toBe(0);
+  });
+
   test('overlay and end-screen cards render a real preview; motion graphics show their thumbnail', async ({ page }) => {
     test.setTimeout(180_000);
     for (const tab of ['overlays', 'endscreens']) {
