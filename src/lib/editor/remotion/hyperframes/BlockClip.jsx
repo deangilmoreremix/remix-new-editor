@@ -14,6 +14,7 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { useCurrentFrame, useVideoConfig, useDelayRender } from 'remotion';
 import { gsap } from 'gsap';
+import { TextPlugin } from 'gsap/TextPlugin';
 import { validateAssetUrl, stripUnsafeAttributes, validateOverrides } from './security.js';
 import { applyOverrides, stampHfIds } from './overrides.js';
 import { patchConfig, patchDataBlob } from './config.js';
@@ -435,6 +436,12 @@ const applyVisibility = (host, t, wins) => {
   }
 };
 
+/** Defensive: the bundled gsap import must expose timeline(); otherwise try a default-export shape, then a global copy, else null. */
+const usableGsap = (g) => (g && typeof g.timeline === 'function' && typeof g.set === 'function' ? g : null);
+const describeGsap = (g) => (g === undefined ? 'undefined' : g === null ? 'null' : `${typeof g} with keys [${Object.keys(g).slice(0, 8).join(', ')}]`);
+try { gsap.registerPlugin(TextPlugin); } catch { /* blocks that tween `text` then report their own error */ } // some blocks (typed-text effects) tween `text`, which needs this plugin
+export const resolveGsap = () => usableGsap(gsap) || usableGsap(gsap?.gsap) || usableGsap(globalThis.gsap);
+
 const BLOCK_ID = /^[a-z0-9][a-z0-9-]{0,80}$/;
 const sha256Hex = async (buf) => { const d = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join(''); };
 
@@ -519,7 +526,10 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
         rebaseElementUrls(el, base);
         const root = el.querySelector('[data-composition-id]');
         const id = root?.getAttribute('data-composition-id');
-        const scope = createScope(el); scope.store.gsap = gsap; state.current.scope = scope;
+        const scope = createScope(el); state.current.scope = scope;
+        const gsapLib = resolveGsap();
+        if (!gsapLib) { report('mount', name, `bundled gsap is unusable (import resolved to ${describeGsap(gsap)}; no .timeline function) and no window.gsap fallback exists`); return; }
+        scope.store.gsap = gsapLib;
         // a composition that mounts its component inline (e.g. a component's demo) declares the variables on that inner element, not on the root
         const declRoot = parseVariableDecls(root).length ? root : (el.querySelector('[data-composition-variables]') || root);
         const varValues = resolveVariables(parseVariableDecls(declRoot), cleanedOv, { allowHosts, onReject: (r) => report('override-rejected', name, `${r.key}: ${r.reason}`) });
