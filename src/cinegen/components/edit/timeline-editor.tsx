@@ -926,8 +926,17 @@ export function TimelineEditor({
 
   // [remix] Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
   const handleOpenGenerator = useCallback(async () => {
-    const { TemplateGeneratorModal } = await import('../../../components/modals/TemplateGeneratorModal.jsx');
+    const [{ TemplateGeneratorModal }, { buildGeneratorSources }] = await Promise.all([
+      import('../../../components/modals/TemplateGeneratorModal.jsx'),
+      import('@cinegen/lib/occ/template-generator-sources'),
+    ]);
     const modal = new TemplateGeneratorModal({
+      // Animations, motion graphics and end screens from this editor's own libraries (plus Pexels, Pixabay and upload built into the wizard)
+      extraSources: buildGeneratorSources(),
+      // "My media": the project's own clips and images
+      projectMedia: state.assets
+        .filter((x) => x.type === 'video' || x.type === 'image')
+        .map((x) => ({ id: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height })),
       onConfirm: (result: { composition?: Composition }) => {
         if (!result?.composition) return;
         const applied = applyComposition(timelineRef.current, result.composition);
@@ -936,10 +945,6 @@ export function TimelineEditor({
         setTimeline(applied.timeline);
       },
     });
-    // "My Media" in the wizard lists the project's own clips and images (as it listed the classic editor's media)
-    (modal as unknown as { data: { media: unknown[] } }).data.media = state.assets
-      .filter((x) => x.type === 'video' || x.type === 'image')
-      .map((x) => ({ id: x.id, assetId: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height }));
     modal.open();
   }, [dispatch, setTimeline, state.assets]);
 

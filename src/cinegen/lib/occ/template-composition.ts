@@ -6,10 +6,10 @@ import type { Asset } from '@cinegen/types/project';
 import type { Timeline, Transition } from '@cinegen/types/timeline';
 import type { OverlayClip } from '@cinegen/types/workspace';
 import { addClipToTrack } from '@cinegen/lib/editor/timeline-operations';
-import { createOverlay } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, createTemplateOverlays } from '@cinegen/lib/overlays/overlays';
 import { generateId } from '@cinegen/lib/utils/ids';
 
-interface CompClip { type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
+interface CompClip { _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string } }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
 interface CompTrack { type?: string; name?: string; clips?: CompClip[] }
 export interface Composition { name?: string; tracks?: CompTrack[]; transitions?: Array<{ fromClipIndex: number; toClipIndex: number; inTrack?: number; type?: string; duration?: number }> }
 
@@ -22,6 +22,8 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
   const placed = new Map<number, string[]>(); // composition track index → timeline clip ids in order
   const base = Math.max(0, tl.duration || 0);
   const T = Math.max(10, base + 1);
+  // where the generated cut ends on this timeline (end screens are anchored there)
+  const compEnd = base + Math.max(1, ...(comp.tracks ?? []).flatMap((t) => (t.clips ?? []).map((c) => (c.startTime ?? 0) + (c.duration ?? 0))));
 
   (comp.tracks ?? []).forEach((track, ti) => {
     const ids: string[] = [];
@@ -45,6 +47,18 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
         const o = createOverlay(kind, start, T + dur);
         // a wizard call button sits low in the frame so it does not cover the text overlay (both default to the centre)
         overlays.push({ ...o, start, end: start + dur, ...(kind === 'click-to-call' ? { style: { ...((o.style as Record<string, unknown>) ?? {}), posTop: 72 } } : {}) });
+      } else if (c.type === 'animation') {
+        // an animation / motion graphic picked in the wizard: the overlay its library resolved, re-timed to this cut; or an end-screen / form template
+        const cfg = c._overlayConfig?.animation;
+        if (cfg?.overlay) overlays.push({ ...cfg.overlay, id: generateId(), start, end: start + dur });
+        else if (cfg?.templateId) {
+          // an end-screen template is anchored to the cut's end; when the cut is shorter than the template, slide it forward so it
+          // never starts before this cut (it must not cover footage that was already on the timeline)
+          const made = createTemplateOverlays(cfg.templateId, start, compEnd);
+          const earliest = made.length ? Math.min(...made.map((o) => o.start)) : base;
+          const shift = earliest < base ? base - earliest : 0;
+          overlays.push(...made.map((o) => (shift ? { ...o, start: o.start + shift, end: o.end + shift } : o)));
+        }
       } else if (c.text) {
         const o = createOverlay('overlay-text', start, T + dur);
         const addon = { ...((o.addon as Record<string, unknown>) ?? {}), text: c.text };

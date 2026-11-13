@@ -1,0 +1,28 @@
+{
+  "note": "Motion-graphics templates the sandboxed renderer draws as nothing. Written by scripts/generate-template-generator-thumbs.mjs.",
+  "ids": {
+    "30ff329c-f4cc-49cf-afae-8c98299039f5": "computed property names built from strings are not allowed",
+    "33e13fa9-76d1-4483-94dc-e3f1217c0f1f": "browser globals are not allowed",
+    "4a1c2bc0-9798-4ef4-bbf9-0517cc5ca787": "browser globals are not allowed",
+    "63ea06e3-3c00-4a22-920d-5b7e8df2b21b": "computed property names built from strings are not allowed",
+    "6fba5c4c-4003-41c3-b1ea-3482b1214293": "computed property names built from strings are not allowed",
+    "7d205758-dac2-4df5-9735-7ad781d792af": "computed property names built from strings are not allowed",
+    "7e9f53fa-3036-47a6-a27f-48acf2e49e48": "computed property names built from strings are not allowed",
+    "7ec411f4-9c96-49b5-86b1-1685a81b7d82": "browser globals are not allowed",
+    "86b95e5b-18d1-4074-9dbc-22229237a8ee": "renders as an empty frame",
+    "8aedc1d6-c5c8-44f0-9f3d-9ed78fd55f69": "renders as an empty frame",
+    "924424d1-3f6d-4693-819c-c0cfae1aaf11": "renders as an empty frame",
+    "a75ac7ba-db04-4266-93b9-9ebd0614dc06": "browser globals are not allowed",
+    "b18138db-db81-4e97-8eec-30e69ca071b3": "computed property names built from strings are not allowed",
+    "b30d07d4-30ba-4db6-8970-093b1cfcecf7": "computed property names built from strings are not allowed",
+    "c206d9e8-7cc6-428f-a030-65f5758641a5": "computed property names built from strings are not allowed",
+    "dde936b2-bdc0-411d-800e-9fbfc34e3827": "computed property names built from strings are not allowed",
+    "ec6ac23d-85e8-4b16-9135-7665f5a03aa8": "browser globals are not allowed",
+    "f52a0891-8de8-4fdd-a383-3e62a8793a0f": "browser globals are not allowed",
+    "kb-beige-grid": "browser globals are not allowed",
+    "kb-chalkboard": "browser globals are not allowed",
+    "kb-kraft-corner": "browser globals are not allowed",
+    "kb-latte-lines": "browser globals are not allowed",
+    "kb-parchment": "browser globals are not allowed"
+  }
+}
