@@ -9,6 +9,7 @@ import { buildEffectShaderFrame } from './shaderFrame';
 import { glPreviewFailureReason } from './previewAdapter';
 import type { SelectedPreviewFallbackReason, SelectedPreviewStatusListener } from './previewAdapter';
 import { ALL_FX } from './fx/effects';
+import { warnGlFxSkipped } from './fx/glSupport';
 
 // [remix] OpenChatCut's ClipFx, decoupled from its TimelineItem: the host passes the clip's media + a plain effect list
 // (id + slider overrides). Used by the Remotion composition so effects/LUTs are burned into the exported MP4.
@@ -210,7 +211,8 @@ export function ClipFx({ item, fit, width, height, frameOffset = 0, onPreviewSta
         failedAdapterRef.current = { definitionKey, reason };
         disposeRuntimeSlot(runtimeRef);
         report('fallback', reason);
-        console.error('[clip-fx]', error);
+        if (reason === 'webgl-unavailable') warnGlFxSkipped(); // [remix] one warning; the clip keeps its source picture
+        else console.error('[clip-fx]', error);
       }
       finish();
     };

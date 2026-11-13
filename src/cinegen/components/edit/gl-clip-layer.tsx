@@ -7,6 +7,7 @@ import { createGlRuntime } from '../../../openchatcut/gl/runtime';
 import type { GlRuntime } from '../../../openchatcut/gl/runtimeTypes';
 import { clipFxPasses, clipHasFx, primeClipLuts } from '@cinegen/lib/occ/clip-fx';
 import { resolveTransition } from '@cinegen/lib/occ/plugins';
+import { warnGlFxSkipped } from '../../../openchatcut/gl/fx/glSupport';
 import { GLSL_TRANSITIONS } from '../../../openchatcut/gl/transitions';
 import type { GlslTransitionType } from '../../../openchatcut/types';
 
@@ -36,7 +37,7 @@ export function GlClipLayer({ container, clip, assetId, transition = null }: Pro
     const canvas = canvasRef.current;
     if (!canvas || !container || !(active || hasTransition)) return;
     let runtime: GlRuntime | null = null;
-    try { runtime = createGlRuntime(canvas); } catch { return; }
+    try { runtime = createGlRuntime(canvas); } catch (e) { warnGlFxSkipped(e instanceof Error ? e.message : undefined); return; }
     let raf = 0;
     let hidden: HTMLVideoElement[] = [];
     const restore = () => { hidden.forEach((v) => { v.style.visibility = ''; }); hidden = []; };
