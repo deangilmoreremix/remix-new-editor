@@ -76,3 +76,10 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Found/fixed: limiter exceeded its ceiling in the first few milliseconds (caught by the new tests).
 - Verified: 71 tests (+6 mutation checks), personalization suite 194 files / 2,431 passed, typecheck gate 0, live check 40/40 with ffmpeg's EBU R128 meter as the independent reference. Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
 - NOT done: true-peak limiting, long-video/streaming mixing, voice-over recording, multi-track, de-noise/compressor, cross-device mixdown storage.
+
+### Stage 5 — Advanced video effects and motion
+- Authorization: the 3-stage cadence.
+- Added: `preview/videoEffects.ts` (look, camera motion, fades, colour predictor), `preview/FootageFrame.tsx`, `preview/layerEffects.ts` (text effects, exits, new entrances), `guided/FootageEffectsPanel|LayerEffectsPanel|effectsEdit`; composition draws them; `settings.footageEffects`, `layer.effect`, `layer.exit`, three new entrance ids.
+- No new dependencies. Only effects measured in a real web-renderer export are used (CSS filters, multiply blend, gradients, text-shadow/stroke, blurred box-shadow); SVG `url(#)` filters and spread box-shadows are not drawn and are avoided.
+- Verified: 48 tests (+6 mutation checks), personalization suite 197 files / 2,479 passed, typecheck gate 0, live check 40/40 (exported pixels vs the model within 3/255, edge positions, fades, text effects with/without, exits/entrances, Player vs export). Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
+- NOT done: GL/LUT effects, extra transitions, grain/sharpen, speed ramps, picture-layer effects beyond existing styles.

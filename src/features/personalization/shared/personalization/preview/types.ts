@@ -8,6 +8,8 @@ import type { ImageHints, ImageRole, ImageStyle } from './imageStyle'
 import type { WebsiteBackground } from './websiteBackground'
 import type { PresenterSettings } from './presenter'
 import type { AudioMix } from './audioMix'
+import type { FootageEffects } from './videoEffects'
+import type { LayerEffect, LayerExit } from './layerEffects'
 
 export type PreviewLayoutId =
   | 'business-introduction'
@@ -25,6 +27,7 @@ export type PreviewLayerKind =
 export type PreviewAnimationId =
   | 'none' | 'fade' | 'slide-up' | 'slide-down' | 'slide-left'
   | 'pop' | 'logo-reveal' | 'lower-third' | 'cta-pulse'
+  | 'blur-in' | 'zoom-in' | 'bounce'
 
 export type PreviewPositionId =
   | 'top-left' | 'top-center' | 'top-right' | 'center'
@@ -105,6 +108,10 @@ export interface PreviewLayer {
    * Absent = 0. Rendered by the shared composition, so preview and export match.
    */
   rotation?: number
+  /** Text shadow / glow / outline (Stage 5). Text layers only. */
+  effect?: LayerEffect
+  /** How the layer leaves, over its last frames before `endFrame` (Stage 5). */
+  exit?: LayerExit
   /**
    * Layers that share a `groupId` move together in the editor. Purely an
    * editing relationship: every member still renders as its own layer.
@@ -234,6 +241,8 @@ export interface PersonalizationPreviewSettings {
    * Absent = the sources play as they are.
    */
   audioMix?: AudioMix
+  /** Colour look, camera motion and fades for the source footage (Stage 5). */
+  footageEffects?: FootageEffects
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */

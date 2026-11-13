@@ -1,5 +1,5 @@
 import React from 'react'
-import { Img } from 'remotion'
+import { Img, useCurrentFrame } from 'remotion'
 import { Video } from '@remotion/media'
 import {
   presenterMediaRect,
@@ -10,6 +10,8 @@ import {
   type PresenterSettings,
 } from './presenter'
 import { resolveMatteUrl } from './presenterMatteRegistry'
+import { FootageFrame } from './FootageFrame'
+import type { FootageEffects } from './videoEffects'
 
 /**
  * The presenter (Stage 3), drawn above the website layer. It is a pure function of the settings, the frame size
@@ -27,7 +29,11 @@ export const PresenterLayer: React.FC<{
   compH: number
   /** Every source is silent because the audio mixdown carries the soundtrack (Stage 4). */
   muteSources?: boolean
-}> = ({ presenter, videoUrl, compW, compH, muteSources = false }) => {
+  /** The footage look / motion (Stage 5), applied to the presenter's picture. */
+  effects?: FootageEffects
+  totalFrames?: number
+}> = ({ presenter, videoUrl, compW, compH, muteSources = false, effects, totalFrames = 1 }) => {
+  const frame = useCurrentFrame()
   const matteUrl = resolveMatteUrl(presenter.matte)
   const plan = presenterRenderPlan(presenter, { url: matteUrl, sourceUrl: videoUrl })
   if (!plan.active) return null
@@ -56,12 +62,15 @@ export const PresenterLayer: React.FC<{
         width: rect.width,
         height: rect.height,
         borderRadius: rect.radiusPx,
+        // A BLURRED box-shadow is drawn by the web renderer (measured in Stage 5); a zero-blur spread/inset one is not, which is why the border below is a real border.
         boxShadow: shadow ? '0 12px 40px rgba(0,0,0,0.45)' : undefined,
         pointerEvents: 'none',
         zIndex: 5,
       }}
     >
-      <div style={{ position: 'absolute', inset: 0, borderRadius: rect.radiusPx, overflow: 'hidden', background: plan.fill || undefined }}>
+      <div style={{ position: 'absolute', inset: 0, borderRadius: rect.radiusPx, overflow: 'hidden' }}>
+        <FootageFrame effects={effects} frame={frame} totalFrames={totalFrames} compW={compW} compH={compH} opaque={plan.effective !== 'remove'}>
+        {plan.fill ? <div style={{ position: 'absolute', inset: 0, background: plan.fill }} /> : null}
         {plan.fillImage ? <Img src={plan.fillImage} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
         {plan.original ? (
           // Scaled up a little so the blur samples picture, not emptiness, at the box edge (the box clips the excess).
@@ -70,6 +79,7 @@ export const PresenterLayer: React.FC<{
           </div>
         ) : null}
         {plan.matte && matteUrl ? <Video src={matteUrl} muted={muteSources || plan.matte.muted} objectFit="cover" style={mediaBox} /> : null}
+              </FootageFrame>
       </div>
       {border > 0 ? (
         // A real border: the web renderer does not draw inset box-shadows (found when the exported ring was missing).

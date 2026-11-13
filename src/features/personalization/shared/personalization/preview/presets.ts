@@ -10,6 +10,8 @@ import { normalizeCustomFields, normalizeRotation, normalizeSourceTransform } fr
 import { normalizeWebsiteBackground } from './websiteBackground'
 import { normalizePresenter } from './presenter'
 import { normalizeAudioMix } from './audioMix'
+import { normalizeFootageEffects } from './videoEffects'
+import { normalizeLayerEffect, normalizeLayerExit } from './layerEffects'
 import { contractFor, roleForLayer } from './mediaRoles'
 import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle'
 import type {
@@ -58,6 +60,9 @@ const ANIMATION_IDS: PreviewAnimationId[] = [
   'logo-reveal',
   'lower-third',
   'cta-pulse',
+  'blur-in',
+  'zoom-in',
+  'bounce',
 ]
 
 const LAYOUT_IDS: PreviewLayoutId[] = [
@@ -236,6 +241,9 @@ export const PREVIEW_ANIMATIONS: { id: PreviewAnimationId; label: string }[] = [
   { id: 'logo-reveal', label: 'Logo Reveal' },
   { id: 'lower-third', label: 'Lower Third' },
   { id: 'cta-pulse', label: 'CTA Pulse' },
+  { id: 'blur-in', label: 'Blur In' },
+  { id: 'zoom-in', label: 'Zoom In' },
+  { id: 'bounce', label: 'Bounce' },
 ]
 
 export const PREVIEW_POSITIONS: {
@@ -937,6 +945,10 @@ function normalizeLayer(raw: unknown): PreviewLayer | null {
   if (rotation !== undefined) normalized.rotation = rotation
   const groupId = nonEmptyString(raw.groupId)
   if (groupId) normalized.groupId = groupId.slice(0, 64)
+  const effect = normalizeLayerEffect(raw.effect)
+  if (effect) normalized.effect = effect
+  const exit = normalizeLayerExit(raw.exit)
+  if (exit) normalized.exit = exit
   return normalized
 }
 
@@ -1128,6 +1140,8 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
   if (presenter) out.presenter = presenter
   const audioMix = normalizeAudioMix(raw.audioMix)
   if (audioMix) out.audioMix = audioMix
+  const footageEffects = normalizeFootageEffects(raw.footageEffects)
+  if (footageEffects) out.footageEffects = footageEffects
 
    return out
   } catch {

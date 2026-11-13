@@ -12,6 +12,8 @@ import { KonvaTransformOverlay } from './KonvaTransformOverlay'
 import { WebsiteBackgroundPanel } from './WebsiteBackgroundPanel'
 import { PresenterPanel } from './PresenterPanel'
 import { AudioMixPanel } from './AudioMixPanel'
+import { FootageEffectsPanel } from './FootageEffectsPanel'
+import { LayerEffectsPanel } from './LayerEffectsPanel'
 import { PresenterStageBox } from './PresenterStageBox'
 import { applyCustomFields, rotationCss, sourceMediaStyle } from '../preview/layerTransform'
 import { maxScrollPx } from '../preview/websiteBackground'
@@ -1171,6 +1173,8 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
           {editPreviewSettings && <WebsiteBackgroundPanel settings={settings} edit={editPreviewSettings} defaultUrl={brand.website} />}
           {editPreviewSettings && <PresenterPanel settings={settings} edit={editPreviewSettings} videoUrl={inputProps.videoUrl} />}
           {editPreviewSettings && <AudioMixPanel settings={settings} edit={editPreviewSettings} videoUrl={inputProps.videoUrl} isImageSource={inputProps.isImageSource} musicUrl={inputProps.audioUrl} />}
+          {editPreviewSettings && <FootageEffectsPanel settings={settings} edit={editPreviewSettings} hasFootage={Boolean(inputProps.videoUrl || inputProps.posterUrl)} />}
+          {editPreviewSettings && <LayerEffectsPanel settings={settings} edit={editPreviewSettings} selected={selectionIds.length <= 1 ? selected ?? undefined : undefined} />}
         </div>
       </div>
 

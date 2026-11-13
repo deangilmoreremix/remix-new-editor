@@ -1,6 +1,9 @@
 import { applyCustomFields, rotationCss, sourceMediaStyle } from './layerTransform'
 import { WebsiteBackgroundLayer } from './WebsiteBackgroundLayer'
 import { PresenterLayer } from './PresenterLayer'
+import { FootageFrame } from './FootageFrame'
+import { fadeCoverAt } from './videoEffects'
+import { TEXT_LAYER_KINDS as LAYER_TEXT_KINDS, exitFactorsAt, newEntranceFactors, textEffectStyle, type NewEntranceId } from './layerEffects'
 import { audioPlan } from './audioMix'
 import { resolveMatteUrl, subscribeMatteRegistry } from './presenterMatteRegistry'
 import { contractFor, layerZIndex, roleForLayer } from './mediaRoles'
@@ -42,13 +45,7 @@ import type {
   PersonalizationPreviewSettings,
 } from './types'
 
-const TEXT_LAYER_KINDS: PreviewLayer['kind'][] = [
-  'businessName',
-  'headline',
-  'offer',
-  'cta',
-  'tagline',
-]
+const TEXT_LAYER_KINDS: PreviewLayer['kind'][] = [...LAYER_TEXT_KINDS]
 
 const PILL_TEXT_COLOR = '#000000'
 
@@ -85,6 +82,8 @@ interface EntranceState {
   scale: number
   translateX: number
   translateY: number
+  /** Gaussian blur in px (the `blur-in` entrance). */
+  blurPx?: number
 }
 
 /**
@@ -126,6 +125,12 @@ function entranceFor(layer: PreviewLayer, frame: number, fps: number): EntranceS
       const pulse = interpolate(Math.sin((frame - entryStart) / 6), [-1, 1], [0.97, 1.03])
       return { opacity: eased, scale: pulse, translateX: 0, translateY: 0 }
     }
+    case 'blur-in':
+    case 'zoom-in':
+      return newEntranceFactors(animation as NewEntranceId, eased, springProgress)
+    case 'bounce':
+      // A lively spring (low damping) so it overshoots and settles.
+      return newEntranceFactors('bounce', eased, spring({ frame: Math.max(0, frame - entryStart), fps: Math.max(1, fps), config: { damping: 9, stiffness: 120 } }))
     default:
       return { opacity: eased, scale: 1, translateX: 0, translateY: 0 }
   }
@@ -381,6 +386,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       // source video's audio track in the composition so it survives export;
       // playback muting stays a Player-level concern.
       return (
+        <FootageFrame effects={settings.footageEffects} frame={frame} totalFrames={settings.durationInFrames} compW={compW} compH={compH}>
         <Video
           // Remote CDNs without CORS (e.g. the AI-viral demo library) are
           // streamed through the same-origin /api/media/remote proxy.
@@ -392,6 +398,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           onError={handleMediaError}
           style={{ width: '100%', height: '100%', objectFit: 'cover', ...sourceMediaStyle(settings.sourceTransform) }}
         />
+        </FootageFrame>
       )
     }
     if (mediaFailed && posterUrl) {
@@ -479,7 +486,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
         <WebsiteBackgroundLayer background={settings.websiteBackground} frame={frame} compW={compW} compH={compH} accent={settings.brandColors.accent} />
       ) : null}
       {presenterActive && videoUrl ? (
-        <PresenterLayer presenter={settings.presenter as NonNullable<typeof settings.presenter>} videoUrl={toPlayablePreviewMediaUrl(videoUrl)} compW={compW} compH={compH} muteSources={audioDecision.useMixdown} />
+        <PresenterLayer presenter={settings.presenter as NonNullable<typeof settings.presenter>} videoUrl={toPlayablePreviewMediaUrl(videoUrl)} compW={compW} compH={compH} muteSources={audioDecision.useMixdown} effects={settings.footageEffects} totalFrames={settings.durationInFrames} />
       ) : null}
       {audioDecision.useMixdown && mixdownUrl ? <Audio src={mixdownUrl} data-audio-mixdown="" /> : audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
       <AbsoluteFill
@@ -522,14 +529,18 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
 
           const box = toBox(layer, compW, compH, isText ? text : undefined)
           const entrance = entranceFor(layer, frame, settings.fps)
+          const leaving = exitFactorsAt(layer.exit, frame, layer.endFrame)
           const textColor =
             layer.color ??
             (layer.kind === 'cta' ? settings.brandColors.accent : settings.brandColors.text)
           const isExtraBold = layer.kind === 'businessName' || layer.kind === 'cta'
           const transformParts: string[] = []
-          if (entrance.translateX) transformParts.push(`translateX(${entrance.translateX}px)`)
-          if (entrance.translateY) transformParts.push(`translateY(${entrance.translateY}px)`)
-          if (entrance.scale !== 1) transformParts.push(`scale(${entrance.scale})`)
+          const tx = entrance.translateX + leaving.translateX
+          const ty = entrance.translateY + leaving.translateY
+          const sc = entrance.scale * leaving.scale
+          if (tx) transformParts.push(`translateX(${tx}px)`)
+          if (ty) transformParts.push(`translateY(${ty}px)`)
+          if (sc !== 1) transformParts.push(`scale(${sc})`)
           // Rotation is the customer's own placement. Designs are full-frame and are
           // never rotated. An image's box is square, so it rotates about its centre
           // right here; a text layer's wrapper is frame-tall (an AbsoluteFill), so it
@@ -550,7 +561,8 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
             top: box.topPx,
             width: box.widthPx,
             transform: transformParts.length > 0 ? transformParts.join(' ') : undefined,
-            opacity: layer.opacity * entrance.opacity,
+            opacity: layer.opacity * entrance.opacity * leaving.opacity,
+            filter: entrance.blurPx ? `blur(${Math.round(entrance.blurPx * 100) / 100}px)` : undefined,
             pointerEvents: 'none',
           }
 
@@ -723,6 +735,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
                   // `wordBreak: 'break-word'` split ordinary words mid-word.
                   overflowWrap: 'break-word',
                   transform: rotate || undefined,
+                  ...textEffectStyle(layer.effect, box.fontSizePx),
                 }}
               >
                 {text}
@@ -730,6 +743,9 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
             </AbsoluteFill>
           )
         })}
+        {settings.footageEffects?.fade && fadeCoverAt(frame, settings.footageEffects.fade, settings.durationInFrames) > 0 ? (
+          <AbsoluteFill data-footage-fade="" style={{ background: '#000', opacity: fadeCoverAt(frame, settings.footageEffects.fade, settings.durationInFrames), zIndex: 20000, pointerEvents: 'none' }} />
+        ) : null}
         {settings.showEndCard ? (
           // zIndex: layers are stacked up to stackOrder 65 * 100 + 99 (see layerZIndex), so
           // the end card needs a higher level to stay on top of layers that run to the end.

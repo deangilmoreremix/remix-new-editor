@@ -7,7 +7,7 @@
 | 2 | Website backgrounds & business assets | **Complete and verified** (limits listed in the Stage 2 section) | Authorized by the user (approval of the roadmap plan, which authorized Stage 2 only) | 2026-11-13 | see `git log` ("Stage 2") | Full suite 770/770 files, 11,114 passed, 0 failed, 61 skipped; typecheck gate 0; eslint src 0 errors; Stage 2 real-chain check 29/29 | Capture bucket is still public-by-URL; see limits |
 | 3 | MediaPipe presenter effects | **Complete and verified** (limits listed in the Stage 3 section) | Authorized by the user ("let's only check every 3 phases": Stages 3–5 run back to back, then stop) | 2026-11-13 | see `git log` ("Stage 3") | Stage 3 unit/panel tests 78; personalization suite 191 files, 2,360 passed; typecheck gate 0; live check 53/53 (see below) | Processed footage is stored in the browser only; see limits |
 | 4 | Advanced browser audio | **Complete and verified** (limits in the Stage 4 section) | Authorized (3-stage cadence) | 2026-11-13 | see `git log` ("Stage 4") | 71 unit/panel/composition tests; personalization suite 194 files, 2,431 passed; typecheck gate 0; live check 40/40 | Mixdown stored in the browser only; tested on short clips only |
-| 5 | Advanced video effects & motion | Not started | Authorized (3-stage cadence) | — | — | — | — |
+| 5 | Advanced video effects & motion | **Complete and verified** (limits in the Stage 5 section) | Authorized (3-stage cadence) | 2026-11-13 | see `git log` ("Stage 5") | 48 unit/panel/composition tests; personalization suite 197 files, 2,479 passed; typecheck gate 0; live check 40/40 | Transitions beyond the existing website hand-over and the GL effect system were not touched |
 | 6 | Captions, text & intelligent editing | Not started | **NOT authorized** | — | — | — | — |
 | 7 | Thumbnails & personalized GIFs | Not started | **NOT authorized** | — | — | — | — |
 | 8 | Personalized publishing & watch pages | Not started | **NOT authorized** | — | — | — | — |
@@ -246,7 +246,7 @@ Authorized by the user's approval of the roadmap plan (Stage 2 only).
 
 ### Pre-existing defects found and fixed on the way
 * `@remotion/media`'s `<Video>` takes **`objectFit` as a prop**; the composition passed it as CSS, which is ignored, so a portrait clip in a landscape frame was letterboxed instead of covered (the Stage 1 "source transform" also depended on it). Fixed for the existing full-frame path as well. **Behaviour change:** footage whose aspect differs from the frame now covers the frame (cropping) instead of letterboxing; same-aspect footage is unchanged.
-* Remotion's web renderer does not draw inset `box-shadow`; the presenter border is a real `border`.
+* Remotion's web renderer does not draw a zero-blur spread/inset `box-shadow` (measured in Stage 5); the presenter border is a real `border`. (A blurred box-shadow, used for the bubble's shadow, is drawn.)
 
 ### Verification actually run
 * **Unit + panel tests:** 53 (model, geometry, plan, mask maths, framing property tests, cache keys, store eviction/restore, bake pipeline with fake engine: reuse, force, quality gates, engine/encoder failure, cancel, smoothing) + 25 (panel, every failure kind, cancel, reuse, probing, stage box pointer + keyboard). Five deliberate mutations (unmuted blur matte, stale matte accepted, box not clamped, media gap, gate disabled) were each caught, then restored.
@@ -296,3 +296,39 @@ Authorized by the user's approval of the roadmap plan (Stage 2 only).
 * Audible playback in the Player was not listened to or recorded (headless); the check proves which audio the Player is configured to play and measures the exported file.
 * The exporter's own gain on the pre-existing mono path measured ×1.39 (√2) in Stage 3; with a stereo mixdown the exported loudness matched the target within 0.1 LU, so the mix is not affected. The cause of the mono behaviour was not investigated.
 * Output is 16-bit WAV without dither; the WAV is an internal intermediate (the export encodes AAC).
+
+
+## Stage 5 — Advanced video effects and motion (2026-11-13)
+
+**Authorization:** the 3-stage cadence. **Scope kept:** no new dependency, renderer, player or service; nothing deployed or migrated.
+
+### What was built
+| Capability | Where | Notes |
+|---|---|---|
+| **Footage look**: brightness, contrast, colour strength, hue, warm/cool, sepia, black-and-white, soften, vignette; 7 presets | `preview/videoEffects.ts`, `preview/FootageFrame.tsx` | CSS filter functions + a `multiply` overlay for warm/cool + a radial-gradient vignette. Applied to the full-frame video and to the presenter's picture. |
+| **Camera motion**: zoom and drift across the clip (push-in, pull-out, drift, punch-in), linear or smooth | same | A transform of the footage about the frame centre. |
+| **Fades to black** (in/out, picture only) | same + composition | The sound is faded in the Audio mix. |
+| **Text effects**: shadow, glow, outline | `preview/layerEffects.ts` | `text-shadow` / `-webkit-text-stroke`, sizes follow the font size. |
+| **Exit animations** (fade, slide up/down, shrink) and **3 new entrances** (blur in, zoom in, bounce) | `layerEffects.ts`, composition, `presets.ts` | The exit plays over the last N frames before the layer's end frame; a layer with no end frame never exits (the panel says so). |
+| Panels: *Footage look and motion*, *Text effects and exit* | `guided/FootageEffectsPanel.tsx`, `LayerEffectsPanel.tsx`, `effectsEdit.ts` | Pure, validated edits; one undo step each. |
+
+### How it was made trustworthy
+* **Measured first, then designed.** A spike exported a grid of CSS effects through the web renderer and read the pixels. **Drawn:** CSS `filter` functions (brightness, saturate, hue-rotate, sepia, blur, drop-shadow), `mix-blend-mode: multiply`, radial gradients, text-shadow, text stroke, blurred box-shadow. **Not drawn:** SVG `filter: url(#id)` (so no SVG colour matrices) and a zero-blur spread/inset box-shadow. Only the first group is used.
+* **The colour model is the browser's own maths** (`predictLookRgb`), and the live check compares it with exported pixels.
+
+### Defects found by the tests/checks and fixed
+* sepia/grayscale amounts were passed inverted in the predictor (caught by a unit test against values measured in the browser); a negative-zero in the bounce entrance; the Stage 3 inset ring (earlier). **Correction to an earlier claim in this stage:** I first concluded "box-shadow is not drawn" from a spread ring; a follow-up measurement showed *blurred* box-shadows are drawn, so the presenter's shadow stays a box-shadow and only zero-blur spread/inset shadows are avoided. A live mutation (box-shadow ↔ drop-shadow) did not change the shadow check, which is expected for that reason.
+
+### Verification actually run
+* **48 tests** (26 pure: validation, CSS strings, colour maths against browser-measured values, motion endpoints/easing/cover guarantee, fades, exits, entrances, edits; 12 composition: nothing changes with no effect, filter/overlays/transform/fade cover, presenter integration incl. removed background, text effects, exit window, entrances, original animations unchanged; 10 panel). Six mutations (sepia args, fade end, exit window, overlays on transparency, composition ignoring the look, shadow form) were each caught, then restored.
+* **Live check 40/40** (`scripts/stage5-effects-check/check.mjs`): 24 pixels across 6 presets and 7 single controls match the model within 3/255; vignette centre untouched / corner dark; blur turns a hard edge into a ramp; zoom 1→1.5 and drift put the picture edge where the maths says (±3 px) at frames 0/14/29; fades reach black at both ends and half-brightness halfway; glow/outline/shadow each measured against the same text without them and the glyph unchanged; fade exit gone at its end frame, slide-up exit 14 px as modelled, zoom-in ×1.2 settling, bounce settles, blur-in sharpens, the original fade entrance unchanged; the bubble shadow is drawn; real editor panel → Player → export agree (mean abs diff < 10) and the fade-out reaches black.
+* **Production build** of the tree at the end of Stage 4 completed (`vite build`, 3 m 25 s; the MediaPipe wasm, loader and model are emitted). The build of the final Stage 5 tree is recorded in the checkpoint report.
+
+### Limits and open items (not hidden)
+* **Not used:** the existing OpenChatCut GL effect system / `@remotion/effects` (WebGL shaders, LUTs, GL transitions). They are a different rendering path that was not verified in the web renderer; Stage 5 deliberately used only effects measured in a real export. No 3D LUTs, grain, sharpening, chromatic aberration, glitch or speed ramps.
+* **Transitions** beyond the existing website hand-over (fade/slide/cut) were not added.
+* Warm/cool and vignette are **not drawn when the presenter's background is removed** (a multiply overlay would tint the transparent area); the panel says so. The CSS-filter controls still apply there.
+* Looks apply to the **source footage and the presenter**, not to the website screenshot, pictures or text. Camera motion moves the footage inside the frame; large drift needs a matching zoom (the presets keep the frame covered; hand-set drift can reveal an edge).
+* Fades are **picture only**. Exits need the layer to have an end frame. Text effects are for text layers; picture layers keep their existing styles.
+* The H.264 export shifts nominal colours slightly (a flat (200,50,50) clip decodes as (212,62,49) in the exporter); this is pre-existing and affects looks and plain exports alike.
+* Headless Chromium with software rendering only; other browsers not run. Preview of heavy blur on long clips was not timed.
