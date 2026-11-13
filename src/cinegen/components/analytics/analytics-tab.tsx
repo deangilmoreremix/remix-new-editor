@@ -7,6 +7,7 @@ import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { usePublished, getClient } from '@cinegen/components/leads/use-publish';
 import { buildPublishState } from '@cinegen/lib/leads/publish-state';
 import { PublishedOverview } from '@cinegen/components/overview/published-overview';
+import { captureRowThumbnail } from '@cinegen/lib/leads/thumbnail';
 import { ensureProjectRow, linkVideoToProject, linkedProjectId, rowName } from '@cinegen/lib/leads/project-link';
 // @ts-expect-error plain JS
 import { audienceTab, retargetTab, notificationsTab } from '../../../lib/editor/projectLibrary/projectTabs.js';
@@ -62,6 +63,8 @@ export function AnalyticsTab() {
         const built = buildPublishState(t, s.assets, s.overlays ?? [], title);
         await ensureProjectRow(client, { projectId: id, name: await rowName(projectId, title), built, aspect: t?.aspect ?? null, cinegenProjectId: projectId, timelineId: t0.id });
         await linkVideoToProject(client, pub.id, id);
+        // Videos published before thumbnails existed get one the first time their Analytics opens (no-op when one is set).
+        void captureRowThumbnail(client, id, built, { aspect: t?.aspect ?? null });
         if (!cancelled) { setRowId(id); setLinked('ok'); }
       } catch (e) { if (!cancelled) { setToast((e as Error).message); setLinked('unavailable'); } }
     })();
