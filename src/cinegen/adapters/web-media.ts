@@ -266,7 +266,8 @@ export const webMediaApi = {
       if (!files.length) return null;
       const urls: string[] = [];
       for (const file of files) {
-        const url = await durableUrl(file);
+        // [remix] pictures are inlined (a blob: URL would not survive a reload of the node that holds it); video and audio keep durable / blob URLs
+        const url = file.type.startsWith('image/') && file.size < 8 * 1024 * 1024 ? await persistentUrl(file) : await durableUrl(file);
         webFiles.set(url, { name: file.name, type: file.type, size: file.size });
         (window as unknown as { __remixFileNames: Map<string, string> }).__remixFileNames.set(url, file.name);
         urls.push(url);
