@@ -1,0 +1,153 @@
+{
+ "results": [
+  {
+   "ok": true,
+   "m": "two imported clips placed with linked audio (4 clip cards)"
+  },
+  {
+   "ok": true,
+   "m": "baseline export (no features) produced a file: /tmp/claude-0/-home-user/ed6a1d8a-3b9d-58b8-9841-6ef0cfce8ef8/scratchpad/media//baseline.mp4"
+  },
+  {
+   "ok": true,
+   "m": "three new GL effects saved on clip B: builtin:fx-exposure,builtin:fx-glass,builtin:fx-scanlines"
+  },
+  {
+   "ok": true,
+   "m": "effect param keyframes (exposure) saved: {\"exposure\":[{\"frame\":17,\"value\":-2},{\"frame\":77,\"value\":1.5}]}"
+  },
+  {
+   "ok": true,
+   "m": "effects survive nest -> expand: builtin:fx-exposure,builtin:fx-glass,builtin:fx-scanlines"
+  },
+  {
+   "ok": true,
+   "m": "motion modifier survives nest -> expand"
+  },
+  {
+   "ok": true,
+   "m": "vendored GL transition (directional wipe, params) stored between the two clips"
+  },
+  {
+   "ok": true,
+   "m": "adding the transition keeps clip B picture and its audio in sync: 2.493006 vs 2.493006"
+  },
+  {
+   "ok": true,
+   "m": "master volume 50% saved: 0.5"
+  },
+  {
+   "ok": true,
+   "m": "clip EQ saved on A audio"
+  },
+  {
+   "ok": true,
+   "m": "final export produced a file: /tmp/claude-0/-home-user/ed6a1d8a-3b9d-58b8-9841-6ef0cfce8ef8/scratchpad/media//final.mp4"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: keyed x (-30%, mid, +30% of 1920 px) present in the export: measured -568, 8, 576 px"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: effects change the pixels vs the no-effect export (mean abs diff 16.7, 31.9)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: keyed effect parameter (exposure -2 -> +1.5 stops) brightens clip B over time in the export, and clip B is still on screen at 5.2 s (picture and sound end together)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: mid-transition frame is neither clip A nor clip B: left of the wipe shows B, right still A (distances to A/B whole frame 72/50)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: export has an audio stream: aac"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: master volume 50% applied to the export (B audio -27.1 -> -33.2 dB, expected -6)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: clip EQ (-12 dB @ 440 Hz) is baked on top of the master volume (A audio -27.1 -> -45.2 dB, expected about -18)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: baseline export (plain linked video+audio) is audible, not silent and not doubled: -27.1 dB mean (source tone is about -27 dB)"
+  },
+  {
+   "ok": true,
+   "m": "clip A row identical after reload"
+  },
+  {
+   "ok": true,
+   "m": "transition + master volume identical after reload"
+  },
+  {
+   "ok": true,
+   "m": "reloaded project opens with 4 clip cards (got 4)"
+  },
+  {
+   "ok": true,
+   "m": "reloaded editor shows the saved effects on clip B"
+  },
+  {
+   "ok": true,
+   "m": "reloaded editor shows the saved transition"
+  },
+  {
+   "ok": true,
+   "m": "old-format project (new fields stripped) still loads with 4 clips"
+  },
+  {
+   "ok": true,
+   "m": "no new page errors while loading the old-format project []"
+  }
+ ],
+ "failed": 0,
+ "baseline": "/tmp/claude-0/-home-user/ed6a1d8a-3b9d-58b8-9841-6ef0cfce8ef8/scratchpad/media//baseline.mp4",
+ "final": "/tmp/claude-0/-home-user/ed6a1d8a-3b9d-58b8-9841-6ef0cfce8ef8/scratchpad/media//final.mp4",
+ "console": [
+  "Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Retrying failed fetch. Error: TypeError: Failed to fetch\n    at retriedFetch (http://127.0.0.1:3100/node_modules/.vite/deps/chunk-NNCDYCVZ.js?v=87993289:641:20)\n    at _UrlSource._runWorker (http://127.0.0.1:3100/node_modules/.vite/deps/chu",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Retrying failed fetch. Error: TypeError: Failed to fetch\n    at retriedFetch (http://127.0.0.1:3100/node_modules/.vite/deps/chunk-NNCDYCVZ.js?v=87993289:641:20)\n    at _UrlSource._runWorker (http://127.0.0.1:3100/node_modules/.vite/deps/chu",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Retrying failed fetch. Error: TypeError: Failed to fetch\n    at retriedFetch (http://127.0.0.1:3100/node_modules/.vite/deps/chunk-NNCDYCVZ.js?v=87993289:641:20)\n    at async _UrlSource._runWorker (http://127.0.0.1:3100/node_modules/.vite/de",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Retrying failed fetch. Error: TypeError: Failed to fetch\n    at retriedFetch (http://127.0.0.1:3100/node_modules/.vite/deps/chunk-NNCDYCVZ.js?v=87993289:641:20)\n    at async _UrlSource._runWorker (http://127.0.0.1:3100/node_modules/.vite/de",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Retrying failed fetch. Error: TypeError: Failed to fetch\n    at retriedFetch (http://127.0.0.1:3100/node_modules/.vite/deps/chunk-NNCDYCVZ.js?v=87993289:641:20)\n    at async _UrlSource._runWorker (http://127.0.0.1:3100/node_modules/.vite/de",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Retrying failed fetch. Error: TypeError: Failed to fetch\n    at retriedFetch (http://127.0.0.1:3100/node_modules/.vite/deps/chunk-NNCDYCVZ.js?v=87993289:641:20)\n    at async _UrlSource._runWorker (http://127.0.0.1:3100/node_modules/.vite/de",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "Retrying failed fetch. Error: TypeError: Failed to fetch\n    at retriedFetch (http://127.0.0.1:3100/node_modules/.vite/deps/chunk-NNCDYCVZ.js?v=87993289:641:20)\n    at async _UrlSource._runWorker (http://127.0.0.1:3100/node_modules/.vite/de",
+  "Failed to load resource: net::ERR_FILE_NOT_FOUND"
+ ]
+}

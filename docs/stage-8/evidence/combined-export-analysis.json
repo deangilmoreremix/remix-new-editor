@@ -1,0 +1,70 @@
+{
+ "checks": [
+  {
+   "ok": true,
+   "msg": "keyed x (-30%, mid, +30% of 1920 px) present in the export: measured -568, 8, 576 px"
+  },
+  {
+   "ok": true,
+   "msg": "effects change the pixels vs the no-effect export (mean abs diff 16.7, 31.9)"
+  },
+  {
+   "ok": true,
+   "msg": "keyed effect parameter (exposure -2 -> +1.5 stops) brightens clip B over time in the export, and clip B is still on screen at 5.2 s (picture and sound end together)"
+  },
+  {
+   "ok": true,
+   "msg": "mid-transition frame is neither clip A nor clip B: left of the wipe shows B, right still A (distances to A/B whole frame 72/50)"
+  },
+  {
+   "ok": true,
+   "msg": "export has an audio stream: aac"
+  },
+  {
+   "ok": true,
+   "msg": "master volume 50% applied to the export (B audio -27.1 -> -33.2 dB, expected -6)"
+  },
+  {
+   "ok": true,
+   "msg": "clip EQ (-12 dB @ 440 Hz) is baked on top of the master volume (A audio -27.1 -> -45.2 dB, expected about -18)"
+  },
+  {
+   "ok": true,
+   "msg": "baseline export (plain linked video+audio) is audible, not silent and not doubled: -27.1 dB mean (source tone is about -27 dB)"
+  }
+ ],
+ "numbers": {
+  "video_codec": "h264",
+  "x_shift_px_at_0.26_0.76_1.26": [
+   -568,
+   8,
+   576
+  ],
+  "effect_mean_abs_diff_4.2_5.2": [
+   16.7,
+   31.9
+  ],
+  "final_mean_luma_3.2_4.2_5.2": [
+   24.3,
+   85.7,
+   117.5
+  ],
+  "mid_transition": {
+   "left_vs_B": 0.11861728395061728,
+   "left_vs_A": 115.17682407407408,
+   "right_vs_B": 133.13569488536154,
+   "right_vs_A": 0.6127328042328042,
+   "whole_vs_A": 72.06353813014404,
+   "whole_vs_B": 49.99109792952675
+  },
+  "A_x_shift_inside_transition_px(known: transition samples raw frames)": 0,
+  "audio_B_mean_dB_baseline_final": [
+   -27.1,
+   -33.2
+  ],
+  "audio_A_mean_dB_baseline_final": [
+   -27.1,
+   -45.2
+  ]
+ }
+}

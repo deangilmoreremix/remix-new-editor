@@ -768,11 +768,17 @@ export function addTransition(timeline: Timeline, transition: Transition): Timel
     if (available <= 0) return timeline;
 
     const clampedDuration = Math.min(transition.duration, available);
-    // Shift clipB left by the transition duration so the clips overlap
+    // Shift clipB left by the transition duration so the clips overlap.
+    // [remix] Stage 8: B's linked clips that are in sync with it (its audio) shift by the same amount; before, the picture moved and the
+    // sound stayed, which put B's audio `duration` seconds late against its picture and left silence/black at the tail of the export.
+    const linkedWithB = new Set((clipB.linkedClipIds ?? []).filter((id) => {
+      const o = timeline.clips.find((x) => x.id === id);
+      return !!o && Math.abs(o.startTime - clipB.startTime) < 1e-3;
+    }));
     return withDuration({
       ...timeline,
       clips: timeline.clips.map((c) =>
-        c.id === transition.clipBId
+        c.id === transition.clipBId || linkedWithB.has(c.id)
           ? { ...c, startTime: c.startTime - clampedDuration }
           : c,
       ),
