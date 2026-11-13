@@ -197,3 +197,97 @@ export function persistSavedLayouts(layouts: SavedLayout[], store: Storage | nul
     return false
   }
 }
+
+// ── Account sync (Supabase, via the server route) ────────────────────────────────────────────────────────────────
+// The server route stores GEOMETRY ONLY and re-validates with `normalizeSavedLayouts`. Browser storage stays as the
+// offline fallback; nothing is uploaded unless the user asks (see `useSavedLayouts`).
+
+export const LAYOUTS_API = '/api/personalization/layouts'
+
+export type RemoteFailure = 'unauthenticated' | 'unavailable' | 'limit' | 'invalid' | 'error'
+export type RemoteResult<T> = { ok: true; data: T } | { ok: false; reason: RemoteFailure; message: string }
+
+const REMOTE_MESSAGES: Record<RemoteFailure, string> = {
+  unauthenticated: 'Sign in to keep layouts in your account.',
+  unavailable: 'Account layouts are not available here, so layouts stay in this browser.',
+  limit: 'You have reached the limit of 30 saved layouts. Delete one first.',
+  invalid: 'That layout could not be saved.',
+  error: 'Something went wrong talking to the server. Your layout is still saved in this browser.',
+}
+
+function failure<T>(reason: RemoteFailure): RemoteResult<T> {
+  return { ok: false, reason, message: REMOTE_MESSAGES[reason] }
+}
+
+async function call(
+  fetchFn: typeof fetch,
+  url: string,
+  init: RequestInit,
+): Promise<{ status: number; json: Record<string, unknown> | null } | null> {
+  try {
+    const res = await fetchFn(url, { credentials: 'same-origin', ...init })
+    let json: Record<string, unknown> | null = null
+    try { json = (await res.json()) as Record<string, unknown> } catch { json = null }
+    return { status: res.status, json }
+  } catch {
+    return null // offline / blocked
+  }
+}
+
+function reasonFor(status: number): RemoteFailure {
+  if (status === 401 || status === 403) return 'unauthenticated'
+  if (status === 404 || status === 405) return 'unavailable'
+  if (status === 409) return 'limit'
+  if (status === 400 || status === 413) return 'invalid'
+  return 'error'
+}
+
+/** The signed-in user's layouts. A non-JSON answer (e.g. an SPA fallback page) means the endpoint is not there. */
+export async function fetchRemoteLayouts(fetchFn: typeof fetch = fetch): Promise<RemoteResult<SavedLayout[]>> {
+  const r = await call(fetchFn, LAYOUTS_API, { method: 'GET' })
+  if (!r) return failure('unavailable')
+  if (r.status !== 200) return failure(reasonFor(r.status))
+  if (!r.json || r.json.ok !== true || !Array.isArray(r.json.layouts)) return failure('unavailable')
+  return { ok: true, data: normalizeSavedLayouts(r.json.layouts) }
+}
+
+/** Saves (or replaces, by name) one layout. Only geometry fields are sent. */
+export async function saveRemoteLayout(layout: SavedLayout, fetchFn: typeof fetch = fetch): Promise<RemoteResult<SavedLayout>> {
+  const { aspectRatio, layers, sourceTransform } = layout
+  const r = await call(fetchFn, LAYOUTS_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: layout.name, layout: { aspectRatio, layers, ...(sourceTransform ? { sourceTransform } : {}) } }),
+  })
+  if (!r) return failure('unavailable')
+  if (r.status !== 200) return failure(reasonFor(r.status))
+  const saved = normalizeSavedLayouts([r.json?.layout])[0]
+  return saved ? { ok: true, data: saved } : failure('error')
+}
+
+export async function deleteRemoteLayout(id: string, fetchFn: typeof fetch = fetch): Promise<RemoteResult<true>> {
+  const r = await call(fetchFn, `${LAYOUTS_API}?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+  if (!r) return failure('unavailable')
+  if (r.status === 404) return { ok: true, data: true } // already gone
+  if (r.status !== 200) return failure(reasonFor(r.status))
+  return { ok: true, data: true }
+}
+
+const nameKey = (name: string) => name.trim().toLowerCase()
+
+export type LayoutSource = 'account' | 'browser'
+
+/**
+ * One list for the UI: account layouts first, then browser-only layouts whose names are not already in the account
+ * (the account copy wins when names collide, as the server replaces by name too).
+ */
+export function mergeLayouts(
+  remote: SavedLayout[],
+  local: SavedLayout[],
+): Array<SavedLayout & { source: LayoutSource }> {
+  const taken = new Set(remote.map((l) => nameKey(l.name)))
+  return [
+    ...remote.map((l) => ({ ...l, source: 'account' as const })),
+    ...local.filter((l) => !taken.has(nameKey(l.name))).map((l) => ({ ...l, source: 'browser' as const })),
+  ]
+}

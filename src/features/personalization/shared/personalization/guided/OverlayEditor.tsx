@@ -8,8 +8,9 @@ import { imageRoleForLayerKind, presetStyle, resolveImageLook } from '../preview
 import { MEDIA_ROLE_CONTRACTS, roleForLayer } from '../preview/mediaRoles'
 import { ImageStyleControls } from './ImageStyleControls'
 import { LayerToolsPanel } from './LayerToolsPanel'
+import { KonvaTransformOverlay } from './KonvaTransformOverlay'
 import { applyCustomFields, rotationCss, sourceMediaStyle } from '../preview/layerTransform'
-import { computeSnap, groupMemberIds, layerRect, moveLayers, unionRect, type SnapGuide } from './layerOps'
+import { computeSnap, groupMemberIds, layerRect, moveLayers, setLayerRotation, unionRect, type SnapGuide } from './layerOps'
 import { DesignLayerPlayer } from './DesignLayerPlayer'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import {
@@ -39,6 +40,7 @@ import {
   nudgeDeltaForKey,
   offsetLayer,
   resolveCompositionSize,
+  layerBoxMetrics,
   scaleLayerTo,
   stageScaleFactor,
   toStageBox,
@@ -491,6 +493,39 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
     commitScale(layer.id, scaleLayerTo(layer, grows ? layer.scale * factor : layer.scale / factor, compW, compH))
   }
 
+  /**
+   * On-canvas rotate/resize handles (react-konva) for the selected layer. Only for layers the customer may
+   * move, that are not locked, not full-frame designs and not the split-screen preset (which is drawn in
+   * composition space, not in the layer's own box). Needs the provider's settings editor.
+   */
+  const konvaHandles = (() => {
+    if (!editPreviewSettings || !selected || factor <= 0) return null
+    if (!selected.visible || selected.locked || selected.kind === 'design' || selected.kind === 'endCard') return null
+    const contract = contractOf(selected)
+    if (!contract.userMovable) return null
+    const isImg = isImageLayerKind(selected.kind)
+    const selUrl = layerImageUrl(selected, brand)
+    if (isImg) {
+      if (!selUrl) return null
+      const look = resolveImageLook({ role: roleForLayer(selected), kind: selected.kind, layerStyle: selected.imageStyle, layerRole: selected.imageRole, hints: inputProps.settings?.imageHints?.[selUrl], layout: settings.layout, aspect: settings.aspectRatio })
+      if (look.style?.presetId === 'split-screen') return null
+    }
+    const text = isImg ? undefined : applyCustomFields(layerText(selected, brand), settings.customFields)
+    if (!isImg && !(text ?? '').trim()) return null
+    const stageBox = toStageBox(selected, compW, compH, stageWidth, text)
+    const metrics = layerBoxMetrics(clampLayerToBounds(selected, compW, compH), compW, compH, text)
+    const height = isImg ? stageBox.width : metrics.heightPx * factor
+    return (
+      <KonvaTransformOverlay
+        box={{ left: stageBox.left, top: stageBox.top, width: stageBox.width, height }}
+        rotation={selected.rotation ?? 0}
+        allowResize={contract.userResizable}
+        onRotate={(deg) => editPreviewSettings((prev) => setLayerRotation(prev, selected.id, deg))}
+        onResize={(multiplier) => commitScale(selected.id, scaleLayerTo(selected, selected.scale * multiplier, compW, compH))}
+      />
+    )
+  })()
+
   const imageOptions = (layer: PreviewLayer) => imageAssetOptions(layer, assets)
 
   return (
@@ -723,6 +758,8 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                 </div>
               )
             })}
+
+          {konvaHandles}
         </div>
 
         {/* ── Layer list + controls ─────────────────────────────────────── */}
@@ -951,6 +988,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                     libraryOptions={imageOptions(selected).filter((o) => o.value && o.value !== url).map((o) => ({ value: o.value, label: o.label }))}
                     extraUrls={selected.imageUrls ?? []}
                     onExtraUrls={(urls) => updatePreviewLayer(selected.id, { imageUrls: urls.length ? urls : undefined })}
+                    imageSrc={url || undefined}
                     style={current}
                     isAuto={!selected.imageStyle || selected.imageStyle.auto === true}
                     reason={resolved.reason}

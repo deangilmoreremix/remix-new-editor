@@ -38,3 +38,13 @@ Branch: `claude/jolly-cannon-ofqf7h`
 
 ### QUEUED (not authorized): Sendspark-style Personalization Studio
 - The user supplied a design/audit prompt to be run **only when they direct it**, without skipping or reordering master stages. Stored at `docs/queued/SMARTVIDEO_PERSONALIZATION_STUDIO_PROMPT.md`. Its first stage is audit + design only and must stop for approval. Reference screenshots were not saved; ask for them again when it starts.
+
+### Stage 1 — completion pass
+- Authorization: "complete all of stage 1 and make sure there are no errors" (Stage 1 only).
+- Added: Konva rotate/transform handles, react-easy-crop crop dialog (+ exact `cropMapping`), synced saved layouts (migration + route + hook; browser fallback; explicit Upload), scoped type-check gate, real-browser editor check and real video export check, local-PostgreSQL RLS assertions.
+- New dependencies: react-konva 19.2.3, konva ^10.9.1, react-easy-crop ^6.2.5 (all MIT). `vite.config.js` optimizeDeps.include extended for them.
+- Fixed: `legacyCards` (StreamResponse backplate is now a gradient), 74 in-tree type errors, one `no-var` lint error.
+- Verified: full vitest 766/766 files, 0 failures; typecheck gate 0; eslint src 0 errors; render 8/8, editor 19/19, export 31/31, SQL 40/40.
+- NOT done: the layouts migration is not applied to production or any branch (needs the user's decision). Not exercised: deployed route with a real Clerk session.
+- Reported (not changed): the Supabase advisor shows 117 public tables with RLS disabled.
+- Stage 2 is **not** authorized.

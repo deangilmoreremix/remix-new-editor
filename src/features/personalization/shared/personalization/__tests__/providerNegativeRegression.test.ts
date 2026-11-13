@@ -197,7 +197,7 @@ describe('Phase 29 - Provider Negative Regression Tests', () => {
           ok: true,
           status: 200,
           json: async () => ({ data: [{ url: 'https://openai.test/image.png' }] }),
-          text: async () => '{}',
+          text: async (): Promise<string> => '{}',
           headers: new Headers(),
           blob: () => Promise.resolve(new Blob(['test'], { type: 'image/png' })),
         }
@@ -207,7 +207,7 @@ describe('Phase 29 - Provider Negative Regression Tests', () => {
           ok: true,
           status: 200,
           json: async () => ({ status: 'completed', url: 'https://muapi.test/video.mp4', outputs: ['https://muapi.test/video.mp4'] }),
-          text: async () => '{}',
+          text: async (): Promise<string> => '{}',
           headers: new Headers(),
         }
       }
@@ -216,7 +216,7 @@ describe('Phase 29 - Provider Negative Regression Tests', () => {
           ok: true,
           status: 200,
           json: async () => ({ request_id: 'req-123', url: 'https://muapi.test/video.mp4', outputs: ['https://muapi.test/video.mp4'] }),
-          text: async () => '{}',
+          text: async (): Promise<string> => '{}',
           headers: new Headers(),
         }
       }

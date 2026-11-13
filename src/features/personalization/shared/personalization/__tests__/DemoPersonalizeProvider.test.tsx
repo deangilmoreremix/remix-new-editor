@@ -1096,7 +1096,7 @@ describe('DemoPersonalizeProvider generation flows', () => {
   })
 
   it('shows progress view during generation', async () => {
-    ;(runGeneration as any).mockImplementation(async (input) => {
+    ;(runGeneration as any).mockImplementation(async (input: any) => {
       input.onProgress?.(50, 'Generating...')
       await new Promise((r) => setTimeout(r, 100))
       return { type: 'video', url: 'https://example.com/video.mp4', metadata: { model: 'test-model' } }

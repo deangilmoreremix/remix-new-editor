@@ -1257,6 +1257,9 @@ export default defineConfig({
             '@emotion/react', '@emotion/styled', 'framer-motion',
             'interactjs', 'lottie-web', 'mitt', 'lodash', 'gl-transitions',
             'react-dropzone', 'mobx', 'mobx-react',
+            // Stage 1 editor: loaded lazily (dynamic import), so they would otherwise be discovered late and force a
+            // re-optimize that 504s in-flight requests. react-reconciler/constants is CommonJS and must be pre-bundled.
+            'react-konva', 'konva', 'react-reconciler/constants', 'react-easy-crop',
         ],
         // Some legacy app modules (e.g. components/common/ImglyImageEditor*.js)
         // are authored as .js but contain JSX. Vite's dep scanner otherwise

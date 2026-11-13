@@ -11,25 +11,20 @@
  * same Remotion composition as the preview and the export.
  */
 import { useState } from 'react'
-import { isValidCustomFieldKey, normalizeRotation, normalizeSourceTransform } from '../preview/layerTransform'
+import { isValidCustomFieldKey, normalizeSourceTransform } from '../preview/layerTransform'
 import type { PersonalizationPreviewSettings, PreviewLayer } from '../preview/types'
 import {
   alignLayers,
   duplicateLayer,
   groupLayers,
   reorderLayer,
+  setLayerRotation,
   ungroupLayers,
   type AlignMode,
   type ReorderMode,
 } from './layerOps'
-import {
-  MAX_SAVED_LAYOUTS,
-  applyLayout,
-  loadSavedLayouts,
-  persistSavedLayouts,
-  snapshotLayout,
-  type SavedLayout,
-} from './savedLayouts'
+import { applyLayout, snapshotLayout, type SavedLayout } from './savedLayouts'
+import { useSavedLayouts } from './useSavedLayouts'
 import { C, chipStyle, hintStyle, inputStyle, labelStyle, softPanelStyle } from './tokens'
 
 export type EditSettings = (
@@ -48,6 +43,9 @@ export interface LayerToolsPanelProps {
   onSelect: (id: string) => void
   snapGrid: boolean
   onSnapGridChange: (on: boolean) => void
+  /** Test seams: the network and storage the saved-layouts list uses. Default to the real ones. */
+  layoutFetch?: typeof fetch
+  layoutStorage?: Storage | null
 }
 
 const small = { ...chipStyle(false), minHeight: 28, fontSize: 10 } as const
@@ -78,11 +76,11 @@ function newLayoutId(): string {
 }
 
 export function LayerToolsPanel({
-  settings, selected, selectionIds, compW, compH, edit, onSelect, snapGrid, onSnapGridChange,
+  settings, selected, selectionIds, compW, compH, edit, onSelect, snapGrid, onSnapGridChange, layoutFetch, layoutStorage,
 }: LayerToolsPanelProps) {
-  const [layouts, setLayouts] = useState<SavedLayout[]>(() => loadSavedLayouts())
+  const { layouts, status: syncStatus, statusMessage, note: syncNote, setNote: setLayoutNote, save: saveSynced, remove: removeSynced, upload: uploadLayout } =
+    useSavedLayouts({ fetchFn: layoutFetch, storage: layoutStorage })
   const [layoutName, setLayoutName] = useState('')
-  const [layoutNote, setLayoutNote] = useState('')
   const [fieldKey, setFieldKey] = useState('')
   const [fieldValue, setFieldValue] = useState('')
   const [fieldError, setFieldError] = useState('')
@@ -98,15 +96,7 @@ export function LayerToolsPanel({
 
   const setRotation = (value: number) => {
     if (!selected) return
-    const next = normalizeRotation(value)
-    edit((prev) => ({
-      ...prev,
-      layers: prev.layers.map((l) => {
-        if (l.id !== selected.id || l.locked) return l
-        const { rotation: _old, ...rest } = l
-        return (next === undefined ? rest : { ...rest, rotation: next, placementSource: 'manual' }) as PreviewLayer
-      }),
-    }))
+    edit((prev) => setLayerRotation(prev, selected.id, value))
   }
 
   const setSource = (patch: Partial<{ x: number; y: number; zoom: number }>) => {
@@ -153,10 +143,9 @@ export function LayerToolsPanel({
       setLayoutNote('Give the layout a name first.')
       return
     }
-    const next = [snap, ...layouts].slice(0, MAX_SAVED_LAYOUTS)
-    setLayouts(next)
+    setLayoutNote('')
     setLayoutName('')
-    setLayoutNote(persistSavedLayouts(next) ? `Saved “${snap.name}” in this browser.` : 'Saved for this session only — browser storage is unavailable.')
+    void saveSynced(snap)
   }
   const applySaved = (layout: SavedLayout) => {
     const { matched } = applyLayout(settings, layout)
@@ -168,10 +157,9 @@ export function LayerToolsPanel({
         : `Applied “${layout.name}” to ${matched} layer${matched === 1 ? '' : 's'}${sameShape ? '' : ` (saved for ${layout.aspectRatio}; check the result at ${settings.aspectRatio})`}.`,
     )
   }
-  const deleteSaved = (layout: SavedLayout) => {
-    const next = layouts.filter((l) => l.id !== layout.id)
-    setLayouts(next)
-    setLayoutNote(persistSavedLayouts(next) ? `Deleted “${layout.name}”.` : `Removed “${layout.name}” for this session only.`)
+  const deleteSaved = (layout: Parameters<typeof removeSynced>[0]) => {
+    setLayoutNote('')
+    void removeSynced(layout)
   }
 
   const row = { display: 'flex', gap: 5, flexWrap: 'wrap' as const, alignItems: 'center' }
@@ -302,15 +290,27 @@ export function LayerToolsPanel({
           <input aria-label="Layout name" placeholder="Name this layout" value={layoutName} maxLength={60} onChange={(e) => setLayoutName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveLayout() }} style={{ ...inputStyle, flex: 1, minWidth: 110, minHeight: 28, padding: '0 8px' }} />
           <button type="button" aria-label="Save layout" style={small} onClick={saveLayout}>Save</button>
         </div>
-        {layouts.length === 0 ? <p style={hintStyle}>Saves positions, sizes, rotation and stacking only — never text or pictures — so you can reuse an arrangement on another prospect. Stored in this browser.</p> : null}
+        <p data-testid="layouts-sync-status" style={hintStyle}>
+          {syncStatus === 'account'
+            ? 'Saved to your account: available on any device you sign in on.'
+            : syncStatus === 'checking'
+              ? 'Checking for your account…'
+              : `${statusMessage || 'Layouts stay in this browser.'}`}
+        </p>
+        {layouts.length === 0 ? <p style={hintStyle}>Saves positions, sizes, rotation and stacking only — never text or pictures — so you can reuse an arrangement on another prospect.</p> : null}
         {layouts.map((layout) => (
           <div key={layout.id} style={row}>
-            <span style={{ color: C.text, fontSize: 11, flex: 1, minWidth: 80 }}>{layout.name} <span style={{ color: C.muted }}>· {layout.aspectRatio}</span></span>
+            <span style={{ color: C.text, fontSize: 11, flex: 1, minWidth: 80 }}>
+              {layout.name} <span style={{ color: C.muted }}>· {layout.aspectRatio} · {layout.source === 'account' ? 'account' : 'this browser'}</span>
+            </span>
             <button type="button" aria-label={`Apply layout ${layout.name}`} style={small} onClick={() => applySaved(layout)}>Apply</button>
+            {layout.source === 'browser' && syncStatus === 'account' ? (
+              <button type="button" aria-label={`Upload layout ${layout.name} to my account`} style={small} onClick={() => void uploadLayout(layout)}>Upload</button>
+            ) : null}
             <button type="button" aria-label={`Delete layout ${layout.name}`} style={small} onClick={() => deleteSaved(layout)}>Delete</button>
           </div>
         ))}
-        {layoutNote ? <p role="status" style={hintStyle}>{layoutNote}</p> : null}
+        {syncNote ? <p role="status" style={hintStyle}>{syncNote}</p> : null}
       </div>
     </div>
   )

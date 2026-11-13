@@ -174,7 +174,7 @@ describe('Stage 1 edits through the real provider', () => {
     const saved = stripSessionScopedUrls({ previewSettings: before } as any).previewSettings
     const restored = normalizePreviewSettings(JSON.parse(JSON.stringify(saved)))
     expect(restored.layers.find((l: any) => l.id === a)).toMatchObject({ rotation: 27.5, groupId: 'group-1' })
-    expect(restored.layers.find((l: any) => l.id === b).groupId).toBe('group-1')
+    expect(restored.layers.find((l: any) => l.id === b)?.groupId).toBe('group-1')
     expect(restored.sourceTransform).toEqual({ x: 0.3, y: 0.6, zoom: 1.75 })
     expect(restored.customFields).toEqual({ city: 'Austin', offer_code: 'SAVE10' })
     // Restoring a restored copy changes nothing (idempotent), and layer order is kept.

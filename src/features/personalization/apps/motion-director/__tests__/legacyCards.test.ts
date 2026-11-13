@@ -25,6 +25,5 @@ describe('retired recipes kept for old saves', () => {
 
   it('its textures are served from the legacy namespace and exist', () => {
     expect(existsSync('public/motion-studio/legacy-textures/projects-full.png')).toBe(true);
-    expect(existsSync('public/motion-studio/legacy-textures/agent-stream.jpg')).toBe(true);
   });
 });

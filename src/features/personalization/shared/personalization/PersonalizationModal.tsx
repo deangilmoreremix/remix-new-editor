@@ -89,7 +89,7 @@ import { C } from './guided/tokens'
  * React elements and everything else as plain text, so the copy can never
  * inject markup (no dangerouslySetInnerHTML).
  */
-function renderStrongMarkup(text: string): Array<string | JSX.Element> {
+function renderStrongMarkup(text: string): Array<string | React.JSX.Element> {
   return String(text || '')
     .split(/(<strong>[\s\S]*?<\/strong>)/g)
     .filter(Boolean)
@@ -2527,19 +2527,19 @@ function ConfigurationView(props: any) {
     if (assets.primaryIdentity) {
       items.push({ id: assets.primaryIdentity.id, section: 'Person', name: assets.primaryIdentity.name, url: assets.primaryIdentity.uploadedUrl || assets.primaryIdentity.url })
     }
-    assets.identities.forEach((a) => {
+    assets.identities.forEach((a: PersonalizationAsset) => {
       if (a.id === assets.primaryIdentity?.id) return
       items.push({ id: a.id, section: 'Person', name: a.name, url: a.uploadedUrl || a.url })
     })
     if (assets.primaryLogo) {
       items.push({ id: assets.primaryLogo.id, section: 'Logo', name: assets.primaryLogo.name, url: assets.primaryLogo.uploadedUrl || assets.primaryLogo.url })
     }
-    assets.logos.forEach((a) => {
+    assets.logos.forEach((a: PersonalizationAsset) => {
       if (a.id === assets.primaryLogo?.id) return
       items.push({ id: a.id, section: 'Logo', name: a.name, url: a.uploadedUrl || a.url })
     })
-    assets.products.forEach((a) => items.push({ id: a.id, section: 'Products', name: a.name, url: a.uploadedUrl || a.url }))
-    assets.brandReferences.forEach((a) => items.push({ id: a.id, section: 'Brand', name: a.name, url: a.uploadedUrl || a.url }))
+    assets.products.forEach((a: PersonalizationAsset) => items.push({ id: a.id, section: 'Products', name: a.name, url: a.uploadedUrl || a.url }))
+    assets.brandReferences.forEach((a: PersonalizationAsset) => items.push({ id: a.id, section: 'Brand', name: a.name, url: a.uploadedUrl || a.url }))
     if (assets.firstFrame) items.push({ id: assets.firstFrame.id, section: 'First Frame', name: assets.firstFrame.name, url: assets.firstFrame.uploadedUrl || assets.firstFrame.url })
     if (assets.lastFrame) items.push({ id: assets.lastFrame.id, section: 'Last Frame', name: assets.lastFrame.name, url: assets.lastFrame.uploadedUrl || assets.lastFrame.url })
     if (assets.ctaGraphic) items.push({ id: assets.ctaGraphic.id, section: 'CTA', name: assets.ctaGraphic.name, url: assets.ctaGraphic.uploadedUrl || assets.ctaGraphic.url })
@@ -3070,7 +3070,7 @@ function ConfigurationView(props: any) {
               </div>
               {!savedLeadsOpen && (
               <div className="flex flex-col gap-2">
-                {businessSearchResults.slice(0, shownResultCount).map((business) => (
+                {businessSearchResults.slice(0, shownResultCount).map((business: BusinessDiscoveryRecord) => (
                   <div
                     key={business.id}
                     style={{
@@ -3584,7 +3584,7 @@ function ConfigurationView(props: any) {
               </button>
               <div aria-live="polite" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
                 {discoveryStatus === 'discovering' && 'Finding business assets'}
-                {discoveryStatus === 'reviewing' && `Discovery complete. ${discoveredAssets.filter((a) => !a.rejected).length} assets found.`}
+                {discoveryStatus === 'reviewing' && `Discovery complete. ${discoveredAssets.filter((a: DiscoveredAsset) => !a.rejected).length} assets found.`}
                 {importConfirmation && `${importConfirmation.count} assets imported`}
                 {discoveryError && `Discovery error: ${discoveryError}`}
               </div>
@@ -3884,7 +3884,7 @@ function ConfigurationView(props: any) {
               )}
             </div>
             <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {assets.logos.filter((a) => a.id !== assets.primaryLogo?.id).map((asset: PersonalizationAsset) => (
+              {assets.logos.filter((a: PersonalizationAsset) => a.id !== assets.primaryLogo?.id).map((asset: PersonalizationAsset) => (
                  <ThumbUploaded
                    key={asset.id}
                    asset={asset}
@@ -4295,7 +4295,7 @@ function ConfigurationView(props: any) {
                 savedAssetLibraryTab === 'logos' ? savedClientAssets.logos :
                 savedAssetLibraryTab === 'products' ? savedClientAssets.products :
                 savedClientAssets.brandReferences
-               ).map((asset) => (
+               ).map((asset: PersonalizationAsset) => (
                  <div
                    key={asset.id}
                    className="text-left"
@@ -4408,7 +4408,7 @@ function ConfigurationView(props: any) {
             <div>
               <h2 style={{ margin: 0, fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>Discovered Assets</h2>
               <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 11 }}>
-                Found {discoveredAssets.filter((a) => !a.rejected).length} potential assets — {discoveredAssets.filter((a) => a.selected && !a.rejected).length} selected
+                Found {discoveredAssets.filter((a: DiscoveredAsset) => !a.rejected).length} potential assets — {discoveredAssets.filter((a: DiscoveredAsset) => a.selected && !a.rejected).length} selected
               </p>
             </div>
             <div className="flex gap-2 flex-wrap">
@@ -4429,8 +4429,8 @@ function ConfigurationView(props: any) {
                     type="button"
                     onClick={selectRecommendedDiscoveredAssets}
                     // With nothing flagged it would only clear the selection.
-                    disabled={!discoveredAssets.some((a) => a.recommended && !a.rejected)}
-                    title={discoveredAssets.some((a) => a.recommended && !a.rejected) ? undefined : 'No recommended assets — run GO Vision or pick assets yourself'}
+                    disabled={!discoveredAssets.some((a: DiscoveredAsset) => a.recommended && !a.rejected)}
+                    title={discoveredAssets.some((a: DiscoveredAsset) => a.recommended && !a.rejected) ? undefined : 'No recommended assets — run GO Vision or pick assets yourself'}
                     className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
                     style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.border}`, background: C.panel, color: 'white' }}
                   >
@@ -4441,7 +4441,7 @@ function ConfigurationView(props: any) {
                     onClick={handleBatchMakeVideoReady}
                     disabled={
                       batchVideoReady.running ||
-                      discoveredAssets.filter((a) => a.selected && !a.rejected && a.category !== 'irrelevant' && !a.videoReady).length === 0
+                      discoveredAssets.filter((a: DiscoveredAsset) => a.selected && !a.rejected && a.category !== 'irrelevant' && !a.videoReady).length === 0
                     }
                     className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
                     style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan }}
@@ -4453,7 +4453,7 @@ function ConfigurationView(props: any) {
                   <button
                     type="button"
                     onClick={importDiscoveredAssets}
-                    disabled={batchVideoReady.running || discoveredAssets.filter((a) => a.selected && !a.rejected).length === 0}
+                    disabled={batchVideoReady.running || discoveredAssets.filter((a: DiscoveredAsset) => a.selected && !a.rejected).length === 0}
                     className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
                     style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000' }}
                   >
@@ -4532,7 +4532,7 @@ function ConfigurationView(props: any) {
             onEdit={onEditDiscovered || undefined}
             onRevert={revertDiscoveredAssetEdit}
             onRemoveFromSection={removeDiscoveredAssetFromSection}
-            onRestoreAll={() => setDiscoveredAssets((prev) => prev.map((a) => ({ ...a, rejected: false })))}
+            onRestoreAll={() => setDiscoveredAssets((prev: DiscoveredAsset[]) => prev.map((a: DiscoveredAsset) => ({ ...a, rejected: false })))}
             onDragStart={(asset, e) => handleAssetDragStart({
               assetId: asset.id,
               source: 'discovered',
@@ -4943,7 +4943,7 @@ function ConfigurationView(props: any) {
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
                   style={{ borderColor: C.border, background: C.field, color: C.text }}
                 >
-                  {capabilities.aspectRatioOptions.map(opt => (
+                  {capabilities.aspectRatioOptions.map((opt: string) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
@@ -4966,7 +4966,7 @@ function ConfigurationView(props: any) {
                   style={{ borderColor: C.border, background: C.field, color: C.text }}
                 >
                   <option value="">Default</option>
-                  {capabilities.resolutionOptions.map(opt => (
+                  {capabilities.resolutionOptions.map((opt: string) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
@@ -4984,7 +4984,7 @@ function ConfigurationView(props: any) {
                   style={{ borderColor: C.border, background: C.field, color: C.text }}
                 >
                   <option value="">Default</option>
-                  {capabilities.qualityOptions.map(opt => (
+                  {capabilities.qualityOptions.map((opt: string) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
@@ -5004,7 +5004,7 @@ function ConfigurationView(props: any) {
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
                   style={{ borderColor: C.border, background: C.field, color: C.text }}
                 >
-                  {capabilities.durationOptions.map(opt => (
+                  {capabilities.durationOptions.map((opt: number) => (
                     <option key={opt} value={opt}>{opt}s</option>
                   ))}
                 </select>

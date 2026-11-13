@@ -3,7 +3,7 @@
 | Stage | Title | State | Approval | Completed | Commit | Tests | Remaining issues |
 |---|---|---|---|---|---|---|---|
 | 0 | Application & feature audit | **Complete (audit-only)** | Authorized by the master prompt (Stage 0 only) | 2026-11-13 | see `git log` for the commit titled "Stage 0 audit" | Baseline below | See master plan §5 |
-| 1 | Personalization data & visual editing | **Partially complete** (code + real-renderer stills verified; live-app and MP4 acceptance not verified) | Authorized by the user ("continue with the next phase") | 2026-11-13 | see `git log` ("Stage 1") | 63 new tests pass; full suite 10,927 pass / 2 pre-existing failures | See Stage 1 section |
+| 1 | Personalization data & visual editing | **Complete and verified** (see limits in the Stage 1 completion section) | Authorized by the user ("continue with the next phase", then "complete all of stage 1") | 2026-11-13 | see `git log` ("Stage 1 completion") | Full suite 766/766 files, 10,988 passed, 0 failed, 61 skipped; typecheck gate 0 errors; eslint src 0 errors; live checks 8/8, 19/19, 31/31; SQL 40/40 | Migration for synced layouts is **not applied** anywhere |
 | 2 | Website backgrounds & business assets | Not started | **NOT authorized** | — | — | — | — |
 | 3 | MediaPipe presenter effects | Not started | **NOT authorized** | — | — | — | — |
 | 4 | Advanced browser audio | Not started | **NOT authorized** | — | — | — | — |
@@ -128,3 +128,56 @@ They are pre-existing `it.skip` / `describe.skip` / `it.skipIf` markers in 18 fi
 - 2 `toImageBlob` tests are documented jsdom limits (jsdom `Blob` vs Node `Response`).
 - Others (`providerErrorRecovery`, `catalogBatch3a/3f`, `skills`) have no recorded reason.
 Skipped tests were never evidence of passing behaviour. None were un-skipped permanently.
+
+
+## Stage 1 — completion pass (2026-11-13)
+Requested by the user: "complete all of stage 1 and make sure there are no errors". Scope chosen by the user: Stage 1 code + tests; add the on-canvas rotate handle, drag-to-pan crop, react-konva + react-easy-crop and Supabase-synced layouts; verify with a real export, a real-browser editor run and a Supabase check.
+
+### What was added
+| Item | Detail |
+|---|---|
+| Failing test fixed | `legacyCards`: the retired `StreamResponse` recipe drew `agent-stream.jpg`, which was never committed (a `*.jpg` ignore rule). Its backplate is now a CSS gradient and the test no longer requires the file. **This changes that retired recipe's look** (the original photo is not recoverable); supply the original to restore it |
+| Type check that works | `tsconfig.stage1.json`, `scripts/typecheck-personalization.mjs`, `npm run typecheck:personalization`: **0 errors in the personalization tree**. It also prints the 98 pre-existing errors in imported vendored/legacy files it ignores. 74 in-tree errors were fixed (lib ES2022, `allowJs`, vite types, a global `IS_REACT_ACT_ENVIRONMENT` declaration, `React.JSX`, ~20 explicit parameter types, 8 test typings) |
+| On-canvas rotate / resize handles | `guided/KonvaTransformOverlay.tsx` + `...Impl.tsx` (react-konva `Transformer`): rotate handle (Shift snaps to 15°), uniform corner resize. Lazy-loaded; if Konva fails to load the editor silently keeps the panel controls and the existing handle. The canvas takes pointer events **only while over a handle**, so drag, group-move and snapping are unchanged |
+| Drag-to-pan crop + zoom | `guided/ImageCropDialog.tsx` (react-easy-crop) opened by "Crop & zoom…" in the image style controls. `guided/cropMapping.ts` maps the framed area to `cropX / cropY / zoom` exactly as the composition renders them (verified against an independent simulation of the CSS) |
+| Synced saved layouts | Migration `20261114000000_personalization_saved_layouts.sql`; route `/api/personalization/layouts` (GET/POST/DELETE, Clerk session, rate limited, geometry-only, re-validated server-side); `savedLayouts.ts` remote adapter and `useSavedLayouts` hook. Browser storage stays the fallback. **Nothing is uploaded unless the user presses Upload** |
+
+### Dependencies and licences (verified from each package's own LICENSE file)
+| Package | Version | Licence | Notes |
+|---|---|---|---|
+| `react-konva` | 19.2.3 | MIT | peer `react ^19.2.0`; installed React is 19.3.1. 19.3.x wants React 19.3 and the repo's range is `^19.2.7`, so 19.2.3 is pinned |
+| `konva` | ^10.9.1 | MIT | |
+| `react-easy-crop` | ^6.2.5 | MIT | |
+`npm install` (no lockfile in this repo) also changed 7 transitive packages. All three libraries are lazy-loaded (dynamic import), and were added to `vite.config.js` `optimizeDeps.include` because the repo's own comments warn that late-discovered dependencies 504 in-flight requests.
+
+### Test and verification evidence (all commands actually run)
+| Command | Result |
+|---|---|
+| `npx vitest run` (full) | **766/766 files, 10,988 passed, 0 failed, 61 skipped** (skipped count unchanged; they are the pre-existing desktop-only/documented skips) |
+| `npm run typecheck:personalization` | 0 errors in scope (98 out-of-scope pre-existing errors reported) |
+| `eslint src --ext .js,.jsx,.ts,.tsx` | 0 errors (warnings are the repo-wide style warnings) |
+| `supabase/tests/run-layouts-assertions.sh` on local **PostgreSQL 16** | **40 assertions, ALL PASSED**: per-user isolation through the RPCs, the RLS policies themselves (re-granting table access in the test), grants (anon/authenticated cannot call or read), name/size/cap-30 limits, identity required |
+| Route tests (`netlify/functions/_personalization/tests/layoutsApi.vitest.test.ts`) | 21 pass (session user id only, geometry-only storage, 401/400/413/409/404/429, no DB error leakage) |
+| `scripts/stage1-render-check/run.mjs` | exit 0, 8/8: real Remotion web renderer stills, pixel assertions (rotation pivot, `{{field}}`, zoom) |
+| `scripts/stage1-render-check/editor-check.mjs` | **19/19** in headless Chromium: the REAL `DemoPersonalizeProvider` + `OverlayEditor` with real mouse input: panel rotate, **Konva rotate handle dragged to 90°**, undo/redo, duplicate, group drag (+snap guide), saved layout, crop dialog (drag + zoom + Apply), save payload -> JSON -> restore |
+| `scripts/stage1-render-check/export-check.mjs` | **31/31**: the app's own `exportPersonalizedVideo` produced an **H.264 MP4**; `ffprobe`: 640x360, 60 frames, 2.005 s; decoded frames show the rotated text pivoting within 2.5 px of its centre, the zoom boundaries at x=480 / y=270, and `{{city}}` replaced (checked against a no-field control export) |
+| Mutation checks | Deliberately breaking the composition pivot, the normalizer, the crop formula, the RLS select policy, the "geometry only" storage, and adding a silent upload each made the matching tests fail; restored code passes |
+
+### Supabase (read-only inspection through the connected MCP; nothing written)
+- Project "VideoRemix Product" (`bzxohkrxcwodllketcpz`). `personalization_saved_projects` exists with RLS enabled. `personalization_saved_layouts` does **not** exist and migration `20261114000000` is **not** in the applied list: **the migration has not been applied to production or to any branch.** A throwaway branch was not created (it needs your approval and may cost).
+- **Security finding, not part of Stage 1:** the Supabase advisor reports **117 public tables with Row Level Security disabled**, including `personalization_projects`, `personalization_outputs`, `personalization_profiles`, `user_api_keys`, `provider_settings`, `access_tokens`, and `admin_analytics_events` (71,842 rows). With RLS off, anyone holding the anon key can read or modify them. I did not change anything. Enabling RLS without policies blocks all access, so this needs your decisions on policies. The advisor's remediation link: https://supabase.com/docs/guides/database/postgres/row-level-security
+
+### What is NOT verified (honest limits)
+- The new route was exercised with mocked Clerk auth / Supabase RPC and the SQL on a local PostgreSQL 16 (which emulates Supabase roles and `auth.jwt()`); it was **not** called on the deployed Netlify site with a real Clerk session, because the migration is unapplied.
+- The editor run used a harness around the real provider and editor (app-shell glue such as the router and social-publish context is stubbed; network calls are stubbed). The full signed-in application shell was not driven.
+- The exported video was 640x360, 2 s, an image source with no audio: not a full-size clip with a real video source or soundtrack.
+- Konva handle position for multi-line text uses the editor's line-count estimate, so on wrapped text the handle box can differ by a few pixels from the true text box (the stored rotation is unaffected).
+- Rotation is not re-clamped to the safe area; designs and the split-screen preset are not rotatable.
+- Out of scope and unchanged: 61 skipped tests (37 would fail if enabled), the repo-wide 12,870 type errors, and the 117 RLS-disabled tables above.
+
+### How to test
+- Unit/integration: `npx vitest run`.
+- Type and lint gates: `npm run typecheck:personalization` and `npm run lint`.
+- Real renderer / editor / export (needs `npm install`, ffmpeg and a Chromium; set `CHROMIUM_PATH` if not at `/opt/pw-browsers/chromium`): `node scripts/stage1-render-check/run.mjs`, `.../editor-check.mjs`, `.../export-check.mjs` (screenshots, PNGs and MP4s land in `scripts/stage1-render-check/out/`, git-ignored).
+- RLS on a local database (needs a local PostgreSQL 16): `supabase/tests/run-layouts-assertions.sh` (with `PGHOST`/`PGUSER` for a superuser connection).
+- In the app: open a Personalize modal -> overlay editor: select a layer and drag the round rotate handle above it (Shift = 15° steps); in an image layer's style controls press "Crop & zoom…" and drag the picture; "Saved layouts" shows whether layouts go to your account or this browser.

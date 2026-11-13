@@ -52,7 +52,7 @@ describe('PersonalizationOpenAIClient', () => {
     const fetchMock = vi.fn(async (_url: RequestInfo | URL, _init: OpenAIClientFetchInit) =>
       mockResponse({ data: [{ url: 'https://example.com/edited.png' }] }),
     )
-    globalThis.fetch = fetchMock
+    globalThis.fetch = fetchMock as unknown as typeof fetch
 
     const client: PersonalizationOpenAIClient = createPersonalizationOpenAIClient('sk-test')
     const result = await client.editImage({
@@ -78,7 +78,7 @@ describe('PersonalizationOpenAIClient', () => {
     const fetchMock = vi.fn(async (_url: RequestInfo | URL, _init: OpenAIClientFetchInit) =>
       mockResponse({ data: [{ url: 'https://example.com/generated.png', revisedPrompt: 'revised' }] }),
     )
-    globalThis.fetch = fetchMock
+    globalThis.fetch = fetchMock as unknown as typeof fetch
 
     const client = createPersonalizationOpenAIClient('sk-test')
     const result = await client.generateImage({ prompt: 'A futuristic city skyline at sunset' })

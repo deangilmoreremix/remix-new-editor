@@ -58,7 +58,7 @@ describe('projectRestore', () => {
     const fetchMock = vi.fn(async (_url: RequestInfo | URL, _init: ProjectRestoreFetchInit) =>
       jsonResponse({ project: persisted }),
     )
-    globalThis.fetch = fetchMock
+    globalThis.fetch = fetchMock as unknown as typeof fetch
 
     const res = await loadProject('proj-123')
 

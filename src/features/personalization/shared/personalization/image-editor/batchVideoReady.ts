@@ -54,7 +54,7 @@ async function readDataUrl(url: string): Promise<string> {
     credentials: 'same-origin',
     body: JSON.stringify({ urls: [url] }),
   })
-  let payload: Record<string, unknown>
+  let payload: { error?: unknown; results?: Array<{ ok?: boolean; dataUrl?: string; error?: unknown }> }
   try {
     payload = await response.json()
   } catch {

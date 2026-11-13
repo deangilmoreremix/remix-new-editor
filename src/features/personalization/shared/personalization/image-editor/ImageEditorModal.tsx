@@ -387,7 +387,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       credentials: 'same-origin',
       body: JSON.stringify({ urls: [url] }),
     })
-    let payload: Record<string, unknown>
+    let payload: { error?: unknown; results?: Array<{ ok?: boolean; dataUrl?: string; error?: unknown }> }
     try {
       payload = await downloadRes.json()
     } catch {

@@ -12,6 +12,7 @@
  * position, so "forward/backward" reorders the array (within a role this is
  * exactly visual z-order).
  */
+import { normalizeRotation } from '../preview/layerTransform'
 import type { PersonalizationPreviewSettings, PreviewLayer } from '../preview/types'
 import {
   SAFE_AREA_MARGIN,
@@ -325,4 +326,34 @@ export function computeSnap(moving: LayerRect, others: LayerRect[], options: Sna
   if (bx) guides.push({ axis: 'x', at: round(bx.at), kind: bx.kind })
   if (by) guides.push({ axis: 'y', at: round(by.at), kind: by.kind })
   return { dx: bx ? bx.shift : 0, dy: by ? by.shift : 0, guides }
+}
+
+// ── Rotate ──────────────────────────────────────────────────────────────────
+
+/**
+ * Sets a layer's rotation (degrees, wrapped into (-180, 180]; 0 clears it). Locked and
+ * full-frame `design` layers are never rotated. Returns the same object when nothing
+ * changes, so callers and undo history do not record no-op edits.
+ */
+export function setLayerRotation(
+  settings: PersonalizationPreviewSettings,
+  layerId: string,
+  degrees: number,
+): PersonalizationPreviewSettings {
+  const next = normalizeRotation(degrees)
+  let changed = false
+  const layers = settings.layers.map((l) => {
+    if (l.id !== layerId || l.locked || l.kind === 'design') return l
+    if (l.rotation === next) return l
+    changed = true
+    const { rotation: _old, ...rest } = l
+    return (next === undefined ? rest : { ...rest, rotation: next, placementSource: 'manual' as const }) as PreviewLayer
+  })
+  return changed ? { ...settings, layers } : settings
+}
+
+/** Snaps an angle to the nearest `step` degrees (used by the on-canvas rotate handle with Shift). */
+export function snapAngle(degrees: number, step = 15): number {
+  if (!Number.isFinite(degrees) || !Number.isFinite(step) || step <= 0) return 0
+  return Math.round(degrees / step) * step
 }

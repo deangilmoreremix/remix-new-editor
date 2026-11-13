@@ -2,12 +2,12 @@ import React from 'react';
 import {
   AbsoluteFill,
   Easing,
-  Img,
   interpolate,
-  staticFile,
   useCurrentFrame,
 } from 'remotion';
-const backplate = staticFile('motion-studio/legacy-textures/agent-stream.jpg');
+// The original photographic backplate (agent-stream.jpg) was never committed (an ignore rule swallowed it), so the
+// backplate is drawn as a dark teal gradient instead. Same position/dimming as before; no image file is needed.
+const BACKPLATE_GRADIENT = 'radial-gradient(ellipse at 30% 25%, #1c3a3a 0%, #0f2224 45%, #070d0f 100%)';
 
 const ROW_CUES = [42, 53, 63, 72, 80, 87, 93];
 const ROWS = [
@@ -90,7 +90,7 @@ export const StreamResponse: React.FC = () => {
   return (
     <AbsoluteFill style={{background: '#07090a', fontFamily: 'Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', overflow: 'hidden'}}>
       <AbsoluteFill style={{transform: `scale(${camera})`}}>
-        <Img src={backplate} style={{width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(.58) saturate(.76) blur(1px)', opacity: .7}}/>
+        <AbsoluteFill style={{background: BACKPLATE_GRADIENT, opacity: .85}}/>
         <AbsoluteFill style={{background: 'radial-gradient(circle at 50% 44%, rgba(6,9,10,.08) 10%, rgba(4,6,7,.72) 92%)'}}/>
       </AbsoluteFill>
 

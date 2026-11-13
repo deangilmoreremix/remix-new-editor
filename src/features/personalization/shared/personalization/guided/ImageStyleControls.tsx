@@ -1,6 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { C, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens'
+import { ImageCropDialog } from './ImageCropDialog'
 import type { ImagePresetId, ImageRole, ImageShadow, ImageShape, ImageStyle } from '../preview/imageStyle'
 import { IMAGE_PRESETS, IMAGE_PRESET_ORDER, presetSuitsRole } from '../preview/imagePresets'
 
@@ -41,6 +43,7 @@ export function ImageStyleControls({
   libraryOptions = [],
   extraUrls = [],
   onExtraUrls,
+  imageSrc,
 }: {
   style: ImageStyle
   isAuto: boolean
@@ -58,8 +61,11 @@ export function ImageStyleControls({
   libraryOptions?: { value: string; label: string }[]
   extraUrls?: string[]
   onExtraUrls?: (urls: string[]) => void
+  /** The picture's URL; enables the drag-to-pan "Crop & zoom" dialog. */
+  imageSrc?: string
 }): React.JSX.Element {
   const row = { display: 'grid', gap: 4 } as const
+  const [cropOpen, setCropOpen] = useState(false)
   return (
     <div data-testid="image-style-controls" style={{ display: 'grid', gap: 10, padding: '10px 0', borderTop: `1px solid ${C.border}` }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
@@ -211,8 +217,29 @@ export function ImageStyleControls({
         </select>
       </div>
 
+      {imageSrc ? (
+        <div style={row}>
+          <button type="button" aria-label="Crop and zoom picture" onClick={() => setCropOpen(true)} style={{ ...secondaryButtonStyle, minHeight: 30, padding: '0 12px' }}>
+            Crop &amp; zoom…
+          </button>
+        </div>
+      ) : null}
+      {cropOpen && imageSrc ? (
+        <ImageCropDialog
+          src={imageSrc}
+          initial={{ cropX: style.cropX, cropY: style.cropY, zoom: style.zoom }}
+          onCancel={() => setCropOpen(false)}
+          onApply={(result) => { onChange(result); setCropOpen(false) }}
+        />
+      ) : null}
+
       {style.fit === 'cover' && (
         <>
+          <div style={row}>
+            <label style={labelStyle}>Zoom {(style.zoom ?? 1).toFixed(2)}×</label>
+            <input type="range" aria-label="Image zoom" min={1} max={4} step={0.05} value={style.zoom ?? 1}
+              onChange={(e) => onChange({ zoom: Number(e.target.value) })} style={{ width: '100%', accentColor: C.cyan }} />
+          </div>
           <div style={row}>
             <label style={labelStyle}>Crop: left–right</label>
             <input type="range" aria-label="Crop horizontal" min={0} max={1} step={0.01} value={style.cropX}

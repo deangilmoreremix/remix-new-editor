@@ -43,7 +43,8 @@
     "gen:video-agent-server": "node apps/motion-agent/scripts/gen-server.mjs",
     "gen:motion-sources": "node scripts/motion-director/gen-demo-sources.mjs",
     "sync:mg-thumbs": "node scripts/sync-mg-thumbs.mjs",
-    "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs"
+    "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs",
+    "typecheck:personalization": "node scripts/typecheck-personalization.mjs"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.29.9",
@@ -134,8 +135,8 @@
     "@remotion/transitions": "4.0.540",
     "@remotion/web-renderer": "4.0.540",
     "@remotion/zod-types": "4.0.540",
-    "@sparticuz/chromium": "^153.0.0",
     "@sparkjsdev/spark": "^2.4.0",
+    "@sparticuz/chromium": "^153.0.0",
     "@supabase/supabase-js": "^2.110.1",
     "@tailwindcss/postcss": "^4.3.2",
     "@tailwindcss/vite": "^4.3.2",
@@ -164,6 +165,7 @@
     "jquery": "^3.7.1",
     "jquery-textfill": "^0.6.0",
     "kokoro-js": "^1.2.1",
+    "konva": "^10.9.1",
     "lodash": "^4.18.1",
     "lottie-web": "^5.6.6",
     "lucide": "^1.24.0",
@@ -184,7 +186,9 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-dropzone": "^15.0.0",
+    "react-easy-crop": "^6.2.5",
     "react-hotkeys-hook": "^5.3.2",
+    "react-konva": "19.2.3",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^4.11.1",
     "react-router-dom": "^7.18.5",
