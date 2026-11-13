@@ -69,6 +69,8 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   const traits = (tpl.traits || []).map((x) => `vp--t-${x}`).join(' ');
   const root = h(doc, 'div', `vp vp--${tpl.id} vp--${tpl.layout} vp--${theme.mode} ${traits}`.trim());
   if (tpl.radius != null) root.style.setProperty('--vp-radius', `${tpl.radius}px`);
+  // Per-design surface colours (trusted constants from the template definition, never from page config).
+  Object.entries(tpl.vars || {}).forEach(([k, v]) => root.style.setProperty(k, v));
   root.style.setProperty('--vp-accent', theme.accent);
   root.style.setProperty('--vp-highlight', theme.highlight);
   root.style.setProperty('--vp-on-accent', readableOn(theme.accent));
@@ -479,6 +481,15 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
     if (side) main.appendChild(side); else main.classList.add('vp-pitch-grid--single');
   } else if (side) {
     main.appendChild(side);
+  }
+  if (tpl.pitch && (tpl.traits || []).includes('banner')) {
+    // Headline block moves up into a coloured banner with the header; the video card overlaps its lower edge.
+    const banner = h(doc, 'div', 'vp-banner');
+    const top = root.querySelector(':scope > .vp-top');
+    const copyEl = main.querySelector('.vp-copy');
+    if (top) banner.appendChild(top);
+    if (copyEl) banner.appendChild(copyEl);
+    root.insertBefore(banner, main);
   }
   if ((tpl.traits || []).includes('card')) {
     const card = h(doc, 'div', 'vp-card');

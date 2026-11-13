@@ -134,7 +134,90 @@ export const TEMPLATES = Object.freeze([
     theme: { mode: 'light', accent: '#5b3df5', highlight: '#5b3df5', bg: '#f6f1ea', text: '#1b1b3a', font: 'system' },
     layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 14, traits: ['card'],
   },
+  {
+    id: 'pitch-midnight',
+    name: 'Pitch · Midnight',
+    description: 'Dark navy card with an indigo glow, built for evening scrolling.',
+    theme: { mode: 'dark', accent: '#818cf8', highlight: '#a5b4fc', bg: '#0a0f1f', text: '#e8ecff', font: 'system' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 16, traits: ['card', 'glow-top'],
+    vars: { '--vp-card': '#111936', '--vp-surface': '#0d1430', '--vp-surface-2': '#0d1430', '--vp-line': 'rgba(255,255,255,.10)', '--vp-card-shadow': '0 24px 70px rgba(0,0,0,.55)', '--vp-time': '#a5b4fc' },
+  },
+  {
+    id: 'pitch-sunrise',
+    name: 'Pitch · Sunrise',
+    description: 'Warm peach page, cream card and a burnt-orange button.',
+    theme: { mode: 'light', accent: '#c2410c', highlight: '#ea580c', bg: '#fff1e6', text: '#3b1d0f', font: 'display' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 22, traits: ['card', 'soft'],
+    vars: { '--vp-card': '#fffaf5', '--vp-surface': '#ffffff', '--vp-surface-2': '#fff3e8', '--vp-line': 'rgba(194,65,12,.16)', '--vp-card-shadow': '0 20px 60px rgba(194,65,12,.15)' },
+  },
+  {
+    id: 'pitch-forest',
+    name: 'Pitch · Forest',
+    description: 'Calm green page with a serif headline and ruled header.',
+    theme: { mode: 'light', accent: '#166534', highlight: '#15803d', bg: '#e8efe6', text: '#14281b', font: 'serif' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 10, traits: ['card', 'rules'],
+    vars: { '--vp-card': '#fbfdf9', '--vp-surface': '#ffffff', '--vp-surface-2': '#f1f6ee', '--vp-line': 'rgba(20,40,27,.14)', '--vp-card-shadow': '0 16px 44px rgba(20,40,27,.10)' },
+  },
+  {
+    id: 'pitch-ocean',
+    name: 'Pitch · Ocean',
+    description: 'Sky-blue page with the transcript on the left of the video.',
+    theme: { mode: 'light', accent: '#0369a1', highlight: '#0284c7', bg: '#dff1fb', text: '#0c2a3f', font: 'system' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 14, traits: ['card', 'transcript-left'],
+    vars: { '--vp-card': '#ffffff', '--vp-surface': '#f2f9fd', '--vp-surface-2': '#eef7fc', '--vp-line': 'rgba(3,105,161,.16)', '--vp-card-shadow': '0 20px 60px rgba(3,105,161,.14)' },
+  },
+  {
+    id: 'pitch-graphite',
+    name: 'Pitch · Graphite',
+    description: 'Near-black card with an amber button and square corners.',
+    theme: { mode: 'dark', accent: '#f59e0b', highlight: '#fbbf24', bg: '#0c0c0e', text: '#f4f4f5', font: 'system' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 8, traits: ['card', 'sharp'],
+    vars: { '--vp-card': '#18181b', '--vp-surface': '#111113', '--vp-surface-2': '#111113', '--vp-line': 'rgba(255,255,255,.09)', '--vp-card-shadow': '0 24px 70px rgba(0,0,0,.6)', '--vp-time': '#fbbf24' },
+  },
+  {
+    id: 'pitch-rose',
+    name: 'Pitch · Rose',
+    description: 'Blush page, pill-shaped buttons and very round corners.',
+    theme: { mode: 'light', accent: '#be123c', highlight: '#e11d48', bg: '#ffe4e6', text: '#4c0519', font: 'display' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 24, traits: ['card', 'round'],
+    vars: { '--vp-card': '#ffffff', '--vp-surface': '#fff5f6', '--vp-surface-2': '#fff5f6', '--vp-line': 'rgba(190,18,60,.14)', '--vp-card-shadow': '0 22px 60px rgba(190,18,60,.14)' },
+  },
+  {
+    id: 'pitch-bold',
+    name: 'Pitch · Bold',
+    description: 'Neo-brutalist: thick black borders, hard shadow, sunny yellow page.',
+    theme: { mode: 'light', accent: '#111111', highlight: '#be185d', bg: '#fde68a', text: '#111111', font: 'display' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 6, traits: ['card', 'brutal'],
+    vars: { '--vp-card': '#ffffff', '--vp-surface': '#ffffff', '--vp-surface-2': '#fff7d6', '--vp-line': '#111111', '--vp-card-shadow': '8px 8px 0 #111111', '--vp-time': '#be185d' },
+  },
+  {
+    id: 'pitch-glass',
+    name: 'Pitch · Glass',
+    description: 'Frosted card floating on a violet-to-blue gradient.',
+    theme: { mode: 'dark', accent: '#a78bfa', highlight: '#c4b5fd', bg: '#1e1b4b', text: '#ffffff', font: 'system' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 20, traits: ['card', 'glass'],
+    vars: { '--vp-card': 'rgba(38,34,110,.55)', '--vp-surface': 'rgba(29,26,88,.55)', '--vp-surface-2': 'rgba(29,26,88,.55)', '--vp-line': 'rgba(255,255,255,.18)', '--vp-card-shadow': '0 24px 70px rgba(0,0,0,.4)', '--vp-time': '#c4b5fd' }, approx: { card: '#26226e', surface: '#1d1a58' },
+  },
+  {
+    id: 'pitch-stack',
+    name: 'Pitch · Stacked',
+    description: 'Centered single column: video, buttons, calendar, then the transcript.',
+    theme: { mode: 'light', accent: '#0f766e', highlight: '#0d9488', bg: '#f1f5f9', text: '#0f172a', font: 'system' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 16, traits: ['card', 'center', 'transcript-below'],
+    vars: { '--vp-card': '#ffffff', '--vp-surface': '#f8fafc', '--vp-surface-2': '#f8fafc', '--vp-line': 'rgba(15,23,42,.08)', '--vp-card-shadow': '0 16px 48px rgba(15,23,42,.08)' },
+  },
+  {
+    id: 'pitch-banner',
+    name: 'Pitch · Banner',
+    description: 'Deep indigo banner with the headline; the video overlaps into the card.',
+    theme: { mode: 'light', accent: '#4338ca', highlight: '#4f46e5', bg: '#eef2ff', text: '#1e1b4b', font: 'system' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 14, traits: ['card', 'banner'],
+    vars: { '--vp-card': '#ffffff', '--vp-surface': '#f5f6ff', '--vp-surface-2': '#f5f6ff', '--vp-line': 'rgba(30,27,75,.10)', '--vp-card-shadow': '0 22px 60px rgba(49,46,129,.18)', '--vp-banner': '#312e81' },
+  },
 ]);
+
+/** Templates that use the Sendspark-style pitch layout (card, buttons, calendar, transcript). */
+export const PITCH_TEMPLATES = Object.freeze(TEMPLATES.filter((t) => t.pitch));
 
 /** Templates that use the co-branded "intro" anatomy. */
 export const INTRO_TEMPLATES = Object.freeze(TEMPLATES.filter((t) => t.intro));
