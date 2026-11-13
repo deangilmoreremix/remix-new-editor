@@ -52,6 +52,7 @@ vi.mock('../alphaVerification', () => ({
 }))
 
 import { removeAssetBackground, BackgroundRemovalFailure } from '../backgroundRemoval/backgroundRemovalClient'
+import { loadImageBlob } from '../backgroundRemoval/loadImageBlob'
 import { useAutoCutout, type AutoCutoutControls } from '../backgroundRemoval/useAutoCutout'
 import { DiscoveredAssetGrid } from '../DiscoveredAssetGrid'
 
@@ -225,6 +226,32 @@ describe('useAutoCutout (auto queue)', () => {
     await act(async () => latest.cutout.requestRemoval(['b']))
     await settle(0, () => latest.assets.find((a) => a.id === 'b')?.bgRemoval?.status === 'done')
     expect(latest.assets.find((a) => a.id === 'b')!.hasTransparency).toBe(true)
+  })
+
+  it('Cancel frees the queue even when an image download is stuck', async () => {
+    // A host that never answers: the download only ends when the job's signal aborts.
+    vi.mocked(loadImageBlob).mockImplementation((url: string, options?: { signal?: AbortSignal }) =>
+      url.includes('stall')
+        ? new Promise<Blob>((_, reject) => {
+            options?.signal?.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })))
+          })
+        : Promise.resolve(new Blob([url], { type: url.endsWith('.png') ? 'image/png' : 'image/jpeg' })),
+    )
+    await mount([
+      asset({ id: 'stuck', previewUrl: 'https://slow.example/stall.jpg', recommended: true }),
+      asset({ id: 'fine', previewUrl: 'https://shop.example/fine.jpg' }),
+    ])
+    await settle(200)
+    expect(latest.assets.find((a) => a.id === 'stuck')!.bgRemoval?.status).toBe('running') // stuck in the download
+    expect(state.order).toEqual([]) // and it holds the queue: 'fine' has not started
+
+    await act(async () => latest.cutout.cancelAll())
+    await settle(150)
+    const stuck = latest.assets.find((a) => a.id === 'stuck')!
+    expect(stuck.bgRemoval?.status).toBe('idle') // cancelled, not reported as an error
+    await act(async () => latest.cutout.requestRemoval(['fine']))
+    await settle(0, () => latest.assets.find((a) => a.id === 'fine')?.bgRemoval?.status === 'done')
+    expect(state.order).toEqual(['https://shop.example/fine.jpg'])
   })
 
   it('records a failure on the asset (with retry) without blocking the others', async () => {

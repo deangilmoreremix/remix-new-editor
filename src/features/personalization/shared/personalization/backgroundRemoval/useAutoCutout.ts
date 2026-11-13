@@ -212,7 +212,7 @@ export function useAutoCutout(
 
       try {
         const source = manual && asset.editedDataUrl ? asset.editedDataUrl : asset.originalPreviewUrl || asset.previewUrl
-        const raw = await loadImageBlob(source)
+        const raw = await loadImageBlob(source, { signal: controller.signal })
         if (controller.signal.aborted) throw new BackgroundRemovalFailure('cancelled', 'Cancelled')
         const blob = await withSniffedType(raw)
         if (!isRemovableImageType(blob.type)) {
@@ -273,8 +273,9 @@ export function useAutoCutout(
           }),
         )
       } catch (error) {
-        const failure =
-          error instanceof BackgroundRemovalFailure
+        const failure = controller.signal.aborted
+          ? new BackgroundRemovalFailure('cancelled', 'Cancelled')
+          : error instanceof BackgroundRemovalFailure
             ? error
             : new BackgroundRemovalFailure('unknown', error instanceof Error ? error.message : 'Background removal failed.')
         if (failure.code === 'cancelled') {

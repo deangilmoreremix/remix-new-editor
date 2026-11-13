@@ -56,4 +56,49 @@ describe('loadImageBlob', () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('blocked') }))
     await expect(loadImageBlob('https://shop.example/a.jpg')).rejects.toThrow('could not be loaded')
   })
+
+  describe('stalled hosts and cancellation', () => {
+    /** A fetch that never answers until its signal aborts, like a host that stops sending. */
+    const hangUntilAborted = (init?: RequestInit) =>
+      new Promise<Response>((_, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })))
+      })
+
+    it('gives up on a stalled direct download after the timeout and uses the proxy', async () => {
+      const proxyBody = { ok: true, results: [{ ok: true, dataUrl: `data:image/jpeg;base64,${btoa('VIAPROXY')}` }] }
+      const fetchSpy = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) =>
+        String(input).includes('/api/personalization/download-image')
+          ? new Response(JSON.stringify(proxyBody), { status: 200 })
+          : hangUntilAborted(init),
+      )
+      vi.stubGlobal('fetch', fetchSpy)
+      const blob = await loadImageBlob('https://slow.example/a.jpg', { directTimeoutMs: 30 })
+      expect(await read(blob)).toBe('VIAPROXY')
+    })
+
+    it('rejects promptly with an AbortError when the caller cancels a stalled download (no proxy fallback)', async () => {
+      const fetchSpy = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => hangUntilAborted(init))
+      vi.stubGlobal('fetch', fetchSpy)
+      const controller = new AbortController()
+      const pending = loadImageBlob('https://slow.example/a.jpg', { signal: controller.signal })
+      await Promise.resolve()
+      controller.abort()
+      await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+      expect(fetchSpy).toHaveBeenCalledTimes(1) // the proxy was not tried after the cancel
+    })
+
+    it('does nothing when the signal is already aborted', async () => {
+      const fetchSpy = vi.fn()
+      vi.stubGlobal('fetch', fetchSpy)
+      const controller = new AbortController()
+      controller.abort()
+      await expect(loadImageBlob('https://x.example/a.jpg', { signal: controller.signal })).rejects.toMatchObject({ name: 'AbortError' })
+      expect(fetchSpy).not.toHaveBeenCalled()
+    })
+
+    it('also bounds a stalled proxy', async () => {
+      vi.stubGlobal('fetch', vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => hangUntilAborted(init)))
+      await expect(loadImageBlob('https://slow.example/a.jpg', { directTimeoutMs: 20, proxyTimeoutMs: 20 })).rejects.toThrow('could not be loaded')
+    })
+  })
 })
