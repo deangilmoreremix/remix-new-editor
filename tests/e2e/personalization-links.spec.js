@@ -272,6 +272,18 @@ test.describe('D. interactive behavior in the published player', () => {
     await a.ctx.close(); await b.ctx.close();
   });
 
+  test('DIAG playback', async () => {
+    const { ctx, page: v } = await openViewer(links.A);
+    await v.locator('[data-bigplay]').click();
+    const samples = [];
+    for (let i = 0; i < 8; i++) {
+      await v.waitForTimeout(700);
+      samples.push(await v.evaluate(() => ({ t: document.querySelector('[data-time]')?.textContent, playBtn: document.querySelector('[data-play]')?.getAttribute('aria-label'), big: !document.querySelector('[data-bigplay]')?.hidden, stage: [...document.querySelectorAll('.watch-stage *')].slice(0, 6).map((e) => e.tagName + (e.className ? '.' + String(e.className).slice(0, 20) : '')).join(' '), video: document.querySelectorAll('video').length, canvas: document.querySelectorAll('canvas').length, audio: document.querySelectorAll('audio').length })));
+    }
+    console.log('DIAG', JSON.stringify(samples, null, 0));
+    await ctx.close();
+  });
+
   test('the lead form appears at its time, pauses the video, accepts a submission, then resumes', async () => {
     const { ctx, page: v } = await openViewer(links.A);
     const time = () => v.locator('[data-time]').innerText();
