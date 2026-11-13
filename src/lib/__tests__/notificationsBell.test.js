@@ -39,17 +39,21 @@ describe('notifications bell', () => {
     expect(bell._count()).toBe(250);
     bell.destroy();
   });
-  it('on another page it navigates to the classic timeline editor (hosts Projects) and leaves a flag; on the timeline it opens Projects directly', async () => {
+  it('on another page it opens the new editor and leaves a flag; inside either editor it opens the alerts directly', async () => {
     const navigate = vi.fn(); const opened = vi.fn();
     window.addEventListener('remix:open-projects', opened);
     const bell = createNotificationsBell({ getClient: async () => client(1), isSignedIn: () => true, navigate });
     await tick(); await tick();
     bell.element.click();
-    expect(navigate).toHaveBeenCalledWith('timeline-classic');
+    expect(navigate).toHaveBeenCalledWith('timeline');
     expect(sessionStorage.getItem(OPEN_FLAG)).toBe('1');
-    window.location.hash = '#/timeline-classic';
+    window.location.hash = '#/timeline';          // new editor: its Analytics tab reads the flag, so the flag stays
     bell.element.click();
     expect(opened).toHaveBeenCalledTimes(1);
+    expect(sessionStorage.getItem(OPEN_FLAG)).toBe('1');
+    window.location.hash = '#/timeline-classic';  // classic editor handles the event itself, so the flag is cleared
+    bell.element.click();
+    expect(opened).toHaveBeenCalledTimes(2);
     expect(sessionStorage.getItem(OPEN_FLAG)).toBeNull();
     window.removeEventListener('remix:open-projects', opened);
     bell.destroy();
