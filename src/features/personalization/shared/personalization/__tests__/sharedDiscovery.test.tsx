@@ -635,6 +635,71 @@ describe('free discovery in the shared modal — anonymous mode', () => {
     expect(discoverCalls[0].init.body).not.toContain('facebook.com')
   })
 
+  it('a website lookup that finishes after a newer selection does not replace that selection', async () => {
+    const baseFetch = (globalThis as any).fetch
+    let releaseFirstLookup: (() => void) | undefined
+    ;(globalThis as any).fetch = vi.fn(async (url: string, init?: any) => {
+      if (typeof url === 'string' && url.includes('/api/personalization/find-businesses')) {
+        fetchCalls.push({ url, init })
+        const base = BUSINESS_SEARCH_RESPONSE.businesses[0]
+        return jsonResponse({
+          ...BUSINESS_SEARCH_RESPONSE,
+          businesses: [
+            { ...base, id: 'biz-a', name: 'Alpha Realty', website: undefined, facebook: 'https://www.facebook.com/alpha' },
+            { ...base, id: 'biz-b', name: 'Bravo Realty', website: undefined, facebook: 'https://www.facebook.com/bravo' },
+          ],
+        })
+      }
+      if (typeof url === 'string' && url.includes('/api/personalization/resolve-website')) {
+        fetchCalls.push({ url, init })
+        const name = JSON.parse(init.body).name
+        if (name === 'Alpha Realty') {
+          // Alpha's lookup stays pending until the test releases it.
+          await new Promise<void>((resolve) => { releaseFirstLookup = resolve })
+          return jsonResponse({ ok: true, website: null })
+        }
+        return jsonResponse({ ok: true, website: 'https://bravorealty.example.com', confidence: 'high' })
+      }
+      return baseFetch(url, init)
+    })
+
+    const container = await mountModal({ access: 'anonymous' })
+    await act(async () => {
+      fireEvent.click(screen.getByText(/find a local business/i))
+    })
+    await flush(30)
+    await act(async () => {
+      fireEvent.change(container.querySelector('#business-niche') as HTMLSelectElement, { target: { value: 'real-estate' } })
+      fireEvent.change(container.querySelector('#business-location') as HTMLInputElement, { target: { value: 'Hollywood, FL' } })
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Find Businesses'))
+    })
+    await flush(30)
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Alpha Realty'))
+    })
+    await flush(10)
+    await act(async () => {
+      fireEvent.click(screen.getByText('Bravo Realty'))
+    })
+    await flush()
+    // (The mocked discovery payload names the selected business itself, so compare before/after.)
+    const before = { selected: ctx().selectedBusiness?.id, name: ctx().clientForm.businessName, error: ctx().discoveryError }
+    expect(before.selected).not.toBe('biz-a')
+
+    // Alpha's slow lookup now finishes without a website. It must not fall back to selecting Alpha.
+    await act(async () => {
+      releaseFirstLookup?.()
+    })
+    await flush()
+    expect(ctx().selectedBusiness?.id).toBe(before.selected)
+    expect(ctx().selectedBusiness?.id).not.toBe('biz-a')
+    expect(ctx().clientForm.businessName).toBe(before.name)
+    expect(ctx().discoveryError).toBe(before.error)
+  })
+
   it('refuses to run discovery on a pasted Facebook URL', async () => {
     const container = await mountModal({ access: 'anonymous' })
     const urlInput = container.querySelector('#find-my-brand-url') as HTMLInputElement

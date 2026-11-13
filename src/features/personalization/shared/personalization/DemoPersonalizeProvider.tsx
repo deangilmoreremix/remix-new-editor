@@ -5604,8 +5604,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         originalUrl: postResult.originalUrl,
         postProcessingInput,
         // Publish sends the newly branded video, not the earlier output
-        // (unless that video is missing its sound; see runGenerate).
-        publishUrl: lastResult.metadata?.soundMissing === true ? '' : finalUrl,
+        // (unless that video is missing its sound or its on-video layers; see runGenerate).
+        // Retrying the branding never renders the layers, so a clip that lacks them stays unpublishable.
+        publishUrl: lastResult.metadata?.soundMissing === true || lastResult.metadata?.layersMissing === true ? '' : finalUrl,
       }
       const updatedResult: GenerationResult = {
         ...lastResult,

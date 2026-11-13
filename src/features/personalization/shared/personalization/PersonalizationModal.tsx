@@ -2426,7 +2426,13 @@ function ConfigurationView(props: any) {
   // "website". Those pages carry none of the business's brand assets, so a
   // lead without an OWNED website first goes through the free website lookup,
   // and discovery runs on the business's real site once it is verified.
+  // Each selection takes a new number, and so does unmounting (this view only exists while the modal is
+  // open); a website lookup that finishes after a newer selection or a close is dropped instead of
+  // replacing that newer state.
+  const businessSelectSeqRef = useRef(0)
+  useEffect(() => () => { businessSelectSeqRef.current += 1 }, [])
   const handleSelectBusiness = useCallback(async (business: BusinessDiscoveryRecord) => {
+    const seq = ++businessSelectSeqRef.current
     const listed = business.website?.trim()
     if (listed && isOwnedWebsite(listed)) {
       // Populate, research and discover in one automated run.
@@ -2436,6 +2442,8 @@ function ConfigurationView(props: any) {
 
     setDiscoveryError(null)
     const found = resolveBusinessWebsite ? await resolveBusinessWebsite(business) : null
+    // Superseded or closed while the lookup ran (resolveBusinessWebsite returns null then too).
+    if (seq !== businessSelectSeqRef.current) return
     if (found) {
       void runDiscoveryWorkflow(found, {
         business: { ...business, website: found, websiteStatus: 'confirmed' },

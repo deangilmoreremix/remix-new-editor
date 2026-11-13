@@ -111,6 +111,28 @@ describe('createFinalVideo with an AI mode', () => {
     expect(result.metadata.exportStatus).toEqual({ generation: 'ok', render: 'failed', cloudSave: 'not-needed' })
   })
 
+  it('retrying the branding never makes a clip that lacks its layers publishable', async () => {
+    renderMediaOnWeb.mockRejectedValue(new Error('no encoder'))
+    const ref: HarnessRef = { current: null }
+    await renderProvider(ref)
+    await openAuthenticated()
+    await act(async () => { await getCtx(ref).createFinalVideo() })
+    expect(getCtx(ref).result.metadata.layersMissing).toBe(true)
+    expect(getCtx(ref).result.metadata.publishUrl).toBe('')
+    expect(applyPostProcessing).toHaveBeenCalledTimes(1)
+
+    ;(applyPostProcessing as any).mockResolvedValue({ finalUrl: 'https://cdn.example/rebranded.mp4', originalUrl: GENERATED, applied: ['video-overlay'] })
+    await act(async () => { await getCtx(ref).retryBranding() })
+
+    // The retry really ran (it only re-applies the logo / end card)…
+    expect(applyPostProcessing).toHaveBeenCalledTimes(2)
+    const result = getCtx(ref).result
+    expect(result.url).toBe('https://cdn.example/rebranded.mp4')
+    // …but the on-video layers are still missing, so the clip stays out of Publish.
+    expect(result.metadata.layersMissing).toBe(true)
+    expect(result.metadata.publishUrl).toBe('')
+  })
+
   it('the watermark fallback still gets the CTA end card', async () => {
     renderMediaOnWeb.mockRejectedValue(new Error('no encoder'))
     ;(generateEndCardImage as any).mockResolvedValue('https://cdn.example/end-card.png')
