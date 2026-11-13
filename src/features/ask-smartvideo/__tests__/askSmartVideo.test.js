@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { NAV_GROUPS } from '../../../lib/studioRoutes.js';
 import { STUDIO_INTENTS, TRACK_INTENTS, SYNONYM_GROUPS } from '../../../data/askIntents.js';
 import { STUDIO_ACADEMY, TRACK_TITLES } from '../../../data/askAcademyMap.js';
-import { renderAnswer, parseSSE, starterPrompts, pickChips, isAcademyUrl } from '../askCore.js';
+import { renderAnswer, parseSSE, starterPrompts, pickChips, isAcademyUrl, studioForRoute } from '../askCore.js';
 import { search, sanitizeMessages, buildSourcesBlock, retrievalQuery, MIN_SCORE, getIndex } from '../../../../netlify/functions/_shared/askSearch.js';
 import { handle, openAIDeltas, rateLimited } from '../../../../netlify/functions/ask-smartvideo.mjs';
 
@@ -18,6 +18,21 @@ const top = (q, o) => search(q, o)[0]?.chunk;
 const ids = (q, o) => search(q, o).map((r) => r.chunk);
 
 describe('knowledge base coverage', () => {
+  it('the panel recognises the studio on EVERY studio page (menu item or not)', () => {
+    for (const id of kbIds) {
+      if (id === 'apps') continue; // the hub: generic help is intended
+      expect(studioForRoute(id), `#/${id}`).toBe(id);
+      expect(starterPrompts(studioForRoute(id))[0], `starters for ${id}`).toMatch(/step by step|Academy tracks/);
+    }
+  });
+  it('recognises sub-pages and aliases of a studio', () => {
+    expect(studioForRoute('motion-director/workbench')).toBe('motion-director');
+    expect(studioForRoute('timeline-classic')).toBe('timeline');
+    expect(studioForRoute('influencer-page')).toBe('influencer');
+    expect(studioForRoute('brand-dna')).toBe('brand');
+    expect(studioForRoute('settings')).toBeNull();
+    expect(studioForRoute('')).toBeNull();
+  });
   const navIds = NAV_GROUPS.flatMap((g) => g.items).map((i) => i.id);
   it('has a guide for every side-menu studio', () => expect(navIds.filter((id) => !kbIds.includes(id))).toEqual([]));
   it('has intents, an academy mapping and starters for every guide', () => {

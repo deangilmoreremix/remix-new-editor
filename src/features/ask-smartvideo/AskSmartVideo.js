@@ -6,8 +6,8 @@
 // sessionStorage for the tab.
 import { apiKeyManager } from '../../lib/apiKeyManager.js';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
-import { getStudioLabel, getNavItemForRoute } from '../../lib/studioRoutes.js';
-import { ENDPOINT, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
+import { getStudioLabel } from '../../lib/studioRoutes.js';
+import { ENDPOINT, studioForRoute, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
 
 const STORE = 'askSmartVideo:v1';
 const MAX_LEN = 1500;
@@ -72,7 +72,7 @@ export function mountAskSmartVideo({ navigate, getPage }) {
   const $ = (k) => root.querySelector(`[data-ask="${k}"]`);
   const panel = $('panel'); const log = $('log'); const input = $('input'); const sendBtn = $('send'); const keycard = $('keycard');
 
-  const studioId = () => getNavItemForRoute(getPage()) || null;
+  const studioId = () => studioForRoute(getPage());
   const ctx = () => (studioId() ? `Help for ${getStudioLabel(studioId())} and the whole app` : 'Help for every studio, the Academy and more');
   const bubble = (role, html) => {
     const d = document.createElement('div');

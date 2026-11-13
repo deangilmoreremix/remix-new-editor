@@ -1,5 +1,5 @@
 // Ask SmartVideo — pure helpers for the panel (no DOM, unit-testable).
-import { getStudioLabel } from '../../lib/studioRoutes.js';
+import { getStudioLabel, getNavItemForRoute } from '../../lib/studioRoutes.js';
 import { STUDIO_ACADEMY, TRACK_TITLES } from '../../data/askAcademyMap.js';
 import JOURNEYS from '../../data/askJourneyList.json';
 
@@ -61,6 +61,23 @@ export function parseSSE(buffer) {
     try { events.push({ event, data: JSON.parse(data) }); } catch { /* skip malformed event */ }
   }
   return { events, rest };
+}
+
+// Pages that belong to a studio's guide without being a side-menu item or having the studio's own id.
+const GUIDE_ALIASES = { 'timeline-classic': 'timeline', openthorn: 'website-builder', 'cinegen': 'workbench', 'video-agent-studio': 'video-agent' };
+
+/**
+ * Which studio guide applies to the page the user is on. The side menu knows most studios, but
+ * some real pages (Influencer, Motion Director, Lead Finder, Find My Brand, Render, ...) are not
+ * menu items, so fall back to any studio that has a guide.
+ */
+export function studioForRoute(route) {
+  const nav = getNavItemForRoute(route);
+  if (nav) return nav;
+  const page = String(route || '').replace(/^#?\/?/, '').split('?')[0];
+  const first = page.split('/')[0];
+  const id = GUIDE_ALIASES[first] || first.replace(/-page$/, '');
+  return Object.prototype.hasOwnProperty.call(STUDIO_ACADEMY, id) ? id : null;
 }
 
 const GENERIC = ['Walk me through making a video', 'What can I do in SmartVideo?', 'How do I add my API keys?'];
