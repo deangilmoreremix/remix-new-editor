@@ -3213,6 +3213,9 @@ export function TimelineEditorPage() {
             notificationEmail2: clip.notificationEmail2,
             notificationEmail3: clip.notificationEmail3,
             fbPixelId: clip.fbPixelId,
+            gaMeasurementId: clip.gaMeasurementId,
+            tiktokPixelId: clip.tiktokPixelId,
+            gtmId: clip.gtmId,
             espProvider: clip.espProvider,
             espListId: clip.espListId,
             successMessage: clip.successMessage,
@@ -3859,6 +3862,19 @@ export function TimelineEditorPage() {
               <input id="lf-fb-pixel" type="text" value="${clip.fbPixelId || ''}" placeholder="1234567890" />
             </div>
             <div class="clip-editor__field">
+              <label for="lf-ga-id">Google Analytics 4 Measurement ID</label>
+              <input id="lf-ga-id" type="text" value="${clip.gaMeasurementId || ''}" placeholder="G-XXXXXXXXXX" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-tiktok-pixel">TikTok Pixel ID</label>
+              <input id="lf-tiktok-pixel" type="text" value="${clip.tiktokPixelId || ''}" placeholder="C1A2B3C4D5E6F7G8H9" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-gtm-id">Google Tag Manager ID</label>
+              <input id="lf-gtm-id" type="text" value="${clip.gtmId || ''}" placeholder="GTM-XXXXXXX" />
+              <span style="font-size:11px;color:var(--text-dim)">These fire a lead event on published videos only (not in the editor preview). If your Tag Manager already sends leads to Google Analytics, use one or the other so leads aren't counted twice.</span>
+            </div>
+            <div class="clip-editor__field">
               <button id="lf-download-leads" class="mini-btn" style="width:100%" >Download leads${(clip._submittedLeads || []).length ? ` (${(clip._submittedLeads || []).length} this session)` : ''}</button>
             </div>
           </div>
@@ -4144,6 +4160,9 @@ export function TimelineEditorPage() {
       });
       els.clipEditorContainer.querySelector('#lf-fb-pixel').addEventListener('input', (e) => {
         clip.fbPixelId = e.target.value;
+      });
+      [['#lf-ga-id', 'gaMeasurementId'], ['#lf-tiktok-pixel', 'tiktokPixelId'], ['#lf-gtm-id', 'gtmId']].forEach(([sel, key]) => {
+        els.clipEditorContainer.querySelector(sel).addEventListener('input', (e) => { clip[key] = e.target.value.trim(); });
       });
       els.clipEditorContainer.querySelector('#lf-download-leads').addEventListener('click', () => {
         // Stored leads (lead-capture backend) merged with this session's.

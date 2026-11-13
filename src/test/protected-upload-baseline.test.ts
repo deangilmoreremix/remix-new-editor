@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', 'b8bc40369d738dfbe8b075a08cd00476c813366dac71cbaf0bfeb3ed84949721'], // re-recorded after merging develop with the Projects / publishing work
+        ['src/components/TimelineEditorPage.jsx', '73d236becc5a8799994934b5cf878d166ef1b01ee96cc74e5026ac821c28a304'], // re-recorded after the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels). Semantic coverage in section 5.
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -970,6 +970,31 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain('is not saved as a project and will be replaced');
     // No browser-exposed provider key or direct provider fetch was introduced.
     expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+  });
+
+  it('TimelineEditorPage.jsx adds Lead Generator / List Builder integrations without a new upload or provider path', () => {
+    // Re-recorded for the approved lead-form integrations: webhook test / delivery log / signing
+    // secret, up to 3 notification emails, Kit / MailerLite, after-submit actions, UTM, extra pixels.
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    // The existing upload entry points are untouched and still used.
+    expect(source).toContain("import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';");
+    expect(source).toContain('uploadFileToStorage');
+    // Everything new reaches the backend only through the existing signed-in client and the
+    // lead-capture edge function (leadClient.js), never a new endpoint from the browser.
+    expect(source).toContain('runWebhookTest(supabase,');
+    expect(source).toContain('fetchDeliveries(supabase)');
+    expect(source).toContain('fetchSigningSecret(supabase)');
+    expect(source).toContain('fetchIntegrations(supabase)');
+    expect(source).toContain('saveIntegration(supabase, provider, key)');
+    expect(source).toContain('submitLead(supabase, {');
+    // The browser never talks to the email, list or ad providers itself, and never holds their keys:
+    // Kit / MailerLite keys go to lead-capture, which verifies and stores them encrypted.
+    expect(source).not.toMatch(/api\.kit\.com|connect\.mailerlite\.com|api\.resend\.com|googletagmanager\.com|analytics\.tiktok\.com|connect\.facebook\.net/i);
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+    // The old browser-side fetch of every webhook URL (CORS false failures) is gone from the panel.
+    expect(source).not.toContain('Promise.allSettled(urls.map((url) => fetch(url');
+    // The new GA4 / TikTok / GTM trackers fire only from the published player, never the editor.
+    expect(source).not.toMatch(/fireLeadTrackers|trackersFor/);
   });
 
   it('TimelineEditorPage.jsx keeps the image-finder personalization wiring', () => {

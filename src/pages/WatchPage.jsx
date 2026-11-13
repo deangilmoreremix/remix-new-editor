@@ -13,7 +13,7 @@ import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
-import { pixelIdFor, fireLeadPixel } from '../lib/editor/publish/pixel.js';
+import { trackersFor, fireLeadTrackers } from '../lib/editor/publish/pixel.js';
 import { captureAttribution } from '../lib/editor/publish/attribution.js';
 
 const FPS = 30;
@@ -128,7 +128,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
       const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data, attribution });
       if (kind !== 'call-attempt' && res?.stored !== false) {
         analytics.track('lead_submit', { clip: clipId, props: labelFor(clipId) ? { label: labelFor(clipId) } : undefined });
-        if (!deps.onLead) fireLeadPixel(pixelIdFor(video.project, kind, clipId));
+        if (!deps.onLead) fireLeadTrackers(trackersFor(video.project, kind, clipId));
       }
       return res;
     },
