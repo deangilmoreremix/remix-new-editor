@@ -57,9 +57,11 @@ interface ToolSidebarProps {
   /** [remix] OpenChatCut voice-over recorder (audio/recorder.ts) */
   recording?: boolean;
   onToggleRecording?: () => void;
+  /** [remix] opens the screen recorder (webcam + screen + mic, Recorder Studio) */
+  onOpenScreenRecorder?: () => void;
 }
 
-export function ToolSidebar({ activeTool, onToolChange, onOpenSounds, onOpenStock, recording, onToggleRecording }: ToolSidebarProps) {
+export function ToolSidebar({ activeTool, onToolChange, onOpenSounds, onOpenStock, recording, onToggleRecording, onOpenScreenRecorder }: ToolSidebarProps) {
   const primaryTools = TOOLS.filter((t) => t.group === 'primary');
   const trimTools = TOOLS.filter((t) => t.group === 'trim');
   const generateTools = TOOLS.filter((t) => t.group === 'generate');
@@ -106,6 +108,11 @@ export function ToolSidebar({ activeTool, onToolChange, onOpenSounds, onOpenStoc
       {onOpenStock && (
         <button className="tool-sidebar__btn" onClick={onOpenStock} title="AI & stock media (Pexels, Pixabay)" aria-label="AI and stock media" data-testid="open-stock-media">
           <Icon><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.5" /><path d="m21 16-5-5-8 8" /></Icon>
+        </button>
+      )}
+      {onOpenScreenRecorder && (
+        <button className="tool-sidebar__btn" onClick={onOpenScreenRecorder} title="Screen recorder: record your screen, webcam and microphone" aria-label="Screen recorder" data-testid="open-screen-recorder">
+          <Icon><rect x="2" y="4" width="14" height="14" rx="2" /><path d="m16 10 6-3v10l-6-3" /></Icon>
         </button>
       )}
       {onToggleRecording && (

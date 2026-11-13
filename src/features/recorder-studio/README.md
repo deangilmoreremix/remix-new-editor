@@ -3,6 +3,10 @@
 The post-production half of the [Remotion Recorder](https://www.remotion.dev/docs/recorder), running inside the timeline editor.
 The recording half lives in `src/components/modals/RecorderModal.jsx` (+ `recorder/capture.js`).
 
+Where to open it:
+- **Main Timeline editor** (`#/timeline`, CineGen): **EDIT** tab → the camera icon in the vertical tool strip, above the microphone (`src/cinegen/components/edit/use-screen-recorder.ts`). Recordings go to the media pool and the first free video tracks (screen on the lowest, facecam above it as picture-in-picture, mic on an audio track).
+- **Classic editor** (`#/timeline-classic`): the **Recorder** chip in the "All features" bar.
+
 Flow: **Screen Recorder drawer → record → "Edit in Studio" → scenes, captions, style → render → "Add to timeline".**
 
 ## Layout
