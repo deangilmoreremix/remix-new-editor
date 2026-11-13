@@ -7,7 +7,8 @@ import { ExportSettings, type ExportExtras } from './export-settings';
 import { RenderProgress } from './render-progress';
 import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
 import type { ExportPreset, ExportJob } from '@cinegen/types/export';
-import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
+import { clipEndTime } from '@cinegen/types/timeline';
+import { exportClipsFromTimeline, exportTracksFromTimeline, exportTransitionsFromTimeline } from '@cinegen/lib/editor/export-mapping';
 
 export function ExportTab() {
   const { state, dispatch } = useWorkspace();
@@ -15,28 +16,8 @@ export function ExportTab() {
 
   const activeTimeline = getActiveTimeline(state);
   const exportClips = useMemo(() => {
-    const assetsById = new Map(state.assets.map((asset) => [asset.id, asset]));
-    return activeTimeline.clips.flatMap((clip) => {
-      const asset = assetsById.get(clip.assetId);
-      const inputPath = asset?.fileRef || asset?.url;
-      const duration = clipEffectiveDuration(clip);
-      if (!asset || !inputPath || duration <= 0) return [];
-      return [{
-        id: clip.id,
-        inputPath,
-        startTime: clip.startTime,
-        duration,
-        trimStart: clip.trimStart,
-        speed: clip.speed || 1,
-        volume: clip.volume ?? 1,
-        type: asset.type,
-        // [remix] a clip on an audio track plays sound only, even when its media file is a video
-        trackKind: activeTimeline.tracks.find((t) => t.id === clip.trackId)?.kind,
-        // [remix] OpenChatCut effects burned into the render
-        fadeIn: clip.fadeIn, fadeOut: clip.fadeOut, kf: clip.keyframes, transform: clip.transform, fit: resolveFit(clip, activeTimeline), fx: clip.fx, lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions,
-      }];
-    });
-  }, [activeTimeline.clips, activeTimeline.tracks, state.assets]);
+    return exportClipsFromTimeline(activeTimeline, state.assets);
+  }, [activeTimeline, state.assets]);
   const hasClips = exportClips.length > 0;
   const totalDuration = Math.max(
     activeTimeline.duration,
@@ -53,6 +34,7 @@ export function ExportTab() {
         preset,
         fps,
         clips: exportClips,
+        tracks: exportTracksFromTimeline(activeTimeline),
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
@@ -63,13 +45,13 @@ export function ExportTab() {
         // [hyperframes] verified HyperFrames animations on the overlay lane (rendered by the sandboxed export runner)
         hfOverlays: (state.overlays ?? []).filter((o) => o.type === 'hyperframes').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, blockId: o.blockId, props: o.props, blockWidth: o.blockWidth, blockHeight: o.blockHeight })),
         // [remix] OpenChatCut GL transitions on dissolve cuts
-        transitions: (activeTimeline.transitions ?? []).filter((t) => t.glType && t.type === 'dissolve' && t.clipBId).map((t) => ({ glType: t.glType, glDef: t.glDef, clipAId: t.clipAId, clipBId: t.clipBId })),
+        transitions: exportTransitionsFromTimeline(activeTimeline),
       });
       dispatch({ type: 'ADD_EXPORT', exportJob: job });
     } catch (error) {
       console.error('Failed to start render:', error);
     }
-  }, [dispatch, exportClips, totalDuration, activeTimeline.transitions, state.overlays]);
+  }, [dispatch, exportClips, totalDuration, activeTimeline, state.overlays]);
 
   useEffect(() => {
     if (!activeJob) {

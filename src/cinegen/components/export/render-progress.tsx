@@ -55,6 +55,7 @@ export function RenderProgress({ job, onCancel }: RenderProgressProps) {
       </div>
 
       {/* [remix] OpenChatCut export QA (quality.ts assessExportQuality) on the rendered file */}
+      {job.warnings?.map((w) => <p key={w} data-testid="export-warning" style={{ fontSize: 12, opacity: 0.8, marginTop: 8 }}>{w}</p>)}
       {job.qaStatus && <p data-testid="export-qa-status" style={{ fontSize: 12, opacity: 0.75, marginTop: 8 }}>{job.qaStatus}</p>}
       {job.qa && (
         <div data-testid="export-qa-report" style={{ marginTop: 10, fontSize: 12 }}>

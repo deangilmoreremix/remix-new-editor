@@ -2,7 +2,6 @@
 // Registered into the shim (electron-shim.ts) so CineGen's own code paths run unchanged.
 // @ts-expect-error plain JS interactive player helper
 import { stripUnresolvedTokens } from '../../lib/editor/publish/interactivePlayer.js';
-import { LEGACY_FIT } from '@cinegen/lib/occ/frame-geometry';
 import { registerElectronApi } from './electron-shim';
 import { webMediaApi } from './web-media';
 import { uploadFileToStorage } from '../../lib/supabase.js';
@@ -12,20 +11,9 @@ import { authHeader } from './llm-responses';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 export { responsesChat };
 import { CAPTION_STYLE_BY_ID } from '../../openchatcut/captions/styles';
-import { clipFxInstances } from '@cinegen/lib/occ/clip-fx';
-import { userLutTextSync } from '@cinegen/lib/occ/user-luts';
 import { userFontsFor } from '@cinegen/lib/occ/user-fonts';
-import { customTransitionDefSync, pluginFxSnapshotSync } from '@cinegen/lib/occ/plugins';
-// [remix] OpenChatCut effects + LUT of an export clip, as plain {id, overrides} for the composition's GL layer.
-const occFxList = (c: { fx?: Array<{ id: string; def?: import('@cinegen/lib/occ/plugins').FxSnapshot; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number; def?: import('@cinegen/lib/occ/plugins').FxSnapshot } }) =>
-  clipFxInstances(c as never).map(({ def, overrides, keys }) => ({
-    id: def.id, overrides, ...(keys ? { keys } : {}),
-    // the sandboxed export runner has no IndexedDB: user .cube LUTs travel with the render
-    ...(def.id.startsWith('user:lut-') ? { name: def.name, cubeText: userLutTextSync(def.id) } : {}),
-    // plugin fx / LUT: a self-contained snapshot travels with the render (the runner has no installed packs)
-    ...(def.id.startsWith('plugin:') ? { def: c.fx?.find((f) => f.id === def.id)?.def ?? (c.lut?.id === def.id ? c.lut.def : undefined) ?? pluginFxSnapshotSync(def.id) } : {}),
-  }));
-
+import { buildExportState, exportItem, type ExportTrackInfo } from '@cinegen/lib/editor/export-mapping';
+import { customTransitionDefSync } from '@cinegen/lib/occ/plugins';
 type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
 const transcriptionListeners = new Set<(e: TranscriptionEvent) => void>();
 const emitTranscription = (e: TranscriptionEvent) => transcriptionListeners.forEach((fn) => fn(e));
@@ -48,17 +36,10 @@ function toSegments(words: Array<{ text: string; start: number; end: number }>) 
   return segments;
 }
 
-type ExportJobState = { id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; createdAt: string; completedAt?: string };
+type ExportJobState = { id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; warnings?: string[]; createdAt: string; completedAt?: string };
 const exportJobs = new Map<string, ExportJobState>();
 
 const batchListeners = new Set<(e: unknown) => void>();
-
-/** [remix] CineGen opacity/volume keyframes ({time,value}) → composition keyframes ({t,v}) per property. */
-function kfToComposition(kf: Array<{ time: number; property: string; value: number }>) {
-  const out: Record<string, Array<{ t: number; v: number }>> = {};
-  for (const k of kf) (out[k.property] ??= []).push({ t: k.time, v: k.value });
-  return out;
-}
 
 export function registerWebApi() {
   registerElectronApi('vision', {
@@ -128,7 +109,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ glType: string; glDef?: unknown; clipAId: string; clipBId: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; tracks?: ExportTrackInfo[]; clips: Array<{ id?: string; name?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; glType?: string; glDef?: unknown; clipAId: string; clipBId?: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -138,27 +119,9 @@ export function registerWebApi() {
             import('../../lib/editor/remotion/timelineToComposition.js'),
             import('../../lib/editor/remotion/exportClient.js'),
           ]);
-          const item = (c: (typeof a.clips)[number], i: number) => ({
-            id: `c${i}`, type: c.type === 'audio' ? 'audio' : c.type === 'image' ? 'image' : 'video', src: c.inputPath,
-            start: c.startTime, end: c.startTime + c.duration, trimIn: c.trimStart, playbackRate: c.speed || 1, volume: c.kf?.some((k) => k.property === 'volume') ? 1 : (c.volume ?? 1),
-            // [remix] OpenChatCut effects / LUT → burned in by the composition's GL layer
-            occFx: occFxList(c),
-            ...(c.zoom ? { zoom: c.zoom } : {}),
-            ...(c.transform ? { transform: c.transform } : {}),
-            fit: c.fit ?? LEGACY_FIT,
-            ...(c.fadeIn ? { fadeIn: c.fadeIn } : {}), ...(c.fadeOut ? { fadeOut: c.fadeOut } : {}),
-            ...(c.kf?.length ? { keyframes: kfToComposition(c.kf) } : {}),
-            ...(c.blendMode && c.blendMode !== 'normal' ? { blendMode: c.blendMode } : {}),
-          });
-          const state = {
-            timelineSeconds: Math.max(1, a.totalDuration),
-            tracks: [
-              { id: 'v', type: 'video', items: a.clips.filter((c) => c.type !== 'audio' && c.trackKind !== 'audio').map(item) },
-              // [remix] overlay-lane items (same clip shape as the classic editor's add-on clips) → the composition's overlay layers
-              ...((a.overlays ?? []).length ? [{ id: 'ov', type: 'text', items: (a.overlays ?? []).map((o, i) => ({ ...o, id: o.id ?? `ov${i}` })) }] : []),
-              { id: 'a', type: 'audio', items: a.clips.filter((c) => c.type === 'audio' || c.trackKind === 'audio').map((c, i) => item({ ...c, type: 'audio' }, 1000 + i)) },
-            ],
-          };
+          // [remix] track mute/solo/volume/visibility, clip opacity/flip/volume and plain dissolve/fades (see lib/editor/export-mapping.ts)
+          const { state, warnings } = buildExportState({ clips: a.clips as never, tracks: a.tracks, transitions: a.transitions, overlays: a.overlays, totalDuration: a.totalDuration }, exportItem as never);
+          if (warnings.length) job.warnings = warnings;
           const model = timelineToComposition(state, { fps: a.fps, quality, aspect: a.aspect });
           // [remix] a generic export has no contact profile: unfilled {{tokens}} are removed from text, as the published player does
           (model as { layers: unknown[] }).layers = stripUnresolvedTokens((model as { layers: unknown[] }).layers) as unknown[];
@@ -182,8 +145,8 @@ export function registerWebApi() {
           // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
           const byId = new Map(a.clips.map((c, i) => [c.id, { c, i }]));
           (model as { glTransitions?: unknown[] }).glTransitions = (a.transitions ?? []).flatMap((t) => {
-            const A = byId.get(t.clipAId); const B = byId.get(t.clipBId);
-            if (!A || !B) return [];
+            const A = byId.get(t.clipAId); const B = t.clipBId ? byId.get(t.clipBId) : undefined;
+            if (!t.glType || !A || !B) return [];
             const start = B.c.startTime; const end = A.c.startTime + A.c.duration;
             const from = Math.round(start * a.fps); const dur = Math.round((end - start) * a.fps);
             if (dur < 2) return [];
