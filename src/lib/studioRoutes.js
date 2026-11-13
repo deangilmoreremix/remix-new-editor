@@ -40,6 +40,7 @@ const ICONS = {
   viral: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
    personalizer: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>',
    leadfinder: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+   'video-pages': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 8h18"/><path d="M10 12.5l4 2.5-4 2.5z" fill="currentColor"/></svg>',
    'find-my-brand': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.6z"/></svg>',
   'content-library': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',
   'studios/product-photo-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
@@ -96,6 +97,7 @@ export const STUDIO_ROUTES = {
   viral: { label: 'Smart Video Viral', category: 'Agents' },
   personalizer: { label: 'Personalizer', category: 'Agents' },
   leadfinder: { label: 'Lead Finder', category: 'Agents' },
+  'video-pages': { label: 'Video Pages', category: 'Agents' },
   'find-my-brand': { label: 'Find My Brand', category: 'Agents' },
   'website-builder': { label: 'Website Builder', category: 'Agents' },
   render: { label: 'Video Render', category: 'Agents' },
@@ -189,6 +191,7 @@ export const NAV_GROUPS = [
     { id: 'workbench', label: 'Workbench' },
     { id: 'viral', label: 'Viral' },
     { id: 'personalizer', label: 'Personalizer' },
+    { id: 'video-pages', label: 'Video Pages' },
     { id: 'website-builder', label: 'Website' },
   ] },
   { title: 'My Work', items: [

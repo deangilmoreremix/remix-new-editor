@@ -128,6 +128,14 @@
   status = 200
   force = true
 
+# Video Pages -> MailerLite sync (user's own MailerLite token, sent per request
+# as X-MailerLite-Key; never stored or logged).
+[[redirects]]
+  from = "/api/landing-sync"
+  to = "/.netlify/functions/landing-sync"
+  status = 200
+  force = true
+
 # Timeline Editor text AI (OpenAI Responses API, user's own key): chat modes,
 # storyboard, script breakdown, shot list, beat sheet.
 [[redirects]]
@@ -186,6 +194,8 @@
 # The public video player (/watch/<id>) can be embedded anywhere: its
 # framing headers are rewritten by netlify/edge-functions/watch-embed.js
 # (header rules below are merged, not overridden, so a rule can't do it).
+# Video landing pages (/p/<slug>) work the same way via
+# netlify/edge-functions/page-meta.js (link-preview tags; framing only for ?embed=1).
 
 # Security headers
 [[headers]]

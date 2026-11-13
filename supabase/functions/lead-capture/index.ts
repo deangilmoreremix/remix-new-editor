@@ -9,6 +9,9 @@
 // POST { action: 'list', projectId?, clipId? }
 //   -> { ok, leads: [{ id, data, created_at, clip_id, kind }] } (own rows only)
 //
+// Landing pages (/p/<slug>): POST { pageId, contactId?, data, source } -> stores
+// the lead for the page owner (see the pageId branch below).
+//
 // Anonymous callers (no session) can't store rows — RLS needs an owner —
 // but their webhooks are still forwarded, matching what the editor preview
 // did before this function existed.
@@ -179,6 +182,43 @@ Deno.serve(async (req: Request) => {
 
   const projectId = typeof body.projectId === "string" ? body.projectId.slice(0, 128) : null;
   const clipId = typeof body.clipId === "string" ? body.clipId.slice(0, 128) : null;
+
+  // Video landing pages (/p/<slug>): the lead is stored for the page's OWNER
+  // when the page is published and its lead form is enabled. No webhooks here:
+  // page config is publicly readable, so it never holds forwarding URLs; CRM
+  // delivery (Kit / MailerLite) is a separate server-side sync.
+  if (body.pageId !== undefined) {
+    const pageId = String(body.pageId);
+    if (!PUBLISHED_ID.test(pageId)) return json(req, { ok: false, error: "Unknown page" }, 404);
+    if (!SUPABASE_SERVICE_ROLE_KEY) return json(req, { ok: false, error: "Lead backend not configured" }, 500);
+    const leadData = sanitizeData(body.data);
+    if (!Object.keys(leadData).length) return json(req, { ok: false, error: "Empty submission" }, 400);
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data: pageRow, error: pageError } = await admin.from("landing_pages")
+      .select("id, clerk_user_id, config").eq("id", pageId).eq("published", true).maybeSingle();
+    if (pageError || !pageRow) return json(req, { ok: false, error: "Unknown page" }, 404);
+    const form = ((pageRow.config as Json | null)?.form ?? null) as Json | null;
+    if (!form || form.enabled !== true) return json(req, { ok: false, error: "This page has no form" }, 400);
+    const contactId = typeof body.contactId === "string" && /^[A-Za-z0-9_-]{6,40}$/.test(body.contactId) ? body.contactId : null;
+    const src = body.source && typeof body.source === "object" ? body.source as Json : {};
+    const { error: insertError } = await admin.from("video_leads").insert({
+      clerk_user_id: pageRow.clerk_user_id,
+      project_id: pageId,
+      clip_id: "landing-page",
+      kind: "lead-form",
+      data: leadData,
+      source: {
+        page: typeof src.page === "string" ? src.page.slice(0, 512) : null,
+        userAgent: typeof src.userAgent === "string" ? src.userAgent.slice(0, 512) : null,
+        published: true,
+        landingPage: true,
+        contactId,
+      },
+      preview: false,
+    });
+    if (insertError) console.warn("[lead-capture] landing page insert failed:", insertError.code);
+    return json(req, { ok: true, stored: !insertError, forwarded: 0, failed: 0, email: null });
+  }
 
   if (body.publishedId !== undefined) {
     const publishedId = String(body.publishedId);

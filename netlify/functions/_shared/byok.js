@@ -17,6 +17,15 @@ export function userMuapiKey(headers) {
   return /^[A-Za-z0-9._-]{16,200}$/.test(key) ? key : null;
 }
 
+/** MailerLite API token (Integrations → API). Opaque, long, header-safe. */
+export function userMailerLiteKey(headers) {
+  const key = String(header(headers, 'x-mailerlite-key') || '').trim();
+  return /^[A-Za-z0-9._-]{20,4000}$/.test(key) ? key : null;
+}
+
+export const NEED_MAILERLITE_KEY = 'Add your MailerLite API token to sync contacts (MailerLite → Integrations → API).';
+export const BAD_MAILERLITE_KEY = 'MailerLite rejected your API token. Create a new one in MailerLite → Integrations → API.';
+
 export const NEED_MUAPI_KEY = 'This uses your own MuAPI key. Add it in SmartVid → Settings → API keys (MuAPI API Key).';
 export const NEED_OPENAI_KEY = 'This uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key).';
 export const BAD_OPENAI_KEY = 'OpenAI rejected your API key. Check it in SmartVid → Settings → API keys.';
