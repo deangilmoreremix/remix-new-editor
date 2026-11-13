@@ -57,8 +57,10 @@ function FilePickerNodeInner({ id, data, selected, width, height }: FilePickerNo
       const filePath = typeof result === 'string' ? result : result[0];
       if (!filePath) return;
 
-      const fileName = filePath.split('/').pop() ?? filePath;
-      const mediaType = detectMediaTypeFromExt(filePath);
+      // [remix] The web file picker returns a blob:/data: URL with no extension; the original file name is kept beside it.
+      const pickedName = (window as unknown as { __remixFileNames?: Map<string, string> }).__remixFileNames?.get(filePath);
+      const fileName = pickedName ?? filePath.split('/').pop() ?? filePath;
+      const mediaType = detectMediaTypeFromExt(fileName) || detectMediaTypeFromExt(filePath);
 
       if (!mediaType) {
         setError('Unsupported file type');

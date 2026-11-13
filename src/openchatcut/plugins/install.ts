@@ -32,7 +32,7 @@ async function probeShaders(pack: PluginPack): Promise<string[]> {
   try {
     runtime = createGlRuntime(canvas);
   } catch (e) {
-    return [`WebGL 不可用,无法校验 shader:${e instanceof Error ? e.message : String(e)}`];
+    return [`WebGL is unavailable, cannot check shaders: ${e instanceof Error ? e.message : String(e)}`];
   }
   const src = document.createElement('canvas');
   src.width = 2;
@@ -44,7 +44,7 @@ async function probeShaders(pack: PluginPack): Promise<string[]> {
         if (item.type === 'transition') runtime.render(item.frag, src, src, 0.5, {});
         else for (const frag of item.passes ?? [item.frag]) runtime.renderFxChain([{ frag, uniforms: {} }], src);
       } catch (e) {
-        errors.push(`「${item.name}」shader 编译失败:${e instanceof Error ? e.message : String(e)}`);
+        errors.push(`"${item.name}"shader failed to compile: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
   } finally {
@@ -72,7 +72,7 @@ export async function installFromText(text: string, opts?: InstallFromUrlOpts): 
   if (opts?.sha256) {
     const got = await sha256Hex(text);
     if (got !== opts.sha256.trim().toLowerCase()) {
-      return err([`SHA-256 不匹配(期望 ${opts.sha256.slice(0, 12)}…,实得 ${got.slice(0, 12)}…)`]);
+      return err([`SHA-256 mismatch (expected ${opts.sha256.slice(0, 12)}…,got ${got.slice(0, 12)}…)`]);
     }
   }
 
@@ -80,7 +80,7 @@ export async function installFromText(text: string, opts?: InstallFromUrlOpts): 
   try {
     json = JSON.parse(text);
   } catch {
-    return err(['不是合法 JSON']);
+    return err(['not valid JSON']);
   }
   const res = validatePack(json);
   if (!res.ok) return err(res.errors);
@@ -108,7 +108,7 @@ export async function installFromText(text: string, opts?: InstallFromUrlOpts): 
     if (previous) {
       try { await registerPack(previous); } catch { /* Try your best to recover*/ }
     }
-    return err([`注册失败:${e instanceof Error ? e.message : String(e)}`]);
+    return err([`registration failed: ${e instanceof Error ? e.message : String(e)}`]);
   }
   try {
     await savePack(installed);
@@ -117,7 +117,7 @@ export async function installFromText(text: string, opts?: InstallFromUrlOpts): 
     if (previous) {
       try { await registerPack(previous); } catch { /* ignore */ }
     }
-    return err([`写入本地失败:${e instanceof Error ? e.message : String(e)}`]);
+    return err([`could not save locally: ${e instanceof Error ? e.message : String(e)}`]);
   }
   return { ok: true, pack: installed, ...(skipped.length ? { skipped } : {}) };
 }
@@ -127,10 +127,10 @@ export async function installFromUrl(url: string, opts?: InstallFromUrlOpts): Pr
   let text: string;
   try {
     const res = await fetch(url);
-    if (!res.ok) return err([`下载失败:HTTP ${res.status}`]);
+    if (!res.ok) return err([`download failed: HTTP ${res.status}`]);
     text = await res.text();
   } catch (e) {
-    return err([`下载失败(可能被 CORS 拦):${e instanceof Error ? e.message : String(e)}。可下载文件后用「选文件」安装`]);
+    return err([`download failed (possibly blocked by CORS): ${e instanceof Error ? e.message : String(e)}. Download the file and use "Install from file" instead`]);
   }
   return installFromText(text, {
     ...opts,
