@@ -10,7 +10,7 @@ import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
-import { TEMPLATES, sanitizeConfig, defaultConfig, applyTemplate, tokensUsed } from '../lib/landingPages/templates.js';
+import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, tokensUsed } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
@@ -225,17 +225,42 @@ export function LandingPagesStudio() {
 
     // Template
     const tplHead = el('h2', 'text-sm font-extrabold uppercase tracking-wide', 'Template');
-    const tplRow = el('div', 'flex flex-wrap gap-2');
-    TEMPLATES.forEach((t) => {
-      const b = el('button', `${BTN} ${t.id === sel.template ? 'border-primary text-primary' : ''}`, t.name);
-      b.type = 'button';
-      b.title = t.description;
-      b.addEventListener('click', () => {
-        sel.template = t.id;
-        [...tplRow.children].forEach((c, i) => c.classList.toggle('border-primary', TEMPLATES[i].id === t.id));
-      });
-      tplRow.appendChild(b);
+    const tplRow = el('div', 'flex flex-col gap-4');
+    const cards = new Map();
+    const paintCards = () => cards.forEach((c, id) => {
+      const on = id === sel.template;
+      c.classList.toggle('border-primary', on);
+      c.classList.toggle('ring-2', on);
+      c.classList.toggle('ring-primary', on);
+      c.setAttribute('aria-pressed', String(on));
     });
+    // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
+    [['Layouts', TEMPLATES.filter((t) => !t.intro)], ['Personal intro designs (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)]].forEach(([label, list]) => {
+      const grp = el('div', 'flex flex-col gap-2');
+      grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
+      const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
+      list.forEach((t) => {
+        const b = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
+        b.type = 'button';
+        b.title = t.description;
+        const sw = el('div', 'h-12 flex items-end gap-1 p-2');
+        sw.style.background = t.theme.bg;
+        [t.theme.accent, t.theme.highlight, t.theme.text].forEach((c) => {
+          const d = el('span', 'h-3 w-3 rounded-full border border-white/30');
+          d.style.background = c;
+          sw.appendChild(d);
+        });
+        const cap = el('div', 'p-2');
+        cap.append(el('div', 'text-xs font-bold truncate', t.name), el('div', 'text-[11px] text-secondary line-clamp-2', t.description));
+        b.append(sw, cap);
+        b.addEventListener('click', () => { sel.template = t.id; paintCards(); });
+        cards.set(t.id, b);
+        row.appendChild(b);
+      });
+      grp.appendChild(row);
+      tplRow.appendChild(grp);
+    });
+    paintCards();
 
     const create = el('button', BTN_PRIMARY, 'Create page');
     create.type = 'button';
@@ -359,7 +384,12 @@ export function LandingPagesStudio() {
       };
 
       const tplSel = el('select', INPUT);
-      TEMPLATES.forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
+      [['Layouts', TEMPLATES.filter((t) => !t.intro)], ['Personal intro designs', TEMPLATES.filter((t) => t.intro)]].forEach(([label, list]) => {
+        const og = el('optgroup');
+        og.label = label;
+        list.forEach((t) => { const o = el('option', '', t.name); o.value = t.id; og.appendChild(o); });
+        tplSel.appendChild(og);
+      });
       tplSel.value = current.config.template;
       tplSel.addEventListener('change', () => {
         // Switching template restyles but keeps the copy the user wrote; empty blocks get the new template's defaults.
@@ -457,7 +487,7 @@ export function LandingPagesStudio() {
         hint,
         field('Accent color (buttons)', accent),
         color('Highlight color (company name in headline)', () => current.config.theme.highlight, (c, v) => { c.theme.highlight = v; }),
-        group('Header & branding', current.config.template === 'personal',
+        group('Header & branding', getTemplate(current.config.template).intro,
           text('logoUrl', 'Your logo image URL (https)', { path: ['theme'] }),
           text('name', 'Your brand name', { path: ['brand'] }),
           text('tagline', 'Header tagline', { path: ['brand'] }),
@@ -468,11 +498,11 @@ export function LandingPagesStudio() {
           text('label', 'Button text', { path: ['cta'] }),
           text('url', 'Button link (https, mailto: or tel:)', { path: ['cta'] }),
         ),
-        group('Video caption', current.config.template === 'personal',
+        group('Video caption', getTemplate(current.config.template).intro,
           text('title', 'Caption title', { path: ['overlay'] }),
           text('subtitle', 'Caption line (use {{duration}} for the length)', { path: ['overlay'] }),
         ),
-        group('Story & sender', current.config.template === 'personal',
+        group('Story & sender', getTemplate(current.config.template).intro,
           text('heading', 'Story heading', { path: ['story'] }),
           paragraphs('Story paragraphs (blank line between)', () => current.config.story.body, (c, v) => { c.story.body = v; }),
           text('name', 'Sender name', { path: ['sender'] }),

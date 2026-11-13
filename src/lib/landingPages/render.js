@@ -5,7 +5,7 @@
  * every URL passes safeUrl/safeImageUrl, so a hostile config can't inject markup.
  */
 import {
-  getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, splitAccent, formatDuration, FONTS,
+  getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, splitAccent, formatDuration, readableOn, FONTS,
 } from './templates.js';
 
 const PROGRESS_MARKS = [
@@ -66,9 +66,13 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   const own = { ...tokens, sender: config.sender.name, brand: config.brand.name, duration: formatDuration(page?.duration) };
   const t = (s) => fillTokens(s, own);
 
-  const root = h(doc, 'div', `vp vp--${tpl.id} vp--${tpl.layout} vp--${theme.mode}`);
+  const traits = (tpl.traits || []).map((x) => `vp--t-${x}`).join(' ');
+  const root = h(doc, 'div', `vp vp--${tpl.id} vp--${tpl.layout} vp--${theme.mode} ${traits}`.trim());
+  if (tpl.radius != null) root.style.setProperty('--vp-radius', `${tpl.radius}px`);
   root.style.setProperty('--vp-accent', theme.accent);
   root.style.setProperty('--vp-highlight', theme.highlight);
+  root.style.setProperty('--vp-on-accent', readableOn(theme.accent));
+  root.style.setProperty('--vp-on-highlight', readableOn(theme.highlight));
   root.style.setProperty('--vp-bg', theme.bg);
   root.style.setProperty('--vp-text', theme.text);
   root.style.setProperty('--vp-font', FONTS[theme.font]);

@@ -50,8 +50,87 @@ export const TEMPLATES = Object.freeze([
     theme: { mode: 'dark', accent: '#ef5350', highlight: '#6366f1', bg: '#0a0c12', text: '#ffffff', font: 'system' },
     layout: 'intro',
     customPlayer: true,
+    intro: true,
+    family: 'intro',
+    radius: 16,
+  },
+  // ---- Ten more designs on the same anatomy as the reference (co-branded header, pill, accent headline,
+  // play button, custom player with caption, story + form, testimonial, logos, footer). They differ in
+  // palette, type, corner shape and structure. Colours are checked for contrast in the unit tests.
+  {
+    id: 'midnight',
+    name: 'Midnight Violet',
+    description: 'Deep indigo night with a violet glow behind the headline.',
+    theme: { mode: 'dark', accent: '#7c3aed', highlight: '#c4b5fd', bg: '#0d0b1a', text: '#ffffff', font: 'system' },
+    layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 20, traits: ['glow-top'],
+  },
+  {
+    id: 'daylight',
+    name: 'Daylight',
+    description: 'Clean light page with soft shadows and an indigo accent.',
+    theme: { mode: 'light', accent: '#4338ca', highlight: '#4f46e5', bg: '#f7f8fc', text: '#0f172a', font: 'system' },
+    layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 16, traits: ['soft'],
+  },
+  {
+    id: 'sunset',
+    name: 'Sunset',
+    description: 'Warm plum-to-ember gradient with an orange highlight.',
+    theme: { mode: 'dark', accent: '#c2410c', highlight: '#fb923c', bg: '#1a0f14', text: '#fff7ed', font: 'system' },
+    layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 18, traits: ['gradient'],
+  },
+  {
+    id: 'emerald',
+    name: 'Emerald',
+    description: 'Dark green-black with sharp corners and a mint highlight.',
+    theme: { mode: 'dark', accent: '#047857', highlight: '#34d399', bg: '#07130f', text: '#ecfdf5', font: 'system' },
+    layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 6, traits: ['sharp'],
+  },
+  {
+    id: 'editorial',
+    name: 'Editorial',
+    description: 'Cream paper, serif headline set left, thin rules, black button.',
+    theme: { mode: 'light', accent: '#1c1917', highlight: '#b45309', bg: '#faf6ee', text: '#1c1917', font: 'serif' },
+    layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 4, traits: ['hero-left', 'rules'],
+  },
+  {
+    id: 'splithero',
+    name: 'Split hero',
+    description: 'Headline on the left, video on the right (stacks on phones).',
+    theme: { mode: 'dark', accent: '#0e7490', highlight: '#22d3ee', bg: '#0a1020', text: '#f1f5f9', font: 'display' },
+    layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 14, traits: ['hero-split'],
+  },
+  {
+    id: 'cinema',
+    name: 'Cinema',
+    description: 'Near-black stage, wide square-edged video, gold accent, spaced caps.',
+    theme: { mode: 'dark', accent: '#b45309', highlight: '#fbbf24', bg: '#050505', text: '#f5f5f4', font: 'serif' },
+    layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 2, traits: ['wide', 'caps'],
+  },
+  {
+    id: 'pastel',
+    name: 'Soft Pastel',
+    description: 'Lavender canvas, very round corners, friendly and warm.',
+    theme: { mode: 'light', accent: '#7e22ce', highlight: '#db2777', bg: '#f5f0ff', text: '#2d1b4e', font: 'display' },
+    layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 28, traits: ['round'],
+  },
+  {
+    id: 'corporate',
+    name: 'Corporate',
+    description: 'Navy header bar, light body, the form leads on the left.',
+    theme: { mode: 'light', accent: '#1d4ed8', highlight: '#1d4ed8', bg: '#f3f6fa', text: '#0b1f3a', font: 'system' },
+    layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 8, traits: ['bar', 'cols-reverse'],
+  },
+  {
+    id: 'neon',
+    name: 'Neon Tech',
+    description: 'Grid backdrop, mono type and a neon glow on the player and button.',
+    theme: { mode: 'dark', accent: '#be185d', highlight: '#22d3ee', bg: '#070713', text: '#e2e8f0', font: 'mono' },
+    layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 10, traits: ['grid', 'glow'],
   },
 ]);
+
+/** Templates that use the co-branded "intro" anatomy. */
+export const INTRO_TEMPLATES = Object.freeze(TEMPLATES.filter((t) => t.intro));
 
 export const FONTS = Object.freeze({
   system: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
@@ -89,7 +168,7 @@ export function safeImageUrl(value) {
 
 export function defaultConfig(templateId = 'clean', { title = '', brand = {} } = {}) {
   const t = getTemplate(templateId);
-  const personal = t.id === 'personal';
+  const personal = !!t.intro;
   const base = {
     template: t.id,
     theme: { ...t.theme, ...(brand.accent ? { accent: brand.accent } : {}), logoUrl: brand.logoUrl || '' },
@@ -311,4 +390,37 @@ export function tokensFromQuery(search = '') {
     if (v) out[k] = v.slice(0, 80);
   });
   return out;
+}
+
+// ---- colour helpers (WCAG 2.x relative luminance / contrast) -------------------------------
+
+function channel(v) {
+  const c = v / 255;
+  return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+
+/** Relative luminance of a #rrggbb colour. */
+export function luminance(hex) {
+  const m = /^#([0-9a-f]{6})$/i.exec(String(hex || ''));
+  if (!m) return 0;
+  const n = parseInt(m[1], 16);
+  return 0.2126 * channel((n >> 16) & 255) + 0.7152 * channel((n >> 8) & 255) + 0.0722 * channel(n & 255);
+}
+
+/** WCAG contrast ratio between two #rrggbb colours (1 to 21). */
+export function contrastRatio(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/** Mix `fg` over `bg` at `alpha` (0..1) and return #rrggbb: what semi-transparent text really looks like. */
+export function blend(fg, bg, alpha) {
+  const p = (h) => { const n = parseInt(String(h).slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const [f, b] = [p(fg), p(bg)];
+  return `#${f.map((v, i) => Math.round(v * alpha + b[i] * (1 - alpha)).toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** White or near-black, whichever reads better on `bg`. */
+export function readableOn(bg) {
+  return contrastRatio('#ffffff', bg) >= contrastRatio('#0b0b0f', bg) ? '#ffffff' : '#0b0b0f';
 }
