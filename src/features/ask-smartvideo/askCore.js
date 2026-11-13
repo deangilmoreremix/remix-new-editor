@@ -1,6 +1,7 @@
 // Ask SmartVideo — pure helpers for the panel (no DOM, unit-testable).
 import { getStudioLabel } from '../../lib/studioRoutes.js';
 import { STUDIO_ACADEMY, TRACK_TITLES } from '../../data/askAcademyMap.js';
+import JOURNEYS from '../../data/askJourneyList.json';
 
 export const ENDPOINT = '/api/ask-smartvideo';
 
@@ -62,7 +63,10 @@ export function parseSSE(buffer) {
   return { events, rest };
 }
 
-const GENERIC = ['What can I do in SmartVideo?', 'Where do I start as a beginner?', 'How do I add my API keys?'];
+const GENERIC = ['Walk me through making a video', 'What can I do in SmartVideo?', 'How do I add my API keys?'];
+
+/** Guided walkthroughs for the panel's "Make a video" group: [{ id, title, prompt }]. */
+export const journeyPrompts = () => JOURNEYS.map((j) => ({ id: j.id, title: j.title, prompt: `Walk me through: ${j.title}` }));
 
 /** Three starter questions for the studio the user is in ("how do I X / what inputs / which lessons"). */
 export function starterPrompts(studioId) {
@@ -91,6 +95,15 @@ export function pickChips(answer, sources) {
   const seen = new Set();
   const chips = [];
   for (const s of list) {
+    if (s.kind === 'journey') {
+      // A walkthrough: one chip per studio on the path (in order), then its Academy course.
+      for (const id of (s.studios || []).slice(0, 5)) {
+        const url = `#/${id}`;
+        if (!seen.has(url)) { seen.add(url); chips.push({ label: `Open ${getStudioLabel(id)}`, url }); }
+      }
+      if (s.guideUrl && !seen.has(s.guideUrl)) { seen.add(s.guideUrl); chips.push({ label: 'Academy course', url: s.guideUrl, academy: true }); }
+      continue;
+    }
     const c = chipFor(s);
     if (!seen.has(c.url)) { seen.add(c.url); chips.push(c); }
     const g = s.studioId && STUDIO_ACADEMY[s.studioId]?.lessons?.[0];

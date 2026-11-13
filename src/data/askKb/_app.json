@@ -86,7 +86,7 @@
     {
       "id": "what-is-ask-smartvideo",
       "title": "What Ask SmartVideo is and how to use it",
-      "text": "Ask SmartVideo is the floating help assistant, opened with the \"Ask SmartVideo\" launcher button. It answers questions about the studios and points you to the right one with source chips such as \"Open <studio>\". The header shows \"You're in <studio>\" when you are inside a studio, or \"Help for every studio\". It uses retrieved help content and your own OpenAI key: if none is saved it shows \"Ask SmartVideo uses your own OpenAI key.\" with an \"Open Settings → API keys\" button. You must be signed in (\"Sign in to use Ask SmartVideo.\"), and asking too fast gives \"You are asking too fast. Please wait a moment.\" Type in the box (\"Ask about any studio…\", up to 1500 characters), press Enter to send and Shift+Enter for a new line. Esc closes the panel and \"Clear\" erases the conversation. The conversation is kept for the browser tab only.",
+      "text": "Ask SmartVideo is the floating help assistant, opened with the \"Ask SmartVideo\" launcher button. It answers questions about the studios and points you to the right one with source chips such as \"Open <studio>\". The header shows \"You're in <studio>\" when you are inside a studio, or \"Help for every studio\". It uses retrieved help content and your own OpenAI key: if none is saved it shows \"Ask SmartVideo uses your own OpenAI key.\" with an \"Open Settings → API keys\" button. You must be signed in (\"Sign in to use Ask SmartVideo.\"), and asking too fast gives \"You are asking too fast. Please wait a moment.\" Type in the box (\"Ask about any studio…\", up to 1500 characters), press Enter to send and Shift+Enter for a new line. Esc closes the panel and \"Clear\" erases the conversation. The conversation is kept for the browser tab only. It can also walk you through making a whole video: choose a guide under 'Make a video' in the panel (text to video, photo to clip, talking video, product ad, short film, social shorts, explainer or promo, UGC ad batch), or ask 'walk me through making a video'.",
       "route": "apps",
       "intents": [
         "what is ask smartvideo",
@@ -95,7 +95,9 @@
         "ask smartvideo not working",
         "ask smartvideo needs api key",
         "how to get help in the app",
-        "the assistant asks me to sign in"
+        "the assistant asks me to sign in",
+        "walk me through making a video",
+        "how do I make a video from start to finish"
       ],
       "sources": [
         "src/features/ask-smartvideo/AskSmartVideo.js",

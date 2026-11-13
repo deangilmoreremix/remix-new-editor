@@ -1,0 +1,148 @@
+{
+  "id": "product-ad",
+  "title": "Make a product ad video",
+  "goal": "You end up with a finished product ad video (an MP4 exported from the Timeline Editor) built from a product shot, an animated clip and a music or voice track.",
+  "bestFor": "Shop owners, sellers and marketers who have one product photo and want a short moving ad without filming anything.",
+  "whatYouNeed": [
+    "A MuAPI key saved in Settings -> API keys (all image, video and audio generation uses your own MuAPI credits; cost per model is not documented in the app)",
+    "One sharp photo of your product with the whole product visible on a plain background (images up to 10MB)",
+    "A short idea for the motion (for example 'slow camera push in, steam rises') and for the music or voice-over words",
+    "An OpenAI key only if you want the Timeline AI chat (not needed for this journey)"
+  ],
+  "studios": ["commercial", "animate", "audio", "timeline"],
+  "steps": [
+    {
+      "n": 1,
+      "studio": "commercial",
+      "action": "Turn your product photo into a clean studio product shot.",
+      "buttons": ["Product shot", "Studio white background", "Generate Product Shot", "Download"],
+      "details": "Open Product Shot Studio at #/commercial. Make sure the toggle is on Product shot. Upload your product image under Product Media. Keep the default scene 'Studio white background' for your first try, then click Generate Product Shot. If the product looks cropped or distorted, try the other Model or a simpler scene and generate again. Click Download to save the picture.",
+      "result": "A clean product image saved on your computer (it is also kept in your generation history).",
+      "handoff": "There is no one-click button from Product Shot Studio to Animate Studio. Download the picture, then upload it in Animate Studio with Upload image. (If you made your photos in Photo Studio inside Brand Studio, you can instead click Animate on a result to send it to Animate Studio.)"
+    },
+    {
+      "n": 2,
+      "studio": "animate",
+      "action": "Animate the product shot into a short video clip.",
+      "buttons": ["Upload image", "Motion Prompt", "Duration", "Resolution", "Animate", "Download"],
+      "details": "Open Animate Studio at #/animate. Choose Upload image and add your product shot (JPEG, PNG or WebP under 10 MB). In Motion Prompt say what moves and how, for example 'camera slowly pushes in, soft light sweeps across the product', or tap a suggestion chip. For a fast first test use Duration 5 seconds and Resolution 480p, then rerun at 720p or 1080p once you like the motion. Press Animate and then Download. Make 2 or 3 clips from different shots if you want a longer ad. Animate Studio takes one image at a time and Duration choices are 3, 5, 10 or 12 seconds.",
+      "result": "One short product video clip (3 to 12 seconds) saved on your computer.",
+      "handoff": "Download it (or find it in Library), then import it in the Timeline Editor in step 4. If you want more control (start and end frames, references), use Video Studio with the 'Animate image' workflow instead of Animate Studio and press Download there."
+    },
+    {
+      "n": 3,
+      "studio": "audio",
+      "action": "Create background music or a voice-over for the ad.",
+      "buttons": ["Suno Create Music", "Minimax Speech Turbo", "Style", "Voice", "Generate Audio", "Download Audio"],
+      "details": "Open Audio Studio at #/audio. For music, choose the model Suno Create Music, describe the song, pick a Style and a Duration (15s, 30s, 60s or 120s) and click Generate Audio. For a spoken voice-over, keep Minimax Speech Turbo, type your sentence, choose a Voice (Female 1 is the default) and click Generate Audio. Play the result, then click Download Audio. You can make both a music track and a voice-over.",
+      "result": "One or two audio files (music and/or voice-over) saved on your computer.",
+      "handoff": "Download Audio, then import the file in the Timeline Editor in step 4. Timeline Editor also has its own Music Tool and a voice-over recorder if you prefer to make audio there."
+    },
+    {
+      "n": 4,
+      "studio": "timeline",
+      "action": "Put your clips and audio together on the timeline.",
+      "buttons": ["New project", "Project name", "Edit", "Add Track", "Music Tool"],
+      "details": "Open Timeline Editor at #/timeline and click New project. Type a name in the Project name box and open it, then go to the Edit tab. In the media pool, click the import button at the bottom (its tooltip is 'Import media files') or double-click empty space in the pool, and pick your downloaded clips and audio files. Drag the clips onto a video track in order. Drag the music or voice-over onto an audio track; use Add Track if you want music and voice on separate tracks. Press Space to play and B (Blade) to cut off parts you do not want.",
+      "result": "A project with your ad clips in order and your music or voice on the audio track.",
+      "handoff": "Stay in Timeline Editor and open the Export tab for the next step."
+    },
+    {
+      "n": 5,
+      "studio": "timeline",
+      "action": "Export the finished ad as an MP4.",
+      "buttons": ["Export", "Preset", "Frame Rate", "Aspect ratio", "Render"],
+      "details": "Open the Export tab. Choose a Preset (Draft is 720p, Standard is 1080p, High Quality is 4K; the default is Standard) and a Frame Rate (24, 30 or 60; the default is 30). Set Aspect ratio to match where the ad will run, for example 9:16 for vertical. Use Draft for a quick test and Standard for the final. Click Render and wait for the progress to finish. Render is greyed out until at least one clip is on the timeline.",
+      "result": "You have a finished product ad video, an MP4 you can play and download. The finished job appears in the Export tab progress area, where you click Open Export on the latest job: the finished video opens in a new browser tab, and you save it from there with your browser's download or Save video as option.",
+      "handoff": "This is the end of the journey. To resize or re-export the finished file later, open it in Render Studio (#/render) from the library."
+    }
+  ],
+  "checkpoints": [
+    "After step 1: the product is fully visible and not cropped or distorted.",
+    "After step 2: the motion looks right at 5 seconds and 480p before you spend more on higher resolution.",
+    "After step 3: you can play the music or voice and it is downloaded.",
+    "After step 4: the clips play in order and the audio is on its own track.",
+    "After step 5: the exported MP4 plays with picture and sound."
+  ],
+  "troubleshooting": [
+    {
+      "problem": "Toast 'Upload a product image or video first' in Product Shot Studio",
+      "fix": "Add your photo under Product Media before clicking Generate Product Shot. For Ad video mode the product must be a still image, not a video."
+    },
+    {
+      "problem": "My product looks distorted or cropped",
+      "fix": "Use a photo where the whole product is visible on a simple background, try the other Model, pick a simpler scene such as Studio white background and click Generate again."
+    },
+    {
+      "problem": "Toast 'Please upload an image first' in Animate Studio",
+      "fix": "Add an image on the Upload image tab, then press Animate."
+    },
+    {
+      "problem": "Animate fails right away or the model choice seems ignored",
+      "fix": "Check your MuAPI key is saved, switch the Model button back to Seedance Lite, and use 5 seconds and 480p. If you open Choose a model you must actually select an entry, otherwise Seedance Lite is used."
+    },
+    {
+      "problem": "Toast 'Please enter a prompt for this model.' in Audio Studio",
+      "fix": "Type a description (music) or the words to speak (voice) in the Prompt box before clicking Generate Audio."
+    },
+    {
+      "problem": "The Render button in Timeline Editor is greyed out",
+      "fix": "Add at least one clip to the timeline in the Edit tab first."
+    },
+    {
+      "problem": "The exported video looks cropped or has black bars",
+      "fix": "Change the Contain / Cover fit and the Aspect ratio in the Export tab before you click Render again."
+    }
+  ],
+  "tips": [
+    "Start with one product and one 5 second clip before making more.",
+    "Describe the motion in your Motion Prompt: say what moves and how.",
+    "Use the Draft preset for test exports and the Standard or High Quality preset only for the final.",
+    "Keep music and voice on separate audio tracks so you can fix each one."
+  ],
+  "relatedJourneys": ["photo-to-clip", "ugc-ad-batch", "social-shorts", "explainer-promo"],
+  "academy": { "track": "07-ai-product-photography", "lesson": "01-product-photography" },
+  "intents": [
+    "make a product ad video",
+    "turn my product photo into a video ad",
+    "create an ad for my product",
+    "make a promo video for my shop",
+    "product video with music",
+    "animate my product picture",
+    "make an ecommerce video ad",
+    "how do I make a video ad from one photo"
+  ],
+  "notConfirmed": [
+    "Cost per model is not documented in the app; generation uses your own MuAPI credits (and an OpenAI key only where a studio says so).",
+    "How long each generation takes and the quality of each model is not documented.",
+    "Whether Output Format is honoured by the Product Shot model is not confirmed; Commercial Studio's own Ad video mode (Generate Ad Video) makes a short ad video directly from a product image and script but its length and cost are not documented, so this journey uses Animate Studio instead.",
+    "There is no one-click hand-off from Product Shot Studio, Animate Studio or Audio Studio into Timeline Editor that was found in code, so files are downloaded and imported by hand.",
+    "Which audio file format Audio Studio downloads was not confirmed; Timeline Editor's import dialog accepts wav, mp3, aac, flac, ogg and m4a audio, mp4, mov, avi, mkv, webm, mxf and m4v video, and common image types.",
+    "Exactly where the exported MP4 is stored and how long its link stays valid is not confirmed.",
+    "Render Studio (#/render) handles one existing video at a time and is not part of this assembly path."
+  ],
+  "sourceFiles": [
+    "src/data/askKb/commercial.json",
+    "src/data/askKb/animate.json",
+    "src/data/askKb/video.json",
+    "src/data/askKb/audio.json",
+    "src/data/askKb/timeline.json",
+    "src/data/askKb/render.json",
+    "src/data/askKb/brand.json",
+    "src/data/askKb/library.json",
+    "src/data/askKb/_app.json",
+    "src/data/askAcademyMap.js",
+    "src/components/CommercialStudio.js",
+    "src/components/PhotoStudioPage.js",
+    "src/components/AnimatePage.js",
+    "src/cinegen/components/edit/left-panel.tsx",
+    "src/cinegen/components/export/render-progress.tsx",
+    "src/lib/router.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "askKb guides for commercial, animate, video, audio, timeline, render, brand, library, _app; CommercialStudio.js (no hand-off found), PhotoStudioPage.js (Animate hand-off), cinegen left-panel import and export progress, router.js",
+    "verifiedAt": "2026-11-13",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

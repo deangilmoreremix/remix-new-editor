@@ -7,7 +7,7 @@
 import { apiKeyManager } from '../../lib/apiKeyManager.js';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 import { getStudioLabel, getNavItemForRoute } from '../../lib/studioRoutes.js';
-import { ENDPOINT, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl } from './askCore.js';
+import { ENDPOINT, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
 
 const STORE = 'askSmartVideo:v1';
 const MAX_LEN = 1500;
@@ -111,6 +111,22 @@ export function mountAskSmartVideo({ navigate, getPage }) {
         w.appendChild(b);
       });
       intro.appendChild(w);
+      // Guided walkthroughs that chain studios into a finished video.
+      const journeys = journeyPrompts();
+      if (journeys.length) {
+        const head = document.createElement('div');
+        head.className = 'pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted';
+        head.textContent = 'Make a video';
+        const jw = document.createElement('div');
+        jw.className = 'flex flex-col gap-1.5 pt-1';
+        journeys.forEach((j) => {
+          const b = document.createElement('button'); b.type = 'button'; b.dataset.askStarter = j.prompt; b.dataset.askJourney = j.id; b.textContent = j.title;
+          b.className = 'text-left rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-white hover:border-primary/60';
+          jw.appendChild(b);
+        });
+        intro.appendChild(head);
+        intro.appendChild(jw);
+      }
       return;
     }
     messages.forEach((m) => {

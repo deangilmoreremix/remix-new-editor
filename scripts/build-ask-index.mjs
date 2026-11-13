@@ -55,14 +55,14 @@ const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
 
 const chunks = [];
 const seen = new Set();
-function add({ id, kind, studioId = null, title, url, guideUrl, phrases, text }) {
+function add({ id, kind, studioId = null, title, url, guideUrl, phrases, studios, text }) {
   const parts = split(text);
   parts.forEach((p, i) => {
     if (p.length < MIN_CHARS) return;
     const cid = parts.length > 1 ? `${id}-${i + 1}` : id;
     if (seen.has(cid)) throw new Error(`duplicate chunk id: ${cid}`);
     seen.add(cid);
-    const c = { id: cid, kind, studioId, title, url, ...(guideUrl ? { guideUrl } : {}), ...(phrases?.length ? { phrases } : {}), text: p };
+    const c = { id: cid, kind, studioId, title, url, ...(guideUrl ? { guideUrl } : {}), ...(phrases?.length ? { phrases } : {}), ...(studios?.length ? { studios } : {}), text: p };
     if (SECRET_RE.test(`${title}\n${p}`)) throw new Error(`secret-like text in chunk ${cid}`);
     chunks.push(c);
   });
@@ -135,6 +135,39 @@ if (fs.existsSync(appPath)) {
   }
 }
 
+// ── journeys (end-to-end walkthroughs across studios) ───────────────────────
+const jdir = path.join(ROOT, 'src/data/askJourneys');
+const journeys = fs.existsSync(jdir)
+  ? fs.readdirSync(jdir).filter((f) => f.endsWith('.json')).sort().map((f) => JSON.parse(fs.readFileSync(path.join(jdir, f), 'utf8')))
+  : [];
+const studioName = Object.fromEntries(studios.map((k) => [k.id, k.name]));
+const studioRef = (id) => `${studioName[id] || id} (#/${id})`;
+for (const j of journeys) {
+  if (!j.id || !j.title || !j.steps?.length || !j.studios?.length) throw new Error(`journey ${j.id}: missing id/title/steps/studios`);
+  const url = `#/${j.studios[0]}`;
+  const guide = j.academy?.track ? academyUrl(j.academy.track, j.academy.lesson || '') : undefined;
+  const base = { kind: 'journey', studioId: j.studios[0], url, studios: j.studios, ...(guide ? { guideUrl: guide } : {}) };
+  const phrases = [j.title, `walk me through ${j.title}`, `step by step ${j.title}`, ...(j.intents || [])];
+  add({
+    ...base, id: `journey:${j.id}:overview`, title: `Walkthrough: ${j.title}`, phrases,
+    text: `Walkthrough: ${j.title}. Goal: ${j.goal}\nBest for: ${j.bestFor}\nWhat you need:\n${j.whatYouNeed.map((x) => `- ${x}`).join('\n')}\nPath: ${j.studios.map(studioRef).join(' -> ')}`,
+  });
+  add({
+    ...base, id: `journey:${j.id}:steps`, title: `Walkthrough: ${j.title} — Steps`,
+    text: `Walkthrough: ${j.title} (steps).\n${j.steps.map((st) => `Step ${st.n}: ${studioRef(st.studio)} - ${st.action}\n${st.details}${st.buttons?.length ? `\nButtons: ${st.buttons.join('; ')}` : ''}\nResult: ${st.result}\nNext: ${st.handoff}`).join('\n\n')}`,
+  });
+  const extra = [
+    j.checkpoints?.length ? `Checkpoints:\n${j.checkpoints.map((x) => `- ${x}`).join('\n')}` : '',
+    j.troubleshooting?.length ? `Troubleshooting:\n${j.troubleshooting.map((x) => `- ${x.problem}: ${x.fix}`).join('\n')}` : '',
+    j.tips?.length ? `Tips:\n${j.tips.map((x) => `- ${x}`).join('\n')}` : '',
+    j.relatedJourneys?.length ? `Related walkthroughs: ${j.relatedJourneys.join(', ')}` : '',
+  ].filter(Boolean).join('\n');
+  if (extra) add({ ...base, id: `journey:${j.id}:help`, title: `Walkthrough: ${j.title} — Checkpoints and troubleshooting`, text: `Walkthrough: ${j.title} (help).\n${extra}` });
+}
+// Small list for the panel's "Make a video" group (the panel can't import the whole index).
+const journeyList = `${JSON.stringify(journeys.map((j) => ({ id: j.id, title: j.title, studios: j.studios })), null, 1)}\n`;
+const JOURNEY_LIST_OUT = path.join(ROOT, 'src/data/askJourneyList.json');
+
 // ── models ───────────────────────────────────────────────────────────────────
 const catalog = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/api/model-catalog.json'), 'utf8'));
 const { MODEL_COMPARISON = {} } = await imp('src/lib/modelComparisonData.js');
@@ -203,12 +236,14 @@ const json = `${JSON.stringify({ meta: { generatedBy: 'scripts/build-ask-index.m
 
 if (process.argv.includes('--check')) {
   const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
-  if (cur !== json) {
-    console.error('src/data/askIndex.json is stale. Run: npm run build:ask-index');
+  const curList = fs.existsSync(JOURNEY_LIST_OUT) ? fs.readFileSync(JOURNEY_LIST_OUT, 'utf8') : '';
+  if (cur !== json || curList !== journeyList) {
+    console.error('src/data/askIndex.json or askJourneyList.json is stale. Run: npm run build:ask-index');
     process.exit(1);
   }
   console.log(`askIndex.json is up to date (${chunks.length} chunks)`);
 } else {
   fs.writeFileSync(OUT, json);
-  console.log(`Wrote ${path.relative(ROOT, OUT)}: ${chunks.length} chunks`, byKind, `${(json.length / 1024).toFixed(0)} KB`);
+  fs.writeFileSync(JOURNEY_LIST_OUT, journeyList);
+  console.log(`Wrote ${path.relative(ROOT, OUT)}: ${chunks.length} chunks`, byKind, `${(json.length / 1024).toFixed(0)} KB`, `+ ${journeys.length} journeys`);
 }

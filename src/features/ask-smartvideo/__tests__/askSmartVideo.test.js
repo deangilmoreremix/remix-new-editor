@@ -47,7 +47,7 @@ describe('knowledge base coverage', () => {
   });
   it('index holds studio, academy, model and app content', () => {
     const kinds = new Set(getIndex().docs.map((d) => d.kind));
-    expect([...kinds].sort()).toEqual(['academy', 'app', 'model', 'studio']);
+    expect([...kinds].sort()).toEqual(['academy', 'app', 'journey', 'model', 'studio']);
   });
 });
 
@@ -103,7 +103,7 @@ describe('natural-language retrieval', () => {
   it('never returns more than 2 chunks per URL or more than 6 results', () => {
     const r = ids('how do I use the image studio');
     expect(r.length).toBeLessThanOrEqual(6);
-    const per = {}; r.forEach((c) => { per[c.url] = (per[c.url] || 0) + 1; });
+    const per = {}; r.forEach((c) => { const k = c.kind === 'journey' ? `journey:${c.id.split(':')[1]}` : c.url; per[k] = (per[k] || 0) + 1; });
     expect(Math.max(...Object.values(per))).toBeLessThanOrEqual(2);
   });
   it('exposes a minimum score threshold', () => expect(MIN_SCORE).toBeGreaterThan(5));
