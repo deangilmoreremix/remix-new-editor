@@ -49,6 +49,7 @@ const labels = JSON.parse(readFileSync(resolve(root, 'scripts/template-video-lab
 
 const rows = [];
 const sources = {};
+const credits = {};
 const missing = [];
 for (const { set, slug } of allow) {
   const d = bySet[set]?.get(slug);
@@ -69,6 +70,7 @@ for (const { set, slug } of allow) {
     tags: d.tags ?? [],
     source: SETS[set].label,
   });
+  credits[`${set}:${slug}`] = { author: d.sourceAuthor ?? null, url: d.sourceUrl ?? null };
 }
 if (missing.length) { console.error('Missing from data files:', missing); process.exit(1); }
 // Where each clip/poster comes from before hosting (read by scripts/upload-template-videos.mjs).
@@ -105,3 +107,28 @@ export const TEMPLATE_VIDEO_SUBCATEGORIES = ${JSON.stringify(SUBCATEGORIES, null
 `;
 writeFileSync(resolve(root, 'src/data/templateVideoLibrary.js'), out);
 console.log(`wrote ${rows.length} clips`);
+
+// catalog.json: the machine-readable index of the hosted library. It is uploaded to the bucket root (scripts/upload-template-videos.mjs) so
+// another app, or a Claude without this repo, can discover the templates by name and category from one public URL. Only written for the
+// hosted form (not --local) and without a timestamp, so regenerating does not create noise.
+if (baseUrl) {
+  const catalog = {
+    name: 'Demo template videos',
+    description: 'Ready-made AI video templates (cinematic, commercial, social, action, animation, fashion, VFX) with commercial-style names, categories and subcategories. Each clip was reviewed for logos, watermarks and burned-in captions.',
+    bucket: 'demo-template-videos',
+    baseUrl,
+    catalogUrl: `${baseUrl}/catalog.json`,
+    usage: 'Pick clips by category/subcategory. videoUrl and posterUrl are public, send Access-Control-Allow-Origin: *, and support range requests. Layout: clips/<set>/<slug>.<ext>, posters/<set>/<slug>.<ext>.',
+    rights: 'Third-party media (originally shared on X and public prompt galleries). Confirm commercial-use / redistribution permission before production use; credit holds the upstream author and post where known.',
+    maintainedBy: 'remix-new-editor repo: scripts/generate-template-video-library.mjs, scripts/upload-template-videos.mjs, docs/template-videos.md',
+    count: rows.length,
+    categories: SUBCATEGORIES,
+    clips: rows.map((r) => ({
+      id: r.id, title: r.title, originalTitle: r.sourceTitle, category: r.category, subcategory: r.subcategory,
+      duration: r.duration, aspectRatio: r.aspectRatio, videoUrl: r.videoSrc, posterUrl: r.posterSrc, source: r.source,
+      credit: credits[r.id],
+    })),
+  };
+  writeFileSync(resolve(root, 'scripts/template-video-catalog.json'), JSON.stringify(catalog, null, 1) + '\n');
+  console.log(`wrote scripts/template-video-catalog.json (${rows.length} clips)`);
+}

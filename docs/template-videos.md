@@ -28,6 +28,29 @@ secret-free edge function `demo-templates-import`, which is now a disabled stub 
 The clips are third-party media (originally posted on X, sourced from public prompt galleries). Commercial-use / redistribution
 permission must be confirmed before production use; `sourceAuthor` / `sourceUrl` in the upstream data files hold the attribution.
 
+## Using these templates from another app (or another Claude)
+Everything needed is public. Start from the catalog:
+
+    https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/catalog.json
+
+`catalog.json` (generated from this repo, also kept as `scripts/template-video-catalog.json`) lists every clip with a commercial-style name
+(`title`), `category`, `subcategory`, `duration`, `aspectRatio`, public `videoUrl` and `posterUrl`, the upstream `originalTitle` and `credit`
+(author + post URL), plus a `categories` map (category -> subcategories) and a `rights` note. It is served with `application/json`,
+`Access-Control-Allow-Origin: *` and a 5-minute cache. The bucket's `README.txt` points at it, so a Claude that lists the Supabase buckets
+finds `demo-template-videos`, reads the README, and gets to the catalog.
+
+Paste this into the other app's `CLAUDE.md` / docs so it knows where to look:
+
+    ## Demo template videos
+    Ready-made AI video templates (cinematic, commercial, social, action, animation, fashion, VFX) live in the public Supabase Storage bucket
+    `demo-template-videos` (project ref bzxohkrxcwodllketcpz; the project is shared by many apps, do not write to this bucket).
+    Catalog (names, categories, URLs, credit): https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/catalog.json
+    Pick clips by category/subcategory from `clips[]` and use `videoUrl` / `posterUrl` directly (public, CORS *, range requests).
+    The media is third-party: confirm commercial-use permission before production use. Source repo: remix-new-editor (docs/template-videos.md).
+
+To refresh the catalog after changing the library: `node scripts/generate-template-video-library.mjs`, then re-upload `catalog.json` and
+`README.txt` with `node scripts/upload-template-videos.mjs` (needs `SUPABASE_SERVICE_ROLE_KEY`; it only writes to `demo-template-videos`).
+
 ## Retired objects (still in the bucket, no longer in the library; safe to delete in the Supabase dashboard)
 Removed from the allowlist after the audits (small "AI" corner badge, end-card/subtitle/logo marks, or on-screen brand text). The
 Supabase connector used here cannot delete storage objects, so the files were left in place.

@@ -1,0 +1,3006 @@
+{
+ "name": "Demo template videos",
+ "description": "Ready-made AI video templates (cinematic, commercial, social, action, animation, fashion, VFX) with commercial-style names, categories and subcategories. Each clip was reviewed for logos, watermarks and burned-in captions.",
+ "bucket": "demo-template-videos",
+ "baseUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos",
+ "catalogUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/catalog.json",
+ "usage": "Pick clips by category/subcategory. videoUrl and posterUrl are public, send Access-Control-Allow-Origin: *, and support range requests. Layout: clips/<set>/<slug>.<ext>, posters/<set>/<slug>.<ext>.",
+ "rights": "Third-party media (originally shared on X and public prompt galleries). Confirm commercial-use / redistribution permission before production use; credit holds the upstream author and post where known.",
+ "maintainedBy": "remix-new-editor repo: scripts/generate-template-video-library.mjs, scripts/upload-template-videos.mjs, docs/template-videos.md",
+ "count": 184,
+ "categories": {
+  "Action": [
+   "Chases & Stunts",
+   "Creatures & Heroes",
+   "Fights & Martial Arts",
+   "Aerial & FPV",
+   "Battles & Disaster"
+  ],
+  "Animation": [
+   "3D Animated",
+   "Cute & Kids",
+   "Illustrated & Craft",
+   "Title Sequences"
+  ],
+  "Cinema": [
+   "Drama & Thriller",
+   "Fantasy & Surreal",
+   "Sci-Fi",
+   "Period & Historical",
+   "Travel & Documentary",
+   "Comedy"
+  ],
+  "Commercial": [
+   "Automotive & Mobility",
+   "Food & Beverage",
+   "Luxury Goods",
+   "Product Reveals",
+   "Brand Films",
+   "Tech & Gadgets",
+   "Beauty & Fragrance"
+  ],
+  "Fashion": [
+   "Streetwear",
+   "Editorial",
+   "Runway & Lookbook"
+  ],
+  "Social": [
+   "Vlogs & UGC",
+   "Music & Dance",
+   "Fitness & Sports",
+   "Comedy & Pets",
+   "Lifestyle & Food"
+  ],
+  "VFX": [
+   "Effects & Motion Graphics",
+   "Title Sequences",
+   "Loops & Hero Backgrounds"
+  ]
+ },
+ "clips": [
+  {
+   "id": "mmx25:10-second-16-9-photoreal-cinematic-wide-shot-fly-735905",
+   "title": "Stealth Jet Cloak Flyby",
+   "originalTitle": "Action Film Study",
+   "category": "Action",
+   "subcategory": "Aerial & FPV",
+   "duration": 10.13,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/10-second-16-9-photoreal-cinematic-wide-shot-fly-735905.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/10-second-16-9-photoreal-cinematic-wide-shot-fly-735905.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@opener_ai",
+    "url": "https://x.com/opener_ai/status/2084441225667735905"
+   }
+  },
+  {
+   "id": "mmx25:16-9-luxury-fashion-commercial-using-as-exact-vi-969702",
+   "title": "Luxury Handbag Campaign",
+   "originalTitle": "Product Commercial Study",
+   "category": "Commercial",
+   "subcategory": "Luxury Goods",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/16-9-luxury-fashion-commercial-using-as-exact-vi-969702.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/16-9-luxury-fashion-commercial-using-as-exact-vi-969702.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Dustfinger2077",
+    "url": "https://x.com/Dustfinger2077/status/2086086171117969702"
+   }
+  },
+  {
+   "id": "mmx25:an-other-great-use-for-product-showcase-096175",
+   "title": "Ceramic Diffuser Reveal",
+   "originalTitle": "An other great use for : Product Showcase",
+   "category": "Commercial",
+   "subcategory": "Product Reveals",
+   "duration": 15.18,
+   "aspectRatio": "92:39",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/an-other-great-use-for-product-showcase-096175.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/an-other-great-use-for-product-showcase-096175.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@LudovicCreator",
+    "url": "https://x.com/LudovicCreator/status/2085425839236096175"
+   }
+  },
+  {
+   "id": "mmx25:been-testing-the-new-flux3-and-hailuo-minimax-h3-models-282651",
+   "title": "Highway Trike Rider POV",
+   "originalTitle": "Been testing the new Flux3 and Hailuo Minimax H3 models like crazy lately.",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 20.12,
+   "aspectRatio": "68:29",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/been-testing-the-new-flux3-and-hailuo-minimax-h3-models-282651.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/been-testing-the-new-flux3-and-hailuo-minimax-h3-models-282651.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@opener_ai",
+    "url": "https://x.com/opener_ai/status/2085228024690282651"
+   }
+  },
+  {
+   "id": "mmx25:bond-style-spy-thriller-op-art-anime-title-seque-295024",
+   "title": "Spy Thriller Title Sequence",
+   "originalTitle": "Bond-style spy-thriller op-art anime title sequence",
+   "category": "Animation",
+   "subcategory": "Title Sequences",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/bond-style-spy-thriller-op-art-anime-title-seque-295024.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/bond-style-spy-thriller-op-art-anime-title-seque-295024.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@doctorwasif",
+    "url": "https://x.com/doctorwasif/status/2085947083463295024"
+   }
+  },
+  {
+   "id": "mmx25:cinematic-sci-fi-suspense-video-a-realistic-spaceship-crew-in-024495",
+   "title": "Derelict Spaceship Boarding",
+   "originalTitle": "cinematic sci-fi suspense video. A realistic spaceship crew in full futuristic",
+   "category": "Cinema",
+   "subcategory": "Sci-Fi",
+   "duration": 14.47,
+   "aspectRatio": "26:15",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/cinematic-sci-fi-suspense-video-a-realistic-spaceship-crew-in-024495.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/cinematic-sci-fi-suspense-video-a-realistic-spaceship-crew-in-024495.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@cocktailpeanut",
+    "url": "https://x.com/cocktailpeanut/status/2085498501384024495"
+   }
+  },
+  {
+   "id": "mmx25:create-a-15-second-ultra-photorealistic-live-action-war-sequence-714552",
+   "title": "1940s Battlefield Advance",
+   "originalTitle": "Create a 15-second ultra-photorealistic live-action war sequence set in the",
+   "category": "Action",
+   "subcategory": "Battles & Disaster",
+   "duration": 15.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/create-a-15-second-ultra-photorealistic-live-action-war-sequence-714552.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/create-a-15-second-ultra-photorealistic-live-action-war-sequence-714552.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@RuzainaMeer",
+    "url": "https://x.com/RuzainaMeer/status/2087117707816714552"
+   }
+  },
+  {
+   "id": "mmx25:create-a-breathtaking-15-second-cinematic-flower-morph-sequence-using-622337",
+   "title": "Orchid Bloom Light Morph",
+   "originalTitle": "Create a breathtaking 15-second cinematic flower-morph sequence using the seven",
+   "category": "VFX",
+   "subcategory": "Effects & Motion Graphics",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/create-a-breathtaking-15-second-cinematic-flower-morph-sequence-using-622337.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/create-a-breathtaking-15-second-cinematic-flower-morph-sequence-using-622337.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Shinebynous",
+    "url": "https://x.com/Shinebynous/status/2085505725149622337"
+   }
+  },
+  {
+   "id": "mmx25:created-in-675674",
+   "title": "Red Tape Maze Animation",
+   "originalTitle": "meaningful 15-second vertical animation about learned helplessness inside system",
+   "category": "Animation",
+   "subcategory": "Illustrated & Craft",
+   "duration": 15.15,
+   "aspectRatio": "4:7",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-in-675674.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-in-675674.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@airina_xyz",
+    "url": "https://x.com/airina_xyz/status/2085309090511675674"
+   }
+  },
+  {
+   "id": "mmx25:created-this-with-minimax-h3-on-185447",
+   "title": "Neon Street Dance Promo",
+   "originalTitle": "Premium music commercial",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-this-with-minimax-h3-on-185447.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-this-with-minimax-h3-on-185447.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Inshrah_ali_",
+    "url": "https://x.com/Inshrah_ali_/status/2085595583927185447"
+   }
+  },
+  {
+   "id": "mmx25:created-with-minimax-h3-243802",
+   "title": "Warehouse Showdown Fight",
+   "originalTitle": "Created with MiniMax H3",
+   "category": "Action",
+   "subcategory": "Fights & Martial Arts",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-with-minimax-h3-243802.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-with-minimax-h3-243802.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@aiwithaly",
+    "url": "https://x.com/aiwithaly/status/2085585698699243802"
+   }
+  },
+  {
+   "id": "mmx25:created-with-minimax-h3-540945",
+   "title": "Wireless Earbuds Launch Ad",
+   "originalTitle": "Created with MiniMax H3",
+   "category": "Commercial",
+   "subcategory": "Tech & Gadgets",
+   "duration": 15.33,
+   "aspectRatio": "68:45",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-with-minimax-h3-540945.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-with-minimax-h3-540945.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@ayzalnooor24521",
+    "url": "https://x.com/ayzalnooor24521/status/2087042771257540945"
+   }
+  },
+  {
+   "id": "mmx25:created-with-minimax-h3-708458",
+   "title": "Warrior vs T-Rex Clash",
+   "originalTitle": "Created with MiniMax H3",
+   "category": "Action",
+   "subcategory": "Creatures & Heroes",
+   "duration": 14.79,
+   "aspectRatio": "68:45",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-with-minimax-h3-708458.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-with-minimax-h3-708458.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Lianaalane",
+    "url": "https://x.com/Lianaalane/status/2085625652829708458"
+   }
+  },
+  {
+   "id": "mmx25:created-with-minimax-h3-823597",
+   "title": "Golden Smoke Perfume Reveal",
+   "originalTitle": "Created with MiniMax H3",
+   "category": "Commercial",
+   "subcategory": "Beauty & Fragrance",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-with-minimax-h3-823597.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-with-minimax-h3-823597.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Lianaalane",
+    "url": "https://x.com/Lianaalane/status/2086730655161823597"
+   }
+  },
+  {
+   "id": "mmx25:dark-pop-cyber-grunge-rap-music-video-style-998615",
+   "title": "Cyber-Grunge Rap Video",
+   "originalTitle": "Dark-pop cyber-grunge rap music video style",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/dark-pop-cyber-grunge-rap-music-video-style-998615.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/dark-pop-cyber-grunge-rap-music-video-style-998615.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Just_sharon7",
+    "url": "https://x.com/Just_sharon7/status/2082711476347998615"
+   }
+  },
+  {
+   "id": "mmx25:drowning-deep-down-the-ocean-created-with-minimax-h3-773704",
+   "title": "Underwater Kelp Descent",
+   "originalTitle": "\"Drowning deep down the ocean\" created with MiniMax H3",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/drowning-deep-down-the-ocean-created-with-minimax-h3-773704.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/drowning-deep-down-the-ocean-created-with-minimax-h3-773704.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@I_Muhammadali44",
+    "url": "https://x.com/I_Muhammadali44/status/2085234595784773704"
+   }
+  },
+  {
+   "id": "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-105162",
+   "title": "Moon Quest: Dragon Chase",
+   "originalTitle": "fifteen frantic one-second cuts",
+   "category": "Animation",
+   "subcategory": "3D Animated",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-105162.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-105162.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@ManuAGI01",
+    "url": "https://x.com/ManuAGI01/status/2086321605073105162"
+   }
+  },
+  {
+   "id": "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-517354",
+   "title": "Snack Aisle Mascots: Part 1",
+   "originalTitle": "ORIGINAL playful miniature-adventure score",
+   "category": "Commercial",
+   "subcategory": "Food & Beverage",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-517354.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-517354.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@ManuAGI01",
+    "url": "https://x.com/ManuAGI01/status/2087065646903517354"
+   }
+  },
+  {
+   "id": "mmx25:fourthi-storyboard-image-to-video-using-minimax-h3-on-470161",
+   "title": "Moon Quest: Castle Ride",
+   "originalTitle": "fifteen frantic one-second cuts",
+   "category": "Animation",
+   "subcategory": "3D Animated",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/fourthi-storyboard-image-to-video-using-minimax-h3-on-470161.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/fourthi-storyboard-image-to-video-using-minimax-h3-on-470161.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@ManuAGI01",
+    "url": "https://x.com/ManuAGI01/status/2086323087092470161"
+   }
+  },
+  {
+   "id": "mmx25:generated-with-minimax-h3-on-116099",
+   "title": "Viking Shield Wall",
+   "originalTitle": "hyper-realistic",
+   "category": "Cinema",
+   "subcategory": "Period & Historical",
+   "duration": 15.1,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/generated-with-minimax-h3-on-116099.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/generated-with-minimax-h3-on-116099.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Diplomeme",
+    "url": "https://x.com/Diplomeme/status/2086833428713116099"
+   }
+  },
+  {
+   "id": "mmx25:h3-local-i-like-vague-105742",
+   "title": "Tiny Village Meadow Zoom",
+   "originalTitle": "H3 local. I like vague",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 10.22,
+   "aspectRatio": "19:33",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/h3-local-i-like-vague-105742.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/h3-local-i-like-vague-105742.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@LikeToasters",
+    "url": "https://x.com/LikeToasters/status/2086224302316105742"
+   }
+  },
+  {
+   "id": "mmx25:hailuo-minimax-h3-is-super-good-for-product-videos-129035",
+   "title": "Whisky Smoke Product Film",
+   "originalTitle": "Hailuo Minimax H3 is super good for product videos🤩",
+   "category": "Commercial",
+   "subcategory": "Food & Beverage",
+   "duration": 10.22,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/hailuo-minimax-h3-is-super-good-for-product-videos-129035.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/hailuo-minimax-h3-is-super-good-for-product-videos-129035.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@guicastellanos1",
+    "url": "https://x.com/guicastellanos1/status/2085418202457129035"
+   }
+  },
+  {
+   "id": "mmx25:i-created-this-kids-counting-video-with-on-446929",
+   "title": "Counting Birds Explainer",
+   "originalTitle": "Motion Graphics Study",
+   "category": "VFX",
+   "subcategory": "Effects & Motion Graphics",
+   "duration": 14.92,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/i-created-this-kids-counting-video-with-on-446929.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/i-created-this-kids-counting-video-with-on-446929.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Strength04_X",
+    "url": "https://x.com/Strength04_X/status/2084552480554446929"
+   }
+  },
+  {
+   "id": "mmx25:ice-cave-exploration-902327",
+   "title": "Glacier Ice Cave Expedition",
+   "originalTitle": "Ice Cave Exploration 🏔",
+   "category": "Cinema",
+   "subcategory": "Travel & Documentary",
+   "duration": 15.18,
+   "aspectRatio": "7:4",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/ice-cave-exploration-902327.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/ice-cave-exploration-902327.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Strength04_X",
+    "url": "https://x.com/Strength04_X/status/2086471165581902327"
+   }
+  },
+  {
+   "id": "mmx25:is-redefining-ai-with-open-weight-multimodal-int-960837",
+   "title": "Space Fleet Title Teaser",
+   "originalTitle": "Motion Graphics Study",
+   "category": "VFX",
+   "subcategory": "Title Sequences",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/is-redefining-ai-with-open-weight-multimodal-int-960837.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/is-redefining-ai-with-open-weight-multimodal-int-960837.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@itxabdullaa",
+    "url": "https://x.com/itxabdullaa/status/2083854803801960837"
+   }
+  },
+  {
+   "id": "mmx25:it-came-out-pretty-good-253323",
+   "title": "Executive Boardroom Drama",
+   "originalTitle": "cinematic 15-second ultra-realistic sequence inside a luxurious modern boardroom",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/it-came-out-pretty-good-253323.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/it-came-out-pretty-good-253323.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@adithatipalli",
+    "url": "https://x.com/adithatipalli/status/2086698076325253323"
+   }
+  },
+  {
+   "id": "mmx25:jazz-noir-anime-title-sequence-652641",
+   "title": "Jazz Noir Title Sequence",
+   "originalTitle": "Jazz-Noir Anime Title Sequence",
+   "category": "Animation",
+   "subcategory": "Title Sequences",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/jazz-noir-anime-title-sequence-652641.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/jazz-noir-anime-title-sequence-652641.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@AIWarper",
+    "url": "https://x.com/AIWarper/status/2083045838377652641"
+   }
+  },
+  {
+   "id": "mmx25:local-ai-000274",
+   "title": "Diner Breakfast Splash",
+   "originalTitle": "Photorealistic cinematic 1990s American diner — red vinyl booths, neon signs, ch",
+   "category": "Commercial",
+   "subcategory": "Food & Beverage",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/local-ai-000274.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/local-ai-000274.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@NsitnovSitnov",
+    "url": "https://x.com/NsitnovSitnov/status/2085329351915000274"
+   }
+  },
+  {
+   "id": "mmx25:mind-blown-one-shot-376793",
+   "title": "Chrome Type Dance Film",
+   "originalTitle": "Mind-blown. One shot",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/mind-blown-one-shot-376793.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/mind-blown-one-shot-376793.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@lepadphone",
+    "url": "https://x.com/lepadphone/status/2084637679254376793"
+   }
+  },
+  {
+   "id": "mmx25:minimax-3-prompt-create-a-premium-16-9-landscape-fashion-108362",
+   "title": "Desert Couture Duo",
+   "originalTitle": "premium 16:9 landscape fashion film",
+   "category": "Fashion",
+   "subcategory": "Editorial",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-3-prompt-create-a-premium-16-9-landscape-fashion-108362.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-3-prompt-create-a-premium-16-9-landscape-fashion-108362.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@influencer_seo",
+    "url": "https://x.com/influencer_seo/status/2084355335222108362"
+   }
+  },
+  {
+   "id": "mmx25:minimax-h3-282512",
+   "title": "Orange Cat Pom-Pom Play",
+   "originalTitle": "Cinematic comedy sequence, 15 seconds",
+   "category": "Social",
+   "subcategory": "Comedy & Pets",
+   "duration": 15.18,
+   "aspectRatio": "9:5",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-h3-282512.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-h3-282512.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@TheAwakenOne619",
+    "url": "https://x.com/TheAwakenOne619/status/2085602322177282512"
+   }
+  },
+  {
+   "id": "mmx25:minimax-h3-keeps-delivering-beautiful-vfx-sequences-725200",
+   "title": "Mountain Mist Title Reveal",
+   "originalTitle": "Minimax H3 keeps delivering beautiful VFX sequences.",
+   "category": "VFX",
+   "subcategory": "Title Sequences",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-h3-keeps-delivering-beautiful-vfx-sequences-725200.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-h3-keeps-delivering-beautiful-vfx-sequences-725200.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@CharaspowerAI",
+    "url": "https://x.com/CharaspowerAI/status/2086754531698725200"
+   }
+  },
+  {
+   "id": "mmx25:minimax-h3-on-229978",
+   "title": "Strongman Arena Challenge",
+   "originalTitle": "15 second cinematic sports video in 16:9 inside a real indoor strength competiti",
+   "category": "Social",
+   "subcategory": "Fitness & Sports",
+   "duration": 15.24,
+   "aspectRatio": "7:4",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-h3-on-229978.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-h3-on-229978.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@bmx_ai13",
+    "url": "https://x.com/bmx_ai13/status/2085584972778229978"
+   }
+  },
+  {
+   "id": "mmx25:minimax-h3x-423684",
+   "title": "Sculptural Couture Film",
+   "originalTitle": "sculptural forms around her body",
+   "category": "Fashion",
+   "subcategory": "Runway & Lookbook",
+   "duration": 15.18,
+   "aspectRatio": "15:26",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-h3x-423684.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-h3x-423684.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@medfac_opc",
+    "url": "https://x.com/medfac_opc/status/2084580423649423684"
+   }
+  },
+  {
+   "id": "mmx25:no-moon-restoration-yet-834347",
+   "title": "Moon Quest: Skeleton Army",
+   "originalTitle": "No moon restoration yet.",
+   "category": "Animation",
+   "subcategory": "3D Animated",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/no-moon-restoration-yet-834347.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/no-moon-restoration-yet-834347.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@ManuAGI01",
+    "url": "https://x.com/ManuAGI01/status/2086321924070834347"
+   }
+  },
+  {
+   "id": "mmx25:no-way-this-is-golden-595436",
+   "title": "Office Crossword Break",
+   "originalTitle": "No way, this is golden 🤣😂",
+   "category": "Cinema",
+   "subcategory": "Comedy",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/no-way-this-is-golden-595436.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/no-way-this-is-golden-595436.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Arminn_Ai",
+    "url": "https://x.com/Arminn_Ai/status/2084387316286595436"
+   }
+  },
+  {
+   "id": "mmx25:omnittovkling3-0minimax-h3-630895",
+   "title": "Cloud Spirit Swing",
+   "originalTitle": "photorealistic surreal fantasy",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 10.06,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/omnittovkling3-0minimax-h3-630895.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/omnittovkling3-0minimax-h3-630895.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@XiaoKooeye",
+    "url": "https://x.com/XiaoKooeye/status/2085747183446630895"
+   }
+  },
+  {
+   "id": "mmx25:premium-9-16-fashion-eyewear-commercial-match-the-refer-665060",
+   "title": "Chrome Eyewear Campaign",
+   "originalTitle": "White-Cyclorama Luxury Eyewear Campaign",
+   "category": "Commercial",
+   "subcategory": "Luxury Goods",
+   "duration": 15.18,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/premium-9-16-fashion-eyewear-commercial-match-the-refer-665060.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/premium-9-16-fashion-eyewear-commercial-match-the-refer-665060.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@hey_leomartin",
+    "url": "https://x.com/hey_leomartin/status/2082820121882665060"
+   }
+  },
+  {
+   "id": "mmx25:seamless-warrior-sword-reflection-loop-874724",
+   "title": "Shattered Glass Swordswoman",
+   "originalTitle": "Prompt #MiniMaxH3 in Chinese:",
+   "category": "Animation",
+   "subcategory": "Illustrated & Craft",
+   "duration": 30.05,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/seamless-warrior-sword-reflection-loop-874724.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/seamless-warrior-sword-reflection-loop-874724.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Cia0_exe",
+    "url": "https://x.com/Cia0_exe/status/2082774526098874724"
+   }
+  },
+  {
+   "id": "mmx25:second-storyboard-image-to-video-using-minimax-h3-on-665414",
+   "title": "Snack Aisle Mascots: Part 2",
+   "originalTitle": "clean satisfying cascading motion: TAG 1 → TAG 2 → TAG 3 → TAG 4",
+   "category": "Commercial",
+   "subcategory": "Food & Beverage",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/second-storyboard-image-to-video-using-minimax-h3-on-665414.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/second-storyboard-image-to-video-using-minimax-h3-on-665414.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@ManuAGI01",
+    "url": "https://x.com/ManuAGI01/status/2087066113775665414"
+   }
+  },
+  {
+   "id": "mmx25:spaghetti-western-pulp-anime-title-sequence-wher-935100",
+   "title": "Western Pulp Title Card",
+   "originalTitle": "Anime Film Study",
+   "category": "Animation",
+   "subcategory": "Title Sequences",
+   "duration": 15.54,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/spaghetti-western-pulp-anime-title-sequence-wher-935100.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/spaghetti-western-pulp-anime-title-sequence-wher-935100.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@doctorwasif",
+    "url": "https://x.com/doctorwasif/status/2085599659326935100"
+   }
+  },
+  {
+   "id": "mmx25:storyboard-2-to-video-using-minimax-h3-on-852170",
+   "title": "Getaway Car Heist",
+   "originalTitle": "REFERENCE CONTROL]",
+   "category": "Animation",
+   "subcategory": "Illustrated & Craft",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/storyboard-2-to-video-using-minimax-h3-on-852170.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/storyboard-2-to-video-using-minimax-h3-on-852170.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@ManuAGI01",
+    "url": "https://x.com/ManuAGI01/status/2085607833408852170"
+   }
+  },
+  {
+   "id": "mmx25:storyboard-image-to-video-using-s-minimax-h3-on-693556",
+   "title": "Corner Store Heist",
+   "originalTitle": "native synchronized cinematic stereo audio",
+   "category": "Animation",
+   "subcategory": "Illustrated & Craft",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/storyboard-image-to-video-using-s-minimax-h3-on-693556.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/storyboard-image-to-video-using-s-minimax-h3-on-693556.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@ManuAGI01",
+    "url": "https://x.com/ManuAGI01/status/2085606945755693556"
+   }
+  },
+  {
+   "id": "mmx25:t2v-hailuo-minimaxh3-prompt-format-create-a-15-second-16-099381",
+   "title": "Ink After Dark Titles",
+   "originalTitle": "T2V Hailuo MinimaxH3 Prompt [FORMAT] Create a 15-second, 16:9 retro graphic",
+   "category": "Animation",
+   "subcategory": "Title Sequences",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/t2v-hailuo-minimaxh3-prompt-format-create-a-15-second-16-099381.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/t2v-hailuo-minimaxh3-prompt-format-create-a-15-second-16-099381.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@opener_ai",
+    "url": "https://x.com/opener_ai/status/2087042643369099381"
+   }
+  },
+  {
+   "id": "mmx25:the-viewer-should-immediately-want-to-see-how-3-200-630916",
+   "title": "Paper Moon Lantern Story",
+   "originalTitle": "The viewer should immediately want to see how 3,200 tiny stars transform the night in PART 2.",
+   "category": "Animation",
+   "subcategory": "Cute & Kids",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/the-viewer-should-immediately-want-to-see-how-3-200-630916.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/the-viewer-should-immediately-want-to-see-how-3-200-630916.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@ManuAGI01",
+    "url": "https://x.com/ManuAGI01/status/2086294164409630916"
+   }
+  },
+  {
+   "id": "mmx25:this-video-was-made-with-h3-in-krea-797558",
+   "title": "Muscle Car Desert Promo",
+   "originalTitle": "subtle stillness for half a second",
+   "category": "Commercial",
+   "subcategory": "Automotive & Mobility",
+   "duration": 15.18,
+   "aspectRatio": "92:39",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/this-video-was-made-with-h3-in-krea-797558.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/this-video-was-made-with-h3-in-krea-797558.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@opener_ai",
+    "url": "https://x.com/opener_ai/status/2085241788340797558"
+   }
+  },
+  {
+   "id": "mmx25:time-for-some-munchies-uh-h3-local-looks-like-th-170082",
+   "title": "Midnight Fridge Surprise",
+   "originalTitle": "Cinematic Story Study",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 10.22,
+   "aspectRatio": "23:31",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/time-for-some-munchies-uh-h3-local-looks-like-th-170082.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/time-for-some-munchies-uh-h3-local-looks-like-th-170082.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@LikeToasters",
+    "url": "https://x.com/LikeToasters/status/2086603936736170082"
+   }
+  },
+  {
+   "id": "mmx25:total-gen-time-29-minuets-on-a-rtx-3060-976597",
+   "title": "Moving Train Fight Scene",
+   "originalTitle": "cinematic Hollywood movie scene",
+   "category": "Action",
+   "subcategory": "Fights & Martial Arts",
+   "duration": 10.18,
+   "aspectRatio": "9:5",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/total-gen-time-29-minuets-on-a-rtx-3060-976597.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/total-gen-time-29-minuets-on-a-rtx-3060-976597.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@leuk_o",
+    "url": "https://x.com/leuk_o/status/2086419768047976597"
+   }
+  },
+  {
+   "id": "mmx25:ultra-cinematic-macro-shot-a-calm-mountain-lake-039920",
+   "title": "Liquid Glass Title Reveal",
+   "originalTitle": "Ultra cinematic macro shot: A calm mountain lake at dawn",
+   "category": "VFX",
+   "subcategory": "Title Sequences",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/ultra-cinematic-macro-shot-a-calm-mountain-lake-039920.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/ultra-cinematic-macro-shot-a-calm-mountain-lake-039920.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@CharaspowerAI",
+    "url": "https://x.com/CharaspowerAI/status/2085622021812039920"
+   }
+  },
+  {
+   "id": "mmx25:wake-up-we-hunt-mechanical-bull-mount-700581",
+   "title": "Mechanical Bull Workshop",
+   "originalTitle": "15-second ultra-realistic cinematic sequence set in The Harvester universe",
+   "category": "Cinema",
+   "subcategory": "Sci-Fi",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/wake-up-we-hunt-mechanical-bull-mount-700581.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/wake-up-we-hunt-mechanical-bull-mount-700581.jpg",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@rahulnanda86",
+    "url": "https://x.com/rahulnanda86/status/2083032575908700581"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-312407",
+   "title": "Molten Armor Transformation",
+   "originalTitle": "30-second ultra-realistic dark tokusatsu transformation sequence using the refer",
+   "category": "Action",
+   "subcategory": "Creatures & Heroes",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-312407.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-312407.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Naiknelofar788",
+    "url": "https://x.com/Naiknelofar788/status/2087231217968312407"
+   }
+  },
+  {
+   "id": "sd25:prompt-character-reference-mapping-image-1-is-character-name-use-486583",
+   "title": "Light Stripe Portrait",
+   "originalTitle": "PROMPT [Character Reference Mapping] @ Image 1 is [Character Name], use @ Audio 1",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 30.12,
+   "aspectRatio": "62:27",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/prompt-character-reference-mapping-image-1-is-character-name-use-486583.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/prompt-character-reference-mapping-image-1-is-character-name-use-486583.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@ObsceneSelene",
+    "url": "https://x.com/ObsceneSelene/status/2087215968720486583"
+   }
+  },
+  {
+   "id": "sd25:try-it-now-on-336575",
+   "title": "Painted Lakeside Flyover",
+   "originalTitle": "Beautiful cinematic animation combining hand-painted artwork",
+   "category": "Animation",
+   "subcategory": "Illustrated & Craft",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/try-it-now-on-336575.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/try-it-now-on-336575.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@apiframe",
+    "url": "https://x.com/apiframe/status/2087194284806336575"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-is-live-on-toapis-api-232790",
+   "title": "Street Brawl Explosion",
+   "originalTitle": "Photorealistic live-action 35mm blockbuster trailer cinema quality",
+   "category": "Action",
+   "subcategory": "Fights & Martial Arts",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-is-live-on-toapis-api-232790.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-is-live-on-toapis-api-232790.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@yourPlugAI",
+    "url": "https://x.com/yourPlugAI/status/2087192875159232790"
+   }
+  },
+  {
+   "id": "sd25:catch-it-clean-it-grill-it-eat-it-all-100-657649",
+   "title": "Fresh Catch Campfire POV",
+   "originalTitle": "POV river-to-campfire sequence at a jade-green alpine river through birch/cedar",
+   "category": "Social",
+   "subcategory": "Lifestyle & Food",
+   "duration": 28.36,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/catch-it-clean-it-grill-it-eat-it-all-100-657649.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/catch-it-clean-it-grill-it-eat-it-all-100-657649.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@abxxai",
+    "url": "https://x.com/abxxai/status/2087189194720657649"
+   }
+  },
+  {
+   "id": "sd25:made-with-seedance-2-5-490561",
+   "title": "Armored Truck Roof Stunt",
+   "originalTitle": "Hyper-realistic",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 15.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/made-with-seedance-2-5-490561.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/made-with-seedance-2-5-490561.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@ou_zhen599",
+    "url": "https://x.com/ou_zhen599/status/2087185874249490561"
+   }
+  },
+  {
+   "id": "sd25:let-yourself-be-hypnotized-by-the-magical-sound-of-the-904230",
+   "title": "Classical Sitar Close-Up",
+   "originalTitle": "Let yourself be hypnotized by the magical sound of the shamisen 👺",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/let-yourself-be-hypnotized-by-the-magical-sound-of-the-904230.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/let-yourself-be-hypnotized-by-the-magical-sound-of-the-904230.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@DanjiTosaka",
+    "url": "https://x.com/DanjiTosaka/status/2087183672201904230"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-in-451524",
+   "title": "Desert Train-Top Dancer",
+   "originalTitle": "0:00–0:04 — Begin with a side-tracking camera as the dancer races through a vast",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 30.09,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-in-451524.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-in-451524.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@airina_xyz",
+    "url": "https://x.com/airina_xyz/status/2087183664312451524"
+   }
+  },
+  {
+   "id": "sd25:created-with-seedance-2-5-721493",
+   "title": "Snowbound Castle Fortress",
+   "originalTitle": "30-sec vertical 9:16",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 27.96,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/created-with-seedance-2-5-721493.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/created-with-seedance-2-5-721493.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@frametheory058",
+    "url": "https://x.com/frametheory058/status/2087180835925721493"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-used-616691",
+   "title": "Garage Race Car Reveal",
+   "originalTitle": "Premium motorsport commercial",
+   "category": "Commercial",
+   "subcategory": "Automotive & Mobility",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-used-616691.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-used-616691.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AIwithkhan",
+    "url": "https://x.com/AIwithkhan/status/2087167673511616691"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-420849",
+   "title": "Seaside Alley Travel Vlog",
+   "originalTitle": "Ultra-realistic authentic travel-vlog footage",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-420849.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-420849.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Goodmanprotocol",
+    "url": "https://x.com/Goodmanprotocol/status/2087165084397420849"
+   }
+  },
+  {
+   "id": "sd25:who-else-is-cooking-superhero-cats-with-seedance-2-5-562528",
+   "title": "Superhero Cat City Swing",
+   "originalTitle": "A cute fluffy cat sits on a wide windowsill in a messy Brooklyn-style bedroom",
+   "category": "Social",
+   "subcategory": "Comedy & Pets",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/who-else-is-cooking-superhero-cats-with-seedance-2-5-562528.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/who-else-is-cooking-superhero-cats-with-seedance-2-5-562528.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Tim_AIProduct",
+    "url": "https://x.com/Tim_AIProduct/status/2087164614903562528"
+   }
+  },
+  {
+   "id": "sd25:made-with-seedance-2-5-on-576337",
+   "title": "Miniature Build Time-Lapse",
+   "originalTitle": "highly satisfying cinematic DIY build video of [DIY BUILD]",
+   "category": "Social",
+   "subcategory": "Lifestyle & Food",
+   "duration": 30.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/made-with-seedance-2-5-on-576337.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/made-with-seedance-2-5-on-576337.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@aziz4ai",
+    "url": "https://x.com/aziz4ai/status/2087161332298576337"
+   }
+  },
+  {
+   "id": "sd25:i-just-made-this-video-with-seedance-2-5-it-918460",
+   "title": "Mediterranean Coffee Run",
+   "originalTitle": "A quiet Mediterranean morning coffee-run vlog",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 15.21,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-just-made-this-video-with-seedance-2-5-it-918460.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-just-made-this-video-with-seedance-2-5-it-918460.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@PhedEU",
+    "url": "https://x.com/PhedEU/status/2087155737784918460"
+   }
+  },
+  {
+   "id": "sd25:reply-seedance-and-i-ll-send-it-must-be-following-463805",
+   "title": "Apartment Hallway Tour",
+   "originalTitle": "Reply \"SEEDANCE\" and I'll send it. (must be following)",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 24.27,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/reply-seedance-and-i-ll-send-it-must-be-following-463805.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/reply-seedance-and-i-ll-send-it-must-be-following-463805.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Aliyan_smartUGC",
+    "url": "https://x.com/Aliyan_smartUGC/status/2087147278406463805"
+   }
+  },
+  {
+   "id": "sd25:fpv-to-pov-action-sequence-280439",
+   "title": "Old Town FPV Fly-Through",
+   "originalTitle": "FPV-to-POV action sequence",
+   "category": "Action",
+   "subcategory": "Aerial & FPV",
+   "duration": 15.22,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/fpv-to-pov-action-sequence-280439.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/fpv-to-pov-action-sequence-280439.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AI_ArtSeller",
+    "url": "https://x.com/AI_ArtSeller/status/2087138541025280439"
+   }
+  },
+  {
+   "id": "sd25:ultra-realistic-spontaneous-vertical-handheld-footage-recorded-during-fi-459303",
+   "title": "Resistance Fighter Handheld",
+   "originalTitle": "Ultra-realistic spontaneous vertical handheld footage recorded during fighting in",
+   "category": "Cinema",
+   "subcategory": "Period & Historical",
+   "duration": 15.14,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/ultra-realistic-spontaneous-vertical-handheld-footage-recorded-during-fi-459303.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/ultra-realistic-spontaneous-vertical-handheld-footage-recorded-during-fi-459303.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@_STARPAR",
+    "url": "https://x.com/_STARPAR/status/2087131232945459303"
+   }
+  },
+  {
+   "id": "sd25:use-code-umesh25-for-25-off-any-runway-plan-affiliate-906242",
+   "title": "Cat Chase Kitchen Mayhem",
+   "originalTitle": "Use code UMESH25 for 25% off any Runway plan 🎁 (affiliate code)",
+   "category": "Social",
+   "subcategory": "Comedy & Pets",
+   "duration": 20.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/use-code-umesh25-for-25-off-any-runway-plan-affiliate-906242.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/use-code-umesh25-for-25-off-any-runway-plan-affiliate-906242.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@umesh_ai",
+    "url": "https://x.com/umesh_ai/status/2087130704710906242"
+   }
+  },
+  {
+   "id": "sd25:kolejny-test-seedance-2-5-wesoe-miasteczko-rok-1410-polska-893338",
+   "title": "Medieval Fairground Coaster",
+   "originalTitle": "Ultra-realistic spontaneous vertical handheld vlog during a warm evening at a sm",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 15.14,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/kolejny-test-seedance-2-5-wesoe-miasteczko-rok-1410-polska-893338.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/kolejny-test-seedance-2-5-wesoe-miasteczko-rok-1410-polska-893338.webp",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@_STARPAR",
+    "url": "https://x.com/_STARPAR/status/2087120630713893338"
+   }
+  },
+  {
+   "id": "sd25:created-with-seedance-2-5-on-822971",
+   "title": "Puppy and Kitten Garden",
+   "originalTitle": "charming 30-second animated cinematic story told as one continuous uninterrupted",
+   "category": "Animation",
+   "subcategory": "Cute & Kids",
+   "duration": 30.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/created-with-seedance-2-5-on-822971.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/created-with-seedance-2-5-on-822971.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@MrDasOnX",
+    "url": "https://x.com/MrDasOnX/status/2087099309057822971"
+   }
+  },
+  {
+   "id": "sd25:use-the-uploaded-reference-image-as-the-exact-character-reference-396603",
+   "title": "Live Stage Pop Performance",
+   "originalTitle": "Use the uploaded reference image as the exact character reference. Preserve her",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/use-the-uploaded-reference-image-as-the-exact-character-reference-396603.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/use-the-uploaded-reference-image-as-the-exact-character-reference-396603.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AIwithSynthia",
+    "url": "https://x.com/AIwithSynthia/status/2087079974935396603"
+   }
+  },
+  {
+   "id": "sd25:19-0-20-6-crash-zoom-into-her-eyes-one-305933",
+   "title": "Golden Dessert Cups Macro",
+   "originalTitle": "19.0-20.6 Crash zoom into her eyes; one brow lifts a millimetre.",
+   "category": "Commercial",
+   "subcategory": "Food & Beverage",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/19-0-20-6-crash-zoom-into-her-eyes-one-305933.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/19-0-20-6-crash-zoom-into-her-eyes-one-305933.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Dheepanratnam",
+    "url": "https://x.com/Dheepanratnam/status/2087052653549305933"
+   }
+  },
+  {
+   "id": "sd25:i-went-for-my-tennis-practice-and-seedance-2-5-586531",
+   "title": "Tennis Kit Flat Lay",
+   "originalTitle": "ultra-realistic cinematic sports commercial",
+   "category": "Commercial",
+   "subcategory": "Product Reveals",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-went-for-my-tennis-practice-and-seedance-2-5-586531.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-went-for-my-tennis-practice-and-seedance-2-5-586531.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AIwithkhan",
+    "url": "https://x.com/AIwithkhan/status/2087044885937586531"
+   }
+  },
+  {
+   "id": "sd25:created-this-with-seedance-2-5-on-587451",
+   "title": "Rooftop Hero Rescue",
+   "originalTitle": "Premium cinematic live action",
+   "category": "Action",
+   "subcategory": "Creatures & Heroes",
+   "duration": 15.14,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/created-this-with-seedance-2-5-on-587451.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/created-this-with-seedance-2-5-on-587451.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Rosey_watson",
+    "url": "https://x.com/Rosey_watson/status/2087024849839587451"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-on-423855",
+   "title": "Lava Dragon Rider POV",
+   "originalTitle": "30-second vertical 9:16",
+   "category": "Action",
+   "subcategory": "Creatures & Heroes",
+   "duration": 30.15,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-on-423855.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-on-423855.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@frametheory058",
+    "url": "https://x.com/frametheory058/status/2087007818721423855"
+   }
+  },
+  {
+   "id": "sd25:im-genuinely-impressed-by-how-well-seedance-2-5-keeps-635022",
+   "title": "Ruined Courtyard Banner",
+   "originalTitle": "Photorealistic Eastern wasteland fantasy",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 30.08,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/im-genuinely-impressed-by-how-well-seedance-2-5-keeps-635022.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/im-genuinely-impressed-by-how-well-seedance-2-5-keeps-635022.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@VeraVCreates",
+    "url": "https://x.com/VeraVCreates/status/2087005484146635022"
+   }
+  },
+  {
+   "id": "sd25:i-honestly-didn-t-expect-seedance-2-5-to-hold-557485",
+   "title": "Moonlight Ribbon Dance",
+   "originalTitle": "extremely strong black silhouette",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 30.2,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-honestly-didn-t-expect-seedance-2-5-to-hold-557485.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-honestly-didn-t-expect-seedance-2-5-to-hold-557485.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@VeraVCreates",
+    "url": "https://x.com/VeraVCreates/status/2087004800462557485"
+   }
+  },
+  {
+   "id": "sd25:made-with-seedance-2-5-in-668920",
+   "title": "Train Carriage Farewell",
+   "originalTitle": "30-second photorealistic cinematic short film",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 30.15,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/made-with-seedance-2-5-in-668920.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/made-with-seedance-2-5-in-668920.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AllaAisling",
+    "url": "https://x.com/AllaAisling/status/2086993468677668920"
+   }
+  },
+  {
+   "id": "sd25:photorealistic-cinematic-3d-character-render-physically-based-rendering-825338",
+   "title": "Neon Noir Heroine Portrait",
+   "originalTitle": "Photorealistic cinematic 3D character render, physically-based rendering with",
+   "category": "Animation",
+   "subcategory": "3D Animated",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/photorealistic-cinematic-3d-character-render-physically-based-rendering-825338.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/photorealistic-cinematic-3d-character-render-physically-based-rendering-825338.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@itsPixieVerse",
+    "url": "https://x.com/itsPixieVerse/status/2086951922024825338"
+   }
+  },
+  {
+   "id": "sd25:video-created-with-seedance-2-5-on-489739",
+   "title": "Pop Silhouette Earbuds Promo",
+   "originalTitle": "15 second 16:9 high energy music driven visual film inspired by early digital po",
+   "category": "Commercial",
+   "subcategory": "Tech & Gadgets",
+   "duration": 15.21,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/video-created-with-seedance-2-5-on-489739.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/video-created-with-seedance-2-5-on-489739.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@bmx_ai13",
+    "url": "https://x.com/bmx_ai13/status/2086914231463489739"
+   }
+  },
+  {
+   "id": "sd25:made-with-seedance-2-5-native-30-second-video-no-571790",
+   "title": "Late-Night Gym Workout",
+   "originalTitle": "A realistic late-night gym vlog with a sexy Instagram-model vibe",
+   "category": "Social",
+   "subcategory": "Fitness & Sports",
+   "duration": 30.17,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/made-with-seedance-2-5-native-30-second-video-no-571790.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/made-with-seedance-2-5-native-30-second-video-no-571790.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@YourAlphaMom",
+    "url": "https://x.com/YourAlphaMom/status/2086883879705571790"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-280310",
+   "title": "Ramen Bar Night Vlog",
+   "originalTitle": "Ultra-realistic candid boyfriend travel vlog",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-280310.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-280310.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Naiknelofar788",
+    "url": "https://x.com/Naiknelofar788/status/2086875150390280310"
+   }
+  },
+  {
+   "id": "sd25:made-with-seedance-2-5-on-636796",
+   "title": "Canyon Motorcycle Escape",
+   "originalTitle": "15-second hyper-realistic live-action cinematic action sequence, 16:9 widescreen",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/made-with-seedance-2-5-on-636796.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/made-with-seedance-2-5-on-636796.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@minuitIA",
+    "url": "https://x.com/minuitIA/status/2086866861480636796"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-in-696981",
+   "title": "Pastel Carnival Run",
+   "originalTitle": "Continuous",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 30.09,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-in-696981.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-in-696981.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@airina_xyz",
+    "url": "https://x.com/airina_xyz/status/2086865899206696981"
+   }
+  },
+  {
+   "id": "sd25:video-created-with-seedance-2-5-on-784738",
+   "title": "Car Window Night Vlog",
+   "originalTitle": "15 second photorealistic nightlife video in native 16:9",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 15.21,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/video-created-with-seedance-2-5-on-784738.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/video-created-with-seedance-2-5-on-784738.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@bmx_ai13",
+    "url": "https://x.com/bmx_ai13/status/2086863648039784738"
+   }
+  },
+  {
+   "id": "sd25:a-15-seconds-time-warp-disaster-created-using-seedance-2-195538",
+   "title": "Muddy Knight Time-Warp",
+   "originalTitle": "Live-action cinematic sci-fi comedy",
+   "category": "Cinema",
+   "subcategory": "Sci-Fi",
+   "duration": 15.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/a-15-seconds-time-warp-disaster-created-using-seedance-2-195538.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/a-15-seconds-time-warp-disaster-created-using-seedance-2-195538.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@IsabellaHan_",
+    "url": "https://x.com/IsabellaHan_/status/2086853253791195538"
+   }
+  },
+  {
+   "id": "sd25:30-seconds-of-pure-cinematic-martial-arts-with-insane-camera-250284",
+   "title": "Monk vs Stone Giant",
+   "originalTitle": "30 seconds of pure cinematic martial arts with insane camera work.",
+   "category": "Action",
+   "subcategory": "Fights & Martial Arts",
+   "duration": 30.08,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/30-seconds-of-pure-cinematic-martial-arts-with-insane-camera-250284.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/30-seconds-of-pure-cinematic-martial-arts-with-insane-camera-250284.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@CharaspowerAI",
+    "url": "https://x.com/CharaspowerAI/status/2086830115527250284"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-on-832715",
+   "title": "Breaching Whale Leap",
+   "originalTitle": "photoreal natural-history cinematography",
+   "category": "Cinema",
+   "subcategory": "Travel & Documentary",
+   "duration": 30.1,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-on-832715.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-on-832715.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Dheepanratnam",
+    "url": "https://x.com/Dheepanratnam/status/2086819088005832715"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-551218",
+   "title": "Clothesline Morning Routine",
+   "originalTitle": "30-second ultra-realistic candid home-video sequence of a young Korean woman in ",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-551218.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-551218.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Goodmanprotocol",
+    "url": "https://x.com/Goodmanprotocol/status/2086806078105551218"
+   }
+  },
+  {
+   "id": "sd25:i-just-nailed-this-video-with-seedance-2-5-model-859522",
+   "title": "Supercar Dance Showcase",
+   "originalTitle": "High-end automotive fashion film",
+   "category": "Commercial",
+   "subcategory": "Automotive & Mobility",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-just-nailed-this-video-with-seedance-2-5-model-859522.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-just-nailed-this-video-with-seedance-2-5-model-859522.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AIwithkhan",
+    "url": "https://x.com/AIwithkhan/status/2086801478245859522"
+   }
+  },
+  {
+   "id": "sd25:created-on-with-seedance-2-5-606682",
+   "title": "Cyberpunk Noodle Stall Hacker",
+   "originalTitle": "A 15-second grimy and electric one-shot: a netrunner jacks into a black-market t",
+   "category": "Cinema",
+   "subcategory": "Sci-Fi",
+   "duration": 15.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/created-on-with-seedance-2-5-606682.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/created-on-with-seedance-2-5-606682.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@vkuoo",
+    "url": "https://x.com/vkuoo/status/2086778445141606682"
+   }
+  },
+  {
+   "id": "sd25:film-empresses-in-the-palace-segment-the-jinghong-dance-967532",
+   "title": "Imperial Palace Dance",
+   "originalTitle": "STYLE + CAMERA + ATMOSPHERE]",
+   "category": "Cinema",
+   "subcategory": "Period & Historical",
+   "duration": 30.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/film-empresses-in-the-palace-segment-the-jinghong-dance-967532.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/film-empresses-in-the-palace-segment-the-jinghong-dance-967532.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@ibestools",
+    "url": "https://x.com/ibestools/status/2086739067014967532"
+   }
+  },
+  {
+   "id": "sd25:made-with-seedance-2-5-on-110436",
+   "title": "City Hologram Conductor",
+   "originalTitle": "30-second one continuous take: a woman standing in a rain-soaked city intersecti",
+   "category": "Cinema",
+   "subcategory": "Sci-Fi",
+   "duration": 30.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/made-with-seedance-2-5-on-110436.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/made-with-seedance-2-5-on-110436.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@GlennHasABeard",
+    "url": "https://x.com/GlennHasABeard/status/2086637239254110436"
+   }
+  },
+  {
+   "id": "sd25:i-ve-spent-a-lot-of-time-with-over-the-past-428749",
+   "title": "Frost Hero Battle Cry",
+   "originalTitle": "I've spent a lot of time with over the past",
+   "category": "Animation",
+   "subcategory": "3D Animated",
+   "duration": 88.11,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-ve-spent-a-lot-of-time-with-over-the-past-428749.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-ve-spent-a-lot-of-time-with-over-the-past-428749.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Sweet_Afterlife",
+    "url": "https://x.com/Sweet_Afterlife/status/2086529483075428749"
+   }
+  },
+  {
+   "id": "sd25:a-structured-15-second-high-intensity-action-due-398669",
+   "title": "Lantern Market Sword Duel",
+   "originalTitle": "Action Film Study",
+   "category": "Action",
+   "subcategory": "Fights & Martial Arts",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/a-structured-15-second-high-intensity-action-due-398669.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/a-structured-15-second-high-intensity-action-due-398669.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Langby2",
+    "url": "https://x.com/Langby2/status/2086494563347398669"
+   }
+  },
+  {
+   "id": "sd25:35-kling-974383",
+   "title": "Palace Rooftop Sword Slide",
+   "originalTitle": "00:00~00:05S] Seamless parkour action shot",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/35-kling-974383.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/35-kling-974383.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Langby2",
+    "url": "https://x.com/Langby2/status/2086385886451974383"
+   }
+  },
+  {
+   "id": "sd25:crazy-right-413578",
+   "title": "Giant Mech City Standoff",
+   "originalTitle": "Crazy, right❓",
+   "category": "Action",
+   "subcategory": "Creatures & Heroes",
+   "duration": 27.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/crazy-right-413578.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/crazy-right-413578.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@johnAGI168",
+    "url": "https://x.com/johnAGI168/status/2086352306262413578"
+   }
+  },
+  {
+   "id": "sd25:use-image-only-for-the-womans-face-identity-hair-433265",
+   "title": "Convenience Store Night Shift",
+   "originalTitle": "Cinematic Story Study",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/use-image-only-for-the-womans-face-identity-hair-433265.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/use-image-only-for-the-womans-face-identity-hair-433265.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@doctorwasif",
+    "url": "https://x.com/doctorwasif/status/2086315451970433265"
+   }
+  },
+  {
+   "id": "sd25:mpt-create-a-15-second-cinematic-street-culture-381511",
+   "title": "Roadster Streetwear Lookbook",
+   "originalTitle": "Gameplay Study",
+   "category": "Fashion",
+   "subcategory": "Streetwear",
+   "duration": 15.14,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/mpt-create-a-15-second-cinematic-street-culture-381511.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/mpt-create-a-15-second-cinematic-street-culture-381511.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@bmx_ai13",
+    "url": "https://x.com/bmx_ai13/status/2086304211839381511"
+   }
+  },
+  {
+   "id": "sd25:ugc-on-is-just-crazy-066501",
+   "title": "Luxury Sunglasses Review",
+   "originalTitle": "ultra-realistic UGC luxury creator review filmed inside a modern luxury bedroom ",
+   "category": "Commercial",
+   "subcategory": "Luxury Goods",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/ugc-on-is-just-crazy-066501.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/ugc-on-is-just-crazy-066501.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AIwithSynthia",
+    "url": "https://x.com/AIwithSynthia/status/2086286356201066501"
+   }
+  },
+  {
+   "id": "sd25:video-prompt-case-388128",
+   "title": "Skyline Sword Flight",
+   "originalTitle": "A continuous 15-second cinematic action shot",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 15.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/video-prompt-case-388128.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/video-prompt-case-388128.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Langby2",
+    "url": "https://x.com/Langby2/status/2086168781236388128"
+   }
+  },
+  {
+   "id": "sd25:mpt-create-a-15-second-cinematic-underground-fas-855712",
+   "title": "Fisheye Garage Fashion Film",
+   "originalTitle": "Product Commercial Study",
+   "category": "Fashion",
+   "subcategory": "Streetwear",
+   "duration": 15.14,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/mpt-create-a-15-second-cinematic-underground-fas-855712.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/mpt-create-a-15-second-cinematic-underground-fas-855712.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@bmx_ai13",
+    "url": "https://x.com/bmx_ai13/status/2086166303425855712"
+   }
+  },
+  {
+   "id": "sd25:this-video-was-100-351093",
+   "title": "Painterly Living Room Portrait",
+   "originalTitle": "3D character animation, painterly non-photorealistic rendering",
+   "category": "Animation",
+   "subcategory": "3D Animated",
+   "duration": 30.25,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/this-video-was-100-351093.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/this-video-was-100-351093.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@jaynwabueze",
+    "url": "https://x.com/jaynwabueze/status/2086138948049351093"
+   }
+  },
+  {
+   "id": "sd25:30-second-photorealistic-live-action-comedy-16-9-040994",
+   "title": "Quiet Reading Afternoon",
+   "originalTitle": "Anime Film Study",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/30-second-photorealistic-live-action-comedy-16-9-040994.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/30-second-photorealistic-live-action-comedy-16-9-040994.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Naiknelofar788",
+    "url": "https://x.com/Naiknelofar788/status/2086137358358040994"
+   }
+  },
+  {
+   "id": "sd25:product-commercial-study-191208",
+   "title": "Fisheye Street Fashion Sit",
+   "originalTitle": "15 second cinematic street fashion video in 16:9",
+   "category": "Fashion",
+   "subcategory": "Streetwear",
+   "duration": 15.14,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/product-commercial-study-191208.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/product-commercial-study-191208.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@bmx_ai13",
+    "url": "https://x.com/bmx_ai13/status/2086132581016191208"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-gpt-image-2-using-253535",
+   "title": "Street Court Tennis Match",
+   "originalTitle": "premium cinematic character bible sheet for a muscular man named JINWOO",
+   "category": "Animation",
+   "subcategory": "3D Animated",
+   "duration": 28.59,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-gpt-image-2-using-253535.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-gpt-image-2-using-253535.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@jin_okiru",
+    "url": "https://x.com/jin_okiru/status/2086127492453253535"
+   }
+  },
+  {
+   "id": "sd25:using-seedance-2-5-topaz-upscaler-inside-786932",
+   "title": "Fallen Knight at Dusk",
+   "originalTitle": "IMAGE MAP: Img 1 → exact first frame",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 18.19,
+   "aspectRatio": "4:3",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/using-seedance-2-5-topaz-upscaler-inside-786932.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/using-seedance-2-5-topaz-upscaler-inside-786932.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Motion_Viz",
+    "url": "https://x.com/Motion_Viz/status/2086116255111786932"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-didn-t-blink-559715",
+   "title": "Mirror Studio Dance Practice",
+   "originalTitle": "shot like real chest-mounted training footage",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-didn-t-blink-559715.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-didn-t-blink-559715.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@abxxai",
+    "url": "https://x.com/abxxai/status/2086100882748559715"
+   }
+  },
+  {
+   "id": "sd25:year-plan-15sec-654814",
+   "title": "Misty Peak Swordmaster",
+   "originalTitle": "A continuous 15-second cinematic shot",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 15.14,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/year-plan-15sec-654814.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/year-plan-15sec-654814.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Langby2",
+    "url": "https://x.com/Langby2/status/2086099681537654814"
+   }
+  },
+  {
+   "id": "sd25:mpt-create-a-10-second-16-9-avant-garde-fashion-261494",
+   "title": "Cathedral Dome Fashion Spin",
+   "originalTitle": "Fashion Film Study",
+   "category": "Fashion",
+   "subcategory": "Editorial",
+   "duration": 10.12,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/mpt-create-a-10-second-16-9-avant-garde-fashion-261494.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/mpt-create-a-10-second-16-9-avant-garde-fashion-261494.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@bmx_ai13",
+    "url": "https://x.com/bmx_ai13/status/2086087282512261494"
+   }
+  },
+  {
+   "id": "sd25:parking-lot-energy-hits-different-after-midnight-868579",
+   "title": "Hooded Night Portrait",
+   "originalTitle": "10 second photorealistic nighttime fashion and automotive film in 16:9 at 24 fps",
+   "category": "Fashion",
+   "subcategory": "Streetwear",
+   "duration": 10.12,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/parking-lot-energy-hits-different-after-midnight-868579.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/parking-lot-energy-hits-different-after-midnight-868579.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@bmx_ai13",
+    "url": "https://x.com/bmx_ai13/status/2086041732068868579"
+   }
+  },
+  {
+   "id": "sd25:shot-1-ecu-85mm-push-in-on-the-phone-screen-734483",
+   "title": "Morning Rush Breakfast",
+   "originalTitle": "Cinematic Story Study",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 15.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/shot-1-ecu-85mm-push-in-on-the-phone-screen-734483.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/shot-1-ecu-85mm-push-in-on-the-phone-screen-734483.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AIwithSynthia",
+    "url": "https://x.com/AIwithSynthia/status/2085943905577734483"
+   }
+  },
+  {
+   "id": "sd25:a-30-second-3d-animated-action-emotional-story-b-685821",
+   "title": "Chain Blade Hero Duel",
+   "originalTitle": "A 30-second 3D animated action + emotional story built around",
+   "category": "Animation",
+   "subcategory": "3D Animated",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/a-30-second-3d-animated-action-emotional-story-b-685821.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/a-30-second-3d-animated-action-emotional-story-b-685821.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@ManuAGI01",
+    "url": "https://x.com/ManuAGI01/status/2085932403596685821"
+   }
+  },
+  {
+   "id": "sd25:4-character-refs-short-435656",
+   "title": "Daisy Garden Watering",
+   "originalTitle": "4 character refs + short",
+   "category": "Animation",
+   "subcategory": "Cute & Kids",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/4-character-refs-short-435656.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/4-character-refs-short-435656.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Dee_Ann_Rose",
+    "url": "https://x.com/Dee_Ann_Rose/status/2085927721335435656"
+   }
+  },
+  {
+   "id": "sd25:supermodel-woman-wrestling-432306",
+   "title": "Wrestling Ring Showdown",
+   "originalTitle": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ SEEDANCE 2",
+   "category": "Action",
+   "subcategory": "Fights & Martial Arts",
+   "duration": 30.15,
+   "aspectRatio": "71:40",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/supermodel-woman-wrestling-432306.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/supermodel-woman-wrestling-432306.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@MusicSatire",
+    "url": "https://x.com/MusicSatire/status/2085852721853432306"
+   }
+  },
+  {
+   "id": "sd25:expression-motion-light-different-class-from-2-0-937224",
+   "title": "Candlelit Gown Detail",
+   "originalTitle": "expression, motion, light. different class from 2.0.",
+   "category": "Fashion",
+   "subcategory": "Editorial",
+   "duration": 30.31,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/expression-motion-light-different-class-from-2-0-937224.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/expression-motion-light-different-class-from-2-0-937224.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Iancu_ai",
+    "url": "https://x.com/Iancu_ai/status/2085751213534937224"
+   }
+  },
+  {
+   "id": "sd25:camera-handheld-dv-16mm-vertical-9-16-daily-vlog-178710",
+   "title": "Gym Floor Vlog",
+   "originalTitle": "Product Commercial Study",
+   "category": "Social",
+   "subcategory": "Fitness & Sports",
+   "duration": 16.14,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/camera-handheld-dv-16mm-vertical-9-16-daily-vlog-178710.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/camera-handheld-dv-16mm-vertical-9-16-daily-vlog-178710.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@maxxmalist",
+    "url": "https://x.com/maxxmalist/status/2085729553461178710"
+   }
+  },
+  {
+   "id": "sd25:fantasy-film-study-565204",
+   "title": "Sunburst Warrior vs Dragon",
+   "originalTitle": "Global Settings]",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 30.23,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/fantasy-film-study-565204.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/fantasy-film-study-565204.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Dheepanratnam",
+    "url": "https://x.com/Dheepanratnam/status/2085701526920565204"
+   }
+  },
+  {
+   "id": "sd25:pov-back-in-high-school-for-30-seconds-and-none-634586",
+   "title": "School Hallway POV",
+   "originalTitle": "shot like real action-camera footage",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/pov-back-in-high-school-for-30-seconds-and-none-634586.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/pov-back-in-high-school-for-30-seconds-and-none-634586.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@socialwithaayan",
+    "url": "https://x.com/socialwithaayan/status/2085696506376634586"
+   }
+  },
+  {
+   "id": "sd25:i-tested-inside-and-the-upgrade-is-immediately-n-105315",
+   "title": "Gym Intro to Camera",
+   "originalTitle": "I tested inside , and the upgrade is immediately noticeable",
+   "category": "Social",
+   "subcategory": "Fitness & Sports",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-tested-inside-and-the-upgrade-is-immediately-n-105315.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-tested-inside-and-the-upgrade-is-immediately-n-105315.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@doctorwasif",
+    "url": "https://x.com/doctorwasif/status/2085657903227105315"
+   }
+  },
+  {
+   "id": "sd25:product-commercial-study-662980",
+   "title": "Hallway Walk-Away Shot",
+   "originalTitle": "30-second ultra-realistic cinematic travel vlog featuring the same young woman t",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 30.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/product-commercial-study-662980.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/product-commercial-study-662980.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AIwithSynthia",
+    "url": "https://x.com/AIwithSynthia/status/2085617736940662980"
+   }
+  },
+  {
+   "id": "sd25:seedance-2-5-581571",
+   "title": "Desert Monolith Arrival",
+   "originalTitle": "A 30-second epic science-fiction sequence, monumental scale, muted desert palett",
+   "category": "Cinema",
+   "subcategory": "Sci-Fi",
+   "duration": 30.1,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-581571.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-581571.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@ahmetmertugrul",
+    "url": "https://x.com/ahmetmertugrul/status/2085504121608581571"
+   }
+  },
+  {
+   "id": "sd25:n-exactly-15-second-photorealistic-shopping-vlog-990763",
+   "title": "Boutique Try-On Haul",
+   "originalTitle": "Product Commercial Study",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 15.08,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/n-exactly-15-second-photorealistic-shopping-vlog-990763.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/n-exactly-15-second-photorealistic-shopping-vlog-990763.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@beechinour",
+    "url": "https://x.com/beechinour/status/2085437314163990763"
+   }
+  },
+  {
+   "id": "sd25:an-everyday-drive-made-special-by-the-glow-of-th-007654",
+   "title": "Classic Coupe Sunset Drive",
+   "originalTitle": "Product Commercial Study",
+   "category": "Commercial",
+   "subcategory": "Automotive & Mobility",
+   "duration": 21.32,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/an-everyday-drive-made-special-by-the-glow-of-th-007654.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/an-everyday-drive-made-special-by-the-glow-of-th-007654.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Just_sharon7",
+    "url": "https://x.com/Just_sharon7/status/2085277106960007654"
+   }
+  },
+  {
+   "id": "sd25:action-film-study-279563",
+   "title": "Dance Studio Flashback",
+   "originalTitle": "Nostalgic trainee flashback montage with reflective voiceover",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 15.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/action-film-study-279563.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/action-film-study-279563.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@doctorwasif",
+    "url": "https://x.com/doctorwasif/status/2085224480155279563"
+   }
+  },
+  {
+   "id": "sd25:they-said-is-here-to-cook-and-i-agree-with-140421",
+   "title": "Overhead Drum Performance",
+   "originalTitle": "Music Video Study",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 15.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/they-said-is-here-to-cook-and-i-agree-with-140421.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/they-said-is-here-to-cook-and-i-agree-with-140421.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AIwithSynthia",
+    "url": "https://x.com/AIwithSynthia/status/2085212548002140421"
+   }
+  },
+  {
+   "id": "sd25:sports-film-study-255212",
+   "title": "Table Tennis Rally",
+   "originalTitle": "10 seconds, 16:9",
+   "category": "Social",
+   "subcategory": "Fitness & Sports",
+   "duration": 10.11,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/sports-film-study-255212.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/sports-film-study-255212.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@tanabe_fragm",
+    "url": "https://x.com/tanabe_fragm/status/2085212348827255212"
+   }
+  },
+  {
+   "id": "sd25:the-moon-took-a-night-off-everything-went-wrong-546768",
+   "title": "Nervous Lighthouse Night",
+   "originalTitle": "The moon took a night off. Everything went wrong in",
+   "category": "Animation",
+   "subcategory": "Cute & Kids",
+   "duration": 30.13,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/the-moon-took-a-night-off-everything-went-wrong-546768.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/the-moon-took-a-night-off-everything-went-wrong-546768.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Dheepanratnam",
+    "url": "https://x.com/Dheepanratnam/status/2085111949629546768"
+   }
+  },
+  {
+   "id": "sd25:non-stop-forward-momentum-attempt-870222",
+   "title": "Lava Crack Ignition",
+   "originalTitle": "Non-stop forward momentum attempt",
+   "category": "VFX",
+   "subcategory": "Effects & Motion Graphics",
+   "duration": 30.08,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/non-stop-forward-momentum-attempt-870222.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/non-stop-forward-momentum-attempt-870222.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@sebatheepan",
+    "url": "https://x.com/sebatheepan/status/2085103425704870222"
+   }
+  },
+  {
+   "id": "sd25:the-umbrella-escape-488195",
+   "title": "Runaway Umbrella",
+   "originalTitle": "{ \"title\": \"The Umbrella Escape\", \"style\": \"3D Pixar family animation",
+   "category": "Animation",
+   "subcategory": "Cute & Kids",
+   "duration": 30.12,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/the-umbrella-escape-488195.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/the-umbrella-escape-488195.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Dheepanratnam",
+    "url": "https://x.com/Dheepanratnam/status/2085033492870488195"
+   }
+  },
+  {
+   "id": "sd25:cinematic-story-study-765916",
+   "title": "Window-Light Dressing Scene",
+   "originalTitle": "Use the uploaded reference image as the exact character reference",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 15.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/cinematic-story-study-765916.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/cinematic-story-study-765916.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AIwithSynthia",
+    "url": "https://x.com/AIwithSynthia/status/2084488867705765916"
+   }
+  },
+  {
+   "id": "sd25:five-beautiful-women-in-five-countries-greet-the-915882",
+   "title": "Five Countries Morning Hello",
+   "originalTitle": "Cinematic Story Study",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 10.09,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/five-beautiful-women-in-five-countries-greet-the-915882.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/five-beautiful-women-in-five-countries-greet-the-915882.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@tanabe_fragm",
+    "url": "https://x.com/tanabe_fragm/status/2084446045379915882"
+   }
+  },
+  {
+   "id": "sd25:every-destination-becomes-magical-when-you-slow-615320",
+   "title": "Tropical Sunset Cocktail Vlog",
+   "originalTitle": "Product Commercial Study",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 30.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/every-destination-becomes-magical-when-you-slow-615320.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/every-destination-becomes-magical-when-you-slow-615320.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Just_sharon7",
+    "url": "https://x.com/Just_sharon7/status/2084238339469615320"
+   }
+  },
+  {
+   "id": "sd25:she-herds-clouds-651566",
+   "title": "Cloud Shepherd Flock",
+   "originalTitle": "\"title\": \"Cloud Shepherd\",",
+   "category": "Animation",
+   "subcategory": "Cute & Kids",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/she-herds-clouds-651566.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/she-herds-clouds-651566.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Dheepanratnam",
+    "url": "https://x.com/Dheepanratnam/status/2084145160875651566"
+   }
+  },
+  {
+   "id": "sd25:text-to-video-3d-animation-246455",
+   "title": "Hopscotch Shadow",
+   "originalTitle": "{ \"title\": \"The Shadow Quit\", \"style\": \"3D Pixar family animation",
+   "category": "Animation",
+   "subcategory": "Cute & Kids",
+   "duration": 30.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/text-to-video-3d-animation-246455.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/text-to-video-3d-animation-246455.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@sebatheepan",
+    "url": "https://x.com/sebatheepan/status/2084023216440246455"
+   }
+  },
+  {
+   "id": "sd25:i-just-figured-out-the-best-way-to-use-487592",
+   "title": "Skincare Sample Unboxing",
+   "originalTitle": "i just figured out the best way to use Seedance 2",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 30.15,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-just-figured-out-the-best-way-to-use-487592.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-just-figured-out-the-best-way-to-use-487592.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@maxxmalist",
+    "url": "https://x.com/maxxmalist/status/2083951871069487592"
+   }
+  },
+  {
+   "id": "sd25:video-prompt-case-003695-003695",
+   "title": "Street Food Taste Test",
+   "originalTitle": "Natural handheld smartphone footage",
+   "category": "Social",
+   "subcategory": "Lifestyle & Food",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/video-prompt-case-003695-003695.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/video-prompt-case-003695-003695.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@zasuko_michiksa",
+    "url": "https://x.com/zasuko_michiksa/status/2083950907642003695"
+   }
+  },
+  {
+   "id": "sd25:dv-16mm-tape-camcorder-handheld-feel-pov-of-chas-664481",
+   "title": "Morning Yoga Stretch",
+   "originalTitle": "DV 16mm tape camcorder handheld feel. POV of CHASE holding",
+   "category": "Social",
+   "subcategory": "Fitness & Sports",
+   "duration": 20.14,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/dv-16mm-tape-camcorder-handheld-feel-pov-of-chas-664481.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/dv-16mm-tape-camcorder-handheld-feel-pov-of-chas-664481.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@doctorwasif",
+    "url": "https://x.com/doctorwasif/status/2083905705300664481"
+   }
+  },
+  {
+   "id": "sd25:is-extra-realistic-on-019109",
+   "title": "Window Curtain Morning",
+   "originalTitle": "Vlog Study",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 15.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/is-extra-realistic-on-019109.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/is-extra-realistic-on-019109.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@doctorwasif",
+    "url": "https://x.com/doctorwasif/status/2083779989414019109"
+   }
+  },
+  {
+   "id": "sd25:text-to-video-30s-552259",
+   "title": "Tortoise and Hare Fable",
+   "originalTitle": "Once upon a time there lived a hare",
+   "category": "Animation",
+   "subcategory": "Cute & Kids",
+   "duration": 30.1,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/text-to-video-30s-552259.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/text-to-video-30s-552259.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@sebatheepan",
+    "url": "https://x.com/sebatheepan/status/2083768136172552259"
+   }
+  },
+  {
+   "id": "sd25:korean-city-day-vlog-993075",
+   "title": "Neighborhood Walk Vlog",
+   "originalTitle": "Ultra-realistic documentary realism",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/korean-city-day-vlog-993075.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/korean-city-day-vlog-993075.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@aivoxyy",
+    "url": "https://x.com/aivoxyy/status/2083596849768993075"
+   }
+  },
+  {
+   "id": "sd25:underground-rap-performance-studio-129750",
+   "title": "Underground Rap Stage Walk",
+   "originalTitle": "cinematic photorealistic underground female rap performance video",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/underground-rap-performance-studio-129750.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/underground-rap-performance-studio-129750.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@digitalwindai",
+    "url": "https://x.com/digitalwindai/status/2083594010271129750"
+   }
+  },
+  {
+   "id": "sd25:fighter-jet-battleship-strike-814869",
+   "title": "Fighter Jet Missile Strike",
+   "originalTitle": "30-second cinematic aerial action spectacle, breathtaking high-budget feature fi",
+   "category": "Action",
+   "subcategory": "Aerial & FPV",
+   "duration": 30.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/fighter-jet-battleship-strike-814869.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/fighter-jet-battleship-strike-814869.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Artedeingenio",
+    "url": "https://x.com/Artedeingenio/status/2083573043322814869"
+   }
+  },
+  {
+   "id": "sd25:cartoon-bulldog-versus-live-boxer-029228",
+   "title": "Bulldog vs Boxer Match",
+   "originalTitle": "heated live sports documentary broadcast",
+   "category": "Animation",
+   "subcategory": "Illustrated & Craft",
+   "duration": 24.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/cartoon-bulldog-versus-live-boxer-029228.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/cartoon-bulldog-versus-live-boxer-029228.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@BaBELL81",
+    "url": "https://x.com/BaBELL81/status/2083562978730029228"
+   }
+  },
+  {
+   "id": "sd25:1970s-mediterranean-woman-documentary-685471",
+   "title": "Piazza Memory Film",
+   "originalTitle": "Authentic late-1970s Mediterranean documentary captured on vintage 16mm Kodak fi",
+   "category": "Cinema",
+   "subcategory": "Travel & Documentary",
+   "duration": 15.15,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/1970s-mediterranean-woman-documentary-685471.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/1970s-mediterranean-woman-documentary-685471.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@hey_am_cherry",
+    "url": "https://x.com/hey_am_cherry/status/2083561941004685471"
+   }
+  },
+  {
+   "id": "sd25:devastated-city-continuous-escape-880148",
+   "title": "Snowstorm City Escape",
+   "originalTitle": "Photorealistic 30-second continuous one-shot: no cuts, hidden edits, dissolves o",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/devastated-city-continuous-escape-880148.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/devastated-city-continuous-escape-880148.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Runaway_Rhino",
+    "url": "https://x.com/Runaway_Rhino/status/2083557520421880148"
+   }
+  },
+  {
+   "id": "sd25:handmade-doll-boxer-swarm-594949",
+   "title": "Handmade Doll Close-Up",
+   "originalTitle": "Stop-motion handmade craft animation",
+   "category": "Animation",
+   "subcategory": "Illustrated & Craft",
+   "duration": 30.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/handmade-doll-boxer-swarm-594949.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/handmade-doll-boxer-swarm-594949.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@byarlooo",
+    "url": "https://x.com/byarlooo/status/2083551727970594949"
+   }
+  },
+  {
+   "id": "sd25:planetarium-gravity-distortion-288542",
+   "title": "Planetarium Moon Rising",
+   "originalTitle": "Photoreal celestial surrealism",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 15.08,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/planetarium-gravity-distortion-288542.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/planetarium-gravity-distortion-288542.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@sebatheepan",
+    "url": "https://x.com/sebatheepan/status/2083546568125288542"
+   }
+  },
+  {
+   "id": "sd25:cybernetic-freefall-armor-624470",
+   "title": "Cyber Armor Hero Rear View",
+   "originalTitle": "painterly anime illustration matching @Image1",
+   "category": "Action",
+   "subcategory": "Creatures & Heroes",
+   "duration": 30.22,
+   "aspectRatio": "7:3",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/cybernetic-freefall-armor-624470.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/cybernetic-freefall-armor-624470.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@opener_ai",
+    "url": "https://x.com/opener_ai/status/2083542433078624470"
+   }
+  },
+  {
+   "id": "sd25:trainee-days-camcorder-montage-251247",
+   "title": "Vocal Booth Session",
+   "originalTitle": "** Nostalgic",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 15.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/trainee-days-camcorder-montage-251247.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/trainee-days-camcorder-montage-251247.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@doctorwasif",
+    "url": "https://x.com/doctorwasif/status/2083539372478251247"
+   }
+  },
+  {
+   "id": "sd25:painterly-tsunami-destruction-sequence-047131",
+   "title": "Flooded City Tsunami Surge",
+   "originalTitle": "\"[00:00-00:02] [Close up shot] A police officer stares ahead in shock",
+   "category": "Action",
+   "subcategory": "Battles & Disaster",
+   "duration": 28.78,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/painterly-tsunami-destruction-sequence-047131.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/painterly-tsunami-destruction-sequence-047131.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Framer_X",
+    "url": "https://x.com/Framer_X/status/2083538430987047131"
+   }
+  },
+  {
+   "id": "sd25:obsidian-giant-transformation-531249",
+   "title": "Molten Circuit Heroine",
+   "originalTitle": "Multi-shot 30-second cinematic sequence, hard cuts as marked",
+   "category": "Cinema",
+   "subcategory": "Sci-Fi",
+   "duration": 30.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/obsidian-giant-transformation-531249.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/obsidian-giant-transformation-531249.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@jaynwabueze",
+    "url": "https://x.com/jaynwabueze/status/2083524542488531249"
+   }
+  },
+  {
+   "id": "sd25:children-and-dragons-picnic-chaos-175096",
+   "title": "Dragon Picnic Chaos",
+   "originalTitle": "Lock the original artwork completely",
+   "category": "Animation",
+   "subcategory": "Cute & Kids",
+   "duration": 15.08,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/children-and-dragons-picnic-chaos-175096.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/children-and-dragons-picnic-chaos-175096.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AiMeowing",
+    "url": "https://x.com/AiMeowing/status/2083516822054175096"
+   }
+  },
+  {
+   "id": "sd25:continuous-body-control-dance-test-900903",
+   "title": "Red Gown Beat Dance",
+   "originalTitle": "Continuous Body-Control Dance Test",
+   "category": "Fashion",
+   "subcategory": "Runway & Lookbook",
+   "duration": 30.09,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/continuous-body-control-dance-test-900903.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/continuous-body-control-dance-test-900903.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@noman23761",
+    "url": "https://x.com/noman23761/status/2083478189028900903"
+   }
+  },
+  {
+   "id": "sd25:three-a-m-french-nightlife-pov-399523",
+   "title": "Paris Night Street POV",
+   "originalTitle": "Three A.M. French Nightlife POV",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 30.1,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/three-a-m-french-nightlife-pov-399523.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/three-a-m-french-nightlife-pov-399523.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@patrickassale",
+    "url": "https://x.com/patrickassale/status/2083470287954399523"
+   }
+  },
+  {
+   "id": "sd25:duration-20s-16-9-24fps-445413",
+   "title": "Three-Way Cavalry Duel",
+   "originalTitle": "A three-way duel from Romance of the Three Kingdoms, late Han dynasty",
+   "category": "Cinema",
+   "subcategory": "Period & Historical",
+   "duration": 20.1,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/duration-20s-16-9-24fps-445413.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/duration-20s-16-9-24fps-445413.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@tanabe_fragm",
+    "url": "https://x.com/tanabe_fragm/status/2083351092411445413"
+   }
+  },
+  {
+   "id": "sd25:duration-20s-16-9-24fps-duel-from-romance-of-203080",
+   "title": "Fortress Gate Spear Duel",
+   "originalTitle": "Cinematic Travel Study",
+   "category": "Cinema",
+   "subcategory": "Period & Historical",
+   "duration": 20.09,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/duration-20s-16-9-24fps-duel-from-romance-of-203080.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/duration-20s-16-9-24fps-duel-from-romance-of-203080.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@tanabe_fragm",
+    "url": "https://x.com/tanabe_fragm/status/2083350000743203080"
+   }
+  },
+  {
+   "id": "sd25:illustrated-creature-flood-escape-172377",
+   "title": "Flood Escape Fable",
+   "originalTitle": "Lock the original illustration completely",
+   "category": "Animation",
+   "subcategory": "Illustrated & Craft",
+   "duration": 30.08,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/illustrated-creature-flood-escape-172377.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/illustrated-creature-flood-escape-172377.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AiMeowing",
+    "url": "https://x.com/AiMeowing/status/2083332412558172377"
+   }
+  },
+  {
+   "id": "sd25:alpine-roller-coaster-ride",
+   "title": "Alpine Coaster Thrill Ride",
+   "originalTitle": "Alpine Roller-Coaster Ride",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 30.12,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/alpine-roller-coaster-ride.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/alpine-roller-coaster-ride.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@PromptSin",
+    "url": "https://x.com/PromptSin/status/2083274044603007392"
+   }
+  },
+  {
+   "id": "sd25:bazaar-chase-cinematic",
+   "title": "Bazaar Chase Scene",
+   "originalTitle": "A 30-second continuous-feel action chase, cinematic realism, 35mm film grain, wa",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 30.1,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/bazaar-chase-cinematic.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/bazaar-chase-cinematic.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@ahmetmertugrul",
+    "url": "https://x.com/ahmetmertugrul/status/2083262080627384716"
+   }
+  },
+  {
+   "id": "sd25:handcrafted-illustrated-animation",
+   "title": "Handcrafted Landscape Reveal",
+   "originalTitle": "Premium handmade illustration process",
+   "category": "Animation",
+   "subcategory": "Illustrated & Craft",
+   "duration": 20.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/handcrafted-illustrated-animation.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/handcrafted-illustrated-animation.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@AiMeowing",
+    "url": "https://x.com/AiMeowing/status/2083260086215184449"
+   }
+  },
+  {
+   "id": "sd25:casual-apartment-tour",
+   "title": "Modern Living Room Tour",
+   "originalTitle": "Vertical phone video, 30 seconds",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 29.13,
+   "aspectRatio": "9:16",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/casual-apartment-tour.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/casual-apartment-tour.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@jaynwabueze",
+    "url": "https://x.com/jaynwabueze/status/2083215236157358255"
+   }
+  },
+  {
+   "id": "sd25:corridor-video-continuation",
+   "title": "Cryo Pod Awakening",
+   "originalTitle": "The man steps into the corridor and slowly walks forward",
+   "category": "Cinema",
+   "subcategory": "Sci-Fi",
+   "duration": 64.54,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/corridor-video-continuation.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/corridor-video-continuation.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Framer_X",
+    "url": "https://x.com/Framer_X/status/2083213461824410026"
+   }
+  },
+  {
+   "id": "sd25:underground-london-techno-club",
+   "title": "Underground Club Crowd",
+   "originalTitle": "Original scene, 30 seconds, one continuous shot, no cuts",
+   "category": "Social",
+   "subcategory": "Music & Dance",
+   "duration": 30.17,
+   "aspectRatio": "479:360",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/underground-london-techno-club.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/underground-london-techno-club.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@JMSvid",
+    "url": "https://x.com/JMSvid/status/2083210992343756893"
+   }
+  },
+  {
+   "id": "sd25:grand-bazaar-stunt-chase",
+   "title": "Old Courtyard Stunt Run",
+   "originalTitle": "One continuous take, no cuts from start to end",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 30.1,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/grand-bazaar-stunt-chase.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/grand-bazaar-stunt-chase.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@artovista",
+    "url": "https://x.com/artovista/status/2083199688614797714"
+   }
+  },
+  {
+   "id": "sd25:mecha-motorcycle-high-speed-dash",
+   "title": "Cyber Highway Mecha Chase",
+   "originalTitle": "Mecha Motorcycle High-Speed Dash",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 30.08,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/mecha-motorcycle-high-speed-dash.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/mecha-motorcycle-high-speed-dash.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@mumaren_2",
+    "url": "https://x.com/mumaren_2/status/2083194831569121554"
+   }
+  },
+  {
+   "id": "sd25:wizard-of-oz-scarecrow-plan",
+   "title": "Cornfield Tin Knight",
+   "originalTitle": "temporary bridge",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 15.12,
+   "aspectRatio": "54:31",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/wizard-of-oz-scarecrow-plan.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/wizard-of-oz-scarecrow-plan.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@samaote",
+    "url": "https://x.com/samaote/status/2083175924477096246"
+   }
+  },
+  {
+   "id": "sd25:rainy-neon-thriller",
+   "title": "Rain Market Thriller",
+   "originalTitle": "Rainy neon thriller sequence, 16:9, grounded live-action realism, wet city stree",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 30.2,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/rainy-neon-thriller.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/rainy-neon-thriller.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@jerrod_lew",
+    "url": "https://x.com/jerrod_lew/status/2083170370870477083"
+   }
+  },
+  {
+   "id": "sd25:stylized-family-animation",
+   "title": "Furious Dad Reaction",
+   "originalTitle": "High-quality 3D animated cartoon, stylized modern family-animation film",
+   "category": "Animation",
+   "subcategory": "3D Animated",
+   "duration": 30.13,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/stylized-family-animation.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/stylized-family-animation.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@jaynwabueze",
+    "url": "https://x.com/jaynwabueze/status/2083166430522921048"
+   }
+  },
+  {
+   "id": "sd25:japanese-mobile-carrier-family-ad",
+   "title": "Family Breakfast Phone Ad",
+   "originalTitle": "Japanese mobile carrier commercial",
+   "category": "Commercial",
+   "subcategory": "Brand Films",
+   "duration": 15.17,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/japanese-mobile-carrier-family-ad.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/japanese-mobile-carrier-family-ad.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@tanabe_fragm",
+    "url": "https://x.com/tanabe_fragm/status/2083157170971955240"
+   }
+  },
+  {
+   "id": "sd25:parisian-city-girl-vlog",
+   "title": "Parisian Rooftop Smile",
+   "originalTitle": "Ultra-realistic documentary realism",
+   "category": "Social",
+   "subcategory": "Vlogs & UGC",
+   "duration": 30.13,
+   "aspectRatio": "479:360",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/parisian-city-girl-vlog.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/parisian-city-girl-vlog.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@loicRambo",
+    "url": "https://x.com/loicRambo/status/2083152233445704000"
+   }
+  },
+  {
+   "id": "sd25:fictional-stadium-sports-commercial",
+   "title": "Rainy Stadium Kickoff Film",
+   "originalTitle": "Brand film Concept",
+   "category": "Commercial",
+   "subcategory": "Brand Films",
+   "duration": 15.1,
+   "aspectRatio": "427:240",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/fictional-stadium-sports-commercial.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/fictional-stadium-sports-commercial.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@tanabe_fragm",
+    "url": "https://x.com/tanabe_fragm/status/2083148734268121401"
+   }
+  },
+  {
+   "id": "sd25:rainy-night-market-family-animation-775828",
+   "title": "Lantern Night Market",
+   "originalTitle": "Rainy Night-Market Family Animation",
+   "category": "Animation",
+   "subcategory": "3D Animated",
+   "duration": 30.08,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/rainy-night-market-family-animation-775828.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/rainy-night-market-family-animation-775828.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@jaynwabueze",
+    "url": "https://x.com/jaynwabueze/status/2083137457000775828"
+   }
+  },
+  {
+   "id": "sd25:the-suit-was-still-listening",
+   "title": "Radio Room Storm Watch",
+   "originalTitle": "30 second cinematic short film titled The Suit Was Still Listening",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 30.15,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/the-suit-was-still-listening.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/the-suit-was-still-listening.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@bmx_ai13",
+    "url": "https://x.com/bmx_ai13/status/2083124798461489228"
+   }
+  },
+  {
+   "id": "sd25:tokyo-samurai-versus-stone-titan",
+   "title": "Burning City Rider Escape",
+   "originalTitle": "A photorealistic live-action 30-second uninterrupted one-shot action sequence, p",
+   "category": "Action",
+   "subcategory": "Chases & Stunts",
+   "duration": 30.08,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/tokyo-samurai-versus-stone-titan.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/tokyo-samurai-versus-stone-titan.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@tanabe_fragm",
+    "url": "https://x.com/tanabe_fragm/status/2083098671609241666"
+   }
+  },
+  {
+   "id": "sd25:white-dragon-camp-rampage",
+   "title": "Dragon Fire Siege",
+   "originalTitle": "Characters: The Mother — pale ancient dragon, roughly twenty feet long, elephant",
+   "category": "Action",
+   "subcategory": "Creatures & Heroes",
+   "duration": 30.1,
+   "aspectRatio": "7:3",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/white-dragon-camp-rampage.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/white-dragon-camp-rampage.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@PJaccetturo",
+    "url": "https://x.com/PJaccetturo/status/2083096450121241035"
+   }
+  },
+  {
+   "id": "sd25:cloud-world-first-person-freefall",
+   "title": "Cloud World Freefall",
+   "originalTitle": "Cloud World First-Person Freefall",
+   "category": "Cinema",
+   "subcategory": "Fantasy & Surreal",
+   "duration": 30.1,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/cloud-world-first-person-freefall.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/cloud-world-first-person-freefall.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@zeng_wt",
+    "url": "https://x.com/zeng_wt/status/2083096037200220208"
+   }
+  },
+  {
+   "id": "sd25:1977-boston-zombie-outbreak",
+   "title": "Zombie Street Outbreak",
+   "originalTitle": "1977 Boston Zombie Outbreak",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 30.22,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/1977-boston-zombie-outbreak.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/1977-boston-zombie-outbreak.jpg",
+   "source": "Seedance 2.5",
+   "credit": {
+    "author": "@Bou_bee",
+    "url": "https://x.com/Bou_bee/status/2083092357248106686"
+   }
+  },
+  {
+   "id": "zerolu:guizang",
+   "title": "Minimal Oak Chair Film",
+   "originalTitle": "MUJI Brand Promotional Video",
+   "category": "Commercial",
+   "subcategory": "Product Reveals",
+   "duration": 15.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/guizang.mp4",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/guizang.webp",
+   "source": "Seedance 2.0",
+   "credit": {
+    "author": "@op7418",
+    "url": "https://x.com/op7418"
+   }
+  },
+  {
+   "id": "zerolu:john3",
+   "title": "Rainy Street Confession",
+   "originalTitle": "Wong Kar-wai Film Style (Rainy Phone Booth Scene)",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 15.13,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john3.mp4",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john3.webp",
+   "source": "Seedance 2.0",
+   "credit": {
+    "author": "@johnAGI168",
+    "url": "https://x.com/johnAGI168"
+   }
+  },
+  {
+   "id": "zerolu:john5",
+   "title": "Phone Booth Night Call",
+   "originalTitle": "Surrealistic Documentary Style",
+   "category": "Cinema",
+   "subcategory": "Drama & Thriller",
+   "duration": 10.1,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john5.mp4",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john5.webp",
+   "source": "Seedance 2.0",
+   "credit": {
+    "author": "@johnAGI168",
+    "url": "https://x.com/johnAGI168"
+   }
+  },
+  {
+   "id": "zerolu:john6",
+   "title": "Racing Driver Close-Up",
+   "originalTitle": "Van Gogh Post-Impressionism Style Animation",
+   "category": "Commercial",
+   "subcategory": "Automotive & Mobility",
+   "duration": 15.12,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john6.mp4",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john6.webp",
+   "source": "Seedance 2.0",
+   "credit": {
+    "author": "@johnAGI168",
+    "url": "https://x.com/johnAGI168"
+   }
+  },
+  {
+   "id": "mmxLegacy:kintsugi-sword-seamless-loop",
+   "title": "Cloud Swordswoman Loop",
+   "originalTitle": "Kintsugi Sword Seamless Loop",
+   "category": "VFX",
+   "subcategory": "Loops & Hero Backgrounds",
+   "duration": 15.18,
+   "aspectRatio": "16:9",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/kintsugi-sword-seamless-loop.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/kintsugi-sword-seamless-loop.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Cia0_exe",
+    "url": "https://x.com/Cia0_exe/status/2083525563491524882"
+   }
+  },
+  {
+   "id": "mmxLegacy:ice-gunslinger-interactive-web-loop",
+   "title": "Ice Gunslinger Hero Loop",
+   "originalTitle": "Ice Gunslinger Interactive Web Loop",
+   "category": "VFX",
+   "subcategory": "Loops & Hero Backgrounds",
+   "duration": 15.26,
+   "aspectRatio": "959:540",
+   "videoUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/ice-gunslinger-interactive-web-loop.webm",
+   "posterUrl": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/ice-gunslinger-interactive-web-loop.webp",
+   "source": "MiniMax H3",
+   "credit": {
+    "author": "@Cia0_exe",
+    "url": "https://x.com/Cia0_exe/status/2083180088775045626"
+   }
+  }
+ ]
+}

@@ -52,4 +52,16 @@ describe('template video library', () => {
       expect(subs[r.category], r.id).toContain(r.subcategory);
     }
   });
+
+  it('has a generated catalog.json that matches the library (so other apps see the same clips, names and URLs)', () => {
+    const cat = JSON.parse(readFileSync(resolve(root, 'scripts/template-video-catalog.json'), 'utf8')) as { count: number; categories: Record<string, string[]>; clips: Array<{ id: string; title: string; category: string; subcategory: string; videoUrl: string; posterUrl: string | null }> };
+    expect(cat.count).toBe(rows.length);
+    expect(cat.clips.map((c) => c.id)).toEqual(rows.map((r) => r.id));
+    for (const [i, c] of cat.clips.entries()) {
+      const r = rows[i];
+      expect([c.title, c.category, c.subcategory, c.videoUrl, c.posterUrl]).toEqual([r.title, r.category, r.subcategory, r.videoSrc, r.posterSrc]);
+      expect(c.videoUrl, c.id).toMatch(/^https:\/\//);
+    }
+    expect(cat.categories).toEqual(TEMPLATE_VIDEO_SUBCATEGORIES);
+  });
 });
