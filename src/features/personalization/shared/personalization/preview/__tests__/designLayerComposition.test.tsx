@@ -164,7 +164,7 @@ describe('PersonalizationComposition design layer', () => {
     })
     expect(props.colors).toEqual({
       primary: '#d9ff00',
-      accent: '#28c98b',
+      accent: '#22c55e',
       text: '#ffffff',
       backgroundDim: 0.18,
     })

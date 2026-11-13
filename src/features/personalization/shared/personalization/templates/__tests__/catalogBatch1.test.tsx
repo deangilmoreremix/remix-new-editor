@@ -110,7 +110,7 @@ function makeProps(
     text: primaryValue,
     textSlots: slots,
     colors: {
-      primary: '#d9ff00',
+      primary: '#29d3f2',
       accent: '#28c98b',
       text: '#ffffff',
       backgroundDim: 0.18,

@@ -118,7 +118,7 @@ function makeProps(
       cta: 'Book now',
       website: 'acme.example',
     },
-    colors: { primary: '#d9ff00', accent: '#28c98b', text: '#ffffff', backgroundDim: 0.18 },
+    colors: { primary: '#29d3f2', accent: '#28c98b', text: '#ffffff', backgroundDim: 0.18 },
     media: NO_MEDIA,
     box: { leftPx: 0, topPx: 0, widthPx: width, heightPx: height },
     width,

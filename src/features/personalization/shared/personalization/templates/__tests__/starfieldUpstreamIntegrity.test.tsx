@@ -235,7 +235,7 @@ describe('frozen upstream sources', () => {
 })
 
 describe('starfield-warp adapter (local thick-core customization)', () => {
-  const props = { count: 60, starColor: '#d9ff00', baseColor: 'transparent', warpSpeed: 4 }
+  const props = { count: 60, starColor: '#29d3f2', baseColor: 'transparent', warpSpeed: 4 }
 
   it('with the upstream core range, the local renderer matches the frozen upstream frame for frame', () => {
     for (const frame of [0, 1, 37, 60, 99, 149]) {
@@ -283,7 +283,7 @@ describe('starfield-warp adapter (local thick-core customization)', () => {
       React.createElement(StarfieldWarpDesign, {
         text: '',
         textSlots: {},
-        colors: { primary: '#d9ff00', accent: '#28c98b', text: '#d9ff00', backgroundDim: 0.18 },
+        colors: { primary: '#29d3f2', accent: '#28c98b', text: '#29d3f2', backgroundDim: 0.18 },
         media: { logo: null, product: null, service: null },
         box: { leftPx: 0, topPx: 0, widthPx: 1920, heightPx: 1080 },
         width: 1920,
@@ -295,7 +295,7 @@ describe('starfield-warp adapter (local thick-core customization)', () => {
       } as unknown as React.ComponentProps<typeof StarfieldWarpDesign>),
     )
     expect(html).not.toContain('BACKGROUND')
-    expect(html.match(/linear-gradient\(90deg, transparent, #d9ff00\)/g)).toHaveLength(60)
+    expect(html.match(/linear-gradient\(90deg, transparent, #29d3f2\)/g)).toHaveLength(60)
     expect(template.capabilities.notes).toMatch(/Local adapter customization/)
   })
 })

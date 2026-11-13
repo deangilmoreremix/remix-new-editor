@@ -51,8 +51,8 @@ const routeMocks = vi.hoisted(() => ({
   requirePersonalizationEnv: vi.fn(),
 }))
 
-vi.mock('@clerk/nextjs/server', () => ({ auth: routeMocks.auth }))
-vi.mock('@ohb/lib/supabase', () => ({ createServerClient: routeMocks.createServerClient }))
+vi.mock('../../../../../../netlify/functions/_personalization/shims/clerk-server', () => ({ auth: routeMocks.auth }))
+vi.mock('../../../../../../netlify/functions/_personalization/src/lib/supabase', () => ({ createServerClient: routeMocks.createServerClient }))
 vi.mock('../../../../../../netlify/functions/_personalization/src/server/personalizationLog', () => ({
   logPersonalization: routeMocks.logPersonalization,
   createCorrelationId: routeMocks.createCorrelationId,

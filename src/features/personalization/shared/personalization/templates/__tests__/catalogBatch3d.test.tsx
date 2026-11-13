@@ -100,7 +100,7 @@ function makeProps(
     ...(template.defaultProps ?? {}),
     text: primary ? brand[primary.field] : '',
     textSlots,
-    colors: { primary: '#d9ff00', accent: '#28c98b', text: '#ffffff', backgroundDim: 0.18 },
+    colors: { primary: '#29d3f2', accent: '#28c98b', text: '#ffffff', backgroundDim: 0.18 },
     media: { logo: LOGO_URL, product: PRODUCT_URL, service: null },
     box: { leftPx: 0, topPx: 0, widthPx: width, heightPx: height },
     width,

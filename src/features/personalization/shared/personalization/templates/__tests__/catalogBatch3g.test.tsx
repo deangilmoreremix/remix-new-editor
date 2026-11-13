@@ -106,7 +106,7 @@ function makeProps(
   return {
     text: primary ? BRAND_VALUES[primary.field] : '',
     textSlots: slots,
-    colors: { primary: '#d9ff00', accent: '#28c98b', text: '#ffffff', backgroundDim: 0.18 },
+    colors: { primary: '#29d3f2', accent: '#28c98b', text: '#ffffff', backgroundDim: 0.18 },
     media: { logo: LOGO_URL, product: null, service: null },
     box: { leftPx: 0, topPx: 0, widthPx: 1920, heightPx: 1080 },
     width: 1920,
@@ -335,7 +335,7 @@ describe('batch 3g — adapters render with brand data', () => {
         const tile = container.querySelector('[data-rve-logo-placeholder]') as HTMLElement
         expect(tile, id).not.toBeNull()
         expect(tile.textContent, id).toBe('A')
-        expect(tile.style.backgroundImage, id).toContain('rgb(217, 255, 0)')
+        expect(tile.style.backgroundImage, id).toContain('rgb(41, 211, 242)')
       }
       unmount()
     }
@@ -444,7 +444,7 @@ describe('batch 3g — overlays stay transparent', () => {
     const images = Array.from(canvasOf(container).querySelectorAll<HTMLElement>('*')).map(
       (el) => el.style.backgroundImage,
     )
-    // darkenColor('#d9ff00', 0.12) = #05191d
+    // darkenColor('#29d3f2', 0.12) = #05191d
     expect(images.join(' ')).toContain('rgba(5, 25, 29, 0.55)')
   })
 })
