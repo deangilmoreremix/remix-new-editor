@@ -50,6 +50,10 @@ export interface AutoCutoutControls {
   needsConsent: boolean
   /** The model could not load; reloading the page is required before retrying. */
   halted: boolean
+  /** Auto mode is on, the model download is accepted and the model is usable: new assets will get cutouts. */
+  willAutoCutOut: boolean
+  /** This browser can run background removal at all (BG0 decodes with createImageBitmap). */
+  supported: boolean
   stats: AutoCutoutStats
   modelMB: number
   /** Queue the given assets for removal (runs even with auto mode off). */
@@ -88,6 +92,33 @@ export function isAutoEligible(a: DiscoveredAsset): boolean {
   )
 }
 
+/** An asset whose cutout is queued, running, or about to start (auto mode will pick it up). */
+export function isCutoutPending(a: DiscoveredAsset): boolean {
+  if (a.rejected || a.bgOptOut) return false
+  const status = a.bgRemoval?.status
+  if (status === 'queued' || status === 'running') return true
+  return isAutoEligible(a)
+}
+
+/** Longest the automatic placement of found assets waits for their cutouts. */
+export const AUTO_IMPORT_CUTOUT_WAIT_MS = 90_000
+
+/**
+ * Should automatic placement of the picked assets keep waiting for their
+ * cutouts? True only while cutouts are expected (`willAutoCutOut`), some pick is
+ * still pending, and the wait limit has not passed. Anything else places the
+ * assets now, exactly as it did before background removal existed.
+ */
+export function shouldHoldAutoImport(
+  pickIds: string[],
+  discovered: DiscoveredAsset[],
+  opts: { willAutoCutOut: boolean; waitedMs: number },
+): boolean {
+  if (!opts.willAutoCutOut || pickIds.length === 0 || opts.waitedMs >= AUTO_IMPORT_CUTOUT_WAIT_MS) return false
+  const ids = new Set(pickIds)
+  return discovered.some((a) => ids.has(a.id) && isCutoutPending(a))
+}
+
 function priority(a: DiscoveredAsset): number {
   return (a.recommended ? 1000 : 0) + (a.relevanceScore ?? 0) + (a.qualityScore ?? 0) / 100
 }
@@ -115,6 +146,8 @@ export function useAutoCutout(
 ): AutoCutoutControls {
   const paused = Boolean(options.paused)
   const constrained = useMemo(() => isConstrainedDevice(), [])
+  // BG0 decodes images with createImageBitmap; without it (old browsers, jsdom) nothing can run, so stay idle.
+  const supported = useMemo(() => typeof createImageBitmap === 'function', [])
   const [autoEnabled, setAutoEnabledState] = useState<boolean>(() => readStored(AUTO_KEY) !== '0')
   const [consent, setConsent] = useState<BackgroundRemovalConsent>(() => {
     const stored = readStored(CONSENT_KEY)
@@ -156,12 +189,12 @@ export function useAutoCutout(
       .filter((a) => !a.rejected && a.bgRemoval?.status === 'queued')
       .sort((x, y) => priority(y) - priority(x))[0]
     if (manual) return { asset: manual, manual: true }
-    if (!autoEnabled) return null
+    if (!autoEnabled || !supported) return null
     const auto = assets.filter(isAutoEligible).sort((x, y) => priority(y) - priority(x))[0]
     return auto ? { asset: auto, manual: false } : null
-  }, [assets, autoEnabled])
+  }, [assets, autoEnabled, supported])
 
-  const needsConsent = consent !== 'granted' && next !== null
+  const needsConsent = supported && consent !== 'granted' && next !== null
 
   const run = useCallback(
     async (asset: DiscoveredAsset, manual: boolean) => {
@@ -339,11 +372,11 @@ export function useAutoCutout(
       else if (s === 'running') running++
       else if (s === 'queued') queued++
       else if (s === 'error') failed++
-      else if (autoEnabled && consent !== 'declined' && !halted && isAutoEligible(a)) queued++
+      else if (autoEnabled && supported && consent !== 'declined' && !halted && isAutoEligible(a)) queued++
     }
     const total = finished + running + queued + failed
     return { total, finished: finished + failed, running, queued, failed, active: running + queued > 0 }
-  }, [assets, autoEnabled, consent, halted])
+  }, [assets, autoEnabled, supported, consent, halted])
 
   return {
     autoEnabled,
@@ -353,6 +386,8 @@ export function useAutoCutout(
     declineConsent,
     needsConsent,
     halted,
+    willAutoCutOut: supported && autoEnabled && consent === 'granted' && !halted,
+    supported,
     stats,
     modelMB: BACKGROUND_REMOVAL_MODEL_MB,
     requestRemoval,

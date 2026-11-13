@@ -105,6 +105,8 @@ async function settle(ms = 120, done?: () => boolean) {
 const allDone = () => latest.assets.filter((a) => !a.rejected).every((a) => a.bgRemoval && a.bgRemoval.status !== 'running' && a.bgRemoval.status !== 'queued')
 
 beforeEach(() => {
+  // BG0 decodes with createImageBitmap, which jsdom lacks; the hook stays idle without it.
+  vi.stubGlobal('createImageBitmap', vi.fn())
   state.active = 0
   state.maxActive = 0
   state.order = []
@@ -113,6 +115,7 @@ beforeEach(() => {
 })
 
 afterEach(async () => {
+  vi.unstubAllGlobals()
   await act(async () => root?.unmount())
   container?.remove()
   root = null
@@ -247,6 +250,20 @@ describe('useAutoCutout (auto queue)', () => {
   })
 })
 
+describe('browsers that cannot run background removal', () => {
+  it('stay idle: no automatic processing, nothing waits for cutouts', async () => {
+    vi.stubGlobal('createImageBitmap', undefined)
+    await mount([asset({ id: 'one', previewUrl: 'https://shop.example/one.jpg' })])
+    await settle(150)
+    expect(state.order).toEqual([])
+    expect(latest.cutout.supported).toBe(false)
+    expect(latest.cutout.willAutoCutOut).toBe(false)
+    expect(latest.cutout.needsConsent).toBe(false)
+    expect(latest.cutout.stats.active).toBe(false)
+    expect(latest.assets[0].bgRemoval).toBeUndefined()
+  })
+})
+
 describe('DiscoveredAssetGrid with background removal', () => {
   function renderGrid(assets: DiscoveredAsset[], extra: Record<string, unknown> = {}) {
     const cutout: AutoCutoutControls = {
@@ -356,6 +373,12 @@ describe('DiscoveredAssetGrid with background removal', () => {
 
     act(() => (Array.from(document.querySelectorAll('button')).find((b) => /Save to Assets/.test(b.textContent || '')) as HTMLButtonElement).click())
     expect(props.onSaveToAssets).toHaveBeenCalledWith('cut')
+  })
+
+  it('hides all background-removal controls when the browser cannot run it', () => {
+    renderGrid([asset({ id: 'raw', selected: true })], { cutout: { supported: false } })
+    expect(container!.querySelector('[data-testid="background-removal-bar"]')).toBeNull()
+    expect(container!.querySelector('[aria-label="Remove background"]')).toBeNull()
   })
 
   it('renders exactly as before when background removal is not provided', () => {

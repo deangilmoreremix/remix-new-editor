@@ -602,7 +602,7 @@ export function DiscoveredAssetGrid({
   onDragEnd,
   dropZones,
   onDropToSection,
-  cutout,
+  cutout: cutoutProp,
   onSaveToAssets,
 }: {
   assets: DiscoveredAsset[]
@@ -626,6 +626,8 @@ export function DiscoveredAssetGrid({
   onSaveToAssets?: (id: string) => void
 }) {
   const [dragOverZone, setDragOverZone] = useState<AssignedSection | null>(null)
+  // Browsers that cannot run background removal at all get the grid exactly as before.
+  const cutout = cutoutProp && cutoutProp.supported !== false ? cutoutProp : undefined
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const hasZones = Boolean(dropZones && dropZones.length > 0 && onDropToSection)
   const removedCount = assets.filter((a) => a.rejected).length
