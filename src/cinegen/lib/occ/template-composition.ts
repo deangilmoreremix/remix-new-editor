@@ -51,7 +51,14 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
         // an animation / motion graphic picked in the wizard: the overlay its library resolved, re-timed to this cut; or an end-screen / form template
         const cfg = c._overlayConfig?.animation;
         if (cfg?.overlay) overlays.push({ ...cfg.overlay, id: generateId(), start, end: start + dur });
-        else if (cfg?.templateId) overlays.push(...createTemplateOverlays(cfg.templateId, start, compEnd));
+        else if (cfg?.templateId) {
+          // an end-screen template is anchored to the cut's end; when the cut is shorter than the template, slide it forward so it
+          // never starts before this cut (it must not cover footage that was already on the timeline)
+          const made = createTemplateOverlays(cfg.templateId, start, compEnd);
+          const earliest = made.length ? Math.min(...made.map((o) => o.start)) : base;
+          const shift = earliest < base ? base - earliest : 0;
+          overlays.push(...made.map((o) => (shift ? { ...o, start: o.start + shift, end: o.end + shift } : o)));
+        }
       } else if (c.text) {
         const o = createOverlay('overlay-text', start, T + dur);
         const addon = { ...((o.addon as Record<string, unknown>) ?? {}), text: c.text };

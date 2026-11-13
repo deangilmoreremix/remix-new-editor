@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { planSync, createSyncedTemplateStore, createSupabaseRemote, SYNC_STATUS } from '../components/modals/template-generator/sync.js';
 
@@ -117,5 +117,51 @@ describe('migration', () => {
     expect(sql).not.toMatch(/to anon/);
     for (const op of ['select', 'insert', 'update', 'delete']) expect(sql).toMatch(new RegExp(`for ${op}\\s+to authenticated`));
     expect(sql).toMatch(/primary key \(clerk_user_id, id\)/);
+  });
+});
+
+describe('remote adapter robustness (review follow-ups)', () => {
+  const clientWith = (impl) => ({ from: () => ({ upsert: impl, select: () => ({ eq: () => ({ limit: impl }) }) }) });
+  it('keeps pushing the other batches when one fails, then reports the failure', async () => {
+    const calls = [];
+    const remote = createSupabaseRemote(async () => clientWith(async (rows) => { calls.push(rows.length); return { error: calls.length === 1 ? { message: 'boom' } : null }; }));
+    const pushes = Array.from({ length: 120 }, (_, i) => ({ id: `tpl-${i}-xxxx`, record: { name: `T${i}` }, ts: 1 }));
+    await expect(remote.upsert('u', pushes)).rejects.toThrow('boom');
+    expect(calls).toEqual([50, 50, 20]);                       // all three batches were attempted
+  });
+  it('only calls a missing TABLE "not set up" — other "does not exist" errors keep their own message', async () => {
+    const fail = (error) => createSupabaseRemote(async () => clientWith(async () => ({ data: null, error }))).list('u');
+    await expect(fail({ code: '42P01', message: 'relation "public.template_generator_templates" does not exist' })).rejects.toThrow(/not set up on the server/);
+    await expect(fail({ code: 'PGRST205', message: "Could not find the table 'public.x' in the schema cache" })).rejects.toThrow(/not set up on the server/);
+    await expect(fail({ code: '42703', message: 'column "foo" does not exist' })).rejects.toThrow('column "foo" does not exist');
+    await expect(fail({ code: '42883', message: 'function bar() does not exist' })).rejects.toThrow('function bar() does not exist');
+  });
+});
+
+describe('database labelling (the Supabase project is shared by several apps)', () => {
+  const dir = resolve(process.cwd(), 'supabase/migrations');
+  const files = readdirSync(dir).filter((f) => /template_generator/.test(f));
+  const sql = Object.fromEntries(files.map((f) => [f, readFileSync(resolve(dir, f), 'utf8')]));
+  const labels = sql[files.find((f) => /_labels\.sql$/.test(f))];
+
+  it('every object name starts with template_generator_', () => {
+    const all = Object.values(sql).join('\n');
+    const names = [...all.matchAll(/(?:create (?:unique )?index (?:if not exists )?|create or replace function public\.|create trigger |create table if not exists public\.)([a-z_]+)/gi)].map((m) => m[1]);
+    expect(names.length).toBeGreaterThan(3);
+    for (const n of names) expect(n.startsWith('template_generator_'), n).toBe(true);
+  });
+  it('the policies are renamed to app-prefixed names', () => {
+    for (const v of ['read', 'insert', 'update', 'delete']) expect(labels).toContain(`template_generator_owners_${v}_own`);
+  });
+  it('the table, all 8 columns, index, function, trigger and policies carry an [app: template-generator] comment', () => {
+    expect(labels).toMatch(/comment on table public\.template_generator_templates is\s+'\[app: template-generator\]/);
+    for (const c of ['clerk_user_id', 'id', 'name', 'niche', 'record', 'deleted_at', 'created_at', 'updated_at']) expect(labels, c).toMatch(new RegExp(`comment on column public\\.template_generator_templates\\.${c}\\s+is '\\[app: template-generator\\]`));
+    expect(labels).toMatch(/comment on index public\.template_generator_templates_owner_updated_idx is '\[app: template-generator\]/);
+    expect(labels).toMatch(/comment on function public\.template_generator_templates_guard\(\) is\s+'\[app: template-generator\]/);
+    expect(labels).toMatch(/comment on trigger template_generator_templates_guard on public\.template_generator_templates is\s+'\[app: template-generator\]/);
+    expect(labels).toMatch(/comment on policy %I on public\.template_generator_templates/);
+  });
+  it('the labels migration changes no data, grants or access rules', () => {
+    expect(labels).not.toMatch(/\b(grant|revoke|insert into|update public|delete from|drop table|alter table)\b/i);
   });
 });

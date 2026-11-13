@@ -62,6 +62,16 @@ describe('animations picked in the Template Generator', () => {
     expect(Math.max(...r.overlays.map((o) => o.end))).toBeGreaterThan(9);
   });
 
+  it('an end screen on a short cut appended after long footage never starts before the new cut', async () => {
+    const { overlayTemplates, isConnectTemplate } = await import('@cinegen/lib/overlays/overlays');
+    const end = overlayTemplates().find((t) => t.library === 'endScreens' && !isConnectTemplate(t.id))!;
+    const existing = { ...createDefaultTimeline('T'), duration: 60 };                      // 60 s already on the timeline
+    const short = buildCompositionFromState({ media: [m(1, 3)], overlays: [{ kind: 'animation', type: 'animation', name: end.name, startTime: 0, duration: 3, animation: { templateId: end.id } }], transitions: [] }) as never;
+    const r = applyComposition(existing, short);
+    expect(r.overlays.length).toBeGreaterThan(0);
+    for (const o of r.overlays) expect(o.start, o.name).toBeGreaterThanOrEqual(60);        // not over the existing footage
+  });
+
   it('an animation whose library could not resolve it is skipped, not fatal', () => {
     const r = applyComposition(createDefaultTimeline('T'), comp([{ kind: 'animation', type: 'animation', name: 'Gone', startTime: 0, duration: 4, animation: { ref: { id: 'anim:gone', source: 'animations' } } }]));
     expect(r.overlays).toHaveLength(0);

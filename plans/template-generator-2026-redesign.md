@@ -65,3 +65,17 @@ The Video step now offers every library the editor has, in one place:
   End screens land at the end; the rest are spread along the cut.
 - Saved templates keep only a small reference (`animations[]`); the real overlay is resolved when added. An editor without that library
   sets them aside with a notice.
+
+## Shared database: labelling convention
+The Supabase project ("VideoRemix Product") is shared by several apps, so everything this feature adds is labelled as its own:
+- every object name starts with `template_generator_` (table, index, function, trigger, and the four RLS policies
+  `template_generator_owners_{read,insert,update,delete}_own`);
+- every object has a database `COMMENT` starting `[app: template-generator]` (table, all 8 columns, index, function, trigger, policies) —
+  applied by `20261113040821_template_generator_templates_labels.sql` (label-only; no data, grants or rules changed).
+- Find everything the app owns: `select c.relname, obj_description(c.oid) from pg_class c where obj_description(c.oid) like '[app: template-generator]%';`
+- New objects for this feature must follow the same two rules; `src/test/template-generator-sync.test.js` checks the migrations.
+
+## Pending
+- `20261113041000_template_generator_templates_ignore_stale_writes.sql` — makes the database drop a late-arriving *older* write so a
+  slow device can't overwrite a newer edit or a delete (review finding on the sync race). SQL verified on the live database in a rolled-back
+  transaction; **not applied yet** (awaiting approval).

@@ -66,7 +66,8 @@ export function planSync(local = [], tombstones = {}, remote = []) {
 
 // ----------------------------------------------------------------------------- remote
 
-const isMissingTable = (e) => /PGRST205|42P01|schema cache|does not exist/i.test(`${e?.code || ''} ${e?.message || ''}`);
+// only a missing TABLE (not a missing column / function / anything else that "does not exist")
+const isMissingTable = (e) => /PGRST205|42P01/.test(String(e?.code || '')) || /Could not find the table|relation "[^"]*" does not exist/i.test(String(e?.message || ''));
 
 async function defaultClient(uid) {
   const m = await import('../../../lib/supabase.js');
@@ -101,10 +102,14 @@ export function createSupabaseRemote(loadClient = defaultClient) {
         deleted_at: p.record ? null : new Date(p.ts).toISOString(),
         updated_at: new Date(p.ts).toISOString(),
       }));
+      // Every batch is attempted even if one fails (the rest still reach the server; the next sync re-sends the failed ones),
+      // then the first failure is reported.
+      let firstError = null;
       for (let i = 0; i < rows.length; i += 50) {
         const { error } = await client.from(SYNC_TABLE).upsert(rows.slice(i, i + 50), { onConflict: 'clerk_user_id,id' });
-        explain(error);
+        if (error && !firstError) firstError = error;
       }
+      explain(firstError);
     },
   };
 }
