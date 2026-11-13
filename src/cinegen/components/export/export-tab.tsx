@@ -8,6 +8,7 @@ import { RenderProgress } from './render-progress';
 import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
 import type { ExportPreset, ExportJob } from '@cinegen/types/export';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
+import { exportBlockers, describeBlockers } from '@cinegen/lib/export-blockers';
 
 export function ExportTab() {
   const { state, dispatch } = useWorkspace();
@@ -38,6 +39,8 @@ export function ExportTab() {
     });
   }, [activeTimeline.clips, activeTimeline.tracks, state.assets]);
   const hasClips = exportClips.length > 0;
+  // Clips that were dropped from the render, and why (so a disabled Render button can explain itself).
+  const blockedReason = useMemo(() => describeBlockers(exportBlockers(activeTimeline.clips, state.assets)), [activeTimeline.clips, state.assets]);
   const totalDuration = Math.max(
     activeTimeline.duration,
     ...activeTimeline.clips.map(clipEndTime),
@@ -112,7 +115,7 @@ export function ExportTab() {
           Render your timeline as an MP4 video
         </p>
 
-        <ExportSettings hasClips={hasClips} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
+        <ExportSettings hasClips={hasClips} blockedReason={blockedReason} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
         {/* [remix] OpenChatCut FCPXML export (Final Cut Pro / Premiere / DaVinci Resolve) */}
         <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
           <button type="button" disabled={!hasClips} data-testid="export-fcpxml" onClick={() => {
@@ -136,8 +139,13 @@ export function ExportTab() {
         )}
 
         {!hasClips && (
-          <p className="export-tab__hint">
-            Add clips to the timeline in the Edit tab before exporting.
+          <p className="export-tab__hint" data-testid="export-blocked-hint">
+            {blockedReason || 'Add clips to the timeline in the Edit tab before exporting.'}
+          </p>
+        )}
+        {hasClips && blockedReason && (
+          <p className="export-tab__hint" data-testid="export-skipped-hint">
+            Some clips will be left out: {blockedReason}
           </p>
         )}
       </div>
