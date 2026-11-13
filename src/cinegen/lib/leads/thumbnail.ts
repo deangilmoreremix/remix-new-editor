@@ -14,6 +14,7 @@ export interface ThumbnailDeps {
 }
 
 const done = new Set<string>(); // rows captured (or already having one) this session
+const chain = new Map<string, Promise<unknown>>(); // per-row queue so a newer capture always saves after an older one
 
 async function realDeps(aspect?: string | null): Promise<ThumbnailDeps> {
   const [{ timelineToComposition }, { renderStill }, { uploadFileToStorage }] = await Promise.all([
@@ -27,27 +28,22 @@ async function realDeps(aspect?: string | null): Promise<ThumbnailDeps> {
   };
 }
 
-/** Capture and save the thumbnail for one project row. Resolves to the URL, or null (nothing to render / failed / already set). */
-export async function captureRowThumbnail(
-  client: Client,
-  rowId: string,
-  built: { timelineSeconds?: number; [k: string]: unknown },
-  opts: { aspect?: string | null; force?: boolean; deps?: ThumbnailDeps } = {},
-): Promise<string | null> {
+type Opts = { aspect?: string | null; force?: boolean; deps?: ThumbnailDeps };
+
+async function capture(client: Client, rowId: string, built: { timelineSeconds?: number; [k: string]: unknown }, opts: Opts): Promise<string | null> {
   try {
-    if (!opts.force && done.has(rowId)) return null;
-    if (!hasVisualMedia(built)) return null;
+    if (!hasVisualMedia(built)) { if (!opts.force) done.delete(rowId); return null; }
     if (!opts.force) {
       const { data, error } = await client.from('timeline_projects').select('thumbnail_url').eq('id', rowId).maybeSingle();
-      if (error) return null;
-      if (data?.thumbnail_url) { done.add(rowId); return null; }
+      if (error) { done.delete(rowId); return null; }
+      if (data?.thumbnail_url) return null; // already has one; the claim stays
     }
-    done.add(rowId); // claim before the slow render so a second call does not start another
     const deps = opts.deps ?? await realDeps(opts.aspect);
     const url: string | null = await captureThumbnail(built, { ...deps, fps: 30 });
     if (!url) { done.delete(rowId); return null; }
     const { error } = await client.from('timeline_projects').update({ thumbnail_url: url }).eq('id', rowId);
     if (error) { done.delete(rowId); return null; }
+    done.add(rowId);
     return url;
   } catch {
     done.delete(rowId);
@@ -55,5 +51,22 @@ export async function captureRowThumbnail(
   }
 }
 
+/**
+ * Capture and save the thumbnail for one project row. Resolves to the URL, or null (nothing to render / failed / already set).
+ * Non-forced calls claim the row synchronously, so overlapping calls render once; every call for a row runs in order,
+ * so a forced (publish) capture can never be overwritten by an older, slower one.
+ */
+export function captureRowThumbnail(client: Client, rowId: string, built: { timelineSeconds?: number; [k: string]: unknown }, opts: Opts = {}): Promise<string | null> {
+  if (!opts.force) {
+    if (done.has(rowId)) return Promise.resolve(null);
+    done.add(rowId); // claim before any await
+  }
+  const prev = chain.get(rowId) ?? Promise.resolve();
+  const run = prev.then(() => capture(client, rowId, built, opts));
+  chain.set(rowId, run);
+  void run.finally(() => { if (chain.get(rowId) === run) chain.delete(rowId); });
+  return run;
+}
+
 /** Test hook. */
-export const _resetThumbnailSession = () => done.clear();
+export const resetThumbnailSession = () => { done.clear(); chain.clear(); };

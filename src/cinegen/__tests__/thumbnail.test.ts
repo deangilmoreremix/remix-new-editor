@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { captureRowThumbnail, _resetThumbnailSession } from '@cinegen/lib/leads/thumbnail';
+import { captureRowThumbnail, resetThumbnailSession } from '@cinegen/lib/leads/thumbnail';
 
 function client(row: Record<string, any> | null) {
   const updates: any[] = [];
@@ -26,7 +26,7 @@ const deps = () => ({
 });
 
 describe('captureRowThumbnail', () => {
-  beforeEach(() => _resetThumbnailSession());
+  beforeEach(() => resetThumbnailSession());
 
   it('renders, uploads and saves the URL on the row', async () => {
     const c = client({ thumbnail_url: null }); const d = deps();
@@ -57,5 +57,22 @@ describe('captureRowThumbnail', () => {
     await captureRowThumbnail(c, 'r5', withVideo, { deps: d });
     expect(await captureRowThumbnail(c, 'r5', withVideo, { deps: d })).toBeNull();
     expect(d.renderStill).toHaveBeenCalledTimes(1);
+  });
+  it('overlapping non-forced calls render once', async () => {
+    const c = client({ thumbnail_url: null }); const d = deps();
+    await Promise.all([captureRowThumbnail(c, 'r6', withVideo, { deps: d }), captureRowThumbnail(c, 'r6', withVideo, { deps: d })]);
+    expect(d.renderStill).toHaveBeenCalledTimes(1);
+  });
+  it('a forced capture saves after an older in-flight one', async () => {
+    const c = client({ thumbnail_url: null });
+    let release!: () => void;
+    const slow = { ...deps(), renderStill: vi.fn(() => new Promise<{ blob: Blob }>((r) => { release = () => r({ blob: new Blob(['a']) }); })), upload: vi.fn(async () => 'https://cdn/old.jpg') };
+    const fast = { ...deps(), upload: vi.fn(async () => 'https://cdn/new.jpg') };
+    const older = captureRowThumbnail(c, 'r7', withVideo, { deps: slow });
+    const newer = captureRowThumbnail(c, 'r7', withVideo, { deps: fast, force: true });
+    await new Promise((r) => setTimeout(r, 10));
+    expect(c.updates).toEqual([]); // the newer one waits for the older
+    release(); await older; await newer;
+    expect(c.updates).toEqual([{ thumbnail_url: 'https://cdn/old.jpg' }, { thumbnail_url: 'https://cdn/new.jpg' }]);
   });
 });

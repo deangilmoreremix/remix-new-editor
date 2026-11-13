@@ -64,7 +64,11 @@ export function AnalyticsTab() {
         await ensureProjectRow(client, { projectId: id, name: await rowName(projectId, title), built, aspect: t?.aspect ?? null, cinegenProjectId: projectId, timelineId: t0.id });
         await linkVideoToProject(client, pub.id, id);
         // Videos published before thumbnails existed get one the first time their Analytics opens (no-op when one is set).
-        void captureRowThumbnail(client, id, built, { aspect: t?.aspect ?? null });
+        // Render what viewers see (the saved publication), not the owner's current draft.
+        void (async () => {
+          const { data } = await client.from('published_videos').select('project').eq('id', pub.id).maybeSingle();
+          if (data?.project) await captureRowThumbnail(client, id, data.project, { aspect: t?.aspect ?? null });
+        })().catch(() => {});
         if (!cancelled) { setRowId(id); setLinked('ok'); }
       } catch (e) { if (!cancelled) { setToast((e as Error).message); setLinked('unavailable'); } }
     })();
