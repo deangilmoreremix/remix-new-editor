@@ -58,6 +58,11 @@ for (const i of lock.items) {
     byKey.set(k, { key: k, label: pretty(k), hint: '', type: ty === 'string' ? (/colou?r$/i.test(k) && /^#/.test(val) ? 'color' : 'text') : ty, defaultValue: val, ...(ty === 'number' ? { step: Math.abs(val) < 5 ? 0.05 : 1 } : {}) });
   }
   e.props = [...byKey.values()];
+  // transition demos show two scenes the customer can restyle: their own props are the scene text and colors
+  if (CATEGORY[(i.atlas || {}).lane] === 'Transitions') e.props = [{ key: 'textA', label: 'First scene text', hint: '', type: 'text', defaultValue: 'Scene A' }, { key: 'textB', label: 'Second scene text', hint: '', type: 'text', defaultValue: 'Scene B' }, { key: 'colorA', label: 'First scene color', hint: '', type: 'color', defaultValue: '#2563eb' }, { key: 'colorB', label: 'Second scene color', hint: '', type: 'color', defaultValue: '#f97316' }];
+  if (existsSync(`src/lib/editor/remotion/remotionui/demos/${i.name}.jsx`)) { // demo child text turned into fields by demos.mjs
+    for (const m of readFileSync(`src/lib/editor/remotion/remotionui/demos/${i.name}.jsx`, 'utf8').matchAll(/__o\.text(\d+) \?\? ("(?:[^"\\]|\\.)*")/g)) e.props.push({ key: `text${m[1]}`, label: `Text ${m[1]}: ${JSON.parse(m[2]).slice(0, 26)}`, hint: '', type: 'text', defaultValue: JSON.parse(m[2]) });
+  }
   if (fieldsFile && fieldsFile[i.name]) e.props = e.props.filter((p) => fieldsFile[i.name].includes(p.key));
   const v = ver[i.name] || {};
   items.push({

@@ -21,7 +21,7 @@ import { mgOverlayLayer } from '@cinegen/lib/occ/mg-templates';
 import { overlaysAt, isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 import { hyperframesOverlayLayer, hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers (same math the renderer and the export use)
-import { hfPlacement } from '../../../lib/hyperframes/placement.js';
+import { hfPlacement, isReactItem } from '../../../lib/hyperframes/placement.js';
 import { useSelectedOverlay, selectOverlay } from '@cinegen/lib/overlays/selection';
 import '../../../../styles/timeline-addons.css';
 import '../../../../styles/watch.css';
@@ -45,7 +45,7 @@ async function sendLead(o: OverlayClip, data: Record<string, unknown>) {
 /** Move / resize handles for the selected animation. The outline is the animation's own canvas placed in the frame; edits are committed on release. */
 function HfHandle({ overlay, frame, onGeometry }: { overlay: OverlayClip; frame: { width: number; height: number }; onGeometry?: (id: string, g: Record<string, number>) => void }) {
   const item = hyperframesItem(String(overlay.blockId ?? ''));
-  const isRui = String(overlay.blockId ?? '').startsWith('rui:');
+  const isRui = isReactItem(String(overlay.blockId ?? ''));
   const bw = isRui || !item ? frame.width : item.dimensions.width; const bh = isRui || !item ? frame.height : item.dimensions.height;
   const [draft, setDraft] = useState<{ x?: number; y?: number; scale?: number } | null>(null);
   const geom = { ...((overlay.geom as Record<string, unknown>) ?? {}), ...(draft ?? {}) };

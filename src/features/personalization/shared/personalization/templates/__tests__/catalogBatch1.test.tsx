@@ -334,12 +334,10 @@ describe('Phase 2 batch-1 adapters', () => {
     expect(container.textContent).not.toContain('Q1')
   })
 
-  it('draws the MIT credit line inside every batch-1 design', () => {
+  it('draws no credit line inside any batch-1 design', () => {
     for (const template of REMOTION_DESIGN_BATCH1_TEMPLATES) {
       const { container, unmount } = renderTemplate(template)
-      const credit = container.querySelector('[data-remotion-design-credit]')
-      expect(credit).not.toBeNull()
-      expect(credit?.textContent).toContain('Trimora')
+      expect(container.querySelector('[data-remotion-design-credit]')).toBeNull()
       unmount()
     }
   })

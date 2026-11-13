@@ -14,7 +14,7 @@
  *     - recreate (t2v)  → MuAPI generateVideo (MuAPI)
  *     - i2v             → MuAPI generateI2V (MuAPI)
  *     - face_only (v2v) → MuAPI processV2V (MuAPI)
- *     - full_body       → MuAPI processRecast (MuAPI)
+ *     - full_body       → MuAPI processMotionControl (Seedance recast)
  *     → NEVER calls OpenAI /images/generations for video
  *
  *   AI Assist image tools (AiAssistantModal):
@@ -42,13 +42,6 @@ import type { PersonalizationSource, AssetLibrary, ResolvedAssets, GenerationOpt
 // Track every OpenAI call
 const openaiCalls: { endpoint: string; body?: unknown }[] = []
 
-// remix: image generation reads the user's OpenAI key from Settings
-// (generationRouter → getOpenAiKey), separate from the MuAPI `apiKey`.
-vi.mock('@ohb/lib/authConfig', () => ({
-  getOpenAiKey: () => 'sk-openai-test',
-  getApiKey: () => 'sk-test',
-}))
-
 vi.mock('@ohb/shared/personalization/openaiPersonalizationClient', () => {
   const actual = vi.importActual('@ohb/shared/personalization/openaiPersonalizationClient')
   return {
@@ -74,9 +67,17 @@ const muapiCalls: Record<string, unknown[]> = {
   generateI2V: [],
   processV2V: [],
   processRecast: [],
+  processMotionControl: [],
   processLipSync: [],
   uploadFile: [],
 }
+
+// remix: image generation reads the user's OpenAI key from Settings
+// (generationRouter -> getOpenAiKey), separate from the MuAPI `apiKey`.
+vi.mock('@ohb/lib/authConfig', () => ({
+  getOpenAiKey: () => 'sk-openai-test',
+  getApiKey: () => 'sk-test',
+}))
 
 vi.mock('@ohb/packages/studio/src/muapi', () => {
   const makeSpy = (name: string) => {
@@ -93,6 +94,10 @@ vi.mock('@ohb/packages/studio/src/muapi', () => {
     generateI2V: makeSpy('generateI2V'),
     processV2V: makeSpy('processV2V'),
     processRecast: makeSpy('processRecast'),
+    processMotionControl: vi.fn(async (_apiKey: unknown, params: unknown) => {
+      muapiCalls.processMotionControl.push(params)
+      return { url: 'https://muapi.test/processMotionControl.mp4' }
+    }),
     processLipSync: makeSpy('processLipSync'),
     uploadFile: makeSpy('uploadFile'),
   }
@@ -420,7 +425,7 @@ describe('Phase 29 - Provider Negative Regression Tests', () => {
       expect(generationCalls.length).toBe(0)
     })
 
-    it('full_body (recast): calls MuAPI processRecast, NEVER calls OpenAI image generation', async () => {
+    it('full_body (recast): calls MuAPI Seedance motion control, NEVER calls OpenAI image generation', async () => {
       const source = makeVideoSource({
         sourceMedia: 'https://example.com/source.mp4',
       })
@@ -438,16 +443,58 @@ describe('Phase 29 - Provider Negative Regression Tests', () => {
         resolved,
         prompt: 'Replace the full presenter',
         mode: 'full_body',
-        options: { ...baseOptions, model: 'ai-video-recast' },
+        options: { ...baseOptions, model: 'ai-video-recast', preserveAudio: true },
         apiKey: 'sk-test',
+        // The final-video render puts the source audio back on.
+        restoresSourceAudio: true,
       })
 
       expect(result.type).toBe('video')
 
-      expect(muapiCalls.processRecast).toHaveLength(1)
+      expect(muapiCalls.processMotionControl).toHaveLength(1)
+      expect(muapiCalls.processMotionControl[0]).toMatchObject({
+        model: 'seedance-2.5-motion-control',
+        video_url: 'https://example.com/source.mp4',
+        images_list: ['https://example.com/identity.jpg'],
+        aspect_ratio: 'adaptive',
+        generate_audio: false,
+      })
+      expect(muapiCalls.processRecast).toHaveLength(0)
 
       const generationCalls = openaiCalls.filter((c) => c.endpoint === '/images/generations')
       expect(generationCalls.length).toBe(0)
     })
+
+    it('full_body without a source-audio restore asks the model for sound, even with "Keep the original sound" on', async () => {
+      const result = await runGeneration({
+        source: makeVideoSource({ sourceMedia: 'https://example.com/source.mp4' }),
+        client: {},
+        assets: makeAssets(),
+        resolved: makeResolved({
+          directInputs: {
+            video_url: 'https://example.com/source.mp4',
+            image_url: 'https://example.com/identity.jpg',
+          },
+        }),
+        prompt: 'Replace the full presenter',
+        mode: 'full_body',
+        options: { ...baseOptions, model: 'ai-video-recast', preserveAudio: true },
+        apiKey: 'sk-test',
+      })
+
+      expect(result.type).toBe('video')
+      expect(muapiCalls.processMotionControl).toHaveLength(1)
+      expect(muapiCalls.processMotionControl[0]).toMatchObject({ generate_audio: true })
+    })
   })
+
+describe('Full Presenter frame shape', () => {
+  it('sends the approved aspect ratio when the model offers it, else adaptive', async () => {
+    const { motionControlAspectRatio } = await vi.importActual<typeof import('../generationRouter')>('../generationRouter')
+    expect(motionControlAspectRatio('9:16')).toBe('9:16')
+    expect(motionControlAspectRatio('16:9')).toBe('16:9')
+    expect(motionControlAspectRatio('4:5')).toBe('adaptive')
+    expect(motionControlAspectRatio(undefined)).toBe('adaptive')
+  })
+})
 })

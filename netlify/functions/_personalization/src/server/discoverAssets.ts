@@ -12,8 +12,18 @@
  * 7. Return a structured list of DiscoveredAsset candidates for the client to review.
  */
 
+import { SITE_IMAGE_HEADERS, SITE_PAGE_HEADERS } from '../lib/siteRequestHeaders'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
+import {
+  canonicalizePageUrl,
+  elementStructureKey,
+  extractEmbeddedImageUrls,
+  extractImageContext,
+  isCrawlablePageUrl,
+  propagateSimilarCategories,
+} from './pageSignals'
+import { isThirdPartyAdUrl } from './adDomains'
 import OpenAI from 'openai'
 import { getBusinessAssetClassificationModel } from './discoveryClassificationConfig'
 import {
@@ -79,6 +89,10 @@ export interface DiscoveredAsset {
    * its home page with.
    */
   isSiteLogo?: boolean
+  /** Words around the image (caption, heading, section names, data keys). */
+  contextText?: string
+  /** Shared by the images of one repeated list on one page (find-similar). */
+  similarGroup?: string
 }
 
 interface DiscoveryOptions {
@@ -97,6 +111,8 @@ interface DiscoveryOptions {
    * a slow site can never hold the caller open past its budget.
    */
   deadlineAt?: number
+  /** Receives the fetched homepage HTML (used for JS-shell detection). */
+  onHomeHtml?: (html: string) => void
 }
 
 interface ImageCandidate {
@@ -105,6 +121,10 @@ interface ImageCandidate {
   altText?: string
   ogContext?: string
   isSiteLogo?: boolean
+  /** Words around the image (caption, heading, section names, data keys). */
+  contextText?: string
+  /** Shared by the images of one repeated list on one page (find-similar). */
+  similarGroup?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -255,12 +275,11 @@ async function requestWithValidatedRedirects(
   throw new NetworkSafetyError('too_many_redirects')
 }
 
-const PAGE_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (compatible; AssetDiscovery/1.0; +https://example.com/bot)',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-}
+// Browser-like headers: hosts that 403 an unusual bot agent serve these the
+// normal public page (see src/lib/siteRequestHeaders.ts).
+const PAGE_HEADERS = SITE_PAGE_HEADERS
 
-const IMAGE_HEADERS = { 'User-Agent': 'Mozilla/5.0 (compatible; AssetDiscovery/1.0)' }
+const IMAGE_HEADERS = SITE_IMAGE_HEADERS
 
 /**
  * Fetches a page, following only redirects whose destination passes the full
@@ -280,7 +299,7 @@ export async function fetchPage(url: string, deadlineAt?: number): Promise<strin
         axios.get(target, {
           ...config,
           responseType: 'arraybuffer',
-          headers: PAGE_HEADERS,
+          headers: { ...PAGE_HEADERS },
           validateStatus: (s: number) => s >= 200 && s < 400,
         }),
       REDIRECT_LIMIT,
@@ -318,9 +337,11 @@ function extractInternalLinks(baseUrl: string, html: string): string[] {
     const href = $(elem).attr('href') || ''
     try {
       const absolute = new URL(href, base)
-      if (absolute.hostname === base.hostname) {
-        links.add(absolute.toString())
-      }
+      if (absolute.hostname !== base.hostname) return
+      if (absolute.protocol !== 'https:' && absolute.protocol !== 'http:') return
+      const url = canonicalizePageUrl(absolute.toString())
+      // A PDF, archive or video is not a page: it would waste a crawl slot.
+      if (isCrawlablePageUrl(url)) links.add(url)
     } catch {
       // skip invalid URLs
     }
@@ -424,6 +445,7 @@ function extractImages(baseUrl: string, html: string, pageUrl: string): ImageCan
     altText?: string,
     ogContext?: string,
     element?: any,
+    contextElement?: any,
   ) => {
     if (!rawUrl || rawUrl.startsWith('data:')) return
     let absolute: string
@@ -438,8 +460,13 @@ function extractImages(baseUrl: string, html: string, pageUrl: string): ImageCan
     const key = normalizeAssetUrl(absolute)
     if (!key || seen.has(key)) return
     if (isLikelyJunk(absolute, altText, isSiteLogo)) return
+    // Ad banners and tracking pixels served by ad networks (Scrapling's ad list).
+    if (!isSiteLogo && isThirdPartyAdUrl(absolute, baseUrl)) return
     seen.add(key)
-    candidates.push({ url: absolute, sourcePage: pageUrl, altText, ogContext, isSiteLogo })
+    const around = element || contextElement
+    const contextText = around ? extractImageContext($, around) || undefined : undefined
+    const similarGroup = around ? `${pageUrl}|${elementStructureKey($, around)}` : undefined
+    candidates.push({ url: absolute, sourcePage: pageUrl, altText, ogContext, isSiteLogo, contextText, similarGroup })
   }
 
   // img[src]
@@ -452,7 +479,7 @@ function extractImages(baseUrl: string, html: string, pageUrl: string): ImageCan
     const srcset = $(elem).attr('srcset') || ''
     const entry = largestSrcsetEntry(srcset)
     if (entry) {
-      add(entry, $(elem).attr('alt') || undefined)
+      add(entry, $(elem).attr('alt') || undefined, undefined, undefined, elem)
     }
   })
 
@@ -461,7 +488,7 @@ function extractImages(baseUrl: string, html: string, pageUrl: string): ImageCan
     const srcset = $(elem).attr('srcset') || ''
     const entry = largestSrcsetEntry(srcset)
     if (entry) {
-      add(entry)
+      add(entry, undefined, undefined, undefined, elem)
     }
   })
 
@@ -477,6 +504,19 @@ function extractImages(baseUrl: string, html: string, pageUrl: string): ImageCan
         add(content, undefined, val)
       })
     }
+  }
+
+  // Framework / site-builder page data (Next.js, Nuxt, Wix, Squarespace,
+  // Shopify, Gatsby). A JS-rendered site ships its images here rather than
+  // as <img> tags, so this recovers them without a browser.
+  for (const embedded of extractEmbeddedImageUrls(html, pageUrl)) {
+    add(embedded.url, undefined, 'embedded')
+    if (!embedded.context) continue
+    // The image may already be a candidate from an <img> tag: merge the data
+    // context into it (by normalized url) rather than only into a new entry.
+    const key = normalizeAssetUrl(embedded.url)
+    const match = key ? candidates.find((candidate) => normalizeAssetUrl(candidate.url) === key) : undefined
+    if (match) match.contextText = [match.contextText, embedded.context].filter(Boolean).join(' ')
   }
 
   return candidates
@@ -496,7 +536,7 @@ export async function validateImage(url: string, deadlineAt?: number): Promise<{
       (target, config) =>
         axios.head(target, {
           ...config,
-          headers: IMAGE_HEADERS,
+          headers: { ...IMAGE_HEADERS },
           validateStatus: (s: number) => s >= 200 && s < 500,
         }),
       REDIRECT_LIMIT,
@@ -542,7 +582,7 @@ async function fallbackBoundedGetValidation(
       (target, config) =>
         axios.get(target, {
           ...config,
-          headers: IMAGE_HEADERS,
+          headers: { ...IMAGE_HEADERS },
           responseType: 'arraybuffer',
           maxContentLength: MAX_IMAGE_BYTES,
           validateStatus: (s: number) => s >= 200 && s < 300,
@@ -576,7 +616,7 @@ async function fallbackBoundedGetValidation(
  */
 export function heuristicFallback(
   url: string,
-  context: { altText?: string; ogContext?: string; sourcePage?: string; isSiteLogo?: boolean } = {},
+  context: { altText?: string; ogContext?: string; sourcePage?: string; isSiteLogo?: boolean; contextText?: string } = {},
 ): { category: DiscoveredAssetCategory; confidence: number; recommended: boolean } {
   return classifyAssetCandidate({
     url,
@@ -584,6 +624,7 @@ export function heuristicFallback(
     ogContext: context.ogContext,
     sourcePage: context.sourcePage,
     isSiteLogo: context.isSiteLogo,
+    contextText: context.contextText,
   })
 }
 
@@ -595,7 +636,7 @@ export async function classifyImage(
   url: string,
   openAiKey?: string,
   model = getBusinessAssetClassificationModel(),
-  context: { altText?: string; ogContext?: string; sourcePage?: string; isSiteLogo?: boolean } = {},
+  context: { altText?: string; ogContext?: string; sourcePage?: string; isSiteLogo?: boolean; contextText?: string } = {},
 ): Promise<{ category: DiscoveredAssetCategory; confidence: number; recommended: boolean } | null> {
   // A proven site logo is not a judgement call: the site itself says which
   // image is its brand mark, so the name-based rules (and the vision call)
@@ -719,6 +760,27 @@ export async function runWithConcurrency<T, R>(
   return results
 }
 
+/** Runs find-similar propagation over discovered assets, in place. */
+function applySimilarCategories(assets: DiscoveredAsset[]): void {
+  const items = assets.map((asset) => ({
+    asset,
+    similarGroup: asset.similarGroup,
+    category: asset.category,
+    confidence: asset.confidence ?? 0,
+    recommended: asset.recommended,
+  }))
+  propagateSimilarCategories(items)
+  for (const item of items) {
+    if (item.category === item.asset.category) continue
+    item.asset.category = item.category
+    item.asset.confidence = item.confidence
+    item.asset.qualityScore = item.confidence
+    item.asset.relevanceScore = item.confidence
+    item.asset.recommended = item.recommended
+    item.asset.selected = item.recommended
+  }
+}
+
 export async function discoverBusinessAssets(options: DiscoveryOptions): Promise<DiscoveredAsset[]> {
   const {
     websiteUrl,
@@ -735,6 +797,11 @@ export async function discoverBusinessAssets(options: DiscoveryOptions): Promise
   const homeHtml = await fetchPage(baseUrl, deadlineAt)
   if (!homeHtml) {
     return []
+  }
+  try {
+    options.onHomeHtml?.(homeHtml)
+  } catch {
+    // An observer must never break the crawl.
   }
 
   const allCandidates: ImageCandidate[] = []
@@ -816,6 +883,7 @@ export async function discoverBusinessAssets(options: DiscoveryOptions): Promise
           ogContext: candidate.ogContext,
           sourcePage: candidate.sourcePage,
           isSiteLogo: candidate.isSiteLogo,
+          contextText: candidate.contextText,
         })
           .then((classification) => ({ candidate, classification }))
           .catch(() => ({ candidate, classification: null as any })),
@@ -843,9 +911,15 @@ export async function discoverBusinessAssets(options: DiscoveryOptions): Promise
         altText: candidate.altText,
         ogContext: candidate.ogContext,
         isSiteLogo: candidate.isSiteLogo,
+        contextText: candidate.contextText,
+        similarGroup: candidate.similarGroup,
       })
     }
   }
+
+  // Find-similar: unsure members of a repeated list (a product grid, a team
+  // list) take the category their confidently classified siblings share.
+  applySimilarCategories(results)
 
   const discoveryMode = 'STATIC_ONLY'
   console.log(`[discovery] mode=${discoveryMode} staticCandidates=${uniqueCandidates.length} validated=${validCandidates.length} classified=${results.length} final=${results.length}`)
@@ -863,7 +937,7 @@ export async function downloadImage(url: string, deadlineAt?: number): Promise<{
       (target, config) =>
         axios.get(target, {
           ...config,
-          headers: IMAGE_HEADERS,
+          headers: { ...IMAGE_HEADERS },
           responseType: 'arraybuffer',
           maxContentLength: MAX_IMAGE_BYTES,
           validateStatus: (s: number) => s >= 200 && s < 300,

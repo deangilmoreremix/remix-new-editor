@@ -25,3 +25,6 @@ export const OVERRIDES = {
 };
 // identifiers that are optional props: undefined makes the component use its own content
 export const UNDEFINED_OK = ['messages', 'sections'];
+
+// wrapper effects whose only visible text is the demo child: that text becomes editable fields text1, text2, ... (demos.mjs / catalog.mjs)
+export const TEXT_WRAPPERS = ['blur-in', 'shake-emphasis', 'slide-left', 'stagger-children', 'blur-focus-in', 'fade-in', 'fade-out', 'scale-in', 'rotate-in', 'skew-in', 'slide-up', 'spring-in', 'squash-stretch', 'tracking-in', 'strikethrough-replace'];

@@ -2,6 +2,7 @@
 // search + category filter + cards; the chosen animation is added to the overlay lane at the playhead.
 // Previews run in the editor's sandboxed code-preview frame (never in this page).
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { pickPlaying } from '@cinegen/lib/hyperframes/autoplay';
 import { hyperframesItems, searchHyperframes, hyperframesOverlayLayer, createHyperframesOverlay, type HfItem } from '@cinegen/lib/hyperframes/overlay';
 
 const FPS = 30;
@@ -20,7 +21,7 @@ export const GROUPS: Array<[string, string[]]> = [
 export const RUI_CATEGORIES = ['Scenes', 'Primitives', 'Compositions', 'Data & media', 'Paths & shapes', 'Motion graphics', 'Maps & device', '3D', 'Shaders'];
 export const groupOf = (i: HfItem): string => (i.type === 'remotionui' ? i.category : (GROUPS.find(([, cats]) => cats.includes(i.category))?.[0] ?? 'More'));
 const typeOf = (i: HfItem): string => (i.type === 'remotionui' ? 'block' : (i.type ?? 'block'));
-export const thumbOf = (id: string): string => `/hyperframes/thumbs/${id.replace(':', '-')}.jpg`;
+export const thumbOf = (id: string): string => `/hyperframes/thumbs/${id.replace(/:/g, '-')}.jpg`;
 
 function Preview({ item }: { item: HfItem }) {
   const host = useRef<HTMLDivElement>(null);
@@ -55,12 +56,34 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
   const [type, setType] = useState('all');
   const [ratio, setRatio] = useState('all');
   const [hover, setHover] = useState<string | null>(null);
-  const [live, setLive] = useState<string | null>(null); // the hovered card starts its live preview after a short pause
-  useEffect(() => { setLive(null); if (!hover) return undefined; const t = window.setTimeout(() => setLive(hover), 350); return () => window.clearTimeout(t); }, [hover]);
+  const [visible, setVisible] = useState<Set<string>>(new Set());
+  const [started, setStarted] = useState<Set<string>>(new Set()); // cards whose preview has been started (staggered)
+  const [auto, setAuto] = useState<boolean>(() => {
+    try { if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false; return localStorage.getItem('remix.animations.autoplay') !== '0'; } catch { return true; }
+  });
+  const gridRef = useRef<HTMLDivElement>(null);
+  const seen = useRef<Set<string>>(new Set());
+  const observer = useRef<IntersectionObserver | null>(null);
+  useEffect(() => {
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) { const id = (e.target as HTMLElement).dataset.cardId; if (!id) continue; if (e.isIntersecting) seen.current.add(id); else seen.current.delete(id); }
+      setVisible(new Set(seen.current));
+    }, { root: gridRef.current, threshold: 0.6 });
+    observer.current = io;
+    return () => { io.disconnect(); observer.current = null; seen.current.clear(); };
+  }, []);
+  const cardRef = (id: string) => (el: HTMLElement | null) => { if (!el) return; el.dataset.cardId = id; observer.current?.observe(el); };
   const counts = useMemo(() => { const m = new Map<string, number>(); for (const i of all) m.set(groupOf(i), (m.get(groupOf(i)) ?? 0) + 1); return m; }, [all]);
   const tags = useMemo(() => ['All', ...[...GROUPS.map(([g]) => g), ...RUI_CATEGORIES.filter((g) => !GROUPS.some(([n]) => n === g)), 'More'].filter((g) => counts.has(g))], [counts]);
   const types = useMemo(() => [...new Set(all.map(typeOf))], [all]);
   const list = searchHyperframes(all, q, 'all').filter((i) => (tag === 'all' || groupOf(i) === tag) && (type === 'all' || typeOf(i) === type) && (ratio === 'all' || aspectOf(i.dimensions.width, i.dimensions.height) === ratio));
+  const wanted = pickPlaying(list.map((i) => i.id), auto ? visible : new Set<string>(), hover).join('|');
+  useEffect(() => { // start new previews one after another so several renderers don't spin up in the same frame
+    const ids = wanted ? wanted.split('|') : [];
+    setStarted((prev) => new Set([...prev].filter((id) => ids.includes(id))));
+    const timers = ids.map((id, n) => window.setTimeout(() => setStarted((prev) => (prev.has(id) ? prev : new Set(prev).add(id))), id === hover ? 350 : 150 * n));
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, [wanted, hover]);
   // Layout follows the Personalize modal's demo picker: header, rounded panel, category pills with count badges, labelled filters, big cards.
   return (
     <div role="dialog" aria-label="Animations" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
@@ -80,7 +103,8 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
             <span style={{ flex: 1 }} />
             <span style={{ fontSize: 12, opacity: 0.6 }}>{all.length} animations</span>
           </div>
-          <div style={{ fontSize: 12, opacity: 0.65, margin: '4px 0 12px' }}>Hover a card to preview it. Click to add it to the timeline.</div>
+          <div style={{ fontSize: 12, opacity: 0.65, margin: '4px 0 12px', display: 'flex', alignItems: 'center' }}><span>Previews play as you scroll. Click a card to add it to the timeline.</span>
+            <label style={{ fontSize: 12, opacity: 0.8, marginLeft: 12, cursor: 'pointer' }}><input type="checkbox" checked={auto} onChange={(e) => { setAuto(e.target.checked); try { localStorage.setItem('remix.animations.autoplay', e.target.checked ? '1' : '0'); } catch { /* ignore */ } }} /> Auto-play previews</label></div>
           <div role="tablist" aria-label="Categories" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
             {tags.map((c) => {
               const on = tag === (c === 'All' ? 'all' : c);
@@ -99,13 +123,13 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
             <div><div style={label}>Aspect ratio</div><select aria-label="Aspect ratio" value={ratio} onChange={(e) => setRatio(e.target.value)} style={field}><option value="all">All aspect ratios</option><option value="16:9">16:9 landscape</option><option value="9:16">9:16 portrait</option><option value="1:1">1:1 square</option></select></div>
           </div>
           <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>Showing {list.length} of {all.length} animations</div>
-          <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0 }}>
+          <div ref={gridRef} style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0 }}>
             {list.map((i) => (
-              <button key={i.id} className="hf-card2" onMouseEnter={() => setHover(i.id)} onMouseLeave={() => setHover(null)} onClick={() => onPick(i)} aria-label={i.title} data-testid={`animation-${i.id}`}
+              <button key={i.id} ref={cardRef(i.id)} className="hf-card2" onMouseEnter={() => setHover(i.id)} onMouseLeave={() => setHover(null)} onClick={() => onPick(i)} aria-label={i.title} data-testid={`animation-${i.id}`}
                 style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' }}>
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
                   <img src={thumbOf(i.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
-                  {live === i.id && <div style={{ position: 'absolute', inset: 0, background: '#000' }}><Preview item={i} /></div>}
+                  {started.has(i.id) && <div style={{ position: 'absolute', inset: 0, background: '#000' }}><Preview item={i} /></div>}
                   <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{TYPE_LABEL[typeOf(i)]}</span>
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 700, marginTop: 10 }}>{i.title}</div>

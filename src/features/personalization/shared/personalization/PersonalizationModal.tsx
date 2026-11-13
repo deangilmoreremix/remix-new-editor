@@ -21,6 +21,7 @@
 
 'use client'
 
+import { RECAST_MAX_SECONDS } from './recast/recastJob'
 import {
   useState,
   useRef,
@@ -42,11 +43,27 @@ import {
   Share2,
   SlidersHorizontal,
 } from 'lucide-react'
-import { useDemoPersonalize } from './DemoPersonalizeProvider'
+import { DEFAULT_ADVANCED_SECTIONS, useDemoPersonalize } from './DemoPersonalizeProvider'
+import type { AutoFillKey } from './businessContentFromResearch'
+import type { AdvancedEditingSections, AdvancedEditingTab } from './types'
+import {
+  AdvancedPreviewColumn,
+  AdvancedSectionPanel,
+  AdvancedSectionPills,
+  AdvancedStepBar,
+  AdvancedTabFooter,
+  AdvancedTabPanel,
+  SECTION_LOCATION,
+} from './advanced/AdvancedWorkspace'
+import { FullBodyRecastSection } from './advanced/FullBodyRecastPanel'
+import { ReadinessChecklist, blockingByTab, focusRequirementControl, requirementLocation } from './advanced/ReadinessChecklist'
+import { validateProjectRequirements } from './ai/toolExecutor'
+import { chooseFinalOutputPath } from './finalOutput'
+import type { AIMissingRequirement } from './ai/types'
 import type { PersonalizationAsset, DiscoveredAsset, DiscoveredAssetCategory, AssignedSection, AssetRole, PersonalizationVisionAnalysis, BusinessDiscoveryRecord, BusinessOwnership, PersonalizationSource } from './types'
 import { LEAD_STAGES, isLeadStage } from './leadStages'
 import { ownershipBadgeStyle, ownershipLabel } from './ownershipBadge'
-import { resolveModelCapabilities, FACE_SWAP_MODEL, FULL_BODY_MODEL, DEFAULT_T2V_MODEL, DEFAULT_I2I_MODEL } from './modelCapabilityResolver'
+import { modelForGeneration, resolveModelCapabilities } from './modelCapabilityResolver'
 import { getModelById, getVideoModelById } from '@ohb/packages/studio/src/models.js'
 import { NICHE_CONTENT } from '@ohb/data/nicheContent'
 import { BUSINESS_NICHES } from './businessNiches'
@@ -56,13 +73,14 @@ import ImageEditorModal, {
 } from './image-editor/ImageEditorModal'
 import { makeDiscoveredAssetVideoReady } from './image-editor/batchVideoReady'
 import { isImageEditSupported } from './image-editor/imageEditSupport'
-import { DiscoveredAssetGrid } from './DiscoveredAssetGrid'
+import { DiscoveredAssetGrid, type DiscoveredAssetDropZone } from './DiscoveredAssetGrid'
 import { ResumeProjectBanner } from './ResumeProjectBanner'
 import { SimpleModeWizard } from './guided/SimpleModeWizard'
-import { C } from './guided/tokens'
 import { OverlayEditor } from './guided/OverlayEditor'
 import { buildPreviewInput } from './guided/buildPreviewInput'
 import { BeforeAfterPreview } from './preview/BeforeAfterPreview'
+import { isOwnedWebsite } from './websiteClassification'
+import { C } from './guided/tokens'
 
 // ── Design tokens: shared remix palette (see guided/tokens.ts) ──────────────
 
@@ -180,19 +198,41 @@ function isUsableImageSource(url?: string): boolean {
   }
 }
 
-function Field({ label, value, placeholder, onChange, full = false }: { label: string; value: string | undefined | null; placeholder: string; onChange: (v: string) => void; full?: boolean }) {
+function Field({ label, value, placeholder, onChange, full = false, autoFilled = false, required = false, focusId }: { label: string; value: string | undefined | null; placeholder: string; onChange: (v: string) => void; full?: boolean; autoFilled?: boolean; required?: boolean; focusId?: string }) {
+  const missing = required && !String(value || '').trim()
   return (
-    <div className={full ? 'col-span-full' : ''}>
-      <label style={{ display: 'block', marginBottom: 6, color: C.muted, fontSize: 10 }}>{label}</label>
+    <div className={full ? 'col-span-full' : ''} data-pz-focus={focusId}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, color: C.muted, fontSize: 10 }}>
+        {label}
+        {required && (
+          <span
+            data-testid="pz-required-tag"
+            style={{ padding: '1px 6px', borderRadius: 999, background: 'rgba(251,191,36,.1)', border: '1px solid rgba(251,191,36,.35)', color: '#fcd34d', fontSize: 9, fontWeight: 700 }}
+          >
+            Required
+          </span>
+        )}
+        {autoFilled && (
+          <span
+            data-testid="pz-autofilled-tag"
+            title="Loaded from the business website. Edit to replace it."
+            style={{ padding: '1px 6px', borderRadius: 999, background: C.cyanSoft, border: `1px solid ${C.cyanBorder}`, color: C.cyan, fontSize: 9, fontWeight: 700 }}
+          >
+            from website
+          </span>
+        )}
+      </label>
       <input
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        aria-label={label}
+        aria-required={required || undefined}
         className="w-full outline-none"
         style={{
           minHeight: 40,
           padding: '0 11px',
-          border: `1px solid ${C.border}`,
+          border: `1px solid ${missing ? 'rgba(251,191,36,.45)' : C.border}`,
           borderRadius: 8,
           background: C.field,
           color: C.text,
@@ -214,12 +254,17 @@ function isModeUnavailable(modeKey: string, assets: { primaryIdentity?: Personal
 
 function getModeUnavailableReason(modeKey: string, assets: { primaryIdentity?: PersonalizationAsset | null; identities?: PersonalizationAsset[] }): string {
   if (modeKey === 'face_only' || modeKey === 'replace_face') {
-    return 'Requires a person/identity photo.'
+    return 'Needs a clear photo of the person\'s face — add one under Assets › Your assets › Person / Presenter.'
   }
   if (modeKey === 'full_body' || modeKey === 'replace_person') {
-    return 'Requires a person/identity photo.'
+    return 'Needs a full-body photo of the person — add one under Assets › Your assets › Person / Presenter.'
   }
   return 'Not available for the current source/model.'
+}
+
+/** Modes that a presenter photo unlocks (the "Add a presenter photo" link). */
+function modeNeedsPresenter(modeKey: string): boolean {
+  return ['face_only', 'replace_face', 'full_body', 'replace_person'].includes(modeKey)
 }
 
 // ── Reusable sub-components ──────────────────────────────────────────────────
@@ -235,6 +280,8 @@ function UploadZone({
   urlLabel,
   urlPlaceholder,
   onUrl,
+  collapsed = false,
+  addLabel = '+ Add more',
 }: {
   primary: string
   secondary?: string
@@ -245,10 +292,14 @@ function UploadZone({
   urlLabel?: string
   urlPlaceholder?: string
   onUrl?: (url: string) => void
+  /** The card already has images: show one compact row until it is opened. */
+  collapsed?: boolean
+  addLabel?: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const [urlValue, setUrlValue] = useState('')
+  const [expanded, setExpanded] = useState(false)
 
   const handleDragOver = useCallback((e: DragEvent) => {
     e.preventDefault()
@@ -285,6 +336,33 @@ function UploadZone({
       handleUrlSubmit()
     }
   }, [handleUrlSubmit])
+
+  if (collapsed && !expanded) {
+    // Filled card: the URL box and big dropzone fold into one row (files can
+    // still be dropped on it).
+    return (
+      <button
+        type="button"
+        data-testid="pz-upload-collapsed"
+        data-pz-upload-zone
+        onClick={() => setExpanded(true)}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        disabled={disabled}
+        className="w-full rounded-[10px] border border-dashed text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
+        style={{
+          minHeight: 36,
+          borderColor: isDragOver ? C.cyanBorder : 'rgba(255,255,255,.22)',
+          background: isDragOver ? 'rgba(217,255,0,.06)' : 'transparent',
+          color: C.cyan,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+        }}
+      >
+        {disabled ? 'Limit reached — remove one to add another' : isDragOver ? 'Drop to add' : addLabel}
+      </button>
+    )
+  }
 
   return (
     <div>
@@ -326,6 +404,7 @@ function UploadZone({
         </div>
       )}
       <div
+        data-pz-upload-zone
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -367,13 +446,17 @@ function UploadZone({
 }
 
 /** Thumb pill for placeholder slots in the asset cards. */
-function ThumbPlaceholder({ label, add = false, onClick }: { label: string; add?: boolean; onClick?: () => void }) {
+function ThumbPlaceholder({ label, add = false, onClick, title }: { label: string; add?: boolean; onClick?: () => void; title?: string }) {
+  // Clickable slots are real buttons (keyboard + screen readers); the label
+  // says what kind of photo goes there.
+  const Tag = onClick ? 'button' : 'div'
   return (
-    <div
+    <Tag
+      {...(onClick ? { type: 'button' as const, 'aria-label': title || (add ? 'Add' : `Add ${label.toLowerCase()} photo`), title: title || (add ? undefined : `Add a ${label.toLowerCase()} photo`) } : {})}
       onClick={onClick}
       className={classNames(
         'w-[82px] min-h-[86px] rounded-[9px] border overflow-hidden flex items-end justify-center p-1.5 text-[9px] font-extrabold',
-        add && onClick && 'cursor-pointer',
+        onClick && 'cursor-pointer hover:brightness-125',
       )}
       style={{
         borderColor: add ? 'rgba(255,255,255,.22)' : C.border,
@@ -386,7 +469,7 @@ function ThumbPlaceholder({ label, add = false, onClick }: { label: string; add?
       }}
     >
       {label}
-    </div>
+    </Tag>
   )
 }
 
@@ -400,6 +483,7 @@ function ThumbUploaded({
   onRetry,
   onEdit,
   onRevert,
+  onMakePrimary,
   onMoveToSection,
   light = false,
   draggable = false,
@@ -412,6 +496,8 @@ function ThumbUploaded({
   onRetry?: () => void
   onEdit?: () => void
   onRevert?: () => void
+  /** Shown when this isn't the primary photo/logo yet. */
+  onMakePrimary?: () => void
   onMoveToSection?: (section: AssignedSection) => void
   light?: boolean
   draggable?: boolean
@@ -476,10 +562,12 @@ function ThumbUploaded({
         </button>
       )}
       {asset.edited && onRevert && (
+        // Left column (Edit / Primary / Revert), clear of the Remove ✕ in the
+        // top-right and the section menu along the bottom.
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onRevert() }}
-          className="absolute right-1 top-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
+          className="absolute left-1 top-11 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
           style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
           aria-label="Revert to original"
         >
@@ -491,12 +579,26 @@ function ThumbUploaded({
           {label}
         </span>
       )}
-      {onRemove && !isError && (
+      {onMakePrimary && isReady && (
+        <button
+          type="button"
+          data-testid="pz-make-primary"
+          onClick={(e) => { e.stopPropagation(); onMakePrimary() }}
+          className="absolute left-1 top-6 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+          style={{ background: 'rgba(0,0,0,.75)', color: C.cyan }}
+          aria-label="Make primary"
+        >
+          ★ Primary
+        </button>
+      )}
+      {/* Failed uploads can be removed too, not only retried. */}
+      {onRemove && (
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onRemove() }}
-          className="absolute top-0.5 right-0.5 z-20 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+          className={`absolute top-0.5 right-0.5 z-20 rounded-full p-0.5 transition-opacity ${isError ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
           style={{ background: 'rgba(239,68,68,.85)' }}
+          aria-label="Remove"
         >
           <X size={8} className="text-white" />
         </button>
@@ -513,7 +615,8 @@ function ThumbUploaded({
               if (e.target.value) onMoveToSection(e.target.value as AssignedSection)
             }}
             onClick={(e) => e.stopPropagation()}
-            className="text-[7px] font-bold rounded px-0.5 py-0.5 outline-none"
+            // Narrow, so it stays in its corner and doesn't cover the buttons.
+            className="text-[7px] font-bold rounded px-0.5 py-0.5 outline-none max-w-[46px]"
             style={{
               background: 'rgba(0,0,0,.7)',
               color: 'white',
@@ -623,6 +726,9 @@ export default function PersonalizationModal() {
     businessResearch,
     findBusinesses,
     selectBusiness,
+    resolveBusinessWebsite,
+    websiteLookup,
+    setDiscoveryError,
     researchBusiness,
     clearBusinessSearch,
     setBusinessSearchMode,
@@ -634,6 +740,7 @@ export default function PersonalizationModal() {
     setOutputType,
     mode,
     setMode,
+    creationMethod,
     genOptions,
     updateGenOptions,
     generation,
@@ -671,7 +778,8 @@ export default function PersonalizationModal() {
   const isAnonymous = access !== 'authenticated'
 
   const [showAdvanced, setShowAdvanced] = useState(false)
-  const [copiedPrompt, setCopiedPrompt] = useState(false)
+  // true = copied, 'failed' = the browser refused the clipboard.
+  const [copiedPrompt, setCopiedPrompt] = useState<boolean | 'failed'>(false)
   const [isPersonalizing, setIsPersonalizing] = useState(false)
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -759,6 +867,9 @@ export default function PersonalizationModal() {
     setDragOverSection(null)
     setDragPayload(null)
 
+    // A file dropped on the card's own upload area is handled there.
+    if ((e.target as HTMLElement | null)?.closest?.('[data-pz-upload-zone]')) return
+
     // Reject arbitrary text/HTML drops
     const hasText = e.dataTransfer.types.includes('text/plain') || e.dataTransfer.types.includes('text/html')
     const hasJson = e.dataTransfer.types.includes('application/json')
@@ -824,7 +935,8 @@ export default function PersonalizationModal() {
     // section cards show imported assets, so the drop looked like it failed.
     if (source === 'discovered') {
       moveDiscoveredAssetToSection(assetId, section as AssignedSection)
-      void importDiscoveredAssets({ ids: [assetId], section: section as AssignedSection })
+      // Importing needs an account; visitors only rearrange the grid.
+      if (!isAnonymous) void importDiscoveredAssets({ ids: [assetId], section: section as AssignedSection })
       return
     }
 
@@ -845,7 +957,7 @@ export default function PersonalizationModal() {
 
     // Handle current job assets: move between sections
     moveLibraryAssetToSection(assetId, section as AssignedSection)
-  }, [importDiscoveredAssets, moveDiscoveredAssetToSection, moveLibraryAssetToSection, selectSavedAsset])
+  }, [importDiscoveredAssets, isAnonymous, moveDiscoveredAssetToSection, moveLibraryAssetToSection, selectSavedAsset])
 
   // ── Focus trap & Escape ──────────────────────────────────────────────────
 
@@ -1155,17 +1267,9 @@ export default function PersonalizationModal() {
   const outputOptions = isVideo ? OUTPUT_OPTIONS_VIDEO : isImage ? OUTPUT_OPTIONS_IMAGE : OUTPUT_OPTIONS_PROMPT
   const showModes = outputType !== 'prompt' && eligibleModes.length > 0
 
-  const effectiveModelId =
-    genOptions.advancedModel ||
-    genOptions.model ||
-    source.model ||
-    (isVideo
-      ? mode === 'face_only'
-        ? FACE_SWAP_MODEL
-        : mode === 'full_body'
-          ? FULL_BODY_MODEL
-          : DEFAULT_T2V_MODEL
-      : DEFAULT_I2I_MODEL)
+  // The model a run will really call (Face only / Full presenter always use
+  // their own), so the settings shown are the ones that model takes.
+  const effectiveModelId = modelForGeneration(source, genOptions, mode)
 
   const capabilities = resolveModelCapabilities(source, { ...genOptions, model: effectiveModelId })
 
@@ -1262,8 +1366,10 @@ export default function PersonalizationModal() {
     try {
       await navigator.clipboard.writeText(text)
       setCopiedPrompt(true)
-      setTimeout(() => setCopiedPrompt(false), 1800)
-    } catch { /* ignore */ }
+    } catch {
+      setCopiedPrompt('failed')
+    }
+    setTimeout(() => setCopiedPrompt(false), 1800)
   }, [promptState])
 
   const handlePersonalize = useCallback(async () => {
@@ -1278,6 +1384,23 @@ export default function PersonalizationModal() {
     try { await personalizePrompt() } finally { if (mountedRef.current) setIsRegenerating(false) }
   }, [personalizePrompt])
 
+  const brandedRenderInWizard =
+    simpleModeActive &&
+    ctx.guidedStep === 4 &&
+    chooseFinalOutputPath({ personalizationMode: mode || null }) === 'branded-render' &&
+    (generation.status === 'generating' ||
+      generation.status === 'processing' ||
+      generation.status === 'error' ||
+      (generation.status === 'complete' && result?.metadata?.source === 'branded-render'))
+
+  // Advanced Editing is the body: on wide screens the dialog becomes a fixed
+  // frame whose panes scroll on their own (see advanced/AdvancedWorkspace.tsx).
+  const advancedFrame =
+    !(generation.status === 'complete' && result) &&
+    generation.status !== 'error' &&
+    !personalizationInProgress &&
+    !simpleModeActive
+
   const generateLabel = outputType === 'prompt'
     ? '✦ Personalize Prompt'
     : outputType === 'image'
@@ -1285,6 +1408,17 @@ export default function PersonalizationModal() {
     : outputType === 'video'
     ? '✦ Personalize Video'
     : '✦ Generate Everything'
+
+  // What is still missing, shown before the click (checklist, step bar, footer).
+  const projectRequirements = validateProjectRequirements(ctx)
+  const blockingRequirement = projectRequirements.find((r) => r.severity === 'error' && requirementLocation(r.field))
+  const fixRequirement = (field: string) => {
+    const location = requirementLocation(field)
+    if (!location) return
+    ctx.setAdvancedSection?.(location.tab, location.section)
+    ctx.setAdvancedTab?.(location.tab)
+    focusRequirementControl(location.focus)
+  }
 
   return (
       <div
@@ -1305,7 +1439,7 @@ export default function PersonalizationModal() {
         aria-modal="true"
         aria-labelledby="personalize-title"
         tabIndex={-1}
-        className="w-full overflow-hidden shadow-2xl flex flex-col"
+        className={`w-full overflow-hidden shadow-2xl flex flex-col ${advancedFrame ? (isFullscreen ? 'xl:h-screen' : 'xl:h-[90vh]') : ''}`}
         style={{
           background: C.modal,
           border: isFullscreen ? 'none' : `1px solid ${C.borderStrong}`,
@@ -1318,10 +1452,10 @@ export default function PersonalizationModal() {
       >
         {/* ── HEADER ─────────────────────────────────────────────────── */}
         <header
-          className="flex items-start justify-between gap-6 flex-shrink-0"
-          style={{ padding: '24px 28px', borderBottom: `1px solid ${C.border}` }}
+          className="flex items-start justify-between gap-3 md:gap-6 flex-shrink-0"
+          style={{ padding: advancedFrame ? '12px 24px' : '24px 28px', borderBottom: `1px solid ${C.border}` }}
         >
-          <div className="flex gap-3.5 min-w-0">
+          <div className="flex gap-3.5 min-w-0 flex-1">
             <div
               className="w-[42px] h-[42px] rounded-[13px] flex items-center justify-center flex-shrink-0"
               style={{ background: C.cyanSoft, color: C.cyan, fontSize: 20 }}
@@ -1335,17 +1469,28 @@ export default function PersonalizationModal() {
                   style={{ color: C.text }}
                 >
                   {niche ? niche.ctaHeading : source.sourceMetadata?.freeDiscovery ? 'Find My Brand' : 'Personalize this demo'}
+                  {advancedFrame && (clientForm.businessName || clientForm.name) && (
+                    <span
+                      data-testid="pz-header-business"
+                      className="ml-2.5 align-middle"
+                      style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 999, border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan, fontSize: 11, fontWeight: 800, letterSpacing: 0 }}
+                    >
+                      {clientForm.businessName || clientForm.name}
+                    </span>
+                  )}
                 </h1>
+                {/* The intro is hidden in Advanced Editing (it needs the room)
+                    and on phones (it pushed the title into the buttons). */}
                 {niche ? (
                   <p
-                    className="mt-1.5 max-w-[900px] text-[13px] leading-[1.55]"
+                    className={`${advancedFrame ? 'hidden' : 'hidden md:block'} mt-1.5 max-w-[900px] text-[13px] leading-[1.55]`}
                     style={{ color: C.muted }}
                   >
                     {renderStrongMarkup(niche.ctaBody)}
                   </p>
                 ) : (
                   <p
-                    className="mt-1.5 max-w-[900px] text-[13px] leading-[1.55]"
+                    className={`${advancedFrame ? 'hidden' : 'hidden md:block'} mt-1.5 max-w-[900px] text-[13px] leading-[1.55]`}
                     style={{ color: C.muted }}
                   >
                     {isAnonymous
@@ -1355,53 +1500,73 @@ export default function PersonalizationModal() {
                 )}
               </div>
           </div>
-          <button
-            type="button"
-            onClick={closePersonalize}
-            disabled={personalizationInProgress}
-            className="w-[38px] h-[38px] border-0 rounded-[10px] text-[22px] flex items-center justify-center transition-colors disabled:opacity-50 flex-shrink-0"
-            style={{ background: 'transparent', color: C.muted }}
-            aria-label="Close personalization modal"
-          >
-            ×
-          </button>
-          {guidedApiAvailable && (
+          {/* Actions stay together on the right, so the title never runs under them. */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Prompt-only sources have no Simple Mode, so no toggle. */}
+            {guidedApiAvailable && source.mediaType !== 'prompt-only' && (
+              <button
+                type="button"
+                onClick={() => setViewMode(viewMode === 'simple' ? 'advanced' : 'simple')}
+                disabled={personalizationInProgress}
+                className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide flex items-center gap-1.5 transition-colors disabled:opacity-50 flex-shrink-0"
+                style={{
+                  minHeight: 38,
+                  padding: '0 13px',
+                  border: `1px solid ${C.border}`,
+                  background: 'transparent',
+                  color: C.muted,
+                }}
+              >
+                <SlidersHorizontal size={13} />
+                {/* Icon-only on phones; the label stays the button's name. */}
+                <span className="sr-only sm:not-sr-only">{viewMode === 'simple' ? 'Advanced Editing' : 'Simple Mode'}</span>
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setViewMode(viewMode === 'simple' ? 'advanced' : 'simple')}
-              disabled={personalizationInProgress}
-              className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide flex items-center gap-1.5 transition-colors disabled:opacity-50 flex-shrink-0"
-              style={{
-                minHeight: 38,
-                padding: '0 13px',
-                border: `1px solid ${C.border}`,
-                background: 'transparent',
-                color: C.muted,
-              }}
+              onClick={() => setIsFullscreen((prev) => !prev)}
+              className="w-[38px] h-[38px] border-0 rounded-[10px] text-[18px] flex items-center justify-center transition-colors flex-shrink-0"
+              style={{ background: 'transparent', color: C.muted }}
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Expand to fullscreen'}
+              aria-pressed={isFullscreen}
             >
-              <SlidersHorizontal size={13} />
-              {viewMode === 'simple' ? 'Advanced Editing' : 'Simple Mode'}
+              {isFullscreen ? '🗗' : '⛶'}
             </button>
-          )}
-          <button
-            type="button"
-            onClick={() => setIsFullscreen((prev) => !prev)}
-            className="w-[38px] h-[38px] border-0 rounded-[10px] text-[18px] flex items-center justify-center transition-colors flex-shrink-0"
-            style={{ background: 'transparent', color: C.muted }}
-            aria-label={isFullscreen ? 'Exit fullscreen' : 'Expand to fullscreen'}
-            aria-pressed={isFullscreen}
-          >
-            {isFullscreen ? '🗗' : '⛶'}
-          </button>
+            <button
+              type="button"
+              onClick={closePersonalize}
+              disabled={personalizationInProgress}
+              className="w-[38px] h-[38px] border-0 rounded-[10px] text-[22px] flex items-center justify-center transition-colors disabled:opacity-50 flex-shrink-0"
+              style={{ background: 'transparent', color: C.muted }}
+              aria-label="Close personalization modal"
+            >
+              ×
+            </button>
+          </div>
         </header>
 
         {/* ── BODY ──────────────────────────────────────────────────── */}
         <main
-          className="flex-1 overflow-y-auto"
+          className={`flex-1 overflow-y-auto ${advancedFrame ? 'xl:overflow-hidden xl:flex xl:flex-col xl:min-h-0' : ''}`}
+          data-pz-scroll-root
           style={{ padding: '0 26px' }}
         >
-          {generation.status === 'complete' && result ? (
+          {/* A reopened project whose saved video is missing the approved
+              layers says so, even before a new result is shown. */}
+          {generation.status !== 'complete' && result?.metadata?.layersMissing === true && typeof result.metadata.layersNote === 'string' && (
+            <div data-testid="pz-layers-note-restored" role="status" className="rounded-xl p-3 text-xs" style={{ margin: '12px 0', border: '1px solid rgba(251,191,36,.35)', background: 'rgba(251,191,36,.06)', color: '#fcd34d' }}>
+              {result.metadata.layersNote}
+            </div>
+          )}
+          {brandedRenderInWizard ? (
+            // A branded render started from Simple Mode stays in Step 4, which
+            // shows its progress, Cancel, any error and Download / Upload.
+            <SimpleModeWizard onEditDiscoveredAsset={isAnonymous ? undefined : openDiscoveredImageEditor} />
+          ) : generation.status === 'complete' && result ? (
             <ResultView
+              canPublish={ctx.canPublish}
+              publishNote={ctx.publishNote}
+              canEditInVideoStudio={ctx.canEditInVideoStudio}
               result={result}
               resultTab={resultTab}
               setResultTab={setResultTab}
@@ -1510,7 +1675,8 @@ export default function PersonalizationModal() {
               updateGenOptions={updateGenOptions}
                generate={generate}
                closePersonalize={closePersonalize}
-               isReadyToGenerate={Boolean((clientForm.businessName || clientForm.name) && (outputType === 'prompt' || mode))}
+               isReadyToGenerate={Boolean((clientForm.businessName || clientForm.name) && (outputType === 'prompt' || mode || creationMethod === 'browser')) && !blockingRequirement}
+               requirements={projectRequirements}
                effectiveModelId={effectiveModelId}
                recommendedModelId={recommendedModelId}
                recommendedModel={recommendedModel}
@@ -1545,6 +1711,9 @@ export default function PersonalizationModal() {
               businessResearch={businessResearch}
               findBusinesses={findBusinesses}
               selectBusiness={selectBusiness}
+              resolveBusinessWebsite={resolveBusinessWebsite}
+              websiteLookup={websiteLookup}
+              setDiscoveryError={setDiscoveryError}
               researchBusiness={researchBusiness}
                clearBusinessSearch={clearBusinessSearch}
                setBusinessSearchMode={setBusinessSearchMode}
@@ -1572,13 +1741,25 @@ export default function PersonalizationModal() {
         {/* Simple Mode replaces the footer with the wizard's own step navigation. */}
         {!isAnonymous && !personalizationInProgress && !simpleModeActive && generation.status !== 'complete' && generation.status !== 'error' && (
           <footer
-            className="flex justify-end gap-2.5 flex-shrink-0"
+            className="flex flex-wrap items-center justify-end gap-2.5 flex-shrink-0"
             style={{
               padding: '18px 26px 22px',
               borderTop: `1px solid ${C.border}`,
               background: '#121212',
             }}
           >
+            {blockingRequirement && (
+              // Why the main button is disabled, and a jump to fix it.
+              <button
+                type="button"
+                data-testid="pz-footer-reason"
+                onClick={() => fixRequirement(blockingRequirement.field)}
+                className="w-full sm:w-auto sm:mr-auto text-left text-[11px] font-bold"
+                style={{ background: 'transparent', border: 0, color: '#fcd34d', cursor: 'pointer', padding: 0 }}
+              >
+                ⚠ {blockingRequirement.message} <span style={{ color: C.cyan, textDecoration: 'underline' }}>Fix it</span>
+              </button>
+            )}
             <button
               onClick={closePersonalize}
               className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide"
@@ -1593,8 +1774,11 @@ export default function PersonalizationModal() {
               Cancel
             </button>
             <button
-              onClick={outputType === 'prompt' ? handlePersonalize : generate}
-              disabled={!((clientForm.businessName || clientForm.name) && (outputType === 'prompt' || mode)) || personalizationInProgress}
+              // Videos go through createFinalVideo, so the on-video layers from
+              // Create › Overlays end up in the file (not only in the preview).
+              onClick={outputType === 'prompt' ? handlePersonalize : outputType === 'image' || !isVideo ? generate : () => { void ctx.createFinalVideo({ approveNow: true }) }}
+              disabled={!((clientForm.businessName || clientForm.name) && (outputType === 'prompt' || mode || creationMethod === 'browser')) || Boolean(blockingRequirement) || personalizationInProgress}
+              title={blockingRequirement ? blockingRequirement.message : undefined}
               className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide disabled:opacity-50"
               style={{
                 minWidth: 190,
@@ -1676,6 +1860,7 @@ function ResultView(props: any) {
     generateAgain, retryBranding, outputType, setOutputType, download,
     editInImageStudio, editInVideoStudio, publish,
     sharedMediaCount, isVideo, eligibleModes, mode, setMode,
+    canPublish = true, canEditInVideoStudio = true, publishNote = '',
   } = props
 
   return (
@@ -1744,9 +1929,15 @@ function ResultView(props: any) {
             <button onClick={editInImageStudio} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
               Edit in Image Studio
             </button>
-            <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
-              <Share2 size={14} /> Publish
-            </button>
+            {/* Only offered where publishing is available on this page. */}
+            {canPublish && (
+              <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
+                <Share2 size={14} /> Publish
+              </button>
+            )}
+            {!canPublish && publishNote && (
+              <span data-testid="pz-publish-note" className="self-center text-xs" style={{ color: C.muted }}>{publishNote}</span>
+            )}
             <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
               <RefreshCw size={14} /> Generate Again
             </button>
@@ -1770,12 +1961,22 @@ function ResultView(props: any) {
             <button onClick={download} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
               <Download size={14} /> Download
             </button>
-            <button onClick={editInVideoStudio} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
-              Edit in Video Studio
-            </button>
-            <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
-              <Share2 size={14} /> Publish
-            </button>
+            {/* Video Studio needs a stored video and a presenter photo (not a
+                video rendered in this browser). */}
+            {canEditInVideoStudio && (
+              <button onClick={editInVideoStudio} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
+                Edit in Video Studio
+              </button>
+            )}
+            {/* Only offered where publishing is available on this page. */}
+            {canPublish && (
+              <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
+                <Share2 size={14} /> Publish
+              </button>
+            )}
+            {!canPublish && publishNote && (
+              <span data-testid="pz-publish-note" className="self-center text-xs" style={{ color: C.muted }}>{publishNote}</span>
+            )}
             <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
               <RefreshCw size={14} /> Generate Again
             </button>
@@ -1789,6 +1990,16 @@ function ResultView(props: any) {
         </div>
       </div>
 
+      {typeof result.metadata?.layersNote === 'string' && (
+        <div data-testid="pz-layers-note" role="status" className="rounded-xl p-3 text-xs" style={{ border: '1px solid rgba(251,191,36,.35)', background: 'rgba(251,191,36,.06)', color: '#fcd34d' }}>
+          {result.metadata.layersNote}
+        </div>
+      )}
+      {result.metadata?.layersBurnedIn === true && (
+        <div data-testid="pz-layers-burned" className="text-xs" style={{ color: C.green }}>
+          ✓ Your on-video layers are in this video, and a copy was downloaded to your device.
+        </div>
+      )}
       {result.metadata?.postProcessingFailed && retryBranding && (
         <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -1838,7 +2049,73 @@ function isAssetInCurrentJob(asset: { id?: string; url?: string; uploadedUrl?: s
   return all.some((a) => a && (a.id === asset.id || a.url === asset.url || a.uploadedUrl === asset.uploadedUrl))
 }
 
+/** Business search results shown per "Show more" page in Advanced Editing. */
+const RESULTS_PAGE = 8
+
+/** Drop targets under the "Found on website" grid in Advanced Editing. */
+const ADVANCED_DROP_ZONES: DiscoveredAssetDropZone[] = [
+  { section: 'person', label: 'Person' },
+  { section: 'logo', label: 'Logo' },
+  { section: 'products', label: 'Products' },
+  { section: 'brand', label: 'Brand' },
+  { section: 'firstFrame', label: 'First frame' },
+  { section: 'lastFrame', label: 'Last frame' },
+  { section: 'ctaGraphic', label: 'CTA graphic' },
+]
+
 function ConfigurationView(props: any) {
+  const {
+    autoFilledKeys,
+    businessLoadSummary,
+    advancedTab: ctxAdvancedTab,
+    setAdvancedTab: ctxSetAdvancedTab,
+    advancedSections: ctxAdvancedSections,
+    setAdvancedSection: ctxSetAdvancedSection,
+    previewVideo: ctxPreviewVideo,
+    creationMethod: ctxCreationMethod,
+    setCreationMethod: ctxSetCreationMethod,
+    moveDiscoveredAssetToSection: ctxMoveDiscoveredAssetToSection,
+    previewSettings: ctxPreviewSettings,
+    promptNotice,
+    updatePreviewComposition: ctxUpdatePreviewComposition,
+  } = useDemoPersonalize()
+  const isAuto = (key: AutoFillKey) => Boolean(autoFilledKeys?.has(key))
+  // Contexts without the tab API (partial test doubles) still get a working
+  // local tab state.
+  const [localAdvancedTab, setLocalAdvancedTab] = useState<AdvancedEditingTab>('client')
+  const advancedTab: AdvancedEditingTab = ctxAdvancedTab || localAdvancedTab
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false)
+  const [localAdvancedSections, setLocalAdvancedSections] = useState<AdvancedEditingSections>(DEFAULT_ADVANCED_SECTIONS)
+  const advancedSections: AdvancedEditingSections = ctxAdvancedSections || localAdvancedSections
+  const activeSection = advancedSections[advancedTab]
+  const scrollToTop = () => {
+    // Start the newly shown section at its top (pane on wide screens, page otherwise).
+    document.querySelector('[data-pz-pane-scroll]')?.scrollTo?.({ top: 0 })
+    document.querySelector('[data-pz-scroll-root]')?.scrollTo?.({ top: 0 })
+  }
+  const selectAdvancedTab = useCallback((tab: AdvancedEditingTab) => {
+    if (typeof ctxSetAdvancedTab === 'function') ctxSetAdvancedTab(tab)
+    else setLocalAdvancedTab(tab)
+    scrollToTop()
+  }, [ctxSetAdvancedTab])
+  const selectAdvancedSection = useCallback((tab: AdvancedEditingTab, section: string) => {
+    if (typeof ctxSetAdvancedSection === 'function') ctxSetAdvancedSection(tab, section)
+    else setLocalAdvancedSections((prev) => ({ ...prev, [tab]: section }))
+    scrollToTop()
+  }, [ctxSetAdvancedSection])
+  /** Show a tab and one of its sections. */
+  const goToSection = useCallback((tab: AdvancedEditingTab, section: string) => {
+    selectAdvancedSection(tab, section)
+    selectAdvancedTab(tab)
+  }, [selectAdvancedSection, selectAdvancedTab])
+  const requirements = (props.requirements || []) as AIMissingRequirement[]
+  /** Open where a missing requirement is fixed and focus that control. */
+  const fixRequirement = (field: string) => {
+    const location = requirementLocation(field)
+    if (!location) return
+    goToSection(location.tab, location.section)
+    focusRequirementControl(location.focus)
+  }
   const {
     source, clients, selectedClientId, clientForm,
     selectClient, saveClient, deleteClient, updateClientForm,
@@ -1876,7 +2153,6 @@ function ConfigurationView(props: any) {
     discoveredAssets,
     discoveryStatus,
     discoveryError,
-    setDiscoveryError,
     importConfirmation,
     setDiscoveredAssets,
     toggleDiscoveredAssetSelection,
@@ -1901,6 +2177,9 @@ function ConfigurationView(props: any) {
     businessResearch,
     findBusinesses,
     selectBusiness,
+    resolveBusinessWebsite,
+    websiteLookup,
+    setDiscoveryError,
     researchBusiness,
     runDiscoveryWorkflow,
     access,
@@ -1929,6 +2208,17 @@ function ConfigurationView(props: any) {
   // affordances exist — the modal never renders a paid action the server has not
   // granted.
   const isAnonymous = access !== 'authenticated'
+  // Face only / Full presenter models set their own resolution and quality.
+  const modelSetsQuality = mode === 'face_only' || mode === 'full_body'
+  // Saved clients are picked one way at a time: the cards (customer audience)
+  // or else the dropdown in the profile form.
+  const showSavedClientCards = !isAnonymous && clientForm.audience === 'customer' && clients.length > 0
+  /** Clear the form for a client that isn't saved yet (keeping who it's for). */
+  const startNewClient = () => {
+    const audience = clientForm.audience
+    selectClient('')
+    if (audience) updateClientForm({ audience })
+  }
   const isFreeDiscovery = isAnonymous && source?.sourceMetadata?.freeDiscovery === true
   // Generation config/output sections only exist for entitled users.
   const showGenerationSections = !isAnonymous && !isPromptOnly
@@ -1942,6 +2232,7 @@ function ConfigurationView(props: any) {
   const [searchNiche, setSearchNiche] = useState('')
   const [searchLocation, setSearchLocation] = useState('')
   const [searchRadius, setSearchRadius] = useState(15)
+  const [clientSaveStatus, setClientSaveStatus] = useState<'saved' | 'error' | null>(null)
 
   const searchFormReady = Boolean(searchNiche && searchLocation.trim())
 
@@ -2079,10 +2370,17 @@ function ConfigurationView(props: any) {
   }, [businessSearchQuery, isAnonymous, savedLeadsLoaded, searchLocation, searchNiche])
 
   const handleDeleteLead = useCallback(async (leadId: string) => {
-    const res = await fetch(`/api/personalization/leads/${leadId}`, {
-      method: 'DELETE',
-      credentials: 'same-origin',
-    })
+    if (!window.confirm('Remove this saved lead?')) return
+    let res: Response
+    try {
+      res = await fetch(`/api/personalization/leads/${leadId}`, {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      })
+    } catch {
+      setSavedLeadsError("Couldn't reach the server — check your connection and try again.")
+      return
+    }
     if (!res.ok) {
       const message = res.status === 401 ? 'Sign in to delete saved leads.' : `Delete failed (HTTP ${res.status})`
       setSavedLeadsError(message)
@@ -2101,6 +2399,9 @@ function ConfigurationView(props: any) {
   // visitor never leaves this modal.
   const [findMyBrandUrl, setFindMyBrandUrl] = useState('')
   const [brandRunInFlight, setBrandRunInFlight] = useState(false)
+  // Long result lists show a page at a time so the section stays short.
+  const [shownResultCount, setShownResultCount] = useState(RESULTS_PAGE)
+  useEffect(() => { setShownResultCount(RESULTS_PAGE) }, [businessSearchResults])
   const brandRunInFlightRef = useRef(false)
 
   const handleFindMyBrand = useCallback(async () => {
@@ -2120,20 +2421,50 @@ function ConfigurationView(props: any) {
   // runs the same automated workflow: populate the client form, research the
   // business and discover its brand assets in one run. Discovery is free for
   // all users — never behind a paid entitlement or plan check.
-  const handleSelectBusiness = useCallback((business: BusinessDiscoveryRecord) => {
-    if (!business.website || !business.website.trim()) {
-      setDiscoveryError('No website is listed for this business. Paste one in the Website field and use Find My Brand.')
+  //
+  // OpenStreetMap often lists only a Facebook/Instagram page as the
+  // "website". Those pages carry none of the business's brand assets, so a
+  // lead without an OWNED website first goes through the free website lookup,
+  // and discovery runs on the business's real site once it is verified.
+  // Each selection takes a new number, and so does unmounting (this view only exists while the modal is
+  // open); a website lookup that finishes after a newer selection or a close is dropped instead of
+  // replacing that newer state.
+  const businessSelectSeqRef = useRef(0)
+  useEffect(() => () => { businessSelectSeqRef.current += 1 }, [])
+  const handleSelectBusiness = useCallback(async (business: BusinessDiscoveryRecord) => {
+    const seq = ++businessSelectSeqRef.current
+    const listed = business.website?.trim()
+    if (listed && isOwnedWebsite(listed)) {
+      // Populate, research and discover in one automated run.
+      void runDiscoveryWorkflow(listed, { business })
       return
     }
-    // Populate, research and discover in one automated run.
-    void runDiscoveryWorkflow(business.website.trim(), { business })
-  }, [runDiscoveryWorkflow, selectBusiness, setDiscoveryError])
+
+    setDiscoveryError(null)
+    const found = resolveBusinessWebsite ? await resolveBusinessWebsite(business) : null
+    // Superseded or closed while the lookup ran (resolveBusinessWebsite returns null then too).
+    if (seq !== businessSelectSeqRef.current) return
+    if (found) {
+      void runDiscoveryWorkflow(found, {
+        business: { ...business, website: found, websiteStatus: 'confirmed' },
+      })
+      return
+    }
+
+    // Select it anyway, so the Selected panel opens with its Website field
+    // and "Load from website"; the message says why nothing was loaded.
+    selectBusiness(business)
+    const hasSocial = Boolean(business.facebook || business.instagram || (listed && !isOwnedWebsite(listed)))
+    setDiscoveryError(hasSocial
+      ? `We couldn't find ${business.name}'s own website — only a social media page is listed. Paste the business website in the Website field and use Find My Brand.`
+      : `We couldn't find a website for ${business.name}. Paste one in the Website field and use Find My Brand.`)
+  }, [resolveBusinessWebsite, runDiscoveryWorkflow, selectBusiness, setDiscoveryError])
 
   const handleOpenSavedLead = useCallback((lead: LeadRecord) => {
     // Same selection path the result cards use, so the Personalization handoff
     // (anonymous automated run or authenticated select) is identical.
     setSavedLeadsOpen(false)
-    handleSelectBusiness(lead.business)
+    void handleSelectBusiness(lead.business)
   }, [handleSelectBusiness])
 
   const handleOpenBusinessSearch = useCallback(() => {
@@ -2292,8 +2623,24 @@ function ConfigurationView(props: any) {
     batchVideoReadyRunningRef.current = false
   }, [clientForm.businessName, clientForm.industry, clientForm.name, discoveredAssets, setDiscoveredAssets])
 
+    const advancedTabsDone: Partial<Record<AdvancedEditingTab, boolean>> = {
+      client: Boolean(clientForm.businessName || clientForm.name),
+      assets: Boolean(assets.primaryIdentity || assets.identities?.length || assets.logos?.length || assets.products?.length),
+      recast: ctxPreviewVideo?.kind === 'recast',
+      create: Boolean(mode) || Boolean(promptState?.personalized || promptState?.edited),
+    }
+
     return (
-      <div>
+      <div
+        className="pz-adv-root xl:flex xl:flex-col xl:h-full xl:min-h-0"
+        onClickCapture={(event) => {
+          // A link to a section on another tab or pill shows it first.
+          const link = (event.target as HTMLElement | null)?.closest?.('a[href^="#pz-"]')
+          const id = link?.getAttribute('href')?.slice(1)
+          const location = id ? SECTION_LOCATION[id] : undefined
+          if (location) goToSection(location.tab, location.section)
+        }}
+      >
         {dropError && (
           <div style={{ marginBottom: 14, padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.danger}`, background: 'rgba(239,68,68,.08)', color: '#fca5a5', fontSize: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
             <AlertTriangle size={14} />
@@ -2306,108 +2653,88 @@ function ConfigurationView(props: any) {
        <input ref={productInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => { handleProductUpload(e.target.files); e.target.value = '' }} />
        <input ref={brandRefInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => { handleBrandRefUpload(e.target.files); e.target.value = '' }} />
 
-       {/* ── WHAT SMARTVIDEO WILL USE ─────────────────────────────── */}
-       <section style={{ padding: '18px 0 10px', borderBottom: `1px solid ${C.border}` }}>
-         <div className="flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 10 }}>
-           <div>
-             <h2 style={{ margin: 0, fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>What SmartVideo Will Use</h2>
-             <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 11 }}>
-               {assetSummary.length} asset{assetSummary.length === 1 ? '' : 's'} assigned across {new Set(assetSummary.map((a) => a.section)).size} block{new Set(assetSummary.map((a) => a.section)).size === 1 ? '' : 's'}
-             </p>
-           </div>
-         </div>
-         <div className="flex flex-wrap gap-2">
-           {assetSummary.map((item) => (
-             <div
-               key={item.id}
-               className="flex items-center gap-1.5 rounded-lg px-2 py-1"
-               style={{ background: 'rgba(217,255,0,.06)', border: `1px solid rgba(217,255,0,.18)` }}
-             >
-               <img src={item.url} alt="" className="w-5 h-5 rounded object-cover" style={{ background: '#000' }} />
-               <span style={{ fontSize: 10, fontWeight: 700, color: C.text }}>{item.name?.split('.')?.[0]?.toUpperCase()?.slice(0, 8) || 'ASSET'}</span>
-               <span style={{ fontSize: 9, fontWeight: 800, textTransform: 'uppercase', color: C.cyan }}>{item.section}</span>
-             </div>
-           ))}
-           {assetSummary.length === 0 && (
-             <span style={{ fontSize: 11, color: C.muted2 }}>No assets assigned yet.</span>
-           )}
-         </div>
-       </section>
+      <AdvancedStepBar
+        active={advancedTab}
+        onSelect={selectAdvancedTab}
+        done={advancedTabsDone}
+        issues={isAnonymous ? {} : blockingByTab(requirements)}
+      />
+      <AdvancedSectionPills
+        tab={advancedTab}
+        active={activeSection}
+        onSelect={(section) => selectAdvancedSection(advancedTab, section)}
+        badges={{ found: discoveryStatus === 'reviewing' ? discoveredAssets.length : 0 }}
+      />
 
-      {/* ── TOP OVERVIEW: Source Demo | Client Profile ────────────── */}
-      <section id="pz-overview" className="grid grid-cols-1 lg:grid-cols-2" style={{ padding: '20px 0', gap: 18, scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
-        {/* Source Demo */}
-        <div className="panel" style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
-          <h2 style={{ margin: '0 0 13px', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>Source Demo</h2>
-          <div
-            className="relative"
-            style={{
-              aspectRatio: '16 / 10',
-              borderRadius: 13,
-              overflow: 'hidden',
-              background: 'linear-gradient(rgba(0,0,0,.24), rgba(0,0,0,.38)), linear-gradient(135deg, #3a3a3a, #101010 70%)',
-              border: `1px solid ${C.border}`,
-            }}
-          >
-            {source.aspectRatio && (
-              <div className="absolute" style={{ right: 10, top: 10, fontSize: 10, padding: '4px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>
-                {source.aspectRatio}
+      {/* ── IMPORT CONFIRMATION ───────────────────────────────────── */}
+      {importConfirmation && (
+        <div className="flex-none" style={{ padding: '10px 14px', border: `1px solid ${C.cyan}`, borderRadius: 12, background: 'rgba(217,255,0,.08)', margin: '10px 0 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ color: C.cyan, fontSize: 18 }}>✓</span>
+            <div>
+              <div style={{ color: C.text, fontSize: 12, fontWeight: 700 }}>
+                {importConfirmation.count} asset{importConfirmation.count === 1 ? '' : 's'} added{importConfirmation.clientName ? ` to ${importConfirmation.clientName}` : ''}
               </div>
-            )}
-            {source.mediaType === 'video' && source.sourceMedia ? (
-              <video
-                src={source.sourceMedia}
-                poster={source.poster || undefined}
-                controls
-                autoPlay
-                muted
-                playsInline
-                loop
-                className="w-full h-full"
-                style={{ maxHeight: '50vh', objectFit: 'contain' }}
-              />
-            ) : source.mediaType === 'image' && source.sourceMedia ? (
-              <img
-                src={source.sourceMedia}
-                alt={source.title}
-                className="w-full h-full"
-                style={{ maxHeight: '50vh', objectFit: 'contain' }}
-              />
-            ) : isFreeDiscovery ? (
-              /* Free landing surface: there is no media to preview — the run
-                 reads the visitor's own website. Kept inside the shared Source
-                 Demo panel so the layout is identical in both modes. The
-                 branded-preview enhancement plugs in here later. */
-              <div className="flex flex-col items-center justify-center w-full h-full gap-2 p-6 text-center">
-                <span style={{ fontSize: 26, color: C.cyan }}>✦</span>
-                <span className="text-[12px] font-extrabold uppercase tracking-wide" style={{ color: C.text }}>
-                  Your website is the source
-                </span>
-                <span className="text-[11px] leading-5" style={{ color: C.muted }}>
-                  Paste it above and we show the brand assets it already has.
-                </span>
+              <div style={{ color: C.muted, fontSize: 10, marginTop: 2 }}>
+                Assets are now in Assets → Your assets.
               </div>
-            ) : (
-              <div className="flex items-center justify-center w-full h-full">
-                <button
-                  className="w-[62px] h-[62px] rounded-full flex items-center justify-center text-2xl"
-                  style={{ border: '1px solid rgba(255,255,255,.3)', background: 'rgba(255,255,255,.18)', color: 'white', backdropFilter: 'blur(8px)' }}
-                  aria-label="Play source preview"
-                >
-                  ▶
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="mt-3 text-base font-bold">{source.title}</div>
-          <div className="mt-1 text-[11px] uppercase" style={{ color: C.muted }}>
-            {isFreeDiscovery ? 'Free discovery' : source.mediaType?.toUpperCase()} {source.aspectRatio ? `• ${source.aspectRatio}` : ''}
+            </div>
+            <button
+              type="button"
+              onClick={() => goToSection('assets', 'yours')}
+              style={{ marginLeft: 'auto', minHeight: 30, padding: '0 12px', borderRadius: 10, border: `1px solid ${C.cyan}`, background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 800 }}
+            >
+              View →
+            </button>
           </div>
         </div>
+      )}
 
-        {/* Client Profile */}
-        <div className="panel" style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
-          <h2 style={{ margin: '0 0 13px', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>STEP 1 — WHO IS THIS FOR?</h2>
+      {/* ── WORKSPACE: active tab | sticky live preview ─────────────────
+          Every existing section is kept and only regrouped into tabs. All
+          panels stay mounted (inactive ones hidden) so switching tabs never
+          loses input, and every section id stays in the DOM.             */}
+      <div
+        className="pz-adv-layout grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px] xl:flex-1 xl:min-h-0"
+        style={{ columnGap: 24 }}
+      >
+        <button
+          type="button"
+          className="order-first xl:hidden"
+          onClick={() => setMobilePreviewOpen((open) => !open)}
+          aria-expanded={mobilePreviewOpen}
+          style={{ marginTop: 12, minHeight: 34, borderRadius: 10, border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan, fontSize: 11, fontWeight: 800 }}
+        >
+          {mobilePreviewOpen ? 'Hide preview' : 'Show preview'}
+        </button>
+        <div className="pz-adv-pane min-w-0 xl:h-full xl:overflow-y-auto xl:min-h-0" data-pz-pane-scroll style={{ paddingRight: 4 }}>
+      <AdvancedTabPanel tab="client" active={advancedTab}>
+        {discoveryStatus === 'reviewing' && discoveredAssets.length > 0 && (
+          <div
+            data-testid="pz-review-assets-callout"
+            role="status"
+            className="flex items-center justify-between flex-wrap"
+            style={{ gap: 10, marginTop: 14, padding: '10px 14px', borderRadius: 12, border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, fontSize: 12 }}
+          >
+            <span style={{ color: C.text, fontWeight: 700 }}>
+              ✓ Found {discoveredAssets.length} asset{discoveredAssets.length === 1 ? '' : 's'} on the website
+              {businessLoadSummary?.logo || businessLoadSummary?.photos ? ' — the best ones are already placed' : ''}.
+            </span>
+            <button
+              type="button"
+              onClick={() => goToSection('assets', 'found')}
+              style={{ minHeight: 32, padding: '0 14px', borderRadius: 10, border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000', fontSize: 11, fontWeight: 900 }}
+            >
+              Review in Assets →
+            </button>
+          </div>
+        )}
+      {/* ── TOP OVERVIEW: Source Demo | Client Profile ────────────── */}
+      <section id="pz-overview" style={{ padding: '14px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
+        {/* Client: "Find business" and "Profile" sections */}
+        <AdvancedSectionPanel tab="client" section="find" sections={advancedSections}>
+        <div id="pz-find-business" className="panel" style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
+          <h2 style={{ margin: '0 0 13px', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>WHO IS THIS FOR?</h2>
 
           {/* ── FIND MY BRAND — the single primary starting action ───────────
               Available in every personalization modal (anonymous and
@@ -2547,7 +2874,11 @@ function ConfigurationView(props: any) {
                 </button>
                 <button
                   type="button"
-                  onClick={handleClientEntryDismiss}
+                  onClick={() => {
+                    handleClientEntryDismiss()
+                    goToSection('client', 'profile')
+                    focusRequirementControl('businessName')
+                  }}
                   className="rounded-lg text-[11px] font-extrabold uppercase tracking-wide"
                   style={{
                     minHeight: 38,
@@ -2681,7 +3012,11 @@ function ConfigurationView(props: any) {
               <p style={{ margin: '0 0 10px', color: 'rgba(255,255,255,.72)', fontSize: 11, lineHeight: 1.5 }}>{businessSearchError}</p>
               <button
                 type="button"
-                onClick={() => setBusinessSearchMode && setBusinessSearchMode('searching')}
+                onClick={() => {
+                  // Re-run the same search; without one, reopen the form.
+                  if (searchNiche && searchLocation.trim()) runBusinessSearch(searchRadius)
+                  else setBusinessSearchMode?.('searching')
+                }}
                 className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide"
                 style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.danger}`, background: C.danger, color: '#fff' }}
               >
@@ -2735,7 +3070,7 @@ function ConfigurationView(props: any) {
               </div>
               {!savedLeadsOpen && (
               <div className="flex flex-col gap-2">
-                {businessSearchResults.map((business) => (
+                {businessSearchResults.slice(0, shownResultCount).map((business) => (
                   <div
                     key={business.id}
                     style={{
@@ -2745,7 +3080,7 @@ function ConfigurationView(props: any) {
                       background: selectedBusiness?.id === business.id ? 'rgba(217,255,0,.06)' : '#121212',
                       cursor: 'pointer',
                     }}
-                    onClick={() => handleSelectBusiness(business)}
+                    onClick={() => { void handleSelectBusiness(business) }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                       <div style={{ flex: 1 }}>
@@ -2762,8 +3097,15 @@ function ConfigurationView(props: any) {
                           {business.phone && (
                             <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: C.green }}>✓ Phone</span>
                           )}
-                          {business.website ? (
+                          {isOwnedWebsite(business.website) ? (
                             <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: C.green }}>✓ Website</span>
+                          ) : business.facebook || business.instagram || business.website ? (
+                            <span
+                              style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: C.muted2 }}
+                              title="Only a social media page is listed. We'll look for the business's own website when you use it."
+                            >
+                              Social page only
+                            </span>
                           ) : (
                             <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: C.muted2 }}>Not listed in OpenStreetMap</span>
                           )}
@@ -2806,7 +3148,7 @@ function ConfigurationView(props: any) {
                         )}
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); handleSelectBusiness(business) }}
+                          onClick={(e) => { e.stopPropagation(); void handleSelectBusiness(business) }}
                           className="rounded-lg text-[10px] font-extrabold uppercase tracking-wide"
                           style={{
                             minHeight: 32,
@@ -2816,12 +3158,24 @@ function ConfigurationView(props: any) {
                             color: '#000000',
                           }}
                         >
-                          Use This Business
+                          {websiteLookup?.status === 'searching' && websiteLookup.businessId === business.id
+                            ? 'Finding website…'
+                            : 'Use This Business'}
                         </button>
                       </div>
                     </div>
                   </div>
                 ))}
+                {businessSearchResults.length > shownResultCount && (
+                  <button
+                    type="button"
+                    data-testid="pz-results-show-more"
+                    onClick={() => setShownResultCount((count) => count + RESULTS_PAGE)}
+                    style={{ minHeight: 34, borderRadius: 10, border: `1px solid ${C.border}`, background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 800 }}
+                  >
+                    Show {Math.min(RESULTS_PAGE, businessSearchResults.length - shownResultCount)} more of {businessSearchResults.length - shownResultCount}
+                  </button>
+                )}
               </div>
               )}
               {!savedLeadsOpen && (
@@ -3005,6 +3359,23 @@ function ConfigurationView(props: any) {
                     }}
                   />
                 </div>
+                {!selectedBusiness.website && (
+                  <div data-testid="pz-add-website-hint" style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ color: C.muted2 }}>Add their website to load their logo, photos and offer.</span>
+                    <button
+                      type="button"
+                      disabled={!clientForm.website?.trim() || brandRunInFlight}
+                      onClick={() => {
+                        const website = clientForm.website?.trim()
+                        if (website) void runDiscoveryWorkflow(website, { business: { ...selectedBusiness, website } })
+                      }}
+                      className="rounded-[8px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-40"
+                      style={{ minHeight: 28, padding: '0 10px', border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan }}
+                    >
+                      Load from website
+                    </button>
+                  </div>
+                )}
               </div>
               <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {!isAnonymous && (
@@ -3026,7 +3397,7 @@ function ConfigurationView(props: any) {
                 )}
                 <button
                   type="button"
-                  onClick={() => clearBusinessSearch()}
+                  onClick={() => (businessSearchResults.length > 0 ? setBusinessSearchMode?.('results') : clearBusinessSearch())}
                   className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide"
                   style={{
                     minHeight: 38,
@@ -3099,62 +3470,102 @@ function ConfigurationView(props: any) {
             </div>
           )}
 
+        </div>
+        </AdvancedSectionPanel>
+
+        <AdvancedSectionPanel tab="client" section="profile" sections={advancedSections}>
+        <div id="pz-client-profile" className="panel" style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
           {/* Saved Clients — entitlement-gated: free visitors have no saved
               profiles, so the control is not offered at all. */}
-          {!isAnonymous && clientForm.audience === 'customer' && clients.length > 0 && (
+          {showSavedClientCards && (
             <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: C.muted, marginBottom: 8 }}>Saved Clients</div>
-              <div className="flex flex-wrap gap-2">
-                {clients.map((c: any) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => useSavedClient(c.id)}
-                    className="text-left"
-                    style={{
-                      minWidth: 160,
-                      padding: '10px 12px',
-                      border: `1px solid ${selectedClientId === c.id ? C.cyan : C.border}`,
-                      borderRadius: 10,
-                      background: selectedClientId === c.id ? 'rgba(217,255,0,.08)' : C.panelSoft,
-                      color: C.text,
-                    }}
-                  >
-                    <div style={{ fontSize: 12, fontWeight: 700 }}>{c.businessName || c.name || 'Untitled'}</div>
-                    <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>
-                      {[c.industry, c.location].filter(Boolean).join(' • ') || 'No details'}
+              <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: C.muted }}>Saved Clients</div>
+                <button
+                  type="button"
+                  data-testid="pz-new-client"
+                  onClick={startNewClient}
+                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-bold text-white/70 hover:bg-white/10"
+                >
+                  + New client
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2" style={{ maxHeight: 132, overflowY: 'auto' }} data-testid="pz-saved-clients">
+                {clients.map((c: any) => {
+                  const isSelected = selectedClientId === c.id
+                  // The card picks the client; Edit/Delete sit beside the pick
+                  // button (not inside it), so each action works on its own.
+                  return (
+                    <div
+                      key={c.id}
+                      data-testid="pz-saved-client-card"
+                      style={{
+                        minWidth: 160,
+                        border: `1px solid ${isSelected ? C.cyan : C.border}`,
+                        borderRadius: 10,
+                        background: isSelected ? 'rgba(217,255,0,.08)' : C.panelSoft,
+                        color: C.text,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => useSavedClient(c.id)}
+                        aria-pressed={isSelected}
+                        className="block w-full text-left"
+                        style={{ padding: '10px 12px 6px', background: 'none', border: 0, color: 'inherit', cursor: 'pointer' }}
+                      >
+                        <div style={{ fontSize: 12, fontWeight: 700 }}>{c.businessName || c.name || 'Untitled'}</div>
+                        <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>
+                          {[c.industry, c.location].filter(Boolean).join(' • ') || 'No details'}
+                        </div>
+                      </button>
+                      {isSelected && (
+                        <div style={{ padding: '0 12px 10px', display: 'flex', gap: 10 }}>
+                          <button
+                            type="button"
+                            onClick={() => focusRequirementControl('businessName')}
+                            className="text-[10px] font-extrabold uppercase"
+                            style={{ color: C.cyan, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { if (window.confirm('Delete this client and their saved assets?')) deleteSavedClient(c.id) }}
+                            className="text-[10px] font-extrabold uppercase"
+                            style={{ color: C.danger, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    {selectedClientId === c.id && (
-                      <div style={{ marginTop: 6, display: 'flex', gap: 6 }}>
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); updateClientForm({ ...clientForm, ...c }) }}
-                          className="text-[10px] font-extrabold uppercase"
-                          style={{ color: C.cyan, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete this client and their saved assets?')) deleteSavedClient(c.id) }}
-                          className="text-[10px] font-extrabold uppercase"
-                          style={{ color: C.danger, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </button>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}
 
           <ResumeProjectBanner />
-          <h2 style={{ margin: '0 0 13px', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>Client Profile</h2>
+          <h2 style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>Client Profile</h2>
+          <p data-testid="pz-profile-required-hint" style={{ margin: '0 0 13px', color: C.muted, fontSize: 11 }}>
+            Only the business name is required — everything else improves the result.
+          </p>
+          {businessLoadSummary && businessLoadSummary.details > 0 && (
+            <div
+              data-testid="pz-business-load-summary"
+              role="status"
+              style={{ margin: '-4px 0 12px', padding: '8px 10px', borderRadius: 8, border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.text, fontSize: 11 }}
+            >
+              ✓ Loaded {businessLoadSummary.details} detail{businessLoadSummary.details === 1 ? '' : 's'}
+              {businessLoadSummary.logo ? ', the logo' : ''}
+              {businessLoadSummary.photos ? ` and ${businessLoadSummary.photos} photo${businessLoadSummary.photos === 1 ? '' : 's'}` : ''}
+              {businessLoadSummary.domain ? ` from ${businessLoadSummary.domain}` : ''}. Fields tagged “from website” can be edited.
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 12 }}>
             <div className="col-span-full">
-              <Field label="Website" value={clientForm.website} placeholder="https://joesroofing.com" onChange={(v) => updateClientForm({ ...clientForm, website: v })} full />
+              <Field autoFilled={isAuto('website')} label="Website" value={clientForm.website} placeholder="https://joesroofing.com" onChange={(v) => updateClientForm({ ...clientForm, website: v })} full />
               <button
                 type="button"
                 onClick={() => discoverAssets(clientForm.website)}
@@ -3190,7 +3601,9 @@ function ConfigurationView(props: any) {
                   <button
                     type="button"
                     onClick={() => discoverAssets(clientForm.website)}
-                    className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide"
+                    disabled={!clientForm.website?.trim()}
+                    title={clientForm.website?.trim() ? undefined : 'Enter a website first'}
+                    className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide disabled:opacity-50"
                     style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.danger}`, background: C.danger, color: '#fff' }}
                   >
                     Retry
@@ -3198,7 +3611,9 @@ function ConfigurationView(props: any) {
                 </div>
               )}
             </div>
-            {!isAnonymous && (
+            {/* The dropdown is the picker when the saved-client cards above
+                are not shown (one way to pick a client at a time). */}
+            {!isAnonymous && !showSavedClientCards && (
               <div className="col-span-full">
                 <label style={{ display: 'block', marginBottom: 6, color: C.muted, fontSize: 10 }}>Select Existing Client</label>
                 <div className="flex gap-2">
@@ -3221,7 +3636,7 @@ function ConfigurationView(props: any) {
                     ))}
                   </select>
                   <button
-                    onClick={() => { selectClient(''); updateClientForm({ ...clientForm, id: '', name: '', businessName: '' }) }}
+                    onClick={startNewClient}
                     className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/70 hover:bg-white/10"
                   >
                     New
@@ -3229,14 +3644,18 @@ function ConfigurationView(props: any) {
                 </div>
               </div>
             )}
-            <Field label="Business Name" value={clientForm.businessName} placeholder="ABC Roofing" onChange={(v) => updateClientForm({ ...clientForm, businessName: v })} />
-            <Field label="Industry" value={clientForm.industry} placeholder="Roofing" onChange={(v) => updateClientForm({ ...clientForm, industry: v })} />
-            <Field label="Location" value={clientForm.location} placeholder="Tampa, Florida" onChange={(v) => updateClientForm({ ...clientForm, location: v })} />
-            <Field label="Phone" value={clientForm.phone} placeholder="555-555-5555" onChange={(v) => updateClientForm({ ...clientForm, phone: v })} />
+            <Field autoFilled={isAuto('businessName')} required focusId="businessName" label="Business Name" value={clientForm.businessName} placeholder="ABC Roofing" onChange={(v) => updateClientForm({ ...clientForm, businessName: v })} />
+            <Field autoFilled={isAuto('industry')} label="Industry" value={clientForm.industry} placeholder="Roofing" onChange={(v) => updateClientForm({ ...clientForm, industry: v })} />
+            <Field autoFilled={isAuto('location')} label="Location" value={clientForm.location} placeholder="Tampa, Florida" onChange={(v) => updateClientForm({ ...clientForm, location: v })} />
+            <Field autoFilled={isAuto('phone')} focusId="phone" label="Phone" value={clientForm.phone} placeholder="555-555-5555" onChange={(v) => updateClientForm({ ...clientForm, phone: v })} />
             {!isAnonymous && (
               <div className="col-span-full flex gap-2">
                 <button
-                  onClick={saveClient}
+                  onClick={async () => {
+                    const saved = await saveClient()
+                    setClientSaveStatus(saved ? 'saved' : 'error')
+                    window.setTimeout(() => setClientSaveStatus(null), 2500)
+                  }}
                   className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold"
                   style={{ background: 'rgba(217,255,0,.12)', border: `1px solid ${C.cyanBorder}`, color: C.cyan }}
                 >
@@ -3244,235 +3663,39 @@ function ConfigurationView(props: any) {
                 </button>
                 {selectedClientId && (
                   <button
-                    onClick={() => deleteClient(selectedClientId)}
+                    // Same as the saved-client card's Delete: confirm, and the
+                    // client's saved assets go too.
+                    onClick={() => { if (window.confirm('Delete this client and their saved assets?')) deleteSavedClient(selectedClientId) }}
                     className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium border"
                     style={{ color: C.danger, borderColor: 'rgba(239,68,68,.25)' }}
                   >
                     <Trash2 size={14} /> Delete
                   </button>
                 )}
+                {clientSaveStatus && (
+                  <span role="status" data-testid="pz-client-save-status" className="self-center text-[11px] font-bold" style={{ color: clientSaveStatus === 'saved' ? C.green : C.danger }}>
+                    {clientSaveStatus === 'saved' ? 'Saved ✓' : "Couldn't save this client — try again"}
+                  </span>
+                )}
               </div>
             )}
           </div>
         </div>
+        </AdvancedSectionPanel>
       </section>
 
-      {/* ── IMPORT CONFIRMATION ───────────────────────────────────── */}
-      {importConfirmation && (
-        <div style={{ padding: '14px 18px', border: `1px solid ${C.cyan}`, borderRadius: 12, background: 'rgba(217,255,0,.08)', marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ color: C.cyan, fontSize: 18 }}>✓</span>
-            <div>
-              <div style={{ color: C.text, fontSize: 12, fontWeight: 700 }}>
-                {importConfirmation.count} asset{importConfirmation.count === 1 ? '' : 's'} added{importConfirmation.clientName ? ` to ${importConfirmation.clientName}` : ''}
-              </div>
-              <div style={{ color: C.muted, fontSize: 10, marginTop: 2 }}>
-                Assets are now available in Client Assets below.
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </AdvancedTabPanel>
 
-      {/* ── SECTION NAV (sticky) ───────────────────────────────────────
-          Native anchor links (no JS) so keyboard/screen-reader users can
-          jump between the (now two-column) sections. Chips only render for
-          sections that are currently visible.                            */}
-      <nav
-        aria-label="Personalization sections"
-        className="sticky top-0 z-10 flex flex-wrap items-center gap-1.5"
-        style={{ padding: '10px 0', background: C.modal, borderBottom: `1px solid ${C.border}` }}
-      >
-        {[
-          { id: 'pz-overview', label: 'Overview' },
-          ...(discoveryStatus === 'reviewing' && discoveredAssets.length > 0
-            ? [{ id: 'pz-discovered', label: 'Discovered' }]
-            : []),
-          { id: 'pz-client-assets', label: 'Client Assets' },
-          ...(!isAnonymous && selectedClientId ? [{ id: 'pz-saved-assets', label: 'Saved Assets' }] : []),
-          ...(source?.mediaType === 'video' || source?.mediaType === 'image'
-            ? [{ id: 'pz-onvideo-overlays', label: 'Preview' }]
-            : []),
-          { id: 'pz-content', label: 'Business' },
-          { id: 'pz-prompt', label: 'Prompt' },
-          ...(!isPromptOnly && !isAnonymous ? [{ id: 'pz-output', label: 'Output' }] : []),
-          ...(showModes && !isAnonymous ? [{ id: 'pz-mode', label: 'Mode' }] : []),
-          ...(!isAnonymous ? [{ id: 'pz-engine', label: 'Engine' }] : []),
-        ].map((chip) => (
-          <a
-            key={chip.id}
-            href={`#${chip.id}`}
-            style={{
-              padding: '5px 10px',
-              borderRadius: 999,
-              border: `1px solid ${C.border}`,
-              background: 'rgba(255,255,255,.03)',
-              color: C.muted,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '.04em',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {chip.label}
-          </a>
-        ))}
-      </nav>
+      <AdvancedTabPanel tab="assets" active={advancedTab}>
 
-      {/* ── TWO-COLUMN BODY (xl+) ──────────────────────────────────────
-          CSS multi-column keeps DOM/reading/tab order intact while roughly
-          halving vertical scroll depth on wide viewports. Below `xl` the
-          content collapses back to the original single column.            */}
-      <div className="xl:columns-2 xl:gap-x-7">
-
-      {/* ── DISCOVERED ASSETS REVIEW ────────────────────────────────── */}
-      {discoveryStatus === 'reviewing' && discoveredAssets.length > 0 && (
-        <section id="pz-discovered" className="break-inside-avoid" style={{ padding: '20px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
-          <div className="flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 16 }}>
-            <div>
-              <h2 style={{ margin: 0, fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>Discovered Assets</h2>
-              <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 11 }}>
-                Found {discoveredAssets.filter((a) => !a.rejected).length} potential assets — {discoveredAssets.filter((a) => a.selected && !a.rejected).length} selected
-              </p>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {/* Paid/AI affordances are never offered to free visitors — the
-                  server refuses them, so the UI does not surface them at all. */}
-              {!isAnonymous && (
-                <>
-                  <button
-                    type="button"
-                    onClick={analyzeDiscoveredAssets}
-                    disabled={visionStatus === 'analyzing'}
-                    className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-                    style={{ minHeight: 36, padding: '0 14px', border: '1px solid rgba(196,230,0,.45)', background: 'rgba(196,230,0,.10)', color: '#e6ff66' }}
-                  >
-                    {visionStatus === 'analyzing' ? 'Analyzing…' : visionStatus === 'complete' ? '✓ Vision Analyzed' : '✦ Analyze with GO Vision'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={selectRecommendedDiscoveredAssets}
-                    className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide"
-                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.border}`, background: C.panel, color: 'white' }}
-                  >
-                    Select Recommended
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleBatchMakeVideoReady}
-                    disabled={
-                      batchVideoReady.running ||
-                      discoveredAssets.filter((a) => a.selected && !a.rejected && a.category !== 'irrelevant' && !a.videoReady).length === 0
-                    }
-                    className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan }}
-                  >
-                    {batchVideoReady.running
-                      ? `Preparing ${batchVideoReady.current}/${batchVideoReady.total}…`
-                      : '✨ Make Selected Video Ready'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={importDiscoveredAssets}
-                    disabled={batchVideoReady.running || discoveredAssets.filter((a) => a.selected && !a.rejected).length === 0}
-                    className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000' }}
-                  >
-                    Use Selected Assets
-                  </button>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={cancelDiscovery}
-                className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide"
-                style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.border}`, background: C.panel, color: 'white' }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-
-          {/* Free run: the sign-up / deferred-enhancement plug-in point. Branded
-              preview, transparent-logo generation and one-click AI Assist all
-              land here or immediately above, without a second results screen. */}
-          {isAnonymous && (
-            <p style={{ margin: '0 0 16px', color: C.muted, fontSize: 11, lineHeight: 1.5 }}>
-              Review the assets below — drag any of them into the section you want it in. Sign in to import
-              them and generate personalized videos with them.
-            </p>
-          )}
-
-          {(visionStatus === 'analyzing' || visionStatus === 'complete' || visionError) && (
-            <div
-              style={{
-                marginBottom: 14,
-                padding: '10px 12px',
-                borderRadius: 10,
-                border: visionError ? '1px solid rgba(239,68,68,.3)' : '1px solid rgba(196,230,0,.35)',
-                background: visionError ? 'rgba(239,68,68,.08)' : 'rgba(196,230,0,.08)',
-                color: visionError ? '#fca5a5' : '#e6ff66',
-                fontSize: 10,
-              }}
-            >
-              {visionStatus === 'analyzing' && <Loader2 size={12} className="mr-1.5 inline animate-spin" />}
-              {visionError
-                ? 'SmartVideo GO Vision: ' + visionError
-                : visionStatus === 'complete'
-                  ? 'SmartVideo GO Vision analyzed the discovered assets, refined categories and scores, and identified preservation rules and recommended edits.'
-                  : 'SmartVideo GO Vision is analyzing business assets…'}
-            </div>
-          )}
-
-          {(batchVideoReady.running || batchVideoReady.label || batchVideoReady.error) && (
-            <div
-              style={{
-                marginBottom: 14,
-                padding: '10px 12px',
-                borderRadius: 10,
-                border: `1px solid ${batchVideoReady.error ? 'rgba(239,68,68,.3)' : C.cyanBorder}`,
-                background: batchVideoReady.error ? 'rgba(239,68,68,.08)' : C.cyanSoft,
-                color: batchVideoReady.error ? '#fca5a5' : C.cyan,
-                fontSize: 10,
-              }}
-            >
-              {batchVideoReady.running && <Loader2 size={12} className="mr-1.5 inline animate-spin" />}
-              {batchVideoReady.label}
-              {batchVideoReady.error ? ` — ${batchVideoReady.error}` : ''}
-            </div>
-          )}
-
-          <DiscoveredAssetGrid
-            assets={discoveredAssets}
-            onToggle={toggleDiscoveredAssetSelection}
-            onRemove={rejectDiscoveredAsset}
-            onCategoryChange={updateDiscoveredAssetCategory}
-            onEdit={onEditDiscovered || undefined}
-            onRevert={revertDiscoveredAssetEdit}
-            onRemoveFromSection={removeDiscoveredAssetFromSection}
-            onRestoreAll={() => setDiscoveredAssets((prev) => prev.map((a) => ({ ...a, rejected: false })))}
-            onDragStart={(asset, e) => handleAssetDragStart({
-              assetId: asset.id,
-              source: 'discovered',
-              assetType: asset.category,
-              // URL-only candidates carry no sourceUrl; without a url the
-              // drop was rejected as malformed.
-              url: asset.sourceUrl || asset.previewUrl,
-              uploadedUrl: asset.editedDataUrl || undefined,
-              metadata: {
-                sourceCategory: asset.category,
-                sourceType: asset.sourceType,
-              },
-            }, e)}
-            onDragEnd={handleAssetDragEnd}
-          />
-        </section>
-      )}
-
+      <AdvancedSectionPanel tab="assets" section="yours" sections={advancedSections}>
       {/* ── CLIENT ASSETS (full width, 6 numbered cards) ──────────── */}
       <section id="pz-client-assets" className="break-inside-avoid" style={{ padding: '20px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
-        <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>STEP 2 — CLIENT ASSETS</h2>
+        <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>YOUR ASSETS</h2>
+        <p data-testid="pz-assets-usage-note" style={{ margin: '6px 0 0', color: C.muted, fontSize: 11 }}>
+          The presenter photo drives Face only / Full presenter. The logo and product photos appear as on-video layers
+          (Overlays); brand photos and frames guide the AI where the chosen model supports them.
+        </p>
         <p style={{ margin: '6px 0 18px', color: C.muted, fontSize: 12, lineHeight: 1.5 }}>
           Add the people, products, branding and visual references SmartVideo should use when personalizing this demo.
         </p>
@@ -3481,6 +3704,7 @@ function ConfigurationView(props: any) {
           {/* 1. Person / Presenter */}
           <article
             className="asset-card"
+            data-pz-focus="presenter"
             data-asset-section="person"
             onDragEnter={(e) => handleSectionDragEnter('person', e)}
             onDragOver={(e) => handleSectionDragOver('person', e)}
@@ -3502,7 +3726,7 @@ function ConfigurationView(props: any) {
                 <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 11, lineHeight: 1.4 }}>Upload one or more photos of the person who should appear in the content.</p>
               </div>
             </div>
-            <UploadZone primary="Add Photos" secondary="Drag & drop or browse" onFiles={handleIdentityUpload} multiple disabled={assets.identities.length >= capabilities.maxImages && capabilities.maxImages > 0} onUrl={handleIdentityUrl} urlLabel="Add Photo URL" urlPlaceholder="Paste image URL and press Enter" />
+            <UploadZone primary="Add Photos" secondary="Drag & drop or browse" collapsed={assets.identities.length > 0} addLabel="+ Add more photos" onFiles={handleIdentityUpload} multiple disabled={assets.identities.length >= capabilities.maxImages && capabilities.maxImages > 0} onUrl={handleIdentityUrl} urlLabel="Add Photo URL" urlPlaceholder="Paste image URL and press Enter" />
             {capabilities.maxImages > 1 && (
               <div style={{ marginTop: 8, fontSize: 10, color: C.muted }}>{assets.identities.length} / {capabilities.maxImages} images uploaded</div>
             )}
@@ -3521,6 +3745,7 @@ function ConfigurationView(props: any) {
                     onRetry={() => retryAssetUpload(asset.id)}
                     onEdit={onEditLibrary ? () => onEditLibrary(asset) : undefined}
                     onRevert={() => revertLibraryAssetToOriginal(asset.id)}
+                    onMakePrimary={assets.identities.length > 1 && assets.primaryIdentity?.id !== asset.id ? () => setPrimaryIdentity(asset.id) : undefined}
                     draggable
                     onDragStart={(e) => handleAssetDragStart({
                       assetId: asset.id,
@@ -3541,9 +3766,9 @@ function ConfigurationView(props: any) {
                 ))
               ) : (
                 <>
-                  <ThumbPlaceholder label="FACE" />
-                  <ThumbPlaceholder label="BODY" />
-                  <ThumbPlaceholder label="SIDE" />
+                  <ThumbPlaceholder label="FACE" onClick={handleIdentityAddClick} />
+                  <ThumbPlaceholder label="BODY" onClick={handleIdentityAddClick} />
+                  <ThumbPlaceholder label="SIDE" onClick={handleIdentityAddClick} />
                 </>
               )}
               <ThumbPlaceholder label="+" add onClick={handleIdentityAddClick} />
@@ -3571,7 +3796,7 @@ function ConfigurationView(props: any) {
                 <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 11, lineHeight: 1.4 }}>Upload the client&apos;s exact logo for exact branding.</p>
               </div>
             </div>
-            <UploadZone primary="Upload Logo" secondary="Drag & drop or browse" onFiles={handleLogoUpload} onUrl={handleLogoUrl} urlLabel="Add Logo URL" urlPlaceholder="Paste logo URL and press Enter" />
+            <UploadZone primary="Upload Logo" secondary="Drag & drop or browse" collapsed={assets.logos.length > 0} addLabel="+ Add another logo" onFiles={handleLogoUpload} onUrl={handleLogoUrl} urlLabel="Add Logo URL" urlPlaceholder="Paste logo URL and press Enter" />
             <div
               className="logo-preview frame-preview"
               draggable
@@ -3611,10 +3836,10 @@ function ConfigurationView(props: any) {
               ) : (
                 'Logo'
               )}
-              {assets.primaryLogo?.uploadStatus === 'ready' && isImageEditSupported(assets.primaryLogo) && (
+              {onEditLibrary && assets.primaryLogo?.uploadStatus === 'ready' && isImageEditSupported(assets.primaryLogo) && (
                 <button
                   type="button"
-                  onClick={() => openLibraryImageEditor(assets.primaryLogo)}
+                  onClick={() => onEditLibrary(assets.primaryLogo)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
                   style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
                 >
@@ -3631,6 +3856,32 @@ function ConfigurationView(props: any) {
                   Retry
                 </button>
               )}
+              {assets.primaryLogo && (
+                <>
+                  {assets.primaryLogo.edited && (
+                    <button
+                      type="button"
+                      onClick={() => revertLibraryAssetToOriginal(assets.primaryLogo!.id)}
+                      className="absolute right-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
+                      style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
+                    >
+                      Revert
+                    </button>
+                  )}
+                  {assets.primaryLogo.uploadStatus !== 'error' && (
+                    <button
+                      type="button"
+                      data-testid="pz-primary-logo-remove"
+                      onClick={() => removeLogo(assets.primaryLogo!.id)}
+                      className="absolute top-1 right-1 z-20 rounded-full p-1"
+                      style={{ background: 'rgba(239,68,68,.85)' }}
+                      aria-label="Remove logo"
+                    >
+                      <X size={10} className="text-white" />
+                    </button>
+                  )}
+                </>
+              )}
             </div>
             <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {assets.logos.filter((a) => a.id !== assets.primaryLogo?.id).map((asset: PersonalizationAsset) => (
@@ -3642,6 +3893,7 @@ function ConfigurationView(props: any) {
                    onRetry={() => retryAssetUpload(asset.id)}
                    onEdit={onEditLibrary ? () => onEditLibrary(asset) : undefined}
                    onRevert={() => revertLibraryAssetToOriginal(asset.id)}
+                   onMakePrimary={() => setPrimaryLogo(asset.id)}
                    draggable
                    onDragStart={(e) => handleAssetDragStart({
                      assetId: asset.id,
@@ -3687,7 +3939,7 @@ function ConfigurationView(props: any) {
                 <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 11, lineHeight: 1.4 }}>Add products, finished work, locations or service images.</p>
               </div>
             </div>
-            <UploadZone primary="Add Images" secondary="Drag & drop or browse" onFiles={handleProductUpload} multiple onUrl={handleProductUrl} urlLabel="Add Image/Video URL" urlPlaceholder="Paste image or video URL and press Enter" accept="image/*,video/*" />
+            <UploadZone primary="Add Images" secondary="Drag & drop or browse" collapsed={assets.products.length > 0} onFiles={handleProductUpload} multiple onUrl={handleProductUrl} urlLabel="Add Image/Video URL" urlPlaceholder="Paste image or video URL and press Enter" accept="image/*,video/*" />
             <div className="asset-label" style={{ marginTop: 13, marginBottom: 8, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: C.muted }}>Uploaded Images</div>
             <div className="flex flex-wrap gap-2">
               {assets.products.length > 0 ? (
@@ -3720,9 +3972,9 @@ function ConfigurationView(props: any) {
                 ))
               ) : (
                 <>
-                  <ThumbPlaceholder label="1" />
-                  <ThumbPlaceholder label="2" />
-                  <ThumbPlaceholder label="3" />
+                  <ThumbPlaceholder label="1" title="Add a product photo" onClick={handleProductAddClick} />
+                  <ThumbPlaceholder label="2" title="Add a product photo" onClick={handleProductAddClick} />
+                  <ThumbPlaceholder label="3" title="Add a product photo" onClick={handleProductAddClick} />
                 </>
               )}
               <ThumbPlaceholder label="+" add onClick={handleProductAddClick} />
@@ -3746,7 +3998,7 @@ function ConfigurationView(props: any) {
                 <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 11, lineHeight: 1.4 }}>Show SmartVideo what the client&apos;s business and brand look like.</p>
               </div>
             </div>
-            <UploadZone primary="Add Images" secondary="Drag & drop or browse" onFiles={handleBrandRefUpload} multiple onUrl={handleBrandRefUrl} urlLabel="Add Image/Video URL" urlPlaceholder="Paste image or video URL and press Enter" accept="image/*,video/*" />
+            <UploadZone primary="Add Images" secondary="Drag & drop or browse" collapsed={assets.brandReferences.length > 0} onFiles={handleBrandRefUpload} multiple onUrl={handleBrandRefUrl} urlLabel="Add Image/Video URL" urlPlaceholder="Paste image or video URL and press Enter" accept="image/*,video/*" />
             <div className="asset-label" style={{ marginTop: 13, marginBottom: 8, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: C.muted }}>Brand Images</div>
             <div className="flex flex-wrap gap-2">
               {assets.brandReferences.length > 0 ? (
@@ -3779,11 +4031,12 @@ function ConfigurationView(props: any) {
                 ))
               ) : (
                 <>
-                  <ThumbPlaceholder label="STORE" />
-                  <ThumbPlaceholder label="TEAM" />
-                  <ThumbPlaceholder label="VEHICLE" />
+                  <ThumbPlaceholder label="STORE" onClick={handleBrandRefAddClick} />
+                  <ThumbPlaceholder label="TEAM" onClick={handleBrandRefAddClick} />
+                  <ThumbPlaceholder label="VEHICLE" onClick={handleBrandRefAddClick} />
                 </>
               )}
+              <ThumbPlaceholder label="+" add onClick={handleBrandRefAddClick} />
             </div>
             <div style={{ marginTop: 9, color: C.muted2, fontSize: 10 }}>Storefront • Team • Vehicle • Packaging • Brand Photography</div>
           </article>
@@ -3805,7 +4058,7 @@ function ConfigurationView(props: any) {
                 <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 11, lineHeight: 1.4 }}>Control how the personalized video begins.</p>
               </div>
             </div>
-            <UploadZone primary="Upload Image" onFiles={handleFirstFrameUpload} onUrl={handleFirstFrameUrl} urlLabel="Add Image URL" urlPlaceholder="Paste image URL and press Enter" accept="image/*,video/*" />
+            <UploadZone primary="Upload Image" collapsed={Boolean(assets.firstFrame)} addLabel="Replace image" onFiles={handleFirstFrameUpload} onUrl={handleFirstFrameUrl} urlLabel="Add Image URL" urlPlaceholder="Paste image URL and press Enter" accept="image/*,video/*" />
             <div
               className="frame-preview"
               draggable={!!assets.firstFrame}
@@ -3845,10 +4098,10 @@ function ConfigurationView(props: any) {
               ) : (
                 'First Frame'
               )}
-                {assets.firstFrame?.uploadStatus === 'ready' && isImageEditSupported(assets.firstFrame) && (
+                {onEditLibrary && assets.firstFrame?.uploadStatus === 'ready' && isImageEditSupported(assets.firstFrame) && (
                 <button
                   type="button"
-                  onClick={() => openLibraryImageEditor(assets.firstFrame)}
+                  onClick={() => onEditLibrary(assets.firstFrame)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
                   style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
                 >
@@ -3908,7 +4161,7 @@ function ConfigurationView(props: any) {
                 <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 11, lineHeight: 1.4 }}>Control how the personalized video ends.</p>
               </div>
             </div>
-            <UploadZone primary="Upload Image" onFiles={handleLastFrameUpload} onUrl={handleLastFrameUrl} urlLabel="Add Image URL" urlPlaceholder="Paste image URL and press Enter" accept="image/*,video/*" />
+            <UploadZone primary="Upload Image" collapsed={Boolean(assets.lastFrame)} addLabel="Replace image" onFiles={handleLastFrameUpload} onUrl={handleLastFrameUrl} urlLabel="Add Image URL" urlPlaceholder="Paste image URL and press Enter" accept="image/*,video/*" />
             <div
               className="frame-preview"
               draggable={!!assets.lastFrame}
@@ -3949,10 +4202,10 @@ function ConfigurationView(props: any) {
               ) : (
                 'Last Frame/CTA'
               )}
-              {assets.lastFrame?.uploadStatus === 'ready' && isImageEditSupported(assets.lastFrame) && (
+              {onEditLibrary && assets.lastFrame?.uploadStatus === 'ready' && isImageEditSupported(assets.lastFrame) && (
                 <button
                   type="button"
-                  onClick={() => openLibraryImageEditor(assets.lastFrame)}
+                  onClick={() => onEditLibrary(assets.lastFrame)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
                   style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
                 >
@@ -4074,20 +4327,28 @@ function ConfigurationView(props: any) {
                      cursor: 'grab',
                    }}
                  >
-                   <div
+                   {/* Clicking adds the saved asset to this project (once). */}
+                   <button
+                     type="button"
+                     data-testid="pz-saved-asset-add"
+                     disabled={isAssetInCurrentJob(asset, assets)}
+                     title={isAssetInCurrentJob(asset, assets) ? 'Already in this project' : 'Add to this project'}
                      style={{
+                       display: 'block',
                        width: '100%',
                        height: 80,
+                       padding: 0,
+                       border: 0,
                        borderRadius: 8,
                        overflow: 'hidden',
                        background: '#000',
                        marginBottom: 6,
-                       cursor: 'pointer',
+                       cursor: isAssetInCurrentJob(asset, assets) ? 'default' : 'pointer',
                      }}
                      onClick={() => selectSavedAsset(asset)}
                    >
                      <img src={asset.uploadedUrl || asset.url} alt={asset.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                   </div>
+                   </button>
                    <div style={{ fontSize: 10, fontWeight: 700, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.name?.split('.')?.[0]?.toUpperCase()?.slice(0, 10) || 'ASSET'}</div>
                    <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
                      {asset.isPrimary && (
@@ -4106,17 +4367,17 @@ function ConfigurationView(props: any) {
                          Edit with AI
                        </button>
                      )}
-                     <button
-                       type="button"
-                       onClick={() => {
-                         if (savedAssetLibraryTab === 'identities') setPrimarySavedAsset('identity', asset.id)
-                         else if (savedAssetLibraryTab === 'logos') setPrimarySavedAsset('logo', asset.id)
-                       }}
-                       className="text-[9px] font-extrabold uppercase"
-                       style={{ color: C.cyan, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                     >
-                       Set Primary
-                     </button>
+                     {/* Only people and logos have a primary. */}
+                     {(savedAssetLibraryTab === 'identities' || savedAssetLibraryTab === 'logos') && !asset.isPrimary && (
+                       <button
+                         type="button"
+                         onClick={() => setPrimarySavedAsset(savedAssetLibraryTab === 'identities' ? 'identity' : 'logo', asset.id)}
+                         className="text-[9px] font-extrabold uppercase"
+                         style={{ color: C.cyan, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                       >
+                         Set Primary
+                       </button>
+                     )}
                      <button
                        type="button"
                        onClick={() => { if (window.confirm('Remove this asset from the saved client library?')) removeSavedAsset(asset.id) }}
@@ -4137,23 +4398,199 @@ function ConfigurationView(props: any) {
         </section>
       )}
 
-      {/* ── PREVIEW & ON-VIDEO OVERLAYS (guided preview, shared state) ──
-          Free browser-based Remotion preview of the personalized composition
-          plus the direct on-video overlay editor. Renders only for video and
-          image sources, and only when the provider exposes the guided API. */}
-      {(source?.mediaType === 'video' || source?.mediaType === 'image') && (
-        <AdvancedOverlaySection source={source} />
+      </AdvancedSectionPanel>
+
+      <AdvancedSectionPanel tab="assets" section="found" sections={advancedSections}>
+      {/* ── DISCOVERED ASSETS REVIEW ────────────────────────────────── */}
+      {discoveryStatus === 'reviewing' && discoveredAssets.length > 0 && (
+        <section id="pz-discovered" className="break-inside-avoid" style={{ padding: '20px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
+          <div className="flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 16 }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>Discovered Assets</h2>
+              <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 11 }}>
+                Found {discoveredAssets.filter((a) => !a.rejected).length} potential assets — {discoveredAssets.filter((a) => a.selected && !a.rejected).length} selected
+              </p>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {/* Paid/AI affordances are never offered to free visitors — the
+                  server refuses them, so the UI does not surface them at all. */}
+              {!isAnonymous && (
+                <>
+                  <button
+                    type="button"
+                    onClick={analyzeDiscoveredAssets}
+                    disabled={visionStatus === 'analyzing'}
+                    className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
+                    style={{ minHeight: 36, padding: '0 14px', border: '1px solid rgba(196,230,0,.45)', background: 'rgba(196,230,0,.10)', color: '#e6ff66' }}
+                  >
+                    {visionStatus === 'analyzing' ? 'Analyzing…' : visionStatus === 'complete' ? '✓ Vision Analyzed' : '✦ Analyze with GO Vision'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={selectRecommendedDiscoveredAssets}
+                    // With nothing flagged it would only clear the selection.
+                    disabled={!discoveredAssets.some((a) => a.recommended && !a.rejected)}
+                    title={discoveredAssets.some((a) => a.recommended && !a.rejected) ? undefined : 'No recommended assets — run GO Vision or pick assets yourself'}
+                    className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
+                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.border}`, background: C.panel, color: 'white' }}
+                  >
+                    Select Recommended
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBatchMakeVideoReady}
+                    disabled={
+                      batchVideoReady.running ||
+                      discoveredAssets.filter((a) => a.selected && !a.rejected && a.category !== 'irrelevant' && !a.videoReady).length === 0
+                    }
+                    className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
+                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan }}
+                  >
+                    {batchVideoReady.running
+                      ? `Preparing ${batchVideoReady.current}/${batchVideoReady.total}…`
+                      : '✨ Make Selected Video Ready'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={importDiscoveredAssets}
+                    disabled={batchVideoReady.running || discoveredAssets.filter((a) => a.selected && !a.rejected).length === 0}
+                    className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
+                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000' }}
+                  >
+                    Use Selected Assets
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  // Cancelling throws away every found asset.
+                  if (discoveredAssets.length === 0 || window.confirm('Discard all assets found on this website?')) cancelDiscovery()
+                }}
+                className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide"
+                style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.border}`, background: C.panel, color: 'white' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          {/* Free run: the sign-up / deferred-enhancement plug-in point. Branded
+              preview, transparent-logo generation and one-click AI Assist all
+              land here or immediately above, without a second results screen. */}
+          {isAnonymous && (
+            <p style={{ margin: '0 0 16px', color: C.muted, fontSize: 11, lineHeight: 1.5 }}>
+              Review the assets below — drag any of them into the section you want it in. Sign in to import
+              them and generate personalized videos with them.
+            </p>
+          )}
+
+          {(visionStatus === 'analyzing' || visionStatus === 'complete' || visionError) && (
+            <div
+              style={{
+                marginBottom: 14,
+                padding: '10px 12px',
+                borderRadius: 10,
+                border: visionError ? '1px solid rgba(239,68,68,.3)' : '1px solid rgba(196,230,0,.35)',
+                background: visionError ? 'rgba(239,68,68,.08)' : 'rgba(196,230,0,.08)',
+                color: visionError ? '#fca5a5' : '#e6ff66',
+                fontSize: 10,
+              }}
+            >
+              {visionStatus === 'analyzing' && <Loader2 size={12} className="mr-1.5 inline animate-spin" />}
+              {visionError
+                ? 'SmartVideo GO Vision: ' + visionError
+                : visionStatus === 'complete'
+                  ? 'SmartVideo GO Vision analyzed the discovered assets, refined categories and scores, and identified preservation rules and recommended edits.'
+                  : 'SmartVideo GO Vision is analyzing business assets…'}
+            </div>
+          )}
+
+          {(batchVideoReady.running || batchVideoReady.label || batchVideoReady.error) && (
+            <div
+              style={{
+                marginBottom: 14,
+                padding: '10px 12px',
+                borderRadius: 10,
+                border: `1px solid ${batchVideoReady.error ? 'rgba(239,68,68,.3)' : C.cyanBorder}`,
+                background: batchVideoReady.error ? 'rgba(239,68,68,.08)' : C.cyanSoft,
+                color: batchVideoReady.error ? '#fca5a5' : C.cyan,
+                fontSize: 10,
+              }}
+            >
+              {batchVideoReady.running && <Loader2 size={12} className="mr-1.5 inline animate-spin" />}
+              {batchVideoReady.label}
+              {batchVideoReady.error ? ` — ${batchVideoReady.error}` : ''}
+            </div>
+          )}
+
+          <DiscoveredAssetGrid
+            assets={discoveredAssets}
+            onToggle={toggleDiscoveredAssetSelection}
+            onRemove={rejectDiscoveredAsset}
+            onCategoryChange={updateDiscoveredAssetCategory}
+            onEdit={onEditDiscovered || undefined}
+            onRevert={revertDiscoveredAssetEdit}
+            onRemoveFromSection={removeDiscoveredAssetFromSection}
+            onRestoreAll={() => setDiscoveredAssets((prev) => prev.map((a) => ({ ...a, rejected: false })))}
+            onDragStart={(asset, e) => handleAssetDragStart({
+              assetId: asset.id,
+              source: 'discovered',
+              assetType: asset.category,
+              // URL-only candidates carry no sourceUrl; without a url the
+              // drop was rejected as malformed.
+              url: asset.sourceUrl || asset.previewUrl,
+              uploadedUrl: asset.editedDataUrl || undefined,
+              metadata: {
+                sourceCategory: asset.category,
+                sourceType: asset.sourceType,
+              },
+            }, e)}
+            onDragEnd={handleAssetDragEnd}
+            // The client-asset cards are on the "Your assets" pill, so this
+            // grid brings its own drop targets (the same ones Simple Mode uses).
+            dropZones={ADVANCED_DROP_ZONES}
+            pageSize={12}
+            onDropToSection={(id, section) => {
+              ctxMoveDiscoveredAssetToSection?.(id, section)
+              // Importing needs an account; visitors only rearrange the grid.
+              if (!isAnonymous) void importDiscoveredAssets({ ids: [id], section })
+            }}
+          />
+        </section>
       )}
 
+      {!(discoveryStatus === 'reviewing' && discoveredAssets.length > 0) && (
+        <div data-testid="pz-found-empty" style={{ margin: '16px 0', padding: '18px 16px', border: `1px dashed ${C.border}`, borderRadius: 12, color: C.muted, fontSize: 12, lineHeight: 1.5 }}>
+          Nothing found on a website yet. Use <b style={{ color: C.text }}>Find My Brand</b> or pick a business on the{' '}
+          <button type="button" onClick={() => goToSection('client', 'find')} style={{ color: C.cyan, background: 'none', border: 0, padding: 0, font: 'inherit', fontWeight: 800, cursor: 'pointer' }}>
+            Client → Find business
+          </button>{' '}
+          tab; its logo and photos show up here for review.
+        </div>
+      )}
+      </AdvancedSectionPanel>
+
+      <AdvancedSectionPanel tab="assets" section="content" sections={advancedSections}>
       {/* ── CTA & BUSINESS CONTENT ────────────────────────────── */}
       <section id="pz-content" className="break-inside-avoid" style={{ padding: '20px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
         <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>CTA & BUSINESS CONTENT</h2>
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ marginTop: 18, gap: 12 }}>
-          <Field label="Product / Service" value={clientForm.productService} placeholder="Residential Roof Replacement" onChange={(v) => updateClientForm({ ...clientForm, productService: v })} />
-          <Field label="Offer" value={clientForm.offer} placeholder="Free Roof Inspection" onChange={(v) => updateClientForm({ ...clientForm, offer: v })} />
-          <Field label="CTA Headline" value={clientForm.ctaHeadline} placeholder="Protect Your Home Today" onChange={(v) => updateClientForm({ ...clientForm, ctaHeadline: v })} />
-          <Field label="Button / Action" value={clientForm.callToAction} placeholder="Book Your Inspection" onChange={(v) => updateClientForm({ ...clientForm, callToAction: v })} />
-          <Field label="Phone" value={clientForm.phone} placeholder="555-555-5555" onChange={(v) => updateClientForm({ ...clientForm, phone: v })} />
+          <Field autoFilled={isAuto('productService')} label="Product / Service" value={clientForm.productService} placeholder="Residential Roof Replacement" onChange={(v) => updateClientForm({ ...clientForm, productService: v })} />
+          <Field autoFilled={isAuto('offer')} label="Offer" value={clientForm.offer} placeholder="Free Roof Inspection" onChange={(v) => updateClientForm({ ...clientForm, offer: v })} />
+          <Field autoFilled={isAuto('ctaHeadline')} label="CTA Headline" value={clientForm.ctaHeadline} placeholder="Protect Your Home Today" onChange={(v) => updateClientForm({ ...clientForm, ctaHeadline: v })} />
+          <Field autoFilled={isAuto('callToAction')} label="Button / Action" value={clientForm.callToAction} placeholder="Book Your Inspection" onChange={(v) => updateClientForm({ ...clientForm, callToAction: v })} />
+          {/* The phone is edited once, in the Profile; the CTA uses it from there. */}
+          <div data-testid="pz-content-phone" className="col-span-full" style={{ color: C.muted, fontSize: 11 }}>
+            Phone on the CTA: <span style={{ color: C.text, fontWeight: 700 }}>{clientForm.phone || 'none yet'}</span>{' · '}
+            <button
+              type="button"
+              onClick={() => { goToSection('client', 'profile'); focusRequirementControl('phone') }}
+              style={{ color: C.cyan, background: 'none', border: 0, padding: 0, font: 'inherit', fontWeight: 800, cursor: 'pointer' }}
+            >
+              {clientForm.phone ? 'Edit in Profile' : 'Add in Profile'}
+            </button>
+          </div>
         </div>
         <div
           data-asset-section="ctaGraphic"
@@ -4171,7 +4608,7 @@ function ConfigurationView(props: any) {
           }}
         >
           <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: C.muted, marginBottom: 8 }}>CTA Graphic</div>
-          <UploadZone primary="Upload CTA Graphic" secondary="Drag & drop or browse" onFiles={handleCtaUpload} onUrl={handleCtaUrl} urlLabel="Add CTA URL" urlPlaceholder="Paste image URL and press Enter" accept="image/*,video/*" />
+          <UploadZone primary="Upload CTA Graphic" secondary="Drag & drop or browse" collapsed={Boolean(assets.ctaGraphic)} addLabel="Replace graphic" onFiles={handleCtaUpload} onUrl={handleCtaUrl} urlLabel="Add CTA URL" urlPlaceholder="Paste image URL and press Enter" accept="image/*,video/*" />
           {assets.ctaGraphic?.url && (
             <div className="mt-3" style={{ maxWidth: 200 }}>
               <ThumbUploaded
@@ -4202,9 +4639,37 @@ function ConfigurationView(props: any) {
         </div>
       </section>
 
+      </AdvancedSectionPanel>
+      </AdvancedTabPanel>
+
+      <AdvancedTabPanel tab="recast" active={advancedTab}>
+        <FullBodyRecastSection source={source} />
+      </AdvancedTabPanel>
+
+      <AdvancedTabPanel tab="create" active={advancedTab}>
+      <AdvancedSectionPanel tab="create" section="overlays" sections={advancedSections}>
+      {/* ── PREVIEW & ON-VIDEO OVERLAYS (guided preview, shared state) ──
+          Free browser-based Remotion preview of the personalized composition
+          plus the direct on-video overlay editor. Renders only for video and
+          image sources, and only when the provider exposes the guided API. */}
+      {(source?.mediaType === 'video' || source?.mediaType === 'image') && (
+        <AdvancedOverlaySection source={source} />
+      )}
+
+      {!(source?.mediaType === 'video' || source?.mediaType === 'image') && (
+        <div style={{ margin: '16px 0', color: C.muted, fontSize: 12 }}>On-video overlays are available for video and image demos.</div>
+      )}
+      </AdvancedSectionPanel>
+
+      <AdvancedSectionPanel tab="create" section="prompt" sections={advancedSections}>
       {/* ── PERSONALIZE THE PROMPT ──────────────────────────── */}
-      <section id="pz-prompt" className="break-inside-avoid" style={{ padding: '20px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
-        <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>STEP 3 — PERSONALIZE THE PROMPT</h2>
+      <section id="pz-prompt" data-pz-focus="prompt" className="break-inside-avoid" style={{ padding: '20px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
+        <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>PERSONALIZE THE PROMPT</h2>
+        {mode === 'face_only' && outputType !== 'prompt' && (
+          <p data-testid="pz-prompt-unused-note" style={{ margin: '6px 0 0', color: '#fcd34d', fontSize: 11 }}>
+            Face only swaps the face in the demo video — the prompt isn&apos;t used for this mode.
+          </p>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ marginTop: 18, gap: 14 }}>
           <div className="prompt-box" style={{ minHeight: 150, border: `1px solid ${C.border}`, borderRadius: 12, background: C.field, padding: 14 }}>
             <h4 style={{ margin: '0 0 9px', fontSize: 11, textTransform: 'uppercase' }}>Original Prompt</h4>
@@ -4247,15 +4712,15 @@ function ConfigurationView(props: any) {
             </button>
             <button
               onClick={handleCopyPrompt}
-              disabled={!promptState.personalized}
+              disabled={!promptState.personalized && !promptState.edited}
               className="rounded-[9px] text-[11px] font-extrabold uppercase tracking-wide disabled:opacity-50"
               style={{ minHeight: 38, padding: '0 15px', border: `1px solid ${C.border}`, background: C.panel, color: 'white' }}
             >
-              {copiedPrompt ? 'Copied!' : 'Copy'}
+              {copiedPrompt === 'failed' ? "Couldn't copy" : copiedPrompt ? 'Copied!' : 'Copy'}
             </button>
             <button
               onClick={resetPrompt}
-              disabled={!promptState.personalized}
+              disabled={!promptState.personalized && !promptState.edited}
               className="rounded-[9px] text-[11px] font-extrabold uppercase tracking-wide disabled:opacity-50"
               style={{ minHeight: 38, padding: '0 15px', border: `1px solid ${C.border}`, background: C.panel, color: 'white' }}
             >
@@ -4263,13 +4728,21 @@ function ConfigurationView(props: any) {
             </button>
           </div>
         )}
+        {promptNotice && (
+          <div data-testid="pz-prompt-notice" role="status" style={{ marginTop: 10, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(251,191,36,.35)', background: 'rgba(251,191,36,.06)', color: '#fcd34d', fontSize: 11 }}>
+            {promptNotice}
+          </div>
+        )}
       </section>
 
+      </AdvancedSectionPanel>
+
+      <AdvancedSectionPanel tab="create" section="output" sections={advancedSections}>
       {/* ── OUTPUT ──────────────────────────────────────────
           Generation configuration only exists for entitled users. */}
       {!isPromptOnly && !isAnonymous && (
         <section id="pz-output" className="break-inside-avoid" style={{ padding: '20px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
-          <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>STEP 4 — CREATE</h2>
+          <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>OUTPUT &amp; ENGINE</h2>
           <div className="grid grid-cols-1 md:grid-cols-3" style={{ marginTop: 18, gap: 12 }}>
             {outputOptions.map(({ key, label, description }: any) => {
               const active = outputType === key
@@ -4300,16 +4773,43 @@ function ConfigurationView(props: any) {
 
       {/* ── PERSONALIZATION MODE ──────────────────────────────
           Same entitlement gate as the output selector above. */}
-      {showModes && !isAnonymous && (
-        <section id="pz-mode" className="break-inside-avoid" style={{ padding: '20px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
+      {/* ── HOW TO CREATE ──────────────────────────────────────
+          Without AI: a free, local render of the approved overlays on the chosen video. With AI: the generation modes below. */}
+      {showModes && !isAnonymous && outputType !== 'prompt' && (
+        <section id="pz-creation-method" className="break-inside-avoid" style={{ padding: '20px 0', borderBottom: `1px solid ${C.border}` }}>
+          <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>How should the video be made?</h2>
+          <div role="group" aria-label="Creation method" className="grid grid-cols-1 md:grid-cols-2" style={{ marginTop: 14, gap: 12 }}>
+            {([
+              { id: 'browser', label: 'Create without AI', note: 'Free · no credits. Your overlays, text and assets are rendered on the video you chose, in this browser.' },
+              { id: 'ai', label: 'Generate with AI', note: 'Uses credits. Changes the people or scenes in the video (face, full body, recreate, complete).' },
+            ] as const).map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                data-testid={`pz-method-${o.id}`}
+                aria-pressed={ctxCreationMethod === o.id}
+                onClick={() => ctxSetCreationMethod(o.id)}
+                className="text-left rounded-[12px] border"
+                style={{ padding: 14, borderColor: ctxCreationMethod === o.id ? C.cyan : C.borderStrong, background: ctxCreationMethod === o.id ? 'rgba(217,255,0,.045)' : C.panelSoft }}
+              >
+                <h4 style={{ margin: '0 0 6px', fontSize: 12, textTransform: 'uppercase' }}>{o.label}</h4>
+                <p style={{ margin: 0, color: C.muted, fontSize: 10, lineHeight: 1.45 }}>{o.note}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {showModes && !isAnonymous && ctxCreationMethod === 'ai' && (
+        <section id="pz-mode" data-pz-focus="mode" className="break-inside-avoid" style={{ padding: '20px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
           <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>HOW SHOULD THIS BE PERSONALIZED?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2" style={{ marginTop: 18, gap: 12 }}>
             {eligibleModes.map((m: any) => {
               const active = mode === m.key
               const isUnavailable = !active && isModeUnavailable(m.key, assets, capabilities)
               return (
+                <div key={m.key} className="flex flex-col" style={{ gap: 6 }}>
                 <button
-                  key={m.key}
                   onClick={() => setMode(m.key)}
                   disabled={isUnavailable}
                   aria-pressed={active}
@@ -4328,11 +4828,29 @@ function ConfigurationView(props: any) {
                   <h4 style={{ margin: '0 0 6px', fontSize: 12, textTransform: 'uppercase' }}>{m.label}</h4>
                   <p style={{ margin: 0, color: C.muted, fontSize: 10, lineHeight: 1.45 }}>{m.description}</p>
                   {isUnavailable && (
-                    <p style={{ margin: '6px 0 0', color: C.muted2, fontSize: 9, lineHeight: 1.4 }}>
+                    <p data-testid={`pz-mode-reason-${m.key}`} style={{ margin: '6px 0 0', color: '#fcd34d', fontSize: 10, lineHeight: 1.4 }}>
                       {getModeUnavailableReason(m.key, assets)}
                     </p>
                   )}
+                  {m.key === 'full_body' && ctxPreviewVideo?.kind === 'recast' && (
+                    <p data-testid="pz-mode-already-recast" style={{ margin: '6px 0 0', color: C.cyan, fontSize: 9, lineHeight: 1.4 }}>
+                      Already recast in the Full Body Recast tab. Pick Recreate or Complete, or recast again there.
+                    </p>
+                  )}
                 </button>
+                {isUnavailable && modeNeedsPresenter(m.key) && (
+                  // Outside the (disabled) card so it stays clickable.
+                  <button
+                    type="button"
+                    data-testid={`pz-mode-fix-${m.key}`}
+                    onClick={() => { goToSection('assets', 'yours'); focusRequirementControl('presenter') }}
+                    className="self-start"
+                    style={{ color: C.cyan, background: 'none', border: 0, padding: 0, fontSize: 10, fontWeight: 800, cursor: 'pointer' }}
+                  >
+                    + Add a presenter photo →
+                  </button>
+                )}
+                </div>
               )
             })}
           </div>
@@ -4386,14 +4904,42 @@ function ConfigurationView(props: any) {
             Advanced Settings ›
           </button>
         </div>
+        {mode === 'full_body' && ctxPreviewSettings && ctxPreviewSettings.durationInFrames > RECAST_MAX_SECONDS * ctxPreviewSettings.fps && (
+          <div data-testid="pz-full-body-too-long" style={{ color: '#f59e0b', fontSize: 11, margin: '8px 0' }}>
+            Full presenter makes clips up to {RECAST_MAX_SECONDS} s, but the preview is {Math.round(ctxPreviewSettings.durationInFrames / ctxPreviewSettings.fps)} s; layers after {RECAST_MAX_SECONDS} s would be cut.{' '}
+            <button
+              type="button"
+              className="underline"
+              onClick={() => ctxUpdatePreviewComposition?.({ durationInFrames: RECAST_MAX_SECONDS * ctxPreviewSettings.fps })}
+            >
+              Trim preview to {RECAST_MAX_SECONDS} s
+            </button>
+          </div>
+        )}
         {showAdvanced && (
           <div className="grid grid-cols-2 gap-3 p-4 mt-2 rounded-xl border" style={{ borderColor: C.border, background: '#101010' }}>
-            {capabilities.aspectRatioOptions.length > 0 ? (
+            {mode === 'full_body' ? (
+              // The recast keeps the source clip's shape.
               <div>
                 <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', color: C.muted, marginBottom: 4 }}>Aspect Ratio</label>
+                <div style={{ padding: '8px 0', color: C.muted, fontSize: 13 }}>Matches the source video</div>
+              </div>
+            ) : capabilities.aspectRatioOptions.length > 0 ? (
+              <div>
+                <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', color: C.muted, marginBottom: 4 }}>Aspect Ratio</label>
+                {/* One aspect ratio for the preview, the AI run and the final
+                    file (the preview's own setting used to override this). */}
                 <select
-                  value={genOptions?.aspectRatio || source.aspectRatio || capabilities.aspectRatioOptions[0] || ''}
-                  onChange={(e) => updateGenOptions({ ...genOptions, aspectRatio: e.target.value })}
+                  value={
+                    (ctxPreviewSettings && capabilities.aspectRatioOptions.includes(ctxPreviewSettings.aspectRatio) ? ctxPreviewSettings.aspectRatio : '') ||
+                    genOptions?.aspectRatio || source.aspectRatio || capabilities.aspectRatioOptions[0] || ''
+                  }
+                  onChange={(e) => {
+                    updateGenOptions({ ...genOptions, aspectRatio: e.target.value })
+                    if (['16:9', '9:16', '1:1', '4:5'].includes(e.target.value)) {
+                      ctxUpdatePreviewComposition?.({ aspectRatio: e.target.value as '16:9' | '9:16' | '1:1' | '4:5' })
+                    }
+                  }}
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
                   style={{ borderColor: C.border, background: C.field, color: C.text }}
                 >
@@ -4412,6 +4958,8 @@ function ConfigurationView(props: any) {
               <div>
                 <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', color: C.muted, marginBottom: 4 }}>Resolution</label>
                 <select
+                  disabled={modelSetsQuality}
+                  title={modelSetsQuality ? 'Set by the face-swap / recast model' : undefined}
                   value={genOptions?.resolution || ''}
                   onChange={(e) => updateGenOptions({ ...genOptions, resolution: e.target.value })}
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
@@ -4428,6 +4976,8 @@ function ConfigurationView(props: any) {
               <div>
                 <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', color: C.muted, marginBottom: 4 }}>Quality</label>
                 <select
+                  disabled={modelSetsQuality}
+                  title={modelSetsQuality ? 'Set by the face-swap / recast model' : undefined}
                   value={genOptions?.quality || ''}
                   onChange={(e) => updateGenOptions({ ...genOptions, quality: e.target.value })}
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
@@ -4445,7 +4995,12 @@ function ConfigurationView(props: any) {
                 <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', color: C.muted, marginBottom: 4 }}>Duration</label>
                 <select
                   value={genOptions?.duration || source.duration || ''}
-                  onChange={(e) => updateGenOptions({ ...genOptions, duration: e.target.value ? parseInt(e.target.value) : undefined })}
+                  onChange={(e) => {
+                    const seconds = e.target.value ? parseInt(e.target.value) : undefined
+                    updateGenOptions({ ...genOptions, duration: seconds })
+                    // Same length for the preview and the final file.
+                    if (seconds && ctxPreviewSettings) ctxUpdatePreviewComposition?.({ durationInFrames: seconds * ctxPreviewSettings.fps })
+                  }}
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
                   style={{ borderColor: C.border, background: C.field, color: C.text }}
                 >
@@ -4455,18 +5010,15 @@ function ConfigurationView(props: any) {
                 </select>
               </div>
             )}
-            <div>
-              <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', color: C.muted, marginBottom: 4 }}>Engine</label>
-              <select
-                value={genOptions?.engine || 'smartvideo-recommended'}
-                onChange={(e) => updateGenOptions({ ...genOptions, engine: e.target.value })}
-                className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-                style={{ borderColor: C.border, background: C.field, color: C.text }}
-              >
-                <option value="smartvideo-recommended">SmartVideo Recommended</option>
-              </select>
-            </div>
-            <div className="flex items-end">
+            {modelSetsQuality && (
+              <div className="col-span-2" style={{ color: C.muted, fontSize: 11 }}>
+                Resolution and quality are set by the {mode === 'face_only' ? 'face-swap' : 'recast'} model.
+              </div>
+            )}
+            {/* Only Full presenter changes the sound (its model returns a
+                silent video); the other modes keep the clip's own audio. */}
+            {mode === 'full_body' && (
+            <div className="flex flex-col justify-end gap-1">
               <label className="flex items-center gap-2 cursor-pointer text-xs" style={{ color: C.muted }}>
                 <input
                   type="checkbox"
@@ -4474,24 +5026,155 @@ function ConfigurationView(props: any) {
                   onChange={(e) => updateGenOptions({ ...genOptions, preserveAudio: e.target.checked })}
                   className="rounded"
                 />
-                Preserve Audio
+                Keep the original video&apos;s sound
               </label>
+              {/* Full presenter clips come back silent; only the final-video
+                  render can put the original sound back under them. */}
+              {mode === 'full_body' && (
+                <span data-testid="pz-preserve-audio-note" className="text-[10px]" style={{ color: C.muted }}>
+                  Applies to Create final video. A quick Generate uses the AI&apos;s own sound.
+                </span>
+              )}
             </div>
+            )}
           </div>
         )}
         {mode && ['face_only', 'full_body', 'replace_face', 'replace_person'].includes(mode) && (
-          <label className="flex gap-2 items-center pt-[18px] text-[11px]" style={{ color: 'rgba(255,255,255,.72)' }}>
+          <label data-pz-focus="consent" className="flex gap-2 items-center pt-[18px] text-[11px]" style={{ color: 'rgba(255,255,255,.72)' }}>
             <input
               type="checkbox"
               checked={genOptions?.consentGiven ?? false}
               onChange={(e) => updateGenOptions({ ...genOptions, consentGiven: e.target.checked })}
             />
             I confirm that I have permission to use this person&apos;s likeness.
+            {!genOptions?.consentGiven && (
+              <span style={{ padding: '1px 6px', borderRadius: 999, background: 'rgba(251,191,36,.1)', border: '1px solid rgba(251,191,36,.35)', color: '#fcd34d', fontSize: 9, fontWeight: 700 }}>
+                Required
+              </span>
+            )}
           </label>
         )}
       </section>
       )}
+      {(isPromptOnly || isAnonymous) && (
+        <div style={{ margin: '16px 0', color: C.muted, fontSize: 12 }}>Output and engine settings are available for signed-in video and image projects.</div>
+      )}
+      </AdvancedSectionPanel>
+      </AdvancedTabPanel>
 
+      <AdvancedTabFooter tab={advancedTab} section={activeSection} onGo={goToSection} />
+        </div>
+
+        <div className={`order-first xl:order-last xl:h-full xl:min-h-0 ${mobilePreviewOpen ? '' : 'hidden xl:block'}`}>
+          <AdvancedPreviewColumn>
+            {!isAnonymous && <ReadinessChecklist requirements={requirements} onFix={fixRequirement} />}
+            {/* The source demo shows here whenever the live preview cannot. */}
+            {!((source?.mediaType === 'video' || source?.mediaType === 'image') && ctxPreviewSettings) && (
+              <>
+        {/* Source Demo */}
+        <div className="panel" style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
+          <h2 style={{ margin: '0 0 13px', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>Source Demo</h2>
+          <div
+            className="relative"
+            style={{
+              aspectRatio: '16 / 10',
+              borderRadius: 13,
+              overflow: 'hidden',
+              background: 'linear-gradient(rgba(0,0,0,.24), rgba(0,0,0,.38)), linear-gradient(135deg, #3a3a3a, #101010 70%)',
+              border: `1px solid ${C.border}`,
+            }}
+          >
+            {source.aspectRatio && (
+              <div className="absolute" style={{ right: 10, top: 10, fontSize: 10, padding: '4px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>
+                {source.aspectRatio}
+              </div>
+            )}
+            {source.mediaType === 'video' && source.sourceMedia ? (
+              <video
+                src={source.sourceMedia}
+                poster={source.poster || undefined}
+                controls
+                autoPlay
+                muted
+                playsInline
+                loop
+                className="w-full h-full"
+                style={{ maxHeight: '50vh', objectFit: 'contain' }}
+              />
+            ) : source.mediaType === 'image' && source.sourceMedia ? (
+              <img
+                src={source.sourceMedia}
+                alt={source.title}
+                className="w-full h-full"
+                style={{ maxHeight: '50vh', objectFit: 'contain' }}
+              />
+            ) : isFreeDiscovery ? (
+              /* Free landing surface: there is no media to preview — the run
+                 reads the visitor's own website. Kept inside the shared Source
+                 Demo panel so the layout is identical in both modes. The
+                 branded-preview enhancement plugs in here later. */
+              <div className="flex flex-col items-center justify-center w-full h-full gap-2 p-6 text-center">
+                <span style={{ fontSize: 26, color: C.cyan }}>✦</span>
+                <span className="text-[12px] font-extrabold uppercase tracking-wide" style={{ color: C.text }}>
+                  Your website is the source
+                </span>
+                <span className="text-[11px] leading-5" style={{ color: C.muted }}>
+                  Paste it above and we show the brand assets it already has.
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center w-full h-full">
+                {/* Nothing to play here (no media): a label, not a button. */}
+                <span
+                  className="rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide"
+                  style={{ border: '1px solid rgba(255,255,255,.2)', background: 'rgba(255,255,255,.08)', color: 'rgba(255,255,255,.7)' }}
+                >
+                  No preview
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="mt-3 text-base font-bold">{source.title}</div>
+          <div className="mt-1 text-[11px] uppercase" style={{ color: C.muted }}>
+            {isFreeDiscovery ? 'Free discovery' : source.mediaType?.toUpperCase()} {source.aspectRatio ? `• ${source.aspectRatio}` : ''}
+          </div>
+        </div>
+
+              </>
+            )}
+            {(source?.mediaType === 'video' || source?.mediaType === 'image') && (
+              <AdvancedLivePreview source={source} />
+            )}
+       {/* ── WHAT SMARTVIDEO WILL USE ─────────────────────────────── */}
+       <section data-testid="pz-will-use" style={{ padding: '14px', border: `1px solid ${C.border}`, borderRadius: 14, background: C.panel }}>
+         <div className="flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 10 }}>
+           <div>
+             <h2 style={{ margin: 0, fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em' }}>What SmartVideo Will Use</h2>
+             <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 11 }}>
+               {assetSummary.length} asset{assetSummary.length === 1 ? '' : 's'} assigned across {new Set(assetSummary.map((a) => a.section)).size} block{new Set(assetSummary.map((a) => a.section)).size === 1 ? '' : 's'}
+             </p>
+           </div>
+         </div>
+         <div className="flex flex-wrap gap-2">
+           {assetSummary.map((item) => (
+             <div
+               key={item.id}
+               className="flex items-center gap-1.5 rounded-lg px-2 py-1"
+               style={{ background: 'rgba(217,255,0,.06)', border: `1px solid rgba(217,255,0,.18)` }}
+             >
+               <img src={item.url} alt="" className="w-5 h-5 rounded object-cover" style={{ background: '#000' }} />
+               <span style={{ fontSize: 10, fontWeight: 700, color: C.text }}>{item.name?.split('.')?.[0]?.toUpperCase()?.slice(0, 8) || 'ASSET'}</span>
+               <span style={{ fontSize: 9, fontWeight: 800, textTransform: 'uppercase', color: C.cyan }}>{item.section}</span>
+             </div>
+           ))}
+           {assetSummary.length === 0 && (
+             <span style={{ fontSize: 11, color: C.muted2 }}>No assets assigned yet.</span>
+           )}
+         </div>
+       </section>
+
+          </AdvancedPreviewColumn>
+        </div>
       </div>
     </div>
   )
@@ -4503,20 +5186,53 @@ function ConfigurationView(props: any) {
 // the same provider state. It renders nothing when the guided preview API is
 // unavailable, so partially-wired contexts keep the previous behavior.
 
-function AdvancedOverlaySection({ source }: { source: PersonalizationSource | null }) {
+/** Builds the preview props shared by the live preview and the overlay editor. */
+function useAdvancedPreviewInput(source: PersonalizationSource | null) {
   const ctx = useDemoPersonalize()
   const guidedAvailable =
     typeof (ctx as { setGuidedStep?: unknown }).setGuidedStep === 'function' &&
     Boolean((ctx as { previewSettings?: unknown }).previewSettings)
   if (!guidedAvailable || !ctx.previewSettings) return null
-
-  const inputProps = buildPreviewInput({
+  return buildPreviewInput({
     source,
     previewSettings: ctx.previewSettings,
     previewVideo: ctx.previewVideo ?? null,
     clientForm: ctx.clientForm || {},
     assets: ctx.assets,
   })
+}
+
+/**
+ * The always-visible before/after preview in the workspace's sticky column.
+ * Opens in single-view "Switch" mode (the column is narrow); Compare is one
+ * click away.
+ */
+function AdvancedLivePreview({ source }: { source: PersonalizationSource | null }) {
+  const inputProps = useAdvancedPreviewInput(source)
+  const { previewVideo, preRecastVideo } = useDemoPersonalize()
+  if (!inputProps) return null
+  // After a Full Body Recast, BEFORE shows the original performer and AFTER
+  // the recast person, so the swap itself is visible.
+  const beforeVideoUrl = previewVideo?.kind === 'recast'
+    ? preRecastVideo?.url || source?.sourceMedia || null
+    : null
+  return (
+    <section data-testid="pz-live-preview" style={{ padding: 14, border: `1px solid ${C.border}`, borderRadius: 14, background: C.panel }}>
+      <h2 style={{ margin: '0 0 10px', fontSize: 12, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>
+        Live Preview
+      </h2>
+      {/* Opens on the personalized result; "Before" is one click away. */}
+      <BeforeAfterPreview inputProps={inputProps} defaultMode="toggle" initialSide="after" beforeVideoUrl={beforeVideoUrl} />
+    </section>
+  )
+}
+
+function AdvancedOverlaySection({ source }: { source: PersonalizationSource | null }) {
+  const inputProps = useAdvancedPreviewInput(source)
+  const { outputType } = useDemoPersonalize()
+  if (!inputProps) return null
+  // Say where these layers end up for the chosen output.
+  const layersInVideo = outputType === 'video' || outputType === 'everything'
 
   return (
     <section
@@ -4525,15 +5241,21 @@ function AdvancedOverlaySection({ source }: { source: PersonalizationSource | nu
       style={{ padding: '20px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}
     >
       <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>
-        Preview &amp; On-Video Overlays
+        On-Video Overlays
       </h2>
       <p className="mt-1.5 max-w-[900px] text-[12px] leading-[1.55]" style={{ color: C.muted }}>
-        A free, browser-based preview of your branding placed directly on the video — before and after, side by
-        side. Drag, resize and edit every layer on the video itself. Nothing here is generated or charged.
+        Drag, resize and edit every layer on the video itself — the live preview beside this updates as you go.
+        Nothing here is generated or charged.
       </p>
-      <div style={{ marginTop: 16 }}>
-        <BeforeAfterPreview inputProps={inputProps} defaultMode="split" />
-      </div>
+      <p
+        data-testid="pz-overlay-output-note"
+        className="mt-2 max-w-[900px] text-[11px] font-bold"
+        style={{ color: layersInVideo ? C.green : '#fcd34d' }}
+      >
+        {layersInVideo
+          ? '✓ These layers are burned into your final video, exactly as previewed.'
+          : 'Layers apply to video outputs only — choose Video or Everything under Output & engine to include them.'}
+      </p>
       <div style={{ marginTop: 16 }}>
         <OverlayEditor inputProps={inputProps} />
       </div>

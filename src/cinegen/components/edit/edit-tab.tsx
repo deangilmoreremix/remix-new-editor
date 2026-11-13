@@ -12,6 +12,8 @@ import { ResizeHandle } from './resize-handle';
 import { activeGlTransition } from '@cinegen/lib/occ/transitions';
 import { useRecorder } from '../../../openchatcut/audio/recorder';
 import { SoundLibraryPopup } from './sound-library-popup';
+import { StockMediaPopup } from './stock-media-popup';
+import { useMediaBrowser } from './use-media-browser';
 import { LibraryPanel, type LibraryActions } from './library-panel'; // [remix] one Library for animations, effects, transitions, looks, overlays & forms, sounds
 import { createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
 import { createHyperframesOverlay, hyperframesItem } from '@cinegen/lib/hyperframes/overlay';
@@ -909,7 +911,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     const asset: Asset = { id: imported.assetId, name, type: 'audio', url: imported.filePath, fileRef: imported.filePath, duration: seconds, createdAt: new Date().toISOString(), status: 'processing', metadata: { source: 'openchatcut-recorder', processingJobs: ['extract_metadata', 'compute_waveform'] } };
     dispatch({ type: 'ADD_ASSET', asset });
     let tl = timeline;
-    let track = (ctx?.trackId ? tl.tracks.find((t) => t.id === ctx.trackId && t.kind === 'audio' && !t.locked) : undefined) ?? tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
+    let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
     if (!track) {
       track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
       tl = { ...tl, tracks: [...tl.tracks, track] };
@@ -928,6 +930,9 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     }
     dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, ctx?.time ?? currentTime)) });
   }, [dispatch, timeline, currentTime]);
+
+  // [remix] AI & stock media browser (see use-media-browser.ts)
+  const mediaBrowser = useMediaBrowser({ timeline, currentTime, projectId, dispatch });
 
   const selectedClipAsset = useMemo(() => {
     if (!selectedClip) return null;
@@ -1120,6 +1125,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         onRemoveAssets={(assetIds) => dispatch({ type: 'REMOVE_ASSETS', assetIds })}
         projectId={projectId}
         onAddAsset={(asset) => dispatch({ type: 'ADD_ASSET', asset })}
+        onOpenStock={() => mediaBrowser.setOpen(true)}
         onAddTimeline={(timeline) => dispatch({ type: 'ADD_TIMELINE', timeline })}
         libraryNode={<LibraryPanel {...libraryActions} />}
       />
@@ -1193,11 +1199,12 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
 
       {/* Timeline area */}
       <div className="edit-tab__timeline-area">
-        <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} onOpenSounds={() => setSoundLibrary(true)} recording={recorder.recording} onToggleRecording={() => { if (!recorder.recording) recordStartRef.current = Math.max(0, currentTime); recorder.toggle(); }} />
+        <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} onOpenSounds={() => setSoundLibrary(true)} onOpenStock={() => mediaBrowser.setOpen(true)} recording={recorder.recording} onToggleRecording={() => { if (!recorder.recording) recordStartRef.current = Math.max(0, currentTime); recorder.toggle(); }} />
         {dropNote && <div role="status" data-testid="library-drop-note" style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: 'rgba(8,12,18,.92)', border: '1px solid var(--accent, #22d3ee)', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 12 }}>{dropNote}</div>}
         {recorder.error && <div role="alert" data-testid="record-error" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#7f1d1d', color: '#fff', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>{recorder.error}</div>}
         {recorder.recording && <div role="status" data-testid="recording-chip" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#0b1016', color: '#f87171', border: '1px solid #f87171', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>● Recording voice-over… click the mic to stop</div>}
         {soundLibrary && <SoundLibraryPopup onClose={() => setSoundLibrary(false)} onAdd={handleAddSound} />}
+        {mediaBrowser.open && <StockMediaPopup onClose={() => mediaBrowser.setOpen(false)} onAdd={mediaBrowser.handleAddStock} onGenerate={mediaBrowser.handleGenerateAi} assets={state.assets} onAddAsset={(a) => mediaBrowser.placeAtPlayhead(a)} />}
 
         <div className="edit-tab__timeline-content">
           <TimelineTabs

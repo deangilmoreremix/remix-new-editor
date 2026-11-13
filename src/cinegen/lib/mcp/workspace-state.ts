@@ -189,7 +189,7 @@ function resolveActiveSpace(
    ------------------------------------------------------------------ */
 
 const TAB_STORAGE_KEY = 'cinegen_active_tab';
-const VALID_TABS = new Set(['elements', 'create', 'director', 'edit', 'llm', 'export', 'leads']);
+const VALID_TABS = new Set(['elements', 'create', 'director', 'edit', 'llm', 'export', 'leads', 'analytics']);
 
 export function createInitialWorkspaceState(): WorkspaceState {
 const defaultTimeline = createDefaultTimeline('Timeline 1');

@@ -55,7 +55,7 @@ type FetchStub = () => Promise<{
 /** The `window.__personalizationCtx` debug hook other personalization suites set. */
 type PersonalizationDebugWindow = { __personalizationCtx?: unknown };
 
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),

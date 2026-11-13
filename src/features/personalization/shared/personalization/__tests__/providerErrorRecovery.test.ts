@@ -213,7 +213,7 @@ describe('Phase 31 - Error Recovery', () => {
   // ── Post-Processing Failures ────────────────────────────────────────────────
 
   describe('postProcessor: background removal / watermark failures', () => {
-    // Skipped in remix-new-editor: remix's test setup provides a 2D canvas, so compositing waits on an <img> load that jsdom never fires (no resource loading).
+    // Skipped in remix-new-editor: remix's test setup provides a 2D canvas, so compositing waits on an <img> load that jsdom never fires.
     it.skip('image watermark failure returns null without throwing', async () => {
       muapiMock.generateI2I.mockRejectedValue(
         new Error('Background removal service unavailable'),
@@ -382,7 +382,7 @@ describe('Phase 31 - Error Recovery', () => {
   // ── Asset Preservation ──────────────────────────────────────────────────────
 
   describe('asset preservation on failure', () => {
-    // Skipped in remix-new-editor: same jsdom <img> load limitation as above.
+    // Skipped in remix-new-editor: remix's test setup provides a 2D canvas, so compositing waits on an <img> load that jsdom never fires.
     it.skip('failed image edit: original asset URL is preserved in result', async () => {
       muapiMock.generateI2I.mockRejectedValue(new Error('Edit service unavailable'))
       muapiMock.uploadFile.mockResolvedValue('https://example.com/uploaded.png')

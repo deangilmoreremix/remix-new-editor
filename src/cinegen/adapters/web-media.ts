@@ -113,6 +113,15 @@ async function probe(url: string, type: string) {
   return { duration: v.duration, width: v.videoWidth, height: v.videoHeight, fps: 30, fileSize: webFiles.get(url)?.size };
 }
 
+/** True only when the media can be read and has no audio track at all (if that can't be established, the real error is kept). */
+async function hasNoAudioTrack(url: string): Promise<boolean> {
+  try {
+    const mb = await import('mediabunny');
+    const input = new mb.Input({ source: new mb.UrlSource(url), formats: mb.ALL_FORMATS });
+    try { return (await input.getAudioTracks()).length === 0; } finally { input.dispose(); }
+  } catch { return false; }
+}
+
 async function runJob(assetId: string, url: string, jobType: string) {
   const jobId = `web-${jobType}-${Math.random().toString(36).slice(2, 8)}`;
   const type = mediaTypeOf(url);
@@ -122,7 +131,18 @@ async function runJob(assetId: string, url: string, jobType: string) {
     else if (jobType === 'generate_thumbnail') result = { outputPath: await frameDataUrl(url, 0.1, 480) };
     else if (jobType === 'compute_waveform') {
       // CineGen reads peaks from `peaksPath` (a JSON array URL). A data: URL keeps them durable across reloads.
-      const peaks = await extractWaveformPeaks(url, 1500);
+      let peaks: number[];
+      try {
+        peaks = await extractWaveformPeaks(url, 1500);
+      } catch (err) {
+        // A video without an audio track (common for stock footage) cannot be decoded as audio. Complete with a flat waveform;
+        // otherwise the job errors and the workspace re-queues it forever.
+        // Only a decode failure on a video that provably has no audio track falls back to a flat waveform.
+        // Network errors, HTTP errors, and audio that exists but can't be decoded still fail the job.
+        if (type !== 'video' || (err as { name?: string } | null)?.name !== 'EncodingError' || !(await hasNoAudioTrack(url))) throw err;
+        console.warn('[web-media] this video has no audio track; using a flat waveform');
+        peaks = new Array(100).fill(0);
+      }
       result = { peaks, peaksPath: `data:application/json,${encodeURIComponent(JSON.stringify(peaks.map((p) => Math.round(p * 1000) / 1000)))}` };
     }
     else if (jobType === 'generate_filmstrip') result = { frames: await extractFilmstripFrames(url) };

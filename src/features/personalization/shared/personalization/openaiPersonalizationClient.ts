@@ -108,6 +108,8 @@ export type OpenAIImageEditParams = {
   outputFormat?: 'png' | 'jpeg' | 'webp'
   background?: 'transparent' | 'opaque' | 'auto'
   inputFidelity?: 'high' | 'low'
+  /** Extra input images (e.g. the person to put into the picture). */
+  referenceImages?: Array<Blob | File>
 }
 
 export type OpenAIImageResult = {
@@ -235,7 +237,14 @@ export class PersonalizationOpenAIClient {
     form.append('output_format', params.outputFormat || 'png')
     form.append('background', params.background || 'auto')
     form.append('input_fidelity', params.inputFidelity || 'high')
-    form.append('image', params.image, 'source.' + (params.image.type.split('/')[1] || 'png'))
+    const extension = (blob: Blob) => blob.type.split('/')[1] || 'png'
+    if (params.referenceImages?.length) {
+      // Several input images: the image being edited first, then the references.
+      form.append('image[]', params.image, 'source.' + extension(params.image))
+      params.referenceImages.forEach((reference, index) => form.append('image[]', reference, `reference-${index + 1}.` + extension(reference)))
+    } else {
+      form.append('image', params.image, 'source.' + extension(params.image))
+    }
     if (params.mask) {
       form.append('mask', params.mask, 'mask.png')
     }

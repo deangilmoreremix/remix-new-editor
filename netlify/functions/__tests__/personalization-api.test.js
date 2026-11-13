@@ -28,10 +28,9 @@ describe('personalization-api dispatcher', () => {
     expect(res.headers.get('allow')).toBe('PATCH, DELETE')
   })
 
-  it('acknowledges /api/video/record', async () => {
+  it('requires a signed-in user for /api/video/record (it writes generated_videos)', async () => {
     const res = await call('POST', '/api/video/record', { body: '{}' })
-    expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, recorded: false })
+    expect(res.status).toBe(401)
   })
 
   it('validates find-businesses input before any network call', async () => {

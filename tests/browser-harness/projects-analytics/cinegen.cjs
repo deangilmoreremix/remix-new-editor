@@ -1,0 +1,38 @@
+const { chromium } = require('playwright'); const fs=require('fs'); const { execSync } = require('child_process');
+const tokens=JSON.parse(fs.readFileSync(__dirname+'/tokens.json','utf8'));
+const sql=(q)=>execSync(`PGPASSWORD=browsertest psql -h 127.0.0.1 -U postgres -d svbrowser -Atc "${q}"`).toString().trim();
+const post=(vid,i)=>execSync(`curl -s -m 20 -X POST http://127.0.0.1:8890/api/video-events -H 'content-type: application/json' -d '{"video":"${vid}","session":"cgsmoke-session-00${i}-abcdef","viewer":"abcdef0123456789abcdef012345678${i}","events":[{"type":"page_open","seq":0},{"type":"play","seq":1,"t":0},{"type":"cta_click","seq":2,"clip":"c1"},{"type":"lead_submit","seq":3,"clip":"f1"}]}'`).toString();
+(async()=>{
+ const b=await chromium.launch(); const ctx=await b.newContext({viewport:{width:1440,height:900},bypassCSP:true});
+ await ctx.addInitScript((s)=>{sessionStorage.setItem('setup_popup_shown','1'); window.Clerk={loaded:true,user:{id:s},session:{getToken:async()=>'x'},addListener(){return()=>{}},load:async()=>{}};},'userA');
+ const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(String(e.message).slice(0,160)));
+ await p.route('**/.netlify/functions/supabase-token',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({token:tokens.userA,expires_in:3600})}));
+ await p.route('**/api/video-events',r=>r.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'}));
+ await p.goto('http://127.0.0.1:3100/#/timeline',{waitUntil:'domcontentloaded'});
+ await p.getByTitle('New project').waitFor({timeout:120000});
+ await p.getByTitle('New project').click(); await p.locator('input').first().fill('Roof promo'); await p.keyboard.press('Enter');
+ await p.waitForURL(/project=/,{timeout:60000}); await p.waitForTimeout(4000);
+ const pid=new URL(p.url()).searchParams.get('project');
+ await p.locator('.top-nav button',{hasText:/^LEADS$/i}).first().click(); await p.getByTestId('publish-btn').waitFor(); await p.getByTestId('publish-btn').click(); await p.waitForTimeout(4000);
+ const vid=sql(`select id from published_videos where project_id in (select id from timeline_projects where settings->>'source'='cinegen') order by created_at desc limit 1`); console.log('video',vid);
+ for (const i of [1,2,3,4]) post(vid,i);
+ const db=sql(`select plays||'/'||cta_clicks||'/'||leads from video_analytics_daily where video_id='${vid}'`); console.log('DB plays/cta/leads',db);
+ await p.locator('.top-nav button',{hasText:/^ANALYTICS$/i}).first().click(); await p.waitForTimeout(3000);
+ await p.getByRole('button',{name:'30 days'}).click(); await p.waitForTimeout(2500);
+ const stat=async(l)=>p.locator('.sv-stat',{hasText:l}).first().innerText().then(t=>t.replace(/\n+/g,' '));
+ console.log('UI', await stat('Video plays'),'|',await stat('CTA clicks'),'|',await stat('Leads captured'));
+ await p.screenshot({path:__dirname+'/shots/cg-analytics-data.png',fullPage:false});
+ await p.getByRole('tab',{name:'Alerts'}).click(); await p.waitForTimeout(2500);
+ console.log('ALERTS', (await p.locator('.cg-analytics__host').innerText()).replace(/\n+/g,' | ').slice(0,260));
+ await p.screenshot({path:__dirname+'/shots/cg-alerts.png'});
+ await p.getByRole('tab',{name:'Audience'}).click(); await p.waitForTimeout(2500);
+ await p.screenshot({path:__dirname+'/shots/cg-audience.png'});
+ await p.getByRole('tab',{name:'Retarget'}).click(); await p.waitForTimeout(2500);
+ await p.screenshot({path:__dirname+'/shots/cg-retarget.png'});
+ // header bell while in the editor opens Alerts
+ await p.locator('.top-nav button',{hasText:/^EDIT$/i}).first().click(); await p.waitForTimeout(1500);
+ await p.locator('button[aria-label^="Video alerts"]').click(); await p.waitForTimeout(3000);
+ console.log('BELL ->', (await p.locator('.cg-analytics__tab.is-active').innerText().catch(()=>'(no tab)')));
+ console.log('ERRS',JSON.stringify(errs.slice(0,5)));
+ await b.close();
+})();
