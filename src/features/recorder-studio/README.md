@@ -41,6 +41,19 @@ Keep this list when re-syncing with upstream.
 Not ported on purpose: the upstream `recorder` intro scene (a Remotion Recorder promo).
 The video scenes are bound to takes by recording order, as upstream.
 
+## Coverage of upstream (`remotion-dev/recorder` @ 4c09934)
+
+Checked file by file. The complete, unmodified upstream is also in `apps/remotion-recorder` (byte-identical; `diff -r` shows only our `EDITOR_INTEGRATION.md`).
+
+| Upstream | Here |
+| --- | --- |
+| `remotion/` + `config/` (126 files) | 122 vendored in `composition/`. 16 of the 20 edited files are import rewiring only; behaviour edits are listed above. **Not copied:** `remotion/Root.tsx`, `remotion/index.ts`, `remotion/GoToRecorder.tsx` (Remotion Studio entry points; replaced by `RecorderStudio.tsx`) and `config/whisper.ts` (Node-only Whisper.cpp paths). |
+| `src/` recording UI (device pickers, resolution limiter, volume meter, mirror / crop / rotate, record + R key, take review, labels + permission flow, Web FS check) | Re-implemented in `src/components/modals/RecorderModal.jsx` + `recorder/capture.js`. |
+| `src/` project folders (`NewFolderDialog`, `SelectedFolder`, `actions/*`, `get-folders`) | Not ported: replaced by the in-memory project (`project.ts`); no folders on disk. |
+| `scripts/` Bun server (upload, project creation, Whisper.cpp, ffmpeg convert) | Not ported: replaced by browser equivalents (OPFS storage, in-browser Whisper, mediabunny remux, web-renderer export). |
+| `tests/` (5 files) | Ported to `__tests__/upstream/` (vitest); all pass against this code. |
+| `public/` sounds, `remotion.png`, `sample-broll.jpg` | Copied to `public/recorder-studio/`. The `welcome/` sample project is only in `apps/remotion-recorder`. |
+
 ## Notes
 
 - Licence: the composition is Remotion Recorder code (see Remotion's licence terms). Web exports use the same `licenseKey` convention as `motion-director/webRenderer.ts`.

@@ -8,9 +8,11 @@ import {
   attachVolumeMeter,
   canRotateCamera,
   convertTake,
+  canUseWebFsWriter,
+  describePermissionError,
   describeStreamError,
-  enumerateDevicesOrTimeOut,
-  formatDeviceLabel,
+  getDeviceLabel,
+  getDevices,
   formatMilliseconds,
   getExtension,
   getMaxResolutionOfDevice,
@@ -96,6 +98,8 @@ export class RecorderModal extends BaseModal {
     this.audioDeviceId = storage.get(AUDIO_PREF_KEY) || null;
     this.showAllViews = false;
     this.devices = [];
+    this.devicesReady = false; // false until the first look for cameras/microphones (and the permission prompt) has finished
+    this.noWebFs = false;
     this.mirror = storage.get(MIRROR_KEY) === null ? true : storage.get(MIRROR_KEY) === 'true';
     this.showCrop = storage.get(CROP_KEY) === 'true';
 
@@ -123,10 +127,11 @@ export class RecorderModal extends BaseModal {
 
   isVisible(prefix) { return this.showAllViews || VISIBLE_BY_DEFAULT[prefix]; }
 
-  get videoInputs() { return this.devices.filter((d) => d.kind === 'videoinput'); }
-  get audioInputs() { return this.devices.filter((d) => d.kind === 'audioinput'); }
+  // Entries without an id cannot be opened (the browser hides ids until access is granted).
+  get videoInputs() { return this.devices.filter((d) => d.kind === 'videoinput' && d.deviceId); }
+  get audioInputs() { return this.devices.filter((d) => d.kind === 'audioinput' && d.deviceId); }
 
-  deviceLabel(d, i = 0) { return formatDeviceLabel(d.label) || `${d.kind === 'audioinput' ? 'Microphone' : 'Camera'} ${i + 1}`; }
+  deviceLabel(d, i = 0) { return getDeviceLabel(d) || `${d.kind === 'audioinput' ? 'Microphone' : 'Camera'} ${i + 1}`; }
 
   activeViews() {
     return PREFIXES.filter((p) => this.isVisible(p) && this.views[p].state === 'loaded');
@@ -147,14 +152,24 @@ export class RecorderModal extends BaseModal {
   // ----- devices -------------------------------------------------------------
 
   async loadDevices({ restore = false } = {}) {
-    if (!navigator.mediaDevices?.enumerateDevices) return;
-    try {
-      this.devices = await enumerateDevicesOrTimeOut();
-    } catch (err) {
-      this.error = err.message;
+    if (!navigator.mediaDevices?.enumerateDevices) {
+      this.error = 'This browser cannot access cameras or microphones.';
+      this.devicesReady = true;
       this.refresh();
       return;
     }
+    try {
+      // Asks for camera + microphone access once (the browser hides device ids and labels until then).
+      this.devices = await getDevices();
+      if (this.error && this.error.startsWith('Camera and microphone access')) this.error = '';
+    } catch (err) {
+      this.error = describePermissionError(err);
+      this.devicesReady = true;
+      this.refresh();
+      return;
+    }
+    this.devicesReady = true;
+    if (this.noWebFs === false) canUseWebFsWriter().then((ok) => { if (!ok) { this.noWebFs = true; this.refresh(); } });
     if (restore) {
       // Re-open the cameras/mics used last time (screens need a click, so they are not auto-started).
       for (const prefix of PREFIXES) {
@@ -285,6 +300,9 @@ export class RecorderModal extends BaseModal {
 
         ${this.error ? `<div class="rr-err" role="alert">${escapeHtml(this.error)}</div>` : ''}
 
+        ${!this.devicesReady ? '<div class="rr-hint" role="status">Looking for cameras and microphones. Allow access if your browser asks.</div>' : ''}
+        ${this.noWebFs ? '<div class="rr-hint">This browser window cannot store recordings on disk (a private window?). Takes are kept in memory, so keep them short.</div>' : ''}
+
         <div class="rr-views">${shown.map((p) => this.renderView(p)).join('')}</div>
 
         ${this.takes ? `
@@ -411,6 +429,7 @@ export class RecorderModal extends BaseModal {
           <h5>Select video</h5>
           <button class="rr-item ${sel === 'display-without-audio' ? 'sel' : ''}" data-act="pick-screen" data-prefix="${prefix}" data-audio="0">🖥 Screen capture</button>
           <button class="rr-item ${sel === 'display-with-audio' ? 'sel' : ''}" data-act="pick-screen" data-prefix="${prefix}" data-audio="1">🖥 Screen capture with audio</button>
+          ${this.devicesReady && this.videoInputs.length === 0 ? '<div class="rr-hint">No cameras found</div>' : ''}
           ${this.videoInputs.map((d, i) => `<button class="rr-item ${sel === d.deviceId ? 'sel' : ''}" data-act="pick-camera" data-prefix="${prefix}" data-id="${escapeHtml(d.deviceId)}">📷 ${escapeHtml(this.deviceLabel(d, i))}</button>`).join('')}
         </div>
         ${prefix === 'webcam' ? `

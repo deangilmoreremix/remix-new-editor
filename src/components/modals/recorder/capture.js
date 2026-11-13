@@ -46,6 +46,91 @@ export const enumerateDevicesOrTimeOut = async () => {
   }
 };
 
+// ----- device discovery + permission (ported from the Recorder's get-devices.ts / DevicePermission.tsx) -----
+// Until the user grants access, browsers return devices with EMPTY ids and labels, so a camera or microphone cannot be picked.
+// Like the Recorder, ask once up front (which also unlocks the labels), then remember the clean labels in localStorage.
+
+const LABELS_KEY = 'labels';
+const readLabels = () => { try { return JSON.parse(safeStorageGet(LABELS_KEY) || '[]'); } catch { return []; } };
+function safeStorageGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+
+export const storeLabelsToLS = (devices) => {
+  const labels = readLabels();
+  devices.forEach((device) => {
+    const clean = formatDeviceLabel(device.label);
+    if (device.deviceId && clean !== '' && !labels.some((l) => l.id === device.deviceId)) labels.push({ id: device.deviceId, label: clean });
+  });
+  try { localStorage.setItem(LABELS_KEY, JSON.stringify(labels)); } catch { /* storage unavailable */ }
+};
+
+export const hasNewDevices = (devices) => {
+  const labels = readLabels();
+  return !devices.every((d) => labels.some((l) => l.id === d.deviceId));
+};
+
+/** The label to show: the browser's current one, else the one remembered from an earlier visit. */
+export const getDeviceLabel = (device) => {
+  const cached = readLabels().find((l) => l.id === device.deviceId);
+  return cached ? cached.label : formatDeviceLabel(device.label);
+};
+
+// Camera + microphone together first (one prompt); if the machine lacks one of them, fall back so the other can still be used.
+const requestAnyMedia = async () => {
+  const attempts = [{ video: true, audio: true }, { video: true }, { audio: true }];
+  let firstError = null;
+  for (const constraints of attempts) {
+    try {
+      return await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (err) {
+      if (err?.name === 'NotAllowedError' || err?.name === 'SecurityError') throw err; // blocked: asking again won't help
+      firstError = firstError || err;
+    }
+  }
+  throw firstError;
+};
+
+export const getDevices = async () => {
+  const fetched = await enumerateDevicesOrTimeOut();
+  const hasEmptyLabels = fetched.some((d) => d.label === '');
+  const hasNew = hasNewDevices(fetched);
+  if (hasNew && hasEmptyLabels) {
+    const stream = await requestAnyMedia();
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      storeLabelsToLS(devices);
+      return devices;
+    } finally {
+      stream.getTracks().forEach((t) => t.stop());
+    }
+  }
+  if (hasNew) storeLabelsToLS(fetched);
+  return fetched;
+};
+
+/** Friendly text for a getDevices()/getUserMedia failure. */
+export const describePermissionError = (err) => {
+  if (err?.name === 'NotAllowedError' || err?.name === 'SecurityError') {
+    return 'Camera and microphone access is blocked. Click the camera or lock icon in your browser\'s address bar, allow access, then press "Rescan devices".';
+  }
+  if (err?.name === 'NotFoundError' || /Requested device not found|object can not be found/i.test(err?.message || '')) {
+    return 'No camera or microphone was found. Connect one, then press "Rescan devices".';
+  }
+  return err?.message || 'Could not look for cameras and microphones.';
+};
+
+// The Recorder streams takes to the origin-private file system (Web FS). Private windows and some browsers do not offer it;
+// takes then stay in memory, which is fine for short recordings but worth a warning.
+export const canUseWebFsWriter = async () => {
+  try {
+    if (!navigator.storage?.getDirectory) return false;
+    const dir = await navigator.storage.getDirectory();
+    const handle = await dir.getFileHandle('remotion-probe-web-fs-support', { create: true });
+    return handle.createWritable !== undefined;
+  } catch {
+    return false;
+  }
+};
+
 // ----- remembered choices (per device resolution, preferred devices) ------
 
 const safeStorage = {
