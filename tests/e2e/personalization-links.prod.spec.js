@@ -1,4 +1,4 @@
-/* global Buffer, process, URL */
+/* global Buffer, URL */
 /**
  * The hosted viewer in a PRODUCTION BUILD, with the browser's content-security rules enforced (no bypassCSP).
  * The published video, recipients and images are the data the main spec produced through the real publish path
