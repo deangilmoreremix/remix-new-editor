@@ -12,8 +12,7 @@ afterEach(() => vi.unstubAllGlobals())
 const PNG = 'data:image/png;base64,iVBORw0KGgo='
 
 describe('toImageBlob', () => {
-  // Skipped in remix-new-editor: jsdom Blob vs Node Response: in remix's jsdom setup `new Response(jsdomBlob)` serialises the Blob as text, so the content type is lost before the code under test runs.
-  it.skip('uses a direct fetch when the site allows it', async () => {
+  it('uses a direct fetch when the site allows it', async () => {
     const fetchMock = vi.fn(async () => new Response(new Blob(['abc'], { type: 'image/jpeg' })))
     vi.stubGlobal('fetch', fetchMock)
 
@@ -23,8 +22,7 @@ describe('toImageBlob', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  // Skipped in remix-new-editor: same jsdom Blob/Response mismatch as above.
-  it.skip('falls back to the download route when the site blocks a direct fetch', async () => {
+  it('falls back to the download route when the site blocks a direct fetch', async () => {
     const fetchMock = vi.fn(async (url: RequestInfo | URL) => {
       const u = String(url)
       if (u.startsWith('https://biz.example')) throw new TypeError('Failed to fetch')

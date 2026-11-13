@@ -40,8 +40,8 @@ function collectSourceFiles(dir: string): string[] {
 }
 
 // Forbidden module specifiers that must not provide these image helpers.
-const FORBIDDEN_GENERATE_IMAGE_MODULES = new Set(['@ohb/packages/studio/src/muapi', '@ohb/lib/muapi'])
-const FORBIDDEN_ENHANCE_IMAGE_MODULES = new Set(['@ohb/lib/muapi'])
+const FORBIDDEN_GENERATE_IMAGE_MODULES = new Set(['@ohb/packages/studio/src/muapi', '@/lib/muapi'])
+const FORBIDDEN_ENHANCE_IMAGE_MODULES = new Set(['@/lib/muapi'])
 
 // Matches static import declarations (non-greedy, spans multi-line imports).
 const STATIC_IMPORT_SOURCE = /import\s+[\s\S]*?from\s+(['"])([^'"]+)\1/.source
@@ -85,7 +85,7 @@ describe('Personalization provider import guard', () => {
     )
     expect(
       violations,
-      `Personalization files must not import generateImage from '@ohb/packages/studio/src/muapi' or '@ohb/lib/muapi'. Found:\n${violations.join('\n')}`,
+      `Personalization files must not import generateImage from '@ohb/packages/studio/src/muapi' or '@/lib/muapi'. Found:\n${violations.join('\n')}`,
     ).toEqual([])
   })
 

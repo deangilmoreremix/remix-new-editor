@@ -91,6 +91,7 @@ export function DiscoveredAssetThumb({
       {(asset.editedDataUrl || asset.previewUrl) ? (
         // The image itself is not draggable: dragging it would start a native
         // image drag instead of the card's asset drag.
+        // eslint-disable-next-line @next/next/no-img-element
         <img src={asset.editedDataUrl || asset.previewUrl} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" />
       ) : null}
       {canEdit && (
@@ -284,6 +285,7 @@ export function DiscoveredAssetLightbox({
 
       <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 72px' }}>
         {src ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={src}
             alt={`${asset.category} asset ${index + 1}`}
@@ -350,6 +352,7 @@ export function DiscoveredAssetGrid({
   onDragEnd,
   dropZones,
   onDropToSection,
+  pageSize,
 }: {
   assets: DiscoveredAsset[]
   onToggle: (id: string) => void
@@ -366,7 +369,10 @@ export function DiscoveredAssetGrid({
   /** Drop targets rendered under the grid; used where the page has none of its own. */
   dropZones?: DiscoveredAssetDropZone[]
   onDropToSection?: (id: string, section: AssignedSection) => void
+  /** Show at most this many per category, with "Show more" (omitted: show all). */
+  pageSize?: number
 }) {
+  const [shownPerCategory, setShownPerCategory] = useState<Record<string, number>>({})
   const [dragOverZone, setDragOverZone] = useState<AssignedSection | null>(null)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const hasZones = Boolean(dropZones && dropZones.length > 0 && onDropToSection)
@@ -404,7 +410,7 @@ export function DiscoveredAssetGrid({
               {catLabel} ({items.length})
             </div>
             <div className="flex flex-wrap gap-2">
-              {items.map((asset) => (
+              {(pageSize ? items.slice(0, shownPerCategory[cat] ?? pageSize) : items).map((asset) => (
                 <DiscoveredAssetThumb
                   key={asset.id}
                   asset={asset}
@@ -424,6 +430,16 @@ export function DiscoveredAssetGrid({
                 />
               ))}
             </div>
+            {pageSize && items.length > (shownPerCategory[cat] ?? pageSize) && (
+              <button
+                type="button"
+                data-testid={`discovered-show-more-${cat}`}
+                onClick={() => setShownPerCategory((prev) => ({ ...prev, [cat]: (prev[cat] ?? pageSize) + pageSize }))}
+                style={{ marginTop: 8, color: C.cyan, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+              >
+                Show {Math.min(pageSize, items.length - (shownPerCategory[cat] ?? pageSize))} more {catLabel.toLowerCase()}
+              </button>
+            )}
           </div>
         )
       })}

@@ -30,6 +30,7 @@ vi.mock('remotion', async () => {
     // A stand-in for Remotion's `<Img/>`, which needs a registered composition.
     // It is a plain `<img>` on purpose — the rule is disabled for this ONE
     // line, not for the file and not for the project.
+    // eslint-disable-next-line @next/next/no-img-element
     Img: ({ src }: { src: string }) => <img src={src} alt="" />,
     Sequence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
     Internals: {
@@ -45,7 +46,9 @@ vi.mock('remotion', async () => {
       outputRange: number[],
     ) => outputRange[outputRange.length - 1] ?? 1,
     spring: () => 1,
-    Easing: { out: () => (t: number) => t, cubic: 0 },
+    // The real easing functions: some upstream designs build eased curves
+    // when their module loads, so a stub would crash the import.
+    Easing: (await vi.importActual<typeof import('remotion')>('remotion')).Easing,
   }
 })
 
@@ -160,9 +163,8 @@ describe('PersonalizationComposition design layer', () => {
       business: 'Acme Roofing',
     })
     expect(props.colors).toEqual({
-      // remix palette (guided/tokens.ts): neon-yellow primary, green accent.
       primary: '#d9ff00',
-      accent: '#22c55e',
+      accent: '#28c98b',
       text: '#ffffff',
       backgroundDim: 0.18,
     })

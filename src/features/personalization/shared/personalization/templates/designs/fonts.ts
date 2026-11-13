@@ -45,16 +45,6 @@ export const DESIGN_BODY_FONT_STACK = DESIGN_FONT_STACK
 /** The stack used by a design's hero headline. */
 export const DESIGN_DISPLAY_FONT_STACK = DESIGN_FONT_STACK
 
-/**
- * The stack used by the licence credit line in `designs/shared.tsx`.
- *
- * The credit line is drawn outside the upstream's own text elements, so it
- * carries its own declaration; the injected stylesheet covers it too, but
- * the value is spelled out here so the line is correct even if the
- * stylesheet is not applied.
- */
-export const DESIGN_CREDIT_FONT_STACK = DESIGN_FONT_STACK
-
 export {
   DESIGN_FONT_FAMILY,
   DESIGN_FONT_FILE,

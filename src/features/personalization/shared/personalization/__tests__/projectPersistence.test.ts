@@ -51,8 +51,8 @@ const routeMocks = vi.hoisted(() => ({
   requirePersonalizationEnv: vi.fn(),
 }))
 
-vi.mock('../../../../../../netlify/functions/_personalization/shims/clerk-server', () => ({ auth: routeMocks.auth }))
-vi.mock('../../../../../../netlify/functions/_personalization/src/lib/supabase', () => ({ createServerClient: routeMocks.createServerClient }))
+vi.mock('@clerk/nextjs/server', () => ({ auth: routeMocks.auth }))
+vi.mock('@ohb/lib/supabase', () => ({ createServerClient: routeMocks.createServerClient }))
 vi.mock('../../../../../../netlify/functions/_personalization/src/server/personalizationLog', () => ({
   logPersonalization: routeMocks.logPersonalization,
   createCorrelationId: routeMocks.createCorrelationId,
@@ -631,5 +631,31 @@ describe('autosaves keep writing to one row', () => {
     release()
     await settle()
     expect(persistence.getProjectId()).toBeNull()
+  })
+})
+
+describe('a saved video missing its approved layers says so after a restore', () => {
+  const base: PersonalizationProjectState = {
+    sourceType: 'go-ai-viral-video',
+    sourceDemoId: 'demo-1',
+    originalPrompt: 'o',
+    personalizedPrompt: 'p',
+    identityAssetIds: [],
+    logoAssetIds: [],
+    productAssetIds: [],
+    brandReferenceAssetIds: [],
+    outputUrls: ['https://cdn.example.com/generated.mp4'],
+    outputType: 'video',
+  }
+
+  it('keeps the flag through save and restore', () => {
+    const restored = projectStateFromRow(projectRowFromState({ ...base, layersMissing: true }))
+    expect(restored?.layersMissing).toBe(true)
+    expect(restored?.outputUrls).toEqual(['https://cdn.example.com/generated.mp4'])
+  })
+
+  it('a project with its layers carries no flag', () => {
+    const restored = projectStateFromRow(projectRowFromState(base))
+    expect(restored?.layersMissing).toBeUndefined()
   })
 })

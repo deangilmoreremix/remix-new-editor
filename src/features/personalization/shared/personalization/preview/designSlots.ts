@@ -32,7 +32,7 @@ import type {
   RemotionDesignTextField,
   RemotionDesignTextSlot,
 } from '../templates/types'
-import type { PreviewInputProps, PreviewLayer } from './types'
+import type { PreviewInputProps, PreviewLayer, PreviewLayerKind } from './types'
 
 /**
  * The layer field that carries the customer's per-slot text overrides.
@@ -159,4 +159,41 @@ export function resolveDesignSlotValues(
         : brandSlotValue(slot.field, brand)
   }
   return slots
+}
+
+/** Which brand field a built-in layer kind is edited through. */
+const DESIGN_FIELD_BY_LAYER_KIND: Partial<Record<PreviewLayerKind, RemotionDesignTextField>> = {
+  businessName: 'businessName',
+  headline: 'headline',
+  offer: 'offer',
+  cta: 'cta',
+}
+
+/**
+ * The design layers whose PRIMARY slot is fed by the form field edited
+ * through `layerKind`, as `{ layerId, text }` updates.
+ *
+ * Applying a design snapshots its primary brand value into `layer.text`, and
+ * `resolveDesignSlotValues` prefers that snapshot over the live brand value.
+ * A later edit to the same form field must therefore be pushed onto the
+ * design layer too, exactly as it is pushed onto the matching built-in layer,
+ * or the preview and export keep the old text. Secondary slots read the live
+ * brand value already, so they need no update.
+ */
+export function designPrimarySlotUpdates(
+  layers: PreviewLayer[],
+  designs: RemotionDesignTemplate[],
+  layerKind: PreviewLayerKind,
+  value: string,
+): Array<{ layerId: string; text: string }> {
+  const field = DESIGN_FIELD_BY_LAYER_KIND[layerKind]
+  if (!field) return []
+  const updates: Array<{ layerId: string; text: string }> = []
+  for (const layer of Array.isArray(layers) ? layers : []) {
+    if (!layer || layer.kind !== 'design' || !layer.designId) continue
+    const design = designs.find((candidate) => candidate?.id === layer.designId)
+    const primary = (Array.isArray(design?.textSlots) ? design.textSlots : []).find(isPrimaryDesignSlot)
+    if (primary?.field === field) updates.push({ layerId: layer.id, text: value })
+  }
+  return updates
 }

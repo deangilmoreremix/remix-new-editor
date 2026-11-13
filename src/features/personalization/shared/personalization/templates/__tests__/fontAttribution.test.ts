@@ -35,7 +35,6 @@ import {
   DESIGN_FONT_UPSTREAM_VERSION,
 } from '../typography'
 import { getRemotionDesignAttributionLine, getRemotionDesignLicenseNotice } from '../catalog'
-import { DESIGN_VIDEO_CREDIT } from '../designs/shared'
 
 const REPO_ROOT = join(__dirname, '..', '..', '..', '..', '..', '..', '..')
 const FONT_BYTES = readFileSync(join(REPO_ROOT, 'public', DESIGN_FONT_FILE))
@@ -152,8 +151,7 @@ describe('attribution matches the font and its licence', () => {
     expect(copyrightBlock).not.toMatch(/Reserved Font Name/i)
   })
 
-  it('every credit surface carries the attribution; the full notice carries the licence and the alias note', () => {
-    expect(DESIGN_VIDEO_CREDIT).toContain(DESIGN_FONT_ATTRIBUTION)
+  it('the credits text carries the attribution; the full notice carries the licence and the alias note', () => {
     expect(getRemotionDesignAttributionLine()).toContain(DESIGN_FONT_ATTRIBUTION)
     const notice = getRemotionDesignLicenseNotice()
     expect(notice).toContain('SIL Open Font License 1.1')

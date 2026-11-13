@@ -39,7 +39,7 @@
  *
  * "Personalization Sans" exists only as the CSS `font-family` name in the
  * `@font-face` rule below (`DESIGN_FONT_FAMILY`). It is deliberately not
- * "Inter": the app's own `next/font/google` Inter (`app/layout.js`) already
+ * "Inter": the app's own `next/font/local` Inter (`app/layout.js`) already
  * registers a family called "Inter", and a stylesheet that lands later in the
  * cascade would win over ours. The alias cannot collide with anything, so the
  * bundled file is always the face that is actually used.

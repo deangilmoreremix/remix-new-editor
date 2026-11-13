@@ -1,84 +1,80 @@
 'use client'
 
 /**
- * PersonalizationTemplateBrowser — categorized gallery of video layout
- * templates for Step 3 of the Easy Personalization Wizard.
+ * PersonalizationTemplateBrowser — the step 4 gallery of every Remotion
+ * template the customer can put on their video.
  *
- * Mirrors the Motion Studio TemplateBrowser pattern: category tabs, search,
- * and a responsive grid of selectable cards. Clicking a card calls
- * `onSelect(layoutId)` which applies the layout preset to the wizard's
- * preview settings. Browser-only: never makes a paid call.
+ * Two kinds of template share one grid:
+ *  - **layouts** (`PREVIEW_LAYOUTS`): hand-built arrangements of the built-in
+ *    logo / text / image layers;
+ *  - **designs** (the Remotion design registry): the upstream Remotion
+ *    templates — animated headlines, logo reveals, lower thirds, CTAs,
+ *    effects, transitions, charts and full-scene intros.
+ *
+ * Every card renders a live Remotion preview of that template applied to the
+ * customer's selected video and branding. Browser-only: never makes a paid
+ * call.
  */
 
-import {
-  useMemo,
-  useState,
-  useCallback,
-  useId,
-  useRef,
-  useEffect,
-  type CSSProperties,
-  type ReactElement,
-} from 'react'
+import { useMemo, useState, useCallback, useId, useRef, useEffect } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   Search,
   Sparkles,
   Type as TypeIcon,
-  Image as ImageIcon,
   Layers,
-  Clock,
   Check,
   ArrowRightLeft,
-  Music,
-  Sparkle,
-  LogIn,
-  Camera,
-  Box,
+  BarChart3,
+  Clapperboard,
+  Megaphone,
+  PanelBottom,
+  BadgeCheck,
+  Wand2,
+  LayoutTemplate,
   ChevronRight,
 } from 'lucide-react'
-import { PREVIEW_LAYOUTS } from '../preview/presets'
-import { LAYER_IDS_BY_LAYOUT } from '../preview/presets'
-import type { PreviewLayoutId, PreviewLayerKind } from '../preview/types'
-import { C, badgeStyle, hintStyle, inputStyle, panelStyle, primaryButtonStyle, softPanelStyle, tileStyle } from './tokens'
+import { Player } from '@remotion/player'
+import type { PlayerRef } from '@remotion/player'
+import {
+  PREVIEW_LAYOUTS,
+  LAYER_IDS_BY_LAYOUT,
+  applyDesignTemplate,
+  applyLayoutPreset,
+} from '../preview/presets'
+import type { ApplyLayoutContext } from '../preview/presets'
+import { PersonalizationComposition } from '../preview/PersonalizationComposition'
+import type { PreviewInputProps, PreviewLayoutId, PreviewLayerKind } from '../preview/types'
+import {
+  isRemotionDesignTemplateSupported,
+  type RemotionDesignCategory,
+  type RemotionDesignTemplate,
+} from '../templates'
+import { buildPreviewInput } from './buildPreviewInput'
+import { C, badgeStyle, hintStyle, inputStyle, panelStyle, primaryButtonStyle, tileStyle } from './tokens'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 
-/** Category keys for personalization layouts. */
-export type PersonalizationCategoryKey =
-  | 'introduction'
-  | 'product'
-  | 'service'
-  | 'offer'
-  | 'team'
-  | 'transformation'
-  | 'ending'
+/** Gallery tab keys: all, the built-in layouts, then one per design category. */
+export type PersonalizationCategoryKey = 'layouts' | RemotionDesignCategory
 
 type IconComponent = LucideIcon
 
-/** Map each layout ID to its category key. */
-const LAYOUT_CATEGORY: Record<string, PersonalizationCategoryKey> = {
-  'business-introduction': 'introduction',
-  'product-showcase': 'product',
-  'menu-item-highlight': 'product',
-  'service-promotion': 'service',
-  'customer-testimonial': 'service',
-  'special-offer': 'offer',
-  'event-promotion': 'offer',
-  'team-member-intro': 'team',
-  'before-after-transformation': 'transformation',
-  'branded-ending': 'ending',
-}
-
-/** Category definitions with icons and labels. */
+/** Tabs in display order. Tabs with no templates are hidden. */
 const CATEGORIES: Array<{ key: PersonalizationCategoryKey; label: string; icon: IconComponent }> = [
-  { key: 'introduction', label: 'Introduction', icon: Sparkles },
-  { key: 'product', label: 'Product', icon: ImageIcon },
-  { key: 'service', label: 'Service', icon: Layers },
-  { key: 'offer', label: 'Offer', icon: ArrowRightLeft },
-  { key: 'team', label: 'Team', icon: Camera },
-  { key: 'transformation', label: 'Transformation', icon: ArrowRightLeft },
-  { key: 'ending', label: 'Ending', icon: LogIn },
+  { key: 'layouts', label: 'Layouts', icon: LayoutTemplate },
+  { key: 'animated-headline', label: 'Headlines', icon: TypeIcon },
+  { key: 'logo-reveal', label: 'Logo reveals', icon: BadgeCheck },
+  { key: 'lower-third', label: 'Lower thirds', icon: PanelBottom },
+  { key: 'promo-cta', label: 'Calls to action', icon: Megaphone },
+  { key: 'visual-effect', label: 'Effects', icon: Wand2 },
+  { key: 'transition', label: 'Transitions', icon: ArrowRightLeft },
+  { key: 'data-visualization', label: 'Charts & data', icon: BarChart3 },
+  { key: 'full-scene', label: 'Full scenes', icon: Clapperboard },
+  { key: 'other', label: 'Other', icon: Layers },
 ]
+
+/** How many cards are rendered before "Show more". */
+const PAGE_SIZE = 24
 
 /** Layer kind → short label for badges. */
 const LAYER_BADGE_LABELS: Record<PreviewLayerKind, string> = {
@@ -94,66 +90,83 @@ const LAYER_BADGE_LABELS: Record<PreviewLayerKind, string> = {
   design: 'Design',
 }
 
-function layoutCategoryKey(layoutId: PreviewLayoutId): PersonalizationCategoryKey {
-  return LAYOUT_CATEGORY[layoutId] ?? 'introduction'
+const TEXT_FIELD_LABELS: Record<string, string> = {
+  businessName: 'Business name',
+  headline: 'Headline',
+  offer: 'Offer',
+  cta: 'CTA',
+  phone: 'Phone',
+  website: 'Website',
 }
 
-function categoryCount(key: PersonalizationCategoryKey): number {
-  return PREVIEW_LAYOUTS.filter((l) => layoutCategoryKey(l.id) === key).length
+function categoryLabel(key: PersonalizationCategoryKey): string {
+  return CATEGORIES.find((c) => c.key === key)?.label ?? 'Other'
 }
 
-function resolveIcon(key: PersonalizationCategoryKey): IconComponent {
-  return CATEGORIES.find((c) => c.key === key)?.icon ?? Box
+/** One card in the gallery. */
+type GalleryItem =
+  | { kind: 'layout'; id: PreviewLayoutId; name: string; description: string; category: 'layouts' }
+  | {
+      kind: 'design'
+      id: string
+      name: string
+      description: string
+      category: RemotionDesignCategory
+      design: RemotionDesignTemplate
+    }
+
+function buildItems(designs: RemotionDesignTemplate[]): GalleryItem[] {
+  const layouts: GalleryItem[] = PREVIEW_LAYOUTS.map((layout) => ({
+    kind: 'layout' as const,
+    id: layout.id,
+    name: layout.name,
+    description: layout.description,
+    category: 'layouts' as const,
+  }))
+  const designItems: GalleryItem[] = designs.map((design) => ({
+    kind: 'design' as const,
+    id: design.id,
+    name: design.name,
+    description: design.description,
+    category: CATEGORIES.some((c) => c.key === design.category) ? design.category : 'other',
+    design,
+  }))
+  return [...layouts, ...designItems]
 }
 
-function resolveLabel(key: PersonalizationCategoryKey): string {
-  return CATEGORIES.find((c) => c.key === key)?.label ?? key
+/** Brand context for previews; sample copy keeps empty cards readable. */
+function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
+  const { brand } = baseInput
+  return {
+    businessName: brand.businessName || 'Your Business',
+    headline: brand.headline || brand.businessName || 'Your headline here',
+    offer: brand.offer || '20% off this week',
+    cta: brand.cta || 'Book now',
+    tagline: brand.businessName || 'Your Business',
+    phone: brand.phone || '(555) 123-4567',
+    website: brand.website || 'yourbusiness.com',
+    logoUrl: brand.logoUrl ?? undefined,
+    productUrl: brand.productUrl ?? undefined,
+    serviceUrl: brand.serviceUrl ?? undefined,
+  }
 }
 
-/** Preview video clip for each layout. Every template has a published MP4. */
-const PREVIEW_VIDEO_URLS: Record<string, string | null> = {
-  'business-introduction': '/media/personalization-templates/business-introduction.mp4',
-  'product-showcase': '/media/personalization-templates/product-showcase.mp4',
-  'service-promotion': '/media/personalization-templates/service-promotion.mp4',
-  'special-offer': '/media/personalization-templates/special-offer.mp4',
-  'branded-ending': '/media/personalization-templates/branded-ending.mp4',
-  'customer-testimonial': '/media/personalization-templates/customer-testimonial.mp4',
-  'before-after-transformation': '/media/personalization-templates/before-after-transformation.mp4',
-  'team-member-intro': '/media/personalization-templates/team-member-intro.mp4',
-  'event-promotion': '/media/personalization-templates/event-promotion.mp4',
-  'menu-item-highlight': '/media/personalization-templates/menu-item-highlight.mp4',
-}
-
-/** Still poster frame for each layout, or null when none is published. */
-const PREVIEW_POSTER_URLS: Record<string, string | null> = {
-  'business-introduction': null,
-  'product-showcase': null,
-  'service-promotion': null,
-  'special-offer': null,
-  'branded-ending': null,
-  'customer-testimonial': null,
-  'before-after-transformation': null,
-  'team-member-intro': null,
-  'event-promotion': null,
-  'menu-item-highlight': null,
-}
-
-/** Normalise a media reference into a URL a `<video>`/`` can load. */
-function resolveMediaUrl(value: string | null | undefined): string | null {
-  if (!value) return null
-  if (value.startsWith('http://') || value.startsWith('https://')) return value
-  if (value.startsWith('/')) return value
-  return `/${value}`
-}
-
-/** The MP4 clip for a layout, or null when no preview video exists. */
-function previewVideoUrl(layoutId: PreviewLayoutId): string | null {
-  return resolveMediaUrl(PREVIEW_VIDEO_URLS[layoutId])
-}
-
-/** The still poster frame for a layout, or null when none exists. */
-function posterUrl(layoutId: PreviewLayoutId): string | null {
-  return resolveMediaUrl(PREVIEW_POSTER_URLS[layoutId])
+/** The frame a paused card rests on: after the template has animated in. */
+function restFrameFor(item: GalleryItem, durationInFrames: number, fps: number): number {
+  let frame = Math.round(fps * 1.5)
+  if (item.kind === 'design') {
+    const end = item.design.placement?.endFrame
+    const anim = item.design.animation
+    if (typeof end === 'number' && end > 0) {
+      frame = Math.round(end * 0.55)
+    } else if (anim) {
+      frame = Math.round((anim.delayInFrames + anim.durationInFrames) * 0.7)
+    }
+  }
+  // Never rest on the closing frames: the composition's end card plays there,
+  // so a long design would otherwise show the end card instead of itself.
+  const latest = Math.max(0, Math.round(durationInFrames * 0.6))
+  return Math.max(0, Math.min(latest, frame))
 }
 
 /** Placeholder tile showing the layer arrangement as colored dots. */
@@ -170,79 +183,101 @@ function TemplateLayerPreview({ layoutId }: { layoutId: PreviewLayoutId }): Reac
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'column',
-        gap: 6,
+        gap: 5,
+        flexWrap: 'wrap',
       }}
     >
-      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {kinds.map((kind) => (
-          <span
-            key={kind}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '2px 8px',
-              borderRadius: 6,
-              border: `1px solid ${C.border}`,
-              background: 'rgba(255,255,255,.04)',
-              color: C.muted,
-              fontSize: 8,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '.03em',
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 999,
-                background: kind === 'logo' ? C.green : kind === 'cta' ? C.cyan : C.cyanSoft,
-              }}
-            />
-            {LAYER_BADGE_LABELS[kind]}
-          </span>
-        ))}
-      </div>
+      {kinds.map((kind) => (
+        <span key={kind} style={{ ...badgeStyle('muted'), fontSize: 8 }}>
+          {LAYER_BADGE_LABELS[kind]}
+        </span>
+      ))}
     </div>
   )
 }
 
 /** Props for the template browser. */
 export interface PersonalizationTemplateBrowserProps {
-  /** When a layout is selected, applies the preset via the provider. */
+  /** When a layout is selected. Defaults to the provider's `setPreviewLayout`. */
   onSelect?: (layoutId: PreviewLayoutId) => void
+  /** When a Remotion design is selected. Defaults to the provider's `setRemotionDesign`. */
+  onSelectDesign?: (designId: string) => void
 }
 
-/** Categorized gallery of personalization layout templates. */
-export function PersonalizationTemplateBrowser({ onSelect }: PersonalizationTemplateBrowserProps): React.JSX.Element {
+/** Categorized gallery of every layout and Remotion design template. */
+export function PersonalizationTemplateBrowser({
+  onSelect,
+  onSelectDesign,
+}: PersonalizationTemplateBrowserProps): React.JSX.Element {
   const ctx = useDemoPersonalize()
-  const { previewSettings, setPreviewLayout } = ctx
+  const {
+    previewSettings,
+    setPreviewLayout,
+    source,
+    previewVideo,
+    clientForm,
+    assets,
+    remotionDesignTemplates = [],
+    activeRemotionDesignId = null,
+    setRemotionDesign,
+    remotionDesignError = null,
+  } = ctx
   const [activeCategory, setActiveCategory] = useState<PersonalizationCategoryKey | 'all'>('all')
   const [query, setQuery] = useState('')
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const searchId = useId()
 
-  const handleSelect = useCallback(
-    (layoutId: PreviewLayoutId) => {
-      if (onSelect) onSelect(layoutId)
-      else setPreviewLayout(layoutId)
-    },
-    [onSelect, setPreviewLayout],
+  const baseInput = useMemo<PreviewInputProps | null>(
+    () =>
+      previewSettings
+        ? buildPreviewInput({ source, previewSettings, previewVideo, clientForm: clientForm ?? {}, assets })
+        : null,
+    [source, previewSettings, previewVideo, clientForm, assets],
   )
 
-  /** Visible layouts, filtered by category and search. */
-  const visible = useMemo<PreviewLayoutId[]>(() => {
-    const trimmed = query.trim().toLowerCase()
-    return PREVIEW_LAYOUTS.filter((layout) => {
-      if (activeCategory !== 'all' && layoutCategoryKey(layout.id) !== activeCategory) return false
-      if (!trimmed) return true
-      const haystack = `${layout.name} ${layout.description}`.toLowerCase()
-      return haystack.includes(trimmed)
-    }).map((layout) => layout.id)
-  }, [query, activeCategory])
+  const handleSelect = useCallback(
+    (item: GalleryItem) => {
+      if (item.kind === 'layout') {
+        if (onSelect) onSelect(item.id)
+        else setPreviewLayout(item.id)
+      } else if (onSelectDesign) {
+        onSelectDesign(item.id)
+      } else {
+        setRemotionDesign?.(item.id)
+      }
+    },
+    [onSelect, onSelectDesign, setPreviewLayout, setRemotionDesign],
+  )
 
-  const totalCount = PREVIEW_LAYOUTS.length
+  const items = useMemo(() => buildItems(remotionDesignTemplates), [remotionDesignTemplates])
+
+  const counts = useMemo(() => {
+    const map = new Map<PersonalizationCategoryKey, number>()
+    for (const item of items) map.set(item.category, (map.get(item.category) ?? 0) + 1)
+    return map
+  }, [items])
+
+  /** Visible items, filtered by category and search. */
+  const visible = useMemo<GalleryItem[]>(() => {
+    const trimmed = query.trim().toLowerCase()
+    return items.filter((item) => {
+      if (activeCategory !== 'all' && item.category !== activeCategory) return false
+      if (!trimmed) return true
+      const haystack = `${item.name} ${item.description} ${categoryLabel(item.category)}`.toLowerCase()
+      return haystack.includes(trimmed)
+    })
+  }, [items, query, activeCategory])
+
+  // A new filter starts from the first page again.
+  useEffect(() => setVisibleCount(PAGE_SIZE), [query, activeCategory])
+
+  const totalCount = items.length
+  const shown = visible.slice(0, visibleCount)
+
+  const isActive = (item: GalleryItem): boolean =>
+    item.kind === 'design'
+      ? activeRemotionDesignId === item.id
+      : !activeRemotionDesignId && previewSettings.layout === item.id
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -260,10 +295,10 @@ export function PersonalizationTemplateBrowser({ onSelect }: PersonalizationTemp
               color: C.text,
             }}
           >
-            Video layout templates
+            Video templates
           </h3>
           <span style={badgeStyle('muted')}>{totalCount} templates</span>
-          <span style={badgeStyle('cyan')}>{CATEGORIES.length} categories</span>
+          <span style={badgeStyle('cyan')}>{counts.size} categories</span>
         </div>
         <label
           htmlFor={searchId}
@@ -290,23 +325,19 @@ export function PersonalizationTemplateBrowser({ onSelect }: PersonalizationTemp
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by name, category, or layer…"
+            placeholder="Search by name or category — e.g. logo, chart, transition…"
             style={{ ...inputStyle, paddingLeft: 32 }}
           />
         </div>
         <p style={hintStyle}>
-          Pick a layout to arrange your logo, photos and text on the video. Every template is editable —
-          move, resize or hide any layer in the next step.
+          Every template previews on your video with your branding. Pick one, then edit any text, colour or
+          layer in the next step.
         </p>
       </div>
 
       {/* ── Category tabs ────────────────────────────────────────────────── */}
       <div style={panelStyle}>
-        <div
-          role="tablist"
-          aria-label="Layout template categories"
-          style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}
-        >
+        <div role="tablist" aria-label="Template categories" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           <CategoryTab
             label="All"
             icon={Sparkles}
@@ -314,43 +345,66 @@ export function PersonalizationTemplateBrowser({ onSelect }: PersonalizationTemp
             count={totalCount}
             onClick={() => setActiveCategory('all')}
           />
-          {CATEGORIES.map((category) => {
-            const Icon = resolveIcon(category.key)
-            return (
-              <CategoryTab
-                key={category.key}
-                label={category.label}
-                icon={Icon}
-                active={activeCategory === category.key}
-                count={categoryCount(category.key)}
-                onClick={() => setActiveCategory(category.key)}
-              />
-            )
-          })}
+          {CATEGORIES.filter((category) => (counts.get(category.key) ?? 0) > 0).map((category) => (
+            <CategoryTab
+              key={category.key}
+              label={category.label}
+              icon={category.icon}
+              active={activeCategory === category.key}
+              count={counts.get(category.key) ?? 0}
+              onClick={() => setActiveCategory(category.key)}
+            />
+          ))}
         </div>
       </div>
 
       {/* ── Grid ────────────────────────────────────────────────────────── */}
       <div style={panelStyle}>
+        {remotionDesignError ? (
+          <p style={{ ...hintStyle, color: C.danger, marginTop: 0 }}>{remotionDesignError}</p>
+        ) : null}
         {visible.length === 0 ? (
           <p style={hintStyle}>No templates match that search. Try a different query or category.</p>
         ) : (
           <>
             <p style={{ ...hintStyle, marginTop: 0, marginBottom: 10 }}>
               {visible.length === totalCount
-                ? `All ${totalCount} layout templates.`
+                ? `All ${totalCount} templates.`
                 : `Showing ${visible.length} of ${totalCount} templates.`}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3" style={{ gap: 10 }}>
-              {visible.map((layoutId) => (
+              {shown.map((item) => (
                 <TemplateCard
-                  key={layoutId}
-                  layoutId={layoutId}
-                  active={previewSettings.layout === layoutId}
+                  key={`${item.kind}:${item.id}`}
+                  item={item}
+                  active={isActive(item)}
                   onSelect={handleSelect}
+                  baseInput={baseInput}
                 />
               ))}
             </div>
+            {visible.length > shown.length ? (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+                <button
+                  type="button"
+                  data-testid="personalization-template-show-more"
+                  onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+                  style={{
+                    minHeight: 36,
+                    padding: '0 16px',
+                    borderRadius: 999,
+                    border: `1px solid ${C.cyanBorder}`,
+                    background: C.cyanSoft,
+                    color: C.cyan,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Show more ({visible.length - shown.length} left)
+                </button>
+              </div>
+            ) : null}
           </>
         )}
       </div>
@@ -402,33 +456,61 @@ function CategoryTab({
 
 /** Single template card. */
 function TemplateCard({
-  layoutId,
+  item,
   active,
   onSelect,
+  baseInput,
 }: {
-  layoutId: PreviewLayoutId
+  item: GalleryItem
   active: boolean
-  onSelect: (layoutId: PreviewLayoutId) => void
+  onSelect: (item: GalleryItem) => void
+  /** The customer's current preview input; the card re-applies its template to it. */
+  baseInput: PreviewInputProps | null
 }): React.JSX.Element {
-  const layout = PREVIEW_LAYOUTS.find((l) => l.id === layoutId)
-  if (!layout) return <></>
-  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? []
-  const clip = previewVideoUrl(layoutId)
   const [hovering, setHovering] = useState(false)
+
+  const inputProps = useMemo<PreviewInputProps | null>(() => {
+    if (!baseInput) return null
+    const brandCtx = previewBrandContext(baseInput)
+    const settings =
+      item.kind === 'layout'
+        ? applyLayoutPreset(baseInput.settings, item.id, brandCtx)
+        : applyDesignTemplate(baseInput.settings, item.id, brandCtx)
+    return { ...baseInput, settings }
+  }, [baseInput, item])
+
+  const support =
+    item.kind === 'design' && baseInput
+      ? isRemotionDesignTemplateSupported(item.id, baseInput.settings.aspectRatio)
+      : { supported: true as const }
+
+  const chips: string[] =
+    item.kind === 'layout'
+      ? (LAYER_IDS_BY_LAYOUT[item.id] ?? []).map((kind) => LAYER_BADGE_LABELS[kind])
+      : [
+          ...(item.design.textSlots ?? []).map((slot) => slot.label || TEXT_FIELD_LABELS[slot.field] || slot.key),
+          ...(item.design.media ?? []).map((binding) => binding.label || binding.role),
+        ].slice(0, 5)
+
+  const select = () => {
+    if (support.supported) onSelect(item)
+  }
 
   return (
     <div
       data-testid="personalization-template-card"
-      data-template-id={layoutId}
+      data-template-id={item.id}
+      data-template-kind={item.kind}
       role="button"
       tabIndex={0}
       aria-pressed={active}
-      aria-label={`Select ${layout.name} template`}
-      onClick={() => onSelect(layoutId)}
+      aria-disabled={!support.supported}
+      aria-label={`Select ${item.name} template`}
+      onClick={select}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault()
-          onSelect(layoutId)
+          select()
         }
       }}
       onMouseEnter={() => setHovering(true)}
@@ -438,19 +520,20 @@ function TemplateCard({
         display: 'flex',
         flexDirection: 'column',
         gap: 8,
-        cursor: 'pointer',
+        cursor: support.supported ? 'pointer' : 'not-allowed',
         userSelect: 'none',
+        opacity: support.supported ? 1 : 0.55,
         borderColor: hovering || active ? C.cyanBorder : C.border,
       }}
     >
-      {clip ? (
-        <TemplatePreview src={clip} active={active} hovering={hovering} />
-      ) : (
-        <TemplateLayerPreview layoutId={layoutId} />
-      )}
+      {inputProps ? (
+        <TemplateLivePreview item={item} inputProps={inputProps} playing={active || hovering} />
+      ) : item.kind === 'layout' ? (
+        <TemplateLayerPreview layoutId={item.id} />
+      ) : null}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-        <span style={badgeStyle('cyan')}>{resolveLabel(layoutCategoryKey(layoutId))}</span>
+        <span style={badgeStyle('cyan')}>{categoryLabel(item.category)}</span>
         {active && (
           <span style={badgeStyle('green')}>
             <Check size={9} /> Selected
@@ -458,23 +541,15 @@ function TemplateCard({
         )}
       </div>
 
-      <div style={{ color: C.text, fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}>{layout.name}</div>
-      <p style={{ ...hintStyle, margin: 0 }}>{layout.description}</p>
+      <div style={{ color: C.text, fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}>{item.name}</div>
+      <p style={{ ...hintStyle, margin: 0 }}>{item.description}</p>
 
-      {kinds.length > 0 && (
-        <div
-          aria-label="Layers included"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}
-        >
-          {kinds.map((kind) => (
+      {chips.length > 0 && (
+        <div aria-label="Personalized fields" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          {chips.map((chip) => (
             <span
-              key={kind}
-              data-testid={`layer-badge-${kind}`}
-              title={LAYER_BADGE_LABELS[kind]}
+              key={chip}
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 3,
                 padding: '2px 6px',
                 borderRadius: 6,
                 border: `1px solid ${C.border}`,
@@ -486,15 +561,7 @@ function TemplateCard({
                 letterSpacing: '.04em',
               }}
             >
-              <span
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: 999,
-                  background: kind === 'logo' ? C.green : kind === 'cta' ? C.cyan : C.cyanSoft,
-                }}
-              />
-              {LAYER_BADGE_LABELS[kind]}
+              {chip}
             </span>
           ))}
         </div>
@@ -503,11 +570,30 @@ function TemplateCard({
       <button
         type="button"
         data-testid="personalization-template-use"
-        onClick={() => onSelect(layoutId)}
-        style={{ ...primaryButtonStyle, flex: 1, minHeight: 36, fontSize: 11, padding: '0 12px' }}
+        disabled={!support.supported}
+        title={support.supported ? undefined : support.reason}
+        onClick={(event) => {
+          event.stopPropagation()
+          select()
+        }}
+        style={{
+          ...primaryButtonStyle,
+          flex: 1,
+          minHeight: 36,
+          fontSize: 11,
+          padding: '0 12px',
+          opacity: support.supported ? 1 : 0.6,
+          cursor: support.supported ? 'pointer' : 'not-allowed',
+        }}
       >
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          Use this template <ChevronRight size={12} />
+          {support.supported ? (
+            <>
+              Use this template <ChevronRight size={12} />
+            </>
+          ) : (
+            'Not available for this video shape'
+          )}
         </span>
       </button>
     </div>
@@ -515,48 +601,93 @@ function TemplateCard({
 }
 
 /**
- * The playing preview for a personalization layout template card.
+ * Live Remotion preview for a template card.
  *
- * Every card shows a real `<video>` (never a still image). Selected cards
- * autoplay; unselected cards show the first frame paused so the user still
- * sees the template in motion context without ten videos playing at once.
+ * Renders the real `PersonalizationComposition` — the customer's selected
+ * video with this template applied — so each card shows exactly what the
+ * template will look like. The Player only exists while the card is near the
+ * viewport (it unmounts again when scrolled away, so a long gallery never
+ * holds dozens of decoders), and it only plays while the card is selected or
+ * hovered.
  */
-function TemplatePreview({
-  src,
-  active,
-  hovering,
+function TemplateLivePreview({
+  item,
+  inputProps,
+  playing,
 }: {
-  src: string
-  active: boolean
-  hovering: boolean
+  item: GalleryItem
+  inputProps: PreviewInputProps
+  playing: boolean
 }): React.JSX.Element {
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const playerRef = useRef<PlayerRef>(null)
+  const [inView, setInView] = useState(false)
 
   useEffect(() => {
-    const el = videoRef.current
+    const el = containerRef.current
     if (!el) return
-    const shouldPlay = active || hovering
-    const attempt = shouldPlay ? el.play() : el.pause()
-    if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {})
-  }, [src, active, hovering])
+    if (typeof IntersectionObserver === 'undefined') {
+      setInView(true)
+      return
+    }
+    const observer = new IntersectionObserver(
+      (entries) => setInView(entries.some((entry) => entry.isIntersecting)),
+      { rootMargin: '300px' },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const player = playerRef.current
+    if (!player) return
+    try {
+      if (playing) player.play()
+      else player.pause()
+    } catch {
+      // Autoplay policies can reject play(); the still frame stays visible.
+    }
+  }, [playing, inView])
+
+  const settings = inputProps.settings
+  const durationInFrames = Math.max(1, Math.round(settings.durationInFrames))
+  const restFrame = restFrameFor(item, durationInFrames, settings.fps)
+  const PreviewComposition = PersonalizationComposition as unknown as React.ComponentType<Record<string, unknown>>
 
   return (
-    <video
-      ref={videoRef}
+    <div
+      ref={containerRef}
       data-testid="personalization-template-player"
-      src={src}
-      muted
-      playsInline
-      loop
-      autoPlay={active || hovering}
       style={{
         width: '100%',
-        aspectRatio: '16 / 9',
-        objectFit: 'cover',
+        aspectRatio: `${settings.width} / ${settings.height}`,
+        maxHeight: 360,
         borderRadius: 8,
-        display: 'block',
+        overflow: 'hidden',
         background: '#000',
+        // Clicks select the card; the preview itself is not interactive.
+        pointerEvents: 'none',
       }}
-    />
+    >
+      {inView ? (
+        <Player
+          ref={playerRef}
+          component={PreviewComposition}
+          inputProps={inputProps as unknown as Record<string, unknown>}
+          durationInFrames={durationInFrames}
+          compositionWidth={settings.width}
+          compositionHeight={settings.height}
+          fps={settings.fps}
+          initialFrame={restFrame}
+          loop
+          controls={false}
+          clickToPlay={false}
+          initiallyMuted
+          autoPlay={playing}
+          acknowledgeRemotionLicense
+          style={{ width: '100%', height: '100%' }}
+        />
+      ) : null}
+    </div>
   )
 }

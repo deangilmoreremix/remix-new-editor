@@ -40,7 +40,7 @@ vi.mock('../assetUploadService', () => ({
   uploadPersonalizationAsset: vi.fn(),
 }))
 
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -110,7 +110,7 @@ vi.mock('@remotion/media', () => ({
   Audio: ({ src }: { src: string }) => <div data-testid="media-audio" data-src={src} />,
 }))
 
-vi.mock('remotion', () => ({
+vi.mock('remotion', async () => ({
   AbsoluteFill: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
   Img: ({ src }: { src: string }) => <img src={src} alt="" />,
   Sequence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
@@ -123,7 +123,9 @@ vi.mock('remotion', () => ({
   useVideoConfig: () => ({ width: 1920, height: 1080, fps: 30, durationInFrames: 150 }),
   interpolate: (_i: number, _r: number[], out: number[]) => out[out.length - 1] ?? 1,
   spring: () => 1,
-  Easing: { out: () => (t: number) => t, cubic: 0 },
+  // The real easing functions: some upstream designs build eased curves
+  // when their module loads, so a stub would crash the import.
+  Easing: (await vi.importActual<typeof import('remotion')>('remotion')).Easing,
 }))
 
 const { PersonalizationComposition } = await import('../preview/PersonalizationComposition')
