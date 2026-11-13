@@ -20,6 +20,15 @@ for (const d of [out, join(out, '..', 'components'), join(out, '..', 'examples')
 mkdirSync(join(out, '_cdn'), { recursive: true });
 const urls = new Set(); let files = 0;
 for (const item of enabled.items) {
+  if (item.project?.folder) { // a block that ships its own folder: html + assets keep their relative layout under blocks/<id>/
+    for (const [rel, want] of Object.entries(item.project.files)) {
+      const src = join(up, 'registry/blocks', item.id, rel); const buf = readFileSync(src);
+      if (sha256(buf) !== want) throw new Error(`${item.id}/${rel}: sha256 does not match the pinned value`);
+      const dest = join(out, item.id, rel); mkdirSync(dirname(dest), { recursive: true }); cpSync(src, dest); files++;
+      if (rel === item.project.entry) for (const m of buf.toString('utf8').matchAll(/<script[^>]*\ssrc="((?:https?:)?\/\/[^"]+)"/g)) urls.add(m[1].startsWith('//') ? `https:${m[1]}` : m[1]);
+    }
+    continue;
+  }
   if (item.project?.demo) { // a component shown in the demo composition that ships with it (registry/components/<id>/demo.html), pinned by sha256
     const src = join(up, 'registry/components', item.id, 'demo.html'); const buf = readFileSync(src);
     if (sha256(buf) !== item.project.files['demo.html']) throw new Error(`${item.id}/demo.html: sha256 does not match the pinned value`);

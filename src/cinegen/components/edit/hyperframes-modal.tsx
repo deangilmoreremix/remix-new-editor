@@ -45,7 +45,7 @@ export function HyperframesPanel({ onPick }: { onPick: (item: HfItem) => void })
             <span style={{ flex: 1 }} />
             <span style={{ fontSize: 12, opacity: 0.6 }}>{all.length} animations</span>
           </div>
-          <div style={{ fontSize: 12, opacity: 0.65, margin: '4px 0 12px' }}>Hover a card to preview it. Click to add it to the timeline.</div>
+          <div style={{ fontSize: 12, opacity: 0.65, margin: '4px 0 12px' }}>Hover a card to play it. Click a card to add it to the timeline.</div>
           <div role="tablist" aria-label="Categories" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
             {tags.map((c) => {
               const on = tag === (c === 'All' ? 'all' : c);
@@ -64,7 +64,7 @@ export function HyperframesPanel({ onPick }: { onPick: (item: HfItem) => void })
             <div><div style={label}>Aspect ratio</div><select aria-label="Aspect ratio" value={ratio} onChange={(e) => setRatio(e.target.value)} style={field}><option value="all">All aspect ratios</option><option value="16:9">16:9 landscape</option><option value="9:16">9:16 portrait</option><option value="1:1">1:1 square</option></select></div>
           </div>
           <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>Showing {list.length} of {all.length} animations</div>
-          <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0 }}>
+          <div ref={gridRef} style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0 }}>
             {list.map((i) => (
               <PreviewCard key={i.id} preview={hfPreview(i)} title={i.title} badge={TYPE_LABEL[typeOf(i)]} sub={`${i.duration.toFixed(0)}s · ${aspectOf(i.dimensions.width, i.dimensions.height)}${i.slow ? ' · slower export' : ''}`} onClick={() => onPick(i)} testId={`animation-${i.id}`} />
             ))}
