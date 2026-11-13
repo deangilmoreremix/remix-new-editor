@@ -7,6 +7,9 @@
  * get. Everything here is pure so it can be unit tested.
  */
 
+import { SITE_TEMPLATES } from './siteTemplates.js';
+import { ICON_KEYS } from './siteIcons.js';
+
 export const TEMPLATES = Object.freeze([
   {
     id: 'clean',
@@ -248,10 +251,14 @@ export const TEMPLATES = Object.freeze([
     layout: 'app-window', compose: 'app-window', customPlayer: true, adaptive: true, family: 'structure', radius: 12,
     vars: { '--vp-desk': 'linear-gradient(135deg, #c7d2fe 0%, #fbcfe8 100%)', '--vp-surface': '#f8f9fc', '--vp-surface-2': '#f8f9fc', '--vp-line': 'rgba(15,23,42,.10)' },
   },
+  ...SITE_TEMPLATES,
 ]);
 
 /** The structural layouts (different page compositions, not re-skins). */
-export const STRUCTURE_TEMPLATES = Object.freeze(TEMPLATES.filter((t) => t.compose));
+export const STRUCTURE_TEMPLATES = Object.freeze(TEMPLATES.filter((t) => t.compose && t.family === 'structure'));
+
+/** Full marketing-site compositions (nav, hero with video + form, proof strip, cards, sign-up band). */
+export const SITE_PAGE_TEMPLATES = Object.freeze(TEMPLATES.filter((t) => t.site));
 
 /** Templates that use the Sendspark-style pitch layout (card, buttons, calendar, transcript). */
 export const PITCH_TEMPLATES = Object.freeze(TEMPLATES.filter((t) => t.pitch));
@@ -318,6 +325,23 @@ export function defaultConfig(templateId = 'clean', { title = '', brand = {} } =
     consent: { notice: '' },
     autoplay: false,
   };
+  if (t.site) {
+    const d = t.defaults || {};
+    return sanitizeConfig({
+      ...base,
+      brand: { name: brand.name || '', tagline: '' },
+      headline: d.headline || 'Hi {{firstname|there}}, a quick idea for {{company|your team}}',
+      subhead: d.subhead || '',
+      cta: { label: '', url: '', type: 'link' },
+      ctas: d.ctas || [],
+      likes: { enabled: false },
+      form: {
+        enabled: true, title: '', subtitle: '', submitLabel: 'Send', successMessage: 'Thanks! We will be in touch.', privacy: '', ...(d.form || {}),
+      },
+      site: t.site,
+      footer: { text: '', optOutUrl: '' },
+    });
+  }
   if (t.compose) {
     // Structural layouts ship with the full set of blocks so each arrangement has something to arrange.
     return sanitizeConfig({
@@ -416,10 +440,79 @@ export function applyTemplate(config, templateId, opts = {}) {
   ['brand', 'badge', 'overlay', 'story', 'sender', 'testimonial', 'logos', 'footer'].forEach((k) => {
     if (isEmptyBlock(current[k])) merged[k] = next[k];
   });
+  // Site designs carry their own proof strip / cards / nav, so a switch takes the new design's set.
+  if (next.site) { merged.site = next.site; merged.headline = next.headline; merged.subhead = next.subhead; merged.form = next.form; merged.ctas = next.ctas; }
   if (!current.headline) merged.headline = next.headline;
   if (!current.subhead) merged.subhead = next.subhead;
   if (!current.form.enabled && next.form.enabled) merged.form = next.form;
   return sanitizeConfig(merged);
+}
+
+
+export const SITE_VARIANTS = Object.freeze(['copy-video-form', 'video-copy-form']);
+export const SITE_STRIP_KINDS = Object.freeze(['benefits', 'logos', 'stats']);
+export const SITE_CARD_TYPES = Object.freeze(['heading', 'playbook', 'table', 'stats', 'checklist', 'quotes', 'steps', 'features', 'faq', 'kpi']);
+export const SITE_ACTION_SLOTS = Object.freeze(['copy', 'form', 'none']);
+
+/** Site-page content: every field is clipped, enumerated or run through safeUrl; never trusted markup. */
+export function sanitizeSite(input) {
+  const o = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  const arr = (v, n) => (Array.isArray(v) ? v.slice(0, n) : []);
+  const s = o(input);
+  const hero = o(s.hero);
+  const nav = o(s.nav);
+  const strip = o(s.strip);
+  const band = o(s.band);
+  const item = (x) => ({
+    icon: ICON_KEYS.includes(x?.icon) ? x.icon : '',
+    title: clip(x?.title, 140),
+    text: clip(x?.text, 300),
+    value: clip(x?.value, 40),
+    tag: clip(x?.tag, 30),
+    by: clip(x?.by, 80),
+  });
+  return {
+    hero: {
+      variant: SITE_VARIANTS.includes(hero.variant) ? hero.variant : 'copy-video-form',
+      eyebrow: clip(hero.eyebrow, 100),
+      bullets: arr(hero.bullets, 5).map((b) => clip(b, 120)).filter((b) => b.trim()),
+      chip: clip(hero.chip, 80),
+      actions: SITE_ACTION_SLOTS.includes(hero.actions) ? hero.actions : 'form',
+    },
+    nav: {
+      links: arr(nav.links, 7).map((l) => ({ label: clip(l?.label, 30), url: safeUrl(l?.url) })).filter((l) => l.label.trim()),
+      login: clip(nav.login, 30),
+      loginUrl: safeUrl(nav.loginUrl),
+      cta: clip(nav.cta, 40),
+    },
+    strip: {
+      kind: SITE_STRIP_KINDS.includes(strip.kind) ? strip.kind : 'benefits',
+      title: clip(strip.title, 80),
+      items: arr(strip.items, 8).map(item).filter((x) => x.title || x.value),
+    },
+    cards: arr(s.cards, 10)
+      .filter((c) => SITE_CARD_TYPES.includes(c?.type))
+      .map((c) => ({
+        type: c.type,
+        w: Math.max(2, Math.min(12, Math.round(Number(c.w)) || 4)),
+        eyebrow: clip(c.eyebrow, 60),
+        title: clip(c.title, 140),
+        text: clip(c.text, 300),
+        cover: clip(c.cover, 80),
+        button: clip(c.button, 40),
+        placeholder: clip(c.placeholder, 60),
+        value: clip(c.value, 40),
+        cols: arr(c.cols, 4).map((x) => clip(x, 30)),
+        items: arr(c.items, 8).map(item),
+      })),
+    band: {
+      title: clip(band.title, 200),
+      text: clip(band.text, 200),
+      button: clip(band.button, 40),
+      placeholder: clip(band.placeholder, 60),
+      social: clip(band.social, 30),
+    },
+  };
 }
 
 /** Make any stored/edited config safe and complete. Never throws. */
@@ -531,6 +624,7 @@ export function sanitizeConfig(input) {
     footer: { text: clip(footer.text, 160), optOutUrl: safeUrl(footer.optOutUrl) },
     consent: { notice: clip(c.consent?.notice, 300) },
     autoplay: !!c.autoplay,
+    ...(t.site || c.site ? { site: sanitizeSite(c.site) } : {}),
   };
 }
 

@@ -10,6 +10,8 @@
  *   app-window    product-UI window with a sidebar that jumps between the page's sections
  */
 
+import { composeSite } from './siteLayout.js';
+
 const present = (...nodes) => nodes.filter(Boolean);
 
 /** Story and form side by side when both exist (wide screens), otherwise whichever one there is. */
@@ -207,6 +209,7 @@ const COMPOSERS = {
   'split-screen': splitScreen,
   conversation,
   'app-window': appWindow,
+  site: composeSite,
 };
 
 export const LAYOUT_NAMES = Object.freeze(Object.keys(COMPOSERS));

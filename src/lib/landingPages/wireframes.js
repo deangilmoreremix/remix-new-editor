@@ -7,6 +7,22 @@ const R = (x, y, w, h, o = 0.9, rx = 2) => `<rect x="${x}" y="${y}" width="${w}"
 const L = (x, y, w, o = 0.35) => R(x, y, w, 3, o, 1.5);
 const PLAY = (cx, cy, r = 6) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" opacity=".92"/><path d="M${cx - 2} ${cy - 3}l5 3-5 3z" fill="currentColor"/>`;
 
+
+/** Marketing-site pages: nav, hero (video + copy + form), proof strip, a grid of cards, sign-up band. */
+const siteShape = ({ videoFirst = false, grid = [[5, 34], [43, 34], [81, 34]], band = true, heroBand = false } = {}) => {
+  const hero = videoFirst
+    ? [R(5, 12, 40, 24, 0.9), PLAY(25, 24, 4), L(50, 14, 28, 0.7), L(50, 20, 22), L(50, 26, 26), R(84, 12, 31, 26, 0.3)]
+    : [L(5, 14, 28, 0.7), L(5, 20, 22), R(5, 27, 16, 5, 0.9, 2.5), R(40, 12, 40, 24, 0.9), PLAY(60, 24, 4), R(84, 12, 31, 26, 0.3)];
+  return [
+    ...(heroBand ? [`<rect x="0" y="0" width="120" height="40" fill="currentColor" opacity=".35"/>`] : []),
+    R(0, 0, 120, 7, 0.25, 0), L(5, 2.5, 10, 0.9), L(40, 2.5, 8), L(52, 2.5, 8), L(64, 2.5, 8), R(100, 1.5, 15, 4, 0.9, 2),
+    ...hero,
+    R(5, 41, 110, 5, 0.15, 2),
+    ...grid.map(([x, w], i) => R(x, 49 + (i > 2 ? 14 : 0), w, 12, 0.25)),
+    ...(band ? [R(0, 68, 120, 8, 0.7, 0)] : []),
+  ];
+};
+
 const SHAPES = {
   stack: [L(34, 8, 52, 0.6), L(44, 14, 32), R(30, 22, 60, 34, 0.9), R(50, 61, 20, 7, 0.9, 3.5), PLAY(60, 39)],
   split: [L(10, 12, 38, 0.6), L(10, 18, 28), R(10, 26, 20, 7, 0.9, 3.5), R(58, 10, 52, 30, 0.9), PLAY(84, 25), R(10, 48, 100, 20, 0.2)],
@@ -17,6 +33,11 @@ const SHAPES = {
   'split-screen': [R(0, 0, 46, 76, 0.85, 0), L(6, 10, 30, 0.0), `<rect x="6" y="14" width="34" height="3" rx="1.5" fill="#fff" opacity=".8"/>`, `<rect x="6" y="20" width="26" height="3" rx="1.5" fill="#fff" opacity=".5"/>`, `<rect x="6" y="28" width="34" height="20" rx="2" fill="#fff" opacity=".9"/>`, PLAY(23, 38, 4), `<rect x="6" y="54" width="14" height="6" rx="3" fill="#fff" opacity=".8"/>`, L(54, 10, 50, 0.6), L(54, 16, 40), L(54, 22, 46), R(54, 32, 56, 22, 0.25), R(54, 58, 56, 14, 0.15)],
   conversation: [R(14, 4, 92, 9, 0.25, 2), R(14, 17, 44, 7, 0.55, 3.5), R(14, 27, 60, 6, 0.3, 3), R(14, 36, 44, 22, 0.9, 4), PLAY(36, 47, 4), R(14, 61, 16, 6, 0.55, 3), R(33, 61, 18, 6, 0.3, 3), R(10, 70, 100, 5, 0.3, 2.5)],
   'app-window': [R(6, 5, 108, 66, 0.12, 3), R(6, 5, 108, 7, 0.3, 3), `<circle cx="12" cy="8.5" r="1.3" fill="currentColor"/><circle cx="17" cy="8.5" r="1.3" fill="currentColor"/><circle cx="22" cy="8.5" r="1.3" fill="currentColor"/>`, R(6, 12, 22, 59, 0.28, 0), L(9, 18, 14, 0.6), L(9, 25, 12), L(9, 32, 14), R(33, 17, 50, 28, 0.9), PLAY(58, 31, 4), R(33, 50, 22, 6, 0.55, 3), R(33, 59, 50, 9, 0.2), R(88, 17, 22, 51, 0.3)],
+  'site-leadiq': siteShape({ videoFirst: true, grid: [[5, 34], [43, 34], [81, 34]] }),
+  'site-lead': siteShape({ grid: [[5, 34], [43, 34], [81, 34], [5, 34], [43, 34], [81, 34]] }),
+  'site-reach': siteShape({ heroBand: true, grid: [[5, 34], [43, 44], [91, 24]] }),
+  'site-persona': siteShape({ videoFirst: true, grid: [[5, 26], [34, 26], [63, 26], [92, 23]] }),
+  'site-spark': siteShape({ grid: [[5, 40], [49, 66]] }),
 };
 
 export const WIREFRAME_LAYOUTS = Object.freeze(Object.keys(SHAPES));

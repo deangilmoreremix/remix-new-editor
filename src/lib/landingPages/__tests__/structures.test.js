@@ -29,7 +29,7 @@ const render = (id, o = {}) => renderLandingPage({ page: page(full(id)), tokens:
 describe('the structural layouts', () => {
   it('are four, each with its own composer, wireframe and a unique layout name', () => {
     expect(IDS).toEqual(['cinema-hero', 'split-screen', 'conversation', 'app-window']);
-    expect([...LAYOUT_NAMES].sort()).toEqual([...IDS].sort());
+    expect([...LAYOUT_NAMES].sort()).toEqual([...IDS, 'site'].sort());
     IDS.forEach((id) => expect(WIREFRAME_LAYOUTS).toContain(id));
     expect(new Set(IDS.map((id) => wireframeSvg(id))).size).toBe(4);
     expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(TEMPLATES.length);
