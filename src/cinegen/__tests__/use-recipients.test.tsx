@@ -53,6 +53,8 @@ describe('useRecipients (20 contacts, one video)', () => {
     await waitFor(() => expect(result.current.summary.ready).toBe(19));
     await act(async () => { await result.current.create(result.current.rows.map((r) => r.contactId)); });
     const made = T.video_recipients;
+    await waitFor(() => expect(result.current.summary.linked).toBe(19));
+    expect(result.current.notice).toBe('Created 19 links.');   // the background refresh that follows must not wipe it
     expect(made).toHaveLength(19);                                          // c3 (no logo) was not linked
     expect(new Set(made.map((r) => r.token)).size).toBe(19);
     expect(made.every((r) => r.video_id === 'vidAAAA1111' && r.token.length >= 64)).toBe(true);

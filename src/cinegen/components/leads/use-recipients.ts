@@ -36,8 +36,10 @@ export function useRecipients(pub: ReturnType<typeof usePublished>, lib: Busines
   const refreshContacts = useCallback(() => setContacts(listContactProfiles(contactStore)), []);
   useEffect(() => { window.addEventListener('remix:contact-changed', refreshContacts); return () => window.removeEventListener('remix:contact-changed', refreshContacts); }, [refreshContacts]);
 
-  const guard = useCallback(async <T,>(fn: () => Promise<T>): Promise<T | undefined> => {
-    setBusy(true); setError(''); setNotice('');
+  // `quiet` (background refreshes) must not wipe the message of the action that triggered them ("Created 2 links").
+  const guard = useCallback(async <T,>(fn: () => Promise<T>, { quiet = false }: { quiet?: boolean } = {}): Promise<T | undefined> => {
+    setBusy(true);
+    if (!quiet) { setError(''); setNotice(''); }
     try { return await fn(); } catch (e) { if (isMissingSchema(e)) setUnavailable(true); else setError((e as Error).message); return undefined; } finally { setBusy(false); }
   }, []);
 
@@ -51,7 +53,7 @@ export function useRecipients(pub: ReturnType<typeof usePublished>, lib: Busines
       setAssets(await store.listAssetsForBusinesses(client, bs.map((b: any) => b.id)));
       setAssignments(await store.listAssignments(client, projectId));
       setUnavailable(false);
-    });
+    }, { quiet: true });
   }, [videoId, pub.signedIn, projectId, guard]);
   // re-read when the picker changed assets/assignments, so the table never shows a stale "ready"
   useEffect(() => { void reload(); }, [reload, lib.assets, lib.assignments]);

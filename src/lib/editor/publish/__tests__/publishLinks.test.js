@@ -233,3 +233,36 @@ describe('player personalization by recipient token', () => {
     expect(m).not.toContain('Mallory'); expect(m).not.toContain('Evil');
   });
 });
+
+import { resolveCtaField, personalizeCta, ctaElement, linkBoxElement } from '../viewerOverlays.js';
+
+describe('recipient-specific call and link destinations', () => {
+  const A = { variables: { businessPhone: '+15551230001', website: 'https://smith.example/', COMPANY: 'Smith Roofing' } };
+  const B = { variables: { businessPhone: '+15551230002', website: 'https://wilson.example/', COMPANY: 'Wilson Plumbing' } };
+
+  it('fills a phone number and a website from each recipient, never the other\'s', () => {
+    const cta = { id: 'c', type: 'click-to-call', linkMode: 'phone', phoneNumber: '{{businessPhone}}', buttonText: 'Call {{COMPANY}}' };
+    const a = ctaElement(personalizeCta(cta, A)); const b = ctaElement(personalizeCta(cta, B));
+    expect(a.getAttribute('href')).toBe('tel:+15551230001');
+    expect(b.getAttribute('href')).toBe('tel:+15551230002');
+    expect(a.getAttribute('aria-label')).toContain('Call Smith Roofing');
+    const link = { id: 'l', type: 'overlay-text', addon: { text: 'Visit {{COMPANY}}', linkMode: 'url', linkUrl: '{{website}}' } };
+    expect(linkBoxElement(personalizeCta(link, A)).getAttribute('href')).toBe('https://smith.example/');
+    expect(linkBoxElement(personalizeCta(link, B)).getAttribute('href')).toBe('https://wilson.example/');
+  });
+
+  it('drops a destination whose token has no value (no button, no raw token, no wrong link)', () => {
+    expect(resolveCtaField('{{website}}', { variables: {} })).toBe('');
+    expect(resolveCtaField('{{d website "https://fallback.example/"}}', { variables: {} })).toBe('https://fallback.example/');
+    const cta = { id: 'c', type: 'click-to-call', linkMode: 'phone', phoneNumber: '{{businessPhone}}' };
+    expect(ctaElement(personalizeCta(cta, { variables: {} }))).toBeNull();
+    expect(ctaElement(personalizeCta(cta, null))).toBeNull();
+  });
+
+  it('does not mutate the master clip and leaves plain destinations alone', () => {
+    const cta = { id: 'c', type: 'click-to-call', linkMode: 'url', linkUrl: 'https://static.example/', buttonText: 'Go' };
+    const copy = JSON.parse(JSON.stringify(cta));
+    expect(personalizeCta(cta, A).linkUrl).toBe('https://static.example/');
+    expect(cta).toEqual(copy);
+  });
+});

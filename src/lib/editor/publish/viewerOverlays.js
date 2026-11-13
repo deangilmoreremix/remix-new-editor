@@ -15,6 +15,33 @@ import { ctaBox } from '../addons/ctaLottie.js';
 /** Personalized text with unresolved {{tokens}} removed (a viewer never sees raw tokens). */
 export const personalize = (text, profile) => resolveOverlayText(text || '', profile).replace(/\{\{[^}]*\}\}/g, '').replace(/\s{2,}/g, ' ').trim();
 
+/**
+ * A call/link destination with this viewer's own values filled in ({{businessPhone}}, {{website}}, {{d website "https://..."}}).
+ * A destination that still has an unresolved token is dropped (the button is not shown) rather than sending the viewer
+ * anywhere wrong, and the raw token syntax is never exposed.
+ */
+export function resolveCtaField(value, profile) {
+  if (typeof value !== 'string' || !value) return value;
+  const out = resolveOverlayText(value, profile);
+  return /\{\{[^}]*\}\}/.test(out) ? '' : out.trim();
+}
+
+/** The clip with its CTA fields (phone, link, button/overlay text) personalized for `profile`. Does not mutate the clip. */
+export function personalizeCta(clip, profile) {
+  if (!clip) return clip;
+  const out = { ...clip };
+  if ('phoneNumber' in clip) out.phoneNumber = resolveCtaField(clip.phoneNumber, profile);
+  if ('linkUrl' in clip) out.linkUrl = resolveCtaField(clip.linkUrl, profile);
+  if (typeof clip.buttonText === 'string') out.buttonText = personalize(clip.buttonText, profile);
+  if (clip.addon && typeof clip.addon === 'object') {
+    out.addon = { ...clip.addon };
+    if ('phoneNumber' in clip.addon) out.addon.phoneNumber = resolveCtaField(clip.addon.phoneNumber, profile);
+    if ('linkUrl' in clip.addon) out.addon.linkUrl = resolveCtaField(clip.addon.linkUrl, profile);
+    if (typeof clip.addon.text === 'string') out.addon.text = personalize(clip.addon.text, profile);
+  }
+  return out;
+}
+
 export const isValidPhoneNumber = (v) => !!v && /^(\+[0-9\s]*-?)?(\([0-9\s]*\))?[0-9-.\s]{10,14}$/.test(String(v).trim());
 export function isSafeLink(v) {
   try {

@@ -14,7 +14,7 @@ import { ensureOverlayLayer, clearOverlay, showPauseOverlay, showOptinOverlay } 
 import { normalizeListBuilder } from '../addons/listBuilder.js';
 import { addonOptions } from '../addons/registry.js';
 import { timelineToComposition } from '../remotion/timelineToComposition.js';
-import { showLeadForm, ctaElement, linkBoxElement } from './viewerOverlays.js';
+import { showLeadForm, ctaElement, linkBoxElement, personalizeCta } from './viewerOverlays.js';
 import { ctaTarget } from '../addons/ctaLink.js';
 import { profileWithAnswers } from '../personalize/perContact.js';
 
@@ -88,7 +88,9 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
 
   const emit = () => onChange?.({ playing, time, duration: model.durationInFrames / fps, gating: gateOpen });
 
-  const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || ctaTarget(addonOptions(c)));
+  // Candidates are decided on the raw clip (a destination may be a {{token}}); each is resolved per viewer when it appears.
+  const hasDestination = (o) => !!(String(o?.linkUrl || '').trim() || String(o?.phoneNumber || '').trim());
+  const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || ctaTarget(addonOptions(c)) || hasDestination(addonOptions(c)));
   const onCall = ({ clip, phone }) => {
     // Upstream "Email to notify about call attempt": recorded as a lead for the owner.
     onLead?.({ clipId: clip.id, kind: 'call-attempt', data: { PHONE: phone, CALLED_AT: new Date().toISOString() } });
@@ -100,7 +102,8 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       const on = sec >= start && sec < end;
       const id = String(clip.id);
       if (on && !live.has(id)) {
-        const el = clip.type === 'click-to-call' ? ctaElement(clip, { onCall, frameAspect: model.width / model.height }) : linkBoxElement(clip, { onCall });
+        const mine = personalizeCta(clip, currentProfile);   // this viewer's own number / link; unresolved destinations show nothing
+        const el = clip.type === 'click-to-call' ? ctaElement(mine, { onCall, frameAspect: model.width / model.height }) : linkBoxElement(mine, { onCall });
         if (el) { layer.appendChild(el); live.set(id, el); }
       } else if (!on && live.has(id)) {
         live.get(id).remove();
