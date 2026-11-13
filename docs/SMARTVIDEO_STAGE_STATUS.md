@@ -8,7 +8,7 @@
 | 3 | MediaPipe presenter effects | **Complete and verified** (limits listed in the Stage 3 section) | Authorized by the user ("let's only check every 3 phases": Stages 3–5 run back to back, then stop) | 2026-11-13 | see `git log` ("Stage 3") | Stage 3 unit/panel tests 78; personalization suite 191 files, 2,360 passed; typecheck gate 0; live check 53/53 (see below) | Processed footage is stored in the browser only; see limits |
 | 4 | Advanced browser audio | **Complete and verified** (limits in the Stage 4 section) | Authorized (3-stage cadence) | 2026-11-13 | see `git log` ("Stage 4") | 71 unit/panel/composition tests; personalization suite 194 files, 2,431 passed; typecheck gate 0; live check 40/40 | Mixdown stored in the browser only; tested on short clips only |
 | 5 | Advanced video effects & motion | **Complete and verified** (limits in the Stage 5 section) | Authorized (3-stage cadence) | 2026-11-13 | see `git log` ("Stage 5") | 48 unit/panel/composition tests; personalization suite 197 files, 2,479 passed; typecheck gate 0; live check 40/40 | Transitions beyond the existing website hand-over and the GL effect system were not touched |
-| 6 | Captions, text & intelligent editing | Not started | **NOT authorized** | — | — | — | — |
+| 6 | Captions, text & intelligent editing | **Complete and verified** (limits in the Stage 6 section) | Authorized ("finish all of the task" + approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 6") | 48 unit/panel/composition tests; live check 36/36 | Transcription accuracy depends on the model; see limits |
 | 7 | Thumbnails & personalized GIFs | Not started | **NOT authorized** | — | — | — | — |
 | 8 | Personalized publishing & watch pages | Not started | **NOT authorized** | — | — | — | — |
 | 9 | React Email & outreach | Not started | **NOT authorized** | — | — | — | — |
@@ -346,3 +346,37 @@ Authorized by the user's approval of the roadmap plan (Stage 2 only).
 | Not run | other browsers, real Clerk/Supabase paths, any deployment, any migration |
 
 **Awaiting the user (unchanged from earlier + new):** apply the layouts migration? private capture bucket? 117 RLS-disabled tables? real business site for a fuller capture test? email provider (needed before Stage 9)? Recorder status (needed before Stage 10 uses it)? Next after approval: Stages 6, 7, 8 (then stop again).
+
+
+## Stage 6 — Captions and intelligent editing (2026-11-13)
+
+**Authorization:** the user's "lets continue and finish all of the task" and the approved Stages 6–12 plan (checkpoint reports after 6–8, 9–11, 12).
+
+### What was built
+| Capability | Where | Notes |
+|---|---|---|
+| Captions model: validated cues, 5 presets, word-highlight (none / spoken word / fill-as-spoken), position, size (% of frame height), colours | `preview/captions.ts`, `settings.captions` | Times are ms from the start of the video. |
+| Drawn by the shared composition | `preview/CaptionsLayer.tsx` | Same words, moments and colours in the Player and the export. Subtitle text is rendered as text, never markup. |
+| SRT / VTT import and export | `captions.ts` (`parseCaptionFile`, `cuesToSrt/Vtt`) | Empty, binary, oversized and malformed files are refused with a plain message. |
+| Real transcription | existing Whisper worker (`lib/editor/remotion/transcribe.js`), `CaptionsPanel` | Default model is the app's "Accurate" (whisper-base). Nothing is invented; "no speech" produces no captions. |
+| Cue editing + quality checks | `CaptionsPanel`, `captionProblems` | Edit text/times, add, split, merge, delete, shift all; warnings for overlaps, too-fast reading (>20 chars/s), very long lines, <0.3 s, past the end. |
+| Scene-change detection + filmstrip | `captions.ts` (`detectCuts`), `guided/videoProbe.ts` (`scanScenes`) | Frame differences on a 64×36 grid at 5 fps, adaptive threshold, minimum scene length; JPEG thumbnail per scene; clicking a scene starts a caption there. |
+| Video format check | `videoProbe.ts` (`probeVideo`), `classifyVideoCodec` | Reads codec, size, duration and whether THIS browser can decode it; H.264/VP8/VP9 ok, AV1/HEVC warn, undecodable = bad. |
+
+### Defects found by the checks and fixed
+* **The library's page grouping spanned silences** (`createTikTokStyleCaptions` joined "world" and "Next" across a 1.6 s pause), which would keep a caption on screen through a pause. Replaced with pause-aware grouping (a gap of 700 ms always breaks the page; pages are capped at 8 words / 42 characters).
+* **`-webkit-text-stroke` made small captions read as dark text** (the centred stroke eats thin white fill). The outline is now a ring of text-shadows.
+* **`normalizePreviewSettings` replaces an empty layer list with the layout's default text layers**, so a project with `layers: []` still draws text (affects test harnesses, not users who delete layers in the editor, which keeps one layer hidden). Noted, not changed.
+* **whisper-tiny hallucinated** ("Welcome back to my new video") on clean synthesized speech while whisper-base transcribed it almost perfectly; the check and the app use base.
+
+### Verification actually run
+* **48 tests** (27 model: validation, SRT/VTT incl. hostile input and round trips, paging/pauses/limits, highlight modes, layout, editing, problems, Whisper mapping, scene cuts incl. static/fade/flash, codec classes; 9 composition; 12 panel). Six mutations (no pause break, highlight modes swapped, `enabled` ignored, size not tied to height, stroke restored, empty import accepted) were each caught.
+* **Live check 36/36** (`scripts/stage6-captions-check/check.mjs`): SRT/VTT lossless round trip; four bad files refused; **captions measured in the exported pixels** appear exactly while their page is up (49 sampled times); yellow highlight moves left→right; top/middle/bottom in their own thirds; 1280×720 is 2.0× the width of 640×360; Classic box drawn; markup shown literally; captions off draws nothing; **real Whisper (base) on real synthesized speech**: transcript "Welcome to Acme Roofing. We fix leaks fast. Call us today for a freak world." (one mis-hearing: "free quote"), word spans cover real speech, first word within 0.6 s of the first sound, captions in the export line up with the speech; scene scan finds cuts at 2 s and 4 s (±0.3 s) with a JPEG per scene and **no false cuts** on a static clip, a 4 s cross-fade and continuous motion; codec probe reads H.264/VP9 and flags HEVC (this Chromium cannot decode it); the real editor imports an SRT, edits a cue, the Player shows it, the export matches the Player, and "Download SRT" returns the edited file.
+
+### Limits and open items (not hidden)
+* **Transcription is only as good as the model**: base is ~80 MB and mishears; whisper-tiny hallucinated on the same audio. The panel tells the customer to check the words. Tested on one 6-second synthesized English clip, not on real human speech, accents, noise or other languages.
+* Transcription runs on CPU/WASM here (8 s for 6 s of speech with the base model); long videos were not timed. Whisper runs in the user's browser; audio is not uploaded.
+* Fonts: captions use the composition's bundled font stack, not per-caption fonts. No per-word custom styling, animation presets (pop/bounce) or emoji handling; no speaker labels; no translation.
+* Scene detection is tuned for hard cuts at 5 fps; it can miss a cut between two near-identical shots and cannot see dissolves/wipes (it deliberately ignores cross-fades). It was tested on synthetic clips.
+* Codec check reads the container's first video track only; it reports whether THIS browser can decode, not whether other viewers can.
+* SRT import keeps text and times only (no styling tags, positions or multi-line layout).

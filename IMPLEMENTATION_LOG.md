@@ -83,3 +83,10 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - No new dependencies. Only effects measured in a real web-renderer export are used (CSS filters, multiply blend, gradients, text-shadow/stroke, blurred box-shadow); SVG `url(#)` filters and spread box-shadows are not drawn and are avoided.
 - Verified: 48 tests (+6 mutation checks), personalization suite 197 files / 2,479 passed, typecheck gate 0, live check 40/40 (exported pixels vs the model within 3/255, edge positions, fades, text effects with/without, exits/entrances, Player vs export). Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
 - NOT done: GL/LUT effects, extra transitions, grain/sharpen, speed ramps, picture-layer effects beyond existing styles.
+
+### Stage 6 — Captions, transcription, scene detection
+- Authorization: "lets continue and finish all of the task" + approved Stages 6–12 plan.
+- Added: `preview/captions.ts` (model, SRT/VTT, pause-aware pages, highlight, problems, scene cuts, codec classes), `CaptionsLayer`, `guided/CaptionsPanel|captionsEdit|videoProbe`; `settings.captions`; reuse of the existing Whisper worker. `apt install espeak-ng` was used only in the sandbox to make speech fixtures.
+- Fixed/found: library paging spanned silences; text-stroke eats thin text; whisper-tiny hallucination (base is the default).
+- Verified: 48 tests (+6 mutation checks), live check 36/36 (captions measured in exported pixels, real Whisper on real speech, scene scan on clips with known cuts). Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
+- NOT done: other-language/real-speech accuracy testing, per-caption fonts/animations, translation, dissolve detection.

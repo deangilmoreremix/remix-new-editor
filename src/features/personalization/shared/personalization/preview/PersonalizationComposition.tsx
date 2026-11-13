@@ -2,6 +2,7 @@ import { applyCustomFields, rotationCss, sourceMediaStyle } from './layerTransfo
 import { WebsiteBackgroundLayer } from './WebsiteBackgroundLayer'
 import { PresenterLayer } from './PresenterLayer'
 import { FootageFrame } from './FootageFrame'
+import { CaptionsLayer } from './CaptionsLayer'
 import { fadeCoverAt } from './videoEffects'
 import { TEXT_LAYER_KINDS as LAYER_TEXT_KINDS, exitFactorsAt, newEntranceFactors, textEffectStyle, type NewEntranceId } from './layerEffects'
 import { audioPlan } from './audioMix'
@@ -743,6 +744,9 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
             </AbsoluteFill>
           )
         })}
+        {settings.captions?.enabled && settings.captions.cues.length > 0 ? (
+          <CaptionsLayer track={settings.captions} frame={frame} fps={settings.fps} compW={compW} compH={compH} />
+        ) : null}
         {settings.footageEffects?.fade && fadeCoverAt(frame, settings.footageEffects.fade, settings.durationInFrames) > 0 ? (
           <AbsoluteFill data-footage-fade="" style={{ background: '#000', opacity: fadeCoverAt(frame, settings.footageEffects.fade, settings.durationInFrames), zIndex: 20000, pointerEvents: 'none' }} />
         ) : null}

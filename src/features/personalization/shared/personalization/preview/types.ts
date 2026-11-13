@@ -9,6 +9,7 @@ import type { WebsiteBackground } from './websiteBackground'
 import type { PresenterSettings } from './presenter'
 import type { AudioMix } from './audioMix'
 import type { FootageEffects } from './videoEffects'
+import type { CaptionTrack } from './captions'
 import type { LayerEffect, LayerExit } from './layerEffects'
 
 export type PreviewLayoutId =
@@ -243,6 +244,8 @@ export interface PersonalizationPreviewSettings {
   audioMix?: AudioMix
   /** Colour look, camera motion and fades for the source footage (Stage 5). */
   footageEffects?: FootageEffects
+  /** Subtitles drawn over the video (Stage 6). */
+  captions?: CaptionTrack
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */
