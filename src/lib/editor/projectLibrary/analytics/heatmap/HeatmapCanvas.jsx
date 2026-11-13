@@ -1,3 +1,4 @@
+/* global ResizeObserver */
 /**
  * React wrappers around the canvas renderers (Stage 7): <HeatmapCanvas> (2-D, normalized points) and
  * <EngagementStrip> (1-D, per-second playback data). Both size themselves with ResizeObserver and redraw at the

@@ -1,3 +1,4 @@
+/* global EventTarget */
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createAnalytics, consentMode } from '../analyticsClient.js';
