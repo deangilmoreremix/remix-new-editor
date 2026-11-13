@@ -214,7 +214,44 @@ export const TEMPLATES = Object.freeze([
     layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 14, traits: ['card', 'banner'],
     vars: { '--vp-card': '#ffffff', '--vp-surface': '#f5f6ff', '--vp-surface-2': '#f5f6ff', '--vp-line': 'rgba(30,27,75,.10)', '--vp-card-shadow': '0 22px 60px rgba(49,46,129,.18)', '--vp-banner': '#312e81' },
   },
+  // ---- Structural layouts: the same content blocks arranged as genuinely different pages (see layouts.js).
+  // Their frame follows the video's real shape (wide, square or tall).
+  {
+    id: 'cinema-hero',
+    name: 'Cinema hero',
+    description: 'The video fills the screen with the headline and buttons laid over it; details wait below the fold.',
+    theme: { mode: 'dark', accent: '#dc2626', highlight: '#fca5a5', bg: '#000000', text: '#f4f4f5', font: 'system' },
+    layout: 'cinema-hero', compose: 'cinema-hero', customPlayer: true, adaptive: true, family: 'structure', radius: 12,
+    vars: { '--vp-surface': '#15151b', '--vp-surface-2': '#15151b', '--vp-line': 'rgba(255,255,255,.12)' },
+  },
+  {
+    id: 'split-screen',
+    name: 'Split screen',
+    description: 'A sticky video panel on the left while the story, form and calendar scroll on the right.',
+    theme: { mode: 'light', accent: '#1d4ed8', highlight: '#1d4ed8', bg: '#f7f5f0', text: '#0f172a', font: 'system' },
+    layout: 'split-screen', compose: 'split-screen', customPlayer: true, adaptive: true, family: 'structure', radius: 14,
+    vars: { '--vp-panel': '#0f172a', '--vp-surface': '#ffffff', '--vp-surface-2': '#ffffff', '--vp-line': 'rgba(15,23,42,.10)' },
+  },
+  {
+    id: 'conversation',
+    name: 'Conversation',
+    description: 'A message thread: the video arrives as a message, buttons are quick replies, the form is the reply box.',
+    theme: { mode: 'light', accent: '#0f766e', highlight: '#0d9488', bg: '#e4ece6', text: '#0f172a', font: 'system' },
+    layout: 'conversation', compose: 'conversation', customPlayer: true, adaptive: true, family: 'structure', radius: 14,
+    vars: { '--vp-wall': '#e4ece6', '--vp-surface': '#ffffff', '--vp-surface-2': '#ffffff', '--vp-line': 'rgba(15,23,42,.08)' },
+  },
+  {
+    id: 'app-window',
+    name: 'App window',
+    description: 'A product-style window: sidebar that jumps between sections, the video as the main view, details in a rail.',
+    theme: { mode: 'light', accent: '#4f46e5', highlight: '#4f46e5', bg: '#e0e7ff', text: '#0f172a', font: 'system' },
+    layout: 'app-window', compose: 'app-window', customPlayer: true, adaptive: true, family: 'structure', radius: 12,
+    vars: { '--vp-desk': 'linear-gradient(135deg, #c7d2fe 0%, #fbcfe8 100%)', '--vp-surface': '#f8f9fc', '--vp-surface-2': '#f8f9fc', '--vp-line': 'rgba(15,23,42,.10)' },
+  },
 ]);
+
+/** The structural layouts (different page compositions, not re-skins). */
+export const STRUCTURE_TEMPLATES = Object.freeze(TEMPLATES.filter((t) => t.compose));
 
 /** Templates that use the Sendspark-style pitch layout (card, buttons, calendar, transcript). */
 export const PITCH_TEMPLATES = Object.freeze(TEMPLATES.filter((t) => t.pitch));
@@ -281,6 +318,33 @@ export function defaultConfig(templateId = 'clean', { title = '', brand = {} } =
     consent: { notice: '' },
     autoplay: false,
   };
+  if (t.compose) {
+    // Structural layouts ship with the full set of blocks so each arrangement has something to arrange.
+    return sanitizeConfig({
+      ...base,
+      brand: { name: brand.name || '', tagline: '' },
+      headline: 'Hi {{firstname|there}}, a quick idea for {{company|your team}}',
+      subhead: 'A short video, made for you.',
+      cta: { label: t.compose === 'cinema-hero' ? 'Watch your video' : '', url: '', type: 'play' },
+      ctas: [
+        { label: 'Book a call', kind: 'calendar', value: '', style: 'primary' },
+        { label: 'See pricing', kind: 'link', value: '', style: 'secondary' },
+      ],
+      likes: { enabled: true },
+      story: { heading: 'A few words from me', body: ['Hi {{firstname|there}}, add a short note here about why you made this video for {{company|your team}}.', 'Say what the video covers and what you would like them to do next.'] },
+      sender: { name: '', title: '', avatarUrl: '' },
+      form: {
+        enabled: true, title: 'Want to talk it through?', subtitle: "Leave your details and I'll get back to you.", submitLabel: 'Send',
+        successMessage: 'Thanks! I will be in touch soon.', privacy: 'Your details go only to {{sender|me}}. No spam.',
+        fields: [
+          { key: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Your name' },
+          { key: 'email', label: 'Work email', type: 'email', required: true, placeholder: 'you@company.com' },
+          { key: 'message', label: 'Message (optional)', type: 'textarea', required: false, placeholder: 'Anything you would like me to know' },
+        ],
+      },
+      footer: { text: 'Sent by {{sender|me}} · {{brand}}', optOutUrl: '' },
+    });
+  }
   if (t.pitch) {
     return sanitizeConfig({
       ...base,

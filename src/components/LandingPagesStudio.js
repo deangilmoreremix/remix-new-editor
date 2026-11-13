@@ -13,6 +13,7 @@ import { listBrands } from '../lib/brandStore.js';
 import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
+import { wireframeSvg } from '../lib/landingPages/wireframes.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
 import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
@@ -236,7 +237,7 @@ export function LandingPagesStudio() {
       c.setAttribute('aria-pressed', String(on));
     });
     // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    [['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch)], ['Personal intro designs (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
+    [['Page structures (genuinely different layouts)', TEMPLATES.filter((t) => t.compose)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
       const grp = el('div', 'flex flex-col gap-2');
       grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
       const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
@@ -244,13 +245,11 @@ export function LandingPagesStudio() {
         const b = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
         b.type = 'button';
         b.title = t.description;
-        const sw = el('div', 'h-12 flex items-end gap-1 p-2');
+        // The thumbnail is the page's SHAPE (a wireframe) tinted with its colours, so layouts are told apart by structure.
+        const sw = el('div', 'h-20 p-2 flex items-center justify-center');
         sw.style.background = t.theme.bg;
-        [t.theme.accent, t.theme.highlight, t.theme.text].forEach((c) => {
-          const d = el('span', 'h-3 w-3 rounded-full border border-white/30');
-          d.style.background = c;
-          sw.appendChild(d);
-        });
+        sw.style.color = t.theme.accent;
+        sw.innerHTML = wireframeSvg(t.layout);
         const cap = el('div', 'p-2');
         cap.append(el('div', 'text-xs font-bold truncate', t.name), el('div', 'text-[11px] text-secondary line-clamp-2', t.description));
         b.append(sw, cap);
@@ -385,7 +384,7 @@ export function LandingPagesStudio() {
       };
 
       const tplSel = el('select', INPUT);
-      [['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch)], ['Personal intro designs', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
+      [['Page structures', TEMPLATES.filter((t) => t.compose)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
         const og = el('optgroup');
         og.label = label;
         list.forEach((t) => { const o = el('option', '', t.name); o.value = t.id; og.appendChild(o); });

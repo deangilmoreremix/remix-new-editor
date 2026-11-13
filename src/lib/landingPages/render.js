@@ -4,6 +4,7 @@
  * is exactly what viewers get. All user text goes in through textContent, and
  * every URL passes safeUrl/safeImageUrl, so a hostile config can't inject markup.
  */
+import { composeLayout } from './layouts.js';
 import {
   getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, splitAccent, formatDuration, readableOn, ctaHref, prefillFor, FONTS,
 } from './templates.js';
@@ -110,6 +111,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
     root.appendChild(head);
   }
 
+  const topEl = root.querySelector(':scope > .vp-top, :scope > .vp-brand');
   const main = h(doc, 'main', 'vp-main');
   root.appendChild(main);
 
@@ -163,6 +165,18 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   frame.appendChild(video);
   player.appendChild(frame);
   media.appendChild(player);
+  if (tpl.adaptive) {
+    // Frame follows the video's real shape (wide, square or tall) instead of assuming 16:9.
+    frame.classList.add('is-adaptive');
+    frame.dataset.shape = 'wide';
+    video.addEventListener('loadedmetadata', () => {
+      const w = video.videoWidth;
+      const hh = video.videoHeight;
+      if (!w || !hh) return;
+      frame.style.setProperty('--ar', String(Math.round((w / hh) * 1000) / 1000));
+      frame.dataset.shape = w > hh * 1.15 ? 'wide' : hh > w * 1.15 ? 'tall' : 'square';
+    });
+  }
 
   const cleanups = [];
   const listen = (target, type, fn) => { target.addEventListener(type, fn); cleanups.push(() => target.removeEventListener(type, fn)); };
@@ -424,6 +438,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   }
 
   // ---- extra sections
+  const sectionEls = [];
   config.sections.forEach((s) => {
     const sec = h(doc, 'section', 'vp-section');
     const heading = t(s.heading);
@@ -431,12 +446,17 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
     if (heading) sec.appendChild(h(doc, 'h2', 'vp-section-title', heading));
     if (body) sec.appendChild(h(doc, 'p', 'vp-section-body', body));
     main.appendChild(sec);
+    sectionEls.push(sec);
   });
 
   // ---- testimonial + customer logos
+  let quoteEl = null;
+  let logosEl = null;
+  let footEl = null;
   const quote = t(config.testimonial.quote);
   if (quote) {
     const box = h(doc, 'figure', 'vp-quote');
+    quoteEl = box;
     box.appendChild(h(doc, 'blockquote', 'vp-quote-text', `“${quote}”`));
     const by = t(config.testimonial.by);
     if (by) box.appendChild(h(doc, 'figcaption', 'vp-quote-by', by));
@@ -444,6 +464,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   }
   if (config.logos.length) {
     const strip = h(doc, 'div', 'vp-logos');
+    logosEl = strip;
     config.logos.forEach((l) => {
       if (l.imageUrl) {
         const img = h(doc, 'img', 'vp-logos-img');
@@ -461,6 +482,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   const optOut = config.footer.optOutUrl;
   if (footText || optOut) {
     const foot = h(doc, 'footer', 'vp-foot');
+    footEl = foot;
     foot.appendChild(h(doc, 'span', 'vp-foot-text', footText));
     if (optOut) {
       const a = h(doc, 'a', 'vp-optout', "Don't want these? Opt out");
@@ -470,10 +492,16 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
     }
     root.appendChild(foot);
   }
-  if (config.consent.notice) root.appendChild(h(doc, 'p', 'vp-consent', config.consent.notice));
+  let consentEl = null;
+  if (config.consent.notice) { consentEl = h(doc, 'p', 'vp-consent', config.consent.notice); root.appendChild(consentEl); }
 
-  // ---- pitch layout: card, main column + transcript column
-  if (tpl.pitch) {
+  // ---- structural layouts: the same blocks, arranged as a genuinely different page (see layouts.js)
+  if (tpl.compose) {
+    composeLayout(tpl.compose, {
+      doc, h, mark, clock, tryPlay, listen, root, main, config, tpl, t, own, tokens, preview, video, frame, player, media,
+      blocks: { top: topEl, copy, media, actions, calendar: calendarBox, transcript: side, form: formBox, story: storyBox, sections: sectionEls, quote: quoteEl, logos: logosEl, foot: footEl, consent: consentEl },
+    });
+  } else if (tpl.pitch) {
     const left = h(doc, 'div', 'vp-pitch-main');
     [...main.children].forEach((n) => left.appendChild(n));
     main.appendChild(left);
