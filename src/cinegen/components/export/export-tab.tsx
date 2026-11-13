@@ -8,6 +8,7 @@ import { RenderProgress } from './render-progress';
 import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
 import type { ExportPreset, ExportJob } from '@cinegen/types/export';
 import { clipEndTime } from '@cinegen/types/timeline';
+import { flattenCompounds } from '@cinegen/lib/editor/stage1'; // [remix] Stage 1: compound clips export as their content
 import { exportClipsFromTimeline, exportTracksFromTimeline, exportTransitionsFromTimeline } from '@cinegen/lib/editor/export-mapping';
 
 export function ExportTab() {
@@ -15,9 +16,8 @@ export function ExportTab() {
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
   const activeTimeline = getActiveTimeline(state);
-  const exportClips = useMemo(() => {
-    return exportClipsFromTimeline(activeTimeline, state.assets);
-  }, [activeTimeline, state.assets]);
+  const exportTimeline = useMemo(() => flattenCompounds(activeTimeline), [activeTimeline]);
+  const exportClips = useMemo(() => exportClipsFromTimeline(exportTimeline, state.assets), [exportTimeline, state.assets]);
   const hasClips = exportClips.length > 0;
   const totalDuration = Math.max(
     activeTimeline.duration,
@@ -34,7 +34,7 @@ export function ExportTab() {
         preset,
         fps,
         clips: exportClips,
-        tracks: exportTracksFromTimeline(activeTimeline),
+        tracks: exportTracksFromTimeline(exportTimeline),
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
@@ -45,13 +45,13 @@ export function ExportTab() {
         // [hyperframes] verified HyperFrames animations on the overlay lane (rendered by the sandboxed export runner)
         hfOverlays: (state.overlays ?? []).filter((o) => o.type === 'hyperframes').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, blockId: o.blockId, props: o.props, blockWidth: o.blockWidth, blockHeight: o.blockHeight })),
         // [remix] OpenChatCut GL transitions on dissolve cuts
-        transitions: exportTransitionsFromTimeline(activeTimeline),
+        transitions: exportTransitionsFromTimeline(exportTimeline),
       });
       dispatch({ type: 'ADD_EXPORT', exportJob: job });
     } catch (error) {
       console.error('Failed to start render:', error);
     }
-  }, [dispatch, exportClips, totalDuration, activeTimeline, state.overlays]);
+  }, [dispatch, exportClips, totalDuration, exportTimeline, state.overlays]);
 
   useEffect(() => {
     if (!activeJob) {
@@ -98,7 +98,7 @@ export function ExportTab() {
         {/* [remix] OpenChatCut FCPXML export (Final Cut Pro / Premiere / DaVinci Resolve) */}
         <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
           <button type="button" disabled={!hasClips} data-testid="export-fcpxml" onClick={() => {
-            const xml = cinegenFcpxml(activeTimeline, state.assets, { title: activeTimeline.name });
+            const xml = cinegenFcpxml(exportTimeline, state.assets, { title: activeTimeline.name });
             const url = URL.createObjectURL(new Blob([xml], { type: 'application/xml' }));
             const a = document.createElement('a'); a.href = url; a.download = `${activeTimeline.name || 'timeline'}.fcpxml`; a.click();
             setTimeout(() => URL.revokeObjectURL(url), 5000);

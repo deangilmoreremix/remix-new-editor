@@ -66,7 +66,14 @@ export interface Clip {
   zoom?: import('../../openchatcut/editor/types').ZoomEffect;
   /** [remix] OpenChatCut captions burned over this clip (words in timeline ms). */
   captions?: import('../../openchatcut/captions/types').CaptionsData;
+  /** [remix] Stage 1: clips with the same groupId are selected / moved / deleted together (lib/editor/stage1/groups.ts) */
+  groupId?: string;
+  /** [remix] Stage 1: compound clip. The clip is one object on the timeline; its content (start times relative to the clip, original
+   *  track ids) is expanded to ordinary clips for playback and export (lib/editor/stage1/compound.ts, flattenCompounds). */
+  compound?: CompoundContent;
 }
+
+export interface CompoundContent { clips: Clip[]; transitions: Transition[] }
 
 /** [remix] One OpenChatCut effect on a clip: id is an FX_EFFECTS key (builtin:fx-…), props = per-effect slider values. */
 export interface ClipFx {

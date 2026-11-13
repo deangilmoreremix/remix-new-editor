@@ -192,6 +192,12 @@ export function clipFromRow(
       if (zoom && typeof zoom === 'object') out.zoom = zoom;
       const captions = json<Clip['captions']>(row['captions_json']);
       if (captions && typeof captions === 'object') out.captions = captions;
+      // [remix] Stage 1: group id + compound content (one JSON column; absent on rows saved before they existed)
+      const s1 = json<{ groupId?: string; compound?: Clip['compound'] }>(row['stage1_json']);
+      if (s1 && typeof s1 === 'object') {
+        if (typeof s1.groupId === 'string' && s1.groupId) out.groupId = s1.groupId;
+        if (s1.compound && Array.isArray(s1.compound.clips)) out.compound = s1.compound;
+      }
       return out;
     })(),
   };
@@ -395,6 +401,8 @@ export function clipToRow(clip: Clip, timelineId: string): Record<string, unknow
     zoom_json: clip.zoom ? JSON.stringify(clip.zoom) : null,
     transform_json: clip.transform ? JSON.stringify(clip.transform) : null,
     captions_json: clip.captions ? JSON.stringify(clip.captions) : null,
+    // [remix] Stage 1: group id + compound content
+    stage1_json: clip.groupId || clip.compound ? JSON.stringify({ groupId: clip.groupId, compound: clip.compound }) : null,
   };
 }
 

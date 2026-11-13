@@ -18,7 +18,7 @@ import { pluginFxSnapshotSync, type FxSnapshot } from '@cinegen/lib/occ/plugins'
 export interface ExportTrackInfo { id: string; kind: 'video' | 'audio'; muted: boolean; solo: boolean; visible: boolean; volume: number }
 export interface ExportTransitionInfo { type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; clipAId: string; clipBId?: string; glType?: string; glDef?: unknown }
 export interface ExportClipInput {
-  id?: string; name?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string;
+  id?: string; name?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: 'video' | 'audio' | 'image';
   trackKind?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean;
   kf?: Array<{ time: number; property: string; value: number }>;
   [k: string]: unknown;

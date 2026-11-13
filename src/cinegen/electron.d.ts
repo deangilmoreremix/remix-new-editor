@@ -193,6 +193,9 @@ export interface ElectronAPI {
         type: 'video' | 'audio' | 'image';
       }>;
       totalDuration: number;
+      /** [remix] track state + transitions for the export hand-off (lib/editor/export-mapping.ts) */
+      tracks?: import('./lib/editor/export-mapping').ExportTrackInfo[];
+      transitions?: import('./lib/editor/export-mapping').ExportTransitionInfo[];
     }) => Promise<ExportJob>;
     poll: (id: string) => Promise<ExportJob>;
     cancel: (id: string) => Promise<{ ok: boolean }>;
