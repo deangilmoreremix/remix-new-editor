@@ -173,7 +173,7 @@ export function LandingPageInput({
               onValueChange={(value) => setModel(value as ModelId)}
               disabled={isNavigating}
             >
-              <SelectTrigger className="w-auto bg-transparent border-none text-muted-foreground hover:text-foreground transition-colors">
+              <SelectTrigger className="w-auto bg-transparent border border-primary/25 hover:border-primary/50 text-foreground/85 hover:text-foreground transition-colors">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-background-elevated border-border">

@@ -52,37 +52,38 @@ body {
 }
 
 /* —— 按钮 —— */
-/* Outlined, never filled — same language as the app's .btn-action-secondary / .btn-primary-modern / .btn-personalize. */
+/* Outlined, never filled. Action buttons use the Generate look (white hairline + 2px lime left edge, lime border + glow + lift on hover);
+   tabs / toggles / selects / icon buttons use the Personalize look (lime hairline + tint). Same as the app's .btn-primary-modern / .btn-personalize. */
 .btn {
   background: transparent;
-  color: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(217, 255, 0, 0.25); border-radius: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12); border-left: 2px solid var(--accent); border-radius: 8px;
   box-shadow: none;
   padding: 6px 12px; font-size: 12px; font-weight: 700; font-family: inherit;
   cursor: pointer; white-space: nowrap;
   transition: all 0.2s ease;
 }
-.btn:hover:not(:disabled) { color: #fff; border-color: rgba(217, 255, 0, 0.5); background: rgba(217, 255, 0, 0.06); box-shadow: 0 0 14px rgba(217, 255, 0, 0.08); }
-.btn:active:not(:disabled) { transform: scale(0.98); }
-.btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(217, 255, 0, 0.4); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn.primary {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.9); font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-left: 2px solid var(--accent);
-  box-shadow: none;
-}
-.btn.primary:hover:not(:disabled) {
+.btn:hover:not(:disabled) {
   color: #fff; background: transparent;
   border-color: rgba(217, 255, 0, 0.5); border-left: 2px solid var(--accent);
-  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08);
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08); transform: translateY(-1px);
 }
+.btn:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(217, 255, 0, 0.4); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+/* the most important action on the screen (Export film / Send): brighter glow, like Generate */
+.btn.primary { font-weight: 700; color: #fff; box-shadow: 0 0 14px rgba(217, 255, 0, 0.14); }
+.btn.primary:hover:not(:disabled) { box-shadow: 0 0 20px rgba(217, 255, 0, 0.22); }
+/* selects and the round play button are not "actions": Personalize look */
+select.btn, .btn.btn-play {
+  border: 1px solid rgba(217, 255, 0, 0.25);
+}
+select.btn:hover:not(:disabled), .btn.btn-play:hover:not(:disabled) { border-color: rgba(217, 255, 0, 0.5); background: rgba(217, 255, 0, 0.06); transform: none; }
 .btn.danger {
   color: #ff8078; background: transparent;
-  border: 1px solid rgba(255, 69, 58, 0.45); box-shadow: none;
+  border: 1px solid rgba(255, 69, 58, 0.45); border-left: 2px solid #ff453a; box-shadow: none;
 }
-.btn.danger:hover:not(:disabled) { color: #ffa39c; background: rgba(255, 69, 58, 0.08); border-color: rgba(255, 69, 58, 0.7); }
+.btn.danger:hover:not(:disabled) { color: #ffa39c; background: rgba(255, 69, 58, 0.08); border-color: rgba(255, 69, 58, 0.7); border-left: 2px solid #ff453a; }
 .btn.wide { width: 100%; margin-bottom: 10px; }
 .btn-play {
   width: 32px; height: 32px; min-width: 32px; padding: 0; border-radius: 50%;

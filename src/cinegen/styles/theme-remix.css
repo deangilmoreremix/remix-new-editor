@@ -357,3 +357,39 @@
 @media (max-width: 1500px) {
   .cinegen-root .top-nav__tabs { left: auto; right: 150px; transform: none; }
 }
+
+/* ============================================================================================================
+   [remix] ACTION buttons use the Generate look (transparent, white hairline, 2px lime LEFT EDGE, lime border + glow + lift on hover),
+   like the Image Studio's Generate. Selectors, tabs, toggles and icon buttons keep the Personalize look above.
+   (`:root` in front raises specificity above the Personalize hover rule so the left edge survives hover.)
+   ============================================================================================================ */
+:root .cinegen-root :is(
+  .pm-bottombar__btn, .dtool-btn, .director-tab__btn, .dbible-composer-add, .elements-tab__add-btn,
+  .timeline-bottom-bar__add, .timeline-tabs__snap, .mp__sort-btn, .left-panel__toggle-btn, .mini-btn,
+  .export-settings__render-btn, .leads-btn, .cg-analytics__btn, .render-progress__download-btn,
+  .btn.btn--primary, .btn.btn--secondary, button:not([class]), button[class=""]
+) {
+  background: transparent; color: rgba(255, 255, 255, 0.9); font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.12); border-left: 2px solid #d9ff00; border-radius: 8px; box-shadow: none;
+}
+:root .cinegen-root :is(
+  .pm-bottombar__btn, .dtool-btn, .director-tab__btn, .dbible-composer-add, .elements-tab__add-btn,
+  .timeline-bottom-bar__add, .timeline-tabs__snap, .mp__sort-btn, .left-panel__toggle-btn, .mini-btn,
+  .export-settings__render-btn, .leads-btn, .cg-analytics__btn, .render-progress__download-btn,
+  .btn.btn--primary, .btn.btn--secondary, button:not([class]), button[class=""]
+):hover:not(:disabled) {
+  background: transparent; color: #fff; border-color: rgba(217, 255, 0, 0.5); border-left: 2px solid #d9ff00;
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08); transform: translateY(-1px);
+}
+/* the main action of a screen glows brighter, closest to Generate */
+:root .cinegen-root :is(.export-settings__render-btn, .pm-bottombar__btn--primary, .director-tab__btn--accent, .elements-tab__add-btn, .leads-btn--primary) {
+  box-shadow: 0 0 14px rgba(217, 255, 0, 0.16);
+}
+:root .cinegen-root :is(.export-settings__render-btn, .pm-bottombar__btn--primary, .director-tab__btn--accent, .elements-tab__add-btn, .leads-btn--primary):hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(217, 255, 0, 0.24);
+}
+
+/* Projects toolbar (New project / Grid / List) */
+.cinegen-root .pm-toolbar__btn { background: transparent; color: rgba(255, 255, 255, 0.85); border: 1px solid rgba(217, 255, 0, 0.25); border-radius: 8px; transition: all 0.2s ease; }
+.cinegen-root .pm-toolbar__btn:hover:not(:disabled) { background: rgba(217, 255, 0, 0.06); border-color: rgba(217, 255, 0, 0.5); color: #fff; }
+.cinegen-root .pm-toolbar__btn--active { background: rgba(217, 255, 0, 0.1); border-color: rgba(217, 255, 0, 0.55); color: #fff; }

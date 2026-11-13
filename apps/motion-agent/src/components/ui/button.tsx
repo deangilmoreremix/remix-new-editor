@@ -12,14 +12,14 @@ const buttonVariants = cva(
       variant: {
         // Outlined, never filled: primary = white hairline + 2px lime left edge (app's .btn-primary-modern)
         default:
-          "bg-transparent text-foreground border border-white/12 border-l-2 border-l-primary hover:border-primary/50 hover:shadow-[0_0_16px_rgba(217,255,0,0.08)]",
+          "bg-transparent text-foreground border border-white/12 border-l-2 border-l-primary shadow-[0_0_14px_rgba(217,255,0,0.14)] hover:border-primary/50 hover:-translate-y-px hover:shadow-[0_0_20px_rgba(217,255,0,0.22)]",
         destructive:
           "bg-transparent text-destructive border border-destructive/45 hover:bg-destructive/10 hover:border-destructive/70",
         outline:
           "border border-primary/25 bg-transparent text-foreground hover:border-primary/50 hover:bg-primary/5",
-        // secondary = ghost hairline (app's .btn-action-secondary)
+        // secondary = the same Generate look (white hairline + lime left edge); the default variant is the brighter, glowing primary
         secondary:
-          "bg-transparent text-foreground/85 border border-primary/25 hover:text-foreground hover:border-primary/50 hover:bg-primary/5",
+          "bg-transparent text-foreground/90 border border-white/12 border-l-2 border-l-primary hover:text-foreground hover:border-primary/50 hover:-translate-y-px hover:shadow-[0_0_16px_rgba(217,255,0,0.08)]",
         ghost: "text-foreground border border-primary/25 hover:border-primary/50 hover:bg-primary/5 hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },

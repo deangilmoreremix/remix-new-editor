@@ -184,7 +184,7 @@ export function ChatInput({
               onValueChange={(value) => onModelChange(value as ModelId)}
               disabled={isLoading}
             >
-              <SelectTrigger className="max-w-[140px] bg-transparent border-none text-muted-foreground hover:text-foreground transition-colors text-xs h-7 px-2 truncate">
+              <SelectTrigger className="max-w-[140px] bg-transparent border border-primary/25 hover:border-primary/50 text-foreground/85 hover:text-foreground transition-colors text-xs h-7 px-2 truncate">
                 <SelectValue className="truncate" />
               </SelectTrigger>
               <SelectContent className="bg-background-elevated border-border">
