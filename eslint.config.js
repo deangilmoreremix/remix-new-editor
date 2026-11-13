@@ -18,6 +18,8 @@ export default [
       'src/lib/editor/remotion/templates/free',
       'src/lib/editor/remotion/templates/video',
       'src/lib/editor/remotion/templates/rve',
+      // vendored third-party source (remotion-dev/recorder), ported into Recorder Studio; see apps/remotion-recorder
+      'src/features/recorder-studio/composition',
     ],
   },
   js.configs.recommended,
