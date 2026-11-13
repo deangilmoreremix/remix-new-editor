@@ -1,0 +1,100 @@
+// Uploads the "Template videos" library (clips listed in scripts/template-video-sources.json) to the Supabase Storage bucket
+// `demo-template-videos`.
+//
+// IMPORTANT: that Supabase project is SHARED by many apps. This bucket is for the demo-template video library of
+// THIS repo only (the CineGen timeline editor "Template videos" modal). Nothing else may be written to it, and this
+// script never touches any other bucket. Layout (all keys are deterministic, so re-running is safe):
+//   README.txt                          what this bucket is (points at catalog.json)
+//   catalog.json                        machine-readable index of every clip: names, categories, URLs, credit (from scripts/template-video-catalog.json)
+//   clips/<set>/<slug>.<ext>            the video
+//   posters/<set>/<slug>.<ext>          its poster image
+//
+//   node scripts/upload-template-videos.mjs --dry-run      # list what would be uploaded
+//   node scripts/upload-template-videos.mjs                # upload (skips objects already there with the same size)
+//
+// Env: SUPABASE_URL (default: the shared project URL), SUPABASE_SERVICE_ROLE_KEY (needed to write; in the cloud
+// sandbox the proxy injects the credential, so any placeholder value works there).
+// Uses curl for every request so the sandbox's HTTPS proxy is honored.
+import { execFileSync } from 'node:child_process';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, extname, join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const BUCKET = 'demo-template-videos';
+const SUPABASE_URL = (process.env.SUPABASE_URL || 'https://bzxohkrxcwodllketcpz.supabase.co').replace(/\/$/, '');
+const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'proxy-injected';
+const DRY = process.argv.includes('--dry-run');
+const CDN = 'https://media.beatapi.io/';
+const MIME = { '.webm': 'video/webm', '.mp4': 'video/mp4', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.json': 'application/json' };
+
+const README = `DEMO TEMPLATE VIDEOS
+This bucket belongs to the "Template videos" library of the remix-new-editor repo (CineGen timeline editor).
+It holds the demo/template clips and posters only. The Supabase project is shared by many apps: do not store anything else here.
+
+TO FIND THE TEMPLATES: fetch catalog.json in this bucket's root. It lists every clip with a commercial-style name, category,
+subcategory, duration, aspect ratio, public video + poster URLs and the upstream credit.
+  https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/catalog.json
+
+Layout: clips/<set>/<slug>.<ext>, posters/<set>/<slug>.<ext>. URLs are public, send Access-Control-Allow-Origin: * and support range requests.
+Rights: third-party media; confirm commercial-use / redistribution permission before production use.
+Maintained from the remix-new-editor repo: scripts/generate-template-video-library.mjs, scripts/upload-template-videos.mjs, docs/template-videos.md
+`;
+
+const curl = (args) => execFileSync('curl', ['-sS', '--fail-with-body', '-m', '300', ...args], { encoding: 'utf8', maxBuffer: 1 << 26 });
+const publicUrl = (key) => `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${key}`;
+const remoteSize = (key) => {
+  try {
+    const head = curl(['-sI', '-L', publicUrl(key)]);
+    if (!/^HTTP\/[\d.]+ 200/m.test(head.split('\r\n\r\n').filter(Boolean).pop() ?? head)) return null;
+    const m = head.match(/content-length:\s*(\d+)/gi);
+    return m ? Number(m[m.length - 1].split(':')[1]) : null;
+  } catch { return null; }
+};
+
+function upload(key, file, cache = 'max-age=31536000') {
+  const type = MIME[extname(key).toLowerCase()] ?? 'text/plain';
+  curl(['-X', 'POST', `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${key}`,
+    '-H', `Authorization: Bearer ${KEY}`, ...(process.env.SUPABASE_SERVICE_ROLE_KEY ? ['-H', `apikey: ${KEY}`] : []), '-H', `Content-Type: ${type}`,
+    '-H', 'x-upsert: true', '-H', `cache-control: ${cache}`, '--data-binary', `@${file}`]);
+}
+
+/** Local source file for a library URL: /media/* from public/, /cdn/beatapi/* downloaded from the CDN into a temp cache. */
+const cache = join(tmpdir(), 'demo-template-videos-src'); mkdirSync(cache, { recursive: true });
+function sourceFile(url) {
+  if (url.startsWith('/media/')) return join(root, 'public', url);
+  if (url.startsWith('/cdn/beatapi/')) {
+    const out = join(cache, url.slice('/cdn/beatapi/'.length).replace(/\//g, '__'));
+    if (!existsSync(out)) curl(['-L', '-o', out, CDN + url.slice('/cdn/beatapi/'.length)]);
+    return out;
+  }
+  throw new Error(`unexpected library url (already hosted?): ${url}`);
+}
+
+// Original locations (written by scripts/generate-template-video-library.mjs, independent of the hosted URLs in the library).
+const sources = JSON.parse(readFileSync(resolve(root, 'scripts/template-video-sources.json'), 'utf8'));
+const jobs = [];
+for (const [id, src] of Object.entries(sources)) {
+  const [set, ...rest] = id.split(':'); const slug = rest.join(':');
+  jobs.push({ key: `clips/${set}/${slug}${extname(src.video)}`, url: src.video });
+  if (src.poster) jobs.push({ key: `posters/${set}/${slug}${extname(src.poster)}`, url: src.poster });
+}
+console.log(`${Object.keys(sources).length} clips -> ${jobs.length} objects in bucket "${BUCKET}" at ${SUPABASE_URL}${DRY ? ' (dry run)' : ''}`);
+
+let up = 0, skipped = 0, failed = 0, bytes = 0;
+const readme = join(cache, 'README.txt'); writeFileSync(readme, README);
+const catalogFile = join(root, 'scripts/template-video-catalog.json');
+if (!DRY) { upload('README.txt', readme, 'max-age=300'); upload('catalog.json', catalogFile, 'max-age=300'); }
+for (const [i, j] of jobs.entries()) {
+  try {
+    const file = DRY ? null : sourceFile(j.url);
+    const size = file ? statSync(file).size : null;
+    if (!DRY && remoteSize(j.key) === size) { skipped++; continue; }
+    if (DRY) { console.log('  would upload', j.key); continue; }
+    upload(j.key, file); up++; bytes += size;
+    if (up % 20 === 0) console.log(`  ${i + 1}/${jobs.length} (${(bytes / 1e6).toFixed(0)} MB uploaded)`);
+  } catch (e) { failed++; console.error(`  FAILED ${j.key}: ${String(e.message).slice(0, 200)}`); }
+}
+console.log(`done: uploaded ${up}, already there ${skipped}, failed ${failed}, ${(bytes / 1e6).toFixed(0)} MB`);
+if (failed) process.exit(1);

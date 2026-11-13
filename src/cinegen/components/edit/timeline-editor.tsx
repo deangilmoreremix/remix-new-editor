@@ -54,6 +54,7 @@ import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS flag from the main app's lib
 import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 import { createMgOverlay } from '@cinegen/lib/occ/mg-templates';
+import { usePickTemplateVideo } from './template-video-placement';
 import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '@cinegen/types/timeline';
 
 const LABEL_WIDTH = 150;
@@ -952,6 +953,8 @@ export function TimelineEditor({
       },
     });
   }, [dispatch, setTimeline, currentTime]);
+
+  const handlePickTemplateVideo = usePickTemplateVideo({ dispatch, setTimeline, timelineRef, currentTime }); // Template videos tab of the Add modal
 
   // [remix] Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
   const handleOpenGenerator = useCallback(async () => {
@@ -3358,6 +3361,7 @@ export function TimelineEditor({
               dispatch({ type: 'ADD_OVERLAY', overlay });
               selectOverlay(overlay.id);
             },
+            onPickTemplateVideo: handlePickTemplateVideo, // Template videos tab
             onAddTemplate: (templateId, phone) => {
               const made = createTemplateOverlays(templateId, currentTime, Math.max(sequenceDuration, 10), phone ? { phone } : undefined);
               made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
