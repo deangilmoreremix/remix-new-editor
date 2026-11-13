@@ -193,7 +193,8 @@ export function DiscoveredAssetThumb({
           {EDIT_WITH_AI}
         </button>
       )}
-      {asset.edited && onRevert && (
+      {/* A BG0 cutout restores from the viewer / the Original toggle: a tile Revert would overlap Edit with AI. */}
+      {asset.edited && onRevert && !cutDone && (
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onRevert() }}

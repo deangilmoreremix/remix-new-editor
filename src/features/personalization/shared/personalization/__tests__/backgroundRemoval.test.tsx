@@ -318,10 +318,16 @@ describe('DiscoveredAssetGrid with background removal', () => {
     const img = container!.querySelector('img') as HTMLImageElement
     expect(img.getAttribute('src')).toBe('data:image/png;base64,Q1VUT1VU')
     expect(container!.querySelector('[aria-label="Edit discovered image"]')).not.toBeNull()
-    expect(container!.querySelector('[aria-label="Revert to original"]')).not.toBeNull()
+    // A cutout restores from the viewer / Original toggle; a tile Revert would overlap Edit with AI.
+    expect(container!.querySelector('[aria-label="Revert to original"]')).toBeNull()
     expect(container!.querySelector('[aria-label="Show original"]')).not.toBeNull()
     expect(container!.querySelector('[aria-label="Change category"]')).not.toBeNull()
     expect(container!.querySelector('[aria-label="Remove"]')).not.toBeNull()
+  })
+
+  it('keeps the tile Revert for an asset edited with AI (not a BG0 cutout)', () => {
+    renderGrid([asset({ id: 'ai', edited: true, editedDataUrl: 'data:image/png;base64,QQ==', originalPreviewUrl: 'https://shop.example/a.jpg', editMetadata: { operation: 'edit' } })])
+    expect(container!.querySelector('[aria-label="Revert to original"]')).not.toBeNull()
   })
 
   it('toggles between cutout and original per tile', () => {
