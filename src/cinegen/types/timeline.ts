@@ -71,6 +71,8 @@ export interface Clip {
   /** [remix] Stage 1: compound clip. The clip is one object on the timeline; its content (start times relative to the clip, original
    *  track ids) is expanded to ordinary clips for playback and export (lib/editor/stage1/compound.ts, flattenCompounds). */
   compound?: CompoundContent;
+  /** [remix] Stage 4: 6-band parametric EQ (lib/audio/eq.ts). Preview: BiquadFilter chain; export: baked into the audio (lib/audio/eq-bake.ts). */
+  eq?: import('../lib/audio/eq').ClipEq;
 }
 
 export interface CompoundContent { clips: Clip[]; transitions: Transition[] }
@@ -124,6 +126,8 @@ export interface Timeline {
   /** [remix] project frame ratio (absent = 16:9) and default picture fit (absent = contain); see lib/occ/frame-geometry.ts */
   aspect?: string;
   fit?: 'contain' | 'cover';
+  /** [remix] Stage 4: master volume 0 to 1 (absent = 1). Preview master gain; export multiplies every clip volume. */
+  masterVolume?: number;
 }
 
 /** Effective duration of a clip (what plays on the timeline). */

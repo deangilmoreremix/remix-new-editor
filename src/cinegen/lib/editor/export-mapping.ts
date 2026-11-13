@@ -19,7 +19,7 @@ export interface ExportTrackInfo { id: string; kind: 'video' | 'audio'; muted: b
 export interface ExportTransitionInfo { type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; clipAId: string; clipBId?: string; glType?: string; glDef?: unknown }
 export interface ExportClipInput {
   id?: string; name?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: 'video' | 'audio' | 'image';
-  trackKind?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean;
+  trackKind?: string; trackId?: string; linkedClipIds?: string[]; opacity?: number; flipH?: boolean; flipV?: boolean;
   kf?: Array<{ time: number; property: string; value: number }>;
   [k: string]: unknown;
 }
@@ -38,7 +38,9 @@ export function exportClipsFromTimeline(timeline: Timeline, assets: Asset[]): Ex
       volume: clip.volume ?? 1, type: asset.type,
       // a clip on an audio track plays sound only, even when its media file is a video
       trackKind: timeline.tracks.find((t) => t.id === clip.trackId)?.kind, trackId: clip.trackId,
+      linkedClipIds: clip.linkedClipIds, // [remix] Stage 4: lets the export mute a video clip whose sound is exported by its linked audio clip
       opacity: clip.opacity ?? 1, flipH: clip.flipH, flipV: clip.flipV,
+      eq: clip.eq, // [remix] Stage 4: baked into the audio at export (lib/audio/export-audio.ts)
       fadeIn: clip.fadeIn, fadeOut: clip.fadeOut, kf: clip.keyframes, transform: clip.transform, fit: resolveFit(clip, timeline), fx: clip.fx,
       lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions,
     }];
@@ -139,6 +141,8 @@ export interface BuildExportStateInput {
   transitions?: ExportTransitionInfo[];
   overlays?: Array<Record<string, unknown> & { id?: string }>;
   totalDuration: number;
+  /** [remix] Stage 4: timeline master volume (0 to 1; the preview's master gain node). Multiplies every clip's sound. */
+  masterVolume?: number;
 }
 
 /**
@@ -148,6 +152,7 @@ export interface BuildExportStateInput {
  */
 export function buildExportState(input: BuildExportStateInput, makeItem: (c: ExportClipInput, i: number) => ExportItem): { state: { timelineSeconds: number; tracks: Array<{ id: string; type: string; items: unknown[] }> }; warnings: string[] } {
   const { clips, totalDuration } = input;
+  const master = Math.max(0, Number.isFinite(input.masterVolume) ? (input.masterVolume as number) : 1); // [remix] Stage 4
   const tracks = input.tracks ?? [];
   const warnings: string[] = [];
   const trackById = new Map(tracks.map((t) => [t.id, t]));
@@ -187,14 +192,21 @@ export function buildExportState(input: BuildExportStateInput, makeItem: (c: Exp
     const isAudioTrack = (track?.kind ?? c.trackKind) === 'audio';
     const hidden = !!track && track.visible === false && !isAudioTrack;
     if (hidden && c.type === 'image') return;
+    // [remix] Stage 4: in the preview a video-track clip is silent and its sound comes from the linked audio-track clip (the video element is only
+    // unmuted to play that clip). The export used to play both, doubling the sound (and an EQ'd copy would be mixed with the dry one).
+    const hasLinkedAudio = !isAudioTrack && c.type !== 'audio' && (c.linkedClipIds ?? []).some((id) => { const o = byId.get(id); return !!o && ((o.trackId ? trackById.get(o.trackId)?.kind : o.trackKind) ?? o.trackKind) === 'audio'; });
+    if (hasLinkedAudio && hidden) return; // picture is hidden and its sound is exported by the linked audio clip
     const asAudio = isAudioTrack || c.type === 'audio' || hidden; // a hidden video clip keeps its sound
     const item = makeItem(asAudio ? { ...c, type: 'audio' } : c, asAudio ? 1000 + i : i);
     item.id = `${asAudio ? 'a' : 'c'}${i}`;
 
     // volume: keyframes replace the clip volume (as in the preview); audio tracks scale by track volume; export is capped at unity
-    const gain = isAudioTrack ? track?.volume ?? 1 : 1;
+    const gain = (isAudioTrack ? track?.volume ?? 1 : 1) * master;
     const volKf = (c.kf ?? []).filter((k) => k.property === 'volume');
-    if (volKf.length) {
+    if (hasLinkedAudio) {
+      item.volume = 0;
+      if (item.keyframes?.volume) { const { volume: _drop, ...rest } = item.keyframes; item.keyframes = rest; }
+    } else if (volKf.length) {
       let boosted = false;
       item.keyframes = { ...(item.keyframes ?? {}), volume: volKf.map((k) => { const v = k.value * gain; if (v > 1) boosted = true; return { t: k.time, v: Math.max(0, Math.min(1, v)) }; }) };
       item.volume = 1;

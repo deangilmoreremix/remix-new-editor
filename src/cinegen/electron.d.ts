@@ -195,6 +195,7 @@ export interface ElectronAPI {
       totalDuration: number;
       /** [remix] track state + transitions for the export hand-off (lib/editor/export-mapping.ts) */
       tracks?: import('./lib/editor/export-mapping').ExportTrackInfo[];
+      masterVolume?: number; // [remix] Stage 4
       transitions?: import('./lib/editor/export-mapping').ExportTransitionInfo[];
     }) => Promise<ExportJob>;
     poll: (id: string) => Promise<ExportJob>;
@@ -646,6 +647,8 @@ export interface ElectronAPI {
     importBlob: (params: { blob: Blob; name: string }) => Promise<{ assetId: string; filePath: string; type: 'audio' }>;
     submitJob: (job: unknown) => Promise<unknown>;
     cancelJob: (jobId: string) => Promise<void>;
+    /** [remix] Stage 4: cancel the running proxy job of an asset (or all). Web adapter only. */
+    cancelProcessing?: (params?: { assetId?: string }) => Promise<unknown>;
     queueProcessing: (params: {
       assetId: string;
       projectId: string;

@@ -54,6 +54,7 @@ import { directorPoolRelabel } from '@cinegen/lib/director/folders';
 import type { Clip, ToolType, TrackKind, Keyframe, TimelineMarker } from '@cinegen/types/timeline';
 import { flattenCompounds, expandSelectionWithGroups } from '@cinegen/lib/editor/stage1'; // [remix] Stage 1
 import { useStage1Editing } from './use-stage1-editing';
+import { Stage4Dock } from './stage4/stage4-dock'; // [remix] Stage 4: audio / scenes / media health
 
 const PROXY_MODE_STORAGE_KEY = 'cinegen_proxy_mode';
 const EDIT_VIEW_STORAGE_PREFIX = 'cinegen_edit_view_v1';
@@ -215,6 +216,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     setVideoContainer,
     setMetadataPreloadEnabled,
     handleSystemWake,
+    engine, // [remix] Stage 4
   } = usePlaybackEngine(playTimeline, state.assets, {
     initialProxyMode,
     onProxyFallbackRequest: handleProxyFallbackRequest,
@@ -1144,6 +1146,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       />
 
       {stage1.bar}
+      <Stage4Dock engine={engine} timeline={timeline} dispatch={dispatch} assets={state.assets} selectedClipIds={selectedClipIds} currentTime={currentTime} seek={seek} isPlaying={isPlaying} proxyMode={proxyMode} setProxyMode={setProxyMode} />
       {/* Viewers */}
       <div className="edit-tab__viewers">
         {layout.sourceViewerVisible && (

@@ -12,7 +12,8 @@ import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 export { responsesChat };
 import { CAPTION_STYLE_BY_ID } from '../../openchatcut/captions/styles';
 import { userFontsFor } from '@cinegen/lib/occ/user-fonts';
-import { buildExportState, exportItem, type ExportTrackInfo } from '@cinegen/lib/editor/export-mapping';
+import { exportItem, type ExportTrackInfo } from '@cinegen/lib/editor/export-mapping';
+import { buildExportStateWithAudio } from '@cinegen/lib/audio/export-prepare'; // [remix] Stage 4: EQ bake + master volume
 import { customTransitionDefSync } from '@cinegen/lib/occ/plugins';
 type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
 const transcriptionListeners = new Set<(e: TranscriptionEvent) => void>();
@@ -120,7 +121,7 @@ export function registerWebApi() {
             import('../../lib/editor/remotion/exportClient.js'),
           ]);
           // [remix] track mute/solo/volume/visibility, clip opacity/flip/volume and plain dissolve/fades (see lib/editor/export-mapping.ts)
-          const { state, warnings } = buildExportState({ clips: a.clips as never, tracks: a.tracks, transitions: a.transitions, overlays: a.overlays, totalDuration: a.totalDuration }, exportItem as never);
+          const { state, warnings } = await buildExportStateWithAudio({ clips: a.clips as never, tracks: a.tracks, transitions: a.transitions, overlays: a.overlays, totalDuration: a.totalDuration, masterVolume: (a as { masterVolume?: number }).masterVolume }, exportItem as never);
           if (warnings.length) job.warnings = warnings;
           const model = timelineToComposition(state, { fps: a.fps, quality, aspect: a.aspect });
           // [remix] a generic export has no contact profile: unfilled {{tokens}} are removed from text, as the published player does
