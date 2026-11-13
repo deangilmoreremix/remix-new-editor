@@ -19,6 +19,11 @@ const SETS = {
   mmxLegacy: { file: 'src/data/minimaxH3Demos.js', label: 'MiniMax H3' },
   sdLegacy: { file: 'src/data/seedanceDemos.js', label: 'Seedance' },
 };
+// Hosting: with --base-url=<url> (or TEMPLATE_VIDEO_BASE_URL) every clip/poster URL points at the demo-template-videos bucket
+// (layout: clips/<set>/<slug>.<ext>, posters/<set>/<slug>.<ext>, see scripts/upload-template-videos.mjs). Without it the
+// library points at the repo's /media files and the same-origin /cdn/beatapi proxy.
+const baseUrl = (process.argv.find((a) => a.startsWith('--base-url='))?.slice(11) ?? process.env.TEMPLATE_VIDEO_BASE_URL ?? '').replace(/\/$/, '');
+const extOf = (u) => (u.match(/\.[a-z0-9]+$/i) || [''])[0];
 const CDN = 'https://media.beatapi.io/';
 const PROXY = '/cdn/beatapi/';
 const same = (u) => (typeof u === 'string' && u.startsWith(CDN) ? PROXY + u.slice(CDN.length) : u);
@@ -41,6 +46,7 @@ const posterOverride = (set, slug) => (set === 'zerolu' && existsSync(resolve(ro
 const labels = JSON.parse(readFileSync(resolve(root, 'scripts/template-video-labels.json'), 'utf8'));
 
 const rows = [];
+const sources = {};
 const missing = [];
 for (const { set, slug } of allow) {
   const d = bySet[set]?.get(slug);
@@ -56,13 +62,19 @@ for (const { set, slug } of allow) {
     subcategory: label.subcategory,
     duration: measured[`${set}:${slug}`] ?? d.duration ?? null,
     aspectRatio: d.aspectRatio ?? '16:9',
-    videoSrc: same(d.videoSrc),
-    posterSrc: posterOverride(set, slug) ?? same(d.posterSrc) ?? null,
+    videoSrc: baseUrl ? `${baseUrl}/clips/${set}/${slug}${extOf(d.videoSrc)}` : same(d.videoSrc),
+    posterSrc: (() => { const p = posterOverride(set, slug) ?? same(d.posterSrc) ?? null; return p && baseUrl ? `${baseUrl}/posters/${set}/${slug}${extOf(p)}` : p; })(),
     tags: d.tags ?? [],
     source: SETS[set].label,
   });
 }
 if (missing.length) { console.error('Missing from data files:', missing); process.exit(1); }
+// Where each clip/poster comes from before hosting (read by scripts/upload-template-videos.mjs).
+for (const { set, slug } of allow) {
+  const d = bySet[set]?.get(slug);
+  if (d?.videoSrc) sources[`${set}:${slug}`] = { video: same(d.videoSrc), poster: posterOverride(set, slug) ?? same(d.posterSrc) ?? null };
+}
+writeFileSync(resolve(root, 'scripts/template-video-sources.json'), JSON.stringify(sources, null, 1));
 
 const PREFERRED = ['Action', 'Animation', 'Cinema', 'Commercial', 'Fashion', 'Social', 'UGC', 'VFX'];
 const present = new Set(rows.map((r) => r.category));
