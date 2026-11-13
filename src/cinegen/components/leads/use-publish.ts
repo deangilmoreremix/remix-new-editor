@@ -50,14 +50,18 @@ export function usePublished() {
     // Tie the video to its project (same id) so Analytics / Retarget / Alerts can find it; keep the owner's saved
     // interest mapping on republish. Linking is best-effort: publishing itself must never fail because of it.
     let linked: string | null = null;
+    let rowId: string | null = null;
     if (projectId && t?.id) {
-      try {
-        const rowId = await linkedProjectId(projectId, t.id);
-        const map = await readInterestMap(c, rowId);
-        if (map) (built as { interestMap?: unknown }).interestMap = map;
-        await ensureProjectRow(c, { projectId: rowId, name: title, built, aspect: t?.aspect ?? null });
-        linked = rowId;
-      } catch { linked = null; }
+      rowId = await linkedProjectId(projectId, t.id);
+      // The owner's saved audience mapping travels with every republish. If it cannot be read, stop rather than
+      // publish a version that silently loses it (a failed read is different from "nothing saved yet").
+      const map = await readInterestMap(c, rowId).catch(() => { throw new Error('Could not read your saved audience mapping — try publishing again'); });
+      if (map) (built as { interestMap?: unknown }).interestMap = map;
+    }
+    // Tie the video to its project row so Analytics / Retarget / Alerts can find it. Best-effort: publishing never
+    // fails because the link could not be written (Analytics links it later).
+    if (rowId) {
+      try { await ensureProjectRow(c, { projectId: rowId, name: title, built, aspect: t?.aspect ?? null }); linked = rowId; } catch { linked = null; }
     }
     const project = pub.preparePublishProject(built, { title });
     const vid = readIds()[key] || pub.makeSlug();
