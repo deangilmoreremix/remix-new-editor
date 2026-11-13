@@ -1,5 +1,5 @@
 /* [remix] The approved colours (user-confirmed, do not change): #05070b background, glass panels
-   rgba(255,255,255,.05), borders rgba(255,255,255,.1), cyan #22d3ee accent in place of CineGen's gold,
+   rgba(255,255,255,.05), borders rgba(255,255,255,.1), lime #d9ff00 accent (the app's --color-primary, matches Image/Viral studios) in place of CineGen's gold,
    emerald #34d399 for audio, Inter. */
 :root, .cinegen-root {
   --bg-void: #05070b;
@@ -11,11 +11,11 @@
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.6);
   --text-tertiary: rgba(255, 255, 255, 0.4);
-  --accent: #22d3ee;
-  --accent-hover: #67e8f9;
-  --accent-dim: rgba(34, 211, 238, 0.16);
+  --accent: #d9ff00;
+  --accent-hover: #c4e600;
+  --accent-dim: rgba(217, 255, 0, 0.16);
   --success: #34d399;
-  --port-video: #22d3ee;
+  --port-video: #d9ff00;
   --port-audio: #34d399;
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-medium: rgba(255, 255, 255, 0.1);
@@ -58,7 +58,7 @@
 .help-tip {
   position: fixed; z-index: 100000; width: 280px; max-width: calc(100vw - 20px);
   padding: 10px 12px 11px; border-radius: 10px;
-  background: #0d1016; color: #e8edf3; border: 1px solid rgba(34, 211, 238, 0.35);
+  background: #0d1016; color: #e8edf3; border: 1px solid rgba(217, 255, 0, 0.35);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55); font: 12px/1.45 var(--font-display, Inter, ui-sans-serif, system-ui, sans-serif);
   pointer-events: auto; animation: help-tip-in 0.12s ease-out;
 }
@@ -67,10 +67,10 @@
 .help-tip__name { font-size: 13px; font-weight: 600; color: #fff; }
 .help-tip__key { font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 3px 6px; border-radius: 5px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14); color: #cfe9f0; }
 .help-tip__summary { margin: 4px 0 0; color: #b4bfca; }
-.help-tip__hint { display: block; margin-top: 7px; font-size: 10px; letter-spacing: 0.04em; color: rgba(34, 211, 238, 0.75); }
+.help-tip__hint { display: block; margin-top: 7px; font-size: 10px; letter-spacing: 0.04em; color: rgba(217, 255, 0, 0.75); }
 .help-tip__more { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.09); }
 .help-tip__what { margin: 0 0 8px; color: #dfe6ed; }
-.help-tip__label { display: block; margin-bottom: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #22d3ee; }
+.help-tip__label { display: block; margin-bottom: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #d9ff00; }
 .help-tip__how { margin: 0; padding-left: 18px; list-style: decimal; color: #c9d2db; }
 .help-tip__how li { margin: 2px 0; }
 @keyframes help-tip-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
@@ -87,7 +87,7 @@
 .overlay-lane__item:hover .overlay-lane__remove, .overlay-lane__item:focus-within .overlay-lane__remove, .overlay-lane__item--selected .overlay-lane__remove,
 .caption-lane__item:hover .caption-lane__remove, .caption-lane__item:focus-within .caption-lane__remove { opacity: 1; }
 .overlay-lane__remove:hover, .caption-lane__remove:hover { background: #ef4444; }
-.overlay-lane__remove:focus-visible, .caption-lane__remove:focus-visible { outline: 2px solid #22d3ee; outline-offset: 1px; opacity: 1; }
+.overlay-lane__remove:focus-visible, .caption-lane__remove:focus-visible { outline: 2px solid #d9ff00; outline-offset: 1px; opacity: 1; }
 .overlay-lane__item:focus { outline: none; }
 
 /* [remix] Clip remove (×): bigger, and visible while the clip is selected (it used to appear only on hover). */
@@ -108,22 +108,22 @@
 /* [remix] Library (components/edit/library-panel.tsx) and the Media | Library switch at the top of the left column. */
 .left-panel__switch { display: flex; gap: 4px; padding: 6px 8px 0; flex: 0 0 auto; }
 .left-panel__switch-btn { flex: 1; padding: 5px 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); background: transparent; color: rgba(232, 237, 243, 0.65); cursor: pointer; }
-.left-panel__switch-btn:hover { color: #fff; border-color: rgba(34, 211, 238, 0.4); }
-.left-panel__switch-btn--on { color: #22d3ee; border-color: #22d3ee; background: rgba(34, 211, 238, 0.08); }
+.left-panel__switch-btn:hover { color: #fff; border-color: rgba(217, 255, 0, 0.4); }
+.left-panel__switch-btn--on { color: #d9ff00; border-color: #d9ff00; background: rgba(217, 255, 0, 0.08); }
 .left-panel--library { display: flex; flex-direction: column; min-height: 0; }
 .library-panel { display: flex; flex-direction: column; gap: 8px; padding: 8px; min-height: 0; flex: 1; overflow: hidden; }
 .library-panel__search { width: 100%; background: #0d1218; color: inherit; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 6px; padding: 6px 8px; font-size: 12px; }
 .library-panel__chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .library-panel__chip { padding: 3px 8px; font-size: 11px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.14); background: transparent; color: rgba(232, 237, 243, 0.75); cursor: pointer; }
 .library-panel__chip:hover { color: #fff; }
-.library-panel__chip--on { color: #22d3ee; border-color: #22d3ee; background: rgba(34, 211, 238, 0.08); }
+.library-panel__chip--on { color: #d9ff00; border-color: #d9ff00; background: rgba(217, 255, 0, 0.08); }
 .library-panel__hint { font-size: 10px; letter-spacing: 0.03em; color: rgba(232, 237, 243, 0.55); }
-.library-panel__note { font-size: 11px; line-height: 1.35; padding: 6px 8px; border-radius: 6px; background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.35); color: #cfeff5; }
+.library-panel__note { font-size: 11px; line-height: 1.35; padding: 6px 8px; border-radius: 6px; background: rgba(217, 255, 0, 0.1); border: 1px solid rgba(217, 255, 0, 0.35); color: #cfeff5; }
 .library-panel__body { flex: 1; min-height: 0; overflow: auto; padding-right: 2px; }
 .library-panel__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
 .library-panel__grid--wide { grid-template-columns: 1fr; }
 .library-panel__stack { display: flex; flex-direction: column; gap: 8px; }
-.library-panel__subhead { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #22d3ee; margin-top: 4px; }
+.library-panel__subhead { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #d9ff00; margin-top: 4px; }
 .library-panel__sound { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); }
 .library-panel__empty { font-size: 12px; opacity: 0.65; padding: 6px 2px; }
 
@@ -159,12 +159,12 @@
 /* Media | Library switch: slim underline tabs instead of a bar of buttons */
 .left-panel__switch { padding: 4px 10px 0; gap: 14px; border-bottom: 1px solid rgba(255,255,255,.06); }
 .left-panel__switch-btn { flex: 0 0 auto; padding: 3px 0 5px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; font-size: 11px; }
-.left-panel__switch-btn--on { background: transparent; border-bottom-color: #22d3ee; }
+.left-panel__switch-btn--on { background: transparent; border-bottom-color: #d9ff00; }
 .left-panel__switch-btn:hover { border-color: transparent; }
-.left-panel__switch-btn--on:hover { border-bottom-color: #22d3ee; }
+.left-panel__switch-btn--on:hover { border-bottom-color: #d9ff00; }
 
 /* [remix] drop highlight while a Library card is dragged over a track or clip */
-.lib-drop-target { outline: 2px dashed var(--accent, #22d3ee) !important; outline-offset: -2px; background-image: linear-gradient(rgba(34,211,238,.10), rgba(34,211,238,.10)); }
+.lib-drop-target { outline: 2px dashed var(--accent, #d9ff00) !important; outline-offset: -2px; background-image: linear-gradient(rgba(217, 255, 0,.10), rgba(217, 255, 0,.10)); }
 
 /* [remix] overlay blocks no longer borrow .clip-card (CineGen's timeline code queries that class for clips); same look */
 .overlay-card { position: absolute; border-radius: var(--radius-md); overflow: hidden; cursor: grab; touch-action: none; user-select: none; transition: border-color var(--transition-fast); }
@@ -175,7 +175,7 @@
 .timeline-bottom-bar__add-caret { padding-left: 8px; padding-right: 8px; }
 .timeline-bottom-bar__add-menu { position: absolute; bottom: calc(100% + 4px); left: 0; z-index: 30; min-width: 130px; display: flex; flex-direction: column; background: var(--bg-elevated, #131820); border: 1px solid var(--border-medium); border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
 .timeline-bottom-bar__add-menu button { text-align: left; background: transparent; border: 0; color: var(--text-primary, #e8edf3); font-size: 12px; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
-.timeline-bottom-bar__add-menu button:hover { background: rgba(34,211,238,.12); }
+.timeline-bottom-bar__add-menu button:hover { background: rgba(217, 255, 0,.12); }
 .timeline-bottom-bar__add-caret { width: 28px; min-width: 0; flex: 0 0 auto; padding: 0; justify-content: center; }
 
 /* [remix] Clips show only their content: the picture / frames at full strength, no tint, no coloured border or bar.
@@ -188,10 +188,208 @@
 .clip-card__thumb--placeholder, .clip-card__filmstrip--placeholder { filter: none !important; }
 .clip-card__filmstrip { --filmstrip-gap: 0px; }
 .clip-card__filmstrip-frame:not(:last-child) { border-right: 0 !important; }
-.clip-card--selected { border-color: #22d3ee !important; box-shadow: 0 0 0 1px #22d3ee !important; }
+.clip-card--selected { border-color: #d9ff00 !important; box-shadow: 0 0 0 1px #d9ff00 !important; }
 /* audio: neutral background, neutral waveform (the canvas is recoloured with a filter) */
 .clip-card--audio { background: #101216 !important; }
 .clip-card--audio .clip-card__waveform, .clip-card--audio canvas { filter: grayscale(1) brightness(1.5); opacity: 0.85; }
 /* label: no bar over the picture, just text with a soft shadow */
 .clip-card__overlay { background: linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)) !important; padding: 10px 8px 3px; }
 .clip-card__name, .clip-card__duration { color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.9); }
+
+/* [remix] Outlined buttons, never filled: same language as the app's .btn-primary-modern / .btn-action-secondary / .btn-personalize
+   (src/styles/global.css, gtm-prompt-modal.css). Primary = white hairline + 2px lime left edge; active toggles = lime tint + lime hairline. */
+:is(.svm__inline-submit, .svm__accept-btn:not(.svm__accept-btn--secondary), .music-popup__generate, .fgm__btn--primary, .em__btn--primary,
+    .fcm__btn--accent, .fcm__send, .export-settings__render-btn, .element-modal__save-btn, .mp-confirm__btn--go, .sam3__btn--accent,
+    .sync-dialog__btn--sync, .render-progress__download-btn, .pm-bottombar__btn--primary) {
+  background: transparent; color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12); border-left: 2px solid var(--accent);
+  box-shadow: none; filter: none; text-shadow: none;
+}
+:is(.svm__inline-submit, .svm__accept-btn:not(.svm__accept-btn--secondary), .music-popup__generate, .fgm__btn--primary, .em__btn--primary,
+    .fcm__btn--accent, .fcm__send, .export-settings__render-btn, .element-modal__save-btn, .mp-confirm__btn--go, .sam3__btn--accent,
+    .sync-dialog__btn--sync, .render-progress__download-btn, .pm-bottombar__btn--primary):hover:not(:disabled) {
+  background: transparent; color: #fff; opacity: 1; filter: none;
+  border-color: rgba(217, 255, 0, 0.5); border-left: 2px solid var(--accent);
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08);
+}
+.pm-bottombar__btn--primary:disabled { background: transparent; color: rgba(255, 255, 255, 0.4); border-color: rgba(255, 255, 255, 0.08); border-left-color: rgba(217, 255, 0, 0.3); opacity: 0.6; }
+.fcm__send { width: 42px; height: 42px; }
+
+/* active toggles: tint, not a solid fill */
+.tool-sidebar__btn--active, .tool-sidebar__btn--active:hover,
+.timeline-editor__snap-btn--active, .timeline-editor__snap-btn--active:hover {
+  background: rgba(217, 255, 0, 0.08); color: var(--accent); border-color: rgba(217, 255, 0, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(217, 255, 0, 0.25);
+}
+.tool-sidebar__btn--active .tool-sidebar__img-icon { filter: invert(0.85); }
+
+/* danger: red outline */
+.mp-confirm__btn--delete, .mp-confirm__btn--delete:hover {
+  background: transparent; color: #ff8078; border: 1px solid rgba(255, 69, 58, 0.45); box-shadow: none;
+}
+.mp-confirm__btn--delete:hover { background: rgba(255, 69, 58, 0.08); border-color: rgba(255, 69, 58, 0.7); }
+
+/* already-tinted secondary stays an outline */
+.svm__accept-btn--secondary { background: rgba(217, 255, 0, 0.08); border: 1px solid rgba(217, 255, 0, 0.25); color: #fff; }
+
+/* [remix] transcription modal uses bare .btn classes that had no CSS: outlined like the rest. */
+.btn.btn--secondary, .btn.btn--primary {
+  padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; background: transparent; color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.2s ease;
+}
+.btn.btn--primary { border-left: 2px solid var(--accent); }
+.btn.btn--secondary:hover, .btn.btn--primary:hover { color: #fff; border-color: rgba(217, 255, 0, 0.5); }
+
+/* [remix] Create tab: the bottom "Timeline" drawer toggle was a solid accent tab; now a tinted outline. */
+.create-timeline__toggle, .create-timeline__toggle:hover {
+  background: rgba(10, 12, 16, 0.92); color: #fff; border: 1px solid rgba(217, 255, 0, 0.25); border-bottom: 0;
+  box-shadow: inset 0 0 0 1px rgba(217, 255, 0, 0.08);
+}
+.create-timeline__toggle:hover { border-color: rgba(217, 255, 0, 0.5); box-shadow: 0 0 16px rgba(217, 255, 0, 0.08); }
+
+/* [remix] Same outlined treatment for the Elements / Director / Leads / Analytics tabs (prefixed to beat later-loaded tab stylesheets). */
+.cinegen-root :is(.elements-tab__add-btn, .director-tab__btn--accent, .leads-btn--primary, .cg-analytics__btn, .cg-analytics .primary-btn) {
+  background: transparent; color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12); border-left: 2px solid #d9ff00; box-shadow: none;
+}
+.cinegen-root :is(.elements-tab__add-btn, .director-tab__btn--accent, .leads-btn--primary, .cg-analytics__btn, .cg-analytics .primary-btn):hover:not(:disabled) {
+  background: transparent; color: #fff; border-color: rgba(217, 255, 0, 0.5); border-left: 2px solid #d9ff00; box-shadow: 0 0 16px rgba(217, 255, 0, 0.08);
+}
+.cinegen-root .director-tab__stab--active { background: rgba(217, 255, 0, 0.08); color: #fff; box-shadow: inset 0 0 0 1px rgba(217, 255, 0, 0.25); }
+.cinegen-root .director-tab__stab--active .director-tab__stab-badge { background: rgba(217, 255, 0, 0.2); color: #fff; }
+
+/* ============================================================================================================
+   [remix] EVERY button is a lime outline (Personalize look: transparent, 1px lime hairline, soft lime tint on hover / active).
+   Primary actions keep the 2px lime left edge (Generate look, defined above). Scoped to .cinegen-root.
+   ============================================================================================================ */
+.cinegen-root :is(
+  .top-nav__tab, .top-nav__back, .top-nav__settings, .top-nav__assistant, .top-nav__voice, .top-nav__skills,
+  .elements-tab__filter, .elements-tab__folder, .elements-tab__folder-add,
+  .copilot__suggestion, .copilot__sidebar-new, .copilot__sidebar-collapse, .copilot__sidebar-settings-btn, .copilot__composer-enhance,
+  .copilot__composer-send, .copilot__landing-toggle,
+  .cs-sidebar__tool-btn, .cs-sidebar__icon-btn, .react-flow__controls-button,
+  .dgen-seg-btn, .dse-leg, .director-tab__stab, .dtool-btn, .des-choice, .dresolution__option, .dllm-trigger, .dbible-composer-add, .dbible-empty,
+  .tool-sidebar__btn, .mp__tool-btn, .mp__sort-btn, .timeline-viewer__btn, .timeline-viewer__source-toggle,
+  .track-row__lock-btn, .track-row__mute-btn, .track-row__solo-btn, .track-header__btn,
+  .left-panel__switch-btn, .left-panel__toggle-btn,
+  .timeline-tabs__tab, .timeline-tabs__add, .timeline-tabs__snap, .timeline-bottom-bar__snap, .timeline-bottom-bar__add,
+  .timeline-editor__tool-btn, .timeline-editor__snap-btn,
+  .export-settings__fps-select, .export-settings__preset-card, .mini-btn, .pm-bottombar__btn,
+  button:not([class]), [role="tab"]
+) {
+  background: transparent; color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(217, 255, 0, 0.25); border-radius: 8px; box-shadow: none;
+  transition: all 0.2s ease;
+}
+.cinegen-root :is(
+  .top-nav__tab, .top-nav__back, .top-nav__settings, .top-nav__assistant, .top-nav__voice, .top-nav__skills,
+  .elements-tab__filter, .elements-tab__folder, .elements-tab__folder-add,
+  .copilot__suggestion, .copilot__sidebar-new, .copilot__sidebar-collapse, .copilot__sidebar-settings-btn, .copilot__composer-enhance,
+  .copilot__composer-send, .copilot__landing-toggle,
+  .cs-sidebar__tool-btn, .cs-sidebar__icon-btn, .react-flow__controls-button,
+  .dgen-seg-btn, .dse-leg, .director-tab__stab, .dtool-btn, .des-choice, .dresolution__option, .dllm-trigger, .dbible-composer-add, .dbible-empty,
+  .tool-sidebar__btn, .mp__tool-btn, .mp__sort-btn, .timeline-viewer__btn, .timeline-viewer__source-toggle,
+  .track-row__lock-btn, .track-row__mute-btn, .track-row__solo-btn, .track-header__btn,
+  .left-panel__switch-btn, .left-panel__toggle-btn,
+  .timeline-tabs__tab, .timeline-tabs__add, .timeline-tabs__snap, .timeline-bottom-bar__snap, .timeline-bottom-bar__add,
+  .timeline-editor__tool-btn, .timeline-editor__snap-btn,
+  .export-settings__fps-select, .export-settings__preset-card, .mini-btn, .pm-bottombar__btn,
+  button:not([class]), [role="tab"]
+):hover:not(:disabled) {
+  background: rgba(217, 255, 0, 0.06); color: #fff; border-color: rgba(217, 255, 0, 0.5); box-shadow: 0 0 14px rgba(217, 255, 0, 0.08);
+}
+/* active / selected state: stronger tint, brighter hairline */
+.cinegen-root :is([class*="--active"], [class*="--on"], [class*="--selected"], .is-active, .on, [aria-selected="true"], [aria-pressed="true"]):is(button, [role="tab"]) {
+  background: rgba(217, 255, 0, 0.1); color: #fff; border-color: rgba(217, 255, 0, 0.55); box-shadow: inset 0 0 0 1px rgba(217, 255, 0, 0.12);
+}
+/* disabled stays dim */
+.cinegen-root :is(button, [role="tab"]):disabled { opacity: 0.4; }
+/* the top navigation used underline tabs: keep them compact pills now */
+.cinegen-root .top-nav__tab { padding: 6px 12px; margin: 0 3px; }
+.cinegen-root .top-nav__tab--active::after, .cinegen-root .top-nav__tab::after { display: none; }
+/* the Media | Library switch used an underline: now outlined pills */
+.cinegen-root .left-panel__switch { border-bottom: 0; gap: 6px; padding: 6px 10px 4px; }
+.cinegen-root .left-panel__switch-btn { padding: 4px 12px; border-radius: 8px; }
+.cinegen-root .left-panel__switch-btn--on { border-bottom: 1px solid rgba(217, 255, 0, 0.55); }
+.cinegen-root .pm-bottombar__btn--primary, .cinegen-root .timeline-editor__snap-btn--active { border-left: 2px solid #d9ff00; }
+.cinegen-root .timeline-editor__snap-btn--active { border-left-width: 1px; }
+.cinegen-root button[class=""] { background: transparent; color: rgba(255, 255, 255, 0.85); border: 1px solid rgba(217, 255, 0, 0.25); border-radius: 8px; }
+.cinegen-root button[class=""]:hover:not(:disabled) { background: rgba(217, 255, 0, 0.06); border-color: rgba(217, 255, 0, 0.5); color: #fff; }
+
+/* ============================================================================================================
+   [remix] Export tab: wide two/three-column layout so every control and button is visible at once (was a 560px column with
+   120px selects that truncated "16:9 landscape" / "Contain (whole picture)" and pushed the buttons below the fold).
+   ============================================================================================================ */
+.cinegen-root .export-tab { padding: 28px 32px; }
+.cinegen-root .export-tab__panel { max-width: min(1120px, 100%); gap: 20px; }
+.cinegen-root .export-tab__subtitle { margin-top: -12px; }
+.cinegen-root .export-settings {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px 28px; align-items: start;
+}
+.cinegen-root .export-settings > .export-settings__section:has(.export-settings__presets),
+.cinegen-root .export-settings > .export-settings__section:has(input[type="checkbox"]),
+.cinegen-root .export-settings > .export-settings__render-btn { grid-column: 1 / -1; }
+.cinegen-root .export-settings__presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+/* selects: full width of their column, never truncated */
+.cinegen-root .export-settings__fps-select { width: 100%; max-width: 360px; min-width: 0; text-overflow: clip; }
+.cinegen-root .export-settings__section:has([data-testid="export-aspect"]),
+.cinegen-root .export-settings__section:has([data-testid="export-bitrate-mode"]) { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cinegen-root .export-settings__section:has([data-testid="export-aspect"]) > .export-settings__label,
+.cinegen-root .export-settings__section:has([data-testid="export-bitrate-mode"]) > .export-settings__label { flex: 0 0 100%; }
+.cinegen-root .export-settings__section:has([data-testid="export-aspect"]) > select,
+.cinegen-root .export-settings__section:has([data-testid="export-bitrate-mode"]) > select { flex: 1 1 170px; width: auto; }
+.cinegen-root .export-settings__section > select, .cinegen-root .export-settings__section > input { margin-left: 0 !important; }
+.cinegen-root .export-settings__render-btn { width: 100%; padding: 14px 32px; }
+/* FCPXML + Leads hint + progress: one tidy row each, visible without scrolling */
+.cinegen-root .export-tab__panel > div:not([class]) { flex-wrap: wrap; margin-top: 0 !important; }
+.cinegen-root .export-tab__hint { padding: 4px 0; text-align: left; }
+.cinegen-root .render-progress__cancel-btn, .cinegen-root .render-progress__download-btn {
+  background: transparent; color: rgba(255, 255, 255, 0.9); border: 1px solid rgba(217, 255, 0, 0.25); border-radius: 8px; padding: 6px 16px; text-decoration: none;
+}
+.cinegen-root .render-progress__download-btn { border-left: 2px solid #d9ff00; }
+/* top tabs must sit inside the 52px header, not overhang it */
+.cinegen-root .top-nav__tab { height: 34px; align-self: center; }
+
+/* Export: Render button must not spill past the panel (padding was added on top of width:100%). */
+.cinegen-root .export-settings__render-btn { box-sizing: border-box; }
+/* Top tabs: tighter, and on narrower windows anchored to the right of the title instead of centred over it. */
+.cinegen-root .top-nav__tab { padding: 0 11px; margin: 0; }
+@media (max-width: 1500px) {
+  .cinegen-root .top-nav__tabs { left: auto; right: 150px; transform: none; }
+}
+
+/* ============================================================================================================
+   [remix] ACTION buttons use the Generate look (transparent, white hairline, 2px lime LEFT EDGE, lime border + glow + lift on hover),
+   like the Image Studio's Generate. Selectors, tabs, toggles and icon buttons keep the Personalize look above.
+   (`:root` in front raises specificity above the Personalize hover rule so the left edge survives hover.)
+   ============================================================================================================ */
+:root .cinegen-root :is(
+  .pm-bottombar__btn, .dtool-btn, .director-tab__btn, .dbible-composer-add, .elements-tab__add-btn,
+  .timeline-bottom-bar__add, .timeline-tabs__snap, .mp__sort-btn, .left-panel__toggle-btn, .mini-btn,
+  .export-settings__render-btn, .leads-btn, .cg-analytics__btn, .render-progress__download-btn,
+  .btn.btn--primary, .btn.btn--secondary, button:not([class]), button[class=""]
+) {
+  background: transparent; color: rgba(255, 255, 255, 0.9); font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.12); border-left: 2px solid #d9ff00; border-radius: 8px; box-shadow: none;
+}
+:root .cinegen-root :is(
+  .pm-bottombar__btn, .dtool-btn, .director-tab__btn, .dbible-composer-add, .elements-tab__add-btn,
+  .timeline-bottom-bar__add, .timeline-tabs__snap, .mp__sort-btn, .left-panel__toggle-btn, .mini-btn,
+  .export-settings__render-btn, .leads-btn, .cg-analytics__btn, .render-progress__download-btn,
+  .btn.btn--primary, .btn.btn--secondary, button:not([class]), button[class=""]
+):hover:not(:disabled) {
+  background: transparent; color: #fff; border-color: rgba(217, 255, 0, 0.5); border-left: 2px solid #d9ff00;
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08); transform: translateY(-1px);
+}
+/* the main action of a screen glows brighter, closest to Generate */
+:root .cinegen-root :is(.export-settings__render-btn, .pm-bottombar__btn--primary, .director-tab__btn--accent, .elements-tab__add-btn, .leads-btn--primary) {
+  box-shadow: 0 0 14px rgba(217, 255, 0, 0.16);
+}
+:root .cinegen-root :is(.export-settings__render-btn, .pm-bottombar__btn--primary, .director-tab__btn--accent, .elements-tab__add-btn, .leads-btn--primary):hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(217, 255, 0, 0.24);
+}
+
+/* Projects toolbar (New project / Grid / List) */
+.cinegen-root .pm-toolbar__btn { background: transparent; color: rgba(255, 255, 255, 0.85); border: 1px solid rgba(217, 255, 0, 0.25); border-radius: 8px; transition: all 0.2s ease; }
+.cinegen-root .pm-toolbar__btn:hover:not(:disabled) { background: rgba(217, 255, 0, 0.06); border-color: rgba(217, 255, 0, 0.5); color: #fff; }
+.cinegen-root .pm-toolbar__btn--active { background: rgba(217, 255, 0, 0.1); border-color: rgba(217, 255, 0, 0.55); color: #fff; }

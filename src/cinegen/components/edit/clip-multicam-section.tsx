@@ -34,7 +34,7 @@ export function ClipMulticamSection({ clip, timeline, currentTime, onTimelineEdi
         </div>
         {group.angles.map((a) => (
           <div className="clip-properties-panel__row" key={a.id}>
-            <button {...btn} data-testid={`mc-cut-${a.id}`} style={a.id === myAngle ? { borderColor: '#22d3ee' } : undefined} onClick={() => edit((tl) => setAngle(tl, group.id, a.id, from2, from2 + len2), `${a.name} from ${from2.toFixed(1)}s to ${(from2 + len2).toFixed(1)}s.`)} title="Switch to this camera from the playhead">{a.name}</button>
+            <button {...btn} data-testid={`mc-cut-${a.id}`} style={a.id === myAngle ? { borderColor: '#d9ff00' } : undefined} onClick={() => edit((tl) => setAngle(tl, group.id, a.id, from2, from2 + len2), `${a.name} from ${from2.toFixed(1)}s to ${(from2 + len2).toFixed(1)}s.`)} title="Switch to this camera from the playhead">{a.name}</button>
             <button {...btn} aria-label={`${a.name} 1 frame earlier`} title="Sync: move this camera 1 frame earlier" onClick={() => edit((tl) => nudgeAngle(tl, group.id, a.id, -1 / 30), 'Camera nudged earlier.')}>◂</button>
             <button {...btn} aria-label={`${a.name} 1 frame later`} title="Sync: move this camera 1 frame later" onClick={() => edit((tl) => nudgeAngle(tl, group.id, a.id, 1 / 30), 'Camera nudged later.')}>▸</button>
           </div>

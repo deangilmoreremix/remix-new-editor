@@ -60,7 +60,7 @@ export function WorkbenchStudio() {
 
   const status = el('span', 'text-xs text-secondary mr-3');
   status.setAttribute('aria-live', 'polite');
-  const addBtn = el('button', 'px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-bold', '+ Add your generations');
+  const addBtn = el('button', 'btn-primary-modern', '+ Add your generations');
   addBtn.type = 'button';
   topbar.append(status, addBtn);
 
@@ -162,7 +162,7 @@ export function WorkbenchStudio() {
     const grid = el('div', 'p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 overflow-y-auto');
     grid.append(el('div', 'col-span-full text-secondary text-sm', 'Loading…'));
     const foot = el('div', 'flex items-center justify-end gap-2 p-4 border-t border-white/10');
-    const addSel = el('button', 'px-4 py-2 rounded-xl bg-primary text-black font-bold text-sm disabled:opacity-40', 'Add to timeline');
+    const addSel = el('button', 'btn-primary-modern px-4 py-2 text-sm', 'Add to timeline');
     addSel.type = 'button';
     addSel.disabled = true;
     foot.append(addSel);

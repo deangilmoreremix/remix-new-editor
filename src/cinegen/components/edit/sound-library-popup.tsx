@@ -18,7 +18,7 @@ export function SoundLibraryPopup({ onClose, onAdd }: { onClose: () => void; onA
     a.onended = () => setPlaying(null); void a.play().catch(() => setPlaying(null));
   };
   const chip = (id: string, label: string) => (
-    <button key={id} className="clip-properties-panel__toggle-btn" style={group === id ? { borderColor: '#22d3ee' } : undefined} onClick={() => setGroup(id)}>{label}</button>
+    <button key={id} className="clip-properties-panel__toggle-btn" style={group === id ? { borderColor: '#d9ff00' } : undefined} onClick={() => setGroup(id)}>{label}</button>
   );
   return (
     <div role="dialog" aria-label="Sound effects library" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={() => { audio.current?.pause(); onClose(); }}>
