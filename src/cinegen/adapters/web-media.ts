@@ -52,6 +52,20 @@ async function durableUrl(file: File): Promise<string> {
   return URL.createObjectURL(file);
 }
 
+/** Hosted URL when cloud storage is available, otherwise the file inlined as a data: URL (a blob: URL would not survive a reload). */
+async function persistentUrl(file: File): Promise<string> {
+  try {
+    const url = await uploadFileToStorage(file);
+    if (url) return url as string;
+  } catch { /* offline / not signed in */ }
+  return new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(r.error ?? new Error('Could not read the file'));
+    r.readAsDataURL(file);
+  });
+}
+
 function loadVideo(url: string): Promise<HTMLVideoElement> {
   return new Promise((resolve, reject) => {
     const v = document.createElement('video');
@@ -99,6 +113,15 @@ async function probe(url: string, type: string) {
   return { duration: v.duration, width: v.videoWidth, height: v.videoHeight, fps: 30, fileSize: webFiles.get(url)?.size };
 }
 
+/** True only when the media can be read and has no audio track at all (if that can't be established, the real error is kept). */
+async function hasNoAudioTrack(url: string): Promise<boolean> {
+  try {
+    const mb = await import('mediabunny');
+    const input = new mb.Input({ source: new mb.UrlSource(url), formats: mb.ALL_FORMATS });
+    try { return (await input.getAudioTracks()).length === 0; } finally { input.dispose(); }
+  } catch { return false; }
+}
+
 async function runJob(assetId: string, url: string, jobType: string) {
   const jobId = `web-${jobType}-${Math.random().toString(36).slice(2, 8)}`;
   const type = mediaTypeOf(url);
@@ -108,7 +131,18 @@ async function runJob(assetId: string, url: string, jobType: string) {
     else if (jobType === 'generate_thumbnail') result = { outputPath: await frameDataUrl(url, 0.1, 480) };
     else if (jobType === 'compute_waveform') {
       // CineGen reads peaks from `peaksPath` (a JSON array URL). A data: URL keeps them durable across reloads.
-      const peaks = await extractWaveformPeaks(url, 1500);
+      let peaks: number[];
+      try {
+        peaks = await extractWaveformPeaks(url, 1500);
+      } catch (err) {
+        // A video without an audio track (common for stock footage) cannot be decoded as audio. Complete with a flat waveform;
+        // otherwise the job errors and the workspace re-queues it forever.
+        // Only a decode failure on a video that provably has no audio track falls back to a flat waveform.
+        // Network errors, HTTP errors, and audio that exists but can't be decoded still fail the job.
+        if (type !== 'video' || (err as { name?: string } | null)?.name !== 'EncodingError' || !(await hasNoAudioTrack(url))) throw err;
+        console.warn('[web-media] this video has no audio track; using a flat waveform');
+        peaks = new Array(100).fill(0);
+      }
       result = { peaks, peaksPath: `data:application/json,${encodeURIComponent(JSON.stringify(peaks.map((p) => Math.round(p * 1000) / 1000)))}` };
     }
     else if (jobType === 'generate_filmstrip') result = { frames: await extractFilmstripFrames(url) };
@@ -218,20 +252,24 @@ export const webMediaApi = {
     persistGeneratedAsset: async (p: unknown) => {
       const a = p as { assetId: string; assetType: string; remoteUrl?: string; localPathHint?: string };
       try {
-        if (a.remoteUrl && /^https?:/i.test(a.remoteUrl)) {
+        // [remix] http(s) and data: sources are copied to the user's storage; with no storage they stay inline (durable in the project).
+        if (a.remoteUrl && /^(https?|data):/i.test(a.remoteUrl)) {
           try {
             const res = await fetch(a.remoteUrl);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const blob = await res.blob();
             const ext = (blob.type.split('/')[1] || (a.assetType === 'image' ? 'png' : a.assetType === 'audio' ? 'mp3' : 'mp4')).replace(/\+.*/, '');
-            const url = await durableUrl(new File([blob], `${a.assetId}.${ext}`, { type: blob.type }));
+            const url = await persistentUrl(new File([blob], `${a.assetId}.${ext}`, { type: blob.type }));
             return { path: url, sourceUrl: a.remoteUrl, downloaded: true };
           } catch {
             return { path: a.remoteUrl, sourceUrl: a.remoteUrl, downloaded: false }; // cross-origin: the browser streams it
           }
         }
-        // [remix] data:/blob: sources (e.g. element reference uploads kept in the project) are already durable in-browser.
-        if (a.remoteUrl && /^(data|blob):/i.test(a.remoteUrl)) return { path: a.remoteUrl, downloaded: false };
+        if (a.remoteUrl && /^blob:/i.test(a.remoteUrl)) {
+          const blob = await (await fetch(a.remoteUrl)).blob();
+          const url = await persistentUrl(new File([blob], `${a.assetId}`, { type: blob.type }));
+          return { path: url, sourceUrl: a.remoteUrl, downloaded: true };
+        }
         if (a.localPathHint) return { path: a.localPathHint, downloaded: false };
         return { error: 'No source to persist.' };
       } catch (error) {

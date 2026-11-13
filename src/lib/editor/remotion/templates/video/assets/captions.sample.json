@@ -1,0 +1,22 @@
+[
+  { "word": "This", "startMs": 200, "endMs": 560 },
+  { "word": "short", "startMs": 600, "endMs": 940 },
+  { "word": "was", "startMs": 980, "endMs": 1240 },
+  { "word": "rendered", "startMs": 1280, "endMs": 1780 },
+  { "word": "entirely", "startMs": 1820, "endMs": 2360 },
+  { "word": "from", "startMs": 2400, "endMs": 2680 },
+  { "word": "code.", "startMs": 2720, "endMs": 3160 },
+  { "word": "Every", "startMs": 3300, "endMs": 3680 },
+  { "word": "word", "startMs": 3720, "endMs": 4060 },
+  { "word": "you", "startMs": 4100, "endMs": 4340 },
+  { "word": "see", "startMs": 4380, "endMs": 4680 },
+  { "word": "is", "startMs": 4720, "endMs": 4960 },
+  { "word": "timed", "startMs": 5000, "endMs": 5420 },
+  { "word": "from", "startMs": 5460, "endMs": 5740 },
+  { "word": "a", "startMs": 5780, "endMs": 5960 },
+  { "word": "transcript.", "startMs": 6000, "endMs": 6640 },
+  { "word": "No", "startMs": 6780, "endMs": 7080 },
+  { "word": "manual", "startMs": 7120, "endMs": 7560 },
+  { "word": "editing", "startMs": 7600, "endMs": 8100 },
+  { "word": "required.", "startMs": 8140, "endMs": 8760 }
+]

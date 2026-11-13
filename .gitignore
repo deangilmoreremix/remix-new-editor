@@ -119,6 +119,7 @@ clerk_e2e_test.cjs
 debug_signin.cjs
 .playwright-mcp/
 *.jpg
+!public/hyperframes/thumbs/*.jpg
 
 # Logs
 logs

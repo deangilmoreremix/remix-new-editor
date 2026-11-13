@@ -458,7 +458,7 @@ function securityHeaders() {
                   // https: so the Remotion Player (@remotion/media) can fetch clip
                   // media from stock/storage CDNs, as production (no CSP) allows.
                   "connect-src 'self' https: blob: data: ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
-                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}`,
+                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:5174 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}`,
                   "media-src 'self' https: blob:",
                 ].join('; ');
                 res.setHeader('Content-Security-Policy', csp);

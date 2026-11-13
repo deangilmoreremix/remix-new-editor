@@ -10,6 +10,7 @@ dis = set(j('src/lib/hyperframes/catalog.disabled.json')['ids'])
 man = {i['id']: i for i in j('src/lib/hyperframes/catalog.manifest.json')['items']}
 vend = {f[:-5] for f in os.listdir(os.path.join(R, 'public/hyperframes/blocks')) if f.endswith('.html')}
 vend |= {f[:-5] for f in os.listdir(os.path.join(R, 'public/hyperframes/components')) if f.endswith('.html')} if os.path.isdir(os.path.join(R, 'public/hyperframes/components')) else set()
+vend |= {d for d in os.listdir(os.path.join(R, 'public/hyperframes/blocks')) if os.path.isfile(os.path.join(R, 'public/hyperframes/blocks', d, d + '.html'))}  # blocks that ship their own folder
 vend |= set(os.listdir(os.path.join(R, 'public/hyperframes/component-demos'))) if os.path.isdir(os.path.join(R, 'public/hyperframes/component-demos')) else set()  # components shown through their own demo composition
 vend |= set(os.listdir(os.path.join(R, 'public/hyperframes/examples'))) if os.path.isdir(os.path.join(R, 'public/hyperframes/examples')) else set()
 errs = []

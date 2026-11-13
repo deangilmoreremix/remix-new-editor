@@ -91,13 +91,16 @@ async function loadProject(publishedId, { fetchImpl }) {
   const url = String(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
   const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
   if (!url || !key) throw Object.assign(new Error('not configured'), { code: 'not_configured' });
-  // Published rows are readable with the anon key (RLS: published = true).
-  const res = await fetchImpl(`${url}/rest/v1/published_videos?id=eq.${encodeURIComponent(publishedId)}&published=eq.true&select=project`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' },
+  // The table is not publicly readable; get_published_video() returns the
+  // sanitized project of a published video (null when missing / unpublished).
+  const res = await fetchImpl(`${url}/rest/v1/rpc/get_published_video`, {
+    method: 'POST',
+    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ p_id: publishedId }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const rows = await res.json();
-  return rows?.[0]?.project || null;
+  const video = await res.json();
+  return video?.project || null;
 }
 
 export async function handle(body, { ip = 'unknown', fetchImpl = fetch } = {}) {
