@@ -73,11 +73,12 @@ export async function submitLead(supabase, { projectId, clipId, kind = 'lead-for
   try {
     const { data: result, error } = await supabase.functions.invoke('lead-capture', { body: payload });
     if (error || !result || result.ok !== true) {
-      return { stored: false, forwarded: 0, failed: 0, error: error?.message || result?.error || 'Lead backend unavailable' };
+      return { stored: false, forwarded: 0, failed: 0, email: null, error: error?.message || result?.error || 'Lead backend unavailable' };
     }
-    return { stored: !!result.stored, forwarded: result.forwarded || 0, failed: result.failed || 0, error: null };
+    // email: 'sent' | 'failed' | 'not_configured' | null (no notification address)
+    return { stored: !!result.stored, forwarded: result.forwarded || 0, failed: result.failed || 0, email: result.email ?? null, error: null };
   } catch (err) {
-    return { stored: false, forwarded: 0, failed: 0, error: err?.message || String(err) };
+    return { stored: false, forwarded: 0, failed: 0, email: null, error: err?.message || String(err) };
   }
 }
 

@@ -21,7 +21,7 @@
 //      URLs and notification emails in the request body are ignored.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, type Json } from "./logic.ts";
+import { isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, savedNotifyEmail, isValidEmail, buildLeadEmail, isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, type Json } from "./logic.ts";
 export { isForwardableWebhook, savedWebhooks, isCallClip, leadConfigFor };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
@@ -30,6 +30,11 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const PUBLISHED_ID = /^[A-Za-z0-9_-]{8,32}$/;
 const ALLOWED_ORIGINS = (Deno.env.get("LEAD_CAPTURE_ALLOWED_ORIGINS") ?? "*")
   .split(",").map((s) => s.trim()).filter(Boolean);
+
+// Notification email via Resend. Set RESEND_API_KEY and LEAD_EMAIL_FROM (an address on a
+// domain verified in Resend, e.g. "Leads <leads@yourdomain.com>") as edge function secrets.
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
+const LEAD_EMAIL_FROM = Deno.env.get("LEAD_EMAIL_FROM") ?? "";
 
 const KINDS = new Set(["lead-form", "list-builder", "personalizer", "call-attempt"]);
 const WEBHOOK_TIMEOUT_MS = 8000;
@@ -108,6 +113,32 @@ async function forward(urls: string[], payload: unknown): Promise<{ forwarded: n
   return { forwarded: urls.length - failed, failed };
 }
 
+type EmailStatus = "sent" | "failed" | "not_configured" | null;
+
+/** Email the video owner about a lead. `to` must already be a validated, owner-chosen address. */
+async function notify(to: string, kind: string, data: Record<string, string>): Promise<EmailStatus> {
+  if (!to) return null;
+  if (!RESEND_API_KEY || !LEAD_EMAIL_FROM) return "not_configured";
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), WEBHOOK_TIMEOUT_MS);
+  try {
+    const { subject, html, text } = buildLeadEmail(kind, data);
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+      body: JSON.stringify({ from: LEAD_EMAIL_FROM, to: [to], subject, html, text }),
+      signal: ctrl.signal,
+    });
+    if (!res.ok) { console.warn("[lead-capture] email failed:", res.status); return "failed"; }
+    return "sent";
+  } catch (err) {
+    console.warn("[lead-capture] email error:", (err as Error)?.name);
+    return "failed";
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
   if (req.method !== "POST") return json(req, { ok: false, error: "Method not allowed" }, 405);
@@ -168,13 +199,18 @@ Deno.serve(async (req: Request) => {
     });
     if (insertError) console.warn("[lead-capture] published insert failed:", insertError.code);
     const callNotify = leadKind === "call-attempt"
-      ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "")
+      ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "").trim()
       : "";
     const hooks = leadKind === "call-attempt" ? [] : savedWebhooks(config, listBuilder);
-    const sent = hooks.length
-      ? await forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString() })
-      : { forwarded: 0, failed: 0 };
-    return json(req, { ok: true, stored: !insertError, ...sent, email: config.emailNotificationEnabled || config.emailEnabled || callNotify ? "not_configured" : null });
+    // The recipient always comes from the saved project, never from the request.
+    const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? callNotify : "") : savedNotifyEmail(config, listBuilder);
+    const [sent, email] = await Promise.all([
+      hooks.length
+        ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString() })
+        : Promise.resolve({ forwarded: 0, failed: 0 }),
+      notify(notifyTo, leadKind, leadData),
+    ]);
+    return json(req, { ok: true, stored: !insertError, ...sent, email });
   }
 
   if (body.action === "list") {
@@ -214,16 +250,15 @@ Deno.serve(async (req: Request) => {
     if (error) console.warn("[lead-capture] insert failed:", error.code);
   }
 
-  const { forwarded, failed } = webhooks.length
-    ? await forward(webhooks, { event: "video_opted_in", kind, projectId, clipId, data, submittedAt: createdAt })
-    : { forwarded: 0, failed: 0 };
+  // Editor preview: only a signed-in session may choose the recipient, so anonymous
+  // callers can't use this function to send mail to arbitrary addresses.
+  const previewTo = hasSession && isValidEmail(body.notificationEmail) ? String(body.notificationEmail).trim() : "";
+  const [{ forwarded, failed }, email] = await Promise.all([
+    webhooks.length
+      ? forward(webhooks, { event: "video_opted_in", kind, projectId, clipId, data, submittedAt: createdAt })
+      : Promise.resolve({ forwarded: 0, failed: 0 }),
+    notify(previewTo, kind, data),
+  ]);
 
-  return json(req, {
-    ok: true,
-    stored,
-    forwarded,
-    failed,
-    // No transactional email provider is wired into this project yet.
-    email: body.notificationEmail ? "not_configured" : null,
-  });
+  return json(req, { ok: true, stored, forwarded, failed, email });
 });

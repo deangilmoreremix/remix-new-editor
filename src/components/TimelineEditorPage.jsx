@@ -5484,7 +5484,10 @@ export function TimelineEditorPage() {
       if (res.forwarded || res.failed) {
         parts.push(res.failed ? `${res.failed} webhook(s) failed` : `sent to ${res.forwarded} webhook(s)`);
       }
-      if (emailConfigured) parts.push('email notifications need an email provider (not connected yet)');
+      if (res.email === 'sent') parts.push('notification email sent');
+      else if (res.email === 'failed') parts.push('notification email failed');
+      else if (res.email === 'not_configured') parts.push('notification email not set up on the server yet');
+      else if (emailConfigured) parts.push('notification email not sent — check the address');
       return parts.join(' · ');
     }
 

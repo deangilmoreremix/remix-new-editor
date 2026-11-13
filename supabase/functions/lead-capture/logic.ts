@@ -85,6 +85,42 @@ export function isCallClip(c: Json): boolean {
   return o.linkMode === "phone" ? !!o.phoneNumber : /^tel:/i.test(String(o.linkUrl || ""));
 }
 
+// ------------------------------------------------------------- notification email
+
+const EMAIL_RE = /^[^\s@<>"',;]+@[^\s@<>"',;]+\.[^\s@<>"',;]{2,}$/;
+export function isValidEmail(raw: unknown): raw is string {
+  return typeof raw === "string" && raw.trim().length <= 254 && EMAIL_RE.test(raw.trim());
+}
+
+/**
+ * Who to notify for a saved config. Lead Generator clips use
+ * emailNotificationEnabled/notificationEmail; the List Builder uses
+ * emailEnabled/emailAddress. "" when notifications are off or the address is invalid.
+ */
+export function savedNotifyEmail(config: Json | null | undefined, listBuilder = false): string {
+  if (!config) return "";
+  const on = listBuilder ? !!config.emailEnabled : !!config.emailNotificationEnabled;
+  const addr = listBuilder ? config.emailAddress : config.notificationEmail;
+  return on && isValidEmail(addr) ? String(addr).trim() : "";
+}
+
+const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const oneLine = (s: string) => s.replace(/[\r\n]+/g, " ").slice(0, 200);
+
+/** Subject + bodies for a new-lead email. Every viewer-supplied value is escaped. */
+export function buildLeadEmail(kind: string, data: Record<string, string>): { subject: string; html: string; text: string } {
+  const entries = Object.entries(data);
+  const what = kind === "call-attempt" ? "Someone tried to call you" : kind === "list-builder" ? "New List Builder sign-up" : "New lead";
+  const first = entries.find(([k]) => /MAIL/i.test(k))?.[1] ?? entries[0]?.[1] ?? "";
+  const subject = oneLine(first ? `${what}: ${first}` : what);
+  const rows = entries.map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0;color:#666"><b>${escHtml(k)}</b></td><td style="padding:4px 0">${escHtml(v)}</td></tr>`).join("");
+  return {
+    subject,
+    html: `<div style="font-family:system-ui,sans-serif"><h2 style="margin:0 0 12px">${escHtml(what)}</h2><table>${rows}</table></div>`,
+    text: `${what}\n\n${entries.map(([k, v]) => `${k}: ${v}`).join("\n")}`,
+  };
+}
+
 /** Find the lead config (clip or List Builder) in a published project. */
 export function leadConfigFor(project: Json, kind: string, clipId: string | null): { config: Json | null; listBuilder: boolean } {
   if (kind === "list-builder" || kind === "personalizer") {

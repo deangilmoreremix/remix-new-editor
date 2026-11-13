@@ -31,7 +31,7 @@ describe('lead client', () => {
   it('submits through the lead-capture edge function', async () => {
     const supabase = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: true, stored: true, forwarded: 1, failed: 0 }, error: null }) } };
     const res = await submitLead(supabase, { projectId: 'p', clipId: 7, data: { EMAIL: 'a@b.c' }, webhooks: ['https://h.test'] });
-    expect(res).toEqual({ stored: true, forwarded: 1, failed: 0, error: null });
+    expect(res).toEqual({ stored: true, forwarded: 1, failed: 0, email: null, error: null });
     const [name, { body }] = supabase.functions.invoke.mock.calls[0];
     expect(name).toBe('lead-capture');
     expect(body).toMatchObject({ projectId: 'p', clipId: '7', kind: 'lead-form', data: { EMAIL: 'a@b.c' }, webhooks: ['https://h.test'] });

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, leadConfigFor, MAX_DATA_BYTES,
+  isValidEmail, savedNotifyEmail, buildLeadEmail,
 } from '../../supabase/functions/lead-capture/logic.ts';
 
 describe('lead-capture webhook safety', () => {
@@ -54,5 +55,28 @@ describe('saved webhooks come only from the stored project', () => {
     const lb = leadConfigFor(project, 'list-builder', null);
     expect(savedWebhooks(lb.config, true)).toEqual(['https://hook.example.com/b', 'https://hook.example.com/c']);
     expect(leadConfigFor(project, 'lead-form', 'missing').config).toBeNull();
+  });
+});
+
+describe('lead-capture notification email', () => {
+  it('validates addresses', () => {
+    expect(isValidEmail('me@example.com')).toBe(true);
+    expect(['', 'a@b', 'a b@c.com', 'a@b.com, c@d.com', '<x@y.com>', 42, null].some((v) => isValidEmail(v))).toBe(false);
+  });
+
+  it('reads the recipient from the saved config only when notifications are on', () => {
+    expect(savedNotifyEmail({ emailNotificationEnabled: true, notificationEmail: ' me@example.com ' })).toBe('me@example.com');
+    expect(savedNotifyEmail({ emailNotificationEnabled: false, notificationEmail: 'me@example.com' })).toBe('');
+    expect(savedNotifyEmail({ emailEnabled: true, emailAddress: 'lb@example.com' }, true)).toBe('lb@example.com');
+    expect(savedNotifyEmail({ emailEnabled: true, emailAddress: 'bad' }, true)).toBe('');
+    expect(savedNotifyEmail(null)).toBe('');
+  });
+
+  it('escapes viewer-supplied values and keeps the subject on one line', () => {
+    const { subject, html, text } = buildLeadEmail('lead-form', { EMAIL: 'x@y.com\nBcc: evil@z.com', NAME: '<script>alert(1)</script>' });
+    expect(subject).not.toMatch(/[\r\n]/);
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('&lt;script&gt;');
+    expect(text).toContain('NAME: <script>alert(1)</script>');
   });
 });
