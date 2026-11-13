@@ -4,7 +4,7 @@
 
 import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { getBrand } from '../lib/brandStore.js';
+import { getBrand, resolveBrandId, rememberBrandId } from '../lib/brandStore.js';
 import { CAMPAIGN_GOALS, generateCampaignConcepts, generateAssetForConcept } from '../lib/campaignGenerator.js';
 import { generateId } from '../lib/brandStore.js';
 import { PLATFORMS } from '../lib/platforms.js';
@@ -19,8 +19,9 @@ export function CampaignWizard(params = {}) {
   container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar';
   mountStudioChrome(container, { currentRoute: 'campaign', title: 'Campaign Studio' });
 
-  const brandId = params.brandId;
+  const brandId = resolveBrandId(params);
   const brand = getBrand(brandId);
+  if (brand) rememberBrandId(brand.id);
 
   if (!brand) {
     const empty = document.createElement('div');

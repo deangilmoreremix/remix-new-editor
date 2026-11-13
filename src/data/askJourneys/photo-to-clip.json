@@ -1,0 +1,147 @@
+{
+  "id": "photo-to-clip",
+  "title": "Turn a photo into an animated video clip",
+  "goal": "You end up with a finished short video clip that starts from your own photo and moves, which you can play and download.",
+  "bestFor": "Anyone with a photo, product shot, portrait or illustration who wants it to move, and who wants more predictable results than text-only video.",
+  "whatYouNeed": [
+    "A MuAPI key saved in Settings -> API keys (the \"Muapi API Key\" form). Generation uses your own MuAPI credits. You must also be signed in.",
+    "A clear photo with an obvious subject, in JPEG, PNG or WebP, under 10MB. Or an idea to create one in Image Studio.",
+    "A short idea of how it should move, for example 'Slow orbit around the product, soft studio light'."
+  ],
+  "studios": ["image", "edit", "animate", "video"],
+  "steps": [
+    {
+      "n": 1,
+      "studio": "image",
+      "action": "Optional: create the photo in Image Studio (skip if you already have one).",
+      "buttons": ["Describe the image you want to create", "Generate", "Download"],
+      "details": "If you do not have a photo, open Image Studio, type a simple, specific sentence in 'Describe the image you want to create' such as 'a red fox in a snowy forest, soft morning light', and click Generate. Use the Aspect Ratio button to match where you will post the video. Click Download to save the image. If you already have a photo, skip to step 2 or step 3.",
+      "result": "An image file on your device (also in Image Studio History and the Library).",
+      "handoff": "Download it (or find it in Library). Upload it in the next studio with that studio's upload button."
+    },
+    {
+      "n": 2,
+      "studio": "edit",
+      "action": "Optional: fix the photo in Edit Studio.",
+      "buttons": ["Remove Background", "Source image", "Apply Edit", "Download"],
+      "details": "Skip this if the photo is already good. In Edit Studio, click the card of the tool you want, for example Remove Background. Under 'Source image' click the upload button and add your photo (10MB max per upload). Click Apply Edit, check the result with the Compare slider, then click Download. In Library, an uploaded file has a 'Use in studio' button that can send it to Edit Studio.",
+      "result": "A cleaned-up image file on your device.",
+      "handoff": "Download it (or find it in Library), then upload it in Animate Studio with its Upload image tab, or attach it as the start frame in Video Studio."
+    },
+    {
+      "n": 3,
+      "studio": "animate",
+      "action": "Option A (simplest): animate the photo in Animate Studio.",
+      "buttons": ["Upload image", "Motion Prompt", "Animate"],
+      "details": "Open Animate Studio (#/animate) and choose the 'Upload image' tab. Upload your photo (JPEG, PNG or WebP under 10MB). In Motion Prompt type how it should move, or click one of the five suggestion chips. Choose a Duration of 3, 5, 10 or 12 seconds and a Resolution of 480p, 720p or 1080p. For a fast first test use 5 seconds and 480p. Leave the Model button on Seedance Lite (default), or switch it to Choose a model. Click Animate. If you leave the prompt empty in the default mode, a slow pan is used.",
+      "result": "A video from 3 to 12 seconds in the result card, starting from your photo.",
+      "handoff": "Click Download in the result card to save the clip. If you want Video Studio features instead, go to step 4."
+    },
+    {
+      "n": 4,
+      "studio": "video",
+      "action": "Option B (more control): animate the photo in Video Studio.",
+      "buttons": ["Animate image", "Select AI video model", "Generate"],
+      "details": "Open Video Studio (#/video). Attach your photo as the start frame with the start-frame attachment button next to the prompt box. The workflow switches to 'Animate image' and the prompt box says 'Describe the motion or effect (optional)'. Type the motion if you want. Click the model button (tooltip 'Select AI video model') to change the model, set aspect ratio, duration and resolution, then click Generate. Choose Video Studio when you want a start and end frame ('Keyframes (start + end)'), another model, a specific aspect ratio or Extend.",
+      "result": "A generated clip on the Video Studio result screen, starting from your photo.",
+      "handoff": "Stay on the result screen. Review it in the next step."
+    },
+    {
+      "n": 5,
+      "studio": "video",
+      "action": "Check the clip and try another take if needed.",
+      "buttons": ["Regenerate", "Extend"],
+      "details": "Play the clip and check that the subject still looks like your photo. If the motion is wrong, click Regenerate, or shorten the motion description to one simple move. If you used Animate Studio, run Animate again with a different Motion Prompt or model. The Extend button only shows when the model you used has a continuation model.",
+      "result": "A clip whose motion and look you are happy with.",
+      "handoff": "Stay on the result screen and download it in the next step."
+    },
+    {
+      "n": 6,
+      "studio": "video",
+      "action": "Download your finished clip.",
+      "buttons": ["Download"],
+      "details": "Click Download on the result screen. In Animate Studio the same Download button is in the result card. You can also click 'Add AI Captions' or 'Open in Render' in Video Studio.",
+      "result": "You have a finished video: a clip you can play, which you downloaded with the Download button on the Video Studio result screen (or the Download button in the Animate Studio result card). Earlier results are also kept in History and the Library.",
+      "handoff": "Done. Play the downloaded file to check it."
+    }
+  ],
+  "checkpoints": [
+    "The photo is clear, with an obvious subject, before you animate it.",
+    "The clip plays and the subject still looks like your photo before you download it.",
+    "The motion matches what you asked for, or you tried Regenerate or a different Motion Prompt.",
+    "The downloaded file plays on your device."
+  ],
+  "troubleshooting": [
+    {
+      "problem": "I see 'Please upload an image first.' in Animate Studio.",
+      "fix": "Add an image on the Upload image tab, or pick a photoshoot, before pressing Animate."
+    },
+    {
+      "problem": "I see 'Please upload a start frame image first.' in Video Studio.",
+      "fix": "An image workflow is selected. Attach a start frame image, or switch the workflow to 'Text to video'."
+    },
+    {
+      "problem": "My upload is rejected.",
+      "fix": "Use a JPEG, PNG or WebP under 10MB. In Video Studio the toast begins with 'Attachment upload failed:' and gives the reason."
+    },
+    {
+      "problem": "Animation returned no video.",
+      "fix": "The service finished without output. Retry, shorten the duration, or try another model. Retry with 5s and 480p."
+    },
+    {
+      "problem": "My model choice seems ignored in Animate Studio.",
+      "fix": "Press the Model button so it reads Choose a model, then select an entry in MuAPI Model (I2V). If it stays on 'Select a model...' the default Seedance Lite is used."
+    },
+    {
+      "problem": "Generation will not start or I get a sign-in box.",
+      "fix": "Sign in, make sure your MuAPI key is saved in Settings -> API keys, and that your account has credits."
+    }
+  ],
+  "tips": [
+    "Start with a clean image with an obvious subject.",
+    "In Animate Studio, tap the first suggestion chip and press Animate at 5s and 480p for a fast first test. If you like it, rerun at 720p or 1080p, or try another model.",
+    "Describe the motion in one short sentence, for example camera move plus one subject move.",
+    "Pick Animate Studio when you only want to animate one photo and keep it simple. Pick Video Studio when you want start and end frames, a choice of aspect ratio, many models or Extend.",
+    "Animate Studio takes images only. It cannot animate a video."
+  ],
+  "relatedJourneys": ["text-to-video", "talking-video", "product-ad", "social-shorts"],
+  "academy": { "track": "02-ai-filmmaking", "lesson": "03-camera-movement" },
+  "intents": [
+    "make a video from a photo",
+    "turn my picture into a clip",
+    "animate a photo",
+    "make my image move",
+    "image to video walkthrough",
+    "how do I bring a still image to life",
+    "walk me through animating my product photo",
+    "photo to video step by step",
+    "which studio animates an image"
+  ],
+  "notConfirmed": [
+    "Cost per model is not documented. Generation uses your own MuAPI credits.",
+    "Whether every model supports every duration or resolution is not confirmed; Animate Studio does not filter its options by model.",
+    "Model quality and which model is best for a given photo are not confirmed.",
+    "There is no confirmed one-click button from Image Studio or Edit Studio results into Animate Studio or Video Studio. The Library 'Use in studio' list does not include Animate Studio or Video Studio. The Draw button in Image Studio can hand a sketch to Video Studio, but that is for sketches only, so this journey uses download and upload.",
+    "Photo Studio has an 'Animate' hand-off to Animate Studio, but it was not used here because Photo Studio is not part of this path."
+  ],
+  "sourceFiles": [
+    "src/data/askKb/animate.json",
+    "src/data/askKb/video.json",
+    "src/data/askKb/image.json",
+    "src/data/askKb/edit.json",
+    "src/data/askKb/library.json",
+    "src/data/askKb/_app.json",
+    "src/data/askAcademyMap.js",
+    "src/components/AnimatePage.js",
+    "src/components/VideoStudio.js",
+    "src/components/ImageStudio.js",
+    "src/components/LibraryPage.js",
+    "src/lib/attachmentToolbar.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "askKb animate/video/image/edit/library/_app guides, askAcademyMap.js, AnimatePage.js, VideoStudio.js, ImageStudio.js, LibraryPage.js, attachmentToolbar.js",
+    "verifiedAt": "2026-11-13",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

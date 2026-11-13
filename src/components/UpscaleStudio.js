@@ -177,7 +177,7 @@ const triggerBtn = document.createElement('button');
 
   const hint = document.createElement('span');
   hint.className = 'text-sm text-muted';
-  hint.textContent = 'Upload image or video to upscale';
+  hint.textContent = 'Upload an image to upscale';
   uploadRow.appendChild(hint);
   formCard.appendChild(uploadRow);
 
@@ -347,7 +347,7 @@ genBtn.type = 'button';
 
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
-    if (!uploadedUrl) { alert('Upload an image or video first'); return; }
+    if (!uploadedUrl) { alert('Upload an image first'); return; }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 

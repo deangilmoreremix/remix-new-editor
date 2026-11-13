@@ -1,4 +1,4 @@
-import { isCfgKey } from './config.js';
+import { isCfgKey, isDataKey } from './config.js';
 /**
  * Security policy for HyperFrames content in the browser renderer (PoC).
  *
@@ -83,6 +83,12 @@ export function validateOverrides(set, opts = {}) {
     if ((m = /^(?<id>[A-Za-z0-9_/-]+)\.attr\.(?<name>src|alt)$/.exec(key))) {
       if (key.endsWith('.attr.alt')) { const t = sanitizeText(value, 120); t === null ? no('alt must be a string') : (cleaned[key] = t); continue; }
       const r = validateAssetUrl(value, opts); r.ok ? (cleaned[key] = r.url) : no(`image url: ${r.reason}`); continue;
+    }
+    if (key.startsWith('data.')) { // value inside a block's declarative JSON data blob (data-hf-primitive-data); path like messages.0.text, text-only
+      if (!isDataKey(key)) { no('data path not allowed'); continue; }
+      if (typeof value === 'string') { const t = sanitizeText(value, 200); t === null ? no('data text rejected') : (cleaned[key] = t); continue; }
+      if (typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 100000) { cleaned[key] = value; continue; }
+      no('data value type not allowed'); continue;
     }
     if (key.startsWith('cfg.')) {
       if (!isCfgKey(key)) { no('config path not allowed'); continue; }

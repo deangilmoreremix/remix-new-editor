@@ -5,7 +5,7 @@
 
 import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { getBrand, saveAsset, listAssets } from '../lib/brandStore.js';
+import { getBrand, saveAsset, listAssets, resolveBrandId, rememberBrandId } from '../lib/brandStore.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast } from '../lib/loading.js';
 
@@ -14,9 +14,11 @@ export function AssetCanvasEditor(params = {}) {
   container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar';
   mountStudioChrome(container, { currentRoute: 'asset-edit', title: 'Asset Editor' });
 
-  const assetId = params.id;
-  const brandId = params.brandId;
+  // `id` here is the ASSET id; the brand comes from ?brandId= (or the last-used brand).
+  const assetId = params.id || new URLSearchParams(window.location.search).get('id');
+  const brandId = resolveBrandId(params);
   const brand = getBrand(brandId);
+  if (brand) rememberBrandId(brand.id);
 
   if (!brand) {
     const empty = document.createElement('div');

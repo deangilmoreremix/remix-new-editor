@@ -12,6 +12,12 @@ export default [
       'dist',
       // vendored third-party source (RemotionUI, MIT), pinned and hashed in src/lib/remotionui/registry.lock.json
       'src/lib/editor/remotion/remotionui/vendored',
+      // frozen upstream animation sources (verbatim copies, byte-checked by templates/__tests__/starfieldUpstreamIntegrity.test.tsx)
+      'src/features/personalization/shared/personalization/templates/_upstream',
+      // vendored third-party template repos (MIT), pinned by commit in src/lib/templates/lock.json
+      'src/lib/editor/remotion/templates/free',
+      'src/lib/editor/remotion/templates/video',
+      'src/lib/editor/remotion/templates/rve',
     ],
   },
   js.configs.recommended,

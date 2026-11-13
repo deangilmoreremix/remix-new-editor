@@ -99,7 +99,7 @@ export const STUDIO_ROUTES = {
   'find-my-brand': { label: 'Find My Brand', category: 'Agents' },
   'website-builder': { label: 'Website Builder', category: 'Agents' },
   render: { label: 'Video Render', category: 'Agents' },
-  academy: { label: 'Smart Video Academy', category: 'Agents' },
+  academy: { label: 'Smart Video Academy', category: 'Home' },
   library: { label: 'Library', category: 'My Work' },
   'content-library': { label: 'Content', category: 'My Work' },
   'text-to-image': { label: 'Text to Image', category: 'Generate' },
@@ -160,6 +160,7 @@ export const NAV_GROUPS = [
     { id: 'apps', label: 'Apps' },
     { id: 'explore', label: 'Explore' },
     { id: 'templates', label: 'Templates' },
+    { id: 'academy', label: 'Academy' },
   ] },
   { title: 'Image', items: [
     { id: 'image', label: 'Image' },
@@ -220,6 +221,7 @@ export function getNavItemForRoute(route) {
   if (!route) return null;
   const page = String(route).replace(/^#?\/?/, '').split('?')[0];
   if (page.startsWith('template/')) return 'templates';
+  if (page === 'academy' || page.startsWith('academy/')) return 'academy';
   const id = NAV_ALIASES[page] || page;
   return NAV_GROUPS.some((g) => g.items.some((it) => it.id === id)) ? id : null;
 }

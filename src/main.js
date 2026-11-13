@@ -5,7 +5,7 @@ import './components/modals/modal-styles.css';
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
 // real error surfaces in the dev-tools console if any step fails.
 import { initPopcorn } from './lib/popcornInit.js';
-const IS_WATCH_PAGE = /^\/watch\//.test(window.location.pathname) || /^#\/watch\//.test(window.location.hash);
+const IS_WATCH_PAGE = /^\/(watch|v)\//.test(window.location.pathname) || /^#\/(watch|v)\//.test(window.location.hash);
 // The public video player (/watch/<id>) doesn't use Popcorn.
 (IS_WATCH_PAGE ? Promise.resolve(null) : initPopcorn()).then(() => {
   if (IS_WATCH_PAGE) return;
@@ -16,7 +16,8 @@ const IS_WATCH_PAGE = /^\/watch\//.test(window.location.pathname) || /^#\/watch\
 
 import { Header } from './components/Header.js';
 import { Sidebar } from './components/Sidebar.js';
-import { initRouter, navigate } from './lib/router.js';
+import { initRouter, navigate, getCurrentPage } from './lib/router.js';
+import { mountAskSmartVideo } from './features/ask-smartvideo/AskSmartVideo.js';
 import { mountGenerationNotifications } from './components/studio/generationNotifications.js';
 import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
@@ -157,6 +158,15 @@ try {
     return;
   }
 
+  // Readable public link: /v/<business>/<video-slug> (same player).
+  if (initialPage.startsWith('v/')) {
+    const [business, slug] = initialPage.slice(2).split(/[?#]/)[0].split('/').map((p) => decodeURIComponent(p || ''));
+    const { mountWatchPage } = await import('./pages/WatchPage.jsx');
+    await mountWatchPage(app, { business, slug });
+    console.log('[App] Watch page rendered (readable link)');
+    return;
+  }
+
   // Auth + account pages are owned by Clerk (Option A: replaces Supabase
   // sign-in). Custom app-styled pages handle sign-in, sign-up, forgot-password
   // and reset-password (built on Clerk's reset_password_email_code flow).
@@ -186,6 +196,7 @@ try {
   const { header: headerEl, headerAuthSlot } = Header((page) => navigate(page));
   app.appendChild(headerEl);
   mountGenerationNotifications((page) => navigate(page));
+  mountAskSmartVideo({ navigate: (page) => navigate(page), getPage: () => getCurrentPage() || '' });
 
   const body = document.createElement('div');
   // min-h-0 keeps the row inside the viewport: without it the (long) sidebar

@@ -1,9 +1,11 @@
 'use client'
 
+import { AssetUsagePanel } from './AssetUsagePanel'
 import { useEffect, useRef, useState } from 'react'
 import { LayoutTemplate, Palette } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
+import { designPrimarySlotUpdates } from '../preview/designSlots'
 import { C, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens'
 import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser'
 import type { ClientProfile } from '../types'
@@ -67,6 +69,9 @@ export function StepPersonalize({
     assets,
     previewSettings,
     setPreviewLayout,
+    setRemotionDesign,
+    activeRemotionDesignId = null,
+    remotionDesignTemplates = [],
     updatePreviewLayer,
     updatePreviewBrandColors,
     updatePreviewComposition,
@@ -84,6 +89,10 @@ export function StepPersonalize({
   const productAvailable = (assets?.products?.length || 0) > 0
   const taglineLayer = layers.find((item) => item.kind === 'tagline')
   const activeLayout = PREVIEW_LAYOUTS.find((layout) => layout.id === previewSettings.layout) || PREVIEW_LAYOUTS[0]
+  const activeDesign = activeRemotionDesignId
+    ? remotionDesignTemplates.find((design) => design.id === activeRemotionDesignId) ?? null
+    : null
+  const activeTemplate = activeDesign ?? activeLayout
 
   // Auto-apply a compatible layout on mount, and again while nothing was chosen
   // explicitly (e.g. a product photo imported later). The ref guard keeps it to
@@ -122,6 +131,11 @@ export function StepPersonalize({
     updateClientForm({ ...clientForm, [field]: value })
     const layer = layers.find((item) => item.kind === layerKind)
     if (layer) updatePreviewLayer(layer.id, { text: value })
+    // An applied design keeps its primary text on its own layer; keep it in
+    // sync with the form too, or the preview and export show the old value.
+    for (const update of designPrimarySlotUpdates(layers, remotionDesignTemplates, layerKind, value)) {
+      updatePreviewLayer(update.layerId, { text: update.text })
+    }
   }
 
   return (
@@ -138,15 +152,17 @@ export function StepPersonalize({
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <LayoutTemplate size={15} color={C.cyan} />
           <span style={{ margin: 0, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
-            Layout (optional)
+            Template (optional)
           </span>
           <span style={{ marginLeft: 'auto', color: C.muted2, fontSize: 10 }}>
             {layoutChosenByUser ? 'Your choice' : 'Chosen for you'}
           </span>
         </div>
         <p style={{ ...hintStyle, marginTop: 6 }}>
-          We applied <strong style={{ color: C.text }}>{activeLayout.name}</strong> for you — {activeLayout.description} You
-          can switch to another at any time; nothing is required to continue.
+          {layoutChosenByUser ? 'You picked' : 'We applied'}{' '}
+          <strong style={{ color: C.text }}>{activeTemplate.name}</strong>
+          {layoutChosenByUser ? '' : ' for you'} — {activeTemplate.description} You can switch to any other template at any
+          time; nothing is required to continue.
         </p>
         <PersonalizationTemplateBrowser
           onSelect={(layoutId) => {
@@ -154,8 +170,15 @@ export function StepPersonalize({
             onChooseLayout?.()
             setPreviewLayout(layoutId)
           }}
+          onSelectDesign={(designId) => {
+            setLocalChosenByUser(true)
+            onChooseLayout?.()
+            setRemotionDesign(designId)
+          }}
         />
       </div>
+
+      <AssetUsagePanel />
 
       {/* ── Editable content ────────────────────────────────────────────── */}
       <div style={panelStyle}>
@@ -278,7 +301,7 @@ export function StepPersonalize({
           What will be placed on your video
         </h3>
         <p style={{ ...hintStyle, marginTop: 0, marginBottom: 10 }}>
-          Based on the {activeLayout.name} layout — the preview updates as you edit.
+          Based on the {activeTemplate.name} {activeDesign ? 'template' : 'layout'} — the preview updates as you edit.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 8 }}>
           {layers.map((layer) => {

@@ -116,8 +116,8 @@ const pageLoaders = {
     try { window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/workbench`); } catch { /* ignore */ }
     return import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio());
   },
-  // The Timeline Editor is now CineGen's workspace (vendored in src/cinegen). The previous editor stays
-  // reachable at #/timeline-classic until its rail features are brought into the new one.
+  // The Timeline Editor is CineGen's workspace (vendored in src/cinegen, our colours + features). The unmodified clone can still be shown
+  // in an iframe via components/CineGenFramePage.js (VITE_CINEGEN_URL); the previous editor stays at #/timeline-classic.
   timeline: () => import('../cinegen/mount.tsx').then(m => m.CineGenEditorPage()),
   'timeline-classic': () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
@@ -130,8 +130,16 @@ const pageLoaders = {
   'asset-edit': () => import('../components/AssetCanvasEditor.js').then(m => m.AssetCanvasEditor()),
   'photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
   'brand-photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
-  animate: () => import('../components/AnimatePage.js').then(m => m.AnimatePage())
+  animate: () => import('../components/AnimatePage.js').then(m => m.AnimatePage()),
+  // Academy: the page parses its own #/academy/track/<track>[/lesson|template/<id>] hash.
+  academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
 };
+
+// Sub-paths like 'academy/track/<t>/lesson/<id>' are handled by the Academy page itself.
+export const academyKey = (page) => (typeof page === 'string' && page.startsWith('academy/') ? 'academy' : page);
+
+/** True when navigate(page) opens a real page rather than the placeholder. */
+export const isKnownPage = (page) => typeof page === 'string' && (page.startsWith('template/') || Boolean(pageLoaders[academyKey(RETIRED_ROUTES[page] || page)]));
 
 let currentPage = null;
 let currentPageEl = null;
@@ -184,8 +192,8 @@ export async function navigate(page, params = {}) {
       const templateId = page.replace('template/', '');
       const mod = await import('../components/TemplateStudio.js');
       element = mod.TemplateStudio(templateId);
-    } else if (pageLoaders[page]) {
-      element = await pageLoaders[page]();
+    } else if (pageLoaders[academyKey(page)]) {
+      element = await pageLoaders[academyKey(page)]();
     } else {
       const mod = await import('../components/PlaceholderPage.js');
       element = mod.PlaceholderPage(page);

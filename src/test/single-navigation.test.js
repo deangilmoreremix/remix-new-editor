@@ -61,4 +61,21 @@ describe('single navigation', () => {
     sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page: 'brand-dna' } }));
     expect(sidebar.querySelector('[aria-current="page"]').dataset.sidebarItem).toBe('brand');
   });
+
+  it('Academy is in the side menu: opens the academy page and stays highlighted on tracks and lessons', async () => {
+    window.location.hash = '#/academy';
+    const { Sidebar } = await import('../components/Sidebar.js');
+    const navigate = vi.fn();
+    const { sidebar } = Sidebar(navigate);
+    const btn = sidebar.querySelector('[data-sidebar-item="academy"]');
+    expect(btn).toBeTruthy();
+    expect(btn.textContent).toContain('Academy');
+    expect(sidebar.querySelector('[aria-current="page"]').dataset.sidebarItem).toBe('academy');
+    btn.click();
+    expect(navigate).toHaveBeenCalledWith('academy');
+    for (const page of ['academy/track/02-ai-filmmaking', 'academy/track/06-ai-audio-and-music/lesson/06-ai-audio-and-music::04-music-sfx-generation']) {
+      sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
+      expect(sidebar.querySelector('[aria-current="page"]').dataset.sidebarItem).toBe('academy');
+    }
+  });
 });

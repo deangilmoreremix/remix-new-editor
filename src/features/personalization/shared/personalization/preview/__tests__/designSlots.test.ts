@@ -12,6 +12,7 @@ import { describe, it, expect } from 'vitest'
 import {
   brandSlotValue,
   designSlotLabel,
+  designPrimarySlotUpdates,
   designSlotOverrides,
   isPrimaryDesignSlot,
   resolveDesignSlotValues,
@@ -200,5 +201,30 @@ describe('resolveDesignSlotValues', () => {
       BRAND,
     )
     expect(values).toEqual({})
+  })
+})
+
+describe('designPrimarySlotUpdates', () => {
+  it('pushes a form edit onto the design layer whose primary slot reads that field', () => {
+    // DESIGN's primary slot reads `headline`.
+    const layers = [makeLayer({ id: 'd1', text: 'Old headline' }), makeLayer({ id: 'h', kind: 'headline', designId: undefined })]
+    expect(designPrimarySlotUpdates(layers, [DESIGN], 'headline', 'New headline')).toEqual([
+      { layerId: 'd1', text: 'New headline' },
+    ])
+  })
+
+  it('leaves the design alone when the edited field feeds only a secondary slot', () => {
+    // `businessName` and `offer` are secondary slots: they already read the live brand value.
+    const layers = [makeLayer({ id: 'd1', text: 'Old headline' })]
+    expect(designPrimarySlotUpdates(layers, [DESIGN], 'businessName', 'Acme')).toEqual([])
+    expect(designPrimarySlotUpdates(layers, [DESIGN], 'offer', '50% off')).toEqual([])
+  })
+
+  it('ignores fields with no design counterpart, unknown designs and non-design layers', () => {
+    expect(designPrimarySlotUpdates([makeLayer()], [DESIGN], 'tagline', 'x')).toEqual([])
+    expect(designPrimarySlotUpdates([makeLayer({ designId: 'missing' })], [DESIGN], 'headline', 'x')).toEqual([])
+    expect(
+      designPrimarySlotUpdates([makeLayer({ kind: 'headline', designId: undefined })], [DESIGN], 'headline', 'x'),
+    ).toEqual([])
   })
 })

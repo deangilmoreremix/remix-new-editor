@@ -315,11 +315,12 @@ describe('BREAKDOWN_IDENTIFY_SYSTEM_PROMPT', () => {
 
 // [remix] The web editor's own Director adapter.
 describe('MuAPI adapter', () => {
-  it('keeps the compiled prompt, caps the clip at 10s and attaches reference stills for image-to-video', () => {
+  it('keeps the compiled prompt, allows 4-30s clips and attaches reference stills for omni-reference', () => {
     const show = createEmptyDirectorShow();
     const request = muapiVideoAdapter.buildRequest({ show, clip, variant: { kind: 'full' }, referenceImages: ['https://cdn.example/a.png', 'https://cdn.example/a.png'] });
     expect(request.provider).toBe('muapi');
-    expect(request.durationSec).toBeLessThanOrEqual(10);
+    expect(request.durationSec).toBeLessThanOrEqual(30);
+    expect(request.durationSec).toBeGreaterThanOrEqual(4);
     expect(request.medias).toEqual([{ value: 'https://cdn.example/a.png', role: 'image' }]);
     expect(request.prompt.length).toBeGreaterThan(20);
   });

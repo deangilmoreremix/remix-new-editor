@@ -91,6 +91,13 @@ const BROKEN_LEGACY_MATCHERS = [
   'lib/constants/timeline',
 ];
 
+let declaredCache = null;
+const declaredDependencies = () => {
+  if (declaredCache) return declaredCache;
+  try { declaredCache = new Set(Object.keys(JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).dependencies || {})); } catch { declaredCache = new Set(); } // only used for a hint: never break resolution over it
+  return declaredCache;
+};
+
 const stubLegacy = () => ({
   name: 'stub-legacy-unresolved',
   enforce: 'pre',
@@ -111,6 +118,9 @@ const stubLegacy = () => ({
       const pkgDir = path.resolve('node_modules', pkgName);
       if (!fs.existsSync(pkgDir)) {
         console.warn('[STUB]', source, '<-', importer.replace(process.cwd() + '/', ''));
+        // A package that package.json DECLARES but node_modules lacks is not legacy code: the stand-in is empty and features fail in odd ways.
+        const fullName = source.startsWith('@') ? source.split('/').slice(0, 2).join('/') : pkgName; // @scope/name, not just @scope
+        if (declaredDependencies().has(fullName)) console.error(`[STUB] "${fullName}" is declared in package.json but not installed, so it was replaced by an empty module. Run "npm install" and restart.`);
         if (process.env.STRICT_IMPORTS) {
           throw new Error(`Unresolved import "${source}" from ${importer.replace(process.cwd() + '/', '')}`);
         }
@@ -462,8 +472,8 @@ function securityHeaders() {
                   // https: so the Remotion Player (@remotion/media) can fetch clip
                   // media from stock/storage CDNs, as production (no CSP) allows.
                   "connect-src 'self' https: blob: data: ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
-                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}`,
-                  "media-src 'self' https: blob:",
+                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:5174 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}`,
+                  "media-src 'self' https: blob: data:", // data: so a video picked while storage is unavailable (stored in the project as a data URL) plays, as in production (no CSP)
                 ].join('; ');
                 res.setHeader('Content-Security-Policy', csp);
                 
@@ -1377,6 +1387,11 @@ export default defineConfig({
             // Netlify functions CLI on :8888 if available; otherwise fall back to
             // a same-origin placeholder so the dev server doesn't crash.
             // Template Generator AI functions (same Netlify functions server as below).
+            // Ask SmartVideo (streaming v2 function, serves /api/ask-smartvideo itself).
+            '/api/ask-smartvideo': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
             '/api/timeline-script': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
@@ -1422,6 +1437,11 @@ export default defineConfig({
                 changeOrigin: true,
             },
             '/api/media/shotcraft/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            // Same-origin proxy for remote preview videos (netlify/functions/personalization-api.mts).
+            '/api/media/remote': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },

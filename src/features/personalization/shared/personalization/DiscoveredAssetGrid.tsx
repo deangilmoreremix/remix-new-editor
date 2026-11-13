@@ -605,6 +605,7 @@ export function DiscoveredAssetGrid({
   onDropToSection,
   cutout: cutoutProp,
   onSaveToAssets,
+  pageSize,
 }: {
   assets: DiscoveredAsset[]
   onToggle: (id: string) => void
@@ -625,7 +626,10 @@ export function DiscoveredAssetGrid({
   cutout?: AutoCutoutControls
   /** Save one asset to the project's assets from the viewer. */
   onSaveToAssets?: (id: string) => void
+  /** Show at most this many per category, with "Show more" (omitted: show all). */
+  pageSize?: number
 }) {
+  const [shownPerCategory, setShownPerCategory] = useState<Record<string, number>>({})
   const [dragOverZone, setDragOverZone] = useState<AssignedSection | null>(null)
   // Browsers that cannot run background removal at all get the grid exactly as before.
   const cutout = cutoutProp && cutoutProp.supported !== false ? cutoutProp : undefined
@@ -669,7 +673,7 @@ export function DiscoveredAssetGrid({
               {catLabel} ({items.length})
             </div>
             <div className="flex flex-wrap gap-2">
-              {items.map((asset) => (
+              {(pageSize ? items.slice(0, shownPerCategory[cat] ?? pageSize) : items).map((asset) => (
                 <DiscoveredAssetThumb
                   key={asset.id}
                   asset={asset}
@@ -690,6 +694,16 @@ export function DiscoveredAssetGrid({
                 />
               ))}
             </div>
+            {pageSize && items.length > (shownPerCategory[cat] ?? pageSize) && (
+              <button
+                type="button"
+                data-testid={`discovered-show-more-${cat}`}
+                onClick={() => setShownPerCategory((prev) => ({ ...prev, [cat]: (prev[cat] ?? pageSize) + pageSize }))}
+                style={{ marginTop: 8, color: C.cyan, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+              >
+                Show {Math.min(pageSize, items.length - (shownPerCategory[cat] ?? pageSize))} more {catLabel.toLowerCase()}
+              </button>
+            )}
           </div>
         )
       })}

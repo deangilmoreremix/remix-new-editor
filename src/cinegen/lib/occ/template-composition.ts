@@ -30,7 +30,7 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
       const dur = Math.max(0.1, c.duration ?? 3);
       const a = c.asset;
       if (a?.url && (a.type === 'video' || a.type === 'image' || a.type === 'audio')) {
-        const asset: Asset = { id: a.id ?? generateId(), name: a.name ?? c.name ?? 'Media', type: a.type, url: a.url, thumbnailUrl: a.thumbnail, duration: a.duration ?? dur, createdAt: new Date().toISOString() };
+        const asset: Asset = { id: a.id ?? generateId(), name: a.name ?? c.name ?? 'Media', type: a.type, url: a.url, fileRef: a.url, thumbnailUrl: a.thumbnail, duration: a.duration ?? dur, createdAt: new Date().toISOString() };
         const kind = a.type === 'audio' ? 'audio' : 'video';
         const target = tl.tracks.find((t) => t.kind === kind && !t.locked) ?? tl.tracks.find((t) => t.kind === kind);
         if (!target) continue;

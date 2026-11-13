@@ -1,3 +1,9 @@
+import { contractFor, layerZIndex, roleForLayer } from './mediaRoles'
+import { ownText, resolveLayerImageUrl, resolveLayerText } from './layerContent'
+import { endCardFrames } from './endCard'
+import { exitFactors, revealFactors } from './imageStyle'
+import { presetStyle, resolveImageLook } from './imagePresets'
+import { ImageCollage, SplitPanel, StyledBusinessImage } from './StyledBusinessImage'
 import React, { useCallback, useEffect, useState } from 'react'
 import {
   AbsoluteFill,
@@ -13,6 +19,7 @@ import {
 import { Video, Audio } from '@remotion/media'
 import { fontStackById, isImageLayerKind, toBox } from './presets'
 import { resolveDesignSlotValues } from './designSlots'
+import { toPlayablePreviewMediaUrl } from './remoteMedia'
 import {
   clearPreviewMediaFailure,
   emitPreviewMediaFailure,
@@ -38,7 +45,7 @@ const TEXT_LAYER_KINDS: PreviewLayer['kind'][] = [
   'tagline',
 ]
 
-const PILL_TEXT_COLOR = '#041014'
+const PILL_TEXT_COLOR = '#000000'
 
 /**
  * The <Player> does not provide remotion's internal SequenceManager context and
@@ -104,32 +111,15 @@ function entranceFor(layer: PreviewLayer, frame: number, fps: number): EntranceS
   }
 }
 
-function resolveLayerText(layer: PreviewLayer, brand: PreviewInputProps['brand']): string {
-  switch (layer.kind) {
-    case 'businessName':
-      return layer.text ?? brand.businessName
-    case 'headline':
-      return layer.text ?? brand.headline
-    case 'tagline':
-      return layer.text ?? brand.headline
-    case 'offer':
-      return layer.text ?? brand.offer
-    case 'cta':
-      return layer.text ?? brand.cta
-    default:
-      return layer.text ?? ''
-  }
-}
-
-function resolveLayerImageUrl(
-  layer: PreviewLayer,
-  brand: PreviewInputProps['brand'],
-): string {
-  if (layer.imageUrl) return layer.imageUrl
-  if (layer.kind === 'serviceImage') return brand.serviceUrl ?? brand.productUrl ?? ''
-  if (layer.kind === 'productImage') return brand.productUrl ?? brand.serviceUrl ?? ''
-  if (layer.kind === 'logo') return brand.logoUrl ?? ''
-  return ''
+/** Dark text on light colors, white on dark ones (hex colors; else the default). */
+export function readableTextOn(background: string, dark: string): string {
+  const match = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(background.trim())
+  if (!match) return dark
+  const hex = match[1].length === 3 ? match[1].split('').map((c) => c + c).join('') : match[1]
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+  const luminance = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+  return luminance > 0.18 ? dark : '#ffffff'
 }
 
 /**
@@ -358,7 +348,9 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       // playback muting stays a Player-level concern.
       return (
         <Video
-          src={videoUrl}
+          // Remote CDNs without CORS (e.g. the AI-viral demo library) are
+          // streamed through the same-origin /api/media/remote proxy.
+          src={toPlayablePreviewMediaUrl(videoUrl)}
           muted={false}
           onError={handleMediaError}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -419,15 +411,31 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       frame >= layer.startFrame &&
       (layer.endFrame === undefined || frame <= layer.endFrame),
   )
+  // The business name is on screen right now: its layer shows the brand
+  // name itself (not custom text) and has faded in.
+  const brandName = brand.businessName.trim().toLowerCase()
+  const businessNameShown = Boolean(brandName) && visibleLayers.some(
+    (layer) =>
+      layer.kind === 'businessName' &&
+      resolveLayerText(layer, brand).trim().toLowerCase() === brandName &&
+      layer.opacity * entranceFor(layer, frame, settings.fps).opacity > 0,
+  )
 
-  const endCardLen = Math.min(90, Math.max(45, Math.round(settings.durationInFrames * 0.2)))
-  const endCardStart = Math.max(0, settings.durationInFrames - endCardLen)
+  const drawnFallbackText = new Set<string>()
+  // Text the customer (or the layout seed) set on a layer explicitly. A layer
+  // that would only fall back to that same text is the duplicate, not it.
+  const ownTextLayers = new Set<string>(
+    visibleLayers
+      .filter((l) => (l.kind === 'headline' || l.kind === 'tagline' || l.kind === 'businessName') && ownText(l) != null)
+      .map((l) => (ownText(l) as string).trim().toLowerCase()),
+  )
+  const { start: endCardStart, length: endCardLen } = endCardFrames(settings.durationInFrames)
 
   return (
     <Internals.SequenceManager.Provider value={NOOP_SEQUENCE_MANAGER}>
     <AbsoluteFill style={{ background: '#05070a' }}>
       {renderBackground()}
-      {audioUrl ? <Audio src={audioUrl} /> : null}
+      {audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
       <AbsoluteFill
           style={{
             background: '#000',
@@ -443,9 +451,30 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           const text = isText ? resolveLayerText(layer, brand) : ''
           const imageUrl = isImage ? resolveLayerImageUrl(layer, brand) : ''
           if (isText && !text.trim()) return null
+          // A headline/tagline with no text of its own that would only repeat
+          // the business name already on screen isn't drawn twice.
+          if (
+            (layer.kind === 'headline' || layer.kind === 'tagline') &&
+            ownText(layer) == null &&
+            businessNameShown &&
+            text.trim().toLowerCase() === brand.businessName.trim().toLowerCase()
+          ) return null
           if (isImage && !imageUrl) return null
+          // A headline/tagline that falls back to the SAME text an earlier
+          // visible headline/tagline/name layer already draws (e.g. a layout
+          // whose headline and tagline both default to the business name) is
+          // a duplicate, not a second message. Own text always draws.
+          if (
+            (layer.kind === 'headline' || layer.kind === 'tagline') &&
+            ownText(layer) == null &&
+            (drawnFallbackText.has(text.trim().toLowerCase()) ||
+              ownTextLayers.has(text.trim().toLowerCase()))
+          ) return null
+          if (isText && (layer.kind === 'headline' || layer.kind === 'tagline' || layer.kind === 'businessName')) {
+            drawnFallbackText.add(text.trim().toLowerCase())
+          }
 
-          const box = toBox(layer, compW, compH)
+          const box = toBox(layer, compW, compH, isText ? text : undefined)
           const entrance = entranceFor(layer, frame, settings.fps)
           const textColor =
             layer.color ??
@@ -456,7 +485,12 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           if (entrance.translateY) transformParts.push(`translateY(${entrance.translateY}px)`)
           if (entrance.scale !== 1) transformParts.push(`scale(${entrance.scale})`)
 
+          // The layer's media role decides stacking and image fitting.
+          const designForRole = isDesign && layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined
+          const role = roleForLayer(layer, designForRole ? { id: designForRole.id, category: designForRole.category } : null)
+          const roleContract = contractFor(role)
           const layerStyle: React.CSSProperties = {
+            zIndex: layerZIndex(role, visibleLayers.indexOf(layer)),
             left: box.leftPx,
             top: box.topPx,
             width: box.widthPx,
@@ -528,12 +562,68 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           }
 
           if (isImage) {
+            // Overlay-only styling: the file is untouched; the image's explicit role, the template
+            // and the layer's own style decide how it is presented.
+            const hints = settings.imageHints?.[imageUrl]
+            const resolved = resolveImageLook({
+              role, kind: layer.kind, layerStyle: layer.imageStyle, layerRole: layer.imageRole, hints, layout: settings.layout, aspect: settings.aspectRatio,
+            })
+            let style = resolved.style
+            const urls = [imageUrl, ...(layer.imageUrls ?? [])].filter(Boolean)
+            // A collage needs 2+ pictures; with fewer it falls back to the plain floating card.
+            if (style?.presetId === 'multi-image-collage' && urls.length < 2) style = presetStyle('rounded-floating-card', settings.aspectRatio)
+            const exit = style ? exitFactors(style, frame, layer.endFrame) : { opacity: 1, scale: 1 }
+            const brandColors = settings.brandColors
+
+            // Split Screen: a half-frame panel in COMPOSITION coordinates (not the layer's own box).
+            if (style?.presetId === 'split-screen') {
+              const side = style.splitSide ?? (compH > compW * 1.1 ? 'bottom' : 'right')
+              const slide = revealFactors({ reveal: 'wipe' }, frame, layer.startFrame + (layer.animationDelay || 0))
+              return (
+                <AbsoluteFill key={layer.id} style={{ zIndex: layerStyle.zIndex, opacity: layer.opacity * exit.opacity * slide.progress, pointerEvents: 'none' }}>
+                  <SplitPanel src={imageUrl} side={side} imageStyle={style} compWidth={compW} compHeight={compH} ImageComponent={Img as never} />
+                </AbsoluteFill>
+              )
+            }
+
+            const reveal = style ? revealFactors(style, frame, layer.startFrame + (layer.animationDelay || 0)) : { progress: 1, scale: 1 }
+            // A reveal replaces the layer's own entrance animation.
+            const boxStyle = (style?.reveal === 'wipe' || style?.reveal === 'diagonal') ? { ...layerStyle, opacity: layer.opacity, transform: undefined } : layerStyle
             return (
-              <AbsoluteFill key={layer.id} style={{ ...layerStyle, height: box.widthPx }}>
-                <Img
-                  src={imageUrl}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
+              <AbsoluteFill key={layer.id} style={{ ...boxStyle, height: box.widthPx }}>
+                <div style={{ position: 'absolute', inset: 0, opacity: exit.opacity, transform: exit.scale !== 1 ? `scale(${exit.scale})` : undefined }}>
+                  {style?.presetId === 'multi-image-collage' ? (
+                    <ImageCollage
+                      urls={urls.slice(0, 4)}
+                      imageStyle={style}
+                      boxWidth={box.widthPx}
+                      boxHeight={box.widthPx}
+                      compHeight={compH}
+                      compShort={Math.min(compW, compH)}
+                      brand={brandColors}
+                      ImageComponent={Img as never}
+                    />
+                  ) : style ? (
+                    <StyledBusinessImage
+                      src={imageUrl}
+                      imageStyle={style}
+                      boxWidth={box.widthPx}
+                      boxHeight={box.widthPx}
+                      compHeight={compH}
+                      compShort={Math.min(compW, compH)}
+                      brand={brandColors}
+                      aspect={hints?.aspect}
+                      ImageComponent={Img as never}
+                      revealProgress={reveal.progress}
+                      revealScale={reveal.scale}
+                    />
+                  ) : (
+                    <Img
+                      src={imageUrl}
+                      style={{ width: '100%', height: '100%', objectFit: roleContract.objectFit === 'cover' ? 'cover' : 'contain' }}
+                    />
+                  )}
+                </div>
               </AbsoluteFill>
             )
           }
@@ -544,8 +634,10 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
                 <div style={{ width: '100%', textAlign: 'center' }}>
                   <span
                     style={{
-                      background: settings.brandColors.accent,
-                      color: PILL_TEXT_COLOR,
+                      // The layer's color is the button color (default: accent);
+                      // the label is dark or white, whichever reads on it.
+                      background: textColor,
+                      color: readableTextOn(textColor, PILL_TEXT_COLOR),
                       padding: '0.4em 1.1em',
                       borderRadius: 999,
                       display: 'inline-block',
@@ -572,7 +664,9 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
                   lineHeight: 1.15,
                   textAlign: 'center',
                   width: '100%',
-                  wordBreak: 'break-word',
+                  // Only break a word that cannot fit on a line by itself;
+                  // `wordBreak: 'break-word'` split ordinary words mid-word.
+                  overflowWrap: 'break-word',
                 }}
               >
                 {text}
@@ -581,7 +675,9 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           )
         })}
         {settings.showEndCard ? (
-          <Sequence from={endCardStart} durationInFrames={endCardLen}>
+          // zIndex: layers are stacked up to stackOrder 65 * 100 + 99 (see layerZIndex), so
+          // the end card needs a higher level to stay on top of layers that run to the end.
+          <Sequence from={endCardStart} durationInFrames={endCardLen} style={{ zIndex: 10000 }}>
             <EndCard settings={settings} brand={brand} />
           </Sequence>
         ) : null}

@@ -17,8 +17,9 @@
  */
 
 import { SITE_USER_AGENT } from '../lib/siteRequestHeaders'
-import { isIPv6 } from 'node:net'
+import { isThirdPartyAdUrl } from './adDomains'
 import { createRequire } from 'node:module'
+import { isIPv6 } from 'node:net'
 
 import {
   MAX_REDIRECT_HOPS,
@@ -645,6 +646,19 @@ export function redirectHopCount(
   }
 
   return hops
+}
+
+/** True for the page's own top-level navigation (not an iframe, not a subresource). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isMainFrameNavigation(request: any): boolean {
+  try {
+    if (typeof request?.isNavigationRequest !== 'function' || !request.isNavigationRequest()) return false
+    const frame = typeof request.frame === 'function' ? request.frame() : null
+    return !frame || typeof frame.parentFrame !== 'function' || frame.parentFrame() === null
+  } catch {
+    // Playwright throws from frame() for some service-worker requests: treat as a subresource.
+    return false
+  }
 }
 
 /** True when a request has already been redirected at (or past) the cap. */
@@ -1448,6 +1462,13 @@ async function withGuardedContext<T>(
       // Cheap synchronous filters first, so the DNS gate is not consulted for
       // every tracker pixel on the page.
       if (isBlockedUrl(url) || options.blockedResourceTypes.includes(resourceType)) {
+        return route.abort()
+      }
+
+      // Ad / tracker requests (Scrapling's `block_ads`): they slow the page and
+      // put ad banners in the DOM. The page's own top-level navigation and the
+      // site's own host are never blocked.
+      if (!isMainFrameNavigation(request) && isThirdPartyAdUrl(url, `https://${options.baseTarget.hostname}/`)) {
         return route.abort()
       }
 

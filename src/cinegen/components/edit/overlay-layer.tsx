@@ -21,12 +21,12 @@ import { mgOverlayLayer } from '@cinegen/lib/occ/mg-templates';
 import { overlaysAt, isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 import { hyperframesOverlayLayer, hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers (same math the renderer and the export use)
-import { hfPlacement } from '../../../lib/hyperframes/placement.js';
+import { hfPlacement, isReactItem } from '../../../lib/hyperframes/placement.js';
 import { useSelectedOverlay, selectOverlay } from '@cinegen/lib/overlays/selection';
 import '../../../../styles/timeline-addons.css';
 import '../../../../styles/watch.css';
 
-interface Props { overlays: OverlayClip[]; currentTime: number; isPlaying: boolean; onPause: () => void; /** play again once the form that held the video is submitted or skipped */ onResume?: () => void; /** click-to-edit text on the form while stopped: the option key and its new text */ onEditText?: (id: string, key: string, value: string) => void; onGeometry?: (id: string, geometry: Record<string, number>) => void; frame?: { width: number; height: number } }
+interface Props { overlays: OverlayClip[]; currentTime: number; isPlaying: boolean; /** play animated add-ons (stickers, lottie, media) without making forms interactive: used by thumbnails */ previewPlaying?: boolean; onPause: () => void; /** play again once the form that held the video is submitted or skipped */ onResume?: () => void; /** click-to-edit text on the form while stopped: the option key and its new text */ onEditText?: (id: string, key: string, value: string) => void; onGeometry?: (id: string, geometry: Record<string, number>) => void; frame?: { width: number; height: number } }
 
 const GATES = new Set(['lead-form', 'list-builder']);
 
@@ -45,7 +45,7 @@ async function sendLead(o: OverlayClip, data: Record<string, unknown>) {
 /** Move / resize handles for the selected animation. The outline is the animation's own canvas placed in the frame; edits are committed on release. */
 function HfHandle({ overlay, frame, onGeometry }: { overlay: OverlayClip; frame: { width: number; height: number }; onGeometry?: (id: string, g: Record<string, number>) => void }) {
   const item = hyperframesItem(String(overlay.blockId ?? ''));
-  const isRui = String(overlay.blockId ?? '').startsWith('rui:');
+  const isRui = isReactItem(String(overlay.blockId ?? ''));
   const bw = isRui || !item ? frame.width : item.dimensions.width; const bh = isRui || !item ? frame.height : item.dimensions.height;
   const [draft, setDraft] = useState<{ x?: number; y?: number; scale?: number } | null>(null);
   const geom = { ...((overlay.geom as Record<string, unknown>) ?? {}), ...(draft ?? {}) };
@@ -76,7 +76,8 @@ function HfHandle({ overlay, frame, onGeometry }: { overlay: OverlayClip; frame:
   );
 }
 
-export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onResume, onEditText, onGeometry, frame = { width: 1280, height: 720 } }: Props) {
+export function OverlayLayer({ overlays, currentTime, isPlaying, previewPlaying, onPause, onResume, onEditText, onGeometry, frame = { width: 1280, height: 720 } }: Props) {
+  const currentTimeRef = useRef(currentTime); currentTimeRef.current = currentTime;
   const hostRef = useRef<HTMLDivElement>(null);
   const addonRef = useRef<HTMLDivElement>(null);
   const selected = useSelectedOverlay();
@@ -85,6 +86,7 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onResu
   const gating = useRef<string | null>(null);
   const playingRef = useRef(isPlaying);
   playingRef.current = isPlaying;
+  const addonPlaying = previewPlaying ?? isPlaying; // add-ons may animate while the forms stay in their non-interactive preview mode
   const active = overlaysAt(overlays, currentTime);
   const signature = active.map((o) => `${o.id}:${JSON.stringify(o)}`).join('|');
 
@@ -155,7 +157,7 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onResu
       const el = buildOverlayElement(o, { editor: true }) as HTMLElement | null;
       if (!el) continue;
       layer.appendChild(el);
-      void finishOverlayElement(el, { playing: isPlaying });
+      void finishOverlayElement(el, { playing: addonPlaying });
       el.addEventListener('pointerdown', () => selectOverlay(o.id));
       const geometry = (o.addon as { geometry?: Record<string, number> } | undefined)?.geometry;
       if (selected === o.id && geometry && o.type !== 'overlay-background' && o.type !== 'overlay-text-mask') {
@@ -174,9 +176,14 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onResu
     const layer = addonRef.current;
     if (!layer) return;
     const times = new Map(active.map((o) => [String(o.id), { start: o.start, duration: o.end - o.start }]));
-    syncOverlayTime(layer, currentTime, times, { playing: isPlaying });
-    setOverlayPlaying(layer, isPlaying);
-  }, [currentTime, isPlaying, addonSignature]);
+    syncOverlayTime(layer, currentTime, times, { playing: addonPlaying });
+    setOverlayPlaying(layer, addonPlaying);
+  }, [currentTime, addonPlaying, addonSignature]);
+  // Release the add-on renderers (Lottie, GL, media) when the layer goes away: the effect above only does that when it rebuilds.
+  useEffect(() => {
+    const layer = addonRef.current;
+    return () => { if (layer) [...layer.children].forEach((c) => destroyOverlayElement(c)); };
+  }, []);
 
   // [remix] OpenChatCut motion-graphics templates: shown by the editor's sandboxed code-preview frame (never run in this page).
   const mgRef = useRef<HTMLDivElement>(null);
@@ -195,7 +202,8 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onResu
       previewRef.current ??= createCodePreview(host, { onError: (layerId: string, message: string) => { if (String(message).startsWith('[hyperframes:')) void import('../../lib/hyperframes/notify').then((m) => m.notifyHyperframes({ id: `hf:${layerId}`, title: 'Animation', message: m.stripHfPrefix(message) })); } });
       const fps = 30;
       const layers = [...mgOverlays.map((o) => mgOverlayLayer(o, fps)), ...hfOverlays.map((o) => hyperframesOverlayLayer(o, fps))];
-      void previewRef.current.update({ version: 1, fps, width: frame.width, height: frame.height, durationInFrames: Math.max(1, ...layers.map((l) => l.from + l.durationInFrames)), background: 'transparent', layers, audio: [], transitions: [], fonts: [] });
+      // the frame effect below ran before this client existed, so seek again once the model is in (a still frame would otherwise stay at frame 0)
+      void previewRef.current.update({ version: 1, fps, width: frame.width, height: frame.height, durationInFrames: Math.max(1, ...layers.map((l) => l.from + l.durationInFrames)), background: 'transparent', layers, audio: [], transitions: [], fonts: [] }).then(() => { if (live) previewRef.current?.frame(Math.round(currentTimeRef.current * 30)); });
     });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
