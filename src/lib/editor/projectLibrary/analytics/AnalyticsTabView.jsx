@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import SmartVideoAnalytics from './SmartVideoAnalytics';
 import LivePreview from './LivePreview.jsx';
 import { loadAnalytics, defaultCustomRange } from './analyticsData.js';
+import HeatmapsSection from './HeatmapsSection.jsx';
 
 const Skeleton = () => (
   <div className="sv-analytics sv-editor" aria-busy="true" aria-label="Loading analytics">
@@ -75,6 +76,7 @@ export default function AnalyticsTabView({ client, projectRow, createPlayer, now
         customRange={custom}
         onCustomRangeChange={setCustom}
         renderPreview={renderPreview}
+        renderHeatmaps={() => <HeatmapsSection client={client} video={result.video} projectName={result.data.projectName} thumbnailUrl={result.data.thumbnailUrl} now={now} />}
         theme="editor"
         {...handlers}
       />
