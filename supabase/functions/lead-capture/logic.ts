@@ -60,6 +60,40 @@ export function sanitizeData(input: unknown): Record<string, string> {
   return out;
 }
 
+const UTM_KEYS = ["source", "medium", "campaign", "term", "content"] as const;
+const cleanText = (v: string, max: number) => v.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, max);
+
+/**
+ * The `source` stored with a lead: the page and browser, plus the viewer's campaign tags (utm_*) and
+ * the site they came from. Only known keys, plain strings, length-capped; the referrer must be http(s).
+ */
+export function sanitizeSource(raw: unknown): Record<string, unknown> {
+  const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw as Json : {};
+  const out: Record<string, unknown> = {
+    page: typeof src.page === "string" ? src.page.slice(0, 512) : null,
+    userAgent: typeof src.userAgent === "string" ? src.userAgent.slice(0, 512) : null,
+  };
+  const u = src.utm && typeof src.utm === "object" && !Array.isArray(src.utm) ? src.utm as Json : null;
+  if (u) {
+    const utm: Record<string, string> = {};
+    for (const k of UTM_KEYS) {
+      const v = u[k];
+      if (typeof v === "string") { const t = cleanText(v, 100); if (t) utm[k] = t; }
+    }
+    if (Object.keys(utm).length) out.utm = utm;
+  }
+  if (typeof src.referrer === "string" && /^https?:\/\//i.test(src.referrer.trim())) out.referrer = cleanText(src.referrer, 300);
+  return out;
+}
+
+/** Just the marketing attribution (utm + referrer) of a sanitized source, for webhooks and emails. */
+export function attributionOf(source: Record<string, unknown>): { utm?: Record<string, string>; referrer?: string } {
+  const out: { utm?: Record<string, string>; referrer?: string } = {};
+  if (source.utm && typeof source.utm === "object") out.utm = source.utm as Record<string, string>;
+  if (typeof source.referrer === "string" && source.referrer) out.referrer = source.referrer;
+  return out;
+}
+
 /** Short, non-reversible key for rate limiting (so raw IPs are never stored). */
 export async function hashKey(value: string, salt = ""): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${salt}:${value}`));
@@ -249,16 +283,27 @@ const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").re
 const oneLine = (s: string) => s.replace(/[\r\n]+/g, " ").slice(0, 200);
 
 /** Subject + bodies for a new-lead email. Every viewer-supplied value is escaped. */
-export function buildLeadEmail(kind: string, data: Record<string, string>): { subject: string; html: string; text: string } {
+export function buildLeadEmail(
+  kind: string,
+  data: Record<string, string>,
+  attribution: { utm?: Record<string, string>; referrer?: string } = {},
+): { subject: string; html: string; text: string } {
   const entries = Object.entries(data);
   const what = kind === "call-attempt" ? "Someone tried to call you" : kind === "list-builder" ? "New List Builder sign-up" : "New lead";
   const first = entries.find(([k]) => /MAIL/i.test(k))?.[1] ?? entries[0]?.[1] ?? "";
   const subject = oneLine(first ? `${what}: ${first}` : what);
-  const rows = entries.map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0;color:#666"><b>${escHtml(k)}</b></td><td style="padding:4px 0">${escHtml(v)}</td></tr>`).join("");
+  const row = ([k, v]: [string, string]) => `<tr><td style="padding:4px 12px 4px 0;color:#666"><b>${escHtml(k)}</b></td><td style="padding:4px 0">${escHtml(v)}</td></tr>`;
+  const rows = entries.map(row).join("");
+  // Where the lead came from (campaign tags and the referring site), shown below the answers.
+  const src: Array<[string, string]> = [
+    ...Object.entries(attribution.utm ?? {}).map(([k, v]): [string, string] => [`utm_${k}`, String(v)]),
+    ...(attribution.referrer ? [["Referrer", attribution.referrer] as [string, string]] : []),
+  ];
+  const srcHtml = src.length ? `<h3 style="margin:16px 0 6px;font-size:13px;color:#666">Source</h3><table>${src.map(row).join("")}</table>` : "";
   return {
     subject,
-    html: `<div style="font-family:system-ui,sans-serif"><h2 style="margin:0 0 12px">${escHtml(what)}</h2><table>${rows}</table></div>`,
-    text: `${what}\n\n${entries.map(([k, v]) => `${k}: ${v}`).join("\n")}`,
+    html: `<div style="font-family:system-ui,sans-serif"><h2 style="margin:0 0 12px">${escHtml(what)}</h2><table>${rows}</table>${srcHtml}</div>`,
+    text: `${what}\n\n${entries.map(([k, v]) => `${k}: ${v}`).join("\n")}${src.length ? `\n\nSource\n${src.map(([k, v]) => `${k}: ${v}`).join("\n")}` : ""}`,
   };
 }
 

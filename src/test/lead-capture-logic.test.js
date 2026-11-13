@@ -5,6 +5,7 @@ import {
   isValidEmail, savedNotifyEmail, savedNotifyEmails, uniqueEmails, buildLeadEmail,
   isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, MAX_ATTEMPTS,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret,
+  sanitizeSource, attributionOf,
 } from '../../supabase/functions/lead-capture/logic.ts';
 
 describe('lead-capture webhook safety', () => {
@@ -178,5 +179,44 @@ describe('lead-capture email-list delivery', () => {
     expect(await decryptSecret('master-key', token)).toBe('sk_live_abc123');
     expect(await decryptSecret('wrong-key', token)).toBe('');
     expect(await decryptSecret('master-key', 'garbage')).toBe('');
+  });
+});
+
+describe('lead-capture source / UTM', () => {
+  it('keeps the page and browser, plus only known utm keys and an http(s) referrer', () => {
+    const out = sanitizeSource({
+      page: 'https://x.test/watch/abc?utm_source=g', userAgent: 'UA',
+      utm: { source: ' google ', campaign: 'spring\nsale', medium: '', evil: 'x', term: 42 },
+      referrer: 'https://news.example.com/post',
+      admin: true,
+    });
+    expect(out).toEqual({ page: 'https://x.test/watch/abc?utm_source=g', userAgent: 'UA', utm: { source: 'google', campaign: 'springsale' }, referrer: 'https://news.example.com/post' });
+  });
+
+  it('drops bad values and caps lengths', () => {
+    expect(sanitizeSource(null)).toEqual({ page: null, userAgent: null });
+    expect(sanitizeSource({ referrer: 'javascript:alert(1)', utm: 'nope' })).toEqual({ page: null, userAgent: null });
+    expect(sanitizeSource({ utm: { source: 'a'.repeat(500) } }).utm.source).toHaveLength(100);
+    expect(sanitizeSource({ referrer: 'https://x.test/' + 'a'.repeat(900) }).referrer).toHaveLength(300);
+    expect(sanitizeSource({ page: 'p'.repeat(900) }).page).toHaveLength(512);
+  });
+
+  it('exposes only the marketing attribution for webhooks and emails', () => {
+    const src = sanitizeSource({ page: 'p', userAgent: 'UA', utm: { source: 'g' }, referrer: 'https://r.test/x' });
+    expect(attributionOf(src)).toEqual({ utm: { source: 'g' }, referrer: 'https://r.test/x' });
+    expect(attributionOf(sanitizeSource({ page: 'p' }))).toEqual({});
+  });
+
+  it('adds an escaped Source block to the lead email only when there is one', () => {
+    const plain = buildLeadEmail('lead-form', { EMAIL: 'a@b.co' });
+    expect(plain.html).not.toContain('Source');
+    expect(plain.text).not.toContain('Source');
+    const withSrc = buildLeadEmail('lead-form', { EMAIL: 'a@b.co' }, { utm: { source: 'google', campaign: '<b>x</b>' }, referrer: 'https://r.test/p' });
+    expect(withSrc.html).toContain('Source');
+    expect(withSrc.html).toContain('utm_source');
+    expect(withSrc.html).toContain('&lt;b&gt;x&lt;/b&gt;');
+    expect(withSrc.html).not.toContain('<b>x</b>');
+    expect(withSrc.text).toContain('utm_campaign: <b>x</b>');
+    expect(withSrc.text).toContain('Referrer: https://r.test/p');
   });
 });

@@ -22,7 +22,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
-  isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
+  isForwardableWebhook, isPrivateAddress, sanitizeData, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
   isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, type HttpCall, type Json,
 } from "./logic.ts";
@@ -218,13 +218,13 @@ type EmailStatus = "sent" | "failed" | "not_configured" | null;
  * owner-chosen. One Resend batch request sends a separate email per recipient, so people never see each
  * other's addresses. A batch is all-or-nothing: either every recipient is queued or none are.
  */
-async function notify(to: string[], kind: string, data: Record<string, string>): Promise<{ email: EmailStatus; emailCount: number }> {
+async function notify(to: string[], kind: string, data: Record<string, string>, attribution: { utm?: Record<string, string>; referrer?: string } = {}): Promise<{ email: EmailStatus; emailCount: number }> {
   if (!to.length) return { email: null, emailCount: 0 };
   if (!RESEND_API_KEY || !LEAD_EMAIL_FROM) return { email: "not_configured", emailCount: 0 };
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), WEBHOOK_TIMEOUT_MS);
   try {
-    const { subject, html, text } = buildLeadEmail(kind, data);
+    const { subject, html, text } = buildLeadEmail(kind, data, attribution);
     const res = await fetch("https://api.resend.com/emails/batch", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
@@ -286,18 +286,15 @@ Deno.serve(async (req: Request) => {
     if (videoError || !video) return json(req, { ok: false, error: "Unknown video" }, 404);
     const { config, listBuilder } = leadConfigFor(video.project as Json, leadKind, clipId);
     if (!config) return json(req, { ok: false, error: "This video has no such form" }, 400);
-    const src = body.source && typeof body.source === "object" ? body.source as Json : {};
+    const src = sanitizeSource(body.source);
+    const attribution = attributionOf(src);
     const { error: insertError } = await admin.from("video_leads").insert({
       clerk_user_id: video.clerk_user_id,
       project_id: publishedId,
       clip_id: leadKind === "list-builder" || leadKind === "personalizer" ? "list-builder" : clipId,
       kind: leadKind,
       data: leadData,
-      source: {
-        page: typeof src.page === "string" ? src.page.slice(0, 512) : null,
-        userAgent: typeof src.userAgent === "string" ? src.userAgent.slice(0, 512) : null,
-        published: true,
-      },
+      source: { ...src, published: true },
       preview: false,
     });
     if (insertError) console.warn("[lead-capture] published insert failed:", insertError.code);
@@ -310,9 +307,9 @@ Deno.serve(async (req: Request) => {
     const ownerId = String(video.clerk_user_id ?? "");
     const [sent, { email, emailCount }, esp] = await Promise.all([
       hooks.length
-        ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString() }, { secret: await ownerSecret(ownerId) })
+        ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
         : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
-      notify(notifyTo, leadKind, leadData),
+      notify(notifyTo, leadKind, leadData, attribution),
       leadKind === "call-attempt" ? Promise.resolve(null) : pushToEsp(admin, ownerId, savedEsp(config), leadData),
     ]);
     await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);
@@ -321,7 +318,7 @@ Deno.serve(async (req: Request) => {
 
   if (body.action === "list") {
     if (!hasSession) return json(req, { ok: true, leads: [] });
-    let query = db.from("video_leads").select("id, data, created_at, clip_id, kind").order("created_at", { ascending: false }).limit(5000);
+    let query = db.from("video_leads").select("id, data, created_at, clip_id, kind, source").order("created_at", { ascending: false }).limit(5000);
     if (projectId) query = query.eq("project_id", projectId);
     if (clipId) query = query.eq("clip_id", clipId);
     const { data, error } = await query;
@@ -410,7 +407,7 @@ Deno.serve(async (req: Request) => {
   // (preview). Anonymous callers could otherwise use this as an open relay.
   const webhooks = !hasSession ? [] : (Array.isArray(body.webhooks) ? body.webhooks : [])
     .filter(isForwardableWebhook).slice(0, MAX_WEBHOOKS);
-  const source = body.source && typeof body.source === "object" ? body.source as Record<string, unknown> : {};
+  const source = sanitizeSource(body.source);
   const createdAt = new Date().toISOString();
 
   let stored = false;
@@ -420,10 +417,7 @@ Deno.serve(async (req: Request) => {
       clip_id: clipId,
       kind,
       data,
-      source: {
-        page: typeof source.page === "string" ? source.page.slice(0, 512) : null,
-        userAgent: typeof source.userAgent === "string" ? source.userAgent.slice(0, 512) : null,
-      },
+      source,
       preview: body.preview !== false,
     });
     stored = !error;
@@ -440,7 +434,7 @@ Deno.serve(async (req: Request) => {
     webhooks.length
       ? forward(webhooks, { event: "video_opted_in", kind, projectId, clipId, data, submittedAt: createdAt }, { secret: previewSecret })
       : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
-    notify(previewTo, kind, data),
+    notify(previewTo, kind, data, attributionOf(source)),
   ]);
   await logDeliveries(db, null, { projectId, clipId, kind }, sent.deliveries);
 

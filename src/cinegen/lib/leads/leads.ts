@@ -7,8 +7,14 @@ import { leadFormToOptin, normalizeListBuilder } from '../../../lib/editor/addon
 import { getPointerDesign } from '../../../lib/editor/addons/pointerDesigns.js';
 // @ts-expect-error plain JS lead helpers
 import { leadsToCsv } from '../../../lib/editor/addons/leadClient.js';
+// @ts-expect-error plain JS attribution helpers
+import { sourceLabel as rawSourceLabel } from '../../../lib/editor/publish/attribution.js';
 
-export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string> }
+export interface LeadSource { utm?: Record<string, string>; referrer?: string; page?: string | null }
+export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string>; source?: LeadSource }
+
+/** "google / spring-sale", else the referring host, else "". */
+export const sourceLabel = (row: LeadRow): string => String(rawSourceLabel(row.source) || '');
 export interface LeadForm { key: string; label: string; short: string; tone: 'wall' | 'lead' }
 
 export const WALL_KEY = 'list-builder';
@@ -61,7 +67,7 @@ export function filterRows(rows: LeadRow[], { form = 'all', query = '', range = 
       if (Number.isNaN(t) || t < since) return false;
     }
     if (!q) return true;
-    return Object.values(r.data).some((v) => String(v).toLowerCase().includes(q));
+    return Object.values(r.data).some((v) => String(v).toLowerCase().includes(q)) || sourceLabel(r).toLowerCase().includes(q);
   });
 }
 
@@ -74,7 +80,18 @@ export function answerColumns(rows: LeadRow[]): Array<{ key: string; label: stri
 
 export function rowsToCsv(rows: LeadRow[], forms: LeadForm[]): string {
   const name = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r))?.label ?? 'Form';
-  return leadsToCsv(rows.map((r) => ({ Submitted: r.createdAt, Form: name(r), ...r.data })));
+  // Source columns only appear when at least one lead has them, so older exports keep their shape.
+  return leadsToCsv(rows.map((r) => {
+    const utm = r.source?.utm ?? {};
+    const src: Record<string, string> = {};
+    if (utm.source) src['UTM Source'] = utm.source;
+    if (utm.medium) src['UTM Medium'] = utm.medium;
+    if (utm.campaign) src['UTM Campaign'] = utm.campaign;
+    if (utm.term) src['UTM Term'] = utm.term;
+    if (utm.content) src['UTM Content'] = utm.content;
+    if (r.source?.referrer) src.Referrer = r.source.referrer;
+    return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src };
+  }));
 }
 
 /** "Today 14:02" / "Yesterday 19:05" / "Nov 3 09:12" */

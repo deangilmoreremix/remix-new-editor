@@ -14,6 +14,7 @@ import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publis
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 import { pixelIdFor, fireLeadPixel } from '../lib/editor/publish/pixel.js';
+import { captureAttribution } from '../lib/editor/publish/attribution.js';
 
 const FPS = 30;
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -30,7 +31,7 @@ function message(container, title, text) {
  * @param {HTMLElement} container
  * @param {string} id
  * @param {string|{business:string,slug:string}} ref  a video id (/watch/<id>) or a readable link (/v/<business>/<slug>)
- * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, analytics }
+ * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, analytics, attribution }
  */
 export async function mountWatchPage(container, ref, deps = {}) {
   const params = new URLSearchParams(globalThis.location?.search || '');
@@ -103,6 +104,8 @@ export async function mountWatchPage(container, ref, deps = {}) {
   let scrubbing = false;
   // Per-contact analytics (personal links carry ?c=<contactId>).
   const viewerProfile = profileFromQuery();
+  // Campaign tags + referrer, captured once when the page loads (first touch) and sent with each lead.
+  const attribution = deps.attribution ?? captureAttribution();
   // First-party analytics (netlify/functions/video-events.js): batched, idempotent,
   // consent-aware. Playback milestones / watch time come from onChange below.
   const analytics = deps.analytics || createAnalytics({
@@ -122,7 +125,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
     fps: FPS,
     voiceFor: (clip, profile) => (deps.voiceFor || fetchPersonalVoice)({ publishedId: video.id, clip, profile }),
     onLead: async ({ clipId, kind, data }) => {
-      const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data });
+      const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data, attribution });
       if (kind !== 'call-attempt' && res?.stored !== false) {
         analytics.track('lead_submit', { clip: clipId, props: labelFor(clipId) ? { label: labelFor(clipId) } : undefined });
         if (!deps.onLead) fireLeadPixel(pixelIdFor(video.project, kind, clipId));

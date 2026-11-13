@@ -276,7 +276,7 @@ export async function fetchVideoStats(client, id) {
 }
 
 /** Submit a viewer's lead for a published video (stored for its owner). */
-export async function submitViewerLead({ publishedId, clipId, kind, data }, { url, key, fetchImpl = fetch } = env()) {
+export async function submitViewerLead({ publishedId, clipId, kind, data, attribution = {} }, { url, key, fetchImpl = fetch } = env()) {
   if (!url || !key) return { stored: false, error: 'Lead service is not configured' };
   try {
     const res = await fetchImpl(`${url}/functions/v1/lead-capture`, {
@@ -284,7 +284,12 @@ export async function submitViewerLead({ publishedId, clipId, kind, data }, { ur
       headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         publishedId, clipId: clipId != null ? String(clipId) : null, kind, data,
-        source: { page: globalThis.location?.href || null, userAgent: globalThis.navigator?.userAgent || null },
+        source: {
+          page: globalThis.location?.href || null,
+          userAgent: globalThis.navigator?.userAgent || null,
+          ...(attribution.utm ? { utm: attribution.utm } : {}),
+          ...(attribution.referrer ? { referrer: attribution.referrer } : {}),
+        },
       }),
     });
     const body = await res.json().catch(() => ({}));

@@ -268,7 +268,7 @@ export async function fetchLeadRows(supabase, { projectId, clipId } = {}) {
     if (error || !data?.ok || !Array.isArray(data.leads)) return { ok: false, rows: [], error: error?.message || data?.error || 'Could not load leads' };
     return {
       ok: true,
-      rows: data.leads.map((l) => ({ id: l.id, kind: l.kind || 'lead-form', clipId: l.clip_id ?? null, createdAt: l.created_at, data: l.data && typeof l.data === 'object' ? l.data : {} })),
+      rows: data.leads.map((l) => ({ id: l.id, kind: l.kind || 'lead-form', clipId: l.clip_id ?? null, createdAt: l.created_at, data: l.data && typeof l.data === 'object' ? l.data : {}, source: l.source && typeof l.source === 'object' ? l.source : {} })),
     };
   } catch (err) {
     return { ok: false, rows: [], error: err?.message || 'Could not load leads' };

@@ -1,6 +1,6 @@
 // [remix] Leads tab logic: forms, counts, filter/search, columns, CSV, includes, delete/list via a fake client, tab registration.
 import { describe, it, expect } from 'vitest';
-import { answerColumns, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
+import { answerColumns, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
 import { createOverlay } from '@cinegen/lib/overlays/overlays';
 import { setLeadsForm, getLeadsForm } from '@cinegen/lib/leads/leads-filter';
 // @ts-expect-error plain JS
@@ -41,6 +41,24 @@ describe('leads logic', () => {
     expect(ids('7d')).toEqual(['a', 'b']);
     expect(ids('30d')).toEqual(['a', 'b', 'c']);
     expect(filterRows(dated, { range: '7d', query: 'b@x', now }).map((r) => r.id)).toEqual(['b']);
+  });
+  it('shows where a lead came from, searches it and exports it', () => {
+    const withSrc: LeadRow[] = [
+      { ...row('s1', 'lead-form', 'x', { EMAIL: 'a@x.com' }), source: { utm: { source: 'google', campaign: 'spring', medium: 'cpc' }, referrer: 'https://news.example.com/p' } },
+      { ...row('s2', 'lead-form', 'x', { EMAIL: 'b@x.com' }), source: { referrer: 'https://blog.example.org/post' } },
+      row('s3', 'lead-form', 'x', { EMAIL: 'c@x.com' }),
+    ];
+    expect(sourceLabel(withSrc[0])).toBe('google / spring');
+    expect(sourceLabel(withSrc[1])).toBe('blog.example.org');
+    expect(sourceLabel(withSrc[2])).toBe('');
+    expect(filterRows(withSrc, { query: 'spring' }).map((r) => r.id)).toEqual(['s1']);
+    expect(filterRows(withSrc, { query: 'blog.example' }).map((r) => r.id)).toEqual(['s2']);
+    const csv = rowsToCsv(withSrc, []).split('\r\n');
+    expect(csv[0]).toContain('"UTM Source"');
+    expect(csv[0]).toContain('"UTM Campaign"');
+    expect(csv[0]).toContain('"Referrer"');
+    expect(csv[1]).toContain('"google"');
+    expect(rowsToCsv([row('p', 'lead-form', 'x', { EMAIL: 'a@x.com' })], []).split('\r\n')[0]).not.toContain('UTM'); // older exports keep their shape
   });
   it('builds columns and CSV', () => {
     expect(answerColumns(rows).map((c) => c.label)).toEqual(['Email', 'First Name', 'Phone']);
