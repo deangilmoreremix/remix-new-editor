@@ -207,16 +207,42 @@ export function isValidEmail(raw: unknown): raw is string {
   return typeof raw === "string" && raw.trim().length <= 254 && EMAIL_RE.test(raw.trim());
 }
 
+export const MAX_NOTIFY_EMAILS = 3;
+
+/** Valid addresses only, trimmed, de-duplicated ignoring case, at most MAX_NOTIFY_EMAILS. */
+export function uniqueEmails(list: unknown[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of list) {
+    const v = raw && typeof raw === "object" ? (raw as Json).value : raw; // List Builder extras may be { value }
+    if (!isValidEmail(v)) continue;
+    const addr = String(v).trim();
+    const key = addr.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(addr);
+    if (out.length >= MAX_NOTIFY_EMAILS) break;
+  }
+  return out;
+}
+
 /**
- * Who to notify for a saved config. Lead Generator clips use
- * emailNotificationEnabled/notificationEmail; the List Builder uses
- * emailEnabled/emailAddress. "" when notifications are off or the address is invalid.
+ * Who to notify for a saved config (up to 3 people). Lead Generator clips use
+ * emailNotificationEnabled + notificationEmail/2/3; the List Builder uses
+ * emailEnabled + emailAddress/2/3. [] when notifications are off.
  */
-export function savedNotifyEmail(config: Json | null | undefined, listBuilder = false): string {
-  if (!config) return "";
+export function savedNotifyEmails(config: Json | null | undefined, listBuilder = false): string[] {
+  if (!config) return [];
   const on = listBuilder ? !!config.emailEnabled : !!config.emailNotificationEnabled;
-  const addr = listBuilder ? config.emailAddress : config.notificationEmail;
-  return on && isValidEmail(addr) ? String(addr).trim() : "";
+  if (!on) return [];
+  return uniqueEmails(listBuilder
+    ? [config.emailAddress, config.emailAddress2, config.emailAddress3]
+    : [config.notificationEmail, config.notificationEmail2, config.notificationEmail3]);
+}
+
+/** The first recipient ("" when none). */
+export function savedNotifyEmail(config: Json | null | undefined, listBuilder = false): string {
+  return savedNotifyEmails(config, listBuilder)[0] ?? "";
 }
 
 const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

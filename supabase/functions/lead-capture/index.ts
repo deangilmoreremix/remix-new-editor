@@ -22,7 +22,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
-  isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, savedNotifyEmail, isValidEmail, buildLeadEmail,
+  isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
   isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, type HttpCall, type Json,
 } from "./logic.ts";
@@ -213,25 +213,30 @@ async function pushToEsp(admin: Db, ownerId: string, esp: ReturnType<typeof save
 
 type EmailStatus = "sent" | "failed" | "not_configured" | null;
 
-/** Email the video owner about a lead. `to` must already be a validated, owner-chosen address. */
-async function notify(to: string, kind: string, data: Record<string, string>): Promise<EmailStatus> {
-  if (!to) return null;
-  if (!RESEND_API_KEY || !LEAD_EMAIL_FROM) return "not_configured";
+/**
+ * Email the video owner's recipients (up to 3) about a lead. Every address must already be validated and
+ * owner-chosen. One Resend batch request sends a separate email per recipient, so people never see each
+ * other's addresses. A batch is all-or-nothing: either every recipient is queued or none are.
+ */
+async function notify(to: string[], kind: string, data: Record<string, string>): Promise<{ email: EmailStatus; emailCount: number }> {
+  if (!to.length) return { email: null, emailCount: 0 };
+  if (!RESEND_API_KEY || !LEAD_EMAIL_FROM) return { email: "not_configured", emailCount: 0 };
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), WEBHOOK_TIMEOUT_MS);
   try {
     const { subject, html, text } = buildLeadEmail(kind, data);
-    const res = await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.resend.com/emails/batch", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
-      body: JSON.stringify({ from: LEAD_EMAIL_FROM, to: [to], subject, html, text }),
+      body: JSON.stringify(to.map((addr) => ({ from: LEAD_EMAIL_FROM, to: [addr], subject, html, text }))),
       signal: ctrl.signal,
     });
-    if (!res.ok) { console.warn("[lead-capture] email failed:", res.status); return "failed"; }
-    return "sent";
+    await res.body?.cancel();
+    if (!res.ok) { console.warn("[lead-capture] email failed:", res.status); return { email: "failed", emailCount: 0 }; }
+    return { email: "sent", emailCount: to.length };
   } catch (err) {
     console.warn("[lead-capture] email error:", (err as Error)?.name);
-    return "failed";
+    return { email: "failed", emailCount: 0 };
   } finally {
     clearTimeout(timer);
   }
@@ -300,10 +305,10 @@ Deno.serve(async (req: Request) => {
       ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "").trim()
       : "";
     const hooks = leadKind === "call-attempt" ? [] : savedWebhooks(config, listBuilder);
-    // The recipient always comes from the saved project, never from the request.
-    const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? callNotify : "") : savedNotifyEmail(config, listBuilder);
+    // The recipients always come from the saved project, never from the request.
+    const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? [callNotify] : []) : savedNotifyEmails(config, listBuilder);
     const ownerId = String(video.clerk_user_id ?? "");
-    const [sent, email, esp] = await Promise.all([
+    const [sent, { email, emailCount }, esp] = await Promise.all([
       hooks.length
         ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString() }, { secret: await ownerSecret(ownerId) })
         : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
@@ -311,7 +316,7 @@ Deno.serve(async (req: Request) => {
       leadKind === "call-attempt" ? Promise.resolve(null) : pushToEsp(admin, ownerId, savedEsp(config), leadData),
     ]);
     await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);
-    return json(req, { ok: true, stored: !insertError, forwarded: sent.forwarded, failed: sent.failed, email, esp });
+    return json(req, { ok: true, stored: !insertError, forwarded: sent.forwarded, failed: sent.failed, email, emailCount, esp });
   }
 
   if (body.action === "list") {
@@ -427,9 +432,11 @@ Deno.serve(async (req: Request) => {
 
   // Editor preview: only a signed-in session may choose the recipient, so anonymous
   // callers can't use this function to send mail to arbitrary addresses.
-  const previewTo = hasSession && isValidEmail(body.notificationEmail) ? String(body.notificationEmail).trim() : "";
+  const previewTo = hasSession
+    ? uniqueEmails([...(Array.isArray(body.notificationEmails) ? body.notificationEmails : []), body.notificationEmail])
+    : [];
   const previewSecret = webhooks.length ? await ownerSecret(await callerSub(db)) : "";
-  const [sent, email] = await Promise.all([
+  const [sent, { email, emailCount }] = await Promise.all([
     webhooks.length
       ? forward(webhooks, { event: "video_opted_in", kind, projectId, clipId, data, submittedAt: createdAt }, { secret: previewSecret })
       : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
@@ -437,5 +444,5 @@ Deno.serve(async (req: Request) => {
   ]);
   await logDeliveries(db, null, { projectId, clipId, kind }, sent.deliveries);
 
-  return json(req, { ok: true, stored, forwarded: sent.forwarded, failed: sent.failed, email });
+  return json(req, { ok: true, stored, forwarded: sent.forwarded, failed: sent.failed, email, emailCount });
 });

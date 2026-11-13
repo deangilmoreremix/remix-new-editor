@@ -2,7 +2,7 @@ import { createHmac } from 'node:crypto';
 import { describe, it, expect } from 'vitest';
 import {
   isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, leadConfigFor, MAX_DATA_BYTES,
-  isValidEmail, savedNotifyEmail, buildLeadEmail,
+  isValidEmail, savedNotifyEmail, savedNotifyEmails, uniqueEmails, buildLeadEmail,
   isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, MAX_ATTEMPTS,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret,
 } from '../../supabase/functions/lead-capture/logic.ts';
@@ -73,6 +73,20 @@ describe('lead-capture notification email', () => {
     expect(savedNotifyEmail({ emailEnabled: true, emailAddress: 'lb@example.com' }, true)).toBe('lb@example.com');
     expect(savedNotifyEmail({ emailEnabled: true, emailAddress: 'bad' }, true)).toBe('');
     expect(savedNotifyEmail(null)).toBe('');
+  });
+
+  it('notifies up to 3 people, skipping invalid and repeated addresses', () => {
+    const lg = { emailNotificationEnabled: true, notificationEmail: 'a@x.com', notificationEmail2: ' B@x.com ', notificationEmail3: 'c@x.com' };
+    expect(savedNotifyEmails(lg)).toEqual(['a@x.com', 'B@x.com', 'c@x.com']);
+    expect(savedNotifyEmails({ ...lg, notificationEmail2: 'A@X.com', notificationEmail3: 'nope' })).toEqual(['a@x.com']);
+    expect(savedNotifyEmails({ ...lg, emailNotificationEnabled: false })).toEqual([]);
+    const lb = { emailEnabled: true, emailAddress: 'one@x.com', emailAddress2: { value: 'two@x.com' }, emailAddress3: 'three@x.com' };
+    expect(savedNotifyEmails(lb, true)).toEqual(['one@x.com', 'two@x.com', 'three@x.com']);
+    expect(savedNotifyEmails({ ...lb, emailEnabled: false }, true)).toEqual([]);
+    expect(savedNotifyEmails(null)).toEqual([]);
+    // an older project that only saved the single address still works
+    expect(savedNotifyEmails({ emailNotificationEnabled: true, notificationEmail: 'old@x.com' })).toEqual(['old@x.com']);
+    expect(uniqueEmails(['a@x.com', 'b@x.com', 'c@x.com', 'd@x.com'])).toHaveLength(3);
   });
 
   it('escapes viewer-supplied values and keeps the subject on one line', () => {

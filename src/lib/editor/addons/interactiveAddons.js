@@ -103,6 +103,8 @@ export const LEAD_FORM = registerAddon({
     webhookUrl: '',
     emailNotificationEnabled: false,
     notificationEmail: '',
+    notificationEmail2: '',
+    notificationEmail3: '',
     fbPixelId: '',
     espProvider: '',
     espListId: '',

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  submitLead, fetchLeads, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, deliveriesSummary, fetchSigningSecret, integrationStatusText, fetchIntegrations, saveIntegration, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
+  submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, deliveriesSummary, fetchSigningSecret, integrationStatusText, fetchIntegrations, saveIntegration, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   buildOptinForm, showListBuilderOverlay, showPauseOverlay, ensureOverlayLayer, formBackground,
   renderAddonEditor, getAddon,
@@ -31,7 +31,7 @@ describe('lead client', () => {
   it('submits through the lead-capture edge function', async () => {
     const supabase = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: true, stored: true, forwarded: 1, failed: 0 }, error: null }) } };
     const res = await submitLead(supabase, { projectId: 'p', clipId: 7, data: { EMAIL: 'a@b.c' }, webhooks: ['https://h.test'] });
-    expect(res).toEqual({ stored: true, forwarded: 1, failed: 0, email: null, error: null });
+    expect(res).toEqual({ stored: true, forwarded: 1, failed: 0, email: null, emailCount: 0, error: null });
     const [name, { body }] = supabase.functions.invoke.mock.calls[0];
     expect(name).toBe('lead-capture');
     expect(body).toMatchObject({ projectId: 'p', clipId: '7', kind: 'lead-form', data: { EMAIL: 'a@b.c' }, webhooks: ['https://h.test'] });
@@ -104,6 +104,23 @@ describe('lead client', () => {
     expect(on.find((f) => f.key === 'espListId').label).toBe('Kit tag ID (optional)');
     expect(on.find((f) => f.key === '_espConnect')).toMatchObject({ type: 'action', action: 'connectEsp', label: 'Connect Kit' });
     expect(tab({ kind: 'personalizer', espProvider: 'kit' })).toHaveLength(0);
+  });
+
+  it('collects up to 3 notification addresses and sends them to the backend', async () => {
+    expect(leadNotifyEmails(false, ['a@x.com'])).toEqual([]);
+    expect(leadNotifyEmails(true, [' a@x.com ', '', 'A@x.com', 'b@x.com', 'c@x.com', 'd@x.com'])).toEqual(['a@x.com', 'b@x.com', 'c@x.com']);
+    const supabase = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: true, stored: true, email: 'sent', emailCount: 3 }, error: null }) } };
+    const res = await submitLead(supabase, { clipId: 1, data: { EMAIL: 'v@x.com' }, notificationEmails: ['a@x.com', 'b@x.com', 'c@x.com'] });
+    const { body } = supabase.functions.invoke.mock.calls[0][1];
+    expect(body.notificationEmails).toEqual(['a@x.com', 'b@x.com', 'c@x.com']);
+    expect(body.notificationEmail).toBe('a@x.com'); // older deployed function still notifies the first person
+    expect(res).toMatchObject({ email: 'sent', emailCount: 3 });
+  });
+
+  it('list builder offers three notification addresses while email is on', () => {
+    const keys = (cfg) => listBuilderFields(cfg).filter((f) => f.tab === 'Integrations' && (!f.showIf || f.showIf(cfg))).map((f) => f.key);
+    expect(keys({ kind: 'list-builder', emailEnabled: true })).toEqual(expect.arrayContaining(['emailAddress', 'emailAddress2', 'emailAddress3']));
+    expect(keys({ kind: 'list-builder', emailEnabled: false })).not.toContain('emailAddress2');
   });
 
   it('list builder Integrations tab has a Test Webhook action only while webhooks are on', () => {

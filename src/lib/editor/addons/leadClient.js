@@ -56,14 +56,33 @@ export function sanitizeLeadData(data) {
  * Submit a lead. Returns { stored, forwarded, failed, error }.
  * `supabase` is the page's hybrid client (functions.invoke).
  */
-export async function submitLead(supabase, { projectId, clipId, kind = 'lead-form', data, webhooks = [], notificationEmail = '', preview = true }) {
+export const MAX_NOTIFY_EMAILS = 3;
+
+/** The addresses to notify (max 3, trimmed, no blanks, no repeats ignoring case); [] when notifications are off. */
+export function leadNotifyEmails(enabled, addresses = []) {
+  if (!enabled) return [];
+  const seen = new Set();
+  const out = [];
+  for (const raw of addresses) {
+    const v = typeof raw === 'string' ? raw.trim() : '';
+    if (!v || seen.has(v.toLowerCase())) continue;
+    seen.add(v.toLowerCase());
+    out.push(v);
+  }
+  return out.slice(0, MAX_NOTIFY_EMAILS);
+}
+
+export async function submitLead(supabase, { projectId, clipId, kind = 'lead-form', data, webhooks = [], notificationEmail = '', notificationEmails = [], preview = true }) {
+  const emails = leadNotifyEmails(true, [...notificationEmails, notificationEmail]);
   const payload = {
     projectId: projectId ? String(projectId) : null,
     clipId: clipId != null ? String(clipId) : null,
     kind,
     data: sanitizeLeadData(data),
     webhooks: webhooks.filter(isValidWebhookUrl),
-    notificationEmail: notificationEmail || null,
+    // The first address also goes in the old single field so an older deployed function still notifies someone.
+    notificationEmail: emails[0] || null,
+    notificationEmails: emails,
     preview,
     source: {
       page: typeof location !== 'undefined' ? location.href : null,
@@ -76,7 +95,7 @@ export async function submitLead(supabase, { projectId, clipId, kind = 'lead-for
       return { stored: false, forwarded: 0, failed: 0, email: null, error: error?.message || result?.error || 'Lead backend unavailable' };
     }
     // email: 'sent' | 'failed' | 'not_configured' | null (no notification address)
-    return { stored: !!result.stored, forwarded: result.forwarded || 0, failed: result.failed || 0, email: result.email ?? null, error: null };
+    return { stored: !!result.stored, forwarded: result.forwarded || 0, failed: result.failed || 0, email: result.email ?? null, emailCount: result.emailCount || 0, error: null };
   } catch (err) {
     return { stored: false, forwarded: 0, failed: 0, email: null, error: err?.message || String(err) };
   }

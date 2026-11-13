@@ -25,7 +25,7 @@ import {
   INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
-  submitLead, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
+  submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
@@ -1894,12 +1894,12 @@ export function TimelineEditorPage() {
             kind: 'lead-form',
             data,
             config: selected,
-            notificationEmail: selected.emailNotificationEnabled ? selected.notificationEmail : '',
+            notificationEmails: leadNotifyEmails(selected.emailNotificationEnabled, [selected.notificationEmail, selected.notificationEmail2, selected.notificationEmail3]),
           });
           const lastLead = selected._submittedLeads[selected._submittedLeads.length - 1];
           if (lastLead) lastLead._stored = !!res.stored;
           showToast(
-            leadResultMessage(res, selected.emailNotificationEnabled && selected.notificationEmail),
+            leadResultMessage(res, leadNotifyEmails(selected.emailNotificationEnabled, [selected.notificationEmail, selected.notificationEmail2, selected.notificationEmail3]).length > 0),
             res.failed ? 'error' : 'success',
           );
 
@@ -3210,6 +3210,8 @@ export function TimelineEditorPage() {
             webhookUrl3: clip.webhookUrl3,
             emailNotificationEnabled: clip.emailNotificationEnabled,
             notificationEmail: clip.notificationEmail,
+            notificationEmail2: clip.notificationEmail2,
+            notificationEmail3: clip.notificationEmail3,
             fbPixelId: clip.fbPixelId,
             espProvider: clip.espProvider,
             espListId: clip.espListId,
@@ -3821,8 +3823,16 @@ export function TimelineEditorPage() {
               <label for="lf-email-enabled"><input id="lf-email-enabled" type="checkbox" ${clip.emailNotificationEnabled ? 'checked' : ''} /> Email notification on submit</label>
             </div>
             <div class="clip-editor__field">
-              <label for="lf-email-address">Notification Address</label>
+              <label for="lf-email-address">Notification Address (person 1)</label>
               <input id="lf-email-address" type="email" value="${clip.notificationEmail || ''}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-address2">Notification Address (person 2, optional)</label>
+              <input id="lf-email-address2" type="email" value="${clip.notificationEmail2 || ''}" placeholder="teammate@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-address3">Notification Address (person 3, optional)</label>
+              <input id="lf-email-address3" type="email" value="${clip.notificationEmail3 || ''}" placeholder="partner@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
             </div>
             <div class="clip-editor__field">
               <label for="lf-fb-pixel">Facebook Pixel ID</label>
@@ -4097,10 +4107,12 @@ export function TimelineEditorPage() {
       }
       els.clipEditorContainer.querySelector('#lf-email-enabled').addEventListener('change', (e) => {
         clip.emailNotificationEnabled = e.target.checked;
-        els.clipEditorContainer.querySelector('#lf-email-address').disabled = !e.target.checked;
+        ['', '2', '3'].forEach((n) => { els.clipEditorContainer.querySelector(`#lf-email-address${n}`).disabled = !e.target.checked; });
       });
-      els.clipEditorContainer.querySelector('#lf-email-address').addEventListener('input', (e) => {
-        clip.notificationEmail = e.target.value;
+      [['', 'notificationEmail'], ['2', 'notificationEmail2'], ['3', 'notificationEmail3']].forEach(([n, key]) => {
+        els.clipEditorContainer.querySelector(`#lf-email-address${n}`).addEventListener('input', (e) => {
+          clip[key] = e.target.value;
+        });
       });
       els.clipEditorContainer.querySelector('#lf-fb-pixel').addEventListener('input', (e) => {
         clip.fbPixelId = e.target.value;
@@ -5537,7 +5549,7 @@ export function TimelineEditorPage() {
     // Shared lead capture: stores via the lead-capture edge function, which
     // also forwards webhooks server-side; falls back to posting webhooks from
     // the browser if the backend is unreachable.
-    async function captureLead({ clipId, kind, data, config, notificationEmail }) {
+    async function captureLead({ clipId, kind, data, config, notificationEmails = [] }) {
       const webhooks = webhookUrlsFor(config);
       const result = await submitLead(supabase, {
         projectId: state.projectId || currentTimelineId(state) || null,
@@ -5545,7 +5557,7 @@ export function TimelineEditorPage() {
         kind,
         data,
         webhooks,
-        notificationEmail,
+        notificationEmails,
         preview: true,
       });
       if (result.error) {
@@ -5560,7 +5572,7 @@ export function TimelineEditorPage() {
       if (res.forwarded || res.failed) {
         parts.push(res.failed ? `${res.failed} webhook(s) failed` : `sent to ${res.forwarded} webhook(s)`);
       }
-      if (res.email === 'sent') parts.push('notification email sent');
+      if (res.email === 'sent') parts.push(res.emailCount > 1 ? `notification email sent to ${res.emailCount} people` : 'notification email sent');
       else if (res.email === 'failed') parts.push('notification email failed');
       else if (res.email === 'not_configured') parts.push('notification email not set up on the server yet');
       else if (emailConfigured) parts.push('notification email not sent — check the address');
@@ -5611,7 +5623,7 @@ export function TimelineEditorPage() {
             kind: lb.kind,
             data,
             config: lb.kind === 'personalizer' ? null : listBuilderWebhookConfig(lb),
-            notificationEmail: lb.emailEnabled ? lb.emailAddress : '',
+            notificationEmails: leadNotifyEmails(lb.emailEnabled, [lb.emailAddress, lb.emailAddress2, lb.emailAddress3]),
           });
           lb._localLeads = [...(lb._localLeads || []), { ...data, submittedAt: new Date().toISOString(), _stored: !!res.stored }];
           if (lb.kind === 'personalizer') {
@@ -5623,7 +5635,7 @@ export function TimelineEditorPage() {
             window.fbq('trackSingle', lb.fbPixelId, 'Lead', data);
           }
           if (!preview) lb._submitted = true;
-          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : `${leadResultMessage(res, lb.emailEnabled && lb.emailAddress)} — {{tokens}} in the video now use these answers`, res.failed ? 'error' : 'success');
+          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : `${leadResultMessage(res, leadNotifyEmails(lb.emailEnabled, [lb.emailAddress, lb.emailAddress2, lb.emailAddress3]).length > 0)} — {{tokens}} in the video now use these answers`, res.failed ? 'error' : 'success');
           resume();
           return '';
         },
