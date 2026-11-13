@@ -156,6 +156,8 @@ let sourceVideoUrls = [];  // video src seen by each viewer
 async function openViewer(url) {
   const ctx = await newContext(browserRef, world);                  // no sub: anonymous
   const v = await ctx.newPage();
+  v.on('console', (m) => { if (['error', 'warning'].includes(m.type())) console.log(`[viewer ${m.type()}]`, m.text().slice(0, 220)); });
+  v.on('pageerror', (e) => console.log('[viewer pageerror]', String(e).slice(0, 220)));
   await v.goto(url, { waitUntil: 'domcontentloaded' });
   await v.locator('.watch-frame').waitFor({ timeout: 60000 });
   return { ctx, page: v };
@@ -251,6 +253,7 @@ test.describe('D. interactive behavior in the published player', () => {
   test('each recipient gets its own call number and website; the call attempt is recorded for the owner', async () => {
     const a = await openViewer(links.A); const b = await openViewer(links.B);
     for (const [v, who, other] of [[a.page, BUSINESSES.A, BUSINESSES.B], [b.page, BUSINESSES.B, BUSINESSES.A]]) {
+      await v.locator('[data-bigplay]').click();                    // the tap targets mount as the viewer plays, like a visitor would
       const tel = v.locator('.watch-frame a.wf-cta');
       await expect(tel).toHaveCount(1, { timeout: 30000 });
       await expect(tel).toHaveAttribute('href', `tel:${who.phone}`);
@@ -260,8 +263,9 @@ test.describe('D. interactive behavior in the published player', () => {
       await expect(site).toHaveAttribute('target', '_blank');
       await expect(site).toHaveAttribute('rel', /noopener/);
       expect(await v.locator('.watch-frame').innerHTML()).not.toContain(other.phone);
+      await v.locator('[data-play]').click();                       // pause so the targets stay put for the click below
     }
-    await a.page.locator('.watch-frame a.wf-cta').click({ noWaitAfter: true, trial: false }).catch(() => {});
+    await a.page.locator('.watch-frame a.wf-cta').dispatchEvent('click');                  // tel: is handed to the phone app; the app records the attempt
     await expect.poll(() => world.db.t.video_leads.some((l) => l.kind === 'call-attempt' && l.data?.PHONE === BUSINESSES.A.phone)).toBe(true);
     expect(world.db.t.video_leads.some((l) => l.kind === 'call-attempt' && l.data?.PHONE === BUSINESSES.B.phone)).toBe(false);
     await a.page.screenshot({ path: shot('D1-viewer-A-cta') });
