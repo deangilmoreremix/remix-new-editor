@@ -35,10 +35,10 @@ describe('templates', () => {
     expect(c.theme.accent).toBe(TEMPLATES[0].theme.accent);
     expect(c.theme.logoUrl).toBe('');
     expect(c.theme.font).toBe('system');
-    expect(c.headline).toHaveLength(160);
+    expect(c.headline).toHaveLength(200);
     expect(c.cta.url).toBe('');
     expect(c.cta.type).toBe('link');
-    expect(c.form.fields).toEqual([{ key: 'email', label: 'Email', type: 'email', required: false }]);
+    expect(c.form.fields).toEqual([{ key: 'email', label: 'Email', type: 'email', required: false, placeholder: '' }]);
     expect(c.sections).toHaveLength(6);
   });
 

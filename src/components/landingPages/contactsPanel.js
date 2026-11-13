@@ -14,6 +14,7 @@ const FIELD_LABELS = {
   firstname: 'First name',
   lastname: 'Last name',
   company: 'Company',
+  companylogo: 'Company logo (https image link)',
   role: 'Role',
   city: 'City',
   email: 'Email (kept private)',

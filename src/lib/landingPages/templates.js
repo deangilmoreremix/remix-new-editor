@@ -46,9 +46,10 @@ export const TEMPLATES = Object.freeze([
   {
     id: 'personal',
     name: 'Personal intro',
-    description: 'Made for one-to-one outreach: greets the viewer by name.',
-    theme: { mode: 'dark', accent: '#a78bfa', bg: '#1e1b4b', text: '#ede9fe', font: 'system' },
-    layout: 'stack',
+    description: 'One-to-one outreach: co-branded header, greets the viewer by name, video with a personal caption, story and form.',
+    theme: { mode: 'dark', accent: '#ef5350', highlight: '#6366f1', bg: '#0a0c12', text: '#ffffff', font: 'system' },
+    layout: 'intro',
+    customPlayer: true,
   },
 ]);
 
@@ -60,7 +61,10 @@ export const FONTS = Object.freeze({
 });
 
 /** Token keys a viewer is allowed to see (must match landing_page_contact_tokens). */
-export const PUBLIC_TOKEN_KEYS = Object.freeze(['firstname', 'lastname', 'company', 'role', 'city', 'custom1', 'custom2', 'custom3']);
+export const PUBLIC_TOKEN_KEYS = Object.freeze(['firstname', 'lastname', 'company', 'companylogo', 'role', 'city', 'custom1', 'custom2', 'custom3']);
+
+/** Token keys that carry an image URL: never accepted from the page URL, https only when rendered. */
+export const IMAGE_TOKEN_KEYS = Object.freeze(['companylogo']);
 
 export const FORM_FIELD_TYPES = Object.freeze(['text', 'email', 'tel', 'textarea']);
 
@@ -86,11 +90,11 @@ export function safeImageUrl(value) {
 export function defaultConfig(templateId = 'clean', { title = '', brand = {} } = {}) {
   const t = getTemplate(templateId);
   const personal = t.id === 'personal';
-  return sanitizeConfig({
+  const base = {
     template: t.id,
     theme: { ...t.theme, ...(brand.accent ? { accent: brand.accent } : {}), logoUrl: brand.logoUrl || '' },
-    headline: personal ? 'Hi {{firstname|there}}, I made this for you' : title || 'Watch this video',
-    subhead: personal ? 'A quick personal video for {{company|your team}}.' : '',
+    headline: title || 'Watch this video',
+    subhead: '',
     cta: { label: 'Book a call', url: '', type: 'link' },
     form: {
       enabled: t.id === 'sales',
@@ -107,7 +111,66 @@ export function defaultConfig(templateId = 'clean', { title = '', brand = {} } =
       : [],
     consent: { notice: '' },
     autoplay: false,
+  };
+  if (!personal) return sanitizeConfig(base);
+
+  // Personal intro: the co-branded one-to-one page. Copy is a starting point the
+  // sender edits; nothing here claims results, customers or quotes.
+  return sanitizeConfig({
+    ...base,
+    brand: { name: brand.name || '', tagline: 'A personal video from {{sender|me}}' },
+    badge: 'Made for {{firstname|you}} at {{company|your team}}',
+    headline: "Hi {{firstname|there}}, here's a quick video for [[{{company|your team}}]]",
+    subhead: 'I recorded this just for you. Press play to see what I had in mind.',
+    cta: { label: 'Watch your video', url: '', type: 'play' },
+    overlay: { title: '{{firstname|Hi}}, welcome to {{company|our team}}', subtitle: 'Personalized for you · {{duration}}' },
+    story: {
+      heading: "What I'd like to show you",
+      body: ['Hi {{firstname|there}}, add a short note here about why you made this video for {{company|your team}}.', 'Say what the video covers and what you would like them to do next.'],
+    },
+    sender: { name: '', title: '', avatarUrl: '' },
+    form: {
+      enabled: true,
+      title: 'Want to talk it through?',
+      subtitle: "Leave your details and I'll get back to you.",
+      submitLabel: 'Send',
+      successMessage: 'Thanks! I will be in touch soon.',
+      privacy: 'Your details go only to {{sender|me}}. No spam.',
+      fields: [
+        { key: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Your name' },
+        { key: 'email', label: 'Work email', type: 'email', required: true, placeholder: 'you@company.com' },
+        { key: 'message', label: 'Message (optional)', type: 'textarea', required: false, placeholder: 'Anything you would like me to know' },
+      ],
+    },
+    testimonial: { quote: '', by: '' },
+    logos: [],
+    footer: { text: 'Sent by {{sender|me}} · {{brand}}', optOutUrl: '' },
   });
+}
+
+const isEmptyBlock = (v) => {
+  if (v == null || v === '') return true;
+  if (Array.isArray(v)) return v.length === 0 || v.every(isEmptyBlock);
+  if (typeof v === 'object') return Object.values(v).every(isEmptyBlock);
+  return false;
+};
+
+/**
+ * Switch template but keep what the user wrote: the new template's theme is applied
+ * (the user's logo is kept), and only content blocks that are still empty are filled
+ * from the new template's defaults.
+ */
+export function applyTemplate(config, templateId, opts = {}) {
+  const current = sanitizeConfig(config);
+  const next = defaultConfig(templateId, opts);
+  const merged = { ...current, template: next.template, theme: { ...next.theme, logoUrl: current.theme.logoUrl || next.theme.logoUrl } };
+  ['brand', 'badge', 'overlay', 'story', 'sender', 'testimonial', 'logos', 'footer'].forEach((k) => {
+    if (isEmptyBlock(current[k])) merged[k] = next[k];
+  });
+  if (!current.headline) merged.headline = next.headline;
+  if (!current.subhead) merged.subhead = next.subhead;
+  if (!current.form.enabled && next.form.enabled) merged.form = next.form;
+  return sanitizeConfig(merged);
 }
 
 /** Make any stored/edited config safe and complete. Never throws. */
@@ -126,41 +189,92 @@ export function sanitizeConfig(input) {
       label: clip(f?.label, 80),
       type: FORM_FIELD_TYPES.includes(f?.type) ? f.type : 'text',
       required: !!f?.required,
+      placeholder: clip(f?.placeholder, 80),
     }))
     .filter((f) => f.key && f.label && !seen.has(f.key) && seen.add(f.key))
     .slice(0, 8);
+
+  const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  const brand = obj(c.brand);
+  const overlay = obj(c.overlay);
+  const story = obj(c.story);
+  const sender = obj(c.sender);
+  const testimonial = obj(c.testimonial);
+  const footer = obj(c.footer);
+  const accent = color(theme.accent, t.theme.accent);
+  const logos = (Array.isArray(c.logos) ? c.logos : [])
+    .map((l) => ({ name: clip(l?.name, 60), imageUrl: safeImageUrl(l?.imageUrl) }))
+    .filter((l) => l.name || l.imageUrl)
+    .slice(0, 6);
 
   return {
     template: t.id,
     theme: {
       mode: theme.mode === 'dark' ? 'dark' : theme.mode === 'light' ? 'light' : t.theme.mode,
-      accent: color(theme.accent, t.theme.accent),
+      accent,
+      highlight: color(theme.highlight, t.theme.highlight || accent),
       bg: color(theme.bg, t.theme.bg),
       text: color(theme.text, t.theme.text),
       font: Object.prototype.hasOwnProperty.call(FONTS, theme.font) ? theme.font : t.theme.font,
       logoUrl: safeImageUrl(theme.logoUrl),
     },
-    headline: clip(c.headline, 160),
+    brand: { name: clip(brand.name, 60), tagline: clip(brand.tagline, 100) },
+    badge: clip(c.badge, 100),
+    headline: clip(c.headline, 200),
     subhead: clip(c.subhead, 300),
     cta: {
       label: clip(cta.label, 60),
       url: safeUrl(cta.url),
-      type: ['link', 'phone', 'calendar'].includes(cta.type) ? cta.type : 'link',
+      type: ['link', 'phone', 'calendar', 'play'].includes(cta.type) ? cta.type : 'link',
     },
+    overlay: { title: clip(overlay.title, 100), subtitle: clip(overlay.subtitle, 100) },
+    story: {
+      heading: clip(story.heading, 120),
+      body: (Array.isArray(story.body) ? story.body : []).map((p) => clip(p, 600)).filter((p) => p.trim()).slice(0, 4),
+    },
+    sender: { name: clip(sender.name, 80), title: clip(sender.title, 100), avatarUrl: safeImageUrl(sender.avatarUrl) },
     form: {
       enabled: !!form.enabled && fields.length > 0,
       title: clip(form.title, 120),
+      subtitle: clip(form.subtitle, 200),
       submitLabel: clip(form.submitLabel, 40) || 'Send',
       successMessage: clip(form.successMessage, 200),
+      privacy: clip(form.privacy, 200),
       fields,
     },
     sections: (Array.isArray(c.sections) ? c.sections : [])
       .map((s) => ({ heading: clip(s?.heading, 120), body: clip(s?.body, 1000) }))
       .filter((s) => s.heading || s.body)
       .slice(0, 6),
+    testimonial: { quote: clip(testimonial.quote, 280), by: clip(testimonial.by, 120) },
+    logos,
+    footer: { text: clip(footer.text, 160), optOutUrl: safeUrl(footer.optOutUrl) },
     consent: { notice: clip(c.consent?.notice, 300) },
     autoplay: !!c.autoplay,
   };
+}
+
+/** Split `[[highlighted]]` markers out of a headline (before token filling, so a token value can't add markers). */
+export function splitAccent(text) {
+  const out = [];
+  const re = /\[\[([^\]]{1,120})\]\]/g;
+  let last = 0;
+  let m;
+  const s = String(text ?? '');
+  while ((m = re.exec(s))) {
+    if (m.index > last) out.push({ text: s.slice(last, m.index), accent: false });
+    out.push({ text: m[1], accent: true });
+    last = m.index + m[0].length;
+  }
+  if (last < s.length) out.push({ text: s.slice(last), accent: false });
+  return out;
+}
+
+/** Format seconds as m:ss ('' when unknown). */
+export function formatDuration(seconds) {
+  const n = Math.round(Number(seconds));
+  if (!Number.isFinite(n) || n <= 0) return '';
+  return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
 }
 
 /**
@@ -178,15 +292,21 @@ export function fillTokens(text, tokens = {}) {
 /** Token names used in a config, for the studio's "tokens in this page" hint. */
 export function tokensUsed(config) {
   const c = sanitizeConfig(config);
-  const blob = [c.headline, c.subhead, c.cta.label, c.form.title, c.form.successMessage, ...c.sections.flatMap((s) => [s.heading, s.body])].join(' ');
-  return [...new Set([...blob.matchAll(/\{\{\s*([a-zA-Z0-9_]{1,40})/g)].map((m) => m[1]))];
+  const blob = [
+    c.headline, c.subhead, c.badge, c.brand.tagline, c.cta.label, c.overlay.title, c.overlay.subtitle,
+    c.story.heading, ...c.story.body, c.form.title, c.form.subtitle, c.form.successMessage, c.form.privacy,
+    c.footer.text, ...c.sections.flatMap((s) => [s.heading, s.body]),
+  ].join(' ');
+  // sender, brand and duration come from the page itself, not from a contact.
+  const own = new Set(['sender', 'brand', 'duration']);
+  return [...new Set([...blob.matchAll(/\{\{\s*([a-zA-Z0-9_]{1,40})/g)].map((m) => m[1]))].filter((k) => !own.has(k));
 }
 
 /** Keep only viewer-visible keys from tokens given in a URL (?firstname=Ann). */
 export function tokensFromQuery(search = '') {
   const params = new URLSearchParams(search);
   const out = {};
-  PUBLIC_TOKEN_KEYS.forEach((k) => {
+  PUBLIC_TOKEN_KEYS.filter((k) => !IMAGE_TOKEN_KEYS.includes(k)).forEach((k) => {
     const v = params.get(k);
     if (v) out[k] = v.slice(0, 80);
   });

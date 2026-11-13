@@ -17,7 +17,7 @@ const ID = /^[A-Za-z0-9_-]{8,32}$/;
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const https = (u) => (/^https:\/\//i.test(String(u || '')) ? String(u) : '');
 // Preview text: drop {{token|fallback}} markers, keeping the fallback.
-const plain = (s) => String(s ?? '').replace(/\{\{\s*[a-zA-Z0-9_]{1,40}\s*(?:\|([^}]{0,80}))?\}\}/g, (_, fb) => (fb || '').trim()).replace(/\s+/g, ' ').trim();
+const plain = (s) => String(s ?? '').replace(/\{\{\s*[a-zA-Z0-9_]{1,40}\s*(?:\|([^}]{0,80}))?\}\}/g, (_, fb) => (fb || '').trim()).replace(/\[\[|\]\]/g, '').replace(/\s+/g, ' ').trim();
 
 async function loadPage(id) {
   const base = (Netlify.env.get('VITE_SUPABASE_URL') || Netlify.env.get('SUPABASE_URL') || '').replace(/\/$/, '');

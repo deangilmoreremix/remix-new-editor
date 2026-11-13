@@ -52,6 +52,7 @@ const HEADER_GUESSES = [
   ['email', /^(e-?mail|email address|mail)$/i],
   ['firstname', /^(first ?name|first_name|given ?name|forename|fname)$/i],
   ['lastname', /^(last ?name|last_name|surname|family ?name|lname)$/i],
+  ['companylogo', /^(company logo|logo|logo url|company logo url)$/i],
   ['company', /^(company|company name|organi[sz]ation|business|employer|account)$/i],
   ['role', /^(role|title|job ?title|position)$/i],
   ['city', /^(city|town|location)$/i],
@@ -88,6 +89,8 @@ export function buildContacts(rows, mapping, { existing = new Set(), limit = MAX
       const v = String(row[i] ?? '').trim().slice(0, 200);
       if (v && !(f in fields)) fields[f] = v;
     });
+    // A logo must be an https image link; anything else is dropped (the contact is still imported).
+    if (fields.companylogo && !/^https:\/\/\S+$/i.test(fields.companylogo)) delete fields.companylogo;
     if (!Object.keys(fields).length) { skipped.push({ line, reason: 'empty' }); return; }
     if (fields.email && !EMAIL.test(fields.email)) { skipped.push({ line, reason: 'invalid email' }); return; }
     if (usesEmail && !fields.email) { skipped.push({ line, reason: 'missing email' }); return; }

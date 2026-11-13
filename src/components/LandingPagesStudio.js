@@ -10,7 +10,7 @@ import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
-import { TEMPLATES, sanitizeConfig, defaultConfig, tokensUsed } from '../lib/landingPages/templates.js';
+import { TEMPLATES, sanitizeConfig, defaultConfig, applyTemplate, tokensUsed } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
@@ -362,10 +362,55 @@ export function LandingPagesStudio() {
       TEMPLATES.forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
       tplSel.value = current.config.template;
       tplSel.addEventListener('change', () => {
-        // Switching template restyles but keeps the copy the user wrote.
-        const next = defaultConfig(tplSel.value, { title: titleInput.value, brand: brandDefaults() });
-        set((c) => { Object.assign(c, { template: next.template, theme: { ...next.theme, logoUrl: c.theme.logoUrl || next.theme.logoUrl } }); });
+        // Switching template restyles but keeps the copy the user wrote; empty blocks get the new template's defaults.
+        current.config = applyTemplate(current.config, tplSel.value, { title: titleInput.value, brand: brandDefaults() });
+        markDirty();
+        draw(); // every control reflects the new config
       });
+
+      const select = (label, options, get, apply) => {
+        const s = el('select', INPUT);
+        options.forEach(([v, l]) => { const o = el('option', '', l); o.value = v; s.appendChild(o); });
+        s.value = get();
+        s.addEventListener('change', () => set((c) => apply(c, s.value)));
+        return field(label, s);
+      };
+      const color = (label, get, apply) => {
+        const i = el('input', 'h-9 w-full rounded-lg border border-white/10 bg-transparent');
+        i.type = 'color';
+        i.value = get();
+        i.addEventListener('input', () => set((c) => apply(c, i.value)));
+        return field(label, i);
+      };
+      // One text area edits a list: paragraphs split on blank lines.
+      const paragraphs = (label, get, apply) => {
+        const a = el('textarea', INPUT);
+        a.rows = 5;
+        a.value = get().join('\n\n');
+        a.addEventListener('input', () => set((c) => apply(c, a.value.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean))));
+        return field(label, a);
+      };
+      // One logo per line: "Name" or "Name | https://image-link".
+      const logoLines = (label, get, apply) => {
+        const a = el('textarea', INPUT);
+        a.rows = 3;
+        a.placeholder = 'Acme\nGlobex | https://example.com/globex.png';
+        a.value = get().map((l) => (l.imageUrl ? `${l.name} | ${l.imageUrl}` : l.name)).join('\n');
+        a.addEventListener('input', () => set((c) => apply(c, a.value.split('\n').map((line) => {
+          const [name, imageUrl] = line.split('|').map((x) => x.trim());
+          return { name: name || '', imageUrl: imageUrl || '' };
+        }).filter((l) => l.name || l.imageUrl))));
+        return field(label, a);
+      };
+      const group = (title, open, ...children) => {
+        const d = el('details', 'rounded-xl border border-white/10 p-3');
+        d.open = open;
+        d.appendChild(el('summary', 'cursor-pointer text-xs font-extrabold uppercase tracking-wide text-primary', title));
+        const inner = el('div', 'flex flex-col gap-3 mt-3');
+        inner.append(...children);
+        d.appendChild(inner);
+        return d;
+      };
 
       const accent = el('input', 'h-9 w-full rounded-lg border border-white/10 bg-transparent');
       accent.type = 'color';
@@ -410,18 +455,48 @@ export function LandingPagesStudio() {
         text('headline', 'Headline'),
         text('subhead', 'Subheadline', { area: true }),
         hint,
-        field('Accent color', accent),
-        text('logoUrl', 'Logo image URL (https)', { path: ['theme'] }),
-        el('h3', 'text-xs font-extrabold uppercase tracking-wide text-primary mt-2', 'Call to action'),
-        text('label', 'Button text', { path: ['cta'] }),
-        text('url', 'Button link (https, mailto: or tel:)', { path: ['cta'] }),
-        el('h3', 'text-xs font-extrabold uppercase tracking-wide text-primary mt-2', 'Lead form'),
-        formToggleLabel,
-        (() => { const r = el('div', 'flex flex-wrap gap-3'); r.append(...fieldChecks); return r; })(),
-        text('title', 'Form title', { path: ['form'] }),
-        text('successMessage', 'Thank-you message', { path: ['form'] }),
-        el('h3', 'text-xs font-extrabold uppercase tracking-wide text-primary mt-2', 'Privacy'),
-        text('notice', 'Notice shown under the page (optional)', { path: ['consent'], area: true }),
+        field('Accent color (buttons)', accent),
+        color('Highlight color (company name in headline)', () => current.config.theme.highlight, (c, v) => { c.theme.highlight = v; }),
+        group('Header & branding', current.config.template === 'personal',
+          text('logoUrl', 'Your logo image URL (https)', { path: ['theme'] }),
+          text('name', 'Your brand name', { path: ['brand'] }),
+          text('tagline', 'Header tagline', { path: ['brand'] }),
+          text('badge', 'Pill above the headline'),
+        ),
+        group('Call to action', true,
+          select('Button does', [['play', 'Play the video'], ['link', 'Open a link']], () => (current.config.cta.type === 'play' ? 'play' : 'link'), (c, v) => { c.cta.type = v; }),
+          text('label', 'Button text', { path: ['cta'] }),
+          text('url', 'Button link (https, mailto: or tel:)', { path: ['cta'] }),
+        ),
+        group('Video caption', current.config.template === 'personal',
+          text('title', 'Caption title', { path: ['overlay'] }),
+          text('subtitle', 'Caption line (use {{duration}} for the length)', { path: ['overlay'] }),
+        ),
+        group('Story & sender', current.config.template === 'personal',
+          text('heading', 'Story heading', { path: ['story'] }),
+          paragraphs('Story paragraphs (blank line between)', () => current.config.story.body, (c, v) => { c.story.body = v; }),
+          text('name', 'Sender name', { path: ['sender'] }),
+          text('title', 'Sender role', { path: ['sender'] }),
+          text('avatarUrl', 'Sender photo URL (https)', { path: ['sender'] }),
+        ),
+        group('Lead form', true,
+          formToggleLabel,
+          (() => { const r = el('div', 'flex flex-wrap gap-3'); r.append(...fieldChecks); return r; })(),
+          text('title', 'Form title', { path: ['form'] }),
+          text('subtitle', 'Form subtitle', { path: ['form'] }),
+          text('privacy', 'Line under the button', { path: ['form'] }),
+          text('successMessage', 'Thank-you message', { path: ['form'] }),
+        ),
+        group('Social proof & footer', false,
+          text('quote', 'Testimonial quote (only add one you have permission to use)', { path: ['testimonial'], area: true }),
+          text('by', 'Testimonial attribution', { path: ['testimonial'] }),
+          logoLines('Customer logos (one per line)', () => current.config.logos, (c, v) => { c.logos = v; }),
+          text('text', 'Footer text', { path: ['footer'] }),
+          text('optOutUrl', 'Opt-out link (mailto: or https). Leave empty to show none', { path: ['footer'] }),
+        ),
+        group('Privacy notice', false,
+          text('notice', 'Notice shown under the page (optional)', { path: ['consent'], area: true }),
+        ),
         sampleLabel,
       );
       form.addEventListener('input', updateHint);

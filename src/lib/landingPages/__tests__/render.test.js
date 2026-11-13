@@ -10,10 +10,10 @@ describe('renderLandingPage', () => {
   it('fills tokens and falls back when missing', () => {
     const cfg = defaultConfig('personal');
     const withName = renderLandingPage({ page: page(cfg), tokens: { firstname: 'Ann', company: 'Acme' } });
-    expect(withName.root.querySelector('.vp-headline').textContent).toBe('Hi Ann, I made this for you');
-    expect(withName.root.querySelector('.vp-subhead').textContent).toContain('Acme');
+    expect(withName.root.querySelector('.vp-headline').textContent).toBe("Hi Ann, here's a quick video for Acme");
+    expect(withName.root.querySelector('.vp-pill').textContent).toBe('Made for Ann at Acme');
     const anon = renderLandingPage({ page: page(cfg), tokens: {} });
-    expect(anon.root.querySelector('.vp-headline').textContent).toBe('Hi there, I made this for you');
+    expect(anon.root.querySelector('.vp-headline').textContent).toBe("Hi there, here's a quick video for your team");
     expect(anon.root.textContent).not.toContain('{{');
   });
 

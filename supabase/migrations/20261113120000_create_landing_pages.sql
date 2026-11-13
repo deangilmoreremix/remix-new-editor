@@ -165,7 +165,7 @@ set search_path = ''
 as $$
   select coalesce(
     jsonb_object_agg(kv.key, kv.value) filter (
-      where kv.key in ('firstname', 'lastname', 'company', 'role', 'city', 'custom1', 'custom2', 'custom3')
+      where kv.key in ('firstname', 'lastname', 'company', 'companylogo', 'role', 'city', 'custom1', 'custom2', 'custom3')
     ),
     '{}'::jsonb
   )

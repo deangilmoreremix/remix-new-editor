@@ -4,7 +4,9 @@
  * is exactly what viewers get. All user text goes in through textContent, and
  * every URL passes safeUrl/safeImageUrl, so a hostile config can't inject markup.
  */
-import { getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, FONTS } from './templates.js';
+import {
+  getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, splitAccent, formatDuration, FONTS,
+} from './templates.js';
 
 const PROGRESS_MARKS = [
   { at: 0.25, kind: 'progress_25' },
@@ -19,10 +21,39 @@ function h(doc, tag, className, text) {
   return node;
 }
 
+const clock = (s) => {
+  const n = Math.max(0, Math.floor(Number(s) || 0));
+  return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
+};
+
+/** play() returns a promise in browsers and undefined in some environments; never throw. */
+function tryPlay(video) {
+  try {
+    const p = video.play?.();
+    p?.catch?.(() => {});
+  } catch { /* autoplay blocked or unsupported */ }
+}
+
+/** Trailing separators left behind when a token in the footer is empty ("Sent by Dean · "). */
+const tidy = (s) => s.replace(/\s*[·|•-]\s*$/, '').trim();
+
+/** A logo image, or a coloured letter tile when there is no image. */
+function mark(doc, { imageUrl, name, className }) {
+  const url = safeImageUrl(imageUrl);
+  if (url) {
+    const img = h(doc, 'img', `vp-mark vp-mark--img ${className || ''}`);
+    img.src = url;
+    img.alt = '';
+    img.loading = 'eager';
+    return img;
+  }
+  return h(doc, 'span', `vp-mark ${className || ''}`, (String(name || '?').trim()[0] || '?').toUpperCase());
+}
+
 /**
  * @param {object} o
- *   page      { title, video_url, poster_url, config }
- *   tokens    { firstname, company, ... }
+ *   page      { title, video_url, poster_url, duration, config }
+ *   tokens    { firstname, company, companylogo, ... }  (contact / URL values)
  *   handlers  { onPlay, onProgress(kind), onComplete, onCta, onLead(data) -> Promise<{stored,error}> }
  *   preview   true in the studio (no events, form submit is a no-op message)
  * @returns {{ root: HTMLElement, video: HTMLVideoElement, destroy(): void }}
@@ -30,16 +61,40 @@ function h(doc, tag, className, text) {
 export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = false, doc = globalThis.document }) {
   const config = sanitizeConfig(page?.config);
   const tpl = getTemplate(config.template);
-  const t = (s) => fillTokens(s, tokens);
   const theme = config.theme;
+  // Page-owned tokens always win over contact values so a contact can't spoof the sender.
+  const own = { ...tokens, sender: config.sender.name, brand: config.brand.name, duration: formatDuration(page?.duration) };
+  const t = (s) => fillTokens(s, own);
 
   const root = h(doc, 'div', `vp vp--${tpl.id} vp--${tpl.layout} vp--${theme.mode}`);
   root.style.setProperty('--vp-accent', theme.accent);
+  root.style.setProperty('--vp-highlight', theme.highlight);
   root.style.setProperty('--vp-bg', theme.bg);
   root.style.setProperty('--vp-text', theme.text);
   root.style.setProperty('--vp-font', FONTS[theme.font]);
 
-  if (theme.logoUrl) {
+  // ---- top bar: co-branded (sender × recipient) or a plain logo
+  const company = (own.company || '').trim();
+  const tagline = t(config.brand.tagline);
+  if (config.brand.name || tagline || (tpl.customPlayer && company)) {
+    const top = h(doc, 'header', 'vp-top');
+    const brandBox = h(doc, 'div', 'vp-cobrand');
+    if (config.brand.name || theme.logoUrl) {
+      const me = h(doc, 'span', 'vp-brand-item');
+      me.append(mark(doc, { imageUrl: theme.logoUrl, name: config.brand.name, className: 'vp-mark--sender' }));
+      if (config.brand.name) me.appendChild(h(doc, 'span', 'vp-brand-name', config.brand.name));
+      brandBox.appendChild(me);
+    }
+    if (company) {
+      if (brandBox.childNodes.length) brandBox.appendChild(h(doc, 'span', 'vp-times', '×'));
+      const them = h(doc, 'span', 'vp-brand-item');
+      them.append(mark(doc, { imageUrl: own.companylogo, name: company, className: 'vp-mark--recipient' }), h(doc, 'span', 'vp-brand-name', company));
+      brandBox.appendChild(them);
+    }
+    top.appendChild(brandBox);
+    if (tagline) top.appendChild(h(doc, 'span', 'vp-tagline', tagline));
+    root.appendChild(top);
+  } else if (theme.logoUrl) {
     const head = h(doc, 'header', 'vp-brand');
     const img = h(doc, 'img', 'vp-logo');
     img.src = safeImageUrl(theme.logoUrl);
@@ -52,28 +107,28 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   const main = h(doc, 'main', 'vp-main');
   root.appendChild(main);
 
-  // ---- copy (headline, subhead, CTA)
+  // ---- copy (pill, headline, subhead, CTA)
   const copy = h(doc, 'section', 'vp-copy');
-  const headline = t(config.headline);
-  if (headline) copy.appendChild(h(doc, 'h1', 'vp-headline', headline));
+  const badge = t(config.badge);
+  if (badge) copy.appendChild(h(doc, 'span', 'vp-pill', badge));
+  if (config.headline) {
+    const hl = h(doc, 'h1', 'vp-headline');
+    splitAccent(config.headline).forEach((part) => {
+      const txt = t(part.text);
+      if (!txt) return;
+      hl.appendChild(part.accent ? h(doc, 'span', 'vp-accent', txt) : doc.createTextNode(txt));
+    });
+    if (hl.childNodes.length) copy.appendChild(hl);
+  }
   const subhead = t(config.subhead);
   if (subhead) copy.appendChild(h(doc, 'p', 'vp-subhead', subhead));
 
-  const ctaLabel = t(config.cta.label);
-  const ctaUrl = safeUrl(config.cta.url);
-  if (ctaLabel && ctaUrl) {
-    const ctaEl = h(doc, 'a', 'vp-cta', ctaLabel);
-    ctaEl.href = ctaUrl;
-    if (/^https?:/i.test(ctaUrl)) { ctaEl.target = '_blank'; ctaEl.rel = 'noopener noreferrer'; }
-    ctaEl.addEventListener('click', () => { if (!preview) handlers.onCta?.(); });
-    copy.appendChild(ctaEl);
-  }
-
   // ---- video
   const media = h(doc, 'section', 'vp-media');
+  const player = h(doc, 'div', 'vp-player');
   const frame = h(doc, 'div', 'vp-frame');
   const video = h(doc, 'video', 'vp-video');
-  video.controls = true;
+  video.controls = !tpl.customPlayer;
   video.playsInline = true;
   video.preload = 'metadata';
   video.setAttribute('aria-label', page?.title || 'Video');
@@ -83,23 +138,119 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   if (src) video.src = src;
   if (config.autoplay && !preview) { video.muted = true; video.autoplay = true; }
   frame.appendChild(video);
-  media.appendChild(frame);
+  player.appendChild(frame);
+  media.appendChild(player);
+
+  const cleanups = [];
+  const listen = (target, type, fn) => { target.addEventListener(type, fn); cleanups.push(() => target.removeEventListener(type, fn)); };
+
+  if (tpl.customPlayer) {
+    const bigPlay = h(doc, 'button', 'vp-bigplay');
+    bigPlay.type = 'button';
+    bigPlay.setAttribute('aria-label', 'Play video');
+    bigPlay.innerHTML = '<svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
+
+    const caption = h(doc, 'div', 'vp-caption');
+    const capTitle = h(doc, 'div', 'vp-caption-title');
+    const capSub = h(doc, 'div', 'vp-caption-sub');
+    const durBadge = h(doc, 'span', 'vp-dur');
+    caption.append(capTitle, capSub);
+    const paintCaption = () => {
+      capTitle.textContent = t(config.overlay.title);
+      capSub.textContent = t(config.overlay.subtitle);
+      durBadge.textContent = own.duration;
+      caption.hidden = !capTitle.textContent && !capSub.textContent;
+      durBadge.hidden = !own.duration;
+    };
+    paintCaption();
+    frame.append(caption, durBadge, bigPlay);
+
+    const bar = h(doc, 'div', 'vp-bar');
+    const playBtn = h(doc, 'button', 'vp-bar-btn', '▶');
+    playBtn.type = 'button';
+    playBtn.setAttribute('aria-label', 'Play');
+    const cur = h(doc, 'span', 'vp-time', '0:00');
+    const seek = h(doc, 'input', 'vp-seek');
+    seek.type = 'range';
+    seek.min = '0'; seek.max = '1000'; seek.step = '1'; seek.value = '0';
+    seek.setAttribute('aria-label', 'Seek');
+    const total = h(doc, 'span', 'vp-time', own.duration || '0:00');
+    const fs = h(doc, 'button', 'vp-bar-btn', '⛶');
+    fs.type = 'button';
+    fs.setAttribute('aria-label', 'Full screen');
+    bar.append(playBtn, cur, seek, total, fs);
+    player.appendChild(bar);
+
+    const toggle = () => { if (video.paused) tryPlay(video); else video.pause(); };
+    const paint = () => {
+      const playing = !video.paused && !video.ended;
+      playBtn.textContent = playing ? '❚❚' : '▶';
+      playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+      bigPlay.hidden = playing || video.currentTime > 0.05;
+      caption.hidden = caption.hidden || (playing || video.currentTime > 0.05);
+      durBadge.hidden = !own.duration || playing || video.currentTime > 0.05;
+    };
+    listen(bigPlay, 'click', toggle);
+    listen(playBtn, 'click', toggle);
+    listen(frame, 'click', (e) => { if (e.target === video) toggle(); });
+    listen(video, 'play', paint);
+    listen(video, 'pause', paint);
+    listen(video, 'ended', paint);
+    listen(video, 'timeupdate', () => {
+      cur.textContent = clock(video.currentTime);
+      if (video.duration) seek.value = String(Math.round((video.currentTime / video.duration) * 1000));
+    });
+    listen(video, 'loadedmetadata', () => {
+      if (!own.duration && Number.isFinite(video.duration)) {
+        own.duration = formatDuration(video.duration);
+        total.textContent = own.duration;
+        paintCaption();
+        paint();
+      }
+    });
+    listen(seek, 'input', () => { if (video.duration) video.currentTime = (Number(seek.value) / 1000) * video.duration; });
+    listen(fs, 'click', () => { if (doc.fullscreenElement) doc.exitFullscreen?.(); else player.requestFullscreen?.(); });
+    paint();
+  }
+
+  // ---- CTA
+  const ctaLabel = t(config.cta.label);
+  if (ctaLabel && config.cta.type === 'play') {
+    const btn = h(doc, 'button', 'vp-cta vp-cta--play');
+    btn.type = 'button';
+    btn.append(h(doc, 'span', 'vp-cta-icon', '▶'), doc.createTextNode(` ${ctaLabel}`));
+    btn.addEventListener('click', () => {
+      media.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+      tryPlay(video);
+    });
+    copy.appendChild(btn);
+  } else if (ctaLabel && safeUrl(config.cta.url)) {
+    const url = safeUrl(config.cta.url);
+    const a = h(doc, 'a', 'vp-cta', ctaLabel);
+    a.href = url;
+    if (/^https?:/i.test(url)) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+    a.addEventListener('click', () => { if (!preview) handlers.onCta?.(); });
+    copy.appendChild(a);
+  }
 
   main.append(copy, media);
 
   // ---- lead form
+  let formBox = null;
   if (config.form.enabled) {
-    const box = h(doc, 'section', 'vp-form');
+    formBox = h(doc, 'section', 'vp-form');
     const title = t(config.form.title);
-    if (title) box.appendChild(h(doc, 'h2', 'vp-form-title', title));
+    if (title) formBox.appendChild(h(doc, 'h2', 'vp-form-title', title));
+    const sub = t(config.form.subtitle);
+    if (sub) formBox.appendChild(h(doc, 'p', 'vp-form-sub', sub));
     const form = h(doc, 'form', 'vp-form-body');
-    form.noValidate = false;
     config.form.fields.forEach((f) => {
       const label = h(doc, 'label', 'vp-field');
       label.appendChild(h(doc, 'span', 'vp-field-label', f.label + (f.required ? ' *' : '')));
       const input = h(doc, f.type === 'textarea' ? 'textarea' : 'input', 'vp-input');
       if (f.type !== 'textarea') input.type = f.type;
       else input.rows = 3;
+      if (f.placeholder) input.placeholder = t(f.placeholder);
       input.name = f.key;
       input.required = f.required;
       input.maxLength = 2000;
@@ -111,6 +262,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
     const status = h(doc, 'p', 'vp-status');
     status.setAttribute('role', 'status');
     form.append(submit, status);
+    const privacy = t(config.form.privacy);
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (preview) { status.textContent = 'Preview only: nothing is sent.'; return; }
@@ -126,8 +278,37 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
       }
       form.replaceChildren(h(doc, 'p', 'vp-thanks', t(config.form.successMessage) || 'Thanks!'));
     });
-    box.appendChild(form);
-    main.appendChild(box);
+    formBox.appendChild(form);
+    if (privacy) formBox.appendChild(h(doc, 'p', 'vp-privacy', privacy));
+  }
+
+  // ---- story + byline (left of the form on the intro layout)
+  let storyBox = null;
+  const storyHeading = t(config.story.heading);
+  const storyBody = config.story.body.map(t).filter(Boolean);
+  const senderName = config.sender.name;
+  if (storyHeading || storyBody.length || senderName) {
+    storyBox = h(doc, 'section', 'vp-story');
+    if (storyHeading) storyBox.appendChild(h(doc, 'h2', 'vp-story-title', storyHeading));
+    storyBody.forEach((p) => storyBox.appendChild(h(doc, 'p', 'vp-story-body', p)));
+    if (senderName) {
+      const by = h(doc, 'div', 'vp-byline');
+      by.appendChild(mark(doc, { imageUrl: config.sender.avatarUrl, name: senderName, className: 'vp-mark--avatar' }));
+      const who = h(doc, 'div', 'vp-byline-text');
+      who.appendChild(h(doc, 'div', 'vp-byline-name', senderName));
+      if (config.sender.title) who.appendChild(h(doc, 'div', 'vp-byline-title', config.sender.title));
+      by.appendChild(who);
+      storyBox.appendChild(by);
+    }
+  }
+
+  if (storyBox && formBox) {
+    const cols = h(doc, 'div', 'vp-cols');
+    cols.append(storyBox, formBox);
+    main.appendChild(cols);
+  } else {
+    if (storyBox) main.appendChild(storyBox);
+    if (formBox) main.appendChild(formBox);
   }
 
   // ---- extra sections
@@ -140,32 +321,64 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
     main.appendChild(sec);
   });
 
-  if (config.consent.notice) root.appendChild(h(doc, 'footer', 'vp-consent', config.consent.notice));
+  // ---- testimonial + customer logos
+  const quote = t(config.testimonial.quote);
+  if (quote) {
+    const box = h(doc, 'figure', 'vp-quote');
+    box.appendChild(h(doc, 'blockquote', 'vp-quote-text', `“${quote}”`));
+    const by = t(config.testimonial.by);
+    if (by) box.appendChild(h(doc, 'figcaption', 'vp-quote-by', by));
+    main.appendChild(box);
+  }
+  if (config.logos.length) {
+    const strip = h(doc, 'div', 'vp-logos');
+    config.logos.forEach((l) => {
+      if (l.imageUrl) {
+        const img = h(doc, 'img', 'vp-logos-img');
+        img.src = l.imageUrl;
+        img.alt = l.name || '';
+        img.loading = 'lazy';
+        strip.appendChild(img);
+      } else strip.appendChild(h(doc, 'span', 'vp-logos-name', l.name));
+    });
+    main.appendChild(strip);
+  }
+
+  // ---- footer
+  const footText = tidy(t(config.footer.text));
+  const optOut = config.footer.optOutUrl;
+  if (footText || optOut) {
+    const foot = h(doc, 'footer', 'vp-foot');
+    foot.appendChild(h(doc, 'span', 'vp-foot-text', footText));
+    if (optOut) {
+      const a = h(doc, 'a', 'vp-optout', "Don't want these? Opt out");
+      a.href = optOut;
+      if (/^https?:/i.test(optOut)) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+      foot.appendChild(a);
+    }
+    root.appendChild(foot);
+  }
+  if (config.consent.notice) root.appendChild(h(doc, 'p', 'vp-consent', config.consent.notice));
 
   // ---- viewer events (public page only)
   const fired = new Set();
   const once = (kind, fn) => { if (!fired.has(kind)) { fired.add(kind); fn?.(kind); } };
-  const onPlay = () => once('play', () => handlers.onPlay?.());
-  const onTime = () => {
-    const d = video.duration;
-    if (!d || !Number.isFinite(d)) return;
-    const ratio = video.currentTime / d;
-    PROGRESS_MARKS.forEach((m) => { if (ratio >= m.at) once(m.kind, handlers.onProgress); });
-  };
-  const onEnded = () => once('complete', () => handlers.onComplete?.());
   if (!preview) {
-    video.addEventListener('play', onPlay);
-    video.addEventListener('timeupdate', onTime);
-    video.addEventListener('ended', onEnded);
+    listen(video, 'play', () => once('play', () => handlers.onPlay?.()));
+    listen(video, 'timeupdate', () => {
+      const d = video.duration;
+      if (!d || !Number.isFinite(d)) return;
+      const ratio = video.currentTime / d;
+      PROGRESS_MARKS.forEach((m) => { if (ratio >= m.at) once(m.kind, handlers.onProgress); });
+    });
+    listen(video, 'ended', () => once('complete', () => handlers.onComplete?.()));
   }
 
   return {
     root,
     video,
     destroy() {
-      video.removeEventListener('play', onPlay);
-      video.removeEventListener('timeupdate', onTime);
-      video.removeEventListener('ended', onEnded);
+      cleanups.forEach((fn) => fn());
       video.pause?.();
       video.removeAttribute('src');
     },
