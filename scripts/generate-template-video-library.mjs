@@ -7,7 +7,7 @@
 // carry no logo / watermark / caption overlay. Remote clips (https://media.beatapi.io/...) are rewritten
 // to the same-origin /cdn/beatapi/... path (see netlify.toml + vite.config.js) because the CDN sends no
 // CORS headers and the editor loads media with crossOrigin="anonymous".
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
@@ -31,6 +31,11 @@ for (const s of Object.keys(SETS)) {
   bySet[s] = new Map(arr.map((d) => [d.slug, d]));
 }
 
+// Real durations measured in a browser (the data files carry rounded nominal ones: 15 for a 15.18s clip, 15 for a 10.1s clip).
+const measured = JSON.parse(readFileSync(resolve(root, 'scripts/template-video-measured-durations.json'), 'utf8'));
+// The upstream ZeroLu poster files are 8-byte stubs; real posters for the clips we use live in public/media/template-videos/posters.
+const posterOverride = (set, slug) => (set === 'zerolu' && existsSync(resolve(root, `public/media/template-videos/posters/${slug}.webp`)) ? `/media/template-videos/posters/${slug}.webp` : null);
+
 const rows = [];
 const missing = [];
 for (const { set, slug } of allow) {
@@ -41,10 +46,10 @@ for (const { set, slug } of allow) {
     slug,
     title: d.title,
     category: d.category,
-    duration: d.duration ?? null,
+    duration: measured[`${set}:${slug}`] ?? d.duration ?? null,
     aspectRatio: d.aspectRatio ?? '16:9',
     videoSrc: same(d.videoSrc),
-    posterSrc: same(d.posterSrc) ?? null,
+    posterSrc: posterOverride(set, slug) ?? same(d.posterSrc) ?? null,
     tags: d.tags ?? [],
     source: SETS[set].label,
   });
