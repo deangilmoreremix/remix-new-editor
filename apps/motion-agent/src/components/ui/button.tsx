@@ -16,11 +16,11 @@ const buttonVariants = cva(
         destructive:
           "bg-transparent text-destructive border border-destructive/45 hover:bg-destructive/10 hover:border-destructive/70",
         outline:
-          "border border-border bg-transparent text-foreground hover:border-primary/50 hover:bg-primary/5",
+          "border border-primary/25 bg-transparent text-foreground hover:border-primary/50 hover:bg-primary/5",
         // secondary = ghost hairline (app's .btn-action-secondary)
         secondary:
-          "bg-transparent text-foreground/75 border border-white/10 hover:text-foreground hover:border-white/25",
-        ghost: "text-foreground hover:bg-primary/5 hover:text-foreground",
+          "bg-transparent text-foreground/85 border border-primary/25 hover:text-foreground hover:border-primary/50 hover:bg-primary/5",
+        ghost: "text-foreground border border-primary/25 hover:border-primary/50 hover:bg-primary/5 hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

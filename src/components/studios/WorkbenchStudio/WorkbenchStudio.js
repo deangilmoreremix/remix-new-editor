@@ -60,7 +60,7 @@ export function WorkbenchStudio() {
 
   const status = el('span', 'text-xs text-secondary mr-3');
   status.setAttribute('aria-live', 'polite');
-  const addBtn = el('button', 'btn-action-secondary', '+ Add your generations');
+  const addBtn = el('button', 'btn-personalize', '+ Add your generations');
   addBtn.type = 'button';
   topbar.append(status, addBtn);
 
