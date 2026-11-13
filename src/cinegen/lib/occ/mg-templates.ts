@@ -30,9 +30,14 @@ export function gateTemplate(code: string): { ok: boolean; why?: string } {
 }
 
 export function loadMgTemplates(base = '/occ-templates'): Promise<MgTemplate[]> {
+  let failed = 0; // template packs that could not be downloaded
   cache ??= Promise.all([Promise.all(PACKS.map(async (p) => {
-    try { const r = await fetch(`${base}/${p}.json`); return r.ok ? ((await r.json()) as Array<Record<string, unknown>>) : []; } catch { return []; }
-  })), (async () => { try { const r = await fetch(`${base}/${REPAIRED}.json`); return r.ok ? ((await r.json()) as Record<string, string>) : {}; } catch { return {}; } })()]).then(([packs, fixed]) => packs.flat().map((tpl) => {
+    try { const r = await fetch(`${base}/${p}.json`); if (r.ok) return (await r.json()) as Array<Record<string, unknown>>; failed++; return []; } catch { failed++; return []; }
+  })), (async () => { try { const r = await fetch(`${base}/${REPAIRED}.json`); return r.ok ? ((await r.json()) as Record<string, string>) : {}; } catch { return {}; } })()]).then(([packs, fixed]) => {
+    // every pack failed: an error (the window offers Retry); only some failed: a partial list that is NOT remembered, so the next open asks again
+    if (failed === PACKS.length) throw new Error('the motion graphics could not be downloaded');
+    if (failed > 0) cache = null;
+    return packs.flat().map((tpl) => {
     const t = tpl;
     const code = fixed[String(t.id)] ?? String(t.code ?? '');
     const g = gateTemplate(code);
@@ -42,7 +47,8 @@ export function loadMgTemplates(base = '/occ-templates'): Promise<MgTemplate[]> 
     const props = Object.fromEntries(Object.entries((t.props as Record<string, unknown>) ?? {}).map(([k, v]) => [k, en(v)]));
     return { ...(t as object), name: en(t.name) as string, description: en(t.description) as string, category: en(t.category) as string, width: Number(t.width) || 1920, height: Number(t.height) || 1080, fps: Number(t.fps) || 30, durationInFrames: Number(t.durationInFrames) || 90,
       props, propSchema: schema, usable: g.ok, why: g.why } as MgTemplate;
-  }));
+    });
+  }).catch((e) => { cache = null; throw e; }); // a failed load is not remembered, so Retry can try again
   return cache;
 }
 

@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite --port 3100",
     "dev:all": "concurrently -n root,video-agent-studio -c magenta,cyan \"npm run dev\" \"npm run dev:video-agent-studio\"",
-    "build": "npm run build:openthorn && npm run build:workbench && npm run build:motion-agent && rm -rf dist && npm run gen:motion-sources && node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
+    "build": "npm run build:openthorn && npm run build:workbench && npm run build:motion-agent && rm -rf dist && npm run gen:motion-sources && npm run sync:mg-thumbs && node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
@@ -42,7 +42,8 @@
     "build:motion-agent": "npm --prefix apps/motion-agent ci --no-audit --no-fund && cd apps/motion-agent && npx vite build --base=/motion-agent/ && rm -rf ../../public/motion-agent && cp -r dist ../../public/motion-agent",
     "gen:video-agent-server": "node apps/motion-agent/scripts/gen-server.mjs",
     "gen:motion-sources": "node scripts/motion-director/gen-demo-sources.mjs",
-    "predev": "npm run gen:motion-sources"
+    "sync:mg-thumbs": "node scripts/sync-mg-thumbs.mjs",
+    "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.29.9",

@@ -336,13 +336,24 @@ export const takeHyperframesErrors = () => errors.splice(0).slice(0, 20);
 export const FATAL_KINDS = new Set(['refused', 'fetch', 'script', 'mount', 'timeline', 'blocked-script', 'blocked-url', 'integrity']);
 const errorListeners = new Set();
 /** Subscribe to adapter problems as they happen: fn({ kind, name, message, fatal }). Returns the unsubscribe function. */
-export const onHyperframesError = (fn) => { errorListeners.add(fn); return () => errorListeners.delete(fn); };
+/** The last few reports, so a listener that subscribes a moment AFTER a block reported (the host subscribes in a passive effect, the block reports in a layout effect) still sees them. */
+const recentReports = [];
+const REPLAY_MS = 1500;
+export const onHyperframesError = (fn) => {
+  errorListeners.add(fn);
+  const now = Date.now();
+  for (const r of recentReports) if (now - r.at < REPLAY_MS) { try { fn(r.e); } catch { /* listener errors never break rendering */ } }
+  return () => errorListeners.delete(fn);
+};
 const report = (kind, name, err) => {
   const message = err?.message || String(err);
   const msg = `${kind} ${name}: ${message}`;
   if (!errors.includes(msg)) console.warn(`[hyperframes] ${msg}`);
   // always notify (no de-duplication): the export frame is reused, so a repeat failure must still fail the next export
-  errorListeners.forEach((fn) => { try { fn({ kind, name, message, fatal: FATAL_KINDS.has(kind) }); } catch { /* listener errors never break rendering */ } });
+  const e = { kind, name, message, fatal: FATAL_KINDS.has(kind) };
+  recentReports.push({ at: Date.now(), e });
+  while (recentReports.length && Date.now() - recentReports[0].at >= REPLAY_MS) recentReports.shift();
+  errorListeners.forEach((fn) => { try { fn(e); } catch { /* listener errors never break rendering */ } });
   errors.push(msg); if (errors.length > 50) errors.splice(0, errors.length - 50);
 };
 
@@ -441,6 +452,8 @@ const usableGsap = (g) => (g && typeof g.timeline === 'function' && typeof g.set
 const describeGsap = (g) => (g === undefined ? 'undefined' : g === null ? 'null' : `${typeof g} with keys [${Object.keys(g).slice(0, 8).join(', ')}]`);
 try { gsap.registerPlugin(TextPlugin); } catch { /* blocks that tween `text` then report their own error */ } // some blocks (typed-text effects) tween `text`, which needs this plugin
 export const resolveGsap = () => usableGsap(gsap) || usableGsap(gsap?.gsap) || usableGsap(globalThis.gsap);
+/** True when a usable gsap exists (a checkout whose node_modules predates the `gsap` dependency gets an EMPTY stand-in from the dev server's stub plugin). */
+export const gsapAvailable = () => resolveGsap() !== null;
 
 const BLOCK_ID = /^[a-z0-9][a-z0-9-]{0,80}$/;
 const sha256Hex = async (buf) => { const d = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join(''); };
