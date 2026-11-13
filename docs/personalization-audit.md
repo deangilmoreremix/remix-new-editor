@@ -83,11 +83,25 @@ library hook saves them); recipient links copied every contact variable (they no
 Findings that remain (not fixed):
 - The remix-side Asset Finder client (`assetDiscoveryService.js`) and `personalizer-api.js` authenticate with a Supabase
   Auth session, which does not exist under Clerk sign-in ("Sign in to use business asset discovery.").
-- By design of the token engine, `businessPhone` falls back to the contact's email when there is no phone, so a link for such
-  a contact carries that email under `businessPhone` (the call button reads that token).
 - The Remotion web renderer calls `www.remotion.pro/api/track/register-usage-point` on every render (library usage tracking).
   The test aborts it and asserts the body carries no customer data; production would send it.
 - Not tested: real Business Finder / Asset Finder on real websites, the real database through the browser (needs a real
   Clerk login), a Netlify deploy preview (response headers come from netlify.toml and edge functions, not `vite preview`).
 - Four unit tests fail identically on the base commit and on this branch (remotionui ledger, motion-director legacyCards,
   two businessDiscovery research-provider tests); this branch changes nothing under their paths.
+
+## Follow-up fixes (after the Personalizer review)
+- `businessPhone` / `{{phone}}` now resolves only to a phone number (no email or website fallback); links no longer carry an
+  email under it. Unit test in `tokenResolveParity.test.js`, browser test F asserts no email anywhere in a link.
+- Personalizer canvas: new elements cascade instead of stacking at (20%, 20%); the Personalize button's tooltip opens
+  right so the sidebar does not clip it.
+- `/generate` prose mode: when no language model is available the response is labelled as a placeholder
+  (`metadata.placeholder: true`, text starts with "[Placeholder, not AI-generated ...]").
+- Checked and left alone: `PersonalizePage.js` is routed (`/personalize`) and its import button is wired by
+  `attachDynamicEventListeners`, so it is not dead code (the inline `onclick` is redundant, not broken).
+- The Personalizer already sees a business's assigned images: the Studio picker mirrors them into the contact profile
+  variables the Personalizer resolves tokens from.
+
+Still open: the older Asset Finder / Business Finder client needs a Supabase Auth session and the server verifies it with
+`auth.getUser`, which does not accept the Clerk-issued token (needs a server-side auth change and a real Clerk login to test);
+`legacyCards.test.ts` needs two texture images that are not in the repo (`legacy-textures/projects-full.png`, `agent-stream.jpg`).

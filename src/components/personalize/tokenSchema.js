@@ -115,7 +115,7 @@ export const TOKEN_DEFS = [
   { key: 'twitter', label: 'X / Twitter', paths: ['social.twitter'], aliases: ['x'] },
   { key: 'website', label: 'Website', paths: ['social.website', 'website.url', 'personalization.business.website'], aliases: ['site', 'url'] },
   { key: 'businessName', label: 'Business Name', paths: ['personalization.business.businessName', 'company.name', 'contact.company'] },
-  { key: 'businessPhone', label: 'Business Phone', paths: ['personalization.business.phone', 'contact.phone', 'contact.email', 'website.url', 'social.website'], aliases: ['phone'] },
+  { key: 'businessPhone', label: 'Business Phone', paths: ['personalization.business.phone', 'contact.phone'], aliases: ['phone'] },
   { key: 'productService', label: 'Product / Service', paths: ['personalization.business.productService', 'intelligence.products.0', 'intelligence.services.0'] },
   { key: 'offer', label: 'Offer', paths: ['personalization.business.offer', 'intelligence.products.0', 'intelligence.services.0', 'company.summary'] },
   { key: 'ctaHeadline', label: 'CTA Headline', paths: ['personalization.business.ctaHeadline', 'intelligence.summary', 'company.summary'] },

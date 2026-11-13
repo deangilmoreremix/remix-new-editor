@@ -31,3 +31,13 @@ describe('token resolution parity (overlay, prompt, viewer)', () => {
     expect(master).toBe('Hello {{FIRSTNAME}}');
   });
 });
+
+describe('businessPhone is only ever a phone number', () => {
+  it('never falls back to the contact email or the website', async () => {
+    const { resolveToken } = await import('../tokenSchema.js');
+    const p = { contact: { email: 'ann@acme.test' }, website: { url: 'https://acme.test' }, social: { website: 'https://acme.test' } };
+    expect(resolveToken(p, 'businessPhone')).toBeNull();
+    expect(resolveToken(p, 'phone')).toBeNull();
+    expect(resolveToken({ ...p, contact: { ...p.contact, phone: '+15550001' } }, 'phone')).toBe('+15550001');
+  });
+});

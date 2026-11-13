@@ -1105,6 +1105,7 @@ export async function handler(event, context) {
 
       // ─── Prose modes (scripts, emails, copy) ─────────────────────────────
       let generatedContent;
+      let placeholder = false;
       try {
         const openaiKey = userOpenAIKey(event.headers); // BYOK: the user's own key
         if (openaiKey) {
@@ -1118,11 +1119,12 @@ export async function handler(event, context) {
           } else { throw new Error('Gemini API key not configured', { cause: openaiError }); }
         } catch (geminiError) {
           console.error('Gemini failed:', geminiError.message);
-          generatedContent = `Generated ${mode} for ${targetName} at ${targetCompany || 'N/A'}.\n\nNotes: ${manualNotes || 'None'}\n\nScan Data: ${scanDataText}`;
+          placeholder = true;   // neither provider produced text: say so instead of presenting this as real output
+          generatedContent = `[Placeholder, not AI-generated: no language model was available (add your OpenAI key and try again).]\n\nMode: ${mode}\nFor: ${targetName} at ${targetCompany || 'N/A'}\nNotes: ${manualNotes || 'None'}\n\nScan Data: ${scanDataText}`;
         }
       }
 
-      const output = { type: mode, content: generatedContent, metadata: { tone: body.tone || 'professional', offer: body.offer || null, goal: body.goal || null, cta: body.cta || null, scanData: !!scanData, scanId: resolvedScanId } };
+      const output = { type: mode, content: generatedContent, metadata: { tone: body.tone || 'professional', offer: body.offer || null, goal: body.goal || null, cta: body.cta || null, scanData: !!scanData, scanId: resolvedScanId, ...(placeholder ? { placeholder: true } : {}) } };
       const { error: outputError } = await supabaseService.from('personalization_outputs').insert({ project_id: project.id, output_type: mode, content: output });
       if (outputError) throw outputError;
 

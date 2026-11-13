@@ -225,6 +225,12 @@
     transform: translateX(-50%) translateY(-6px);
 }
 
+/* Tooltip anchored to the element's left edge (for controls at the edge of a clipping container) */
+[data-tooltip-start]::before { left: 12px; }
+[data-tooltip-start]::after { left: 0; transform: translateY(12px); }
+[data-tooltip-start]:hover::before { transform: translateX(-50%) translateY(-6px); }
+[data-tooltip-start]:hover::after { transform: translateY(-6px); }
+
 /* Tooltip positioning variants */
 [data-tooltip-bottom]::before {
     bottom: auto;

@@ -1098,7 +1098,9 @@ export function Personalizer() {
   }
 
   // ─── Element management ─────────────────────────────────────────────────
-  function addElement(type, x = 20, y = 20) {
+  function addElement(type, x, y) {
+    // a new element dropped without a position cascades down-right so elements never spawn stacked on one another
+    if (x == null || y == null) { const step = (elements.length % 8) * 4; x = 20 + step; y = 20 + step; }
     const id = generateId();
     const defaults = DEFAULT_ELEMENT_STYLES[type] || {};
     const el = {
@@ -1686,6 +1688,8 @@ export function Personalizer() {
       },
     });
     triggerDestroy = typeof trigger.destroy === 'function' ? trigger.destroy : null;
+    // the button sits at the sidebar's left edge: open its tooltip to the right so the sidebar does not clip it
+    chromeContainer.querySelectorAll('[data-tooltip]').forEach((n) => { if (/personaliz/i.test(n.getAttribute('data-tooltip') || '')) n.setAttribute('data-tooltip-start', ''); });
   } catch {
     // personalize trigger unavailable; studio remains usable
   }
