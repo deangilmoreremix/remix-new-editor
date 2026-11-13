@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { ProjectCard } from './project-card';
 import type { ProjectMeta } from '../../electron.d';
 import { createAvailableProject, deleteAvailableProject, listAvailableProjects } from '@cinegen/lib/cloud/projects';
-import { PublishedOverview } from '@cinegen/components/projects/published-overview'; // [remix]
+import { PublishedOverview } from '@cinegen/components/overview/published-overview'; // [remix]
 
 interface HomeViewProps {
   onOpenProject: (id: string, useSqlite: boolean) => void;
@@ -17,7 +17,7 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
   const [view, setView] = useState<'projects' | 'videos'>('projects'); // [remix] 'videos' = published videos overview
   useEffect(() => { // [remix] the header bell opens the overview on the project with unread alerts
     const open = () => setView('videos');
-    try { if (sessionStorage.getItem('remix_open_projects')) setView('videos'); } catch { /* ignore */ }
+    try { if (sessionStorage.getItem('remix_open_projects')) setView('videos'); } catch { /* ignore */ } // the overview clears the flag once it has shown the alerts
     window.addEventListener('remix:open-projects', open);
     return () => window.removeEventListener('remix:open-projects', open);
   }, []);
@@ -119,7 +119,7 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
             <button
               className="pm-toolbar__btn"
               title="New project"
-              onClick={() => { setShowCreate(true); setSelected(null); }}
+              onClick={() => { setView('projects'); setShowCreate(true); setSelected(null); }}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -201,7 +201,7 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
               <>
                 <button
                   className="pm-bottombar__btn"
-                  onClick={() => setShowCreate(true)}
+                  onClick={() => { setView('projects'); setShowCreate(true); }}
                 >
                   New Project
                 </button>

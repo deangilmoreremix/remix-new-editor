@@ -47,6 +47,7 @@ describe('CineGen project link', () => {
     expect(c.tables.timeline_projects[0].name).toBe('Promo v2');
     expect(c.tables.timeline_projects[0].duration_s).toBe(50);
     expect(c.tables.timeline_projects[0].settings.interestMap).toEqual([{ id: 'a' }]);
+    expect(c.tables.timeline_projects[0].settings.source).toBe('cinegen');
     expect(await readInterestMap(c, ID)).toEqual([{ id: 'a' }]);
   });
   it('refuses a project id that is not a uuid', async () => {

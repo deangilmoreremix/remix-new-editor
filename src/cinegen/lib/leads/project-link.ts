@@ -32,12 +32,16 @@ export async function linkedProjectId(projectId: string, timelineId: string): Pr
 }
 
 /** "Roof promo — Timeline 1": the CineGen project's name plus the published timeline, so cards are recognisable. */
+const projectNames = new Map<string, string>(); // memoised: publishing and opening Analytics should not re-list every project
 export async function rowName(cinegenProjectId: string, timelineTitle: string): Promise<string> {
-  let project = '';
-  try {
-    const { listAvailableProjects } = await import('@cinegen/lib/cloud/projects');
-    project = (await listAvailableProjects()).find((p: { id: string; name?: string }) => p.id === cinegenProjectId)?.name || '';
-  } catch { /* name lookup is cosmetic */ }
+  let project = projectNames.get(cinegenProjectId) || '';
+  if (!project) {
+    try {
+      const { listAvailableProjects } = await import('@cinegen/lib/cloud/projects');
+      project = (await listAvailableProjects()).find((p: { id: string; name?: string }) => p.id === cinegenProjectId)?.name || '';
+      if (project) projectNames.set(cinegenProjectId, project);
+    } catch { /* name lookup is cosmetic */ }
+  }
   const t = (timelineTitle || '').trim();
   return project && t && t !== project ? `${project} — ${t}` : (project || t || 'Untitled video');
 }

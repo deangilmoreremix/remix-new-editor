@@ -35,9 +35,12 @@ export function createOverviewDeps(o: { onOpenProject: (cinegenProjectId: string
       if (!ids.length) return {};
       const client = await getClient();
       const me = (window as unknown as { Clerk?: { user?: { id?: string } } }).Clerk?.user?.id;
-      const { data } = await client.from('published_videos').select('id, published, project_id, clerk_user_id').in('project_id', ids);
+      if (!me) return {};
+      // Filtered in the query itself (the table's own security rules also restrict reads to the owner).
+      const { data, error } = await client.from('published_videos').select('id, published, project_id').in('project_id', ids).eq('clerk_user_id', me);
+      if (error) throw error;
       const out: Record<string, unknown> = {};
-      for (const v of data || []) if (v.clerk_user_id === me && v.project_id) out[v.project_id] = v;
+      for (const v of data || []) if (v.project_id) out[v.project_id] = v;
       return out;
     },
     onCreate: () => toast('Create a project from the Projects list, publish it from Leads, and it appears here', 'info'),
@@ -52,6 +55,7 @@ export function createOverviewDeps(o: { onOpenProject: (cinegenProjectId: string
       const { data, error } = await client.rpc('owner_video_stats', { p_from: from, p_to: to });
       if (error) throw error;
       const notes = await client.from('owner_notifications').select('project_id, type').is('read_at', null).in('project_id', ids);
+      if (notes.error) throw notes.error;
       const unread: Record<string, number> = {}; const follow: Record<string, boolean> = {};
       for (const n of notes.data || []) { unread[n.project_id] = (unread[n.project_id] || 0) + 1; if (['followup_opportunity', 'high_interest'].includes(n.type)) follow[n.project_id] = true; }
       const out: Record<string, unknown> = {};
