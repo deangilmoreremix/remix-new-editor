@@ -508,7 +508,7 @@ export function StepFindBusiness({
                 onEdit={onEditAsset}
                 onRevert={revertDiscoveredAssetEdit}
                 cutout={autoCutout}
-                onSaveToAssets={isAnonymous ? undefined : (id) => { void importDiscoveredAssets({ ids: [id] }) }}
+                onSaveToAssets={isAnonymous ? undefined : (id) => importDiscoveredAssets({ ids: [id] })}
                 onRemoveFromSection={removeDiscoveredAssetFromSection}
                 onRestoreAll={() => setDiscoveredAssets(discoveredAssets.map((a) => ({ ...a, rejected: false })))}
                 dropZones={SIMPLE_MODE_DROP_ZONES}

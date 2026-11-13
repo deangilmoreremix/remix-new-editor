@@ -311,7 +311,7 @@ export function DiscoveredAssetLightbox({
   onRevert?: (id: string) => void
   cutout?: AutoCutoutControls
   /** Save this asset to the project's assets (imports it). */
-  onSaveToAssets?: (id: string) => void
+  onSaveToAssets?: (id: string) => void | Promise<unknown>
 }) {
   const [compare, setCompare] = useState(false)
   // One Save per asset: a second click while its import is pending would add the asset twice.
@@ -322,6 +322,9 @@ export function DiscoveredAssetLightbox({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // The Before / After range needs the arrow keys itself.
+      const onRange = (e.target as HTMLElement | null)?.tagName === 'INPUT'
+      if (onRange && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) return
       if (e.key === 'ArrowRight') { e.preventDefault(); go(1) }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1) }
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onClose() }
@@ -484,7 +487,14 @@ export function DiscoveredAssetLightbox({
             onClick={() => {
               if (saving.has(asset.id)) return
               setSaving((prev) => new Set(prev).add(asset.id))
-              onSaveToAssets(asset.id)
+              // Hold the lock only while the import runs, so a failed save can be retried.
+              void Promise.resolve(onSaveToAssets(asset.id)).catch(() => undefined).finally(() =>
+                setSaving((prev) => {
+                  const next = new Set(prev)
+                  next.delete(asset.id)
+                  return next
+                }),
+              )
               if (count <= 1) onClose()
             }}
             style={{ ...actionStyle, opacity: bgBusy || saving.has(asset.id) ? 0.5 : 1, cursor: bgBusy || saving.has(asset.id) ? 'not-allowed' : 'pointer' }}
@@ -632,7 +642,7 @@ export function DiscoveredAssetGrid({
   /** On-device background removal (auto queue + manual controls). Omitted = feature off. */
   cutout?: AutoCutoutControls
   /** Save one asset to the project's assets from the viewer. */
-  onSaveToAssets?: (id: string) => void
+  onSaveToAssets?: (id: string) => void | Promise<unknown>
   /** Show at most this many per category, with "Show more" (omitted: show all). */
   pageSize?: number
 }) {

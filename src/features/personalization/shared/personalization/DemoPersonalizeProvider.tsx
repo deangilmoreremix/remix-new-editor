@@ -225,7 +225,12 @@ interface GenerateOverrides {
  */
 export function withoutAutoImported(prev: AssetLibrary, ids: ReadonlySet<string>): AssetLibrary {
   const isAuto = (asset: PersonalizationAsset | null | undefined) =>
-    Boolean(asset?.sourceDiscoveredAssetId && ids.has(asset.sourceDiscoveredAssetId) && !asset.edited)
+    Boolean(
+      asset?.sourceDiscoveredAssetId &&
+        ids.has(asset.sourceDiscoveredAssetId) &&
+        // An automatic background-removal cutout is not a user edit.
+        (!asset.edited || (asset.editMetadata as { engine?: string } | undefined)?.engine === 'bg0'),
+    )
   const logos = prev.logos.filter((asset) => !isAuto(asset))
   const primaryWasAuto = isAuto(prev.primaryLogo)
   const promoted = primaryWasAuto && logos[0] ? { ...logos[0], isPrimary: true } : null

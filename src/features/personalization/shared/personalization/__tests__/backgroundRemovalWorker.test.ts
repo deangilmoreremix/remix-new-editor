@@ -25,6 +25,10 @@ class FakeWorker {
   emit(type: string, event: unknown) {
     ;[...(this.listeners[type] || [])].forEach((l) => l(event))
   }
+  terminated = false
+  terminate() {
+    this.terminated = true
+  }
   postMessage(msg: Record<string, unknown>) {
     this.posted.push(msg)
     if (msg.type !== 'remove') return
@@ -99,6 +103,42 @@ describe('BG0 client worker path', () => {
     const id = worker.posted.find((m) => m.type === 'remove')!.id
     worker.emit('message', { data: { type: 'error', id, code: 'cancelled', message: 'x' } })
     await expect(job).rejects.toMatchObject({ code: 'cancelled' })
+  })
+
+  it('drops a worker that ignores a cancel, so the queue is not frozen', async () => {
+    vi.useFakeTimers()
+    try {
+      const { removeAssetBackground } = await loadClient()
+      FakeWorker.mode = 'hold'
+      const controller = new AbortController()
+      const job = removeAssetBackground(png(), { signal: controller.signal })
+      const settled = expect(job).rejects.toMatchObject({ code: 'cancelled' })
+      await vi.waitFor(() => expect(FakeWorker.instances[0]?.posted.some((m) => m.type === 'remove')).toBe(true))
+      controller.abort()
+      await vi.advanceTimersByTimeAsync(5_100)
+      await settled
+      expect(FakeWorker.instances[0].terminated).toBe(true)
+      // the next job starts on a fresh worker
+      FakeWorker.mode = 'ok'
+      await removeAssetBackground(png())
+      expect(FakeWorker.instances).toHaveLength(2)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('gives up on a worker that never answers at all', async () => {
+    vi.useFakeTimers()
+    try {
+      const { removeAssetBackground } = await loadClient()
+      FakeWorker.mode = 'hold'
+      const job = removeAssetBackground(png())
+      const settled = expect(job).rejects.toMatchObject({ code: 'inference-failed' })
+      await vi.advanceTimersByTimeAsync(181_000)
+      await settled
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('treats a result that arrives after the caller aborted as a cancellation', async () => {

@@ -80,7 +80,9 @@ export function isConstrainedDevice(): boolean {
   }
   const mobile =
     nav.userAgentData?.mobile === true ||
-    /Android|iPhone|iPad|iPod|Mobile/i.test(nav.userAgent || '')
+    /Android|iPhone|iPad|iPod|Mobile/i.test(nav.userAgent || '') ||
+    // iPadOS Safari sends a Mac user agent: a "Mac" with a touch screen is an iPad.
+    (/Macintosh/i.test(nav.userAgent || '') && (nav.maxTouchPoints || 0) > 1)
   const conn = nav.connection
   const slow = Boolean(conn?.saveData) || conn?.type === 'cellular' || /^(slow-2g|2g|3g)$/.test(conn?.effectiveType || '')
   return mobile || slow
@@ -100,6 +102,11 @@ let tail: Promise<unknown> = Promise.resolve()
 type Progress = (progress: BackgroundRemovalProgress) => void
 
 // ── Worker path ──────────────────────────────────────────────────────────────
+
+/** No message from the worker (progress included) for this long => it is stuck. */
+export const WORKER_IDLE_TIMEOUT_MS = 180_000
+/** After a cancel, how long the worker gets to settle before it is dropped. */
+export const WORKER_CANCEL_GRACE_MS = 5_000
 
 let worker: Worker | null = null
 let workerBroken = false
@@ -130,14 +137,35 @@ function runInWorker(
 ): Promise<BackgroundRemovalOutput> {
   const id = ++nextJobId
   return new Promise<BackgroundRemovalOutput>((resolve, reject) => {
+    let watchdog: ReturnType<typeof setTimeout> | undefined
     const cleanup = () => {
+      if (watchdog) clearTimeout(watchdog)
       w.removeEventListener('message', onMessage)
       w.removeEventListener('error', onError)
       signal?.removeEventListener('abort', onAbort)
     }
-    const onAbort = () => w.postMessage({ type: 'cancel', id })
+    // A worker that stops answering (e.g. stuck loading the runtime) must not freeze the queue:
+    // give up on it, drop it so the next job starts a fresh one, and report the failure.
+    const giveUp = (error: Error) => {
+      cleanup()
+      if (worker === w) worker = null
+      w.terminate()
+      reject(error)
+    }
+    const arm = (ms: number, error: () => Error) => {
+      if (watchdog) clearTimeout(watchdog)
+      watchdog = setTimeout(() => giveUp(error()), ms)
+    }
+    const armIdle = () =>
+      arm(WORKER_IDLE_TIMEOUT_MS, () => Object.assign(new Error('Background removal stopped responding.'), { code: 'inference-failed' }))
+    const onAbort = () => {
+      w.postMessage({ type: 'cancel', id })
+      // Cancel is best effort inside the worker: if it does not settle soon, drop the worker.
+      arm(WORKER_CANCEL_GRACE_MS, () => Object.assign(new Error('Cancelled'), { code: 'cancelled' }))
+    }
     const onMessage = ({ data }: MessageEvent) => {
       if (!data || data.id !== id) return
+      if (!signal?.aborted) armIdle()
       if (data.type === 'progress') {
         onProgress?.({ stage: data.stage, progress: data.progress, message: data.message })
       } else if (data.type === 'done') {
@@ -163,6 +191,7 @@ function runInWorker(
     w.addEventListener('message', onMessage)
     w.addEventListener('error', onError)
     signal?.addEventListener('abort', onAbort)
+    armIdle()
     w.postMessage({ type: 'remove', id, blob, quality })
   })
 }

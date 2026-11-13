@@ -4535,7 +4535,7 @@ function ConfigurationView(props: any) {
             onEdit={onEditDiscovered || undefined}
             onRevert={revertDiscoveredAssetEdit}
             cutout={autoCutout}
-            onSaveToAssets={isAnonymous ? undefined : (id) => { void importDiscoveredAssets({ ids: [id] }) }}
+            onSaveToAssets={isAnonymous ? undefined : (id) => importDiscoveredAssets({ ids: [id] })}
             onRemoveFromSection={removeDiscoveredAssetFromSection}
             onRestoreAll={() => setDiscoveredAssets((prev) => prev.map((a) => ({ ...a, rejected: false })))}
             onDragStart={(asset, e) => handleAssetDragStart({

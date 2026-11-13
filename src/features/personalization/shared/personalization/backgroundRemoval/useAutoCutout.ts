@@ -242,7 +242,9 @@ export function useAutoCutout(
         })
         const dataUrl = await blobToDataUrl(result.blob)
         const check = await verifyAlphaChannel(dataUrl)
-        if (!check.hasTransparentPixels) {
+        if (controller.signal.aborted) throw new BackgroundRemovalFailure('cancelled', 'Cancelled')
+        // totalPixelCount is 0 when the result was too big to inspect: keep it rather than discard it.
+        if (check.totalPixelCount > 0 && !check.hasTransparentPixels) {
           finish({ status: 'skipped', message: 'No background' })
           return
         }
