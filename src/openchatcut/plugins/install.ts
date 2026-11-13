@@ -1,0 +1,143 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/plugins/install.ts), vendored.
+// Plugin installation pipeline (browser side): JSON → pure verification → true compilation probe (GLSL via GlRuntime,
+// MG is compiled by template-host sandbox) → LUT .cube is uploaded into a file → registered → stored in the database.
+// Transaction sequence: first register successfully and then save; if any step fails, the registry will be rolled back (leaving no half-installed state).
+// The sandbox runs as usual, and this is the first door.
+import { validatePack } from './validate';
+import { listPacks, savePack, registerPack, unregisterPack, type InstalledPack } from './store';
+import type { PluginPack } from './types';
+import { createGlRuntime } from '../gl/runtime';
+
+export type InstallResult =
+  | { ok: true; pack: InstalledPack; skipped?: string[] }
+  | { ok: false; errors: string[] };
+
+export type InstallFromUrlOpts = {
+  /** Optional: SHA-256 of expected body (hex, lowercase or uppercase is acceptable); if it does not match, refuse to install */
+  sha256?: string;
+  source?: InstalledPack['source'];
+};
+
+const err = (errors: string[]): InstallResult => ({ ok: false, errors });
+
+/** GLSL real compilation probe: run it on tiny canvas, and reject it if compilation/linking fails. */
+async function probeShaders(pack: PluginPack): Promise<string[]> {
+  const shaderItems = pack.items.filter((i) => i.type === 'fx' || i.type === 'transition');
+  if (!shaderItems.length) return [];
+  const errors: string[] = [];
+  const canvas = document.createElement('canvas');
+  canvas.width = 2;
+  canvas.height = 2;
+  let runtime: ReturnType<typeof createGlRuntime>;
+  try {
+    runtime = createGlRuntime(canvas);
+  } catch (e) {
+    return [`WebGL is unavailable, cannot check shaders: ${e instanceof Error ? e.message : String(e)}`];
+  }
+  const src = document.createElement('canvas');
+  src.width = 2;
+  src.height = 2;
+  src.getContext('2d')!.fillRect(0, 0, 2, 2);
+  try {
+    for (const item of shaderItems) {
+      try {
+        if (item.type === 'transition') runtime.render(item.frag, src, src, 0.5, {});
+        else for (const frag of item.passes ?? [item.frag]) runtime.renderFxChain([{ frag, uniforms: {} }], src);
+      } catch (e) {
+        errors.push(`"${item.name}"shader failed to compile: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+  } finally {
+    runtime.dispose();
+  }
+  return errors;
+}
+
+/** [remix] MG templates carry JavaScript that OpenChatCut runs in its template-host sandbox; this editor has no such runtime, so
+ * those items are never installed or executed (the rest of the pack installs). Returns the skipped names. */
+function stripTemplates(pack: PluginPack): { pack: PluginPack; skipped: string[] } {
+  const skipped = pack.items.filter((it) => it.type === 'mg-template').map((it) => it.name);
+  return { pack: { ...pack, items: pack.items.filter((it) => it.type !== 'mg-template') }, skipped };
+}
+
+/** Calculate SHA-256 hex (lowercase) of UTF-8 text*/
+export async function sha256Hex(text: string): Promise<string> {
+  const data = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** Install from JSON text (file/paste common). opts.sha256 Optional integrity check.*/
+export async function installFromText(text: string, opts?: InstallFromUrlOpts): Promise<InstallResult> {
+  if (opts?.sha256) {
+    const got = await sha256Hex(text);
+    if (got !== opts.sha256.trim().toLowerCase()) {
+      return err([`SHA-256 mismatch (expected ${opts.sha256.slice(0, 12)}…,got ${got.slice(0, 12)}…)`]);
+    }
+  }
+
+  let json: unknown;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    return err(['not valid JSON']);
+  }
+  const res = validatePack(json);
+  if (!res.ok) return err(res.errors);
+  const { pack, skipped } = stripTemplates(res.pack);
+  if (!pack.items.length) return err([`This pack only contains motion-graphics templates (${skipped.join(', ')}), which need OpenChatCut's sandboxed template runtime and are not installed here.`]);
+
+  const shaderErrors = await probeShaders(pack);
+  if (shaderErrors.length) return err(shaderErrors);
+
+  const installed: InstalledPack = {
+    ...pack,
+    installedAt: Date.now(),
+    enabled: true,
+    ...(opts?.source ? { source: opts.source } : {}),
+  };
+
+  // Transaction: Remove the registration of the old package with the same ID → Register the new package → Persistence; roll back the registry on failure
+  const previous = (await listPacks()).find((p) => p.id === installed.id) ?? null;
+  if (previous) {
+    try { await unregisterPack(previous); } catch { /* Old package de-registration fails and continues to be overwritten*/ }
+  }
+  try {
+    await registerPack(installed);
+  } catch (e) {
+    if (previous) {
+      try { await registerPack(previous); } catch { /* Try your best to recover*/ }
+    }
+    return err([`registration failed: ${e instanceof Error ? e.message : String(e)}`]);
+  }
+  try {
+    await savePack(installed);
+  } catch (e) {
+    try { await unregisterPack(installed); } catch { /* ignore */ }
+    if (previous) {
+      try { await registerPack(previous); } catch { /* ignore */ }
+    }
+    return err([`could not save locally: ${e instanceof Error ? e.message : String(e)}`]);
+  }
+  return { ok: true, pack: installed, ...(skipped.length ? { skipped } : {}) };
+}
+
+/** Install from URL (gist/raw/remote index, etc.; when cross-domain is blocked by CORS, you will be prompted to use file installation instead)*/
+export async function installFromUrl(url: string, opts?: InstallFromUrlOpts): Promise<InstallResult> {
+  let text: string;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return err([`download failed: HTTP ${res.status}`]);
+    text = await res.text();
+  } catch (e) {
+    return err([`download failed (possibly blocked by CORS): ${e instanceof Error ? e.message : String(e)}. Download the file and use "Install from file" instead`]);
+  }
+  return installFromText(text, {
+    ...opts,
+    source: opts?.source ?? {
+      kind: 'url',
+      url,
+      ...(opts?.sha256 ? { sha256: opts.sha256 } : {}),
+    },
+  });
+}

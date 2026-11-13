@@ -1,29 +1,38 @@
-import { muapi } from '../lib/muapi.js';
 import { registerGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import Store from '../stores/base/Store.js';
-import { t2iModels, getAspectRatiosForModel, getModelById, getI2IModelById, getI2VModelById, getV2VModelById } from '../lib/models.js';
+import { t2iModels, getAspectRatiosForModel, getModelById } from '../lib/models.js';
 import { showToast } from '../lib/loading.js';
 import { navigate } from '../lib/router.js';
 import { createFullscreenPreview } from './MediaPreview.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
-import { generateStoryboardFromIntent, generateFrameImage as engineGenerateFrameImage, resolveOpenAISize } from '../lib/storyboardEngine.js';
-import { createAutosave, saveProject, loadProject } from '../lib/editor/persistence.js';
+import {
+  generateStoryboardFromIntent,
+  generateFrameImage as engineGenerateFrameImage,
+  buildFramePrompt,
+  createFrame,
+  syncFrameAliases,
+  renumberFrames,
+  totalDuration,
+  clampFrameCount,
+  frameCountForDuration,
+  SHOT_TYPES,
+  CAMERA_MOVEMENTS,
+  MIN_FRAMES,
+  MAX_FRAMES,
+} from '../lib/storyboardEngine.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
-import { createAdvancedControls } from '../lib/studioControls.js';
 import { createActionRow, arrangeActionRow } from './studio/actionRow.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
@@ -32,21 +41,27 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
-const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
+const SHOT_PRESETS = {
+  'Wide Shot': 'Establishing shot, wide angle, epic landscape, professional cinematography',
+  'Medium Shot': 'Medium shot, character focused, natural lighting, professional composition',
+  'Close-Up': 'Intimate close-up, detailed expression, shallow depth of field, dramatic lighting',
+  'Extreme Close-Up': 'Extreme close-up detail shot, macro detail, shallow depth of field',
+  'POV': 'Point of view shot, first person perspective, immersive',
+  'Overhead': 'Overhead drone shot, bird\'s eye view, epic scale',
+  'Low Angle': 'Low angle shot, dramatic perspective, heroic composition',
+};
 
-const SHOT_PRESETS = [
-  { shot: 'Wide Shot', prompt: 'Cinematic establishing shot, wide angle, epic landscape, professional cinematography' },
-  { shot: 'Medium Shot', prompt: 'Medium shot, character focused, natural lighting, professional composition' },
-  { shot: 'Close-Up', prompt: 'Intimate close-up, detailed expression, shallow depth of field, dramatic lighting' },
-  { shot: 'Extreme Close-Up', prompt: 'Extreme close-up detail shot, macro detail, shallow depth of field, cinematic' },
-  { shot: 'POV', prompt: 'Point of view shot, first person perspective, immersive, cinematic' },
-  { shot: 'Overhead', prompt: 'Overhead drone shot, bird\'s eye view, epic scale, cinematic' },
-  { shot: 'Low Angle', prompt: 'Low angle shot, dramatic perspective, heroic composition, cinematic' },
-];
+const SHOT_ABBREV = {
+  'Wide Shot': 'WS', 'Medium Shot': 'MS', 'Close-Up': 'CU', 'Extreme Close-Up': 'ECU',
+  'POV': 'POV', 'Overhead': 'OH', 'Low Angle': 'LA',
+};
 
+const VIDEO_TYPES = ['commercial', 'brand film', 'trailer', 'social reel', 'testimonial', 'documentary', 'short film', 'explainer'];
+const TONES = ['dramatic', 'cinematic', 'upbeat', 'luxury', 'gritty', 'minimal', 'emotional', 'humorous'];
 const STYLE_OPTIONS = ['None', 'Photorealistic', 'Cinematic', 'Noir', 'Anime', 'Watercolor', 'Oil Painting', 'Cyberpunk', 'Fantasy', 'Documentary'];
 const LIGHTING_OPTIONS = ['None', 'Golden Hour', 'Neon', 'Studio', 'Dramatic', 'Soft', 'Volumetric', 'High Key', 'Low Key'];
 const COLOR_OPTIONS = ['None', 'Warm', 'Cool', 'Desaturated', 'Vibrant', 'Monochrome', 'Sepia', 'Teal & Orange'];
+const STORY_ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:5'];
 
 const LAYOUTS = [
   { id: 'horizontal', label: 'Horizontal' },
@@ -54,26 +69,16 @@ const LAYOUTS = [
   { id: 'story', label: 'Story' },
 ];
 
-// Image generation model/AR state (mirrors ImageStudio pattern)
-const defaultModel = t2iModels[0];
-let selectedModel = defaultModel.id;
-let selectedModelName = defaultModel.name;
-let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '1:1';
-let selectedProvider = 'all';
-let customThumbnailUrl = null;
-
-// Enhancement state
-let selectedStyle = 'None';
-let selectedLighting = 'None';
-let selectedColor = 'None';
-let selectedPreset = null;
-const frameNotes = '';
-const revisedPrompt = '';
-const referenceImages = [];
-const generationProgress = { current: 0, total: 0, failed: [] };
-const batchRetryCount = 0;
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY = 1000;
+const GENERATION_CONCURRENCY = 2;
+const PROJECTS_KEY = 'storyboard_projects_v1';
+const LAST_PROJECT_KEY = 'storyboard_last_project';
+
+const FIELD_CLASS = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
+const LABEL_CLASS = 'block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5';
+const BTN_CLASS = 'px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all disabled:opacity-50';
+const PRIMARY_BTN_CLASS = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all disabled:opacity-50';
 
 function escapeHtml(text) {
   if (text == null) return '';
@@ -85,273 +90,280 @@ function escapeHtml(text) {
     .replace(/'/g, '&#39;');
 }
 
-function withRetry(fn, retries = MAX_RETRIES, delay = RETRY_BASE_DELAY) {
-  return (async () => {
-    let lastErr;
-    for (let i = 0; i < retries; i++) {
-      try {
-        return await fn();
-      } catch (err) {
-        lastErr = err;
-        const isTransient = err?.status === 429 || (err?.status >= 500 && err?.status < 600);
-        if (!isTransient || i === retries - 1) throw err;
-        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
-      }
-    }
-    throw lastErr;
-  })();
+function csvCell(value) {
+  const s = String(value ?? '');
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-const storyboardStore = new Store({
-  frames: [],
-  layout: 'horizontal',
-  selectedModel: t2iModels[0]?.id,
-  selectedModelName: t2iModels[0]?.name,
-  selectedAr: t2iModels[0]?.inputs?.aspect_ratio?.default || '1:1',
-  selectedStyle: 'None',
-  selectedLighting: 'None',
-  selectedColor: 'None',
-  selectedPreset: null,
-  generationProgress: { current: 0, total: 0, failed: [] },
-});
+async function withRetry(fn, retries = MAX_RETRIES, delay = RETRY_BASE_DELAY) {
+  let lastErr;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const isTransient = err?.status === 429 || (err?.status >= 500 && err?.status < 600);
+      if (!isTransient || i === retries - 1) throw err;
+      await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
+    }
+  }
+  throw lastErr;
+}
+
+/** Shallow copy of the frames. Strings are immutable, so image data is shared, not duplicated. */
+function snapshotFrames(frames) {
+  return frames.map((f) => ({ ...f, referenceImages: [...(f.referenceImages || [])] }));
+}
 
 function createUndoRedo() {
   const undoStack = [];
-  let redoStack = [];
+  const redoStack = [];
   const maxHistory = 50;
-
-  function push(state) {
-    undoStack.push(JSON.parse(JSON.stringify(state)));
-    if (undoStack.length > maxHistory) undoStack.shift();
-    redoStack = [];
-  }
-
-  function undo(currentState) {
-    if (!undoStack.length) return null;
-    const prev = undoStack.pop();
-    redoStack.push(JSON.parse(JSON.stringify(currentState)));
-    return prev;
-  }
-
-  function redo(currentState) {
-    if (!redoStack.length) return null;
-    const next = redoStack.pop();
-    undoStack.push(JSON.parse(JSON.stringify(currentState)));
-    return next;
-  }
-
-  function canUndo() { return undoStack.length > 0; }
-  function canRedo() { return redoStack.length > 0; }
-
-  return { push, undo, redo, canUndo, canRedo };
+  return {
+    push(snapshot) {
+      undoStack.push(snapshot);
+      if (undoStack.length > maxHistory) undoStack.shift();
+      redoStack.length = 0;
+    },
+    undo(current) {
+      if (!undoStack.length) return null;
+      redoStack.push(current);
+      return undoStack.pop();
+    },
+    redo(current) {
+      if (!redoStack.length) return null;
+      undoStack.push(current);
+      return redoStack.pop();
+    },
+    canUndo: () => undoStack.length > 0,
+    canRedo: () => redoStack.length > 0,
+  };
 }
 
-export async function StoryboardStudio(options = {}) {
-  const { embedded = false, onBack } = options;
+// ---- Saved projects (localStorage; never touches the Timeline Editor's slot) ----
+
+function readProjects() {
+  try {
+    return JSON.parse(localStorage.getItem(PROJECTS_KEY) || '{}') || {};
+  } catch {
+    return {};
+  }
+}
+
+/** Save a named project. Falls back to dropping inline (data:) images when storage is full. */
+function writeProject(name, state) {
+  const projects = readProjects();
+  const record = { ...state, name, updatedAt: new Date().toISOString() };
+  const attempt = (payload) => {
+    projects[name] = payload;
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  };
+  try {
+    attempt(record);
+    return { ok: true, stripped: 0 };
+  } catch {
+    let stripped = 0;
+    const lean = {
+      ...record,
+      frames: record.frames.map((f) => {
+        if (typeof f.imageUrl === 'string' && f.imageUrl.startsWith('data:')) {
+          stripped += 1;
+          return { ...f, imageUrl: null, status: 'idle' };
+        }
+        return f;
+      }),
+    };
+    try {
+      attempt(lean);
+      return { ok: true, stripped };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
+  }
+}
+
+export function StoryboardStudio(options = {}) {
+  const { embedded = false } = options;
   const undoRedo = createUndoRedo();
-  const autosave = createAutosave({
-    debounceMs: 1500,
-    onSave: () => {},
-    onError: (err) => console.warn('[StoryboardStudio] Autosave failed:', err),
-  });
+  const cleanups = [];
+  const listen = (target, type, handler) => {
+    target.addEventListener(type, handler);
+    cleanups.push(() => target.removeEventListener(type, handler));
+  };
+
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative storyboard-studio';
   mountStudioChrome(container, { currentRoute: 'storyboard' });
   container.setAttribute('data-app', 'storyboard');
 
-  // Read gallery / deep-link params and apply them as studio defaults.
+  // ---- State (per mount) ----
+  const intent = getVideoIntent();
+  const defaultModel = t2iModels[0];
+  let selectedModel = defaultModel.id;
+  let selectedModelName = defaultModel.name;
+  let selectedAr = STORY_ASPECT_RATIOS.includes(intent.aspectRatio) ? intent.aspectRatio : (defaultModel.inputs?.aspect_ratio?.default || '16:9');
+  let customThumbnailUrl = null;
+  let selectedStyle = intent.stylePreset || 'None';
+  let selectedLighting = intent.lightingPreset || 'None';
+  let selectedColor = intent.colorGrade || 'None';
+  let layout = 'horizontal';
+  let projectName = '';
+  let stage = 'describe';
+  let enhancedConcept = '';
+  let generatedStoryboard = null;
+  const settings = { negativePrompt: '', seed: -1, guidanceScale: undefined, steps: undefined, usePreviousFrame: false };
+  const generation = { running: false, stop: false, total: 0, done: 0, skipped: 0, failedIds: [] };
+  const storyboardAttachments = { images: [], videos: [], audios: [] };
+  const activeProfileRef = { value: null };
+
+  // Empty until the user describes a story (or chooses to build by hand).
+  const frames = [];
+  /** id -> { imageArea, genBtn, card } for the cards currently on screen */
+  const frameRefs = new Map();
+
+  // ---- Deep links (gallery templates, academy, ?prompt=) ----
+  let deepLinkPrompt = '';
+  let deepLinkDuration = null;
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const templateParam = urlParams.get('template');
     const academyParam = urlParams.get('academy-template');
     const promptParam = urlParams.get('prompt');
-    const styleParam = urlParams.get('style');
-    const arParam = urlParams.get('aspect_ratio');
-    const durationParam = urlParams.get('duration');
-
     if (templateParam) {
       const tpl = resolveTemplate(templateParam);
       if (tpl) {
         if (tpl.model) { selectedModel = tpl.model; }
         if (tpl.aspectRatio) { selectedAr = tpl.aspectRatio; }
-        if (tpl.duration) {
-          const durEl = document.getElementById('vi-duration');
-          if (durEl) durEl.value = tpl.duration;
-        }
+        if (tpl.duration) deepLinkDuration = tpl.duration;
         if (tpl.basePrompt) {
-          const ta = document.getElementById('vi-premise');
-          if (ta) ta.value = tpl.basePrompt;
+          deepLinkPrompt = tpl.basePrompt;
         } else if (tpl.slug) {
           loadTemplatePrompt(templateParam).then((prompt) => {
-            if (prompt) {
-              const ta = document.getElementById('vi-premise');
-              if (ta) ta.value = prompt;
-            }
+            const ta = prompt && container.querySelector('#vi-premise');
+            if (ta && !ta.value) { ta.value = prompt; ta.dispatchEvent(new Event('input', { bubbles: true })); }
           }).catch(() => {});
         }
       }
     }
-
     if (academyParam || promptParam) {
       const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
       const params = target?.params || {};
-      if (params.prompt) {
-        const ta = document.getElementById('vi-premise');
-        if (ta) ta.value = params.prompt;
-      }
-      if (params.aspect_ratio) { selectedAr = params.aspect_ratio; }
-      if (params.duration) {
-        const durEl = document.getElementById('vi-duration');
-        if (durEl) durEl.value = params.duration;
-      }
+      if (params.prompt || promptParam) deepLinkPrompt = params.prompt || promptParam;
+      if (params.aspect_ratio) selectedAr = params.aspect_ratio;
+      if (params.duration) deepLinkDuration = params.duration;
     }
-  } catch { /* ignore */ }
+  } catch { /* ignore bad deep-link params */ }
+  const selectedModelInfo = getModelById(selectedModel);
+  if (selectedModelInfo) selectedModelName = selectedModelInfo.name;
 
+  // =====================================================================
+  // 1. Header
+  // =====================================================================
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
   if (!embedded) {
     topBar.appendChild(createStudioHeader('storyboard', 'Storyboard Studio', 'Plan scenes as AI storyboard frames, then turn them into video', 'mb-4'));
   }
-  const inlineInstructions = createInlineInstructions('storyboard');
-  inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
-  topBar.appendChild(inlineInstructions);
-
   container.appendChild(topBar);
 
-  let generatedStoryboard = null;
+  // =====================================================================
+  // 2. Story brief (open by default: this is where a storyboard starts)
+  // =====================================================================
+  const optionsHtml = (list, current) => list
+    .map((o) => `<option value="${escapeHtml(o)}"${o === current ? ' selected' : ''}>${escapeHtml(o)}</option>`)
+    .join('');
+  const titleCase = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 
-  const videoIntentSection = document.createElement('div');
-  videoIntentSection.className = 'px-4 md:px-8 mb-4';
-  videoIntentSection.innerHTML = `
-    <div class="bg-white/5 border border-white/10 rounded-xl p-4 md:p-6">
-      <button id="video-intent-toggle" class="flex items-center justify-between w-full text-left mb-4">
-        <span class="${CINEMATIC_THEME.text.body} font-bold text-white">Video Intent</span>
-        <svg id="video-intent-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-white/60 transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div id="video-intent-form" class="hidden">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Video Type</label>
-            <select id="vi-videoType" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
-              <option value="commercial">Commercial</option>
-              <option value="brand film">Brand Film</option>
-              <option value="trailer">Trailer</option>
-              <option value="social reel">Social Reel</option>
-              <option value="testimonial">Testimonial</option>
-              <option value="documentary">Documentary</option>
-              <option value="short film">Short Film</option>
-              <option value="explainer">Explainer</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Duration (seconds)</label>
-            <input type="number" id="vi-duration" value="60" min="10" max="300" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none" />
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Aspect Ratio</label>
-            <select id="vi-aspectRatio" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
-              <option value="16:9">16:9</option>
-              <option value="9:16">9:16</option>
-              <option value="1:1">1:1</option>
-              <option value="4:5">4:5</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Tone</label>
-            <select id="vi-tone" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
-              <option value="dramatic">Dramatic</option>
-              <option value="cinematic">Cinematic</option>
-              <option value="upbeat">Upbeat</option>
-              <option value="luxury">Luxury</option>
-              <option value="gritty">Gritty</option>
-              <option value="minimal">Minimal</option>
-              <option value="emotional">Emotional</option>
-              <option value="humorous">Humorous</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Style Preset</label>
-            <select id="vi-stylePreset" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
-              <option value="None">None</option>
-              <option value="Photorealistic">Photorealistic</option>
-              <option value="Cinematic">Cinematic</option>
-              <option value="Noir">Noir</option>
-              <option value="Anime">Anime</option>
-              <option value="Watercolor">Watercolor</option>
-              <option value="Oil Painting">Oil Painting</option>
-              <option value="Cyberpunk">Cyberpunk</option>
-              <option value="Fantasy">Fantasy</option>
-              <option value="Documentary">Documentary</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Lighting Preset</label>
-            <select id="vi-lightingPreset" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
-              <option value="None">None</option>
-              <option value="Golden Hour">Golden Hour</option>
-              <option value="Neon">Neon</option>
-              <option value="Studio">Studio</option>
-              <option value="Dramatic">Dramatic</option>
-              <option value="Soft">Soft</option>
-              <option value="Volumetric">Volumetric</option>
-              <option value="High Key">High Key</option>
-              <option value="Low Key">Low Key</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Color Grade</label>
-            <select id="vi-colorGrade" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
-              <option value="None">None</option>
-              <option value="Warm">Warm</option>
-              <option value="Cool">Cool</option>
-              <option value="Desaturated">Desaturated</option>
-              <option value="Vibrant">Vibrant</option>
-              <option value="Monochrome">Monochrome</option>
-              <option value="Sepia">Sepia</option>
-              <option value="Teal & Orange">Teal & Orange</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Target Audience</label>
-            <input type="text" id="vi-targetAudience" placeholder="e.g. Gen Z, professionals" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none" />
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Call to Action (optional)</label>
-            <input type="text" id="vi-cta" placeholder="e.g. Buy now, Sign up" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none" />
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Subject</label>
-          <input type="text" id="vi-subject" placeholder="What is the video about?" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none" />
-        </div>
-        <div class="mb-4">
-          <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Premise</label>
-          <textarea id="vi-premise" rows="3" placeholder="Core narrative or value prop..." class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none resize-none"></textarea>
-        </div>
-        <div class="flex items-center gap-3 flex-wrap">
-          <button id="vi-generate-btn" class="btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all">Generate Storyboard</button>
-          <button id="vi-template-btn" class="hidden px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all">Send to Template Studio</button>
-          <span id="vi-status" class="text-[10px] text-muted"></span>
-        </div>
-        <p class="text-[10px] text-muted mt-3">Describe your video and we'll generate a complete storyboard with frames, shots, and prompts.</p>
+  const brief = document.createElement('section');
+  brief.className = 'shrink-0 px-4 md:px-8 mb-4';
+  brief.setAttribute('aria-label', 'Story brief');
+  brief.innerHTML = `
+    <div id="brief-card" class="bg-white/5 border border-white/10 rounded-xl p-4 md:p-6">
+      <h2 class="${CINEMATIC_THEME.text.body} font-bold text-white mb-1">Describe your storyboard</h2>
+      <p class="text-[11px] text-muted mb-4">Tell us what you want to make. We plan the shots, then your storyboard appears here.</p>
+      <label class="${LABEL_CLASS}" for="vi-premise">What do you want your storyboard to be about?</label>
+      <textarea id="vi-premise" rows="4" placeholder="e.g. A 30-second launch ad for a trail-running shoe: a runner climbs a misty ridge at dawn, laces tighten, the city wakes below. End on 'Run further'." class="${FIELD_CLASS} resize-none">${escapeHtml(deepLinkPrompt || intent.premise)}</textarea>
+      <div class="flex items-center gap-3 flex-wrap mt-4">
+        <button id="vi-generate-btn" type="button" class="${PRIMARY_BTN_CLASS}">Generate storyboard</button>
+        <label class="flex items-center gap-2 text-[11px] text-secondary cursor-pointer">
+          <input type="checkbox" id="vi-with-images" checked class="accent-primary" /> Also generate frame images
+        </label>
+        <span id="vi-status" class="text-[10px] text-muted" role="status" aria-live="polite"></span>
       </div>
+      <button id="video-intent-toggle" type="button" aria-expanded="false" aria-controls="video-intent-form" class="mt-4 flex items-center gap-2 text-[11px] font-bold text-muted hover:text-secondary transition-colors">
+        <svg id="video-intent-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
+        Customize (type, tone, length, frames, characters, style)
+      </button>
+      <div id="video-intent-form" class="hidden mt-4">
+        <div class="mb-4">
+          <label class="${LABEL_CLASS}" for="vi-subject">Title or subject (optional)</label>
+          <input type="text" id="vi-subject" value="${escapeHtml(intent.subject)}" placeholder="e.g. Trail-running shoe launch" class="${FIELD_CLASS}" />
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div><label class="${LABEL_CLASS}" for="vi-videoType">Video type</label>
+            <select id="vi-videoType" class="${FIELD_CLASS} appearance-none cursor-pointer">${VIDEO_TYPES.map((v) => `<option value="${v}"${v === intent.videoType ? ' selected' : ''}>${titleCase(v)}</option>`).join('')}</select></div>
+          <div><label class="${LABEL_CLASS}" for="vi-tone">Tone</label>
+            <select id="vi-tone" class="${FIELD_CLASS} appearance-none cursor-pointer">${TONES.map((v) => `<option value="${v}"${v === intent.tone ? ' selected' : ''}>${titleCase(v)}</option>`).join('')}</select></div>
+          <div><label class="${LABEL_CLASS}" for="vi-duration">Total length (sec)</label>
+            <input type="number" id="vi-duration" value="${deepLinkDuration || intent.duration || 60}" min="${MIN_FRAMES * 2}" max="300" class="${FIELD_CLASS}" /></div>
+          <div><label class="${LABEL_CLASS}" for="vi-frameCount">Frames (${MIN_FRAMES}-${MAX_FRAMES})</label>
+            <input type="number" id="vi-frameCount" value="${clampFrameCount(intent.frameCount)}" min="${MIN_FRAMES}" max="${MAX_FRAMES}" class="${FIELD_CLASS}" /></div>
+          <div><label class="${LABEL_CLASS}" for="vi-targetAudience">Audience</label>
+            <input type="text" id="vi-targetAudience" value="${escapeHtml(intent.targetAudience)}" placeholder="e.g. Gen Z, professionals" class="${FIELD_CLASS}" /></div>
+          <div class="md:col-span-3"><label class="${LABEL_CLASS}" for="vi-cta">Call to action (optional)</label>
+            <input type="text" id="vi-cta" value="${escapeHtml(intent.cta)}" placeholder="e.g. Shop now" class="${FIELD_CLASS}" /></div>
+        </div>
+        <div class="mb-4">
+          <label class="${LABEL_CLASS}" for="vi-storyBible">Characters, setting and look (kept the same in every frame)</label>
+          <textarea id="vi-storyBible" rows="2" placeholder="e.g. Mara, 30s, red jacket, short dark hair. Rainy neon city at night." class="${FIELD_CLASS} resize-none">${escapeHtml(intent.storyBible)}</textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div><label class="${LABEL_CLASS}" for="vi-stylePreset">Visual style</label>
+            <select id="vi-stylePreset" class="${FIELD_CLASS} appearance-none cursor-pointer">${optionsHtml(STYLE_OPTIONS, selectedStyle)}</select></div>
+          <div><label class="${LABEL_CLASS}" for="vi-lightingPreset">Lighting</label>
+            <select id="vi-lightingPreset" class="${FIELD_CLASS} appearance-none cursor-pointer">${optionsHtml(LIGHTING_OPTIONS, selectedLighting)}</select></div>
+          <div><label class="${LABEL_CLASS}" for="vi-colorGrade">Color grade</label>
+            <select id="vi-colorGrade" class="${FIELD_CLASS} appearance-none cursor-pointer">${optionsHtml(COLOR_OPTIONS, selectedColor)}</select></div>
+        </div>
+      </div>
+      <div id="saved-projects" class="hidden mt-4 flex items-center gap-2 flex-wrap">
+        <label class="${LABEL_CLASS} !mb-0" for="saved-select">Saved storyboards</label>
+        <select id="saved-select" class="${FIELD_CLASS} !w-auto appearance-none cursor-pointer"></select>
+        <button id="open-saved" type="button" class="${BTN_CLASS}">Open</button>
+      </div>
+      <button id="start-blank" type="button" class="mt-4 block text-[11px] text-muted underline hover:text-white transition-colors">or build the frames by hand</button>
+    </div>
+    <div id="brief-summary" class="hidden bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
+      <span id="brief-summary-text" class="text-xs text-white truncate flex-1 min-w-0"></span>
+      <span id="brief-summary-meta" class="text-[11px] text-secondary tabular-nums"></span>
+      <button id="edit-brief" type="button" class="${BTN_CLASS}">Edit brief</button>
+      <button id="new-storyboard" type="button" class="${BTN_CLASS}">New storyboard</button>
     </div>
   `;
+  container.appendChild(brief);
 
-  container.appendChild(videoIntentSection);
+  // How-to steps: under the brief like Image/Video Studio, folded away until wanted.
+  const howTo = document.createElement('details');
+  howTo.className = 'shrink-0 mx-4 md:mx-8 mb-4';
+  howTo.innerHTML = '<summary class="cursor-pointer select-none text-[11px] font-bold text-muted hover:text-secondary mb-3">How it works</summary>';
+  howTo.appendChild(createInlineInstructions('storyboard'));
+  container.appendChild(howTo);
 
-  // Attachment toolbar for storyboard references
-  const storyboardAttachments = { images: [], videos: [], audios: [] };
-  const attachmentToolbar = createAttachmentToolbar({
-    container: videoIntentSection,
-    getTextarea: () => videoIntentSection.querySelector('#vi-premise'),
+  const $ = (sel) => brief.querySelector(sel);
+  const premiseEl = $('#vi-premise');
+  const durationEl = $('#vi-duration');
+  const frameCountEl = $('#vi-frameCount');
+  let frameCountTouched = false;
+  let durationTouched = false;
+
+  createAttachmentToolbar({
+    container: brief,
+    getTextarea: () => premiseEl,
     acceptStartFrame: false,
     acceptEndFrame: false,
     onUpload: async (key, file) => {
       try {
-        // MuAPI-bound reference: validated by the shared adapter and stored in
-        // the permanent Asset Library; resolved at generation time.
-        const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        const { ingestStudioUpload } = await import('../lib/muapiStudioMedia.js');
         const stored = await ingestStudioUpload(file, { studioId: 'storyboard-studio', uploadToMuapi: false });
         storyboardAttachments[key] = storyboardAttachments[key] || [];
         storyboardAttachments[key].push({ url: stored.url, assetId: stored.assetId });
@@ -363,423 +375,319 @@ export async function StoryboardStudio(options = {}) {
     },
   });
 
-  const toggleBtn = videoIntentSection.querySelector('#video-intent-toggle');
-  const formEl = videoIntentSection.querySelector('#video-intent-form');
-  const chevron = videoIntentSection.querySelector('#video-intent-chevron');
+  const toggleBtn = $('#video-intent-toggle');
   toggleBtn.addEventListener('click', () => {
-    const isHidden = formEl.classList.contains('hidden');
-    formEl.classList.toggle('hidden');
-    chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    const formEl = $('#video-intent-form');
+    const willOpen = formEl.classList.contains('hidden');
+    formEl.classList.toggle('hidden', !willOpen);
+    toggleBtn.setAttribute('aria-expanded', String(willOpen));
+    $('#video-intent-chevron').style.transform = willOpen ? 'rotate(180deg)' : '';
   });
 
-  // Sync standalone form into shared store
-  if (!embedded) {
-    const syncFormToStore = () => {
-      setVideoIntent({
-        videoType: videoIntentSection.querySelector('#vi-videoType')?.value || getVideoIntent().videoType,
-        duration: parseInt(videoIntentSection.querySelector('#vi-duration')?.value || getVideoIntent().duration, 10),
-        aspectRatio: videoIntentSection.querySelector('#vi-aspectRatio')?.value || getVideoIntent().aspectRatio,
-        tone: videoIntentSection.querySelector('#vi-tone')?.value || getVideoIntent().tone,
-        stylePreset: videoIntentSection.querySelector('#vi-stylePreset')?.value || getVideoIntent().stylePreset,
-        lightingPreset: videoIntentSection.querySelector('#vi-lightingPreset')?.value || getVideoIntent().lightingPreset,
-        colorGrade: videoIntentSection.querySelector('#vi-colorGrade')?.value || getVideoIntent().colorGrade,
-        targetAudience: videoIntentSection.querySelector('#vi-targetAudience')?.value || getVideoIntent().targetAudience,
-        cta: videoIntentSection.querySelector('#vi-cta')?.value || getVideoIntent().cta,
-        subject: videoIntentSection.querySelector('#vi-subject')?.value || getVideoIntent().subject,
-        premise: videoIntentSection.querySelector('#vi-premise')?.value || getVideoIntent().premise,
-      });
+  /** Read the brief form into one intent object. */
+  function readBrief() {
+    return {
+      subject: $('#vi-subject').value,
+      premise: premiseEl.value,
+      videoType: $('#vi-videoType').value,
+      tone: $('#vi-tone').value,
+      duration: Math.max(MIN_FRAMES * 2, parseInt(durationEl.value, 10) || 60),
+      frameCount: clampFrameCount(frameCountEl.value),
+      targetAudience: $('#vi-targetAudience').value,
+      cta: $('#vi-cta').value,
+      storyBible: $('#vi-storyBible').value,
+      stylePreset: selectedStyle,
+      lightingPreset: selectedLighting,
+      colorGrade: selectedColor,
+      aspectRatio: selectedAr,
     };
-    videoIntentSection.querySelectorAll('input, select, textarea').forEach(el => {
-      el.addEventListener('input', syncFormToStore);
-      el.addEventListener('change', syncFormToStore);
-    });
   }
 
-  const generateBtn = videoIntentSection.querySelector('#vi-generate-btn');
-  const templateBtn = videoIntentSection.querySelector('#vi-template-btn');
-  const statusEl = videoIntentSection.querySelector('#vi-status');
+  function writeBrief(values = {}) {
+    const set = (id, v) => { const el = $(id); if (el && v !== undefined && v !== null) el.value = v; };
+    set('#vi-subject', values.subject);
+    set('#vi-premise', values.premise);
+    set('#vi-videoType', values.videoType);
+    set('#vi-tone', values.tone);
+    set('#vi-duration', values.duration);
+    set('#vi-frameCount', values.frameCount);
+    set('#vi-targetAudience', values.targetAudience);
+    set('#vi-cta', values.cta);
+    set('#vi-storyBible', values.storyBible);
+    if (values.stylePreset) { selectedStyle = values.stylePreset; set('#vi-stylePreset', selectedStyle); }
+    if (values.lightingPreset) { selectedLighting = values.lightingPreset; set('#vi-lightingPreset', selectedLighting); }
+    if (values.colorGrade) { selectedColor = values.colorGrade; set('#vi-colorGrade', selectedColor); }
+  }
 
-  generateBtn.addEventListener('click', async () => {
-    if (!(await requireEntitlement())) return;
-    // Attachments resolve to FRESH MuAPI URLs through the shared adapter
-    // (permanent Asset Library references only).
-    const { resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
-    const intent = {
-      ...getVideoIntent(),
-      model: selectedModel,
-      customThumbnailUrl: customThumbnailUrl || undefined,
-      // Merge attachment URLs from the unified toolbar.
-      reference_images: storyboardAttachments.images?.length
-        ? await resolveMuapiMediaRefs(storyboardAttachments.images)
-        : undefined,
-      reference_videos: storyboardAttachments.videos?.length
-        ? await resolveMuapiMediaRefs(storyboardAttachments.videos)
-        : undefined,
-      reference_audios: storyboardAttachments.audios?.length
-        ? await resolveMuapiMediaRefs(storyboardAttachments.audios)
-        : undefined,
-    };
-
-    generateBtn.disabled = true;
-    generateBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
-    statusEl.textContent = 'Generating storyboard...';
-
-    try {
-      const result = await generateStoryboardFromIntent(intent, { generateImages: true });
-      generatedStoryboard = result;
-      for (const f of result.frames || []) {
-        if (f.imageUrl) registerGeneration('storyboard', 'image', f.imageUrl, { prompt: f.prompt || '', model: intent.model || '', parameters: { shot: f.shot } });
-      }
-      frames.length = 0;
-      frames.push(...result.frames.map(f => ({ ...f, imageUrl: f.imageUrl || null })));
-      frameDurations = frames.map(() => Math.max(2, Math.round(intent.duration / frames.length)));
-      layout = 'grid';
-      layoutSelect.value = 'grid';
-      renderFrames();
-      templateBtn.classList.remove('hidden');
-      statusEl.textContent = `Generated ${result.frames.length} frames`;
-      showToast('Storyboard generated from intent', 'success');
-    } catch (err) {
-      statusEl.textContent = '';
-      showToast('Generation failed: ' + err.message, 'error');
-    } finally {
-      generateBtn.disabled = false;
-      generateBtn.textContent = 'Generate Storyboard';
-    }
-  });
-
-  templateBtn.addEventListener('click', () => {
-    if (!generatedStoryboard) return;
-    if (typeof window.useStoryboardInTemplate === 'function') {
-      window.useStoryboardInTemplate(generatedStoryboard);
-    } else {
-      navigate('cinema-template', { storyboard: JSON.stringify(generatedStoryboard) });
-    }
-  });
-
-  const frames = [
-    { prompt: '', narration: '', shot: 'Wide Shot', imageUrl: null, notes: '', referenceImages: [] },
-    { prompt: '', narration: '', shot: 'Medium Shot', imageUrl: null, notes: '', referenceImages: [] },
-    { prompt: '', narration: '', shot: 'Close-Up', imageUrl: null, notes: '', referenceImages: [] },
-  ];
-
-  let frameDurations = frames.map(() => 3);
-
-  const controlBar = document.createElement('div');
-  controlBar.className = 'px-4 md:px-8 mb-4 flex items-center gap-3 flex-wrap';
-
-  const LAYOUTS = [
-    { id: 'horizontal', label: 'Horizontal' },
-    { id: 'grid', label: 'Grid' },
-    { id: 'story', label: 'Story' },
-  ];
-  let layout = 'horizontal';
-
-  const layoutLabel = document.createElement('span');
-  layoutLabel.className = 'text-xs font-bold text-secondary';
-  layoutLabel.textContent = 'Layout:';
-  controlBar.appendChild(layoutLabel);
-
-  const layoutSelect = document.createElement('select');
-  layoutSelect.className = 'bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
-  LAYOUTS.forEach(l => {
-    const opt = document.createElement('option');
-    opt.value = l.id;
-    opt.textContent = l.label;
-    opt.style.background = '#111';
-    if (l.id === layout) opt.selected = true;
-    layoutSelect.appendChild(opt);
-  });
-  layoutSelect.onchange = () => {
-    layout = layoutSelect.value;
-    renderFrames();
+  // The brief is shared with the Cinema Template Studio through the intent store.
+  const syncBriefToStore = () => {
+    const b = readBrief();
+    selectedStyle = b.stylePreset = $('#vi-stylePreset').value;
+    selectedLighting = b.lightingPreset = $('#vi-lightingPreset').value;
+    selectedColor = b.colorGrade = $('#vi-colorGrade').value;
+    if (!embedded) setVideoIntent({ ...b, aspectRatio: STORY_ASPECT_RATIOS.includes(selectedAr) ? selectedAr : getVideoIntent().aspectRatio });
+    scheduleAutosave();
   };
-  controlBar.appendChild(layoutSelect);
-
-  const presetLabel = document.createElement('span');
-  presetLabel.className = 'text-xs font-bold text-secondary';
-  presetLabel.textContent = 'Preset:';
-  controlBar.appendChild(presetLabel);
-
-  const presetSelect = document.createElement('select');
-  presetSelect.className = 'bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
-  presetSelect.innerHTML = '<option value="">None</option>';
-  SHOT_PRESETS.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.shot;
-    opt.textContent = p.shot;
-    opt.style.background = '#111';
-    presetSelect.appendChild(opt);
+  brief.querySelectorAll('input, select, textarea').forEach((el) => {
+    if (el.id === 'vi-with-images') return;
+    el.addEventListener('input', syncBriefToStore);
+    el.addEventListener('change', syncBriefToStore);
   });
-  presetSelect.onchange = () => {
-    const preset = SHOT_PRESETS.find(p => p.shot === presetSelect.value);
-    if (!preset) return;
-    undoRedo.push(frames);
-    selectedPreset = preset;
-    frames.forEach((frame, idx) => {
-      frame.shot = preset.shot;
-      frame.prompt = idx === 0 ? preset.prompt : `${preset.prompt} (part ${idx + 1})`;
+  frameCountEl.addEventListener('input', () => { frameCountTouched = true; });
+  durationEl.addEventListener('input', () => {
+    durationTouched = true;
+    if (frameCountTouched) return;
+    frameCountEl.value = frameCountForDuration(durationEl.value);
+  });
+
+  const generateBtn = $('#vi-generate-btn');
+  const statusEl = $('#vi-status');
+  const withImagesEl = $('#vi-with-images');
+
+  // =====================================================================
+  // 3. Toolbar (grouped)
+  // =====================================================================
+  const toolbar = document.createElement('div');
+  toolbar.className = 'shrink-0 px-4 md:px-8 mb-4 flex flex-col gap-3';
+  toolbar.setAttribute('role', 'toolbar');
+  toolbar.setAttribute('aria-label', 'Storyboard tools');
+  container.appendChild(toolbar);
+
+  const makeRow = () => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 flex-wrap';
+    toolbar.appendChild(row);
+    return row;
+  };
+  const makeBtn = (label, { primary = false, title = '', aria = '' } = {}) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = primary ? PRIMARY_BTN_CLASS : BTN_CLASS;
+    b.textContent = label;
+    if (title) b.title = title;
+    if (aria) b.setAttribute('aria-label', aria);
+    return b;
+  };
+  const makeSelect = (list, value, onChange, ariaLabel) => {
+    const s = document.createElement('select');
+    s.className = `${FIELD_CLASS} !w-auto appearance-none cursor-pointer`;
+    s.setAttribute('aria-label', ariaLabel);
+    list.forEach(({ id, label }) => {
+      const o = document.createElement('option');
+      o.value = id; o.textContent = label; o.style.background = '#111';
+      if (id === value) o.selected = true;
+      s.appendChild(o);
     });
-    renderFrames();
-    autosave.schedule(getStoryboardState());
+    s.onchange = () => onChange(s.value);
+    return s;
   };
-  controlBar.appendChild(presetSelect);
+  const makeMenu = (label, items) => {
+    const menu = document.createElement('div');
+    menu.className = 'overflow-menu shrink-0';
+    menu.innerHTML = `
+      <button type="button" class="${BTN_CLASS}" aria-haspopup="true">${label}</button>
+      <div class="overflow-menu__panel">${items.map((i) => `<button type="button" class="overflow-menu__item" data-act="${i.id}" ${i.attrs || ''}>${i.label}</button>`).join('')}</div>`;
+    const trigger = menu.firstElementChild;
+    trigger.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('is-open'); });
+    items.forEach((i) => {
+      menu.querySelector(`[data-act="${i.id}"]`).addEventListener('click', () => { menu.classList.remove('is-open'); i.run(); });
+    });
+    listen(window, 'click', (e) => { if (!menu.contains(e.target)) menu.classList.remove('is-open'); });
+    return menu;
+  };
 
-  const projectIdInput = document.createElement('input');
-  projectIdInput.type = 'text';
-  projectIdInput.placeholder = 'Project ID';
-  projectIdInput.value = 'storyboard-' + Date.now();
-  projectIdInput.className = 'bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none w-40';
-  controlBar.appendChild(projectIdInput);
-
-  const saveBtn = document.createElement('button');
-  saveBtn.type = 'button';
-  saveBtn.className = 'px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all';
-  saveBtn.textContent = 'Save';
-  saveBtn.onclick = async () => {
-    if (!(await requireEntitlement())) return;
-    const id = projectIdInput.value.trim() || ('storyboard-' + Date.now());
-    try {
-      const r = await fetch('/api/storyboard/' + encodeURIComponent(id), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, frames, preset: selectedPreset }),
-      });
-      if (!r.ok) throw new Error('Save failed');
-      const state = getStoryboardState();
-      state.projectId = id;
-      const saveResult = await saveProject(state);
-      if (saveResult.supabase) {
-        showToast('Storyboard saved to Supabase', 'success');
-      } else {
-        showToast('Storyboard saved locally', 'success');
-      }
-    } catch (e) {
-      showToast('Save failed: ' + e.message, 'error');
+  // --- Row A: project ---
+  const projectRow = makeRow();
+  const projectInput = document.createElement('input');
+  projectInput.type = 'text';
+  projectInput.placeholder = 'Project name';
+  projectInput.setAttribute('aria-label', 'Project name');
+  projectInput.setAttribute('list', 'storyboard-project-list');
+  projectInput.className = `${FIELD_CLASS} !w-48`;
+  const projectList = document.createElement('datalist');
+  projectList.id = 'storyboard-project-list';
+  const refreshProjectList = () => {
+    const names = Object.keys(readProjects());
+    projectList.innerHTML = names.map((n) => `<option value="${escapeHtml(n)}"></option>`).join('');
+    const savedBox = brief.querySelector('#saved-projects');
+    if (savedBox) {
+      brief.querySelector('#saved-select').innerHTML = names.map((n) => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+      savedBox.classList.toggle('hidden', names.length === 0 || stage === 'board');
+      savedBox.classList.toggle('flex', names.length > 0 && stage !== 'board');
     }
   };
-  controlBar.appendChild(saveBtn);
-
-  const loadBtn = document.createElement('button');
-  loadBtn.type = 'button';
-  loadBtn.className = 'px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all';
-  loadBtn.textContent = 'Load';
-  loadBtn.onclick = async () => {
-    if (!(await requireEntitlement())) return;
-    const id = projectIdInput.value.trim();
-    if (!id) { showToast('Enter a project ID', 'warning'); return; }
-    let loadedFromSupabase = false;
-    let supabaseModule = null;
-    try {
-      supabaseModule = await import('../lib/supabase.js');
-    } catch { /* Supabase unavailable — fall back to local storage below */ }
-    if (supabaseModule?.isSupabaseConfigured?.()) {
-      try {
-        const { data, error } = await supabaseModule.supabase
-          .from('timeline_projects')
-          .select('project')
-          .eq('id', id)
-          .order('updated_at', { ascending: false })
-          .limit(1);
-        if (!error && data && data[0] && data[0].project) {
-          const loaded = data[0].project.data || data[0].project;
-          if (loaded && loaded.frames && Array.isArray(loaded.frames)) {
-            frames.length = 0;
-            frames.push(...loaded.frames);
-            if (loaded.layout) layout = loaded.layout;
-            if (loaded.selectedModel) selectedModel = loaded.selectedModel;
-            if (loaded.selectedModelName) selectedModelName = loaded.selectedModelName;
-            if (loaded.selectedAr) selectedAr = loaded.selectedAr;
-            if (loaded.selectedStyle) selectedStyle = loaded.selectedStyle || 'None';
-            if (loaded.selectedLighting) selectedLighting = loaded.selectedLighting || 'None';
-            if (loaded.selectedColor) selectedColor = loaded.selectedColor || 'None';
-            renderFrames();
-            showToast('Storyboard loaded from Supabase', 'success');
-            loadedFromSupabase = true;
-          }
-        }
-      } catch (e) {
-        console.warn('[StoryboardStudio] Supabase load failed:', e);
-      }
-    }
-    if (loadedFromSupabase) return;
-    try {
-      const r = await fetch('/api/storyboard/' + encodeURIComponent(id));
-      if (!r.ok) throw new Error('Load failed');
-      const data = await r.json();
-      if (data.frames && Array.isArray(data.frames)) {
-        frames.length = 0;
-        frames.push(...data.frames);
-        renderFrames();
-        showToast('Storyboard loaded', 'success');
-      }
-    } catch (e) {
-      // Fallback: try loading from localStorage/IndexedDB/Supabase via the
-      // shared persistence layer. This covers the case where the
-      // /api/storyboard/{id} endpoint is not implemented.
-      try {
-        const state = await loadProject();
-        if (state && state.frames && Array.isArray(state.frames)) {
-          frames.length = 0;
-          frames.push(...state.frames);
-          if (state.layout) layout = state.layout;
-          if (state.selectedModel) selectedModel = state.selectedModel;
-          if (state.selectedModelName) selectedModelName = state.selectedModelName;
-          if (state.selectedAr) selectedAr = state.selectedAr;
-          if (state.selectedStyle) selectedStyle = state.selectedStyle || 'None';
-          if (state.selectedLighting) selectedLighting = state.selectedLighting || 'None';
-          if (state.selectedColor) selectedColor = state.selectedColor || 'None';
-          renderFrames();
-          showToast('Storyboard loaded from local storage', 'success');
-        } else {
-          showToast('No saved storyboard found', 'warning');
-        }
-      } catch (fallbackErr) {
-        showToast('Load failed: ' + e.message, 'error');
-      }
-    }
+  refreshProjectList();
+  // Suggest the last project name, but do not treat it as the active project: autosave only
+  // starts after an explicit Save or Load, so an empty board can never overwrite a saved one.
+  try { projectInput.value = localStorage.getItem(LAST_PROJECT_KEY) || ''; } catch { /* storage unavailable */ }
+  const saveBtn = makeBtn('Save', { title: 'Save project (Ctrl+S)' });
+  const loadBtn = makeBtn('Load', { title: 'Load the project named in the box' });
+  const needFrames = (fn) => () => {
+    if (!frames.length) { showToast('Nothing to export yet. Generate a storyboard first.', 'warning'); return; }
+    fn();
   };
-  controlBar.appendChild(loadBtn);
+  const exportMenu = makeMenu('Export ▾', [
+    { id: 'pdf', label: 'PDF shot sheet', run: needFrames(() => exportPdf()) },
+    { id: 'csv', label: 'CSV shot list', run: needFrames(() => downloadText('storyboard-shot-list.csv', buildCsv(), 'text/csv')) },
+    { id: 'json', label: 'JSON', run: needFrames(() => downloadText('storyboard.json', JSON.stringify(buildStoryboardPayload(), null, 2), 'application/json')) },
+  ]);
+  projectRow.append(projectInput, projectList, saveBtn, loadBtn, exportMenu);
 
-  const addFrameBtn = document.createElement('button');
-  addFrameBtn.className = 'px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all';
-  addFrameBtn.textContent = '+ Add Frame';
-  addFrameBtn.onclick = async () => {
-    if (!(await requireEntitlement())) return;
-    undoRedo.push(frames);
-    frames.push({ prompt: '', narration: '', shot: 'Wide Shot', imageUrl: null, notes: '', referenceImages: [] });
-    renderFrames();
-    autosave.schedule(getStoryboardState());
-  };
-  controlBar.appendChild(addFrameBtn);
+  // --- Row B: edit + generate ---
+  const editRow = makeRow();
+  const addFrameBtn = makeBtn('+ Add frame');
+  const undoBtn = makeBtn('↶ Undo', { title: 'Undo (Ctrl+Z)' });
+  const redoBtn = makeBtn('↷ Redo', { title: 'Redo (Ctrl+Shift+Z)' });
+  const layoutSelect = makeSelect(LAYOUTS, layout, (v) => { layout = v; renderFrames(); }, 'Layout');
+  editRow.append(addFrameBtn, undoBtn, redoBtn, layoutSelect);
 
   const genAllBtn = document.createElement('button');
-genAllBtn.type = 'button';
-  genAllBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
-  genAllBtn.textContent = 'Generate All Frames';
+  genAllBtn.type = 'button';
+  genAllBtn.className = PRIMARY_BTN_CLASS;
+  genAllBtn.textContent = 'Generate all frames';
   genAllBtn.setAttribute('aria-label', 'Generate all frames');
-  controlBar.appendChild(genAllBtn);
+  const retryBtn = makeBtn('Retry failed');
+  retryBtn.classList.add('hidden');
+  const progressWrap = document.createElement('div');
+  progressWrap.className = 'hidden items-center gap-2';
+  progressWrap.innerHTML = '<div class="w-28 h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="progress-fill h-full bg-primary transition-all" style="width:0%"></div></div><span class="progress-label text-[10px] text-muted tabular-nums" role="status" aria-live="polite"></span>';
+  const progressFill = progressWrap.querySelector('.progress-fill');
+  const progressLabel = progressWrap.querySelector('.progress-label');
 
-  // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
-  let enhancedConcept = '';
-  const enhanceMenu = document.createElement('div');
-  enhanceMenu.className = 'overflow-menu shrink-0';
-  enhanceMenu.innerHTML = `
-    <button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
-    </button>
-    <div class="overflow-menu__panel">
-      <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
-      <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-      <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
-      <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
-    </div>
-  `;
-  const enhanceTrigger = enhanceMenu.querySelector('.overflow-menu__trigger');
-  const enhancePanel = enhanceMenu.querySelector('.overflow-menu__panel');
-  const enhanceItems = enhanceMenu.querySelectorAll('[data-enhance]');
+  // Model and aspect-ratio pills (ids used by the picker test and the model selector)
+  const dropdown = document.createElement('div');
+  dropdown.className = 'absolute z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+  dropdown.style.position = 'fixed';
+  container.appendChild(dropdown);
 
-  function toggleEnhanceMenu() {
-    const isOpen = enhanceMenu.classList.contains('is-open');
-    enhanceMenu.classList.toggle('is-open', !isOpen);
+  let outsideClickHandler = null;
+  function closeDropdown() {
+    dropdown.classList.add('opacity-0', 'pointer-events-none');
+    dropdown.classList.remove('opacity-100', 'pointer-events-auto');
+    if (outsideClickHandler) {
+      document.removeEventListener('click', outsideClickHandler);
+      outsideClickHandler = null;
+    }
   }
 
-  enhanceTrigger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleEnhanceMenu();
-  });
+  function showDropdown(type, anchorBtn) {
+    dropdown.innerHTML = '';
+    dropdown.classList.remove('opacity-0', 'pointer-events-none');
+    dropdown.classList.add('opacity-100', 'pointer-events-auto');
 
-  enhanceItems.forEach(item => {
-    item.addEventListener('click', () => {
-      const action = item.dataset.enhance;
-      if (action === 'gtm') {
-        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard-studio', (prompt) => {
-            enhancedConcept = prompt;
-            renderFrames();
-          }, {
-            // Seed with the current concept, or the frames written so far.
-            basePrompt: enhancedConcept || frames.map((f) => f.prompt).filter(Boolean).join(' → '),
-          });
-        }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
-      } else if (action === 'recipe') {
-        openRecipeModal({
-          onRunRecipe: (url) => {
-          }
-        }).catch((err) => console.error('[Recipe] open failed:', err));
-      } else if (action === 'monetize') {
-        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-      } else if (action === 'prompts') {
-        openPromptGallery({
-          appTheme: 'storyboard-studio',
-          onSelect: (prompt) => {
-            const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
-            if (ta) {
-              ta.value = prompt;
-              ta.dispatchEvent(new Event('input', { bubbles: true }));
-              ta.focus();
-            }
-          }
-        }).catch((err) => console.error('[PromptGallery] open failed:', err));
-      }
-      enhanceMenu.classList.remove('is-open');
-    });
-  });
+    if (type === 'model') {
+      dropdown.classList.add('w-[calc(100vw-2rem)]', 'md:w-[480px]', 'max-w-md');
+      dropdown.classList.remove('max-w-xs', 'max-w-[240px]', 'max-w-[200px]');
+      mountModelSelector(dropdown, {
+        models: t2iModels,
+        selectedModelId: selectedModel,
+        showProviderName: true,
+        onSelectModel: (model) => {
+          selectedModel = model.id;
+          selectedModelName = model.name;
+          const availableArs = getAspectRatiosForModel(selectedModel);
+          if (!availableArs.includes(selectedAr)) selectedAr = availableArs[0];
+          container.querySelector('#model-btn-label').textContent = selectedModelName;
+          container.querySelector('#ar-btn-label').textContent = selectedAr;
+          updateModelBtnIcon();
+          refreshSettingsPanel();
+          closeDropdown();
+        },
+      });
+    } else if (type === 'ar') {
+      dropdown.classList.add('max-w-[240px]');
+      dropdown.classList.remove('w-[calc(100vw-3rem)]', 'max-w-xs', 'max-w-[200px]');
+      dropdown.innerHTML = '<div class="text-[10px] font-bold text-muted uppercase tracking-widest px-3 py-2 border-b border-white/5 mb-2">Aspect Ratio</div>';
+      const list = document.createElement('div');
+      list.className = 'flex flex-col gap-1';
+      getAspectRatiosForModel(selectedModel).forEach((r) => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
+        item.innerHTML = `
+          <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100 transition-opacity">${escapeHtml(r)}</span>
+          ${selectedAr === r ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}`;
+        item.onclick = (e) => {
+          e.stopPropagation();
+          selectedAr = r;
+          container.querySelector('#ar-btn-label').textContent = r;
+          if (!embedded) setVideoIntent({ aspectRatio: r });
+          scheduleAutosave();
+          closeDropdown();
+        };
+        list.appendChild(item);
+      });
+      dropdown.appendChild(list);
+    }
 
-  const closeEnhanceMenu = (e) => {
-    if (!enhanceMenu.contains(e.target)) {
-      enhanceMenu.classList.remove('is-open');
+    if (outsideClickHandler) document.removeEventListener('click', outsideClickHandler);
+    outsideClickHandler = (e) => {
+      if (!dropdown.contains(e.target) && e.target !== modelBtn && e.target !== arBtn) closeDropdown();
+    };
+    document.addEventListener('click', outsideClickHandler);
+    positionModelSelectorDropdown(dropdown, anchorBtn, 8, container);
+  }
+
+  const createControlBtn = (icon, label, id, tooltip) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = id;
+    btn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
+    if (tooltip) btn.setAttribute('data-tooltip', tooltip);
+    btn.innerHTML = `
+      ${icon}
+      <span id="${id}-label" class="text-xs font-bold text-white group-hover:text-primary transition-colors">${escapeHtml(label)}</span>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" class="opacity-20 group-hover:opacity-100 transition-opacity"><path d="M6 9l6 6 6-6"/></svg>`;
+    return btn;
+  };
+
+  const modelBtn = createControlBtn('<div id="model-btn-icon" class="w-5 h-5 rounded-md flex items-center justify-center overflow-hidden bg-white/5"></div>', selectedModelName, 'model-btn', 'Select AI image model');
+  const arBtn = createControlBtn('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>', selectedAr, 'ar-btn', 'Change aspect ratio');
+
+  const updateModelBtnIcon = () => {
+    const iconEl = modelBtn.querySelector('#model-btn-icon');
+    if (!iconEl) return;
+    const current = t2iModels.find((m) => m.id === selectedModel);
+    const provider = current?.provider || 'muapi';
+    if (PROVIDER_LOGOS[provider]) {
+      iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
+    } else {
+      const style = getProviderStyle(provider);
+      iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;
+      iconEl.className = 'w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20';
     }
   };
-  window.addEventListener('click', closeEnhanceMenu);
-  controlBar.appendChild(enhanceMenu);
+  updateModelBtnIcon();
 
-  // Unified action row (matches Image Studio): Thumbnail · Personalize
+  modelBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (dropdown.classList.contains('opacity-100')) closeDropdown(); else showDropdown('model', modelBtn);
+  };
+  arBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (dropdown.classList.contains('opacity-100')) closeDropdown(); else showDropdown('ar', arBtn);
+  };
+
+  const sendBtn = makeBtn('Send to video studio ▸', { title: 'Use these frames in the Template Studio' });
+  sendBtn.classList.add('ml-auto');
+
+  const moreMenu = makeMenu('⋮ Tools', [
+    { id: 'gtm', label: '🎯 GTM Boost', attrs: 'data-enhance="gtm"', run: () => openGtmForStoryboard() },
+    { id: 'recipe', label: '📋 Recipes', run: () => openRecipeModal({ onRunRecipe: () => {} }).catch((err) => console.error('[Recipe] open failed:', err)) },
+    { id: 'monetize', label: '💼 Monetize', run: () => openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err)) },
+    { id: 'prompts', label: '📚 Prompts', run: () => openPromptGallery({ appTheme: 'storyboard-studio', onSelect: (prompt) => { premiseEl.value = prompt; premiseEl.dispatchEvent(new Event('input', { bubbles: true })); premiseEl.focus(); } }).catch((err) => console.error('[PromptGallery] open failed:', err)) },
+    { id: 'compare', label: '⚖ Compare frames', run: () => openComparison() },
+  ]);
+
+  const generateRow = makeRow();
+  generateRow.append(modelBtn, arBtn, genAllBtn, retryBtn, progressWrap, moreMenu);
+
+  // Thumbnail + Personalize (shared studio action row)
   const actionRow = createActionRow();
-  controlBar.appendChild(actionRow);
+  generateRow.appendChild(actionRow);
   const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: actionRow, appId: 'storyboard', getTextarea: () => null });
-  // Live reference to the active personalization profile so generateFrame can
-  // resolve {{tokens}} at generation time without mutating the textarea.
-  const activeProfileRef = { value: null };
   const syncProfile = () => { activeProfileRef.value = personalizeTrigger?.getActiveProfile?.() || null; };
   syncProfile();
-  window.addEventListener('remix:contact-changed', syncProfile);
-
-  const progressLabel = document.createElement('span');
-  progressLabel.className = 'text-[10px] text-muted tabular-nums';
-  progressLabel.textContent = '';
-  controlBar.appendChild(progressLabel);
-
-  const retryBtn = document.createElement('button');
-  retryBtn.type = 'button';
-  retryBtn.className = 'px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all hidden';
-  retryBtn.textContent = 'Retry failed';
-  retryBtn.onclick = async () => {
-    if (!generationProgress.failed.length) return;
-    const failedIndices = [...generationProgress.failed];
-    generationProgress.failed = [];
-    retryBtn.classList.add('hidden');
-    for (const idx of failedIndices) {
-      if (idx >= frames.length) continue;
-      const card = framesArea.children[idx];
-      const btn = card?.querySelector('button:last-child');
-      const imageArea = card?.querySelector('.aspect-video');
-      if (!btn || !imageArea) continue;
-      try {
-        await generateFrame(idx, btn, imageArea);
-        generationProgress.current++;
-        updateProgressLabel();
-      } catch (err) {
-        showToast(`Frame ${idx + 1} failed: ${err.message}`, 'error');
-        generationProgress.failed.push(idx);
-      }
-    }
-    if (generationProgress.failed.length === 0) {
-      showToast('All retries completed', 'success');
-    }
-    retryBtn.classList.toggle('hidden', generationProgress.failed.length === 0);
-  };
-  controlBar.appendChild(retryBtn);
+  listen(window, 'remix:contact-changed', syncProfile);
 
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
@@ -803,424 +711,160 @@ genAllBtn.type = 'button';
         clearCustomThumbnailCache('storyboard-studio');
       },
     });
-      mountThumbnailModal(modal);
-      modal.open();
-    });
+    mountThumbnailModal(modal);
+    modal.open();
+  });
   arrangeActionRow(actionRow, { thumbnail: thumbBtn, personalize: personalizeTrigger?.button });
+  generateRow.appendChild(sendBtn);
 
-  subscribeToGtmThumbnails(({ imageUrl }) => {
+  const unsubscribeGtm = subscribeToGtmThumbnails(({ imageUrl }) => {
     customThumbnailUrl = imageUrl;
     saveCustomThumbnailToCache('storyboard-studio', imageUrl);
-    renderFrames();
   }, { studioId: 'storyboard-studio' });
+  if (typeof unsubscribeGtm === 'function') cleanups.push(unsubscribeGtm);
 
-  const exportBtn = document.createElement('button');
-  exportBtn.className = 'px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-all ml-auto';
-  exportBtn.innerHTML = 'Export PDF';
-  exportBtn.onclick = async () => {
-    if (!(await requireEntitlement())) return;
-    const printWindow = window.open('', '_blank', 'width=1200,height=800');
-    if (!printWindow) {
-      showToast('Popup blocked. Please allow popups to export PDF.', 'error');
-      return;
-    }
-    const rows = frames
-      .map((frame, idx) => `
-        <tr>
-          <td style="width:60px;text-align:center;font-weight:bold;color:#fff;">${idx + 1}</td>
-          <td style="width:120px;padding:8px;">
-            <img src="${frame.imageUrl || ''}" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:#0f172a;" />
-          </td>
-          <td style="color:#fff;padding:8px 12px;">${escapeHtml(frame.shot || '')}</td>
-          <td style="color:#fff;padding:8px 12px;">${escapeHtml(frame.prompt || '')}</td>
-          <td style="color:#fff;padding:8px 12px;">${escapeHtml(frame.narration || '')}</td>
-        </tr>
-      `)
-      .join('');
-    printWindow.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <title>Storyboard Export</title>
-  <style>
-    body { background:#020617; color:#e5e7eb; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; padding:24px; }
-    h1 { font-size:20px; margin-bottom:4px; }
-    p { color:#9ca3af; margin-top:0; margin-bottom:16px; }
-    table { width:100%; border-collapse:collapse; }
-    th { text-align:left; padding:8px 12px; color:#9ca3af; border-bottom:1px solid #27272a; font-size:12px; }
-    td { border-bottom:1px solid #27272a; font-size:13px; vertical-align:top; }
-    @media print {
-      body { padding:0; }
-      table { page-break-inside:auto; }
-      tr { page-break-inside:avoid; }
-    }
-  </style>
-</head>
-<body>
-  <h1>Storyboard Studio Export</h1>
-  <p>${new Date().toLocaleString()} · ${frames.length} frames</p>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Frame</th>
-        <th>Shot</th>
-        <th>Prompt</th>
-        <th>Narration</th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>
-  <script>setTimeout(() => { window.print(); }, 300);</script>
-</body>
-</html>`);
-    printWindow.document.close();
-  };
-  controlBar.appendChild(exportBtn);
-
-const compareBtn = document.createElement('button');
-  compareBtn.type = 'button';
-  compareBtn.className = 'px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-all';
-  compareBtn.textContent = 'Compare';
-  compareBtn.onclick = () => openComparison();
-  controlBar.appendChild(compareBtn);
-
-  // Model / aspect-ratio dropdowns
-  const dropdown = document.createElement('div');
-  dropdown.className = 'absolute z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
-  // Position against viewport coordinates and keep both picker panels in the DOM.
-  dropdown.style.position = 'fixed';
-  container.appendChild(dropdown);
-
-  function closeDropdown() {
-    dropdown.classList.add('opacity-0', 'pointer-events-none');
-    dropdown.classList.remove('opacity-100', 'pointer-events-auto');
-    selectedProvider = 'all';
-    if (_storyboardOutsideClickHandler) {
-      document.removeEventListener('click', _storyboardOutsideClickHandler);
-      _storyboardOutsideClickHandler = null;
-    }
-  }
-
-  function showDropdown(type, anchorBtn) {
-    dropdown.innerHTML = '';
-    dropdown.classList.remove('opacity-0', 'pointer-events-none');
-    dropdown.classList.add('opacity-100', 'pointer-events-auto');
-
-    if (type === 'model') {
-      dropdown.classList.add('w-[calc(100vw-2rem)]', 'md:w-[480px]', 'max-w-md');
-      dropdown.classList.remove('max-w-xs', 'max-w-[240px]', 'max-w-[200px]');
-      const storyboardModels = t2iModels;
-      mountModelSelector(dropdown, {
-        models: storyboardModels,
-        selectedModelId: selectedModel,
-        showProviderName: true,
-        onSelectModel: (model) => {
-          selectedModel = model.id;
-          selectedModelName = model.name;
-          const availableArs = getAspectRatiosForModel(selectedModel);
-          selectedAr = availableArs[0];
-          document.getElementById('model-btn-label').textContent = selectedModelName;
-          document.getElementById('ar-btn-label').textContent = selectedAr;
-          updateModelBtnIcon();
-          if (dynamicControls) {
-            const resolved = getModelById(selectedModel)
-              || getI2IModelById(selectedModel)
-              || getI2VModelById(selectedModel)
-              || getV2VModelById(selectedModel)
-              || { id: selectedModel, inputs: {} };
-            dynamicControls.update(getExtendedModel(resolved));
-            dynamicControls.setValue('aspect_ratio', selectedAr);
-          }
-          closeDropdown();
-        },
-      });
-
-    } else if (type === 'ar') {
-      dropdown.classList.add('max-w-[240px]');
-      dropdown.classList.remove('w-[calc(100vw-3rem)]', 'max-w-xs', 'max-w-[200px]');
-      dropdown.innerHTML = `<div class="text-[10px] font-bold text-muted uppercase tracking-widest px-3 py-2 border-b border-white/5 mb-2">Aspect Ratio</div>`;
-      const list = document.createElement('div');
-      list.className = 'flex flex-col gap-1';
-
-      const availableArs = getAspectRatiosForModel(selectedModel);
-      availableArs.forEach(r => {
-        const item = document.createElement('div');
-        item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
-        item.innerHTML = `
-          <div class="flex items-center gap-4">
-            <div class="w-6 h-6 border-2 border-white/20 rounded-md shadow-inner flex items-center justify-center group-hover:border-primary/50 transition-colors">
-              <div class="w-3 h-3 bg-white/10 rounded-sm"></div>
-            </div>
-            <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100 transition-opacity">${r}</span>
-          </div>
-          ${selectedAr === r ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-        `;
-        item.onclick = (e) => {
-          e.stopPropagation();
-          selectedAr = r;
-          document.getElementById('ar-btn-label').textContent = r;
-          closeDropdown();
-        };
-        list.appendChild(item);
-      });
-      dropdown.appendChild(list);
-    }
-
-    if (_storyboardOutsideClickHandler) {
-      document.removeEventListener('click', _storyboardOutsideClickHandler);
-      _storyboardOutsideClickHandler = null;
-    }
-    _storyboardOutsideClickHandler = (e) => {
-      if (!dropdown.contains(e.target) && e.target !== modelBtn && e.target !== arBtn) {
-        closeDropdown();
-      }
-    };
-    document.addEventListener('click', _storyboardOutsideClickHandler);
-    positionModelSelectorDropdown(dropdown, anchorBtn, 8, container);
-  }
-
-  const createControlBtn = (icon, label, id, tooltip) => {
-    const btn = document.createElement('button');
-    btn.id = id;
-    btn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
-    if (tooltip) btn.setAttribute('data-tooltip', tooltip);
-    btn.innerHTML = `
-      ${icon}
-      <span id="${id}-label" class="text-xs font-bold text-white group-hover:text-primary transition-colors">${label}</span>
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" class="opacity-20 group-hover:opacity-100 transition-opacity"><path d="M6 9l6 6 6-6"/></svg>
-    `;
-    return btn;
-  };
-
-  const modelBtn = createControlBtn(`
-    <div id="model-btn-icon" class="w-5 h-5 rounded-md flex items-center justify-center overflow-hidden bg-white/5"></div>
-  `, selectedModelName, 'model-btn', 'Select AI generation model');
-
-  const updateModelBtnIcon = () => {
-    const iconEl = document.getElementById('model-btn-icon');
-    if (!iconEl) return;
-    const current = t2iModels.find(m => m.id === selectedModel);
-    const provider = current?.provider || 'muapi';
-    const logoUrl = PROVIDER_LOGOS[provider];
-    if (logoUrl) {
-      iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
-    } else {
-      const style = getProviderStyle(provider);
-      iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;
-      iconEl.className = 'w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20';
-    }
-  };
-  updateModelBtnIcon();
-
-  const arBtn = createControlBtn(`
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-  `, selectedAr, 'ar-btn', 'Change aspect ratio');
-
-  controlBar.appendChild(modelBtn);
-  controlBar.appendChild(arBtn);
-
-  modelBtn.onclick = (e) => {
-    e.stopPropagation();
-    if (dropdown.classList.contains('opacity-100')) {
-      closeDropdown();
-    } else {
-      showDropdown('model', modelBtn);
-    }
-  };
-
-  arBtn.onclick = (e) => {
-    e.stopPropagation();
-    if (dropdown.classList.contains('opacity-100')) {
-      closeDropdown();
-    } else {
-      showDropdown('ar', arBtn);
-    }
-  };
-
-  let _storyboardOutsideClickHandler = null;
-
-  container.appendChild(controlBar);
-
-  // ==========================================
-  // ADVANCED OPTIONS PANEL (control engine)
-  // ==========================================
-  const advancedPanel = document.createElement('div');
-  advancedPanel.className = 'px-4 md:px-8 mb-4 animate-fade-in-up';
-  advancedPanel.id = 'storyboard-advanced-panel';
-  const advancedCard = document.createElement('div');
-  advancedCard.className = 'bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
-  advancedPanel.appendChild(advancedCard);
-
-  const advHeader = document.createElement('div');
-  advHeader.className = 'flex items-center justify-between pb-3 border-b border-white/5';
-  advHeader.innerHTML = `
-    <h3 class="${CINEMATIC_THEME.text.body} font-bold text-white">Advanced Options</h3>
-    <button id="close-storyboard-adv-btn" class="text-white/40 hover:text-white transition-colors">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-    </button>
-  `;
-  advancedPanel.appendChild(advHeader);
-
-  const advancedControlsContainer = document.createElement('div');
-  advancedControlsContainer.className = 'flex flex-col gap-4';
-  advancedCard.appendChild(advancedControlsContainer);
-
-  const currentSettings = { negativePrompt: '' };
-
-  const dynamicControls = createAdvancedControls({
-    model: getExtendedModel(getModelById(selectedModel)),
-    state: {},
-    container: advancedControlsContainer,
-    exclude: new Set(['style', 'lighting', 'color', 'prompt', 'batch_count']),
-    extraInputs: {
-      style: { type: 'enum', title: 'Style', options: STYLE_OPTIONS, default: 'None', group: 'basic' },
-      lighting: { type: 'enum', title: 'Lighting', options: LIGHTING_OPTIONS, default: 'None', group: 'basic' },
-      color: { type: 'enum', title: 'Color Grade', options: COLOR_OPTIONS, default: 'None', group: 'basic' },
-    },
-    onChange: (key, value) => {
-      if (key === 'style')    { selectedStyle    = value; }
-      if (key === 'lighting') { selectedLighting = value; }
-      if (key === 'color')    { selectedColor    = value; }
-      if (key === 'aspect_ratio') {
-        selectedAr = value;
-        const arLabel = document.getElementById('ar-btn-label');
-        if (arLabel) arLabel.textContent = value;
-      }
-      if (key === 'negative_prompt') { currentSettings.negativePrompt = value; }
-    }
-  });
-  container.appendChild(advancedPanel);
-
-  advancedPanel.querySelector('#close-storyboard-adv-btn').onclick = () => {
-    advancedPanel.classList.add('hidden');
-  };
-
-  let comparisonMode = false;
-  const compareIndices = [0, 1];
+  // =====================================================================
+  // 4. Board, timeline, settings
+  // =====================================================================
   const fullscreen = createFullscreenPreview();
   container.appendChild(fullscreen.element);
 
-  const comparisonOverlay = document.createElement('div');
-  comparisonOverlay.className = 'fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4';
-  comparisonOverlay.innerHTML = `
-    <div class="bg-app-bg border border-white/10 rounded-2xl shadow-4xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-white/5 shrink-0">
-        <h2 class="${CINEMATIC_THEME.text.body} font-bold text-white tracking-tight">Compare Frames</h2>
-        <button class="compare-close-btn text-muted hover:text-white transition-colors text-lg leading-none px-2">&times;</button>
-      </div>
-      <div class="flex-1 overflow-y-auto p-6">
-        <div class="flex flex-col md:flex-row gap-6">
-          <div class="flex-1 flex flex-col gap-3">
-            <label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Frame A</label>
-            <select class="compare-select-a bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer"></select>
-            <div class="aspect-video bg-white/[0.02] rounded-lg border border-white/5 flex items-center justify-center overflow-hidden">
-              <img class="compare-image-a w-full h-full object-cover hidden" alt="Compare frame A" />
-              <span class="compare-placeholder-a text-muted text-xs">No image</span>
-            </div>
-            <div class="compare-meta-a text-[10px] text-secondary leading-relaxed"></div>
-          </div>
-          <div class="flex items-center justify-center">
-            <div class="w-px h-24 bg-white/10 hidden md:block"></div>
-            <div class="md:hidden text-[10px] font-bold text-secondary uppercase tracking-widest">VS</div>
-          </div>
-          <div class="flex-1 flex flex-col gap-3">
-            <label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Frame B</label>
-            <select class="compare-select-b bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer"></select>
-            <div class="aspect-video bg-white/[0.02] rounded-lg border border-white/5 flex items-center justify-center overflow-hidden">
-              <img class="compare-image-b w-full h-full object-cover hidden" alt="Compare frame B" />
-              <span class="compare-placeholder-b text-muted text-xs">No image</span>
-            </div>
-            <div class="compare-meta-b text-[10px] text-secondary leading-relaxed"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-  comparisonOverlay.querySelector('.compare-close-btn').addEventListener('click', closeComparison);
-  container.appendChild(comparisonOverlay);
-
-  function openComparison() {
-    comparisonMode = true;
-    const selA = comparisonOverlay.querySelector('.compare-select-a');
-    const selB = comparisonOverlay.querySelector('.compare-select-b');
-    selA.innerHTML = '';
-    selB.innerHTML = '';
-    frames.forEach((frame, idx) => {
-      const optA = document.createElement('option');
-      optA.value = String(idx);
-      optA.textContent = `Frame ${idx + 1}`;
-      optA.style.background = '#111';
-      if (idx === compareIndices[0]) optA.selected = true;
-      selA.appendChild(optA);
-      const optB = document.createElement('option');
-      optB.value = String(idx);
-      optB.textContent = `Frame ${idx + 1}`;
-      optB.style.background = '#111';
-      if (idx === compareIndices[1]) optB.selected = true;
-      selB.appendChild(optB);
-    });
-    selA.onchange = () => { compareIndices[0] = Number(selA.value); renderComparison(); };
-    selB.onchange = () => { compareIndices[1] = Number(selB.value); renderComparison(); };
-    renderComparison();
-    comparisonOverlay.classList.remove('hidden');
-    comparisonOverlay.classList.add('flex');
-  }
-
-  function closeComparison() {
-    comparisonMode = false;
-    comparisonOverlay.classList.add('hidden');
-    comparisonOverlay.classList.remove('flex');
-  }
-
-  function renderComparison() {
-    const [a, b] = compareIndices;
-    const frameA = frames[a];
-    const frameB = frames[b];
-    const imgA = comparisonOverlay.querySelector('.compare-image-a');
-    const imgB = comparisonOverlay.querySelector('.compare-image-b');
-    const placeholderA = comparisonOverlay.querySelector('.compare-placeholder-a');
-    const placeholderB = comparisonOverlay.querySelector('.compare-placeholder-b');
-    const metaA = comparisonOverlay.querySelector('.compare-meta-a');
-    const metaB = comparisonOverlay.querySelector('.compare-meta-b');
-    if (frameA?.imageUrl) {
-      imgA.src = frameA.imageUrl;
-      imgA.classList.remove('hidden');
-      placeholderA.classList.add('hidden');
-      metaA.textContent = `Shot: ${frameA.shot || ''}\nModel: ${selectedModelName}\nPrompt: ${frameA.prompt || ''}`;
-    } else {
-      imgA.classList.add('hidden');
-      placeholderA.classList.remove('hidden');
-      metaA.textContent = '';
-    }
-    if (frameB?.imageUrl) {
-      imgB.src = frameB.imageUrl;
-      imgB.classList.remove('hidden');
-      placeholderB.classList.add('hidden');
-      metaB.textContent = `Shot: ${frameB.shot || ''}\nModel: ${selectedModelName}\nPrompt: ${frameB.prompt || ''}`;
-    } else {
-      imgB.classList.add('hidden');
-      placeholderB.classList.remove('hidden');
-      metaB.textContent = '';
-    }
-  }
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && comparisonMode) {
-      closeComparison();
-    }
-  });
+  const boardHeading = document.createElement('div');
+  boardHeading.className = 'shrink-0 px-4 md:px-8 mb-2 flex items-center justify-between';
+  boardHeading.innerHTML = `<span class="${CINEMATIC_THEME.text.body} font-bold text-white">2 · Frames</span><span id="board-summary" class="text-[11px] text-secondary tabular-nums"></span>`;
+  container.appendChild(boardHeading);
 
   const framesArea = document.createElement('div');
-  framesArea.className = 'px-4 md:px-8 pb-8 flex gap-4 overflow-x-auto no-scrollbar';
   container.appendChild(framesArea);
 
   const timelineStrip = document.createElement('div');
   timelineStrip.className = 'px-4 md:px-8 pb-6 shrink-0';
   container.appendChild(timelineStrip);
 
+  // --- Generation settings (collapsed; only controls the model supports) ---
+  const settingsDetails = document.createElement('details');
+  settingsDetails.className = 'shrink-0 mx-4 md:mx-8 mb-8 bg-white/[0.04] border border-white/10 rounded-xl';
+  settingsDetails.innerHTML = '<summary class="cursor-pointer select-none px-4 py-3 text-xs font-bold text-white">Generation settings</summary>';
+  const settingsBody = document.createElement('div');
+  settingsBody.className = 'px-4 pb-4 flex flex-col gap-4';
+  settingsDetails.appendChild(settingsBody);
+  container.appendChild(settingsDetails);
+
+  // =====================================================================
+  // Two stages: "describe" (just the brief) and "board" (the storyboard)
+  // =====================================================================
+  const briefCard = brief.querySelector('#brief-card');
+  const briefSummary = brief.querySelector('#brief-summary');
+  const boardEls = [toolbar, boardHeading, framesArea, timelineStrip, settingsDetails];
+  let editingBrief = false;
+
+  function setStage(next, { editing = false } = {}) {
+    stage = next;
+    editingBrief = next === 'board' && editing;
+    const onBoard = next === 'board';
+    boardEls.forEach((el) => el.classList.toggle('hidden', !onBoard));
+    howTo.classList.toggle('hidden', onBoard);
+    briefSummary.classList.toggle('hidden', !onBoard);
+    briefSummary.classList.toggle('flex', onBoard);
+    briefCard.classList.toggle('hidden', onBoard && !editingBrief);
+    brief.querySelector('#start-blank').classList.toggle('hidden', onBoard);
+    refreshProjectList();
+    updateBriefSummary();
+  }
+
+  function updateBriefSummary() {
+    const text = (premiseEl.value || $('#vi-subject').value || '').replace(/\s+/g, ' ').trim();
+    brief.querySelector('#brief-summary-text').textContent = text || 'Untitled storyboard';
+    brief.querySelector('#brief-summary-meta').textContent = `${frames.length} frames · ${totalDuration(frames)}s`;
+  }
+
+  /** Placeholder cards shown while the plan is being written. */
+  function renderPlanningSkeleton(count) {
+    frameRefs.clear();
+    framesArea.className = getLayoutClasses();
+    framesArea.innerHTML = '';
+    for (let i = 0; i < count; i += 1) {
+      const card = document.createElement('div');
+      card.className = 'w-full bg-white/[0.03] border border-white/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse';
+      card.setAttribute('data-skeleton', '');
+      card.innerHTML = `<div class="text-xs font-bold text-primary">Frame ${i + 1}</div>
+        <div class="w-full aspect-video bg-white/[0.04] rounded-lg flex items-center justify-center text-muted text-xs">Planning shots...</div>
+        <div class="h-3 bg-white/[0.06] rounded w-3/4"></div><div class="h-3 bg-white/[0.06] rounded w-1/2"></div>`;
+      framesArea.appendChild(card);
+    }
+  }
+
+  function refreshSettingsPanel() {
+    const inputs = getExtendedModel(getModelById(selectedModel) || { id: selectedModel, inputs: {} })?.inputs || {};
+    settingsBody.innerHTML = '';
+    const note = document.createElement('p');
+    note.className = 'text-[10px] text-muted';
+    note.textContent = apiKeyManager.hasOpenAIKey()
+      ? 'With an OpenAI key, frames are drawn by OpenAI; only the negative prompt applies. Seed, guidance and steps apply to MuAPI models.'
+      : 'These apply to every frame you generate with the selected model.';
+    settingsBody.appendChild(note);
+
+    const row = (label, el) => {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `<label class="${LABEL_CLASS}">${label}</label>`;
+      wrap.appendChild(el);
+      settingsBody.appendChild(wrap);
+    };
+
+    const neg = document.createElement('input');
+    neg.type = 'text';
+    neg.className = FIELD_CLASS;
+    neg.placeholder = 'e.g. blurry, text, watermark, extra fingers';
+    neg.value = settings.negativePrompt;
+    neg.oninput = () => { settings.negativePrompt = neg.value; };
+    row('Negative prompt', neg);
+    const slider = (key, label, min, max, step, fallback) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'flex items-center gap-3';
+      const input = document.createElement('input');
+      input.type = 'range'; input.min = min; input.max = max; input.step = step;
+      input.value = settings[key] ?? fallback;
+      input.className = 'flex-1 accent-primary';
+      const out = document.createElement('span');
+      out.className = 'text-xs text-primary tabular-nums w-10 text-right';
+      out.textContent = settings[key] ?? 'auto';
+      input.oninput = () => { settings[key] = Number(input.value); out.textContent = input.value; };
+      const reset = document.createElement('button');
+      reset.type = 'button'; reset.className = 'text-[10px] text-muted hover:text-white';
+      reset.textContent = 'auto';
+      reset.onclick = () => { settings[key] = undefined; out.textContent = 'auto'; };
+      wrap.append(input, out, reset);
+      row(label, wrap);
+    };
+    if (inputs.guidance_scale) slider('guidanceScale', 'Guidance scale', 1, 20, 0.5, 7.5);
+    if (inputs.steps) slider('steps', 'Steps', 10, 50, 1, 25);
+    if (inputs.seed) {
+      const wrap = document.createElement('div');
+      wrap.className = 'flex items-center gap-2';
+      const seed = document.createElement('input');
+      seed.type = 'number'; seed.min = -1; seed.className = FIELD_CLASS;
+      seed.value = settings.seed;
+      seed.oninput = () => { const v = parseInt(seed.value, 10); settings.seed = Number.isFinite(v) ? v : -1; };
+      const dice = makeBtn('🎲', { title: 'Random seed', aria: 'Random seed' });
+      dice.onclick = () => { settings.seed = Math.floor(Math.random() * 2147483647); seed.value = settings.seed; };
+      wrap.append(seed, dice);
+      row('Seed (-1 = random)', wrap);
+    }
+
+    const prev = document.createElement('label');
+    prev.className = 'flex items-center gap-2 text-xs text-white cursor-pointer';
+    prev.innerHTML = `<input type="checkbox" class="accent-primary" ${settings.usePreviousFrame ? 'checked' : ''}/> Use the previous frame as a reference (keeps characters consistent; frames then generate one at a time)`;
+    prev.querySelector('input').onchange = (e) => { settings.usePreviousFrame = e.target.checked; };
+    settingsBody.appendChild(prev);
+  }
+  refreshSettingsPanel();
+
+  // =====================================================================
+  // State helpers: undo, autosave, payloads
+  // =====================================================================
   function getStoryboardState() {
     return {
-      frames,
+      frames: snapshotFrames(frames),
       layout,
       selectedModel,
       selectedModelName,
@@ -1228,498 +872,933 @@ const compareBtn = document.createElement('button');
       selectedStyle,
       selectedLighting,
       selectedColor,
-      selectedPreset,
-      generationProgress,
+      settings: { ...settings },
+      brief: readBrief(),
     };
   }
 
-  function getLayoutClasses() {
-    if (layout === 'grid') return 'px-4 md:px-8 pb-8 grid grid-cols-2 md:grid-cols-3 gap-4 overflow-y-auto';
-    if (layout === 'story') return 'px-4 md:px-8 pb-8 flex flex-col gap-6 overflow-y-auto';
-    return 'px-4 md:px-8 pb-8 flex gap-4 overflow-x-auto no-scrollbar';
+  let autosaveTimer = null;
+  function scheduleAutosave() {
+    if (!projectName) return;
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(() => writeProject(projectName, getStoryboardState()), 1500);
+  }
+  cleanups.push(() => clearTimeout(autosaveTimer));
+
+  let typingSnapshot = null;
+  let typingTimer = null;
+  function commitTypingSnapshot() {
+    clearTimeout(typingTimer);
+    if (typingSnapshot) {
+      undoRedo.push(typingSnapshot);
+      typingSnapshot = null;
+      updateUndoRedoButtons();
+    }
+  }
+  /** Call before changing frame text: groups a burst of typing into one undo step. */
+  function beginTextEdit() {
+    if (!typingSnapshot) typingSnapshot = snapshotFrames(frames);
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(commitTypingSnapshot, 800);
+    scheduleAutosave();
+  }
+  cleanups.push(() => clearTimeout(typingTimer));
+  function pushUndo() {
+    commitTypingSnapshot();
+    undoRedo.push(snapshotFrames(frames));
+    updateUndoRedoButtons();
+  }
+  function replaceFrames(next) {
+    frames.length = 0;
+    frames.push(...next);
+    renumberFrames(frames);
+    renderFrames();
+    scheduleAutosave();
+  }
+  function updateUndoRedoButtons() {
+    undoBtn.classList.toggle('opacity-50', !undoRedo.canUndo() && !typingSnapshot);
+    redoBtn.classList.toggle('opacity-50', !undoRedo.canRedo());
   }
 
-  function updateProgressLabel() {
-    const failedCount = generationProgress.failed.length;
-    progressLabel.textContent = `${generationProgress.current}/${generationProgress.total}${failedCount ? ` · ${failedCount} failed` : ''}`;
+  function buildStoryboardPayload() {
+    const b = readBrief();
+    renumberFrames(frames);
+    return {
+      id: projectName || `storyboard-${Date.now()}`,
+      projectId: projectName || undefined,
+      projectName: projectName || 'Untitled storyboard',
+      createdAt: generatedStoryboard?.metadata?.generatedAt || new Date().toISOString(),
+      videoType: b.videoType,
+      duration: totalDuration(frames),
+      aspectRatio: selectedAr,
+      stylePreset: selectedStyle,
+      lightingPreset: selectedLighting,
+      colorGrade: selectedColor,
+      storyBible: b.storyBible,
+      frames: frames.map((f) => syncFrameAliases({ ...f })).map(({ referenceImages, ...rest }) => ({ ...rest, referenceImages })),
+    };
   }
 
-  function renderFrames() {
-    framesArea.className = getLayoutClasses();
-    framesArea.innerHTML = '';
-    frames.forEach((frame, idx) => {
-      const card = document.createElement('div');
-      const isGrid = layout === 'grid';
-      const isStory = layout === 'story';
-      card.className = `${isGrid || isStory ? 'w-full' : 'shrink-0 w-72'} bg-white/[0.03] border border-white/5 rounded-xl p-4 flex flex-col gap-3 cursor-move`;
-      card.draggable = true;
-      card.dataset.frameIndex = idx;
+  function buildCsv() {
+    const header = ['Scene', 'Shot', 'Shot type', 'Camera', 'Duration (s)', 'Description', 'Narration', 'Notes'];
+    const rows = frames.map((f, i) => [f.sceneNumber, f.shotNumber || i + 1, f.shot, f.cameraMovement, f.duration, f.prompt, f.narration, f.notes]);
+    return [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\n');
+  }
 
-      card.ondragstart = (e) => {
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', String(idx));
-        card.classList.add('opacity-50');
-      };
+  function downloadText(filename, text, mime) {
+    const blob = new Blob([text], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
-      card.ondragend = () => {
-        card.classList.remove('opacity-50');
-      };
+  async function exportPdf() {
+    if (!(await requireEntitlement())) return;
+    const win = window.open('', '_blank', 'width=1200,height=800');
+    if (!win) { showToast('Popup blocked. Please allow popups to export PDF.', 'error'); return; }
+    const safeImg = (u) => (typeof u === 'string' && /^(https?:|data:image\/)/.test(u) ? escapeHtml(u) : '');
+    const rows = frames.map((f, idx) => `
+      <tr>
+        <td class="n">${idx + 1}<br><span>${f.sceneNumber}.${f.shotNumber || idx + 1}</span></td>
+        <td class="img">${f.imageUrl ? `<img src="${safeImg(f.imageUrl)}" />` : '<div class="empty">No image</div>'}</td>
+        <td><b>${escapeHtml(f.shot)}</b><br>${escapeHtml(f.cameraMovement)}<br>${escapeHtml(f.duration)}s</td>
+        <td>${escapeHtml(f.prompt)}${f.notes ? `<p class="notes">${escapeHtml(f.notes)}</p>` : ''}</td>
+        <td>${escapeHtml(f.narration)}</td>
+      </tr>`).join('');
+    win.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(projectName || 'Storyboard')}</title><style>
+      body{font-family:ui-sans-serif,system-ui,sans-serif;color:#111;padding:24px}
+      h1{font-size:20px;margin:0 0 4px} p.meta{color:#555;margin:0 0 16px}
+      table{width:100%;border-collapse:collapse} th{text-align:left;font-size:11px;color:#555;border-bottom:2px solid #111;padding:6px}
+      td{border-bottom:1px solid #ddd;padding:8px;font-size:12px;vertical-align:top}
+      td.n{width:48px;font-weight:700;text-align:center} td.n span{font-weight:400;color:#777;font-size:10px}
+      td.img{width:220px} img{width:100%;border-radius:6px} .empty{background:#eee;color:#888;text-align:center;padding:40px 0;border-radius:6px}
+      .notes{color:#666;font-style:italic;margin:6px 0 0}
+      @media print{tr{page-break-inside:avoid}}
+    </style></head><body>
+      <h1>${escapeHtml(projectName || 'Storyboard')}</h1>
+      <p class="meta">${frames.length} frames · ${totalDuration(frames)}s · ${escapeHtml(selectedAr)} · ${new Date().toLocaleDateString()}</p>
+      <table><thead><tr><th>#</th><th>Frame</th><th>Shot / camera / time</th><th>Visual</th><th>Narration</th></tr></thead><tbody>${rows}</tbody></table>
+      <script>setTimeout(function(){window.print()},400)</script>
+    </body></html>`);
+    win.document.close();
+  }
 
-      card.ondragover = (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      };
+  // =====================================================================
+  // Frame generation
+  // =====================================================================
+  function paintImage(frame) {
+    const ref = frameRefs.get(frame.id);
+    if (!ref) return;
+    ref.imageArea.innerHTML = '';
+    if (frame.status === 'generating' || frame.status === 'queued') {
+      ref.imageArea.innerHTML = `<span class="text-muted text-xs flex items-center gap-2"><span class="animate-spin inline-block">&#9711;</span>${frame.status === 'queued' ? 'Queued' : 'Generating'}...</span>`;
+    } else if (frame.imageUrl) {
+      const img = document.createElement('img');
+      img.src = frame.imageUrl;
+      img.className = 'w-full h-full object-cover cursor-pointer';
+      img.alt = `Storyboard frame ${frames.indexOf(frame) + 1}`;
+      img.onclick = () => fullscreen.show(frame.imageUrl, { type: 'image', prompt: frame.prompt, model: selectedModelName, shot: frame.shot });
+      ref.imageArea.appendChild(img);
+    } else if (frame.status === 'failed') {
+      ref.imageArea.innerHTML = '<span class="text-red-400 text-xs">Failed. Try again.</span>';
+    } else {
+      ref.imageArea.innerHTML = '<span class="text-muted text-xs">No image yet</span>';
+    }
+    ref.genBtn.disabled = frame.status === 'generating';
+    ref.genBtn.textContent = frame.status === 'generating' ? 'Generating...' : (frame.imageUrl ? 'Regenerate' : 'Generate frame');
+  }
 
-      card.ondrop = (e) => {
-        e.preventDefault();
-        const fromIdx = Number(e.dataTransfer.getData('text/plain'));
-        const toIdx = idx;
-        if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || fromIdx >= frames.length || toIdx >= frames.length) return;
-        undoRedo.push(frames);
-        const [moved] = frames.splice(fromIdx, 1);
-        frames.splice(toIdx, 0, moved);
-        renderFrames();
-        autosave.schedule(getStoryboardState());
-      };
+  function resolveFramePrompt(frame) {
+    let raw = frame.prompt;
+    if (frame.enhancedPrompt) {
+      raw = frame.enhancedPrompt;
+    } else if (enhancedConcept) {
+      raw = `${enhancedConcept} Scene: ${frame.prompt}`;
+    }
+    const profile = activeProfileRef.value;
+    return profile ? replaceTokensInPrompt(raw, profile) : raw;
+  }
 
-      const frameNum = document.createElement('div');
-      frameNum.className = 'flex items-center justify-between';
-      frameNum.innerHTML = `
-        <span class="text-xs font-bold text-primary">Frame ${idx + 1}</span>
-        <button class="text-muted hover:text-red-400 transition-colors text-xs remove-frame">&times;</button>
-      `;
-      card.appendChild(frameNum);
+  /** Make one frame's image. Throws on failure (after marking the frame failed). */
+  async function generateFrame(frame) {
+    if (!frame.prompt.trim()) {
+      showToast('Describe this frame first.', 'warning');
+      throw new Error('empty prompt');
+    }
+    if (!(apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey())) {
+      AuthModal(() => generateFrame(frame).catch(() => {}));
+      throw new Error('missing API key');
+    }
 
-      const imageArea = document.createElement('div');
-      imageArea.className = 'w-full aspect-video bg-white/[0.02] rounded-lg border border-white/5 flex items-center justify-center overflow-hidden';
-      imageArea.setAttribute('role', 'status');
-      imageArea.setAttribute('aria-live', 'polite');
-      if (frame.imageUrl) {
-        const img = document.createElement('img');
-        img.src = frame.imageUrl;
-        img.className = 'w-full h-full object-cover cursor-pointer';
-        img.alt = `Storyboard frame ${idx + 1}`;
-        img.onclick = () => {
-          fullscreen.show(frame.imageUrl, {
-            type: 'image',
-            prompt: frame.prompt,
-            model: selectedModelName,
-            shot: frame.shot,
-          });
-        };
-        imageArea.appendChild(img);
-      } else {
-        imageArea.innerHTML = '<span class="text-muted text-xs">No image</span>';
+    frame.status = 'generating';
+    paintImage(frame);
+    try {
+      const idx = frames.indexOf(frame);
+      const refs = [...(frame.referenceImages || [])];
+      const prev = idx > 0 ? frames[idx - 1] : null;
+      if (settings.usePreviousFrame && prev?.imageUrl) refs.push({ url: prev.imageUrl });
+
+      const prompt = buildFramePrompt({ ...frame, enhancedPrompt: undefined, prompt: resolveFramePrompt(frame) }, { storyBible: readBrief().storyBible });
+      const url = await engineGenerateFrameImage(prompt, selectedAr, selectedModel, selectedStyle, selectedLighting, selectedColor, customThumbnailUrl, {
+        negativePrompt: settings.negativePrompt || undefined,
+        seed: settings.seed,
+        guidanceScale: settings.guidanceScale,
+        steps: settings.steps,
+        referenceImages: refs,
+      });
+      if (!url) throw new Error('No image was returned');
+      frame.imageUrl = url;
+      frame.status = 'done';
+      registerGeneration('storyboard', 'image', url, { prompt, model: selectedModel || '', parameters: { shot: frame.shot, aspect_ratio: selectedAr } });
+      scheduleAutosave();
+    } catch (err) {
+      frame.status = 'failed';
+      showToast(`Frame ${frames.indexOf(frame) + 1}: ${err.message}`, 'error');
+      throw err;
+    } finally {
+      paintImage(frame);
+    }
+  }
+
+  function updateProgress() {
+    const failed = generation.failedIds.length;
+    const total = Math.max(0, generation.total - generation.skipped);
+    progressWrap.classList.toggle('hidden', total === 0);
+    progressWrap.classList.toggle('flex', total > 0);
+    progressFill.style.width = total ? `${Math.round(((generation.done + failed) / total) * 100)}%` : '0%';
+    progressLabel.textContent = `${generation.done}/${total}${failed ? ` · ${failed} failed` : ''}`;
+    retryBtn.classList.toggle('hidden', failed === 0 || generation.running);
+  }
+
+  /** Generate a list of frames with limited concurrency. Failures are collected, not thrown. */
+  async function runQueue(list) {
+    generation.running = true;
+    generation.stop = false;
+    generation.total = list.length;
+    generation.skipped = 0;
+    generation.done = 0;
+    generation.failedIds = [];
+    genAllBtn.textContent = 'Stop';
+    list.forEach((f) => { f.status = 'queued'; paintImage(f); });
+    updateProgress();
+
+    const concurrency = settings.usePreviousFrame ? 1 : GENERATION_CONCURRENCY;
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < list.length && !generation.stop) {
+        const frame = list[cursor++];
+        if (!frames.includes(frame)) { generation.skipped += 1; continue; }
+        try {
+          await withRetry(() => generateFrame(frame));
+          generation.done += 1;
+        } catch {
+          generation.failedIds.push(frame.id);
+        }
+        updateProgress();
       }
-      card.appendChild(imageArea);
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, list.length) }, worker));
+    list.forEach((f) => { if (f.status === 'queued') { f.status = f.imageUrl ? 'done' : 'idle'; paintImage(f); } });
 
-      const shotSelect = document.createElement('select');
-      shotSelect.className = 'bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
-      SHOT_TYPES.forEach(s => {
+    generation.running = false;
+    genAllBtn.textContent = 'Generate all frames';
+    updateProgress();
+    if (generation.stop) showToast('Stopped. Finished frames are kept.', 'info');
+    else if (!generation.failedIds.length) showToast('All frames generated', 'success');
+    else showToast(`${generation.failedIds.length} frame(s) failed. Use "Retry failed".`, 'warning');
+  }
+
+  genAllBtn.onclick = async () => {
+    if (generation.running) { generation.stop = true; genAllBtn.textContent = 'Stopping...'; return; }
+    if (!(await requireEntitlement())) return;
+    const list = frames.filter((f) => f.prompt.trim());
+    if (!list.length) { showToast('Describe at least one frame first.', 'warning'); return; }
+    if (!(apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey())) { AuthModal(() => genAllBtn.click()); return; }
+    await runQueue(list);
+  };
+
+  retryBtn.onclick = async () => {
+    const list = generation.failedIds.map((id) => frames.find((f) => f.id === id)).filter(Boolean);
+    if (!list.length) return;
+    await runQueue(list);
+  };
+
+  // =====================================================================
+  // Generate a whole storyboard from the brief
+  // =====================================================================
+  const firstSentence = (text) => {
+    const t = (text || '').replace(/\s+/g, ' ').trim();
+    const m = t.match(/^(.{8,80}?[.!?:])(\s|$)/);
+    return (m ? m[1] : t.slice(0, 70)).replace(/[.!?:]$/, '');
+  };
+
+  /** "a 30 second ad" / "2 minute film" in the description sets the length, unless it was set by hand. */
+  const lengthFromText = (text) => {
+    const m = (text || '').match(/\b(\d{1,3})\s*[- ]?\s*(seconds?|secs?|minutes?|mins?)\b/i);
+    if (!m) return null;
+    const n = Number(m[1]) * (/^m/i.test(m[2]) ? 60 : 1);
+    return n >= MIN_FRAMES * 2 && n <= 300 ? n : null;
+  };
+
+  generateBtn.addEventListener('click', async () => {
+    if (!durationTouched) {
+      const fromText = lengthFromText(premiseEl.value);
+      if (fromText) {
+        durationEl.value = fromText;
+        if (!frameCountTouched) frameCountEl.value = frameCountForDuration(fromText);
+      }
+    }
+    const b = readBrief();
+    if (!b.premise.trim() && !b.subject.trim()) {
+      statusEl.textContent = 'Describe what you want to make first.';
+      premiseEl.focus();
+      return;
+    }
+    if (!(await requireEntitlement())) return;
+    const hadFrames = frames.some((f) => f.prompt.trim() || f.imageUrl);
+    if (hadFrames && typeof window.confirm === 'function' && !window.confirm('Replace the current frames with a new storyboard?')) return;
+
+    const { resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
+    const request = {
+      ...b,
+      // The description is enough on its own: a missing title comes from its first sentence.
+      subject: b.subject.trim() || firstSentence(b.premise),
+      model: selectedModel,
+      customThumbnailUrl: customThumbnailUrl || undefined,
+      reference_images: storyboardAttachments.images?.length ? await resolveMuapiMediaRefs(storyboardAttachments.images) : undefined,
+      reference_videos: storyboardAttachments.videos?.length ? await resolveMuapiMediaRefs(storyboardAttachments.videos) : undefined,
+      reference_audios: storyboardAttachments.audios?.length ? await resolveMuapiMediaRefs(storyboardAttachments.audios) : undefined,
+    };
+
+    const previousStage = stage;
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Planning...';
+    statusEl.textContent = '';
+    layout = 'grid';
+    layoutSelect.value = 'grid';
+    setStage('board');
+    renderPlanningSkeleton(b.frameCount);
+    boardHeading.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    try {
+      const result = await generateStoryboardFromIntent(request, { generateImages: false });
+      generatedStoryboard = result;
+      if (hadFrames) pushUndo();
+      replaceFrames(result.frames);
+      showToast(result.source === 'ai' ? 'Storyboard planned' : 'Storyboard planned from a template. Add an OpenAI key in Settings for a custom story.', 'success');
+      if (withImagesEl.checked && (apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey())) {
+        await runQueue(frames.filter((f) => f.prompt.trim()));
+      }
+    } catch (err) {
+      showToast('Could not plan the storyboard: ' + err.message, 'error');
+      statusEl.textContent = 'Could not plan the storyboard: ' + err.message;
+      if (hadFrames) { renderFrames(); } else { setStage(previousStage === 'board' ? 'board' : 'describe', { editing: true }); renderFrames(); }
+    } finally {
+      generateBtn.disabled = false;
+      generateBtn.textContent = 'Generate storyboard';
+    }
+  });
+
+  brief.querySelector('#edit-brief').addEventListener('click', () => {
+    setStage('board', { editing: !editingBrief });
+  });
+  brief.querySelector('#new-storyboard').addEventListener('click', () => {
+    if (frames.some((f) => f.prompt.trim() || f.imageUrl) && typeof window.confirm === 'function' && !window.confirm('Start over? The current frames will be cleared (you can Undo).')) return;
+    pushUndo();
+    frames.length = 0;
+    generatedStoryboard = null;
+    renderFrames();
+    setStage('describe');
+    premiseEl.focus();
+  });
+  brief.querySelector('#start-blank').addEventListener('click', () => {
+    frames.push(createFrame({ shot: 'Wide Shot' }));
+    renumberFrames(frames);
+    setStage('board');
+    renderFrames();
+  });
+  premiseEl.addEventListener('input', () => { statusEl.textContent = ''; updateBriefSummary(); });
+
+  // =====================================================================
+  // Frames board
+  // =====================================================================
+  function getLayoutClasses() {
+    if (layout === 'grid') return 'shrink-0 px-4 md:px-8 pb-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4';
+    if (layout === 'story') return 'shrink-0 px-4 md:px-8 pb-6 flex flex-col gap-6 max-w-3xl';
+    return 'shrink-0 px-4 md:px-8 pb-6 flex gap-4 overflow-x-auto no-scrollbar';
+  }
+
+  function updateSummary() {
+    const el = container.querySelector('#board-summary');
+    if (el) el.textContent = `${frames.length} frames · ${totalDuration(frames)}s`;
+    updateBriefSummary();
+  }
+
+  function fieldLabel(text) {
+    const l = document.createElement('label');
+    l.className = 'block text-[9px] font-bold text-secondary uppercase tracking-widest mb-1';
+    l.textContent = text;
+    return l;
+  }
+
+  function buildFrameCard(frame, idx) {
+    const card = document.createElement('div');
+    const wide = layout === 'grid' || layout === 'story';
+    card.className = `${wide ? 'w-full' : 'shrink-0 w-80'} bg-white/[0.03] border border-white/5 rounded-xl p-4 flex flex-col gap-3`;
+    card.dataset.frameIndex = idx;
+    card.draggable = true;
+
+    card.ondragstart = (e) => {
+      if (e.target !== card) return; // only drag from the card, not from inside a text field
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(idx));
+      card.classList.add('opacity-50');
+    };
+    card.ondragend = () => card.classList.remove('opacity-50');
+    card.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+    card.ondrop = (e) => {
+      e.preventDefault();
+      const from = Number(e.dataTransfer.getData('text/plain'));
+      if (Number.isNaN(from) || from === idx || from < 0 || from >= frames.length) return;
+      moveFrame(from, idx);
+    };
+
+    // Header: number, scene.shot, move/duplicate/delete
+    const head = document.createElement('div');
+    head.className = 'flex items-center justify-between gap-2';
+    head.innerHTML = `
+      <span class="text-xs font-bold text-primary">Frame ${idx + 1} <span class="text-muted font-normal">· ${frame.sceneNumber}.${frame.shotNumber}</span></span>
+      <span class="flex items-center gap-1 text-muted">
+        <button type="button" class="px-1.5 hover:text-white disabled:opacity-30" data-act="up" title="Move earlier" aria-label="Move frame earlier" ${idx === 0 ? 'disabled' : ''}>↑</button>
+        <button type="button" class="px-1.5 hover:text-white disabled:opacity-30" data-act="down" title="Move later" aria-label="Move frame later" ${idx === frames.length - 1 ? 'disabled' : ''}>↓</button>
+        <button type="button" class="px-1.5 hover:text-white" data-act="dup" title="Duplicate frame" aria-label="Duplicate frame">⧉</button>
+        <button type="button" class="px-1.5 hover:text-red-400 disabled:opacity-30" data-act="del" title="Delete frame" aria-label="Delete frame" ${frames.length <= 1 ? 'disabled' : ''}>&times;</button>
+      </span>`;
+    head.querySelector('[data-act="up"]').onclick = () => moveFrame(idx, idx - 1);
+    head.querySelector('[data-act="down"]').onclick = () => moveFrame(idx, idx + 1);
+    head.querySelector('[data-act="dup"]').onclick = () => {
+      pushUndo();
+      const copy = createFrame({ ...frame, id: undefined, imageUrl: frame.imageUrl, referenceImages: [...(frame.referenceImages || [])] });
+      frames.splice(idx + 1, 0, copy);
+      replaceFrames(frames.slice());
+    };
+    head.querySelector('[data-act="del"]').onclick = () => {
+      if (frames.length <= 1) return;
+      pushUndo();
+      frames.splice(idx, 1);
+      replaceFrames(frames.slice());
+    };
+    card.appendChild(head);
+
+    const imageArea = document.createElement('div');
+    imageArea.className = 'w-full aspect-video bg-white/[0.02] rounded-lg border border-white/5 flex items-center justify-center overflow-hidden';
+    imageArea.setAttribute('role', 'status');
+    imageArea.setAttribute('aria-live', 'polite');
+    if (selectedAr === '9:16') imageArea.className = imageArea.className.replace('aspect-video', 'aspect-[9/16] max-h-80 mx-auto');
+    else if (selectedAr === '1:1') imageArea.className = imageArea.className.replace('aspect-video', 'aspect-square');
+    else if (selectedAr === '4:5') imageArea.className = imageArea.className.replace('aspect-video', 'aspect-[4/5] max-h-80 mx-auto');
+    card.appendChild(imageArea);
+
+    // Shot / camera / duration
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-3 gap-2';
+    const mkSelect = (label, options, value, onChange) => {
+      const wrap = document.createElement('div');
+      wrap.appendChild(fieldLabel(label));
+      const s = document.createElement('select');
+      s.className = `${FIELD_CLASS} appearance-none cursor-pointer`;
+      options.forEach((o) => {
         const opt = document.createElement('option');
-        opt.value = s;
-        opt.textContent = s;
-        opt.style.background = '#111';
-        if (s === frame.shot) opt.selected = true;
-        shotSelect.appendChild(opt);
+        opt.value = o; opt.textContent = o; opt.style.background = '#111';
+        if (o === value) opt.selected = true;
+        s.appendChild(opt);
       });
-      shotSelect.onchange = () => { frame.shot = shotSelect.value; autosave.schedule(getStoryboardState()); };
-      card.appendChild(shotSelect);
+      s.onchange = () => { pushUndo(); onChange(s.value); scheduleAutosave(); renderTimelineStrip(); };
+      wrap.appendChild(s);
+      return wrap;
+    };
+    grid.appendChild(mkSelect('Shot', SHOT_TYPES, frame.shot, (v) => { frame.shot = v; syncFrameAliases(frame); }));
+    grid.appendChild(mkSelect('Camera', CAMERA_MOVEMENTS, frame.cameraMovement, (v) => { frame.cameraMovement = v; }));
+    const durWrap = document.createElement('div');
+    durWrap.appendChild(fieldLabel('Seconds'));
+    const dur = document.createElement('input');
+    dur.type = 'number'; dur.min = 1; dur.max = 60; dur.value = frame.duration;
+    dur.className = FIELD_CLASS;
+    dur.setAttribute('aria-label', `Frame ${idx + 1} duration in seconds`);
+    dur.oninput = () => {
+      beginTextEdit();
+      frame.duration = Math.max(1, Math.min(60, Math.round(Number(dur.value)) || 1));
+      renderTimelineStrip();
+      updateSummary();
+    };
+    durWrap.appendChild(dur);
+    grid.appendChild(durWrap);
+    card.appendChild(grid);
 
-      const promptInput = document.createElement('textarea');
-      promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50 resize-none';
-      promptInput.rows = 2;
-      promptInput.placeholder = 'Describe this scene...';
-      promptInput.value = frame.prompt;
-      promptInput.setAttribute('aria-label', 'Frame description');
-      promptInput.oninput = () => { frame.prompt = promptInput.value; autosave.schedule(getStoryboardState()); };
-      card.appendChild(promptInput);
+    const textField = (label, tag, prop, placeholder, rows) => {
+      const wrap = document.createElement('div');
+      wrap.appendChild(fieldLabel(label));
+      const el = document.createElement(tag);
+      if (tag === 'input') el.type = 'text';
+      else { el.rows = rows || 2; }
+      el.className = `${FIELD_CLASS} ${tag === 'textarea' ? 'resize-none' : ''}`;
+      el.placeholder = placeholder;
+      el.value = frame[prop] || '';
+      el.setAttribute('aria-label', `Frame ${idx + 1} ${label.toLowerCase()}`);
+      el.oninput = () => {
+        beginTextEdit();
+        frame[prop] = el.value;
+        if (prop === 'prompt') { frame.description = el.value; if (frame.enhancedPrompt) { frame.enhancedPrompt = undefined; } }
+      };
+      wrap.appendChild(el);
+      return wrap;
+    };
 
-      // Per-frame GTM Boost — enhances this single frame's prompt.
-      const frameEnhanceBtn = document.createElement('button');
-      frameEnhanceBtn.type = 'button';
-      frameEnhanceBtn.className = 'self-start text-xs font-bold text-primary hover:text-white transition-colors frame-enhance-btn';
-      frameEnhanceBtn.textContent = '🎯 Enhance';
-      frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
-      frameEnhanceBtn.addEventListener('click', () => {
-        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          // A single frame renders as a still image, so boost it as an image prompt.
-          openGTMPromptModal('storyboard-frame', (prompt) => {
-            frame.enhancedPrompt = prompt;
-            frameEnhanceBtn.textContent = '🎯 Enhanced';
-            frameEnhanceBtn.classList.add('active');
-          }, { basePrompt: frame.enhancedPrompt || frame.prompt });
-        }).catch((err) => console.error('[StoryboardStudio] Frame GTM Boost failed:', err));
-      });
-      const enhanceRow = document.createElement('div');
-      enhanceRow.className = 'flex items-center justify-between -mt-1';
-      const enhanceHint = document.createElement('span');
-      enhanceHint.className = 'text-[10px] text-muted';
-      enhanceHint.textContent = 'GTM-conversion boost';
-      enhanceRow.appendChild(enhanceHint);
-      enhanceRow.appendChild(frameEnhanceBtn);
-      card.appendChild(enhanceRow);
+    const descWrap = textField('What we see', 'textarea', 'prompt', 'Describe this shot...', 3);
+    card.appendChild(descWrap);
 
-      // Narration input
-      const narrationInput = document.createElement('input');
-      narrationInput.type = 'text';
-      narrationInput.className = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
-      narrationInput.placeholder = 'Narration text (optional)...';
-      narrationInput.value = frame.narration || '';
-      narrationInput.oninput = () => { frame.narration = narrationInput.value; autosave.schedule(getStoryboardState()); };
-      card.appendChild(narrationInput);
+    // Apply a quick shot-style starter to THIS frame only
+    const starter = document.createElement('div');
+    starter.className = 'flex items-center justify-between -mt-1 gap-2';
+    const starterBtn = document.createElement('button');
+    starterBtn.type = 'button';
+    starterBtn.className = 'text-[10px] font-bold text-primary hover:text-white transition-colors';
+    starterBtn.textContent = '✨ Start from shot preset';
+    starterBtn.title = 'Fill an empty description with a starter for this shot type';
+    starterBtn.onclick = () => {
+      if (frame.prompt.trim() && typeof window.confirm === 'function' && !window.confirm('Replace this frame\'s description?')) return;
+      pushUndo();
+      frame.prompt = SHOT_PRESETS[frame.shot] || '';
+      syncFrameAliases(frame);
+      renderFrames();
+      scheduleAutosave();
+    };
+    const enhanceBtn = document.createElement('button');
+    enhanceBtn.type = 'button';
+    enhanceBtn.className = 'text-[10px] font-bold text-primary hover:text-white transition-colors';
+    enhanceBtn.textContent = frame.enhancedPrompt ? '🎯 Enhanced' : '🎯 Enhance';
+    enhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
+    enhanceBtn.onclick = () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('storyboard-frame', (prompt) => {
+          frame.enhancedPrompt = prompt;
+          enhanceBtn.textContent = '🎯 Enhanced';
+          scheduleAutosave();
+        }, { basePrompt: frame.enhancedPrompt || frame.prompt });
+      }).catch((err) => console.error('[StoryboardStudio] Frame GTM Boost failed:', err));
+    };
+    starter.append(starterBtn, enhanceBtn);
+    card.appendChild(starter);
 
-      const notesInput = document.createElement('input');
-      notesInput.type = 'text';
-      notesInput.className = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
-      notesInput.placeholder = 'Director notes (optional)...';
-      notesInput.value = frame.notes || '';
-      notesInput.oninput = () => { frame.notes = notesInput.value; autosave.schedule(getStoryboardState()); };
-      card.appendChild(notesInput);
+    card.appendChild(textField('Narration / dialogue', 'input', 'narration', 'Voice-over for this shot (optional)'));
+    card.appendChild(textField('Director notes', 'input', 'notes', 'Notes (optional)'));
 
-      const refRow = document.createElement('div');
-      refRow.className = 'flex items-center gap-2';
+    // Reference image (upload / library / Pexels)
+    const refRow = document.createElement('div');
+    refRow.className = 'flex items-center gap-2';
+    const refThumbWrap = document.createElement('div');
+    refThumbWrap.className = 'hidden w-8 h-8 rounded-md overflow-hidden border border-white/10 relative shrink-0';
+    const refThumb = document.createElement('img');
+    refThumb.className = 'w-full h-full object-cover';
+    refThumb.alt = 'Reference';
+    refThumbWrap.appendChild(refThumb);
+    const refRemoveBtn = document.createElement('button');
+    refRemoveBtn.type = 'button';
+    refRemoveBtn.className = 'hidden absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors';
+    refRemoveBtn.innerHTML = '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    refRemoveBtn.title = 'Remove reference';
+    refRemoveBtn.setAttribute('aria-label', 'Remove reference image');
+    refRemoveBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      frame.referenceImages = [];
+      refThumbWrap.classList.add('hidden');
+      refRemoveBtn.classList.add('hidden');
+      resetRef();
+      scheduleAutosave();
+    });
+    refThumbWrap.appendChild(refRemoveBtn);
 
-      const refThumbWrap = document.createElement('div');
-      refThumbWrap.className = 'hidden w-8 h-8 rounded-md overflow-hidden border border-white/10 relative shrink-0';
-      const refThumb = document.createElement('img');
-      refThumb.className = 'w-full h-full object-cover';
-      refThumbWrap.appendChild(refThumb);
-
-      const refRemoveBtn = document.createElement('button');
-      refRemoveBtn.type = 'button';
-      refRemoveBtn.className = 'hidden absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors';
-      refRemoveBtn.innerHTML = `<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-      refRemoveBtn.title = 'Remove reference';
-      refRemoveBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
+    const { trigger: refTrigger, reset: resetRef } = createUploadPicker({
+      anchorContainer: card,
+      maxImages: 1,
+      onSelect: ({ url, thumbnail }) => {
+        frame.referenceImages = [{ url, thumbnail }];
+        refThumb.src = thumbnail;
+        refThumbWrap.classList.remove('hidden');
+        refRemoveBtn.classList.remove('hidden');
+        scheduleAutosave();
+      },
+      onClear: () => {
         frame.referenceImages = [];
         refThumbWrap.classList.add('hidden');
         refRemoveBtn.classList.add('hidden');
-        resetRef();
-        autosave.schedule(getStoryboardState());
-      });
-      refThumbWrap.appendChild(refRemoveBtn);
+        scheduleAutosave();
+      },
+    });
+    if (frame.referenceImages?.[0]?.thumbnail) {
+      refThumb.src = frame.referenceImages[0].thumbnail;
+      refThumbWrap.classList.remove('hidden');
+      refRemoveBtn.classList.remove('hidden');
+    }
+    refRow.appendChild(refTrigger);
 
-      const { trigger: refTrigger, reset: resetRef } = createUploadPicker({
-        anchorContainer: card,
-        maxImages: 1,
-        onSelect: ({ url, thumbnail }) => {
-          frame.referenceImages = [{ url, thumbnail }];
-          refThumb.src = thumbnail;
+    const pexelsRefBtn = document.createElement('button');
+    pexelsRefBtn.type = 'button';
+    pexelsRefBtn.title = 'Browse a reference frame from Pexels';
+    pexelsRefBtn.setAttribute('aria-label', 'Browse a reference frame from Pexels');
+    pexelsRefBtn.className = 'w-8 h-8 shrink-0 rounded-md border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40';
+    pexelsRefBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    const attrBox = document.createElement('div');
+    attrBox.className = 'mt-1';
+    pexelsRefBtn.onclick = async () => {
+      const { browsePexelsImages } = await import('../lib/studioPexels.js');
+      browsePexelsImages({
+        title: 'Select Reference Frame',
+        studioName: 'Storyboard Studio',
+        onSelect: (asset) => {
+          const thumb = asset.src?.medium || asset.src?.small || asset.url || asset.original;
+          frame.referenceImages = [{
+            url: asset.src?.large || asset.url || asset.original,
+            thumbnail: thumb,
+            source: 'pexels',
+            attribution: {
+              photographer: asset.photographer || asset.user?.name || '',
+              photographerUrl: asset.photographer_url || asset.user?.url || '',
+              pexelsUrl: asset.url || '',
+            },
+          }];
+          refThumb.src = thumb;
           refThumbWrap.classList.remove('hidden');
           refRemoveBtn.classList.remove('hidden');
-          autosave.schedule(getStoryboardState());
-        },
-        onClear: () => {
-          frame.referenceImages = [];
-          refThumbWrap.classList.add('hidden');
-          refRemoveBtn.classList.add('hidden');
-          autosave.schedule(getStoryboardState());
+          scheduleAutosave();
+          attrBox.innerHTML = '';
+          import('../lib/attributionChip.js').then((mod) => mod.renderAttributionChip(asset, attrBox)).catch(() => {});
         },
       });
+    };
+    refRow.appendChild(pexelsRefBtn);
+    refRow.appendChild(refThumbWrap);
+    card.appendChild(refRow);
+    card.appendChild(attrBox);
 
-      if (frame.referenceImages.length > 0 && frame.referenceImages[0].thumbnail) {
-        refThumb.src = frame.referenceImages[0].thumbnail;
-        refThumbWrap.classList.remove('hidden');
-        refRemoveBtn.classList.remove('hidden');
-      }
+    // Actions
+    const genFrameBtn = document.createElement('button');
+    genFrameBtn.type = 'button';
+    genFrameBtn.className = 'w-full bg-white/10 text-white py-2 rounded-lg text-xs font-bold hover:bg-white/20 transition-all disabled:opacity-60';
+    genFrameBtn.setAttribute('aria-label', `Generate frame ${idx + 1}`);
+    genFrameBtn.onclick = async () => {
+      if (!(await requireEntitlement())) return;
+      try { await generateFrame(frame); } catch { /* shown by generateFrame */ }
+    };
+    card.appendChild(genFrameBtn);
 
-      refRow.appendChild(refTrigger);
+    const actions = document.createElement('div');
+    actions.className = 'grid grid-cols-2 gap-2';
+    const animateBtn = document.createElement('button');
+    animateBtn.type = 'button';
+    animateBtn.className = 'bg-white/5 border border-white/10 text-white py-2 rounded-lg text-xs font-bold hover:bg-white/10 transition-all';
+    animateBtn.textContent = '▶ Animate';
+    animateBtn.title = 'Turn this frame into a video clip';
+    animateBtn.onclick = () => animateFrame(frame);
+    const publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2 rounded-lg text-xs font-bold hover:shadow-glow transition-all';
+    publishBtn.textContent = 'Publish';
+    publishBtn.onclick = () => {
+      if (!frame.imageUrl) { showToast('Generate this frame first.', 'warning'); return; }
+      openSocialPublish({ mediaUrl: frame.imageUrl, mediaType: 'image' });
+    };
+    actions.append(animateBtn, publishBtn);
+    card.appendChild(actions);
 
-      // Pexels reference frame button
-      const pexelsRefBtn = document.createElement('button');
-      pexelsRefBtn.type = 'button';
-      pexelsRefBtn.title = 'Browse reference frame from Pexels';
-      pexelsRefBtn.className = 'w-8 h-8 shrink-0 rounded-md border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40';
-      pexelsRefBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
-      pexelsRefBtn.onclick = async () => {
-        const { browsePexelsImages } = await import('../lib/studioPexels.js');
-        browsePexelsImages({
-          title: 'Select Reference Frame',
-          studioName: 'Storyboard Studio',
-          onSelect: (asset) => {
-            frame.referenceImages = [{
-              url: asset.src?.large || asset.url || asset.original,
-              thumbnail: asset.src?.medium || asset.src?.small || asset.url || asset.original,
-              source: 'pexels',
-              attribution: {
-                photographer: asset.photographer || asset.user?.name || '',
-                photographerUrl: asset.photographer_url || asset.user?.url || '',
-                pexelsUrl: asset.url || '',
-              }
-            }];
-            refThumb.src = asset.src?.medium || asset.src?.small || asset.url || asset.original;
-            refThumbWrap.classList.remove('hidden');
-            refRemoveBtn.classList.remove('hidden');
-            autosave.schedule(getStoryboardState());
-            const attrContainer = document.getElementById(`pexels-storyboard-${idx}-attr`);
-            if (attrContainer) {
-              attrContainer.innerHTML = '';
-              import('../lib/attributionChip.js').then(mod => mod.renderAttributionChip(asset, attrContainer));
-            }
-          }
-        });
-      };
-      refRow.appendChild(pexelsRefBtn);
+    frameRefs.set(frame.id, { imageArea, genBtn: genFrameBtn, card });
+    paintImage(frame);
+    return card;
+  }
 
-      refRow.appendChild(refThumbWrap);
-      card.appendChild(refRow);
+  function moveFrame(from, to) {
+    if (from === to || to < 0 || to >= frames.length) return;
+    pushUndo();
+    const [moved] = frames.splice(from, 1);
+    frames.splice(to, 0, moved);
+    replaceFrames(frames.slice());
+  }
 
-      // Pexels attribution container
-      const storyboardAttr = document.createElement('div');
-      storyboardAttr.id = `pexels-storyboard-${idx}-attr`;
-      storyboardAttr.className = 'mt-1';
-      card.appendChild(storyboardAttr);
+  function animateFrame(frame) {
+    if (!frame.imageUrl) { showToast('Generate this frame first, then animate it.', 'warning'); return; }
+    try {
+      sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({
+        imageUrl: frame.imageUrl,
+        prompt: [frame.prompt, frame.cameraMovement && frame.cameraMovement !== 'Static' ? `${frame.cameraMovement} camera move` : ''].filter(Boolean).join('. '),
+        duration: frame.duration,
+      }));
+    } catch {
+      showToast('Could not pass the frame along (browser storage is blocked).', 'error');
+      return;
+    }
+    navigate('animate');
+  }
 
-      const genFrameBtn = document.createElement('button');
-      genFrameBtn.type = 'button';
-      genFrameBtn.className = 'w-full bg-white/10 text-white py-2 rounded-lg text-xs font-bold hover:bg-white/20 transition-all';
-      genFrameBtn.textContent = 'Generate Frame';
-      genFrameBtn.setAttribute('aria-label', 'Generate frame');
-      genFrameBtn.onclick = async () => {
-        if (!(await requireEntitlement())) return;
-        try {
-          await generateFrame(idx, genFrameBtn, imageArea);
-        } catch (err) {
-          // Error already shown in generateFrame
-        }
-      };
-      card.appendChild(genFrameBtn);
-
-      const publishFrameBtn = document.createElement('button');
-      publishFrameBtn.type = 'button';
-      publishFrameBtn.textContent = 'Publish to Social';
-      publishFrameBtn.className = 'w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2 rounded-lg text-xs font-bold hover:shadow-glow transition-all';
-      publishFrameBtn.onclick = () => openSocialPublish({ mediaUrl: frame.imageUrl, mediaType: 'image' });
-      card.appendChild(publishFrameBtn);
-
-      card.querySelector('.remove-frame').onclick = () => {
-        if (frames.length > 1) { undoRedo.push(frames); frames.splice(idx, 1); renderFrames(); autosave.schedule(getStoryboardState()); }
-      };
-
-      framesArea.appendChild(card);
-    });
+  function renderFrames() {
+    frameRefs.clear();
+    framesArea.className = getLayoutClasses();
+    framesArea.innerHTML = '';
+    frames.forEach((frame, idx) => framesArea.appendChild(buildFrameCard(frame, idx)));
+    updateSummary();
     renderTimelineStrip();
+    updateUndoRedoButtons();
   }
 
   function renderTimelineStrip() {
     timelineStrip.innerHTML = '';
-    if (frames.length === 0) return;
-
-    const totalDuration = frameDurations.reduce((sum, d) => sum + d, 0);
-    const minSegmentWidth = 40;
-    const naturalWidth = frames.length * 80;
-    const totalWidth = Math.max(naturalWidth, minSegmentWidth * frames.length);
-
-    const scrollContainer = document.createElement('div');
-    scrollContainer.className = 'overflow-x-auto no-scrollbar';
+    if (!frames.length) return;
+    const total = totalDuration(frames) || frames.length;
+    const label = document.createElement('div');
+    label.className = 'text-[10px] font-bold text-secondary uppercase tracking-widest mb-2';
+    label.textContent = `Timeline · ${total}s`;
+    timelineStrip.appendChild(label);
 
     const strip = document.createElement('div');
-    strip.className = 'flex h-10 rounded-lg border border-white/10 bg-white/[0.03] relative';
-    strip.style.width = totalWidth + 'px';
-    strip.style.minWidth = '100%';
-
-    const shotAbbrevMap = {
-      'Wide Shot': 'WS',
-      'Medium Shot': 'MS',
-      'Close-Up': 'CU',
-      'Extreme Close-Up': 'ECU',
-      'POV': 'POV',
-      'Overhead': 'OH',
-      'Low Angle': 'LA',
-    };
-
+    strip.className = 'flex h-11 rounded-lg border border-white/10 bg-white/[0.03] overflow-hidden';
+    strip.setAttribute('role', 'list');
     frames.forEach((frame, idx) => {
-      const duration = frameDurations[idx] || 3;
-      const segmentWidth = Math.max(minSegmentWidth, (duration / totalDuration) * totalWidth);
-      const segment = document.createElement('div');
-      segment.className = 'flex items-center justify-center border-r border-white/5 last:border-r-0 cursor-pointer hover:bg-white/10 transition-all relative group';
-      segment.style.width = segmentWidth + 'px';
-      segment.style.minWidth = minSegmentWidth + 'px';
-      segment.dataset.frameIndex = idx;
-
-      const label = document.createElement('span');
-      label.className = 'text-[10px] font-bold text-white/80 tabular-nums select-none';
-      label.textContent = idx + 1;
-      segment.appendChild(label);
-
-      const tooltip = document.createElement('span');
-      tooltip.className = 'absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 border border-white/10';
-      tooltip.textContent = `${shotAbbrevMap[frame.shot] || frame.shot} · ${duration}s`;
-      segment.appendChild(tooltip);
-
-      segment.onclick = () => {
-        const card = framesArea.children[idx];
-        if (card) {
-          card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-          card.classList.add('ring-2', 'ring-primary');
-          setTimeout(() => card.classList.remove('ring-2', 'ring-primary'), 1500);
-        }
+      const seg = document.createElement('button');
+      seg.type = 'button';
+      seg.setAttribute('role', 'listitem');
+      seg.className = 'relative flex flex-col items-center justify-center border-r border-white/5 last:border-r-0 hover:bg-white/10 transition-all text-white overflow-hidden';
+      seg.style.flex = `${Math.max(1, frame.duration)} 1 0`;
+      seg.style.minWidth = '34px';
+      if (frame.imageUrl && /^(https?:|data:image\/)/.test(frame.imageUrl)) {
+        seg.style.backgroundImage = `linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)), url("${frame.imageUrl.replace(/"/g, '%22')}")`;
+        seg.style.backgroundSize = 'cover';
+      }
+      seg.title = `Frame ${idx + 1}: ${frame.shot} · ${frame.cameraMovement} · ${frame.duration}s`;
+      seg.innerHTML = `<span class="text-[10px] font-bold tabular-nums">${idx + 1}</span><span class="text-[9px] text-white/70">${SHOT_ABBREV[frame.shot] || ''} ${frame.duration}s</span>`;
+      seg.onclick = () => {
+        const ref = frameRefs.get(frame.id);
+        if (!ref) return;
+        ref.card.scrollIntoView?.({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        ref.card.classList.add('ring-2', 'ring-primary');
+        setTimeout(() => ref.card.classList.remove('ring-2', 'ring-primary'), 1500);
       };
-
-      strip.appendChild(segment);
+      strip.appendChild(seg);
     });
-
-    const totalLabel = document.createElement('span');
-    totalLabel.className = 'text-[10px] font-bold text-secondary tabular-nums ml-3 shrink-0';
-    totalLabel.textContent = `Total: ${totalDuration}s`;
-
-    const row = document.createElement('div');
-    row.className = 'flex items-center gap-2';
-    row.appendChild(scrollContainer);
-    scrollContainer.appendChild(strip);
-    row.appendChild(totalLabel);
-    timelineStrip.appendChild(row);
+    timelineStrip.appendChild(strip);
   }
 
-  async function generateFrame(idx, btn, imageArea) {
-    const frame = frames[idx];
-    if (!frame.prompt.trim()) { alert('Enter a scene description'); return; }
-    const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();
-    if (!hasKey) { AuthModal(() => generateFrame(idx, btn, imageArea)); return; }
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span>';
-
-    try {
-      // Resolve personalization tokens at generation time only (tokens stay
-      // visible in the textarea until now).
-      let rawPrompt = frame.prompt;
-      if (frame.enhancedPrompt) {
-        // Per-frame GTM Boost output takes precedence for this frame.
-        rawPrompt = `${frame.enhancedPrompt} — ${frame.shot} composition`;
-      } else if (enhancedConcept) {
-        // Global GTM Boost concept propagated to every frame.
-        rawPrompt = `${enhancedConcept} Scene: ${frame.prompt} (${frame.shot})`;
-      }
-      const profile = activeProfileRef.value;
-      const resolvedPrompt = profile ? replaceTokensInPrompt(rawPrompt, profile) : rawPrompt;
-
-      const prompt = `${frame.shot} cinematic storyboard frame: ${resolvedPrompt}, professional cinematography, 4K quality`;
-      const url = await engineGenerateFrameImage(prompt, selectedAr, selectedModel, selectedStyle, selectedLighting, selectedColor, customThumbnailUrl);
-      if (url) {
-        frame.imageUrl = url;
-        registerGeneration('storyboard', 'image', url, { prompt, model: selectedModel || '', parameters: { shot: frame.shot, aspect_ratio: selectedAr } });
-        imageArea.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
-      }
-    } catch (err) {
-      showToast(`Error: ${err.message}`, 'error');
-      throw err;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Generate Frame';
-    }
+  // =====================================================================
+  // Toolbar actions
+  // =====================================================================
+  function openGtmForStoryboard() {
+    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+      openGTMPromptModal('storyboard-studio', (prompt) => {
+        enhancedConcept = prompt;
+        showToast('GTM concept will be applied to every frame you generate.', 'success');
+      }, { basePrompt: enhancedConcept || frames.map((f) => f.prompt).filter(Boolean).join(' → ') });
+    }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
   }
 
-  /**
-   * Generate a single storyboard frame image. Prefers the user's OpenAI key
-   * (direct to the OpenAI Image API) and falls back to MuAPI when only a MuAPI
-   * key is configured.
-   * @param {string} prompt
-   * @returns {Promise<string|null>} image URL/data-URL or null
-   */
-   async function generateFrameImage(prompt) {
-     if (apiKeyManager.hasOpenAIKey()) {
-       try {
-         const { images } = await openaiService.generateImageResponses({
-           input: prompt,
-           size: '16:9',
-           quality: 'auto',
-           outputFormat: 'png',
-         });
-         const img = images?.[0];
-         if (!img) return null;
-         return img.base64 ? `data:image/png;base64,${img.base64}` : img.url || null;
-       } catch (err) {
-         // Surface OpenAI-specific failures clearly; MuAPI fallback below.
-         if (!apiKeyManager.hasMuapiKey()) throw err;
-         console.warn('[StoryboardStudio] OpenAI Responses generation failed, falling back to MuAPI:', err.message);
-       }
-     }
-     const result = await muapi.generateImage({ model: 'nano-banana', prompt, aspect_ratio: '16:9' });
-     return result?.url || null;
-   }
-
-  genAllBtn.onclick = async () => {
-    const hasKey = apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey();
-    if (!hasKey) { AuthModal(() => genAllBtn.click()); return; }
-
-    genAllBtn.disabled = true;
-    genAllBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
-
-    for (let i = 0; i < frames.length; i++) {
-      if (!frames[i].prompt.trim()) continue;
-      try {
-        const card = framesArea.children[i];
-        const btn = card?.querySelector('button:last-child');
-        const imageArea = card?.querySelector('.aspect-video');
-        if (!btn || !imageArea) continue;
-        await withRetry(() => generateFrame(i, btn, imageArea));
-        generationProgress.current++;
-        updateProgressLabel();
-      } catch (err) {
-        showToast(`Frame ${i + 1} failed: ${err.message}`, 'error');
-        generationProgress.failed.push(i);
-        updateProgressLabel();
-      }
-    }
-
-    genAllBtn.disabled = false;
-    genAllBtn.textContent = 'Generate All Frames';
-    retryBtn.classList.toggle('hidden', generationProgress.failed.length === 0);
-    if (generationProgress.failed.length === 0) {
-      showToast('All frames generated', 'success');
-    }
+  addFrameBtn.onclick = () => {
+    if (frames.length >= 40) { showToast('That is plenty of frames. Delete some first.', 'warning'); return; }
+    pushUndo();
+    const last = frames[frames.length - 1];
+    frames.push(createFrame({ shot: 'Wide Shot', sceneNumber: last?.sceneNumber || 1 }));
+    replaceFrames(frames.slice());
   };
 
-  renderFrames();
-
-  function updateUndoRedoButtons() {
-    if (undoBtn) undoBtn.classList.toggle('opacity-50', !undoRedo.canUndo());
-    if (redoBtn) redoBtn.classList.toggle('opacity-50', !undoRedo.canRedo());
-  }
-
-  const undoBtn = document.createElement('button');
-  undoBtn.type = 'button';
-  undoBtn.className = 'px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all';
-  undoBtn.innerHTML = '↶ Undo';
-  undoBtn.title = 'Undo (Ctrl+Z)';
   undoBtn.onclick = () => {
-    const prev = undoRedo.undo(frames);
-    if (prev) { frames.length = 0; frames.push(...prev); renderFrames(); autosave.schedule(getStoryboardState()); updateUndoRedoButtons(); }
+    commitTypingSnapshot();
+    const prev = undoRedo.undo(snapshotFrames(frames));
+    if (prev) replaceFrames(prev);
+    updateUndoRedoButtons();
   };
-
-  const redoBtn = document.createElement('button');
-  redoBtn.type = 'button';
-  redoBtn.className = 'px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all';
-  redoBtn.innerHTML = '↷ Redo';
-  redoBtn.title = 'Redo (Ctrl+Shift+Z)';
   redoBtn.onclick = () => {
-    const next = undoRedo.redo(frames);
-    if (next) { frames.length = 0; frames.push(...next); renderFrames(); autosave.schedule(getStoryboardState()); updateUndoRedoButtons(); }
+    const next = undoRedo.redo(snapshotFrames(frames));
+    if (next) replaceFrames(next);
+    updateUndoRedoButtons();
   };
 
-  controlBar.appendChild(undoBtn);
-  controlBar.appendChild(redoBtn);
+  function applyLoaded(state) {
+    if (!state || !Array.isArray(state.frames) || !state.frames.length) return false;
+    pushUndo();
+    frames.length = 0;
+    frames.push(...state.frames.map((f) => createFrame({ ...f, status: f.imageUrl ? 'done' : 'idle' })));
+    if (state.layout) { layout = state.layout; layoutSelect.value = layout; }
+    if (state.selectedModel) {
+      selectedModel = state.selectedModel;
+      selectedModelName = state.selectedModelName || getModelById(selectedModel)?.name || selectedModelName;
+      container.querySelector('#model-btn-label').textContent = selectedModelName;
+      updateModelBtnIcon();
+    }
+    if (state.selectedAr) { selectedAr = state.selectedAr; container.querySelector('#ar-btn-label').textContent = selectedAr; }
+    if (state.settings) Object.assign(settings, state.settings);
+    writeBrief({ ...(state.brief || {}), stylePreset: state.selectedStyle || state.brief?.stylePreset, lightingPreset: state.selectedLighting || state.brief?.lightingPreset, colorGrade: state.selectedColor || state.brief?.colorGrade });
+    refreshSettingsPanel();
+    renumberFrames(frames);
+    setStage('board');
+    renderFrames();
+    return true;
+  }
 
-  window.addEventListener('keydown', (e) => {
+  saveBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
+    const name = projectInput.value.trim() || `Storyboard ${new Date().toLocaleDateString()}`;
+    projectInput.value = projectName = name;
+    const result = writeProject(name, getStoryboardState());
+    if (!result.ok) { showToast('Could not save: browser storage is full or blocked. Export JSON instead.', 'error'); return; }
+    try { localStorage.setItem(LAST_PROJECT_KEY, name); } catch { /* ignore */ }
+    refreshProjectList();
+    showToast(result.stripped ? `Saved "${name}" without ${result.stripped} large image(s). Export a PDF to keep them.` : `Saved "${name}"`, result.stripped ? 'warning' : 'success');
+    // Optional server copy for self-hosted deployments; never blocks or fails the save.
+    fetch('/api/storyboard/' + encodeURIComponent(name), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: name, frames, preset: null }),
+    }).catch(() => {});
+  };
+
+  async function loadByName(name) {
+    if (!(await requireEntitlement())) return;
+    const saved = readProjects();
+    if (!name) {
+      const names = Object.keys(saved);
+      showToast(names.length ? `Type a project name. Saved: ${names.slice(0, 5).join(', ')}` : 'No saved storyboards yet.', 'warning');
+      return;
+    }
+    if (saved[name]) {
+      applyLoaded(saved[name]);
+      projectName = name;
+      projectInput.value = name;
+      try { localStorage.setItem(LAST_PROJECT_KEY, name); } catch { /* ignore */ }
+      showToast(`Loaded "${name}"`, 'success');
+      return;
+    }
+    try {
+      const r = await fetch('/api/storyboard/' + encodeURIComponent(name));
+      if (!r.ok) throw new Error('not found');
+      const data = await r.json();
+      if (applyLoaded(data)) { projectName = name; projectInput.value = name; showToast(`Loaded "${name}"`, 'success'); return; }
+    } catch { /* fall through */ }
+    showToast(`No saved storyboard named "${name}".`, 'warning');
+  }
+
+  loadBtn.onclick = () => loadByName(projectInput.value.trim());
+  brief.querySelector('#open-saved').addEventListener('click', () => loadByName(brief.querySelector('#saved-select').value));
+
+  sendBtn.onclick = () => {
+    if (!frames.some((f) => f.prompt.trim())) { showToast('Describe at least one frame first.', 'warning'); return; }
+    const payload = buildStoryboardPayload();
+    if (typeof window.useStoryboardInTemplate === 'function') {
+      window.useStoryboardInTemplate(payload);
+      return;
+    }
+    // Inline images can be megabytes; the template only needs the text plan in the URL.
+    const light = { ...payload, frames: payload.frames.map((f) => ({ ...f, imageUrl: /^data:/.test(f.imageUrl || '') ? null : f.imageUrl })) };
+    navigate('cinema-template', { storyboard: JSON.stringify(light) });
+  };
+
+  // Keyboard shortcuts (only while this studio is on screen)
+  const onKeyDown = (e) => {
+    if (!container.isConnected) return;
     const isMeta = e.metaKey || e.ctrlKey;
-    if (isMeta && e.key.toLowerCase() === 'z' && !e.shiftKey) {
-      e.preventDefault();
-      undoBtn.click();
+    if (!isMeta) {
+      if (e.key === 'Escape' && !comparisonOverlay.classList.contains('hidden')) closeComparison();
       return;
     }
-    if (isMeta && ((e.key.toLowerCase() === 'z' && e.shiftKey) || e.key.toLowerCase() === 'y')) {
-      e.preventDefault();
-      redoBtn.click();
-      return;
-    }
-    if (isMeta && e.key.toLowerCase() === 's') {
-      e.preventDefault();
-      saveBtn.click();
-    }
-  });
+    const target = e.target;
+    const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+    const key = e.key.toLowerCase();
+    if (key === 's') { e.preventDefault(); saveBtn.click(); return; }
+    if (typing) return; // let text fields keep their own undo
+    if (key === 'z' && !e.shiftKey) { e.preventDefault(); undoBtn.click(); }
+    else if ((key === 'z' && e.shiftKey) || key === 'y') { e.preventDefault(); redoBtn.click(); }
+  };
+  listen(window, 'keydown', onKeyDown);
+
+  // =====================================================================
+  // Compare overlay
+  // =====================================================================
+  const compareIndices = [0, 1];
+  const comparisonOverlay = document.createElement('div');
+  comparisonOverlay.className = 'fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4';
+  comparisonOverlay.innerHTML = `
+    <div class="bg-app-bg border border-white/10 rounded-2xl shadow-4xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden" role="dialog" aria-label="Compare frames">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-white/5 shrink-0">
+        <h2 class="${CINEMATIC_THEME.text.body} font-bold text-white tracking-tight">Compare frames</h2>
+        <button type="button" class="compare-close-btn text-muted hover:text-white transition-colors text-lg leading-none px-2" aria-label="Close">&times;</button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-6"><div class="flex flex-col md:flex-row gap-6">
+        ${['a', 'b'].map((k) => `
+          <div class="flex-1 flex flex-col gap-3">
+            <label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Frame ${k.toUpperCase()}</label>
+            <select class="compare-select-${k} ${FIELD_CLASS} appearance-none cursor-pointer"></select>
+            <div class="aspect-video bg-white/[0.02] rounded-lg border border-white/5 flex items-center justify-center overflow-hidden">
+              <img class="compare-image-${k} w-full h-full object-cover hidden" alt="Compare frame ${k.toUpperCase()}" />
+              <span class="compare-placeholder-${k} text-muted text-xs">No image</span>
+            </div>
+            <div class="compare-meta-${k} text-[10px] text-secondary leading-relaxed whitespace-pre-line"></div>
+          </div>`).join('')}
+      </div></div>
+    </div>`;
+  container.appendChild(comparisonOverlay);
+
+  function renderComparison() {
+    ['a', 'b'].forEach((k, n) => {
+      const frame = frames[compareIndices[n]];
+      const img = comparisonOverlay.querySelector(`.compare-image-${k}`);
+      const ph = comparisonOverlay.querySelector(`.compare-placeholder-${k}`);
+      const meta = comparisonOverlay.querySelector(`.compare-meta-${k}`);
+      if (frame?.imageUrl) {
+        img.src = frame.imageUrl;
+        img.classList.remove('hidden');
+        ph.classList.add('hidden');
+      } else {
+        img.classList.add('hidden');
+        ph.classList.remove('hidden');
+      }
+      meta.textContent = frame ? `Shot: ${frame.shot} · ${frame.cameraMovement} · ${frame.duration}s\nPrompt: ${frame.prompt || ''}` : '';
+    });
+  }
+  function openComparison() {
+    ['a', 'b'].forEach((k, n) => {
+      const sel = comparisonOverlay.querySelector(`.compare-select-${k}`);
+      sel.innerHTML = '';
+      frames.forEach((_, idx) => {
+        const opt = document.createElement('option');
+        opt.value = String(idx); opt.textContent = `Frame ${idx + 1}`; opt.style.background = '#111';
+        sel.appendChild(opt);
+      });
+      compareIndices[n] = Math.min(compareIndices[n], frames.length - 1);
+      sel.value = String(compareIndices[n]);
+      sel.onchange = () => { compareIndices[n] = Number(sel.value); renderComparison(); };
+    });
+    renderComparison();
+    comparisonOverlay.classList.remove('hidden');
+    comparisonOverlay.classList.add('flex');
+  }
+  function closeComparison() {
+    comparisonOverlay.classList.add('hidden');
+    comparisonOverlay.classList.remove('flex');
+  }
+  comparisonOverlay.querySelector('.compare-close-btn').addEventListener('click', closeComparison);
+
+  // First paint. The story brief sits above the frames, and the board reflects the saved/last state.
+  renderFrames();
+  setStage('describe');
+  // Focusable so End / PageDown / Space scroll the page after a click on empty space.
+  container.tabIndex = -1;
+  container.style.outline = 'none';
+
+  // Cleanup hook called by the router when the page is left.
+  container.cleanup = () => {
+    commitTypingSnapshot();
+    if (outsideClickHandler) document.removeEventListener('click', outsideClickHandler);
+    generation.stop = true;
+    cleanups.splice(0).forEach((fn) => { try { fn(); } catch { /* ignore */ } });
+  };
 
   return container;
 }

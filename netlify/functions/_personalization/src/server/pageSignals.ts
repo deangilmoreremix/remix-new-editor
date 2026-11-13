@@ -19,6 +19,11 @@
  *   - looksJsRendered: detects an empty JS shell, so the caller can escalate
  *     to the (existing) browser layer only when it is worth it.
  *   - htmlToMarkdown: clean page text for AI copy generation.
+ *   - canonicalizePageUrl + isCrawlablePageUrl: Scrapling's LinkExtractor
+ *     rules (canonical URLs, no crawl slots spent on PDFs, archives, media).
+ *
+ * Synced with Scrapling v0.5.1 (deangilmoreremix/Scrapling@bc60248). The
+ * ad / tracker blocklist from the same release lives in ./adDomains.ts.
  *
  * Nothing here performs a request. Every function is bounded (input caps,
  * output caps) so a hostile page cannot make it run away.
@@ -840,4 +845,61 @@ export function htmlToMarkdown(html: string, maxChars = MAX_MARKDOWN_CHARS): str
     markdown += block
   }
   return markdown.replace(/\n{3,}/g, '\n\n').trim()
+}
+
+// ---------------------------------------------------------------------------
+// 7. Link rules (Scrapling's LinkExtractor)
+// ---------------------------------------------------------------------------
+
+/**
+ * File extensions that are never an HTML page worth crawling for assets.
+ * Scrapling's `IGNORED_EXTENSIONS` (scrapling/spiders/links.py).
+ */
+const IGNORED_LINK_EXTENSIONS = new Set([
+  // archives
+  '7z', '7zip', 'bz2', 'rar', 'tar', 'gz', 'xz', 'zip',
+  // images (they are collected as images, not crawled as pages)
+  'mng', 'pct', 'bmp', 'gif', 'jpg', 'jpeg', 'png', 'pst', 'psp', 'tif', 'tiff', 'ai', 'drw', 'dxf', 'eps', 'ps',
+  'svg', 'cdr', 'ico', 'webp', 'avif',
+  // audio
+  'mp3', 'wma', 'ogg', 'wav', 'ra', 'aac', 'mid', 'au', 'aiff',
+  // video
+  '3gp', 'asf', 'asx', 'avi', 'mov', 'mp4', 'mpg', 'qt', 'rm', 'swf', 'wmv', 'm4a', 'm4v', 'flv', 'webm',
+  // office suites
+  'xls', 'xlsm', 'xlsx', 'xltm', 'xltx', 'potm', 'potx', 'ppt', 'pptm', 'pptx', 'pps', 'doc', 'docb', 'docm',
+  'docx', 'dotm', 'dotx', 'odt', 'ods', 'odg', 'odp',
+  // other
+  'css', 'pdf', 'exe', 'bin', 'rss', 'dmg', 'iso', 'apk', 'jar', 'sh', 'rb', 'js', 'hta', 'bat', 'cpl', 'msi',
+  'msp', 'py',
+])
+
+/** True when the URL can be an HTML page (not a PDF, archive, media or office file). Malformed URLs are not. */
+export function isCrawlablePageUrl(url: string): boolean {
+  let pathname: string
+  try {
+    pathname = new URL(url).pathname
+  } catch {
+    return false
+  }
+  const name = pathname.slice(pathname.lastIndexOf('/') + 1).toLowerCase()
+  const dot = name.lastIndexOf('.')
+  if (dot <= 0) return true
+  return !IGNORED_LINK_EXTENSIONS.has(name.slice(dot + 1))
+}
+
+/**
+ * One spelling per page: no fragment, sorted query parameters, no trailing
+ * slash (except the root). `/about`, `/about/` and `/about#team` are one page.
+ * The path keeps its case (paths are case-sensitive). Malformed input comes back as is.
+ */
+export function canonicalizePageUrl(raw: string): string {
+  try {
+    const url = new URL(raw)
+    url.hash = ''
+    url.searchParams.sort()
+    if (url.pathname.length > 1 && url.pathname.endsWith('/')) url.pathname = url.pathname.replace(/\/+$/, '') || '/'
+    return url.toString()
+  } catch {
+    return raw
+  }
 }

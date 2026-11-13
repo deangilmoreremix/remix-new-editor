@@ -14,6 +14,8 @@ import {
   PREVIEW_POSITIONS,
   resetLayoutToDefaults,
   toBox,
+  layoutLayerGeometry,
+  reflowLayersForAspect,
 } from '../presets'
 import { DEFAULT_PREVIEW_BRAND_COLORS } from '../types'
 import { DESIGN_FONT_STACK } from '../../templates/typography'
@@ -197,6 +199,13 @@ describe('applyLayoutPreset', () => {
     expect(seeded.layers.find((layer) => layer.kind === 'serviceImage')?.imageUrl).toBe(
       'https://cdn.example.com/service.png',
     )
+
+    // A headline that is already the business name must not be repeated as the tagline.
+    const sameName = applyLayoutPreset(createDefaultPreviewSettings(), 'service-promotion', {
+      businessName: 'Acme Roofing',
+      headline: 'acme roofing',
+    })
+    expect(sameName.layers.find((layer) => layer.kind === 'tagline')?.text).toBeUndefined()
 
     const ending = applyLayoutPreset(createDefaultPreviewSettings(), 'branded-ending', {
       businessName: 'Acme Roofing',
@@ -474,8 +483,11 @@ describe('toBox', () => {
     const layer = createLayer('logo', { x: 0.08, y: 0.08 })
     const box = toBox(layer, 1920, 1080)
     expect(box.widthPx).toBe(422)
-    expect(box.leftPx).toBe(Math.round(0.08 * 1920 - 422 / 2))
-    expect(box.topPx).toBe(Math.max(0, Math.round(0.08 * 1080 - 422 / 2)))
+    // Centered at x = 0.08 the box would hang 3% outside the frame; it is kept
+    // inside the 2% safe area instead of being clipped.
+    expect(box.leftPx).toBe(Math.round(1920 * 0.02))
+    // the top edge stays inside the 2 % safe area too
+    expect(box.topPx).toBe(Math.round(1080 * 0.02))
   })
 
   it('clamps the top edge to the composition', () => {
@@ -483,7 +495,41 @@ describe('toBox', () => {
     const box = toBox(layer, 1920, 1080)
     expect(box.topPx).toBe(0)
     expect(box.fontSizePx).toBe(216)
-    expect(box.leftPx).toBe(Math.round(0 - Math.min(1920 * 0.9, 216 * 4) / 2))
+    // x = 0 would centre the box on the frame edge; it stays inside the safe area.
+    expect(box.leftPx).toBe(Math.round(1920 * 0.02))
+  })
+
+  it('never clamps design layers: full-frame and off-screen motion designs keep their exact box', () => {
+    const design = createLayer('design', { x: 0, y: 0.5, scale: 1 })
+    const box = toBox(design, 1920, 1080)
+    // centred on x = 0 with the full-frame width: half of it is intentionally off-screen
+    expect(box.widthPx).toBe(1920)
+    expect(box.leftPx).toBe(-960)
+    const offRight = toBox(createLayer('design', { x: 1, y: 0.5, scale: 0.5 }), 1920, 1080)
+    expect(offRight.leftPx + offRight.widthPx).toBeGreaterThan(1920)
+  })
+
+  it('sizes a text box from the DRAWN text, not only layer.text (no mid-word wraps)', () => {
+    const layer = createLayer('businessName', { x: 0.5, y: 0.3 })
+    expect(layer.text).toBeUndefined()
+    const name = 'Kreindler & Kreindler LLP'
+    const fallback = toBox(layer, 1920, 1080)
+    const drawn = toBox(layer, 1920, 1080, name)
+    // Unset text falls back to an 8-character estimate (4.4 em) — too narrow
+    // for a 25-character brand name; the drawn text gets its own width.
+    expect(drawn.widthPx).toBeGreaterThan(fallback.widthPx * 3)
+    expect(drawn.widthPx).toBe(Math.round(Math.min(1920 * 0.9, drawn.fontSizePx * name.length * 0.55)))
+  })
+
+  it('keeps every text and image box inside the safe area at the default edge positions', () => {
+    for (const kind of ['logo', 'businessName', 'headline', 'tagline', 'productImage', 'serviceImage'] as const) {
+      for (const [w, h] of [[1920, 1080], [1080, 1920], [1080, 1080], [1080, 1350]]) {
+        const layer = createLayer(kind)
+        const box = toBox(layer, w, h, 'Passenger Injury Lawyers')
+        expect(box.leftPx).toBeGreaterThanOrEqual(Math.round(w * 0.02))
+        expect(box.leftPx + box.widthPx).toBeLessThanOrEqual(w - Math.round(w * 0.02))
+      }
+    }
   })
 })
 
@@ -580,5 +626,66 @@ describe('fontStackById', () => {
       expect(font.available).toBe(false)
       expect(font.label.endsWith(' (unavailable)')).toBe(true)
     }
+  })
+})
+
+describe('image layout geometry (product showcase / service promotion)', () => {
+  const ratios = [
+    ['16:9', 1920, 1080],
+    ['9:16', 1080, 1920],
+    ['1:1', 1080, 1080],
+    ['4:5', 1080, 1350],
+  ] as const
+  const intersects = (a: { leftPx: number; topPx: number; widthPx: number; h: number }, b: typeof a) =>
+    a.leftPx < b.leftPx + b.widthPx && b.leftPx < a.leftPx + a.widthPx && a.topPx < b.topPx + b.h && b.topPx < a.topPx + a.h
+
+  for (const [layout, imageKind] of [
+    ['product-showcase', 'productImage'],
+    ['service-promotion', 'serviceImage'],
+  ] as const) {
+    for (const [ratio, w, h] of ratios) {
+      it(`${layout} @ ${ratio}: the image box never overlaps the text layers`, () => {
+        const settings = applyLayoutPreset({ ...createDefaultPreviewSettings(), aspectRatio: ratio, width: w, height: h }, layout)
+        const box = (kind: string, text?: string) => {
+          const layer = settings.layers.find((l) => l.kind === kind)!
+          const b = toBox(layer, w, h, text)
+          const isImg = kind === imageKind
+          return { ...b, h: isImg ? b.widthPx : Math.round(b.fontSizePx * 1.15 * 2) }
+        }
+        const image = box(imageKind)
+        const texts = settings.layers
+          .filter((l) => ['headline', 'tagline', 'offer'].includes(l.kind))
+          .map((l) => box(l.kind, 'Kreindler & Kreindler LLP'))
+        for (const t of texts) expect(intersects(image, t)).toBe(false)
+        // and the image stays in the frame
+        expect(image.topPx).toBeGreaterThanOrEqual(0)
+        expect(image.topPx + image.h).toBeLessThanOrEqual(h)
+      })
+    }
+  }
+
+  it('other layouts keep the generic defaults', () => {
+    expect(layoutLayerGeometry('business-introduction', 'headline', '16:9')).toBeUndefined()
+    expect(layoutLayerGeometry('special-offer', 'offer', '9:16')).toBeUndefined()
+  })
+
+  it('reflow moves only untouched layers when the aspect ratio changes', () => {
+    const start = applyLayoutPreset({ ...createDefaultPreviewSettings(), aspectRatio: '16:9' }, 'product-showcase')
+    const edited = {
+      ...start,
+      layers: start.layers.map((l) => (l.kind === 'headline' ? { ...l, x: 0.41 } : l)),
+    }
+    const next = reflowLayersForAspect(edited, '16:9', '9:16')
+    const get = (s: typeof start, kind: string) => s.layers.find((l) => l.kind === kind)!
+    expect(get(next, 'headline').x).toBe(0.41) // customer edit kept
+    expect(get(next, 'productImage').x).toBe(layoutLayerGeometry('product-showcase', 'productImage', '9:16')!.x)
+    expect(get(next, 'productImage').y).toBe(layoutLayerGeometry('product-showcase', 'productImage', '9:16')!.y)
+  })
+
+  it('reflow never touches a layout without per-aspect geometry or an applied design', () => {
+    const intro = applyLayoutPreset(createDefaultPreviewSettings(), 'business-introduction')
+    expect(reflowLayersForAspect(intro, '16:9', '9:16')).toBe(intro)
+    const withDesign = { ...applyLayoutPreset(createDefaultPreviewSettings(), 'product-showcase'), remotionDesignId: 'starfield-warp' }
+    expect(reflowLayersForAspect(withDesign, '16:9', '9:16')).toBe(withDesign)
   })
 })

@@ -1,0 +1,3846 @@
+{
+ "bar-chart-race": {
+  "t1": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0004,
+    0.0004,
+    0.0004
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-10.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t5": {
+   "override": {
+    "hf-13.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0006,
+    0.0006,
+    0.0006
+   ],
+   "effective": true
+  },
+  "var_title": {
+   "override": {
+    "var.title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0093,
+    0.0093,
+    0.0093
+   ],
+   "effective": true
+  },
+  "var_subtitle": {
+   "override": {
+    "var.subtitle": "QA Edit"
+   },
+   "changedFraction": [
+    0.0017,
+    0.0017,
+    0.0017
+   ],
+   "effective": true
+  },
+  "var_periods": {
+   "override": {
+    "var.periods": "QA Edit"
+   },
+   "changedFraction": [
+    0.0375,
+    0.0473,
+    0.0239
+   ],
+   "effective": true
+  },
+  "var_series": {
+   "override": {
+    "var.series": "QA Edit"
+   },
+   "changedFraction": [
+    0.2037,
+    0.2133,
+    0.1883
+   ],
+   "effective": true
+  },
+  "var_valuePrefix": {
+   "override": {
+    "var.valuePrefix": "QA Edit"
+   },
+   "changedFraction": [
+    0.0111,
+    0.0104,
+    0.0115
+   ],
+   "effective": true
+  },
+  "var_valueSuffix": {
+   "override": {
+    "var.valueSuffix": "QA Edit"
+   },
+   "changedFraction": [
+    0.0071,
+    0.0068,
+    0.0072
+   ],
+   "effective": true
+  },
+  "var_accent": {
+   "override": {
+    "var.accent": "#ff00ff"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_barCount": {
+   "override": {
+    "var.barCount": 9
+   },
+   "changedFraction": [
+    0.1899,
+    0.9999,
+    0.9999
+   ],
+   "effective": true
+  },
+  "var_periodDuration": {
+   "override": {
+    "var.periodDuration": 4.0
+   },
+   "changedFraction": [
+    0.0205,
+    0.9999,
+    0.9999
+   ],
+   "effective": true
+  },
+  "var_valueDecimals": {
+   "override": {
+    "var.valueDecimals": 2
+   },
+   "changedFraction": [
+    0.0058,
+    0.9999,
+    0.9999
+   ],
+   "effective": true
+  }
+ },
+ "camcorder-hud": {
+  "t1": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0017,
+    0.0017,
+    0.0017
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-10.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0011,
+    0.0011,
+    0.0011
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "c1": {
+   "override": {
+    "hf-4.style.backgroundColor": "#ff00ff"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "code-snippet-apple-terminal-pro": {
+  "t1": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0005,
+    0.0005,
+    0.0005
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.001,
+    0.001
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0007,
+    0.0007
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-13.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0014,
+    0.0014
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-14.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0008,
+    0.0008
+   ],
+   "effective": true
+  },
+  "t6": {
+   "override": {
+    "hf-15.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0008,
+    0.0008
+   ],
+   "effective": true
+  }
+ },
+ "hw-path-text": {
+  "cfg_text": {
+   "override": {
+    "cfg.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0034,
+    0.0154,
+    0.0155
+   ],
+   "effective": true
+  },
+  "cfg_showGuide": {
+   "override": {
+    "cfg.showGuide": false
+   },
+   "changedFraction": [
+    0.0012,
+    0.001,
+    0.001
+   ],
+   "effective": true
+  },
+  "cfg_boil_enabled": {
+   "override": {
+    "cfg.boil.enabled": false
+   },
+   "changedFraction": [
+    0.0028,
+    0.0033,
+    0.0077
+   ],
+   "effective": true
+  },
+  "cfg_animationOut": {
+   "override": {
+    "cfg.animationOut": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_fontSize": {
+   "override": {
+    "cfg.fontSize": 184
+   },
+   "changedFraction": [
+    0.0074,
+    0.0377,
+    0.0378
+   ],
+   "effective": true
+  },
+  "cfg_typeCharDelay": {
+   "override": {
+    "cfg.typeCharDelay": 0.525
+   },
+   "changedFraction": [
+    0.0005,
+    0.0007,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_boil_amp": {
+   "override": {
+    "cfg.boil.amp": 5.7
+   },
+   "changedFraction": [
+    0.0038,
+    0.0046,
+    0.011
+   ],
+   "effective": true
+  },
+  "cfg_boil_rot": {
+   "override": {
+    "cfg.boil.rot": 0.65
+   },
+   "changedFraction": [
+    0.0025,
+    0.0039,
+    0.0038
+   ],
+   "effective": true
+  },
+  "cfg_boil_frameDrop": {
+   "override": {
+    "cfg.boil.frameDrop": 6
+   },
+   "changedFraction": [
+    0.0015,
+    0.0101,
+    0.0086
+   ],
+   "effective": true
+  }
+ },
+ "hw-title": {
+  "cfg_text": {
+   "override": {
+    "cfg.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0177,
+    0.0197,
+    0.0272
+   ],
+   "effective": true
+  },
+  "cfg_scheme": {
+   "override": {
+    "cfg.scheme": "ink"
+   },
+   "changedFraction": [
+    0.0142,
+    0.0159,
+    0.0158
+   ],
+   "effective": true
+  },
+  "cfg_sweep_enabled": {
+   "override": {
+    "cfg.sweep.enabled": false
+   },
+   "changedFraction": [
+    0.0157,
+    0.0089,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_underline_enabled": {
+   "override": {
+    "cfg.underline.enabled": false
+   },
+   "changedFraction": [
+    0.0003,
+    0.0019,
+    0.0085
+   ],
+   "effective": true
+  },
+  "cfg_boil_enabled": {
+   "override": {
+    "cfg.boil.enabled": false
+   },
+   "changedFraction": [
+    0.0075,
+    0.0121,
+    0.011
+   ],
+   "effective": true
+  },
+  "cfg_animationIn": {
+   "override": {
+    "cfg.animationIn": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_animationOut": {
+   "override": {
+    "cfg.animationOut": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_fontSize": {
+   "override": {
+    "cfg.fontSize": 240
+   },
+   "changedFraction": [
+    0.0475,
+    0.0518,
+    0.0677
+   ],
+   "effective": true
+  },
+  "cfg_sweep_start": {
+   "override": {
+    "cfg.sweep.start": 0.9
+   },
+   "changedFraction": [
+    0.0028,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_sweep_end": {
+   "override": {
+    "cfg.sweep.end": 6.6
+   },
+   "changedFraction": [
+    0.0025,
+    0.0093,
+    0.0109
+   ],
+   "effective": true
+  },
+  "cfg_underline_wobble": {
+   "override": {
+    "cfg.underline.wobble": 12
+   },
+   "changedFraction": [
+    0.0001,
+    0.0001,
+    0.0066
+   ],
+   "effective": true
+  },
+  "cfg_boil_amp": {
+   "override": {
+    "cfg.boil.amp": 5.7
+   },
+   "changedFraction": [
+    0.0127,
+    0.0171,
+    0.0161
+   ],
+   "effective": true
+  },
+  "cfg_boil_rot": {
+   "override": {
+    "cfg.boil.rot": 0.65
+   },
+   "changedFraction": [
+    0.0043,
+    0.0064,
+    0.0116
+   ],
+   "effective": true
+  },
+  "cfg_boil_frameDrop": {
+   "override": {
+    "cfg.boil.frameDrop": 6
+   },
+   "changedFraction": [
+    0.0101,
+    0.015,
+    0.0194
+   ],
+   "effective": true
+  }
+ },
+ "hw-write-title": {
+  "cfg_text": {
+   "override": {
+    "cfg.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0035,
+    0.0127,
+    0.02
+   ],
+   "effective": true
+  },
+  "cfg_scheme": {
+   "override": {
+    "cfg.scheme": "ink"
+   },
+   "changedFraction": [
+    0.0013,
+    0.0053,
+    0.008
+   ],
+   "effective": true
+  },
+  "cfg_boil": {
+   "override": {
+    "cfg.boil": "off"
+   },
+   "changedFraction": [
+    0.0011,
+    0.0045,
+    0.0068
+   ],
+   "effective": true
+  },
+  "cfg_writeOn": {
+   "override": {
+    "cfg.writeOn": "reveal"
+   },
+   "changedFraction": [
+    0.0033,
+    0.0062,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_animationIn": {
+   "override": {
+    "cfg.animationIn": false
+   },
+   "changedFraction": [
+    0.0104,
+    0.0062,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_animationOut": {
+   "override": {
+    "cfg.animationOut": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_underline": {
+   "override": {
+    "cfg.underline": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0034
+   ],
+   "effective": true
+  },
+  "cfg_fontSize": {
+   "override": {
+    "cfg.fontSize": 340
+   },
+   "changedFraction": [
+    0.0056,
+    0.0214,
+    0.0428
+   ],
+   "effective": true
+  }
+ },
+ "lower-third-bild": {
+  "c1": {
+   "override": {
+    "hf-4.style.backgroundColor": "#ff00ff"
+   },
+   "changedFraction": [
+    0.023,
+    0.023,
+    0.023
+   ],
+   "effective": true
+  },
+  "c2": {
+   "override": {
+    "hf-6.style.backgroundColor": "#ff00ff"
+   },
+   "changedFraction": [
+    0.0086,
+    0.0086,
+    0.0086
+   ],
+   "effective": true
+  },
+  "var_TXT_MAIN_1_Line": {
+   "override": {
+    "var.TXT_MAIN_1_Line": "QA Edit"
+   },
+   "changedFraction": [
+    0.0205,
+    0.0205,
+    0.0205
+   ],
+   "effective": true
+  },
+  "var_TXT_SUB": {
+   "override": {
+    "var.TXT_SUB": "QA Edit"
+   },
+   "changedFraction": [
+    0.0085,
+    0.0085,
+    0.0085
+   ],
+   "effective": true
+  }
+ },
+ "lt-accent-underline": {
+  "t1": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0111,
+    0.0111,
+    0.0111
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0028,
+    0.0029,
+    0.0029
+   ],
+   "effective": true
+  }
+ },
+ "lt-bold-block": {
+  "t1": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0064,
+    0.0064,
+    0.0064
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0067,
+    0.0071,
+    0.0071
+   ],
+   "effective": true
+  }
+ },
+ "lt-clean-bar": {
+  "t1": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0115,
+    0.0115,
+    0.0115
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0021,
+    0.002,
+    0.002
+   ],
+   "effective": true
+  }
+ },
+ "lt-color-block": {
+  "t1": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0109,
+    0.0109,
+    0.0109
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0019,
+    0.0019,
+    0.0019
+   ],
+   "effective": true
+  }
+ },
+ "lt-dark-card": {
+  "t1": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0106,
+    0.0106,
+    0.0106
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0017,
+    0.0018,
+    0.0018
+   ],
+   "effective": true
+  }
+ },
+ "lt-kicker-name": {
+  "t1": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0019,
+    0.0019,
+    0.0019
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0089,
+    0.009,
+    0.009
+   ],
+   "effective": true
+  }
+ },
+ "lt-mask-reveal": {
+  "t1": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0097,
+    0.0097,
+    0.0097
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0024,
+    0.0026,
+    0.0026
+   ],
+   "effective": true
+  },
+  "c1": {
+   "override": {
+    "hf-6.style.backgroundColor": "#ff00ff"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "lt-neon-border": {
+  "t1": {
+   "override": {
+    "hf-16.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-17.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_name": {
+   "override": {
+    "var.name": "QA Edit"
+   },
+   "changedFraction": [
+    0.0055,
+    0.0055,
+    0.0055
+   ],
+   "effective": true
+  },
+  "var_role": {
+   "override": {
+    "var.role": "QA Edit"
+   },
+   "changedFraction": [
+    0.0025,
+    0.0024,
+    0.0025
+   ],
+   "effective": true
+  },
+  "var_accent": {
+   "override": {
+    "var.accent": "#ff00ff"
+   },
+   "changedFraction": [
+    0.0034,
+    0.0034,
+    0.0034
+   ],
+   "effective": true
+  },
+  "var_movement": {
+   "override": {
+    "var.movement": "glide"
+   },
+   "changedFraction": [
+    0.0041,
+    0.0028,
+    0.0
+   ],
+   "effective": true
+  },
+  "var_speed": {
+   "override": {
+    "var.speed": 3.8
+   },
+   "changedFraction": [
+    0.0082,
+    0.0218,
+    0.0125
+   ],
+   "effective": true
+  },
+  "var_cornerRadius": {
+   "override": {
+    "var.cornerRadius": 58
+   },
+   "changedFraction": [
+    0.0041,
+    0.003,
+    0.0035
+   ],
+   "effective": true
+  },
+  "var_thickness": {
+   "override": {
+    "var.thickness": 10
+   },
+   "changedFraction": [
+    0.0032,
+    0.003,
+    0.0032
+   ],
+   "effective": true
+  },
+  "var_arcLength": {
+   "override": {
+    "var.arcLength": 61
+   },
+   "changedFraction": [
+    0.0209,
+    0.0201,
+    0.0206
+   ],
+   "effective": true
+  },
+  "var_glow": {
+   "override": {
+    "var.glow": 1.5
+   },
+   "changedFraction": [
+    0.0166,
+    0.0163,
+    0.0171
+   ],
+   "effective": true
+  }
+ },
+ "lt-side-rule": {
+  "t1": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0097,
+    0.0097,
+    0.0097
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0027,
+    0.0027,
+    0.0026
+   ],
+   "effective": true
+  }
+ },
+ "lt-soft-pill": {
+  "t1": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0087,
+    0.0087,
+    0.0087
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0018,
+    0.0018,
+    0.0018
+   ],
+   "effective": true
+  }
+ },
+ "lt-stack-bars": {
+  "t1": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0079,
+    0.0079,
+    0.0079
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.006,
+    0.006,
+    0.0062
+   ],
+   "effective": true
+  }
+ },
+ "mk-background": {
+  "cfg_scheme": {
+   "override": {
+    "cfg.scheme": "dark"
+   },
+   "changedFraction": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "effective": true
+  },
+  "cfg_animationIn": {
+   "override": {
+    "cfg.animationIn": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_animationOut": {
+   "override": {
+    "cfg.animationOut": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_drift": {
+   "override": {
+    "cfg.drift": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_bar_demo": {
+   "override": {
+    "cfg.bar.demo": false
+   },
+   "changedFraction": [
+    0.0,
+    0.401,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_blob1_r": {
+   "override": {
+    "cfg.blob1.r": 1900
+   },
+   "changedFraction": [
+    0.6268,
+    0.4359,
+    0.6263
+   ],
+   "effective": true
+  },
+  "cfg_blob1_opacity": {
+   "override": {
+    "cfg.blob1.opacity": 0.925
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_blob2_r": {
+   "override": {
+    "cfg.blob2.r": 2200
+   },
+   "changedFraction": [
+    0.656,
+    0.3025,
+    0.6575
+   ],
+   "effective": true
+  },
+  "cfg_blob2_opacity": {
+   "override": {
+    "cfg.blob2.opacity": 0.9
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_bar_width": {
+   "override": {
+    "cfg.bar.width": 2880
+   },
+   "changedFraction": [
+    0.0,
+    0.0717,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_bar_height": {
+   "override": {
+    "cfg.bar.height": 1600
+   },
+   "changedFraction": [
+    0.0,
+    0.0461,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_bar_roundness": {
+   "override": {
+    "cfg.bar.roundness": 80
+   },
+   "changedFraction": [
+    0.0,
+    0.0011,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_contentOpacity": {
+   "override": {
+    "cfg.contentOpacity": 0.5
+   },
+   "changedFraction": [
+    0.5016,
+    0.347,
+    0.4994
+   ],
+   "effective": true
+  },
+  "cfg_frostBlur": {
+   "override": {
+    "cfg.frostBlur": 0.5
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "mk-callout-highlight": {
+  "cfg_text": {
+   "override": {
+    "cfg.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.018,
+    0.0142,
+    0.0107
+   ],
+   "effective": true
+  },
+  "cfg_scheme": {
+   "override": {
+    "cfg.scheme": "dark"
+   },
+   "changedFraction": [
+    0.0157,
+    0.0165,
+    0.0173
+   ],
+   "effective": true
+  },
+  "cfg_animationIn": {
+   "override": {
+    "cfg.animationIn": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_animationOut": {
+   "override": {
+    "cfg.animationOut": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_fontSize": {
+   "override": {
+    "cfg.fontSize": 120
+   },
+   "changedFraction": [
+    0.066,
+    0.0566,
+    0.0485
+   ],
+   "effective": true
+  },
+  "cfg_lineHeight": {
+   "override": {
+    "cfg.lineHeight": 5.65
+   },
+   "changedFraction": [
+    0.0219,
+    0.0162,
+    0.0132
+   ],
+   "effective": true
+  },
+  "cfg_maxWidth": {
+   "override": {
+    "cfg.maxWidth": 1400
+   },
+   "changedFraction": [
+    0.0299,
+    0.0233,
+    0.0184
+   ],
+   "effective": true
+  },
+  "cfg_sweep_start": {
+   "override": {
+    "cfg.sweep.start": 5.6
+   },
+   "changedFraction": [
+    0.0,
+    0.0102,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_sweep_end": {
+   "override": {
+    "cfg.sweep.end": 12.6
+   },
+   "changedFraction": [
+    0.0,
+    0.0042,
+    0.008
+   ],
+   "effective": true
+  }
+ },
+ "mk-placeholder-grid": {
+  "cfg_kenBurns": {
+   "override": {
+    "cfg.kenBurns": false
+   },
+   "changedFraction": [
+    0.0016,
+    0.0001,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_animationIn": {
+   "override": {
+    "cfg.animationIn": false
+   },
+   "changedFraction": [
+    0.001,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_animationOut": {
+   "override": {
+    "cfg.animationOut": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_margin": {
+   "override": {
+    "cfg.margin": 240
+   },
+   "changedFraction": [
+    0.304,
+    0.3051,
+    0.3065
+   ],
+   "effective": true
+  },
+  "cfg_gap": {
+   "override": {
+    "cfg.gap": 80
+   },
+   "changedFraction": [
+    0.0404,
+    0.0403,
+    0.0401
+   ],
+   "effective": true
+  },
+  "cfg_radius": {
+   "override": {
+    "cfg.radius": 80
+   },
+   "changedFraction": [
+    0.009,
+    0.009,
+    0.009
+   ],
+   "effective": true
+  },
+  "cfg_stagger": {
+   "override": {
+    "cfg.stagger": 0.575
+   },
+   "changedFraction": [
+    0.2521,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  }
+ },
+ "mk-progress-stat": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_label": {
+   "override": {
+    "cfg.label": "QA Edit"
+   },
+   "changedFraction": [
+    0.0016,
+    0.0016,
+    0.0016
+   ],
+   "effective": true
+  },
+  "cfg_caption": {
+   "override": {
+    "cfg.caption": "QA Edit"
+   },
+   "changedFraction": [
+    0.0033,
+    0.0033,
+    0.0033
+   ],
+   "effective": true
+  },
+  "cfg_scheme": {
+   "override": {
+    "cfg.scheme": "dark"
+   },
+   "changedFraction": [
+    0.0152,
+    0.0148,
+    0.0148
+   ],
+   "effective": true
+  },
+  "cfg_animationIn": {
+   "override": {
+    "cfg.animationIn": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_animationOut": {
+   "override": {
+    "cfg.animationOut": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_value": {
+   "override": {
+    "cfg.value": 44
+   },
+   "changedFraction": [
+    0.0068,
+    0.0082,
+    0.0082
+   ],
+   "effective": true
+  },
+  "cfg_max": {
+   "override": {
+    "cfg.max": 60
+   },
+   "changedFraction": [
+    0.0005,
+    0.0007,
+    0.0007
+   ],
+   "effective": true
+  },
+  "cfg_trackWidth": {
+   "override": {
+    "cfg.trackWidth": 960
+   },
+   "changedFraction": [
+    0.001,
+    0.001,
+    0.001
+   ],
+   "effective": true
+  }
+ },
+ "notification-cascade": {
+  "t1": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0012,
+    0.0012,
+    0.0
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-20.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-21.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t4": {
+   "override": {
+    "hf-22.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0007,
+    0.0006,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-23.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t6": {
+   "override": {
+    "hf-28.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_notifTitle": {
+   "override": {
+    "var.notifTitle": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_message1": {
+   "override": {
+    "var.message1": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_message2": {
+   "override": {
+    "var.message2": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_message3": {
+   "override": {
+    "var.message3": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_message4": {
+   "override": {
+    "var.message4": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_appName": {
+   "override": {
+    "var.appName": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_headlineTop": {
+   "override": {
+    "var.headlineTop": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_headlineAccent": {
+   "override": {
+    "var.headlineAccent": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_footerText": {
+   "override": {
+    "var.footerText": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_brandLogo": {
+   "override": {
+    "var.brandLogo": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "oscilloscope-trace": {
+  "t1": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0022,
+    0.0022,
+    0.0022
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0006,
+    0.0006,
+    0.0006
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t4": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0007,
+    0.0007,
+    0.0007
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-14.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0008,
+    0.0008,
+    0.0008
+   ],
+   "effective": true
+  },
+  "t6": {
+   "override": {
+    "hf-17.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0007,
+    0.0007,
+    0.0007
+   ],
+   "effective": true
+  },
+  "var_dataSeries": {
+   "override": {
+    "var.dataSeries": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_phosphorColor": {
+   "override": {
+    "var.phosphorColor": "#ff00ff"
+   },
+   "changedFraction": [
+    0.0085,
+    0.0089,
+    0.0087
+   ],
+   "effective": true
+  },
+  "var_waveform": {
+   "override": {
+    "var.waveform": "square"
+   },
+   "changedFraction": [
+    0.0259,
+    0.0252,
+    0.0262
+   ],
+   "effective": true
+  },
+  "var_frequency": {
+   "override": {
+    "var.frequency": 106.0
+   },
+   "changedFraction": [
+    0.0216,
+    0.0207,
+    0.0219
+   ],
+   "effective": true
+  },
+  "var_amplitude": {
+   "override": {
+    "var.amplitude": 3.5
+   },
+   "changedFraction": [
+    0.0235,
+    0.0224,
+    0.0239
+   ],
+   "effective": true
+  },
+  "var_persistenceMs": {
+   "override": {
+    "var.persistenceMs": 550
+   },
+   "changedFraction": [
+    0.0471,
+    0.0535,
+    0.0536
+   ],
+   "effective": true
+  },
+  "var_sweepRate": {
+   "override": {
+    "var.sweepRate": 32.5
+   },
+   "changedFraction": [
+    0.0634,
+    0.0638,
+    0.0637
+   ],
+   "effective": true
+  }
+ },
+ "share-sheet-carousel": {
+  "t1": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-19.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-23.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t4": {
+   "override": {
+    "hf-24.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "c1": {
+   "override": {
+    "hf-20.style.backgroundColor": "#ff00ff"
+   },
+   "changedFraction": [
+    0.0023,
+    0.0023,
+    0.0046
+   ],
+   "effective": true
+  },
+  "c2": {
+   "override": {
+    "hf-21.style.backgroundColor": "#ff00ff"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0182
+   ],
+   "effective": true
+  },
+  "var_shareTitle": {
+   "override": {
+    "var.shareTitle": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_senderName": {
+   "override": {
+    "var.senderName": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_itemLabel": {
+   "override": {
+    "var.itemLabel": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_stripText": {
+   "override": {
+    "var.stripText": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_acceptLabel": {
+   "override": {
+    "var.acceptLabel": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_declineLabel": {
+   "override": {
+    "var.declineLabel": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_slideImage1": {
+   "override": {
+    "var.slideImage1": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_slideImage2": {
+   "override": {
+    "var.slideImage2": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_slideImage3": {
+   "override": {
+    "var.slideImage3": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_slideImage4": {
+   "override": {
+    "var.slideImage4": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_brandLogo": {
+   "override": {
+    "var.brandLogo": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "slack-notification-ad": {
+  "t1": {
+   "override": {
+    "hf-sscr.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0055,
+    0.0055,
+    0.0055
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-4x4o.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0329,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-eb8w.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0333,
+    0.0
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-hfp6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t5": {
+   "override": {
+    "hf-tj9u.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0326
+   ],
+   "effective": true
+  },
+  "c1": {
+   "override": {
+    "hf-l2or.style.backgroundColor": "#ff00ff"
+   },
+   "changedFraction": [
+    0.002,
+    0.002,
+    0.002
+   ],
+   "effective": true
+  },
+  "var_request1Title": {
+   "override": {
+    "var.request1Title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request1Text": {
+   "override": {
+    "var.request1Text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request2Title": {
+   "override": {
+    "var.request2Title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request2Text": {
+   "override": {
+    "var.request2Text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request3Title": {
+   "override": {
+    "var.request3Title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request3Text": {
+   "override": {
+    "var.request3Text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request4Title": {
+   "override": {
+    "var.request4Title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request4Text": {
+   "override": {
+    "var.request4Text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request5Title": {
+   "override": {
+    "var.request5Title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request5Text": {
+   "override": {
+    "var.request5Text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request6Title": {
+   "override": {
+    "var.request6Title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request6Text": {
+   "override": {
+    "var.request6Text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request7Title": {
+   "override": {
+    "var.request7Title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request7Text": {
+   "override": {
+    "var.request7Text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request8Title": {
+   "override": {
+    "var.request8Title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_request8Text": {
+   "override": {
+    "var.request8Text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "snow": {
+  "var_density": {
+   "override": {
+    "var.density": "dense"
+   },
+   "changedFraction": [
+    0.0064,
+    0.0061,
+    0.006
+   ],
+   "effective": true
+  },
+  "var_speed": {
+   "override": {
+    "var.speed": "gust"
+   },
+   "changedFraction": [
+    0.0113,
+    0.0105,
+    0.0109
+   ],
+   "effective": true
+  }
+ },
+ "split-flap-board": {
+  "var_boardText": {
+   "override": {
+    "var.boardText": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_flapAlphabet": {
+   "override": {
+    "var.flapAlphabet": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_flipDuration": {
+   "override": {
+    "var.flipDuration": 0.645
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_cellStagger": {
+   "override": {
+    "var.cellStagger": 0.275
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_cellCount": {
+   "override": {
+    "var.cellCount": 18
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "starfield": {
+  "var_density": {
+   "override": {
+    "var.density": "dense"
+   },
+   "changedFraction": [
+    0.001,
+    0.001,
+    0.001
+   ],
+   "effective": true
+  },
+  "var_tone": {
+   "override": {
+    "var.tone": "cool"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_speed": {
+   "override": {
+    "var.speed": "fast"
+   },
+   "changedFraction": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "effective": false
+  }
+ },
+ "transitions-blur": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t4": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0259,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0015,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t6": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0248,
+    0.0
+   ],
+   "effective": true
+  }
+ },
+ "transitions-cover": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0228,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0034,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t6": {
+   "override": {
+    "hf-13.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "transitions-dissolve": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t4": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0259,
+    0.0259,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0015,
+    0.0015,
+    0.0
+   ],
+   "effective": true
+  },
+  "t6": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "transitions-distortion": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0258,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0028,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t6": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0021,
+    0.0
+   ],
+   "effective": true
+  }
+ },
+ "transitions-grid": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0105,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.002,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t4": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t5": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t6": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0021,
+    0.0
+   ],
+   "effective": true
+  }
+ },
+ "transitions-light": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0228,
+    0.0261,
+    0.0
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0034,
+    0.0028,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t6": {
+   "override": {
+    "hf-13.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "transitions-other": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t4": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0259,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0015,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t6": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0248,
+    0.0
+   ],
+   "effective": true
+  }
+ },
+ "transitions-push": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t4": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0259,
+    0.0259,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0015,
+    0.0015,
+    0.0
+   ],
+   "effective": true
+  },
+  "t6": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "transitions-radial": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "t3": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0259,
+    0.0259,
+    0.0
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0017,
+    0.0017,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0248
+   ],
+   "effective": true
+  },
+  "t6": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0017
+   ],
+   "effective": true
+  }
+ },
+ "vfx-anamorphic-flare": {
+  "var_tint": {
+   "override": {
+    "var.tint": "#ff00ff"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_backdrop": {
+   "override": {
+    "var.backdrop": "#ff00ff"
+   },
+   "changedFraction": [
+    0.9999,
+    0.9999,
+    1.0
+   ],
+   "effective": true
+  },
+  "var_intensity": {
+   "override": {
+    "var.intensity": 12.5
+   },
+   "changedFraction": [
+    0.0043,
+    0.0064,
+    0.0041
+   ],
+   "effective": true
+  },
+  "var_threshold": {
+   "override": {
+    "var.threshold": 0.65
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0004
+   ],
+   "effective": true
+  },
+  "var_streakLength": {
+   "override": {
+    "var.streakLength": 3.5
+   },
+   "changedFraction": [
+    0.0,
+    0.0007,
+    0.0005
+   ],
+   "effective": true
+  },
+  "var_bloomRadius": {
+   "override": {
+    "var.bloomRadius": 40
+   },
+   "changedFraction": [
+    0.0738,
+    0.0956,
+    0.0628
+   ],
+   "effective": true
+  },
+  "var_timeScale": {
+   "override": {
+    "var.timeScale": 1.75
+   },
+   "changedFraction": [
+    0.0224,
+    0.0254,
+    0.0243
+   ],
+   "effective": true
+  },
+  "var_emitters": {
+   "override": {
+    "var.emitters": 270
+   },
+   "changedFraction": [
+    0.0115,
+    0.0116,
+    0.0111
+   ],
+   "effective": true
+  }
+ },
+ "week-in-merges": {
+  "var_eyebrow": {
+   "override": {
+    "var.eyebrow": "QA Edit"
+   },
+   "changedFraction": [
+    0.0014,
+    0.0014,
+    0.0014
+   ],
+   "effective": true
+  },
+  "var_title": {
+   "override": {
+    "var.title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0137,
+    0.0137,
+    0.0137
+   ],
+   "effective": true
+  },
+  "var_period": {
+   "override": {
+    "var.period": "QA Edit"
+   },
+   "changedFraction": [
+    0.0043,
+    0.0043,
+    0.0043
+   ],
+   "effective": true
+  },
+  "var_total": {
+   "override": {
+    "var.total": "QA Edit"
+   },
+   "changedFraction": [
+    0.0009,
+    0.0009,
+    0.0009
+   ],
+   "effective": true
+  },
+  "var_footer": {
+   "override": {
+    "var.footer": "QA Edit"
+   },
+   "changedFraction": [
+    0.0025,
+    0.0025,
+    0.0025
+   ],
+   "effective": true
+  },
+  "var_source": {
+   "override": {
+    "var.source": "QA Edit"
+   },
+   "changedFraction": [
+    0.0014,
+    0.0014,
+    0.0014
+   ],
+   "effective": true
+  },
+  "var_rows": {
+   "override": {
+    "var.rows": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_overflow": {
+   "override": {
+    "var.overflow": "QA Edit"
+   },
+   "changedFraction": [
+    0.0277,
+    0.0276,
+    0.0276
+   ],
+   "effective": true
+  },
+  "var_rows_max": {
+   "override": {
+    "var.rows_max": 6
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "yt-logo-intro": {
+  "c1": {
+   "override": {
+    "hf-4.style.backgroundColor": "#ff00ff"
+   },
+   "changedFraction": [
+    0.0178,
+    0.0178,
+    0.0178
+   ],
+   "effective": true
+  },
+  "cfg_kicker": {
+   "override": {
+    "cfg.kicker": "QA Edit"
+   },
+   "changedFraction": [
+    0.0034,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "cfg_title": {
+   "override": {
+    "cfg.title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0114,
+    0.0125
+   ],
+   "effective": true
+  },
+  "cfg_scheme": {
+   "override": {
+    "cfg.scheme": "dark"
+   },
+   "changedFraction": [
+    0.9996,
+    0.9993,
+    0.9972
+   ],
+   "effective": true
+  },
+  "cfg_logoType": {
+   "override": {
+    "cfg.logoType": "image"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_arrow_enabled": {
+   "override": {
+    "cfg.arrow.enabled": false
+   },
+   "changedFraction": [
+    0.0043,
+    0.0113,
+    0.012
+   ],
+   "effective": true
+  },
+  "cfg_lines_enabled": {
+   "override": {
+    "cfg.lines.enabled": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_dropShadow": {
+   "override": {
+    "cfg.dropShadow": false
+   },
+   "changedFraction": [
+    0.0058,
+    0.0072,
+    0.0081
+   ],
+   "effective": true
+  },
+  "cfg_animationIn": {
+   "override": {
+    "cfg.animationIn": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_animationOut": {
+   "override": {
+    "cfg.animationOut": false
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_lines_count": {
+   "override": {
+    "cfg.lines.count": 24
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "cfg_lines_distort": {
+   "override": {
+    "cfg.lines.distort": 20
+   },
+   "changedFraction": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "effective": false
+  }
+ },
+ "instagram-follow": {
+  "t1": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.003,
+    0.003,
+    0.0
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0142,
+    0.0144,
+    0.0
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0011,
+    0.0011,
+    0.0
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-14.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0011,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-16.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0017,
+    0.0
+   ],
+   "effective": true
+  }
+ },
+ "logo-outro": {
+  "t1": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0067,
+    0.0067
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-14.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0007,
+    0.0008
+   ],
+   "effective": true
+  }
+ },
+ "lottie-character-walk": {
+  "t1": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0081
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0201
+   ],
+   "effective": true
+  },
+  "var_title": {
+   "override": {
+    "var.title": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  },
+  "var_body": {
+   "override": {
+    "var.body": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "effective": false
+  }
+ },
+ "macos-notification": {
+  "t1": {
+   "override": {
+    "hf-10.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0002,
+    0.0002,
+    0.0
+   ],
+   "effective": false
+  },
+  "t2": {
+   "override": {
+    "hf-13.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0004,
+    0.0004,
+    0.0
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-14.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0001,
+    0.0001,
+    0.0
+   ],
+   "effective": false
+  },
+  "t4": {
+   "override": {
+    "hf-15.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0011,
+    0.0011,
+    0.0
+   ],
+   "effective": true
+  }
+ },
+ "reddit-post": {
+  "t1": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0007,
+    0.0007,
+    0.0
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.002,
+    0.002,
+    0.0
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-10.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0018,
+    0.0018,
+    0.0
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0564,
+    0.0564,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-18.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0031,
+    0.0003,
+    0.0
+   ],
+   "effective": true
+  },
+  "t6": {
+   "override": {
+    "hf-25.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0019,
+    0.0019,
+    0.0
+   ],
+   "effective": true
+  }
+ },
+ "spain-map": {
+  "t1": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.012,
+    0.012,
+    0.012
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0027,
+    0.0027,
+    0.0027
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-10.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0005,
+    0.0005
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0006,
+    0.0006
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-13.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0004
+   ],
+   "effective": true
+  }
+ },
+ "spotify-card": {
+  "t1": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0052,
+    0.0056,
+    0.0053
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-10.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0009,
+    0.0014,
+    0.0012
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-15.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0009,
+    0.0008
+   ],
+   "effective": true
+  }
+ },
+ "tiktok-follow": {
+  "t1": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0023,
+    0.0023,
+    0.0
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0311,
+    0.031,
+    0.0
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-7.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.001,
+    0.001,
+    0.0
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0011,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0017,
+    0.0
+   ],
+   "effective": true
+  }
+ },
+ "us-map-hex": {
+  "t1": {
+   "override": {
+    "hf-3.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0101,
+    0.0101,
+    0.0101
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-4.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0021,
+    0.0021,
+    0.0021
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-9.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0016
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0002
+   ],
+   "effective": false
+  },
+  "t5": {
+   "override": {
+    "hf-12.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0,
+    0.0,
+    0.0006
+   ],
+   "effective": true
+  }
+ },
+ "x-post": {
+  "t1": {
+   "override": {
+    "hf-11.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0017,
+    0.0017,
+    0.0
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-16.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.001,
+    0.001,
+    0.0
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-21.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0018,
+    0.0018,
+    0.0
+   ],
+   "effective": true
+  },
+  "t4": {
+   "override": {
+    "hf-22.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0013,
+    0.0013,
+    0.0
+   ],
+   "effective": true
+  },
+  "t5": {
+   "override": {
+    "hf-29.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0022,
+    0.002,
+    0.0
+   ],
+   "effective": true
+  },
+  "t6": {
+   "override": {
+    "hf-34.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0017,
+    0.0014,
+    0.0
+   ],
+   "effective": true
+  }
+ },
+ "yt-lower-third": {
+  "t1": {
+   "override": {
+    "hf-5.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0015,
+    0.0015,
+    0.0
+   ],
+   "effective": true
+  },
+  "t2": {
+   "override": {
+    "hf-6.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.012,
+    0.0122,
+    0.0
+   ],
+   "effective": true
+  },
+  "t3": {
+   "override": {
+    "hf-8.text": "QA Edit"
+   },
+   "changedFraction": [
+    0.0011,
+    0.0,
+    0.0
+   ],
+   "effective": true
+  }
+ }
+}

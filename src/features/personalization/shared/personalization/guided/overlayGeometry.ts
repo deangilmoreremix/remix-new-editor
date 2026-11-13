@@ -51,7 +51,9 @@ export const SAFE_AREA_MARGIN = 0.02
 
 /** Absolute scale range: a layer never shrinks below 5% or grows past 1.5x. */
 export const MIN_LAYER_SCALE = 0.05
-export const MAX_LAYER_SCALE = 1.5
+// The render caps a layer at its full default size (presets `toBox`), so the
+// size control stops there too.
+export const MAX_LAYER_SCALE = 1
 
 /** Keyboard nudge steps, as fractions of the composition size. */
 export const NUDGE_STEP = 0.01
@@ -150,9 +152,14 @@ export function estimateTextLineCount(text: string, fontSizePx: number, boxWidth
  * (`heightPx === widthPx`); text layers estimate their footprint from the
  * font size, the line height and the estimated wrap count.
  */
-export function layerBoxMetrics(layer: PreviewLayer, compW: number, compH: number): LayerBoxMetrics {
+export function layerBoxMetrics(
+  layer: PreviewLayer,
+  compW: number,
+  compH: number,
+  resolvedText?: string,
+): LayerBoxMetrics {
   const { width, height } = resolveCompositionSize(compW, compH)
-  const box = toBox(layer, width, height)
+  const box = toBox(layer, width, height, resolvedText)
   if (layer.kind === 'design') {
     // A design owns an explicit box: the video's own shape scaled down, so
     // the design keeps the composition's proportions wherever it sits.
@@ -181,9 +188,10 @@ export function layerBoxMetrics(layer: PreviewLayer, compW: number, compH: numbe
     }
   }
   // Same width estimate toBox makes, kept unrounded so the wrap count is exact.
-  const chars = Math.max(4, (layer.text?.length ?? 8) * APPROX_CHAR_WIDTH_RATIO)
+  const drawn = resolvedText ?? layer.text ?? ''
+  const chars = Math.max(4, (drawn.length || 8) * APPROX_CHAR_WIDTH_RATIO)
   const unroundedWidthPx = Math.min(width * 0.9, box.fontSizePx * chars)
-  const lines = estimateTextLineCount(layer.text ?? '', box.fontSizePx, unroundedWidthPx)
+  const lines = estimateTextLineCount(drawn, box.fontSizePx, unroundedWidthPx)
   return {
     leftPx: box.leftPx,
     topPx: box.topPx,
@@ -334,11 +342,17 @@ export function nudgeDeltaForKey(
  * by `stageWidth / compW`. Image layers are square; text layers grow with
  * their content (no height), exactly like the composition.
  */
-export function toStageBox(layer: PreviewLayer, compW: number, compH: number, stageWidth: number): StageBoxPx {
+export function toStageBox(
+  layer: PreviewLayer,
+  compW: number,
+  compH: number,
+  stageWidth: number,
+  resolvedText?: string,
+): StageBoxPx {
   const { width, height } = resolveCompositionSize(compW, compH)
   const factor = stageScaleFactor(stageWidth, width)
   const bounded = clampLayerToBounds(layer, width, height)
-  const box = layerBoxMetrics(bounded, width, height)
+  const box = layerBoxMetrics(bounded, width, height, resolvedText)
   return {
     left: box.leftPx * factor,
     top: box.topPx * factor,

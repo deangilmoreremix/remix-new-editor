@@ -1,0 +1,937 @@
+{
+ "ai-generation-canvas": [
+  "prompt",
+  "accentColor",
+  "cardCount",
+  "eyebrow",
+  "statusLabel"
+ ],
+ "animated-bar-chart": [
+  "showAxis",
+  "title",
+  "highlightLabel"
+ ],
+ "animated-noise-grain": [
+  "opacity"
+ ],
+ "arrow-annotate": [
+  "bow",
+  "labelSize",
+  "width",
+  "height",
+  "stroke"
+ ],
+ "audio-scrubber": [
+  "barCount",
+  "seed",
+  "width",
+  "height",
+  "barWidth"
+ ],
+ "aurora-bg": [
+  "backgroundColor",
+  "ribbonCount",
+  "amplitude",
+  "thickness",
+  "centerY"
+ ],
+ "auto-fit-title": [
+  "title",
+  "maxFontSize",
+  "theme"
+ ],
+ "badge-stamp": [
+  "label",
+  "ringText",
+  "ringTextBottom",
+  "sublabel",
+  "size"
+ ],
+ "bar-chart-race": [
+  "framesPerStep",
+  "visibleRows",
+  "width",
+  "rowHeight",
+  "gap"
+ ],
+ "bento-pan": [
+  "backgroundColor"
+ ],
+ "blob-morph": [
+  "size",
+  "fill",
+  "periodInFrames",
+  "states"
+ ],
+ "blur-focus-in": [
+  "text",
+  "durationInFrames",
+  "color"
+ ],
+ "blur-reveal": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "browser-flow": [
+  "url"
+ ],
+ "bubble-chart-pack": [
+  "width",
+  "height",
+  "showLabels",
+  "showValues",
+  "padding"
+ ],
+ "calendar-month-fill": [
+  "month",
+  "year",
+  "daysInMonth",
+  "startWeekday",
+  "todayDay"
+ ],
+ "callout-spotlight": [
+  "title",
+  "accentColor",
+  "theme"
+ ],
+ "candlestick-chart": [
+  "width",
+  "height",
+  "upColor",
+  "gridColor"
+ ],
+ "caption-bumper": [
+  "text",
+  "maxFontSize",
+  "accentColor",
+  "theme"
+ ],
+ "caption-emoji-beat": [
+  "color",
+  "fontSize",
+  "landInFrames",
+  "holdInFrames"
+ ],
+ "caption-highlight": [
+  "inactiveColor"
+ ],
+ "caption-scene": [
+  "inactiveColor"
+ ],
+ "changelog-entry": [
+  "version",
+  "date",
+  "summary",
+  "startAtSeconds"
+ ],
+ "chat-gpt": [
+  "greeting",
+  "placeholder",
+  "prompt",
+  "theme"
+ ],
+ "chat-to-preview": [
+  "previewTitle",
+  "previewCaption",
+  "previewLabel",
+  "placeholder",
+  "accentColor"
+ ],
+ "chromatic-aberration-wipe": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "claude-chat": [
+  "placeholder",
+  "prompt",
+  "modelName",
+  "modelTier",
+  "accentColor"
+ ],
+ "claude-code": [
+  "title",
+  "userName",
+  "model",
+  "cwd"
+ ],
+ "code-accordion": [
+  "title",
+  "holdSeconds",
+  "theme",
+  "speed"
+ ],
+ "code-diff-wipe": [
+  "title",
+  "wipeSeconds",
+  "accentColor",
+  "theme",
+  "speed"
+ ],
+ "code-reveal": [
+  "title",
+  "language",
+  "startLine",
+  "showLineNumbers",
+  "accentColor"
+ ],
+ "comment-callout": [
+  "body",
+  "author",
+  "handle",
+  "timestamp",
+  "highlight"
+ ],
+ "commit-graph": [
+  "windowTitle",
+  "startAtSeconds",
+  "stepSeconds",
+  "accentColor",
+  "theme"
+ ],
+ "comparison-bars": [
+  "width",
+  "rowHeight",
+  "gap",
+  "labelWidth",
+  "beforeColor"
+ ],
+ "comparison-table": [
+  "title",
+  "highlightColumn",
+  "highlightLabel"
+ ],
+ "confetti-burst": [],
+ "connector-lines": [
+  "width",
+  "height",
+  "stroke",
+  "strokeWidth",
+  "dashed"
+ ],
+ "countdown-timer": [
+  "from",
+  "variant",
+  "startDelaySeconds",
+  "accentColor",
+  "urgentColor"
+ ],
+ "counter": [
+  "durationInFrames",
+  "delayInFrames",
+  "decimals",
+  "grouping"
+ ],
+ "cursor-path": [
+  "durationInFrames",
+  "delayInFrames",
+  "color",
+  "size",
+  "smoothing"
+ ],
+ "dashboard-populate": [
+  "metricsTitle",
+  "chartTitle"
+ ],
+ "dashed-path-travel": [
+  "smoothing",
+  "dotRadius",
+  "width"
+ ],
+ "data-flow-pipes": [
+  "unit",
+  "packets",
+  "accentColor",
+  "theme",
+  "speed"
+ ],
+ "data-story": [
+  "metricsTitle",
+  "timelineTitle"
+ ],
+ "deploy-reveal": [],
+ "depth-of-field-blur": [
+  "focusFrom",
+  "focusTo",
+  "startAtInFrames",
+  "maxBlur",
+  "aperture"
+ ],
+ "directional-wipe": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "donut-chart": [
+  "size",
+  "thickness",
+  "showLegend",
+  "showTotal",
+  "totalLabel"
+ ],
+ "drag-drop-flow": [
+  "fileName",
+  "fileSize",
+  "sourceLabel"
+ ],
+ "dynamic-grid": [
+  "backgroundColor",
+  "lineColor",
+  "spacing",
+  "lineWidth"
+ ],
+ "ecosystem-orbit": [
+  "centerLabel"
+ ],
+ "end-card": [
+  "title",
+  "accentColor",
+  "theme",
+  "cta"
+ ],
+ "fade-in": [
+  "durationInFrames",
+  "exit"
+ ],
+ "fade-out": [
+  "durationInFrames",
+  "from",
+  "to"
+ ],
+ "faq-accordion": [
+  "title",
+  "startAtSeconds",
+  "openEverySeconds",
+  "transitionSeconds"
+ ],
+ "feature-list": [
+  "accentColor",
+  "theme",
+  "title"
+ ],
+ "file-tree-reveal": [
+  "title",
+  "selectedPath",
+  "accentColor",
+  "theme"
+ ],
+ "follow-through": [
+  "links",
+  "frequency",
+  "damping",
+  "delay",
+  "falloff"
+ ],
+ "form-fill-sequence": [
+  "title",
+  "subtitle",
+  "submitLabel",
+  "successLabel",
+  "charsPerSecond"
+ ],
+ "frosted-glass-wipe": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "funnel-chart": [
+  "width",
+  "height",
+  "gap",
+  "color",
+  "tailOpacity"
+ ],
+ "gantt-timeline": [
+  "width",
+  "rowHeight",
+  "gap",
+  "labelWidth",
+  "gridColor"
+ ],
+ "gauge-dial": [
+  "min",
+  "max",
+  "size",
+  "thickness",
+  "sweepInDegrees"
+ ],
+ "globe-arc": [
+  "size",
+  "spinPerSecond",
+  "startLongitude",
+  "tilt"
+ ],
+ "glow-pulse": [
+  "color",
+  "radius",
+  "floor",
+  "periodInFrames"
+ ],
+ "handwriting-text": [
+  "text",
+  "staggerInFrames"
+ ],
+ "heatmap-grid": [
+  "cellSize",
+  "gap",
+  "cornerRadius",
+  "color",
+  "emptyColor"
+ ],
+ "hero-device-assemble": [
+  "productName",
+  "tagline"
+ ],
+ "hero-loop": [],
+ "hook-card": [
+  "headline",
+  "align",
+  "accentColor",
+  "theme"
+ ],
+ "ik-rig": [
+  "thickness",
+  "armColor",
+  "inkColor"
+ ],
+ "image-expand": [
+  "accentColor"
+ ],
+ "infinite-marquee": [
+  "text",
+  "speed",
+  "direction",
+  "color",
+  "fontWeight"
+ ],
+ "intro": [
+  "title",
+  "subtitle",
+  "eyebrow"
+ ],
+ "kanban-move": [
+  "accentColor",
+  "theme",
+  "speed"
+ ],
+ "karaoke-captions": [
+  "completedColor"
+ ],
+ "landing-code-showcase": [],
+ "light-rays": [
+  "backgroundColor",
+  "color",
+  "rayCount",
+  "spread",
+  "angle"
+ ],
+ "light-sweep-text": [
+  "text",
+  "durationInFrames",
+  "baseColor"
+ ],
+ "light-tunnel-bg": [
+  "backgroundColor",
+  "ribbons",
+  "twist",
+  "ringDensity",
+  "defocus"
+ ],
+ "line-chart-draw": [
+  "color",
+  "showAxis",
+  "showXLabels",
+  "showArea"
+ ],
+ "liquid-text-morph": [
+  "holdInFrames",
+  "morphInFrames",
+  "loop",
+  "gooStrength",
+  "gooContrast"
+ ],
+ "live-code-split": [
+  "previewTitle",
+  "backgroundColor",
+  "accentColor"
+ ],
+ "logo-reveal": [
+  "pathD",
+  "wordmark",
+  "tagline"
+ ],
+ "logo-wall": [
+  "eyebrow",
+  "title",
+  "columns"
+ ],
+ "lower-third": [
+  "title",
+  "align",
+  "theme"
+ ],
+ "marker-highlight": [
+  "text"
+ ],
+ "masked-slide-reveal": [
+  "color",
+  "fontWeight"
+ ],
+ "matrix-decode": [
+  "text",
+  "durationInFrames",
+  "color"
+ ],
+ "mesh-gradient-bg": [
+  "backgroundColor",
+  "intensity"
+ ],
+ "metric-ticker": [
+  "title"
+ ],
+ "motion-trail": [
+  "count",
+  "opacity",
+  "falloff",
+  "scale"
+ ],
+ "multi-device-lineup": [
+  "scale",
+  "staggerInFrames",
+  "bezelColor"
+ ],
+ "neon-flicker-text": [
+  "text",
+  "glowColor"
+ ],
+ "news-ticker-bar": [
+  "flag",
+  "pixelsPerSecond",
+  "accentColor",
+  "theme",
+  "speed"
+ ],
+ "notification-stack": [
+  "align",
+  "startAtSeconds",
+  "staggerSeconds",
+  "lifeSeconds",
+  "showProgress"
+ ],
+ "opencode": [
+  "placeholder",
+  "agentName",
+  "modelName",
+  "provider"
+ ],
+ "orbit-motion": [
+  "radiusX",
+  "radiusY",
+  "periodInFrames",
+  "phase",
+  "tilt"
+ ],
+ "org-chart-build": [
+  "title",
+  "startAtSeconds",
+  "levelStaggerSeconds",
+  "accentColor"
+ ],
+ "parallax-layers": [
+  "travel",
+  "angle",
+  "zoom",
+  "startAtInFrames",
+  "motion"
+ ],
+ "path-draw": [
+  "durationInFrames",
+  "stroke",
+  "strokeWidth"
+ ],
+ "perspective-marquee": [
+  "text",
+  "speed",
+  "color",
+  "fontWeight",
+  "gap"
+ ],
+ "pie-slice-reveal": [
+  "size",
+  "showLabels",
+  "explode",
+  "gapInDegrees",
+  "labelColor"
+ ],
+ "poll-overlay": [
+  "question",
+  "align",
+  "accentColor",
+  "theme",
+  "speed"
+ ],
+ "pricing-card": [
+  "tier",
+  "badge",
+  "price",
+  "currency",
+  "period"
+ ],
+ "pricing-focus": [],
+ "progress-bar": [
+  "progress",
+  "durationInFrames",
+  "indeterminate"
+ ],
+ "quiz-question": [
+  "question",
+  "correctIndex",
+  "pickedIndex",
+  "eyebrow"
+ ],
+ "quote-card": [
+  "quote",
+  "charsPerLine",
+  "accentColor",
+  "theme",
+  "speed"
+ ],
+ "radar-chart": [
+  "size",
+  "ringCount",
+  "gridColor",
+  "labelColor",
+  "showLabels"
+ ],
+ "reaction-burst": [
+  "ratePerSecond",
+  "align",
+  "lifeSeconds",
+  "drift",
+  "size"
+ ],
+ "rgb-glitch-text": [
+  "text",
+  "color",
+  "fontWeight",
+  "glowColor"
+ ],
+ "roadmap-lanes": [
+  "title",
+  "startAtSeconds",
+  "laneStaggerSeconds",
+  "fillSeconds"
+ ],
+ "rotate-in": [
+  "axis"
+ ],
+ "scanline-crt": [
+  "lineCount",
+  "lineOpacity",
+  "lineWidth",
+  "curvature",
+  "cornerRadius"
+ ],
+ "scatter-plot-pop": [
+  "width",
+  "height",
+  "color",
+  "minRadius",
+  "maxRadius"
+ ],
+ "scramble-text": [
+  "text"
+ ],
+ "search-results-populate": [
+  "query",
+  "countLabel",
+  "topLabel",
+  "charsPerSecond"
+ ],
+ "shake-emphasis": [],
+ "shape-layer": [
+  "origin"
+ ],
+ "shape-morph": [
+  "delayInFrames",
+  "durationInFrames",
+  "loop",
+  "size",
+  "fill"
+ ],
+ "showcase": [
+  "title",
+  "featureTitle",
+  "statValue"
+ ],
+ "simulated-cursor": [
+  "accent",
+  "size"
+ ],
+ "skew-in": [
+  "durationInFrames"
+ ],
+ "slide-up": [
+  "mask",
+  "exit"
+ ],
+ "slit-scan": [
+  "width",
+  "height",
+  "strips"
+ ],
+ "slot-roll": [
+  "durationInFrames",
+  "color"
+ ],
+ "sparkline-row": [
+  "width",
+  "rowHeight",
+  "sparkWidth",
+  "color",
+  "upColor"
+ ],
+ "spatial-push": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "speaker-label-captions": [
+  "defaultSpeaker",
+  "fontSize",
+  "inkColor",
+  "cardColor"
+ ],
+ "split-screen": [
+  "split",
+  "accentColor",
+  "theme"
+ ],
+ "split-text-chars": [
+  "text",
+  "mode"
+ ],
+ "sports-scorebug": [
+  "period",
+  "clockSeconds",
+  "align",
+  "accentColor",
+  "theme"
+ ],
+ "spring-in": [
+  "durationInFrames"
+ ],
+ "squash-stretch": [
+  "periodInFrames",
+  "travel",
+  "squash",
+  "stretch",
+  "startAtInFrames"
+ ],
+ "stacked-area-chart": [
+  "width",
+  "height",
+  "showAxis",
+  "showXLabels",
+  "showLegend"
+ ],
+ "stagger-children": [],
+ "staggered-fade-up": [
+  "text",
+  "color"
+ ],
+ "stat-card": [
+  "value",
+  "suffix",
+  "decimals",
+  "label"
+ ],
+ "stroke-to-fill-text": [
+  "text",
+  "strokeColor",
+  "staggerInFrames"
+ ],
+ "subtitle-translate": [],
+ "tab-switch-panel": [
+  "windowTitle",
+  "firstSwitchAtSeconds"
+ ],
+ "team-grid": [
+  "title",
+  "subtitle",
+  "columns",
+  "startAtSeconds",
+  "staggerSeconds"
+ ],
+ "terminal-simulator": [
+  "command",
+  "summary",
+  "prompt",
+  "title",
+  "shell"
+ ],
+ "text-animator": [
+  "text",
+  "fontWeight",
+  "color",
+  "lineHeight",
+  "letterSpacing"
+ ],
+ "text-reveal-shader": [
+  "text",
+  "backgroundColor",
+  "silverColor",
+  "angle",
+  "delay"
+ ],
+ "timeline-steps": [
+  "accentColor",
+  "theme"
+ ],
+ "title-card": [
+  "title",
+  "accentColor",
+  "theme",
+  "speed"
+ ],
+ "tool-menu-slide": [],
+ "topographic-lines-bg": [
+  "backgroundColor",
+  "indexColor",
+  "lineCount",
+  "indexEvery"
+ ],
+ "tracking-in": [
+  "text",
+  "durationInFrames",
+  "color"
+ ],
+ "transcript-scroll": [
+  "width",
+  "height",
+  "fontSize",
+  "lineHeight",
+  "activeColor"
+ ],
+ "transition-blinds": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-card-flip": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-circle-reveal": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-clock-wipe": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-fade": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-light-leak": [
+  "textA",
+  "textB",
+  "colorA",
+  "colorB"
+ ],
+ "transition-liquid-warp": [
+  "textA",
+  "textB",
+  "colorA",
+  "colorB"
+ ],
+ "transition-morph-shape": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-slide": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-whip-pan": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-wipe": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "treemap-blocks": [
+  "width",
+  "height",
+  "gap",
+  "cornerRadius",
+  "inkColor"
+ ],
+ "typewriter": [
+  "text",
+  "showCursor"
+ ],
+ "v0": [
+  "greeting",
+  "placeholder",
+  "prompt",
+  "modelName",
+  "projectName"
+ ],
+ "variable-font-morph": [
+  "text",
+  "oscillate"
+ ],
+ "voice-note-bubble": [
+  "barCount",
+  "seed",
+  "barHeight",
+  "barWidth"
+ ],
+ "waterfall-chart": [
+  "width",
+  "height",
+  "upColor",
+  "downColor",
+  "totalColor"
+ ],
+ "wave-text": [
+  "text",
+  "amplitude",
+  "wavelength"
+ ],
+ "weather-card": [
+  "place",
+  "detail",
+  "temperature",
+  "unit",
+  "conditionLabel"
+ ],
+ "word-pop-captions": [
+  "color",
+  "uppercase"
+ ],
+ "zoom-through": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "blur-in": [
+  "text1"
+ ],
+ "slide-left": [
+  "text1"
+ ],
+ "strikethrough-replace": []
+}

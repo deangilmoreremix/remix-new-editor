@@ -1,0 +1,3077 @@
+{
+ "upstreamSha": "ref: refs/heads/main",
+ "rows": [
+  {
+   "rel": "App.tsx",
+   "up": "src",
+   "status": "missing",
+   "diff": null,
+   "upstreamReachable": true,
+   "reachable": false
+  },
+  {
+   "rel": "components/assistant/assistant-drawer.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 6,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/assistant/assistant-markdown.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/assistant/assistant-message.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/assistant/voice-director-overlay.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 6,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/cloud/cloud-account.tsx",
+   "up": "src",
+   "status": "missing",
+   "diff": null,
+   "upstreamReachable": true,
+   "reachable": false
+  },
+  {
+   "rel": "components/create/create-tab.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 3,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/create-timeline.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/edges/animated-edge.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/fullscreen-modal.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/helper-lines.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/image-compare.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/node-inspector.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/node-palette.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 36,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/asset-output-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/base-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/composition-plan-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/element-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/elevenlabs-audio-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/file-picker-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/group-node.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 6,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/index.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/mention-textarea.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/model-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/multi-prompt-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/music-prompt-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/prompt-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/shot-board-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/storyboarder-node.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 13,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/trim-node.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/trim-strip.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/use-node-config-draft.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/nodes/video-node-preview.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/sam3-cloud-modal.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 18,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/sam3-modal.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 4,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/space-studio.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/studio-audio-reference.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/studio-clip-grid.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/studio-clip-viewer.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/studio-prompt-assistant.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/studio-reference-preview.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/studio-selection-bar.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/studio-trim-dialog.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/timeline-preview.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/toolbar/history-panel.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/toolbar/models-panel.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/toolbar/search-panel.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "components/create/toolbar/settings-modal.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "components/create/toolbar/toolbar-strip.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "components/create/toolbar/workflows-panel.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/use-topview-model-catalog.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/create/workflow-canvas.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/beatsheet-editor.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/breakdown-asset-card.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/collapsible-panel.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-breakdown-tab.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-camera-move.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-clip-craft.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-framing-board.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-generate-tab.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-generate-viewer.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-llm-picker.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 26,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-look-bible.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-notes-field.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-resolution-picker.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-scene-coverage.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-script-assets.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-script-chat.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-script-tab.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-setup-drawer.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-shot-grammar.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-shot-timeline.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-shotlist-import.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-shotlist-tab.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-spend-card.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-staging-frame.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-storyboard-tab.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-structure-rail.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-tab.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 17,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/director-takes-board.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/paginated-editor.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/paginated-pages.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/scene-assets-panel.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/scene-script-view.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/script-empty-state.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/use-director-cascade.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/director/use-measured-heights.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/batch-sync-dialog.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/clip-card.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 22,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/clip-properties-panel.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 63,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/edit-tab.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 158,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/extend-modal.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 80,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/fill-gap-modal.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 4,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/filmstrip-background.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/frame-canvas.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/frame-chat-modal.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/keyframe-track.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/left-panel.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 25,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/music-generation-popup.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/preview-player.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "components/edit/proxy-toggle.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "components/edit/resize-handle.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/source-viewer-mask-tool.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 18,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/source-viewer.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/sync-audio-dialog.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/time-ruler.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/timeline-bottom-bar.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/timeline-editor.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 122,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/timeline-overview.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/timeline-tabs.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/timeline-viewer.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 41,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/tool-sidebar.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 15,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/track-header.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "components/edit/track-row.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 3,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/transition-overlay.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/use-editor-layout.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/use-native-timeline-video.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/use-native-video-surface.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/use-playback-engine.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/use-timeline-drag.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/edit/waveform-canvas.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/element-card.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/element-context-menu.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/element-delete-confirm.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/element-description-assistant.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/element-folder-bar.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/element-generate.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/element-image-upload.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/element-modal.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/element-voice.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 6,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/elements-tab.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 19,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elements/use-element-selection.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/elevenlabs/connection.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/error-boundary.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/export/export-settings.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 58,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/export/export-tab.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 42,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/export/render-progress.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 17,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/home/home-view.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 14,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/home/project-card.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/llm/llm-tab.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 29,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/llm/skill-authoring-panel.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/llm/skill-builder.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/sets/floor-plan.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/sets/set-send-dialog.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/sets/set-viewer.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/sets/sets-view.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 11,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/sets/shape-shot-modal.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/sets/use-floor-gizmo.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/sets/use-placement-gizmo.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/sets/use-placement-tools.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/sets/use-standin-gizmo.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/sets/view-gizmo.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/settings/claude-mcp-connect.tsx",
+   "up": "src",
+   "status": "missing",
+   "diff": null,
+   "upstreamReachable": true,
+   "reachable": false
+  },
+  {
+   "rel": "components/settings/remote-mcp-connect.tsx",
+   "up": "src",
+   "status": "missing",
+   "diff": null,
+   "upstreamReachable": true,
+   "reachable": false
+  },
+  {
+   "rel": "components/settings/settings-page.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 710,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/ui/app-toast.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/ui/custom-select.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/workspace/status-indicator.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "components/workspace/top-tabs.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 8,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/workspace/use-asset-media-backfill.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/workspace/use-cloud-auth-recovery.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/workspace/use-mcp-bridge.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/workspace/workspace-loading-state.tsx",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/workspace/workspace-persistence.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 1,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "components/workspace/workspace-shell.tsx",
+   "up": "src",
+   "status": "adapted",
+   "diff": 19,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "hooks/use-copied-flash.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "hooks/use-electron.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "lib/assistant/assistant.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 4,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/assistant/canvas-contact-sheets.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/assistant/canvas-inspection.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/assistant/canvas-visual-context.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/assistant/realtime-voice.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 4,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/assistant/voice-director.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 10,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/auth-errors.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/collaboration.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 8,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/elements.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 9,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/firebase.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 91,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/funding-relay.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/funding.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 325,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/media-references.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/media.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/merge-project-update.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/project-reader.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/projects.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 8,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/sync-status.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/cloud/team-policy.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/db-converters.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 37,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/debug/media-debug.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/beatsheet.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/breakdown.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/cascade.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/cli-provider.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 6,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/craft/acting.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/craft/blocking.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/craft/coverage.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/craft/index.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/craft/look.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/craft/optics.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/create-show.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/director-state.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/enrich.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/fdx-parser.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/folders.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/framing-reserve.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/generate.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/isolate-prompt.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/job-inputs.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/llm-jobs.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 4,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/llm-origin.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/local-breakdown.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/local-extract.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/look-bible.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/ltx25-prompt.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/paginate.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/prompt-compiler.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/rejoin-takes.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/run-llm.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 65,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/run-shotlist.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/scene-assets.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/scene-script-items.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/scene-split.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/screenplay.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/script-assistant.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/script-format.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "lib/director/script-selection.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/shotlist-import.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/shotlist-parallel.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/shotlist.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/slate.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/snapshot.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/staging-diagram.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/staging-map.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/storyboard.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/take-timeline.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/director/video-adapter.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 18,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/edit/frame-chat-prompt.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/edit/frame-chat-thread.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/editor/filmstrip.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": true
+  },
+  {
+   "rel": "lib/editor/playback-engine.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 42,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/editor/timeline-migration.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/editor/timeline-operations.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 21,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/editor/visual-playback-state.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/editor/waveform.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elements/build-element.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elements/description-assistant.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 4,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elements/library.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elements/model-options.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elements/reference-generation.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elements/selection.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elements/variations.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elements/voice.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 4,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elevenlabs/audio-brief.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elevenlabs/client.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 19,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elevenlabs/enhance-prompt.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elevenlabs/enhance.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elevenlabs/request.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elevenlabs/types.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/elevenlabs/wait.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/fal/models.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 1223,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/fal/video-model-routing.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 73,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/higgsfield/frame-chat-model-options.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/higgsfield/higgsfield-models.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/higgsfield/media-tools.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/higgsfield/model-catalog.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": false
+  },
+  {
+   "rel": "lib/higgsfield/placement.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "lib/higgsfield/quick-edit-intent.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/kie/models.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": false
+  },
+  {
+   "rel": "lib/llm/acoustic-analysis.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/claude-code-session.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/cli-chat-error.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/cli-copilot-client.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/codex-cli-error.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "lib/llm/codex-model.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "lib/llm/composer-tokens.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/copilot-actions-guide.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 7,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/copilot-notifications.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/copilot-timeline-ops.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 10,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/copilot-visual-refs.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/cut-humanize.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/cut-plan.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/default-skill-templates.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/editorial-workflow.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/image-attachments.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/openai-chat.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "lib/llm/openai-usage.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/project-context.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 6,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/prompt-elements.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/response-style.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/selection.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/shot-list-parse.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/shot-list-planner.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/skill-actions.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 49,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/skill-authoring.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/skills.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/space-node-factory.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/llm/space-templates.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/mcp/app-commands.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/mcp/display-handlers.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 8,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/mcp/edit-handlers.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 6,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/mcp/handlers.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/mcp/types.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/mcp/workspace-state.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 16,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/media/asset-local-storage.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 3,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/media/sam3-api.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/providers/project-usage.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/providers/renewal.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/providers/workspace-connections.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/runpod/ltx25-client.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/runpod/ltx25-service.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/runpod/qwen-prompt.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/runpod/session-image-client.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/camera-prompt.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/floor-plan.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/floor.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/navigation.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/normalize.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/optics.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/photo-start.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/scene.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/shape-shot.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/shot-assets.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/start-view.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/thumbnail.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/sets/viewer-session.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/audio-preview.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/canvas-import.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/canvas-placement.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/clips.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/controls.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/draft.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/errors.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/fields.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/generation-metadata.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/layout.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/mentions.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/presets.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/prompt-rewrite.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/recipe.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/rewrite-client.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 10,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/trim.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/studio/video-mode.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/topview/canvas-audio.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 8,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "lib/topview/clip-edit.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/topview/image-pricing.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/topview/live-model-catalog.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/topview/media-tools.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/topview/model-catalog.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/topview/reference-capabilities.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/topview/video-duration.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/topview/video-pricing.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/topview/video-task-recovery.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/topview/video-task.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/utils/api-key.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 16,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/utils/file-url.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/utils/ids.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/utils/media-file.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/utils/video-generation-provider.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 7,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/validation/schemas.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": false,
+   "reachable": false
+  },
+  {
+   "rel": "lib/vision/auto-segment.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/workflows/execute.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 19,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/workflows/layer-decompose.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/workflows/node-registry.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/workflows/port-compatibility.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/workflows/provider-model-options.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 23,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/workflows/runpod-ltx25-session.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/workflows/runpod-session-image.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/workflows/storyboarder-references.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "lib/workflows/topo-sort.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "main.tsx",
+   "up": "src",
+   "status": "missing",
+   "diff": null,
+   "upstreamReachable": true,
+   "reachable": false
+  },
+  {
+   "rel": "styles/director-tab.css",
+   "up": "src",
+   "status": "adapted",
+   "diff": 26,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "styles/edit-tab.css",
+   "up": "src",
+   "status": "adapted",
+   "diff": 234,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "styles/floor-plan.css",
+   "up": "src",
+   "status": "adapted",
+   "diff": 4,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "styles/globals.css",
+   "up": "src",
+   "status": "adapted",
+   "diff": 524,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "styles/set-viewer.css",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "styles/sets-view.css",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "styles/shape-shot.css",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "types/director.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 4,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "types/elements.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "types/export.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 4,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "types/project.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "types/sets.ts",
+   "up": "src",
+   "status": "identical",
+   "diff": 0,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "types/timeline.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 36,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "types/workflow.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 2,
+   "upstreamReachable": true,
+   "reachable": true
+  },
+  {
+   "rel": "types/workspace.ts",
+   "up": "src",
+   "status": "adapted",
+   "diff": 13,
+   "upstreamReachable": true,
+   "reachable": true
+  }
+ ]
+}

@@ -1,0 +1,452 @@
+{
+  "id": "video-agent",
+  "name": "Video Agent",
+  "route": "#/video-agent",
+  "description": "Video Agent turns a plain-language description into a motion-graphics animation. An AI writes the animation code, you preview it live, tweak it by chatting, and then render it to an MP4 in your browser.",
+  "shortDescription": "Describe an animation and the agent writes, previews and renders it as an MP4.",
+  "fullDescription": "Video Agent is a prompt-to-motion-graphics studio (a port of Remotion's prompt-to-motion-graphics template). You describe an animation such as animated text, a bar chart, chat bubbles or a logo intro. The agent first checks that your prompt really describes a visual animation, then writes Remotion code, and the result plays immediately in a live preview player. You keep chatting to change it (colors, text, timing), you can also edit the code directly, and when you are happy you click Render & Download to render an MP4 inside your own browser tab. The finished MP4 is also uploaded and saved to your library. It runs on your own OpenAI API key, so you need to add that key in Settings before it can generate. It makes designed motion graphics from code; it does not edit your footage and does not generate photorealistic AI video.",
+  "bestFor": "Creators and marketers who want animated titles, kinetic typography, simple data charts, chat or UI mockup animations, logo intros and social motion graphics from a text description, and who already have (or are willing to add) an OpenAI API key.",
+  "whenToUse": [
+    "You want animated text, kinetic typography or a typewriter effect from a description.",
+    "You want an animated bar chart, counters or other data visualization and you can put the numbers directly in the prompt.",
+    "You want a chat or messaging UI animation (for example WhatsApp or iMessage style bubbles).",
+    "You want a logo or brand intro, a social story/reel graphic or an abstract motion background built from code.",
+    "You want to keep refining an animation with follow-up messages instead of starting over each time.",
+    "You want an MP4 rendered in your browser without any server render queue."
+  ],
+  "whenToUseAnother": [
+    "Use Video (#/video) when you want AI-generated live-action or cinematic video clips from a prompt or image instead of coded motion graphics.",
+    "Use Motion Director (#/motion-director) when you want a promo film planned from your website, with real page captures and shot recipes.",
+    "Use Workbench (#/workbench) when you already have clips, images or audio and want to arrange them on a multi-track timeline with motion cards and sound.",
+    "Use Timeline (#/timeline) when you want a full multi-track editor to cut and export footage.",
+    "Use Director (#/director) when you want AI agents to analyse or edit an existing video (subtitles, highlights, dubbing).",
+    "Use Cinema (#/cinema) or Animate (#/animate) when you want to bring a photo or scene to life as AI video."
+  ],
+  "keyFeatures": [
+    "Prompt-to-animation: type what you want and the agent writes the animation code.",
+    "Prompt check: before generating, a lightweight classifier rejects prompts that are not about visual motion graphics (questions, essays, chat, non-visual tasks).",
+    "Skill detection: the agent picks relevant guidance (charts, typography, messaging, transitions, sequencing, spring physics, social media formats, 3D) for each request.",
+    "Live preview player with the animation playing as soon as code is ready.",
+    "Follow-up chat edits: small changes are applied as targeted edits to the code; big changes can replace the whole code.",
+    "Model picker: seven GPT-5.2 reasoning variants (see modelCapabilities).",
+    "Reference images: attach up to 4 images (10 MB each) as visual reference, paste or drop them, or use the current preview frame as an image in chat.",
+    "Prompt Examples chips for a quick start (Typewriter text, Chat messages, Metric counters, Bar chart, Doge screensaver).",
+    "Editable code view with a copy button.",
+    "Settings dialog for Duration (frames) and FPS.",
+    "Render & Download: renders an MP4 in the browser and lets you download it.",
+    "Automatic save: the rendered MP4 is uploaded and saved to your library."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Describe your animation",
+      "explanation": "The first screen asks 'What do you want to create?'. You type a description in the box (placeholder 'Describe your animation... (paste or drop images)') and press Enter or the arrow button. Shift+Enter makes a new line.",
+      "whyToUse": "It is the fastest way to get a first animation without writing code.",
+      "inputRequired": "A text prompt describing visual motion graphics. Your OpenAI key must be saved in Settings.",
+      "restrictions": "The prompt must describe animation or visual content. Questions, requests for written text (poems, essays), conversations and non-visual tasks are rejected with 'No valid motion graphics prompt. Please describe an animation or visual content you'd like to create.'"
+    },
+    {
+      "feature": "Model picker",
+      "explanation": "A drop-down next to the input lets you choose how much the model thinks before writing code. The default is 'GPT-5.2 (Low Reasoning)'.",
+      "whyToUse": "Use a higher reasoning level for complex animations (3D, many elements, tricky timing). Use No Reasoning or Low for quick simple ones.",
+      "inputRequired": "None, it has a default.",
+      "restrictions": "Options are fixed to: GPT-5.2 (No Reasoning), GPT-5.2 (Low Reasoning), GPT-5.2 (Medium Reasoning), GPT-5.2 (High Reasoning), GPT-5.2 Pro (Medium), GPT-5.2 Pro (High), GPT-5.2 Pro (XHigh). If your OpenAI account has no access to the chosen model you get 'Your OpenAI account doesn't have access to this model. Pick another model and try again.'"
+    },
+    {
+      "feature": "Attach reference images",
+      "explanation": "Use the paperclip button (title 'Attach images'), paste an image, or drag and drop it. The agent can look at the images to understand what you mean.",
+      "whyToUse": "To show a layout, color palette or style you want the animation to resemble.",
+      "inputRequired": "Image files.",
+      "restrictions": "Maximum 4 images, each at most 10 MB. Too-large files show 'File too large (max 10MB): <name>'. The app states 'Images for reference only, they cannot be embedded in the animation'. If you want a picture shown inside the animation, put its public web URL in the prompt instead; the generated code can use it with Remotion's Img component. The whole request is limited to about 6 MB, otherwise you see 'Request too large. Attach fewer or smaller images.'"
+    },
+    {
+      "feature": "Follow-up chat (Tune your animation)",
+      "explanation": "After the first generation, a chat sidebar lets you ask for changes (placeholder 'Tune your animation... (paste or drop images)'). The agent chooses between targeted edits to the code (for small changes such as colors, text, numbers, timing) and a full rewrite (for major restructuring or when you ask to start fresh). It keeps manual edits you made to the code unless you ask to change them.",
+      "whyToUse": "Iterating is cheaper and faster than regenerating from scratch.",
+      "inputRequired": "A text instruction.",
+      "restrictions": "A targeted edit can fail if the agent cannot find the exact text to change ('Edit N failed: Could not find the specified text') or finds more than one match ('Found N matches. The edit target is ambiguous.'). Rephrase more specifically or ask for a full rewrite."
+    },
+    {
+      "feature": "Use current frame as image",
+      "explanation": "A button in the chat input (title 'Use current frame of Preview as image in chat') captures the frame currently shown in the preview and attaches it to your next message.",
+      "whyToUse": "Point at exactly what looks wrong, for example 'make the title in this frame bigger'.",
+      "inputRequired": "A playing or paused preview.",
+      "restrictions": "Counts toward the 4 image limit."
+    },
+    {
+      "feature": "Settings (Duration and FPS)",
+      "explanation": "The Settings button above the player opens a dialog titled 'Settings' ('Configure your animation settings.') with Duration (frames) and FPS, and shows the resulting video length, for example 'Video length: 5.00s (150 frames / 30 FPS)'. Close with the Close button.",
+      "whyToUse": "Set how long the animation runs and how smooth it is before rendering.",
+      "inputRequired": "Numbers.",
+      "restrictions": "Duration (frames) accepts 1 to 1000. FPS accepts 1 to 60. Video length in seconds = frames divided by FPS."
+    },
+    {
+      "feature": "Render & Download",
+      "explanation": "The render button reads 'Render & Download'. While it works it shows 'Rendering...' with a progress bar, and when done it becomes 'Download video' with the file size. Rendering happens in your own browser using Remotion's web renderer and produces an MP4.",
+      "whyToUse": "Turn the live animation into a file you can post or edit further.",
+      "inputRequired": "A generated animation.",
+      "restrictions": "Needs a browser that supports in-browser MP4 rendering; if it does not, an error is shown instead of rendering. Keep the tab open while rendering. Long durations and high FPS take longer."
+    },
+    {
+      "feature": "Auto-save to library",
+      "explanation": "When a render finishes, the Video Agent page uploads the MP4 and saves it as a video generation in your library. The status text beside the toolbar reads 'Saving video to your library...' and then 'Saved to your library'.",
+      "whyToUse": "Your result is kept even if you close the tab.",
+      "inputRequired": "Being signed in.",
+      "restrictions": "If upload fails you see 'Downloaded - couldn't save to library (<reason>)'. The file still downloaded to your computer."
+    }
+  ],
+  "howToUse": "1. Open Video Agent from the Agents section of the side menu (#/video-agent). 2. Make sure your OpenAI key is saved in SmartVideo Settings, API keys (OpenAI API Key). 3. On 'What do you want to create?' type a description in the box, or click one of the Prompt Examples chips (Typewriter text, Chat messages, Metric counters, Bar chart, Doge screensaver) to fill it in. 4. Optionally pick a model from the drop-down (default GPT-5.2 (Low Reasoning)) and attach up to 4 reference images with the paperclip. 5. Press Enter or click the arrow button. 6. Watch the code stream in and the animation appear in the preview player. 7. Use the chat sidebar ('Tune your animation...') to ask for changes, or edit the code directly. 8. Open Settings to change Duration (frames) and FPS if needed. 9. Click Render & Download and wait for 'Rendering...' to finish. 10. Click Download video. The MP4 is also saved to your library.",
+  "howToSteps": [
+    "Open Video Agent from the Agents group in the side menu.",
+    "Add your OpenAI API key in Settings, API keys (OpenAI API Key) if you have not already.",
+    "Type a specific description of the animation, or click a Prompt Examples chip.",
+    "Choose a model (default GPT-5.2 (Low Reasoning)) and optionally attach reference images.",
+    "Submit with Enter or the arrow button and wait for the preview.",
+    "Refine with follow-up messages in the chat sidebar.",
+    "Adjust Duration (frames) and FPS in Settings.",
+    "Click Render & Download, then Download video."
+  ],
+  "gettingStarted": [
+    "Save your OpenAI key first: Video Agent will not generate without it.",
+    "Start with a Prompt Examples chip to see how a good prompt looks, then edit the wording.",
+    "Put exact colors, text and numbers in your prompt for best results.",
+    "Keep the first animation short and simple, then add detail with follow-up messages."
+  ],
+  "inputs": ["Prompt", "Model", "Reference images", "Follow-up message", "Duration (frames)", "FPS", "Code edits"],
+  "requiredInputs": ["Prompt", "OpenAI API key (saved in Settings)"],
+  "optionalInputs": ["Model", "Reference images", "Follow-up message", "Duration (frames)", "FPS", "Code edits"],
+  "inputDetails": [
+    {
+      "name": "Prompt",
+      "description": "A text description of the motion graphics you want, including colors, layout, timing feel and any data.",
+      "required": true,
+      "whenToUse": "Always, for the first generation.",
+      "restrictions": "Must describe visual animation content. Non-visual requests are rejected by the prompt check."
+    },
+    {
+      "name": "OpenAI API key",
+      "description": "Your own OpenAI key. SmartVideo sends it with each generation request; nothing is billed by SmartVideo for this feature in the code that was reviewed, your OpenAI account pays for the usage.",
+      "required": true,
+      "whenToUse": "Add it once in Settings, API keys (OpenAI API Key).",
+      "restrictions": "Error if missing: 'The Video Agent uses your own OpenAI key. Add it in SmartVid -> Settings -> API keys (OpenAI API Key).' The key must look like a standard OpenAI key (starts with sk-). A rejected key gives 'OpenAI rejected your API key. Check it in SmartVid -> Settings -> API keys.'"
+    },
+    {
+      "name": "Model",
+      "description": "Reasoning level of the GPT-5.2 model used to write the code.",
+      "required": false,
+      "whenToUse": "Raise it for complex scenes; lower it for speed.",
+      "restrictions": "Seven fixed choices."
+    },
+    {
+      "name": "Reference images",
+      "description": "Images used only as visual reference for the AI.",
+      "required": false,
+      "whenToUse": "When describing a look in words is hard.",
+      "restrictions": "Max 4 images, 10 MB each. They cannot be embedded in the animation. Use a URL in the prompt to show a picture inside the animation."
+    },
+    {
+      "name": "Duration (frames) and FPS",
+      "description": "Length and frame rate of the animation, edited in the Settings dialog.",
+      "required": false,
+      "whenToUse": "Before rendering.",
+      "restrictions": "Duration 1 to 1000 frames; FPS 1 to 60."
+    }
+  ],
+  "generationModes": ["Generate from prompt", "Follow-up edit (targeted)", "Follow-up rewrite (full)", "Auto-correction"],
+  "modeExplanations": [
+    {
+      "mode": "Generate from prompt",
+      "description": "First message: the prompt is validated, relevant skills are detected, and the model writes a complete animation component.",
+      "useCase": "Starting a new animation."
+    },
+    {
+      "mode": "Follow-up edit (targeted)",
+      "description": "The agent returns exact find-and-replace edits to your existing code, applied in order.",
+      "useCase": "Changing colors, text, numbers or timing, or adding or removing a single element."
+    },
+    {
+      "mode": "Follow-up rewrite (full)",
+      "description": "The agent returns replacement code for the whole animation.",
+      "useCase": "Completely different style, major restructure, or when you say 'start fresh'."
+    },
+    {
+      "mode": "Auto-correction",
+      "description": "If the generated code fails to compile, the app can automatically ask the agent to fix the compile error, up to a limited number of attempts.",
+      "useCase": "Happens automatically; you may see a retry rather than a broken preview."
+    }
+  ],
+  "modelCapabilities": "The generation endpoint uses OpenAI models through your own OpenAI key. The picker offers GPT-5.2 at No, Low, Medium and High reasoning, and GPT-5.2 Pro at Medium, High and XHigh reasoning (ids gpt-5.2:none, gpt-5.2:low, gpt-5.2:medium, gpt-5.2:high, gpt-5.2-pro:medium, gpt-5.2-pro:high, gpt-5.2-pro:xhigh). The default selected is gpt-5.2:low. The server default model can be overridden by the environment variable VIDEO_AGENT_MODEL and the prompt-check model by VIDEO_AGENT_CLASSIFIER_MODEL, so the exact model that answers may differ on a deployment. Higher reasoning levels generally spend more time thinking and suit complex animations. The animation itself is code (React with Remotion, optionally Remotion shapes, transitions and Three.js) rendered in your browser; no video-generation model is used.",
+  "outputs": [
+    "A live-playing animation preview",
+    "Editable Remotion (React) animation code",
+    "An MP4 file rendered in your browser (Download video)",
+    "A saved video entry in your library"
+  ],
+  "limitations": [
+    "Requires your own OpenAI API key; there is no fallback platform key.",
+    "Only motion graphics and animation prompts are accepted.",
+    "Reference images cannot be embedded in the animation, only used as visual reference.",
+    "Maximum 4 reference images, 10 MB each.",
+    "Duration is limited to 1 to 1000 frames and FPS to 1 to 60 in Settings.",
+    "Rendering is done in your browser tab, so it depends on your device and browser.",
+    "Output is coded motion graphics, not live-action or photoreal AI video.",
+    "Direct image uploads into the animation are not supported; images must be referenced by URL."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Needs your own OpenAI key",
+      "impact": "Without it nothing generates and you see the message about adding your OpenAI key in Settings.",
+      "workaround": "Add the key under Settings, API keys (OpenAI API Key), then try again. The studio re-sends the key about every 15 seconds and when the window regains focus, so a new key should work shortly after you save it."
+    },
+    {
+      "limitation": "Only visual motion graphics prompts",
+      "impact": "Questions or text-writing requests are rejected.",
+      "workaround": "Rephrase as a visual: 'Animated title that says Hello with a bounce' instead of 'What is a bounce?'."
+    },
+    {
+      "limitation": "Reference images are not embedded",
+      "impact": "A logo you attach will not appear in the video.",
+      "workaround": "Host the image online and include its URL in the prompt, for example 'a DVD screensaver animation of this image https://example.com/logo.png'."
+    },
+    {
+      "limitation": "Browser rendering",
+      "impact": "Render & Download can fail on browsers that cannot render MP4 on the web, and takes longer for long clips.",
+      "workaround": "Use a current Chrome-based browser, keep the tab open and lower Duration or FPS."
+    }
+  ],
+  "troubleshooting": [
+    "Message 'The Video Agent uses your own OpenAI key...': add your OpenAI key in Settings, API keys (OpenAI API Key), wait a few seconds and resend.",
+    "Message 'OpenAI rejected your API key': the saved key is wrong or revoked; paste a fresh key in Settings.",
+    "Message 'Your OpenAI account is rate-limited or out of credit': check your OpenAI billing and usage limits, then try again.",
+    "Message 'Your OpenAI account doesn't have access to this model': pick a different model in the drop-down, for example a GPT-5.2 option.",
+    "Message 'No valid motion graphics prompt...': your text was not an animation request. Describe something visual, for example colors, text and motion.",
+    "Message 'Request too large. Attach fewer or smaller images.': remove some reference images or use smaller ones.",
+    "Nothing loads or the page stays blank: reload the page; the Video Agent is an embedded app that must finish loading before it can talk to SmartVideo.",
+    "'Edit N failed' errors after a follow-up: the agent could not find or uniquely match the code to change; ask again with the exact text, or ask for a full rewrite.",
+    "Render & Download shows an error: use a current Chrome-based browser and try a shorter Duration or lower FPS.",
+    "Status says 'Downloaded - couldn't save to library': the MP4 downloaded but the upload failed; check your connection and sign-in, and keep the downloaded file."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Generation will not start (key problem)",
+      "steps": [
+        "Open SmartVideo Settings and find API keys.",
+        "Paste your OpenAI key into OpenAI API Key and save.",
+        "Return to Video Agent, wait up to about 15 seconds or click back into the window, then submit again.",
+        "If it says OpenAI rejected the key, create a new key in your OpenAI account and replace it."
+      ]
+    },
+    {
+      "issue": "My prompt was rejected",
+      "steps": [
+        "Read the message: it means the prompt did not describe visual motion graphics.",
+        "Rewrite it as a description of what should appear and move, with colors, text and timing.",
+        "Try a Prompt Examples chip and adapt it."
+      ]
+    },
+    {
+      "issue": "The preview looks wrong or an error appears in the code",
+      "steps": [
+        "Wait a moment: the app may auto-correct compile errors by itself.",
+        "Send a follow-up describing what is wrong, or attach the current frame with the 'Use current frame of Preview as image in chat' button.",
+        "If it stays broken, ask the agent to start fresh with a simpler version."
+      ]
+    },
+    {
+      "issue": "Rendering fails or the MP4 is not saved",
+      "steps": [
+        "Keep the tab open and in front while 'Rendering...' runs.",
+        "Lower Duration (frames) or FPS in Settings and try again.",
+        "If the status says it could not save to your library, use Download video to keep the file and check your connection."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "The image I attached does not appear in the animation",
+      "whyItHappens": "Attached images are reference only for the AI.",
+      "howToFix": "Include a public image URL in the prompt so the code can load it."
+    },
+    {
+      "problem": "A follow-up change was not applied",
+      "whyItHappens": "A targeted edit could not match the code text exactly or matched several places.",
+      "howToFix": "Be more specific, mention the exact text or element, or ask for a full rewrite."
+    },
+    {
+      "problem": "My animation is too short or too long",
+      "whyItHappens": "Length is set by Duration (frames) and FPS, not only by the prompt.",
+      "howToFix": "Open Settings and change Duration (frames) and FPS. Length in seconds = frames divided by FPS."
+    },
+    {
+      "problem": "The chart shows wrong numbers",
+      "whyItHappens": "The agent invents data when you do not supply it.",
+      "howToFix": "Type the exact data values directly in the prompt."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Animated bar chart for a social post",
+      "steps": [
+        "Open Video Agent and click the Bar chart Prompt Examples chip.",
+        "Replace the sample data with your own numbers and label colors.",
+        "Submit and wait for the preview.",
+        "Ask 'make the bars appear one after another with a bouncy spring'.",
+        "Open Settings and set Duration (frames) and FPS for the length you need.",
+        "Click Render & Download, then Download video."
+      ]
+    },
+    {
+      "title": "Logo intro with a hosted logo",
+      "steps": [
+        "Upload your logo somewhere public and copy its URL.",
+        "Type: 'A 5 second logo intro on a dark background, the logo fades and scales in, using this image <URL>'.",
+        "Submit, review, and ask for tweaks such as a tagline appearing below.",
+        "Render & Download."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Kinetic typography title",
+      "description": "Animated words for a video opening.",
+      "steps": [
+        "Describe the text, font feel, colors and effect (for example typewriter or word carousel).",
+        "Generate and preview.",
+        "Refine with follow-ups, then render."
+      ],
+      "expectedOutput": "An MP4 of the animated text."
+    },
+    {
+      "title": "Chat conversation mockup",
+      "description": "Animated message bubbles for a story or explainer.",
+      "steps": [
+        "Describe who speaks, the messages and bubble colors (for example green sent bubbles on the right and gray received bubbles on the left).",
+        "Generate, then adjust timing between messages.",
+        "Render."
+      ],
+      "expectedOutput": "An MP4 showing staggered chat bubbles."
+    },
+    {
+      "title": "Metric counters and charts",
+      "description": "Animated numbers or charts for a report video.",
+      "steps": [
+        "Paste the real data into the prompt.",
+        "Generate and check the labels.",
+        "Render and download."
+      ],
+      "expectedOutput": "An MP4 with animated counters or bars."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Do I need an API key?",
+      "answer": "Yes. Video Agent runs on your own OpenAI key. Add it in Settings, API keys (OpenAI API Key). If it is missing you see: The Video Agent uses your own OpenAI key."
+    },
+    {
+      "question": "Where does the video get rendered?",
+      "answer": "In your own browser tab using Remotion's web renderer. You get an MP4 and it is also uploaded to your library."
+    },
+    {
+      "question": "Can I upload my own logo or image into the animation?",
+      "answer": "Not as a direct upload. Attached images are reference only. To show a picture inside the animation, put its public URL in the prompt."
+    },
+    {
+      "question": "How many images can I attach?",
+      "answer": "Up to 4, each up to 10 MB."
+    },
+    {
+      "question": "How long can the animation be?",
+      "answer": "Settings accepts Duration from 1 to 1000 frames and FPS from 1 to 60. At 30 FPS, 1000 frames is about 33 seconds."
+    },
+    {
+      "question": "Can I edit the code?",
+      "answer": "Yes, the code is editable and has a copy button. Your manual edits are preserved by follow-up requests unless you ask to change them."
+    },
+    {
+      "question": "Why was my prompt rejected?",
+      "answer": "A quick check rejects prompts that are not about visual motion graphics, such as questions or requests for written text. Describe something that can be seen and animated."
+    },
+    {
+      "question": "Is this the same as the Timeline editor's AI agent?",
+      "answer": "No. The Timeline editor has its own separate AI agent for editing a timeline. Video Agent here writes animation code from a prompt."
+    }
+  ],
+  "glossary": {
+    "Motion graphics": "Animated graphics such as moving text, charts and shapes, as opposed to filmed footage.",
+    "Remotion": "A tool that builds videos from React code. Video Agent writes this code for you.",
+    "FPS": "Frames per second: how many pictures per second the video plays.",
+    "Frames": "Single images that make up the animation. Length in seconds = frames divided by FPS.",
+    "Reasoning level": "How much extra thinking the AI does before answering. Higher is slower but usually better for complex requests.",
+    "Targeted edit": "A small find-and-replace change to existing code instead of rewriting everything.",
+    "BYOK": "Bring your own key: you supply your own OpenAI API key and pay OpenAI directly for usage."
+  },
+  "tips": [
+    "Be specific about colors, timing and layout, for example 'green sent bubbles on the right, gray received on the left'.",
+    "Put your data directly in the prompt for charts.",
+    "Describe the feel: 'bouncy spring entrance', 'smooth fade', 'staggered timing'.",
+    "Use a higher reasoning model for 3D or very detailed scenes.",
+    "Use the current-frame button to show the agent exactly what to fix."
+  ],
+  "bestPractices": [
+    "Start simple, then layer detail with follow-up messages.",
+    "Reference images by URL in the prompt when you need them inside the animation.",
+    "Set Duration and FPS before you render.",
+    "Keep the tab open during Render & Download.",
+    "Keep a copy of code you like using the copy button."
+  ],
+  "relatedStudios": ["motion-director", "workbench", "timeline", "director", "video", "cinema"],
+  "relatedStudioGuidance": [
+    {
+      "studio": "workbench",
+      "relationship": "Video Agent exports are saved to your library; Workbench is where you combine media on a timeline.",
+      "whenToMove": "After you have the MP4 and want to add other clips, text cards or sound.",
+      "why": "Workbench edits and combines media; Video Agent only creates the animation. Note: Video Agent results themselves are not offered the 'Edit in Workbench' hand-off in the code reviewed, so open Workbench and use Add your generations."
+    },
+    {
+      "studio": "motion-director",
+      "relationship": "Both create motion films, but Motion Director plans from your website and uses a library of shot recipes.",
+      "whenToMove": "When you want a promo film built from your real site pages.",
+      "why": "It captures your pages and outputs an editable multi-shot film."
+    },
+    {
+      "studio": "video",
+      "relationship": "Video generates AI video clips; Video Agent generates coded motion graphics.",
+      "whenToMove": "When you need realistic or cinematic footage rather than graphics.",
+      "why": "Video Agent cannot create live-action looking footage."
+    }
+  ],
+  "notConfirmed": [
+    "Exact credit costs or whether SmartVideo charges anything for Video Agent: the code reviewed shows your own OpenAI key is used and no SmartVideo credit charge was seen, but billing rules were not verified.",
+    "Whether a paid plan or entitlement is required to open Video Agent: the wrapper component shows no entitlement check, but server-side or app-level gating was not verified.",
+    "The full contents of the code editor header, tab names and every button label inside the embedded app beyond those quoted.",
+    "The exact number of automatic compile-error correction attempts.",
+    "The exact model used on the live deployment, because environment variables VIDEO_AGENT_MODEL and VIDEO_AGENT_CLASSIFIER_MODEL can override defaults.",
+    "Whether a Pexels or other library hand-off exists in the embedded app.",
+    "The route #/video-agent-studio is an alias that loads the same studio in the router; the separate OpenChatCut-based app in apps/video-agent-studio and the legacy VideoAgentPage/VideoAgentStudioShell components exist in the repo but are not routed in src/lib/router.js, so they are not described as part of this studio.",
+    "netlify/functions/video-agent.js belongs to the Timeline editor's AI agent, not to this studio, and was not described as a Video Agent feature."
+  ],
+  "sourceFiles": [
+    "src/components/studios/VideoAgentStudio/VideoAgentStudio.js",
+    "apps/motion-agent/README.md",
+    "apps/motion-agent/src/types/generation.ts",
+    "apps/motion-agent/src/components/LandingPageInput.tsx",
+    "apps/motion-agent/src/components/ChatSidebar/ChatInput.tsx",
+    "apps/motion-agent/src/components/AnimationPlayer/SettingsModal.tsx",
+    "apps/motion-agent/src/components/AnimationPlayer/RenderControls/index.tsx",
+    "apps/motion-agent/src/hooks/useImageAttachments.ts",
+    "apps/motion-agent/src/host/bridge.ts",
+    "apps/motion-agent/server/generate-route.ts",
+    "netlify/functions/video-agent-generate.mjs",
+    "netlify/functions/video-agent.js",
+    "src/lib/router.js",
+    "src/lib/studioRoutes.js",
+    "src/lib/workbench.js",
+    "src/components/AppsHub.js",
+    "src/features/ask-smartvideo/studioRegistry.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the wrapper component, the embedded motion-agent app source (landing input, chat input, settings, render controls, image attachments, bridge, generate route), the generate Netlify function and the router aliases.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

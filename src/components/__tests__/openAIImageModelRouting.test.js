@@ -25,6 +25,8 @@ describe('openaiConfig.isOpenAIImageModel — current catalog', () => {
     expect(selectable).toContain('gpt-image-2');
     expect(selectable).toContain('gpt-image-2.5-sunburst');
     expect(selectable).toContain('gpt-image-2.5-flare');
+    expect(selectable).toContain('gpt-image-2.6-flare');
+    expect(selectable).toContain('gpt-image-2.6-sunburst');
     // A selectable OpenAI model must never be routed to muapi.
     for (const model of selectable) {
       expect(openaiConfig.isOpenAIImageModel(model), model).toBe(true);

@@ -372,30 +372,23 @@ const HERO_THUMBNAILS = {
 // Where to aim the banner crop (CSS object-position) per page. The default is the
 // centre; pages whose picture has its subject elsewhere are listed here.
 const BANNER_FOCUS = {
-  // landscape (2.36:1) pictures: a 176px banner shows about a third of the height
-  image: '50% 43%',
-  cinema: '50% 35%',
-  'cinema-template': '50% 35%',
-  effects: '50% 43%',
-  edit: '50% 43%',
-  upscale: '50% 35%',   // keeps the picture, drops the baked-in caption at the bottom
-  character: '50% 20%', // faces are in the upper half
-  commercial: '50% 45%',
-  'ai-vfx': '50% 38%',
-  library: '50% 40%',
-  'content-library': '50% 40%',
-  // square pictures: only a thin strip fits, so aim it at the subject and away from baked-in captions
-  audio: '50% 47%',
-  avatar: '50% 33%',
-  training: '50% 48%',
-  videotools: '50% 44%',
-  timeline: '50% 57%',
-  'video-agent': '50% 45%',
-  brand: '50% 75%',
-  // new 3:1 banners
+  // Apps-page (studios/) pictures are ~1.8:1 and the banner box ~2.4:1, so only a
+  // little is cropped; aim at the subject.
+  character: '50% 25%', // faces are in the upper half
+  audio: '50% 40%',
+  avatar: '50% 40%',
+  edit: '50% 40%',
+  lipsync: '50% 40%',
+  // hero (heroes/) pictures for pages without Apps-page art
   workbench: '50% 58%',
   personalizer: '50% 67%',
   'website-builder': '50% 41%',
+  'video-agent': '50% 45%',
+  timeline: '50% 50%',
+  library: '50% 40%',
+  'content-library': '50% 40%',
+  brand: '50% 75%',
+  'ai-vfx': '50% 38%',
 };
 
 const TOOL_THUMBNAILS = {
@@ -435,6 +428,18 @@ const PAGE_THUMBNAILS = {
   assist: '/thumbnails/pages/assist.webp',
   placeholder: '/thumbnails/pages/placeholder.webp',
 };
+
+// Pages whose banner uses the same picture as their Apps-page card (studios/*): clean
+// photo-style art with no baked-in captions or black bars. Pages not listed keep their
+// hero picture (heroes/*), because the studio map only has a stand-in for them.
+const BANNER_USES_STUDIO_ART = new Set([
+  'image', 'video', 'cinema', 'storyboard', 'effects', 'edit', 'upscale', 'character',
+  'commercial', 'audio', 'avatar', 'training', 'videotools', 'lipsync', 'render', 'chat',
+]);
+
+export function getBannerThumbnail(studioId) {
+  return (BANNER_USES_STUDIO_ART.has(studioId) && getStudioThumbnail(studioId)) || getHeroThumbnail(studioId) || getStudioThumbnail(studioId);
+}
 
 export function getStudioThumbnail(studioId) {
   return STUDIO_THUMBNAILS[studioId] || null;
@@ -669,7 +674,7 @@ export function createThumbnailImg(src, alt, className = '', fallbackTemplate = 
 }
 
 export function createHeroSection(studioId, className = '') {
-  const src = getHeroThumbnail(studioId);
+  const src = getBannerThumbnail(studioId);
   if (!src) return null;
   const wrapper = document.createElement('div');
   wrapper.className = `hero-banner relative w-full overflow-hidden rounded-2xl ${className}`;
@@ -692,32 +697,47 @@ export function createHeroSection(studioId, className = '') {
  * shrink it further once results exist.
  */
 export function createStudioHeader(studioId, title, subtitle = '', className = '', size = 'default') {
-  const src = getHeroThumbnail(studioId) || getStudioThumbnail(studioId);
+  const src = getBannerThumbnail(studioId);
   const wrapper = document.createElement('div');
   // 'compact' is for the full-screen editors (Director, Timeline, Workbench, Video Agent,
   // Website Builder), which need every pixel of height for the editor itself.
-  const height = size === 'compact' ? 'h-20 md:h-24' : 'h-32 md:h-44';
+  const height = size === 'compact' ? 'h-20 md:h-24' : 'h-32 md:h-[clamp(176px,14vw,264px)]';
   wrapper.className = `hero-banner studio-header relative w-full ${height} overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d10] shrink-0 ${className}`;
   wrapper.dataset.studioHeader = studioId;
   if (src) {
     wrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
+    // Ambient backdrop: the same picture, blurred and dimmed, fills the width so the
+    // banner never shows a hard edge or a dark void next to the sharp picture.
+    const ambient = createThumbnailImg(src, '', 'absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-40');
+    ambient.setAttribute('aria-hidden', 'true');
+    wrapper.appendChild(ambient);
+    // The sharp picture sits on the right at its own shape, so all of it is visible
+    // (a full-width 176px strip showed only ~25% of a 2.4:1 picture). Below md it
+    // goes full-bleed behind the title instead.
+    const pic = document.createElement('div');
+    pic.className = 'absolute inset-0 md:inset-y-0 md:left-auto md:right-0 md:w-auto md:aspect-[2.36/1] md:max-w-[68%]';
     const img = createThumbnailImg(src, '', 'absolute inset-0 w-full h-full object-cover');
-    // Aim the crop at the part of the picture that matters (see BANNER_FOCUS).
     img.style.objectPosition = BANNER_FOCUS[studioId] || '50% 50%';
-    wrapper.appendChild(img);
+    pic.appendChild(img);
+    const seam = document.createElement('div');
+    seam.className = 'absolute inset-y-0 left-0 w-20 hidden md:block pointer-events-none bg-gradient-to-r from-[#0d0d10]/90 to-transparent';
+    pic.appendChild(seam);
+    wrapper.appendChild(pic);
   }
+  // Mobile: lift the title off the picture. Desktop: only a short fade at the picture's
+  // left edge (the seam above), nothing over the picture itself.
   const shade = document.createElement('div');
-  shade.className = 'absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10';
+  shade.className = 'absolute inset-0 pointer-events-none bg-gradient-to-t from-black/80 via-black/30 to-transparent md:hidden';
   wrapper.appendChild(shade);
   const text = document.createElement('div');
-  text.className = 'absolute inset-y-0 left-0 z-10 flex flex-col justify-center px-5 md:px-7 text-left max-w-[80%]';
+  text.className = 'absolute z-10 flex flex-col justify-end md:justify-center inset-x-0 bottom-0 md:inset-y-0 md:right-auto px-5 md:px-7 pb-3 md:pb-0 text-left md:max-w-[34%]';
   const h1 = document.createElement('h1');
   h1.className = 'text-xl md:text-2xl font-black text-white tracking-tight leading-tight';
   h1.textContent = title;
   text.appendChild(h1);
   if (subtitle) {
     const p = document.createElement('p');
-    p.className = 'text-white/65 text-xs md:text-sm mt-1 line-clamp-1';
+    p.className = 'text-white/65 text-xs md:text-sm mt-1 line-clamp-2 md:line-clamp-3';
     p.textContent = subtitle;
     text.appendChild(p);
   }

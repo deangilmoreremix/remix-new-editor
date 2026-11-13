@@ -56,6 +56,9 @@ describe('Sidebar fixes', () => {
     expect(getNavItemForRoute('zackd')).toBe('zackd');
     expect(getNavItemForRoute('zackd-studio')).toBe('zackd');
     expect(getNavItemForRoute('template/anime-converter')).toBe('templates');
+    expect(getNavItemForRoute('academy')).toBe('academy');
+    expect(getNavItemForRoute('academy/track/02-ai-filmmaking')).toBe('academy');
+    expect(getNavItemForRoute('academyfoo')).toBeNull();
     expect(getNavItemForRoute('settings')).toBeNull();
   });
 

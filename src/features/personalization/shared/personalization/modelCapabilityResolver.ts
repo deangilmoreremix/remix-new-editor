@@ -30,13 +30,16 @@ import {
   v2vModels,
   recastModels,
   lipsyncModels,
+  motionControlModels,
 } from '@ohb/packages/studio/src/models.js'
 
 // ── Model Catalog Constants ──────────────────────────────────────────────────
 // These must match actual IDs in packages/studio/src/models.js.
 
 export const FACE_SWAP_MODEL = 'ai-video-face-swap'
-export const FULL_BODY_MODEL = 'kling-v3.0-pro-recast'
+// Full Presenter uses the same Seedance motion-control recast as the Advanced
+// Editing "Full Body Recast" tab (keeps the clip's motion, swaps the person).
+export const FULL_BODY_MODEL = 'seedance-2.5-motion-control'
 export const DEFAULT_T2V_MODEL = 'veo-4-text-to-video'
 export const DEFAULT_I2I_MODEL = 'gpt-image-2-edit'
 
@@ -105,6 +108,8 @@ function findModel(modelId: string): any | null {
     getI2VModelById(modelId) ||
     getV2VModelById(modelId) ||
     getRecastModelById(modelId) ||
+    // Exact match only: getMotionControlModelById falls back to the first model.
+    motionControlModels.find((m: { id: string }) => m.id === modelId) ||
     getLipSyncModelById(modelId) ||
     null
   )
@@ -114,34 +119,93 @@ function isInCatalog(modelId: string, catalog: any[]): boolean {
   return catalog.some((m) => m.id === modelId)
 }
 
+/** Recast and motion-control models both replace the person in a video. */
+function isRecastModel(modelId: string): boolean {
+  return isInCatalog(modelId, recastModels) || isInCatalog(modelId, motionControlModels)
+}
+
 function getFallbackModel(modelId: string, sourceMediaType: string): string {
   if (sourceMediaType === 'image') return DEFAULT_I2I_MODEL
   const model = findModel(modelId)
   if (!model) return DEFAULT_T2V_MODEL
   if (isInCatalog(modelId, v2vModels)) return FACE_SWAP_MODEL
-  if (isInCatalog(modelId, recastModels)) return FULL_BODY_MODEL
+  if (isRecastModel(modelId)) return FULL_BODY_MODEL
   return DEFAULT_T2V_MODEL
 }
 
-// ── Capabilities Resolution ──────────────────────────────────────────────────
+// ── Which model a run calls ──────────────────────────────────────────────────
 
-/**
- * remix-new-editor: the options to resolve capabilities with for a given
- * operation. Face Only and Full Presenter on a video source always run on the
- * dedicated face-swap / recast models (generationRouter `pickVideoModel`), so
- * capabilities and assets must be resolved against those models, not the
- * source's own generation model — otherwise the identity image is left out.
- */
-export function capabilityOptionsForMode(
+function resolveModelId(
   source: PersonalizationSource,
   options: GenerationOptions,
-  mode: string | null,
-): GenerationOptions {
-  if (source.mediaType === 'image') return options
-  if (mode === 'face_only') return { ...options, advancedModel: undefined, model: FACE_SWAP_MODEL }
-  if (mode === 'full_body') return { ...options, advancedModel: undefined, model: FULL_BODY_MODEL }
-  return options
+  fallback: string,
+): string {
+  if (options.advancedModel) return options.advancedModel
+  if (options.model) return options.model
+  if (source.model) return source.model
+  return fallback
 }
+
+export function pickVideoModel(source: PersonalizationSource, options: GenerationOptions, mode: VideoPersonalizationMode): string {
+  if (mode === 'face_only') return FACE_SWAP_MODEL
+  if (mode === 'full_body') return FULL_BODY_MODEL
+  return resolveModelId(source, options, DEFAULT_T2V_MODEL)
+}
+
+export function pickImageModel(source: PersonalizationSource, options: GenerationOptions, mode: ImagePersonalizationMode): string {
+  return resolveModelId(source, options, DEFAULT_I2I_MODEL)
+}
+
+/**
+ * The model a run will actually call for this source and mode (face only and
+ * full body always use their own models, whatever else is selected).
+ */
+export function modelForGeneration(
+  source: PersonalizationSource,
+  options: GenerationOptions,
+  mode: string | null | undefined,
+): string {
+  return source.mediaType === 'video'
+    ? pickVideoModel(source, options, (mode || 'recreate') as VideoPersonalizationMode)
+    : pickImageModel(source, options, (mode || 'recreate') as ImagePersonalizationMode)
+}
+
+/**
+ * Options as the generation will see them: capabilities (and so which inputs
+ * get sent, e.g. the presenter photo for a face swap) must be worked out for
+ * the model the mode really uses, not the demo's own model.
+ */
+export function optionsForGeneration(
+  source: PersonalizationSource,
+  options: GenerationOptions,
+  mode: string | null | undefined,
+): GenerationOptions {
+  const model = modelForGeneration(source, options, mode)
+  return { ...options, advancedModel: undefined, model }
+}
+
+/**
+ * The aspect ratio and length a run should ask the model for: what the user
+ * chose (the preview's settings) when the model supports it, otherwise the
+ * closest thing it does support.
+ */
+export function fitToModel(
+  capabilities: Pick<ModelCapabilities, 'aspectRatioOptions' | 'durationOptions'>,
+  wanted: { aspectRatio: string; durationSeconds: number },
+  fallbackAspectRatio?: string,
+): { aspectRatio: string; duration: number } {
+  const ratios = capabilities.aspectRatioOptions
+  const aspectRatio = !ratios.length || ratios.includes(wanted.aspectRatio)
+    ? wanted.aspectRatio
+    : fallbackAspectRatio && ratios.includes(fallbackAspectRatio) ? fallbackAspectRatio : ratios[0]
+  const durations = capabilities.durationOptions
+  const duration = !durations.length
+    ? wanted.durationSeconds
+    : durations.reduce((best, d) => (Math.abs(d - wanted.durationSeconds) < Math.abs(best - wanted.durationSeconds) ? d : best), durations[0])
+  return { aspectRatio, duration }
+}
+
+// ── Capabilities Resolution ──────────────────────────────────────────────────
 
 export function resolveModelCapabilities(
   source: PersonalizationSource,
@@ -186,7 +250,7 @@ export function resolveModelCapabilities(
 
   const supportsAudioPreservation =
     isInCatalog(modelId, v2vModels) ||
-    isInCatalog(modelId, recastModels) ||
+    isRecastModel(modelId) ||
     /v2v|recast/.test(modelId.toLowerCase())
 
   const aspectRatioOptions = Array.isArray(model?.inputs?.aspect_ratio?.enum)
@@ -219,12 +283,12 @@ export function resolveModelCapabilities(
       modelId === FACE_SWAP_MODEL ||
       /face.?swap|face.?replace/.test(modelId.toLowerCase()),
     supportsPersonReplacement:
-      isInCatalog(modelId, recastModels) ||
+      isRecastModel(modelId) ||
       /recast|person|character|swap|animate/.test(modelId.toLowerCase()),
     supportsI2I: isInCatalog(modelId, i2iModels) || /i2i|image.?to.?image|flux|midjourney|gpt.?image|ideogram|seedream/.test(modelId.toLowerCase()),
     supportsT2V: !source.sourceMedia && isInCatalog(modelId, t2vModels),
-    supportsV2V: isInCatalog(modelId, v2vModels) || isInCatalog(modelId, recastModels) || /v2v|video.?to.?video/.test(modelId.toLowerCase()),
-    supportsRecast: isInCatalog(modelId, recastModels) || /recast/.test(modelId.toLowerCase()),
+    supportsV2V: isInCatalog(modelId, v2vModels) || isRecastModel(modelId) || /v2v|video.?to.?video/.test(modelId.toLowerCase()),
+    supportsRecast: isRecastModel(modelId) || /recast|motion.?control/.test(modelId.toLowerCase()),
     supportsLipSync: isInCatalog(modelId, lipsyncModels) || /lipsync|lip.?sync/.test(modelId.toLowerCase()),
     maxImages,
     maxVideos,
@@ -296,7 +360,14 @@ export function resolveAssetsForModel(
   }
 
   const primaryIdentityUrl = getGenerationAssetUrl(assets.primaryIdentity)
-  if (mode === 'face_only' || mode === 'replace_face') {
+  if (source.mediaType === 'image' && (mode === 'replace_face' || mode === 'replace_person')) {
+    // Image demos keep the demo image as the one being edited; the person's
+    // photo goes along as a second, reference image (it used to replace the
+    // demo image, so the demo's design was lost).
+    if (source.sourceMedia) directInputs.image_url = source.sourceMedia
+    if (primaryIdentityUrl) directInputs.reference_image_url = primaryIdentityUrl
+    else if (assets.primaryIdentity) promptContext.presenterDescription = assets.primaryIdentity.name
+  } else if (mode === 'face_only' || mode === 'replace_face') {
     if (capabilities.supportsFaceSwap && primaryIdentityUrl) {
       directInputs.image_url = primaryIdentityUrl
     } else if (assets.primaryIdentity) {

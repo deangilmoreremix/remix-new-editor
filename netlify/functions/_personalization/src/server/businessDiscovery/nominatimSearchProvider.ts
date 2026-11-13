@@ -74,6 +74,7 @@ import type { BusinessDiscoveryRecord } from './types'
 import { getNicheMapping, getSupportedNiches } from './nicheMappings'
 import { reserveNominatimStart, __resetNominatimRateGateForTests } from './nominatimRateGate'
 import { createStageDeadline, withDeadline, type StageDeadline } from './deadline'
+import { extractWebsiteAndSocial } from './websiteTags'
 
 const NOMINATIM_SEARCH_BASE_URL = 'https://nominatim.openstreetmap.org'
 const USER_AGENT = 'SmartVideoGO-AI/1.0 (https://go.smartvid.app)'
@@ -115,7 +116,6 @@ const CLOSED_LIFECYCLE_TAGS = [
 const NAME_TAGS = ['name', 'name:en']
 const PHONE_TAGS = ['phone', 'contact:phone', 'contact:mobile', 'mobile']
 const EMAIL_TAGS = ['email', 'contact:email']
-const WEBSITE_TAGS = ['website', 'contact:website', 'url', 'contact:url']
 
 /**
  * Tag values that match every element of their key and therefore carry no
@@ -331,15 +331,7 @@ function normalizeResult(
 
   const phone = extractFirst(tags, PHONE_TAGS)
   const email = extractFirst(tags, EMAIL_TAGS)
-  const rawWebsite = extractFirst(tags, WEBSITE_TAGS)
-
-  let website: string | undefined
-  if (rawWebsite) {
-    website = rawWebsite
-    if (!/^https?:\/\//i.test(website)) {
-      website = `https://${website}`
-    }
-  }
+  const links = extractWebsiteAndSocial(tags)
 
   const address = result.address || {}
   const street = address.road || address.pedestrian || address.footway
@@ -353,16 +345,6 @@ function normalizeResult(
   if (houseNumber && street) addressParts.push(`${houseNumber} ${street}`)
   else if (street) addressParts.push(street)
   const addressString = addressParts.length > 0 ? addressParts.join(', ') : undefined
-
-  const social: Record<string, string> = {}
-  for (const [key, url] of Object.entries(tags)) {
-    if (!url || typeof url !== 'string') continue
-    if (!/^(facebook|instagram|whatsapp|youtube|linkedin)(:.*)?$/.test(key)) continue
-    const socialKey = key.split(':')[0]
-    if (!social[socialKey]) {
-      social[socialKey] = /^https?:\/\//i.test(url) ? url : `https://${url}`
-    }
-  }
 
   const latitude = result.lat != null ? parseFloat(result.lat) : undefined
   const longitude = result.lon != null ? parseFloat(result.lon) : undefined
@@ -389,15 +371,16 @@ function normalizeResult(
     longitude: Number.isNaN(longitude as number) ? undefined : longitude,
     phone,
     email,
-    website,
-    facebook: social.facebook,
-    instagram: social.instagram,
-    whatsapp: social.whatsapp,
-    youtube: social.youtube,
-    linkedin: social.linkedin,
+    website: links.website,
+    facebook: links.facebook,
+    instagram: links.instagram,
+    whatsapp: links.whatsapp,
+    youtube: links.youtube,
+    linkedin: links.linkedin,
+    tiktok: links.tiktok,
     openingHours: tags.opening_hours,
     operator: tags.operator,
-    websiteStatus: rawWebsite ? 'confirmed' : 'unknown',
+    websiteStatus: links.websiteStatus,
     verificationStatus: 'unverified',
     rawSource: { ...tags, _nominatimType: result.type, _nominatimClass: result.class },
   }

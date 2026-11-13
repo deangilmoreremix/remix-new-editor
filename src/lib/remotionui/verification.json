@@ -1,0 +1,753 @@
+{
+ "animated-bar-chart": {
+  "enabled": true,
+  "fps": 45.6
+ },
+ "ai-composer-showcase": {
+  "enabled": false,
+  "reason": "MP4 export failed: Error loading image with src: http://127.0.0.1:3101/logo.svg"
+ },
+ "ai-generation-canvas": {
+  "enabled": true,
+  "fps": 7,
+  "slow": true
+ },
+ "animated-noise-grain": {
+  "enabled": true,
+  "fps": 24.6
+ },
+ "arrow-annotate": {
+  "enabled": true,
+  "fps": 74.4
+ },
+ "audio-scrubber": {
+  "enabled": true,
+  "fps": 35.7
+ },
+ "aurora-bg": {
+  "enabled": true,
+  "fps": 10.4
+ },
+ "auto-fit-title": {
+  "enabled": true,
+  "fps": 55.6
+ },
+ "badge-stamp": {
+  "enabled": true,
+  "fps": 55
+ },
+ "blob-morph": {
+  "enabled": true,
+  "fps": 68.1
+ },
+ "bar-chart-race": {
+  "enabled": true,
+  "fps": 56.1
+ },
+ "bento-pan": {
+  "enabled": true,
+  "fps": 10.5
+ },
+ "blur-focus-in": {
+  "enabled": true,
+  "fps": 21.5
+ },
+ "blur-in": {
+  "enabled": true,
+  "fps": 35.7
+ },
+ "blur-reveal": {
+  "enabled": true,
+  "fps": 23.8
+ },
+ "browser-flow": {
+  "enabled": true,
+  "fps": 16.8
+ },
+ "bubble-chart-pack": {
+  "enabled": true,
+  "fps": 67.6
+ },
+ "calendar-month-fill": {
+  "enabled": true,
+  "fps": 13.4
+ },
+ "callout-spotlight": {
+  "enabled": true,
+  "fps": 40
+ },
+ "caption-bumper": {
+  "enabled": true,
+  "fps": 50.1
+ },
+ "candlestick-chart": {
+  "enabled": true,
+  "fps": 66.9
+ },
+ "caption-emoji-beat": {
+  "enabled": true,
+  "fps": 69
+ },
+ "caption-highlight": {
+  "enabled": true,
+  "fps": 55.4
+ },
+ "caption-scene": {
+  "enabled": true,
+  "fps": 46.9
+ },
+ "caustics-bg": {
+  "enabled": false,
+  "reason": "export too slow (1.1 fps at 1080p)",
+  "fps": 1.1
+ },
+ "changelog-entry": {
+  "enabled": true,
+  "fps": 30.8
+ },
+ "chat-gpt": {
+  "enabled": true,
+  "fps": 39.2
+ },
+ "chat-to-preview": {
+  "enabled": true,
+  "fps": 20.2
+ },
+ "claude-chat": {
+  "enabled": true,
+  "fps": 37.4
+ },
+ "chromatic-aberration-wipe": {
+  "enabled": true,
+  "fps": 40.1
+ },
+ "claude-code": {
+  "enabled": true,
+  "fps": 18.6
+ },
+ "code-accordion": {
+  "enabled": true,
+  "fps": 17
+ },
+ "code-diff-wipe": {
+  "enabled": true,
+  "fps": 11.8
+ },
+ "code-reveal": {
+  "enabled": true,
+  "fps": 16.3
+ },
+ "commit-graph": {
+  "enabled": true,
+  "fps": 24.1
+ },
+ "comment-callout": {
+  "enabled": true,
+  "fps": 22.6
+ },
+ "comparison-bars": {
+  "enabled": true,
+  "fps": 45
+ },
+ "comparison-table": {
+  "enabled": true,
+  "fps": 23.3
+ },
+ "confetti-burst": {
+  "enabled": true,
+  "fps": 63.4
+ },
+ "connector-lines": {
+  "enabled": true,
+  "fps": 79.7
+ },
+ "counter": {
+  "enabled": true,
+  "fps": 18.2
+ },
+ "countdown-timer": {
+  "enabled": true,
+  "fps": 45.6
+ },
+ "cursor-path": {
+  "enabled": true,
+  "fps": 55.9
+ },
+ "dashed-path-travel": {
+  "enabled": true,
+  "fps": 61.1
+ },
+ "dashboard-populate": {
+  "enabled": true,
+  "fps": 24.8
+ },
+ "data-flow-pipes": {
+  "enabled": true,
+  "fps": 21.3
+ },
+ "data-story": {
+  "enabled": true,
+  "fps": 31.7
+ },
+ "deploy-reveal": {
+  "enabled": false,
+  "fps": 13.8,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
+ },
+ "depth-of-field-blur": {
+  "enabled": true,
+  "fps": 3.1,
+  "slow": true
+ },
+ "donut-chart": {
+  "enabled": true,
+  "fps": 43.9
+ },
+ "directional-wipe": {
+  "enabled": true,
+  "fps": 31.2
+ },
+ "drag-drop-flow": {
+  "enabled": true,
+  "fps": 18.8
+ },
+ "dynamic-grid": {
+  "enabled": true,
+  "fps": 19.8
+ },
+ "ecosystem-orbit": {
+  "enabled": true,
+  "fps": 20.8
+ },
+ "end-card": {
+  "enabled": true,
+  "fps": 52.8
+ },
+ "fade-in": {
+  "enabled": true,
+  "fps": 75.7
+ },
+ "effector-field": {
+  "enabled": false,
+  "reason": "export too slow (1 fps at 1080p)",
+  "fps": 1
+ },
+ "feature-list": {
+  "enabled": true,
+  "fps": 43.4
+ },
+ "fade-out": {
+  "enabled": true,
+  "fps": 73.4
+ },
+ "faq-accordion": {
+  "enabled": true,
+  "fps": 34.5
+ },
+ "follow-through": {
+  "enabled": true,
+  "fps": 48.4
+ },
+ "form-fill-sequence": {
+  "enabled": true,
+  "fps": 25.2
+ },
+ "file-tree-reveal": {
+  "enabled": true,
+  "fps": 24.7
+ },
+ "frosted-glass-wipe": {
+  "enabled": true,
+  "fps": 54.6
+ },
+ "gantt-timeline": {
+  "enabled": true,
+  "fps": 66.5
+ },
+ "funnel-chart": {
+  "enabled": true,
+  "fps": 70
+ },
+ "gauge-dial": {
+  "enabled": true,
+  "fps": 61.4
+ },
+ "globe-arc": {
+  "enabled": true,
+  "fps": 53.7
+ },
+ "glow-pulse": {
+  "enabled": true,
+  "fps": 7.1,
+  "slow": true
+ },
+ "grid-pixelate-wipe": {
+  "enabled": false,
+  "reason": "MP4 export failed: Could not load mask-image URL data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%2010"
+ },
+ "handwriting-text": {
+  "enabled": true,
+  "fps": 37.2
+ },
+ "heatmap-grid": {
+  "enabled": true,
+  "fps": 17.9
+ },
+ "hero-loop": {
+  "enabled": false,
+  "fps": 5.9,
+  "slow": true,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
+ },
+ "hero-device-assemble": {
+  "enabled": true,
+  "fps": 13.3
+ },
+ "hook-card": {
+  "enabled": true,
+  "fps": 34.6
+ },
+ "ik-rig": {
+  "enabled": true,
+  "fps": 57.7
+ },
+ "image-expand": {
+  "enabled": true,
+  "fps": 24.3
+ },
+ "infinite-marquee": {
+  "enabled": true,
+  "fps": 54.1
+ },
+ "intro": {
+  "enabled": true,
+  "fps": 44.5
+ },
+ "kanban-move": {
+  "enabled": true,
+  "fps": 28.7
+ },
+ "karaoke-captions": {
+  "enabled": true,
+  "fps": 54.8
+ },
+ "light-rays": {
+  "enabled": true,
+  "fps": 3.6,
+  "slow": true
+ },
+ "landing-code-showcase": {
+  "enabled": false,
+  "fps": 25.2,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
+ },
+ "light-sweep-text": {
+  "enabled": true,
+  "fps": 53.2
+ },
+ "line-chart-draw": {
+  "enabled": true,
+  "fps": 31.6
+ },
+ "light-tunnel-bg": {
+  "enabled": true,
+  "fps": 3.4,
+  "slow": true
+ },
+ "liquid-text-morph": {
+  "enabled": true,
+  "fps": 35.3
+ },
+ "live-code-split": {
+  "enabled": true,
+  "fps": 9.9
+ },
+ "logo-wall": {
+  "enabled": true,
+  "fps": 7.5,
+  "slow": true
+ },
+ "logo-reveal": {
+  "enabled": true,
+  "fps": 26
+ },
+ "marker-highlight": {
+  "enabled": true,
+  "fps": 28.6
+ },
+ "lower-third": {
+  "enabled": true,
+  "fps": 60.4
+ },
+ "masked-slide-reveal": {
+  "enabled": true,
+  "fps": 72.9
+ },
+ "mesh-gradient-bg": {
+  "enabled": true,
+  "fps": 9.9
+ },
+ "metric-ticker": {
+  "enabled": true,
+  "fps": 40.3
+ },
+ "matrix-decode": {
+  "enabled": true,
+  "fps": 69.3
+ },
+ "motion-trail": {
+  "enabled": true,
+  "fps": 5.7,
+  "slow": true
+ },
+ "multi-device-lineup": {
+  "enabled": true,
+  "fps": 43.1
+ },
+ "neon-flicker-text": {
+  "enabled": true,
+  "fps": 43.1
+ },
+ "notification-stack": {
+  "enabled": true,
+  "fps": 45.6
+ },
+ "news-ticker-bar": {
+  "enabled": true,
+  "fps": 43.6
+ },
+ "opencode": {
+  "enabled": true,
+  "fps": 47.2
+ },
+ "orbit-motion": {
+  "enabled": true,
+  "fps": 60.5
+ },
+ "org-chart-build": {
+  "enabled": true,
+  "fps": 33.6
+ },
+ "parallax-layers": {
+  "enabled": true,
+  "fps": 3.9,
+  "slow": true
+ },
+ "particle-field": {
+  "enabled": false,
+  "reason": "export too slow (1 fps at 1080p)",
+  "fps": 1
+ },
+ "path-draw": {
+  "enabled": true,
+  "fps": 65.9
+ },
+ "perspective-marquee": {
+  "enabled": true,
+  "fps": 7.5,
+  "slow": true
+ },
+ "pie-slice-reveal": {
+  "enabled": true,
+  "fps": 65.8
+ },
+ "poll-overlay": {
+  "enabled": true,
+  "fps": 24.7
+ },
+ "pricing-card": {
+  "enabled": true,
+  "fps": 25
+ },
+ "pricing-focus": {
+  "enabled": false,
+  "fps": 10.3,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
+ },
+ "progress-bar": {
+  "enabled": true,
+  "fps": 65.7
+ },
+ "quiz-question": {
+  "enabled": true,
+  "fps": 25.8
+ },
+ "quote-card": {
+  "enabled": true,
+  "fps": 37.6
+ },
+ "radar-chart": {
+  "enabled": true,
+  "fps": 58.2
+ },
+ "reaction-burst": {
+  "enabled": true,
+  "fps": 41.5
+ },
+ "roadmap-lanes": {
+  "enabled": true,
+  "fps": 38.6
+ },
+ "rotate-in": {
+  "enabled": true,
+  "fps": 57.3
+ },
+ "rgb-glitch-text": {
+  "enabled": true,
+  "fps": 14.7
+ },
+ "scanline-crt": {
+  "enabled": true,
+  "fps": 3.7,
+  "slow": true
+ },
+ "scatter-plot-pop": {
+  "enabled": true,
+  "fps": 62
+ },
+ "scramble-text": {
+  "enabled": true,
+  "fps": 40.2
+ },
+ "shape-layer": {
+  "enabled": true,
+  "fps": 46.5
+ },
+ "search-results-populate": {
+  "enabled": true,
+  "fps": 28.4
+ },
+ "shake-emphasis": {
+  "enabled": false,
+  "fps": 77.6,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
+ },
+ "shape-morph": {
+  "enabled": true,
+  "fps": 60.1
+ },
+ "simulated-cursor": {
+  "enabled": true,
+  "fps": 20.9
+ },
+ "showcase": {
+  "enabled": true,
+  "fps": 37.3
+ },
+ "slide-left": {
+  "enabled": true,
+  "fps": 68.7
+ },
+ "skew-in": {
+  "enabled": true,
+  "fps": 75.1
+ },
+ "slide-up": {
+  "enabled": true,
+  "fps": 71.6
+ },
+ "slit-scan": {
+  "enabled": true,
+  "fps": 10.5
+ },
+ "sparkline-row": {
+  "enabled": true,
+  "fps": 41.2
+ },
+ "slot-roll": {
+  "enabled": true,
+  "fps": 72.1
+ },
+ "spatial-push": {
+  "enabled": true,
+  "fps": 9.1
+ },
+ "speaker-label-captions": {
+  "enabled": true,
+  "fps": 61.7
+ },
+ "split-screen": {
+  "enabled": true,
+  "fps": 31.8
+ },
+ "split-text-chars": {
+  "enabled": true,
+  "fps": 40.7
+ },
+ "sports-scorebug": {
+  "enabled": true,
+  "fps": 33.5
+ },
+ "spring-in": {
+  "enabled": true,
+  "fps": 72.6
+ },
+ "squash-stretch": {
+  "enabled": true,
+  "fps": 57.9
+ },
+ "stagger-children": {
+  "enabled": false,
+  "fps": 57.9,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
+ },
+ "stacked-area-chart": {
+  "enabled": true,
+  "fps": 48.3
+ },
+ "strikethrough-replace": {
+  "enabled": false,
+  "fps": 59.5,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
+ },
+ "staggered-fade-up": {
+  "enabled": true,
+  "fps": 39.5
+ },
+ "stat-card": {
+  "enabled": true,
+  "fps": 25.2
+ },
+ "subtitle-translate": {
+  "enabled": true,
+  "fps": 65.3
+ },
+ "stroke-to-fill-text": {
+  "enabled": true,
+  "fps": 17.2
+ },
+ "svg-mask-reveal": {
+  "enabled": false,
+  "reason": "MP4 export failed: @remotion/web-renderer only supports URL masks with mask-size: 100% 100%, mask-position: 0% 0%, mask-repeat: no-repeat, the border box as or"
+ },
+ "team-grid": {
+  "enabled": true,
+  "fps": 42.6
+ },
+ "tab-switch-panel": {
+  "enabled": true,
+  "fps": 21
+ },
+ "terminal-simulator": {
+  "enabled": true,
+  "fps": 20
+ },
+ "text-animator": {
+  "enabled": true,
+  "fps": 34.1
+ },
+ "text-reveal-shader": {
+  "enabled": true,
+  "fps": 7.3,
+  "slow": true
+ },
+ "timeline-steps": {
+  "enabled": true,
+  "fps": 34.7
+ },
+ "title-card": {
+  "enabled": true,
+  "fps": 36.3
+ },
+ "tool-menu-slide": {
+  "enabled": false,
+  "fps": 25.8,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
+ },
+ "topographic-lines-bg": {
+  "enabled": true,
+  "fps": 12.2
+ },
+ "tracking-in": {
+  "enabled": true,
+  "fps": 30.1
+ },
+ "transcript-scroll": {
+  "enabled": true,
+  "fps": 46.8
+ },
+ "transition-blinds": {
+  "enabled": true,
+  "fps": 47.1
+ },
+ "transition-card-flip": {
+  "enabled": true,
+  "fps": 21.9
+ },
+ "transition-circle-reveal": {
+  "enabled": true,
+  "fps": 58.2
+ },
+ "transition-clock-wipe": {
+  "enabled": true,
+  "fps": 49.5
+ },
+ "transition-fade": {
+  "enabled": true,
+  "fps": 52.6
+ },
+ "transition-light-leak": {
+  "enabled": true,
+  "fps": 19.3
+ },
+ "transition-liquid-warp": {
+  "enabled": true,
+  "fps": 54.1
+ },
+ "transition-morph-shape": {
+  "enabled": true,
+  "fps": 51.1
+ },
+ "transition-slide": {
+  "enabled": true,
+  "fps": 59.1
+ },
+ "transition-whip-pan": {
+  "enabled": true,
+  "fps": 57.7
+ },
+ "typewriter": {
+  "enabled": true,
+  "fps": 61
+ },
+ "treemap-blocks": {
+  "enabled": true,
+  "fps": 62.1
+ },
+ "transition-wipe": {
+  "enabled": true,
+  "fps": 60.4
+ },
+ "v0": {
+  "enabled": true,
+  "fps": 34.7
+ },
+ "voice-note-bubble": {
+  "enabled": true,
+  "fps": 46.7
+ },
+ "variable-font-morph": {
+  "enabled": true,
+  "fps": 16.9
+ },
+ "waterfall-chart": {
+  "enabled": true,
+  "fps": 62.6
+ },
+ "wave-text": {
+  "enabled": true,
+  "fps": 46
+ },
+ "weather-card": {
+  "enabled": true,
+  "fps": 16.6
+ },
+ "word-pop-captions": {
+  "enabled": true,
+  "fps": 71.7
+ },
+ "zoom-through": {
+  "enabled": true,
+  "fps": 23.9
+ }
+}

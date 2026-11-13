@@ -16,6 +16,7 @@ import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResol
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
+import { resolvePrefillModel, takePrefillModelName } from '../lib/prefillModel.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
@@ -47,7 +48,8 @@ export function VideoStudio() {
   mountStudioChrome(container, { currentRoute: 'video' });
 
     // --- State ---
-    const defaultModel = t2vModels[0];
+    // A model picked on the Text to Video page wins (key is always cleared; unknown names -> default).
+    const defaultModel = resolvePrefillModel(t2vModels, takePrefillModelName()) || t2vModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
     let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '16:9';

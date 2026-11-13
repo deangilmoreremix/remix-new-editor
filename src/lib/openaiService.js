@@ -1338,6 +1338,48 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
   }
 
   /**
+   * Plain text (or JSON) completion with the user's own OpenAI key.
+   * @param {Object} opts
+   * @param {string} opts.prompt - user message
+   * @param {string} [opts.system] - system message
+   * @param {boolean} [opts.json] - ask for a JSON object reply
+   * @param {number} [opts.maxTokens]
+   * @returns {Promise<string>} the reply text
+   */
+  async generateText({ prompt, system, json = false, maxTokens = 2000, temperature = 0.8, signal } = {}) {
+    if (!this._hasKey()) throw new Error(this.missingKeyMessage);
+    const openaiKey = this._getOpenAIKey();
+    if (!openaiKey) throw new Error(this.missingKeyMessage);
+
+    // Fail fast so callers (storyboard planning) can fall back instead of hanging.
+    const timeout = typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(45000) : undefined;
+    const effectiveSignal = signal && timeout && AbortSignal.any ? AbortSignal.any([signal, timeout]) : (signal || timeout);
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4.1-mini',
+        messages: [
+          ...(system ? [{ role: 'system', content: system }] : []),
+          { role: 'user', content: prompt },
+        ],
+        temperature,
+        max_tokens: maxTokens,
+        ...(json ? { response_format: { type: 'json_object' } } : {}),
+      }),
+      signal: effectiveSignal,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+      throw new Error(`Text generation failed: ${error.error?.message || 'Unknown error'}`);
+    }
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content;
+    if (!text) throw new Error('No text returned');
+    return text;
+  }
+
+  /**
    * Upload a reference/mask image to the OpenAI Files API (purpose: "vision")
    * so it can be supplied as a `file_id` input. Returns the file id.
    * @param {Blob|File|BufferSource} file

@@ -631,7 +631,32 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // shortcut appeared to do nothing. Fixed by resolving the stored token
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', '49093db1fc3b605f1afdf3c485df3918193249ed1054f7bee3a54330a694c39d'],
+    // Re-recorded deliberately again for the Timeline AI work: the "Free AI"
+    // (on-device Transformers.js) and "AI generate" (MuAPI) clip-editor
+    // sections, the Free AI rail panel, and Fill Gap / Extend shortcuts that
+    // used the undefined CINEGEN_TOOLS.GAP_FILL now open the working MuAPI
+    // flow. New files are stored through the page's existing
+    // uploadFileToStorage import; no upload-pipeline call site changed
+    // (section 2 import-surface guard still passes). Then re-recorded once
+    // more for the CineGen edit tools (blade/ripple/roll/slip/slide, markers,
+    // speed, flip, source In/Out, audio sync, proxies, real waveforms and
+    // filmstrips), for the AI Chat / Storyboard rail panels (OpenAI
+    // Responses API + Images 2.6 on the user's key), and for the remaining
+    // CineGen work: the on-device Mask tool, track delete/reorder, linked
+    // clips, Track Forward, keyframe lanes and the Voice Director button;
+    // the dead #cinegen* button listeners were removed. No upload call site changed.
+        // Re-recorded deliberately for the approved Projects / publishing work:
+    // a Projects rail panel, a Save modal that persists to timeline_projects,
+    // cloud autosave of the saved project, render metadata after export, and
+    // readable-link / privacy / revision controls in the Share panel. No
+    // upload-pipeline behaviour changed: every new call goes through the
+    // existing signed-in Supabase client (publishOwnerClient) and the
+    // dynamically imported projectStore / publishClient modules. Also: Projects
+    // tabs (Analytics dashboard, Audience, Retarget, Notifications) are
+    // dynamically imported and use the same owner client; publishing carries
+    // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
+    // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
+        ['src/components/TimelineEditorPage.jsx', 'b8bc40369d738dfbe8b075a08cd00476c813366dac71cbaf0bfeb3ed84949721'], // re-recorded after merging develop with the Projects / publishing work
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -654,7 +679,11 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // The byte hash is the accepted new baseline for that approved edit; the
     // real guard now lives in the semantic assertions in section 5.
     ['src/lib/cinegen.js', '1a96e9fc4e7d0d17ba1c9cce9b2c1c2e539d3cf54fb0107c444c62dc9c2df531'],
-    ['src/lib/cinegenIntegration.js', 'd73459062a6ff89b78b3196a7fc90c140ff491c1ffeafc18f28769d24cec706d'],
+    // Re-recorded deliberately: the legacy Timeline AI client now sends the
+    // Clerk session token and the user's own MuAPI key (X-MuAPI-Key), because
+    // netlify/functions/cinegen.js no longer accepts anonymous calls or spends
+    // the platform key. No upload-pipeline behaviour changed.
+    ['src/lib/cinegenIntegration.js', 'bea97a4f3e167b0ffdc2af348ea7da0c747cee73ea0a63c4663b5116e6217e3d'], // re-recorded: dropped ELEMENT_CREATE/SHOT_BOARD tool constants (moved to Images 2.6)
     ['src/modules/CineGen/src/layout/CineGenLayout.tsx', 'b3b232c358d01931e066ddf5d779a80a7280de70a13c8ab6c72c93b31def9e3a'],
     ['src/components/elements/element-card.jsx', 'd6bcaa6ec593761739b590a6370241f280ef7fda6e30354eb07da03c6e779bf1'],
     ['src/components/elements/element-generate.jsx', '7fc3ab1fa298a640f20070f70f93c17fcf8fe9289523a343cd6cc4bb6c799525'],
@@ -671,7 +700,11 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // `../../lib/cinegenIntegration.js`) so the timeline AI tool resolves
     // again. No upload-pipeline behaviour changed. Semantic coverage in
     // section 5.
-    ['src/components/timeline/AIChatPanel.js', '78c426c7d1ee9006a57abd37613b8e24b66dcdc3ccfb9d750a6a07a87f4aa575'],
+    // Re-recorded deliberately again: the chat now runs on the OpenAI
+    // Responses API (user's own key) with CineGen's Ask/Search/Cut/Timeline
+    // modes; the old keyword-triggered fake replies were removed. It has no
+    // upload code (semantic guard in section 5).
+    ['src/components/timeline/AIChatPanel.js', 'ac38f4df2c3f71a417c30a8ef95dfe5116cd5380900cbd5505f739bf072b310d'],
     // Re-recorded deliberately after repairing a broken relative import
     // (`../../lib/muapi.js` → `../../../lib/muapi.js`): from create/nodes/ the
     // old path pointed at a non-existent src/components/lib and the build
@@ -690,7 +723,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // coverage in section 5.
     ['src/lib/editor/uploadSources.js', '8518c38c4bb2da9c28e7a1a0a99111c54625e6c0dbce0234a53f4cf2012b78b0'],
     ['src/lib/editor/mediaLibrary.js', '32caa774b2ee2e19fe849fa18fc4b3c03d065e9ee132e89a4355822d2d49ed84'],
-    ['src/lib/editor/aiTools.js', '3bb112b66ca30009f467353a22dc452fdf57bf480e5c067339c9178630e1ea19'],
+    ['src/lib/editor/aiTools.js', 'a1bd66cc044b82057d7f274d915348ce58c22d040aa23f3be6fdee493e9e45b6'], // re-recorded: generate-image/colorize now OpenAI Images 2.6 on the user's key (was MuAPI imagen4/ai-color-photo)
     // NEW entries — Timeline Editor internals that carry no upload call site
     // but are core to the protected Timeline Editor, and whose paired suites
     // were already byte-pinned below. Neither file has been touched by this
@@ -717,7 +750,11 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/lib/editor/__tests__/timeline-operations.test.js', '2cf48c06362a441f6005b49b9b75047f12666e407fb583e2034e62ba28cdc4df'],
     ['src/lib/editor/__tests__/timeline-state-multitab.test.js', 'b0df5878f31b1efd9879d40736fbfd28b7eebc197394a30d33ece3df95b403af'],
     ['src/lib/editor/__tests__/timeline-track-controls.test.js', '91925a63b3deb493a8c0ae2c03ce787f70646be810b4b57aa4251fbd6d5cc7d3'],
-    ['src/lib/editor/__tests__/timeline-editor-mask.test.js', '591901aa5d3add68baa1c2d8b86dbbe1dafd32fb2cd4711a3700d5c3aa97eef9'],
+    // Re-recorded deliberately: the Mask tool now runs on-device (pointer events →
+    // maskObject) instead of the removed fal/SAM3 route, so the two source-string
+    // assertions about the old code (toast text, maskClickPoint & co.) were pointed at
+    // the new implementation. The behaviours they protect are unchanged.
+    ['src/lib/editor/__tests__/timeline-editor-mask.test.js', '5ea39b64fe13d81d78134429834aaad6734534aad02a6381edd06264c4195a26'],
     ['src/lib/editor/__tests__/timeline-feature-api.test.js', '29a24abc1c81fb4eb63d995eceff6d129499afb166f4744a81dccc5e9bcdbcf2'],
     ['src/lib/editor/__tests__/tool-parity.test.js', 'ee65825791b7447025949328c2017d8b8338c71d4a1cf012e0a60b3bd61f4a71'],
   ];
@@ -868,9 +905,13 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain('await fetch(this.proxyUrl');
   });
 
-  it('AIChatPanel.js still imports the CineGen integration and exports its class', async () => {
+  // Updated deliberately: the chat moved off the CineGen integration's MuAPI
+  // llm_chat onto the OpenAI Responses API (user's own key) via
+  // src/lib/editor/ai/timelineLlm.js. It never touched the upload pipeline.
+  it('AIChatPanel.js uses the Responses API chat client and exports its class', async () => {
     const source = readSource('src/components/timeline/AIChatPanel.js');
-    expect(source).toContain("await import('../../lib/cinegenIntegration.js')");
+    expect(source).toContain("from '../../lib/editor/ai/timelineLlm.js'");
+    expect(source).not.toMatch(/upload|supabase|storage/i);
     expect(source).toContain('export default class AIChatPanel {');
     expect(source).toContain('export { AIChatPanel };');
 
@@ -905,6 +946,30 @@ describe('protected files — semantic integrity assertions', () => {
     // The keyboard tool shortcut must keep writing toolMap's value verbatim —
     // src/lib/editor/__tests__/timeline-editor-mask.test.js pins this line.
     expect(source).toContain('state.selectedTool = toolMap[toolKey]');
+  });
+
+  it('TimelineEditorPage.jsx adds Projects wiring without a new upload or provider path', () => {
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    // The existing upload entry points are untouched and still used.
+    expect(source).toContain("import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';");
+    expect(source).toContain('uploadFileToStorage');
+    // Projects talk to the database only through the already-authenticated
+    // owner client, via the dynamically imported store modules.
+    expect(source).toContain("import('../lib/editor/projectLibrary/projectStore.js')");
+    expect(source).toContain("import('../lib/editor/projectLibrary/projectsPanel.js')");
+    expect(source).toContain("import('../lib/editor/projectLibrary/projectTabs.js')");
+    expect(source).toContain("import('../lib/editor/projectLibrary/analytics/mountAnalyticsTab.jsx')");
+    expect(source).toContain('async function publishOwnerClient()');
+    // Thumbnails, shared Publish panel and the header-bell hand-off reuse existing modules/events.
+    expect(source).toContain('captureProjectThumbnail');
+    expect(source).toContain('createSharePanel');
+    expect(source).toContain("remix:open-projects");
+    expect(source).toContain('owner_portfolio_summary');
+    expect(source).toContain("import { isTypingTarget } from '../lib/editor/keyboard.js';");
+    // Opening a project must never silently replace an unsaved timeline.
+    expect(source).toContain('is not saved as a project and will be replaced');
+    // No browser-exposed provider key or direct provider fetch was introduced.
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
   });
 
   it('TimelineEditorPage.jsx keeps the image-finder personalization wiring', () => {
