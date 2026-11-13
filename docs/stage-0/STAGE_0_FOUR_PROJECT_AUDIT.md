@@ -132,7 +132,17 @@ Pure TS with only type dependencies: `shared/utils/easing.ts`, `keyframes/utils/
 Available: ~17 event types (play, pause, progress milestones, replay, section_rewatch, cta_click, call_click, lead_submit…), `watch` segments, session hashing, DNT/GPC and `?consent=`, batching, idempotency on (session, seq), 90-day raw retention. Not available: pointer x/y, element bounding boxes, scroll depth, impressions, device class (verify), per-second watch. All new columns/RPCs need new migrations with a post-`20261113*` timestamp, RLS owner checks, and the Clerk-vs-Supabase auth convention decision flagged by the other plan.
 
 ## 8. Baseline test results
-_Pending: full vitest run in progress at commit time; numbers added in the follow-up commit._
+Environment: Node v22.23.4. `npm install --no-package-lock --ignore-scripts --no-audit --no-fund` (exit 0 on the second attempt; the first collided with a killed earlier install and was cleaned). No lockfile or tracked file changed.
+
+| Command | Result |
+|---|---|
+| `npx vitest run --reporter=dot` | **Exit 1.** 767 files: 765 passed, **2 failed**. Tests: **11,163 passed, 2 failed, 61 skipped** (11,226). 469 s. |
+| Failure 1 | `src/cinegen/__tests__/timeline-parity.test.ts` — `timeline-editor.tsx` differs from vendored CineGen by more than the 220-line budget (pre-existing; same failure the other plan recorded). |
+| Failure 2 | `src/features/personalization/apps/motion-director/__tests__/legacyCards.test.ts` — legacy texture file missing (pre-existing; same as the other plan). |
+| `tsc`, `eslint`, `npm run build`, Playwright | **Not run in this stage.** The other plan's Stage 0 recorded tsc syntax errors in `packages/{layout,tokens}` and a clean eslint (0 errors); not re-verified here. `npm run build` was skipped because it runs nested installs. |
+| Browser / real-render checks | **Not performed** (audit only). |
+
+The vitest suite is jsdom-based and mocked, so it does not prove real rendering.
 
 ## 9. Recommended stage modifications
 1. **Insert a "Stage 0.5 / pre-work" fix stage** (or fold into Stage 1): close CineGen export hand-off gaps (§2.2); without it every later "verified in export" claim is unreliable.
