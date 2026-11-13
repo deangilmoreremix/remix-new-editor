@@ -25,8 +25,11 @@ To re-upload after changing the allowlist: `SUPABASE_SERVICE_ROLE_KEY=… node s
 secret-free edge function `demo-templates-import`, which is now a disabled stub and can be deleted in the Supabase dashboard.
 
 ## Rights
-The clips are third-party media (originally posted on X, sourced from public prompt galleries). Commercial-use / redistribution
-permission must be confirmed before production use; `sourceAuthor` / `sourceUrl` in the upstream data files hold the attribution.
+The clips are third-party media (originally posted on X, sourced from public prompt galleries). The owner has confirmed they hold
+commercial-use permission for the clips; `sourceAuthor` / `sourceUrl` in the upstream data files hold the attribution.
+
+## Where it appears in the app
+Timeline editor (CineGen) -> EDIT -> "Add to timeline" -> **Template videos** tab. Picking a card adds the clip to a video track at the playhead.
 
 ## Using these templates from another app (or another Claude)
 Everything needed is public. Start from the catalog:
