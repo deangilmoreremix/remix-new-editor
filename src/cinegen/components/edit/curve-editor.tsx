@@ -38,7 +38,7 @@ export function CurveEditor({ ease, onChange, onClose }: { ease: EaseSpec | unde
     <button type="button" className="clip-properties-panel__toggle-btn" data-testid={`curve-mode-${k}`} aria-pressed={kind === k} style={kind === k ? { borderColor: '#22d3ee', color: '#22d3ee' } : undefined} onClick={() => { if (kind !== k) onChange(make()); }}>{label}</button>
   );
   return (
-    <div role="dialog" aria-label="Curve editor" data-testid="curve-editor" className="stage2-popover" style={{ background: 'var(--bg-elevated, #151a24)', border: '1px solid var(--border-medium, rgba(255,255,255,.2))', borderRadius: 8, padding: 10, margin: '6px 0', boxShadow: '0 6px 24px rgba(0,0,0,.45)' }}>
+    <div role="dialog" aria-label="Curve editor" data-testid="curve-editor" className="stage2-popover" style={{ position: 'fixed', top: 120, right: 340, width: 270, zIndex: 60, background: 'var(--bg-elevated, #151a24)', border: '1px solid var(--border-medium, rgba(255,255,255,.2))', borderRadius: 8, padding: 10, boxShadow: '0 6px 24px rgba(0,0,0,.45)' }}>
       <div className="clip-properties-panel__row" style={{ justifyContent: 'space-between' }}>
         <span style={{ fontSize: 11, fontWeight: 600 }}>Easing curve</span>
         <button type="button" className="clip-properties-panel__toggle-btn" aria-label="Close curve editor" data-testid="curve-close" onClick={onClose}>✕</button>
@@ -67,7 +67,7 @@ export function CurveEditor({ ease, onChange, onClose }: { ease: EaseSpec | unde
       )}
       {kind === 'bezier' && (
         <div className="clip-properties-panel__row" style={{ gap: 4 }}>
-          {bz.map((v, i) => <input key={i} type="number" aria-label={['x1', 'y1', 'x2', 'y2'][i]} data-testid={`curve-num-${i}`} step={0.05} value={v} style={{ width: 52 }} onChange={(e) => setNum(i, parseFloat(e.target.value))} />)}
+          {bz.map((v, i) => <input key={i} type="number" aria-label={['x1', 'y1', 'x2', 'y2'][i]} data-testid={`curve-num-${i}`} step={0.05} value={v} style={{ width: 62, fontSize: 11 }} onChange={(e) => setNum(i, parseFloat(e.target.value))} />)}
         </div>
       )}
       {kind === 'spring' && (['tension', 'friction', 'mass'] as const).map((k) => (
