@@ -247,6 +247,22 @@ export async function assertVerifiedWriteIdentity(identity) {
  *   - no verified identity  → `x-user-key` alone (anonymous header
  *     fallback, unchanged behaviour).
  */
+/**
+ * Set (or, with a null value, remove) one request header on a client's header bag. Current supabase-js/postgrest-js
+ * keep headers in a WHATWG `Headers` object, where `headers.Authorization = x` is a silent no-op (the property is never
+ * sent); older builds and test doubles use plain objects. Handle both so the verified identity really reaches the wire.
+ */
+function setClientHeader(headers, name, value) {
+  if (!headers) return;
+  if (typeof headers.set === 'function') {
+    if (value == null) headers.delete(name); else headers.set(name, value);
+  } else if (value == null) {
+    delete headers[name];
+  } else {
+    headers[name] = value;
+  }
+}
+
 function applyIdentity(client, token) {
   const identity = getIdentity();
   // Identity changed (sign-out / account switch): the cached token is stale.
@@ -254,14 +270,12 @@ function applyIdentity(client, token) {
   const bearer = token ? `Bearer ${token}` : null;
   try {
     if (client?.rest?.headers) {
-      if (bearer) client.rest.headers.Authorization = bearer;
-      else delete client.rest.headers.Authorization;
-      client.rest.headers['x-user-key'] = identity;
+      setClientHeader(client.rest.headers, 'Authorization', bearer);
+      setClientHeader(client.rest.headers, 'x-user-key', identity);
     }
     if (client?.storage?.headers) {
-      if (bearer) client.storage.headers.Authorization = bearer;
-      else delete client.storage.headers.Authorization;
-      client.storage.headers['x-user-key'] = identity;
+      setClientHeader(client.storage.headers, 'Authorization', bearer);
+      setClientHeader(client.storage.headers, 'x-user-key', identity);
     }
   } catch { /* identity unavailable — policies fall back to the anonymous owner */ }
 }

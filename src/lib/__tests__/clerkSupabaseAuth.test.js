@@ -13,6 +13,9 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
+// Read a header the way a request does: supabase-js keeps them in a WHATWG Headers object (plain objects in older builds).
+const hv = (h, k) => (typeof h?.get === 'function' ? (h.get(k) ?? undefined) : h?.[k]);
+
 // ─── Mocked Clerk instance (via the mocked clerkInit sibling) ──────────────
 
 const clerkState = vi.hoisted(() => ({
@@ -303,14 +306,15 @@ describe('supabase.js — Clerk-verified minted-token client wiring', () => {
       expect(init.headers.Authorization).toBe('Bearer clerk-session-jwt');
 
       // Requests carry the minted bearer plus the verified x-user-key.
-      expect(rawClient.rest.headers.Authorization).toBe(`Bearer ${MINTED}`);
-      expect(rawClient.rest.headers['x-user-key']).toBe('user_2verifiedclerkid');
-      expect(rawClient.storage.headers.Authorization).toBe(`Bearer ${MINTED}`);
+      expect(hv(rawClient.rest.headers, 'Authorization')).toBe(`Bearer ${MINTED}`);
+      expect(hv(rawClient.rest.headers, 'x-user-key')).toBe('user_2verifiedclerkid');
+      expect(hv(rawClient.storage.headers, 'Authorization')).toBe(`Bearer ${MINTED}`);
 
       // The header-injecting proxy re-applies the bearer on every access.
-      delete rawClient.rest.headers.Authorization;
+      // simulate a dropped header, whatever the client uses to hold them
+      if (typeof rawClient.rest.headers.delete === 'function') rawClient.rest.headers.delete('Authorization'); else delete rawClient.rest.headers.Authorization;
       supabase.from('media');
-      expect(rawClient.rest.headers.Authorization).toBe(`Bearer ${MINTED}`);
+      expect(hv(rawClient.rest.headers, 'Authorization')).toBe(`Bearer ${MINTED}`);
 
       // A real Supabase Auth client is still grafted for existing flows.
       const { data } = await supabase.auth.getSession();
@@ -324,8 +328,8 @@ describe('supabase.js — Clerk-verified minted-token client wiring', () => {
       window.Clerk = { loaded: true, user: null };
       globalThis.fetch.mockClear();
       expect(await primeSupabaseIdentity(rawClient)).toBeNull();
-      expect(rawClient.rest.headers.Authorization).toBeUndefined();
-      expect(rawClient.rest.headers['x-user-key']).toBe('anonymous');
+      expect(hv(rawClient.rest.headers, 'Authorization')).toBeUndefined();
+      expect(hv(rawClient.rest.headers, 'x-user-key')).toBe('anonymous');
       expect(globalThis.fetch).not.toHaveBeenCalled();
       await expect(assertVerifiedWriteIdentity('anonymous')).resolves.toBeUndefined();
 
@@ -336,7 +340,7 @@ describe('supabase.js — Clerk-verified minted-token client wiring', () => {
       vi.resetModules();
       const failClosed = await import('../supabase.js');
       expect(await failClosed.primeSupabaseIdentity(failClosed.rawClient)).toBeNull();
-      expect(failClosed.rawClient.rest.headers.Authorization).toBeUndefined();
+      expect(hv(failClosed.rawClient.rest.headers, 'Authorization')).toBeUndefined();
       await expect(failClosed.assertVerifiedWriteIdentity('user_2verifiedclerkid'))
         .rejects.toMatchObject({ code: 'SECURE_SESSION_UNAVAILABLE' });
     } finally {

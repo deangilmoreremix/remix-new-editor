@@ -7,6 +7,9 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
+// Read a header the way a request does: supabase-js keeps them in a WHATWG Headers object (plain objects in older builds).
+const hv = (h, k) => (typeof h?.get === 'function' ? (h.get(k) ?? undefined) : h?.[k]);
+
 vi.mock('../lib/apiKeyManager.js', () => ({
   apiKeyManager: {
     getMuapiKey: () => 'test-muapi-key',
@@ -35,8 +38,8 @@ describe('shared Supabase client identity header', () => {
     const { supabase } = await import('../lib/supabase.js');
     supabase.from('media');
     supabase.storage.from('uploads');
-    expect(supabase.rest.headers['x-user-key']).toBe('user-clerk-42');
-    expect(supabase.storage.headers['x-user-key']).toBe('user-clerk-42');
+    expect(hv(supabase.rest.headers, 'x-user-key')).toBe('user-clerk-42');
+    expect(hv(supabase.storage.headers, 'x-user-key')).toBe('user-clerk-42');
   });
 
   test('signed-out callers are strictly anonymous — never the offline BYOK hash', async () => {
@@ -44,21 +47,40 @@ describe('shared Supabase client identity header', () => {
     const { supabase } = await import('../lib/supabase.js');
     supabase.from('media');
     supabase.storage.from('uploads');
-    expect(supabase.rest.headers['x-user-key']).toBe('anonymous');
-    expect(supabase.storage.headers['x-user-key']).toBe('anonymous');
-    expect(supabase.rest.headers['x-user-key']).not.toBe('user_offlinehash');
+    expect(hv(supabase.rest.headers, 'x-user-key')).toBe('anonymous');
+    expect(hv(supabase.storage.headers, 'x-user-key')).toBe('anonymous');
+    expect(hv(supabase.rest.headers, 'x-user-key')).not.toBe('user_offlinehash');
   });
 
   test('refreshSupabaseUserHeader follows a sign-in change', async () => {
     const { supabase, refreshSupabaseUserHeader } = await import('../lib/supabase.js');
     setClerkUser('user-clerk-1');
     refreshSupabaseUserHeader();
-    expect(supabase.rest.headers['x-user-key']).toBe('user-clerk-1');
+    expect(hv(supabase.rest.headers, 'x-user-key')).toBe('user-clerk-1');
     setClerkUser('user-clerk-2');
     refreshSupabaseUserHeader();
-    expect(supabase.rest.headers['x-user-key']).toBe('user-clerk-2');
+    expect(hv(supabase.rest.headers, 'x-user-key')).toBe('user-clerk-2');
     setClerkUser(null);
     refreshSupabaseUserHeader();
-    expect(supabase.rest.headers['x-user-key']).toBe('anonymous');
+    expect(hv(supabase.rest.headers, 'x-user-key')).toBe('anonymous');
+  });
+});
+
+describe('verified identity reaches the wire (Headers-object clients)', () => {
+  test('applyIdentity sets Authorization/x-user-key on WHATWG Headers, not as ignored properties', async () => {
+    vi.resetModules();
+    globalThis.window.Clerk = { loaded: true, user: { id: 'user-clerk-9' }, session: { getToken: async () => 'clerk-session-jwt' } };
+    globalThis.fetch = vi.fn(async () => ({ ok: true, json: async () => ({ token: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyLWNsZXJrLTkifQ.sig', expires_in: 3600 }) }));
+    const { primeSupabaseIdentity } = await import('../lib/supabase.js');
+    const client = { rest: { headers: new Headers() }, storage: { headers: new Headers({ authorization: 'Bearer old' }) } };
+    await primeSupabaseIdentity(client);
+    expect(client.rest.headers.get('Authorization')).toMatch(/^Bearer eyJ/);
+    expect(client.rest.headers.get('x-user-key')).toBe('user-clerk-9');
+    expect(client.storage.headers.get('Authorization')).toMatch(/^Bearer eyJ/);
+    // signing out removes the bearer instead of leaving a stale token behind
+    globalThis.window.Clerk = { loaded: true, user: null };
+    const { refreshSupabaseUserHeader } = await import('../lib/supabase.js');
+    refreshSupabaseUserHeader();
+    delete globalThis.window.Clerk;
   });
 });

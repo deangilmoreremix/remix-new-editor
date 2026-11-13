@@ -9,6 +9,9 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 
+// Read a header the way a request does: supabase-js keeps them in a WHATWG Headers object (plain objects in older builds).
+const hv = (h, k) => (typeof h?.get === 'function' ? (h.get(k) ?? undefined) : h?.[k]);
+
 const BYOK_KEY = 'test-muapi-key-abc';
 
 vi.mock('../lib/apiKeyManager.js', () => ({
@@ -69,8 +72,8 @@ describe('assertVerifiedWriteIdentity', () => {
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     // The proxy attaches the verified identity on the next client access.
     supabase.from('media');
-    expect(supabase.rest.headers.Authorization).toMatch(/^Bearer /);
-    expect(supabase.rest.headers['x-user-key']).toBe('user-clerk-1');
+    expect(hv(supabase.rest.headers, 'Authorization')).toMatch(/^Bearer /);
+    expect(hv(supabase.rest.headers, 'x-user-key')).toBe('user-clerk-1');
   });
 
   test('signed-in caller with a FAILED exchange throws SECURE_SESSION_UNAVAILABLE (fail closed)', async () => {
@@ -82,7 +85,7 @@ describe('assertVerifiedWriteIdentity', () => {
     });
     // No usable bearer identity is attached — the write must not proceed.
     supabase.from('media');
-    expect(supabase.rest.headers.Authorization).toBeUndefined();
+    expect(hv(supabase.rest.headers, 'Authorization')).toBeUndefined();
   });
 
   test('signed-in caller with no Clerk session token also fails closed', async () => {
