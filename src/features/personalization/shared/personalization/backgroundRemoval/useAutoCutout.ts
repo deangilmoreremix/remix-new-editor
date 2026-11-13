@@ -230,7 +230,9 @@ export function useAutoCutout(
             // Only if the asset is still the one we checked (not edited or removed meanwhile).
             patch(id, (a) =>
               a.rejected || a.editedDataUrl !== baselineEdit
-                ? a
+                ? a.bgRemoval?.status === 'running'
+                  ? { ...a, bgRemoval: { status: 'idle' } } // our job is over; keep the newer edit
+                  : a
                 : { ...a, hasTransparency: true, bgRemoval: { status: 'skipped', message: 'Transparent' } },
             )
             return
