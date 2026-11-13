@@ -163,6 +163,15 @@ describe('BG0 client worker path', () => {
     expect(qualities).toEqual(['fast', 'quality'])
   })
 
+  it('lets an unfinished warm-up be cancelled, and start again later', async () => {
+    const { prefetchBackgroundRemovalModel, cancelBackgroundRemovalPrefetch } = await loadClient()
+    FakeWorker.mode = 'hold'
+    void prefetchBackgroundRemovalModel()
+    await vi.waitFor(() => expect(FakeWorker.instances[0]?.posted.some((m) => m.type === 'remove')).toBe(true))
+    cancelBackgroundRemovalPrefetch()
+    expect(FakeWorker.instances[0].posted.some((m) => m.type === 'cancel')).toBe(true)
+  })
+
   it('warms the model up with one tiny image, once, through the same queue', async () => {
     const { prefetchBackgroundRemovalModel } = await loadClient()
     await prefetchBackgroundRemovalModel()

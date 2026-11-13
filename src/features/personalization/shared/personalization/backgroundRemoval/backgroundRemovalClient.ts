@@ -271,15 +271,29 @@ let prefetchStarted = false
  * through the same sequential queue (BG0 has no public warm-up call). Safe to call repeatedly: it
  * only runs once per page load, and every failure is swallowed (a real job will report its own).
  */
+let prefetchController: AbortController | null = null
+
+/** Stops an unfinished warm-up (modal closed, auto removal switched off); a later call may start it again. */
+export function cancelBackgroundRemovalPrefetch(): void {
+  if (!prefetchController) return
+  prefetchController.abort()
+  prefetchController = null
+  prefetchStarted = false
+}
+
 export function prefetchBackgroundRemovalModel(): Promise<void> {
   if (prefetchStarted) return Promise.resolve()
   prefetchStarted = true
+  const controller = new AbortController()
+  prefetchController = controller
   try {
     const binary = atob(WARMUP_PNG_BASE64)
     const bytes = new Uint8Array(binary.length)
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-    return removeAssetBackground(new Blob([bytes], { type: 'image/png' }), { quality: 'fast' }).then(
-      () => undefined,
+    return removeAssetBackground(new Blob([bytes], { type: 'image/png' }), { quality: 'fast', signal: controller.signal }).then(
+      () => {
+        if (prefetchController === controller) prefetchController = null
+      },
       () => undefined,
     )
   } catch {
