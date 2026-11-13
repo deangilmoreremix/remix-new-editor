@@ -7870,7 +7870,10 @@ export function TimelineEditorPage() {
       const TRACKS = {
         screen: { name: 'Screen', type: 'video', clip: 'video' },
         composite: { name: 'Screen', type: 'video', clip: 'video' },
+        display: { name: 'Screen', type: 'video', clip: 'video' },
         webcam: { name: 'Facecam', type: 'video', clip: 'video' },
+        alternative1: { name: 'Camera 2', type: 'video', clip: 'video' },
+        alternative2: { name: 'Camera 3', type: 'video', clip: 'video' },
         audio: { name: 'Recorded Audio', type: 'audio', clip: 'audio' },
         import: { name: 'Remotion Recorder', type: 'video', clip: 'video' }
       };
