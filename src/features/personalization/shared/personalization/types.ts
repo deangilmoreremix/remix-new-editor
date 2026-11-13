@@ -568,12 +568,33 @@ export interface DiscoveredAsset {
     prompt?: string
     model?: string
     quality?: string
+    /** Set by on-device background removal (BG0). */
+    engine?: string
+    provider?: string
+    durationMs?: number
   }
+  /** On-device background removal state (auto cutout queue). */
+  bgRemoval?: DiscoveredAssetBgRemoval
+  /** The user restored the original: never auto-process this asset again. */
+  bgOptOut?: boolean
+  /** Show the original instead of the cutout (per-tile toggle). */
+  showOriginal?: boolean
   visionAnalysis?: PersonalizationVisionAnalysis
   visionValidation?: PersonalizationVisionValidation
 }
 
-// ── AI Assist Types (Phases 15-19) ─────────────────────────────────────────────
+export interface DiscoveredAssetBgRemoval {
+  /** `skipped` = nothing to do (already transparent / unsupported); `error` can be retried. */
+  status: 'idle' | 'queued' | 'running' | 'done' | 'skipped' | 'error'
+  /** 0..1 while running (model download, then inference). */
+  progress?: number
+  /** Short human note shown on the tile (why skipped / what failed). */
+  message?: string
+  /** True when the user asked for this asset explicitly (runs even with auto mode off). */
+  manual?: boolean
+}
+
+// ── AI Assist Types (Phases 15-19)─────────────────────────────────────────────
 
 export interface AIAssistReadiness {
   canGenerate: boolean

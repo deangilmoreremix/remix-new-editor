@@ -71,6 +71,7 @@ export function StepFindBusiness({
     rejectDiscoveredAsset,
     updateDiscoveredAssetCategory,
     revertDiscoveredAssetEdit,
+    autoCutout,
     removeDiscoveredAssetFromSection,
     moveDiscoveredAssetToSection,
     setDiscoveredAssets,
@@ -506,6 +507,8 @@ export function StepFindBusiness({
                 onCategoryChange={updateDiscoveredAssetCategory}
                 onEdit={onEditAsset}
                 onRevert={revertDiscoveredAssetEdit}
+                cutout={autoCutout}
+                onSaveToAssets={isAnonymous ? undefined : (id) => importDiscoveredAssets({ ids: [id] })}
                 onRemoveFromSection={removeDiscoveredAssetFromSection}
                 onRestoreAll={() => setDiscoveredAssets(discoveredAssets.map((a) => ({ ...a, rejected: false })))}
                 dropZones={SIMPLE_MODE_DROP_ZONES}

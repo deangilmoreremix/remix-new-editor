@@ -460,7 +460,11 @@ function securityHeaders() {
                 const csp = [
                   "default-src 'self'",
                   // 'wasm-unsafe-eval': Remotion's Player/media decoders compile WebAssembly.
-                  `script-src 'self' 'wasm-unsafe-eval' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com blob:`,
+                  // cdn.jsdelivr.net: Transformers.js loads its ONNX Runtime WASM loader
+                  // (ort-wasm-*.mjs) from there; on-device background removal (BG0,
+                  // @bg0/browser) cannot load its model without it. Production sets no
+                  // script-src, so this only brings dev in line with it.
+                  `script-src 'self' 'wasm-unsafe-eval' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com https://cdn.jsdelivr.net blob:`,
                   `worker-src 'self' blob:${clerkHostSrc} https://clerk.smartvid.app`,
                   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com${clerkHostSrc}`,
                   `img-src 'self' data: https: blob:${clerkHostSrc}`,
