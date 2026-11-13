@@ -134,7 +134,7 @@ describe('BG0 client worker path', () => {
       FakeWorker.mode = 'hold'
       const job = removeAssetBackground(png())
       const settled = expect(job).rejects.toMatchObject({ code: 'inference-failed' })
-      await vi.advanceTimersByTimeAsync(181_000)
+      await vi.advanceTimersByTimeAsync(601_000)
       await settled
     } finally {
       vi.useRealTimers()

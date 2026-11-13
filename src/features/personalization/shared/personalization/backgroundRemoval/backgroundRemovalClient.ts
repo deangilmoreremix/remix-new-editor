@@ -104,7 +104,7 @@ type Progress = (progress: BackgroundRemovalProgress) => void
 // ── Worker path ──────────────────────────────────────────────────────────────
 
 /** No message from the worker (progress included) for this long => it is stuck. */
-export const WORKER_IDLE_TIMEOUT_MS = 180_000
+export const WORKER_IDLE_TIMEOUT_MS = 600_000
 /** After a cancel, how long the worker gets to settle before it is dropped. */
 export const WORKER_CANCEL_GRACE_MS = 5_000
 

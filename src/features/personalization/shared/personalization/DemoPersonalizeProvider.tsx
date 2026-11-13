@@ -218,6 +218,35 @@ interface GenerateOverrides {
  * itself is browser-only (layers burned in locally), else a non-blob result URL.
  */
 /**
+ * A fresh discovery result for assets already in the list (the final result after the fast
+ * one) must not wipe what the browser added meanwhile: finished cutouts, removal status,
+ * opt-outs and the original/cutout choice. Server fields win; the client fields are carried over.
+ */
+export function mergeDiscoveredAssets(prev: DiscoveredAsset[], next: DiscoveredAsset[]): DiscoveredAsset[] {
+  if (prev.length === 0) return next
+  const before = new Map(prev.map((asset) => [asset.id, asset]))
+  return next.map((asset) => {
+    const old = before.get(asset.id)
+    if (!old) return asset
+    const carried: Partial<DiscoveredAsset> = {}
+    if (old.editedDataUrl) {
+      carried.editedDataUrl = old.editedDataUrl
+      carried.edited = old.edited
+      carried.hasTransparency = old.hasTransparency
+      carried.videoReady = old.videoReady
+      carried.editMetadata = old.editMetadata
+      carried.originalPreviewUrl = old.originalPreviewUrl || asset.originalPreviewUrl
+    }
+    // Verified transparency is kept even when no cutout was generated (an already-transparent image).
+    if (old.hasTransparency) carried.hasTransparency = true
+    if (old.bgRemoval) carried.bgRemoval = old.bgRemoval
+    if (old.bgOptOut) carried.bgOptOut = old.bgOptOut
+    if (old.showOriginal) carried.showOriginal = old.showOriginal
+    return { ...asset, ...carried }
+  })
+}
+
+/**
  * The library without the assets placed automatically from the given
  * discovered-asset ids, wherever the user moved them. Edited copies stay. If
  * the primary logo goes, the first remaining logo becomes primary (flag and
@@ -836,7 +865,7 @@ export type DemoPersonalizeContextValue = {
   /** Shows (or clears with `null`) the discovery error banner. */
   setDiscoveryError: (message: string | null) => void
   importConfirmation: { count: number; clientName?: string } | null
-  setDiscoveredAssets: (assets: DiscoveredAsset[]) => void
+  setDiscoveredAssets: (assets: DiscoveredAsset[] | ((prev: DiscoveredAsset[]) => DiscoveredAsset[])) => void
   toggleDiscoveredAssetSelection: (id: string) => void
   rejectDiscoveredAsset: (id: string) => void
   restoreDiscoveredAsset: (id: string) => void
@@ -3937,7 +3966,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
   // ── Discovered assets actions ───────────────────────────────────────────────
 
-  const setDiscoveredAssets = useCallback((assets: DiscoveredAsset[]) => {
+  const setDiscoveredAssets = useCallback((assets: DiscoveredAsset[] | ((prev: DiscoveredAsset[]) => DiscoveredAsset[])) => {
     setDiscoveredAssetsState(assets)
     setDiscoveryStatus('reviewing')
     setDiscoveryError(null)
@@ -4200,6 +4229,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         setAssetUploadStatus(asset.id, 'error', message)
       }
     }
+
+    // The business may have changed while the uploads ran: do not touch the new one's review.
+    if (importSession !== businessSessionRef.current) return []
 
     // Only assets that actually imported leave the review; failed ones stay
     // so they can be retried.
@@ -4664,7 +4696,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     const live = <A extends unknown[]>(fn: (...args: A) => void) => (...args: A) => {
       if (discoverySession === businessSessionRef.current) fn(...args)
     }
-    const setFoundAssets = live(setDiscoveredAssetsState)
+    const setFoundAssets = live((assets: DiscoveredAsset[]) => setDiscoveredAssetsState((prev) => mergeDiscoveredAssets(prev, assets)))
     const setStatus = live(setDiscoveryStatus)
     const setError = live(setDiscoveryError)
     const websiteUrl = (rawWebsiteUrl || '').trim()
@@ -4756,7 +4788,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     const live = <A extends unknown[]>(fn: (...args: A) => void) => (...args: A) => {
       if (discoverySession === businessSessionRef.current && requestId === discoveryRequestRef.current) fn(...args)
     }
-    const setFoundAssets = live(setDiscoveredAssetsState)
+    const setFoundAssets = live((assets: DiscoveredAsset[]) => setDiscoveredAssetsState((prev) => mergeDiscoveredAssets(prev, assets)))
     const setStatus = live(setDiscoveryStatus)
     const setError = live(setDiscoveryError)
 

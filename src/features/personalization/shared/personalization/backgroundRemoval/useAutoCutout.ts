@@ -226,7 +226,15 @@ export function useAutoCutout(
         if (blob.type !== 'image/jpeg') {
           const before = await verifyAlphaChannel(await blobToDataUrl(blob))
           if (before.hasTransparentPixels && before.transparentRatio > 0.02) {
-            patch(id, (a) => ({ ...a, hasTransparency: true, bgRemoval: { status: 'skipped', message: 'Transparent' } }))
+            if (controller.signal.aborted) throw new BackgroundRemovalFailure('cancelled', 'Cancelled')
+            // Only if the asset is still the one we checked (not edited or removed meanwhile).
+            patch(id, (a) =>
+              a.rejected || a.editedDataUrl !== baselineEdit
+                ? a.bgRemoval?.status === 'running'
+                  ? { ...a, bgRemoval: { status: 'idle' } } // our job is over; keep the newer edit
+                  : a
+                : { ...a, hasTransparency: true, bgRemoval: { status: 'skipped', message: 'Transparent' } },
+            )
             return
           }
         }
@@ -235,7 +243,8 @@ export function useAutoCutout(
         const result = await removeAssetBackground(blob, {
           signal: controller.signal,
           onProgress: ({ progress }) => {
-            if (!mountedRef.current || progress - lastReported < 0.02) return
+            // A cancelled run's late progress must not overwrite a newer request for the same asset.
+            if (!mountedRef.current || controller.signal.aborted || progress - lastReported < 0.02) return
             lastReported = progress
             setBg(id, { status: 'running', progress, manual })
           },
@@ -283,7 +292,10 @@ export function useAutoCutout(
             ? error
             : new BackgroundRemovalFailure('unknown', error instanceof Error ? error.message : 'Background removal failed.')
         if (failure.code === 'cancelled') {
-          finish({ status: 'idle' })
+          // Reset only our own run: a request made after Cancel has already re-queued the asset.
+          if (mountedRef.current) {
+            patch(id, (a) => (a.bgRemoval?.status === 'running' ? { ...a, bgRemoval: { status: 'idle' } } : a))
+          }
         } else {
           if (failure.needsReload && mountedRef.current) setHalted(true)
           finish({ status: 'error', message: failure.message })

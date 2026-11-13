@@ -21,7 +21,8 @@ const REMOVE_BG = 'Remove BG'
 
 /** What a tile / the viewer shows: the cutout by default, the original on request. */
 export function discoveredAssetDisplayUrl(a: DiscoveredAsset): string {
-  return a.showOriginal ? a.originalPreviewUrl || a.previewUrl : a.editedDataUrl || a.previewUrl
+  // "Original" only applies while a cutout exists; a later AI edit must show itself.
+  return a.showOriginal && hasBgCutout(a) ? a.originalPreviewUrl || a.previewUrl : a.editedDataUrl || a.previewUrl
 }
 
 /** True once BG0 produced a transparent cutout for this asset. */
@@ -30,7 +31,7 @@ export function hasBgCutout(a: DiscoveredAsset): boolean {
 }
 
 function showsTransparency(a: DiscoveredAsset): boolean {
-  return Boolean(a.hasTransparency) && !a.showOriginal
+  return Boolean(a.hasTransparency) && !(a.showOriginal && hasBgCutout(a))
 }
 
 export const DISCOVERED_ASSET_CATEGORIES: readonly DiscoveredAssetCategory[] = [
