@@ -310,7 +310,15 @@ export class FakeSupabase {
       }
       if ((m = /^\/storage\/v1\/object\/public\/uploads\/(.+)$/.exec(path)) && method === 'GET') {
         const f = this.files.get(decodeURIComponent(m[1]));
-        return f ? route.fulfill({ status: 200, headers: { ...cors, 'content-type': f.type, 'accept-ranges': 'bytes' }, body: f.body }) : route.fulfill({ status: 404, headers: cors, body: 'not found' });
+        if (!f) return route.fulfill({ status: 404, headers: cors, body: 'not found' });
+        // Real storage answers byte-range requests (video decoders rely on it): 206 + Content-Range
+        const range = /^bytes=(\d*)-(\d*)$/.exec(headers.range || '');
+        if (range) {
+          const size = f.body.length; const start = range[1] === '' ? Math.max(0, size - Number(range[2])) : Number(range[1]);
+          const end = range[1] === '' || range[2] === '' ? size - 1 : Math.min(Number(range[2]), size - 1);
+          return route.fulfill({ status: 206, headers: { ...cors, 'content-type': f.type, 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${size}` }, body: f.body.subarray(start, end + 1) });
+        }
+        return route.fulfill({ status: 200, headers: { ...cors, 'content-type': f.type, 'accept-ranges': 'bytes' }, body: f.body });
       }
       if ((m = /^\/storage\/v1\/object\/uploads\/(.+)$/.exec(path)) && (method === 'POST' || method === 'PUT')) {
         const raw = req.postDataBuffer() || Buffer.alloc(0);
