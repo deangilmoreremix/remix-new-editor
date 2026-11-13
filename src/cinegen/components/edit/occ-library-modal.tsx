@@ -27,7 +27,7 @@ export function OccLibraryModal({ onClose, onPickFx, onPickLut, onPickTransition
   const ids = tab === 'fx' ? [...FX_IDS, ...pfx] : tab === 'lut' ? [...LUT_IDS, ...userLutIds(), ...plut] : [...GL_TRANSITION_ORDER, ...ptr];
   const pick = (id: string) => { if (tab === 'fx') onPickFx(id); else if (tab === 'lut') onPickLut(id); else onPickTransition?.(id); };
   return (
-    <div className="occ-library" role="dialog" aria-label="Effects library" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
+    <div className="occ-library" role="dialog" aria-modal="true" aria-label="Effects library" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div style={{ width: 'min(760px, 94vw)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: '#0b1016', border: '1px solid rgba(255,255,255,.14)', borderRadius: 8, padding: 14 }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
           {([['fx', `Effects (${FX_IDS.length + pfx.length})`], ['lut', `LUTs & looks (${LUT_IDS.length + userLutIds().length + plut.length})`], ['tr', `Transitions (${GL_TRANSITION_ORDER.length + ptr.length})`], ['ext', `Extensions (${packs.length})`]] as Array<[Tab, string]>).map(([k, label]) => (

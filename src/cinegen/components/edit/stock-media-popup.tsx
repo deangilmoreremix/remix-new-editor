@@ -7,7 +7,7 @@ import { searchPixabayImages, searchPixabayVideos } from '../../../lib/pixabayAp
 import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../../../lib/pexelsApi.js';
 import type { Asset } from '@cinegen/types/project';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
-import { MEDIA_CATEGORIES, MEDIA_GROUPS, aiPrompt, topicLabel } from './stock-categories';
+import { MEDIA_CATEGORIES, MEDIA_GROUPS, aiPrompt, topicLabel, IMAGE_QUALITIES, VIDEO_RESOLUTIONS, VIDEO_DURATIONS, DEFAULT_AI_OPTIONS, type AiOptions } from './stock-categories';
 
 export type StockKind = 'videos' | 'images';
 export type MediaSource = 'ai' | 'pixabay' | 'pexels';
@@ -31,7 +31,8 @@ export interface StockItem {
 }
 
 interface SearchResult { ok: boolean; items: StockItem[]; error?: string }
-type Search = (kind: StockKind, source: string, query: string) => Promise<SearchResult>;
+type Search = (kind: StockKind, source: string, query: string, page?: number) => Promise<SearchResult>;
+const PAGE_SIZE = 24; // matches createStockSearch's perPage: a full page means there may be more
 
 const home = STOCK_HOME as Record<string, string>;
 const SOURCES: Array<[MediaSource, string]> = [['ai', 'AI'], ['pexels', 'Pexels'], ['pixabay', 'Pixabay']];
@@ -54,7 +55,7 @@ interface Props {
   onAdd: (item: StockItem, kind: StockKind) => Promise<void> | void;
   /** Generate AI media from a prompt and add it at the playhead. */
   /** Resolves with an optional warning to show instead of the plain success message (e.g. no durable copy could be saved). */
-  onGenerate: (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void) => Promise<void | string>;
+  onGenerate: (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void, opts: AiOptions) => Promise<void | string>;
   /** The project's media pool (AI-generated assets are listed first). */
   assets: Asset[];
   /** Put an existing pool asset on the timeline at the playhead. */
@@ -97,7 +98,8 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState('');
   // `for` records which tab (source:kind) the items were fetched for, so results never show or import under a different media type.
-  const [fetched, setFetched] = useState<{ loading: boolean; items: StockItem[]; error: string | null; for: string }>({ loading: false, items: [], error: null, for: '' });
+  const [fetched, setFetched] = useState<{ loading: boolean; items: StockItem[]; error: string | null; for: string; page: number; more: boolean; loadingMore: boolean }>({ loading: false, items: [], error: null, for: '', page: 1, more: false, loadingMore: false });
+  const [ai, setAi] = useState<AiOptions>(DEFAULT_AI_OPTIONS);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
@@ -128,14 +130,14 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
     if (source === 'ai') return;
     const mine = ++seq.current;
     const tag = `${source}:${kind}`;
-    if (!query.trim()) { setFetched({ loading: false, items: [], error: null, for: tag }); return; }
-    setFetched({ loading: true, items: [], error: null, for: tag });
+    if (!query.trim()) { setFetched({ loading: false, items: [], error: null, for: tag, page: 1, more: false, loadingMore: false }); return; }
+    setFetched({ loading: true, items: [], error: null, for: tag, page: 1, more: false, loadingMore: false });
     search(kind, source, query)
-      .then((r) => { if (mine === seq.current) setFetched({ loading: false, items: r.items ?? [], error: r.ok ? null : (r.error || 'Search failed'), for: tag }); })
-      .catch((e: unknown) => { if (mine === seq.current) setFetched({ loading: false, items: [], error: e instanceof Error ? e.message : 'Search failed', for: tag }); });
+      .then((r) => { if (mine === seq.current) setFetched({ loading: false, items: r.items ?? [], error: r.ok ? null : (r.error || 'Search failed'), for: tag, page: 1, more: r.ok && (r.items?.length ?? 0) >= PAGE_SIZE, loadingMore: false }); })
+      .catch((e: unknown) => { if (mine === seq.current) setFetched({ loading: false, items: [], error: e instanceof Error ? e.message : 'Search failed', for: tag, page: 1, more: false, loadingMore: false }); });
   }, [search, kind, source, query]);
   // Until the new tab's request starts (first render after a switch) show nothing rather than the previous tab's items.
-  const state = fetched.for === `${source}:${kind}` ? fetched : { loading: true, items: [] as StockItem[], error: null as string | null, for: '' };
+  const state = fetched.for === `${source}:${kind}` ? fetched : { loading: true, items: [] as StockItem[], error: null as string | null, for: '', page: 1, more: false, loadingMore: false };
 
   const aiAll = useMemo(() => assets.filter(isAiAsset), [assets]);
   const aiAssets = useMemo(
@@ -174,11 +176,29 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
     catch (e) { setAddError(e instanceof Error ? e.message : 'Could not add this to the timeline.'); }
     finally { setBusyId(null); }
   };
+  const loadMore = () => {
+    if (state.loadingMore || !state.more) return;
+    const mine = seq.current; // a new search or tab bumps seq, which discards this page
+    const tag = `${source}:${kind}`;
+    const next = state.page + 1;
+    setFetched((f) => ({ ...f, loadingMore: true }));
+    search(kind, source, query, next)
+      .then((r) => {
+        if (mine !== seq.current) return;
+        setFetched((f) => {
+          const seen = new Set(f.items.map((i) => i.id));
+          const fresh = (r.items ?? []).filter((i) => !seen.has(i.id));
+          return { ...f, for: tag, items: [...f.items, ...fresh], page: r.ok ? next : f.page, more: r.ok && fresh.length > 0 && (r.items?.length ?? 0) >= PAGE_SIZE, loadingMore: false, error: null };
+        });
+        if (!r.ok) setAddError(r.error || 'Could not load more results.');
+      })
+      .catch((e: unknown) => { if (mine === seq.current) { setFetched((f) => ({ ...f, loadingMore: false })); setAddError(e instanceof Error ? e.message : 'Could not load more results.'); } });
+  };
   const generate = async () => {
     if (gen.busy || !prompt.trim()) return;
     setGen({ busy: true, msg: 'Submitting…', error: null });
     try {
-      const note = await onGenerate(prompt.trim(), kind, aspect, (msg) => setGen((g) => ({ ...g, msg })));
+      const note = await onGenerate(prompt.trim(), kind, aspect, (msg) => setGen((g) => ({ ...g, msg })), ai);
       setGen({ busy: false, msg: note || 'Added to the timeline and your media pool.', error: null });
     } catch (e) {
       setGen({ busy: false, msg: '', error: e instanceof Error ? e.message : 'Generation failed' });
@@ -243,7 +263,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: source === 'ai' ? '3fr 1fr' : '1fr', gap: 18, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: source === 'ai' ? '3fr 1fr 1fr' : '1fr', gap: 18, marginBottom: 10 }}>
             {source === 'ai' ? (
               <div><div style={label}>Describe it</div>
                 <textarea aria-label={`Describe the AI ${kind === 'videos' ? 'video' : 'image'}`} data-testid="ai-prompt" rows={2} placeholder={`Describe the ${kind === 'videos' ? 'video' : 'image'} you want, or pick a category for an idea…`} value={prompt} onChange={(e) => { setPrompt(e.target.value); setTopic(null); }} style={{ ...field, resize: 'vertical', fontFamily: 'inherit' }} /></div>
@@ -254,6 +274,18 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
             {source === 'ai' && (
               <div><div style={label}>Aspect ratio</div>
                 <select aria-label="Aspect ratio" value={aspect} onChange={(e) => setAspect(e.target.value as AiAspect)} style={field}><option value="16:9">16:9 landscape</option><option value="9:16">9:16 portrait</option><option value="1:1">1:1 square</option></select></div>
+            )}
+            {source === 'ai' && kind === 'images' && (
+              <div><div style={label}>Quality</div>
+                <select aria-label="Image quality" data-testid="ai-quality" value={ai.size} onChange={(e) => setAi((o) => ({ ...o, size: Number(e.target.value) }))} style={field}>{IMAGE_QUALITIES.map((q) => <option key={q.id} value={q.id}>{q.label}</option>)}</select></div>
+            )}
+            {source === 'ai' && kind === 'videos' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div><div style={label}>Resolution</div>
+                  <select aria-label="Video resolution" data-testid="ai-resolution" value={ai.resolution} onChange={(e) => setAi((o) => ({ ...o, resolution: e.target.value as AiOptions['resolution'] }))} style={field}>{VIDEO_RESOLUTIONS.map((r) => <option key={r} value={r}>{r}</option>)}</select></div>
+                <div><div style={label}>Length</div>
+                  <select aria-label="Video length" data-testid="ai-duration" value={ai.duration} onChange={(e) => setAi((o) => ({ ...o, duration: Number(e.target.value) }))} style={field}>{VIDEO_DURATIONS.map((d) => <option key={d} value={d}>{d} s</option>)}</select></div>
+              </div>
             )}
           </div>
           {source === 'ai' && (
@@ -283,6 +315,10 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
                   thumb={it.thumbnail || it.preview || ''} onClick={() => void pick(it)} />
               ))}
           </div>
+          {source !== 'ai' && state.more && !state.error && (
+            <button data-testid="load-more" disabled={state.loadingMore} onClick={loadMore}
+              style={{ alignSelf: 'center', marginTop: 10, padding: '9px 20px', borderRadius: 999, fontSize: 13, fontWeight: 700, border: '1px solid var(--border-medium)', color: 'inherit', background: 'var(--bg-elevated)', cursor: state.loadingMore ? 'progress' : 'pointer' }}>{state.loadingMore ? 'Loading…' : 'Load more'}</button>
+          )}
           {source !== 'ai' && (
             <div style={{ fontSize: 11, opacity: 0.6, marginTop: 10 }}>{kind === 'videos' ? 'Videos' : 'Photos'} from <a href={home[source] || '#'} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>{sourceLabel}</a>.</div>
           )}

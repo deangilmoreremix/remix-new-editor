@@ -138,25 +138,26 @@ function cacheSet(storage, key, items) {
  * Returns search(kind: 'images'|'videos', source, query) → { ok, items, error? }.
  */
 export function createStockSearch(clients = {}, { storage = globalThis.localStorage, perPage = 24 } = {}) {
-  return async function search(kind, source, query) {
+  return async function search(kind, source, query, page = 1) {
     const q = String(query || '').trim().slice(0, 100);
     if (!q) return { ok: true, items: [] };
-    const key = `stock:${source}:${kind}:${q.toLowerCase()}`;
+    const pg = Math.max(1, Math.floor(Number(page)) || 1);
+    const key = `stock:${source}:${kind}:${q.toLowerCase()}${pg > 1 ? `:p${pg}` : ''}`;
     const cached = cacheGet(storage, key);
     if (cached) return { ok: true, items: cached, cached: true };
     try {
       let items;
       if (source === 'pixabay' && kind === 'videos') {
-        const data = await clients.pixabay.searchVideos({ query: q, per_page: perPage, max_duration: 30, safe_search: true });
+        const data = await clients.pixabay.searchVideos({ query: q, per_page: perPage, page: pg, max_duration: 30, safe_search: true });
         items = (data?.hits || []).map(normalizePixabayVideo);
       } else if (source === 'pixabay') {
-        const data = await clients.pixabay.searchImages({ query: q, per_page: perPage, safe_search: true });
+        const data = await clients.pixabay.searchImages({ query: q, per_page: perPage, page: pg, safe_search: true });
         items = (data?.hits || []).map(normalizePixabayImage);
       } else if (source === 'pexels' && kind === 'videos') {
-        const data = await clients.pexels.searchVideos({ query: q, orientation: 'landscape', min_duration: 1, max_duration: 30, per_page: perPage });
+        const data = await clients.pexels.searchVideos({ query: q, orientation: 'landscape', min_duration: 1, max_duration: 30, per_page: perPage, page: pg });
         items = (data?.videos || []).map(normalizePexelsVideo);
       } else if (source === 'pexels') {
-        const data = await clients.pexels.searchPhotos({ query: q, per_page: perPage });
+        const data = await clients.pexels.searchPhotos({ query: q, per_page: perPage, page: pg });
         items = (data?.photos || []).map(normalizePexelsPhoto);
       } else {
         return { ok: false, items: [], error: `Unknown source ${source}` };

@@ -8,7 +8,7 @@ import { addClipToTrack } from '@cinegen/lib/editor/timeline-operations';
 import { generateId } from '@cinegen/lib/utils/ids';
 import { runTimelineMuapi as runMuapi } from '../../../lib/editor/ai/timelineMuapi.js';
 import type { StockItem, StockKind, AiAspect } from './stock-media-popup';
-import { FLUX_SIZE } from './stock-categories';
+import { fluxSize, DEFAULT_AI_OPTIONS, type AiOptions } from './stock-categories';
 
 // The JS helper's JSDoc only lists pollMs/timeoutMs; onProgress is supported at runtime.
 const runTimelineMuapi = runMuapi as (tool: string, params: Record<string, unknown>, opts?: { signal?: AbortSignal; timeoutMs?: number; onProgress?: (p: { stage: string; elapsedSec?: number }) => void }) => Promise<{ url: string; model?: string }>;
@@ -94,7 +94,7 @@ export function useMediaBrowser({ timeline, currentTime, projectId, dispatch }: 
   }, [dispatch, placeAtPlayhead, ingestRemote, startDeriveJobs]);
 
   // [remix] AI media from a prompt (MuAPI via /api/timeline-ai, the same path Fill Gap / the Director use): FLUX for images, Seedance for video.
-  const handleGenerateAi = useCallback(async (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void) => {
+  const handleGenerateAi = useCallback(async (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void, opts: AiOptions = DEFAULT_AI_OPTIONS) => {
     const isVideo = kind === 'videos';
     const at = latestRef.current.currentTime;
     // Abort a request that hangs (the helper's own limit only covers polling); images are fast, videos can take a few minutes.
@@ -104,8 +104,8 @@ export function useMediaBrowser({ timeline, currentTime, projectId, dispatch }: 
       result = await runTimelineMuapi(
         'generate',
         isVideo
-          ? { model: 'seedance-lite-t2v', inputs: { prompt, duration: 5, aspect_ratio: aspect, resolution: '720p' } }
-          : { model: 'flux-dev', inputs: { prompt, ...FLUX_SIZE[aspect] } },
+          ? { model: 'seedance-lite-t2v', inputs: { prompt, duration: opts.duration, aspect_ratio: aspect, resolution: opts.resolution } }
+          : { model: 'flux-dev', inputs: { prompt, ...fluxSize(aspect, opts.size) } },
         { signal: AbortSignal.timeout(limitMs), timeoutMs: limitMs, onProgress: (p) => onProgress(p.stage === 'generating' ? `Generating… ${p.elapsedSec ?? 0}s` : 'Submitting…') },
       );
     } catch (err) {
@@ -117,7 +117,7 @@ export function useMediaBrowser({ timeline, currentTime, projectId, dispatch }: 
     const assetId = generateId();
     let asset: Asset = {
       id: assetId, name: prompt.length > 40 ? `${prompt.slice(0, 40)}…` : prompt, type: isVideo ? 'video' : 'image', url,
-      duration: 5, createdAt: new Date().toISOString(), status: 'online', sourceUrl: url,
+      duration: isVideo ? opts.duration : 5, createdAt: new Date().toISOString(), status: 'online', sourceUrl: url,
       metadata: { generatedVia: 'stock-ai', prompt, model, aspect },
     };
     asset = await ingestRemote(asset, url); // provider links expire: keep a copy in the project

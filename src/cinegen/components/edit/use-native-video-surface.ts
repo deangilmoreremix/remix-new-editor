@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { hasBlockingOverlay } from './blocking-overlay';
 
 interface UseNativeVideoSurfaceOptions {
   surfaceId: string;
@@ -16,15 +17,6 @@ export function useNativeVideoSurface({
   const elementRef = useRef<HTMLDivElement | null>(null);
   const [surfaceVersion, setSurfaceVersion] = useState(0);
   const wakeRecoveryTimerRef = useRef<number | null>(null);
-
-  const hasBlockingOverlay = useCallback(() => {
-    if (typeof document === 'undefined') return false;
-    return Boolean(
-      document.querySelector(
-        '.settings-backdrop, .element-modal__backdrop, .sync-dialog__overlay, .fullscreen-modal, [aria-modal="true"]',
-      ),
-    );
-  }, []);
 
   const syncRect = useCallback(() => {
     if (!enabled) return;
@@ -59,7 +51,7 @@ export function useNativeVideoSurface({
       surfaceId,
       hidden,
     });
-  }, [enabled, fitAspectRatio, hasBlockingOverlay, surfaceId]);
+  }, [enabled, fitAspectRatio, surfaceId]);
 
   const createAndSyncSurface = useCallback(() => {
     if (!enabled || !elementRef.current) return;

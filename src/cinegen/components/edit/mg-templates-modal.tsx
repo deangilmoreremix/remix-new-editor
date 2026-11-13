@@ -12,7 +12,7 @@ export function MgTemplatesModal({ onClose, onPick }: { onClose: () => void; onP
   const list = (all ?? []).filter((t) => t.usable && (cat === 'all' || t.category === cat) && (!q || `${t.name} ${t.description ?? ''}`.toLowerCase().includes(q.toLowerCase())));
   const blocked = (all ?? []).filter((t) => !t.usable).length;
   return (
-    <div role="dialog" aria-label="Motion graphics templates" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
+    <div role="dialog" aria-modal="true" aria-label="Motion graphics templates" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div style={{ width: 'min(760px, 94vw)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: '#0b1016', border: '1px solid rgba(255,255,255,.14)', borderRadius: 8, padding: 14 }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
           <strong style={{ flex: 1 }}>Motion graphics templates</strong>

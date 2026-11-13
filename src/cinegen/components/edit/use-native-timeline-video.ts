@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type { Timeline } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import type { ActiveClipEntry, PlaybackProxyMode } from '@cinegen/lib/editor/playback-engine';
+import { useBlockingOverlay } from './blocking-overlay';
 import { buildNativeVisualPlaybackDescriptors } from '@cinegen/lib/editor/visual-playback-state';
 
 interface UseNativeTimelineVideoOptions {
@@ -27,6 +28,7 @@ export function useNativeTimelineVideo({
   proxyMode,
   surfaceVersion = 0,
 }: UseNativeTimelineVideoOptions) {
+  const overlayOpen = useBlockingOverlay(enabled);
   useEffect(() => {
     const nativeVideo = window.electronAPI?.nativeVideo;
     if (!enabled || !nativeVideo) return undefined;
@@ -41,7 +43,7 @@ export function useNativeTimelineVideo({
     const hasActiveVisual = activeClips.some(
       (entry) => entry.asset.type === 'video' || entry.asset.type === 'image',
     );
-    if (descriptors.length === 0) {
+    if (descriptors.length === 0 || overlayOpen) {
       window.electronAPI.nativeVideo.setSurfaceHidden({
         surfaceId,
         hidden: true,
@@ -54,5 +56,5 @@ export function useNativeTimelineVideo({
     });
     window.electronAPI.nativeVideo.syncSurface({ surfaceId, descriptors });
     return undefined;
-  }, [enabled, surfaceId, timeline, assets, activeClips, currentTime, isPlaying, proxyMode, surfaceVersion]);
+  }, [enabled, surfaceId, timeline, assets, activeClips, currentTime, isPlaying, proxyMode, surfaceVersion, overlayOpen]);
 }
