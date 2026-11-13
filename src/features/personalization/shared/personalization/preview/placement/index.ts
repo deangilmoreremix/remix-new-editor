@@ -4,4 +4,4 @@ export { recommendPlacement, boxOf, visibleSeconds, samplesFor, worstContrast, M
 export { evaluateLayoutQuality, BAKED_IN_NOTE } from './quality'
 export { buildPlacementInput } from './buildInput'
 export { recommendRestoredPlacement } from './restore'
-export { sampleFrames, measureImageAspects, lumaGridFromRGBA, baseSampleTimes, refinementTimes, lumaDifference } from './frameSampler'
+export { sampleFrames, measureImageAspects, lumaGridFromRGBA, baseSampleTimes, refinementTimes, lumaDifference, coverCropRect } from './frameSampler'

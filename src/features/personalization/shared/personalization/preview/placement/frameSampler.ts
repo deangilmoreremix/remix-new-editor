@@ -55,6 +55,24 @@ export function refinementTimes(samples: LumaSample[], threshold = 0.18): number
   return out
 }
 
+/**
+ * The part of a `srcW`×`srcH` source that `objectFit: 'cover'` shows in a
+ * `compW`×`compH` frame (centered crop). PersonalizationComposition renders the
+ * footage this way, so contrast has to be measured on exactly this region.
+ * Falls back to the whole source when a size is unknown.
+ */
+export function coverCropRect(srcW: number, srcH: number, compW: number, compH: number): { sx: number; sy: number; sw: number; sh: number } {
+  if (!(srcW > 0 && srcH > 0 && compW > 0 && compH > 0)) return { sx: 0, sy: 0, sw: Math.max(0, srcW), sh: Math.max(0, srcH) }
+  const srcAspect = srcW / srcH
+  const compAspect = compW / compH
+  if (srcAspect > compAspect) {
+    const sw = srcH * compAspect
+    return { sx: (srcW - sw) / 2, sy: 0, sw, sh: srcH }
+  }
+  const sh = srcW / compAspect
+  return { sx: 0, sy: (srcH - sh) / 2, sw: srcW, sh }
+}
+
 function seek(video: HTMLVideoElement, t: number, timeoutMs: number): Promise<boolean> {
   return new Promise((resolve) => {
     const done = (ok: boolean) => {
@@ -75,7 +93,11 @@ function seek(video: HTMLVideoElement, t: number, timeoutMs: number): Promise<bo
  */
 export async function sampleFrames(
   url: string,
-  options: { times?: number[]; cols?: number; rows?: number; timeoutMs?: number; refine?: boolean } = {},
+  options: {
+    times?: number[]; cols?: number; rows?: number; timeoutMs?: number; refine?: boolean
+    /** Composition size: the grid then covers the cover-cropped region the preview actually shows. */
+    composition?: { width: number; height: number }
+  } = {},
 ): Promise<{ samples: LumaSample[]; durationSec: number } | null> {
   if (typeof document === 'undefined' || !url) return null
   const cols = options.cols ?? 32
@@ -102,7 +124,11 @@ export async function sampleFrames(
     if (!ctx) return null
     const grab = async (t: number): Promise<LumaSample | null> => {
       if (!(await seek(video, Math.min(t, Math.max(0, durationSec - 0.05)), timeoutMs))) return null
-      ctx.drawImage(video, 0, 0, cols, rows)
+      const crop = options.composition
+        ? coverCropRect(video.videoWidth, video.videoHeight, options.composition.width, options.composition.height)
+        : null
+      if (crop && crop.sw > 0 && crop.sh > 0) ctx.drawImage(video, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, cols, rows)
+      else ctx.drawImage(video, 0, 0, cols, rows)
       const { data } = ctx.getImageData(0, 0, cols, rows) // throws if the canvas is tainted
       return { t, cols, rows, luma: lumaGridFromRGBA(data, cols, rows) }
     }
