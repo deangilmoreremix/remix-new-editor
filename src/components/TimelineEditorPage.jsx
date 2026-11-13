@@ -7477,7 +7477,7 @@ export function TimelineEditorPage() {
       try {
         const modal = new RecorderModal({
           onComplete: (result) => {
-            addVideoToTimeline(result, state);
+            addRecordingToTimeline(result, state, showToast);
           },
           onError: (error) => console.log(`Recording failed: ${error}`, 'error')
         });
@@ -7851,6 +7851,59 @@ export function TimelineEditorPage() {
         videoTrack.items.push(newClip);
         renderTracks();
       }
+    }
+
+    // Recorder → timeline. Each recorded source (screen, facecam, mic) lands on its own
+    // named track at the playhead, so it can be re-laid-out afterwards.
+    function addRecordingToTimeline(result, st, toast) {
+      const sources = result?.sources?.length
+        ? result.sources
+        : (result?.blob ? [{ kind: result.type === 'audio' ? 'audio' : 'screen', label: 'Recording', blob: result.blob }] : []);
+      if (!sources.length) return;
+      const T = st.timelineSeconds || 45;
+      const duration = Math.max(1, Number(result.duration) || 1);
+      const startSec = (st.playheadPercent / 100) * T;
+      growTimelineTo(startSec + duration);
+      const total = st.timelineSeconds || T;
+      saveStateSnapshot(st);
+
+      const TRACKS = {
+        screen: { name: 'Screen', type: 'video', clip: 'video' },
+        composite: { name: 'Screen', type: 'video', clip: 'video' },
+        webcam: { name: 'Facecam', type: 'video', clip: 'video' },
+        audio: { name: 'Recorded Audio', type: 'audio', clip: 'audio' }
+      };
+      const ensureTrack = ({ name, type }) => {
+        let track = st.tracks.find((t) => t.name === name);
+        if (!track) {
+          track = { id: `track-${type}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, type, name, muted: false, solo: false, locked: false, items: [] };
+          track.clips = track.items;
+          const last = st.tracks.map((t) => String(t.type || '').toLowerCase()).lastIndexOf(type);
+          st.tracks.splice(last + 1, 0, track);
+        }
+        return track;
+      };
+
+      let lastClip = null;
+      sources.forEach((source, i) => {
+        const def = TRACKS[source.kind] || TRACKS.screen;
+        const track = ensureTrack(def);
+        lastClip = {
+          id: `rec-${Date.now().toString(36)}-${i}`,
+          name: source.label || def.name,
+          type: def.clip,
+          src: URL.createObjectURL(source.blob),
+          left: (startSec / total) * 100,
+          width: (duration / total) * 100,
+          recorded: true
+        };
+        track.items.push(lastClip);
+      });
+      if (lastClip) st.selectedClipId = lastClip.id;
+      renderTracks();
+      scheduleEngineUpdate();
+      debouncedSave();
+      if (toast) toast(`Added ${sources.length} recorded source${sources.length === 1 ? '' : 's'} to the timeline`, 'success');
     }
 
     function addImageToTimeline(imageData, state) {
