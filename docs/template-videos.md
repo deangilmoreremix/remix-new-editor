@@ -23,3 +23,24 @@ secret-free edge function `demo-templates-import`, which is now a disabled stub 
 ## Rights
 The clips are third-party media (originally posted on X, sourced from public prompt galleries). Commercial-use / redistribution
 permission must be confirmed before production use; `sourceAuthor` / `sourceUrl` in the upstream data files hold the attribution.
+
+## Retired objects (still in the bucket, no longer in the library; safe to delete in the Supabase dashboard)
+Removed from the allowlist after the audits (small "AI" corner badge, end-card/subtitle/logo marks, or on-screen brand text). The
+Supabase connector used here cannot delete storage objects, so the files were left in place.
+- `clips/sd25/5-minutes-a-day-just-for-you-019376.*` and `posters/sd25/5-minutes-a-day-just-for-you-019376.*`
+- `clips/sd25/action-film-study-229811.*` and `posters/sd25/action-film-study-229811.*`
+- `clips/sd25/cinematic-story-study-143211.*` and `posters/sd25/cinematic-story-study-143211.*`
+- `clips/sd25/morning-coffee-mini-dv-vlog.*` and `posters/sd25/morning-coffee-mini-dv-vlog.*`
+- `clips/sd25/photorealistic-cinematic-modern-american-airport-643718.*` and `posters/sd25/photorealistic-cinematic-modern-american-airport-643718.*`
+- `clips/sd25/super-casual-real-smartphone-home-video-footage-896933.*` and `posters/sd25/super-casual-real-smartphone-home-video-footage-896933.*`
+- `clips/sd25/ten-member-idol-concert.*` and `posters/sd25/ten-member-idol-concert.*`
+- `clips/sd25/victorian-greenhouse-mechanical-hummingbird.*` and `posters/sd25/victorian-greenhouse-mechanical-hummingbird.*`
+- `clips/mmx25/hip-hop-music-video-make-the-character-from-video1-107776.*` and `posters/mmx25/hip-hop-music-video-make-the-character-from-video1-107776.*`
+- `clips/sd25/created-with-seedance-2-5-141060.*` and `posters/sd25/created-with-seedance-2-5-141060.*`
+- `clips/sd25/i-made-this-full-video-in-5-minutes-100-automated-857085.*` and `posters/sd25/i-made-this-full-video-in-5-minutes-100-automated-857085.*`
+- `clips/sd25/made-with-seedance-2-5-on-352388.*` and `posters/sd25/made-with-seedance-2-5-on-352388.*`
+- `clips/sd25/wow-the-metamorphosis-in-is-totally-cinematic-to-155054.*` and `posters/sd25/wow-the-metamorphosis-in-is-totally-cinematic-to-155054.*`
+- `clips/sd25/listen-up-228251.*` and `posters/sd25/listen-up-228251.*`
+- `clips/sd25/my-first-test-of-526392.*` and `posters/sd25/my-first-test-of-526392.*`
+- `clips/zerolu/john4.*` and `posters/zerolu/john4.*`
+- `clips/zerolu/vicky.*` and `posters/zerolu/vicky.*`

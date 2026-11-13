@@ -1,6 +1,6 @@
 // AUTO-GENERATED FILE — do not edit by hand.
 // Regenerate with: node scripts/generate-template-video-library.mjs
-// 193 clips reviewed as free of logos / watermarks / captions; see scripts/template-video-allowlist.json.
+// 184 clips reviewed as free of logos / watermarks / captions; see scripts/template-video-allowlist.json.
 
 /** @typedef {{ id: string, slug: string, title: string, sourceTitle: string, category: string, subcategory: string, duration: number | null, aspectRatio: string, videoSrc: string, posterSrc: string | null, tags: string[], source: string }} TemplateVideo */
 
@@ -402,26 +402,6 @@ export const templateVideos = [
    "product-commercial",
    "text-to-video",
    "text-prompt"
-  ],
-  "source": "MiniMax H3"
- },
- {
-  "id": "mmx25:hip-hop-music-video-make-the-character-from-video1-107776",
-  "slug": "hip-hop-music-video-make-the-character-from-video1-107776",
-  "title": "Robot Rapper Lip-Sync",
-  "sourceTitle": "Hip-Hop Character Lip-Sync Performance",
-  "category": "Social",
-  "subcategory": "Music & Dance",
-  "duration": 107.95,
-  "aspectRatio": "16:9",
-  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/hip-hop-music-video-make-the-character-from-video1-107776.webm",
-  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/hip-hop-music-video-make-the-character-from-video1-107776.jpg",
-  "tags": [
-   "music-video",
-   "reference-to-video",
-   "reference-video",
-   "reference-audio",
-   "native-audio"
   ],
   "source": "MiniMax H3"
  },
@@ -978,24 +958,6 @@ export const templateVideos = [
   "source": "Seedance 2.5"
  },
  {
-  "id": "sd25:created-with-seedance-2-5-141060",
-  "slug": "created-with-seedance-2-5-141060",
-  "title": "Busy Market Chef",
-  "sourceTitle": "character sheet prompt",
-  "category": "Cinema",
-  "subcategory": "Travel & Documentary",
-  "duration": 31.1,
-  "aspectRatio": "16:9",
-  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/created-with-seedance-2-5-141060.webm",
-  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/created-with-seedance-2-5-141060.webp",
-  "tags": [
-   "animation",
-   "text-to-video",
-   "text-prompt"
-  ],
-  "source": "Seedance 2.5"
- },
- {
   "id": "sd25:try-it-now-on-336575",
   "slug": "try-it-now-on-336575",
   "title": "Painted Lakeside Flyover",
@@ -1470,25 +1432,6 @@ export const templateVideos = [
   "source": "Seedance 2.5"
  },
  {
-  "id": "sd25:i-made-this-full-video-in-5-minutes-100-automated-857085",
-  "slug": "i-made-this-full-video-in-5-minutes-100-automated-857085",
-  "title": "Baking Mix Pour Ad",
-  "sourceTitle": "if you're still waiting days for revisions this replaces that entire workflow",
-  "category": "Commercial",
-  "subcategory": "Food & Beverage",
-  "duration": 98.2,
-  "aspectRatio": "9:16",
-  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-made-this-full-video-in-5-minutes-100-automated-857085.webm",
-  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-made-this-full-video-in-5-minutes-100-automated-857085.jpg",
-  "tags": [
-   "cinematic-story",
-   "reference-to-video",
-   "text-prompt",
-   "image-reference"
-  ],
-  "source": "Seedance 2.5"
- },
- {
   "id": "sd25:photorealistic-cinematic-3d-character-render-physically-based-rendering-825338",
   "slug": "photorealistic-cinematic-3d-character-render-physically-based-rendering-825338",
   "title": "Neon Noir Heroine Portrait",
@@ -1685,24 +1628,6 @@ export const templateVideos = [
   "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-551218.jpg",
   "tags": [
    "vlog",
-   "text-to-video",
-   "text-prompt"
-  ],
-  "source": "Seedance 2.5"
- },
- {
-  "id": "sd25:made-with-seedance-2-5-on-352388",
-  "slug": "made-with-seedance-2-5-on-352388",
-  "title": "Neon City Hero Dive",
-  "sourceTitle": "A cinematic superhero-inspired short film",
-  "category": "Action",
-  "subcategory": "Creatures & Heroes",
-  "duration": 30.12,
-  "aspectRatio": "16:9",
-  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/made-with-seedance-2-5-on-352388.webm",
-  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/made-with-seedance-2-5-on-352388.jpg",
-  "tags": [
-   "music-video",
    "text-to-video",
    "text-prompt"
   ],
@@ -2548,24 +2473,6 @@ export const templateVideos = [
   "source": "Seedance 2.5"
  },
  {
-  "id": "sd25:wow-the-metamorphosis-in-is-totally-cinematic-to-155054",
-  "slug": "wow-the-metamorphosis-in-is-totally-cinematic-to-155054",
-  "title": "Crimson Serpent Close-Up",
-  "sourceTitle": "Cinematic Story Study",
-  "category": "Cinema",
-  "subcategory": "Fantasy & Surreal",
-  "duration": 17.35,
-  "aspectRatio": "7:3",
-  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/wow-the-metamorphosis-in-is-totally-cinematic-to-155054.webm",
-  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/wow-the-metamorphosis-in-is-totally-cinematic-to-155054.jpg",
-  "tags": [
-   "cinematic-story",
-   "text-to-video",
-   "text-prompt"
-  ],
-  "source": "Seedance 2.5"
- },
- {
   "id": "sd25:i-just-figured-out-the-best-way-to-use-487592",
   "slug": "i-just-figured-out-the-best-way-to-use-487592",
   "title": "Skincare Sample Unboxing",
@@ -2600,24 +2507,6 @@ export const templateVideos = [
    "reference-to-video",
    "text-prompt",
    "image-reference"
-  ],
-  "source": "Seedance 2.5"
- },
- {
-  "id": "sd25:listen-up-228251",
-  "slug": "listen-up-228251",
-  "title": "Space Marine Briefing",
-  "sourceTitle": "LISTEN UP! 🔊",
-  "category": "Cinema",
-  "subcategory": "Sci-Fi",
-  "duration": 17.96,
-  "aspectRatio": "16:9",
-  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/listen-up-228251.webm",
-  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/listen-up-228251.jpg",
-  "tags": [
-   "cinematic-story",
-   "text-to-video",
-   "text-prompt"
   ],
   "source": "Seedance 2.5"
  },
@@ -3266,24 +3155,6 @@ export const templateVideos = [
   "source": "Seedance 2.5"
  },
  {
-  "id": "sd25:my-first-test-of-526392",
-  "slug": "my-first-test-of-526392",
-  "title": "Dragon Over Jungle River",
-  "sourceTitle": "My first test of ! ❤️‍",
-  "category": "Cinema",
-  "subcategory": "Fantasy & Surreal",
-  "duration": 60.85,
-  "aspectRatio": "7:3",
-  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/my-first-test-of-526392.webm",
-  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/my-first-test-of-526392.jpg",
-  "tags": [
-   "cinematic-story",
-   "text-to-video",
-   "text-prompt"
-  ],
-  "source": "Seedance 2.5"
- },
- {
   "id": "sd25:rainy-night-market-family-animation-775828",
   "slug": "rainy-night-market-family-animation-775828",
   "title": "Lantern Night Market",
@@ -3433,24 +3304,6 @@ export const templateVideos = [
   "source": "Seedance 2.0"
  },
  {
-  "id": "zerolu:john4",
-  "slug": "john4",
-  "title": "Wedding Day Groom Portrait",
-  "sourceTitle": "Giant Orange Cat Meme Style",
-  "category": "Cinema",
-  "subcategory": "Drama & Thriller",
-  "duration": 15.13,
-  "aspectRatio": "16:9",
-  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john4.mp4",
-  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john4.webp",
-  "tags": [
-   "reference",
-   "seedance-2.0",
-   "john4"
-  ],
-  "source": "Seedance 2.0"
- },
- {
   "id": "zerolu:john5",
   "slug": "john5",
   "title": "Phone Booth Night Call",
@@ -3483,24 +3336,6 @@ export const templateVideos = [
    "reference",
    "seedance-2.0",
    "john6"
-  ],
-  "source": "Seedance 2.0"
- },
- {
-  "id": "zerolu:vicky",
-  "slug": "vicky",
-  "title": "Wise Elder Portrait",
-  "sourceTitle": "Perfume MG Animation Style",
-  "category": "Cinema",
-  "subcategory": "Drama & Thriller",
-  "duration": 15.12,
-  "aspectRatio": "16:9",
-  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/vicky.mp4",
-  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/vicky.webp",
-  "tags": [
-   "reference",
-   "seedance-2.0",
-   "vicky"
   ],
   "source": "Seedance 2.0"
  },
@@ -3572,8 +3407,8 @@ export const TEMPLATE_VIDEO_SUBCATEGORIES = {
   "Comedy"
  ],
  "Commercial": [
-  "Food & Beverage",
   "Automotive & Mobility",
+  "Food & Beverage",
   "Luxury Goods",
   "Product Reveals",
   "Brand Films",
