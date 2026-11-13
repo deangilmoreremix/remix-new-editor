@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/library/TransitionThumb.tsx), vendored.
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { GlslTransitionType } from '../editor/types';
 import { ensureSampleFrame } from '../gl/sampleFrames';
 import { GLSL_TRANSITIONS } from '../gl/transitions';
-import {
-  customTransitionUniforms,
-  getCustomTransition,
-  type CustomTransitionDef,
-} from '../gl/customTransitions';
+import { gltFrag, gltUniforms, isGltId } from '../gl/glt';
+import { customTransitionUniforms, getCustomTransition } from '../gl/customTransitions';
+import type { UniformValue } from '../gl/runtime';
 import {
   acquireTransitionThumbRuntime,
   cleanupTransitionThumbResources,
@@ -37,9 +35,17 @@ function isBuiltin(type: string): type is GlslTransitionType {
   return type in GLSL_TRANSITIONS;
 }
 
+/** A thumbnailable non-builtin transition: plugin/custom registry entry or a vendored gl-transitions shader ([remix] Stage 6). */
+interface ThumbDef { id: string; frag: string; uniforms: Record<string, UniformValue> }
+function thumbDefFor(type: string): ThumbDef | undefined {
+  if (isGltId(type)) return { id: type, frag: gltFrag(type)!, uniforms: gltUniforms(type) };
+  const c = getCustomTransition(type);
+  return c ? { id: c.id, frag: c.frag, uniforms: customTransitionUniforms(c) } : undefined;
+}
+
 function useTransitionStill(
   type: string,
-  custom: CustomTransitionDef | undefined,
+  custom: ThumbDef | undefined,
   playing: boolean,
 ): string {
   const [url, setUrl] = useState('');
@@ -55,7 +61,7 @@ function useTransitionStill(
     const load = async () => {
       if (isBuiltin(type)) return transitionThumbUrlAsync(type);
       if (!custom) return '';
-      const uniforms = customTransitionUniforms(custom);
+      const uniforms = custom.uniforms;
       const customCached = getCachedCustomTransitionThumbUrl(custom.id, custom.frag);
       if (customCached) return customCached;
       try {
@@ -131,14 +137,16 @@ function useTransitionAnimation(
 
 export function TransitionThumb({ type, playing = false }: TransitionThumbProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const custom = !isBuiltin(type) ? getCustomTransition(type) : undefined;
+  const registered = getCustomTransition(type);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- thumbDefFor reads the registry entry tracked by `registered`
+  const custom = useMemo(() => (!isBuiltin(type) ? thumbDefFor(type) : undefined), [type, registered]);
   useResourcePreviewCleanup(cleanupTransitionThumbResources);
   const staticUrl = useTransitionStill(type, custom, playing);
   const paint = useCallback((progress: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return false;
     if (custom) {
-      return drawCustomTransitionFrame(canvas, custom.frag, progress, customTransitionUniforms(custom));
+      return drawCustomTransitionFrame(canvas, custom.frag, progress, custom.uniforms);
     }
     return isBuiltin(type) && drawTransitionFrame(canvas, type, progress);
   }, [custom, type]);

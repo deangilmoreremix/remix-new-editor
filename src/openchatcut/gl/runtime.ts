@@ -149,9 +149,30 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
   };
 
+  // [remix] int/bool/ivec uniforms (vendored gl-transitions params) need uniform1i/2i; looked up once per program.
+  const intUniforms = new WeakMap<WebGLProgram, Map<string, number>>();
+  const intKind = (prog: WebGLProgram, name: string): number => {
+    let m = intUniforms.get(prog);
+    if (!m) {
+      m = new Map();
+      const n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS) as number;
+      for (let i = 0; i < n; i++) {
+        const u = gl.getActiveUniform(prog, i);
+        if (u && (u.type === gl.INT || u.type === gl.BOOL || u.type === gl.INT_VEC2)) m.set(u.name, u.type);
+      }
+      intUniforms.set(prog, m);
+    }
+    return m.get(name) ?? 0;
+  };
   const setUniform = (prog: WebGLProgram, name: string, v: UniformValue) => {
     const loc = gl.getUniformLocation(prog, name);
     if (!loc) return; // shader doesn't use it — fine
+    const ik = intKind(prog, name);
+    if (ik) {
+      if (typeof v === 'number') gl.uniform1i(loc, Math.round(v));
+      else if (v.length === 2) gl.uniform2i(loc, Math.round(v[0]), Math.round(v[1]));
+      return;
+    }
     if (typeof v === 'number') gl.uniform1f(loc, v);
     else if (v.length === 2) gl.uniform2f(loc, v[0], v[1]);
     else if (v.length === 3) gl.uniform3f(loc, v[0], v[1], v[2]);

@@ -14,7 +14,7 @@ import { CAPTION_STYLE_BY_ID } from '../../openchatcut/captions/styles';
 import { userFontsFor } from '@cinegen/lib/occ/user-fonts';
 import { exportItem, type ExportTrackInfo } from '@cinegen/lib/editor/export-mapping';
 import { buildExportStateWithAudio } from '@cinegen/lib/audio/export-prepare'; // [remix] Stage 4: EQ bake + master volume
-import { customTransitionDefSync } from '@cinegen/lib/occ/plugins';
+import { buildGlTransitionLayers } from '@cinegen/lib/editor/gl-transition-export'; // [remix] Stage 6
 type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
 const transcriptionListeners = new Set<(e: TranscriptionEvent) => void>();
 const emitTranscription = (e: TranscriptionEvent) => transcriptionListeners.forEach((fn) => fn(e));
@@ -110,7 +110,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; tracks?: ExportTrackInfo[]; clips: Array<{ id?: string; name?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; glType?: string; glDef?: unknown; clipAId: string; clipBId?: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; tracks?: ExportTrackInfo[]; clips: Array<{ id?: string; name?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; glType?: string; glDef?: unknown; glParams?: Record<string, number | boolean | number[]>; clipAId: string; clipBId?: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -144,18 +144,7 @@ export function registerWebApi() {
           // [remix] imported caption fonts travel with the render
           (model as { userFonts?: unknown[] }).userFonts = userFontsFor(a.clips.map((c) => (c.captions as { styleOverride?: { fontFamily?: string } } | undefined)?.styleOverride?.fontFamily));
           // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
-          const byId = new Map(a.clips.map((c, i) => [c.id, { c, i }]));
-          (model as { glTransitions?: unknown[] }).glTransitions = (a.transitions ?? []).flatMap((t) => {
-            const A = byId.get(t.clipAId); const B = t.clipBId ? byId.get(t.clipBId) : undefined;
-            if (!t.glType || !A || !B) return [];
-            const start = B.c.startTime; const end = A.c.startTime + A.c.duration;
-            const from = Math.round(start * a.fps); const dur = Math.round((end - start) * a.fps);
-            if (dur < 2) return [];
-            const rate = (c: typeof A.c) => c.speed || 1;
-            return [{ id: `gl-${t.clipAId}-${t.clipBId}`, glType: t.glType, customDef: t.glDef ?? customTransitionDefSync(t.glType), from, durationInFrames: dur,
-              out: { src: A.c.inputPath, trimBefore: Math.round((A.c.trimStart + (start - A.c.startTime) * rate(A.c)) * a.fps), playbackRate: rate(A.c) },
-              inn: { src: B.c.inputPath, trimBefore: Math.round(B.c.trimStart * a.fps), playbackRate: rate(B.c) } }];
-          });
+          (model as { glTransitions?: unknown[] }).glTransitions = buildGlTransitionLayers(a.transitions, a.clips as never, a.fps);
           const blob = await exportModel(model, { container: 'mp4', quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
           job.outputUrl = URL.createObjectURL(blob);
           job.fileSize = blob.size;

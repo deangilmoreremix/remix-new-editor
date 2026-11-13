@@ -10,7 +10,7 @@ import { resolveTransition } from '@cinegen/lib/occ/plugins';
 import { GLSL_TRANSITIONS } from '../../../openchatcut/gl/transitions';
 import type { GlslTransitionType } from '../../../openchatcut/types';
 
-export interface GlTransitionState { glType: string; glDef?: import('../../../openchatcut/gl/customTransitions').CustomTransitionDef; outClipId: string; inClipId: string; progress: number }
+export interface GlTransitionState { glType: string; glDef?: import('../../../openchatcut/gl/customTransitions').CustomTransitionDef; glParams?: Record<string, number | boolean | number[]>; outClipId: string; inClipId: string; progress: number }
 
 interface Props {
   container: HTMLElement | null;
@@ -48,7 +48,7 @@ export function GlClipLayer({ container, clip, assetId, transition = null }: Pro
         const find = (id: string) => container.querySelector(`video[data-clip-id="${id}"]`) as HTMLVideoElement | null;
         const a = find(tr.outClipId); const b = find(tr.inClipId);
         if (!a || !b || a.readyState < 2 || b.readyState < 2 || !a.videoWidth) { canvas.style.visibility = 'hidden'; restore(); return; }
-        const def = resolveTransition(tr.glType, tr.glDef);
+        const def = resolveTransition(tr.glType, tr.glDef, tr.glParams);
         if (!def) { canvas.style.visibility = 'hidden'; restore(); return; }
         if (canvas.width !== a.videoWidth || canvas.height !== a.videoHeight) { canvas.width = a.videoWidth; canvas.height = a.videoHeight; }
         try {

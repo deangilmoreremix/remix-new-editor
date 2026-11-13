@@ -104,6 +104,8 @@ export interface Transition {
   glType?: string;
   /** plugin transition snapshot, used when the pack is not installed */
   glDef?: import('../../openchatcut/gl/customTransitions').CustomTransitionDef;
+  /** [remix] Stage 6: per-cut overrides of a vendored gl-transitions shader's uniforms (absent = defaults) */
+  glParams?: Record<string, number | boolean | number[]>;
 }
 
 export interface TimelineMarker {

@@ -698,7 +698,7 @@ export function TimelineComposition({ model }) {
         {/* [remix] OpenChatCut GL transitions between CineGen clips */}
         {(m.glTransitions || []).map((g) => (
           <Sequence key={g.id} from={g.from} durationInFrames={g.durationInFrames} layout="absolute-fill">
-            <GlTransitionLayer out={g.out} inn={g.inn} glType={g.glType} durationInFrames={g.durationInFrames} customDef={g.customDef} />
+            <GlTransitionLayer out={g.out} inn={g.inn} glType={g.glType} durationInFrames={g.durationInFrames} customDef={g.customDef} glParams={g.glParams} />
           </Sequence>
         ))}
       </FontGate>
