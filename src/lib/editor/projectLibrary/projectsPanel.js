@@ -87,7 +87,8 @@ export function renderProjectsPanel(host, deps) {
     loading = true; error = null; draw();
     try {
       const client = await deps.getClient();
-      const list = await listProjects(client, { limit: 200 });
+      const all = await listProjects(client, { limit: 200 });
+      const list = deps.filterRows ? deps.filterRows(all) : all; // e.g. the new editor only lists its own projects
       const ids = list.map((r) => r.id);
       const [pub, stats] = await Promise.all([
         deps.getPublished ? deps.getPublished(ids).catch(() => ({})) : {},

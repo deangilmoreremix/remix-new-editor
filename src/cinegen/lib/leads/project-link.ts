@@ -8,6 +8,9 @@ export interface LinkInput {
   /** The publish-state built from the timeline (classic shape). */
   built: { timelineSeconds?: number; [k: string]: unknown };
   aspect?: string | null;
+  /** The CineGen project and timeline this row belongs to, so the overview can open the right project. */
+  cinegenProjectId?: string;
+  timelineId?: string;
 }
 
 // minimal structural type of the supabase-js client used here (query builder is chainable)
@@ -28,6 +31,17 @@ export async function linkedProjectId(projectId: string, timelineId: string): Pr
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20, 32)}`;
 }
 
+/** "Roof promo — Timeline 1": the CineGen project's name plus the published timeline, so cards are recognisable. */
+export async function rowName(cinegenProjectId: string, timelineTitle: string): Promise<string> {
+  let project = '';
+  try {
+    const { listAvailableProjects } = await import('@cinegen/lib/cloud/projects');
+    project = (await listAvailableProjects()).find((p: { id: string; name?: string }) => p.id === cinegenProjectId)?.name || '';
+  } catch { /* name lookup is cosmetic */ }
+  const t = (timelineTitle || '').trim();
+  return project && t && t !== project ? `${project} — ${t}` : (project || t || 'Untitled video');
+}
+
 /** The owner's saved Retarget mapping for this project, so republishing keeps it. */
 export async function readInterestMap(client: Client, projectId: string): Promise<unknown[] | null> {
   if (!isLinkableProjectId(projectId)) return null;
@@ -42,7 +56,7 @@ export async function readInterestMap(client: Client, projectId: string): Promis
  * so only name, data, duration and aspect are updated.
  */
 export async function ensureProjectRow(client: Client, input: LinkInput): Promise<void> {
-  const { projectId, name, built, aspect } = input;
+  const { projectId, name, built, aspect, cinegenProjectId, timelineId } = input;
   if (!isLinkableProjectId(projectId)) throw new Error('This project cannot be linked yet');
   const fields = {
     name: (name || 'Untitled project').slice(0, 200),
@@ -54,9 +68,11 @@ export async function ensureProjectRow(client: Client, input: LinkInput): Promis
   if (readErr) throw new Error(readErr.message || 'Could not read the project');
   // Never take over a row this feature did not create.
   if (existing && existing.settings?.source !== 'cinegen') throw new Error('This project id belongs to another project');
+  // settings are merged, never replaced: the owner's saved audience mapping lives there.
+  const settings = { ...(existing?.settings || {}), source: 'cinegen', ...(cinegenProjectId ? { cinegenProjectId } : {}), ...(timelineId ? { timelineId } : {}) };
   const res = existing
-    ? await client.from('timeline_projects').update(fields).eq('id', projectId)
-    : await client.from('timeline_projects').insert({ id: projectId, ...fields, settings: { source: 'cinegen' } });
+    ? await client.from('timeline_projects').update({ ...fields, settings }).eq('id', projectId)
+    : await client.from('timeline_projects').insert({ id: projectId, ...fields, settings });
   if (res.error) throw new Error(res.error.message || 'Could not save the project');
 }
 
