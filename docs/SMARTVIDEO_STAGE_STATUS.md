@@ -6,7 +6,7 @@
 | 1 | Personalization data & visual editing | **Complete and verified** (see limits in the Stage 1 completion section) | Authorized by the user ("continue with the next phase", then "complete all of stage 1") | 2026-11-13 | see `git log` ("Stage 1 completion") | Full suite 766/766 files, 10,988 passed, 0 failed, 61 skipped; typecheck gate 0 errors; eslint src 0 errors; live checks 8/8, 19/19, 31/31; SQL 40/40 | Migration for synced layouts is **not applied** anywhere |
 | 2 | Website backgrounds & business assets | **Complete and verified** (limits listed in the Stage 2 section) | Authorized by the user (approval of the roadmap plan, which authorized Stage 2 only) | 2026-11-13 | see `git log` ("Stage 2") | Full suite 770/770 files, 11,114 passed, 0 failed, 61 skipped; typecheck gate 0; eslint src 0 errors; Stage 2 real-chain check 29/29 | Capture bucket is still public-by-URL; see limits |
 | 3 | MediaPipe presenter effects | **Complete and verified** (limits listed in the Stage 3 section) | Authorized by the user ("let's only check every 3 phases": Stages 3–5 run back to back, then stop) | 2026-11-13 | see `git log` ("Stage 3") | Stage 3 unit/panel tests 78; personalization suite 191 files, 2,360 passed; typecheck gate 0; live check 53/53 (see below) | Processed footage is stored in the browser only; see limits |
-| 4 | Advanced browser audio | Not started | Authorized (3-stage cadence) | — | — | — | — |
+| 4 | Advanced browser audio | **Complete and verified** (limits in the Stage 4 section) | Authorized (3-stage cadence) | 2026-11-13 | see `git log` ("Stage 4") | 71 unit/panel/composition tests; personalization suite 194 files, 2,431 passed; typecheck gate 0; live check 40/40 | Mixdown stored in the browser only; tested on short clips only |
 | 5 | Advanced video effects & motion | Not started | Authorized (3-stage cadence) | — | — | — | — |
 | 6 | Captions, text & intelligent editing | Not started | **NOT authorized** | — | — | — | — |
 | 7 | Thumbnails & personalized GIFs | Not started | **NOT authorized** | — | — | — | — |
@@ -264,3 +264,35 @@ Authorized by the user's approval of the roadmap plan (Stage 2 only).
 * The sample clip has no soundtrack: audio checks used a synthetic soundtrack muxed into a copy. The exporter's own loudness on the pre-existing no-presenter path measured ×1.39 of the source file (not introduced here, not investigated).
 * Real-browser checks ran in headless Chromium with software rendering; other browsers (Safari/Firefox) were not run.
 * Production `vite build` result: see the Stage 3 entry in `IMPLEMENTATION_LOG.md`.
+
+
+## Stage 4 — Advanced browser audio (2026-11-13)
+
+**Authorization:** the 3-stage cadence. **Scope kept:** no new service, worker server, database or paid API; no Recorder work; nothing deployed or migrated.
+
+### What was built
+| Capability | Where | Notes |
+|---|---|---|
+| Pure DSP (no Web Audio needed): RBJ biquads (shelves, peak, high/low-pass), **ITU-R BS.1770-4 loudness** (K-weighting, 400 ms/75 % blocks, absolute and relative gates), voice-activity **ducking** (depth, attack, release, hold), raised-cosine fades, **look-ahead peak limiter**, beat snapping | `preview/audioDsp.ts` | The same code produces the export's audio in the browser and is unit-tested with numbers. The app's older `loudness.ts` is a documented approximation; this module is the real meter. |
+| Mix model: voice (mute, level, rumble filter + 3-band tone with presets, loudness normalise), music (level, fades, loop with 5 ms loop-point dips, start offset, normalise, ducking), master (target LUFS, peak ceiling); validation; content key; "which audio plays" plan | `preview/audioMix.ts` | Stored as `settings.audioMix`. Absent = sources play as before. |
+| Mixdown: decode (Web Audio), render stereo 48 kHz, 16-bit WAV, cache in IndexedDB under the key, reuse when nothing changed, measured report (voice/music/final LUFS, peak, ducking depth, notes) | `guided/audioMixdown.ts` | One file is played by preview and export, so they cannot disagree. |
+| Composition: with a **current** mixdown it plays only that and mutes every source (full-frame video and presenter layers); stale / missing / disabled → the sources play and the panel says why | `PersonalizationComposition.tsx`, `PresenterLayer.tsx` | Re-renders when the mixdown becomes available after a reload. |
+| Exporter hook: before rendering frames, a current mixdown is guaranteed (re-rendered if never applied or stale) | `webExport.ts` → `prepareAudioForExport` | An export can never silently skip the mix. |
+| Panel: all controls above, **Measure my audio** (loudness, quiet gaps, tempo via the existing silence/beat analysers), "start the fade-out on a beat", Apply / Apply again / Cancel, pending / stale / active status, report | `guided/AudioMixPanel.tsx`, `audioAnalysis.ts` | |
+
+### Defect found and fixed by the tests
+* The first limiter version counted missing history at the start of the file as unity gain, so the first ~5 ms could exceed the ceiling (hot noise measured 2.8 against a 0.89 ceiling). Fixed; a test now pins it (mutation-checked).
+
+### Verification actually run
+* **71 tests:** DSP against published references (K-weighting coefficients equal the standard 48 kHz set; a 997 Hz stereo sine at -23 dBFS reads -23.0 LUFS; +10 dB gain reads +10 LU; gating), filter responses vs analytic response vs filtering a real sine, limiter ceiling on hostile input, ducking depth/attack/release/hold, fades, `renderMix` end to end (loudness target and ceiling hit, ducking depth isolated from the voice, EQ and gain exact, loops/offset/silence), WAV encoder, model validation and key sensitivity, plan rules, composition muting in every presenter mode, baking/reuse/failure, exporter hook, panel flows. Six mutations (meter without K-weighting, ducking the wrong way, stale mixdown accepted, video not muted, export hook skipped, the limiter-start bug) were each caught, then restored.
+* **Live check 40/40** (`scripts/stage4-audio-check/check.mjs`): real browser decode of an mp4 and an mp3; app loudness equals ffmpeg's EBU R128 on both sources; tempo 119.8 BPM found; the mixdown reads -16.0 LUFS in the app and in ffmpeg; second bake reused in 1 ms vs 122 ms; **exports measured by ffmpeg**: -16 target → -16.0 LUFS, -23 → -23.1, a stale saved mixdown re-rendered to the new -20 target (-20.1); exported audio sample-aligned with the saved mix (lag 0.00 ms), level within 0.15 dB, correlation 0.96 (noise voice) / 0.98+ (tonal music) after AAC; ducking 12 dB ±1.5 measured on the music's own tone, recovered in the pause, ducked again in the next phrase; EQ: rumble filter ≥ 20 dB, +6 dB presence measures +6.0 dB, low band untouched; fades silent at both ends and -6 dB halfway; peak ceiling guaranteed on the mixdown (-3.0 dBFS); everything muted exports silence; the real editor panel (measure → apply → Player switches to the mixdown → change a setting → Player falls back and the panel says stale → apply again → export hits the target).
+
+### Limits and open items (not hidden)
+* **Peak ceiling is a SAMPLE-peak ceiling on the mixdown.** The exported AAC file can exceed it: observed 0.1–2.4 dB across runs on a very hot mix (true-peak limiting was not built). Keep the ceiling at -1 dB or lower; the panel says so.
+* **Processed on short clips only** (5–8 s fixtures). Decoded audio is held as Float32 in memory (stereo 48 kHz ≈ 23 MB per minute per source), so a long video will use hundreds of MB while rendering; this was not measured and there is no chunked/streaming mixer.
+* The mixdown lives in this browser's IndexedDB (shared 400 MB budget with presenter footage). On another device it is re-rendered on export; the preview shows the plain sources until re-applied.
+* "Voice" is only the source video's own audio. No voice-over recording (Recorder is out of scope), no second music track, no per-clip volume keyframes/automation, no compressor/de-noiser/de-esser; EQ is a rumble filter plus three fixed bands, not a full parametric EQ.
+* Quiet-gap and tempo analysis reuse the existing conservative analysers: no gaps are reported when the voice is quieter than -45 dBFS, tempo works for steady 60–180 BPM music. They are informational: nothing is cut automatically.
+* Audible playback in the Player was not listened to or recorded (headless); the check proves which audio the Player is configured to play and measures the exported file.
+* The exporter's own gain on the pre-existing mono path measured ×1.39 (√2) in Stage 3; with a stereo mixdown the exported loudness matched the target within 0.1 LU, so the mix is not affected. The cause of the mono behaviour was not investigated.
+* Output is 16-bit WAV without dither; the WAV is an internal intermediate (the export encodes AAC).

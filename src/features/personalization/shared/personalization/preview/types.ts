@@ -7,6 +7,7 @@
 import type { ImageHints, ImageRole, ImageStyle } from './imageStyle'
 import type { WebsiteBackground } from './websiteBackground'
 import type { PresenterSettings } from './presenter'
+import type { AudioMix } from './audioMix'
 
 export type PreviewLayoutId =
   | 'business-introduction'
@@ -228,6 +229,11 @@ export interface PersonalizationPreviewSettings {
    * background kept, blurred, replaced or removed (Stage 3). Absent = the video fills the frame, as before.
    */
   presenter?: PresenterSettings
+  /**
+   * Mixing, EQ, ducking and loudness for the source video's audio and the music track (Stage 4).
+   * Absent = the sources play as they are.
+   */
+  audioMix?: AudioMix
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */

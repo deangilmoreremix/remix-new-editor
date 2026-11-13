@@ -1,6 +1,8 @@
 import { applyCustomFields, rotationCss, sourceMediaStyle } from './layerTransform'
 import { WebsiteBackgroundLayer } from './WebsiteBackgroundLayer'
 import { PresenterLayer } from './PresenterLayer'
+import { audioPlan } from './audioMix'
+import { resolveMatteUrl, subscribeMatteRegistry } from './presenterMatteRegistry'
 import { contractFor, layerZIndex, roleForLayer } from './mediaRoles'
 import { ownText, resolveLayerImageUrl, resolveLayerText } from './layerContent'
 import { endCardFrames } from './endCard'
@@ -347,6 +349,16 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
     clearPreviewMediaFailure()
   }, [videoUrl])
 
+  // Processed footage / mixdown URLs are registered after the first paint (restored from the local store after a
+  // reload, or just baked): re-render when the registry changes so the Player and the export pick them up.
+  const [, setMediaRegistryVersion] = useState(0)
+  useEffect(() => subscribeMatteRegistry(() => setMediaRegistryVersion((v) => v + 1)), [])
+
+  // Audio (Stage 4): with a current mixdown, play it and mute every source; otherwise the sources play as they are.
+  const mix = settings.audioMix
+  const mixdownUrl = mix?.mixdown ? resolveMatteUrl({ key: mix.mixdown.key }) : null
+  const audioDecision = audioPlan(mix, isImageSource ? null : videoUrl, audioUrl, settings.durationInFrames / (settings.fps > 0 ? settings.fps : 30), mixdownUrl)
+
   // A presenter (camera bubble, PiP, cut-out…) replaces the full-frame source video. If the media failed to
   // load, the existing poster fallback is used instead.
   const presenterActive = Boolean(settings.presenter?.enabled && videoUrl && !isImageSource && !mediaFailed)
@@ -373,7 +385,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           // Remote CDNs without CORS (e.g. the AI-viral demo library) are
           // streamed through the same-origin /api/media/remote proxy.
           src={toPlayablePreviewMediaUrl(videoUrl)}
-          muted={false}
+          muted={audioDecision.useMixdown}
           // objectFit is a PROP of @remotion/media's <Video>; the CSS object-fit below is ignored by its canvas
           // (found in Stage 3: a portrait clip in a landscape frame was letterboxed, not covered).
           objectFit="cover"
@@ -458,7 +470,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
 
   return (
     <SequenceManagerBoundary>
-    <AbsoluteFill style={{ background: '#05070a' }}>
+    <AbsoluteFill style={{ background: '#05070a' }} data-audio-source={audioDecision.useMixdown ? 'mixdown' : 'sources'}>
       {presenterActive ? (
         // The presenter is drawn above the website, so the video is not the full-frame background here.
         <AbsoluteFill style={{ background: `linear-gradient(135deg, ${settings.brandColors.primary}, #05070a)` }} />
@@ -467,9 +479,9 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
         <WebsiteBackgroundLayer background={settings.websiteBackground} frame={frame} compW={compW} compH={compH} accent={settings.brandColors.accent} />
       ) : null}
       {presenterActive && videoUrl ? (
-        <PresenterLayer presenter={settings.presenter as NonNullable<typeof settings.presenter>} videoUrl={toPlayablePreviewMediaUrl(videoUrl)} compW={compW} compH={compH} />
+        <PresenterLayer presenter={settings.presenter as NonNullable<typeof settings.presenter>} videoUrl={toPlayablePreviewMediaUrl(videoUrl)} compW={compW} compH={compH} muteSources={audioDecision.useMixdown} />
       ) : null}
-      {audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
+      {audioDecision.useMixdown && mixdownUrl ? <Audio src={mixdownUrl} data-audio-mixdown="" /> : audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
       <AbsoluteFill
           style={{
             background: '#000',

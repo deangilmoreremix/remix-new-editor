@@ -68,3 +68,11 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Fixed: `<Video objectFit>` is a prop, not CSS (portrait footage was letterboxed in a landscape frame; now covers); web renderer ignores inset box-shadow (border is a real border).
 - Verified: 78 unit/panel tests (+5 mutation checks), personalization suite 191 files / 2,360 passed, typecheck gate 0, live check 53/53 (real MediaPipe bake, IndexedDB reuse/restore, decoded exports vs the source frames and the matte, audio not doubled and aligned, real editor drag, preview-vs-export parity). Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
 - NOT done: durable/shared storage of processed footage (browser-only), WebGPU timing of MODNet, Safari/Firefox, saved-layout presenter geometry, corner-resize handle.
+
+### Stage 4 — Advanced browser audio
+- Authorization: the 3-stage cadence.
+- Added: `preview/audioDsp.ts` (filters, BS.1770-4 loudness, ducking, fades, look-ahead limiter), `preview/audioMix.ts` (model, key, plan), `guided/audioMixdown.ts` (render, WAV, cache, export preparation), `guided/audioAnalysis.ts`, `guided/AudioMixPanel.tsx`; composition mutes sources when a current mixdown plays; `webExport.ts` guarantees a current mixdown before rendering.
+- No new dependencies. Reused: existing silence and beat analysers, the Stage 3 blob store/registry.
+- Found/fixed: limiter exceeded its ceiling in the first few milliseconds (caught by the new tests).
+- Verified: 71 tests (+6 mutation checks), personalization suite 194 files / 2,431 passed, typecheck gate 0, live check 40/40 with ffmpeg's EBU R128 meter as the independent reference. Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
+- NOT done: true-peak limiting, long-video/streaming mixing, voice-over recording, multi-track, de-noise/compressor, cross-device mixdown storage.

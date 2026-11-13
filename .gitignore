@@ -182,3 +182,4 @@ scripts/stage1-render-check/out/
 # Stage 2 website check output (captures, videos, screenshots)
 scripts/stage2-website-check/out/
 scripts/stage3-presenter-check/out/
+scripts/stage4-audio-check/out/

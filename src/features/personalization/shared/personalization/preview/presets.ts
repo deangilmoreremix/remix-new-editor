@@ -9,6 +9,7 @@
 import { normalizeCustomFields, normalizeRotation, normalizeSourceTransform } from './layerTransform'
 import { normalizeWebsiteBackground } from './websiteBackground'
 import { normalizePresenter } from './presenter'
+import { normalizeAudioMix } from './audioMix'
 import { contractFor, roleForLayer } from './mediaRoles'
 import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle'
 import type {
@@ -1125,6 +1126,8 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
   if (websiteBackground) out.websiteBackground = websiteBackground
   const presenter = normalizePresenter(raw.presenter)
   if (presenter) out.presenter = presenter
+  const audioMix = normalizeAudioMix(raw.audioMix)
+  if (audioMix) out.audioMix = audioMix
 
    return out
   } catch {

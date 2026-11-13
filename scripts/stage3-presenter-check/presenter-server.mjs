@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url'
 const here = path.dirname(fileURLToPath(import.meta.url))
 const repo = path.resolve(here, '../..')
 const stub = (n) => path.join(repo, 'scripts/stage1-render-check/stubs', n)
-export async function startPresenterServer(port = 5203) {
+export async function startPresenterServer(port = 5203, root = here) {
   const server = await createServer({
-    configFile: false, root: here, logLevel: 'error', plugins: [react()], publicDir: path.join(repo, 'public'),
+    configFile: false, root, logLevel: 'error', plugins: [react()], publicDir: path.join(repo, 'public'),
     define: { 'process.browser': 'true', 'process.env': '{}' },
     resolve: {
       dedupe: ['react', 'react-dom', 'remotion'],

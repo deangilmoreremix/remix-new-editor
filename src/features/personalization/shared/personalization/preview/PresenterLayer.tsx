@@ -25,7 +25,9 @@ export const PresenterLayer: React.FC<{
   videoUrl: string
   compW: number
   compH: number
-}> = ({ presenter, videoUrl, compW, compH }) => {
+  /** Every source is silent because the audio mixdown carries the soundtrack (Stage 4). */
+  muteSources?: boolean
+}> = ({ presenter, videoUrl, compW, compH, muteSources = false }) => {
   const matteUrl = resolveMatteUrl(presenter.matte)
   const plan = presenterRenderPlan(presenter, { url: matteUrl, sourceUrl: videoUrl })
   if (!plan.active) return null
@@ -64,10 +66,10 @@ export const PresenterLayer: React.FC<{
         {plan.original ? (
           // Scaled up a little so the blur samples picture, not emptiness, at the box edge (the box clips the excess).
           <div style={{ position: 'absolute', inset: 0, filter: blur > 0 ? `blur(${blur}px)` : undefined, transform: blur > 0 ? `scale(${1 + (4 * blur) / Math.max(1, Math.min(rect.width, rect.height))})` : undefined }}>
-            <Video src={videoUrl} muted={plan.original.muted} objectFit="cover" style={mediaBox} />
+            <Video src={videoUrl} muted={muteSources || plan.original.muted} objectFit="cover" style={mediaBox} />
           </div>
         ) : null}
-        {plan.matte && matteUrl ? <Video src={matteUrl} muted={plan.matte.muted} objectFit="cover" style={mediaBox} /> : null}
+        {plan.matte && matteUrl ? <Video src={matteUrl} muted={muteSources || plan.matte.muted} objectFit="cover" style={mediaBox} /> : null}
       </div>
       {border > 0 ? (
         // A real border: the web renderer does not draw inset box-shadows (found when the exported ring was missing).

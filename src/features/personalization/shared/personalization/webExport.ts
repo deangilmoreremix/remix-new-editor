@@ -28,6 +28,7 @@ import type {
 import type React from 'react'
 import type { PreviewInputProps } from './preview/types'
 import { PersonalizationComposition } from './preview/PersonalizationComposition'
+import { prepareAudioForExport } from './guided/audioMixdown'
 import {
   PERSONALIZATION_COMPOSITION_ID,
   WEB_RENDER_EXTENSION,
@@ -308,6 +309,13 @@ export async function exportPersonalizedVideo(
     return { ok: false, reason, error: details || fallback }
   }
 
+  // ── Audio mix (Stage 4): a current mixdown must exist before frames are rendered ───────────────
+  const audio = await prepareAudioForExport(inputProps, { signal })
+  if (!audio.ok) {
+    return { ok: false, reason: signal?.aborted ? 'cancelled' : 'render-failed', error: audio.error }
+  }
+  const renderProps = audio.inputProps
+
   // ── Render ───────────────────────────────────────────────────────────────
   const controller = new AbortController()
   activeController = controller
@@ -329,9 +337,9 @@ export async function exportPersonalizedVideo(
         height,
         fps,
         durationInFrames,
-        defaultProps: inputProps,
+        defaultProps: renderProps,
       },
-      inputProps,
+      inputProps: renderProps,
       container: plan.profile.container,
       videoCodec: plan.profile.videoCodec,
       audioCodec: plan.audioCodec,
