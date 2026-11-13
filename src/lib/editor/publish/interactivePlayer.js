@@ -184,6 +184,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   function openLeadForm(clip) {
     gateOpen = true;
     showLeadForm(layer, clip, {
+      allowRedirect: true,
       profile: currentProfile,
       onSubmit: async (data) => {
         const res = await onLead?.({ clipId: clip.id, kind: 'lead-form', data });
@@ -204,6 +205,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     emit(); // tells the page a form is up (hides the big play button)
     const prefill = currentProfile?.variables || {};
     showOptinOverlay(layer, listBuilder, {
+      allowRedirect: true,
       prefill,
       onSkip: () => { gateOpen = false; ensureEngine(); play(); },
       onSubmit: async (data) => {

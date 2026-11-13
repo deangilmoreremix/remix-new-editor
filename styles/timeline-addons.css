@@ -54,6 +54,53 @@
 /* ---- Opt-in form (List Builder / Personalizer) ---- */
 .addon-overlay--optin { position: absolute; inset: 0; }
 
+/* ---- Thank-you card shown after a form is sent (button / redirect preview) ---- */
+.addon-overlay--thanks {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 86%;
+  padding: 14px 34px 14px 18px;
+  border-radius: 12px;
+  background: rgba(23, 23, 28, 0.92);
+  color: #fff;
+  font: 600 14px/1.35 Raleway, system-ui, sans-serif;
+  text-align: center;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+.addon-thanks__msg, .addon-thanks__note { margin: 0; }
+.addon-thanks__note { font-weight: 500; font-size: 12px; opacity: 0.75; }
+.addon-thanks__btn {
+  display: inline-block;
+  padding: 9px 18px;
+  border-radius: 8px;
+  background: #eb5054;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.addon-thanks__btn:hover { background: #d23f43; }
+.addon-thanks__close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.addon-thanks__close:hover { opacity: 1; }
+
 .addon-overlay-layer .popcorn.retarget-form {
   position: absolute;
   box-sizing: border-box;

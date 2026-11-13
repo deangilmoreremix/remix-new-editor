@@ -108,6 +108,10 @@ export const LEAD_FORM = registerAddon({
     fbPixelId: '',
     espProvider: '',
     espListId: '',
+    successMessage: 'Thanks!',
+    afterSubmitAction: 'continue',
+    afterSubmitUrl: '',
+    afterSubmitButtonText: '',
     style: {
       fontFamily: 'Raleway',
       backgroundColor: '#000000',

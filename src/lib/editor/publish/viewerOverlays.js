@@ -34,7 +34,7 @@ export function isSafeLink(v) {
  * @param {object} o         { profile, onSubmit(data) → Promise<{ ok, message? }>, onSkip() }
  * @returns {HTMLElement}
  */
-export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditText, preview = false } = {}) {
+export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditText, preview = false, allowRedirect = false } = {}) {
   const cfg = leadFormToOptin(clip);
   cfg.caption = personalize(cfg.caption, profile);
   cfg.btnText = personalize(cfg.btnText, profile) || 'Submit';
@@ -51,6 +51,7 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditTex
     name: 'lead-form',
     prefill,
     preview,
+    allowRedirect,
     onEditText,
     onSkip,
     onSubmit: async (data) => {

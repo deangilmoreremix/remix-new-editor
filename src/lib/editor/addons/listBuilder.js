@@ -30,7 +30,7 @@ import {
   POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, isTargetDesign,
 } from './pointerDesigns.js';
 import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
-import { FIELD_LAYOUTS } from './addonOverlay.js';
+import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS } from './addonOverlay.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -159,6 +159,9 @@ export function defaultOptin(kind = 'list-builder') {
     btnText: 'Play',
     skipText: 'Skip',
     successMessage: 'Thanks!',
+    afterSubmitAction: 'continue',
+    afterSubmitUrl: '',
+    afterSubmitButtonText: '',
     // text styling
     captionColor: '', // '' = the form font colour
     captionBold: true,
@@ -258,6 +261,9 @@ const TEXT_FIELDS = (personalizer) => [
   { key: 'btnText', label: 'Play button text', type: 'text' },
   { key: 'skipText', label: 'Skip button text', type: 'text', showIf: (o) => o.enableSkipButton },
   { key: 'successMessage', label: 'Message after the form is sent', type: 'text' },
+  { key: 'afterSubmitAction', label: 'After the form is sent', type: 'select', options: AFTER_SUBMIT_ACTIONS },
+  { key: 'afterSubmitUrl', label: 'Thank-you button / redirect link (https://…)', type: 'url', showIf: (o) => o.afterSubmitAction === 'button' || o.afterSubmitAction === 'redirect' },
+  { key: 'afterSubmitButtonText', label: 'Thank-you button text', type: 'text', showIf: (o) => o.afterSubmitAction === 'button' },
   { key: 'privacyDisclaimer', label: 'Privacy text', type: 'textarea', showIf: () => !personalizer },
   { key: 'privacyPolicyCaption', label: 'Privacy policy link text', type: 'text' },
   { key: 'privacyPolicyLink', label: 'Privacy policy link (URL)', type: 'url' },
@@ -353,6 +359,10 @@ const CLIP_KEYS = {
   privacyDisclaimer: 'privacyText',
   privacyPolicyCaption: 'privacyPolicyCaption',
   privacyPolicyLink: 'privacyPolicyLink',
+  successMessage: 'successMessage',
+  afterSubmitAction: 'afterSubmitAction',
+  afterSubmitUrl: 'afterSubmitUrl',
+  afterSubmitButtonText: 'afterSubmitButtonText',
   brandLogoSrc: 'brandLogoUrl',
   enableSkipButton: 'skipButtonEnabled',
   webhookEnabled: 'webhookEnabled',

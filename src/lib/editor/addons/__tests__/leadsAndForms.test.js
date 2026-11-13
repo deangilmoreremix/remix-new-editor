@@ -3,7 +3,7 @@ import {
   submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, deliveriesSummary, fetchSigningSecret, integrationStatusText, fetchIntegrations, saveIntegration, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   buildOptinForm, showListBuilderOverlay, showPauseOverlay, ensureOverlayLayer, formBackground,
-  renderAddonEditor, getAddon,
+  renderAddonEditor, getAddon, showThanks, safeWebUrl, showOptinOverlay, leadFormToOptin,
 } from '../index.js';
 
 describe('lead client', () => {
@@ -281,5 +281,89 @@ describe('schema settings editor', () => {
     label.dispatchEvent(new Event('input', { bubbles: true }));
     next = onChange.mock.calls.at(-1)[0];
     expect(next.elements[1]).toMatchObject({ label: 'Phone number', token: 'PHONE NUMBER', type: 'singleline' });
+  });
+});
+
+describe('after-submit actions', () => {
+  const layerOf = () => ensureOverlayLayer(document.createElement('div'));
+  const flush = () => new Promise((r) => setTimeout(r, 0));
+
+  it('only accepts http(s) links', () => {
+    expect(safeWebUrl('https://a.test/x')).toBe('https://a.test/x');
+    expect(safeWebUrl('a.test/thanks')).toBe('https://a.test/thanks');
+    for (const bad of ['javascript:alert(1)', 'data:text/html,hi', 'ftp://a.test', 'tel:+15550100100', '', null]) expect(safeWebUrl(bad)).toBeNull();
+  });
+
+  it('does nothing extra by default, or when the link is missing or unsafe', () => {
+    const layer = layerOf();
+    expect(showThanks(layer, { successMessage: 'Thanks!' })).toBeNull();
+    expect(showThanks(layer, { afterSubmitAction: 'continue', afterSubmitUrl: 'https://a.test' })).toBeNull();
+    expect(showThanks(layer, { afterSubmitAction: 'button', afterSubmitUrl: '' })).toBeNull();
+    expect(showThanks(layer, { afterSubmitAction: 'button', afterSubmitUrl: 'javascript:alert(1)' })).toBeNull();
+    expect(showThanks(layer, { afterSubmitAction: 'redirect', afterSubmitUrl: 'data:text/html,x' })).toBeNull();
+    expect(layer.children).toHaveLength(0);
+  });
+
+  it('shows a thank-you card with a safe link button that closes itself', () => {
+    const layer = layerOf();
+    let hide;
+    const card = showThanks(layer, { afterSubmitAction: 'button', afterSubmitUrl: 'https://a.test/book', afterSubmitButtonText: 'Book a call', successMessage: 'Got it <b>!</b>' }, { schedule: (fn) => { hide = fn; } });
+    expect(card.querySelector('.addon-thanks__msg').textContent).toBe('Got it <b>!</b>');
+    expect(card.querySelector('.addon-thanks__msg b')).toBeNull(); // text, never HTML
+    const a = card.querySelector('a.addon-thanks__btn');
+    expect(a.getAttribute('href')).toBe('https://a.test/book');
+    expect(a.target).toBe('_blank');
+    expect(a.rel).toBe('noopener noreferrer');
+    expect(a.textContent).toBe('Book a call');
+    hide();
+    expect(layer.querySelector('[data-overlay="thanks"]')).toBeNull();
+  });
+
+  it('never navigates away unless the published player allows it', () => {
+    const navigate = vi.fn();
+    const run = [];
+    const cfg = { afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+    const preview = showThanks(layerOf(), cfg, { navigate, schedule: (fn) => run.push(fn) });
+    run.forEach((fn) => fn());
+    expect(navigate).not.toHaveBeenCalled();
+    expect(preview.querySelector('.addon-thanks__note').textContent).toBe('Preview: viewers are sent to a.test');
+
+    const live = [];
+    showThanks(layerOf(), cfg, { allowRedirect: true, navigate, schedule: (fn) => live.push(fn) });
+    expect(navigate).not.toHaveBeenCalled(); // waits so the viewer sees the message first
+    live.forEach((fn) => fn());
+    expect(navigate).toHaveBeenCalledWith('https://a.test/thanks');
+  });
+
+  it('shows after a successful form submit', async () => {
+    const layer = layerOf();
+    const cfg = { ...defaultListBuilder(), afterSubmitAction: 'button', afterSubmitUrl: 'https://a.test/book', afterSubmitButtonText: 'Book' };
+    const el = showOptinOverlay(layer, cfg, { onSubmit: vi.fn().mockResolvedValue('') });
+    el.querySelector('input[name="EMAIL"]').value = 'v@x.io';
+    el.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+    await vi.waitFor(() => expect(layer.querySelector('[data-overlay="thanks"] a')?.textContent).toBe('Book'));
+    expect(layer.querySelector('[data-overlay="list-builder"]')).toBeNull();
+  });
+
+  it('does not show it when the submit fails', async () => {
+    const layer = layerOf();
+    const cfg = { ...defaultListBuilder(), afterSubmitAction: 'button', afterSubmitUrl: 'https://a.test/book' };
+    const el = showOptinOverlay(layer, cfg, { onSubmit: vi.fn().mockRejectedValue(new Error('nope')) });
+    el.querySelector('input[name="EMAIL"]').value = 'v@x.io';
+    el.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+    await flush(); await flush();
+    expect(layer.querySelector('[data-overlay="thanks"]')).toBeNull();
+    expect(layer.querySelector('.addon-optin__status').textContent).toBe('nope');
+  });
+
+  it('carries the settings between a Lead Generator clip and the form, and offers them on the List Builder tab', () => {
+    const cfg = leadFormToOptin({ afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test', successMessage: 'Welcome', fields: [] });
+    expect(cfg).toMatchObject({ afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test', successMessage: 'Welcome' });
+    expect(leadFormToOptin({ fields: [] })).toMatchObject({ afterSubmitAction: 'continue', successMessage: 'Thanks!' }); // older clips
+    const keys = (c) => listBuilderFields(c).filter((f) => !f.showIf || f.showIf(c)).map((f) => f.key);
+    expect(keys({ kind: 'list-builder' })).toContain('afterSubmitAction');
+    expect(keys({ kind: 'list-builder' })).not.toContain('afterSubmitUrl');
+    expect(keys({ kind: 'list-builder', afterSubmitAction: 'button' })).toEqual(expect.arrayContaining(['afterSubmitUrl', 'afterSubmitButtonText']));
+    expect(keys({ kind: 'list-builder', afterSubmitAction: 'redirect' })).not.toContain('afterSubmitButtonText');
   });
 });

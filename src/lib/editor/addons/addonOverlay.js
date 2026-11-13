@@ -30,6 +30,79 @@ export function ensureOverlayLayer(frame) {
   return layer;
 }
 
+/** http(s) links only (a thank-you button or redirect must never run javascript: / data: URLs). */
+export function safeWebUrl(url) {
+  const value = String(url || '').trim();
+  if (!value) return null;
+  // Any other scheme (ftp://, javascript:, data:, tel:, ...) is refused, never "fixed" by prefixing https://.
+  if (!/^https?:\/\//i.test(value) && (/^[a-z][a-z0-9+.-]*:\/\//i.test(value) || /^(javascript|data|vbscript|file|blob|tel|mailto|sms):/i.test(value))) return null;
+  try {
+    const u = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+    return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : null;
+  } catch {
+    return null;
+  }
+}
+
+export const AFTER_SUBMIT_ACTIONS = [
+  ['continue', 'Keep watching (just the message)'],
+  ['button', 'Show a thank-you button'],
+  ['redirect', 'Send the viewer to a page'],
+];
+const THANKS_BUTTON_MS = 8000;
+const REDIRECT_DELAY_MS = 1500;
+
+/**
+ * What the viewer sees after submitting a form: nothing extra (default), a small thank-you card with a
+ * link button, or a redirect to another page. Shared by the editor preview and the published player.
+ *
+ * Redirects only happen when `allowRedirect` is true, which only the published player sets, so the editor
+ * (even during live playback) shows "viewers go to <host>" instead of navigating away from your work.
+ * Returns the card element, or null when there is nothing to show.
+ */
+export function showThanks(layer, config, { allowRedirect = false, navigate = (url) => globalThis.location?.assign(url), schedule = setTimeout } = {}) {
+  const action = config?.afterSubmitAction;
+  if (action !== 'button' && action !== 'redirect') return null;
+  const url = safeWebUrl(config.afterSubmitUrl);
+  if (!url) return null; // a missing or unsafe link falls back to the default behavior
+  clearOverlay(layer, 'thanks');
+  const card = document.createElement('div');
+  card.className = 'addon-overlay addon-overlay--thanks';
+  card.dataset.overlay = 'thanks';
+  card.setAttribute('role', 'status');
+  const msg = document.createElement('p');
+  msg.className = 'addon-thanks__msg';
+  msg.textContent = String(config.successMessage || 'Thanks!');
+  card.appendChild(msg);
+  if (action === 'button') {
+    const a = document.createElement('a');
+    a.className = 'addon-thanks__btn';
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = String(config.afterSubmitButtonText || 'Continue');
+    card.appendChild(a);
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'addon-thanks__close';
+    close.setAttribute('aria-label', 'Close');
+    close.textContent = '\u2715';
+    close.addEventListener('click', () => card.remove());
+    card.appendChild(close);
+    schedule(() => card.remove(), THANKS_BUTTON_MS);
+  } else if (allowRedirect) {
+    schedule(() => navigate(url), REDIRECT_DELAY_MS);
+  } else {
+    const note = document.createElement('p');
+    note.className = 'addon-thanks__note';
+    note.textContent = `Preview: viewers are sent to ${new URL(url).hostname}`;
+    card.appendChild(note);
+    schedule(() => card.remove(), THANKS_BUTTON_MS);
+  }
+  layer.appendChild(card);
+  return card;
+}
+
 export function clearOverlay(layer, name) {
   layer.querySelectorAll(name ? `[data-overlay="${name}"]` : '[data-overlay]').forEach((el) => el.remove());
 }
@@ -557,7 +630,7 @@ export function attachTextEditing(wrap, onEditText) {
  * (default 5, as upstream; 0 = stays until clicked) or on click.
  * Options: prefill, preview (editor: see-through backdrop).
  */
-export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, prefill = {}, preview = false, name = 'list-builder' } = {}) {
+export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, prefill = {}, preview = false, name = 'list-builder', allowRedirect = false } = {}) {
   clearOverlay(layer, name);
   const wrap = document.createElement('div');
   wrap.className = 'addon-overlay addon-overlay--optin';
@@ -609,6 +682,7 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
       status.textContent = message || '';
       clearTimeout(hintTimer);
       wrap.remove();
+      try { showThanks(layer, config, { allowRedirect }); } catch { /* the thank-you card is cosmetic; the lead is already saved */ }
     } catch (err) {
       btn.disabled = false;
       status.textContent = err?.message || 'Something went wrong — try again.';

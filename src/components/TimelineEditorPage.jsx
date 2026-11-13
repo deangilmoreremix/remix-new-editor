@@ -25,7 +25,7 @@ import {
   INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
-  submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
+  submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, AFTER_SUBMIT_ACTIONS, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
@@ -3215,6 +3215,10 @@ export function TimelineEditorPage() {
             fbPixelId: clip.fbPixelId,
             espProvider: clip.espProvider,
             espListId: clip.espListId,
+            successMessage: clip.successMessage,
+            afterSubmitAction: clip.afterSubmitAction,
+            afterSubmitUrl: clip.afterSubmitUrl,
+            afterSubmitButtonText: clip.afterSubmitButtonText,
             _submittedLeads: clip._submittedLeads,
             style: clip.style,
             phoneNumber: clip.phoneNumber,
@@ -3665,6 +3669,22 @@ export function TimelineEditorPage() {
             <div class="clip-editor__field">
               <label for="lf-skip-enabled"><input id="lf-skip-enabled" type="checkbox" ${clip.skipButtonEnabled ? 'checked' : ''} /> Show Skip button (dismiss form, resume video)</label>
             </div>
+            <div class="clip-editor__field">
+              <label for="lf-success-msg">Message after the form is sent</label>
+              <input id="lf-success-msg" type="text" value="${clip.successMessage || ''}" placeholder="Thanks!" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-after-action">After the form is sent</label>
+              <select id="lf-after-action">${AFTER_SUBMIT_ACTIONS.map(([v, l]) => `<option value="${v}" ${(clip.afterSubmitAction || 'continue') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+            </div>
+            <div class="clip-editor__field" id="lf-after-extra" ${clip.afterSubmitAction === 'button' || clip.afterSubmitAction === 'redirect' ? '' : 'hidden'}>
+              <label for="lf-after-url">Thank-you button / redirect link</label>
+              <input id="lf-after-url" type="url" value="${clip.afterSubmitUrl || ''}" placeholder="https://example.com/thanks" />
+              <div id="lf-after-btn-wrap" ${clip.afterSubmitAction === 'button' ? '' : 'hidden'}>
+                <label for="lf-after-btn">Thank-you button text</label>
+                <input id="lf-after-btn" type="text" value="${clip.afterSubmitButtonText || ''}" placeholder="Book a call" />
+              </div>
+            </div>
           </div>
           <div class="clip-editor__section">
             <h3>Fields</h3>
@@ -3882,6 +3902,14 @@ export function TimelineEditorPage() {
         clip.privacyPolicyLink = e.target.value;
         updatePreview(clip);
       });
+      els.clipEditorContainer.querySelector('#lf-success-msg').addEventListener('input', (e) => { clip.successMessage = e.target.value; });
+      els.clipEditorContainer.querySelector('#lf-after-action').addEventListener('change', (e) => {
+        clip.afterSubmitAction = e.target.value;
+        els.clipEditorContainer.querySelector('#lf-after-extra').hidden = clip.afterSubmitAction !== 'button' && clip.afterSubmitAction !== 'redirect';
+        els.clipEditorContainer.querySelector('#lf-after-btn-wrap').hidden = clip.afterSubmitAction !== 'button';
+      });
+      els.clipEditorContainer.querySelector('#lf-after-url').addEventListener('input', (e) => { clip.afterSubmitUrl = e.target.value.trim(); });
+      els.clipEditorContainer.querySelector('#lf-after-btn').addEventListener('input', (e) => { clip.afterSubmitButtonText = e.target.value; });
       els.clipEditorContainer.querySelector('#lf-skip-enabled').addEventListener('change', (e) => {
         clip.skipButtonEnabled = e.target.checked;
         updatePreview(clip);
