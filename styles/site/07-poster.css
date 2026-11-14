@@ -40,7 +40,7 @@
 .vp--site-poster .is-canvas .vp-sh-copy { left: 128px; top: 52px; width: 440px; height: 410px; gap: 0; }
 .vp--site-poster .is-canvas .vp-eyebrow--pill { position: absolute; left: 46px; top: 8px; width: 380px; white-space: nowrap; height: auto; padding: 0; background: none; border: 0; color: #ffd60a; font-size: 18px; font-weight: 800; font-style: italic; text-transform: uppercase; transform: rotate(-4deg); text-decoration: underline; text-decoration-color: #ffd60a; }
 .vp--site-poster .is-canvas .vp-sh-copy .vp-copy { gap: 0; }
-.vp--site-poster .is-canvas .vp-sh-copy .vp-headline { position: absolute; left: 42px; top: 50px; width: 440px; font-size: 37px; line-height: 34px; letter-spacing: -1.3px; margin: 0; color: #fff; text-shadow: 2px 2px 0 rgba(30,0,60,.35); }
+.vp--site-poster .is-canvas .vp-sh-copy .vp-headline { position: absolute; left: 42px; top: 50px; width: 440px; font-size: 38px; line-height: 34px; letter-spacing: -1.3px; white-space: pre-line; margin: 0; color: #fff; text-shadow: 2px 2px 0 rgba(30,0,60,.35); }
 .vp--site-poster .is-canvas .vp-accent { font-size: 58px; line-height: 54px; letter-spacing: -2px; margin: 8px 0 2px -4px; white-space: nowrap; background: linear-gradient(90deg, #ffd60a, #ff7a1a); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; transform: skewX(-6deg); }
 .vp--site-poster .is-canvas .vp-sh-copy .vp-subhead { position: absolute; left: 47px; top: 255px; width: 350px; font-size: 14.5px; line-height: 16px; margin: 0; color: #fff; opacity: 1; }
 .vp--site-poster .is-canvas .vp-sh-copy .vp-actions { position: absolute; left: 14px; top: 331px; margin: 0; gap: 12px; flex-wrap: nowrap; }

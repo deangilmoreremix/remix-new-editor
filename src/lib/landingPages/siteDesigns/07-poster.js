@@ -37,7 +37,7 @@ export default {
     band: { title: 'Ready to Turn More Contacts into Customers?', text: '', button: 'Get Started Free', placeholder: 'Enter your email', social: 'Book a Strategy Call' },
   },
   defaults: {
-    headline: 'Turn Cold Contacts Into [[Hot Leads]] With Personalized Video',
+    headline: 'Turn Cold\nContacts Into [[Hot Leads]] With Personalized\nVideo',
     subhead: 'A done-for-you personalized video platform that helps agencies and growth teams start more conversations, book more meetings, and build predictable pipeline.',
     form: { title: 'See How Personalized Video Can Fill Your Pipeline', subtitle: 'Get a 2-minute custom video example and a plan for your business.', submitLabel: 'Send My Personalized Video', privacy: 'We’ll only use your info to send your video and relevant resources. No spam, ever.', fields: [field('name', 'Your Name'), field('email', 'Work Email', 'email'), field('company', 'Company Name'), field('goal', 'Monthly Lead Goal?', 'text', false)] },
     ctas: [{ label: 'Get Started Free', kind: 'form', value: '', style: 'primary' }, { label: 'Book a Strategy Call', kind: 'calendar', value: '', style: 'secondary' }],
