@@ -224,3 +224,28 @@ describe.each(SITE_TEMPLATES.map((t) => [t.name, t]))('%s: readability', (_n, t)
     expect(contrastRatio(readableOn(t.theme.accent), t.theme.accent)).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+describe('placeholder presenter image', () => {
+  it('ships on every design and is used when the page has no poster of its own', () => {
+    IDS.forEach((id) => {
+      const v = renderLandingPage({ page: page(defaultConfig(id)), tokens: {} });
+      expect(v.video.getAttribute('poster')).toMatch(/^\/landing-art\/0\d\/presenter\.webp$/);
+    });
+  });
+  it("a page's own poster always wins over the placeholder", () => {
+    const v = renderLandingPage({ page: { ...page(defaultConfig('site-lead')), poster_url: 'https://x.supabase.co/p.png' }, tokens: {} });
+    expect(v.video.getAttribute('poster')).toBe('https://x.supabase.co/p.png');
+  });
+  it('can be removed, replaced by an https image, and nothing else is accepted', () => {
+    const cfg = (photo) => { const c = defaultConfig('site-lead'); c.site.hero.photo = photo; return renderLandingPage({ page: page(c), tokens: {} }).video.getAttribute('poster'); };
+    expect(cfg('')).toBeNull();
+    expect(cfg('https://cdn.example.com/me.jpg')).toBe('https://cdn.example.com/me.jpg');
+    expect(cfg('javascript:alert(1)')).toBeNull();
+    expect(cfg('/landing-art/../secret.png')).toBeNull();
+    expect(cfg('//evil.example/x.png')).toBeNull();
+    expect(cfg('/other/x.png')).toBeNull();
+  });
+  it('older designs never get a placeholder', () => {
+    expect(renderLandingPage({ page: page(defaultConfig('clean')), tokens: {} }).video.getAttribute('poster')).toBeNull();
+  });
+});

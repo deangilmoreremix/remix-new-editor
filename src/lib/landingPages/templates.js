@@ -477,6 +477,7 @@ export function sanitizeSite(input) {
       eyebrow: clip(hero.eyebrow, 100),
       bullets: arr(hero.bullets, 5).map((b) => clip(b, 120)).filter((b) => b.trim()),
       chip: clip(hero.chip, 80),
+      photo: safeImageUrl(hero.photo) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(hero.photo || '')) ? String(hero.photo) : ''),
       actions: SITE_ACTION_SLOTS.includes(hero.actions) ? hero.actions : 'form',
     },
     nav: {

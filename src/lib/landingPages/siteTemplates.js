@@ -25,7 +25,7 @@ export const SITE_TEMPLATES = [
     vars: { '--vp-s-hero': 'radial-gradient(1200px 500px at 10% -10%, rgba(124,58,237,.45), transparent 60%), radial-gradient(900px 500px at 100% 0%, rgba(20,184,166,.35), transparent 55%), #060a1c', '--vp-s-card': 'rgba(255,255,255,.05)', '--vp-s-line': 'rgba(148,163,255,.25)', '--vp-s-muted': '#b6bfdc', '--vp-surface': '#11163a', '--vp-surface-2': '#0b1030', '--vp-line': 'rgba(148,163,255,.25)' },
     approx: { surface: '#11163a' },
     site: {
-      hero: { variant: 'video-copy-form', eyebrow: 'Personalized Video Lead Generation Platform', bullets: ['Personalized videos that get higher responses', 'Built-in lead capture and list growth tools', 'Track, nurture, and close leads in one platform'], chip: 'Personal Video for {{firstname|you}}', actions: 'form' },
+      hero: { photo: '/landing-art/01/presenter.webp', variant: 'video-copy-form', eyebrow: 'Personalized Video Lead Generation Platform', bullets: ['Personalized videos that get higher responses', 'Built-in lead capture and list growth tools', 'Track, nurture, and close leads in one platform'], chip: 'Personal Video for {{firstname|you}}', actions: 'form' },
       nav: nav(['Product', 'Solutions', 'Pricing', 'Resources', 'Customers'], 'Start Free Trial'),
       strip: { kind: 'benefits', title: '', items: [it('Personalized Video at Scale', { icon: 'video' }), it('Build & Grow Your List', { icon: 'users' }), it('Automated Lead Capture', { icon: 'bolt' }), it('Lead Tracking & Mini CRM', { icon: 'layers' }), it('Book More Sales Calls', { icon: 'calendar' }), it('Higher Conversions & Revenue', { icon: 'chart' })] },
       cards: [
@@ -54,7 +54,7 @@ export const SITE_TEMPLATES = [
     layout: 'site-lead', compose: 'site', customPlayer: true, adaptive: true, family: 'site', radius: 16,
     vars: { '--vp-s-hero': 'radial-gradient(900px 400px at 0% 0%, #e9e5ff, transparent 60%), #f7f6ff', '--vp-s-card': '#ffffff', '--vp-s-line': '#e6e3f7', '--vp-s-muted': '#55557a', '--vp-surface': '#ffffff', '--vp-surface-2': '#f1efff', '--vp-line': '#e6e3f7' },
     site: {
-      hero: { variant: 'copy-video-form', eyebrow: 'Personalized Video Lead Generation', bullets: ['Personalize at scale', 'Capture & segment leads', 'Follow up with higher conversions'], chip: 'Hi {{firstname|there}}!', actions: 'none' },
+      hero: { photo: '/landing-art/02/presenter.webp', variant: 'copy-video-form', eyebrow: 'Personalized Video Lead Generation', bullets: ['Personalize at scale', 'Capture & segment leads', 'Follow up with higher conversions'], chip: 'Hi {{firstname|there}}!', actions: 'none' },
       nav: nav(['Product', 'Solutions', 'Resources', 'Pricing'], 'Book a Demo'),
       strip: { kind: 'logos', title: 'Trusted by growth-focused teams', items: [it('Notionly'), it('Cloudway'), it('BrightPath'), it('ScaleCRM'), it('Nexora')] },
       cards: [
@@ -83,7 +83,7 @@ export const SITE_TEMPLATES = [
     layout: 'site-reach', compose: 'site', customPlayer: true, adaptive: true, family: 'site', radius: 12,
     vars: { '--vp-s-hero': 'linear-gradient(115deg, #7f1010 0%, #c81e1e 45%, #ef4444 100%)', '--vp-s-card': '#ffffff', '--vp-s-line': '#f1d9d4', '--vp-s-muted': '#5d4a47', '--vp-surface': '#ffffff', '--vp-surface-2': '#fff5f2', '--vp-line': '#f1d9d4' },
     site: {
-      hero: { variant: 'copy-video-form', eyebrow: 'PERSONALIZED VIDEO OUTREACH PLATFORM', bullets: ['Higher Response Rates', 'More Qualified Leads', 'More Meetings & Sales'], chip: 'A Personalized Video for You!', actions: 'form' },
+      hero: { photo: '/landing-art/03/presenter.webp', variant: 'copy-video-form', eyebrow: 'PERSONALIZED VIDEO OUTREACH PLATFORM', bullets: ['Higher Response Rates', 'More Qualified Leads', 'More Meetings & Sales'], chip: 'A Personalized Video for You!', actions: 'form' },
       nav: nav(['How It Works', 'Features', 'Results', 'Testimonials', 'Pricing', 'FAQ'], 'Get Started Free', 'Book a Demo'),
       strip: { kind: 'logos', title: 'Trusted by Growth-Focused Teams', items: [it('HubSpot'), it('salesforce'), it('pipedrive'), it('ZOHO'), it('shopify'), it('ClickUp')] },
       cards: [
@@ -111,7 +111,7 @@ export const SITE_TEMPLATES = [
     layout: 'site-persona', compose: 'site', customPlayer: true, adaptive: true, family: 'site', radius: 6,
     vars: { '--vp-s-hero': 'linear-gradient(180deg, #fbf6ee 0%, #f3e9da 100%)', '--vp-s-card': '#fffaf2', '--vp-s-line': '#e4d6bf', '--vp-s-muted': '#5e5242', '--vp-surface': '#fffaf2', '--vp-surface-2': '#f6ecdc', '--vp-line': '#e4d6bf' },
     site: {
-      hero: { variant: 'video-copy-form', eyebrow: 'PERSONALIZED VIDEO LEAD GENERATION', bullets: ['Higher Engagement', 'More Qualified Leads', 'Greater Revenue'], chip: 'A Personalized Message for You, {{firstname|friend}}', actions: 'copy' },
+      hero: { photo: '/landing-art/04/presenter.webp', variant: 'video-copy-form', eyebrow: 'PERSONALIZED VIDEO LEAD GENERATION', bullets: ['Higher Engagement', 'More Qualified Leads', 'Greater Revenue'], chip: 'A Personalized Message for You, {{firstname|friend}}', actions: 'copy' },
       nav: nav(['Platform', 'Solutions', 'How It Works', 'Success Stories', 'Resources'], 'Book a Private Strategy Call', ''),
       strip: { kind: 'logos', title: 'TRUSTED BY LEADING BRANDS', items: [it('Forbes'), it('LUXE REALTY'), it('VANTAGE CAPITAL'), it('Asteria'), it('CARRINGTON'), it('The Haven')] },
       cards: [
@@ -140,7 +140,7 @@ export const SITE_TEMPLATES = [
     layout: 'site-spark', compose: 'site', customPlayer: true, adaptive: true, family: 'site', radius: 22,
     vars: { '--vp-s-hero': 'radial-gradient(520px 320px at 100% 0%, #5eead4aa, transparent 60%), radial-gradient(520px 320px at 0% 100%, #fde047, transparent 60%), #fff1b8', '--vp-s-card': '#ffffff', '--vp-s-line': '#1b1b2f22', '--vp-s-muted': '#4b4b63', '--vp-surface': '#ffffff', '--vp-surface-2': '#fff7da', '--vp-line': '#1b1b2f22' },
     site: {
-      hero: { variant: 'copy-video-form', eyebrow: '', bullets: [], chip: 'Personalized for you, {{firstname|friend}}!', actions: 'form' },
+      hero: { photo: '/landing-art/05/presenter.webp', variant: 'copy-video-form', eyebrow: '', bullets: [], chip: 'Personalized for you, {{firstname|friend}}!', actions: 'form' },
       nav: nav(['Features', 'How It Works', 'Pricing', 'Customers', 'Resources'], 'Schedule a Demo'),
       strip: { kind: 'benefits', title: '', items: [it('Personalize at Scale', { icon: 'video', text: 'One-to-one videos in minutes' }), it('Generate More Leads', { icon: 'users', text: 'Turn views into a growing list' }), it('Boost Engagement', { icon: 'bolt', text: 'Get higher replies & conversions' }), it('Grow Your Business', { icon: 'chart', text: 'More leads, more meetings, more sales' })] },
       cards: [

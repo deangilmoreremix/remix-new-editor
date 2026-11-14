@@ -157,7 +157,8 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   video.playsInline = true;
   video.preload = 'metadata';
   video.setAttribute('aria-label', page?.title || 'Video');
-  const poster = safeImageUrl(page?.poster_url);
+  // A page's own poster wins; the design's placeholder photo (editable, removable) only fills in when there is none.
+  const poster = safeImageUrl(page?.poster_url) || config.site?.hero?.photo || '';
   if (poster) video.poster = poster;
   const src = /^https:\/\//i.test(page?.video_url || '') ? page.video_url : '';
   if (src) video.src = src;

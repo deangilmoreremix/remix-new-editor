@@ -565,6 +565,131 @@ export function LandingPagesStudio() {
         return d;
       };
 
+
+      // ---- website-page content: nav, hero, proof strip, cards and sign-up band (only for the "Website pages" designs)
+      const ITEM_COLS = ['title', 'text', 'value', 'tag', 'by', 'icon'];
+      const itemsToText = (items) => items.map((it) => ITEM_COLS.map((k) => it[k] || '').join(' | ').replace(/( \| )+$/, '')).join('\n');
+      const textToItems = (txt) => txt.split('\n').map((line) => {
+        const parts = line.split('|').map((x) => x.trim());
+        const o = {};
+        ITEM_COLS.forEach((k, i) => { o[k] = parts[i] || ''; });
+        return o;
+      }).filter((o) => o.title || o.value);
+      const lines = (label, get, apply, { rows = 3, placeholder = '' } = {}) => {
+        const a = el('textarea', INPUT);
+        a.rows = rows;
+        a.placeholder = placeholder;
+        a.value = get();
+        a.addEventListener('input', () => set((c) => apply(c, a.value)));
+        return field(label, a);
+      };
+      const siteEditor = () => {
+        const S = () => current.config.site;
+        const navLinks = lines('Menu links (one per line: Label | https://link, link optional)', () => S().nav.links.map((l) => (l.url ? `${l.label} | ${l.url}` : l.label)).join('\n'),
+          (c, v) => { c.site.nav.links = v.split('\n').map((l) => { const [label, url] = l.split('|').map((x) => x.trim()); return { label: label || '', url: url || '' }; }).filter((l) => l.label); }, { placeholder: 'Product\nPricing | https://example.com/pricing' });
+        const nav = [
+          navLinks,
+          text('login', 'Log-in link text (empty = none)', { path: ['site', 'nav'] }),
+          text('loginUrl', 'Log-in link address (https)', { path: ['site', 'nav'] }),
+          text('cta', 'Top-right button text (scrolls to the form)', { path: ['site', 'nav'] }),
+        ];
+        const hero = [
+          text('eyebrow', 'Small label above the headline', { path: ['site', 'hero'] }),
+          lines('Tick-list under the headline (one per line)', () => S().hero.bullets.join('\n'), (c, v) => { c.site.hero.bullets = v.split('\n').map((x) => x.trim()).filter(Boolean); }),
+          text('chip', 'Label on the video (e.g. Hi {{firstname|there}}!)', { path: ['site', 'hero'] }),
+          text('photo', 'Placeholder image before the video plays (https link, or empty to remove)', { path: ['site', 'hero'] }),
+          select('Where the action buttons go', [['form', 'Under the form'], ['copy', 'Under the headline'], ['none', 'Nowhere']], () => S().hero.actions, (c, v) => { c.site.hero.actions = v; }),
+          select('Arrangement', [['copy-video-form', 'Headline, video, form'], ['video-copy-form', 'Video, headline, form']], () => S().hero.variant, (c, v) => { c.site.hero.variant = v; }),
+        ];
+        const stripBox = el('div', 'flex flex-col gap-2');
+        const stripHint = { benefits: 'Title | short text | icon', logos: 'Company name (one per line)', stats: 'Title | | big number' };
+        const drawStrip = () => {
+          stripBox.replaceChildren(
+            select('Strip style', [['benefits', 'Icons with text'], ['logos', 'Company names'], ['stats', 'Big numbers']], () => S().strip.kind, (c, v) => { c.site.strip.kind = v; }),
+            text('title', 'Strip heading (optional)', { path: ['site', 'strip'] }),
+            lines(`Strip items (one per line: ${stripHint[S().strip.kind]})`, () => itemsToText(S().strip.items), (c, v) => { c.site.strip.items = textToItems(v); }, { rows: 5 }),
+          );
+          stripBox.querySelector('select').addEventListener('change', drawStrip);
+        };
+        drawStrip();
+        const TYPES = [['heading', 'Heading'], ['playbook', 'Download / sign-up card'], ['table', 'Table (e.g. leads)'], ['stats', 'Big numbers'], ['checklist', 'Checklist'], ['quotes', 'Testimonials'], ['steps', 'Steps'], ['features', 'Feature list'], ['faq', 'Questions & answers'], ['kpi', 'Single big number']];
+        const cardsBox = el('div', 'flex flex-col gap-3');
+        const drawCards = () => {
+          cardsBox.replaceChildren();
+          S().cards.forEach((card, i) => {
+            const row = el('div', 'flex flex-col gap-2 rounded-lg border border-white/10 p-2');
+            const mk = (label, aria, fn, disabled) => { const b = el('button', BTN, label); b.type = 'button'; b.setAttribute('aria-label', aria); b.disabled = !!disabled; b.addEventListener('click', fn); return b; };
+            const typeSel = el('select', INPUT);
+            TYPES.forEach(([v, l]) => { const o = el('option', '', l); o.value = v; typeSel.appendChild(o); });
+            typeSel.value = card.type;
+            const widthSel = el('select', INPUT);
+            for (let w = 2; w <= 12; w += 1) { const o = el('option', '', `${w} / 12 wide`); o.value = String(w); widthSel.appendChild(o); }
+            widthSel.value = String(card.w);
+            const count = S().cards.length;
+            const edit = (patch) => { set((c) => { if (c.site.cards[i]) Object.assign(c.site.cards[i], patch); }); if (S().cards.length !== count) drawCards(); };
+            typeSel.addEventListener('change', () => edit({ type: typeSel.value }));
+            widthSel.addEventListener('change', () => edit({ w: Number(widthSel.value) }));
+            const txt = (label, key, area) => {
+              const inp = el(area ? 'textarea' : 'input', INPUT);
+              if (area) inp.rows = 2;
+              inp.value = card[key] || '';
+              inp.setAttribute('aria-label', label);
+              inp.placeholder = label;
+              inp.addEventListener('input', () => edit({ [key]: inp.value }));
+              return inp;
+            };
+            const listIn = (label, key, rows = 4) => {
+              const inp = el('textarea', INPUT);
+              inp.rows = rows;
+              inp.placeholder = label;
+              inp.setAttribute('aria-label', label);
+              inp.value = key === 'items' ? itemsToText(card.items) : (card[key] || []).join(key === 'cols' ? ', ' : '\n');
+              inp.addEventListener('input', () => edit({ [key]: key === 'items' ? textToItems(inp.value) : inp.value.split(key === 'cols' ? ',' : '\n').map((x) => x.trim()).filter(Boolean) }));
+              return inp;
+            };
+            const last = S().cards.length - 1;
+            const bar = el('div', 'flex flex-wrap gap-2');
+            bar.append(
+              mk('↑', 'Move card up', () => { set((c) => { c.site.cards = moveItem(c.site.cards, i, i - 1); }); drawCards(); }, i === 0),
+              mk('↓', 'Move card down', () => { set((c) => { c.site.cards = moveItem(c.site.cards, i, i + 1); }); drawCards(); }, i === last),
+              mk('Remove card', 'Remove card', () => { set((c) => { c.site.cards.splice(i, 1); }); drawCards(); }),
+            );
+            row.append(
+              el('div', 'grid grid-cols-2 gap-2'), txt('Card title', 'title'), txt('Text', 'text', true), txt('Small label (e.g. FREE RESOURCE)', 'eyebrow'),
+              txt('Button text', 'button'), txt('Email box hint text', 'placeholder'), txt('Big number (single big number card)', 'value'),
+              listIn('Column headings, comma separated (table)', 'cols', 1), listIn('Window title and subtitle, one per line (table)', 'chrome', 2), listIn('Sidebar labels, one per line (table)', 'side', 3),
+              listIn('Rows: Title | text | number | tag | person | icon (one per line)', 'items', 5), bar,
+            );
+            row.firstChild.append(typeSel, widthSel);
+            cardsBox.appendChild(row);
+          });
+          if (S().cards.length < 10) {
+            const add = el('button', BTN, '+ Add a card');
+            add.type = 'button';
+            add.addEventListener('click', () => { set((c) => { c.site.cards.push({ type: 'heading', w: 4, title: 'New card', text: 'Write something here.' }); }); drawCards(); });
+            cardsBox.appendChild(add);
+          }
+        };
+        drawCards();
+        const band = [
+          text('title', 'Sign-up band headline', { path: ['site', 'band'] }),
+          text('text', 'Sign-up band text', { path: ['site', 'band'] }),
+          text('tagline', 'Tagline next to your logo (optional)', { path: ['site', 'band'] }),
+          text('placeholder', 'Email box hint text', { path: ['site', 'band'] }),
+          text('button', 'Sign-up button text', { path: ['site', 'band'] }),
+          text('social', 'Label above social icons (optional)', { path: ['site', 'band'] }),
+        ];
+        const note = el('p', 'text-xs text-secondary', 'Names, numbers and quotes in these cards are sample content from the design. Replace them with your own before you send the page. Email boxes on the page record a lead through your lead form settings.');
+        return [
+          note,
+          group('Menu bar', true, ...nav),
+          group('Top section (headline area & video)', true, ...hero),
+          group('Strip under the top section', false, stripBox),
+          group('Cards (add, remove, reorder)', false, cardsBox),
+          group('Sign-up band at the bottom', false, ...band),
+        ];
+      };
+
       const accent = el('input', 'h-9 w-full rounded-lg border border-white/10 bg-transparent');
       accent.type = 'color';
       accent.value = current.config.theme.accent;
@@ -623,6 +748,7 @@ export function LandingPagesStudio() {
         text('headline', 'Headline'),
         text('subhead', 'Subheadline', { area: true }),
         hint,
+        ...(getTemplate(current.config.template).site ? siteEditor() : []),
         field('Accent color (buttons)', accent),
         color('Highlight color (company name in headline)', () => current.config.theme.highlight, (c, v) => { c.theme.highlight = v; }),
         group('Action buttons & Like', getTemplate(current.config.template).pitch,
