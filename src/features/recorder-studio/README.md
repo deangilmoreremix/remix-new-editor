@@ -52,6 +52,6 @@ Not ported on purpose: the upstream `recorder` intro scene (a Remotion Recorder 
 
 ## Notes
 
-- Licence: upstream is Remotion Recorder code (see Remotion's licence terms). Web exports use the same `licenseKey` convention as `motion-director/webRenderer.ts`.
-- The bundled music tracks come from the Recorder template; confirm their licence covers your use before shipping.
+- Licence: upstream is Remotion Recorder code (see Remotion's licence terms). The project owner has confirmed licensing for this use, including the bundled music tracks.
+  Web exports use the same `licenseKey` convention as `motion-director/webRenderer.ts`.
 - Dev: run `npm run build:remotion-recorder` once, otherwise the Recorder window explains that it is missing. `npm run build` does it for you.
