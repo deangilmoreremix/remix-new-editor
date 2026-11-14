@@ -124,3 +124,9 @@ Step 1 now starts on **Video templates**: the public 184-clip library kept in th
 - The Preview step draws the text with the editor's own overlay renderer (`buildOverlayElement`) at the playhead, so it is WYSIWYG; click a text (or its chip) to select it, drag/resize it with the editor's handles (`attachDragResize`), and use the inspector (look, words, font, colour, entrance, bold/outline/shadow/box, reset).
 - Long script lines are split into short timed captions (`splitCaption`) so they stay readable.
 - No Konva: the editor's DOM renderer + Pointer Events drag handles do the same job without a new dependency.
+
+## Voiceover, music and mix (added)
+- **Voiceover** (`template-generator/voiceover.js`): "My OpenAI key" (the customer's own key, copied into their storage, never a `data:` URL) or "Free, on this device" (Kokoro, ~90 MB first-time model). Shown in the Preview step's Voice panel with progress/cancel and clear errors; saved with the template when stored for good.
+- **Music** (`music.js`): the three bundled tracks the app licenses, trimmed to the cut with a fade; optional ducking under the voice. **Mix** panel: footage / voiceover / music volumes. One `audioPlan` feeds the live preview, the composition and the saved template.
+- The preview now plays the audio in sync with the video (`preview.js`). `applyComposition` honours audio duration, volume and volume keyframes. `netlify.toml` serves `/motion-studio/bgmlib/*` with CORS so the export runner can read the music.
+- CineGen editor only: the classic editor's add-to-timeline drops audio.

@@ -10,7 +10,7 @@ import { createOverlay, createTemplateOverlays } from '@cinegen/lib/overlays/ove
 import { generateId } from '@cinegen/lib/utils/ids';
 import { isGlTransition } from './transitions';
 
-interface CompClip { _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string }; lowerThird?: { template?: string; name?: string; title?: string }; textStyle?: Record<string, unknown> }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
+interface CompClip { volume?: number; keyframes?: { volume?: Array<{ t: number; v: number }> }; _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string }; lowerThird?: { template?: string; name?: string; title?: string }; textStyle?: Record<string, unknown> }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
 interface CompTrack { type?: string; name?: string; clips?: CompClip[] }
 export interface Composition { name?: string; tracks?: CompTrack[]; transitions?: Array<{ fromClipIndex: number; toClipIndex: number; inTrack?: number; type?: string; duration?: number }> }
 
@@ -38,9 +38,15 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
         const target = tl.tracks.find((t) => t.kind === kind && !t.locked) ?? tl.tracks.find((t) => t.kind === kind);
         if (!target) continue;
         const before = new Set(tl.clips.map((x) => x.id));
-        tl = addClipToTrack(tl, target.id, { ...asset, duration: asset.type === 'image' ? dur : asset.duration }, start);
+        // footage keeps its own length; images and audio (voice, and music that is far longer than the cut) are placed for the cut's length
+        tl = addClipToTrack(tl, target.id, { ...asset, duration: asset.type === 'video' ? asset.duration : dur }, start);
         const added = tl.clips.find((x) => !before.has(x.id) && x.assetId === asset.id && x.trackId === target.id);
         if (added) ids.push(added.id);
+        // the wizard's mix: the clip's volume and (for music) the fade / ducking curve, as the editor's volume keyframes
+        if (added && (c.volume != null || c.keyframes?.volume?.length)) {
+          const kfs = (c.keyframes?.volume ?? []).map((k) => ({ time: k.t, property: 'volume' as const, value: k.v }));
+          tl = { ...tl, clips: tl.clips.map((x) => (x.id === added.id ? { ...x, ...(c.volume != null ? { volume: c.volume } : {}), ...(kfs.length ? { keyframes: [...(x.keyframes ?? []), ...kfs] } : {}) } : x)) };
+        }
         assets.push(asset);
       } else if (c.type === 'cta' || c.type === 'lead-form' || c.type === 'lower-third' || c.type === 'sticker') {
         // wizard overlay kinds → the matching overlay-lane kind (defaults from the overlay's own descriptor)

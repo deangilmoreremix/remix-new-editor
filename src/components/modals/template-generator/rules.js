@@ -13,6 +13,7 @@
  */
 
 import { resolveTextStyle } from './textStyles.js';
+import { audioPlan } from './audioPlan.js';
 
 export const STEPS = { VIDEO: 0, SCRIPT: 1, OVERLAY: 2, PREVIEW: 3 };
 export const STEP_LABELS = ['Video', 'Script', 'Overlay', 'Preview'];
@@ -116,7 +117,9 @@ export function createWizardState() {
     selectedTransition: null,    // { type, duration } from the editor's transitions library
     // Text elements the timeline can create today (applyTemplate makes media + text/caption clips).
     elements: { captions: true, title: '', lowerThird: '', lowerThirdStyle: '', cta: '', styles: {} },   // styles: the user's changes to each text's look (see textStyles.js)
-    voice: { enabled: false, provider: 'openai', voice: 'alloy', text: '', instructions: '' },
+    voice: { enabled: false, provider: 'openai', engine: 'openai', voice: 'marin', speed: 1, text: '', instructions: '', generatedAsset: null },   // generatedAsset: { url, duration, name } once the voiceover has been made
+    music: { id: '', duck: true },                      // a bundled track (music.js); trimmed to the cut
+    mix: { footage: 1, voice: 1, music: 0.3 },          // volumes 0..1
     personalization: { enabled: false, contactId: null, tokens: {} },
   };
 }
@@ -267,6 +270,8 @@ export function toBuilderState(s, payloads = {}) {
     };
   });
 
+  const plan = audioPlan(s, cursor);
+
   return {
     niche: s.selectedScript?.niche || null,
     script: { text: s.script.text, tone: s.script.tone, audience: s.script.audience, cta: s.script.cta },
@@ -275,7 +280,9 @@ export function toBuilderState(s, payloads = {}) {
     mediaByScene,
     transitions,
     overlays: [...captionClips, ...elements, ...animations],
-    voice: { ...s.voice, text: s.voice.text || s.script.text },
+    voice: { ...s.voice, text: s.voice.text || s.script.text, volume: plan.voice?.volume ?? 1 },
+    music: plan.music,
+    footageVolume: plan.footageVolume,
     personalization: s.personalization,
   };
 }

@@ -61,7 +61,7 @@ export function renderPlayerHTML(playlist) {
 }
 
 /** Wire a rendered player. Returns { destroy }. */
-export function createPreviewPlayer(root, playlist, { captions = [], texts = null, onSelect, onChange } = {}) {
+export function createPreviewPlayer(root, playlist, { captions = [], texts = null, audio = [], onSelect, onChange } = {}) {
   const host = root?.querySelector?.('#tg-player');
   if (!host || !playlist.length) return { destroy() {} };
   const video = host.querySelector('.tg-player__video');
@@ -153,11 +153,46 @@ export function createPreviewPlayer(root, playlist, { captions = [], texts = nul
   };
   const timeNow = () => (starts[index] || 0) + Math.min(elapsed, playlist[index].duration);
 
+  // ---- voiceover / music: one audio element per track, kept at the playhead, volume from the mix (and the music's duck curve) ----
+  const audioEls = new Map();                          // id → { el, def }
+  const kfAt = (list, t, fallback) => {
+    if (!Array.isArray(list) || !list.length) return fallback;
+    if (t <= list[0].t) return list[0].v;
+    for (let k = 0; k < list.length - 1; k += 1) {
+      const a = list[k]; const b = list[k + 1];
+      if (t <= b.t) return b.t === a.t ? b.v : a.v + ((b.v - a.v) * (t - a.t)) / (b.t - a.t);
+    }
+    return list[list.length - 1].v;
+  };
+  const dropAudio = () => { for (const { el } of audioEls.values()) { try { el.pause(); el.removeAttribute('src'); el.load?.(); } catch { /* ignore */ } } audioEls.clear(); };
+  const setAudioDefs = (defs) => {
+    dropAudio();
+    for (const def of Array.isArray(defs) ? defs : []) {
+      if (!def?.url) continue;
+      const el = new Audio();
+      el.preload = 'auto';
+      el.src = def.url;
+      audioEls.set(def.id, { el, def });
+    }
+  };
+  const syncAudio = (t) => {
+    for (const { el, def } of audioEls.values()) {
+      const rel = t - (def.start || 0);
+      const inside = rel >= 0 && rel < def.duration;
+      if (!inside || !playing) { if (!el.paused) el.pause(); continue; }
+      el.volume = Math.min(1, Math.max(0, def.keyframes?.length ? kfAt(def.keyframes, rel, 1) : (def.volume ?? 1)));   // a curve already includes the track volume
+      if (el.paused) { try { el.currentTime = rel; } catch { /* not loaded yet */ } el.play?.()?.catch?.(() => {}); }
+      else if (Math.abs(el.currentTime - rel) > 0.4) { try { el.currentTime = rel; } catch { /* ignore */ } }
+    }
+  };
+  setAudioDefs(audio);
+
   const paint = () => {
     const t = (starts[index] || 0) + Math.min(elapsed, playlist[index].duration);
     fill.style.width = `${Math.min(100, (t / total) * 100)}%`;
     timeEl.textContent = `${formatTime(t)} / ${formatTime(total)}`;
     renderTexts(t);
+    syncAudio(t);
     toggleBtn.textContent = playing ? '❚❚' : '▶';
     toggleBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
   };
@@ -216,6 +251,8 @@ export function createPreviewPlayer(root, playlist, { captions = [], texts = nul
   };
 
   return {
+    /** Replace the voice / music tracks (after a change in the mix) and resync them to the playhead. */
+    setAudio(defs) { setAudioDefs(defs); paint(); },
     /** Replace the texts (after an edit) and redraw them at the current moment. */
     setTexts(next) { textItems = Array.isArray(next) ? next : null; for (const id of [...mounted.keys()]) drop(id); paint(); },
     /** Select a text role: pause, jump to where it first shows, and give it handles. */
@@ -228,6 +265,7 @@ export function createPreviewPlayer(root, playlist, { captions = [], texts = nul
     seek,
     destroy() {
       for (const id of [...mounted.keys()]) drop(id);
+      dropAudio();
       playing = false;
       cancelAnimationFrame(raf);
       host.removeEventListener('click', onClick);

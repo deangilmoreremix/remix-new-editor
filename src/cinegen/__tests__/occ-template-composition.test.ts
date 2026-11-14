@@ -148,3 +148,24 @@ describe('text looks reach the timeline', () => {
     expect(r.overlays[0].addon).toMatchObject({ text: 'Summer Sale', fontFamily: 'Poppins', fontColor: '#22D3EE', stroke: true, geometry: { left: 10, top: 20, width: 70, height: 18 }, animation: { in: 'fadeInUp' } });
   });
 });
+
+describe('voice and music reach the timeline with the mix', () => {
+  it('music is placed for the cut (not its 113 s file) with the volume curve as editor keyframes; voice keeps its length and volume', () => {
+    const comp = buildCompositionFromState({
+      media: [], mediaByScene: [{ sceneName: 'A', sceneIndex: 0, media: { id: 'm1', type: 'video', url: 'https://x/1.mp4', duration: 8, name: 'V1' }, mediaType: 'video', status: 'ready' }],
+      overlays: [], transitions: [], footageVolume: 0.8,
+      voice: { enabled: true, volume: 0.9, generatedAsset: { id: 'voice1', type: 'audio', url: 'https://cdn/v.mp3', duration: 6, name: 'Voice' }, text: 'Hi' },
+      music: { url: '/motion-studio/bgmlib/tonight-hiphop.mp3', name: 'Tonight', trackId: 'tonight-hiphop', start: 0, duration: 8, sourceDuration: 113, volume: 0.3, keyframes: [{ t: 0, v: 0 }, { t: 1, v: 0.3 }, { t: 8, v: 0 }] },
+    } as never) as never;
+    const r = applyComposition(createDefaultTimeline('T'), comp);
+    const audioTrackIds = new Set(r.timeline.tracks.filter((t) => t.kind === 'audio').map((t) => t.id));
+    const audio = r.timeline.clips.filter((c) => audioTrackIds.has(c.trackId));
+    const music = audio.find((c) => (r.assets.find((a) => a.id === c.assetId)?.name ?? '') === 'Tonight')!;
+    const voice = audio.find((c) => c.assetId === 'voice1')!;
+    expect(music.duration).toBe(8);
+    expect(music.keyframes).toEqual([{ time: 0, property: 'volume', value: 0 }, { time: 1, property: 'volume', value: 0.3 }, { time: 8, property: 'volume', value: 0 }]);
+    expect(voice.duration).toBe(6); expect(voice.volume).toBe(0.9);
+    const video = r.timeline.clips.find((c) => !audioTrackIds.has(c.trackId))!;
+    expect(video.volume).toBe(0.8);
+  });
+});

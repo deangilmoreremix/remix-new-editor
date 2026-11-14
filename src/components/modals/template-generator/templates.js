@@ -31,6 +31,8 @@ export function splitDurable(items = []) {
 }
 
 /** Wizard state → template record (no id / timestamps: the store adds them). */
+const durableAsset = (a) => (a && typeof a.url === 'string' && a.url && !/^(blob|data):/.test(a.url) ? { url: a.url, duration: a.duration, name: a.name } : null);
+
 export function snapshotTemplate(s, { name = '', description = '' } = {}) {
   const { keep } = splitDurable(s.selectedVideos);
   const first = keep[0];
@@ -45,7 +47,13 @@ export function snapshotTemplate(s, { name = '', description = '' } = {}) {
     details: { ...(s.details || {}) },
     transition: s.selectedTransition ? { type: s.selectedTransition.type, duration: s.selectedTransition.duration || 1 } : null,
     elements: { ...s.elements },
-    voice: { enabled: !!s.voice.enabled, provider: s.voice.provider, voice: s.voice.voice, instructions: s.voice.instructions },
+    voice: {
+      enabled: !!s.voice.enabled, provider: s.voice.provider, engine: s.voice.engine, voice: s.voice.voice, speed: s.voice.speed, instructions: s.voice.instructions,
+      // the made voiceover is kept only when it is stored for good (a blob: / data: URL would be dead on another device)
+      generatedAsset: durableAsset(s.voice.generatedAsset),
+    },
+    music: { ...s.music },
+    mix: { ...s.mix },
     personalization: { enabled: !!s.personalization.enabled },
     animations: (s.selectedAnimations || []).map((a) => ({ ...a })),
     clips: keep.map(clipRecord),
@@ -73,6 +81,8 @@ export function restoreTemplate(rec, findScript = () => null) {
   s.selectedTransition = rec.transition ? { ...rec.transition } : null;
   s.elements = { captions: true, title: '', lowerThird: '', lowerThirdStyle: '', cta: '', styles: {}, ...rec.elements };
   s.voice = { ...s.voice, ...rec.voice };
+  s.music = { ...s.music, ...(rec.music || {}) };
+  s.mix = { ...s.mix, ...(rec.mix || {}) };
   s.personalization = { ...s.personalization, enabled: !!rec.personalization?.enabled };
   s.selectedVideos = (rec.clips || []).map((c) => ({ ...c }));
   s.selectedAnimations = (rec.animations || []).map((a) => ({ ...a }));

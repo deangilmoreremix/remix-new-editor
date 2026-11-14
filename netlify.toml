@@ -183,6 +183,14 @@
     Access-Control-Allow-Origin = "*"
     Cache-Control = "public, max-age=3600"
 
+# [template-generator] Bundled background music. The sandboxed export-runner iframe has an opaque origin, so it can only fetch the
+# music tracks the Template Generator adds to a video when they are served with CORS.
+[[headers]]
+  for = "/motion-studio/bgmlib/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=604800"
+
 # The public video player (/watch/<id>) can be embedded anywhere: its
 # framing headers are rewritten by netlify/edge-functions/watch-embed.js
 # (header rules below are merged, not overridden, so a rule can't do it).

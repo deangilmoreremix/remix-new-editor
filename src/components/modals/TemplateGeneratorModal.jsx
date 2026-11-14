@@ -22,6 +22,9 @@ import { snapshotTemplate, restoreTemplate, splitDurable } from './template-gene
 import { createSyncedTemplateStore, SYNC_STATUS } from './template-generator/sync.js';
 import { templateScript, placeholdersLeft, DETAIL_FIELDS } from '../../lib/nicheScripts/index.js';
 import { TEXT_PRESETS, TEXT_ROLES, ROLE_LABEL, TEXT_ENTRANCES, TEXT_FONTS, ROLE_DEFAULTS, resolveTextStyle, withTextStyle, withPreset, presetOf } from './template-generator/textStyles.js';
+import { makeVoiceover, narrationText, VOICE_ENGINES, OPENAI_VOICE_CHOICES, FREE_VOICE_CHOICES } from './template-generator/voiceover.js';
+import { MUSIC_TRACKS } from './template-generator/music.js';
+import { audioPlan } from './template-generator/audioPlan.js';
 import { createPreviewPlayer, renderPlayerHTML, playlistFromPreview, formatTime } from './template-generator/preview.js';
 import '../../styles/template-generator.css';
 
@@ -94,6 +97,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this.extra = new Map((options.extraSources || []).map((x) => [x.id, x]));
     // The project's own videos / images ("My media"); an array, or a function returning one.
     this.projectMedia = options.projectMedia || null;
+    this.voiceMaker = options.voiceMaker || null;   // tests replace the voiceover service
     this.templateCatalog = options.templateCatalog || (() => loadTemplateCatalog());
     this.stock = options.stockSearch || createStockClient({ pexels: pexelsApi, pixabay: pixabayApi });
 
@@ -137,6 +141,7 @@ export class TemplateGeneratorModal extends BaseModal {
       overlayQuery: '',
       overlayCategory: 'all',
       ltCategory: 'all',
+      voiceBusy: false, voiceError: '', voiceNote: '',
       textRole: null,        // the text being styled in the Preview step ('caption' | 'title' | 'lowerThird' | 'cta')
       popup: null,       // { kind: 'video'|'script', id }
       openPanels: {},    // 'voice' | 'personalization'
@@ -923,7 +928,8 @@ export class TemplateGeneratorModal extends BaseModal {
           </div>
         </div>
         <div class="tg-extras">
-          ${this.renderPanel('voice', '🎙️ Voice narration (optional)', voiceOpen, this.renderVoiceFields())}
+          ${this.renderPanel('voice', '🎙️ Voice narration (optional)', voiceOpen, `<div id="tg-voice">${this.renderVoiceFields()}</div>`)}
+          ${this.renderPanel('mix', '🎚️ Music and volume (optional)', this.ui.openPanels.mix, this.renderMixFields())}
           ${this.renderPanel('personalization', '👤 Personalization (optional)', persOpen, this.renderPersonalizationFields())}
         </div>
       </div>`;
@@ -965,12 +971,75 @@ export class TemplateGeneratorModal extends BaseModal {
 
   renderVoiceFields() {
     const v = this.s.voice;
+    const u = this.ui;
+    const free = v.engine === 'free';
+    const voices = free ? FREE_VOICE_CHOICES : OPENAI_VOICE_CHOICES;
+    const made = v.generatedAsset?.url ? v.generatedAsset : null;
+    const stale = made && made.forText && made.forText !== narrationText(v.text || this.s.script.text);
     return `
-      <label class="tg-toggle"><input type="checkbox" data-bind="s.voice.enabled" ${v.enabled ? 'checked' : ''}><span>Add AI voice narration of my script</span></label>
-      <div class="tg-form-row">
-        <label>Voice <select data-bind="s.voice.voice">${['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'].map((x) => `<option value="${x}"${v.voice === x ? ' selected' : ''}>${x[0].toUpperCase() + x.slice(1)}</option>`).join('')}</select></label>
+      <label class="tg-toggle"><input type="checkbox" data-bind="s.voice.enabled" data-audio="1" ${v.enabled ? 'checked' : ''}><span>Add AI voice narration of my script</span></label>
+      <div class="tg-form-row tg-voice-row">
+        <label>Voice from <select data-voice="engine">${VOICE_ENGINES.map(([id, l]) => `<option value="${id}"${v.engine === id ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label>Voice <select data-voice="voice">${voices.map(([id, l]) => `<option value="${id}"${v.voice === id ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
+        <label>Speed <select data-voice="speed">${[0.85, 1, 1.15].map((x) => `<option value="${x}"${Number(v.speed) === x ? ' selected' : ''}>${x === 1 ? 'Normal' : x < 1 ? 'Slower' : 'Faster'}</option>`).join('')}</select></label>
       </div>
-      <label class="tg-field">Delivery instructions <input type="text" data-bind="s.voice.instructions" placeholder="e.g. Warm, upbeat, pause for emphasis" value="${esc(v.instructions)}"></label>`;
+      ${free ? '' : `<label class="tg-field">Delivery instructions <input type="text" data-bind="s.voice.instructions" placeholder="e.g. Warm, upbeat, pause for emphasis" value="${esc(v.instructions)}"></label>`}
+      <p class="tg-hint">${free ? 'Runs on this device, no key needed. The first time it downloads a voice model (about 90 MB).' : 'Uses your own OpenAI key (Settings → API keys). Nothing is billed to us.'}</p>
+      <div class="tg-voice-actions">
+        <button type="button" class="tg-chip is-active" data-act="voice-generate" ${u.voiceBusy ? 'disabled' : ''}>${u.voiceBusy ? 'Making the voiceover…' : (made ? '↻ Make it again' : '🎙️ Make the voiceover')}</button>
+        ${u.voiceBusy ? '<button type="button" class="tg-chip" data-act="voice-cancel">Cancel</button>' : ''}
+        ${made ? `<audio class="tg-voice-audio" controls preload="none" src="${esc(made.url)}"></audio>` : ''}
+      </div>
+      ${made && !u.voiceBusy ? `<p class="tg-status">✓ Voiceover ready · ${Math.round(made.duration || 0)} s${stale ? ' · your script changed since, make it again to match' : ''}</p>` : ''}
+      ${u.voiceNote ? `<p class="tg-status tg-status--warn">${esc(u.voiceNote)}</p>` : ''}
+      ${u.voiceError ? `<p class="tg-status tg-status--error">${esc(u.voiceError)}</p>` : ''}`;
+  }
+
+  _refreshVoice() { this._setHTML('#tg-voice', this.renderVoiceFields()); }
+
+  /** What plays under the video right now (voiceover + music) in the preview player's shape. */
+  _audioDefs() {
+    const cut = this.s.selectedVideos.reduce((n, v) => n + clipDuration(v), 0);
+    const p = audioPlan(this.s, cut);
+    return [p.voice, p.music].filter(Boolean).map((a) => ({ id: a.id, url: a.url, start: a.start, duration: a.duration, volume: a.volume, keyframes: a.keyframes }));
+  }
+  _pushAudio() { this._player?.setAudio?.(this._audioDefs()); }
+
+  renderMixFields() {
+    const s = this.s;
+    const pct = (v) => Math.round((Number(v) || 0) * 100);
+    const slider = (key, label) => `<label class="tg-field tg-mix-row">${label}<input type="range" min="0" max="100" step="5" data-mix="${key}" value="${pct(s.mix[key])}" aria-label="${label} volume"><output>${pct(s.mix[key])}%</output></label>`;
+    return `
+      <p class="tg-hint">Background music is trimmed to your video, fades in and out, and (optionally) dips under the voiceover.</p>
+      <div class="tg-music" role="radiogroup" aria-label="Music">
+        <label class="tg-music__opt${!s.music.id ? ' is-active' : ''}"><input type="radio" name="tg-music" data-music="" ${!s.music.id ? 'checked' : ''}><b>No music</b></label>
+        ${MUSIC_TRACKS.map((t) => `<label class="tg-music__opt${s.music.id === t.id ? ' is-active' : ''}"><input type="radio" name="tg-music" data-music="${t.id}" ${s.music.id === t.id ? 'checked' : ''}><b>${esc(t.name)}</b><span>${esc(t.mood)}</span><audio preload="none" controls src="${esc(t.url)}"></audio></label>`).join('')}
+      </div>
+      <label class="tg-toggle"><input type="checkbox" data-bind="s.music.duck" data-audio="1" ${s.music.duck ? 'checked' : ''}><span>Lower the music while the voiceover speaks</span></label>
+      <div class="tg-mix">${slider('footage', 'Footage')}${slider('voice', 'Voiceover')}${slider('music', 'Music')}</div>`;
+  }
+
+  async generateVoice() {
+    const u = this.ui; const v = this.s.voice;
+    const text = v.text || this.s.script.text;
+    u.voiceBusy = true; u.voiceError = ''; u.voiceNote = '';
+    this._voiceAbort = new AbortController();
+    this._refreshVoice();
+    try {
+      const res = await (this.voiceMaker || makeVoiceover)({
+        text, engine: v.engine, voice: v.voice, speed: Number(v.speed) || 1, instructions: v.instructions, signal: this._voiceAbort.signal,
+        onProgress: (p) => { const pr = typeof p === 'number' ? p : p?.progress; if (pr != null && pr < 1) { u.voiceNote = `Downloading the voice model… ${Math.round(pr * 100)}%`; this._refreshVoice(); } },
+      });
+      v.generatedAsset = { url: res.url, duration: res.duration, name: res.name, forText: narrationText(text) };
+      v.enabled = true;
+      u.voiceNote = res.durable === false ? 'The voiceover could not be saved to your storage, so it works for this session only. Make it again later to keep it.' : '';
+    } catch (err) {
+      if (err?.name !== 'AbortError') u.voiceError = err?.message || 'The voiceover could not be made.';
+      u.voiceNote = '';
+    } finally {
+      u.voiceBusy = false; this._voiceAbort = null;
+      this._refreshVoice(); this._pushAudio();
+    }
   }
 
   renderPersonalizationFields() {
@@ -1200,8 +1269,11 @@ export class TemplateGeneratorModal extends BaseModal {
     this._hoverTile = null;
   }
 
+  _rerenderMix() { const body = this.overlay?.querySelector('[data-id="mix"] + .tg-panel__body'); if (body) body.innerHTML = this.renderMixFields(); }
+
   _onInput(e) {
     const t = e.target;
+    if (t.dataset?.mix) { this.s.mix[t.dataset.mix] = Number(t.value) / 100; const o = t.parentElement?.querySelector('output'); if (o) o.textContent = `${t.value}%`; this._pushAudio(); return; }
     if (t.dataset?.tbind || (t.dataset?.tstyle && t.type === 'color')) { this._onTextEdit(t); return; }
     if (t.dataset?.query) {
       const kind = t.dataset.query;
@@ -1255,8 +1327,15 @@ export class TemplateGeneratorModal extends BaseModal {
   _onChange(e) {
     const t = e.target;
     if (t.dataset?.tstyle) { this._onTextEdit(t); return; }
+    if (t.dataset?.voice) {
+      const k = t.dataset.voice; const v = this.s.voice;
+      if (k === 'engine') { v.engine = t.value; v.voice = t.value === 'free' ? FREE_VOICE_CHOICES[0][0] : 'marin'; this._refreshVoice(); }
+      else v[k] = k === 'speed' ? Number(t.value) : t.value;
+      return;
+    }
+    if (t.dataset?.music !== undefined && t.name === 'tg-music') { this.s.music.id = t.dataset.music; this._pushAudio(); this._rerenderMix(); return; }
     if (t.id === 'tg-file') { this._addUploads(t.files); t.value = ''; return; }
-    if (t.dataset?.bind) this._bind(t);
+    if (t.dataset?.bind) { this._bind(t); if (t.dataset.audio) this._pushAudio(); }
   }
 
   /** data-bind="s.script.text" / "ui.aiPrompt" → write the value into state without repainting. */
@@ -1310,6 +1389,8 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'ai-script': this.runScriptAction(el.dataset.kind); break;
       case 'use-template-script': this._applyTemplateScript(true); this.paint(); break;
       case 'overlay-tab': this.ui.overlayTab = id; this.paint(); break;
+      case 'voice-generate': this.generateVoice(); break;
+      case 'voice-cancel': this._voiceAbort?.abort(); break;
       case 'text-role': this.ui.textRole = id; this._player?.selectRole?.(id); this._setHTML('#tg-textpanel', this.renderTextPanel()); break;
       case 'text-preset': this.s.elements.styles = withPreset(this.s.elements, this.ui.textRole, id); this._redrawTexts(); break;
       case 'text-reset': { const st = { ...(this.s.elements.styles || {}) }; delete st[id]; this.s.elements.styles = st; this._redrawTexts(); break; }
@@ -1690,6 +1771,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this._player = createPreviewPlayer(this.overlay, pl, {
       captions,
       texts: previewTexts(st),
+      audio: this._audioDefs(),
       onSelect: (role) => { this.ui.textRole = role; this._setHTML('#tg-textpanel', this.renderTextPanel()); },
       onChange: (role, patch) => this._setTextStyle(role, patch),
     });
