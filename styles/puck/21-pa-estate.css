@@ -12,6 +12,11 @@
 .pk-d-pa-estate .pk-hero--story .pk-form-title { color: #0f1f3d; }
 .pk-d-pa-estate .pk-hero--story .pk-field input { background: #fff; color: #111827; min-height: 38px; font-size: 14px; }
 .pk-d-pa-estate .pk-hero--story .pk-btn--primary[type=submit], .pk-d-pa-estate .pk-hero--story .pk-form .pk-btn--primary { background: #4a45e6; color: #fff; width: 100%; }
+.pk-d-pa-estate .pk-hero--story .pk-form-title { font-size: clamp(15px, 4vw, 19px); font-weight: 800; line-height: 1.15; }
+.pk-d-pa-estate .pk-hero--story .pk-form .pk-btn { font-size: 14px; min-height: 38px; padding: 8px 10px; }
+.pk-d-pa-estate .pk-hero--story .pk-field input { min-height: 34px; padding: 4px 10px; }
+.pk-d-pa-estate .pk-strip-row { flex-wrap: nowrap; gap: 6px; }
+.pk-d-pa-estate .pk-strip-item { flex: 1 1 0; min-width: 0; font-size: clamp(10.5px, 2.9vw, 16px); }
 .pk-d-pa-estate .pk-quote small { display: none; }
 .pk-d-pa-estate .pk-quote figcaption span::before { content: "\2013\00a0"; }
 .pk-d-pa-estate .pk-avatar { width: 48px; height: 48px; }
