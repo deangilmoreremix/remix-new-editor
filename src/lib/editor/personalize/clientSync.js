@@ -99,9 +99,15 @@ function mergeAssets(existing, incoming) {
   const out = { ...(existing || {}) };
   ASSET_LISTS.forEach((k) => {
     const have = Array.isArray(out[k]) ? out[k] : [];
+    const inc = Array.isArray(incoming[k]) ? incoming[k] : [];
+    // The studio owns the assets it has: when it re-saves one (e.g. a
+    // background-removed cutout keeps its id, new url), that version replaces
+    // the copy synced earlier. Assets only the editor has are kept.
+    const incById = new Map(inc.filter((a) => a?.id).map((a) => [a.id, a]));
+    const kept = have.map((a) => (a?.id && incById.has(a.id) ? { ...a, ...incById.get(a.id) } : a));
     const seen = new Set(have.map((a) => a?.id).filter(Boolean));
-    const add = (incoming[k] || []).filter((a) => !a?.id || !seen.has(a.id));
-    if (have.length || add.length) out[k] = [...have, ...add];
+    const add = inc.filter((a) => !a?.id || !seen.has(a.id));
+    if (kept.length || add.length) out[k] = [...kept, ...add];
   });
   ['primaryIdentityId', 'primaryLogoId'].forEach((k) => { if (!out[k] && incoming[k]) out[k] = incoming[k]; });
   return out;

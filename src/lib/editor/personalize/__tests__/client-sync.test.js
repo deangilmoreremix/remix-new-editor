@@ -108,3 +108,33 @@ describe('Personalize window (OpenHiggsBolt) contacts reach the editor', () => {
     expect(merged.contact).toEqual({ title: 'CEO', name: 'Ann' });
   });
 });
+
+describe('an edited (background-removed) asset replaces the copy synced earlier', () => {
+  beforeEach(() => localStorage.clear());
+
+  const lib = (logo) => ({ logos: [logo], primaryLogo: logo });
+
+  it('{{logoUrl}} follows the cutout after the studio re-saves the same asset id', () => {
+    const original = { id: 'logo-1', role: 'logo', url: 'https://cdn.test/logo.jpg' };
+    seed([ann], { smartvideo_client_assets: { [ann.id]: lib(original) } });
+    syncPersonalizeContacts({ store });
+    expect(resolveToken(store.getProfile(ann.id), 'logoUrl')).toBe('https://cdn.test/logo.jpg');
+
+    // "Use Edited Asset": same id, url becomes the cutout, old url kept as originalUrl.
+    const cutout = { ...original, url: 'https://cdn.test/logo-cutout.png', originalUrl: original.url, edited: true, hasTransparency: true };
+    seed([ann], { smartvideo_client_assets: { [ann.id]: lib(cutout) } });
+    syncPersonalizeContacts({ store });
+
+    const profile = store.getProfile(ann.id);
+    expect(resolveToken(profile, 'logoUrl')).toBe('https://cdn.test/logo-cutout.png');
+    expect(profile.personalization.assets.logos[0].hasTransparency).toBe(true);
+  });
+
+  it('keeps assets the editor added that the studio does not have', () => {
+    const merged = mergeProfile(
+      { personalization: { assets: { logos: [{ id: 'editor-only', url: 'https://cdn.test/e.png' }] } } },
+      { personalization: { assets: { logos: [{ id: 'logo-1', url: 'https://cdn.test/a.png' }] } } },
+    );
+    expect(merged.personalization.assets.logos.map((a) => a.id).sort()).toEqual(['editor-only', 'logo-1']);
+  });
+});
