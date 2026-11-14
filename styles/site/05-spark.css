@@ -76,7 +76,7 @@
 
 /* 1 newsletter */
 .vp--site-spark .is-canvas .vp-card--playbook::before { content: ""; position: absolute; left: 14px; top: 5px; width: 86px; height: 83px; background: url(/landing-art/05/envelope.webp) center / contain no-repeat; }
-.vp--site-spark .is-canvas .vp-card--playbook::after { content: ""; position: absolute; left: 456px; top: 40px; width: 80px; height: 120px; background: url(/landing-art/05/stack.webp) center / contain no-repeat; z-index: 3; }
+.vp--site-spark .is-canvas .vp-card--playbook::after { content: ""; position: absolute; left: 444px; top: 40px; width: 92px; height: 120px; background: url(/landing-art/05/stack.webp) center / contain no-repeat; z-index: 3; }
 .vp--site-spark .is-canvas .vp-card--playbook .vp-playbook-body { display: contents; }
 .vp--site-spark .is-canvas .vp-card--playbook .vp-book { position: absolute; left: 337px; top: 4px; width: 160px; height: 94px; transform: rotate(-14deg); border-radius: 18px 18px 18px 6px; background: #fb5a5f; box-shadow: none; display: block; padding: 29px 36px 0 8px; text-align: center; z-index: 2; }
 .vp--site-spark .is-canvas .vp-card--playbook .vp-book .vp-book-play { display: none; }
