@@ -13,6 +13,7 @@ import { listBrands } from '../lib/brandStore.js';
 import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizePuck, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
+import { sampleSections } from '../lib/landingPages/sampleContent.js';
 import { wireframeSvg } from '../lib/landingPages/wireframes.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
@@ -237,7 +238,7 @@ export function LandingPagesStudio() {
       c.setAttribute('aria-pressed', String(on));
     });
     // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)], ['Older fixed-layout website pages (not responsive; use the editable pages above)', TEMPLATES.filter((t) => t.site)]].forEach(([label, list]) => {
+    [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
       const grp = el('div', 'flex flex-col gap-2');
       grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
       const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
@@ -355,7 +356,14 @@ export function LandingPagesStudio() {
       }
     };
     saveBtn.addEventListener('click', () => save());
-    publishBtn.addEventListener('click', () => save({ published: !current.published }));
+    publishBtn.addEventListener('click', () => {
+      if (!current.published && current.config.puck) {
+        const tpl = getTemplate(current.config.template);
+        const left = sampleSections(current.config.puck, tpl.puckData, tpl.sampleTypes || []);
+        if (left.length && !window.confirm(`These sections still contain the sample content from the design (made-up names, numbers or quotes):\n\n${left.map((x) => `• ${x.title || x.type}`).join('\n')}\n\nReplace them with your own before sharing. Publish anyway?`)) return;
+      }
+      save({ published: !current.published });
+    });
     titleInput.addEventListener('input', markDirty);
 
     // ---- design tab
@@ -370,7 +378,14 @@ export function LandingPagesStudio() {
         markDirty();
         draw();
       });
-      bar.append(el('span', 'font-bold', 'Design'), tplSel, el('span', '', 'Click any text on the page to edit it. Use the left panel to add, remove and reorder sections. Save when you are done.'));
+      const sampleNote = el('span', 'text-amber-300 font-bold', '');
+      const updateSample = () => {
+        const tpl = getTemplate(current.config.template);
+        const n = sampleSections(current.config.puck, tpl.puckData, tpl.sampleTypes || []).length;
+        sampleNote.textContent = n ? `${n} section${n === 1 ? '' : 's'} still use sample content (made-up names, numbers, quotes). Replace before sharing.` : '';
+      };
+      updateSample();
+      bar.append(el('span', 'font-bold', 'Design'), tplSel, el('span', '', 'Click any text on the page to edit it. Use the left panel to add, remove and reorder sections. Save when you are done.'), sampleNote);
       const host = el('div', 'rounded-2xl border border-white/10 overflow-hidden bg-white');
       host.style.height = '78vh';
       box.append(bar, host);
@@ -397,6 +412,7 @@ export function LandingPagesStudio() {
             last = json;
             current.config = { ...current.config, puck: next };
             markDirty();
+            updateSample();
           },
         });
       }).catch((err) => showToast(err.message || 'Could not load the editor', 'error', 4000));

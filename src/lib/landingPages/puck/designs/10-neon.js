@@ -7,6 +7,7 @@ const q = (id, text, name, role) => ({ type: 'QuoteCard', props: { id, columns: 
 export default {
   id: 'puck-neon',
   designClass: 'neon',
+  sampleTypes: ['NeonHero'],
   name: 'Neon KPI',
   description: 'Dark navy neon landing page with a glowing video, demo form, live-style leads counter and gift card (sample content).',
   theme: { mode: 'dark', accent: '#19e6ee', highlight: '#a78bfa', bg: '#070c24', text: '#f1f5ff', font: 'system' },
