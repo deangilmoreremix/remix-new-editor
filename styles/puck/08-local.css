@@ -1,5 +1,5 @@
 /* Puck design 08: Local business. Warm cream + orange, green footer band. Everything scoped to .pk-d-local. */
-.pk-page.pk-d-local { --pk-line: #efe3cc; --pk-muted: #4b5a4f; --pk-radius: 16px; --lc-green: #1c3b30; --lc-orange: #d1560f; --lc-ink: #1f3a2d; --own: min(27vw, 452px); --col1: min(23.9vw, 400px);
+.pk-page.pk-d-local { --pk-line: #efe3cc; --pk-muted: #4b5a4f; --pk-radius: 16px; --lc-green: #1c3b30; --lc-orange: #d1560f; --lc-ink: #1f3a2d; --own: min(27vw, 452px); --col1: min(23.3vw, 390px);
   --lc-hand: "Caveat Variable", "Patrick Hand", cursive; font-family: "Nunito Variable", "Nunito", system-ui, sans-serif;
   background: linear-gradient(180deg, #fbf6f1 0, #fbf3e8 460px, #fdf5e8 460px, #fdf5e8 100%); }
 .pk-d-local .pk-accent { color: inherit; }
@@ -30,7 +30,7 @@
 .pk-d-local .pk-bullets li:nth-child(1)::before { background-image: url(/landing-art/08/v1.webp); } .pk-d-local .pk-bullets li:nth-child(2)::before { background-image: url(/landing-art/08/v2.webp); }
 .pk-d-local .pk-bullets li:nth-child(3)::before { background-image: url(/landing-art/08/v3.webp); } .pk-d-local .pk-bullets li:nth-child(4)::before { background-image: url(/landing-art/08/v4.webp); }
 .pk-d-local .pk-video video { aspect-ratio: 1.57; border: 5px solid #fff; border-radius: 18px; box-shadow: 0 10px 30px rgba(60,40,20,.28); }
-.pk-d-local .pk-chip { left: 6%; top: 12%; padding: 0 0 8px; background: none; color: #fff; white-space: pre-line; font: 700 clamp(36px, 3.4vw, 58px)/.88 var(--lc-hand); transform: rotate(-13deg); text-shadow: 0 2px 8px rgba(0,0,0,.55); border-bottom: 4px solid #f7b500; border-radius: 0; }
+.pk-d-local .pk-chip { left: 6%; top: 12%; padding: 0 0 8px; background: none; color: #fff; white-space: pre-line; font: 700 clamp(34px, 3vw, 52px)/.88 var(--lc-hand); transform: rotate(-13deg); text-shadow: 0 2px 8px rgba(0,0,0,.55); border-bottom: 4px solid #f7b500; border-radius: 0; }
 .pk-d-local .pk-hero-form .pk-form { gap: 9px; padding: 20px 22px 14px; border: 0; border-radius: 22px; background: #fdfbf8; box-shadow: 0 10px 34px rgba(80,50,20,.16); }
 .pk-d-local .pk-form-title { font-size: clamp(21px, 1.4vw, 23px); white-space: nowrap; font-weight: 800; letter-spacing: -.02em; color: var(--lc-ink); }
 .pk-d-local .pk-form-sub { font-size: 13.5px; line-height: 1.25; color: #26352b; }
@@ -44,7 +44,7 @@
 @media (min-width: 560px) { .pk-d-local .pk-bullets { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (min-width: 760px) and (max-width: 1099px) { .pk-d-local .pk-hero-form { grid-column: 2; } .pk-d-local .pk-hero-video { grid-column: 1; grid-row: 3; } .pk-d-local .pk-hero::before { grid-row: 1; } .pk-d-local .pk-hero-copy { grid-row: 2; } }
 @media (min-width: 1100px) {
-  .pk-d-local .pk-hero { grid-template-columns: var(--col1) minmax(0, 1.22fr) minmax(0, 1fr) minmax(0, .9fr); padding: 30px 32px 0 0; min-height: 388px; }
+  .pk-d-local .pk-hero { grid-template-columns: var(--col1) minmax(0, 1fr) 23.6vw 21.2vw; column-gap: 12px; padding: 30px 32px 0 0; min-height: 388px; }
   .pk-d-local .pk-hero::before { display: none; }
   .pk-d-local .pk-hero-copy { grid-column: 2; grid-row: 1; }
   .pk-d-local .pk-hero-video { grid-column: 3; grid-row: 1; margin-top: 56px; }
@@ -113,7 +113,7 @@
 .pk-d-local .lc-note-arrow { width: 44px; height: 44px; flex: none; }
 @media (min-width: 1100px) {
   .pk-d-local .lc-note-wrap { height: 0; padding: 0; position: relative; z-index: 2; }
-  .pk-d-local .lc-note { position: absolute; left: 56.2%; top: -72px; margin: 0; }
+  .pk-d-local .lc-note { position: absolute; left: 56.4%; top: -60px; margin: 0; }
   .pk-d-local .lc-note-arrow { width: 50px; height: 50px; }
 }
 
@@ -153,7 +153,7 @@
 .pk-d-local .pk-card { padding: 12px 20px 12px; }
 .pk-d-local .pk-checks { gap: 7px; }
 .pk-d-local .lc-news-in { padding-top: 10px; padding-bottom: 10px; }
-.pk-d-local .lc-news-text b { font-size: clamp(19px, 1.35vw, 23px); }
+.pk-d-local .lc-news-text b { font-size: clamp(18px, 1.23vw, 22px); }
 .pk-d-local .lc-news-links { white-space: nowrap; }
 .pk-d-local .pk-footer { padding: 2px 16px 4px; font-size: 11px; line-height: 1.2; }
 .pk-d-local .pk-footer p { margin: 0; }
@@ -163,3 +163,6 @@
   .pk-d-local .lc-news-in { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.3fr) minmax(250px, .85fr); }
   .pk-d-local .lc-news-text b { white-space: nowrap; }
 }
+.pk-d-local .pk-hero-video { margin-top: 44px; }
+.pk-d-local .pk-card { padding: 10px 18px 10px; }
+.pk-d-local .pk-quote blockquote { font-size: 12px; }

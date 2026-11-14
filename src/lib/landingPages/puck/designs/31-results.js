@@ -84,8 +84,8 @@ export default {
           ],
           "chip": "No credit card required",
           "photo": "/landing-art/results/poster.webp",
-          "showForm": "no",
-          "formTitle": "Get Your Personalized Video",
+          "showForm": "yes",
+          "formTitle": "Get your free personalized video",
           "formSubtitle": "",
           "formFields": [
             {

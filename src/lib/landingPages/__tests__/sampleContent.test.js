@@ -14,8 +14,9 @@ describe('sample-content guard', () => {
     const t = PUCK_TEMPLATES.find((x) => x.id === 'puck-lead');
     const before = sampleSections(t.puckData, t.puckData);
     const data = clone(t.puckData);
-    const grid = data.content.find((c) => c.type === 'Grid');
-    const quote = grid.props.items.find((c) => c.type === 'QuoteCard');
+    // the quote card may live inside any slot container (Grid or a design's own grid)
+    const find = (items, type) => { for (const c of items) { if (c.type === type) return c; for (const v of Object.values(c.props || {})) { if (Array.isArray(v) && v.length && v.every((x) => x && x.type && x.props)) { const f = find(v, type); if (f) return f; } } } return null; };
+    const quote = find(data.content, 'QuoteCard');
     quote.props.quotes[0].text = 'A real customer said this.';
     const after = sampleSections(data, t.puckData);
     expect(after.length).toBe(before.length - 1);
