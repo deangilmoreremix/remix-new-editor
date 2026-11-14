@@ -35,13 +35,14 @@ export default {
           privacy: '',
         },
       },
-      { type: 'Strip', props: { id: 'lead-strip', kind: 'logos', title: 'Trusted by growth-focused teams', items: ['Notionly', 'Cloudway', 'BrightPath', 'ScaleCRM', 'Nexora'].map((t) => ({ title: t, text: '', value: '', icon: '' })) } },
+      { type: 'LeadLogoStrip', props: { id: 'lead-strip', title: 'Trusted by growth-focused teams', logos: ['Notionly', 'Cloudway', 'BrightPath', 'ScaleCRM', 'Nexora'].map((name, i) => ({ name, image: `/landing-art/02/l${i + 1}.webp` })) } },
       { type: 'TextBlock', props: { id: 'lead-heading', eyebrow: '', title: 'A Complete List-Building Platform for [[Video-Led Growth]]', text: 'Capture more leads, grow high-quality lists, and turn interest into pipeline, all with personalized video.', align: 'center' } },
       {
-        type: 'Grid',
+        type: 'LeadCardGrid',
         props: {
           id: 'lead-grid',
           columns: 6,
+          icon1: 'book', icon2: 'users', icon3: 'quote', icon4: 'layers', icon5: 'calendar', icon6: 'chart',
           items: [
             { type: 'LeadMagnetCard', props: { id: 'lead-magnet', columns: 1, tag: '', title: 'Downloadable Guide Signup', cover: 'The Personalized Video Playbook', text: 'Grow your list with high-value resources.', placeholder: 'Your Email', buttonLabel: 'Get the Free Guide' } },
             { type: 'ChecklistCard', props: { id: 'lead-segments', columns: 1, title: 'Contact Segmentation', text: 'Organize and target leads with smart segments.', items: [{ label: 'Marketing Pros', value: '1,248' }, { label: 'Sales Teams', value: '842' }, { label: 'Enterprise', value: '309' }, { label: 'Partners', value: '176' }] } },

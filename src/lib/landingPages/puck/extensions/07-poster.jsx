@@ -1,4 +1,5 @@
 /** Design 07 "Street poster" extras: feature row, case studies + quote + chevron pipeline, import dropzone + final CTA. Sample copy only. */
+import { useState } from 'react';
 import { AccentText, Icon, SafeLink, useTokens } from '../components.jsx';
 import { safeImageUrl } from '../../templates.js';
 
@@ -10,6 +11,51 @@ const iconField = { type: 'select', label: 'Icon', options: ['video', 'bolt', 't
 const Pic = ({ src, className }) => { const u = art(src); return u ? <img className={className} src={u} alt="" loading="lazy" /> : null; };
 
 export const components = {
+  PosterNav: {
+    label: 'Poster: top bar with brand tagline',
+    fields: {
+      brand: T('Brand name'), tagline: T('Tagline next to the brand'), logo: T('Logo (path or https link)'),
+      links: { type: 'array', label: 'Menu links', arrayFields: { label: T('Text'), url: T('Link (https, #lead, #video)') }, getItemSummary: (i) => i.label || 'Link', defaultItemProps: { label: 'Link', url: '' } },
+      ctaLabel: T('Button text'), ctaUrl: T('Button link (#lead, https...)'),
+    },
+    defaultProps: {
+      brand: 'SmartVideo AI', tagline: 'Personalized video for growth', logo: '/landing-art/07/logo.webp',
+      links: ['How It Works', 'Case Studies', 'Features', 'Pricing', 'Resources'].map((label) => ({ label, url: '' })),
+      ctaLabel: 'Book a Strategy Call', ctaUrl: '#lead',
+    },
+    render: (p) => {
+      const t = useTokens();
+      return (
+        <nav className="pk-nav pk-px-nav" aria-label="Site">
+          <a className="pk-brand" href="#top"><Pic src={p.logo} className="pk-px-logo" /><span>{t(p.brand)}</span></a>
+          {p.tagline ? <span className="pk-px-tagline">{t(p.tagline)}</span> : null}
+          <ul className="pk-nav-links">{asList(p.links).map((l, i) => <li key={i}><SafeLink href={l.url}>{t(l.label)}</SafeLink>{l.url ? null : <span>{t(l.label)}</span>}</li>)}</ul>
+          <div className="pk-nav-right">{p.ctaLabel ? <SafeLink className="pk-btn pk-btn--primary pk-nav-cta" href={p.ctaUrl || '#lead'}>{t(p.ctaLabel)}</SafeLink> : null}</div>
+        </nav>
+      );
+    },
+  },
+
+  PosterLogos: {
+    label: 'Poster: trusted-by logo strip',
+    fields: {
+      title: T('Title'),
+      items: { type: 'array', label: 'Logos', arrayFields: { logo: T('Logo icon (path or https link)'), name: T('Name'), sub: T('Small label under the name') }, getItemSummary: (i) => i.name || 'Logo', defaultItemProps: { logo: '', name: 'Name', sub: '' } },
+    },
+    defaultProps: {
+      title: 'Trusted by growth-focused agencies & brands',
+      items: [['NorthPeak', 'Digital'], ['Brightside', 'Media'], ['ScaleHouse', 'Agency'], ['Momentum', 'Creative'], ['LaunchLab', 'Growth']].map(([name, sub], i) => ({ logo: `/landing-art/07/logo${i + 1}.webp`, name, sub })),
+    },
+    render: (p) => {
+      const t = useTokens();
+      return (
+        <section className="pk-strip pk-px-logos">
+          {p.title ? <p className="pk-strip-title">{t(p.title)}</p> : null}
+          <ul className="pk-strip-row">{asList(p.items).map((it, i) => <li key={i} className="pk-px-logo-item"><Pic src={it.logo} className="pk-px-logo-img" /><span><b>{t(it.name)}</b>{it.sub ? <small>{t(it.sub)}</small> : null}</span></li>)}</ul>
+        </section>
+      );
+    },
+  },
   PosterFeatures: {
     label: 'Poster: heading and feature row',
     fields: { heading: T('Heading (wrap words in [[double brackets]] to highlight)'), text: A('Text'), items: { type: 'array', label: 'Features', arrayFields: { icon: iconField, title: T('Title'), text: T('Text') }, getItemSummary: (i) => i.title || 'Feature', defaultItemProps: { icon: 'check', title: 'Feature', text: '' } } },
@@ -80,7 +126,7 @@ export const components = {
       return (
         <section className="pk-px-proof">
           <div className="pk-px-cases">
-            <h2 className="pk-px-h2">{t(p.casesTitle)}</h2>
+            <AccentText as="h2" className="pk-px-h2" text={p.casesTitle} />
             <p>{t(p.casesText)}</p>
             <ul>
               {asList(p.cases).map((c, i) => (
@@ -104,7 +150,7 @@ export const components = {
             </figcaption>
           </figure>
           <div className="pk-px-pipe">
-            <h2 className="pk-px-h2">{t(p.pipelineTitle)}</h2>
+            <AccentText as="h2" className="pk-px-h2" text={p.pipelineTitle} />
             <p>{t(p.pipelineText)}</p>
             <ol>
               {asList(p.steps).map((s, i) => <li key={i}><Icon name={s.icon || 'check'} className="pk-ico pk-ico--lg" /><span>{t(s.label)}</span></li>)}
@@ -129,23 +175,29 @@ export const components = {
       dropTitle: 'Import Contacts', dropHint: 'Drag & drop a CSV, or click to upload',
       checks: [{ text: 'Works with your existing contact lists' }, { text: 'Map personalized fields (name, company, etc.)' }, { text: 'Launch your first campaign in minutes' }],
       ctaTitle: 'Ready to Turn More Contacts into Customers?',
-      buttons: [{ label: 'Get Started Free', url: 'https://example.com/start', style: 'primary' }, { label: 'Book a Strategy Call', url: 'https://example.com/book', style: 'secondary' }],
+      buttons: [{ label: 'Get Started Free', url: '#lead', style: 'primary' }, { label: 'Book a Strategy Call', url: '#lead', style: 'secondary' }],
     },
-    render: (p) => {
-      const t = useTokens();
-      return (
+    render: (p) => <PosterCtaView {...p} />,
+  },
+};
+
+function PosterCtaView(p) {
+  const t = useTokens();
+  const [picked, setPicked] = useState('');
+  return (
         <section className="pk-px-cta">
           <div className="pk-px-cta-left">
-            <div className="pk-px-cta-copy"><h2 className="pk-px-h2">{t(p.heading)}</h2><p>{t(p.text)}</p></div>
-            <div className="pk-px-drop"><Icon name="video" className="pk-ico pk-px-drop-ico" /><b>{t(p.dropTitle)}</b><small>{t(p.dropHint)}</small></div>
+            <div className="pk-px-cta-copy"><AccentText as="h2" className="pk-px-h2" text={p.heading} /><p>{t(p.text)}</p></div>
+            <label className="pk-px-drop">
+              <input className="pk-px-drop-input" type="file" accept=".csv,.xls,.xlsx,text/csv" onChange={(e) => setPicked(e.target.files?.[0]?.name || '')} />
+              <Icon name="video" className="pk-ico pk-px-drop-ico" /><b>{t(p.dropTitle)}</b><small>{picked || t(p.dropHint)}</small>
+            </label>
             <ul className="pk-px-checks">{asList(p.checks).map((c, i) => <li key={i}><Icon name="check" className="pk-ico" /><span>{t(c.text)}</span></li>)}</ul>
           </div>
           <div className="pk-px-cta-right">
-            <p className="pk-px-cta-title">{t(p.ctaTitle)}</p>
+            <AccentText as="p" className="pk-px-cta-title" text={p.ctaTitle} />
             <div className="pk-px-cta-btns">{asList(p.buttons).map((b, i) => <SafeLink key={i} className={`pk-px-btn pk-px-btn--${b.style === 'primary' ? 'primary' : 'secondary'}`} href={b.url}>{t(b.label)}</SafeLink>)}</div>
           </div>
         </section>
-      );
-    },
-  },
-};
+  );
+}

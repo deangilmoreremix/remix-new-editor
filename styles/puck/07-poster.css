@@ -1,6 +1,6 @@
 /* Design 07 "Street poster": magenta / orange / purple, tilted video, torn-paper sections. Artwork in /landing-art/07. */
 .pk-page.pk-d-poster {
-  --pk-heavy: "Montserrat", "Arial Black", "Helvetica Neue", "Liberation Sans", Arial, sans-serif;
+  --pk-heavy: "Montserrat Variable", "Arial Black", "Helvetica Neue", "Liberation Sans", Arial, sans-serif;
   --px-pink: #e0268f; --px-yellow: #ffd60a; --px-ink: #1c0f3a;
   --pk-muted: #4a3a63; --pk-line: #eadcf5; --pk-radius: 10px;
   background: linear-gradient(170deg, #3b1175 0%, #6a1b9a 40%, #c3208f 75%, #ff7a30 100%) top / 100% 2200px no-repeat, #fbf9fd;
@@ -190,3 +190,85 @@
 /* footer */
 .pk-d-poster .pk-footer { max-width: none; background: #fbf9fd; color: var(--pk-muted); }
 .pk-d-poster .pk-footer a { color: var(--px-pink); }
+
+
+/* ---- polish pass: fonts, highlighter, icons, compaction ---- */
+.pk-page.pk-d-poster { --pk-heavy: "Montserrat Variable", "Montserrat", "Arial Black", "Helvetica Neue", Arial, sans-serif; --px-hand: "Caveat Variable", "Caveat", "Segoe Script", cursive; --px-marker: "Permanent Marker", "Caveat Variable", cursive; }
+.pk-d-poster .pk-headline { font-weight: 800; }
+.pk-d-poster .pk-px-h2, .pk-d-poster .pk-form-title, .pk-d-poster .pk-px-cta-title, .pk-d-poster .pk-px-feats-row b { font-weight: 800; }
+.pk-d-poster .pk-eyebrow { font-family: var(--px-marker); font-style: normal; font-weight: 400; font-size: 17px; letter-spacing: .01em; text-decoration: none; border-bottom: 3px solid var(--px-yellow); padding-bottom: 2px; }
+.pk-d-poster .pk-chip { font-family: var(--px-hand); font-style: normal; font-weight: 700; font-size: clamp(26px, 6vw, 44px); line-height: 1; border-bottom-width: 5px; border-bottom-color: var(--px-yellow); border-radius: 0 0 40% 60% / 0 0 30% 20%; }
+
+/* highlighter strokes (form title, headings) */
+.pk-d-poster .pk-px-h2 .pk-accent, .pk-d-poster .pk-form-title .pk-accent { color: inherit; padding: 0 .18em; margin: 0 -.06em; background: linear-gradient(100deg, rgba(255, 214, 10, 0) 0, #ffd60a 4%, #ffe14d 96%, rgba(255, 214, 10, 0) 100%) 0 82% / 100% 56% no-repeat; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.pk-d-poster .pk-px-feats .pk-px-h2 .pk-accent { color: var(--px-pink); font-family: var(--px-hand); font-weight: 700; font-style: normal; font-size: 1.35em; letter-spacing: 0; line-height: .8; background-position: 0 90%; background-size: 100% 40%; }
+.pk-d-poster .pk-px-cta-title .pk-accent { color: var(--px-yellow); }
+
+/* nav + tagline */
+.pk-d-poster .pk-px-nav { gap: 8px 14px; }
+.pk-d-poster .pk-px-logo { width: 38px; height: 42px; object-fit: contain; }
+.pk-d-poster .pk-px-tagline { display: none; align-self: flex-start; margin-top: 12px; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; line-height: 1.2; }
+.pk-d-poster .pk-px-nav .pk-nav-links li span:not(:only-child) { display: none; }
+@media (min-width: 1100px) { .pk-d-poster .pk-px-tagline { display: block; } .pk-d-poster .pk-px-nav .pk-nav-links { margin: 0 auto 0 4%; } }
+
+/* logo strip with sub-labels */
+.pk-d-poster .pk-px-logos { max-width: none; padding: 12px 7.5% 12px 7%; border: 0; background: linear-gradient(90deg, #2d0f5c, #6a1b9a 60%, #c3208f); color: #fff; }
+.pk-d-poster .pk-px-logo-item { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+.pk-d-poster .pk-px-logo-img { height: 32px; width: auto; flex: none; }
+.pk-d-poster .pk-px-logo-item b { display: block; font-family: var(--pk-heavy); font-weight: 700; font-size: clamp(15px, 1.15vw, 20px); letter-spacing: -.02em; line-height: 1; }
+.pk-d-poster .pk-px-logo-item small { display: block; margin-top: 3px; font-size: 9px; letter-spacing: .3em; text-transform: uppercase; opacity: .75; line-height: 1; }
+@media (min-width: 1100px) {
+  .pk-d-poster .pk-px-logos { grid-template-columns: 22% 1fr; align-items: center; height: 56px; padding-block: 0; margin-top: -2px; }
+  .pk-d-poster .pk-px-logos .pk-strip-title { margin-left: 6%; max-width: 13em; font-size: 12.5px; text-align: center; }
+  .pk-d-poster .pk-px-logos .pk-strip-row { justify-content: space-between; flex-wrap: nowrap; padding-left: 4%; }
+}
+
+/* form: field icons, lock, arrow */
+.pk-d-poster .pk-field input, .pk-d-poster .pk-field select { min-height: 32px; padding: 5px 12px 5px 40px; font-size: 14px; border: 1.5px solid #8a7aa8; border-radius: 4px; color: var(--px-ink); background: #fff no-repeat 12px center / 17px; appearance: none; -webkit-appearance: none; }
+.pk-d-poster .pk-field:nth-of-type(1) input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a1750' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c0-4 4-6 8-6s8 2 8 6'/%3E%3C/svg%3E"); }
+.pk-d-poster .pk-field:nth-of-type(2) input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a1750' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='M3 7l9 7 9-7'/%3E%3C/svg%3E"); }
+.pk-d-poster .pk-field:nth-of-type(3) input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a1750' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='3' width='14' height='18' rx='1'/%3E%3Cpath d='M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2'/%3E%3C/svg%3E"); }
+.pk-d-poster .pk-field:nth-of-type(4) input, .pk-d-poster .pk-field:nth-of-type(4) select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a1750' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Ccircle cx='12' cy='12' r='5'/%3E%3Ccircle cx='12' cy='12' r='1.5'/%3E%3C/svg%3E"); }
+.pk-d-poster .pk-field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a1750' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Ccircle cx='12' cy='12' r='5'/%3E%3Ccircle cx='12' cy='12' r='1.5'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a1750' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-position: 12px center, right 10px center; background-size: 17px, 16px; background-repeat: no-repeat; padding-right: 34px; }
+.pk-d-poster .pk-privacy { position: relative; padding-left: 26px; }
+.pk-d-poster .pk-privacy::before { content: ""; position: absolute; left: 4px; top: 50%; width: 15px; height: 15px; transform: translateY(-50%); background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0262f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='2' fill='%23e0262f'/%3E%3Cpath d='M8 11V8a4 4 0 018 0v3'/%3E%3C/svg%3E") no-repeat center / contain; }
+.pk-d-poster .pk-form .pk-btn--primary::after, .pk-d-poster .pk-actions .pk-btn--primary::after { content: "\2192"; margin-left: 8px; font-style: normal; }
+.pk-d-poster .pk-actions .pk-btn--secondary::before { content: ""; display: inline-block; width: 16px; height: 16px; margin-right: 8px; vertical-align: -3px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4M8 14h2M14 14h2'/%3E%3C/svg%3E") no-repeat center / contain; }
+
+/* compaction + headline clearance of the tilted frame */
+@media (min-width: 1100px) {
+  .pk-d-poster .pk-headline { font-size: clamp(22px, 2.12vw, 38px); }
+  .pk-d-poster .pk-hero-copy { position: relative; z-index: 2; padding-right: 2%; }
+  .pk-d-poster .pk-hero-video { margin: 20px 0 0 2%; z-index: 1; }
+  .pk-d-poster .pk-hero { padding-bottom: 6px; }
+  .pk-d-poster .pk-hero-form .pk-form { gap: 5px; padding: 18px 12% 14px 18%; }
+  .pk-d-poster .pk-form-sub { margin-bottom: 2px; }
+  .pk-d-poster .pk-form .pk-btn--primary { min-height: 38px; margin-top: 4px; }
+  .pk-d-poster .pk-px-proof { min-height: 0; }
+  .pk-d-poster .pk-px-cases { padding: 24px 3.5% 0 4%; }
+  .pk-d-poster .pk-px-cases > p { margin: 4px 0 10px; }
+  .pk-d-poster .pk-px-quote { padding-top: 46px; gap: 10px; }
+  .pk-d-poster .pk-px-pipe { padding-top: 20px; }
+  .pk-d-poster .pk-px-cta-left { grid-template-columns: 43% 200px 1fr; gap: 0 2%; }
+  .pk-d-poster .pk-px-cta-copy .pk-px-h2 { font-size: clamp(20px, 1.3vw, 23px); }
+}
+@media (min-width: 760px) { .pk-d-poster .pk-hero-video { transform: perspective(1500px) rotateY(-5deg) rotate(-4.2deg); } }
+
+/* dropzone is a real file picker (client side only: the file is never uploaded) */
+.pk-d-poster .pk-px-drop { position: relative; cursor: pointer; }
+.pk-d-poster .pk-px-drop-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.pk-d-poster .pk-px-drop:focus-within { outline: 3px solid var(--px-yellow); outline-offset: 2px; }
+
+/* ---- polish pass 2 ---- */
+.pk-d-poster .pk-hero-copy .pk-bullets { order: 5; }
+.pk-d-poster .pk-chip { max-width: 5.6em; text-align: center; right: 3%; top: 8%; font-size: clamp(24px, 5vw, 38px); }
+.pk-d-poster .pk-px-cases .pk-px-h2 { font-style: normal; }
+@media (min-width: 900px) { .pk-d-poster .pk-px-pipe::after { width: 25%; } }
+@media (min-width: 1100px) {
+  .pk-d-poster .pk-px-logos .pk-strip-title { margin-left: 3%; max-width: 17em; }
+  .pk-d-poster .pk-hero-form .pk-form { padding-right: 8%; }
+  .pk-d-poster .pk-form-title { font-size: clamp(18px, 1.2vw, 22px); }
+  .pk-d-poster .pk-headline .pk-accent { font-size: 1.52em; }
+  .pk-d-poster .pk-subhead { line-height: 1.08; }
+  .pk-d-poster .pk-actions { margin-top: 2px; }
+}

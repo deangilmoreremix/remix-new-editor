@@ -7,6 +7,13 @@ const T = (label) => ({ type: 'text', label });
 const A = (label) => ({ type: 'textarea', label });
 const iconField = { type: 'select', label: 'Icon', options: ICON_KEYS.map((k) => ({ label: k, value: k })) };
 const list = (v) => (Array.isArray(v) ? v : []);
+const MARKS = [{ label: 'None', value: '' }, { label: 'Cloud (blue)', value: 'cloud' }, { label: 'Four squares', value: 'squares' }, { label: 'Sprocket (orange)', value: 'sprocket' }];
+function Mark({ kind }) {
+  if (kind === 'cloud') return <svg className="ent-mark" viewBox="0 0 64 44" aria-hidden="true"><path fill="#1ea1df" d="M20 8c4-4 11-4 15 1 4-3 11-2 13 4 7 0 12 6 11 12-1 7-7 11-13 10H15C7 35 3 29 5 23c1-4 4-6 8-6 0-4 3-7 7-9z" /></svg>;
+  if (kind === 'squares') return <svg className="ent-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="#f25022" d="M1 1h10v10H1z" /><path fill="#7fba00" d="M13 1h10v10H13z" /><path fill="#00a4ef" d="M1 13h10v10H1z" /><path fill="#ffb900" d="M13 13h10v10H13z" /></svg>;
+  if (kind === 'sprocket') return <svg className="ent-mark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#ff7a59" strokeWidth="2.4" strokeLinecap="round"><circle cx="12" cy="14" r="4.5" /><path d="M12 9.5V3M18 6l-4 4" /></g><circle cx="12" cy="3" r="1.8" fill="#ff7a59" /><circle cx="19" cy="5.5" r="1.8" fill="#ff7a59" /></svg>;
+  return null;
+}
 const img = (src) => safeImageUrl(src) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(src || '')) ? src : '');
 
 function EnterpriseColumns(p) {
@@ -39,7 +46,7 @@ function EnterpriseColumns(p) {
         <h2 className="ent-h">{t(p.crmTitle)}</h2>
         {p.crmText ? <p className="ent-p">{t(p.crmText)}</p> : null}
         <div className="ent-crm">
-          <ul>{list(p.integrations).map((x, i) => <li key={i} className={`ent-int ent-int--${i % 3}`}><b>{t(x.name)}</b>{x.sub ? <small>{t(x.sub)}</small> : null}</li>)}</ul>
+          <ul>{list(p.integrations).map((x, i) => <li key={i} className={`ent-int ent-int--${x.mark || 'none'}`}><Mark kind={x.mark} /><span className="ent-int-t"><b>{t(x.name)}</b>{x.sub ? <small>{t(x.sub)}</small> : null}</span></li>)}</ul>
           {p.moreLabel ? (p.moreUrl ? <SafeLink className="ent-more" href={p.moreUrl}>{t(p.moreLabel)}</SafeLink> : <span className="ent-more">{t(p.moreLabel)}</span>) : null}
         </div>
       </div>
@@ -88,7 +95,7 @@ export const components = {
       teamEyebrow: T('Column 2: small label'), teamTitle: T('Column 2: heading'),
       features: { type: 'array', label: 'Column 2: features', arrayFields: { icon: iconField, title: T('Title'), text: T('Text') }, getItemSummary: (i) => i.title || 'Feature', defaultItemProps: { icon: 'check', title: 'Feature', text: 'Describe it.' } },
       crmEyebrow: T('Column 3: small label'), crmTitle: T('Column 3: heading'), crmText: A('Column 3: text'),
-      integrations: { type: 'array', label: 'Column 3: integration names', arrayFields: { name: T('Name'), sub: T('Second line (optional)') }, getItemSummary: (i) => i.name || 'Integration', defaultItemProps: { name: 'CRM', sub: '' } },
+      integrations: { type: 'array', label: 'Column 3: integration names', arrayFields: { name: T('Name'), sub: T('Second line (optional)'), mark: { type: 'select', label: 'Simple drawn mark', options: MARKS } }, getItemSummary: (i) => i.name || 'Integration', defaultItemProps: { name: 'CRM', sub: '', mark: '' } },
       moreLabel: T('Column 3: link text'), moreUrl: T('Column 3: link (optional)'),
     },
     defaultProps: {

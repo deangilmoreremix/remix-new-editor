@@ -12,7 +12,7 @@ export default {
   puckData: {
     root: { props: { design: 'reach', accent: '#dc2626', background: '#ffffff', text: '#1a1414', surface: '#fff5f2' } },
     content: [
-      { type: 'NavBar', props: { id: id('nav'), brand: 'SmartVideo AI', logo: '/landing-art/03/logo.webp', links: ['How It Works', 'Features', 'Results', 'Testimonials', 'Pricing', 'FAQ'].map((label) => ({ label, url: '' })), loginLabel: 'Book a Demo', loginUrl: 'https://example.com/demo', ctaLabel: 'Get Started Free' } },
+      { type: 'NavBar', props: { id: id('nav'), brand: 'SmartVideo AI', logo: '/landing-art/03/logo.webp', links: ['How It Works', 'Features', 'Results', 'Testimonials', 'Pricing', 'FAQ'].map((label) => ({ label, url: '' })), loginLabel: 'Book a Demo', loginUrl: '#lead', ctaLabel: 'Get Started Free' } },
       {
         type: 'Hero',
         props: {
@@ -22,23 +22,24 @@ export default {
           headline: 'Turn More Prospects Into Customers with [[Personalized Outreach]]',
           subhead: 'Create, send, and track personalized videos at scale to generate more leads, build real relationships, and close more deals, with less effort.',
           bullets: [{ text: 'Higher Response Rates' }, { text: 'More Qualified Leads' }, { text: 'More Meetings & Sales' }],
-          buttons: [{ label: 'Book a Live Demo', url: 'https://example.com/demo', style: 'secondary' }],
+          buttons: [{ label: 'Book a Live Demo', url: '#lead', style: 'secondary' }],
           chip: 'A Personalized Video for You!',
           photo: '/landing-art/03/presenter.webp',
           showForm: 'yes',
-          formTitle: 'Get More Leads with Personalized Videos',
+          formTitle: 'Get More Leads with [[Personalized Videos]]',
           formSubtitle: 'See how VideoReach can help you generate, engage, and convert more prospects.',
           formFields: [
             { key: 'firstname', label: 'First Name *', type: 'text', required: true },
             { key: 'lastname', label: 'Last Name *', type: 'text', required: false },
             { key: 'email', label: 'Work Email *', type: 'email', required: true },
             { key: 'company', label: 'Company Name *', type: 'text', required: true },
-            { key: 'size', label: 'Company Size *', type: 'text', required: false },
+            { key: 'size', label: 'Company Size *', type: 'select', options: '1-10, 11-50, 51-200, 201-500, 501-1000, 1000+', required: false },
           ],
           submitLabel: 'Get My Personalized Demo',
           privacy: '',
         },
       },
+      { type: 'ReachSideNote', props: { id: id('note'), text: 'See it in action - get a custom demo today!' } },
       {
         type: 'ReachTrustBar',
         props: {
@@ -49,24 +50,24 @@ export default {
         },
       },
       {
-        type: 'Grid',
+        type: 'ReachGrid',
         props: {
           id: id('grid1'),
           columns: 3,
           items: [
-            { type: 'LeadMagnetCard', props: { id: id('magnet'), columns: 1, tag: 'FREE LEAD MAGNET', title: 'Get the Personalized Video Playbook', cover: 'The Personalized Video Playbook', text: 'A step-by-step guide to generating more leads and meetings with video outreach.', placeholder: 'Enter your email address', buttonLabel: 'Get the Free Guide' } },
-            { type: 'FeaturesCard', props: { id: id('feats'), columns: 1, title: 'Why VideoReach Drives More Leads', items: [
+            { type: 'ReachMagnetCard', props: { id: id('magnet'), columns: 1, tag: 'FREE LEAD MAGNET', title: 'Get the Personalized Video Playbook', cover: 'The Personalized Video Playbook', text: 'A step-by-step guide to generating more leads and meetings with video outreach.', placeholder: 'Enter your email address', buttonLabel: 'Get the Free Guide' } },
+            { type: 'ReachFeaturesCard', props: { id: id('feats'), columns: 1, title: 'Why [[VideoReach]] Drives More Leads', items: [
               { icon: 'video', title: 'Create Personalized Videos', text: 'Use your name, company, and custom touches.' },
               { icon: 'users', title: 'Build Your Lead List', text: 'Capture and organize high-intent leads.' },
               { icon: 'bolt', title: 'Automate Outreach', text: 'Send at scale without losing the personal touch.' },
               { icon: 'chart', title: 'Track & Convert', text: 'See opens, views, and replies to turn interest into meetings.' },
             ] } },
-            { type: 'StatsCard', props: { id: id('stats'), columns: 1, title: 'Real Results from Our Customers', items: [{ icon: 'arrow', value: '3.4x', label: 'Higher Response Rate' }, { icon: 'users', value: '57%', label: 'More Qualified Leads' }, { icon: 'target', value: '2.8x', label: 'More Meetings Booked' }] } },
+            { type: 'ReachStatsCard', props: { id: id('stats'), columns: 1, title: 'Real Results from Our Customers', items: [{ icon: 'arrow', value: '3.4x', label: 'Higher Response Rate' }, { icon: 'users', value: '57%', label: 'More Qualified Leads' }, { icon: 'target', value: '2.8x', label: 'More Meetings Booked' }] } },
           ],
         },
       },
       {
-        type: 'Grid',
+        type: 'ReachGrid',
         props: {
           id: id('grid2'),
           columns: 3,
@@ -77,10 +78,10 @@ export default {
               { icon: 'calendar', title: 'Book Meetings', text: 'Turn interest into real conversations.' },
               { icon: 'target', title: 'Convert & Grow', text: 'Close more deals and build long-term customers.' },
             ] } },
-            { type: 'QuoteCard', props: { id: id('quotes'), columns: 1, heading: 'What Our Customers Are Saying', quotes: [
-              { text: 'Our response rate jumped from 8% to 32% after adding personalized video outreach with VideoReach!', name: 'Jessica R.', role: 'Head of Marketing, SaaSCo' },
-              { text: 'It’s like 1:1 outreach at scale. We’ve booked 3.4x more meetings and our pipeline is fuller than ever.', name: 'Mark T.', role: 'Founder, GrowthLabs' },
-              { text: 'Super easy to use, and the results are real. More replies, more conversations, and more closed deals.', name: 'Emily K.', role: 'Sales Director, CloudEdge' },
+            { type: 'ReachQuotesCard', props: { id: id('quotes'), columns: 1, heading: 'What Our Customers Are Saying', quotes: [
+              { text: 'Our response rate jumped from 8% to 32% after adding personalized video outreach with VideoReach!', name: 'Jessica R.', role: 'Head of Marketing, SaaSCo', avatar: '/landing-art/03/q1.webp' },
+              { text: 'It’s like 1:1 outreach at scale. We’ve booked 3.4x more meetings and our pipeline is fuller than ever.', name: 'Mark T.', role: 'Founder, GrowthLabs', avatar: '/landing-art/03/q2.webp' },
+              { text: 'Super easy to use, and the results are real. More replies, more conversations, and more closed deals.', name: 'Emily K.', role: 'Sales Director, CloudEdge', avatar: '/landing-art/03/q3.webp' },
             ] } },
             { type: 'FaqCard', props: { id: id('faq'), columns: 1, title: 'Frequently Asked Questions', items: [
               { q: 'What is VideoReach?', a: 'A way to send one-to-one personalized videos and capture the leads they generate.' },

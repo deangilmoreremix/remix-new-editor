@@ -1,6 +1,8 @@
 .pk-d-pa-local { --pk-bg-grad: linear-gradient(180deg,#0f2616 0%,#1a3d24 100%); --pk-hero-shade: rgba(14,38,22,.94); --pk-form-bg: #ffffff; --pk-form-text: #14301b; --pk-tile: #e8f3e6; font-family: "Plus Jakarta Sans Variable", "Inter Variable", system-ui, sans-serif; }
-.pk-d-pa-local .pk-hero--story { background: var(--pk-hero-bg) right top / auto 100% no-repeat, #14301b; color: #ffffff; }
-.pk-d-pa-local .pk-hero--story::before { background: linear-gradient(90deg, var(--pk-hero-shade) 0%, var(--pk-hero-shade) 40%, transparent 78%); }
+.pk-d-pa-local .pk-hero--story { background: var(--pk-hero-bg) right top / auto 100% no-repeat, #112b19; color: #ffffff; }
+.pk-d-pa-local .pk-hero--story { background-size: auto clamp(250px, 70vw, 330px), auto; }
+.pk-d-pa-local .pk-hero--story::before { background: linear-gradient(90deg, var(--pk-hero-shade) 0%, var(--pk-hero-shade) 40%, transparent 78%), linear-gradient(180deg, transparent 0, transparent 190px, #112b19 330px); }
+@media (min-width: 760px) { .pk-d-pa-local .pk-hero--story { background-size: auto 100%, auto; } .pk-d-pa-local .pk-hero--story::before { background: linear-gradient(90deg, var(--pk-hero-shade) 0%, var(--pk-hero-shade) 40%, transparent 78%); } }
 .pk-d-pa-local .pk-hero--story .pk-headline { white-space: pre-line; color: #ffffff; font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; }
 .pk-d-pa-local .pk-hero--story .pk-subhead { color: inherit; opacity: .92; max-width: 30ch; font-size: clamp(14px, 3.6vw, 20px); }
 .pk-d-pa-local .pk-hero--story .pk-btn--primary { background: #278232; color: #ffffff; border-radius: 999px; font-weight: 800; }

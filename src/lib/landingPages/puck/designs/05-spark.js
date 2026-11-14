@@ -15,24 +15,23 @@ const nav = {
 };
 
 const hero = {
-  type: 'Hero',
+  type: 'SparkHero',
   props: {
     id: 'spark-hero',
-    variant: 'copy-video-form',
-    eyebrow: '',
+        eyebrow: '',
     headline: 'Turn Prospects into Fans with Personalized [[Videos!]]',
     subhead: 'Create and send custom videos at scale to attract qualified leads, build real connections, and grow your business faster.',
     bullets: [{ text: 'No credit card' }, { text: 'Personalized for your business' }],
+    orText: 'or',
     buttons: [{ label: 'Schedule a Demo', url: 'https://example.com/demo', style: 'secondary' }],
     chip: 'Personalized for you, {{firstname|Alex}}!',
     photo: art('presenter'),
-    showForm: 'yes',
-    formTitle: 'Get Your Own Personalized Video!',
+        formTitle: 'Get Your Own Personalized Video!',
     formSubtitle: '',
     formFields: [
       { key: 'name', label: 'Your Name', type: 'text', required: true },
       { key: 'email', label: 'Your Email', type: 'email', required: true },
-      { key: 'business', label: 'Your Business Type', type: 'text', required: false },
+      { key: 'business', label: 'Your Business Type', type: 'select', options: 'Marketing Agency, Real Estate, SaaS Startup, Coaching, Other', required: false },
     ],
     submitLabel: 'Create My Personalized Video',
     privacy: '',
@@ -55,16 +54,16 @@ const strip = {
 };
 
 const grid = {
-  type: 'Grid',
+  type: 'SparkGrid',
   props: {
     id: 'spark-grid',
     columns: 4,
     items: [
       { type: 'LeadMagnetCard', props: { id: 'spark-news', columns: 2, tag: 'FREE:', title: 'Join Our Growth Newsletter', cover: 'The Personalized Video Playbook (PDF)', text: 'Weekly video marketing tips, real examples, and lead-gen playbooks.', placeholder: 'Enter your email', buttonLabel: 'Get the Free Playbook' } },
       {
-        type: 'StepsCard',
+        type: 'SparkSteps',
         props: {
-          id: 'spark-steps', columns: 2, title: 'Get Started in 3 Simple Steps', layout: 'row',
+          id: 'spark-steps', columns: 2, title: 'Get Started in [[3]] [[Simple Steps]]',
           items: [
             { title: 'Connect & Customize', text: 'Add your brand, message, and a few personal touches.', icon: '' },
             { title: 'Import Your List', text: 'Add leads or connect your favorite tools (CRM, forms, etc.).', icon: '' },
@@ -73,13 +72,13 @@ const grid = {
         },
       },
       {
-        type: 'TableCard',
+        type: 'SparkLeads',
         props: {
-          id: 'spark-leads', columns: 2, title: 'Your Leads, All in One Place', windowTitle: '', windowSubtitle: '', sidebar: [], kpis: [], headings: '',
+          id: 'spark-leads', columns: 2, title: 'Your Leads, All in One Place', buttonLabel: '+ Add Contacts', buttonUrl: '#lead',
           rows: [
-            { name: 'Alex M.', col2: 'Marketing Agency', col3: '', tag: 'Viewed' },
-            { name: 'Jamie R.', col2: 'Real Estate', col3: '', tag: 'Clicked' },
-            { name: 'Taylor K.', col2: 'SaaS Startup', col3: '', tag: 'Replied' },
+            { name: 'Alex M.', role: 'Marketing Agency', tag: 'Viewed' },
+            { name: 'Jamie R.', role: 'Real Estate', tag: 'Clicked' },
+            { name: 'Taylor K.', role: 'SaaS Startup', tag: 'Replied' },
           ],
         },
       },
@@ -115,9 +114,9 @@ export default {
   name: 'Playful sunshine',
   description: 'Yellow, teal and coral with mascots, chunky rounded cards, a newsletter, three colourful steps, a leads list and testimonials (sample content).',
   designClass: 'spark',
-  theme: { mode: 'light', accent: '#d63d44', highlight: '#1d4ed8', bg: '#fffdf3', text: '#14143a', font: 'system' },
+  theme: { mode: 'light', accent: '#fb5a5f', highlight: '#1d4ed8', bg: '#fffdf3', text: '#14143a', font: 'system' },
   layout: 'puck',
   puck: true,
   radius: 22,
-  puckData: { root: { props: { design: 'spark', accent: '#d63d44', background: '#fffdf3', text: '#14143a', surface: '#ffffff' } }, content: [nav, hero, strip, grid, band], zones: {} },
+  puckData: { root: { props: { design: 'spark', accent: '#fb5a5f', background: '#fffdf3', text: '#14143a', surface: '#ffffff' } }, content: [nav, hero, strip, grid, band], zones: {} },
 };

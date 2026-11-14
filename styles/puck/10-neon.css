@@ -30,7 +30,6 @@
 .pk-d-neon .pk-field input { display: block; height: 34px; min-height: 34px; padding: 7px 12px 7px 40px; font-size: 13px; background: rgba(255,255,255,.07); border-color: rgba(148,163,255,.35); color: #f1f5ff; border-radius: 5px; }
 .pk-d-neon .pk-field input::placeholder { color: #c4cce8; }
 .pk-d-neon .pk-field { position: relative; display: block; }
-.pk-d-neon .pk-field::before { content: ""; position: absolute; left: 14px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border: 1.6px solid #c4cce8; border-radius: 50% 50% 3px 3px; opacity: .85; }
 .pk-d-neon .pk-form .pk-btn--primary { min-height: 38px; font-size: 15px; }
 .pk-d-neon .pk-form .pk-btn--primary::after { content: "\2192"; margin-left: 8px; }
 .pk-d-neon .pk-status { min-height: 0; }
@@ -49,13 +48,11 @@
 .pk-neon-spark { position: absolute; right: 0; bottom: 0; width: 62%; height: 60%; }
 .pk-neon-gift { padding: 14px 18px 18px; background: linear-gradient(135deg, rgba(14,20,58,.9), rgba(76,50,190,.5)); min-height: 160px; }
 .pk-neon-gift-body { display: grid; gap: 10px; align-content: start; position: relative; }
-.pk-neon-gift-body::before { content: ""; position: absolute; left: 0; top: 2px; width: 34px; height: 34px; background: url(/landing-art/10/gift.webp) center / contain no-repeat; }
 .pk-neon-gift-title { margin: 0; padding-left: 46px; padding-right: 96px; font-size: 14.5px; line-height: 1.3; font-weight: 600; }
 .pk-neon-signup { display: grid; gap: 8px; width: 72%; max-width: 230px; }
 .pk-neon-signup .pk-mini-field input { min-height: 32px; border-radius: 4px; background: #fff; color: #14143a; font-size: 12.5px; }
 .pk-neon-signup .pk-btn { min-height: 30px; padding: 4px 12px; font-size: 12.5px; }
 .pk-neon-signup .pk-btn::after { content: "\2192"; margin-left: 6px; }
-.pk-neon-book { position: absolute; right: 16px; top: 18px; width: 92px; aspect-ratio: 3 / 4; padding: 10px 8px; border-radius: 5px; transform: rotate(8deg); background: linear-gradient(150deg, #2a1f7a, #4c3fc4 55%, #19e6ee 150%); border: 1px solid rgba(167,139,250,.6); color: #fff; font-size: 11px; line-height: 1.15; box-shadow: 0 0 24px rgba(124,58,237,.6); display: flex; align-items: flex-start; }
 @media (min-width: 760px) { .pk-d-neon .pk-neon-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .pk-d-neon .pk-neon-hero .pk-hero-copy { grid-column: 1 / -1; } .pk-neon-aside { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; } }
 @media (min-width: 1280px) {
   .pk-d-neon .pk-neon-hero { grid-template-columns: 364fr 506fr 342fr 328fr; gap: 16px; padding-left: 46px; padding-right: 36px; padding-top: 20px; }
@@ -87,3 +84,22 @@
 .pk-d-neon .pk-neon-hero .pk-hero-form .pk-form { background: transparent; border: 0; box-shadow: none; padding-bottom: 4px; }
 .pk-d-neon .pk-neon-or { margin: 0 24px; }
 .pk-d-neon .pk-neon-signup { width: 60%; }
+
+/* fonts: bold geometric sans */
+.pk-d-neon { font-family: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif; }
+.pk-d-neon h1, .pk-d-neon h2, .pk-d-neon .pk-brand, .pk-d-neon .pk-neon-kpi-value { font-family: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif; }
+.pk-d-neon .pk-headline { text-wrap: balance; }
+.pk-neon-fico { position: absolute; left: 14px; top: 50%; width: 16px; height: 16px; margin-top: -8px; color: #c4cce8; opacity: .9; pointer-events: none; }
+.pk-neon-giftico { position: absolute; left: 0; top: 2px; width: 36px; height: 36px; object-fit: contain; }
+.pk-neon-book { position: absolute; right: 14px; top: 14px; width: 92px; transform: rotate(6deg); filter: drop-shadow(0 0 18px rgba(124,58,237,.6)); }
+.pk-neon-book img { display: block; width: 100%; height: auto; }
+/* polish pass 2: Sora for display type (closest to the bold geometric lettering), Jakarta for body */
+.pk-d-neon h1, .pk-d-neon h2, .pk-d-neon .pk-brand, .pk-d-neon .pk-neon-kpi-value, .pk-d-neon .pk-btn { font-family: "Sora", "Plus Jakarta Sans Variable", system-ui, sans-serif; }
+.pk-d-neon .pk-headline { font-size: clamp(30px, 6vw, 34px); line-height: 1.12; font-weight: 700; letter-spacing: -.02em; text-wrap: initial; }
+.pk-d-neon .pk-form-title { font-size: 19px; font-weight: 700; }
+.pk-d-neon .pk-neon-kpi-value { font-weight: 700; }
+.pk-d-neon .pk-btn { font-weight: 600; }
+.pk-neon-gift-title { font-size: 13.5px; padding-right: 100px; }
+.pk-neon-book { transform: none; width: 98px; right: 12px; top: 10px; }
+@media (min-width: 1280px) { .pk-d-neon .pk-headline { font-size: 34px; } }
+.pk-d-neon .pk-form .pk-btn--primary { font-size: 13.5px; white-space: nowrap; padding-left: 10px; padding-right: 10px; }

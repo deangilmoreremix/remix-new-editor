@@ -2,6 +2,7 @@
  * Neon KPI hero: headline + video + lead form, plus a right-hand column with a big counter card and a gift
  * (lead magnet) card, as in the supplied design. All text is a field; all sample copy.
  */
+import { useEffect, useRef } from 'react';
 import { AccentText, VideoPlayer, LeadForm, EmailSignup, Icon, SafeLink, useTokens } from '../components.jsx';
 
 const T = (label) => ({ type: 'text', label });
@@ -9,9 +10,27 @@ const A = (label) => ({ type: 'textarea', label });
 const asList = (v) => (Array.isArray(v) ? v : []);
 const FORM_FIELDS = [{ key: 'name', label: 'Your First Name', type: 'text', required: true }, { key: 'email', label: 'Your Email Address', type: 'email', required: true }, { key: 'company', label: 'Company (Optional)', type: 'text', required: false }];
 
+const FIELD_ICON = { name: 'user', first_name: 'user', firstname: 'user', email: 'mail', company: 'building', phone: 'phone', tel: 'phone' };
+
 function NeonHero(p) {
   const t = useTokens();
+  const formRef = useRef(null);
+  const iconsRef = useRef(null);
   const fields = asList(p.formFields).filter((f) => f.key && f.label).map((f) => ({ ...f, key: String(f.key).replace(/[^a-z0-9_]/gi, '').toLowerCase() }));
+  // LeadForm is shared and has no icon slot: copy the inline SVG from the icon set into each field label.
+  const keySig = fields.map((f) => f.key).join(',');
+  useEffect(() => {
+    const form = formRef.current; const src = iconsRef.current;
+    if (!form || !src) return undefined;
+    const added = [];
+    form.querySelectorAll('label.pk-field').forEach((lab, i) => {
+      const f = fields[i]; const svg = f && src.querySelector(`[data-ico="${FIELD_ICON[f.key] || (f.type === 'email' ? 'mail' : 'user')}"] svg`);
+      if (!svg) return;
+      const el = svg.cloneNode(true); el.setAttribute('class', 'pk-neon-fico');
+      lab.prepend(el); added.push(el);
+    });
+    return () => added.forEach((el) => el.remove());
+  }, [keySig]);
   return (
     <header className="pk-hero pk-neon-hero" id="top">
       <div className="pk-hero-copy">
@@ -24,7 +43,8 @@ function NeonHero(p) {
         <VideoPlayer poster={p.photo} />
         {p.chip ? <div className="pk-chip">{t(p.chip)}</div> : null}
       </div>
-      <div className="pk-hero-form" id="lead">
+      <div className="pk-hero-form" id="lead" ref={formRef}>
+        <span hidden ref={iconsRef}>{['user', 'mail', 'building', 'phone'].map((n) => <span key={n} data-ico={n}><Icon name={n} /></span>)}</span>
         <LeadForm title={p.formTitle} submitLabel={p.submitLabel} privacy={p.privacy} fields={fields.length ? fields : undefined} />
         {asList(p.buttons).length ? (
           <div className="pk-neon-or">
@@ -46,10 +66,11 @@ function NeonHero(p) {
         </section>
         <section className="pk-neon-gift">
           <div className="pk-neon-gift-body">
+            <img className="pk-neon-giftico" src="/landing-art/10/gift.webp" alt="" />
             <h2 className="pk-neon-gift-title">{t(p.giftTitle)}</h2>
             <EmailSignup className="pk-neon-signup" placeholder={p.giftPlaceholder} label={p.giftButton} source={p.giftTitle} />
           </div>
-          <div className="pk-neon-book" aria-hidden="true"><b>{t(p.giftCover)}</b></div>
+          <div className="pk-neon-book"><img src="/landing-art/10/book.webp" alt="" /><b className="pk-sr">{t(p.giftCover)}</b></div>
         </section>
       </aside>
     </header>
@@ -85,9 +106,9 @@ export const components = {
       headline: 'Turn Every Prospect Into a Warm Lead With [[Personalized Video]]',
       subhead: 'Create, send, and track AI-personalized videos at scale. Build your email list, capture more leads, and grow revenue, all in one platform.',
       bullets: [{ text: 'AI-powered video personalization' }, { text: 'Built-in lead capture & list building' }, { text: 'Automated follow-ups & nurturing' }],
-      chip: 'Hi {{firstname|there}}, this video is just for you!', photo: '/landing-art/10/presenter.webp',
+      chip: '\u{1F44B} Hi {{firstname|there}}, this video is just for you!', photo: '/landing-art/10/presenter.webp',
       formTitle: 'Get Your Personalized Video & Grow Your Lead List', formFields: FORM_FIELDS, submitLabel: 'Create My Personalized Video', privacy: '',
-      orLabel: 'or', buttons: [{ label: 'Book a Live Walkthrough', url: 'mailto:hello@example.com' }],
+      orLabel: 'or', buttons: [{ label: 'Book a Live Walkthrough', url: '#lead' }],
       kpiTitle: 'Leads Captured (All Time)', kpiValue: '128,349', kpiBadge: '+37% (Last 30 days)',
       giftTitle: 'Join Our Insider List & Get a Free "Personalized Video Playbook"', giftPlaceholder: 'Enter your email', giftButton: 'Get the Free Playbook', giftCover: 'The Personalized Video Playbook',
     },
