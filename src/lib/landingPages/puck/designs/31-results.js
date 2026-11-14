@@ -4,6 +4,7 @@ export default {
   "name": "Results page (laptop demo)",
   "description": "Hero with presenter photo and video card, feature tiles, laptop demo, testimonials and a closing CTA band. Names and quotes are sample content.",
   "designClass": "results",
+  "noLeadForm": true,
   "theme": {
     "mode": "light",
     "accent": "#1565f2",
@@ -84,7 +85,7 @@ export default {
           ],
           "chip": "No credit card required",
           "photo": "/landing-art/results/poster.webp",
-          "showForm": "yes",
+          "showForm": "no",
           "formTitle": "Get your free personalized video",
           "formSubtitle": "",
           "formFields": [
