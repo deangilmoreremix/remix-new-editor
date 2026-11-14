@@ -63,6 +63,18 @@ const stillOf = (it) => it.poster || (it.kind === 'image' ? (it.url || it.previe
 const firstFrame = (it) => (it.kind === 'video' && !stillOf(it) && (it.preview || it.url)
   ? `<video class="tg-poster" muted playsinline preload="metadata" tabindex="-1" aria-hidden="true" src="${esc(`${it.preview || it.url}#t=0.1`)}"></video>` : '');
 const hueOf = (str) => { let h = 0; for (const ch of String(str)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
+/** Video-templates subcategories (Category/Subcategory) that genuinely fit a niche, for the stills on the script cards.
+ *  Niches with no fitting footage in the library (real estate, dental, legal…) get no still rather than a misleading one. */
+const NICHE_FOOTAGE = {
+  'Restaurant & Cafe': ['Commercial/Food & Beverage', 'Social/Lifestyle & Food'],
+  'Med Spa & Beauty': ['Commercial/Beauty & Fragrance', 'Fashion/Editorial'],
+  'Salon & Barbershop': ['Fashion/Editorial', 'Commercial/Beauty & Fragrance'],
+  'Gym & Fitness': ['Social/Fitness & Sports'],
+  'Automotive & Car': ['Commercial/Automotive & Mobility'],
+  'Fashion & Style': ['Fashion/Editorial', 'Fashion/Runway & Lookbook', 'Fashion/Streetwear'],
+  'Events & Celebrations': ['Social/Music & Dance'],
+  'Luxury & Premium': ['Commercial/Luxury Goods', 'Fashion/Runway & Lookbook'],
+};
 const TRANSITION_CATEGORY_LABELS = { fade: 'Fade', wipe: 'Wipe', push: 'Push', zoom: 'Zoom', iris: 'Iris', shape: 'Shape', motion: 'Motion' };
 /** The animated lower-third styles, in categories (ids are the editor's own lower-third templates). */
 const LOWER_THIRD_CATEGORIES = { bars: ['Bars', ['classic-bar', 'split-bars', 'boxed-accent', 'news', 'pill']], minimal: ['Minimal', ['minimal-line', 'side-rule', 'underline']] };
@@ -153,6 +165,7 @@ export class TemplateGeneratorModal extends BaseModal {
     super.open();
     this.overlay?.classList.add('tg-overlay');
     this._startSync();
+    this._loadCatalogStills();
   }
 
   /** Pull this account's templates from other devices; repaint the library when something arrived. */
@@ -227,6 +240,17 @@ export class TemplateGeneratorModal extends BaseModal {
     if (this.ui.toast) this._showToast(this.ui.toast, true);
     this._loadTransitionThumbs();
     this._mountLowerThirdPreviews();
+    this._loadCatalogStills();
+  }
+
+  /** The start collage and the script cards use real footage stills from the catalog; fetch it once, then fill them in. */
+  _loadCatalogStills() {
+    if (this.ui.tplCatalog || !((!this.s.started && this.ui.view === 'start') || (this.s.started && this.s.step === STEPS.SCRIPT))) return;
+    this._ensureCatalog().then((c) => {
+      if (!c || !this.overlay) return;
+      if (this.s.started && this.s.step === STEPS.SCRIPT) this._setHTML('#tg-script-list', this.renderScriptCards());
+      else if (!this.s.started && this.ui.view === 'start') this.paint();
+    });
   }
 
   /** Real still of each transition (the same A/B frames the Transitions window shows), filled in as they are made. */
@@ -277,6 +301,7 @@ export class TemplateGeneratorModal extends BaseModal {
     const count = this.store.list().length;
     return `
       <div class="tg-start template-generator-modal">
+        ${(() => { const clips = (this.ui.tplCatalog?.clips || []).filter((c) => c.poster).filter((_, i) => i % 11 === 0).slice(0, 8); return clips.length ? `<div class="tg-start__collage" aria-hidden="true">${clips.map((c) => `<span style="background-image:${cssUrl(c.poster)}"></span>`).join('')}</div>` : ''; })()}
         <span class="tg-badge-icon tg-badge-icon--lg" aria-hidden="true">✦</span>
         <div class="generator-offer__text-box"><h2 class="generator-offer__text">Template Generator</h2></div>
         <p class="tg-start__sub">Build a template once — footage, script, transition and text — save it, and reuse it for every video.</p>
@@ -643,19 +668,43 @@ export class TemplateGeneratorModal extends BaseModal {
     const clips = sel.length ? `
       <div class="tg-selected" aria-label="Selected clips">
         ${sel.map((it, i) => `
-          <span class="tg-selected__item"><b>${i + 1}</b> ${esc(it.title)}
+          <span class="tg-selected__item tg-selected__item--media" title="${esc(it.title)}">
+            <span class="tg-selected__thumb" style="background-image:${cssUrl(stillOf(it))}">${firstFrame(it)}</span>
+            <b>${i + 1}</b><i>${esc(it.title)}</i>
             <button type="button" aria-label="Remove ${esc(it.title)}" data-act="remove-video" data-id="${esc(it.id)}">✕</button></span>`).join('')}
       </div>` : '<p class="tg-hint">Pick up to 5 clips. Add more later in the timeline.</p>';
     const motion = anim.length ? `
       <div class="tg-selected tg-selected--anim" aria-label="Selected animations">
         ${anim.map((a) => `
-          <span class="tg-selected__item tg-selected__item--anim"><b>✺</b> ${esc(a.title)}
+          <span class="tg-selected__item tg-selected__item--anim tg-selected__item--media" title="${esc(a.title)}">
+            <span class="tg-selected__thumb" style="background-image:${cssUrl(a.thumb)}"></span><b>✺</b><i>${esc(a.title)}</i>
             <button type="button" aria-label="Remove ${esc(a.title)}" data-act="remove-animation" data-id="${esc(a.id)}">✕</button></span>`).join('')}
       </div>` : '';
     return clips + motion;
   }
 
   // ------------------------------------------------------------ Script step
+
+  /** The Video-templates catalog, loaded once for the decorative stills (script cards, start collage). Never blocks or breaks the wizard. */
+  _ensureCatalog() {
+    if (this.ui.tplCatalog) return Promise.resolve(this.ui.tplCatalog);
+    if (!this._catalogPromise) {
+      this._catalogPromise = Promise.resolve().then(() => this.templateCatalog())
+        .then((c) => { this.ui.tplCatalog = c; return c; })
+        .catch(() => { this._catalogPromise = null; return null; });
+    }
+    return this._catalogPromise;
+  }
+
+  /** Real posters for a niche: footage from the catalog subcategories that suit it (food for restaurants, fitness for gyms…), a different one per script. */
+  nicheStills(niche, n = 3, seed = niche) {
+    const clips = this.ui.tplCatalog?.clips || [];
+    const want = NICHE_FOOTAGE[niche];
+    if (!clips.length || !want) return [];
+    const list = clips.filter((c) => c.poster && want.includes(`${c.category}/${c.subcategory}`));
+    const start = hueOf(seed) % Math.max(list.length, 1);
+    return Array.from({ length: Math.min(n, list.length) }, (_, i) => list[(start + i) % list.length].poster);
+  }
 
   scriptCards() {
     const q = this.ui.scriptQuery.trim().toLowerCase();
@@ -718,6 +767,7 @@ export class TemplateGeneratorModal extends BaseModal {
     return cards.map((t) => `
       <div class="niche-script${t.id === activeId ? ' active' : ''}" role="button" tabindex="0" aria-pressed="${t.id === activeId}" data-act="script-pick" data-id="${esc(t.id)}" title="${esc(t.description)}">
         ${t.id === activeId ? '<span class="preview__select" aria-hidden="true">✓</span>' : ''}
+        ${(() => { const still = this.nicheStills(t.niche, 1, t.id)[0]; return still ? `<span class="niche-script__still" style="background-image:${cssUrl(still)}" aria-hidden="true"></span>` : ''; })()}
         <div class="niche-script__title"><img class="niche-script__title-icon" src="${ICON('niche-script')}" alt=""><span>${esc(t.name)}</span></div>
         <span class="tg-meta">${esc(t.niche)}</span>
         <button type="button" class="niche-script__button" data-act="script-preview" data-id="${esc(t.id)}">Preview</button>
@@ -852,12 +902,13 @@ export class TemplateGeneratorModal extends BaseModal {
                     <div class="tg-card-title">${esc(a.title)}</div>
                   </div>`).join('')}
                 <div class="overlays__item-container overlays__item select${hasOverlayTab ? '' : ' disabled'}" role="button" tabindex="0" data-act="tab" data-step="${STEPS.OVERLAY}">
-                  <div class="select-overlay-container"><span>${tr ? `${esc(tr.icon || '')} ${esc(tr.name)} transition` : (hasOverlayTab ? 'Please select overlay' : 'Please select more than one video and Select overlay')}</span></div>
+                  <div class="select-overlay-container">${tr && this.glTransitions ? `<span class="tg-tr-thumb tg-tr-thumb--pv" data-tr-thumb="${esc(tr.id)}" aria-hidden="true"></span>` : ''}<span>${tr ? `${esc(tr.icon || '')} ${esc(tr.name)} transition` : (hasOverlayTab ? 'Please select overlay' : 'Please select more than one video and Select overlay')}</span></div>
                 </div>
               </div>
             </div>
             <div class="preview-tab__content-scripts">
               <div class="niche-script" role="button" tabindex="0" data-act="tab" data-step="${STEPS.SCRIPT}">
+                ${(() => { const still = s.selectedVideos.map((v) => stillOf(v)).find(Boolean); return still ? `<span class="niche-script__still" style="background-image:${cssUrl(still)}" aria-hidden="true"></span>` : ''; })()}
                 <div class="niche-script__title"><img class="niche-script__title-icon" src="${ICON('niche-script')}" alt=""><span>${esc(s.selectedScript?.name || 'Your script')}</span></div>
                 <span class="tg-meta">${esc(sceneNames(s).length)} scenes</span>
               </div>
@@ -1002,6 +1053,7 @@ export class TemplateGeneratorModal extends BaseModal {
           <h4>${esc(t.name)}</h4>
           <p class="tg-meta">${esc(t.niche)} · ${esc((t.aspectRatios || []).join(' / '))}${d.default ? ` · about ${d.default}s` : ''}</p>
           <p>${esc(t.description)}</p>
+          ${(() => { const stills = this.s.selectedVideos.map((v) => stillOf(v)).filter(Boolean).slice(0, 5); return stills.length ? `<p class="tg-meta">Your clips, in order:</p><div class="tg-scene-stills" aria-hidden="true">${stills.map((u, i) => `<span style="background-image:${cssUrl(u)}"><i>${i + 1}</i></span>`).join('')}</div>` : ''; })()}
           ${(() => {
             const ts = templateScript(t.id, this.s.details);
             return ts

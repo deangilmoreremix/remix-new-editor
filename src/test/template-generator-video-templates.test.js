@@ -98,3 +98,51 @@ describe('Template Generator — Video templates in step 1', () => {
     m.destroy();
   });
 });
+
+describe('Template Generator — real footage instead of text', () => {
+  afterEach(() => { document.body.innerHTML = ''; });
+  const make = (extra = {}) => new TemplateGeneratorModal({ defaultProvider: 'pixabay', templateStore: createTemplateStore(memory()), stockSearch: async () => ({ items: [], hasMore: false }), templateCatalog: async () => catalog, ...extra });
+
+  it('the selected strip shows each clip\'s real poster (and an animation\'s real still), not just its name', () => {
+    const m = make(); m.open(); m.s.started = true;
+    m.s.selectedVideos = [{ id: 'a', kind: 'video', source: 'template-video', title: 'Jet', url: 'https://x/a.webm', poster: 'https://x/a.webp', duration: 6 }, { id: 'b', kind: 'video', source: 'upload', title: 'Mine', url: 'https://x/b.mp4', duration: 5 }];
+    m.s.selectedAnimations = [{ id: 'anim:1', source: 'animations', title: 'Bar chart', thumb: '/hyperframes/thumbs/bar-chart-race.jpg', duration: 6 }];
+    m.paint();
+    const thumbs = [...document.querySelectorAll('.tg-selected__thumb')];
+    expect(thumbs).toHaveLength(3);
+    expect(thumbs[0].style.backgroundImage).toContain('a.webp');
+    expect(thumbs[1].querySelector('video.tg-poster').getAttribute('src')).toBe('https://x/b.mp4#t=0.1');   // no poster → its own first frame
+    expect(thumbs[2].style.backgroundImage).toContain('bar-chart-race.jpg');
+    m.destroy();
+  });
+
+  it('script cards and the script preview show real footage stills once the catalog is loaded, and none when it is not', async () => {
+    const m = make(); m.open(); m.s.started = true; m.s.step = 1; m.ui.scriptNiche = 'Luxury & Premium'; m.paint();
+    await vi.waitFor(() => expect(document.querySelector('.niche-script__still')).toBeTruthy());
+    expect(document.querySelector('.niche-script__still').style.backgroundImage).toMatch(/posters\//);
+    m.s.selectedVideos = [{ id: 'a', kind: 'video', source: 'x', title: 'A', url: 'https://x/a.mp4', poster: 'https://x/a.webp', duration: 5 }];
+    m.setPopup({ kind: 'script', id: document.querySelector('.niche-script').dataset.id });
+    expect(document.querySelectorAll('.tg-scene-stills span')).toHaveLength(1);                 // the user's own picked clips, in order
+    // a niche with no fitting footage in the library gets no still, rather than a misleading one
+    m.ui.scriptNiche = 'Real Estate'; m.paint();
+    expect(document.querySelectorAll('.niche-script').length).toBeGreaterThan(0);
+    expect(document.querySelector('.niche-script__still')).toBeNull();
+    m.destroy(); document.body.innerHTML = '';
+    const off = make({ templateCatalog: async () => { throw new Error('offline'); } }); off.open(); off.s.started = true; off.s.step = 1; off.ui.scriptNiche = 'Luxury & Premium'; off.paint();
+    await new Promise((r) => setTimeout(r, 30));
+    expect(document.querySelector('.niche-script__still')).toBeNull();
+    expect(document.querySelectorAll('.niche-script').length).toBeGreaterThan(0);          // the cards still work
+    off.destroy();
+  });
+
+  it('the start screen shows a collage of real posters, and nothing broken when the catalog is down', async () => {
+    const m = make(); m.open();
+    await vi.waitFor(() => expect(document.querySelectorAll('.tg-start__collage span').length).toBeGreaterThan(0));
+    m.destroy(); document.body.innerHTML = '';
+    const off = make({ templateCatalog: async () => { throw new Error('offline'); } }); off.open();
+    await new Promise((r) => setTimeout(r, 30));
+    expect(document.querySelector('.tg-start__collage')).toBeNull();
+    expect(document.querySelector('[data-act="start"]')).toBeTruthy();
+    off.destroy();
+  });
+});

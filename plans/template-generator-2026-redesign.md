@@ -112,3 +112,8 @@ Step 1 now starts on **Video templates**: the public 184-clip library kept in th
   (name | title). Saved in `elements.lowerThirdStyle`, so it travels with saved and synced templates (no DB change).
 - The two transition sample photos the renderer needs are in `public/library-previews/` (they were only under `apps/video-agent-studio`, so the existing Transitions window had blank thumbnails too).
 - Not added: the Motion Studio clips from the Personalization wizard (finished MP4s, not overlays).
+
+## Real media instead of text (added)
+- Selected clips/animations show their real poster or still; the script preview shows the user's own picked clips in order; the start screen is a collage of real catalog posters; the Preview step shows the chosen transition's real still.
+- Script cards show a real footage still only for niches the 184-clip library genuinely fits (restaurant, gym, auto, fashion, luxury, events, beauty/salon); real estate, dental, chiropractic and legal get none rather than a misleading one (they need Pexels/Pixabay footage).
+- Known gaps: about a third of the Animations stills and many motion-graphic stills are mostly-empty dark frames (small element on a dark background); Pexels/Pixabay need `PEXELS_API_KEY` / `PIXABAY_API_KEY` to show real results.
