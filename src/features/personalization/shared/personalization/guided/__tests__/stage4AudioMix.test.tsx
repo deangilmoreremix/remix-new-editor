@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { AudioMixPanel, describeMixError, type AnalyzeFn, type MixBakeFn } from '../AudioMixPanel'
-import { MixError, audioSourcesOf, bakeAudioMix, prepareAudioForExport, type DecodedAudio, type MixdownDeps } from '../audioMixdown'
+import { MAX_MIX_SECONDS, MixError, audioSourcesOf, bakeAudioMix, prepareAudioForExport, type DecodedAudio, type MixdownDeps } from '../audioMixdown'
 import { createMemoryBlobStore } from '../presenterMatteStore'
 import { audioMixKey, defaultAudioMix, type AudioMix } from '../../preview/audioMix'
 import { clearMatteRegistry, registerMatteUrl, resolveMatteUrl } from '../../preview/presenterMatteRegistry'
@@ -36,6 +36,12 @@ const urlMocks = () => { let n = 0; vi.spyOn(URL, 'createObjectURL').mockImpleme
 afterEach(() => { cleanup(); clearMatteRegistry(); vi.restoreAllMocks() })
 
 describe('bakeAudioMix', () => {
+  it('refuses mixes longer than the measured memory limit BEFORE decoding anything, with a plain message', async () => {
+    const store = createMemoryBlobStore(); const { d, calls } = deps()
+    await expect(bakeAudioMix(VIDEO, MUSIC, defaultAudioMix(), MAX_MIX_SECONDS + 1, {}, store, d)).rejects.toMatchObject({ name: 'MixError', code: 'TOO_LONG', message: expect.stringMatching(/up to 10 minutes.*Turn the audio mix off/) })
+    expect(calls).toEqual([]); expect(MAX_MIX_SECONDS).toBe(600)
+    urlMocks(); await expect(bakeAudioMix(VIDEO, MUSIC, defaultAudioMix(), MAX_MIX_SECONDS, {}, store, d)).resolves.toBeTruthy() // exactly the limit is allowed
+  }, 60000)
   it('renders, stores a WAV, registers a playable url, and returns the report', async () => {
     urlMocks(); const store = createMemoryBlobStore(); const { d, calls } = deps()
     const r = await bakeAudioMix(VIDEO, MUSIC, defaultAudioMix(), 4, {}, store, d)

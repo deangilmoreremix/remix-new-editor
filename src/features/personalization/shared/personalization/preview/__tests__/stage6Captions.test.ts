@@ -46,7 +46,7 @@ describe('SRT / VTT import and export', () => {
   it('imports SRT and VTT', () => {
     const a = parseCaptionFile(SRT, 'x.srt'); expect(a.format).toBe('srt'); expect(a.cues).toEqual([{ text: 'Welcome to Acme Roofing', startMs: 1000, endMs: 3500 }, { text: 'We fix leaks fast', startMs: 4000, endMs: 6000 }])
     const v = parseCaptionFile(`WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHello there\n`, 'x.vtt'); expect(v.format).toBe('vtt'); expect(v.cues[0]).toEqual({ text: 'Hello there', startMs: 1000, endMs: 2000 })
-    expect(parseCaptionFile(`﻿${SRT}`, 'a.txt').cues.length).toBe(2) // BOM tolerated
+    expect(parseCaptionFile(`\uFEFF${SRT}`, 'a.txt').cues.length).toBe(2) // BOM tolerated
   })
   it('refuses empty, malformed and oversized input with a plain message', () => {
     for (const bad of ['', '   ', 'just some words', '1\nnot a time\ntext']) expect(() => parseCaptionFile(bad, 'x.srt')).toThrow(CaptionParseError)

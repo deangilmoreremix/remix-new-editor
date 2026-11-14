@@ -25,7 +25,7 @@ export interface MixdownDeps {
 }
 
 export class MixError extends Error {
-  constructor(message: string, readonly code: 'DECODE' | 'ABORTED' | 'EMPTY') {
+  constructor(message: string, readonly code: 'DECODE' | 'ABORTED' | 'EMPTY' | 'TOO_LONG') {
     super(message)
     this.name = 'MixError'
   }
@@ -192,6 +192,13 @@ export function encodeWav16(channels: Float32Array[], fs: number): Uint8Array {
 
 // ── baking and export ────────────────────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Measured (Stage 12, Node, stereo 44.1 kHz voice + music): the mixdown's peak memory is about 85 MB per minute of audio, so 10 minutes
+ * needs roughly 2.4 GB, 30 minutes 5 GB and 60 minutes 9 GB. Past what a browser tab can hold the tab would crash with the owner's work in
+ * it, so longer mixes are refused up front with a plain message; turn the mix off to export such a video with its original sound.
+ */
+export const MAX_MIX_SECONDS = 600
+
 export interface MixBakeResult { mixdown: AudioMixdownRef; url: string; reused: boolean }
 
 export async function bakeAudioMix(
@@ -205,6 +212,7 @@ export async function bakeAudioMix(
 ): Promise<MixBakeResult> {
   const { signal } = hooks
   if (signal?.aborted) throw new MixError('Cancelled', 'ABORTED')
+  if (durationSec > MAX_MIX_SECONDS) throw new MixError(`The audio mix supports videos up to ${MAX_MIX_SECONDS / 60} minutes (this one is ${Math.round(durationSec / 60)}). Turn the audio mix off to export this video with its original sound.`, 'TOO_LONG')
   const key = audioMixKey(voiceUrl, musicUrl, mix, durationSec)
   if (!hooks.force) {
     const rec = await store.get(key).catch(() => undefined)

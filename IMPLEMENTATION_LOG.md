@@ -127,3 +127,8 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Verified: unit/route/panel tests, SQL assertions, full-stack 8/8 (real SQL + local push service), 14 mutations caught, rendered PDF inspected.
 - NOT done: real-browser push (needs VAPID keys), applying the migration.
 
+### Stage 12 — Recovery, long-clip limit, end-to-end, final validation
+- Authorization: the approved Stages 6–12 plan. No deploy, no migration applied, nothing sent.
+- Added: `shared/personalization/recovery/*`, `guided/RecoveryPanel.tsx`, `readZip` in `bulk/zip.ts`, `MAX_MIX_SECONDS` guard in `audioMixdown.ts`, `scripts/stage12-recovery-check/`, `scripts/stage12-e2e-check/`. Harness fix: `presenter-server.mjs` pre-bundles `react-dom/server` and `@react-email/render`; Stage 6 test BOM literal escaped.
+- Verified: 28 unit/panel tests, real-browser recovery 15/15, end-to-end chain 9/9, 13 mutations caught, then the full final validation (see `docs/SMARTVIDEO_FINAL_REPORT.md`).
+

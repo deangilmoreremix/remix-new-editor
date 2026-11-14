@@ -22,6 +22,7 @@ import { BulkPanel } from './BulkPanel'
 import { OutreachFlowSection } from './OutreachFlowSection'
 import { ResultsPanel } from './ResultsPanel'
 import { NotificationsPanel } from './NotificationsPanel'
+import { RecoveryPanel } from './RecoveryPanel'
 import { PresenterStageBox } from './PresenterStageBox'
 import { applyCustomFields, rotationCss, sourceMediaStyle } from '../preview/layerTransform'
 import { maxScrollPx } from '../preview/websiteBackground'
@@ -1191,6 +1192,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
           <OutreachFlowSection />
           <ResultsPanel />
           <NotificationsPanel />
+          {editPreviewSettings && <RecoveryPanel settings={settings} edit={editPreviewSettings} />}
         </div>
       </div>
 

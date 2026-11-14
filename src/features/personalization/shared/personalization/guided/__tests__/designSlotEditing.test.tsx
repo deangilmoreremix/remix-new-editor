@@ -142,7 +142,7 @@ afterEach(() => {
 // ── One field per declared slot ──────────────────────────────────────────────
 
 /** The text fields of the LAYER being edited. The editor also hosts other tools with their own inputs (e.g. the personal-links panel), which are not what these tests count. */
-const layerTextboxes = () => screen.getAllByRole('textbox').filter((el) => !el.closest('[data-testid="recipient-links-panel"], [data-testid="email-outreach-panel"], [data-testid="bulk-panel"], [data-testid="flow-panel"], [data-testid="flow-section"], [data-testid="results-panel"], [data-testid="notifications-panel"], [data-testid="captions-panel"], [data-testid="thumbnail-gif-panel"], [data-testid="audio-mix-panel"], [data-testid="presenter-panel"], [data-testid="footage-effects-panel"], [data-testid="layer-effects-panel"]'))
+const layerTextboxes = () => screen.getAllByRole('textbox').filter((el) => !el.closest('[data-testid="recipient-links-panel"], [data-testid="email-outreach-panel"], [data-testid="bulk-panel"], [data-testid="flow-panel"], [data-testid="flow-section"], [data-testid="results-panel"], [data-testid="notifications-panel"], [data-testid="recovery-panel"], [data-testid="captions-panel"], [data-testid="thumbnail-gif-panel"], [data-testid="audio-mix-panel"], [data-testid="presenter-panel"], [data-testid="footage-effects-panel"], [data-testid="layer-effects-panel"]'))
 
 describe('OverlayEditor design slots', () => {
   it('shows one editable field per declared slot', () => {

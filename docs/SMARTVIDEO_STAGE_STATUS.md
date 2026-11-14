@@ -14,7 +14,7 @@
 | 9 | React Email & outreach | **Complete for building, checking, exporting and TEST-sending the email, plus unsubscribe and suppression; sending to a list is NOT built (Stage 10) and no real mail was sent** (see the Stage 9 section) | Authorized (approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 9") | 51 new unit/route/panel tests; SQL 21/21; real SMTP + SQL check 8/8; 12 mutation checks caught | Migration not applied; no email provider chosen; no real inbox delivery verified. |
 | 10 | Bulk personalization & automations | **Complete for CSV import, per-recipient files (thumbnail, GIF, MP4), resumable in-tab batches, package export and an outreach-sequence PLAN; publishing a different rendered video per recipient is NOT built, and nothing runs automatically** (see the Stage 10 section) | Authorized (approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 10") | 64 new unit/panel tests; real-browser check 29/29; 19 unit mutations + 1 live mutation caught | Per-recipient video publishing needs a storage decision; no scheduler; tab must stay open. |
 | 11 | Analytics, notifications & reporting | **Complete for the owner-checked report, results dashboard, PDF/CSV export and opt-in push (sender, routes, worker, panel); no push was delivered to a real browser** (see the Stage 11 section) | Authorized (approved Stages 6–12 plan) | 2026-11-14 | see `git log` ("Stage 11") | ~100 new unit/route/panel tests; SQL assertions; full-stack 8/8; 14 mutations caught | Migration not applied; VAPID keys needed; no real-browser push verified. |
-| 12 | Performance, recovery & final validation | Not started | **NOT authorized** | — | — | — | — |
+| 12 | Performance, recovery & final validation | **Complete** (recovery, backup, long-clip limit, end-to-end chain and final validation; limits in the Stage 12 section and the final report) | Authorized (approved Stages 6–12 plan) | 2026-11-14 | see `git log` ("Stage 12") | 56 new unit/panel tests; real-browser check 15/15; end-to-end chain 9/9; 13 mutations caught | Real push and real email delivery unverified; migrations unapplied. |
 
 **Review cadence (user instruction, 2026-11-13: "We need to finish all of these stages so let's only check every 3 phases").** Work proceeds through Stages 3, 4 and 5 without stopping between them, then STOPS for review with a combined report. After approval: Stages 6–8, then 9–11, then 12. Every stage still gets its own real tests, commit and entry in this file and in `IMPLEMENTATION_LOG.md`. Anything that needs a decision only the user can make (email provider for Stage 9, VAPID keys for Stage 11, applying migrations, production deploys) is NOT covered by this cadence and will be flagged, not assumed. The queued Personalization Studio prompt is still not authorized.
 
@@ -558,3 +558,32 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 * At-most-once: if a send fails after the claim, that alert is not retried (it stays in the in-app list).
 * The PDF uses standard fonts: non-Latin scripts and emoji appear as "?" (stated in the file; the CSV is complete).
 * Numbers exclude visitors who block analytics or send Do Not Track; unique viewers are a lower bound (the report says how many visits had no id). Days are UTC.
+
+
+## Stage 12 — Recovery, long-clip limit, end-to-end run, final validation (2026-11-14)
+
+### What was built
+| Piece | Where | Notes |
+|---|---|---|
+| Autosave with history | `recovery/{snapshot,draftStore,autosaver}.ts`, `guided/RecoveryPanel.tsx` (mounted in the overlay editor) | Debounced; identical content is not rewritten; newest 5 drafts kept; stored in the **Origin Private File System** (temp file then swap, so a failed write cannot damage the last draft), else IndexedDB, else the panel says autosave is unavailable; a store that does not answer within 3 s counts as unavailable. |
+| Recovery | same | After a closed or crashed page the last draft is offered if it differs from what is on screen; autosave is **paused while the offer is open** so the draft is not pushed down the history; items that existed only in browser memory (`blob:` URLs) are removed, counted and reported. |
+| Cross-tab safety | `autosaver.ts` | Writes run under an exclusive **Web Lock**; a **BroadcastChannel** tells other tabs; a tab holding unsaved edits that hears another tab saved reports a **conflict** and lets the owner choose (use theirs / keep mine), never overwriting silently. |
+| Backup archive | `snapshot.ts` (`buildBackup`/`readBackup`), `bulk/zip.ts` (`readZip`) | A .zip with manifest, settings and README. The reader accepts only archives this app writes and refuses compressed, encrypted, oversized, too-many-file, damaged (CRC), checksum-mismatched, newer-version and path-traversal archives. |
+| Long-clip limit | `guided/audioMixdown.ts` (`MAX_MIX_SECONDS = 600`) | **Measured** (Node, stereo 44.1 kHz voice + music): peak memory ~85 MB per minute of audio: 1 min 0.45 GB, 10 min 2.4 GB (17 s), 30 min 5.1 GB (51 s), 60 min 8.9 GB (100 s). Past a browser tab's limits the tab would crash with the work in it, so mixes over 10 minutes are refused up front with a plain message (turn the mix off to export with the original sound). This closes the open Stage 4 gap. |
+
+### Defects found by the tests/checks and fixed
+* A storage probe could wait forever on a store that never answers: now time-limited.
+* The panel re-created its autosaver whenever an inline callback changed: callbacks are read through a ref.
+* The conflict banner stayed after choosing the other tab's draft.
+* Final validation found: a literal BOM character in Stage 6's own test (lint), and the check harness for Stages 3-7 pre-bundled a fixed list of dependencies that no longer covered `react-dom/server` (pulled in by Stage 9's email renderer), giving a `require is not defined` page error in every check that mounts the editor. Fixed in the harness (production build unaffected); all five checks re-run green.
+
+### Verification actually run
+* Unit/panel: recovery 20 (snapshots, stores incl. a failing write, autosaver with fake locks/channel/timers, ZIP reader hostile cases, backup round trip and tampering), panel 7, long-clip guard 1.
+* **Real-browser check 15/15** (`scripts/stage12-recovery-check`): the real OPFS store; history survives a page close and reopen; only 5 drafts kept; **80 interleaved saves from two tabs never corrupt the draft**; a second tab with unsaved edits is told by the real BroadcastChannel; an aborted OPFS write leaves the old content; the backup passes `unzip -t` and Python `zipfile`, is restored by the app, and a one-byte change is refused; private-window profile works.
+* **End-to-end chain 9/9** (`scripts/stage12-e2e-check`, real SQL + real SMTP server + local push service): personal links (hashes only) → three personalized emails with each recipient's link, signed unsubscribe and GIF → views/plays/finish attributed to the right recipient → a click and a form push exactly one notification per alert, decrypted by an independent reader → forged contact id and wrong token attribute nothing → the report shows each recipient's journey and another owner gets 404 → the PDF carries all three names → unsubscribe works (GET does nothing, one-click records) and later sends are refused → a revoked link stops attributing.
+* 13 mutations caught (guard, ZIP CRC, unsafe names, per-file limit, backup checksum, history cap, blob stripping, conflict, lock, rewrite, offer, pause, probe timeout).
+
+### Limits and open items (not hidden)
+* Drafts and backups hold the **design settings only**: not the video, music, pictures or recordings. Memory-only items are not restored and are listed.
+* The memory measurements are from Node on the pure mixdown; a real tab adds decode and export overhead, which is why the limit is 10 minutes and not higher. Full-length 1080p video export time/memory was not measured.
+* Web Locks and BroadcastChannel were exercised in Chromium only; where they are missing, two tabs are not prevented from writing, and conflicts are not announced. OPFS was probed in Chromium (including a private window); Safari/Firefox were not tested.

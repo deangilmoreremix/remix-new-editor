@@ -22,7 +22,7 @@ export async function startPresenterServer(port = 5203, root = here) {
       ],
     },
     server: { port, fs: { strict: false } },
-    optimizeDeps: { noDiscovery: true, force: true, include: ['react', 'react-dom', 'react-dom/client', 'react-konva', 'konva', 'react-reconciler/constants', 'react-easy-crop', '@mediapipe/tasks-vision'], exclude: ['remotion', '@remotion/web-renderer', '@remotion/media'] },
+    optimizeDeps: { noDiscovery: true, force: true, include: ['react', 'react-dom', 'react-dom/client', 'react-konva', 'konva', 'react-reconciler/constants', 'react-easy-crop', '@mediapipe/tasks-vision', 'react-dom/server', '@react-email/render'], exclude: ['remotion', '@remotion/web-renderer', '@remotion/media'] },
   })
   await server.listen()
   return server

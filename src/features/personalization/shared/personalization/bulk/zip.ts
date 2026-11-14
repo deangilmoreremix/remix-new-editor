@@ -57,3 +57,41 @@ export async function buildZip(entries: ZipEntry[]): Promise<Blob> {
   const end = cat(u32(0x06054b50), u16(0), u16(0), u16(entries.length), u16(entries.length), u32(dir.length), u32(offset), u16(0))
   return new Blob([...parts, dir as BlobPart, end as BlobPart], { type: 'application/zip' })
 }
+
+// ---------------------------------------------------------------- reading (only archives this app writes)
+export interface ReadZipLimits { maxEntries: number; maxEntryBytes: number; maxTotalBytes: number }
+export const DEFAULT_READ_LIMITS: ReadZipLimits = { maxEntries: 50, maxEntryBytes: 20_000_000, maxTotalBytes: 40_000_000 }
+/**
+ * Reads a ZIP of "stored" entries (what buildZip writes). Anything else is refused with a reason, not guessed at: compressed entries,
+ * ZIP64, encrypted entries, names that would escape a folder, wrong CRCs, and size claims over the limits (so a hostile file cannot
+ * make the app allocate gigabytes).
+ */
+export async function readZip(blob: Blob, limits: ReadZipLimits = DEFAULT_READ_LIMITS): Promise<Record<string, Uint8Array>> {
+  if (blob.size < 22 || blob.size > limits.maxTotalBytes + 1_000_000) throw new ZipError('That file is not a backup this app can read (wrong size).')
+  const b = new Uint8Array(await blob.arrayBuffer()); const dv = new DataView(b.buffer)
+  let e = b.length - 22; const stop = Math.max(0, b.length - 22 - 65535)
+  while (e >= stop && dv.getUint32(e, true) !== 0x06054b50) e -= 1
+  if (e < stop) throw new ZipError('That file is not a ZIP archive.')
+  const count = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true); const dirSize = dv.getUint32(e + 12, true)
+  if (count > limits.maxEntries) throw new ZipError(`The archive has too many files (limit ${limits.maxEntries}).`)
+  if (p + dirSize > e || p === 0xffffffff) throw new ZipError('The archive is damaged or uses a format this app does not read.')
+  const out: Record<string, Uint8Array> = {}; let total = 0; const dec = new TextDecoder('utf-8', { fatal: true })
+  for (let i = 0; i < count; i += 1) {
+    if (p + 46 > e || dv.getUint32(p, true) !== 0x02014b50) throw new ZipError('The archive is damaged.')
+    const flags = dv.getUint16(p + 8, true); const method = dv.getUint16(p + 10, true); const crc = dv.getUint32(p + 16, true); const csize = dv.getUint32(p + 20, true); const size = dv.getUint32(p + 24, true)
+    const nlen = dv.getUint16(p + 28, true); const xlen = dv.getUint16(p + 30, true); const clen = dv.getUint16(p + 32, true); const off = dv.getUint32(p + 42, true)
+    let name: string; try { name = dec.decode(b.subarray(p + 46, p + 46 + nlen)) } catch { throw new ZipError('The archive has an unreadable file name.') }
+    if ((flags & 1) !== 0) throw new ZipError('The archive is encrypted.')
+    if (method !== 0) throw new ZipError('The archive is compressed; only backups made by this app can be restored.')
+    if (csize !== size || size > limits.maxEntryBytes) throw new ZipError('A file in the archive is too large.')
+    total += size; if (total > limits.maxTotalBytes) throw new ZipError('The archive is too large.')
+    if (name !== safeZipName(name) || name.endsWith('/')) throw new ZipError(`The archive has an unsafe file name ("${name.slice(0, 40)}").`)
+    if (off + 30 > e || dv.getUint32(off, true) !== 0x04034b50) throw new ZipError('The archive is damaged.')
+    const start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true)
+    if (start + size > e) throw new ZipError('The archive is damaged.')
+    const data = b.slice(start, start + size); if (crc32(data) !== crc) throw new ZipError(`The file "${name}" in the archive is damaged (checksum).`)
+    if (name in out) throw new ZipError('The archive lists the same file twice.')
+    out[name] = data; p += 46 + nlen + xlen + clen
+  }
+  return out
+}
