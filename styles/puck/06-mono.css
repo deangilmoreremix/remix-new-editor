@@ -20,7 +20,7 @@
 .pk-d-mono .pk-eyebrow { padding: 0; background: none; border-radius: 0; font-size: 11.5px; font-weight: 700; letter-spacing: .17em; text-transform: uppercase; }
 .pk-d-mono .pk-headline { font-size: clamp(34px, 9vw, 47px); line-height: 1.03; letter-spacing: -0.035em; font-weight: 800; }
 .pk-d-mono .mn-under { position: relative; display: inline-block; color: inherit; padding-bottom: 6px; }
-.pk-d-mono .mn-squig { position: absolute; left: 0; bottom: -8px; width: 52%; height: 14px; fill: none; stroke: var(--pk-accent); stroke-width: 3; stroke-linecap: round; vector-effect: non-scaling-stroke; overflow: visible; }
+.pk-d-mono .mn-squig { position: absolute; left: 0; bottom: -10px; width: 52%; height: 14px; fill: none; stroke: var(--pk-accent); stroke-width: 4; stroke-linecap: round; vector-effect: non-scaling-stroke; overflow: visible; }
 .pk-d-mono .mn-squig path { vector-effect: non-scaling-stroke; }
 .pk-d-mono .pk-subhead { font-size: 16.5px; line-height: 1.45; color: #3d3d3d; max-width: 400px; font-size: 16px; }
 .pk-d-mono .pk-actions { order: 4; margin-top: 8px; gap: 18px; }
@@ -33,7 +33,7 @@
 .pk-d-mono .mn-bubble:first-child { padding-right: 14px; }
 .pk-d-mono .mn-bubble .pk-accent { color: var(--pk-accent); font-weight: 600; }
 .pk-d-mono .mn-bubble + .mn-bubble { max-width: 6.4em; padding-bottom: 6px; line-height: 1.12; }
-.pk-d-mono .mn-spark { position: absolute; left: 66%; top: -34px; width: 34px; height: 34px; fill: none; stroke: var(--pk-accent); stroke-width: 3; stroke-linecap: round; }
+.pk-d-mono .mn-spark { position: absolute; left: 27cqw; top: -4.2cqw; width: 8.4cqw; height: 8.4cqw; fill: none; stroke: var(--pk-accent); stroke-width: 3.6; stroke-linecap: round; }
 .pk-d-mono .pk-form { padding: 20px 20px 16px; gap: 8px; border: 0; border-radius: 14px; background: var(--mn-panel); }
 .pk-d-mono .pk-form-title { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; }
 .pk-d-mono .pk-form-sub { font-size: 12.5px; line-height: 1.4; color: #444; margin-bottom: 6px; }
@@ -96,10 +96,10 @@
 
 /* panels */
 .mn-panels { max-width: 1480px; margin: 0 auto; padding: 8px 16px 20px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
-.mn-panel { background: var(--mn-panel); border-radius: 14px; padding: 16px 18px 18px; min-width: 0; }
+.mn-panel { background: var(--mn-panel); border-radius: 14px; padding: 14px 18px 14px; min-width: 0; }
 .mn-panel h3 { margin: 0 0 10px; font-size: 10.5px; line-height: 14px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
 .mn-quote-row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
-.mn-quotes figure { margin: 0; padding: 11px 14px 12px; border-radius: 10px; background: #fff; display: grid; gap: 10px; align-content: space-between; }
+.mn-quotes figure { margin: 0; padding: 9px 14px 10px; border-radius: 10px; background: #fff; display: grid; gap: 6px; align-content: space-between; }
 .mn-quotes blockquote { margin: 0; font-size: 13.5px; line-height: 1.17; }
 .mn-quotes figcaption { display: flex; align-items: center; gap: 9px; }
 .mn-quotes figcaption b { display: block; font-size: 12px; line-height: 15px; }

@@ -95,10 +95,10 @@
 .pk-d-persona .ps-quote figcaption span { font-size: 13.5px; }
 @media (min-width: 760px) { .pk-d-persona .ps-quotes { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 24px clamp(24px, 4vw, 48px); } .pk-d-persona .ps-quotes-head { grid-column: 1 / -1; } .pk-d-persona .ps-quote { flex-direction: column; align-items: flex-start; gap: 12px; } }
 @media (min-width: 1100px) {
-  .pk-d-persona .ps-quotes { grid-template-columns: 250px repeat(3, minmax(0, 1fr)); gap: 0; align-items: center; padding: 6px clamp(24px, 8.9vw, 148px) 6px; margin: 0; }
+  .pk-d-persona .ps-quotes { grid-template-columns: 250px repeat(3, minmax(0, 1fr)); gap: 0; align-items: center; padding: 0 clamp(24px, 8.9vw, 148px); margin: 0; min-height: 112px; }
   .pk-d-persona .ps-quotes-head { grid-column: auto; }
   .pk-d-persona .ps-quote { flex-direction: row; align-items: center; gap: 20px; padding: 0 0 0 clamp(20px, 2.4vw, 40px); margin-left: clamp(8px, 1.5vw, 28px); border-left: 1px solid #e2d5bd; }
-  .pk-d-persona .ps-quote img { width: clamp(64px, 5.2vw, 87px); height: clamp(64px, 5.2vw, 87px); }
+  .pk-d-persona .ps-quote img { width: clamp(60px, 4.7vw, 80px); height: clamp(60px, 4.7vw, 80px); }
   .pk-d-persona .ps-quote blockquote { font-size: clamp(13px, .95vw, 16px); line-height: 1.18; }
 }
 .pk-d-persona .ps-steps { display: grid; gap: 14px; padding: 22px 16px; border-top: 1px solid #eadfcd; margin: 0 clamp(0px, 2vw, 40px); }
@@ -110,7 +110,7 @@
 .pk-d-persona .ps-num { flex: none; display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: linear-gradient(180deg, #b08a3a, #8d6c22); color: #fff; font: 500 15px/1 var(--serif); font-style: normal; }
 @media (min-width: 760px) { .pk-d-persona .ps-steps { padding: 24px clamp(24px, 4vw, 48px); } .pk-d-persona .ps-steps-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1100px) {
-  .pk-d-persona .ps-steps { grid-template-columns: minmax(0, 330fr) minmax(0, 1000fr); gap: 20px; align-items: center; padding: 4px clamp(24px, 8vw, 127px) 4px clamp(24px, 8vw, 135px); margin: 0; }
+  .pk-d-persona .ps-steps { grid-template-columns: minmax(0, 330fr) minmax(0, 1000fr); gap: 20px; align-items: center; padding: 0 clamp(24px, 8vw, 127px) 0 clamp(24px, 8vw, 135px); margin: 0; min-height: 100px; }
   .pk-d-persona .ps-steps-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
   .pk-d-persona .ps-steps-row li { flex-direction: column; gap: 3px; padding-right: 24px; }
   .pk-d-persona .ps-step-ico { margin-left: 36px; }
@@ -122,18 +122,18 @@
 .pk-d-persona .ps-card-img { width: 100%; height: 100%; object-fit: cover; display: block; background: #eee3d0; }
 .pk-d-persona .ps-card-body { display: grid; align-content: center; gap: 4px; padding: 14px 20px 18px; justify-items: start; }
 .pk-d-persona .ps-card-body .ps-eyebrow { font-size: 9.5px; margin: 0; }
-.pk-d-persona .ps-card h3 { margin: 0; font: 500 clamp(26px, 1.8vw, 30px)/.98 var(--serif); color: #2a2118; }
-.pk-d-persona .ps-card p { margin: 2px 0 6px; font-size: 15px; line-height: 1.15; color: #2a2118; max-width: 320px; }
+.pk-d-persona .ps-card h3 { margin: 0; font: 500 clamp(25px, 1.65vw, 28px)/.95 var(--serif); color: #2a2118; }
+.pk-d-persona .ps-card p { margin: 0 0 4px; font-size: 14.5px; line-height: 1.1; color: #2a2118; max-width: 320px; }
 .pk-d-persona .ps-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 4px 22px; border: 1.5px solid #9a7a35; border-radius: 3px; color: #2a2118; background: rgba(255, 252, 247, .6); font: 600 17px var(--serif); text-decoration: none; gap: 10px; }
 .pk-d-persona .ps-ico { width: 20px; height: 20px; flex: none; }
 .pk-d-persona .ps-signup { display: grid; gap: 8px; max-width: 330px; grid-template-columns: minmax(0, 1fr); width: 100%; margin-top: 2px; }
-.pk-d-persona .ps-signup .pk-mini-field input { width: 100%; min-height: 32px; padding: 0 10px; border: 1px solid #d8ccb8; border-radius: 3px; background: #fbf8f3; font: 500 14px var(--serif); color: #2a2118; }
-.pk-d-persona .ps-signup .pk-btn { min-height: 36px; font-size: 16px; background: transparent; color: #2a2118; border: 1.5px solid #9a7a35; }
+.pk-d-persona .ps-signup .pk-mini-field input { width: 100%; min-height: 34px; padding: 0 10px; border: 1px solid #d8ccb8; border-radius: 3px; background: #fbf8f3; font: 500 14px var(--serif); color: #2a2118; }
+.pk-d-persona .ps-signup .pk-btn { min-height: 34px; font-size: 15px; background: transparent; color: #2a2118; border: 1.5px solid #9a7a35; }
 .pk-d-persona .ps-signup .pk-btn::before { content: ""; width: 18px; height: 18px; margin-right: 8px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath d=%27M12 4v11m0 0l-4-4m4 4l4-4M5 19h14%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%271.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath d=%27M12 4v11m0 0l-4-4m4 4l4-4M5 19h14%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%271.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E") center / contain no-repeat; }
 .pk-d-persona .ps-signup .pk-btn { display: inline-flex; align-items: center; justify-content: center; }
 .pk-d-persona .ps-btn:hover, .pk-d-persona .ps-btn:focus-visible { background: #f3e8d2; }
 @media (min-width: 700px) { .pk-d-persona .ps-card { grid-template-rows: none; grid-template-columns: 50% 1fr; min-height: 160px; } .pk-d-persona .ps-card-body { padding: 10px 20px; } }
-@media (min-width: 1100px) { .pk-d-persona .ps-cards { grid-template-columns: minmax(0, 741fr) minmax(0, 824fr); } .pk-d-persona .ps-card { height: 162px; min-height: 0; } .pk-d-persona .ps-card:nth-child(1) { grid-template-columns: 42% 1fr; } .pk-d-persona .ps-card:nth-child(2) { grid-template-columns: 53% 1fr; } .pk-d-persona .ps-card-img { height: 162px; } .pk-d-persona .ps-signup { grid-template-columns: minmax(0, 1fr) auto; align-items: center; max-width: none; } .pk-d-persona .ps-signup .pk-btn { padding: 4px 14px; } .pk-d-persona .ps-card-body { padding: 10px 26px 10px 24px; } .pk-d-persona .ps-card-body p { max-width: 300px; } .pk-d-persona .ps-btn { min-width: 257px; } }
+@media (min-width: 1100px) { .pk-d-persona .ps-cards { grid-template-columns: minmax(0, 741fr) minmax(0, 824fr); } .pk-d-persona .ps-card { height: 168px; min-height: 0; } .pk-d-persona .ps-card:nth-child(1) { grid-template-columns: 42% 1fr; } .pk-d-persona .ps-card:nth-child(2) { grid-template-columns: 53% 1fr; } .pk-d-persona .ps-card-img { height: 168px; } .pk-d-persona .ps-signup { grid-template-columns: minmax(0, 1fr) auto; align-items: center; max-width: none; } .pk-d-persona .ps-signup .pk-btn { padding: 4px 14px; } .pk-d-persona .ps-card-body { padding: 6px 26px 6px 24px; gap: 2px; } .pk-d-persona .ps-card-body p { max-width: 300px; } .pk-d-persona .ps-btn { min-width: 257px; } }
 
 /* dark sign-up band */
 .pk-d-persona .pk-band { background: #352e29; color: #f4ece0; }

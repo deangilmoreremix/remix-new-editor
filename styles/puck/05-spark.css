@@ -225,8 +225,8 @@
 /* steps title: blue circled "3" and underlined "Simple Steps" */
 .pk-d-spark .pk-card--steps .pk-card-title { display: block; white-space: normal; }
 .pk-d-spark .pk-card--steps .pk-card-title .pk-accent { color: var(--sp-blue); }
-.pk-d-spark .pk-card--steps .pk-card-title .pk-accent:first-of-type { display: inline-grid; place-items: center; width: 1.25em; height: 1.25em; margin: 0 .15em; border-radius: 50%; background: var(--sp-blue); color: #fff; font-size: .95em; line-height: 1; vertical-align: -.1em; }
-.pk-d-spark .pk-card--steps .pk-card-title .pk-accent:last-of-type:not(:first-of-type) { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 5px; text-decoration-skip-ink: none; }
+.pk-d-spark .pk-card--steps .pk-card-title .pk-accent:nth-child(2) { display: inline-grid; place-items: center; width: 1.25em; height: 1.25em; margin: 0 .15em; border-radius: 50%; background: var(--sp-blue); color: #fff; font-size: .95em; line-height: 1; vertical-align: -.1em; }
+.pk-d-spark .pk-card--steps .pk-card-title .pk-accent:nth-child(4) { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 5px; text-decoration-skip-ink: none; }
 
 /* leads card */
 .pk-d-spark .pk-leads-btn { display: flex; align-items: center; justify-content: center; margin-top: 6px; min-height: 34px; padding: 0 14px; border: 1.5px solid #c9d7f2; border-radius: 10px; background: #eef4ff; color: var(--sp-navy); font-family: var(--sp-head); font-weight: 800; font-size: 15px; text-decoration: none; }
@@ -245,3 +245,27 @@
   .pk-d-spark .pk-band::after { display: block; left: 12px; top: -44px; bottom: auto; width: 64px; height: 51px; }
 }
 @media (max-width: 520px) { .pk-d-spark .pk-band { margin-top: 44px; } }
+
+/* tighter desktop rhythm (page height closer to the 941px design) */
+@media (min-width: 1100px) {
+  .pk-d-spark .pk-strip { margin-top: -58px; }
+  .pk-d-spark .pk-grid { padding-top: 4px; padding-bottom: 14px; }
+  .pk-d-spark .pk-grid-in { gap: 12px 28px; }
+  .pk-d-spark .pk-hero { padding-top: 26px; padding-bottom: 30px; }
+  .pk-d-spark .pk-hero-copy .pk-bullets { padding-bottom: 0; margin-top: 4px; }
+  .pk-d-spark .pk-hero .pk-form-title { font-size: 25px; }
+  .pk-d-spark .pk-card--magnet { padding: 10px 20px 12px; gap: 4px; }
+  .pk-d-spark .pk-magnet-body { gap: 4px; }
+  .pk-d-spark .pk-card--magnet .pk-card-title { min-height: 40px; }
+  .pk-d-spark .pk-steps li, .pk-d-spark .pk-steps--row .pk-steps li { min-height: 118px; padding: 10px 12px 12px; }
+  .pk-d-spark .pk-card--steps { gap: 8px; }
+  .pk-d-spark .pk-card--table { padding: 12px 14px 10px; }
+  .pk-d-spark .pk-tr { padding: 3px 0; }
+  .pk-d-spark .pk-quote { padding: 10px; }
+  .pk-d-spark .pk-card--quotes { gap: 8px; }
+  .pk-d-spark .pk-card:has(.pk-feats) { padding: 10px 26px 12px; }
+  .pk-d-spark .pk-feats { gap: 0; }
+  .pk-d-spark .pk-feats li::before { height: 40px; }
+  .pk-d-spark .pk-band { margin-top: 10px; }
+  .pk-d-spark .pk-band-in { padding-top: 22px; padding-bottom: 22px; }
+}
