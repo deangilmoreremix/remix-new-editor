@@ -33,15 +33,15 @@ export default {
       { type: 'heading', w: 3, title: 'Automatic Follow-Up\nThat Keeps Leads Moving', text: 'Turn new leads into paying customers\nwith simple, automated video follow-ups.' },
       { type: 'steps', w: 3, title: '', items: [it('Collect Leads'), it('Send a Personalized Video'), it('Follow Up Automatically'), it('Get Bookings & More Customers')] },
       { type: 'quotes', w: 3, title: 'What Local Businesses Are Saying', items: [{ text: 'The personalized videos helped us get 40% more leads in just one month! It feels personal, local, and our customers love it.', by: 'Michelle T.', title: 'Riverside Home Services' }, { text: 'Super easy to use and it actually brings in real leads from our area. A game-changer for our small business.', by: 'David R.', title: 'Maple Grove Auto Care' }] },
-      { type: 'heading', w: 3, title: 'Serving Your Local Community', text: 'Proudly serving Riverside, Maple Grove, Oak Hill, Pinecrest, Lakeside, and nearby areas!' },
+      { type: 'heading', w: 3, title: 'Serving Your Local Community', text: 'Proudly serving Riverside, Maple Grove,\nOak Hill, Pinecrest, Lakeside, and nearby areas!' },
     ],
-    band: { title: 'Get Local Business Tips & Lead-Generation Ideas', text: 'Join our list for practical video marketing tips, local business growth strategies, and product updates.', button: 'Sign Me Up →', placeholder: 'Your Email', social: 'Ready to grow your business with personalized video?', tagline: 'Request a Demo or Schedule a Consultation →' },
+    band: { title: 'Get Local Business Tips & Lead-Generation Ideas', text: 'Join our list for practical video marketing tips, local business growth strategies, and product updates.', button: 'Sign Me Up →', placeholder: 'Your Email', social: 'Ready to grow your business', tagline: 'with personalized video?\nRequest a Demo or Schedule a Consultation →' },
   },
   defaults: {
     headline: 'Get More Leads\nfor Your [[Local Business]]',
     subhead: 'Send friendly, personalized video messages that attract new customers, collect leads, build your list, and turn interest into real business — in your community.',
     form: {
-      title: 'Get a Personalized Demo', subtitle: 'See how personalized video can bring more leads and customers to your business.', submitLabel: 'Get My Demo →',
+      title: 'Get a Personalized Demo', subtitle: 'See how personalized video can bring\nmore leads and customers to your business.', submitLabel: 'Get My Demo →',
       fields: [field('name', 'Your Name'), field('email', 'Email Address', 'email'), field('phone', 'Phone Number', 'tel'), field('company', 'Business Name')],
     },
     ctas: [{ label: 'Schedule a Free Consultation', kind: 'calendar', value: '', style: 'secondary' }],
