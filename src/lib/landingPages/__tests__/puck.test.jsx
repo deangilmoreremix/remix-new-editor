@@ -1,0 +1,81 @@
+// @vitest-environment jsdom
+import { describe, it, expect, vi } from 'vitest';
+
+vi.hoisted(() => {
+  globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+  globalThis.matchMedia = globalThis.matchMedia || (() => ({ matches: false, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
+});
+import { renderToString } from 'react-dom/server';
+import { Render } from '@puckeditor/core';
+import { puckConfig } from '../puck/config.jsx';
+import { PageContext } from '../puck/context.js';
+import { PUCK_TEMPLATES } from '../puck/designs.js';
+import { sanitizePuck, sanitizeConfig, defaultConfig } from '../templates.js';
+
+const page = { id: 'abc12345', title: 'Intro', video_url: 'https://x.supabase.co/storage/v1/object/public/uploads/u/clip.mp4', poster_url: null };
+const html = (data, tokens = {}) => renderToString(<PageContext.Provider value={{ page, tokens, handlers: {}, preview: false }}><Render config={puckConfig} data={data} /></PageContext.Provider>);
+const starter = PUCK_TEMPLATES[0].puckData;
+
+describe('editable (Puck) pages', () => {
+  it('the starter renders every section with one h1, one video and the lead form', () => {
+    const out = html(starter, { firstname: 'Maya', company: 'Brightline' });
+    expect((out.match(/<h1/g) || []).length).toBe(1);
+    expect((out.match(/<video/g) || []).length).toBe(1);
+    expect(out).toContain('pk-form');
+    expect(out).toContain('pk-nav');
+    expect(out).toContain('pk-grid');
+    expect(out).toContain('pk-footer');
+    expect(out).toContain('Maya');
+    expect(out).not.toMatch(/\{\{|\[\[/);
+  });
+  it('falls back when no contact is known', () => {
+    expect(html(starter)).toContain('Hi there');
+  });
+  it('every component in the config renders from its default props without throwing', () => {
+    Object.entries(puckConfig.components).forEach(([type, def]) => {
+      const props = { id: `t-${type}`, ...def.defaultProps };
+      // slots are filled by Puck itself, so a Grid is rendered empty here
+      expect(() => html({ root: { props: {} }, content: [{ type, props }], zones: {} }), type).not.toThrow();
+    });
+  });
+  it('all card types render inside a Grid slot', () => {
+    const cards = puckConfig.categories.cards.components.map((type) => ({ type, props: { id: `c-${type}`, ...puckConfig.components[type].defaultProps } }));
+    const out = html({ root: { props: {} }, content: [{ type: 'Grid', props: { id: 'g', columns: 3, items: cards } }], zones: {} });
+    puckConfig.categories.cards.components.forEach((type) => expect(out).toContain('pk-card'));
+    expect((out.match(/<article/g) || []).length).toBe(cards.length);
+  });
+  it('hostile text is escaped and unsafe links/images are dropped', () => {
+    const evil = '<img src=x onerror=alert(1)><script>alert(1)</script>';
+    const data = { root: { props: {} }, zones: {}, content: [
+      { type: 'Hero', props: { id: 'h', ...puckConfig.components.Hero.defaultProps, headline: evil, subhead: evil, chip: evil, photo: 'javascript:alert(1)', buttons: [{ label: 'Bad', url: 'javascript:alert(1)', style: 'primary' }, { label: 'Good', url: 'https://ok.io', style: 'secondary' }] } },
+      { type: 'NavBar', props: { id: 'n', brand: evil, logo: 'javascript:alert(2)', links: [{ label: 'Bad', url: 'javascript:alert(3)' }], loginLabel: evil, loginUrl: 'javascript:alert(4)', ctaLabel: '' } },
+      { type: 'Footer', props: { id: 'f', text: evil, links: [{ label: 'Bad', url: 'javascript:alert(5)' }] } },
+    ] };
+    const out = html(data, { firstname: '<svg onload=alert(1)>' });
+    expect(out).not.toMatch(/<script|<img[^>]*onerror|<svg[^>]*onload|\sonerror="|href="javascript:|src="javascript:/i);
+    expect(out).toContain('&lt;img');
+    expect(out).toContain('href="https://ok.io"');
+    expect(out).not.toContain('>Bad</a>');
+  });
+  it('the phone and desktop markup is the same responsive markup (no fixed canvas)', () => {
+    const out = html(starter);
+    expect(out).not.toMatch(/is-canvas|zoom:/);
+  });
+});
+
+describe('Puck data in the page config', () => {
+  it('sanitizePuck bounds shape and size', () => {
+    expect(sanitizePuck(null)).toBeNull();
+    expect(sanitizePuck({ content: 'x' })).toBeNull();
+    const clean = sanitizePuck({ content: [{ type: 'Hero', props: { id: 'a' } }, { nope: true }, ...Array(100).fill({ type: 'Footer', props: { id: 'f' } })], root: { props: { accent: '#fff' } } });
+    expect(clean.content.length).toBeLessThanOrEqual(60);
+    expect(clean.content.every((c) => typeof c.type === 'string')).toBe(true);
+    expect(sanitizePuck({ content: [{ type: 'Hero', props: { id: 'a', big: 'x'.repeat(200000) } }] })).toBeNull();
+  });
+  it('a puck template creates a config with its page data, and old templates have none', () => {
+    const cfg = defaultConfig('puck-starter');
+    expect(cfg.puck.content.map((c) => c.type)).toEqual(['NavBar', 'Hero', 'Strip', 'Grid', 'Band', 'Footer']);
+    expect(defaultConfig('clean').puck).toBeUndefined();
+    expect(sanitizeConfig({ template: 'puck-starter' }).puck.content.length).toBeGreaterThan(0);
+  });
+});
