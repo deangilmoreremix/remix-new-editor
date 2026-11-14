@@ -13,7 +13,7 @@ const EXT_COMPONENTS = Object.assign({}, ...EXT.map((m) => m.components || {}));
 const T = (label) => ({ type: 'text', label });
 const A = (label) => ({ type: 'textarea', label });
 const iconField = { type: 'select', label: 'Icon', options: [{ label: 'None', value: '' }, ...ICON_KEYS.map((k) => ({ label: k, value: k }))] };
-const cols = { type: 'select', label: 'Width (columns of 4)', options: [1, 2, 3, 4].map((n) => ({ label: `${n}`, value: n })) };
+const cols = { type: 'select', label: 'Width (grid columns)', options: [1, 2, 3, 4, 5, 6].map((n) => ({ label: `${n}`, value: n })) };
 const buttonArray = { type: 'array', label: 'Buttons', arrayFields: { label: T('Text'), url: T('Link (https, mailto: or tel:)'), style: { type: 'radio', label: 'Style', options: [{ label: 'Primary', value: 'primary' }, { label: 'Secondary', value: 'secondary' }] } }, getItemSummary: (i) => i.label || 'Button', defaultItemProps: { label: 'Button', url: '', style: 'secondary' } };
 const linkArray = (label) => ({ type: 'array', label, arrayFields: { label: T('Text'), url: T('Link (optional)') }, getItemSummary: (i) => i.label || 'Link', defaultItemProps: { label: 'Link', url: '' } });
 const formFieldArray = { type: 'array', label: 'Form fields', arrayFields: { key: T('Field name (a-z)'), label: T('Label / placeholder'), type: { type: 'select', label: 'Type', options: ['text', 'email', 'tel', 'textarea'].map((v) => ({ label: v, value: v })) }, required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, getItemSummary: (i) => i.label || 'Field', defaultItemProps: { key: 'name', label: 'Name', type: 'text', required: true } };
@@ -90,7 +90,7 @@ export const puckConfig = {
     },
     Grid: {
       label: 'Card grid',
-      fields: { columns: { type: 'select', label: 'Columns on a desktop', options: [2, 3, 4].map((n) => ({ label: `${n}`, value: n })) }, items: { type: 'slot', allow: ['LeadMagnetCard', 'TableCard', 'StatsCard', 'ChecklistCard', 'QuoteCard', 'StepsCard', 'FeaturesCard', 'FaqCard', 'KpiCard', 'ScheduleCard', 'ButtonCard'] } },
+      fields: { columns: { type: 'select', label: 'Columns on a desktop', options: [2, 3, 4, 5, 6].map((n) => ({ label: `${n}`, value: n })) }, items: { type: 'slot', allow: ['LeadMagnetCard', 'TableCard', 'StatsCard', 'ChecklistCard', 'QuoteCard', 'StepsCard', 'FeaturesCard', 'FaqCard', 'KpiCard', 'ScheduleCard', 'ButtonCard'] } },
       defaultProps: { columns: 3 },
       render: ({ columns, items: Items }) => <section className="pk-grid" style={{ '--pk-cols': columns }}><Items className="pk-grid-in" /></section>,
     },

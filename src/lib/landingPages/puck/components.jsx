@@ -252,7 +252,7 @@ export function TextBlock({ eyebrow, title, text, align = 'center' }) {
 
 /* ---------- cards (live inside a Grid) ---------- */
 
-const span = (n) => ({ '--pk-span': Math.max(1, Math.min(4, Number(n) || 1)) });
+const span = (n) => ({ '--pk-span': Math.max(1, Math.min(6, Number(n) || 1)) });
 
 export function CardShell({ children, columns, tone, className = '' }) {
   return <article className={`pk-card pk-card--${tone || 'plain'} ${className}`} style={span(columns)}>{children}</article>;
