@@ -118,3 +118,5 @@
 .pk-footer { max-width: 1480px; margin: 0 auto; padding: 18px clamp(16px, 4vw, 48px) 28px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--pk-muted); }
 .pk-footer p { margin: 0; } .pk-footer ul { margin: 0; padding: 0; list-style: none; display: flex; gap: 16px; } .pk-footer a { color: inherit; }
 .pk-image { display: block; max-width: 100%; height: auto; margin: 16px auto; } .pk-image--round { border-radius: var(--pk-radius); }
+
+.pk-field select { width: 100%; min-height: 44px; padding: 10px 12px; font: inherit; font-size: 16px; border: 1px solid var(--pk-line); border-radius: 10px; background: var(--pk-bg); color: var(--pk-text); }

@@ -84,14 +84,21 @@ export function LeadForm({ title, subtitle, submitLabel = 'Send', successMessage
   };
   return (
     <form className="pk-form" onSubmit={onSubmit}>
-      {title ? <h2 className="pk-form-title">{t(title)}</h2> : null}
+      {title ? <AccentText as="h2" className="pk-form-title" text={title} /> : null}
       {subtitle ? <p className="pk-form-sub">{t(subtitle)}</p> : null}
       {fields.map((f) => (
         <label key={f.key} className="pk-field">
           <span className="pk-sr">{f.label}</span>
-          {f.type === 'textarea'
+          {f.type === 'select'
+            ? (
+              <select name={f.key} required={!!f.required} defaultValue="">
+                <option value="" disabled>{t(f.placeholder || f.label)}</option>
+                {String(f.options || '').split(',').map((o) => o.trim()).filter(Boolean).map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            )
+            : f.type === 'textarea'
             ? <textarea name={f.key} rows={3} required={!!f.required} placeholder={t(f.placeholder || f.label)} defaultValue={prefillFor(f.key, tokens) || ''} maxLength={2000} />
-            : <input name={f.key} type={f.type || 'text'} required={!!f.required} placeholder={t(f.placeholder || f.label)} defaultValue={prefillFor(f.key, tokens) || ''} maxLength={2000} />}
+            : <input name={f.key} type={['text', 'email', 'tel'].includes(f.type) ? f.type : 'text'} required={!!f.required} placeholder={t(f.placeholder || f.label)} defaultValue={prefillFor(f.key, tokens) || ''} maxLength={2000} />}
         </label>
       ))}
       <button type="submit" className="pk-btn pk-btn--primary" disabled={state.status === 'sending'}>{t(submitLabel)}</button>
@@ -101,8 +108,11 @@ export function LeadForm({ title, subtitle, submitLabel = 'Send', successMessage
   );
 }
 
+// In-page anchors (#lead, #contact...) are safe and let buttons scroll to a section.
+const anchor = (v) => (/^#[a-z0-9_-]{1,40}$/i.test(String(v || '').trim()) ? String(v).trim() : '');
+
 export function SafeLink({ href, children, className }) {
-  const url = safeUrl(href);
+  const url = safeUrl(href) || anchor(href);
   if (!url) return null;
   const external = /^https?:/i.test(url);
   return <a className={className} href={url} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{children}</a>;

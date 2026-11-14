@@ -57,6 +57,21 @@ describe('editable (Puck) pages', () => {
     expect(out).toContain('href="https://ok.io"');
     expect(out).not.toContain('>Bad</a>');
   });
+  it('in-page anchors work as button links, other unsafe links do not', () => {
+    const data = { root: { props: {} }, zones: {}, content: [{ type: 'Hero', props: { id: 'h', ...puckConfig.components.Hero.defaultProps, buttons: [{ label: 'Jump', url: '#lead', style: 'primary' }, { label: 'Nope', url: '#lead"onclick="x', style: 'primary' }, { label: 'Js', url: 'javascript:alert(1)', style: 'primary' }] } }] };
+    const out = html(data);
+    expect(out).toContain('href="#lead"');
+    expect(out).not.toContain('>Nope<');
+    expect(out).not.toContain('>Js<');
+  });
+  it('form dropdowns render their choices as options, and form titles can highlight words', () => {
+    const data = { root: { props: {} }, zones: {}, content: [{ type: 'Hero', props: { id: 'h', ...puckConfig.components.Hero.defaultProps, formTitle: 'Get your [[demo]]', formFields: [{ key: 'size', label: 'Team size', type: 'select', options: '1-10, 11-50, <b>51+</b>', required: true }] } }] };
+    const out = html(data);
+    expect(out).toContain('<select');
+    expect(out).toContain('>11-50<');
+    expect(out).toContain('&lt;b&gt;51+&lt;/b&gt;');
+    expect(out).toContain('class="pk-accent"');
+  });
   it('the phone and desktop markup is the same responsive markup (no fixed canvas)', () => {
     const out = html(starter);
     expect(out).not.toMatch(/is-canvas|zoom:/);
