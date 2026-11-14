@@ -11,12 +11,13 @@ import * as pixabayApi from '../../lib/pixabayApi.js';
 import { uploadFileToSupabase } from '../../lib/uploadService.js';
 import {
   STEPS, STEP_LABELS, MAX_VIDEOS, createWizardState, guardStep, nextStepIndex, nextDisabled, nextLabel, clipDuration,
-  toggleVideo, toggleAnimation, toBuilderState, hasScript, sceneNames, MAX_ANIMATIONS,
+  toggleVideo, toggleAnimation, toBuilderState, hasScript, sceneNames, MAX_ANIMATIONS, splitLowerThird,
 } from './template-generator/rules.js';
 import {
   PROVIDERS, MEDIA_FILTERS, STOCK_HOME, createStockClient, remoteItem, probeVideo, kindFromUrlOrType,
 } from './template-generator/stock.js';
 import { loadTemplateCatalog, searchTemplateClips, TEMPLATE_SOURCE } from './template-generator/videoTemplates.js';
+import { LOWER_THIRD_TEMPLATES, buildLowerThirdLottie, LT_HOLD_FRAME } from '../../lib/editor/addons/lowerThirds.js';
 import { snapshotTemplate, restoreTemplate, splitDurable } from './template-generator/templates.js';
 import { createSyncedTemplateStore, SYNC_STATUS } from './template-generator/sync.js';
 import { templateScript, placeholdersLeft, DETAIL_FIELDS } from '../../lib/nicheScripts/index.js';
@@ -62,7 +63,10 @@ const stillOf = (it) => it.poster || (it.kind === 'image' ? (it.url || it.previe
 const firstFrame = (it) => (it.kind === 'video' && !stillOf(it) && (it.preview || it.url)
   ? `<video class="tg-poster" muted playsinline preload="metadata" tabindex="-1" aria-hidden="true" src="${esc(`${it.preview || it.url}#t=0.1`)}"></video>` : '');
 const hueOf = (str) => { let h = 0; for (const ch of String(str)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
-const TRANSITION_CATEGORY_LABELS = { fade: 'Fade', wipe: 'Wipe', push: 'Push', zoom: 'Zoom', iris: 'Iris', shape: 'Shape' };
+const TRANSITION_CATEGORY_LABELS = { fade: 'Fade', wipe: 'Wipe', push: 'Push', zoom: 'Zoom', iris: 'Iris', shape: 'Shape', motion: 'Motion' };
+/** The animated lower-third styles, in categories (ids are the editor's own lower-third templates). */
+const LOWER_THIRD_CATEGORIES = { bars: ['Bars', ['classic-bar', 'split-bars', 'boxed-accent', 'news', 'pill']], minimal: ['Minimal', ['minimal-line', 'side-rule', 'underline']] };
+const lowerThirdCategory = (id) => Object.entries(LOWER_THIRD_CATEGORIES).find(([, [, ids]]) => ids.includes(id))?.[0] || 'bars';
 
 export class TemplateGeneratorModal extends BaseModal {
   constructor(options = {}) {
@@ -119,6 +123,7 @@ export class TemplateGeneratorModal extends BaseModal {
       overlayTab: 'transitions',
       overlayQuery: '',
       overlayCategory: 'all',
+      ltCategory: 'all',
       popup: null,       // { kind: 'video'|'script', id }
       openPanels: {},    // 'voice' | 'personalization'
       busy: false,
@@ -126,7 +131,14 @@ export class TemplateGeneratorModal extends BaseModal {
     };
 
     const lib = new TransitionsLibrary();
-    this.transitions = Object.entries(lib.transitions).map(([id, t]) => ({ id, name: t.name, category: t.category, icon: t.icon, description: t.description }));
+    // The host editor can offer its own real transitions ({ id, label, category, description, thumb(), mountPreview(host) }): those are what
+    // its timeline actually renders, so they replace the legacy list. Without them (classic editor) the legacy list stays.
+    this.glTransitions = Array.isArray(options.transitions) && options.transitions.length ? new Map(options.transitions.map((t) => [t.id, t])) : null;
+    this.transitions = this.glTransitions
+      ? [...this.glTransitions.values()].map((t) => ({ id: t.id, name: t.label, category: t.category, icon: '', description: t.description }))
+      : Object.entries(lib.transitions).map(([id, t]) => ({ id, name: t.name, category: t.category, icon: t.icon, description: t.description }));
+    // animated lower-third styles are only offered where the host places them as real overlays
+    this.lowerThirdStyles = !!options.lowerThirdStyles;
     this.niches = [...new Set(ALL_NICHE_TEMPLATES.map((t) => t.niche).filter(Boolean))];
     this.itemsById = new Map();
     this._player = null;
@@ -213,6 +225,38 @@ export class TemplateGeneratorModal extends BaseModal {
   _afterPaint() {
     if (this.s.started && this.s.step === STEPS.PREVIEW) this._mountPlayer();
     if (this.ui.toast) this._showToast(this.ui.toast, true);
+    this._loadTransitionThumbs();
+    this._mountLowerThirdPreviews();
+  }
+
+  /** Real still of each transition (the same A/B frames the Transitions window shows), filled in as they are made. */
+  _loadTransitionThumbs() {
+    if (!this.glTransitions || !this.overlay) return;
+    for (const el of this.overlay.querySelectorAll('[data-tr-thumb]')) {
+      const t = this.glTransitions.get(el.dataset.trThumb);
+      if (!t || el.dataset.loaded) continue;
+      el.dataset.loaded = '1';
+      Promise.resolve(t.thumb?.()).then((url) => { if (url && el.isConnected && /^(data:image|blob:|https?:|\/)/.test(url)) el.style.backgroundImage = cssUrl(url); }).catch(() => {});
+    }
+  }
+
+  /** Lower-third style tiles: the real Lottie for each style, showing the user's own text, held at its fully-visible frame. */
+  _mountLowerThirdPreviews() {
+    if (!this.lowerThirdStyles || !this.overlay) return;
+    const hosts = [...this.overlay.querySelectorAll('[data-lt-preview]')];
+    if (!hosts.length) return;
+    const { name, title } = splitLowerThird(this.s.elements.lowerThird);
+    import('lottie-web').then(({ default: lottie }) => {
+      for (const host of hosts) {
+        if (!host.isConnected || host.dataset.loaded) continue;
+        host.dataset.loaded = '1';
+        try {
+          const anim = lottie.loadAnimation({ container: host, renderer: 'svg', loop: false, autoplay: false,
+            animationData: buildLowerThirdLottie({ template: host.dataset.ltPreview, name: name || 'Jane Doe', title: title || 'Founder & CEO' }) });
+          anim.goToAndStop(LT_HOLD_FRAME, true);
+        } catch { /* the style name below the tile still identifies it */ }
+      }
+    }).catch(() => {});
   }
 
   // ----------------------------------------------------------- start screen
@@ -720,7 +764,7 @@ export class TemplateGeneratorModal extends BaseModal {
         ${this.transitionCards().map((t) => `
           <button type="button" class="overlays__item overlays__item-container tg-transition${cur === t.id ? ' active' : ''}" data-act="transition-pick" data-id="${esc(t.id)}" title="${esc(t.description || '')}" aria-pressed="${cur === t.id}">
             ${cur === t.id ? '<span class="preview__select" aria-hidden="true">✓</span>' : ''}
-            <span class="tg-tr-icon">${esc(t.icon || '🎞️')}</span><b>${esc(t.name)}</b><span class="tg-meta">${esc(TRANSITION_CATEGORY_LABELS[t.category] || t.category)}</span>
+            ${this.glTransitions ? `<span class="tg-tr-thumb" data-tr-thumb="${esc(t.id)}" aria-hidden="true"></span>` : `<span class="tg-tr-icon">${esc(t.icon || '🎞️')}</span>`}<b>${esc(t.name)}</b><span class="tg-meta">${esc(TRANSITION_CATEGORY_LABELS[t.category] || t.category)}</span>
           </button>`).join('')}
       </div></div>`;
   }
@@ -732,11 +776,33 @@ export class TemplateGeneratorModal extends BaseModal {
         <label class="tg-toggle"><input type="checkbox" data-bind="s.elements.captions" ${e.captions ? 'checked' : ''}><span>Show my script as captions, one line per clip</span></label>
         <label class="tg-field">Title (first 3 seconds)
           <input type="text" data-bind="s.elements.title" placeholder="e.g. Summer Sale" value="${esc(e.title)}"></label>
-        <label class="tg-field">Lower third
-          <input type="text" data-bind="s.elements.lowerThird" placeholder="e.g. Jane Doe · Owner" value="${esc(e.lowerThird)}"></label>
+        <label class="tg-field">Lower third${this.lowerThirdStyles ? ' (name | title)' : ''}
+          <input type="text" data-bind="s.elements.lowerThird" placeholder="e.g. Jane Doe | Owner" value="${esc(e.lowerThird)}"></label>
+        ${this.renderLowerThirdStyles()}
         <label class="tg-field">Call to action (last 4 seconds)
           <input type="text" data-bind="s.elements.cta" placeholder="${esc(this.s.script.cta || 'e.g. Book your free consultation')}" value="${esc(e.cta)}"></label>
         <p class="tg-hint">These become editable text clips on their own tracks. Logos, stickers, lead forms and interactive overlays are in the editor's Overlay tools.</p>
+      </div>`;
+  }
+
+  renderLowerThirdStyles() {
+    if (!this.lowerThirdStyles) return '';
+    const u = this.ui; const cur = this.s.elements.lowerThirdStyle;
+    const label = Object.fromEntries(LOWER_THIRD_TEMPLATES);
+    const cats = Object.entries(LOWER_THIRD_CATEGORIES);
+    const ids = Object.keys(label).filter((id) => u.ltCategory === 'all' || lowerThirdCategory(id) === u.ltCategory);
+    return `
+      <div class="tg-lt">
+        <p class="tg-hint">Lower-third style: ${cur ? esc(label[cur] || cur) : 'plain text'}. Pick one to place it as an animated name strap.</p>
+        <div class="tg-chips" role="group" aria-label="Lower-third category">
+          <button type="button" class="tg-chip${u.ltCategory === 'all' ? ' is-active' : ''}" data-act="lt-cat" data-id="all">All</button>
+          ${cats.map(([id, [name]]) => `<button type="button" class="tg-chip${u.ltCategory === id ? ' is-active' : ''}" data-act="lt-cat" data-id="${id}">${name}</button>`).join('')}
+        </div>
+        <div class="tg-lt-grid" id="tg-lt-grid">
+          <button type="button" class="tg-lt-tile${!cur ? ' active' : ''}" data-act="lt-style" data-id=""><span class="tg-lt-none">Aa</span><b>Plain text</b></button>
+          ${ids.map((id) => `<button type="button" class="tg-lt-tile${cur === id ? ' active' : ''}" data-act="lt-style" data-id="${esc(id)}" aria-pressed="${cur === id}">
+            <span class="tg-lt-preview" data-lt-preview="${esc(id)}" aria-hidden="true"></span><b>${esc(label[id])}</b></button>`).join('')}
+        </div>
       </div>`;
   }
 
@@ -1020,6 +1086,19 @@ export class TemplateGeneratorModal extends BaseModal {
   }
 
   _onHover(e) {
+    const tr = this.glTransitions && e.target.closest?.('.tg-transition[data-id]');
+    if (tr && tr !== this._hoverTile) {
+      this._hoverStop();
+      this._hoverTile = tr;
+      const t = this.glTransitions.get(tr.dataset.id);
+      const holder = tr.querySelector('.tg-tr-thumb');
+      if (t?.mountPreview && holder) this._hoverTimer = setTimeout(() => {
+        if (this._hoverTile !== tr || !tr.isConnected) return;
+        const host = document.createElement('div'); host.className = 'tg-anim__live'; holder.appendChild(host);
+        try { this._hoverDestroy = t.mountPreview(host); } catch { host.remove(); }
+      }, 200);
+      return;
+    }
     const tile = e.target.closest?.('.video-tile[data-id]');
     if (!tile || tile === this._hoverTile || tile.closest('.tg-popup')) return;
     this._hoverStop();
@@ -1041,6 +1120,8 @@ export class TemplateGeneratorModal extends BaseModal {
   }
 
   _onHoverOut(e) {
+    const tr = e.target.closest?.('.tg-transition[data-id]');
+    if (tr && tr === this._hoverTile && !tr.contains(e.relatedTarget)) { this._hoverStop(); return; }
     const tile = e.target.closest?.('.video-tile[data-id]');
     if (tile && tile === this._hoverTile && !tile.contains(e.relatedTarget)) this._hoverStop();
   }
@@ -1148,6 +1229,8 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'ai-script': this.runScriptAction(el.dataset.kind); break;
       case 'use-template-script': this._applyTemplateScript(true); this.paint(); break;
       case 'overlay-tab': this.ui.overlayTab = id; this.paint(); break;
+      case 'lt-cat': this.ui.ltCategory = id; this.paint(); break;
+      case 'lt-style': this.s.elements.lowerThirdStyle = id; this.paint(); break;
       case 'transition-cat': this.ui.overlayCategory = id; this.paint(); break;
       case 'transition-pick': this.pickTransition(id); break;
       case 'panel-toggle': this.ui.openPanels[id] = !this.ui.openPanels[id]; this.paint(); break;

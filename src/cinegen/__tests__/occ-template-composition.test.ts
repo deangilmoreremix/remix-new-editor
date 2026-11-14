@@ -112,3 +112,29 @@ describe('wizard media gets a fileRef (so CineGen\'s media backfill can make thu
     expect(out.assets[0].fileRef).toBe('https://cdn.example/stock.mp4');
   });
 });
+
+describe('real transitions and lower-third styles', () => {
+  it('keeps a picked GL transition (glType); an unknown one stays a plain dissolve', () => {
+    const run = (type: string) => applyComposition(createDefaultTimeline('T'), buildCompositionFromState({ media: [m(1, 8), m(2, 6)], overlays: [], transitions: [{ type, duration: 1 }] }) as never).timeline.transitions[0];
+    expect(run('whip-pan')).toMatchObject({ type: 'dissolve', glType: 'whip-pan' });
+    expect(run('page-curl')).toMatchObject({ type: 'dissolve', glType: 'page-curl' });
+    expect((run('not-a-real-one') as { glType?: string }).glType).toBeUndefined();
+  });
+
+  it('places a styled lower third with the chosen template, name and title', () => {
+    const comp = buildCompositionFromState({ media: [m(1, 8)], overlays: [{ kind: 'overlay', type: 'lower-third', name: 'Lower third', text: 'Jane Doe | Owner', startTime: 1, duration: 4, lowerThird: { template: 'news', name: 'Jane Doe', title: 'Owner' } }], transitions: [] }) as never;
+    const r = applyComposition(createDefaultTimeline('T'), comp);
+    expect(r.overlays).toHaveLength(1);
+    expect(r.overlays[0].type).toBe('overlay-lower-third');
+    expect(r.overlays[0].addon).toMatchObject({ template: 'news', name: 'Jane Doe', title: 'Owner' });
+  });
+
+  it('offers every GL transition, in categories, with a real label and a preview', async () => {
+    const { generatorTransitions } = await import('@cinegen/lib/occ/template-generator-sources');
+    const { GL_TRANSITION_ORDER } = await import('@cinegen/lib/occ/transitions');
+    const list = generatorTransitions();
+    expect(list.map((t) => t.id)).toEqual([...GL_TRANSITION_ORDER]);
+    expect([...new Set(list.map((t) => t.category))].sort()).toEqual(['fade', 'motion', 'wipe']);
+    for (const t of list) { expect(t.label, t.id).toBeTruthy(); expect(t.description, t.id).toBeTruthy(); expect(typeof t.mountPreview).toBe('function'); expect(typeof t.thumb).toBe('function'); }
+  });
+});

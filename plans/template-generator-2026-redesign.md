@@ -103,3 +103,12 @@ Step 1 now starts on **Video templates**: the public 184-clip library kept in th
 - Failure to load shows a plain error with a retry on the next search; nothing is cached on failure.
 - Tests: `src/test/template-generator-video-templates.test.js` (fixture = real catalog entries, no live network).
 - Rights: the owner confirmed commercial-use permission; the published catalog's `rights` note still says to confirm (republishing it is the library owner's call).
+
+## Real transitions and lower-third styles in the Overlay step (added)
+- **Transitions:** in the CineGen editor the Overlay step lists the editor's own 16 GL transitions in categories (Fade, Wipe, Motion) with a real A/B still and a live loop on hover
+  (`generatorTransitions()` in `cinegen/lib/occ/template-generator-sources.ts`, drawn by `openchatcut/gl/transitionThumb.ts`). The picked id is kept on the timeline as `glType`
+  (`template-composition.ts`); before, every choice became a plain dissolve. The classic editor passes none and keeps the legacy list.
+- **Lower thirds:** a style picker (8 Lottie styles, in Bars / Minimal) with the user's own text previewed; the chosen style is placed as a real `overlay-lower-third`
+  (name | title). Saved in `elements.lowerThirdStyle`, so it travels with saved and synced templates (no DB change).
+- The two transition sample photos the renderer needs are in `public/library-previews/` (they were only under `apps/video-agent-studio`, so the existing Transitions window had blank thumbnails too).
+- Not added: the Motion Studio clips from the Personalization wizard (finished MP4s, not overlays).

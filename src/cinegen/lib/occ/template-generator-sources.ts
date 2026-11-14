@@ -14,6 +14,14 @@ import blocklistJson from '@cinegen/lib/occ/mg-render-blocklist.json';
 // @ts-expect-error plain JS flag module
 import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 
+import { GL_TRANSITION_ORDER, glTransitionLabel } from '@cinegen/lib/occ/transitions';
+import { ensureSampleFrame } from '../../../openchatcut/gl/sampleFrames';
+import {
+  transitionThumbUrlAsync, drawTransitionFrame, acquireTransitionThumbRuntime, releaseTransitionThumbRuntime,
+  THUMB_W, THUMB_H, HOVER_DURATION_MS, HOVER_HOLD_FRACTION,
+} from '../../../openchatcut/gl/transitionThumb';
+import type { GlslTransitionType } from '../../../openchatcut/types';
+
 const FPS = 30;
 const PER_PAGE = 24;
 
@@ -144,4 +152,67 @@ export function buildGeneratorSources(): GeneratorSource[] {
   // the motion-graphics pack is checked through the code gate once (a couple of seconds): start now so it is ready when the user opens it
   void loadMgTemplates().catch(() => undefined);
   return [animationsSource(), motionGraphicsSource(), endScreensSource()].filter((s): s is GeneratorSource => !!s);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// Real transitions for the Overlay step: the editor's own GL transitions (what the timeline actually renders), in categories, with the
+// same real A/B preview the Transitions window shows. The picked id is carried into the timeline (template-composition.ts → glType).
+export interface GeneratorTransition {
+  id: string; label: string; category: 'fade' | 'wipe' | 'motion'; description: string;
+  /** real still (a data URL) of the transition half-way through, or '' when it cannot be drawn */
+  thumb: () => Promise<string>;
+  /** plays the real transition into `host` (a loop of clip A → clip B); returns a function that stops it */
+  mountPreview: (host: HTMLElement) => () => void;
+}
+
+const TRANSITION_META: Record<string, { category: GeneratorTransition['category']; description: string }> = {
+  'cross-dissolve': { category: 'fade', description: 'A smooth cross-fade between the two clips.' },
+  'dip-to-black': { category: 'fade', description: 'Fades out through black, then into the next clip.' },
+  'dip-to-color': { category: 'fade', description: 'Fades out through a colour, then into the next clip.' },
+  flash: { category: 'fade', description: 'A bright flash covers the cut.' },
+  'luma-blend': { category: 'fade', description: 'Bright areas blend first, for a glowing mix.' },
+  'organic-dissolve': { category: 'fade', description: 'A soft, light-leak style dissolve.' },
+  'clean-line-wipe': { category: 'wipe', description: 'A thin white line sweeps across and reveals the next clip.' },
+  'soft-wipe': { category: 'wipe', description: 'A feathered edge wipes to the next clip.' },
+  'circle-wipe': { category: 'wipe', description: 'A circle opens up on the next clip.' },
+  'page-curl': { category: 'wipe', description: 'The clip peels away like a page.' },
+  'anticipation-zoom': { category: 'motion', description: 'Pushes in, then breaks through to the next clip.' },
+  'whip-pan': { category: 'motion', description: 'A fast camera whip with motion blur.' },
+  'impact-shake': { category: 'motion', description: 'A hard shake on the cut.' },
+  'radial-blur': { category: 'motion', description: 'A spinning blur carries you to the next clip.' },
+  'rack-focus': { category: 'motion', description: 'Focus shifts from one clip to the other.' },
+  'glitch-cut': { category: 'motion', description: 'A digital glitch on the cut.' },
+};
+
+const hoverProgress = (elapsed: number) => {
+  const c = (elapsed % HOVER_DURATION_MS) / HOVER_DURATION_MS;
+  return c < HOVER_HOLD_FRACTION ? 0 : c > 1 - HOVER_HOLD_FRACTION ? 1 : (c - HOVER_HOLD_FRACTION) / (1 - 2 * HOVER_HOLD_FRACTION);
+};
+
+export function generatorTransitions(): GeneratorTransition[] {
+  return GL_TRANSITION_ORDER.map((id) => {
+    const meta = TRANSITION_META[id] ?? { category: 'fade' as const, description: '' };
+    return {
+      id, label: glTransitionLabel(id), category: meta.category, description: meta.description,
+      thumb: async () => { try { return await transitionThumbUrlAsync(id as GlslTransitionType); } catch { return ''; } },
+      mountPreview: (host: HTMLElement) => {
+        let raf = 0; let dead = false; let held = false;
+        const canvas = document.createElement('canvas');
+        canvas.width = THUMB_W; canvas.height = THUMB_H; canvas.className = 'tg-tr-live';
+        host.appendChild(canvas);
+        void Promise.all([ensureSampleFrame('out'), ensureSampleFrame('in')]).then(() => {
+          if (dead) return;
+          acquireTransitionThumbRuntime(); held = true;
+          const t0 = performance.now();
+          const tick = (now: number) => {
+            if (dead) return;
+            if (!drawTransitionFrame(canvas, id as GlslTransitionType, hoverProgress(now - t0))) { canvas.remove(); return; } // cannot draw: the still stays
+            raf = requestAnimationFrame(tick);
+          };
+          tick(t0);
+        }).catch(() => canvas.remove());
+        return () => { dead = true; cancelAnimationFrame(raf); canvas.remove(); if (held) releaseTransitionThumbRuntime(); };
+      },
+    };
+  });
 }

@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { TemplateGeneratorModal } from '../components/modals/TemplateGeneratorModal.jsx';
 import { STEPS, STEP_LABELS } from '../components/modals/template-generator/rules.js';
-import { createTemplateStore } from '../components/modals/template-generator/templates.js';
+import { createTemplateStore, snapshotTemplate, restoreTemplate } from '../components/modals/template-generator/templates.js';
 
 const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
 
@@ -473,5 +473,67 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
       expect(m2.s.details.business_name).toBe('Luna Bistro');
       m.destroy(); m2.destroy();
     });
+  });
+});
+
+describe('Overlay step — real transitions and lower-third styles', () => {
+  afterEach(() => { document.body.innerHTML = ''; });
+  const glTransitions = [
+    { id: 'cross-dissolve', label: 'Cross dissolve', category: 'fade', description: 'fade', thumb: async () => '', mountPreview: () => () => {} },
+    { id: 'page-curl', label: 'Page curl', category: 'wipe', description: 'wipe', thumb: async () => '', mountPreview: () => () => {} },
+    { id: 'whip-pan', label: 'Whip pan', category: 'motion', description: 'motion', thumb: async () => '', mountPreview: () => () => {} },
+  ];
+  const open = (extra = {}) => {
+    const m = new TemplateGeneratorModal({ defaultProvider: 'pixabay', stockSearch: async () => ({ items: [], hasMore: false }), templateStore: createTemplateStore(memory()), ...extra });
+    m.open(); m.s.started = true; m.s.step = STEPS.OVERLAY; m.s.selectedVideos = [item(1), item(2)]; m.paint();
+    return m;
+  };
+
+  it('shows the host\'s transitions in categories and picks one by its real id', () => {
+    const m = open({ transitions: glTransitions });
+    const names = [...document.querySelectorAll('.tg-transition b')].map((b) => b.textContent);
+    expect(names).toEqual(['None', 'Cross dissolve', 'Page curl', 'Whip pan']);
+    expect([...document.querySelectorAll('[data-act="transition-cat"]')].map((b) => b.textContent)).toEqual(['All', 'Fade', 'Wipe', 'Motion']);
+    document.querySelector('[data-act="transition-cat"][data-id="motion"]').click();
+    expect([...document.querySelectorAll('.tg-transition b')].map((b) => b.textContent)).toEqual(['None', 'Whip pan']);
+    document.querySelector('.tg-transition[data-id="whip-pan"]').click();
+    expect(m.s.selectedTransition).toEqual({ type: 'whip-pan', duration: 1 });
+    expect(m.builderState().transitions).toEqual([{ type: 'whip-pan', duration: 1 }]);
+    m.destroy();
+  });
+
+  it('keeps the legacy transition list when the host offers none (classic editor)', () => {
+    const m = open();
+    expect(document.querySelectorAll('.tg-tr-thumb')).toHaveLength(0);
+    expect(document.querySelectorAll('.tg-transition').length).toBeGreaterThan(5);
+    m.destroy();
+  });
+
+  it('picks a lower-third style by category and turns it into a styled overlay; saved templates keep it', () => {
+    const m = open({ lowerThirdStyles: true });
+    m.ui.overlayTab = 'elements'; m.s.elements.lowerThird = 'Jane Doe | Owner'; m.paint();
+    expect([...document.querySelectorAll('[data-act="lt-cat"]')].map((b) => b.textContent)).toEqual(['All', 'Bars', 'Minimal']);
+    expect(document.querySelectorAll('[data-act="lt-style"]')).toHaveLength(9);          // plain text + 8 styles
+    document.querySelector('[data-act="lt-cat"][data-id="minimal"]').click();
+    expect([...document.querySelectorAll('[data-act="lt-style"] b')].map((b) => b.textContent)).toEqual(['Plain text', 'Minimal Line', 'Side Rule', 'Bold Underline']);
+    document.querySelector('[data-act="lt-style"][data-id="side-rule"]').click();
+    expect(m.s.elements.lowerThirdStyle).toBe('side-rule');
+    const lt = m.builderState().overlays.find((o) => o.type === 'lower-third');
+    expect(lt).toMatchObject({ kind: 'overlay', text: 'Jane Doe | Owner', lowerThird: { template: 'side-rule', name: 'Jane Doe', title: 'Owner' } });
+    const rec = snapshotTemplate(m.s, { name: 'LT' });
+    expect(restoreTemplate(rec, () => null).elements.lowerThirdStyle).toBe('side-rule');
+    m.destroy();
+  });
+
+  it('with no style (or no support) the lower third stays a plain text clip', () => {
+    const m = open({ lowerThirdStyles: true });
+    m.s.elements.lowerThird = 'Jane Doe';
+    const o = m.builderState().overlays.find((x) => x.name === 'Lower third');
+    expect(o).toMatchObject({ kind: 'text', text: 'Jane Doe' });
+    m.ui.overlayTab = 'elements'; m.paint();
+    m.destroy();
+    const classic = open(); classic.ui.overlayTab = 'elements'; classic.paint();
+    expect(document.querySelector('.tg-lt')).toBeNull();
+    classic.destroy();
   });
 });

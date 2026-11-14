@@ -113,9 +113,26 @@ export function createWizardState() {
     autoCta: '',
     selectedTransition: null,    // { type, duration } from the editor's transitions library
     // Text elements the timeline can create today (applyTemplate makes media + text/caption clips).
-    elements: { captions: true, title: '', lowerThird: '', cta: '' },
+    elements: { captions: true, title: '', lowerThird: '', lowerThirdStyle: '', cta: '' },
     voice: { enabled: false, provider: 'openai', voice: 'alloy', text: '', instructions: '' },
     personalization: { enabled: false, contactId: null, tokens: {} },
+  };
+}
+
+/** "Jane Doe | Owner" (or two lines) → the name and title of a lower third. */
+export function splitLowerThird(value) {
+  const [name = '', ...rest] = String(value || '').split(/\s*(?:\||\n|·)\s*/);
+  return { name: name.trim(), title: rest.join(' ').trim() };
+}
+
+/** A lower third with a chosen style becomes a real animated lower-third overlay; with no style it stays a plain text clip. */
+function lowerThirdClip(elements, startTime, duration) {
+  const text = String(elements.lowerThird || '').trim();
+  if (!text || !elements.lowerThirdStyle) return null;
+  const { name, title } = splitLowerThird(text);
+  return {
+    kind: 'overlay', type: 'lower-third', trackName: 'Lower Third', name: 'Lower third', text, startTime, duration,
+    lowerThird: { template: elements.lowerThirdStyle, name, title },
   };
 }
 
@@ -206,7 +223,7 @@ export function toBuilderState(s, payloads = {}) {
   });
   const elements = [
     text('Title', 'Title', s.elements.title, 0, 3),
-    text('Lower third', 'Lower Third', s.elements.lowerThird, Math.min(1, total - 1), 4),
+    lowerThirdClip(s.elements, Math.min(1, total - 1), Math.min(4, total)) || text('Lower third', 'Lower Third', s.elements.lowerThird, Math.min(1, total - 1), 4),
     text('Call to action', 'CTA', s.elements.cta || s.script.cta, Math.max(total - 4, 0), 4),
   ].filter(Boolean);
   const captionClips = s.elements.captions ? captions : [];

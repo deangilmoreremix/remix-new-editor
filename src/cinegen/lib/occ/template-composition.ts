@@ -8,8 +8,9 @@ import type { OverlayClip } from '@cinegen/types/workspace';
 import { addClipToTrack } from '@cinegen/lib/editor/timeline-operations';
 import { createOverlay, createTemplateOverlays } from '@cinegen/lib/overlays/overlays';
 import { generateId } from '@cinegen/lib/utils/ids';
+import { isGlTransition } from './transitions';
 
-interface CompClip { _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string } }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
+interface CompClip { _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string }; lowerThird?: { template?: string; name?: string; title?: string } }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
 interface CompTrack { type?: string; name?: string; clips?: CompClip[] }
 export interface Composition { name?: string; tracks?: CompTrack[]; transitions?: Array<{ fromClipIndex: number; toClipIndex: number; inTrack?: number; type?: string; duration?: number }> }
 
@@ -46,7 +47,10 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
         const kind = { cta: 'click-to-call', 'lead-form': 'lead-form', 'lower-third': 'overlay-lower-third', sticker: 'overlay-sticker' }[c.type] as 'click-to-call';
         const o = createOverlay(kind, start, T + dur);
         // a wizard call button sits low in the frame so it does not cover the text overlay (both default to the centre)
-        overlays.push({ ...o, start, end: start + dur, ...(kind === 'click-to-call' ? { style: { ...((o.style as Record<string, unknown>) ?? {}), posTop: 72 } } : {}) });
+        // a wizard lower third with a chosen style: that Lottie template, with the user's name and title
+        const lt = c.type === 'lower-third' ? c._overlayConfig?.lowerThird : undefined;
+        const addon = lt ? { ...((o.addon as Record<string, unknown>) ?? {}), ...(lt.template ? { template: lt.template } : {}), ...(lt.name ? { name: lt.name } : {}), title: lt.title ?? '' } : o.addon;
+        overlays.push({ ...o, ...(lt ? { addon } : {}), start, end: start + dur, ...(kind === 'click-to-call' ? { style: { ...((o.style as Record<string, unknown>) ?? {}), posTop: 72 } } : {}) });
       } else if (c.type === 'animation') {
         // an animation / motion graphic picked in the wizard: the overlay its library resolved, re-timed to this cut; or an end-screen / form template
         const cfg = c._overlayConfig?.animation;
@@ -74,7 +78,8 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
     const direct = placed.get(t.inTrack ?? 0) ?? [];
     const ids = direct.length >= 2 ? direct : ([...placed.values()].find((v) => v.length >= 2) ?? []);
     const a = ids[t.fromClipIndex]; const b = ids[t.toClipIndex];
-    if (a && b) transitions.push({ id: generateId(), type: 'dissolve', duration: Math.max(0.1, Math.min(t.duration ?? 1, 2)), clipAId: a, clipBId: b });
+    if (a && b) // the wizard's pick is one of the editor's GL transitions → keep it (glType); anything else stays a plain dissolve
+    transitions.push({ id: generateId(), type: 'dissolve', duration: Math.max(0.1, Math.min(t.duration ?? 1, 2)), clipAId: a, clipBId: b, ...(isGlTransition(t.type) ? { glType: t.type } : {}) });
   }
   if (transitions.length) tl = { ...tl, transitions: [...tl.transitions, ...transitions] };
   return { timeline: tl, assets, overlays, clipIds: [...placed.values()].flat() };

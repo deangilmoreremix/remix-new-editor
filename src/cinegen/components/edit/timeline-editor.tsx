@@ -926,13 +926,16 @@ export function TimelineEditor({
 
   // [remix] Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
   const handleOpenGenerator = useCallback(async () => {
-    const [{ TemplateGeneratorModal }, { buildGeneratorSources }] = await Promise.all([
+    const [{ TemplateGeneratorModal }, { buildGeneratorSources, generatorTransitions }] = await Promise.all([
       import('../../../components/modals/TemplateGeneratorModal.jsx'),
       import('@cinegen/lib/occ/template-generator-sources'),
     ]);
     const modal = new TemplateGeneratorModal({
       // Animations, motion graphics and end screens from this editor's own libraries (plus Pexels, Pixabay and upload built into the wizard)
       extraSources: buildGeneratorSources(),
+      // the editor's own GL transitions (what the timeline really renders) and the animated lower-third styles, in categories
+      transitions: generatorTransitions(),
+      lowerThirdStyles: true,
       // "My media": the project's own clips and images
       projectMedia: state.assets
         .filter((x) => x.type === 'video' || x.type === 'image')

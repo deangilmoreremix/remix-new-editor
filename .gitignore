@@ -124,6 +124,8 @@ debug_signin.cjs
 !/public/hyperframes/thumbs/*.jpg
 !/public/occ-templates/thumbs/*.jpg
 !/public/overlay-templates/thumbs/*.jpg
+!/public/library-previews/sample-out.jpg
+!/public/library-previews/sample-in.jpg
 
 # Logs
 logs
