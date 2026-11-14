@@ -10,8 +10,8 @@ import { BaseModal } from './BaseModal.jsx';
 //   editor -> iframe : { type: 'transcribe-progress' | 'transcribe-done' | 'transcribe-aborted' | 'transcribe-error', requestId, ... }
 
 const CHANNEL = 'remotion-recorder-embed';
-const FOLDER = 'timeline-project'; // must match EDITOR_FOLDER in embed/adapters/bridge.ts
-const APP_URL = `${import.meta.env?.BASE_URL ?? '/'}recorder-ui/index.html?folder=${FOLDER}`;
+const FOLDER = 'Timeline project'; // must match EDITOR_FOLDER in embed/adapters/bridge.ts
+const APP_URL = `${import.meta.env?.BASE_URL ?? '/'}recorder-ui/index.html?folder=${encodeURIComponent(FOLDER)}`;
 const FPS = 30; // upstream's config/fps.ts
 
 const KIND_LABELS = { webcam: 'Webcam', display: 'Screen', alternative1: 'Camera 2', alternative2: 'Camera 3' };
@@ -176,6 +176,7 @@ export class RecorderModal extends BaseModal {
       duration: take.expectedFrames ? take.expectedFrames / FPS : 0,
       layout: 'separate',
       sources,
+      captions: take.captions || null, // word-level, ms from the start of the webcam recording
     });
     this.close();
   }

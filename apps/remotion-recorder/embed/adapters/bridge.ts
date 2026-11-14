@@ -3,8 +3,8 @@
 // in this folder replace exactly those five modules at build time (see ../vite.config.mjs); nothing in ../src is edited.
 export const CHANNEL = "remotion-recorder-embed";
 
-/** Folder name the upstream UI shows as "Save to: public/<name>". Everything saved goes to the open editor project. */
-export const EDITOR_FOLDER = "timeline-project";
+/** Folder name the upstream UI shows as "Save to: <name>". Everything saved goes to the open editor project. */
+export const EDITOR_FOLDER = "Timeline project";
 
 export const inEditor = () => window.parent !== window;
 

@@ -7,6 +7,11 @@ import type { Timeline } from '@cinegen/types/timeline';
 import type { WorkspaceAction } from '@cinegen/lib/mcp/workspace-state';
 import { addClipToTrack } from '@cinegen/lib/editor/timeline-operations';
 import { generateId } from '@cinegen/lib/utils/ids';
+import { backfillCueIdentities } from '../../../openchatcut/transcript/identity';
+import type { CaptionsData } from '../../../openchatcut/captions/types';
+
+/** One word of the transcript the Recorder made: text with a leading space, ms from the start of the webcam recording. */
+interface RecordedCaption { text: string; startMs: number; endMs: number }
 
 interface Options {
   timeline: Timeline;
@@ -63,7 +68,7 @@ export function useScreenRecorder({ timeline, currentTime, projectId, dispatch }
   const latestRef = useRef({ timeline, currentTime });
   latestRef.current = { timeline, currentTime };
 
-  const place = useCallback(async (recorded: Recorded[], at: number, fallbackSeconds: number) => {
+  const place = useCallback(async (recorded: Recorded[], at: number, fallbackSeconds: number, captions?: RecordedCaption[] | null) => {
     const stamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const hasScreen = recorded.some((r) => r.kind === 'display');
     const ordered = [...recorded].sort((a, b) => LAYERS[a.kind].order - LAYERS[b.kind].order);
@@ -113,9 +118,17 @@ export function useScreenRecorder({ timeline, currentTime, projectId, dispatch }
       }
       used.add(track.id);
       tl = addClipToTrack(tl, track.id, asset, from);
-      if (rec.kind === 'webcam' && hasScreen) {
+      if (rec.kind === 'webcam') {
         const trackId = track.id;
-        tl = { ...tl, clips: tl.clips.map((c) => (c.assetId === asset.id && c.trackId === trackId ? { ...c, transform: { ...PIP } } : c)) };
+        tl = { ...tl, clips: tl.clips.map((c) => {
+          if (c.assetId !== asset.id || c.trackId !== trackId) return c;
+          // Same shape the editor's own "generate captions" builds: words in TIMELINE ms, offsetFrames 0, its default look.
+          const words = (captions ?? []).map((w) => ({ text: w.text.trim(), start: Math.round(from * 1000 + w.startMs), end: Math.round(from * 1000 + w.endMs) })).filter((w) => w.text);
+          const withCaptions: CaptionsData | undefined = words.length
+            ? { enabled: true, template: 'tiktok', pacing: 'phrase', motionPreset: 'pop', words: backfillCueIdentities(words, c.id), offsetFrames: 0 }
+            : undefined;
+          return { ...c, ...(hasScreen ? { transform: { ...PIP } } : {}), ...(withCaptions ? { captions: withCaptions } : {}) };
+        }) };
       }
     }
     dispatch({ type: 'SET_TIMELINE', timelineId: latestRef.current.timeline.id, timeline: tl });
@@ -126,9 +139,9 @@ export function useScreenRecorder({ timeline, currentTime, projectId, dispatch }
     const at = Math.max(0, latestRef.current.currentTime);
     const { RecorderModal } = await import('../../../components/modals/RecorderModal.jsx');
     const modal = new RecorderModal({
-      onComplete: (result: { sources?: Recorded[]; duration?: number }) => {
+      onComplete: (result: { sources?: Recorded[]; duration?: number; captions?: RecordedCaption[] | null }) => {
         if (!result?.sources?.length) return;
-        place(result.sources, at, result.duration || 5).catch((err: unknown) => console.error('[screen-recorder] could not add the recording:', err));
+        place(result.sources, at, result.duration || 5, result.captions).catch((err: unknown) => console.error('[screen-recorder] could not add the recording:', err));
       },
       // Recorder Studio's rendered video (captions, layouts, end card burned in).
       onStudioExport: (result: { blob: Blob; durationInSeconds: number }) => {

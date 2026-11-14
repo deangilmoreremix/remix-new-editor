@@ -63,11 +63,23 @@ const rebaseLogo = {
   transform: (code, id) => (id.endsWith('/src/Logo.tsx') ? code.replace('src="/logo.png"', 'src="/recorder-ui/logo.png"') : null),
 };
 
+// Wording only. Upstream's UI says "Copy to public/<folder>" / "public/<folder>" because its own server writes into a Remotion project's
+// public/ folder; here a take goes to the editor, so say that. Done at build time; the upstream files are not edited.
+const relabel = {
+  name: 'recorder-embed-relabel',
+  enforce: 'pre',
+  transform(code, id) {
+    if (id.endsWith('/src/components/UseThisTake.tsx')) return code.replace('`Copy to public/${selectedFolder}`', '"Save take"');
+    if (id.endsWith('/src/components/SelectedFolder.tsx')) return code.replaceAll('public/{', '{');
+    return null;
+  },
+};
+
 export default defineConfig({
   root: appRoot,
   base: '/recorder-ui/',
   publicDir: false, // upstream's public/ holds a sample project (13 MB); only the favicon and logo are needed
-  plugins: [swapServerModules, rebaseLogo, react(), upstreamIndexHtml],
+  plugins: [swapServerModules, rebaseLogo, relabel, react(), upstreamIndexHtml],
   resolve: { alias: { '@': path.resolve(appRoot, 'src') } }, // same alias as upstream's vite.config.ts
   css: { postcss: { plugins: [tailwind({ config: path.join(appRoot, 'tailwind.config.js') }), autoprefixer()] } },
   build: {

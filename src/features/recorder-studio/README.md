@@ -24,9 +24,10 @@ browser-only app, so these files are ours and replace that Studio: `RecorderStud
 
 - **Main Timeline editor** (`#/timeline`, CineGen): **EDIT** tab → the camera icon in the vertical tool strip, above the microphone.
   A take goes to the media pool and the first free video tracks (screen lowest, facecam above it as picture-in-picture, mic on an audio track).
+  If captions were made, they are attached to the webcam clip in the editor's own caption format (a Captions lane appears above the video tracks).
 - **Classic editor** (`#/timeline-classic`): the **Recorder** chip in the "All features" bar.
 
-Flow: record in upstream's UI → its **Copy to public/timeline-project** button (upstream converts the take in the browser) → the editor receives
+Flow: record in upstream's UI → its **Save take** button (upstream converts the take in the browser) → the editor receives
 the files and transcribes them → **Add to timeline** or **Recorder Studio** → scenes, captions, style → render → **Add to timeline**.
 
 ## Changes made to the vendored composition (`composition/`)
@@ -54,4 +55,5 @@ Not ported on purpose: the upstream `recorder` intro scene (a Remotion Recorder 
 
 - Licence: upstream is Remotion Recorder code (see Remotion's licence terms). The project owner has confirmed licensing for this use, including the bundled music tracks.
   Web exports use the same `licenseKey` convention as `motion-director/webRenderer.ts`.
+- The classic editor (`#/timeline-classic`) has no captions model, so a take added there carries the media only; use Recorder Studio for captions in that editor.
 - Dev: run `npm run build:remotion-recorder` once, otherwise the Recorder window explains that it is missing. `npm run build` does it for you.
