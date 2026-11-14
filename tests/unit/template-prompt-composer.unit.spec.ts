@@ -190,3 +190,15 @@ describe('niche templates use their niche terms', () => {
     expect(labels.filter(l => !NICHE_ENRICHMENT[toNicheKey(l)])).toEqual([]);
   });
 });
+
+describe('niche detection uses whole words', () => {
+  it('"character" does not trigger the automotive niche', () => {
+    const t = normalizeTemplate(getTemplateById('tiktok-video'));
+    const { prompt } = composeTemplatePrompt({ template: t, userPrompt: 'the character waves at the camera and the sun sets', templateInputs: t.inputs });
+    expect(prompt).not.toMatch(/vehicle|machine presence/i);
+  });
+
+  it('still detects real automotive wording', () => {
+    expect(detectTemplateNiche({ template: { name: 'x' }, userPrompt: 'a used car dealership promo' })).toBe('automotive');
+  });
+});
