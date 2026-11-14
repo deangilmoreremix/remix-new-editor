@@ -7,8 +7,8 @@ import { createRoot } from 'react-dom/client';
 import { Puck, Render } from '@puckeditor/core';
 import '@puckeditor/core/no-external.css';
 import '../../../../styles/puck-pages.css';
-// One stylesheet per design (styles/puck/NN-name.css, scoped to .pk-d-<design>), loaded automatically.
-import.meta.glob('../../../../styles/puck/*.css', { eager: true });
+// One stylesheet per design (styles/puck/NN-name.css), loaded AFTER the base styles so a design can override them.
+import './designCss.js';
 import { PageContext } from './context.js';
 import { puckConfig } from './config.jsx';
 

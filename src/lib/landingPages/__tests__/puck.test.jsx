@@ -72,6 +72,19 @@ describe('editable (Puck) pages', () => {
     expect(out).toContain('&lt;b&gt;51+&lt;/b&gt;');
     expect(out).toContain('class="pk-accent"');
   });
+  it('a hero background photo is set as a quoted CSS url, and unsafe values are ignored', () => {
+    const hero = (background) => html({ root: { props: {} }, zones: {}, content: [{ type: 'Hero', props: { id: 'h', ...puckConfig.components.Hero.defaultProps, variant: 'story', background } }] });
+    expect(hero('https://cdn.example.com/a.jpg')).toContain('--pk-hero-bg');
+    expect(hero('/landing-art/11/hero.webp')).toContain('--pk-hero-bg');
+    expect(hero('javascript:alert(1)')).not.toContain('--pk-hero-bg');
+    expect(hero('https://x.io/a.jpg\");background:url(javascript:alert(1)')).not.toMatch(/javascript:alert/);
+  });
+  it('the bottom button bar links safely', () => {
+    const bar = (url) => html({ root: { props: {} }, zones: {}, content: [{ type: 'CtaBar', props: { id: 'b', label: 'Go', url, icon: 'calendar' } }] });
+    expect(bar('https://ok.io')).toContain('href="https://ok.io"');
+    expect(bar('#lead')).toContain('href="#lead"');
+    expect(bar('javascript:alert(1)')).toContain('href="#lead"');
+  });
   it('the phone and desktop markup is the same responsive markup (no fixed canvas)', () => {
     const out = html(starter);
     expect(out).not.toMatch(/is-canvas|zoom:/);

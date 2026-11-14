@@ -173,11 +173,17 @@ export function NavBar({ brand, logo, links, loginLabel, loginUrl, ctaLabel }) {
   );
 }
 
-export function Hero({ variant = 'copy-video-form', eyebrow, headline, subhead, bullets, chip, photo, formTitle, formSubtitle, submitLabel, formFields, privacy, buttons, showForm = 'yes' }) {
+const cssImage = (v) => {
+  const u = safeImageUrl(v) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(v || '')) ? String(v) : '');
+  // Never let quotes, brackets, backslashes or spaces anywhere near a style value.
+  return u && !/["'()\\\s<>]/.test(u) ? `url(${JSON.stringify(u)})` : '';
+};
+
+export function Hero({ variant = 'copy-video-form', background, eyebrow, headline, subhead, bullets, chip, photo, formTitle, formSubtitle, submitLabel, formFields, privacy, buttons, showForm = 'yes' }) {
   const t = useTokens();
   const fields = asList(formFields).filter((f) => f.key && f.label).map((f) => ({ ...f, key: String(f.key).replace(/[^a-z0-9_]/gi, '').toLowerCase() }));
   return (
-    <header className={`pk-hero pk-hero--${variant}`} id="top">
+    <header className={`pk-hero pk-hero--${variant}`} id="top" style={cssImage(background) ? { '--pk-hero-bg': cssImage(background) } : undefined}>
       <div className="pk-hero-copy">
         {eyebrow ? <span className="pk-eyebrow">{t(eyebrow)}</span> : null}
         <AccentText as="h1" className="pk-headline" text={headline} />
@@ -185,7 +191,7 @@ export function Hero({ variant = 'copy-video-form', eyebrow, headline, subhead, 
         {asList(bullets).length ? <ul className="pk-bullets">{asList(bullets).map((b, i) => <li key={i}>{t(b.text)}</li>)}</ul> : null}
         {asList(buttons).length ? <div className="pk-actions">{asList(buttons).map((b, i) => <SafeLink key={i} className={`pk-btn pk-btn--${b.style === 'primary' ? 'primary' : 'secondary'}`} href={b.url}>{t(b.label)}</SafeLink>)}</div> : null}
       </div>
-      <div className="pk-hero-video">
+      <div className="pk-hero-video" id="video">
         <VideoPlayer poster={photo} />
         {chip ? <div className="pk-chip">{t(chip)}</div> : null}
       </div>
@@ -261,6 +267,8 @@ export function TextBlock({ eyebrow, title, text, align = 'center' }) {
 }
 
 /* ---------- cards (live inside a Grid) ---------- */
+
+const imgUrl = (v) => safeImageUrl(v) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(v || '')) ? String(v) : '');
 
 const span = (n) => ({ '--pk-span': Math.max(1, Math.min(6, Number(n) || 1)) });
 
@@ -345,7 +353,7 @@ export function QuoteCard({ columns, heading, quotes }) {
       {asList(quotes).map((q, i) => (
         <figure key={i} className="pk-quote">
           <blockquote>{`\u201C${t(q.text)}\u201D`}</blockquote>
-          <figcaption><i className="pk-dot pk-dot--lg">{String(q.name || '?').slice(0, 1).toUpperCase()}</i><span><b>{t(q.name)}</b><small>{t(q.role)}</small></span></figcaption>
+          <figcaption>{imgUrl(q.avatar) ? <img className="pk-avatar" src={imgUrl(q.avatar)} alt="" loading="lazy" width="46" height="46" /> : <i className="pk-dot pk-dot--lg">{String(q.name || '?').slice(0, 1).toUpperCase()}</i>}<span><b>{t(q.name)}</b><small>{t(q.role)}</small></span></figcaption>
         </figure>
       ))}
     </CardShell>
@@ -425,4 +433,19 @@ export function PageImage({ src, alt, rounded = 'yes' }) {
   const url = safeImageUrl(src) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(src || '')) ? src : '');
   if (!url) return null;
   return <img className={`pk-image${rounded === 'yes' ? ' pk-image--round' : ''}`} src={url} alt={alt || ''} loading="lazy" />;
+}
+
+/** A full-width button bar (usually the last thing on a phone-style page). */
+export function CtaBar({ text, label, url, icon }) {
+  const t = useTokens();
+  const href = safeUrl(url) || anchor(url) || '#lead';
+  const ext = /^https?:/i.test(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+  if (!text) return <a className="pk-ctabar" href={href} {...ext}>{icon ? <Icon name={icon} /> : null}<span>{t(label)}</span></a>;
+  return (
+    <section className="pk-ctabar pk-ctabar--split">
+      {icon ? <Icon name={icon} className="pk-ico pk-ico--lg" /> : null}
+      <p>{t(text)}</p>
+      <a className="pk-btn pk-btn--cta" href={href} {...ext}>{t(label)}</a>
+    </section>
+  );
 }

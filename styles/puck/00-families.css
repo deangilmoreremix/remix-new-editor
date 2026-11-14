@@ -1,0 +1,51 @@
+/* Phone-first page families. Family B ("Create once. Make it personal."): nav, headline, form + big video, 3 tiles,
+   one testimonial, split bottom bar. Family A ("Hi Sarah..."): photo-story hero, video card + form, 3 tiles, one quote, button bar. */
+.pk-page[class*="pk-d-pb-"], .pk-page[class*="pk-d-pa-"] { background: var(--pk-bg-grad, var(--pk-bg)); color: var(--pk-text); }
+.pk-page[class*="pk-d-pb-"] .pk-nav, .pk-page[class*="pk-d-pa-"] .pk-nav { padding-top: 12px; padding-bottom: 8px; gap: 10px; }
+.pk-page[class*="pk-d-pb-"] .pk-brand, .pk-page[class*="pk-d-pa-"] .pk-brand { font-size: 19px; }
+.pk-page[class*="pk-d-pb-"] .pk-nav-links, .pk-page[class*="pk-d-pa-"] .pk-nav-links { display: flex; gap: 14px; margin: 0 0 0 auto; font-size: 12px; }
+.pk-page[class*="pk-d-pb-"] .pk-nav-right, .pk-page[class*="pk-d-pa-"] .pk-nav-right { margin-left: 0; }
+@media (min-width: 760px) { .pk-page[class*="pk-d-pb-"] .pk-nav-links, .pk-page[class*="pk-d-pa-"] .pk-nav-links { gap: 28px; font-size: 15px; } }
+
+/* family B hero ("duo") */
+.pk-hero--duo { max-width: 1280px; margin: 0 auto; padding: 6px clamp(14px, 4vw, 48px) 22px; display: grid; gap: 14px; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: stretch; }
+.pk-hero--duo .pk-hero-copy { grid-column: 1 / -1; gap: 10px; }
+.pk-hero--duo .pk-headline { font-size: clamp(34px, 8.4vw, 64px); line-height: 1.02; letter-spacing: -0.035em; background: var(--pk-h1, none); -webkit-background-clip: text; background-clip: text; color: var(--pk-h1-color, inherit); -webkit-text-fill-color: var(--pk-h1-fill, currentColor); }
+.pk-hero--duo .pk-headline .pk-accent { -webkit-text-fill-color: var(--pk-h1-accent, currentColor); color: var(--pk-h1-accent, var(--pk-accent)); }
+.pk-hero--duo .pk-subhead { color: inherit; opacity: .9; max-width: 34ch; font-size: clamp(15px, 3.8vw, 22px); }
+.pk-hero--duo .pk-hero-form { grid-column: 1; grid-row: 2; align-self: start; }
+.pk-hero--duo .pk-hero-video { grid-column: 2; grid-row: 2; display: block; position: relative; min-height: 230px; }
+.pk-hero--duo .pk-video { height: 100%; }
+.pk-hero--duo .pk-video video { height: 100%; min-height: 230px; aspect-ratio: auto; object-fit: cover; border-radius: 14px; box-shadow: none; background: transparent; }
+.pk-hero--duo .pk-form { background: var(--pk-form-bg, #fff); color: var(--pk-form-text, #111827); border: 0; padding: 14px; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.pk-hero--duo .pk-form-title { font-size: clamp(15px, 3.6vw, 22px); }
+.pk-hero--duo .pk-field input { min-height: 38px; padding: 6px 10px; font-size: 14px; background: #fff; color: #111827; }
+.pk-hero--duo .pk-btn--primary { width: 100%; background: var(--pk-accent); color: var(--pk-on-accent, #fff); }
+@media (min-width: 760px) {
+  .pk-hero--duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px 36px; padding-top: 28px; padding-bottom: 48px; }
+  .pk-hero--duo .pk-hero-copy { grid-column: 1; grid-row: 1; align-self: end; }
+  .pk-hero--duo .pk-hero-form { grid-column: 1; grid-row: 2; max-width: 460px; }
+  .pk-hero--duo .pk-hero-video { grid-column: 2; grid-row: 1 / span 2; min-height: 520px; }
+  .pk-hero--duo .pk-video video { min-height: 520px; border-radius: 20px; }
+}
+.pk-page[class*="pk-d-pb-"] .pk-strip, .pk-page[class*="pk-d-pa-"] .pk-strip { border-bottom: 0; max-width: 960px; padding-top: 6px; padding-bottom: 6px; }
+.pk-page[class*="pk-d-pb-"] .pk-strip-row, .pk-page[class*="pk-d-pa-"] .pk-strip-row { justify-content: space-around; align-items: flex-start; gap: 12px; }
+.pk-page[class*="pk-d-pb-"] .pk-strip-item, .pk-page[class*="pk-d-pa-"] .pk-strip-item { flex-direction: column; text-align: center; max-width: 160px; gap: 8px; font-size: clamp(12px, 3vw, 16px); }
+.pk-page[class*="pk-d-pb-"] .pk-ico--lg, .pk-page[class*="pk-d-pa-"] .pk-ico--lg { width: clamp(30px, 7vw, 46px); height: clamp(30px, 7vw, 46px); color: var(--pk-tile, var(--pk-accent)); }
+.pk-page[class*="pk-d-pb-"] .pk-strip-item small, .pk-page[class*="pk-d-pa-"] .pk-strip-item small { display: none; }
+.pk-page[class*="pk-d-pb-"] .pk-grid, .pk-page[class*="pk-d-pa-"] .pk-grid { padding-top: 8px; }
+.pk-page[class*="pk-d-pb-"] .pk-grid-in, .pk-page[class*="pk-d-pa-"] .pk-grid-in { grid-template-columns: minmax(0, 1fr); max-width: 860px; margin: 0 auto; }
+.pk-page[class*="pk-d-pb-"] .pk-card--quotes, .pk-page[class*="pk-d-pa-"] .pk-card--quotes { background: transparent; border: 0; align-items: center; text-align: center; grid-column: 1 / -1; }
+.pk-page[class*="pk-d-pb-"] .pk-card--quotes .pk-card-title, .pk-page[class*="pk-d-pa-"] .pk-card--quotes .pk-card-title { font-size: clamp(18px, 4.4vw, 26px); }
+.pk-page[class*="pk-d-pb-"] .pk-quote, .pk-page[class*="pk-d-pa-"] .pk-quote { grid-template-columns: auto 1fr; align-items: center; gap: 14px; text-align: left; max-width: 640px; }
+.pk-page[class*="pk-d-pb-"] .pk-quote figcaption, .pk-page[class*="pk-d-pa-"] .pk-quote figcaption { order: -1; }
+.pk-page[class*="pk-d-pb-"] .pk-quote blockquote, .pk-page[class*="pk-d-pa-"] .pk-quote blockquote { font-size: clamp(14px, 3.4vw, 19px); grid-column: 2; grid-row: 1; }
+.pk-page[class*="pk-d-pb-"] .pk-quote figcaption { display: contents; }
+.pk-page[class*="pk-d-pb-"] .pk-quote figcaption .pk-avatar, .pk-page[class*="pk-d-pb-"] .pk-quote figcaption .pk-dot { grid-column: 1; grid-row: 1 / span 2; }
+.pk-page[class*="pk-d-pb-"] .pk-quote figcaption > span { grid-column: 2; grid-row: 2; }
+.pk-page[class*="pk-d-pb-"] .pk-quote small, .pk-page[class*="pk-d-pa-"] .pk-quote small { color: inherit; opacity: .8; display: inline; margin-left: 6px; }
+.pk-avatar { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px rgba(255,255,255,.5); }
+.pk-ctabar--split { display: flex; align-items: center; gap: 14px; justify-content: space-between; background: var(--pk-bar, var(--pk-accent)); color: var(--pk-bar-text, #fff); padding: 16px clamp(16px, 5vw, 64px); }
+.pk-ctabar--split p { margin: 0; flex: 1; font-weight: 700; font-size: clamp(14px, 3.6vw, 24px); line-height: 1.25; }
+.pk-btn--cta { background: var(--pk-cta, #fff); color: var(--pk-cta-text, #111827); border-radius: 10px; white-space: nowrap; }
+.pk-ctabar { background: var(--pk-bar, var(--pk-accent)); color: var(--pk-bar-text, #fff); }
