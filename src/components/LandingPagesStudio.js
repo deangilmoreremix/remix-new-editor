@@ -10,7 +10,7 @@ import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
-import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
+import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizePuck, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
 import { wireframeSvg } from '../lib/landingPages/wireframes.js';
@@ -237,7 +237,7 @@ export function LandingPagesStudio() {
       c.setAttribute('aria-pressed', String(on));
     });
     // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    [['Website pages (full site look: nav, hero, form, proof, cards)', TEMPLATES.filter((t) => t.site)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
+    [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Website pages (full site look: nav, hero, form, proof, cards)', TEMPLATES.filter((t) => t.site)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
       const grp = el('div', 'flex flex-col gap-2');
       grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
       const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
@@ -291,12 +291,15 @@ export function LandingPagesStudio() {
     let current = { ...page, config: sanitizeConfig(page.config) };
     let dirty = false;
     let tab = 'design';
+    let puckHandle = null; // the visual (Puck) editor, when this page uses it
 
     const top = el('div', 'flex flex-wrap items-center gap-3');
     const back = el('button', BTN, '← All pages');
     back.type = 'button';
     back.addEventListener('click', () => {
       if (dirty && !window.confirm('Discard unsaved changes?')) return;
+      puckHandle?.destroy();
+      puckHandle = null;
       showList();
     });
     const titleInput = el('input', `${INPUT} flex-1 min-w-[12rem] max-w-md font-bold`);
@@ -356,7 +359,52 @@ export function LandingPagesStudio() {
     titleInput.addEventListener('input', markDirty);
 
     // ---- design tab
+    function puckDesignTab() {
+      const box = el('div', 'flex flex-col gap-3');
+      const bar = el('div', 'flex flex-wrap items-center gap-3 text-xs text-secondary');
+      const tplSel = el('select', INPUT);
+      TEMPLATES.filter((t) => t.puck || t.site).forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
+      tplSel.value = current.config.template;
+      tplSel.addEventListener('change', () => {
+        current.config = applyTemplate(current.config, tplSel.value, { title: titleInput.value, brand: brandDefaults() });
+        markDirty();
+        draw();
+      });
+      bar.append(el('span', 'font-bold', 'Design'), tplSel, el('span', '', 'Click any text on the page to edit it. Use the left panel to add, remove and reorder sections. Save when you are done.'));
+      const host = el('div', 'rounded-2xl border border-white/10 overflow-hidden bg-white');
+      host.style.height = '78vh';
+      box.append(bar, host);
+      const danger = el('button', 'self-start text-xs text-red-300 hover:underline mt-4', 'Delete this page');
+      danger.type = 'button';
+      danger.addEventListener('click', async () => {
+        if (!window.confirm('Delete this page and its analytics? The link will stop working.')) return;
+        try { await deletePage(await ownerClient(), current.id); showToast('Page deleted', 'success', 2000); showList(); } catch (err) { showToast(err.message, 'error', 4000); }
+      });
+      box.appendChild(danger);
+      let last = JSON.stringify(current.config.puck);
+      import('../lib/landingPages/puck/mount.jsx').then(({ mountPuckEditor }) => {
+        if (!host.isConnected && !document.contains(host)) { /* tab was left before the editor loaded */ }
+        puckHandle = mountPuckEditor(host, {
+          page: current,
+          data: current.config.puck,
+          tokens: SAMPLE_TOKENS,
+          onPublish: () => saveBtn.click(), // Puck's own Publish button = our Save
+          onChange: (data) => {
+            const next = sanitizePuck(data);
+            if (!next) return;
+            const json = JSON.stringify(next);
+            if (json === last) return;
+            last = json;
+            current.config = { ...current.config, puck: next };
+            markDirty();
+          },
+        });
+      }).catch((err) => showToast(err.message || 'Could not load the editor', 'error', 4000));
+      return box;
+    }
+
     function designTab() {
+      if (current.config.puck) return puckDesignTab();
       const wrap = el('div', 'grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]');
       const form = el('div', 'flex flex-col gap-4');
       const previewBox = el('div', 'rounded-2xl border border-white/10 overflow-hidden bg-black max-h-[80vh] overflow-y-auto');
@@ -384,7 +432,7 @@ export function LandingPagesStudio() {
       };
 
       const tplSel = el('select', INPUT);
-      [['Website pages', TEMPLATES.filter((t) => t.site)], ['Page structures', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
+      [['Editable landing pages', TEMPLATES.filter((t) => t.puck)], ['Website pages', TEMPLATES.filter((t) => t.site)], ['Page structures', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
         const og = el('optgroup');
         og.label = label;
         list.forEach((t) => { const o = el('option', '', t.name); o.value = t.id; og.appendChild(o); });
@@ -847,6 +895,8 @@ export function LandingPagesStudio() {
     }
 
     function draw() {
+      puckHandle?.destroy();
+      puckHandle = null;
       Object.entries(tabBtns).forEach(([id, b]) => {
         const on = id === tab;
         b.className = `px-4 py-2 text-sm font-bold border-b-2 -mb-px ${on ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-white'}`;

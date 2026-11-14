@@ -9,6 +9,7 @@
 
 import { SITE_TEMPLATES } from './siteTemplates.js';
 import { ICON_KEYS } from './siteIcons.js';
+import { PUCK_TEMPLATES } from './puck/designs.js';
 
 export const TEMPLATES = Object.freeze([
   {
@@ -252,6 +253,7 @@ export const TEMPLATES = Object.freeze([
     vars: { '--vp-desk': 'linear-gradient(135deg, #c7d2fe 0%, #fbcfe8 100%)', '--vp-surface': '#f8f9fc', '--vp-surface-2': '#f8f9fc', '--vp-line': 'rgba(15,23,42,.10)' },
   },
   ...SITE_TEMPLATES,
+  ...PUCK_TEMPLATES,
 ]);
 
 /** The structural layouts (different page compositions, not re-skins). */
@@ -325,6 +327,9 @@ export function defaultConfig(templateId = 'clean', { title = '', brand = {} } =
     consent: { notice: '' },
     autoplay: false,
   };
+  if (t.puck) {
+    return sanitizeConfig({ ...base, headline: title || 'Watch this video', form: { ...base.form, enabled: false }, puck: JSON.parse(JSON.stringify(t.puckData)) });
+  }
   if (t.site) {
     const d = t.defaults || {};
     return sanitizeConfig({
@@ -441,6 +446,7 @@ export function applyTemplate(config, templateId, opts = {}) {
     if (isEmptyBlock(current[k])) merged[k] = next[k];
   });
   // Site designs carry their own proof strip / cards / nav, so a switch takes the new design's set.
+  if (next.puck) merged.puck = next.puck;
   if (next.site) { merged.site = next.site; merged.headline = next.headline; merged.subhead = next.subhead; merged.form = next.form; merged.ctas = next.ctas; }
   if (!current.headline) merged.headline = next.headline;
   if (!current.subhead) merged.subhead = next.subhead;
@@ -518,6 +524,26 @@ export function sanitizeSite(input) {
       tagline: clip(band.tagline, 80),
     },
   };
+}
+
+/**
+ * Editable-page (Puck) data: a JSON tree of components. It is only ever rendered by our own React components
+ * (text escaped, links/images checked), so here we just bound its shape and size.
+ */
+export function sanitizePuck(input) {
+  if (!input || typeof input !== 'object' || !Array.isArray(input.content)) return null;
+  try {
+    const plain = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+    const json = JSON.stringify({
+      content: input.content.filter((c) => c && typeof c.type === 'string').slice(0, 60),
+      root: { props: plain(input.root?.props) },
+      zones: plain(input.zones),
+    });
+    if (json.length > 150000) return null;
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
 }
 
 /** Make any stored/edited config safe and complete. Never throws. */
@@ -630,6 +656,7 @@ export function sanitizeConfig(input) {
     consent: { notice: clip(c.consent?.notice, 300) },
     autoplay: !!c.autoplay,
     ...(t.site || c.site ? { site: sanitizeSite(c.site) } : {}),
+    ...(t.puck || c.puck ? { puck: sanitizePuck(c.puck) || (t.puck ? JSON.parse(JSON.stringify(t.puckData)) : null) } : {}),
   };
 }
 

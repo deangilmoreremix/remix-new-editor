@@ -13,7 +13,7 @@ import {
   fetchPublicPage, fetchContactTokens, recordPageEvent, submitPageLead, CONTACT_ID_RE,
 } from '../lib/landingPages/client.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
-import { tokensFromQuery } from '../lib/landingPages/templates.js';
+import { tokensFromQuery, sanitizeConfig } from '../lib/landingPages/templates.js';
 
 function message(container, title, text) {
   container.replaceChildren();
@@ -59,22 +59,30 @@ export async function mountVideoPage(container, id, deps = {}) {
 
   document.title = page.title || 'Video';
   const track = (kind) => (deps.recordEvent || recordPageEvent)(page.id, { kind, contactId });
-  const view = renderLandingPage({
-    page,
-    tokens,
-    handlers: {
-      onPlay: () => track('play'),
-      onProgress: (kind) => track(kind),
-      onComplete: () => track('complete'),
-      onCta: () => track('cta_click'),
-      onLike: () => track('like'),
-      onLead: async (data) => {
-        const res = await (deps.submitLead || submitPageLead)({ pageId: page.id, contactId, data });
-        if (!res?.error) track('lead');
-        return res;
-      },
+  const handlers = {
+    onPlay: () => track('play'),
+    onProgress: (kind) => track(kind),
+    onComplete: () => track('complete'),
+    onCta: () => track('cta_click'),
+    onLike: () => track('like'),
+    onLead: async (data) => {
+      const res = await (deps.submitLead || submitPageLead)({ pageId: page.id, contactId, data });
+      if (!res?.error) track('lead');
+      return res;
     },
-  });
+  };
+  const cfg = sanitizeConfig(page.config);
+  if (cfg.puck) {
+    // Editable (Puck) page: same video, tokens and tracking, rendered by the responsive component library.
+    const { mountPuckPage } = await import('../lib/landingPages/puck/mount.jsx');
+    container.replaceChildren();
+    const host = document.createElement('div');
+    container.appendChild(host);
+    const view = mountPuckPage(host, { page, data: cfg.puck, tokens, handlers });
+    track('view');
+    return view;
+  }
+  const view = renderLandingPage({ page, tokens, handlers });
 
   container.replaceChildren(view.root);
   track('view');
