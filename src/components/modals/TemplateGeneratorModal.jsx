@@ -11,7 +11,7 @@ import * as pixabayApi from '../../lib/pixabayApi.js';
 import { uploadFileToSupabase } from '../../lib/uploadService.js';
 import {
   STEPS, STEP_LABELS, MAX_VIDEOS, createWizardState, guardStep, nextStepIndex, nextDisabled, nextLabel, clipDuration,
-  toggleVideo, toggleAnimation, toBuilderState, hasScript, sceneNames, MAX_ANIMATIONS, splitLowerThird,
+  toggleVideo, toggleAnimation, toBuilderState, previewTexts, hasScript, sceneNames, MAX_ANIMATIONS, splitLowerThird,
 } from './template-generator/rules.js';
 import {
   PROVIDERS, MEDIA_FILTERS, STOCK_HOME, createStockClient, remoteItem, probeVideo, kindFromUrlOrType,
@@ -21,6 +21,7 @@ import { LOWER_THIRD_TEMPLATES, buildLowerThirdLottie, LT_HOLD_FRAME } from '../
 import { snapshotTemplate, restoreTemplate, splitDurable } from './template-generator/templates.js';
 import { createSyncedTemplateStore, SYNC_STATUS } from './template-generator/sync.js';
 import { templateScript, placeholdersLeft, DETAIL_FIELDS } from '../../lib/nicheScripts/index.js';
+import { TEXT_PRESETS, TEXT_ROLES, ROLE_LABEL, TEXT_ENTRANCES, TEXT_FONTS, ROLE_DEFAULTS, resolveTextStyle, withTextStyle, withPreset, presetOf } from './template-generator/textStyles.js';
 import { createPreviewPlayer, renderPlayerHTML, playlistFromPreview, formatTime } from './template-generator/preview.js';
 import '../../styles/template-generator.css';
 
@@ -136,6 +137,7 @@ export class TemplateGeneratorModal extends BaseModal {
       overlayQuery: '',
       overlayCategory: 'all',
       ltCategory: 'all',
+      textRole: null,        // the text being styled in the Preview step ('caption' | 'title' | 'lowerThird' | 'cta')
       popup: null,       // { kind: 'video'|'script', id }
       openPanels: {},    // 'voice' | 'personalization'
       busy: false,
@@ -913,6 +915,7 @@ export class TemplateGeneratorModal extends BaseModal {
                 <span class="tg-meta">${esc(sceneNames(s).length)} scenes</span>
               </div>
             </div>
+            <div id="tg-textpanel" class="tg-textpanel-slot">${this.renderTextPanel()}</div>
           </div>
           <div class="preview-tab__content-watch">
             ${error ? `<div class="tg-player tg-player--empty">${esc(error)}</div>` : renderPlayerHTML(playlist)}
@@ -1199,6 +1202,7 @@ export class TemplateGeneratorModal extends BaseModal {
 
   _onInput(e) {
     const t = e.target;
+    if (t.dataset?.tbind || (t.dataset?.tstyle && t.type === 'color')) { this._onTextEdit(t); return; }
     if (t.dataset?.query) {
       const kind = t.dataset.query;
       if (kind === 'stock') {
@@ -1224,8 +1228,33 @@ export class TemplateGeneratorModal extends BaseModal {
     }
   }
 
+  /** An edit in the text inspector: a style property (data-tstyle) or the text itself (data-tbind). */
+  _onTextEdit(t) {
+    const role = this.ui.textRole;
+    if (!role) return false;
+    if (t.dataset?.tbind) {
+      const v = t.value;
+      if (role === 'title') this.s.elements.title = v; else if (role === 'lowerThird') this.s.elements.lowerThird = v; else if (role === 'cta') this.s.elements.cta = v;
+      this._player?.setTexts?.(previewTexts(this.s));
+      this._updateNext();
+      return true;
+    }
+    const key = t.dataset?.tstyle;
+    if (!key) return false;
+    const value = t.type === 'checkbox' ? t.checked : (t.value === '' ? null : t.value);
+    const cur = resolveTextStyle(this.s.elements, role);
+    let patch;
+    if (key === 'fontDecorations.bold') patch = { fontDecorations: { ...cur.fontDecorations, bold: !!value } };
+    else if (key === 'animation.in') patch = { animation: { ...cur.animation, in: value } };
+    else patch = { [key]: value };
+    this.s.elements.styles = withTextStyle(this.s.elements, role, patch);
+    this._player?.setTexts?.(previewTexts(this.s));
+    return true;
+  }
+
   _onChange(e) {
     const t = e.target;
+    if (t.dataset?.tstyle) { this._onTextEdit(t); return; }
     if (t.id === 'tg-file') { this._addUploads(t.files); t.value = ''; return; }
     if (t.dataset?.bind) this._bind(t);
   }
@@ -1281,6 +1310,9 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'ai-script': this.runScriptAction(el.dataset.kind); break;
       case 'use-template-script': this._applyTemplateScript(true); this.paint(); break;
       case 'overlay-tab': this.ui.overlayTab = id; this.paint(); break;
+      case 'text-role': this.ui.textRole = id; this._player?.selectRole?.(id); this._setHTML('#tg-textpanel', this.renderTextPanel()); break;
+      case 'text-preset': this.s.elements.styles = withPreset(this.s.elements, this.ui.textRole, id); this._redrawTexts(); break;
+      case 'text-reset': { const st = { ...(this.s.elements.styles || {}) }; delete st[id]; this.s.elements.styles = st; this._redrawTexts(); break; }
       case 'lt-cat': this.ui.ltCategory = id; this.paint(); break;
       case 'lt-style': this.s.elements.lowerThirdStyle = id; this.paint(); break;
       case 'transition-cat': this.ui.overlayCategory = id; this.paint(); break;
@@ -1655,7 +1687,62 @@ export class TemplateGeneratorModal extends BaseModal {
     const st = this.s;
     const lines = toBuilderState(st).overlays.filter((o) => o.type === 'caption');
     lines.forEach((c, i) => captions.push({ index: i, text: c.text }));
-    this._player = createPreviewPlayer(this.overlay, pl, { captions });
+    this._player = createPreviewPlayer(this.overlay, pl, {
+      captions,
+      texts: previewTexts(st),
+      onSelect: (role) => { this.ui.textRole = role; this._setHTML('#tg-textpanel', this.renderTextPanel()); },
+      onChange: (role, patch) => this._setTextStyle(role, patch),
+    });
+    if (this.ui.textRole) this._player.selectRole?.(this.ui.textRole);
+  }
+
+  // ----------------------------------------------------------- text editor (Preview step)
+
+  /** The roles that currently have text on the video. */
+  textRoles() {
+    const have = new Set(previewTexts(this.s).map((t) => t.role));
+    return TEXT_ROLES.filter((r) => have.has(r));
+  }
+
+  _redrawTexts() { this._player?.setTexts?.(previewTexts(this.s)); this._setHTML('#tg-textpanel', this.renderTextPanel()); }
+
+  _setTextStyle(role, patch) {
+    this.s.elements.styles = withTextStyle(this.s.elements, role, patch);
+    this._redrawTexts();
+  }
+
+  renderTextPanel() {
+    const roles = this.textRoles();
+    if (!roles.length) return '<p class="tg-hint">Add a script, title, lower third or call to action to style the text on your video.</p>';
+    const cur = this.ui.textRole && roles.includes(this.ui.textRole) ? this.ui.textRole : null;
+    const chips = `<div class="tg-chips" role="group" aria-label="Text on the video">${roles.map((r) => `<button type="button" class="tg-chip${cur === r ? ' is-active' : ''}" data-act="text-role" data-id="${r}">${ROLE_LABEL[r]}</button>`).join('')}</div>`;
+    if (!cur) return `<div class="tg-textpanel"><p class="tg-hint">Click any text on the video, or pick one here, to change its look, move it and resize it.</p>${chips}</div>`;
+    const st = resolveTextStyle(this.s.elements, cur);
+    const own = presetOf(this.s.elements, cur);
+    const dec = st.fontDecorations || {};
+    const tog = (key, label, on) => `<label class="tg-toggle tg-toggle--sm"><input type="checkbox" data-tstyle="${key}" ${on ? 'checked' : ''}><span>${label}</span></label>`;
+    const textField = cur === 'caption'
+      ? `<p class="tg-hint">Captions are your script, one line per clip. <button type="button" class="tg-link" data-act="tab" data-step="${STEPS.SCRIPT}">Edit them in the Script step</button></p>`
+      : `<label class="tg-field">Text<input type="text" data-tbind="${cur}" value="${esc(cur === 'title' ? this.s.elements.title : cur === 'lowerThird' ? this.s.elements.lowerThird : (this.s.elements.cta || this.s.script.cta))}"></label>`;
+    return `
+      <div class="tg-textpanel">
+        ${chips}
+        <div class="tg-textpanel__body">
+          <div class="tg-presets" role="group" aria-label="Look">
+            ${Object.entries(TEXT_PRESETS).map(([id, p]) => `<button type="button" class="tg-preset${own === id ? ' is-active' : ''}" data-act="text-preset" data-id="${id}" style="font-family:'${p.fontFamily}';${p.background ? `background:${p.backgroundColor};` : ''}color:${p.fontColor}">${p.label}</button>`).join('')}
+          </div>
+          ${textField}
+          <div class="tg-textpanel__row">
+            <label class="tg-field">Font<select data-tstyle="fontFamily">${TEXT_FONTS.map((f) => `<option${st.fontFamily === f ? ' selected' : ''}>${f}</option>`).join('')}</select></label>
+            <label class="tg-field">Colour<input type="color" data-tstyle="fontColor" value="${esc(st.fontColor)}"></label>
+            <label class="tg-field">Entrance<select data-tstyle="animation.in">${TEXT_ENTRANCES.map(([v, l]) => `<option value="${v ?? ''}"${(st.animation?.in || null) === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+          </div>
+          <div class="tg-textpanel__row">
+            ${tog('fontDecorations.bold', 'Bold', dec.bold)}${tog('stroke', 'Outline', st.stroke)}${tog('shadow', 'Shadow', st.shadow)}${tog('background', 'Box', st.background)}
+            <button type="button" class="tg-chip" data-act="text-reset" data-id="${cur}">Reset</button>
+          </div>
+        </div>
+      </div>`;
   }
 
   _destroyPlayer() {

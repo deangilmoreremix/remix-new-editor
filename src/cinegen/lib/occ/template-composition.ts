@@ -10,7 +10,7 @@ import { createOverlay, createTemplateOverlays } from '@cinegen/lib/overlays/ove
 import { generateId } from '@cinegen/lib/utils/ids';
 import { isGlTransition } from './transitions';
 
-interface CompClip { _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string }; lowerThird?: { template?: string; name?: string; title?: string } }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
+interface CompClip { _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string }; lowerThird?: { template?: string; name?: string; title?: string }; textStyle?: Record<string, unknown> }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
 interface CompTrack { type?: string; name?: string; clips?: CompClip[] }
 export interface Composition { name?: string; tracks?: CompTrack[]; transitions?: Array<{ fromClipIndex: number; toClipIndex: number; inTrack?: number; type?: string; duration?: number }> }
 
@@ -65,7 +65,8 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
         }
       } else if (c.text) {
         const o = createOverlay('overlay-text', start, T + dur);
-        const addon = { ...((o.addon as Record<string, unknown>) ?? {}), text: c.text };
+        // the look the wizard chose for this text (font, colours, outline, box position, entrance), as Smart Text options
+        const addon = { ...((o.addon as Record<string, unknown>) ?? {}), ...(c._overlayConfig?.textStyle ?? {}), text: c.text };
         overlays.push({ ...o, addon, start, end: start + dur, name: c.name ?? 'Text' });
       }
     }

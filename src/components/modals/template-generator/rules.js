@@ -12,6 +12,8 @@
  *   - Next is disabled until the current step's requirement is met.
  */
 
+import { resolveTextStyle } from './textStyles.js';
+
 export const STEPS = { VIDEO: 0, SCRIPT: 1, OVERLAY: 2, PREVIEW: 3 };
 export const STEP_LABELS = ['Video', 'Script', 'Overlay', 'Preview'];
 export const MAX_VIDEOS = 5;
@@ -113,10 +115,24 @@ export function createWizardState() {
     autoCta: '',
     selectedTransition: null,    // { type, duration } from the editor's transitions library
     // Text elements the timeline can create today (applyTemplate makes media + text/caption clips).
-    elements: { captions: true, title: '', lowerThird: '', lowerThirdStyle: '', cta: '' },
+    elements: { captions: true, title: '', lowerThird: '', lowerThirdStyle: '', cta: '', styles: {} },   // styles: the user's changes to each text's look (see textStyles.js)
     voice: { enabled: false, provider: 'openai', voice: 'alloy', text: '', instructions: '' },
     personalization: { enabled: false, contactId: null, tokens: {} },
   };
+}
+
+/** Break a long caption into short ones (about two lines each), preferring sentence ends. */
+export function splitCaption(text, max = 70) {
+  const out = [];
+  let cur = '';
+  for (const w of String(text || '').split(/\s+/).filter(Boolean)) {
+    const next = cur ? `${cur} ${w}` : w;
+    if (cur && next.length > max) { out.push(cur); cur = w; }
+    else cur = next;
+    if (/[.!?]$/.test(cur) && cur.length >= 28) { out.push(cur); cur = ''; }
+  }
+  if (cur) out.push(cur);
+  return out;
 }
 
 /** "Jane Doe | Owner" (or two lines) → the name and title of a lower third. */
@@ -201,12 +217,21 @@ export function toBuilderState(s, payloads = {}) {
   const lines = scriptLines(s.script.text, filled.length);
   let cursor = 0;
   const captions = [];
+  const captionStyle = resolveTextStyle(s.elements, 'caption');
   filled.forEach((m, i) => {
     const duration = m.media.duration;
     if (lines[i]) {
-      captions.push({
-        kind: 'caption', type: 'caption', trackName: 'Script', name: `Script ${i + 1}`,
-        text: lines[i], startTime: cursor, duration,
+      // a long line is shown as a few short captions in turn (readable size), each for its share of the scene
+      const parts = splitCaption(lines[i]);
+      const weight = parts.reduce((n, p) => n + p.length, 0) || 1;
+      let at = cursor;
+      parts.forEach((part, k) => {
+        const d = k === parts.length - 1 ? cursor + duration - at : Math.round((duration * part.length / weight) * 100) / 100;
+        captions.push({
+          kind: 'caption', type: 'caption', trackName: 'Script', name: parts.length > 1 ? `Script ${i + 1}.${k + 1}` : `Script ${i + 1}`,
+          text: part, startTime: at, duration: d, role: 'caption', sceneIndex: i, textStyle: captionStyle,
+        });
+        at += d;
       });
     }
     cursor += duration;
@@ -218,13 +243,13 @@ export function toBuilderState(s, payloads = {}) {
 
   // Text elements. Captions come from the script; the rest are plain text clips.
   const total = Math.max(cursor, 3);
-  const text = (name, trackName, value, startTime, duration) => value.trim() && ({
-    kind: 'text', type: 'text', trackName, name, text: value.trim(), startTime, duration: Math.min(duration, total),
+  const text = (name, trackName, value, startTime, duration, role) => value.trim() && ({
+    kind: 'text', type: 'text', trackName, name, text: value.trim(), startTime, duration: Math.min(duration, total), role, textStyle: resolveTextStyle(s.elements, role),
   });
   const elements = [
-    text('Title', 'Title', s.elements.title, 0, 3),
-    lowerThirdClip(s.elements, Math.min(1, total - 1), Math.min(4, total)) || text('Lower third', 'Lower Third', s.elements.lowerThird, Math.min(1, total - 1), 4),
-    text('Call to action', 'CTA', s.elements.cta || s.script.cta, Math.max(total - 4, 0), 4),
+    text('Title', 'Title', s.elements.title, 0, 3, 'title'),
+    lowerThirdClip(s.elements, Math.min(1, total - 1), Math.min(4, total)) || text('Lower third', 'Lower Third', s.elements.lowerThird, Math.min(1, total - 1), 4, 'lowerThird'),
+    text('Call to action', 'CTA', s.elements.cta || s.script.cta, Math.max(total - 4, 0), 4, 'cta'),
   ].filter(Boolean);
   const captionClips = s.elements.captions ? captions : [];
 
@@ -253,4 +278,20 @@ export function toBuilderState(s, payloads = {}) {
     voice: { ...s.voice, text: s.voice.text || s.script.text },
     personalization: s.personalization,
   };
+}
+
+/**
+ * The text that shows on the video, for the live preview: [{ id, role, text, start, duration, style, sceneIndex?, lowerThird? }].
+ * The same clips the timeline will get (so what the preview shows is what lands), minus footage and animations.
+ */
+export function previewTexts(s) {
+  const out = [];
+  toBuilderState(s).overlays.forEach((o, i) => {
+    if (o.type === 'caption' || o.type === 'text') {
+      out.push({ id: `${o.role}-${i}`, role: o.role, text: o.text, start: o.startTime || 0, duration: o.duration, style: o.textStyle, sceneIndex: o.sceneIndex });
+    } else if (o.type === 'lower-third') {
+      out.push({ id: 'lowerThird-0', role: 'lowerThird', text: o.text, start: o.startTime || 0, duration: o.duration, lowerThird: o.lowerThird, style: resolveTextStyle(s.elements, 'lowerThird') });
+    }
+  });
+  return out;
 }

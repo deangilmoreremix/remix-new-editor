@@ -492,3 +492,17 @@ h2.generator-offer__text { font-size: 30px; }
 .tg-start > *:not(.tg-start__collage) { position: relative; z-index: 1; }
 .select-overlay-container:has(.tg-tr-thumb) { flex-direction: column; gap: 6px; }
 .tg-tr-thumb--pv { width: 78%; border-radius: 6px; }
+
+/* Text on the video (editor layer) and the text inspector */
+.tg-player__layer { z-index: 2; }
+.tg-player__layer .overlay-selected { outline: 1.5px dashed rgba(34, 211, 238, 0.9); }
+.tg-textpanel { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; padding: 12px; border-radius: 14px; background: var(--tg-surface); border: 1px solid var(--tg-line-soft); }
+.tg-textpanel__body { display: flex; flex-direction: column; gap: 10px; }
+.tg-textpanel__row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.tg-textpanel .tg-field { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--tg-muted); }
+.tg-textpanel input[type="color"] { width: 44px; height: 30px; padding: 0; border: 1px solid var(--tg-line-soft); border-radius: 8px; background: none; }
+.tg-textpanel select, .tg-textpanel input[type="text"] { height: 32px; border-radius: 8px; border: 1px solid var(--tg-line-soft); background: var(--tg-card); color: var(--tg-strong); padding: 0 8px; }
+.tg-presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.tg-preset { min-width: 76px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--tg-line-soft); background: #0b0f16; cursor: pointer; font-size: 15px; font-weight: 700; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+.tg-preset.is-active { border-color: var(--tg-accent); box-shadow: 0 0 0 1px var(--tg-accent); }
+.tg-toggle--sm { font-size: 12px; }

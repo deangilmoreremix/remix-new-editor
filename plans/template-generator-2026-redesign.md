@@ -117,3 +117,10 @@ Step 1 now starts on **Video templates**: the public 184-clip library kept in th
 - Selected clips/animations show their real poster or still; the script preview shows the user's own picked clips in order; the start screen is a collage of real catalog posters; the Preview step shows the chosen transition's real still.
 - Script cards show a real footage still only for niches the 184-clip library genuinely fits (restaurant, gym, auto, fashion, luxury, events, beauty/salon); real estate, dental, chiropractic and legal get none rather than a misleading one (they need Pexels/Pixabay footage).
 - Known gaps: about a third of the Animations stills and many motion-graphic stills are mostly-empty dark frames (small element on a dark background); Pexels/Pixabay need `PEXELS_API_KEY` / `PIXABAY_API_KEY` to show real results.
+
+## Editable text on the video (added)
+- Every text (captions, title, lower third, CTA) has a look in the editor's Smart Text vocabulary (`template-generator/textStyles.js`: 6 presets Clean/Bold/Pop/Box/Minimal/Neon, role defaults for box + entrance). Only the user's changes are saved (`elements.styles[role]`), so saved/synced templates keep them and old ones get the defaults.
+- The look reaches the timeline: `toBuilderState` puts `textStyle` + `role` on each clip, `applyComposition` merges it into the Smart Text overlay (font, colour, outline, box, entrance). Classic editor (`applyCompositionToTimeline`) is not wired yet.
+- The Preview step draws the text with the editor's own overlay renderer (`buildOverlayElement`) at the playhead, so it is WYSIWYG; click a text (or its chip) to select it, drag/resize it with the editor's handles (`attachDragResize`), and use the inspector (look, words, font, colour, entrance, bold/outline/shadow/box, reset).
+- Long script lines are split into short timed captions (`splitCaption`) so they stay readable.
+- No Konva: the editor's DOM renderer + Pointer Events drag handles do the same job without a new dependency.

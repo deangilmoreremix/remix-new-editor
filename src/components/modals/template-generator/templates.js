@@ -71,7 +71,7 @@ export function restoreTemplate(rec, findScript = () => null) {
   s.script = { text: '', tone: 'conversational', audience: 'general', cta: '', ...rec.script };
   s.details = { ...s.details, ...(rec.details || {}) };
   s.selectedTransition = rec.transition ? { ...rec.transition } : null;
-  s.elements = { captions: true, title: '', lowerThird: '', cta: '', ...rec.elements };
+  s.elements = { captions: true, title: '', lowerThird: '', lowerThirdStyle: '', cta: '', styles: {}, ...rec.elements };
   s.voice = { ...s.voice, ...rec.voice };
   s.personalization = { ...s.personalization, enabled: !!rec.personalization?.enabled };
   s.selectedVideos = (rec.clips || []).map((c) => ({ ...c }));

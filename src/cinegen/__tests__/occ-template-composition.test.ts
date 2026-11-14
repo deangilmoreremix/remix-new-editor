@@ -138,3 +138,13 @@ describe('real transitions and lower-third styles', () => {
     for (const t of list) { expect(t.label, t.id).toBeTruthy(); expect(t.description, t.id).toBeTruthy(); expect(typeof t.mountPreview).toBe('function'); expect(typeof t.thumb).toBe('function'); }
   });
 });
+
+describe('text looks reach the timeline', () => {
+  it('a styled wizard text becomes a Smart Text overlay with that font, colour, box and entrance', () => {
+    const style = { fontFamily: 'Poppins', fontColor: '#22D3EE', stroke: true, geometry: { left: 10, top: 20, width: 70, height: 18 }, animation: { in: 'fadeInUp', idle: null, out: null } };
+    const comp = buildCompositionFromState({ media: [m(1, 8)], overlays: [{ kind: 'text', type: 'text', name: 'Title', text: 'Summer Sale', startTime: 0, duration: 3, textStyle: style }], transitions: [] }) as never;
+    const r = applyComposition(createDefaultTimeline('T'), comp);
+    expect(r.overlays).toHaveLength(1);
+    expect(r.overlays[0].addon).toMatchObject({ text: 'Summer Sale', fontFamily: 'Poppins', fontColor: '#22D3EE', stroke: true, geometry: { left: 10, top: 20, width: 70, height: 18 }, animation: { in: 'fadeInUp' } });
+  });
+});

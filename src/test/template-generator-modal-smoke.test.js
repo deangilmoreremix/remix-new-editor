@@ -407,10 +407,12 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
       m.pickScript('midnight_table_film');
       const lines = m.s.script.text.split('\n');
       for (let i = 1; i <= 5; i += 1) m.s.selectedVideos.push(item(i));
-      const five = toBuilderState(m.s).overlays.filter((o) => o.kind === 'caption').map((o) => o.text);
+      // a long line is shown as several short captions in turn; joined back, each scene still shows exactly its line
+      const byScene = (st) => { const g = []; for (const o of toBuilderState(st).overlays.filter((x) => x.kind === 'caption')) g[o.sceneIndex] = `${g[o.sceneIndex] ? `${g[o.sceneIndex]} ` : ''}${o.text}`; return g; };
+      const five = byScene(m.s);
       expect(five).toEqual(lines);                                      // clip n ↔ scene n
       m.s.selectedVideos.splice(3);                                     // keep 3 clips
-      const three = toBuilderState(m.s).overlays.filter((o) => o.kind === 'caption').map((o) => o.text);
+      const three = byScene(m.s);
       expect(three).toEqual([`${lines[0]} ${lines[1]}`, `${lines[2]} ${lines[3]}`, lines[4]]);
       m.destroy();
     });
