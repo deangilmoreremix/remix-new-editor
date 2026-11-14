@@ -40,7 +40,7 @@ const grid = {
 const band = { type: 'Band', props: { id: id('band'), brand: '', tagline: '', title: 'Get tips and updates in your inbox', text: '', placeholder: 'Enter your email', buttonLabel: 'Subscribe', social: '' } };
 const footer = { type: 'Footer', props: { id: id('footer'), text: 'Sent by {{sender|us}}', links: [] } };
 
-export const PUCK_TEMPLATES = [
+const STARTER = [
   {
     id: 'puck-starter',
     name: 'Editable landing page',
@@ -52,3 +52,11 @@ export const PUCK_TEMPLATES = [
     puckData: { root: { props: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '' } }, content: [nav, hero, strip, grid, band, footer], zones: {} },
   },
 ];
+
+// One file per converted design (puck/designs/NN-name.js, default export = a template object), registered automatically.
+const EXTRA = Object.entries(import.meta.glob('./designs/*.js', { eager: true }))
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, m]) => m.default)
+  .filter(Boolean);
+
+export const PUCK_TEMPLATES = [...STARTER, ...EXTRA];

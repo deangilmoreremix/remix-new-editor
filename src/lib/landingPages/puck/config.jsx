@@ -4,6 +4,11 @@
  */
 import * as C from './components.jsx';
 import { ICON_KEYS } from '../siteIcons.js';
+import { PUCK_TEMPLATES } from './designs.js';
+
+// Designs may ship extra components (puck/extensions/NN-name.jsx exporting `components`), merged in automatically.
+const EXT = Object.entries(import.meta.glob('./extensions/*.jsx', { eager: true })).sort(([a], [b]) => a.localeCompare(b)).map(([, m]) => m);
+const EXT_COMPONENTS = Object.assign({}, ...EXT.map((m) => m.components || {}));
 
 const T = (label) => ({ type: 'text', label });
 const A = (label) => ({ type: 'textarea', label });
@@ -18,7 +23,7 @@ const HERO_FIELDS = [{ key: 'name', label: 'Your Name', type: 'text', required: 
 export const puckConfig = {
   root: {
     fields: {
-      design: { type: 'select', label: 'Look', options: [{ label: 'Clean', value: 'clean' }] },
+      design: { type: 'select', label: 'Look', options: [{ label: 'Clean', value: 'clean' }, ...PUCK_TEMPLATES.filter((t) => t.designClass).map((t) => ({ label: t.name, value: t.designClass }))] },
       accent: T('Accent colour (#hex)'),
       background: T('Page background (#hex)'),
       text: T('Text colour (#hex)'),
@@ -34,9 +39,11 @@ export const puckConfig = {
   },
   categories: {
     sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'Footer', 'PageImage'] },
+    extras: { title: 'Design extras', components: Object.keys(EXT_COMPONENTS), defaultExpanded: false },
     cards: { title: 'Cards (drop into a Grid)', components: ['LeadMagnetCard', 'TableCard', 'StatsCard', 'ChecklistCard', 'QuoteCard', 'StepsCard', 'FeaturesCard', 'FaqCard', 'KpiCard', 'ScheduleCard', 'ButtonCard'] },
   },
   components: {
+    ...EXT_COMPONENTS,
     NavBar: {
       label: 'Menu bar',
       fields: { brand: T('Brand name'), logo: T('Logo image (https link)'), links: linkArray('Menu links'), loginLabel: T('Log-in text (empty = none)'), loginUrl: T('Log-in link'), ctaLabel: T('Button text (scrolls to the form)') },
