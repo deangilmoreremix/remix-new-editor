@@ -237,7 +237,7 @@ export function LandingPagesStudio() {
       c.setAttribute('aria-pressed', String(on));
     });
     // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Website pages (full site look: nav, hero, form, proof, cards)', TEMPLATES.filter((t) => t.site)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
+    [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)], ['Older fixed-layout website pages (not responsive; use the editable pages above)', TEMPLATES.filter((t) => t.site)]].forEach(([label, list]) => {
       const grp = el('div', 'flex flex-col gap-2');
       grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
       const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
@@ -363,7 +363,7 @@ export function LandingPagesStudio() {
       const box = el('div', 'flex flex-col gap-3');
       const bar = el('div', 'flex flex-wrap items-center gap-3 text-xs text-secondary');
       const tplSel = el('select', INPUT);
-      TEMPLATES.filter((t) => t.puck || t.site).forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
+      TEMPLATES.filter((t) => t.puck).forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
       tplSel.value = current.config.template;
       tplSel.addEventListener('change', () => {
         current.config = applyTemplate(current.config, tplSel.value, { title: titleInput.value, brand: brandDefaults() });
@@ -432,7 +432,7 @@ export function LandingPagesStudio() {
       };
 
       const tplSel = el('select', INPUT);
-      [['Editable landing pages', TEMPLATES.filter((t) => t.puck)], ['Website pages', TEMPLATES.filter((t) => t.site)], ['Page structures', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
+      [['Editable landing pages', TEMPLATES.filter((t) => t.puck)], ['Page structures', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)], ['Older fixed-layout website pages', TEMPLATES.filter((t) => t.site)]].forEach(([label, list]) => {
         const og = el('optgroup');
         og.label = label;
         list.forEach((t) => { const o = el('option', '', t.name); o.value = t.id; og.appendChild(o); });

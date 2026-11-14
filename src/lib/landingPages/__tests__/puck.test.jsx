@@ -94,3 +94,42 @@ describe('Puck data in the page config', () => {
     expect(sanitizeConfig({ template: 'puck-starter' }).puck.content.length).toBeGreaterThan(0);
   });
 });
+
+describe.each(PUCK_TEMPLATES.map((t) => [t.name, t]))('design: %s', (_n, t) => {
+  const out = html(t.puckData, { firstname: 'Maya', company: 'Brightline' });
+  it('is a registered design with a class, theme and page data', () => {
+    expect(t.id).toMatch(/^puck-/);
+    expect(t.puck).toBe(true);
+    expect(t.puckData.content.length).toBeGreaterThan(2);
+    if (t.id !== 'puck-starter') {
+      expect(t.designClass).toBeTruthy();
+      expect(t.puckData.root.props.design).toBe(t.designClass);
+      expect(puckConfig.root.fields.design.options.map((o) => o.value)).toContain(t.designClass);
+    }
+  });
+  it('every component it uses exists in the config', () => {
+    const types = (items) => items.flatMap((c) => [c.type, ...Object.values(c.props || {}).filter(Array.isArray).flatMap((a) => (a.length && a.every((x) => x && typeof x.type === 'string' && x.props && typeof x.props === 'object') ? types(a) : []))]);
+    types(t.puckData.content).forEach((type) => expect(puckConfig.components[type], type).toBeDefined());
+  });
+  it('renders one h1, one video and a working lead form, with tokens filled', () => {
+    expect((out.match(/<h1/g) || []).length).toBe(1);
+    expect((out.match(/<video/g) || []).length).toBe(1);
+    expect(out).toContain('pk-form');
+    expect(out).toContain('Maya');
+    expect(out).not.toMatch(/\{\{|\[\[/);
+  });
+  it('is flowing markup: no zoom, no fixed canvas, safe links only', () => {
+    expect(out).not.toMatch(/is-canvas|zoom:|javascript:/i);
+    expect(out).toContain(`pk-d-${t.designClass || 'clean'}`);
+  });
+  it('page data survives sanitising and stays well under the size limit', () => {
+    const clean = sanitizePuck(t.puckData);
+    expect(clean).not.toBeNull();
+    expect(JSON.stringify(clean).length).toBeLessThan(100000);
+  });
+  it('the theme text is readable on the page background', () => {
+    const lum = (h) => { const [r, g, b] = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+    expect(ratio(t.theme.text, t.theme.bg)).toBeGreaterThanOrEqual(4.5);
+  });
+});

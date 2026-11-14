@@ -3,6 +3,7 @@ const field = (key, label, type = 'text', required = true) => ({ key, label: `${
 
 export default {
   id: 'puck-local',
+  designClass: 'local',
   name: 'Local business',
   description: 'Warm cream and orange page with an owner-photo hero, industry tiles, four cards and a green newsletter band (sample content).',
   theme: { mode: 'light', accent: '#d1560f', highlight: '#f7b500', bg: '#fdf5e8', text: '#1f3326', font: 'system' },
