@@ -5,6 +5,8 @@
  * blocks every other layout uses, so tokens, events and the safety rules are unchanged.
  */
 import '../../../styles/video-site.css';
+// One stylesheet per pixel-matched design (styles/site/NN-name.css), loaded automatically.
+import.meta.glob('../../../styles/site/*.css', { eager: true });
 import { safeUrl } from './templates.js';
 import { icon } from './siteIcons.js';
 

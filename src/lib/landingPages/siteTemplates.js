@@ -15,7 +15,7 @@ const fieldSet = (...f) => f.map(([key, label, type = 'text', required = true, p
 
 const NAME_EMAIL_COMPANY = fieldSet(['name', 'Your Name'], ['email', 'Your Email', 'email'], ['company', 'Your Company', 'text', false]);
 
-export const SITE_TEMPLATES = [
+const BUILT_IN = [
   {
     id: 'site-leadiq',
     name: 'Neon lead-gen',
@@ -108,7 +108,7 @@ export const SITE_TEMPLATES = [
     name: 'Luxury concierge',
     description: 'Cream and gold with serif type: large video, private-consultation form, logos, testimonials and a 4-step onboarding.',
     theme: { mode: 'light', accent: '#8a6a1f', highlight: '#8a6a1f', bg: '#f7f0e6', text: '#2a2118', font: 'serif' },
-    layout: 'site-persona', compose: 'site', customPlayer: true, adaptive: true, family: 'site', radius: 6,
+    layout: 'site-persona', compose: 'site', canvas: 1672, customPlayer: true, adaptive: true, family: 'site', radius: 6,
     vars: { '--vp-s-hero': 'linear-gradient(180deg, #fbf6ee 0%, #f3e9da 100%)', '--vp-s-card': '#fffaf2', '--vp-s-line': '#e4d6bf', '--vp-s-muted': '#5e5242', '--vp-surface': '#fffaf2', '--vp-surface-2': '#f6ecdc', '--vp-line': '#e4d6bf' },
     site: {
       hero: { photo: '/landing-art/04/presenter.webp', variant: 'video-copy-form', eyebrow: 'PERSONALIZED VIDEO LEAD GENERATION', bullets: ['Higher Engagement', 'More Qualified Leads', 'Greater Revenue'], chip: 'A Personalized Message for You, {{firstname|friend}}', actions: 'copy' },
@@ -137,7 +137,7 @@ export const SITE_TEMPLATES = [
     name: 'Playful sunshine',
     description: 'Yellow, teal and coral with chunky type and rounded cards: newsletter, 3 steps, leads list and testimonials.',
     theme: { mode: 'light', accent: '#e8473b', highlight: '#1d4ed8', bg: '#fffaf0', text: '#1b1b2f', font: 'display' },
-    layout: 'site-spark', compose: 'site', customPlayer: true, adaptive: true, family: 'site', radius: 22,
+    layout: 'site-spark', compose: 'site', canvas: 1672, customPlayer: true, adaptive: true, family: 'site', radius: 22,
     vars: { '--vp-s-hero': 'radial-gradient(520px 320px at 100% 0%, #5eead4aa, transparent 60%), radial-gradient(520px 320px at 0% 100%, #fde047, transparent 60%), #fff1b8', '--vp-s-card': '#ffffff', '--vp-s-line': '#1b1b2f22', '--vp-s-muted': '#4b4b63', '--vp-surface': '#ffffff', '--vp-surface-2': '#fff7da', '--vp-line': '#1b1b2f22' },
     site: {
       hero: { photo: '/landing-art/05/presenter.webp', variant: 'copy-video-form', eyebrow: '', bullets: [], chip: 'Personalized for you, {{firstname|friend}}!', actions: 'form' },
@@ -160,3 +160,11 @@ export const SITE_TEMPLATES = [
     },
   },
 ];
+
+// Designs added as one file each (siteDesigns/NN-name.js, default export = a template object), registered automatically.
+const EXTRA = Object.entries(import.meta.glob('./siteDesigns/*.js', { eager: true }))
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, m]) => m.default)
+  .filter(Boolean);
+
+export const SITE_TEMPLATES = [...BUILT_IN, ...EXTRA];

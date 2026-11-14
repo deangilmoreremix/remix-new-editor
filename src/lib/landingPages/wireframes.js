@@ -44,6 +44,6 @@ export const WIREFRAME_LAYOUTS = Object.freeze(Object.keys(SHAPES));
 
 /** SVG markup for a layout's wireframe (falls back to the stacked page). */
 export function wireframeSvg(layout) {
-  const shapes = SHAPES[layout] || SHAPES.stack;
+  const shapes = SHAPES[layout] || (String(layout).startsWith('site-') ? siteShape({ videoFirst: true }) : SHAPES.stack);
   return `<svg viewBox="0 0 120 76" width="100%" height="100%" role="img" aria-hidden="true" preserveAspectRatio="xMidYMid meet">${shapes.join('')}</svg>`;
 }
