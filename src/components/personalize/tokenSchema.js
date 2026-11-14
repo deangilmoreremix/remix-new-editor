@@ -27,6 +27,7 @@
 // `{{First Name}}` keep working because labels are registered as aliases.
 
 import { resolveSocialToken } from '../../lib/socialIdentity.js';
+import { resolveAssetUrl } from '../../lib/personalization/assetUrl.js';
 
 function personalizationAssets(profile) {
   const assets = profile?.personalization?.assets;
@@ -34,9 +35,7 @@ function personalizationAssets(profile) {
 }
 
 function assetUrl(asset) {
-  if (!asset) return null;
-  if (typeof asset === 'string') return asset;
-  return asset.url || asset.originalUrl || null;
+  return resolveAssetUrl(asset) || null;
 }
 
 /** The primary asset of a list (by id), else the first one. */

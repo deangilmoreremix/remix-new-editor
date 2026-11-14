@@ -138,3 +138,13 @@ describe('an edited (background-removed) asset replaces the copy synced earlier'
     expect(merged.personalization.assets.logos.map((a) => a.id).sort()).toEqual(['editor-only', 'logo-1']);
   });
 });
+
+describe('a not-yet-uploaded edit does not leak a blob url into the video', () => {
+  beforeEach(() => localStorage.clear());
+  it('{{logoUrl}} resolves to the durable uploaded url, not the blob', () => {
+    const logo = { id: 'logo-1', role: 'logo', url: 'blob:http://localhost/abc', uploadedUrl: 'https://cdn.test/logo-cutout.png', originalUrl: 'https://cdn.test/logo.jpg', edited: true };
+    seed([ann], { smartvideo_client_assets: { [ann.id]: { logos: [logo], primaryLogo: logo } } });
+    syncPersonalizeContacts({ store });
+    expect(resolveToken(store.getProfile(ann.id), 'logoUrl')).toBe('https://cdn.test/logo-cutout.png');
+  });
+});

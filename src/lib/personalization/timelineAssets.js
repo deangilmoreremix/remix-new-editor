@@ -15,6 +15,7 @@
 // Pure (no DOM, no storage) so it is unit-tested and reusable.
 
 import { ensurePersonalizationProfile } from './personalizationProfile.js';
+import { resolveAssetUrl } from './assetUrl.js';
 import { buildPersonalizationContext } from './studioContext.js';
 import { IMAGE_TOKEN_DEFS, canonicalTokenKey, resolveToken } from '../../components/personalize/tokenSchema.js';
 
@@ -33,9 +34,7 @@ const ROLE_LABELS = {
 };
 
 function urlOf(asset) {
-  if (!asset) return '';
-  if (typeof asset === 'string') return asset;
-  return asset.url || asset.editedUrl || asset.previewUrl || asset.sourceUrl || asset.originalUrl || '';
+  return resolveAssetUrl(asset);
 }
 
 function isImageAsset(asset) {
@@ -89,7 +88,7 @@ export function listTimelineImageAssets(profile) {
   (discoveredAssets || []).forEach((asset) => {
     if (!asset || asset.rejected || asset.category === 'irrelevant') return;
     if (asset.importedAssetId && savedIds.has(asset.importedAssetId)) return;
-    const src = asset.editedUrl || asset.previewUrl || asset.sourceUrl || '';
+    const src = resolveAssetUrl(asset);
     if (!src || seen.has(src) || (asset.sourceUrl && seen.has(asset.sourceUrl))) return;
     seen.add(src);
     const role = asset.assignedRole || null;

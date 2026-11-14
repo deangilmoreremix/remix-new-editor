@@ -7,6 +7,7 @@ import {
   resolveEditorAssetKind,
 } from './imageEditRegistry.js';
 import { DEFAULT_LOCAL_IMAGE_CONTROLS } from './localImageEditor.js';
+import { resolveAssetUrl, resolveOriginalAssetUrl } from './assetUrl.js';
 
 const GROUP_LABELS = Object.freeze({
   smart: 'Smart',
@@ -70,11 +71,11 @@ function defaultProtections(kind) {
 }
 
 function sourceUrlFor(asset) {
-  return asset?.originalUrl || asset?.sourceUrl || asset?.previewUrl || asset?.url || asset?.editedUrl || '';
+  return resolveOriginalAssetUrl(asset);
 }
 
 function currentUrlFor(asset) {
-  return asset?.editedUrl || asset?.url || asset?.previewUrl || asset?.sourceUrl || asset?.originalUrl || '';
+  return resolveAssetUrl(asset);
 }
 
 export function createPersonalizationImageEditorSession(asset, {

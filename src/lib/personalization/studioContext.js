@@ -1,9 +1,8 @@
 import { ensurePersonalizationProfile } from './personalizationProfile.js';
+import { resolveAssetUrl } from './assetUrl.js';
 
 function assetUrl(asset) {
-  return typeof asset === 'string'
-    ? asset
-    : (asset?.url || asset?.originalUrl || '');
+  return resolveAssetUrl(asset);
 }
 
 function uniqueUrls(values) {
