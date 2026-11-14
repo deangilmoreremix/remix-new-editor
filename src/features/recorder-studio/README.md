@@ -1,61 +1,57 @@
 # Recorder Studio
 
-The post-production half of the [Remotion Recorder](https://www.remotion.dev/docs/recorder), running inside the timeline editor.
-The recording half lives in `src/components/modals/RecorderModal.jsx` (+ `recorder/capture.js`).
+The Remotion Recorder, inside the timeline editors. Upstream = https://github.com/remotion-dev/recorder (commit 4c09934).
 
-Where to open it:
-- **Main Timeline editor** (`#/timeline`, CineGen): **EDIT** tab → the camera icon in the vertical tool strip, above the microphone (`src/cinegen/components/edit/use-screen-recorder.ts`). Recordings go to the media pool and the first free video tracks (screen on the lowest, facecam above it as picture-in-picture, mic on an audio track).
+## What is upstream code and what is ours
+
+**Recording UI: 100% upstream.** `apps/remotion-recorder/src` runs unmodified in an iframe (`/recorder-ui/`). See
+`apps/remotion-recorder/EDITOR_INTEGRATION.md`. Our code there is only glue:
+
+| Ours | Size | Purpose |
+| --- | --- | --- |
+| `apps/remotion-recorder/embed/adapters/*` (6 files) | ~150 lines | answer the 5 calls upstream's UI makes to its Bun server (save take, transcribe, cancel, folders) over postMessage |
+| `apps/remotion-recorder/embed/vite.config.mjs`, `vitest.config.mjs` | ~90 lines | build/test upstream as-is |
+| `src/components/modals/RecorderModal.jsx` | ~190 lines | iframe host + receives takes |
+| `src/cinegen/components/edit/use-screen-recorder.ts` + sidebar button | ~120 lines | puts a take on the CineGen timeline |
+
+**Post-production: upstream's composition, with our glue.** `composition/` is upstream's `remotion/` + `config/` (scenes, layouts, captions,
+chapters, transitions, end card, B-roll, music). Upstream edits it in **Remotion Studio**, which needs a Node/Bun server and cannot run in a
+browser-only app, so these files are ours and replace that Studio: `RecorderStudio.tsx` + `ui/` (scene/caption/style/export panels),
+`project.ts`, `project-store.ts`, `studio-shim.ts` (in-memory stand-ins for the Studio/filesystem APIs the composition calls),
+`useStudioMetadata.ts`, `export.ts` (web-renderer export) and `captions/` (in-browser Whisper replacing Whisper.cpp on the server).
+
+## Where to open it
+
+- **Main Timeline editor** (`#/timeline`, CineGen): **EDIT** tab → the camera icon in the vertical tool strip, above the microphone.
+  A take goes to the media pool and the first free video tracks (screen lowest, facecam above it as picture-in-picture, mic on an audio track).
 - **Classic editor** (`#/timeline-classic`): the **Recorder** chip in the "All features" bar.
 
-Flow: **Screen Recorder drawer → record → "Edit in Studio" → scenes, captions, style → render → "Add to timeline".**
+Flow: record in upstream's UI → its **Copy to public/timeline-project** button (upstream converts the take in the browser) → the editor receives
+the files and transcribes them → **Add to timeline** or **Recorder Studio** → scenes, captions, style → render → **Add to timeline**.
 
-## Layout
-
-| Path | What |
-| --- | --- |
-| `composition/` | **Vendored** copy of `remotion-dev/recorder` (`remotion/` + `config/`). Excluded from ESLint. |
-| `project-store.ts`, `project.ts` | In-memory project: scenes, theme/layout/platform, takes → files. One project per page session. |
-| `studio-shim.ts` | Replaces the Remotion Studio / filesystem APIs the composition used (`getStaticFiles`, `writeStaticFile`, `updateDefaultProps`, …) with an in-memory file store of blob URLs. |
-| `useStudioMetadata.ts` | Runs the composition's own `calculateMetadata` (the Player does not). |
-| `captions/` | In-browser Whisper (transformers.js, Web Worker) + converters to the Recorder's `Caption[]`; optional cloud provider via `services/whisper-client.js`. |
-| `export.ts` | `@remotion/web-renderer` export (MP4/H.264 where supported, else WebM) + `.srt`. |
-| `ui/`, `RecorderStudio.tsx` | Scenes / Captions / Style / Export panels and the Player. |
-| `../../components/modals/RecorderStudioModal.jsx` | Full-screen drawer host; loads the Studio lazily. |
-
-Assets: `public/recorder-studio/` (music tracks, sounds, self-hosted Inter + Roboto Mono with their OFL licences).
-
-## Changes made to the vendored code
+## Changes made to the vendored composition (`composition/`)
 
 Keep this list when re-syncing with upstream.
 
-- Imports of `@remotion/studio`, `staticFile`, `getStaticFiles` → `studio-shim.ts`.
-- Removed: `remotion/Root.tsx`, `remotion/index.ts`, `remotion/GoToRecorder.tsx`, `config/whisper.ts` (Node-only / Studio-only).
-- `config/endcard.ts`: the template author's `jonny`/`remotion` channels replaced by one user-editable `custom` channel (`setCustomBrand`) with a generated letter avatar.
-- `config/fonts.ts`: Google Fonts → self-hosted woff2 via `FontFace`.
+- Imports of `@remotion/studio`, `staticFile`, `getStaticFiles` → `studio-shim.ts` (16 of the 20 edited files are only this).
+- Removed: `remotion/Root.tsx`, `remotion/index.ts`, `remotion/GoToRecorder.tsx` (Remotion Studio entry points), `config/whisper.ts` (Node-only).
+- `config/endcard.ts`: the template author's `jonny`/`remotion` channels replaced by one user-editable `custom` channel (`setCustomBrand`).
+- `config/fonts.ts`: Google Fonts → self-hosted woff2 (`public/recorder-studio/fonts`, SIL OFL) via `FontFace`.
 - `captions/processing/layout-captions.ts`: `validateFontIsLoaded: false` (Remotion's check false-positives when the host page also uses Inter).
-- `captions/srt/SrtPreviewAndEditor`: honours `shouldBurnLandscapeCaptions()` so landscape exports can burn captions in (upstream emits only a `.srt`).
+- `captions/srt/SrtPreviewAndEditor`: honours `shouldBurnLandscapeCaptions()` so landscape exports can burn captions in.
 - `captions/editor/Footer.tsx`: wording (no on-disk file here).
-- `layout/get-broll-dimensions.ts`: detects image/video type from the original file name (blob URLs have no extension).
-- `audio/AudioTrack.tsx`: music fade shrinks for very short clips (upstream throws for clips of ~2 s or less).
+- `layout/get-broll-dimensions.ts`: image/video type from the original file name (blob URLs have no extension).
+- `audio/AudioTrack.tsx`: music fade shrinks for clips of ~2 s or less (upstream throws).
 
-Not ported on purpose: the upstream `recorder` intro scene (a Remotion Recorder promo).
-The video scenes are bound to takes by recording order, as upstream.
+Not ported on purpose: the upstream `recorder` intro scene (a Remotion Recorder promo). Video scenes are bound to takes by recording order, as upstream.
 
-## Coverage of upstream (`remotion-dev/recorder` @ 4c09934)
+## Tests
 
-Checked file by file. The complete, unmodified upstream is also in `apps/remotion-recorder` (byte-identical; `diff -r` shows only our `EDITOR_INTEGRATION.md`).
-
-| Upstream | Here |
-| --- | --- |
-| `remotion/` + `config/` (126 files) | 122 vendored in `composition/`. 16 of the 20 edited files are import rewiring only; behaviour edits are listed above. **Not copied:** `remotion/Root.tsx`, `remotion/index.ts`, `remotion/GoToRecorder.tsx` (Remotion Studio entry points; replaced by `RecorderStudio.tsx`) and `config/whisper.ts` (Node-only Whisper.cpp paths). |
-| `src/` recording UI (device pickers, resolution limiter, volume meter, mirror / crop / rotate, record + R key, take review, labels + permission flow, Web FS check) | Re-implemented in `src/components/modals/RecorderModal.jsx` + `recorder/capture.js`. |
-| `src/` project folders (`NewFolderDialog`, `SelectedFolder`, `actions/*`, `get-folders`) | Not ported: replaced by the in-memory project (`project.ts`); no folders on disk. |
-| `scripts/` Bun server (upload, project creation, Whisper.cpp, ffmpeg convert) | Not ported: replaced by browser equivalents (OPFS storage, in-browser Whisper, mediabunny remux, web-renderer export). |
-| `tests/` (5 files) | Ported to `__tests__/upstream/` (vitest); all pass against this code. |
-| `public/` sounds, `remotion.png`, `sample-broll.jpg` | Copied to `public/recorder-studio/`. The `welcome/` sample project is only in `apps/remotion-recorder`. |
+- `npm run test:remotion-recorder`: upstream's own 5 test files, unchanged.
+- `__tests__/upstream/`: upstream's caption-processing tests re-pointed at `composition/` (the copy the editor actually runs).
 
 ## Notes
 
-- Licence: the composition is Remotion Recorder code (see Remotion's licence terms). Web exports use the same `licenseKey` convention as `motion-director/webRenderer.ts`.
+- Licence: upstream is Remotion Recorder code (see Remotion's licence terms). Web exports use the same `licenseKey` convention as `motion-director/webRenderer.ts`.
 - The bundled music tracks come from the Recorder template; confirm their licence covers your use before shipping.
-- The standalone Recorder app is still available in `apps/remotion-recorder` (see `EDITOR_INTEGRATION.md` there).
+- Dev: run `npm run build:remotion-recorder` once, otherwise the Recorder window explains that it is missing. `npm run build` does it for you.
