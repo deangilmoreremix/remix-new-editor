@@ -148,6 +148,8 @@ export function StepChooseVideo(): React.JSX.Element {
   const [demoStyleId, setDemoStyleId] = useState('all')
   const [demoAspect, setDemoAspect] = useState('all')
   const [demoSubcategoryId, setDemoSubcategoryId] = useState('all')
+  // Logo label: every demo is reviewed as `none` (no visible logo / watermark / credit) or `logo`.
+  const [demoBranding, setDemoBranding] = useState('all')
   // The visible window is keyed by the filter set: changing any filter starts
   // a fresh window without a stale "Show more" count.
   const [demoWindow, setDemoWindow] = useState({ key: '', count: DEMO_GALLERY_INITIAL })
@@ -221,20 +223,23 @@ export function StepChooseVideo(): React.JSX.Element {
       category: isCategoryActiveForDemo(demoCategoryId, item.demo),
       subcategory:
         demoSubcategoryId === 'all' || isCategoryActiveForDemo(demoSubcategoryId, item.demo),
+      branding: demoBranding === 'all' || item.entry.branding === demoBranding,
     }))
 
     // Every dimension except the category: the per-tab counts describe how
     // many of the CURRENTLY FILTERED demos each category would hold.
-    const facetSet = rows.filter((row) => row.query && row.source && row.style && row.aspect)
+    const facetSet = rows.filter((row) => row.query && row.source && row.style && row.aspect && row.branding)
     // The final list: every dimension applied.
     const filtered = facetSet.filter((row) => row.category && row.subcategory)
 
     // Each option list ignores the dimension it describes, so a value the
     // customer already picked never disappears from its own list.
-    const sourceCandidates = rows.filter((row) => row.query && row.style && row.aspect && row.category)
-    const styleCandidates = rows.filter((row) => row.query && row.source && row.aspect && row.category)
-    const aspectCandidates = rows.filter((row) => row.query && row.source && row.style && row.category)
-    const subcategoryCandidates = rows.filter((row) => row.query && row.category)
+    const sourceCandidates = rows.filter((row) => row.query && row.style && row.aspect && row.category && row.branding)
+    const styleCandidates = rows.filter((row) => row.query && row.source && row.aspect && row.category && row.branding)
+    const aspectCandidates = rows.filter((row) => row.query && row.source && row.style && row.category && row.branding)
+    const subcategoryCandidates = rows.filter((row) => row.query && row.category && row.branding)
+    // The logo filter ignores itself, like every other option list.
+    const brandingCandidates = rows.filter((row) => row.query && row.source && row.style && row.aspect && row.category && row.subcategory)
 
     // Source collection — derived from the registry, never hardcoded.
     const sourceCounts = new Map<string, number>()
@@ -270,6 +275,14 @@ export function StepChooseVideo(): React.JSX.Element {
     const aspectOptions: DemoOption[] = [...aspectCounts.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([value, count]) => ({ value, label: `${value} (${count})` }))
+
+    // Logo label — counts for the current filter set.
+    const brandingCounts = { none: 0, logo: 0 }
+    for (const row of brandingCandidates) brandingCounts[row.item.entry.branding] += 1
+    const brandingOptions: DemoOption[] = [
+      { value: 'none', label: `No logo (${brandingCounts.none})` },
+      { value: 'logo', label: `Has logo (${brandingCounts.logo})` },
+    ]
 
     // Sub-category — only meaningful inside one business niche, and only when
     // the demos in that niche actually carry sub-niches. Without a real
@@ -314,12 +327,13 @@ export function StepChooseVideo(): React.JSX.Element {
         getDemoCategory(demoStyleId)?.label,
       ),
       aspectOptions: demoFilterOptions(aspectOptions, demoAspect, 'All aspect ratios'),
+      brandingOptions: demoFilterOptions(brandingOptions, demoBranding, 'All clips'),
       subcategoryOptions,
     }
-  }, [demoQuery, demoSourceId, demoStyleId, demoAspect, demoCategoryId, demoSubcategoryId])
+  }, [demoQuery, demoSourceId, demoStyleId, demoAspect, demoCategoryId, demoSubcategoryId, demoBranding])
 
   // The visible window restarts whenever the filter set changes.
-  const demoFilterKey = `${demoCategoryId}|${demoQuery}|${demoSourceId}|${demoStyleId}|${demoAspect}|${demoSubcategoryId}`
+  const demoFilterKey = `${demoCategoryId}|${demoQuery}|${demoSourceId}|${demoStyleId}|${demoAspect}|${demoSubcategoryId}|${demoBranding}`
   const demoVisibleLimit = demoWindow.key === demoFilterKey ? demoWindow.count : DEMO_GALLERY_INITIAL
   const demoVisible = demoGallery.filtered.slice(0, demoVisibleLimit)
   const demoRemaining = demoGallery.filtered.length - demoVisible.length
@@ -330,7 +344,8 @@ export function StepChooseVideo(): React.JSX.Element {
     demoSourceId !== 'all' ||
     demoStyleId !== 'all' ||
     demoAspect !== 'all' ||
-    demoSubcategoryId !== 'all'
+    demoSubcategoryId !== 'all' ||
+    demoBranding !== 'all'
 
   const resetDemoFilters = () => {
     setDemoCategoryId(ALL_DEMOS_CATEGORY_ID)
@@ -339,6 +354,7 @@ export function StepChooseVideo(): React.JSX.Element {
     setDemoStyleId('all')
     setDemoAspect('all')
     setDemoSubcategoryId('all')
+    setDemoBranding('all')
   }
 
   return (
@@ -492,6 +508,12 @@ export function StepChooseVideo(): React.JSX.Element {
                 value={demoAspect}
                 options={demoGallery.aspectOptions}
                 onChange={setDemoAspect}
+              />
+              <DemoFilterSelect
+                label="Logo"
+                value={demoBranding}
+                options={demoGallery.brandingOptions}
+                onChange={setDemoBranding}
               />
               {/* The sub-category control only exists when the active
                   category actually carries sub-categories. */}
@@ -669,9 +691,25 @@ export function StepChooseVideo(): React.JSX.Element {
                               <Check size={10} /> Selected
                             </span>
                           )}
+                          {active && (
+                            <span data-branding={demo.branding} style={{ ...badgeStyle(demo.branding === 'none' ? 'green' : 'muted'), position: 'absolute', top: 34, right: 6 }}>
+                              {demo.branding === 'none' ? 'No logo' : 'Has logo'}
+                            </span>
+                          )}
                           {/* The "VIDEO" chip sits bottom-left, where the native
                               control bar's play button lives — it is hidden on the
                               selected card so the two never overlap. */}
+                          {/* Logo label: reviewed footage is either clean or carries a visible mark. */}
+                          {!active && (
+                            <span
+                              data-testid={`demo-branding-${demo.legacyId}-${demo.slug}`}
+                              data-branding={demo.branding}
+                              title={demo.marks ?? (demo.branding === 'none' ? 'Reviewed: no visible logo, watermark or credit' : 'Has a visible logo, watermark or credit')}
+                              style={{ position: 'absolute', top: 6, right: 6, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#fff', background: demo.branding === 'none' ? 'rgba(16,120,70,.88)' : 'rgba(150,95,10,.92)', padding: '2px 6px', borderRadius: 4 }}
+                            >
+                              {demo.branding === 'none' ? 'No logo' : 'Has logo'}
+                            </span>
+                          )}
                           {!active && (
                             <span style={{ position: 'absolute', bottom: 6, left: 6, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#fff', background: 'rgba(0,0,0,.55)', padding: '2px 6px', borderRadius: 4 }}>VIDEO</span>
                           )}

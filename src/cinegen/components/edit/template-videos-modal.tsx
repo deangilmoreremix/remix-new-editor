@@ -7,6 +7,10 @@ import { templateVideos, TEMPLATE_VIDEO_CATEGORIES, TEMPLATE_VIDEO_SUBCATEGORIES
 export type TemplateVideo = {
   id: string; slug: string; title: string; sourceTitle: string; category: string; subcategory: string; duration: number | null; aspectRatio: string;
   videoSrc: string; posterSrc: string | null; tags: string[]; source: string;
+  /** "none" = reviewed, no visible logo / watermark / credit; "logo" = has one (see scripts/template-video-branding.json). */
+  branding: 'none' | 'logo'; marks?: string; autoLabeled?: boolean;
+  /** Descriptive keywords (category, subcategory, title words) and picture orientation, used for search and by other apps via catalog.json. */
+  topics?: string[]; orientation?: 'landscape' | 'portrait' | 'square';
 };
 
 const ALL = templateVideos as unknown as TemplateVideo[];
@@ -38,7 +42,7 @@ export function durationBucket(d: number | null): 'short' | 'medium' | 'long' | 
 export function searchTemplateVideos(items: TemplateVideo[], q: string): TemplateVideo[] {
   const s = q.trim().toLowerCase();
   if (!s) return items;
-  return items.filter((i) => `${i.title} ${i.category} ${i.subcategory} ${i.sourceTitle} ${i.tags.join(' ')} ${i.source}`.toLowerCase().includes(s));
+  return items.filter((i) => `${i.title} ${i.category} ${i.subcategory} ${i.sourceTitle} ${(i.topics ?? []).join(' ')} ${i.tags.join(' ')} ${i.source}`.toLowerCase().includes(s));
 }
 
 /** Poster underneath, clip on top. The <video> is only mounted while the card is on screen (releases the decoder and keeps a
@@ -78,14 +82,15 @@ export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) 
   const [sub, setSub] = useState('all');
   const [ratio, setRatio] = useState('all');
   const [dur, setDur] = useState('all');
+  const [brand, setBrand] = useState('all');
   const [shown, setShown] = useState(INITIAL);
   useEffect(() => { setSub('all'); }, [cat]);
-  useEffect(() => { setShown(INITIAL); }, [q, cat, sub, ratio, dur]);
+  useEffect(() => { setShown(INITIAL); }, [q, cat, sub, ratio, dur, brand]);
   const counts = useMemo(() => { const m = new Map<string, number>(); for (const i of ALL) m.set(i.category, (m.get(i.category) ?? 0) + 1); return m; }, []);
   const tabs = useMemo(() => ['All', ...CATEGORIES.filter((c) => counts.has(c))], [counts]);
   const subTabs = useMemo(() => (cat === 'all' ? [] : SUBCATEGORIES[cat] ?? []), [cat]);
   const subCounts = useMemo(() => { const m = new Map<string, number>(); for (const i of ALL) if (i.category === cat) m.set(i.subcategory, (m.get(i.subcategory) ?? 0) + 1); return m; }, [cat]);
-  const list = useMemo(() => searchTemplateVideos(ALL, q).filter((i) => (cat === 'all' || i.category === cat) && (sub === 'all' || i.subcategory === sub) && (ratio === 'all' || aspectBucket(i.aspectRatio) === ratio) && (dur === 'all' || durationBucket(i.duration) === dur)), [q, cat, sub, ratio, dur]);
+  const list = useMemo(() => searchTemplateVideos(ALL, q).filter((i) => (cat === 'all' || i.category === cat) && (sub === 'all' || i.subcategory === sub) && (ratio === 'all' || aspectBucket(i.aspectRatio) === ratio) && (dur === 'all' || durationBucket(i.duration) === dur) && (brand === 'all' || i.branding === brand)), [q, cat, sub, ratio, dur, brand]);
   const visible = list.slice(0, shown);
   return (
     <>
@@ -122,9 +127,10 @@ export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) 
             })}
           </div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: 18, marginBottom: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: 18, marginBottom: 10 }}>
           <div><div style={label}>Search</div><input type="text" placeholder="⌕  Search template videos…" aria-label="Search template videos" value={q} onChange={(e) => setQ(e.target.value)} style={field} /></div>
           <div><div style={label}>Duration</div><select aria-label="Clip length" value={dur} onChange={(e) => setDur(e.target.value)} style={field}><option value="all">Any length</option><option value="short">Up to 10s</option><option value="medium">10–20s</option><option value="long">20–30s</option><option value="extra">Over 30s</option></select></div>
+          <div><div style={label}>Logo</div><select aria-label="Logo filter" value={brand} onChange={(e) => setBrand(e.target.value)} style={field}><option value="all">All clips</option><option value="none">No logo</option><option value="logo">Has logo</option></select></div>
           <div><div style={label}>Aspect ratio</div><select aria-label="Aspect ratio" value={ratio} onChange={(e) => setRatio(e.target.value)} style={field}><option value="all">All aspect ratios</option><option value="16:9">16:9 landscape</option><option value="9:16">9:16 portrait</option><option value="1:1">1:1 square</option></select></div>
         </div>
         <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>Showing {visible.length} of {list.length} videos</div>
@@ -135,6 +141,7 @@ export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) 
               <div style={{ position: 'relative' }}>
                 <CardVideo src={i.videoSrc} poster={i.posterSrc} title={i.title} ratio={ratioNumber(i.aspectRatio)} />
                 <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{i.subcategory}</span>
+                <span data-branding={i.branding} title={i.marks ?? (i.branding === 'none' ? 'Reviewed: no visible logo, watermark or credit' : 'Has a visible logo, watermark or credit')} style={{ position: 'absolute', right: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: i.branding === 'none' ? 'rgba(16,120,70,.85)' : 'rgba(150,95,10,.9)', color: '#fff' }}>{i.branding === 'none' ? 'No logo' : 'Has logo'}</span>
               </div>
               <div style={{ fontSize: 14, fontWeight: 700, marginTop: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.title}</div>
               <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{i.duration ? `${Math.round(i.duration)}s · ` : ''}{aspectBucket(i.aspectRatio)} · {i.source}</div>

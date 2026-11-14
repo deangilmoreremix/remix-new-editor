@@ -34,11 +34,12 @@ This bucket belongs to the "Template videos" library of the remix-new-editor rep
 It holds the demo/template clips and posters only. The Supabase project is shared by many apps: do not store anything else here.
 
 TO FIND THE TEMPLATES: fetch catalog.json in this bucket's root. It lists every clip with a commercial-style name, category,
-subcategory, duration, aspect ratio, public video + poster URLs and the upstream credit.
+subcategory, branding label (none = no visible logo/watermark, logo = has one), duration, aspect ratio, public video + poster URLs and the upstream credit.
+Clips whose URL starts with "/" live in the app repo (public/media) instead of this bucket.
   https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/catalog.json
 
 Layout: clips/<set>/<slug>.<ext>, posters/<set>/<slug>.<ext>. URLs are public, send Access-Control-Allow-Origin: * and support range requests.
-Rights: third-party media; confirm commercial-use / redistribution permission before production use.
+Rights: third-party media; the owner confirmed commercial-use permission. Credit holds the upstream author and post where known.
 Maintained from the remix-new-editor repo: scripts/generate-template-video-library.mjs, scripts/upload-template-videos.mjs, docs/template-videos.md
 `;
 

@@ -19,7 +19,7 @@
  */
 import type { NormRect, ProtectedZone } from './types'
 
-export type SourceFamily = 'minimax-h3' | 'promptfeed' | 'seedance-1' | 'seedance-25' | 'unknown'
+export type SourceFamily = 'minimax-h3' | 'promptfeed' | 'seedance-1' | 'seedance-25' | 'template-library' | 'unknown'
 export type RightsStatus = 'verified-owned' | 'licensed' | 'third-party-reference' | 'unverified'
 export type BakedInStatus = 'known' | 'unknown'
 
@@ -63,8 +63,12 @@ export const VERIFIED_SOURCE_PROFILES: Readonly<Record<string, VerifiedProfile>>
 })
 
 export function familyFromSrc(videoSrc: string | null | undefined): SourceFamily {
-  const m = /\/media\/(minimax-h3|promptfeed|seedance-1|seedance-25)\//.exec(videoSrc ?? '')
-  return (m?.[1] as SourceFamily) ?? 'unknown'
+  const src = videoSrc ?? ''
+  const m = /\/media\/(minimax-h3|promptfeed|seedance-1|seedance-25)\//.exec(src)
+  if (m) return m[1] as SourceFamily
+  // The Template videos library: its hosted bucket, and the clips it serves from the repo (the owner confirmed rights for these too).
+  if (/\/storage\/v1\/object\/public\/demo-template-videos\/clips\//.test(src) || /\/media\/(seedance-2\.5|awesome-seedance)\/videos\//.test(src)) return 'template-library'
+  return 'unknown'
 }
 
 export function namesThirdPartyBrand(text: string | null | undefined): boolean {
@@ -101,7 +105,7 @@ export function profileForSource(args: {
       status: verified ? 'known' : 'unknown',
       regions: (verified?.baked ?? []).map((z) => ({ ...z, source: 'template' as const })),
     },
-    // The owner confirmed (2026-11) that ALL 123 registry demo clips may be used with no restrictions, so every clip served
+    // The owner confirmed (2026-11) that ALL registry demo clips (including the Template videos library) may be used with no restrictions, so every clip served
     // from a registry family is `verified-owned` — including those that mention a brand. Any other clip (an upload, an
     // unknown URL) is still unverified, and a third-party-brand one stays a reference clip.
     rights: inRegistry ? 'verified-owned' : thirdParty ? 'third-party-reference' : 'unverified',

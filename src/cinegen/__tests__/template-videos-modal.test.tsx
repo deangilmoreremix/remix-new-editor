@@ -81,6 +81,24 @@ describe('TemplateVideosModal', () => {
     expect(searchTemplateVideos(ALL, 'food & beverage').length).toBeGreaterThan(3);
   });
 
+  it('labels every card No logo or Has logo and filters by that label', () => {
+    const badges = () => [...document.querySelectorAll('[data-branding]')].map((b) => b.getAttribute('data-branding'));
+    expect(badges().every((b) => b === 'none' || b === 'logo')).toBe(true);
+    expect(badges()).toHaveLength(cards().length);
+    fireEvent.change(screen.getByLabelText('Logo filter'), { target: { value: 'none' } });
+    const none = ALL.filter((v) => v.branding === 'none').length;
+    expect(none).toBeGreaterThan(0);
+    expect(screen.getByText(new RegExp(`of ${none} videos`))).toBeTruthy();
+    expect(badges().every((b) => b === 'none')).toBe(true);
+    expect(screen.getAllByText('No logo').length).toBeGreaterThan(0);
+    fireEvent.change(screen.getByLabelText('Logo filter'), { target: { value: 'logo' } });
+    const logo = ALL.filter((v) => v.branding === 'logo').length;
+    expect(logo).toBeGreaterThan(0);
+    expect(screen.getByText(new RegExp(`of ${logo} videos`))).toBeTruthy();
+    expect(badges().every((b) => b === 'logo')).toBe(true);
+    expect(none + logo).toBe(ALL.length);
+  });
+
   it('filters by aspect ratio', () => {
     fireEvent.change(screen.getByLabelText('Aspect ratio'), { target: { value: '9:16' } });
     const expected = ALL.filter((v) => aspectBucket(v.aspectRatio) === '9:16').length;
