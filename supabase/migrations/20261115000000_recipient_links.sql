@@ -35,7 +35,7 @@ create index if not exists recipient_links_owner_video_idx on public.recipient_l
 alter table public.recipient_links enable row level security;
 
 drop policy if exists "recipient_links_select_own" on public.recipient_links;
-create policy "recipient_links_select_own" on public.recipient_links for select
+create policy "recipient_links_select_own" on public.recipient_links for select to authenticated
   using (clerk_user_id = nullif(coalesce(auth.jwt() ->> 'sub', current_setting('app.clerk_user_id', true)), ''));
 -- No insert/update/delete policies: only the security-definer RPCs write.
 

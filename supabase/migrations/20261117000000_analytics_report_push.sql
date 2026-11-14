@@ -40,7 +40,7 @@ create index if not exists push_subscriptions_owner_idx on public.push_subscript
 
 alter table public.push_subscriptions enable row level security;
 drop policy if exists "push_subscriptions_select_own" on public.push_subscriptions;
-create policy "push_subscriptions_select_own" on public.push_subscriptions for select
+create policy "push_subscriptions_select_own" on public.push_subscriptions for select to authenticated
   using (clerk_user_id = nullif(coalesce(auth.jwt() ->> 'sub', current_setting('app.clerk_user_id', true)), ''));
 revoke all on table public.push_subscriptions from anon, authenticated;
 

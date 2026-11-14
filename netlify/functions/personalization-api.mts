@@ -20,6 +20,7 @@
  *   POST          /api/personalization/outreach   (email TEST send; disabled unless configured)
  *   GET           /api/personalization/analytics-report   (owner-checked results report)
  *   GET|POST|DELETE /api/personalization/push   (opt-in owner notifications; needs VAPID keys)
+ *   GET|POST|DELETE /api/personalization/recipient-videos   (per-recipient videos in a private bucket)
  *   POST          /api/personalization/record
  *   POST          /api/personalization/persist-edited-asset
  *   POST          /api/personalization/resolve-website  (find a business's own site from its OSM listing)
@@ -55,6 +56,7 @@ import * as recipientLinks from './_personalization/app/api/personalization/reci
 import * as outreach from './_personalization/app/api/personalization/outreach/route'
 import * as analyticsReport from './_personalization/app/api/personalization/analytics-report/route'
 import * as push from './_personalization/app/api/personalization/push/route'
+import * as recipientVideos from './_personalization/app/api/personalization/recipient-videos/route'
 import * as record from './_personalization/app/api/personalization/record/route'
 import * as demoDiscover from './_personalization/app/api/demo/discover/route'
 import * as persistEditedAsset from './_personalization/extra/persistEditedAsset'
@@ -89,6 +91,7 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/personalization/outreach': outreach as RouteModule,
   '/api/personalization/analytics-report': analyticsReport as RouteModule,
   '/api/personalization/push': push as RouteModule,
+  '/api/personalization/recipient-videos': recipientVideos as RouteModule,
   '/api/personalization/record': record as RouteModule,
   '/api/personalization/persist-edited-asset': persistEditedAsset as unknown as RouteModule,
   '/api/personalization/resolve-website': resolveWebsite as RouteModule,

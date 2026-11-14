@@ -71,8 +71,8 @@ describe('watch page records first-party analytics', () => {
     const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, onLead: vi.fn() });
     player.destroy();
     window.dispatchEvent(new Event('pagehide'));
-    await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalled());
-    const [url, init] = fetchSpy.mock.calls[0];
+    await vi.waitFor(() => expect(fetchSpy.mock.calls.some((c) => c[0] === '/api/video-events')).toBe(true));
+    const [url, init] = fetchSpy.mock.calls.find((c) => c[0] === '/api/video-events');
     expect(url).toBe('/api/video-events');
     const body = JSON.parse(init.body);
     expect(body).toMatchObject({ video: 'abcdefgh12', recipient: 'Abcdefghijklmnopqrstuvwxyz012345' });
@@ -138,8 +138,8 @@ describe('watch page: a link without a valid token is anonymous', () => {
       const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, onLead: vi.fn() });
       player.destroy();
       window.dispatchEvent(new Event('pagehide'));
-      await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalled());
-      const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
+      await vi.waitFor(() => expect(fetchSpy.mock.calls.some((c) => c[0] === '/api/video-events')).toBe(true));
+      const body = JSON.parse(fetchSpy.mock.calls.find((c) => c[0] === '/api/video-events')[1].body);
       expect(body.recipient).toBeUndefined();
       expect(body.contact).toBeUndefined();
       fetchSpy.mockRestore();

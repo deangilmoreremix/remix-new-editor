@@ -139,6 +139,15 @@ describe('BulkPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Download package (.zip)' })); await waitFor(() => expect(dl).toHaveBeenCalled())
     const text = new TextDecoder('latin1').decode(new Uint8Array(await (dl.mock.calls[0][1] as Blob).arrayBuffer())); expect(text).toMatch(/watch\/abcdefgh12\?r=tok0/); expect(text).toMatch(/watch\/abcdefgh12\?r=tok1/)
   })
+  it('uploads each recipient\'s rendered video privately once personal links exist, and reports who could not be uploaded', async () => {
+    const m = createMemoryStores(); const up = vi.fn(async (_v: string, link: string, _file?: Blob) => (link === 'link-2' ? { ok: false as const, reason: 'not-found' as const, message: 'That personal link was not found.' } : { ok: true as const, bytes: 10 }))
+    const issue = vi.fn(async (_v: string, labels: string[]) => ({ ok: true as const, data: labels.map((label, i) => ({ id: `link-${i + 1}`, label, token: 't', url: `https://app.example.com/watch/abcdefgh12?r=tok${i}` })) }))
+    render(<BulkPanel inputProps={props()} storesFn={async () => m} runnerFn={fakeRunner()} issueLinksFn={issue as never} uploadFn={up as never} />); load(); fireEvent.click(screen.getByLabelText('Video (slow)')); fireEvent.click(screen.getByRole('button', { name: /Start making/ }))
+    await waitFor(() => expect(screen.getByTestId('bulk-summary').textContent).toMatch(/finished/)); expect(screen.queryByRole('button', { name: 'Upload videos privately' })).toBeNull() // no links yet
+    fireEvent.change(screen.getByLabelText('Published video address for personal links'), { target: { value: 'https://app.example.com/watch/abcdefgh12' } }); fireEvent.click(screen.getByRole('button', { name: 'Make personal links' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Upload videos privately' })); await waitFor(() => expect(screen.getByTestId('bulk-message').textContent).toMatch(/1 video uploaded privately\. 1 not uploaded: Bright Plumbing: That personal link was not found/))
+    expect(up).toHaveBeenCalledTimes(2); expect(up.mock.calls.map((c) => c[1])).toEqual(['link-1', 'link-2']); expect(up.mock.calls[0][0]).toBe('abcdefgh12'); expect(((up.mock.calls[0] as unknown[])[2] as Blob).size).toBeGreaterThan(0)
+  })
   it('does not start a batch it could not keep: blocked or full storage is explained, nothing runs', async () => {
     const dead = { store: { load: async () => null, save: async () => { throw new Error('blocked') }, clear: async () => {} }, artifacts: { put: async () => { throw new Error('blocked') }, get: async () => null, clearJob: async () => {} } }
     const log: string[] = []; render(<BulkPanel inputProps={props()} storesFn={async () => dead} runnerFn={fakeRunner(log)} />); load(); fireEvent.click(screen.getByRole('button', { name: /Start making/ }))

@@ -587,3 +587,9 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 * Drafts and backups hold the **design settings only**: not the video, music, pictures or recordings. Memory-only items are not restored and are listed.
 * The memory measurements are from Node on the pure mixdown; a real tab adds decode and export overhead, which is why the limit is 10 minutes and not higher. Full-length 1080p video export time/memory was not measured.
 * Web Locks and BroadcastChannel were exercised in Chromium only; where they are missing, two tabs are not prevented from writing, and conflicts are not announced. OPFS was probed in Chromium (including a private window); Safari/Firefox were not tested.
+
+### Follow-up phase (2026-11-14)
+- Supabase branch `gahymlskmvhfeprcwgaw` only: migrations applied by hand (retargeting is a subset); advisors reviewed; production untouched.
+- Kit hand-off (`kitExport.ts`, `kit-import.csv`); VAPID keys generated (public key in the final report); private per-recipient video storage built (SQL, function, route, client, panel, watch page).
+- Verified: 20 SQL assertions, route/function/client/panel/watch tests, 13 mutations caught, full vitest 11,710 passed, lint, typecheck gate, build.
+- NOT verified: real Storage REST upload/download, Kit Liquid tags in Kit, real push delivery.

@@ -39,23 +39,23 @@ alter table public.personalization_saved_layouts enable row level security;
 
 drop policy if exists "personalization_saved_layouts_select_own" on public.personalization_saved_layouts;
 create policy "personalization_saved_layouts_select_own"
-  on public.personalization_saved_layouts for select
+  on public.personalization_saved_layouts for select to authenticated
   using (clerk_user_id = nullif(coalesce(auth.jwt() ->> 'sub', current_setting('app.clerk_user_id', true)), ''));
 
 drop policy if exists "personalization_saved_layouts_insert_own" on public.personalization_saved_layouts;
 create policy "personalization_saved_layouts_insert_own"
-  on public.personalization_saved_layouts for insert
+  on public.personalization_saved_layouts for insert to authenticated
   with check (clerk_user_id = nullif(coalesce(auth.jwt() ->> 'sub', current_setting('app.clerk_user_id', true)), ''));
 
 drop policy if exists "personalization_saved_layouts_update_own" on public.personalization_saved_layouts;
 create policy "personalization_saved_layouts_update_own"
-  on public.personalization_saved_layouts for update
+  on public.personalization_saved_layouts for update to authenticated
   using (clerk_user_id = nullif(coalesce(auth.jwt() ->> 'sub', current_setting('app.clerk_user_id', true)), ''))
   with check (clerk_user_id = nullif(coalesce(auth.jwt() ->> 'sub', current_setting('app.clerk_user_id', true)), ''));
 
 drop policy if exists "personalization_saved_layouts_delete_own" on public.personalization_saved_layouts;
 create policy "personalization_saved_layouts_delete_own"
-  on public.personalization_saved_layouts for delete
+  on public.personalization_saved_layouts for delete to authenticated
   using (clerk_user_id = nullif(coalesce(auth.jwt() ->> 'sub', current_setting('app.clerk_user_id', true)), ''));
 
 -- ---------------------------------------------------------------------------

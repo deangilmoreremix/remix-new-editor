@@ -132,3 +132,9 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Added: `shared/personalization/recovery/*`, `guided/RecoveryPanel.tsx`, `readZip` in `bulk/zip.ts`, `MAX_MIX_SECONDS` guard in `audioMixdown.ts`, `scripts/stage12-recovery-check/`, `scripts/stage12-e2e-check/`. Harness fix: `presenter-server.mjs` pre-bundles `react-dom/server` and `@react-email/render`; Stage 6 test BOM literal escaped.
 - Verified: 28 unit/panel tests, real-browser recovery 15/15, end-to-end chain 9/9, 13 mutations caught, then the full final validation (see `docs/SMARTVIDEO_FINAL_REPORT.md`).
 
+
+### Follow-up — branch, Kit, VAPID, private recipient videos
+- Authorization: your answers (Supabase branch, Kit, VAPID keys only, private bucket). No production change, nothing sent.
+- Added: `20261118000000_recipient_videos.sql`, `_storage/signedUrls.js`, `recipient-video.js`, route `recipient-videos`, `recipientVideosClient.ts`, `kitExport.ts`, Bulk panel upload, watch-page personal video; policies in earlier migrations scoped `to authenticated`.
+- Applied to the branch `gahymlskmvhfeprcwgaw` only (see the final report for the subset caveat and advisor findings).
+- Verified: SQL assertions (all runners), 13 mutations, full vitest, lint, typecheck gate, build. Not verified: real Storage REST, Kit tags, real push.

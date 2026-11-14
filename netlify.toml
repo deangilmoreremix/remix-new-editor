@@ -167,6 +167,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/recipient-video"
+  to = "/.netlify/functions/recipient-video"
+  status = 200
+  force = true
+
 # Restored thumbnails are WebP-encoded but keep their historical `.webp.png`
 # filenames so every existing reference resolves; declare the real type.
 [[headers]]

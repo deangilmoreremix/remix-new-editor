@@ -27,10 +27,26 @@ Visual editing, website backgrounds, MediaPipe presenter, browser audio mix, vid
 * 1080p/long-video export time and memory were not measured; the audio mix is limited to 10 minutes from measurement.
 * The PDF uses standard fonts (non-Latin scripts show "?", and the file says so). Safari/Firefox were not tested for OPFS, Web Locks, BroadcastChannel or push.
 
-## Decisions waiting for you
-1. Apply the migrations (ideally to a Supabase branch first)?
-2. Which email provider/SMTP, and the sending domain's DNS?
-3. VAPID keys (`node scripts/make-vapid-keys.mjs`) and a real device test?
-4. Where per-recipient rendered videos should live (storage, access, retention)?
+## Follow-up phase (decisions you made, 2026-11-14)
+Production was not touched. Nothing was sent. No secret is in the repository or the frontend.
+
+**Applied where**
+* Supabase **branch** `smartvideo-stage-validation` (project ref `gahymlskmvhfeprcwgaw`, child of `bzxohkrxcwodllketcpz`) only. Auto-replay of main's history ends `MIGRATIONS_FAILED` (as with every earlier branch), so the chain was applied by hand: rate limiter, published videos/events/timeline projects, publish hardening/slugs, video analytics, a **subset** of the retargeting migration (tables, helpers, `_notify`, the event trigger; not interest scoring or scheduled jobs), then layouts, recipient links, email suppressions, analytics report/push and `20261118000000_recipient_videos.sql`. The branch is therefore not an exact copy of main. Nothing was merged or applied to main.
+* Security advisors on the branch: none of our RPCs or tables is flagged except the generic `auth_allow_anonymous_sign_ins` lint, which also fires on tables that have policies `to authenticated` (it looks like a project setting, not a gap in our policies; not confirmed). Earlier, our policies had no role clause; they are now `to authenticated`. Pre-existing findings that are not ours and were left alone: `rate_limit_*` functions, slug RPCs, policies on `brand_*`, thumbnails, `timeline_projects`, `retarget_*`, `owner_notifications`, and `video_slug_redirects` with RLS on but no policy.
+* The private bucket was confirmed private, with no browser-role policies; table and RPC access is locked for `anon` and `authenticated`.
+
+**Email: Kit.** Kit broadcasts made through its tools are always drafts and only the account owner sends them, so there is no send adapter. The outreach package now includes `kit-import.csv` (email, name, `smartvideo_link`, `smartvideo_gif`, suppressed addresses removed) and an HTML body that uses Kit's Liquid tags and Kit's own unsubscribe link. To use it: create the two custom fields in Kit, import the CSV, paste the HTML into a broadcast, and send from Kit yourself. The Liquid tag names were not tested inside Kit.
+
+**Push.** VAPID keys were generated. Public key: `BC7rUjcBTkZmGe6NDgn5JqmCA1-GbOUsQuzdEqEX9NesrjJu3QhNU4hng5krf6z0LNXWXL3dOZsETPOUdSaqtkw`. Set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` (a real `mailto:` address) in Netlify yourself. The private key exists only in this session's scratchpad file; treat it as exposed to this session and rotate it (`node scripts/make-vapid-keys.mjs`) if you prefer. Real delivery to a real browser is still untested.
+
+**Private per-recipient video.** Migration `20261118000000_recipient_videos.sql` (private `recipient-videos` bucket, `recipient_videos` table, five service-role RPCs), `netlify/functions/_storage/signedUrls.js`, the owner route `/api/personalization/recipient-videos` (signed upload URL, register, remove) and the public token-gated `/api/recipient-video` (1-hour signed download URL, only for a live link whose token hash and video match). The watch page plays the personal video only from an https URL. Bulk panel has "Upload videos privately". Tests: 20 SQL assertions, function/route/client/watch-page tests, 13 mutations caught. **Not verified:** the real Supabase Storage REST calls (needs the branch's service-role key, which this session did not have). Set `SUPABASE_URL`/service role in Netlify only after the migration is applied where you want it.
+
+**Gates on the final tree:** full vitest 11,710 passed (61 skipped), eslint clean on changed files, `typecheck:personalization` 0 errors in scope (98 pre-existing out of scope), `vite build` passes (needs `--max-old-space-size=7168`), all SQL assertion runners pass.
+
+## Decisions still waiting for you
+1. Delete the validation branch (it may cost money while it exists), or keep it? Apply the migrations to production when you are ready.
+2. Your sending domain's DNS and the Kit steps above.
+3. A real push test after you set the VAPID variables; rotate the key if desired.
+4. Real Storage verification of private videos, and a retention rule for them.
 5. Recorder status, the private capture bucket, and the 117 RLS-disabled tables (unchanged, still open).
 6. The queued "Personalization Studio" prompt remains unstarted.

@@ -190,5 +190,30 @@ export async function mountWatchPage(container, ref, deps = {}) {
   frame.addEventListener('error', (e) => { if (e.target?.tagName === 'VIDEO' || e.target?.tagName === 'AUDIO') analytics.track('error', { props: { reason: 'media' } }); }, true);
   globalThis.addEventListener?.('pagehide', () => analytics.destroy(), { once: true });
 
+  // A personal link may have its own rendered video (private storage, short-lived signed URL, only while the link is live). It is
+  // shown in addition to the interactive player; when there is none (404) nothing changes and nothing is reported to the viewer.
+  if (recipient && video.id) {
+    (async () => {
+      try {
+        const fetchPersonal = deps.fetchRecipientVideo || (async (id, token) => {
+          const res = await fetch(`/api/recipient-video?video=${encodeURIComponent(id)}&r=${encodeURIComponent(token)}`, { cache: 'no-store', referrerPolicy: 'no-referrer' });
+          return res.ok ? res.json() : null;
+        });
+        const got = await fetchPersonal(video.id, recipient);
+        if (!got?.ok || typeof got.url !== 'string' || !/^https:\/\//.test(got.url)) return;
+        const section = document.createElement('section');
+        section.className = 'watch-personal'; section.setAttribute('aria-label', 'Your personal video');
+        const el = document.createElement('video');
+        el.controls = true; el.playsInline = true; el.preload = 'metadata'; el.setAttribute('data-personal-video', ''); el.src = got.url;
+        el.style.cssText = 'display:block;width:100%;max-width:960px;margin:0 auto 16px;border-radius:8px;background:#000';
+        el.addEventListener('play', () => analytics.track('play', { props: { reason: 'personal-video' } }), { once: true });
+        el.addEventListener('ended', () => analytics.track('complete', {}), { once: true });
+        section.appendChild(el);
+        const anchor = container.querySelector('.watch-player');
+        anchor?.parentNode?.insertBefore(section, anchor);
+      } catch { /* the personal video is optional */ }
+    })();
+  }
+
   return player;
 }

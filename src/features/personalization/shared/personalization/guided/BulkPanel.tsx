@@ -12,6 +12,8 @@ import { canResume, createIdbStores, createJob, markStepsMissing, retryFailed, r
 import { buildPackage } from '../bulk/outputPackage'
 import { chunk, linkLabels, templateFingerprint } from '../bulk/recipientInput'
 import { issueRecipientLinks, parseVideoId } from '../publish/recipientLinksClient'
+import { uploadRecipientVideo } from '../publish/recipientVideosClient'
+import { artifactKey } from '../bulk/batchJob'
 import { createBatchRunner } from './batchSteps'
 import { browserDownloadBlob } from './ThumbnailGifPanel'
 import { C, chipStyle, hintStyle, inputStyle, labelStyle, softPanelStyle } from './tokens'
@@ -23,6 +25,7 @@ export interface BulkPanelProps {
   runnerFn?: (base: PreviewInputProps, recipients: Recipient[]) => RunDeps
   downloadFn?: (fileName: string, blob: Blob) => void
   issueLinksFn?: typeof issueRecipientLinks
+  uploadFn?: typeof uploadRecipientVideo
   locks?: LockManager | undefined
   retryDelayMs?: number
 }
@@ -34,7 +37,7 @@ const TARGETS: Array<[string, string]> = [['', 'Ignore'], ...CORE_FIELDS.map((f)
 const targetValue = (t: ColumnTarget) => (t === null ? '' : typeof t === 'string' ? t : 'custom')
 const RECIPIENTS_KEY = (jobId: string) => `${jobId}/recipients`
 
-export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLinksFn, locks, retryDelayMs }: BulkPanelProps) {
+export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLinksFn, uploadFn, locks, retryDelayMs }: BulkPanelProps) {
   const [text, setText] = useState('')
   const [parsed, setParsed] = useState<ParsedCsv | null>(null)
   const [mapping, setMapping] = useState<ColumnTarget[]>([])
@@ -111,6 +114,8 @@ export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLin
   }
   const discard = async () => { abort.current?.abort(); const s = await getStores(); if (job) await s.artifacts.clearJob(job.id); await s.store.clear(); setJob(null); setRecipients([]); setLinks({}); say('The saved batch was removed.') }
   const [lost, setLost] = useState(0)
+  const [linkIds, setLinkIds] = useState<Record<string, string>>({})
+  const [uploading, setUploading] = useState(false)
   const download = async (partial = false) => {
     if (!job) return; const s = await getStores()
     try {
@@ -128,16 +133,29 @@ export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLin
   }
   const makeLinks = async () => {
     const id = parseVideoId(videoAddress); if (!id) { say('That does not look like a published video address (…/watch/<id>).', true); return }
-    const labels = linkLabels(recipients); const made: Record<string, string> = {}
+    const labels = linkLabels(recipients); const made: Record<string, string> = {}; const ids: Record<string, string> = {}
     for (const part of chunk(labels.map((l, i) => ({ l, i })), 50)) {
       const res = await (issueLinksFn ?? issueRecipientLinks)(id, part.map((p) => p.l))
-      if (!res.ok) { say(res.message, true); setLinks(made); return }
-      const byLabel = new Map(res.data.map((d) => [d.label.toLowerCase(), d.url]))
-      for (const p of part) { const url = byLabel.get(p.l.toLowerCase()); if (url) made[recipients[p.i].id] = url }
+      if (!res.ok) { say(res.message, true); setLinks(made); setLinkIds(ids); return }
+      const byLabel = new Map(res.data.map((d) => [d.label.toLowerCase(), d]))
+      for (const p of part) { const d = byLabel.get(p.l.toLowerCase()); if (d) { made[recipients[p.i].id] = d.url; ids[recipients[p.i].id] = d.id } }
     }
-    setLinks(made); say(`${Object.keys(made).length} personal links made. They are shown only once: download the package now.`)
+    setLinks(made); setLinkIds(ids); say(`${Object.keys(made).length} personal links made. They are shown only once: download the package now.`)
   }
 
+  const uploadVideos = async () => {
+    const id = parseVideoId(videoAddress); if (!job || !id) { say('Paste the published video address and make personal links first.', true); return }
+    const s = await getStores(); setUploading(true); let ok = 0; const problems: string[] = []
+    try {
+      for (const it of job.items) {
+        const linkId = linkIds[it.id]; if (!linkId) { problems.push(`${it.label}: no personal link`); continue }
+        if (it.steps.video?.status !== 'done') { problems.push(`${it.label}: no video made`); continue }
+        const blob = await s.artifacts.get(artifactKey(job.id, it.id, 'video')); if (!blob) { problems.push(`${it.label}: the video file is gone`); continue }
+        const r = await (uploadFn ?? uploadRecipientVideo)(id, linkId, blob); if (r.ok) ok += 1; else problems.push(`${it.label}: ${r.message}`)
+      }
+    } finally { setUploading(false) }
+    say(`${ok} video${ok === 1 ? '' : 's'} uploaded privately.${problems.length ? ` ${problems.length} not uploaded: ${problems.slice(0, 4).join('; ')}${problems.length > 4 ? '…' : ''}` : ' Each recipient\'s personal link now shows their own video.'}`, problems.length > 0)
+  }
   const sum = job ? summarize(job) : null
   const stale = job ? !canResume(job, fingerprint).ok : false
   const toggle = (s: StepName) => setSteps((cur) => (cur.includes(s) ? cur.filter((x) => x !== s) : (['thumbnail', 'gif', 'video'] as StepName[]).filter((x) => x === s || cur.includes(x))))
@@ -168,6 +186,7 @@ export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLin
             <div style={{ ...row, marginTop: 6 }}>
               <input aria-label="Published video address for personal links" placeholder="Optional: …/watch/<id> to add personal links" value={videoAddress} onChange={(e) => setVideoAddress(e.target.value)} style={{ ...inputStyle, minHeight: 28, padding: '0 6px', flex: 1, minWidth: 180 }} />
               <button type="button" style={small} disabled={!videoAddress.trim()} onClick={() => void makeLinks()}>Make personal links</button>
+              {Object.keys(linkIds).length > 0 && job.stepNames.includes('video') ? <button type="button" style={small} disabled={uploading} onClick={() => void uploadVideos()}>{uploading ? 'Uploading…' : 'Upload videos privately'}</button> : null}
             </div>
           ) : null}
         </div>

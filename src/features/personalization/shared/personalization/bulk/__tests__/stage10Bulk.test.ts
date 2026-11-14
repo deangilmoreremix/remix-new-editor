@@ -280,7 +280,7 @@ describe('output package', () => {
     const job = await runBatch(createJob(recipients.map((r) => ({ id: r.id, label: r.company })), ['thumbnail', 'gif'], T, { id: 'j1' }), deps({ fail: (s, id) => (id === 'p3' && s === 'gif' ? new Error('no frames') : null) }), { store, artifacts, maxAttempts: 1 })
     const pkg = await buildPackage({ job, recipients, artifacts, links: { p1: 'https://app.example.com/watch/v?r=tok1' }, now: () => new Date('2026-11-01T00:00:00Z') })
     const z = await readZip(pkg.blob)
-    expect(Object.keys(z).sort()).toEqual(['001-acme/personalized.gif', '001-acme/thumbnail.jpg', '002-cmd-c-calc-a1/personalized.gif', '002-cmd-c-calc-a1/thumbnail.jpg', '003-cedar/thumbnail.jpg', 'README.txt', 'manifest.csv'])
+    expect(Object.keys(z).sort()).toEqual(['001-acme/personalized.gif', '001-acme/thumbnail.jpg', '002-cmd-c-calc-a1/personalized.gif', '002-cmd-c-calc-a1/thumbnail.jpg', '003-cedar/thumbnail.jpg', 'README.txt', 'kit-import.csv', 'manifest.csv'])
     expect(new TextDecoder().decode(z['001-acme/personalized.gif'])).toBe('gif-p1')
     const manifest = new TextDecoder().decode(z['manifest.csv']).replace(/^\uFEFF/, ''); const rows = parseCsv(manifest).rows
     expect(rows[0][2]).toBe('Acme'); expect(rows[0].join('|')).toMatch(/watch\/v\?r=tok1/)

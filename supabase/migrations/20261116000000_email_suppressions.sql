@@ -21,7 +21,7 @@ create table if not exists public.email_suppressions (
 
 alter table public.email_suppressions enable row level security;
 drop policy if exists "email_suppressions_select_own" on public.email_suppressions;
-create policy "email_suppressions_select_own" on public.email_suppressions for select
+create policy "email_suppressions_select_own" on public.email_suppressions for select to authenticated
   using (clerk_user_id = nullif(coalesce(auth.jwt() ->> 'sub', current_setting('app.clerk_user_id', true)), ''));
 revoke all on table public.email_suppressions from anon, authenticated;
 
