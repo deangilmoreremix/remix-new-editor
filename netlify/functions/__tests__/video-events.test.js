@@ -1,7 +1,10 @@
 // @vitest-environment node
 import { createHash } from 'node:crypto';
 import { describe, it, expect, vi } from 'vitest';
+import { createECDH, randomBytes } from 'node:crypto';
+import ece from 'http_ece';
 import { handle, handler, normalizeEvent, deviceClass, MAX_BODY, EVENT_TYPES } from '../video-events.js';
+import { generateVapidKeys } from '../_push/webPush.js';
 
 const env = { SUPABASE_URL: 'https://db.test', SUPABASE_SERVICE_ROLE_KEY: 'service-secret' };
 const base = { video: 'abcdefgh12', session: 'sess_0123456789abcdef', events: [{ type: 'page_open', seq: 0 }] };
@@ -165,5 +168,47 @@ describe('video-events: recipient tokens', () => {
     const g = fakeFetch();
     await handle(base, { fetchImpl: g, env });
     expect(g.calls.filter((c) => c.name === 'rate_limit_check').map((c) => c.args.p_scope)).not.toContain('video-events-recipient');
+  });
+});
+
+describe('video-events: owner push (Stage 11)', () => {
+  const vapid = () => { const k = generateVapidKeys(); return { ...env, VAPID_PUBLIC_KEY: k.publicKey, VAPID_PRIVATE_KEY: k.privateKey, VAPID_SUBJECT: 'mailto:owner@example.com' }; };
+  const browser = () => { const e = createECDH('prime256v1'); e.generateKeys(); return { e, auth: randomBytes(16) }; };
+  /** fetch fake that also plays the push service: it decrypts what is sent to it. */
+  function pushWorld({ notes = [{ id: '11111111-1111-4111-8111-111111111111', type: 'new_lead', title: 'New lead captured', summary: 'A viewer submitted a form.', video_id: 'abcdefgh12' }], pushStatus = 201, claimFails = false, slowPush = false } = {}) {
+    const b = browser(); const sub = { endpoint: 'https://fcm.googleapis.com/fcm/send/abc', p256dh: Buffer.from(b.e.getPublicKey()).toString('base64url'), auth: b.auth.toString('base64url') };
+    const rpcs = []; const pushes = [];
+    const fn = vi.fn(async (url, init) => {
+      if (url.startsWith('https://fcm.googleapis.com')) { pushes.push({ url, headers: init.headers, text: ece.decrypt(init.body, { version: 'aes128gcm', privateKey: b.e, authSecret: b.auth }).toString('utf8') }); if (slowPush) await new Promise((r) => setTimeout(r, 4000)); return { status: pushStatus }; }
+      const name = url.split('/rpc/')[1]; rpcs.push({ name, args: JSON.parse(init.body) });
+      if (name === 'rate_limit_check') return { ok: true, json: async () => ({ allowed: true }) };
+      if (name === 'push_claim_for_video') return claimFails ? { ok: false, status: 500, json: async () => ({}) } : { ok: true, json: async () => ({ notifications: notes, subscriptions: [sub] }) };
+      if (name === 'push_subscription_report') return { ok: true, json: async () => null };
+      return { ok: true, json: async () => ({ ok: true, accepted: 1, duplicates: 0 }) };
+    });
+    return { fn, rpcs, pushes, claims: () => rpcs.filter((r) => r.name === 'push_claim_for_video') };
+  }
+  const lead = { ...base, events: [{ type: 'lead_submit', seq: 3, clip: 'form1' }] };
+
+  it('claims and pushes the owner\'s alert after a lead, and the push is what the database claimed (decrypted by an independent reader)', async () => {
+    const w = pushWorld(); const res = await handle(lead, { fetchImpl: w.fn, env: vapid() });
+    expect(res.statusCode).toBe(200); expect(w.claims()).toHaveLength(1); expect(w.claims()[0].args).toEqual({ p_video_id: 'abcdefgh12', p_limit: 3 });
+    expect(w.pushes).toHaveLength(1); expect(JSON.parse(w.pushes[0].text)).toMatchObject({ title: 'New lead captured', body: 'A viewer submitted a form.', type: 'new_lead', url: '/?notification=11111111-1111-4111-8111-111111111111' });
+    expect(w.pushes[0].headers.Authorization).toMatch(/^vapid t=/); expect(w.rpcs.some((r) => r.name === 'push_subscription_report' && r.args.p_ok.length === 1)).toBe(true);
+  });
+  it('does nothing about push without VAPID keys, for plain views, and for retried batches that added nothing new', async () => {
+    const a = pushWorld(); await handle(lead, { fetchImpl: a.fn, env }); expect(a.claims()).toHaveLength(0); expect(a.pushes).toHaveLength(0);
+    const b = pushWorld(); await handle({ ...base, events: [{ type: 'page_open', seq: 0 }, { type: 'play', seq: 1 }] }, { fetchImpl: b.fn, env: vapid() }); expect(b.claims()).toHaveLength(0);
+    const c = pushWorld(); const dup = vi.fn(async (u, i) => (u.includes('ingest_video_events') ? { ok: true, json: async () => ({ ok: true, accepted: 0, duplicates: 1 }) } : c.fn(u, i))); await handle(lead, { fetchImpl: dup, env: vapid() }); expect(c.claims()).toHaveLength(0);
+  });
+  it('never changes the viewer\'s response: claim failures, push errors and a slow push service all still answer 200 promptly', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect((await handle(lead, { fetchImpl: pushWorld({ claimFails: true }).fn, env: vapid() })).statusCode).toBe(200);
+    expect((await handle(lead, { fetchImpl: pushWorld({ pushStatus: 500 }).fn, env: vapid() })).statusCode).toBe(200);
+    const t0 = Date.now(); expect((await handle(lead, { fetchImpl: pushWorld({ slowPush: true }).fn, env: vapid() })).statusCode).toBe(200); expect(Date.now() - t0).toBeLessThan(3500); warn.mockRestore();
+  }, 15000);
+  it('a rejected ingest (unknown video) triggers no push', async () => {
+    const w = pushWorld(); const f = vi.fn(async (u, i) => (u.includes('ingest_video_events') ? { ok: true, json: async () => ({ ok: false, error: 'unknown_video' }) } : w.fn(u, i)));
+    expect((await handle(lead, { fetchImpl: f, env: vapid() })).statusCode).toBe(404); expect(w.claims()).toHaveLength(0);
   });
 });

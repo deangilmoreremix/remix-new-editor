@@ -24,8 +24,13 @@
  *     stored; IP addresses are used only to derive a hashed rate-limit key
  *
  * The service-role key stays on the server (SUPABASE_SERVICE_ROLE_KEY).
+ *
+ * Owner push notifications (Stage 11, opt-in): after a successful ingest that contained an action someone took (lead, CTA, call...), and
+ * only when VAPID keys are configured, the owner's not-yet-pushed alerts are claimed in the database and sent (see _push/webPush.js).
+ * It is best effort with a short time limit: a push problem never changes the response to the viewer.
  */
 import { createHash } from 'node:crypto';
+import { pushForVideo } from './_push/webPush.js';
 
 export const EVENT_TYPES = Object.freeze([
   'page_open', 'play', 'pause', 'resume', 'complete',
@@ -117,6 +122,10 @@ async function limited(cfg, fetchImpl, checks) {
   }
 }
 
+/** Actions a person took (not plain views): the ones the owner is told about. */
+const PUSH_TRIGGERS = new Set(['lead_submit', 'cta_click', 'call_click', 'product_select', 'overlay_click']);
+const PUSH_BUDGET_MS = 2500;
+
 export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch, env = process.env } = {}) {
   const cfg = config(env);
   if (!cfg) return fail(503, 'not_configured', 'Analytics is not configured');
@@ -170,6 +179,17 @@ export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch,
     return result?.error === 'unknown_video'
       ? fail(404, 'unknown_video', 'Unknown video')
       : fail(400, result?.error || 'bad_request', 'Rejected');
+  }
+  if (result.accepted > 0 && env.VAPID_PUBLIC_KEY && events.some((e) => PUSH_TRIGGERS.has(e.type))) {
+    let timer;
+    try {
+      await Promise.race([
+        pushForVideo({ videoId: body.video, rpc: (name, args) => rpc(cfg, fetchImpl, name, args), env, fetchImpl }),
+        new Promise((resolve) => { timer = setTimeout(resolve, PUSH_BUDGET_MS); }),
+      ]);
+    } catch (err) {
+      console.warn('[video-events] push skipped:', err?.message);
+    } finally { clearTimeout(timer); }
   }
   return json(200, { ok: true, accepted: result.accepted, duplicates: result.duplicates });
 }

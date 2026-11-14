@@ -119,3 +119,11 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Verified: 64 new unit/panel tests, real-browser check 29/29 (interrupt mid-recipient, reload, resume, nothing finished redone, ZIP verified by unzip/python/ffprobe, per-recipient pixels, thumbnail identical to the single-video path), 19 unit mutations + 1 live mutation caught, broad suite 508 files / 6,391 tests. Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
 - NOT done: publishing a different rendered video per recipient (needs a storage decision), scheduler/automatic sending, list sending, per-recipient recordings (Recorder excluded), 1080p/long-clip measurements (Stage 12).
 
+
+
+### Stage 11 — Analytics report, dashboard, PDF, push
+- Authorization: the approved Stages 6–12 plan. Migration tested locally only (NOT applied); nothing pushed to a real device.
+- Added: migration `20261117000000_analytics_report_push.sql` + `supabase/tests/82_*` + runner; `netlify/functions/_push/webPush.js` (dependency-free RFC 8291/8292, SSRF allow-list), hook in `video-events.js`, routes `analytics-report` and `push`; `public/push/sw.js` (own scope); `shared/personalization/{report,notify}/`, `guided/{ResultsPanel,NotificationsPanel}`; `scripts/make-vapid-keys.mjs`, `scripts/stage11-report-check/`. Dev dependency `http_ece` 1.2.1 (MIT) for independent decryption in tests.
+- Verified: unit/route/panel tests, SQL assertions, full-stack 8/8 (real SQL + local push service), 14 mutations caught, rendered PDF inspected.
+- NOT done: real-browser push (needs VAPID keys), applying the migration.
+\n

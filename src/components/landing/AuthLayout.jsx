@@ -249,7 +249,8 @@ export async function clearClerkSession({ reload = true } = {}) {
     if ('serviceWorker' in navigator) {
       try {
         const regs = await navigator.serviceWorker.getRegistrations();
-        for (const r of regs) await r.unregister();
+        // The owner-notification worker (Stage 11) has its own scope and no cache to go stale: leave it subscribed.
+        for (const r of regs) { if (!/\/push\/$/.test(r.scope || '')) await r.unregister(); }
       } catch {}
     }
   } finally {

@@ -18,6 +18,8 @@
  *   GET|POST|DELETE /api/personalization/layouts   (saved layer layouts, geometry only)
  *   GET|POST|DELETE /api/personalization/recipient-links   (server-issued per-recipient watch-page tokens)
  *   POST          /api/personalization/outreach   (email TEST send; disabled unless configured)
+ *   GET           /api/personalization/analytics-report   (owner-checked results report)
+ *   GET|POST|DELETE /api/personalization/push   (opt-in owner notifications; needs VAPID keys)
  *   POST          /api/personalization/record
  *   POST          /api/personalization/persist-edited-asset
  *   POST          /api/personalization/resolve-website  (find a business's own site from its OSM listing)
@@ -51,6 +53,8 @@ import * as project from './_personalization/app/api/personalization/project/rou
 import * as layouts from './_personalization/app/api/personalization/layouts/route'
 import * as recipientLinks from './_personalization/app/api/personalization/recipient-links/route'
 import * as outreach from './_personalization/app/api/personalization/outreach/route'
+import * as analyticsReport from './_personalization/app/api/personalization/analytics-report/route'
+import * as push from './_personalization/app/api/personalization/push/route'
 import * as record from './_personalization/app/api/personalization/record/route'
 import * as demoDiscover from './_personalization/app/api/demo/discover/route'
 import * as persistEditedAsset from './_personalization/extra/persistEditedAsset'
@@ -83,6 +87,8 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/personalization/layouts': layouts as RouteModule,
   '/api/personalization/recipient-links': recipientLinks as RouteModule,
   '/api/personalization/outreach': outreach as RouteModule,
+  '/api/personalization/analytics-report': analyticsReport as RouteModule,
+  '/api/personalization/push': push as RouteModule,
   '/api/personalization/record': record as RouteModule,
   '/api/personalization/persist-edited-asset': persistEditedAsset as unknown as RouteModule,
   '/api/personalization/resolve-website': resolveWebsite as RouteModule,
