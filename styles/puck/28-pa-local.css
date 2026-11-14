@@ -1,0 +1,16 @@
+.pk-d-pa-local { --pk-bg-grad: linear-gradient(180deg,#0f2616 0%,#1a3d24 100%); --pk-hero-shade: rgba(14,38,22,.94); --pk-form-bg: #ffffff; --pk-form-text: #14301b; --pk-tile: #e8f3e6; font-family: "Plus Jakarta Sans Variable", "Inter Variable", system-ui, sans-serif; }
+.pk-d-pa-local .pk-hero--story { background: var(--pk-hero-bg) right top / auto 100% no-repeat, #14301b; color: #ffffff; }
+.pk-d-pa-local .pk-hero--story::before { background: linear-gradient(90deg, var(--pk-hero-shade) 0%, var(--pk-hero-shade) 40%, transparent 78%); }
+.pk-d-pa-local .pk-hero--story .pk-headline { white-space: pre-line; color: #ffffff; font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; }
+.pk-d-pa-local .pk-hero--story .pk-subhead { color: inherit; opacity: .92; max-width: 30ch; font-size: clamp(14px, 3.6vw, 20px); }
+.pk-d-pa-local .pk-hero--story .pk-btn--primary { background: #278232; color: #ffffff; border-radius: 999px; font-weight: 800; }
+.pk-d-pa-local .pk-hero--story .pk-form { background: var(--pk-form-bg); color: var(--pk-form-text); border: 0; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.pk-d-pa-local .pk-hero--story .pk-form .pk-btn--primary { width: 100%; border-radius: 8px; }
+.pk-d-pa-local .pk-hero--story .pk-field input { background: #fff; color: #111827; min-height: 38px; padding: 6px 10px; font-size: 14px; }
+.pk-d-pa-local .pk-hero--story .pk-form-sub { display: none; }
+.pk-d-pa-local .pk-hero--story .pk-video video { border-radius: 12px; box-shadow: 0 6px 22px rgba(0,0,0,.35); }
+.pk-d-pa-local .pk-brand img { width: 28px; height: 28px; object-fit: cover; border-radius: 6px; }
+.pk-d-pa-local .pk-nav {  }
+.pk-d-pa-local .pk-ctabar { background: #2b6a35; color: #ffffff; }
+.pk-d-pa-local .pk-ctabar .pk-ico { color: currentColor; }
+.pk-d-pa-local .pk-card--quotes .pk-avatar { width: 54px; height: 54px; }
