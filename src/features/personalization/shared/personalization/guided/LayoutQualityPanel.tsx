@@ -1,6 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { AlertTriangle, CheckCircle2, Eye, HelpCircle, Loader2, Wand2 } from 'lucide-react'
+import { Tip } from './editor/Tip'
 import { C, badgeStyle, hintStyle, panelStyle, secondaryButtonStyle } from './tokens'
 import type { LayoutQualityState } from './useLayoutQuality'
 import type { QualityIssue, QualityStatus } from '../preview/placement'
@@ -36,7 +38,60 @@ const LABEL: Partial<Record<PreviewLayer['kind'], string>> = {
  * whenever something (subject area, readability, baked-in graphics, rights)
  * could not be verified. Only a confirmed critical rendering failure blocks export.
  */
-export function LayoutQualityPanel({ quality, layers }: { quality: LayoutQualityState; layers: PreviewLayer[] }): React.JSX.Element {
+export function LayoutQualityPanel({ quality, layers, compact = false }: { quality: LayoutQualityState; layers: PreviewLayer[]; compact?: boolean }): React.JSX.Element {
+  return compact ? <LayoutQualityBar quality={quality} layers={layers} /> : <FullPanel quality={quality} layers={layers} />
+}
+
+/**
+ * Compact one-line summary that sits directly under the video stage so the
+ * check is visible without scrolling. "Review" expands the full panel (every
+ * issue, Show/Fix, subject marking). It opens by itself when export is blocked.
+ */
+function LayoutQualityBar({ quality, layers }: { quality: LayoutQualityState; layers: PreviewLayer[] }): React.JSX.Element {
+  const { report } = quality
+  const s = STATUS[report.status]
+  const [open, setOpen] = useState(report.blocksExport)
+  const adjust = report.issues.filter((i) => i.severity !== 'review').length
+  const review = report.issues.filter((i) => i.severity === 'review').length
+  const fixable = report.issues.some((i) => i.fixable && i.layerId)
+  const Icon = report.status === 'ready' ? CheckCircle2 : report.status === 'needs-adjustment' ? AlertTriangle : HelpCircle
+  const first = report.issues[0]
+  return (
+    <div data-testid="layout-quality-bar" data-status={report.status} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ ...panelStyle, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 12px', border: `1px solid ${report.blocksExport ? C.danger : C.border}` }}>
+        <Icon size={15} color={s.color} />
+        <div style={{ minWidth: 0, flex: '1 1 200px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12, fontWeight: 800, color: C.text }}>
+              Layout check{adjust > 0 ? ` · ${adjust} to fix` : review > 0 ? ` · ${review} to review` : ''}
+            </span>
+            <span data-testid="layout-quality-bar-status" data-status={report.status} style={badgeStyle(s.tone)}>{s.label}</span>
+          </div>
+          <div style={{ ...hintStyle, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {first ? first.message : s.text}
+          </div>
+        </div>
+        <Tip id="qualityReview">
+        <button type="button" data-testid="layout-quality-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}
+          style={{ ...secondaryButtonStyle, minHeight: 30, padding: '0 10px', fontSize: 11 }}>
+          {open ? 'Hide details' : 'Review'}
+        </button>
+        </Tip>
+        {fixable && (
+          <Tip id="qualityFixAll">
+          <button type="button" data-testid="layout-quality-fix-all" onClick={() => quality.applyRecommended()}
+            style={{ ...secondaryButtonStyle, minHeight: 30, padding: '0 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4, color: C.cyan, borderColor: C.cyan }}>
+            <Wand2 size={12} /> Fix all
+          </button>
+          </Tip>
+        )}
+      </div>
+      {open && <FullPanel quality={quality} layers={layers} />}
+    </div>
+  )
+}
+
+function FullPanel({ quality, layers }: { quality: LayoutQualityState; layers: PreviewLayer[] }): React.JSX.Element {
   const { report, sampling } = quality
   const s = STATUS[report.status]
   const layerName = (id?: string) => {

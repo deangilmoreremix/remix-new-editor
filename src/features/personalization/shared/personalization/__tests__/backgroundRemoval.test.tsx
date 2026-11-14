@@ -77,9 +77,10 @@ let container: HTMLDivElement | null = null
 let latest: { assets: DiscoveredAsset[]; cutout: AutoCutoutControls }
 
 let harnessDisabled = false
+let harnessAnonymous = false
 function Harness({ initial, paused }: { initial: DiscoveredAsset[]; paused?: boolean }) {
   const [assets, setAssets] = useState(initial)
-  const cutout = useAutoCutout(assets, setAssets, { paused, disabled: harnessDisabled })
+  const cutout = useAutoCutout(assets, setAssets, { paused, disabled: harnessDisabled, anonymous: harnessAnonymous })
   latest = { assets, cutout }
   return null
 }
@@ -108,6 +109,7 @@ const allDone = () => latest.assets.filter((a) => !a.rejected).every((a) => a.bg
 
 beforeEach(() => {
   harnessDisabled = false
+  harnessAnonymous = false
   // BG0 decodes with createImageBitmap, which jsdom lacks; the hook stays idle without it.
   vi.stubGlobal('createImageBitmap', vi.fn())
   state.active = 0
@@ -209,6 +211,14 @@ describe('useAutoCutout (auto queue)', () => {
     await mount([asset({ id: 'one', previewUrl: 'https://shop.example/one.jpg', bgOptOut: true, bgRemoval: { status: 'idle' } })])
     await settle(120)
     expect(state.order).toEqual([])
+  })
+
+  it('works for signed-out visitors: it is on and loads images through the public route', async () => {
+    harnessAnonymous = true
+    await mount([asset({ id: 'a', previewUrl: 'https://shop.example/a.jpg' })])
+    expect(latest.cutout.supported).toBe(true)
+    await settle(0, () => latest.assets.find((x) => x.id === 'a')?.bgRemoval?.status === 'done')
+    expect(vi.mocked(loadImageBlob)).toHaveBeenCalledWith('https://shop.example/a.jpg', expect.objectContaining({ anonymous: true }))
   })
 
   it('Cancel really stops: nothing restarts, a manual request still works afterwards', async () => {

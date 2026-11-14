@@ -4,7 +4,7 @@
  * (OpenHiggsBolt's production CSP has no `data:` in connect-src).
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { loadImageBlob, dataUrlToBlob } from '../backgroundRemoval/loadImageBlob'
+import { loadImageBlob, dataUrlToBlob, resetProxyChoiceForTests, SIGNED_IN_REFUSAL_MEMORY_MS } from '../backgroundRemoval/loadImageBlob'
 
 const read = (blob: Blob): Promise<string> =>
   // A Response's blob is a Node Blob (has .text()); jsdom's own Blob needs a FileReader.
@@ -16,7 +16,10 @@ const read = (blob: Blob): Promise<string> =>
     r.readAsText(blob)
   })
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  resetProxyChoiceForTests()
+})
 
 describe('loadImageBlob', () => {
   it('decodes a base64 data URL without calling fetch', async () => {
@@ -55,6 +58,105 @@ describe('loadImageBlob', () => {
   it('throws a clear error when neither route can load the image', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('blocked') }))
     await expect(loadImageBlob('https://shop.example/a.jpg')).rejects.toThrow('could not be loaded')
+  })
+
+  it('signed-out visitors use the public download route, signed-in ones the personalization route', async () => {
+    const proxyBody = { ok: true, results: [{ ok: true, dataUrl: `data:image/jpeg;base64,${btoa('X')}` }] }
+    const calls: string[] = []
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      calls.push(url)
+      if (url.includes('/download-image')) return new Response(JSON.stringify(proxyBody), { status: 200 })
+      throw new TypeError('blocked by CSP')
+    }))
+    await loadImageBlob('https://shop.example/a.jpg', { anonymous: true })
+    await loadImageBlob('https://shop.example/b.jpg')
+    expect(calls.filter((u) => u.includes('/download-image'))).toEqual([
+      '/api/demo/download-image',
+      '/api/personalization/download-image',
+    ])
+  })
+
+  it('a visitor without a sign-in session falls back to the public route, then skips the refused route', async () => {
+    const okBody = { ok: true, results: [{ ok: true, dataUrl: `data:image/jpeg;base64,${btoa('PUBLIC')}` }] }
+    const calls: string[] = []
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      calls.push(url)
+      if (url === '/api/personalization/download-image') return new Response('{"error":"UNAUTHENTICATED"}', { status: 401 })
+      if (url === '/api/demo/download-image') return new Response(JSON.stringify(okBody), { status: 200 })
+      throw new TypeError('blocked by CSP')
+    }))
+    expect(await read(await loadImageBlob('https://shop.example/a.jpg'))).toBe('PUBLIC')
+    expect(await read(await loadImageBlob('https://shop.example/b.jpg'))).toBe('PUBLIC')
+    expect(calls.filter((u) => u.includes('/download-image'))).toEqual([
+      '/api/personalization/download-image', // first image: refused with 401
+      '/api/demo/download-image',             // ...so the public route answers
+      '/api/demo/download-image',             // second image goes straight to the public route
+    ])
+  })
+
+  it('retries the signed-in route after the refusal memory expires (e.g. the visitor signed in meanwhile)', async () => {
+    vi.useFakeTimers()
+    try {
+      const okBody = { ok: true, results: [{ ok: true, dataUrl: `data:image/jpeg;base64,${btoa('X')}` }] }
+      let signedIn = false
+      const calls: string[] = []
+      vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        calls.push(url)
+        if (url === '/api/personalization/download-image') {
+          return signedIn ? new Response(JSON.stringify(okBody), { status: 200 }) : new Response('{}', { status: 401 })
+        }
+        if (url === '/api/demo/download-image') return new Response(JSON.stringify(okBody), { status: 200 })
+        throw new TypeError('blocked by CSP')
+      }))
+      await loadImageBlob('https://shop.example/a.jpg') // 401, then public
+      signedIn = true
+      vi.advanceTimersByTime(SIGNED_IN_REFUSAL_MEMORY_MS + 1_000)
+      await loadImageBlob('https://shop.example/b.jpg') // signed-in route is tried again and works
+      expect(calls.filter((u) => u.includes('/download-image'))).toEqual([
+        '/api/personalization/download-image',
+        '/api/demo/download-image',
+        '/api/personalization/download-image',
+      ])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('only an auth refusal reaches the public route: a signed-in 429, 5xx, network error or failed image does not', async () => {
+    for (const failure of ['429', '500', 'throw', 'image-failed'] as const) {
+      resetProxyChoiceForTests()
+      const calls: string[] = []
+      vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        calls.push(url)
+        if (url === '/api/personalization/download-image') {
+          if (failure === '429') return new Response('{}', { status: 429 })
+          if (failure === '500') return new Response('{}', { status: 500 })
+          if (failure === 'image-failed') return new Response(JSON.stringify({ ok: true, results: [{ ok: false, error: 'x' }] }), { status: 200 })
+          throw new TypeError('network')
+        }
+        if (url === '/api/demo/download-image') return new Response(JSON.stringify({ ok: true, results: [{ ok: true, dataUrl: 'data:image/png;base64,AA==' }] }), { status: 200 })
+        throw new TypeError('blocked by CSP')
+      }))
+      await expect(loadImageBlob('https://shop.example/a.jpg')).rejects.toThrow('could not be loaded')
+      expect(calls.filter((u) => u.includes('/download-image'))).toEqual(['/api/personalization/download-image'])
+    }
+  })
+
+  it('a signed-in user never touches the public route', async () => {
+    const okBody = { ok: true, results: [{ ok: true, dataUrl: `data:image/jpeg;base64,${btoa('SIGNED')}` }] }
+    const calls: string[] = []
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      calls.push(url)
+      if (url === '/api/personalization/download-image') return new Response(JSON.stringify(okBody), { status: 200 })
+      throw new TypeError('blocked by CSP')
+    }))
+    expect(await read(await loadImageBlob('https://shop.example/a.jpg'))).toBe('SIGNED')
+    expect(calls.some((u) => u === '/api/demo/download-image')).toBe(false)
   })
 
   describe('stalled hosts and cancellation', () => {
