@@ -451,7 +451,7 @@ export function applyTemplate(config, templateId, opts = {}) {
 
 export const SITE_VARIANTS = Object.freeze(['copy-video-form', 'video-copy-form']);
 export const SITE_STRIP_KINDS = Object.freeze(['benefits', 'logos', 'stats']);
-export const SITE_CARD_TYPES = Object.freeze(['heading', 'playbook', 'table', 'stats', 'checklist', 'quotes', 'steps', 'features', 'faq', 'kpi']);
+export const SITE_CARD_TYPES = Object.freeze(['heading', 'playbook', 'table', 'stats', 'checklist', 'quotes', 'steps', 'features', 'faq', 'kpi', 'schedule']);
 export const SITE_ACTION_SLOTS = Object.freeze(['copy', 'form', 'none']);
 
 /** Site-page content: every field is clipped, enumerated or run through safeUrl; never trusted markup. */
@@ -504,6 +504,7 @@ export function sanitizeSite(input) {
         placeholder: clip(c.placeholder, 60),
         value: clip(c.value, 40),
         cols: arr(c.cols, 4).map((x) => clip(x, 30)),
+        kpis: arr(c.kpis, 4).map(item).filter((x) => x.title || x.value),
         chrome: arr(c.chrome, 2).map((x) => clip(x, 60)).filter(Boolean),
         side: arr(c.side, 6).map((x) => clip(x, 30)).filter(Boolean),
         items: arr(c.items, 8).map(item),

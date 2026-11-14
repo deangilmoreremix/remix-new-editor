@@ -91,6 +91,11 @@ const CARD_BUILDERS = {
   table(ctx, c, card) {
     const { doc, h, t } = ctx;
     if (!c.chrome.length) card.appendChild(h(doc, 'h2', 'vp-card-title', t(c.title)));
+    if (c.kpis.length) {
+      const k = h(doc, 'div', 'vp-kpis');
+      c.kpis.forEach((x) => k.appendChild(Object.assign(h(doc, 'div', 'vp-kpi-cell'), {})).append(h(doc, 'b', '', x.value), h(doc, 'span', '', t(x.title))));
+      card.appendChild(k);
+    }
     const table = h(doc, 'div', 'vp-table');
     let win = null;
     if (c.chrome.length || c.side.length) {
@@ -141,10 +146,12 @@ const CARD_BUILDERS = {
   checklist(ctx, c, card) {
     const { doc, h, t } = ctx;
     card.appendChild(h(doc, 'h2', 'vp-card-title', t(c.title)));
+    if (c.text) card.appendChild(h(doc, 'p', 'vp-card-text', t(c.text)));
     const ul = h(doc, 'ul', 'vp-checks');
     (c.items || []).forEach((it) => {
       const li = h(doc, 'li', 'vp-check');
       li.append(icon(doc, 'check', 'vp-ico vp-check-ico'), h(doc, 'span', '', it.title));
+      if (it.value) li.appendChild(h(doc, 'span', 'vp-check-val', it.value));
       ul.appendChild(li);
     });
     card.appendChild(ul);
@@ -200,6 +207,25 @@ const CARD_BUILDERS = {
       if (it.text) d.appendChild(h(doc, 'p', 'vp-faq-a', t(it.text)));
       card.appendChild(d);
     });
+  },
+  schedule(ctx, c, card) {
+    const { doc, h, t, blocks } = ctx;
+    // A decorative date picker. The button scrolls to the lead form; nothing here books anything by itself.
+    card.appendChild(h(doc, 'h2', 'vp-card-title', t(c.title)));
+    if (c.text) card.appendChild(h(doc, 'p', 'vp-card-text', t(c.text)));
+    if (c.value) card.appendChild(h(doc, 'div', 'vp-cal-month', c.value));
+    const head = h(doc, 'div', 'vp-cal-grid vp-cal-head');
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach((d) => head.appendChild(h(doc, 'span', '', d)));
+    const grid = h(doc, 'div', 'vp-cal-grid');
+    c.cols.forEach((d) => grid.appendChild(h(doc, 'span', `vp-cal-day${d.startsWith('*') ? ' is-on' : ''}`, d.replace(/^\*/, ''))));
+    card.append(head, grid);
+    if (c.eyebrow) card.appendChild(h(doc, 'div', 'vp-cal-time', c.eyebrow));
+    if (c.button) {
+      const b = h(doc, 'button', 'vp-mini-btn vp-cal-btn', t(c.button));
+      b.type = 'button';
+      b.addEventListener('click', () => (blocks.form || blocks.copy)?.scrollIntoView?.({ behavior: 'smooth', block: 'center' }));
+      card.appendChild(b);
+    }
   },
   kpi(ctx, c, card) {
     const { doc, h, t } = ctx;
