@@ -12,12 +12,12 @@ async function getSession() {
 
 async function post(path, body) {
   const session = await getSession();
-  if (!session?.access_token) throw new Error('Sign in to use business discovery.');
+  // Business Finder is a free tool: signed-out visitors can use it, so a missing session is not an error.
   const response = await fetch(`/api/personalizer/${path}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
+      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
     },
     body: JSON.stringify(body),
   });

@@ -89,4 +89,33 @@ describe('personalization authenticated service clients', () => {
       }),
     );
   });
+
+  describe('the finders are free tools: no sign-in needed', () => {
+    const signedOut = () => getSession.mockResolvedValueOnce({ data: { session: null } });
+
+    it('Business Finder works signed out and sends no Authorization header', async () => {
+      signedOut();
+      const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, json: async () => ({ businesses: [] }) });
+      fetchMock.mockClear();
+      await expect(findBusinesses({ location: 'Fort Lauderdale, FL' })).resolves.toEqual({ businesses: [] });
+      expect(fetchMock.mock.calls[0][1].headers.Authorization).toBeUndefined();
+    });
+
+    it('Asset Finder works signed out and sends no Authorization header', async () => {
+      signedOut();
+      const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, json: async () => ({ discoveredAssets: [] }) });
+      fetchMock.mockClear();
+      await discoverBusinessAssets({ websiteUrl: 'https://example.com' });
+      expect(fetchMock.mock.calls[0][1].headers.Authorization).toBeUndefined();
+    });
+
+    it('saving (importing) an asset into our storage still needs sign-in, and makes no request without it', async () => {
+      signedOut();
+      const fetchMock = vi.spyOn(globalThis, 'fetch');
+      fetchMock.mockClear();
+      const { persistPersonalizationAssetVersion } = await import('../lib/personalization/assetDiscoveryService.js');
+      await expect(persistPersonalizationAssetVersion({ sourceUrl: 'https://example.com/a.png', role: 'logo' })).rejects.toThrow(/sign in/i);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
 });

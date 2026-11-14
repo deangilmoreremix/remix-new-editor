@@ -102,6 +102,15 @@ Findings that remain (not fixed):
 - The Personalizer already sees a business's assigned images: the Studio picker mirrors them into the contact profile
   variables the Personalizer resolves tokens from.
 
-Still open: the older Asset Finder / Business Finder client needs a Supabase Auth session and the server verifies it with
-`auth.getUser`, which does not accept the Clerk-issued token (needs a server-side auth change and a real Clerk login to test);
-`legacyCards.test.ts` needs two texture images that are not in the repo (`legacy-textures/projects-full.png`, `agent-stream.jpg`).
+Asset Finder / Business Finder are free tools and now work signed out:
+- `netlify/functions/personalizer-api.js`: `/find-businesses`, `/research-business` and `/discover-assets` accept signed-out
+  callers (rate limited per network address, 10/min, best effort per function instance; signed-in callers are limited per
+  account). Every other route (scan, generate, vision, download, import) still requires a verified user.
+- `assetDiscoveryService.js` / `businessDiscoveryService.js` send the bearer token only when a session exists; saving
+  (importing) an asset into our storage still needs sign-in. The Personalization Modal's own finder routes
+  (`/api/personalization/*`) were already open to anonymous visitors.
+- Tests: `personalizer-api-free-finders.test.js` (open finders, closed everything else, per-IP limit, bad token treated as
+  signed out) and the client tests in `personalization-auth-services.test.js`.
+- Not changed: `/api/personalization/download-image` (used for images the browser cannot load from their site) still needs sign-in.
+
+Still open: `legacyCards.test.ts` needs two texture images that are not in the repo (`legacy-textures/projects-full.png`, `agent-stream.jpg`).

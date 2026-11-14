@@ -36,6 +36,7 @@ function makeProfile(overrides = {}) {
       firstName: 'Ada',
       lastName: 'Lovelace',
       email: 'ada@analytical.dev',
+      phone: '+1 555 0100',
       company: 'Analytical Engines',
       title: 'Chief Mathematician',
       location: 'London',

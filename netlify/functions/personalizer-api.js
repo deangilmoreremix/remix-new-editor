@@ -674,6 +674,30 @@ function normalizeRoute(rawPath) {
   return route || '/';
 }
 
+// The two finders are free tools: signed-out visitors may use them. Everything else (scan, generate, vision, import,
+// download) still needs a verified user, because it writes data or spends a provider key.
+const FREE_ROUTES = new Set(['/find-businesses', '/research-business', '/discover-assets']);
+const FREE_LIMIT_PER_MINUTE = 10;
+const freeHits = new Map();   // best effort, per function instance: key -> { count, resetAt }
+
+function clientKey(event) {
+  const h = event.headers || {};
+  // Netlify sets x-nf-client-connection-ip itself; x-forwarded-for can be supplied by the caller, so it is only a fallback.
+  const ip = String(h['x-nf-client-connection-ip'] || h['X-Nf-Client-Connection-Ip'] || String(h['x-forwarded-for'] || '').split(',')[0] || 'unknown').trim();
+  return `ip:${ip || 'unknown'}`;
+}
+
+export function freeRouteAllowed(key, now = Date.now()) {
+  const e = freeHits.get(key);
+  if (!e || now > e.resetAt) {
+    if (freeHits.size > 5000) for (const [k, v] of freeHits) if (now > v.resetAt) freeHits.delete(k);
+    freeHits.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+  e.count += 1;
+  return e.count <= FREE_LIMIT_PER_MINUTE;
+}
+
 export async function handler(event, context) {
   const headers = {
     'Content-Type': 'application/json',
@@ -685,13 +709,20 @@ export async function handler(event, context) {
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
 
-  const auth = await verifyAuth(event);
-  if (auth.error) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
-
-  const userId = auth.user.id;
-  if (!await checkRateLimit(userId)) return { statusCode: 429, headers, body: JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }) };
-
   const path = normalizeRoute(event.path);
+  let userId;
+  if (FREE_ROUTES.has(path)) {
+    // Free finders: no sign-in needed. A signed-in caller is limited by account, a signed-out one by network address.
+    const auth = event.headers?.authorization || event.headers?.Authorization ? await verifyAuth(event) : { error: 'anonymous' };
+    const who = auth.user?.id || null;
+    if (!freeRouteAllowed(who ? `user:${who}` : clientKey(event))) return { statusCode: 429, headers, body: JSON.stringify({ error: 'Rate limit exceeded. Please try again in a minute.' }) };
+  } else {
+    const auth = await verifyAuth(event);
+    if (auth.error) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
+    userId = auth.user.id;
+    if (!await checkRateLimit(userId)) return { statusCode: 429, headers, body: JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }) };
+  }
+
   let body = {};
   try { if (event.body) body = JSON.parse(event.body); } catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 

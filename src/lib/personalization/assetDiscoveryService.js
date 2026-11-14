@@ -11,15 +11,16 @@ async function getSession() {
   }
 }
 
-async function post(path, body) {
+// Finding assets on a website is free and open to signed-out visitors; importing (copying into our storage) needs sign-in.
+async function post(path, body, { requireAuth = false } = {}) {
   const session = await getSession();
-  if (!session?.access_token) throw new Error('Sign in to use business asset discovery.');
+  if (requireAuth && !session?.access_token) throw new Error('Sign in to save assets.');
 
   const response = await fetch(`/api/personalizer/${path}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
+      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
     },
     body: JSON.stringify(body),
   });
@@ -73,7 +74,7 @@ export async function persistPersonalizationAssetVersion({
     sourceUrl,
     role,
     name: name || role,
-  });
+  }, { requireAuth: true });
   if (!payload?.asset?.url) throw new Error('Edited asset persistence returned no durable URL.');
   return payload.asset;
 }
@@ -99,7 +100,7 @@ export async function importDiscoveredAsset(asset, { role, name, library } = {})
       sourceUrl,
       role: assignedRole,
       name: name || asset.altText || asset.category || assignedRole,
-    });
+    }, { requireAuth: true });
     imported = payload?.asset;
   }
   if (!imported?.url) throw new Error('Import did not return a durable asset URL.');
