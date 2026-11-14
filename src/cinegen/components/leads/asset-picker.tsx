@@ -19,8 +19,8 @@ export function AssetPicker({ lib, usedUrls = new Set<string>() }: { lib: Busine
   return (
     <section className="leads-card" data-testid="asset-picker">
       <h3 className="leads-card__title">Business assets{lib.business && <span className="leads-pill" data-testid="picker-business">{lib.business.name}</span>}</h3>
-      {!lib.signedIn && <p className="leads-note" data-testid="picker-signin">Sign in to save and reuse business assets.</p>}
-      {lib.signedIn && !lib.business && (
+      {!lib.signedIn && <p className="leads-note" data-testid="picker-signin">Demo mode: the assets you find are kept in this browser only. Sign in to save them to your account, upload your own images and publish.</p>}
+      {!lib.business && (
         <div className="leads-row"><p className="leads-note" data-testid="picker-nobiz">Select or add a business to see its saved assets.</p>
           <button type="button" className="leads-btn leads-btn--primary" onClick={() => void lib.findMore()} data-testid="picker-find-business">Find a business</button></div>
       )}

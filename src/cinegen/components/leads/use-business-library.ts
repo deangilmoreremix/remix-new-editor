@@ -10,7 +10,9 @@ import * as store from '../../../lib/personalization/businessAssetStore.js';
 import * as contacts from '../../../lib/contactStore.js';
 // @ts-expect-error plain JS
 import { uploadFileToStorage } from '../../../lib/hybrid-supabase.js';
-import { getClient } from './use-publish';
+import { getClient as getAccountClient } from './use-publish';
+// @ts-expect-error plain JS
+import { getLocalLibraryClient } from '../../../lib/personalization/localLibraryClient.js';
 
 type Profile = { id: string; variables?: Record<string, string> } & Record<string, unknown>;
 export interface BusinessRow { id: string; name: string; website?: string | null; phone?: string | null }
@@ -43,6 +45,8 @@ export function useBusinessLibrary(): BusinessLibrary {
   const [notice, setNotice] = useState('');
   const [unavailable, setUnavailable] = useState(false);
   const signedIn = !!(window as unknown as { Clerk?: { user?: unknown } }).Clerk?.user;
+  // Signed out: the demo library lives in this browser (nothing is sent anywhere); signed in: the account's own library.
+  const getClient = useCallback(async () => (signedIn ? getAccountClient() : getLocalLibraryClient()), [signedIn]);
   const slots = useMemo(() => slotsForOverlays((state.overlays ?? []) as Array<Record<string, unknown>>), [state.overlays]);
 
   useEffect(() => {
@@ -61,7 +65,7 @@ export function useBusinessLibrary(): BusinessLibrary {
 
   const reload = useCallback(async () => {
     const info = businessFromProfile(profile as never);
-    if (!info || !signedIn) { setBusiness(null); setAssets([]); setAssignments([]); return; }
+    if (!info) { setBusiness(null); setAssets([]); setAssignments([]); return; }
     await guard(async () => {
       const client = await getClient();
       const biz = await store.upsertBusiness(client, { ...info, source: 'business-finder' });
@@ -70,7 +74,7 @@ export function useBusinessLibrary(): BusinessLibrary {
       setAssignments(await store.listAssignments(client, projectId, biz.id));
       setUnavailable(false);
     });
-  }, [profile, signedIn, projectId, guard]);
+  }, [profile, getClient, projectId, guard]);
   useEffect(() => { void reload(); }, [reload]);
 
   const mirrorToProfile = useCallback((nextAssignments: LibAssignment[], nextAssets: LibAsset[], cleared: string[] = []) => {
@@ -119,6 +123,7 @@ export function useBusinessLibrary(): BusinessLibrary {
 
   const upload: BusinessLibrary['upload'] = async (file, category) => {
     if (!business) return;
+    if (!signedIn) { setError('Sign in to upload your own images. In the demo you can use the images found on a website.'); return; }
     if (!/^image\//.test(file.type)) { setError('Choose an image file.'); return; }
     await guard(async () => {
       const url = await uploadFileToStorage(file);
@@ -131,7 +136,7 @@ export function useBusinessLibrary(): BusinessLibrary {
     const fresh = contacts.getActiveProfile?.() ?? null;
     setProfile(fresh);
     const info = businessFromProfile(fresh);
-    if (!info || !signedIn) return 0;
+    if (!info) return 0;
     const n = await guard(async () => {
       const { assetLibraryStore } = await import('../../../components/personalize/assetLibraryStore.js');
       const client = await getClient();
@@ -163,7 +168,7 @@ export function useBusinessLibrary(): BusinessLibrary {
   const saveModalAssets = async (list: ModalAsset[]) => {
     const fresh = contacts.getActiveProfile?.() ?? null;
     const info = businessFromProfile(fresh);
-    if (!info || !signedIn) return;
+    if (!info) return;
     await guard(async () => {
       const client = await getClient();
       const biz = await store.upsertBusiness(client, { ...info, source: 'business-finder' });

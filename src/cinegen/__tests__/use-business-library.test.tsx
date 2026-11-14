@@ -126,12 +126,27 @@ describe('useBusinessLibrary', () => {
     expect(result.current.assets).toHaveLength(0);
   });
 
-  it('stays idle when signed out', async () => {
+  it('signed out: the demo library works in this browser and never touches the account database', async () => {
     (window as any).Clerk = undefined;
+    const { getLocalLibraryClient } = await import('../../lib/personalization/localLibraryClient.js');
+    (getLocalLibraryClient() as any).reset();
     const { result } = renderHook(() => useBusinessLibrary());
     expect(result.current.signedIn).toBe(false);
-    await new Promise((r) => setTimeout(r, 10));
-    expect(result.current.business).toBeNull();
-    expect(tables.business_profiles).toHaveLength(0);
+    await waitFor(() => expect(result.current.business?.name).toBe('Smith Roofing'));
+    // an asset the modal found is kept locally and can be assigned to a slot, which fills the contact's preview
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('remix:personalization-assets-imported', { detail: { assets: [{ url: 'https://smithroofing.com/logo.png', role: 'logo', sourceCategory: 'logo' }] } }));
+    });
+    await waitFor(() => expect(result.current.assets).toHaveLength(1));
+    await act(async () => { expect(await result.current.assign('logoUrl', result.current.assets[0].id, { manual: true })).toBe(true); });
+    expect(contacts.getProfile('c1').variables.logoUrl).toBe('https://smithroofing.com/logo.png');
+    expect(contacts.getProfile('c2').variables.logoUrl).toBeUndefined();                  // other business untouched
+    expect(tables.business_profiles).toHaveLength(0); expect(tables.business_assets).toHaveLength(0);   // the account tables were never used
+    // own uploads need an account
+    await act(async () => { await result.current.upload(new File(['x'], 'a.png', { type: 'image/png' }), 'logo'); });
+    expect(result.current.error).toMatch(/sign in/i);
+    // survives a reload of the page (same browser)
+    const again = renderHook(() => useBusinessLibrary());
+    await waitFor(() => expect(again.result.current.assets).toHaveLength(1));
   });
 });

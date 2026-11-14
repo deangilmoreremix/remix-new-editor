@@ -113,4 +113,18 @@ Asset Finder / Business Finder are free tools and now work signed out:
   signed out) and the client tests in `personalization-auth-services.test.js`.
 - Not changed: `/api/personalization/download-image` (used for images the browser cannot load from their site) still needs sign-in.
 
+Signed-out demo (the personalization system works without an account):
+- Studio Leads tab, signed out: the business asset library runs in this browser (`localLibraryClient.js`, localStorage,
+  same query surface as the account library, so the same store functions, picker and write-back are used). Assets found in the
+  modal are kept, can be assigned to slots, fill the contact's preview data, and survive a reload. Nothing is written to any
+  account database. Signed in, the account's own library is used instead (nothing is migrated automatically).
+- Still needs sign-in: uploading your own images, publishing, personalized links, drafts (the cards say so).
+- `/api/personalization/download-image` (fetches an image a site blocks from hotlinking) is open to signed-out visitors: private,
+  metadata and redirect targets are refused before any fetch, 20 URLs and 5 MB per image at most, 30 requests/min per address.
+  The legacy `/api/personalizer/download-image` and `/import-asset` still need sign-in.
+- Tests: `localLibraryClient.test.js`, the signed-out case in `use-business-library.test.tsx`,
+  `download-image-anonymous.vitest.test.ts`, and browser spec `personalization-signed-out.spec.js` (no Clerk session at all:
+  modal finds assets, library keeps them, assignment fills the contact's preview data, reload persists, other business empty,
+  uploads/publish ask for sign-in, no account table written).
+
 Still open: `legacyCards.test.ts` needs two texture images that are not in the repo (`legacy-textures/projects-full.png`, `agent-stream.jpg`).

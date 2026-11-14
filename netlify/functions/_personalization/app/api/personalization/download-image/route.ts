@@ -67,22 +67,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
+    // Free demo: signed-out visitors may use this too (a site that blocks hotlinking still needs its images fetched for the
+    // review screen). It stays safe for anonymous callers: private/metadata/redirect targets are refused before any fetch,
+    // at most 20 URLs per request, 5 MB per image, and the rate limit below is per network address (per account when signed in).
     const { userId } = await auth()
-    if (!userId) {
-      clearTimeout(timeoutId)
-      logPersonalization({
-        route: '/api/personalization/download-image',
-        stage: 'auth',
-        httpStatus: 401,
-        safeErrorCode: 'UNAUTHENTICATED',
-        safeMessage: 'No authenticated user',
-        correlationId,
-      })
-      return NextResponse.json({ error: 'UNAUTHENTICATED' }, { status: 401 })
-    }
 
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || undefined
-    const rateLimitKey = userId || clientIp || 'anon'
+    const rateLimitKey = userId || (clientIp ? `anon-${clientIp}` : 'anon')
     const rateLimit = checkRateLimit(rateLimitKey)
     if (!rateLimit.allowed) {
       clearTimeout(timeoutId)

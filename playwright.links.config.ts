@@ -10,7 +10,7 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests/e2e',
-  testMatch: ['**/personalization-links.spec.js'],
+  testMatch: ['**/personalization-links.spec.js', '**/personalization-signed-out.spec.js'],
   fullyParallel: false,
   workers: 1,
   retries: 0,
