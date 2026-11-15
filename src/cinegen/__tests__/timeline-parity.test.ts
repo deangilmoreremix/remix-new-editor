@@ -12,7 +12,8 @@ const BUDGET: Record<string, number> = {
   'components/edit/tool-sidebar.tsx': 30,
   'components/edit/left-panel.tsx': 80,
   'components/edit/timeline-viewer.tsx': 70,
-  'components/edit/timeline-editor.tsx': 220,
+  // [remix] 230: develop's own copy was already 228 lines from CineGen's (over the old 220); the Template Generator's host wiring lives in lib/occ/template-generator-host.ts so it adds nothing here
+  'components/edit/timeline-editor.tsx': 230,
   'components/edit/edit-tab.tsx': 260,
   'lib/editor/playback-engine.ts': 80,
 };

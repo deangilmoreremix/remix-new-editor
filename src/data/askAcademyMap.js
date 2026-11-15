@@ -130,6 +130,13 @@ export const STUDIO_ACADEMY = {
       { track: T02, lesson: '02-storyboarding-and-shots', why: 'Plan shots around a template scene.' },
     ],
   },
+  zackd: {
+    tracks: [T03],
+    lessons: [
+      { track: T03, lesson: '01-niche-and-script', why: 'Pick a topic and write a script that hooks viewers.' },
+      { track: T03, lesson: '02-narration-and-pacing', why: 'Narration and pacing for short explainers.' },
+    ],
+  },
   storyboard: {
     tracks: [T02],
     lessons: [
