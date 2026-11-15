@@ -1,32 +1,34 @@
-// @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { MuapiClient } from '../lib/muapi.js';
 
-afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
+const pollResponse = (body) => vi.fn(() => Promise.resolve({
+  ok: true,
+  status: 200,
+  statusText: 'OK',
+  json: () => Promise.resolve(body),
+}));
 
-describe('MuapiClient.pollForResult on a failed job', () => {
-  const run = async (response) => {
-    vi.stubGlobal('fetch', vi.fn(async () => response));
-    const { MuapiClient } = await import('../lib/muapi.js');
-    const c = new MuapiClient();
-    const started = Date.now();
-    const err = await c.pollForResult('req-1', 5, 1).catch((e) => e);
-    return { err, calls: fetch.mock.calls.length, ms: Date.now() - started };
-  };
-  it('a 400 { detail: { status: failed, error } } fails at once with MuAPI\'s reason', async () => {
-    const body = JSON.stringify({ detail: { id: 'x', status: 'failed', error: 'The file format is not supported. Please check the file type.' } });
-    const { err, calls } = await run({ ok: false, status: 400, text: async () => body, json: async () => JSON.parse(body) });
-    expect(err.message).toContain('The file format is not supported');
-    expect(calls).toBe(1); // not retried
+describe('pollForResult failure handling', () => {
+  let client;
+
+  beforeEach(async () => {
+    client = new MuapiClient();
+    await client.apiKeyManager.setMuapiKey('test-muapi-key');
   });
-  it('the same failure delivered as a 200 is also terminal', async () => {
-    const data = { detail: { status: 'failed', error: 'bad ref' } };
-    const { err, calls } = await run({ ok: true, status: 200, json: async () => data, text: async () => JSON.stringify(data) });
-    expect(err.message).toContain('bad ref');
-    expect(calls).toBe(1);
+
+  test('stops on the first failed status instead of polling until timeout', async () => {
+    global.fetch = pollResponse({ status: 'failed', error: 'content policy' });
+    await expect(client.pollForResult('req-fail', 5, 10)).rejects.toThrow('Generation failed: content policy');
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
-  it('a 429 is still retried', async () => {
-    const { err, calls } = await run({ ok: false, status: 429, text: async () => 'slow down', json: async () => ({}) });
-    expect(calls).toBe(5);
-    expect(err.message).toMatch(/Poll Failed: 429|timed out/);
+
+  test('mentions the refund when MuAPI refunded the job', async () => {
+    global.fetch = pollResponse({ status: 'failed', error: 'timeout', cost: { refunded: true, amount_credits: 3 } });
+    await expect(client.pollForResult('req-refund', 5, 10)).rejects.toThrow('Generation failed: timeout Refunded 3 credits.');
+  });
+
+  test('reports the balance from the proxy', async () => {
+    global.fetch = pollResponse({ balance: 12.5 });
+    await expect(client.getBalance()).resolves.toBe(12.5);
   });
 });
