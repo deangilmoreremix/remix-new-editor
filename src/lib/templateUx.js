@@ -247,14 +247,20 @@ export function listPresets(templateId) {
 /**
  * Save (or overwrite, by name) a preset for a template.
  * @returns {object|null} the saved preset, or null when there was nothing to save
- * @throws {Error} with code 'storage' when the browser would not store it
+ * @throws {Error} code 'storage' when the browser would not store it, 'too_long' when a value is over the limit
  */
 export function savePreset(templateId, name, values = {}) {
   const cleanName = String(name || '').trim().slice(0, MAX_PRESET_NAME);
   if (!templateId || !cleanName) return null;
   const clean = {};
   Object.entries(values).forEach(([k, v]) => {
-    if (typeof v === 'string' && v.trim() && !v.startsWith('data:') && !v.startsWith('blob:')) clean[k] = v.slice(0, MAX_PRESET_VALUE);
+    if (typeof v === 'string' && v.trim() && !v.startsWith('data:') && !v.startsWith('blob:')) {
+      // Refuse rather than silently cut a value short.
+      if (v.length > MAX_PRESET_VALUE) {
+        throw Object.assign(new Error(`A preset can hold up to ${MAX_PRESET_VALUE} characters per field; "${k}" is longer. Shorten it and save again.`), { code: 'too_long' });
+      }
+      clean[k] = v;
+    }
   });
   if (!Object.keys(clean).length) return null;
   const all = readPresets();

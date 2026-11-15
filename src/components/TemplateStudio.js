@@ -368,7 +368,13 @@ export function TemplateStudio(templateId) {
       el.id = `ts-field-${input.name}`;
       el.setAttribute('aria-label', input.label || input.name);
       if (input.required) el.setAttribute('aria-required', 'true');
-      el.oninput = () => { formState[input.name] = el.value; setFieldInvalid(el, false); clearValidationErrorIfResolved(); };
+      el.oninput = () => {
+        formState[input.name] = el.value;
+        // Only a value that passes required-field validation clears the mark
+        // (a lone space still counts as empty).
+        if (!input.required || el.value.trim()) setFieldInvalid(el, false);
+        clearValidationErrorIfResolved();
+      };
       if (isPrimaryPrompt) {
         promptEl = el;
         primaryPromptField = el;

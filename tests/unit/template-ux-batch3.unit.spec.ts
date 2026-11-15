@@ -34,6 +34,12 @@ describe('named presets', () => {
     expect(savePreset('t1', 'long', { prompt: long })!.values.prompt).toBe(long);
   });
 
+  it('refuses (rather than truncates) a value over the local limit', () => {
+    expect(() => savePreset('t1', 'huge', { prompt: 'a'.repeat(5001) })).toThrow(/up to 5000 characters/);
+    expect(listPresets('t1')).toEqual([]);
+    expect(savePreset('t1', 'edge', { prompt: 'a'.repeat(5000) })!.values.prompt.length).toBe(5000);
+  });
+
   it('throws a storage error when the browser will not save', () => {
     const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('quota'); });
     expect(() => savePreset('t1', 'x', { a: '1' })).toThrow(/storage/i);
