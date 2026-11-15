@@ -196,7 +196,7 @@ export interface ElectronAPI {
       /** [remix] track state + transitions for the export hand-off (lib/editor/export-mapping.ts) */
       tracks?: import('./lib/editor/export-mapping').ExportTrackInfo[];
       masterVolume?: number; // [remix] Stage 4
-      videoBitrate?: number; qa?: boolean; aspect?: string; // [remix] OpenChatCut export bitrate + render check
+      videoBitrate?: number; qa?: boolean; aspect?: string; container?: string /* [remix] Stage 11 */; // [remix] OpenChatCut export bitrate + render check
       overlays?: unknown[]; mgOverlays?: unknown[]; hfOverlays?: unknown[]; // [remix] overlay-lane items drawn into the render
       transitions?: import('./lib/editor/export-mapping').ExportTransitionInfo[];
     }) => Promise<ExportJob>;

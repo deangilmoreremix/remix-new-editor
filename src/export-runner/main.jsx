@@ -51,10 +51,12 @@ async function render(id, rawModel, options = {}) {
   const model = materializeBlobs(rawModel, urls);
   try {
     takeCodeErrors(); // [hyperframes] this runner frame is reused: start every export with a clean error list
-    if (typeof window.VideoEncoder !== 'function') {
+    // [remix] Stage 11: mkv and audio-only containers (wav / mp3 / aac / flac / ogg) are written by the same renderer; an audio-only file needs no video encoder
+    const container = ['mp4', 'webm', 'mov', 'mkv', 'wav', 'mp3', 'aac', 'flac', 'ogg'].includes(options.container) ? options.container : 'mp4';
+    const audioOnly = ['wav', 'mp3', 'aac', 'flac', 'ogg'].includes(container);
+    if (!audioOnly && typeof window.VideoEncoder !== 'function') {
       throw new Error('This browser cannot encode video. Use Chrome or Edge 94+, Firefox 130+ or Safari 26+.');
     }
-    const container = ['mp4', 'webm', 'mov'].includes(options.container) ? options.container : 'mp4';
     // Fonts first, so frame 0 already uses them (HTML and Lottie SVG text).
     // [remix] user-imported caption fonts arrive as data URLs
     await Promise.race([Promise.all((model.userFonts || []).map(registerUserFont)), new Promise((r) => setTimeout(r, 15000))]);
@@ -72,7 +74,7 @@ async function render(id, rawModel, options = {}) {
       },
       inputProps: { model },
       container,
-      videoCodec: options.videoCodec || (container === 'webm' ? 'vp9' : 'h264'),
+      videoCodec: audioOnly ? undefined : (options.videoCodec || (container === 'webm' ? 'vp9' : 'h264')),
       // [remix] explicit bitrate (OpenChatCut export/bitrate.ts) overrides the quality preset
       videoBitrate: Number.isFinite(options.videoBitrate) ? options.videoBitrate : (BITRATE[options.quality] || 'high'),
       signal: controller.signal,
