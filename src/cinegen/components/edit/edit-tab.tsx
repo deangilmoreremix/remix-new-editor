@@ -1182,7 +1182,6 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           duration={sequenceDuration}
           isPlaying={isPlaying}
           onPlayPause={togglePlayPause}
-          onSeek={seek}
           proxyMode={proxyMode}
           onProxyModeChange={setProxyMode}
           sourceViewerVisible={layout.sourceViewerVisible}
