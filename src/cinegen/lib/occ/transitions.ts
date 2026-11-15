@@ -43,7 +43,7 @@ export function activeGlTransition(tl: Timeline, time: number) {
     if (!a || !b) continue;
     const start = b.startTime; const end = clipEndTime(a);
     if (end - start <= 1e-6 || time < start || time >= end) continue;
-    return { glType: tr.glType, glDef: tr.glDef, glParams: tr.glParams, outClipId: a.id, inClipId: b.id, progress: (time - start) / (end - start) };
+    return { glType: tr.glType, glDef: tr.glDef, glParams: tr.glParams, outClipId: a.id, inClipId: b.id, progress: (time - start) / (end - start), time, outClip: a, inClip: b };
   }
   return null;
 }

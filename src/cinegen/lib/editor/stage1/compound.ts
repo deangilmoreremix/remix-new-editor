@@ -2,13 +2,17 @@
 // The nested clips keep their own tracks, trims, speed, keyframes and fades (start times are relative to the compound). Playback and export
 // never see the compound: flattenCompounds() turns it back into ordinary clips first (see use-stage1-editing.ts for the preview wiring and
 // export-mapping callers for the export), so what plays is what exports and no second renderer exists.
-// The compound's own trim / speed / split / move / static opacity, volume and flip are honoured when flattening; its keyframes, fades,
-// fx, LUT, blend, transform, zoom and captions are not applied to the content (documented limitation).
-import type { Clip, CompoundContent, Timeline, Transition } from '@cinegen/types/timeline';
+// The compound's own trim / speed / split / move / static opacity, volume and flip are honoured when flattening.
+// [remix] Fix A: so are its own look - Clip.anim (x/y/scale/rotation/opacity keys + motion modifiers), static transform, opacity keyframes, fx (with
+// fx param keys), LUT and blend mode. They are DISTRIBUTED onto every picture child with the right time offset (see applyGroupLook), so the
+// preview, the export and expandCompound all see the same result. Not applied: crop, fades, zoom, captions of the compound (documented).
+import type { Clip, ClipFx, CompoundContent, Timeline, Transition } from '@cinegen/types/timeline';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 import { generateId } from '@cinegen/lib/utils/ids';
 import { calculateTimelineDuration } from '../timeline-operations';
-import { sliceAnim } from '../stage2/anim';
+import { FX_KEY_BASIS_FPS, fxPropId, hasAnim, parseFxPropId, poseAt, poseOpacity, sliceAnim, type AnimKey } from '../stage2/anim';
+import { pathOffsetAt, type ClipTransform } from '../../occ/transform';
+import type { Keyframe as OccKeyframe } from '../../../../openchatcut/editor/clipTypes';
 
 const EPS = 1e-6;
 const MAX_DEPTH = 8;
@@ -53,10 +57,85 @@ export function createCompound(timeline: Timeline, ids: Iterable<string>, name =
   };
 }
 
+
+/** Frame aspect (W/H) used to rotate a child's offset about the frame centre when the compound itself is rotated (exact when it is not). */
+export const GROUP_ASPECT = 16 / 9;
+const r5 = (n: number) => Math.round(n * 1e5) / 1e5;
+
+const movesFrame = (t?: ClipTransform) => !!t && (t.x !== 0 || t.y !== 0 || t.scale !== 1 || t.rotation !== 0 || !!t.keys?.length || !!t.path?.length);
+const groupPosed = (c: Clip) => hasAnim(c.anim) || movesFrame(c.transform) || c.keyframes.some((k) => k.property === 'opacity');
+
+/** Does the compound carry a look of its own that has to reach its content? */
+export function hasGroupLook(c: Clip): boolean {
+  return groupPosed(c) || !!c.fx?.some((f) => f.enabled !== false) || !!c.lut || (!!c.blendMode && c.blendMode !== 'normal') || c.keyframes.some((k) => k.property === 'opacity');
+}
+
+/**
+ * Put the compound's own look onto one picture child. `next` is the child already placed on the parent timeline (startTime, trim, speed, anim windowed),
+ * `offset` = seconds from the compound's start to the child's start (timeline seconds), so compound time = offset + child time.
+ *  - fx / LUT: appended after the child's own (child fx, child LUT, compound fx, compound LUT); their param keys are shifted by -offset.
+ *  - blend mode: used when the child is 'normal'.
+ *  - pose (x, y, scale, rotation) and opacity: the compound's transform is applied AFTER the child's (translate . rotate . scale), so the child's
+ *    pose and the compound's pose are composed and sampled every 1/30 s into the child's anim keys (linear), modifiers included.
+ */
+function applyGroupLook(container: Clip, next: Clip, offset: number, base: { opacity: number }): Clip {
+  const out: Clip = { ...next };
+  const dur = clipEffectiveDuration(next);
+
+  // ---- effects
+  const cIndex = (container.fx ?? []).map((f, i) => ({ f, i })).filter((e) => e.f.enabled !== false);
+  if (cIndex.length || container.lut) {
+    const fx: ClipFx[] = [...(next.fx ?? [])];
+    if (next.lut) { fx.push({ id: next.lut.id, props: { intensity: next.lut.intensity }, ...(next.lut.def ? { def: next.lut.def } : {}) }); out.lut = undefined; }
+    const keys: Record<string, AnimKey[]> = { ...(out.anim?.keys ?? {}) };
+    for (const { f, i } of cIndex) {
+      const idx = fx.length;
+      const shifted = f.keys ? Object.fromEntries(Object.entries(f.keys).map(([k, list]) => [k, (list as OccKeyframe[]).map((kf) => ({ ...kf, frame: kf.frame - offset * FX_KEY_BASIS_FPS }))])) : undefined;
+      fx.push({ ...f, ...(shifted ? { keys: shifted } : {}) });
+      for (const [id, list] of Object.entries(container.anim?.keys ?? {})) {
+        const pf = parseFxPropId(id);
+        if (pf && pf.index === i && list?.length) { const sl = sliceAnim({ keys: { [id]: list } }, offset, offset + dur, 1); if (sl?.keys?.[id]) keys[fxPropId(idx, pf.key)] = sl.keys[id]; }
+      }
+    }
+    if (container.lut) fx.push({ id: container.lut.id, props: { intensity: container.lut.intensity }, ...(container.lut.def ? { def: container.lut.def } : {}) });
+    out.fx = fx;
+    if (Object.keys(keys).length) out.anim = { ...(out.anim ?? {}), keys };
+  }
+  if (container.blendMode && container.blendMode !== 'normal' && (!next.blendMode || next.blendMode === 'normal')) out.blendMode = container.blendMode;
+
+  // ---- pose + opacity
+  if (!groupPosed(container) || dur <= EPS) return out;
+  const a = GROUP_ASPECT;
+  const childSrc = { transform: out.transform, anim: out.anim, opacity: base.opacity, keyframes: out.keyframes };
+  const groupSrc = { transform: container.transform, anim: container.anim, opacity: container.opacity, keyframes: container.keyframes };
+  const step = Math.max(1 / FX_KEY_BASIS_FPS, dur / 600);
+  const times: number[] = []; for (let t = 0; t < dur - 1e-9; t += step) times.push(t); times.push(dur);
+  const keys: Record<string, AnimKey[]> = { ...(out.anim?.keys ?? {}) };
+  for (const id of ['x', 'y', 'scale', 'rotation', 'opacity']) keys[id] = [];
+  for (const t of times) {
+    const c = poseAt(childSrc, t); const cpo = pathOffsetAt(out.transform?.path, t);
+    const g = poseAt(groupSrc, offset + t); const gpo = pathOffsetAt(container.transform?.path, offset + t);
+    const rad = (g.rotation * Math.PI) / 180; const cos = Math.cos(rad); const sin = Math.sin(rad);
+    const X = ((c.x + cpo.x) / 100) * a; const Y = (c.y + cpo.y) / 100; // in frame heights
+    const gx = ((g.x + gpo.x) / 100) * a; const gy = (g.y + gpo.y) / 100;
+    const nx = gx + g.scale * (X * cos - Y * sin); const ny = gy + g.scale * (X * sin + Y * cos);
+    const tt = r5(t);
+    keys.x.push({ t: tt, v: r5((nx / a) * 100), ease: 'linear' }); keys.y.push({ t: tt, v: r5(ny * 100), ease: 'linear' });
+    keys.scale.push({ t: tt, v: r5(g.scale * c.scale), ease: 'linear' }); keys.rotation.push({ t: tt, v: r5(g.rotation + c.rotation), ease: 'linear' });
+    keys.opacity.push({ t: tt, v: r5(Math.max(0, Math.min(1, poseOpacity(childSrc, t) * poseOpacity(groupSrc, offset + t)))), ease: 'linear' });
+  }
+  // the child's motion modifiers and tracked path were sampled into the keys, so they are not applied a second time
+  out.anim = { keys };
+  out.opacity = base.opacity;
+  if (out.transform?.path) out.transform = { ...out.transform, path: undefined };
+  return out;
+}
+
 interface Windowed { clips: Clip[]; transitions: Transition[] }
 
 /** The compound's content as clips on the parent timeline: honours the compound's trim window, speed and static opacity / volume / flip. */
-function content(container: Clip, trackIds: Set<string>, idFor: (childId: string) => string): Windowed {
+function content(container: Clip, trackIds: Set<string>, idFor: (childId: string) => string, audioTrackIds: Set<string> = new Set()): Windowed {
+  const look = hasGroupLook(container);
   const inner = container.compound as CompoundContent;
   const w0 = container.trimStart; const w1 = container.duration - container.trimEnd;
   const sp = container.speed || 1;
@@ -77,6 +156,8 @@ function content(container: Clip, trackIds: Set<string>, idFor: (childId: string
       flipH: child.flipH !== container.flipH, flipV: child.flipV !== container.flipV, keyframes: kf,
     };
     if (child.anim) next.anim = sliceAnim(child.anim, cutL, e - cs, 1 / sp); // [remix] Stage 2 keys follow the same window
+    // [remix] Fix A: the compound's own fx / anim / transform apply to every picture child (a child on an audio track has no picture)
+    if (look && !audioTrackIds.has(next.trackId)) Object.assign(next, applyGroupLook(container, next, next.startTime - container.startTime, { opacity: child.opacity }));
     if (cutL > EPS) delete next.fadeIn; else if (next.fadeIn) next.fadeIn /= sp;
     if (cutR > EPS) delete next.fadeOut; else if (next.fadeOut) next.fadeOut /= sp;
     out.push(next);
@@ -99,10 +180,11 @@ export function flattenCompounds(timeline: Timeline, depth = 0): Timeline {
   const clips: Clip[] = [];
   const transitions: Transition[] = [];
   const compoundIds = new Set<string>();
+  const audioIds = new Set(timeline.tracks.filter((t) => t.kind === 'audio').map((t) => t.id));
   for (const c of timeline.clips) {
     if (!c.compound) { clips.push(c); continue; }
     compoundIds.add(c.id);
-    const w = content(c, trackIds, (id) => `${c.id}::${id}`);
+    const w = content(c, trackIds, (id) => `${c.id}::${id}`, audioIds);
     clips.push(...w.clips);
     transitions.push(...w.transitions);
   }
@@ -118,7 +200,7 @@ export function expandCompound(timeline: Timeline, compoundId: string): { timeli
   const taken = new Set(timeline.clips.map((x) => x.id));
   const map = new Map<string, string>();
   for (const k of c.compound.clips) map.set(k.id, taken.has(k.id) && k.id !== compoundId ? generateId() : k.id);
-  const w = content(c, new Set(timeline.tracks.map((t) => t.id)), (id) => map.get(id) ?? id);
+  const w = content(c, new Set(timeline.tracks.map((t) => t.id)), (id) => map.get(id) ?? id, new Set(timeline.tracks.filter((t) => t.kind === 'audio').map((t) => t.id)));
   return {
     timeline: finish({ ...timeline, clips: [...timeline.clips.filter((x) => x.id !== compoundId), ...w.clips], transitions: [...(timeline.transitions ?? []).filter((t) => t.clipAId !== compoundId && t.clipBId !== compoundId), ...w.transitions] }),
     clipIds: w.clips.map((x) => x.id),
