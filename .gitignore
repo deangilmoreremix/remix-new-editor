@@ -126,8 +126,8 @@ debug_signin.cjs
 !/public/overlay-templates/thumbs/*.jpg
 !/public/library-previews/sample-out.jpg
 !/public/library-previews/sample-in.jpg
-# placeholder backdrop for the Agent Stream motion-director demo (the original was never committed; replace it with the real artwork)
-!/public/motion-studio/legacy-textures/agent-stream.jpg
+# backdrop of the retired Motion Director StreamResponse card (placeholder; the original image was never committed)
+!public/motion-studio/legacy-textures/agent-stream.jpg
 
 # Logs
 logs
