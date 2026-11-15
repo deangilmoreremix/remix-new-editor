@@ -27,6 +27,9 @@ exports.newProject = async (pg, name) => {
   await pg.fill('input[placeholder="Project name..."]', name);
   await pg.evaluate(() => [...document.querySelectorAll('button')].find((x) => x.innerText === 'Create').click());
   await pg.waitForTimeout(6000);
+  // develop's default workspace tab is now SPACES; the smokes drive the EDIT tab.
+  await pg.evaluate(() => [...document.querySelectorAll('button')].find((x) => x.innerText.trim() === 'EDIT')?.click());
+  await pg.waitForTimeout(1500);
 };
 exports.addVideo = async (pg, file) => {
   await clickBtn(pg, '^Add\\s*video');
