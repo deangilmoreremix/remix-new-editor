@@ -43,6 +43,7 @@
  */
 
 import { isImageLayerKind, toBox } from '../preview/presets'
+import { isRotated, rotatedExtent } from '../preview/rotation'
 import type { PreviewLayer, PreviewLayerKind } from '../preview/types'
 import type { AssetLibrary, PersonalizationAsset } from '../types'
 
@@ -211,25 +212,27 @@ function usableFrame(width: number, height: number): { w: number; h: number } {
   }
 }
 
-/** True when a box fits inside the frame's safe area. */
-export function boxFitsSafeArea(metrics: LayerBoxMetrics, compW: number, compH: number): boolean {
+/** True when a box fits inside the frame's safe area. A rotated layer is judged by its rotated bounding box. */
+export function boxFitsSafeArea(metrics: LayerBoxMetrics, compW: number, compH: number, rotation?: number): boolean {
   const { width, height } = resolveCompositionSize(compW, compH)
   const frame = usableFrame(width, height)
-  return metrics.widthPx <= frame.w + FIT_TOLERANCE_PX && metrics.heightPx <= frame.h + FIT_TOLERANCE_PX
+  const ext = isRotated(rotation) ? rotatedExtent(metrics.widthPx, metrics.heightPx, rotation as number) : { w: metrics.widthPx, h: metrics.heightPx }
+  return ext.w <= frame.w + FIT_TOLERANCE_PX && ext.h <= frame.h + FIT_TOLERANCE_PX
 }
 
 /** Largest scale inside [MIN_LAYER_SCALE, MAX_LAYER_SCALE] that still fits. */
 export function maxScaleThatFits(layer: PreviewLayer, compW: number, compH: number): number {
   const { width, height } = resolveCompositionSize(compW, compH)
   const at = (scale: number) => layerBoxMetrics({ ...layer, scale }, width, height)
-  if (boxFitsSafeArea(at(MAX_LAYER_SCALE), width, height)) return MAX_LAYER_SCALE
-  if (!boxFitsSafeArea(at(MIN_LAYER_SCALE), width, height)) return MIN_LAYER_SCALE
+  const fits = (scale: number) => boxFitsSafeArea(at(scale), width, height, layer.rotation)
+  if (fits(MAX_LAYER_SCALE)) return MAX_LAYER_SCALE
+  if (!fits(MIN_LAYER_SCALE)) return MIN_LAYER_SCALE
 
   let low = MIN_LAYER_SCALE
   let high = MAX_LAYER_SCALE
   for (let step = 0; step < FIT_ITERATIONS; step += 1) {
     const mid = (low + high) / 2
-    if (boxFitsSafeArea(at(mid), width, height)) low = mid
+    if (fits(mid)) low = mid
     else high = mid
   }
   return low
@@ -255,6 +258,23 @@ export function clampLayerToBounds(layer: PreviewLayer, compW: number, compH: nu
   const scale = Math.min(clampScale(layer.scale), maxScaleThatFits(layer, width, height))
   const next: PreviewLayer = { ...layer, scale }
   const metrics = layerBoxMetrics(next, width, height)
+
+  // A rotated layer is bounded by its rotated bounding box about the center of the drawn box: shift the layer by the
+  // smallest amount that brings that box back inside the safe area (centering it on an axis where it cannot fit).
+  if (isRotated(layer.rotation)) {
+    const ext = rotatedExtent(metrics.widthPx, metrics.heightPx, layer.rotation as number)
+    // The center comes from the layer's own x/y (toBox pre-clamps the DRAWN position, which would hide how far out it is):
+    // x is the horizontal center; y anchors the box so that top = y*height - anchorHeight/2.
+    const cx = layer.x * width
+    const cy = layer.y * height - metrics.anchorHeightPx / 2 + metrics.heightPx / 2
+    const mx = width * SAFE_AREA_MARGIN
+    const my = height * SAFE_AREA_MARGIN
+    const shift = (c: number, extent: number, lo: number, hi: number) =>
+      extent >= hi - lo ? (lo + hi) / 2 - c : c - extent / 2 < lo ? lo + extent / 2 - c : c + extent / 2 > hi ? hi - extent / 2 - c : 0
+    next.x = layer.x + shift(cx, ext.w, mx, width - mx) / width
+    next.y = layer.y + shift(cy, ext.h, my, height - my) / height
+    return next
+  }
 
   // Horizontal: left = x * width - widthPx / 2.
   const halfW = metrics.widthPx / 2 / width

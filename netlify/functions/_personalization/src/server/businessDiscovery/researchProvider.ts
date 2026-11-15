@@ -172,6 +172,8 @@ export async function fetchWithValidatedRedirects(
     maxBytes?: number
     headers?: Record<string, string>
     signal?: AbortSignal
+    /** Optional: 'arraybuffer' returns the raw bytes (e.g. gzip sitemaps) instead of decoded text. */
+    responseType?: 'arraybuffer'
   } = {},
 ): Promise<{
   response: AxiosResponse
@@ -202,6 +204,7 @@ export async function fetchWithValidatedRedirects(
       maxContentLength: options.maxBytes ?? MAX_HTML_BYTES,
       headers: { ...(options.headers ?? SITE_PAGE_HEADERS) },
       validateStatus: (s) => s >= 200 && s < 400,
+      ...(options.responseType ? { responseType: options.responseType } : {}),
       ...pin,
     })
 

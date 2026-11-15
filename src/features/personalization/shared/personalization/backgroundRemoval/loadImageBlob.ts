@@ -21,6 +21,18 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([bytes], { type })
 }
 
+const SIGNED_IN_PROXY = '/api/personalization/download-image'
+const PUBLIC_PROXY = '/api/demo/download-image'
+/** How long to remember that the signed-in route refused us, so a visitor who signs in meanwhile is retried. */
+export const SIGNED_IN_REFUSAL_MEMORY_MS = 60_000
+let signedInProxyRefusedAt: number | null = null
+const signedInProxyRefused = () =>
+  signedInProxyRefusedAt !== null && Date.now() - signedInProxyRefusedAt < SIGNED_IN_REFUSAL_MEMORY_MS
+/** Test hook: forget that the signed-in route refused us. */
+export function resetProxyChoiceForTests(): void {
+  signedInProxyRefusedAt = null
+}
+
 /** Longest a direct (cross-origin) download may take, headers and body included. */
 export const DIRECT_DOWNLOAD_TIMEOUT_MS = 15_000
 /** Longest the same-origin proxy download may take. */
@@ -53,7 +65,7 @@ function boundedSignal(parent: AbortSignal | undefined, ms: number): { signal: A
  */
 export async function loadImageBlob(
   url: string,
-  options: { signal?: AbortSignal; directTimeoutMs?: number; proxyTimeoutMs?: number } = {},
+  options: { signal?: AbortSignal; directTimeoutMs?: number; proxyTimeoutMs?: number; anonymous?: boolean } = {},
 ): Promise<Blob> {
   const { signal } = options
   if (signal?.aborted) throw abortError()
@@ -72,22 +84,39 @@ export async function loadImageBlob(
   }
   if (signal?.aborted) throw abortError()
 
-  const proxy = boundedSignal(signal, options.proxyTimeoutMs ?? PROXY_DOWNLOAD_TIMEOUT_MS)
-  try {
-    const res = await fetch('/api/personalization/download-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ urls: [url] }),
-      signal: proxy.signal,
-    })
-    const data = await res.json().catch(() => ({}))
-    const dataUrl = data?.results?.[0]?.ok ? data.results[0].dataUrl : null
-    if (res.ok && typeof dataUrl === 'string') return dataUrlToBlob(dataUrl)
-  } catch {
-    // reported below
-  } finally {
-    proxy.release()
+  // Which same-origin download route to use. Signed-in users have the personalization route; a visitor
+  // without a session gets 401 there and falls back to the public, rate-limited route. Once the signed-in
+  // route has refused us (remembered for a minute, so a later sign-in is picked up), later images go straight to the public one.
+  const endpoints =
+    options.anonymous || signedInProxyRefused()
+      ? [PUBLIC_PROXY]
+      : [SIGNED_IN_PROXY, PUBLIC_PROXY]
+  for (const endpoint of endpoints) {
+    if (signal?.aborted) throw abortError()
+    const proxy = boundedSignal(signal, options.proxyTimeoutMs ?? PROXY_DOWNLOAD_TIMEOUT_MS)
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ urls: [url] }),
+        signal: proxy.signal,
+      })
+      if (endpoint === SIGNED_IN_PROXY && (res.status === 401 || res.status === 403)) {
+        signedInProxyRefusedAt = Date.now()
+        continue // try the public route
+      }
+      const data = await res.json().catch(() => ({}))
+      const dataUrl = data?.results?.[0]?.ok ? data.results[0].dataUrl : null
+      if (res.ok && typeof dataUrl === 'string') return dataUrlToBlob(dataUrl)
+      // Only an auth refusal (handled above) may reach the public route: a 429, a 5xx or a failed
+      // image from the signed-in route must not be routed around its own limits.
+      if (endpoint === SIGNED_IN_PROXY) break
+    } catch {
+      if (endpoint === SIGNED_IN_PROXY) break
+    } finally {
+      proxy.release()
+    }
   }
   if (signal?.aborted) throw abortError()
   throw new Error('The image could not be loaded.')

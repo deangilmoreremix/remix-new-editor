@@ -17,9 +17,11 @@
  *   GET|POST|DELETE /api/personalization/project
  *   POST          /api/personalization/record
  *   POST          /api/personalization/persist-edited-asset
+ *   POST          /api/personalization/enrich-business (contact details from a business's own website)
  *   POST          /api/personalization/resolve-website  (find a business's own site from its OSM listing)
  *   GET           /api/media/remote            (same-origin proxy for remote preview videos)
  *   POST          /api/demo/discover           (anonymous "Find My Brand")
+ *   POST          /api/demo/download-image     (public image proxy for signed-out background removal)
  *   POST          /api/proxy/openai-enhance    (prompt personalizer / enhance text)
  *   GET|POST      /api/api/v1/*                (OpenHiggsBolt MuAPI proxy: generation submit + poll)
  *   GET|POST      /api/v1/upload_file          (OpenHiggsBolt MuAPI upload + durable originals)
@@ -47,11 +49,13 @@ import * as downloadImage from './_personalization/app/api/personalization/downl
 import * as project from './_personalization/app/api/personalization/project/route'
 import * as record from './_personalization/app/api/personalization/record/route'
 import * as demoDiscover from './_personalization/app/api/demo/discover/route'
+import * as demoDownloadImage from './_personalization/app/api/demo/download-image/route'
 import * as persistEditedAsset from './_personalization/extra/persistEditedAsset'
 import * as openaiEnhance from './_personalization/extra/openaiEnhance'
 import * as muapiProxy from './_personalization/app/api/api/v1/[[...path]]/route.js'
 import * as muapiUploadFile from './_personalization/app/api/v1/upload_file/route'
 import * as resolveWebsite from './_personalization/app/api/personalization/resolve-website/route'
+import * as enrichBusiness from './_personalization/app/api/personalization/enrich-business/route'
 import * as videoRecord from './_personalization/app/api/video/record/route'
 import * as remoteMedia from './_personalization/app/api/media/remote/route'
 import * as shotcraftMedia from './_personalization/app/api/media/shotcraft/[styleKey]/route'
@@ -77,9 +81,11 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/personalization/record': record as RouteModule,
   '/api/personalization/persist-edited-asset': persistEditedAsset as unknown as RouteModule,
   '/api/personalization/resolve-website': resolveWebsite as RouteModule,
+  '/api/personalization/enrich-business': enrichBusiness as RouteModule,
   '/api/media/remote': remoteMedia as RouteModule,
   '/api/video/record': videoRecord as RouteModule,
   '/api/demo/discover': demoDiscover as RouteModule,
+  '/api/demo/download-image': demoDownloadImage as RouteModule,
   '/api/proxy/openai-enhance': openaiEnhance as unknown as RouteModule,
   '/api/v1/upload_file': muapiUploadFile as unknown as RouteModule,
   // Motion Director (ported from OpenHiggsBolt app/api/motion-studio).
@@ -157,6 +163,7 @@ export const config: Config = {
   path: [
     '/api/personalization/*',
     '/api/demo/discover',
+    '/api/demo/download-image',
     '/api/video/record',
     '/api/proxy/openai-enhance',
     '/api/api/v1/*',

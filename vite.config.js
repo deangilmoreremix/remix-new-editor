@@ -1421,6 +1421,19 @@ export default defineConfig({
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },
+            // Public image proxy used by signed-out background removal (netlify/functions/personalization-api.mts).
+            '/api/demo/download-image': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+                // The route refuses a browser Origin that differs from its own host (cross-site guard). In dev the
+                // page is on :5173 and the function on :8888, so present the target as the origin, as a same-origin
+                // deployed call would. Dev server only: production never goes through this proxy.
+                configure: (proxy, options) => {
+                    proxy.on('proxyReq', (proxyReq) => {
+                        if (proxyReq.getHeader('origin')) proxyReq.setHeader('origin', String(options.target))
+                    })
+                },
+            },
             '/api/video/record': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,

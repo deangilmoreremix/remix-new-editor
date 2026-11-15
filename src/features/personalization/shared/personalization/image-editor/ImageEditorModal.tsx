@@ -22,8 +22,8 @@ import {
   Wand2,
   X,
 } from 'lucide-react'
-import { type ImageFormat, type ImageSize } from '@ohb/shared/api/openaiImage'
-import { editSmartVideoGoImage } from './imageEditApi'
+import { type ImageFormat, type ImageQuality, type ImageSize } from '@ohb/shared/api/openaiImage'
+import { editSmartVideoGoImage, type ImageEditModel } from './imageEditApi'
 import { buttons, iconBadge, semantic } from '@ohb/shared/styles/designTokens'
 import type {
   AssetRole,
@@ -72,7 +72,7 @@ export type ImageEditorApplyResult = {
   originalUrl: string
   operation: string
   prompt: string
-  model: 'gpt-image-2.5-flare' | 'gpt-image-2.5-sunburst' | 'local'
+  model: ImageEditModel | 'local'
   quality: string
   transparent: boolean
   videoReady: boolean
@@ -95,6 +95,14 @@ type Props = {
 }
 
 type ModelMode = 'auto' | 'fast' | 'precision'
+/** 'standard' keeps the Images 2.5 routing; the others pin an Images 2.6 model. */
+type EngineChoice = 'standard' | 'draft' | 'detail'
+type QualityChoice = 'default' | ImageQuality
+type ComplexityChoice = '' | 'low' | 'medium' | 'high'
+const ENGINE_LABELS: Record<EngineChoice, string> = { standard: 'Standard (2.5)', draft: 'Fast draft (2.6 Flare)', detail: 'Detailed render (2.6 Sunburst)' }
+const QUALITY_CHOICES: QualityChoice[] = ['default', 'low', 'medium', 'high', 'xhigh', 'max']
+const COMPLEXITY_CHOICES: ComplexityChoice[] = ['', 'low', 'medium', 'high']
+const isSunburst = (model: string) => model.endsWith('-sunburst')
 type AspectRatio = 'original' | '9:16' | '16:9' | '1:1' | '4:5'
 type EditorMode = 'simple' | 'advanced'
 type FitMode = 'contain' | 'cover'
@@ -130,6 +138,8 @@ type Version = {
   operation: string
   prompt: string
   model: ImageEditorApplyResult['model']
+  /** Quality this version was generated with (not the current selector value). */
+  quality?: ImageQuality
   transparent: boolean
   videoReady: boolean
   responseId?: string | null
@@ -224,6 +234,9 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
 
   const [editorMode, setEditorMode] = useState<EditorMode>('simple')
   const [modelMode, setModelMode] = useState<ModelMode>('auto')
+  const [engine, setEngine] = useState<EngineChoice>('standard')
+  const [qualityChoice, setQualityChoice] = useState<QualityChoice>('default')
+  const [complexity, setComplexity] = useState<ComplexityChoice>('')
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('original')
   const [outputFormat, setOutputFormat] = useState<ImageFormat>('png')
   const [outputCompression, setOutputCompression] = useState<number | undefined>(undefined)
@@ -285,6 +298,9 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     previousFocusRef.current = document.activeElement as HTMLElement | null
     setEditorMode('simple')
     setModelMode('auto')
+    setEngine('standard')
+    setQualityChoice('default')
+    setComplexity('')
     setAspectRatio('original')
     setOutputFormat('png')
     setVersions([{
@@ -360,12 +376,19 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
 
   const resolvedModel = useCallback((operationId: EditorOperationId) => {
     const operation = getOperation(operationId)
-    if (modelMode === 'fast') return 'gpt-image-2.5-flare' as const
-    if (modelMode === 'precision') return 'gpt-image-2.5-sunburst' as const
-    return operation?.precision || sourceRecipe.precisionRecommended || recipe.precisionRecommended || visionAnalysis?.precisionRecommended
-      ? 'gpt-image-2.5-sunburst' as const
-      : 'gpt-image-2.5-flare' as const
-  }, [modelMode, recipe.precisionRecommended, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended])
+    if (engine === 'draft') return 'gpt-image-2.6-flare' as ImageEditModel
+    if (engine === 'detail') return 'gpt-image-2.6-sunburst' as ImageEditModel
+    if (modelMode === 'fast') return 'gpt-image-2.5-flare' as ImageEditModel
+    if (modelMode === 'precision') return 'gpt-image-2.5-sunburst' as ImageEditModel
+    return (operation?.precision || sourceRecipe.precisionRecommended || recipe.precisionRecommended || visionAnalysis?.precisionRecommended
+      ? 'gpt-image-2.5-sunburst'
+      : 'gpt-image-2.5-flare') as ImageEditModel
+  }, [engine, modelMode, recipe.precisionRecommended, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended])
+
+  const resolveQuality = useCallback((model: string): ImageQuality => {
+    if (qualityChoice !== 'default') return qualityChoice
+    return isSunburst(model) ? (modelMode === 'precision' ? 'xhigh' : 'high') : 'medium'
+  }, [modelMode, qualityChoice])
 
   const readDataUrl = useCallback(async (url: string) => {
     if (url.startsWith('data:')) return url
@@ -496,7 +519,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     const model = resolvedModel(operationId)
     const prompt = buildPrompt(operationId, custom)
     const transparent = Boolean(options.forceTransparent || operation.transparency || (operationId === 'video_ready' && recipe.transparencyRecommended))
-    const quality = model === 'gpt-image-2.5-sunburst' ? (modelMode === 'precision' ? 'xhigh' : 'high') : 'medium'
+    const quality = resolveQuality(model)
     const size = aspectRatio === 'original' ? 'auto' : aspectSizes[aspectRatio]
     const format: ImageFormat = transparent && outputFormat === 'jpeg' ? 'png' : outputFormat
 
@@ -507,6 +530,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       mask: activeMask && operation.supportsMask ? activeMask : undefined,
       model,
       quality,
+      complexity: complexity || undefined,
       size,
       outputFormat: format,
       background: transparent ? 'transparent' : 'auto',
@@ -525,13 +549,14 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       operation: operationId,
       prompt,
       model,
+      quality,
       transparent,
       videoReady: operationId === 'video_ready',
     } satisfies Omit<Version, 'id'>
 
     if (addVersion) appendVersion(version)
     return version
-  }, [appendVersion, aspectRatio, asset, buildPrompt, maskBlob, modelMode, outputFormat, prepareDataUrl, recipe.precisionRecommended, recipe.transparencyRecommended, resolvedModel, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended])
+  }, [appendVersion, aspectRatio, asset, buildPrompt, complexity, maskBlob, outputFormat, resolveQuality, prepareDataUrl, recipe.precisionRecommended, recipe.transparencyRecommended, resolvedModel, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended])
 
   const runAiEdit = useCallback(async (operationId: EditorOperationId, custom = '') => {
     if (operationId === 'custom' && !custom.trim()) return
@@ -566,7 +591,9 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       const references = canContinueConversation
         ? []
         : (await Promise.all((asset.referenceImages || []).slice(0, 6).map((url) => prepareDataUrl(url).catch(() => '')))).filter(Boolean)
-      const model = resolvedModel('custom')
+      const chosenModel = resolvedModel('custom')
+      // Smart Edit (Responses API) only supports the 2.5 pair; map 2.6 choices to the same tier.
+      const model = (isSunburst(chosenModel) ? 'gpt-image-2.5-sunburst' : 'gpt-image-2.5-flare') as 'gpt-image-2.5-flare' | 'gpt-image-2.5-sunburst'
       setStreamingPreview(null)
       const result = await responsesSmartEditStream({
         imageUrl: sourceImage,
@@ -575,7 +602,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         previousResponseId: currentVersion?.responseId || undefined,
         imageModel: model,
         action: canContinueConversation ? 'auto' : 'edit',
-        quality: model === 'gpt-image-2.5-sunburst' ? (modelMode === 'precision' ? 'xhigh' : 'high') : 'medium',
+        quality: resolveQuality(chosenModel),
         size: aspectRatio === 'original' ? undefined : aspectSizes[aspectRatio],
         background: 'auto',
         outputFormat,
@@ -600,6 +627,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         operation: 'custom',
         prompt: customPrompt.trim(),
         model: result.model,
+        quality: resolveQuality(chosenModel),
         transparent: false,
         videoReady: false,
         responseId: result.responseId,
@@ -632,6 +660,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     modelMode,
     prepareDataUrl,
     recipe.outputRole,
+    resolveQuality,
     resolvedModel,
     runAiEdit,
     smartEditFailed,
@@ -921,7 +950,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         operation: currentVersion.operation,
         prompt: currentVersion.prompt,
         model: currentVersion.model,
-        quality: currentVersion.model === 'gpt-image-2.5-sunburst' ? 'high' : currentVersion.model === 'local' ? 'local' : 'medium',
+        quality: currentVersion.model === 'local' ? 'local' : currentVersion.quality ?? (qualityChoice !== 'default' ? qualityChoice : isSunburst(currentVersion.model) ? 'high' : 'medium'),
         transparent: currentVersion.transparent,
         videoReady: currentVersion.videoReady,
         visionAnalysis,
@@ -1342,6 +1371,29 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                         <button key={mode} type="button" onClick={() => setModelMode(mode)} className="rounded-lg px-2 py-2 text-[9px] font-bold uppercase" style={modelMode === mode ? buttons.activePill : buttons.inactivePill}>{mode}</button>
                       ))}
                     </div>
+                  </ControlLabel>
+
+                  <ControlLabel label="Engine">
+                    <select aria-label="Image engine" value={engine} onChange={(e) => setEngine(e.target.value as EngineChoice)} className="w-full rounded-lg bg-black/30 px-2 py-2 text-[10px] text-white outline-none" style={{ border: '1px solid rgba(255,255,255,.1)' }}>
+                      {(Object.keys(ENGINE_LABELS) as EngineChoice[]).map((key) => <option key={key} value={key}>{ENGINE_LABELS[key]}</option>)}
+                    </select>
+                  </ControlLabel>
+
+                  <ControlLabel label="Render detail">
+                    <select aria-label="Render detail" value={qualityChoice} onChange={(e) => setQualityChoice(e.target.value as QualityChoice)} className="w-full rounded-lg bg-black/30 px-2 py-2 text-[10px] text-white outline-none" style={{ border: '1px solid rgba(255,255,255,.1)' }}>
+                      {QUALITY_CHOICES.map((q) => <option key={q} value={q}>{q === 'default' ? 'Automatic' : q}</option>)}
+                    </select>
+                  </ControlLabel>
+
+                  <ControlLabel label="Composition complexity">
+                    <select aria-label="Composition complexity" value={complexity} onChange={(e) => setComplexity(e.target.value as ComplexityChoice)} disabled={engine === 'standard'} title={engine === 'standard' ? 'Available with the Images 2.6 engines' : undefined} className="w-full rounded-lg bg-black/30 px-2 py-2 text-[10px] text-white outline-none disabled:opacity-40" style={{ border: '1px solid rgba(255,255,255,.1)' }}>
+                      {COMPLEXITY_CHOICES.map((c) => <option key={c || 'unset'} value={c}>{c || 'Default'}</option>)}
+                    </select>
+                    {engine !== 'standard' && (
+                      <p data-testid="smart-edit-engine-note" className="mt-1 text-[9px] text-white/40">
+                        Quick actions and masked edits use this engine. "Ask SmartVideo GO AI" (Smart Edit) runs on the matching 2.5 model and does not use complexity.
+                      </p>
+                    )}
                   </ControlLabel>
 
                   <ControlLabel label="Aspect Ratio">

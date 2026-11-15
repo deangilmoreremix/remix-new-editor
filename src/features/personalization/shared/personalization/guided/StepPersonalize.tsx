@@ -7,6 +7,7 @@ import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
 import { designPrimarySlotUpdates } from '../preview/designSlots'
 import { C, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens'
+import { ColorField } from './editor/ColorField'
 import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser'
 import type { ClientProfile } from '../types'
 import type { PreviewLayerKind, PreviewLayoutId } from '../preview/types'
@@ -268,16 +269,16 @@ export function StepPersonalize({
               ['Text', 'text'],
             ] as const
           ).map(([label, key]) => (
-            <div key={key}>
-              <label style={labelStyle} htmlFor={`guided-color-${key}`}>{label}</label>
-              <input
-                id={`guided-color-${key}`}
-                type="color"
-                value={previewSettings.brandColors[key]}
-                onChange={(event) => updatePreviewBrandColors({ [key]: event.target.value })}
-                style={{ width: '100%', height: 40, borderRadius: 8, border: `1px solid ${C.border}`, background: C.field, padding: 3 }}
-              />
-            </div>
+            <ColorField
+              key={key}
+              id={`guided-color-${key}`}
+              label={label}
+              ariaLabel={`${label} brand color`}
+              value={previewSettings.brandColors[key]}
+              onChange={(hex) => updatePreviewBrandColors({ [key]: hex })}
+              brand={previewSettings.brandColors}
+              posterUrl={ctx.source?.poster ?? null}
+            />
           ))}
           <div>
             <label style={labelStyle} htmlFor="guided-dim">Shade behind text</label>
