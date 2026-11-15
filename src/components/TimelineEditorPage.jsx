@@ -51,7 +51,7 @@ import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryServ
 import { addPersonalizationAsset, createPersonalizationAsset, removePersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
 import { createContactSync } from '../lib/editor/personalize/clientSync.js';
 import { renderPersonalizationPanel, renderPersonalizationEditor, renderTokenEditor, renderBatchHub } from '../lib/editor/panels/personalPanels.js';
-import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
+import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalVariables, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
 import { setKeyframe } from '../lib/editor/remotion/keyframes.js';
@@ -6118,6 +6118,7 @@ export function TimelineEditorPage() {
     // Builds the Share panel in any host: the rail panel, or the open project's "Publish & Share" tab.
     async function createSharePanel(host) {
       const pub = await import('../lib/editor/publish/publishClient.js');
+      const pl = await import('../lib/editor/publish/personalLinksClient.js');
       const { renderSharePanel } = await import('../lib/editor/publish/sharePanel.js');
       const { localMediaBlob } = await import('../lib/editor/remotion/localMedia.js');
       const videoId = () => (state.publishedVideos || {})[publishedKey()] || null;
@@ -6190,6 +6191,24 @@ export function TimelineEditorPage() {
             missing: gaps.get(p.id) || [],
             localImages: personalLinkIssues(p, tokens),
           }));
+        },
+        // Stored personal links (?p=<id>): one per contact; the owner can edit, renew, turn off or remove each.
+        links: {
+          list: async () => pl.listPersonalLinks(await publishOwnerClient(), videoId()),
+          sync: async () => {
+            const tokens = projectTokens(state.tracks);
+            const items = listContactProfiles(contactStore).map((p) => ({ contactId: String(p.id), name: contactName(p), variables: personalVariables(p, tokens, { maxLength: 500 }) }));
+            return pl.syncPersonalLinks(await publishOwnerClient(), videoId(), items);
+          },
+          update: async (id, patch) => pl.updatePersonalLink(await publishOwnerClient(), id, patch),
+          regenerate: async (id) => pl.regeneratePersonalLink(await publishOwnerClient(), id),
+          remove: async (id) => pl.deletePersonalLink(await publishOwnerClient(), id),
+          tokens: () => projectTokens(state.tracks),
+          label: (key) => TOKEN_DEFS.find((d) => d.key === key)?.label || key,
+          contact: (contactId) => {
+            const p = contactStore.getProfile?.(contactId);
+            return p ? { name: contactName(p), email: contactEmail(p), company: p?.contact?.company || p?.personalization?.business?.businessName || '' } : {};
+          },
         },
         // Views / plays / finishes / CTA clicks / leads per contact.
         fetchStats: async () => pub.fetchVideoStats(await publishOwnerClient(), videoId()),
@@ -8407,6 +8426,13 @@ export function TimelineEditorPage() {
               <option value="each"${listContactProfiles(contactStore).length ? '' : ' disabled'}>One video per contact (${listContactProfiles(contactStore).length} in Personalization Studio)</option>
             </select>
           </div>
+          <div class="form-group" id="exportContactsBox" hidden>
+            <label>Contacts to export</label>
+            <div class="export-contacts-actions"><button type="button" class="mini-btn" id="exportContactsAll">All</button> <button type="button" class="mini-btn" id="exportContactsNone">None</button> <span id="exportContactsCount" class="pz-hint"></span></div>
+            <ul id="exportContactsList" class="export-contacts" style="max-height:180px;overflow:auto;list-style:none;margin:6px 0;padding:0">
+              ${listContactProfiles(contactStore).map((p) => `<li><label><input type="checkbox" data-export-contact value="${escapeHtml(String(p.id))}" checked /> ${escapeHtml(contactName(p))}</label></li>`).join('')}
+            </ul>
+          </div>
           <ul id="exportWarnings" class="export-warnings"></ul>
           <button class="primary-btn" id="startExportBtn">Start Export</button>
           <button class="secondary-btn" id="cancelExportBtn">Cancel</button>
@@ -8441,10 +8467,23 @@ export function TimelineEditorPage() {
         return timelineToComposition(state, { quality, profile });
       };
 
-      // Contacts the export covers (one = the selected contact).
-      const exportContacts = () => (q('#exportFor')?.value === 'each'
-        ? listContactProfiles(contactStore)
-        : [getActivePersonalizationProfile()].filter(Boolean));
+      // Contacts the export covers (one = the selected contact; each = the ticked ones).
+      const pickedIds = () => new Set([...els.modalBody.querySelectorAll('[data-export-contact]:checked')].map((i) => i.value));
+      const exportContacts = () => {
+        if (q('#exportFor')?.value !== 'each') return [getActivePersonalizationProfile()].filter(Boolean);
+        const picked = pickedIds();
+        return listContactProfiles(contactStore).filter((p) => picked.has(String(p.id)));
+      };
+      const syncContactsBox = () => {
+        const each = q('#exportFor')?.value === 'each';
+        const box = q('#exportContactsBox');
+        if (box) box.hidden = !each;
+        const count = q('#exportContactsCount');
+        if (count) count.textContent = `${pickedIds().size} of ${listContactProfiles(contactStore).length} selected`;
+      };
+      q('#exportContactsAll')?.addEventListener('click', () => { els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = true; }); syncContactsBox(); refreshWarnings(); });
+      q('#exportContactsNone')?.addEventListener('click', () => { els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = false; }); syncContactsBox(); refreshWarnings(); });
+      q('#exportContactsList')?.addEventListener('change', () => { syncContactsBox(); refreshWarnings(); });
       let warningsRun = 0;
       const refreshWarnings = async () => {
         const run = ++warningsRun;
@@ -8474,7 +8513,8 @@ export function TimelineEditorPage() {
         warningsList.insertAdjacentHTML('beforeend', describeBrokenImages(broken).map(imageItem).join(''));
       };
       q('#exportQuality')?.addEventListener('change', refreshWarnings);
-      q('#exportFor')?.addEventListener('change', refreshWarnings);
+      q('#exportFor')?.addEventListener('change', () => { syncContactsBox(); refreshWarnings(); });
+      syncContactsBox();
       refreshWarnings();
 
       const doExport = async () => {
@@ -8492,20 +8532,36 @@ export function TimelineEditorPage() {
           // One video per Personalization Studio contact: their details fill
           // the text and their own Smart Speech line plays.
           if (q('#exportFor')?.value === 'each') {
-            const contacts = listContactProfiles(contactStore);
+            const contacts = exportContacts();
+            if (!contacts.length) throw new Error('Tick at least one contact');
+            const used = new Set();
+            const failed = [];
+            let done = 0;
             for (let i = 0; i < contacts.length; i += 1) {
               if (abort.signal.aborted) throw new Error('Cancelled');
               const who = contactName(contacts[i]);
-              const part = await exportModel(await buildModel(quality, contacts[i]), {
-                container,
-                quality,
-                signal: abort.signal,
-                onProgress: (p) => setProgress(((i + p) / contacts.length) * 100, `Video ${i + 1} of ${contacts.length} · ${who} · ${Math.round(p * 100)}%`),
-              });
-              downloadBlob(part, `${name} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || contacts[i].id}.${EXTENSIONS[container] || 'mp4'}`);
+              try {
+                const part = await exportModel(await buildModel(quality, contacts[i]), {
+                  container,
+                  quality,
+                  signal: abort.signal,
+                  onProgress: (p) => setProgress(((i + p) / contacts.length) * 100, `Video ${i + 1} of ${contacts.length} · ${who} · ${Math.round(p * 100)}%`),
+                });
+                // Two contacts can share a name: add the id so no file overwrites another.
+                let base = `${name} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || contacts[i].id}`;
+                if (used.has(base.toLowerCase())) base = `${base} (${String(contacts[i].id).slice(0, 8)})`;
+                used.add(base.toLowerCase());
+                downloadBlob(part, `${base}.${EXTENSIONS[container] || 'mp4'}`);
+                done += 1;
+              } catch (err) {
+                if (abort.signal.aborted || /cancel/i.test(err?.message || '')) throw err;
+                // One contact's video failing must not lose the rest.
+                failed.push(`${who}: ${err?.message || err}`);
+              }
             }
-            setProgress(100, `Done: ${contacts.length} videos downloaded`);
-            showToast(`Exported ${contacts.length} personalized videos`, 'success');
+            setProgress(100, failed.length ? `Done: ${done} of ${contacts.length} videos downloaded` : `Done: ${done} videos downloaded`);
+            if (failed.length) showToast(`${failed.length} video${failed.length === 1 ? '' : 's'} could not be made — ${failed[0]}`, 'error');
+            else showToast(`Exported ${done} personalized videos`, 'success');
             return;
           }
           const model = await buildModel(quality);

@@ -260,6 +260,37 @@ export async function fetchPublishedVideo(ref, { url, key, fetchImpl = fetch } =
   return data && typeof data === 'object' ? data : null;
 }
 
+export const PERSONAL_LINK_RE = /^[A-Za-z0-9_-]{16,32}$/;
+
+/** Link id from the page address (?p=<id>), or null. */
+export function personalLinkIdFromQuery(search = globalThis.location?.search || '') {
+  const id = new URLSearchParams(search).get('p');
+  return id && PERSONAL_LINK_RE.test(id) ? id : null;
+}
+
+/** Address of a stored personal link: the video's own link plus ?p=<id>. */
+export function personalizedUrl(video, linkId, origin = globalThis.location?.origin || '') {
+  return `${canonicalUrl(video, origin)}?p=${encodeURIComponent(linkId)}`;
+}
+
+/**
+ * The values stored behind a personal link (?p=<id>) through get_personalization().
+ * Resolves to { videoId, contactId, variables }, or null when the link is unknown,
+ * revoked, or its video is not published.
+ */
+export async function fetchPersonalization(id, { url, key, fetchImpl = fetch } = env()) {
+  if (!PERSONAL_LINK_RE.test(String(id || ''))) return null;
+  if (!url || !key) throw new Error('Video service is not configured');
+  const res = await fetchImpl(`${url}/rest/v1/rpc/get_personalization`, {
+    method: 'POST',
+    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ p_id: id }),
+  });
+  if (!res.ok) throw new Error(`Could not load this personal link (HTTP ${res.status})`);
+  const data = await res.json();
+  return data && typeof data === 'object' ? data : null;
+}
+
 /** Owner: totals per contact for one of their videos. */
 export async function fetchVideoStats(client, id) {
   const { data, error } = await client.rpc('video_events_by_contact', { video_id: id });
@@ -296,7 +327,20 @@ export async function submitViewerLead({ publishedId, clipId, kind, data }, { ur
 
 /** Personalization from the link: ?firstname=Ann&company=Acme → token profile. */
 export function profileFromQuery(search = globalThis.location?.search || '') {
-  const params = new URLSearchParams(search);
+  return profileFromParams(new URLSearchParams(search));
+}
+
+/** The same profile from stored link values (get_personalization): { contactId, variables } → token profile. */
+export function profileFromLink(link) {
+  const params = new URLSearchParams();
+  Object.entries(link?.variables && typeof link.variables === 'object' ? link.variables : {}).forEach(([k, v]) => {
+    if (typeof v === 'string' || typeof v === 'number') params.set(k, String(v));
+  });
+  if (link?.contactId) params.set('c', String(link.contactId));
+  return profileFromParams(params, { maxText: 500 });
+}
+
+function profileFromParams(params, { maxText = 200 } = {}) {
   const variables = {};
   // Per-image style carried by personal links: `<token>__f=x,y` (crop focus)
   // and `<token>__l=0.9` (brightness), restored below as saved assets.
@@ -307,7 +351,7 @@ export function profileFromQuery(search = globalThis.location?.search || '') {
     (style[m[1]] ||= {})[m[2]] = v;
   });
   params.forEach((v, k) => {
-    if (['embed', 'autoplay', 't', 'c'].includes(k) || k.length > 40) return;
+    if (['embed', 'autoplay', 't', 'c', 'p'].includes(k) || k.length > 40) return;
     if (/__(f|l)$/.test(k) && isImageTokenKey(k.replace(/__(f|l)$/, ''))) return;
     // Image URLs from personal links ({{logoUrl}}, …) are kept whole — a cut
     // URL is a broken image — but only http(s) ones of sane length.
@@ -316,7 +360,7 @@ export function profileFromQuery(search = globalThis.location?.search || '') {
       if (href) variables[k] = href;
       return;
     }
-    variables[k] = String(v).slice(0, 200);
+    variables[k] = String(v).slice(0, maxText);
   });
   // Personal links (?c=<contactId>) pick that contact's Smart Speech voice line.
   const id = params.get('c');
