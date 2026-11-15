@@ -94,13 +94,26 @@ export function worstContrast(
   width: number,
   height: number,
   textColor: string,
+  /**
+   * Alpha of a black scrim that is really drawn behind this text (0..1). Dark
+   * overlay scales the footage luminance by (1 - alpha); treating it linearly
+   * slightly OVER-states the footage brightness, so the result stays conservative.
+   */
+  scrimAlpha = 0,
+  /**
+   * Alpha of the scrim for a given measured footage luminance. When given it replaces `scrimAlpha`,
+   * so an adaptive scrim (stronger over bright footage) is credited per sample, exactly as drawn.
+   */
+  alphaFor?: (footageLuminance: number) => number,
 ): { ratio: number; t: number; spread: number } | null {
   const lt = hexLuminance(textColor)
   let worst: { ratio: number; t: number } | null = null
   const lums: number[] = []
+  const keep = 1 - Math.min(1, Math.max(0, scrimAlpha))
   for (const s of samples) {
-    const bg = regionLuminance(s, box, width, height)
-    if (bg == null) continue
+    const raw = regionLuminance(s, box, width, height)
+    if (raw == null) continue
+    const bg = alphaFor ? raw * (1 - Math.min(1, Math.max(0, alphaFor(raw)))) : raw * keep
     lums.push(bg)
     const ratio = contrastRatio(lt, bg)
     if (!worst || ratio < worst.ratio) worst = { ratio, t: s.t }

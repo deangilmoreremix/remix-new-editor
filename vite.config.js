@@ -460,7 +460,11 @@ function securityHeaders() {
                 const csp = [
                   "default-src 'self'",
                   // 'wasm-unsafe-eval': Remotion's Player/media decoders compile WebAssembly.
-                  `script-src 'self' 'wasm-unsafe-eval' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com blob:`,
+                  // cdn.jsdelivr.net: Transformers.js loads its ONNX Runtime WASM loader
+                  // (ort-wasm-*.mjs) from there; on-device background removal (BG0,
+                  // @bg0/browser) cannot load its model without it. Production sets no
+                  // script-src, so this only brings dev in line with it.
+                  `script-src 'self' 'wasm-unsafe-eval' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com https://cdn.jsdelivr.net blob:`,
                   `worker-src 'self' blob:${clerkHostSrc} https://clerk.smartvid.app`,
                   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com${clerkHostSrc}`,
                   `img-src 'self' data: https: blob:${clerkHostSrc}`,
@@ -1263,10 +1267,13 @@ export default defineConfig({
         // parses them with the plain js loader and fails with
         // "The JSX syntax extension is not currently enabled".
         esbuildOptions: { loader: { '.js': 'jsx' } },
+        // @ffmpeg/ffmpeg starts its own module worker via `new URL('./worker.js', import.meta.url)`.
+        // Pre-bundling moves the package into .vite/deps where that relative worker file no longer exists,
+        // so the Zack D final cut hung on "Loading encoder…". Serve both packages as source instead.
         // kokoro-js / phonemizer (free on-device voiceover) ship emscripten
         // asm.js; the jsx loader above misparses it ("(0 | n) is not a
         // function"). Serve them untouched.
-        exclude: ['kokoro-js', 'phonemizer'],
+        exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util', 'kokoro-js', 'phonemizer'],
     },
     // Many legacy modules under components/ are authored as .js files that
     // nevertheless contain JSX. @vitejs/plugin-react only reliably transforms
@@ -1413,6 +1420,19 @@ export default defineConfig({
             '/api/demo/discover': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
+            },
+            // Public image proxy used by signed-out background removal (netlify/functions/personalization-api.mts).
+            '/api/demo/download-image': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+                // The route refuses a browser Origin that differs from its own host (cross-site guard). In dev the
+                // page is on :5173 and the function on :8888, so present the target as the origin, as a same-origin
+                // deployed call would. Dev server only: production never goes through this proxy.
+                configure: (proxy, options) => {
+                    proxy.on('proxyReq', (proxyReq) => {
+                        if (proxyReq.getHeader('origin')) proxyReq.setHeader('origin', String(options.target))
+                    })
+                },
             },
             '/api/video/record': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',

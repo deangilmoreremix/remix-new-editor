@@ -1,5 +1,6 @@
 // [remix] The catalog behind the "Add to timeline" modal. ONE entry per card: what it is, how it previews, what it does.
 // `preview` is required by the type, so adding a feature here forces you to say how it looks (see preview-card.tsx).
+import type { TemplateVideo } from './template-videos-modal';
 import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
 import type { HfItem } from '@cinegen/lib/hyperframes/overlay';
 import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
@@ -10,6 +11,7 @@ import type { CardPreview } from './preview-types';
 export interface AddToTimelineActions {
   onPickAnimation?: (item: HfItem) => void; // omitted when the HyperFrames flag is off
   onPickMotion: (t: MgTemplate) => void;
+  onPickTemplateVideo?: (item: TemplateVideo) => void; // Template videos tab (hidden when omitted)
   onAddKind: (kind: OverlayKind) => void;
   onAddTemplate: (templateId: string, phone?: string) => void;
 }

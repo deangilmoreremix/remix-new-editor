@@ -15,6 +15,7 @@ import type {
 } from '../types'
 import type { ImageHints } from '../preview/imageStyle'
 import { imageRoleFromCategory } from '../preview/imagePresets'
+import { getCachedSamples, sampleCacheKey } from '../preview/placement/frameSampler'
 import type {
   PersonalizationPreviewSettings,
   PreviewInputProps,
@@ -77,11 +78,18 @@ export function buildPreviewInput(
     imageHints[url] = { ...assetHints[url], ...measured }
   }
 
+  const videoUrl = previewVideo?.url || (source?.mediaType === 'image' ? null : source?.sourceMedia) || null
+  // Measured on the cover crop of this frame shape (see useLayoutQuality), so read it the same way.
+  const lumaSamples = source?.mediaType === 'image'
+    ? null
+    : getCachedSamples(sampleCacheKey(videoUrl, previewSettings.width, previewSettings.height))
+
   return {
     // remix-new-editor: a still-image source is the background picture, not a video: keep it
     // out of `videoUrl` (the composition renders <Img> only when videoUrl is empty) and use it
     // as the poster. An explicitly selected preview video still wins.
-    videoUrl: previewVideo?.url || (source?.mediaType === 'image' ? null : source?.sourceMedia) || null,
+    videoUrl,
+    ...(lumaSamples && lumaSamples.length ? { lumaSamples } : {}),
     posterUrl: previewVideo?.poster || source?.poster || (source?.mediaType === 'image' ? source?.sourceMedia : null) || null,
     isImageSource: source?.mediaType === 'image',
     audioUrl: previewSettings.audio?.url ?? previewVideo?.audioUrl ?? null,

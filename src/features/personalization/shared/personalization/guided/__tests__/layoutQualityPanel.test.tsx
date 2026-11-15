@@ -21,10 +21,10 @@ function quality(r: QualityReport, extra: Partial<LayoutQualityState> = {}): Lay
   }
 }
 const mounted: { root: ReturnType<typeof createRoot>; el: HTMLElement }[] = []
-function mount(q: LayoutQualityState) {
+function mount(q: LayoutQualityState, compact = false) {
   const el = document.createElement('div'); document.body.appendChild(el)
   const root = createRoot(el); mounted.push({ root, el })
-  act(() => { root.render(<LayoutQualityPanel quality={q} layers={layers} />) })
+  act(() => { root.render(<LayoutQualityPanel quality={q} layers={layers} compact={compact} />) })
   return el
 }
 afterEach(() => { for (const { root, el } of mounted.splice(0)) { act(() => root.unmount()); el.remove() } })
@@ -81,5 +81,24 @@ describe('LayoutQualityPanel', () => {
     expect(q.restoreRecommended).toHaveBeenCalled()
     expect(q.markSubject).toHaveBeenNthCalledWith(1, 'left')
     expect(q.markSubject).toHaveBeenNthCalledWith(2, 'clear')
+  })
+
+  describe('compact bar (under the video)', () => {
+    const issue = { code: 'low-contrast' as const, severity: 'adjust' as const, layerId: 'headline', fixable: true, message: 'Headline is hard to read.' }
+    it('shows a one-line summary with Fix all, and hides the issue list until Review is opened', () => {
+      const q = quality(report({ status: 'needs-adjustment', issues: [issue] }))
+      const el = mount(q, true)
+      expect(el.querySelector('[data-testid="layout-quality-bar"]')).toBeTruthy()
+      expect(el.textContent).toContain('1 to fix')
+      expect(el.querySelector('[data-testid="layout-quality-issues"]')).toBeNull()
+      click(el.querySelector('[data-testid="layout-quality-fix-all"]'))
+      expect(q.applyRecommended).toHaveBeenCalledWith()
+      click(el.querySelector('[data-testid="layout-quality-toggle"]'))
+      expect(el.querySelector('[data-testid="layout-quality-issues"]')).toBeTruthy()
+    })
+    it('opens by itself when export is blocked', () => {
+      const el = mount(quality(report({ status: 'needs-adjustment', blocksExport: true, issues: [{ ...issue, severity: 'critical', fixable: false }] })), true)
+      expect(el.querySelector('[data-testid="layout-quality-issues"]')).toBeTruthy()
+    })
   })
 })
