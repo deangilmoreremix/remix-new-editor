@@ -45,6 +45,7 @@ export function exportClipsFromTimeline(timeline: Timeline, assets: Asset[]): Ex
       linkedClipIds: clip.linkedClipIds, // [remix] Stage 4: lets the export mute a video clip whose sound is exported by its linked audio clip
       opacity: clip.opacity ?? 1, flipH: clip.flipH, flipV: clip.flipV,
       eq: clip.eq, // [remix] Stage 4: baked into the audio at export (lib/audio/export-audio.ts)
+      ...(clip.pitch ? { pitch: clip.pitch } : {}), // [remix] Stage 11: baked into the audio at export (lib/audio/export-pitch.ts)
       fadeIn: clip.fadeIn, fadeOut: clip.fadeOut, kf: clip.keyframes, transform: clip.transform, fit: resolveFit(clip, timeline), fx: clip.fx,
       lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions, ...(clip.anim ? { anim: clip.anim } : {}),
       ...(clip.compoundGroup ? { compoundGroup: clip.compoundGroup } : {}),

@@ -1069,6 +1069,7 @@ export class PlaybackEngine {
         // Use the video element for audio — unmute it and set volume
         this.setMediaElementGain(videoEl, vol, vol === 0);
         this.fx?.setEq(videoEl, entry.clip.eq); // [remix] Stage 4
+        this.fx?.setPitch(videoEl, entry.clip.pitch, videoEl); // [remix] Stage 11
         newVideoElsUsedForAudio.add(poolEntry.clipId);
 
         // Clean up any stale <audio> element for this clip
@@ -1097,6 +1098,7 @@ export class PlaybackEngine {
 
       this.setMediaElementGain(el, vol);
       this.fx?.setEq(el, entry.clip.eq); // [remix] Stage 4
+      this.fx?.setPitch(el, entry.clip.pitch, el); // [remix] Stage 11
       const ready = el.readyState >= 2;
       const driftThreshold = entry.asset.type === 'video'
         ? PlaybackEngine.VIDEO_AUDIO_DRIFT_CORRECTION_SECONDS

@@ -4,6 +4,7 @@ import type { Clip, Timeline } from '@cinegen/types/timeline';
 import type { PlaybackEngine } from '@cinegen/lib/editor/playback-engine';
 import { defaultClipEq, EQ_PRESETS, eqResponseDb, logFrequencies, normalizeClipEq, type ClipEq, type EqBand, EQ_GAIN_DB_MAX, EQ_GAIN_DB_MIN } from '@cinegen/lib/audio/eq';
 import { dbToFraction, holdPeak } from '@cinegen/lib/audio/meter';
+import { defaultClipPitch, normalizeClipPitch, audiblePitchSemitones, PITCH_CENTS_MAX, PITCH_CENTS_MIN, PITCH_SEMITONES_MAX, PITCH_SEMITONES_MIN, type ClipPitch } from '@cinegen/lib/audio/pitch'; // [remix] Stage 11
 import { S } from './ui';
 
 export function StereoMeters({ engine, playing }: { engine: PlaybackEngine; playing: boolean }) {
@@ -72,6 +73,17 @@ export function AudioPanel({ timeline, selectedClipIds, engine, isPlaying, commi
   const setEq = (next: ClipEq | undefined) => clip && commit({ ...timeline, clips: timeline.clips.map((c) => (c.id === clip.id ? { ...c, eq: next } : c)) });
   const setBand = (i: number, patch: Partial<EqBand>) => { const cur = eq ?? defaultClipEq(); setEq({ ...cur, bands: cur.bands.map((b, j) => (j === i ? { ...b, ...patch } : b)) }); };
   const master = timeline.masterVolume ?? 1;
+  // [remix] Stage 11: pitch shift of the same target clip
+  const pitch: ClipPitch = normalizeClipPitch(clip?.pitch) ?? defaultClipPitch();
+  const setPitch = (patch: Partial<ClipPitch>) => clip && commit({ ...timeline, clips: timeline.clips.map((c) => { if (c.id !== clip.id) return c; const next = normalizeClipPitch({ ...pitch, ...patch }); const { pitch: _old, ...rest } = c; return next ? { ...rest, pitch: next } : rest; }) });
+  const [pitchWarn, setPitchWarn] = useState<string | null>(null);
+  useEffect(() => {
+    const fx = engine.getAudioFx();
+    if (fx) fx.onPitchWarning = setPitchWarn;
+    return () => { if (fx && fx.onPitchWarning === setPitchWarn) fx.onPitchWarning = null; };
+  }, [engine, isPlaying]);
+  const noWorklet = typeof AudioWorkletNode === 'undefined';
+  const heard = clip ? audiblePitchSemitones(pitch, clip.speed || 1) : 0;
   return (
     <div data-testid="audio-panel">
       <div style={S.h}>Master volume</div>
@@ -82,6 +94,29 @@ export function AudioPanel({ timeline, selectedClipIds, engine, isPlaying, commi
       <div style={S.small}>Applies to everything you hear and to the exported file (clip volume, track volume and fades are in the clip and track controls).</div>
       <div style={S.h}>Meters</div>
       <StereoMeters engine={engine} playing={isPlaying} />
+      <div style={S.h}>Pitch {clip ? `for “${clip.name}”` : ''}</div>
+      {!clip && <div style={S.small}>{picked ? `“${picked.name}” has no audio on an audio track, so there is nothing to pitch.` : 'Select a clip on the timeline to shift its pitch.'}</div>}
+      {clip && (
+        <div data-testid="pitch-controls">
+          <div style={S.row}>
+            <span style={{ width: 62, fontSize: 11 }}>Semitones</span>
+            <input data-testid="pitch-semitones" type="range" min={PITCH_SEMITONES_MIN} max={PITCH_SEMITONES_MAX} step={1} value={pitch.semitones} onChange={(e) => setPitch({ semitones: Number(e.target.value) })} style={{ flex: 1 }} aria-label="Pitch in semitones" />
+            <span style={{ width: 30, fontSize: 11 }}>{pitch.semitones > 0 ? '+' : ''}{pitch.semitones}</span>
+          </div>
+          <div style={S.row}>
+            <span style={{ width: 62, fontSize: 11 }}>Cents</span>
+            <input data-testid="pitch-cents" type="range" min={PITCH_CENTS_MIN} max={PITCH_CENTS_MAX} step={1} value={pitch.cents} onChange={(e) => setPitch({ cents: Number(e.target.value) })} style={{ flex: 1 }} aria-label="Pitch fine tune in cents" />
+            <span style={{ width: 30, fontSize: 11 }}>{pitch.cents > 0 ? '+' : ''}{pitch.cents}</span>
+          </div>
+          <div style={S.row}>
+            <label style={{ fontSize: 11 }}><input data-testid="pitch-preserve" type="checkbox" checked={pitch.preservePitch} onChange={(e) => setPitch({ preservePitch: e.target.checked })} /> Preserve pitch when speed changes</label>
+            <button data-testid="pitch-reset" style={S.btn} disabled={!clip.pitch} onClick={() => setPitch(defaultClipPitch())}>Reset pitch</button>
+          </div>
+          <div data-testid="pitch-heard" style={S.small}>Heard pitch: {heard > 0 ? '+' : ''}{heard.toFixed(2)} semitones{clip.speed !== 1 ? ` (clip speed ${clip.speed}x, ${pitch.preservePitch ? 'pitch kept' : 'pitch follows speed'})` : ''}.</div>
+          {(noWorklet || pitchWarn) && <div data-testid="pitch-warning" role="alert" style={{ ...S.small, color: '#f59e0b' }}>{pitchWarn ?? 'This browser has no AudioWorklet: the shift is not heard in the preview (the exported file still has it).'}</div>}
+          <div style={S.small}>Heard live through an AudioWorklet (about 0.1 s of latency). In the export the shift and any speed change are baked into this clip&apos;s sound before the EQ (sources up to 20 minutes).</div>
+        </div>
+      )}
       <div style={S.h}>Equalizer {clip ? `for “${clip.name}”` : ''}</div>
       {!picked && <div style={S.small}>Select a clip on the timeline to edit its 6-band EQ.</div>}
       {picked && !clip && <div style={S.small}>“{picked.name}” has no audio on an audio track (its sound is unlinked or absent), so there is nothing to equalize.</div>}

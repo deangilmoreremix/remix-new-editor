@@ -16,6 +16,7 @@ import type { Timeline, Track, Clip, Keyframe, Transition } from '../types/timel
 import type { Element, ElementImage } from '../types/elements';
 import type { ExportJob, ExportPreset, ExportStatus } from '../types/export';
 import { normalizeAnim } from './editor/stage2/anim';
+import { normalizeClipPitch } from './audio/pitch'; // [remix] Stage 11
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -203,8 +204,10 @@ export function clipFromRow(
         if (anim) out.anim = anim;
       }
       // [remix] Stage 4: clip EQ
-      const s4 = json<{ eq?: Clip['eq'] }>(row['stage4_json']);
+      const s4 = json<{ eq?: Clip['eq']; pitch?: Clip['pitch'] }>(row['stage4_json']);
       if (s4 && typeof s4 === 'object' && s4.eq && Array.isArray(s4.eq.bands)) out.eq = s4.eq;
+      const pitch = s4 && typeof s4 === 'object' ? normalizeClipPitch(s4.pitch) : undefined; // [remix] Stage 11: rides in the same JSON column
+      if (pitch) out.pitch = pitch;
       return out;
     })(),
   };
@@ -413,7 +416,7 @@ export function clipToRow(clip: Clip, timelineId: string): Record<string, unknow
     transform_json: clip.transform ? JSON.stringify(clip.transform) : null,
     captions_json: clip.captions ? JSON.stringify(clip.captions) : null,
     // [remix] Stage 1: group id + compound content
-    stage4_json: clip.eq ? JSON.stringify({ eq: clip.eq }) : null,
+    stage4_json: clip.eq || clip.pitch ? JSON.stringify({ ...(clip.eq ? { eq: clip.eq } : {}), ...(clip.pitch ? { pitch: clip.pitch } : {}) }) : null,
     stage1_json: clip.groupId || clip.compound || clip.anim ? JSON.stringify({ groupId: clip.groupId, compound: clip.compound, anim: clip.anim }) : null,
   };
 }
