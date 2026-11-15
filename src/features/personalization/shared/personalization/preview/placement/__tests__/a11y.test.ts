@@ -3,6 +3,7 @@ import { createDefaultPreviewSettings, createLayer } from '../../presets'
 import { checkAccessibility, fixForIssue, withAccessibility, worstCaseBackdrop } from '../a11y'
 import type { PersonalizationPreviewSettings } from '../../types'
 import type { QualityReport } from '../types'
+import { layerBoxMetrics } from '../../../guided/overlayGeometry'
 
 function settings(over: Partial<PersonalizationPreviewSettings> = {}, layers = [createLayer('headline', { text: 'Hello there' })]): PersonalizationPreviewSettings {
   return { ...createDefaultPreviewSettings(), layers, ...over }
@@ -77,16 +78,52 @@ describe('fixForIssue', () => {
     const issue = checkAccessibility(s).find((i) => i.code === 'text-contrast-bright')!
     expect(fixForIssue(issue, s)).toBeNull()
   })
-  it('shrinks overflowing text but not below 40%', () => {
-    const long = 'word '.repeat(40).trim()
-    const layer = createLayer('headline', { text: long })
+  it('shrinks overflowing text to fit three lines, but not below 40%', () => {
+    const text = 'Quality family plumbing service across the whole Tampa Bay area every day of the week'
+    const layer = createLayer('headline', { text, scale: 0.15 })
     const s = withDim(0.7, {}, [layer])
+    const linesAt = (scale: number) => { const m = layerBoxMetrics({ ...layer, scale }, s.width, s.height, text); return Math.round(m.heightPx / Math.max(1, m.fontSizePx * 1.15)) }
+    expect(linesAt(0.15)).toBeGreaterThan(3) // fixture really overflows
     const fix = fixForIssue({ code: 'text-overflow', severity: 'adjust', layerId: layer.id, message: '', fixable: false }, s)
-    if (fix) { expect(fix.patch.scale!).toBeLessThan(layer.scale); expect(fix.patch.scale!).toBeGreaterThanOrEqual(layer.scale * 0.4) }
+    expect(fix).not.toBeNull()
+    expect(fix!.patch.scale!).toBeLessThan(0.15)
+    expect(fix!.patch.scale!).toBeGreaterThanOrEqual(0.15 * 0.4)
+    expect(linesAt(fix!.patch.scale!)).toBeLessThanOrEqual(3)
   })
   it('returns null for an unknown layer or an unfixable code', () => {
     const s = withDim(0)
     expect(fixForIssue({ code: 'off-frame', severity: 'adjust', layerId: 'nope', message: '', fixable: false }, s)).toBeNull()
     expect(fixForIssue({ code: 'off-frame', severity: 'adjust', layerId: s.layers[0].id, message: '', fixable: false }, s)).toBeNull()
+  })
+})
+
+describe('text that comes from the brand, and the end card', () => {
+  const brand = { businessName: '', headline: 'one two three four five six seven eight nine ten', offer: '', cta: '', phone: '', website: '', logoUrl: null, productUrl: null, serviceUrl: null }
+  it('checks the text the composition really draws when the layer has none of its own', () => {
+    const layer = createLayer('headline', { startFrame: 0, endFrame: 30 }) // no own text
+    const s = withDim(0.7, { fps: 30 }, [layer])
+    expect(checkAccessibility(s)).toEqual([]) // without the brand there is nothing to read
+    const issues = checkAccessibility(s, brand)
+    expect(issues.map((i) => i.code)).toContain('reading-speed')
+    expect(issues[0].message).toContain('10 words')
+  })
+  it('judges an overlay only before the end card, as the placement engine does', () => {
+    // 150 frames: the end card starts at 105. A 6-word line (needs 60 frames) from frame 80 has 25 frames before the
+    // end card, but 70 if the end card is off.
+    const layer = createLayer('headline', { text: 'one two three four five six', startFrame: 80 })
+    const on = withDim(0.7, { fps: 30, durationInFrames: 150, showEndCard: true }, [layer])
+    const off = withDim(0.7, { fps: 30, durationInFrames: 150, showEndCard: false }, [layer])
+    expect(checkAccessibility(on).map((i) => i.code)).toContain('reading-speed')
+    expect(checkAccessibility(off).map((i) => i.code)).not.toContain('reading-speed')
+  })
+  it('moves a late layer earlier so it fits before the end card, and refuses when nothing fits', () => {
+    const layer = createLayer('headline', { text: 'one two three four five six', startFrame: 100 })
+    const s = withDim(0.7, { fps: 30, durationInFrames: 150, showEndCard: true }, [layer])
+    const issue = checkAccessibility(s).find((i) => i.code === 'reading-speed')!
+    // 6 words -> 2 s -> 60 frames; cut-off 105 -> start 45
+    expect(fixForIssue(issue, s)?.patch).toMatchObject({ startFrame: 45 })
+    const tiny = withDim(0.7, { fps: 30, durationInFrames: 60, showEndCard: true }, [createLayer('headline', { text: 'one two three four five six', startFrame: 0 })])
+    const tinyIssue = checkAccessibility(tiny).find((i) => i.code === 'reading-speed')
+    expect(tinyIssue && fixForIssue(tinyIssue, tiny)).toBeFalsy()
   })
 })

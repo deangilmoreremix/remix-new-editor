@@ -78,7 +78,8 @@ export function suggestCopy(input: CopyInput): CopySuggestions {
   const taglines = finish([
     kind && city ? `${kind[0].toUpperCase()}${kind.slice(1)} in ${city}` : null,
     city ? `Based in ${city}` : null,
-    kind ? `Your local ${kind}` : null,
+    // "local" is a claim about place: only when a location was actually entered.
+    kind && city ? `Your local ${kind}` : null,
   ], MAX_TAGLINE)
 
   const ctas = finish([

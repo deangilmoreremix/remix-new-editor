@@ -19,6 +19,9 @@ const STYLE_FIELDS = [
   'visible', 'x', 'y', 'scale', 'animation', 'animationDelay', 'startFrame', 'endFrame', 'opacity', 'rotation', 'color', 'fontFamily', 'imageStyle',
 ] as const satisfies readonly (keyof PreviewLayer)[]
 
+/** Optional style fields: absent in a template = reset on the target. */
+const RESETTABLE_FIELDS = ['color', 'rotation', 'endFrame', 'fontFamily', 'imageStyle'] as const satisfies readonly (keyof PreviewLayer)[]
+
 export type TemplateLayerStyle = Partial<Pick<PreviewLayer, (typeof STYLE_FIELDS)[number]>> & { id: string; kind: PreviewLayer['kind'] }
 
 export interface SavedTemplate {
@@ -49,7 +52,12 @@ export function normalizeTemplateName(name: string): string {
 function isTemplate(value: unknown): value is SavedTemplate {
   const t = value as SavedTemplate
   return !!t && typeof t === 'object' && typeof t.id === 'string' && typeof t.name === 'string'
-    && typeof t.aspectRatio === 'string' && Array.isArray(t.layers) && !!t.brandColors && typeof t.brandColors === 'object'
+    && typeof t.aspectRatio === 'string' && typeof t.createdAt === 'string' && Array.isArray(t.layers) && !!t.brandColors && typeof t.brandColors === 'object'
+}
+
+function isLayerStyle(value: unknown): value is TemplateLayerStyle {
+  const l = value as TemplateLayerStyle
+  return !!l && typeof l === 'object' && typeof l.id === 'string' && typeof l.kind === 'string'
 }
 
 export function loadTemplates(storage: TemplateStorage | null = defaultStorage()): SavedTemplate[] {
@@ -58,7 +66,9 @@ export function loadTemplates(storage: TemplateStorage | null = defaultStorage()
     const raw = storage.getItem(SAVED_TEMPLATES_KEY)
     if (!raw) return []
     const parsed: unknown = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed.filter(isTemplate).slice(0, MAX_SAVED_TEMPLATES) : []
+    return Array.isArray(parsed)
+      ? parsed.filter(isTemplate).map((t) => ({ ...t, layers: t.layers.filter(isLayerStyle) })).slice(0, MAX_SAVED_TEMPLATES)
+      : []
   } catch { return [] }
 }
 
@@ -98,10 +108,13 @@ export function saveTemplate(template: SavedTemplate, storage: TemplateStorage |
   return persist(next, storage) ? { ok: true, templates: next } : { ok: false, reason: 'unavailable' }
 }
 
-export function deleteTemplate(id: string, storage: TemplateStorage | null = defaultStorage()): SavedTemplate[] {
-  const next = loadTemplates(storage).filter((t) => t.id !== id)
-  persist(next, storage)
-  return next
+export type DeleteResult = { ok: true; templates: SavedTemplate[] } | { ok: false; templates: SavedTemplate[] }
+
+/** Removes a template. When the removal cannot be saved the list is returned unchanged (`ok: false`), so the UI never shows a deletion that comes back on reload. */
+export function deleteTemplate(id: string, storage: TemplateStorage | null = defaultStorage()): DeleteResult {
+  const current = loadTemplates(storage)
+  const next = current.filter((t) => t.id !== id)
+  return persist(next, storage) ? { ok: true, templates: next } : { ok: false, templates: current }
 }
 
 export interface TemplateApplication {
@@ -125,7 +138,11 @@ export function planTemplateApplication(template: SavedTemplate, settings: Perso
     if (target.locked) continue
     const { id: _id, kind: _kind, ...patch } = saved
     void _id; void _kind
-    layerPatches.push({ layerId: target.id, patch: { ...patch, placementSource: 'manual' } })
+    // A field the saved look does not set means "inherit / none": reset it explicitly, otherwise the merge would
+    // leave this project's own colour, rotation, end time or image style in place.
+    const resets: Partial<PreviewLayer> = {}
+    for (const f of RESETTABLE_FIELDS) if (!(f in patch)) (resets as Record<string, unknown>)[f] = undefined
+    layerPatches.push({ layerId: target.id, patch: { ...resets, ...patch, placementSource: 'manual' } })
   }
   return { brandColors: { ...template.brandColors }, showEndCard: template.showEndCard, layerPatches, skipped }
 }

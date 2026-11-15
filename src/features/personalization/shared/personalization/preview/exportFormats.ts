@@ -61,7 +61,13 @@ export async function exportFormats(options: ExportFormatsOptions): Promise<Form
       results.push({ aspect, result: { ok: false, reason: 'cancelled', error: 'Cancelled.' } })
       break
     }
-    const shaped: PreviewInputProps = { ...inputProps, settings: settingsForAspect(inputProps.settings, aspect) }
+    const settings = settingsForAspect(inputProps.settings, aspect)
+    // Footage brightness is measured on the cover crop of ONE frame shape; in another shape the text sits over a
+    // different part of the footage, so those samples would set the wrong scrim strength. Keep them only when the
+    // frame is the same size; otherwise the scrim falls back to its default.
+    const sameCrop = settings.width === inputProps.settings.width && settings.height === inputProps.settings.height
+    const { lumaSamples, ...rest } = inputProps
+    const shaped: PreviewInputProps = { ...rest, ...(sameCrop && lumaSamples ? { lumaSamples } : {}), settings }
     const result = await exporter({
       inputProps: shaped,
       signal,

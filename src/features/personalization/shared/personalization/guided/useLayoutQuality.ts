@@ -148,7 +148,7 @@ export function useLayoutQuality(inputProps: PreviewInputProps): LayoutQualitySt
   )
 
   // Free readability checks (worst-case contrast, reading speed) join the placement report; review-only, never blocking.
-  const report = useMemo(() => withAccessibility(evaluateLayoutQuality(input), checkAccessibility(settings)), [input, settings])
+  const report = useMemo(() => withAccessibility(evaluateLayoutQuality(input), checkAccessibility(settings, brand)), [input, settings, brand])
 
   // With a VERIFIED subject area (a reviewed clip or one the customer marked), the
   // recommended placement is applied automatically so the default layout does not
@@ -198,13 +198,13 @@ export function useLayoutQuality(inputProps: PreviewInputProps): LayoutQualitySt
     return result.proposals.length
   }, [input, applyPreviewPlacements])
 
-  const canFixIssue = useCallback((issue: QualityIssue) => fixForIssue(issue, settings) !== null, [settings])
+  const canFixIssue = useCallback((issue: QualityIssue) => fixForIssue(issue, settings, brand) !== null, [settings, brand])
   const applyIssueFix = useCallback((issue: QualityIssue) => {
-    const fix = fixForIssue(issue, settings)
+    const fix = fixForIssue(issue, settings, brand)
     if (!fix) return false
     updatePreviewLayer(fix.layerId, fix.patch)
     return true
-  }, [settings, updatePreviewLayer])
+  }, [settings, brand, updatePreviewLayer])
 
   const markSubject = useCallback((where: 'left' | 'center' | 'right' | 'clear') => {
     const others = (settings.protectedZones ?? []).filter((z) => z.id !== 'customer-subject')

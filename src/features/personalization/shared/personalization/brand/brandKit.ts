@@ -66,7 +66,8 @@ export function applyBrandKit(kit: BrandKit, settings: PersonalizationPreviewSet
   for (const layer of settings.layers) {
     if (layer.locked || !layer.color) continue
     if (layer.kind === 'cta') layerPatches.push({ layerId: layer.id, patch: { color: kit.accent } })
-    else if (TEXT_KINDS.has(layer.kind)) layerPatches.push({ layerId: layer.id, patch: { color: kit.text } })
+    // A design with an explicit colour draws it (e.g. text designs), so it follows the kit like the plain text layers.
+    else if (TEXT_KINDS.has(layer.kind) || layer.kind === 'design') layerPatches.push({ layerId: layer.id, patch: { color: kit.text } })
   }
   return { brandColors: { primary: kit.primary, accent: kit.accent, text: kit.text }, layerPatches }
 }

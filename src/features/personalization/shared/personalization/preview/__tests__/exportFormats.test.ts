@@ -33,6 +33,17 @@ describe('formats', () => {
   })
 })
 
+describe('exportFormats luma samples', () => {
+  const sample = [{ t: 1, cols: 2, rows: 2, luma: [0, 0, 0, 0] }]
+  it('keeps the footage brightness samples only for a frame of the same size', async () => {
+    const seen: Record<string, boolean> = {}
+    const exporter = vi.fn(async (o: any) => { seen[o.inputProps.settings.aspectRatio] = 'lumaSamples' in o.inputProps; return ok() })
+    const props = { settings: createDefaultPreviewSettings(), lumaSamples: sample } as unknown as PreviewInputProps
+    await exportFormats({ inputProps: props, aspects: ['16:9', '9:16', '1:1'], exporter })
+    expect(seen).toEqual({ '16:9': true, '9:16': false, '1:1': false })
+  })
+})
+
 describe('exportFormats', () => {
   it('renders each shape once, in order, with the right frame size, and reports overall progress', async () => {
     const sizes: string[] = []

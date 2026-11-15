@@ -6,7 +6,7 @@ import { useDemoPersonalize } from '../../DemoPersonalizeProvider'
 import { applyBrandKit, buildBrandKit, isBrandKitApplied } from '../../brand/brandKit'
 import { C, hintStyle, inputStyle, secondaryButtonStyle, softPanelStyle } from '../tokens'
 import {
-  MAX_SAVED_TEMPLATES, captureTemplate, deleteTemplate, loadTemplates, planTemplateApplication, saveTemplate, type SavedTemplate,
+  MAX_SAVED_TEMPLATES, captureTemplate, deleteTemplate, loadTemplates, normalizeTemplateName, planTemplateApplication, saveTemplate, type SavedTemplate,
 } from './savedTemplates'
 
 /**
@@ -35,9 +35,16 @@ export function BrandAndTemplates(): React.JSX.Element | null {
   }
 
   const onSave = () => {
+    // captureTemplate falls back to "My template" for an empty name, which would silently replace that look.
+    if (!normalizeTemplateName(name)) { setNote('Give the template a name first.'); return }
     const res = saveTemplate(captureTemplate(settings, name))
     if (!res.ok) { setNote(res.reason === 'name-empty' ? 'Give the template a name first.' : 'This browser would not save it (storage is blocked or full).'); return }
     setTemplates(res.templates); setName(''); setNote('Saved in this browser.')
+  }
+  const onDelete = (t: SavedTemplate) => {
+    const res = deleteTemplate(t.id)
+    setTemplates(res.templates)
+    setNote(res.ok ? `Deleted “${t.name}”.` : 'This browser would not save the change (storage is blocked or full), so the template is still there.')
   }
   const onApply = (t: SavedTemplate) => {
     const plan = planTemplateApplication(t, settings)
@@ -83,7 +90,7 @@ export function BrandAndTemplates(): React.JSX.Element | null {
           {templates.map((t) => (
             <li key={t.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <button type="button" data-testid={`template-apply-${t.id}`} title={`${t.aspectRatio} · saved ${t.createdAt.slice(0, 10)}`} onClick={() => onApply(t)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 9px' }}>{t.name}</button>
-              <button type="button" aria-label={`Delete ${t.name}`} data-testid={`template-delete-${t.id}`} onClick={() => setTemplates(deleteTemplate(t.id))} style={{ ...secondaryButtonStyle, minHeight: 26, minWidth: 26, padding: 0, display: 'inline-grid', placeItems: 'center' }}><Trash2 size={11} /></button>
+              <button type="button" aria-label={`Delete ${t.name}`} data-testid={`template-delete-${t.id}`} onClick={() => onDelete(t)} style={{ ...secondaryButtonStyle, minHeight: 26, minWidth: 26, padding: 0, display: 'inline-grid', placeItems: 'center' }}><Trash2 size={11} /></button>
             </li>
           ))}
         </ul>

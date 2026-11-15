@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Download, Loader2, X } from 'lucide-react'
 import { EXPORT_FORMATS, exportFormats, formatFileSuffix } from '../preview/exportFormats'
 import type { PreviewAspectRatio, PreviewInputProps } from '../preview/types'
@@ -10,7 +10,12 @@ import { C, chipStyle, hintStyle, labelStyle, secondaryButtonStyle } from './tok
  * "Also export other shapes": renders the approved preview again in 9:16, 1:1, 4:5 or 16:9 and saves each file as
  * it finishes. Free: the same in-browser render as the main button, one shape at a time, nothing uploaded.
  */
-export function ExtraFormatsExport({ inputProps, disabled }: { inputProps: PreviewInputProps; disabled?: boolean }): React.JSX.Element {
+export function ExtraFormatsExport({ inputProps, disabled, onRunningChange }: {
+  inputProps: PreviewInputProps
+  disabled?: boolean
+  /** Lets the parent keep the main render from starting while a batch runs (they share one renderer). */
+  onRunningChange?: (running: boolean) => void
+}): React.JSX.Element {
   const current = inputProps.settings.aspectRatio
   const [picked, setPicked] = useState<PreviewAspectRatio[]>([])
   const [running, setRunning] = useState(false)
@@ -18,6 +23,11 @@ export function ExtraFormatsExport({ inputProps, disabled }: { inputProps: Previ
   const [label, setLabel] = useState('')
   const [note, setNote] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const onRunningChangeRef = useRef(onRunningChange)
+  onRunningChangeRef.current = onRunningChange
+  useEffect(() => { onRunningChangeRef.current?.(running) }, [running])
+  // Leaving the step (or unmounting for any reason) must stop the batch, not leave it rendering unseen.
+  useEffect(() => () => { abortRef.current?.abort(); onRunningChangeRef.current?.(false) }, [])
 
   const toggle = (id: PreviewAspectRatio) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
   const run = async () => {

@@ -11,7 +11,9 @@
  */
 import { autoTextColor, contrastBetween, parseHex } from '../../guided/editor/colorMath'
 import { layerBoxMetrics } from '../../guided/overlayGeometry'
-import type { PersonalizationPreviewSettings, PreviewLayer } from '../types'
+import { endCardFrames } from '../endCard'
+import { resolveLayerText } from '../layerContent'
+import type { PersonalizationPreviewSettings, PreviewInputProps, PreviewLayer } from '../types'
 import type { QualityIssue, QualityReport } from './types'
 
 /** WCAG large-text minimum; the overlay type is large and bold, so this is the fair bar. */
@@ -39,20 +41,29 @@ function textColorOf(layer: PreviewLayer, settings: PersonalizationPreviewSettin
   return parseHex(layer.color) ?? parseHex(layer.kind === 'cta' ? settings.brandColors.accent : settings.brandColors.text) ?? '#ffffff'
 }
 
-/** First and last frame (exclusive end) the layer is on screen. */
+/**
+ * First and last frame (exclusive end) the layer is on screen. The branded end card covers the footage, so when it
+ * is on the overlay is judged only before it, exactly as the placement engine does (`visibleSeconds`).
+ */
 function visibleFrames(layer: PreviewLayer, settings: PersonalizationPreviewSettings): [number, number] {
   const start = Math.max(0, layer.startFrame || 0)
-  const end = Math.min(settings.durationInFrames, layer.endFrame ?? settings.durationInFrames)
+  const cutoff = settings.showEndCard ? endCardFrames(settings.durationInFrames).start : settings.durationInFrames
+  const end = Math.min(cutoff, layer.endFrame ?? cutoff)
   return [start, Math.max(start, end)]
 }
 
-export function checkAccessibility(settings: PersonalizationPreviewSettings): QualityIssue[] {
+/** The text the composition really draws: the layer's own, else the brand value it falls back to. */
+function shownText(layer: PreviewLayer, brand: PreviewInputProps['brand'] | undefined): string {
+  return (brand ? resolveLayerText(layer, brand) : layer.text ?? '').trim()
+}
+
+export function checkAccessibility(settings: PersonalizationPreviewSettings, brand?: PreviewInputProps['brand']): QualityIssue[] {
   const issues: QualityIssue[] = []
   const backdrop = worstCaseBackdrop(settings.brandColors.backgroundDim)
   const fps = settings.fps > 0 ? settings.fps : 30
   for (const layer of settings.layers) {
     if (!layer.visible || !TEXT_KINDS.has(layer.kind)) continue
-    const text = (layer.text ?? '').trim()
+    const text = shownText(layer, brand)
     if (!text) continue
     const [from, to] = visibleFrames(layer, settings)
     const seconds = (to - from) / fps
@@ -94,6 +105,7 @@ export function withAccessibility(report: QualityReport, extra: QualityIssue[]):
 export function fixForIssue(
   issue: QualityIssue,
   settings: PersonalizationPreviewSettings,
+  brand?: PreviewInputProps['brand'],
 ): { layerId: string; patch: Partial<PreviewLayer> } | null {
   const layer = settings.layers.find((l) => l.id === issue.layerId)
   if (!layer || layer.locked) return null
@@ -108,31 +120,34 @@ export function fixForIssue(
   }
 
   if (issue.code === 'reading-speed') {
-    const words = wordCount(layer.text ?? '')
+    const words = wordCount(shownText(layer, brand))
     const needFrames = Math.ceil(Math.max(MIN_VISIBLE_SECONDS, words / MAX_WORDS_PER_SECOND) * fps)
+    const cutoff = settings.showEndCard ? endCardFrames(settings.durationInFrames).start : settings.durationInFrames
+    // Not enough room before the end card (or the clip) to ever show it long enough: nothing to fix by timing.
+    if (cutoff < needFrames) return null
     const start = Math.max(0, layer.startFrame || 0)
-    const end = Math.min(settings.durationInFrames, start + needFrames)
-    // The clip is too short to ever show it long enough: nothing to fix by timing.
-    if (end - start < needFrames) {
-      const shifted = Math.max(0, settings.durationInFrames - needFrames)
-      if (settings.durationInFrames < needFrames) return null
-      return { layerId: layer.id, patch: { startFrame: shifted, endFrame: undefined } }
+    if (start + needFrames <= cutoff) {
+      const end = start + needFrames
+      return { layerId: layer.id, patch: { endFrame: end >= cutoff && !settings.showEndCard ? undefined : end } }
     }
-    return { layerId: layer.id, patch: { endFrame: end >= settings.durationInFrames ? undefined : end } }
+    // Starts too late: move it earlier so it fits before the cutoff.
+    return { layerId: layer.id, patch: { startFrame: Math.max(0, cutoff - needFrames), endFrame: undefined } }
   }
 
-  if (issue.code === 'text-overflow' && layer.text) {
+  if (issue.code === 'text-overflow' && shownText(layer, brand)) {
     const { width, height } = settings
+    const text = shownText(layer, brand)
     let scale = layer.scale
     for (let i = 0; i < 12; i++) {
-      const m = layerBoxMetrics({ ...layer, scale }, width, height, layer.text)
+      const m = layerBoxMetrics({ ...layer, scale }, width, height, text)
       const lines = Math.round(m.heightPx / Math.max(1, m.fontSizePx * 1.15))
       if (lines <= MAX_TEXT_LINES) break
       scale *= 0.9
     }
     // Never shrink below 40% of where it was: past that the text is too small to read anyway.
     if (scale >= layer.scale || scale < layer.scale * 0.4) return null
-    return { layerId: layer.id, patch: { scale: Math.round(scale * 100) / 100 } }
+    // Round DOWN: rounding up could add the wrapped line back.
+    return { layerId: layer.id, patch: { scale: Math.floor(scale * 1000) / 1000 } }
   }
   return null
 }

@@ -68,7 +68,27 @@ describe('storage', () => {
   it('deletes by id', () => {
     const st = memory()
     const r = saveTemplate(captureTemplate(settings(), 'A'), st)
-    expect(r.ok && deleteTemplate(r.templates[0].id, st)).toEqual([])
+    expect(r.ok && deleteTemplate(r.templates[0].id, st)).toEqual({ ok: true, templates: [] })
+  })
+  it('keeps the template and says so when the deletion cannot be saved', () => {
+    const st = memory()
+    const r = saveTemplate(captureTemplate(settings(), 'A'), st)
+    if (!r.ok) throw new Error('setup')
+    const blocked: TemplateStorage = { getItem: (k) => st.getItem(k), setItem: () => { throw new Error('quota') } }
+    const out = deleteTemplate(r.templates[0].id, blocked)
+    expect(out.ok).toBe(false)
+    expect(out.templates).toHaveLength(1)
+  })
+  it('drops stored entries without a creation date and malformed layer entries', () => {
+    const st = memory()
+    const good = captureTemplate(settings(), 'Good')
+    st.data.set(SAVED_TEMPLATES_KEY, JSON.stringify([
+      { ...good, createdAt: undefined, id: 'nodate' },
+      { ...good, layers: [...good.layers, null, { id: 5 }, 'x'] },
+    ]))
+    const loaded = loadTemplates(st)
+    expect(loaded).toHaveLength(1)
+    expect(loaded[0].layers).toHaveLength(good.layers.length)
   })
   it('normalises names', () => { expect(normalizeTemplateName('x'.repeat(100))).toHaveLength(40) })
 })
@@ -83,6 +103,17 @@ describe('planTemplateApplication', () => {
     expect(headline.patch).toMatchObject({ x: 0.1, y: 0.2, scale: 0.6, color: '#ff0000', placementSource: 'manual' })
     expect(headline.patch).not.toHaveProperty('text')
     expect(plan.layerPatches.find((p) => p.layerId === 'logo')!.patch).not.toHaveProperty('imageUrl')
+  })
+  it('resets colour, rotation, end time, font and image style the saved look does not set', () => {
+    const plain = settings(); plain.layers = [createLayer('headline', { text: 'x', x: 0.1 })]
+    const t = captureTemplate(plain, 'Plain')
+    const target = createDefaultPreviewSettings()
+    target.layers = [createLayer('headline', { color: '#ff0000', rotation: 20, endFrame: 40, fontFamily: 'Georgia' })]
+    const patch = planTemplateApplication(t, target).layerPatches[0].patch
+    for (const f of ['color', 'rotation', 'endFrame', 'fontFamily', 'imageStyle']) {
+      expect(patch, f).toHaveProperty(f, undefined)
+    }
+    expect(patch.x).toBe(0.1)
   })
   it('skips layers the project lacks and never touches locked layers', () => {
     const t = captureTemplate(settings(), 'A')

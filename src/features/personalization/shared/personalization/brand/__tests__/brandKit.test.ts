@@ -50,6 +50,11 @@ describe('applyBrandKit', () => {
       { layerId: 'cta', patch: { color: '#ff0066' } },
     ])
   })
+  it('recolours a design layer that has an explicit colour, and leaves one without alone', () => {
+    const s = createDefaultPreviewSettings()
+    s.layers = [createLayer('design', { id: 'd1', designId: 'x', color: '#123456' }), createLayer('design', { id: 'd2', designId: 'y' })]
+    expect(applyBrandKit(kit, s).layerPatches).toEqual([{ layerId: 'd1', patch: { color: kit.text } }])
+  })
   it('never recolours a locked layer', () => {
     const s = createDefaultPreviewSettings()
     s.layers = [createLayer('headline', { color: '#123456', locked: true })]

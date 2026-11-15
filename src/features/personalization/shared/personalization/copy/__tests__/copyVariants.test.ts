@@ -26,6 +26,12 @@ describe('suggestCopy', () => {
     const all = Object.values(s).flat().join(' ').toLowerCase()
     for (const banned of ['%', '$', 'free', 'off', 'best', '#1', 'guarantee', 'award', 'discount', 'save']) expect(all).not.toContain(banned)
   })
+  it('makes no claim about place when no location was entered', () => {
+    const s = suggestCopy({ industry: 'Plumber' })
+    expect(s.taglines).toEqual([])
+    expect(Object.values(s).flat().join(' ').toLowerCase()).not.toContain('local')
+    expect(suggestCopy({ industry: 'Plumber', location: 'Tampa, FL' }).taglines).toContain('Your local plumber')
+  })
   it('falls back to generic calls to action when nothing is known', () => {
     const s = suggestCopy({})
     expect(s.headlines).toEqual([])

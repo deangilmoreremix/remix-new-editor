@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { loadImageBlob } from '../backgroundRemoval/loadImageBlob'
 import { LogoTraceError, traceLogo } from '../preview/logoVectorize'
@@ -21,6 +21,12 @@ export function AssetUsagePanel(): React.JSX.Element | null {
   const { assets, previewSettings, updatePreviewLayer } = ctx
   const [tracing, setTracing] = useState<string | null>(null)
   const [traceNote, setTraceNote] = useState<{ id: string; text: string } | null>(null)
+  // Which client/session this panel belongs to. A trace that finishes after the person moved to another client (or
+  // closed the modal) must not add its logo to the new client's library.
+  const sessionKey = `${ctx.clientForm?.id ?? ''}|${ctx.source?.id ?? ''}`
+  const sessionRef = useRef<string | null>(sessionKey)
+  sessionRef.current = sessionKey
+  useEffect(() => { sessionRef.current = sessionKey; return () => { sessionRef.current = null } }, [])  // eslint-disable-line react-hooks/exhaustive-deps
   const library = [...(assets.logos ?? []), ...(assets.products ?? [])]
   if (library.length === 0) return null
   const { brand } = buildPreviewInput(ctx)
@@ -42,15 +48,17 @@ export function AssetUsagePanel(): React.JSX.Element | null {
   const logoIds = new Set((assets.logos ?? []).map((l) => l.id))
   // Free, in-browser: redraws a raster logo as a crisp SVG and adds it as an extra logo (the original stays).
   const trace = async (a: AssetUsage) => {
+    const startedIn = sessionRef.current
     setTracing(a.assetId); setTraceNote(null)
     try {
       const blob = await loadImageBlob(a.url)
       const out = await traceLogo(blob)
+      if (sessionRef.current !== startedIn) return // moved on while tracing: drop the result
       ctx.addLogoUrl(out.dataUrl)
       setTraceNote({ id: a.assetId, text: 'Added a traced SVG copy to your logos. Make it the main logo if it looks right.' })
     } catch (e) {
-      setTraceNote({ id: a.assetId, text: e instanceof LogoTraceError ? e.message : 'The logo could not be traced.' })
-    } finally { setTracing(null) }
+      if (sessionRef.current === startedIn) setTraceNote({ id: a.assetId, text: e instanceof LogoTraceError ? e.message : 'The logo could not be traced.' })
+    } finally { if (sessionRef.current === startedIn) setTracing(null) }
   }
 
   return (
