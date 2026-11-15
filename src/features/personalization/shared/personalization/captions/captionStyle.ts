@@ -2,6 +2,7 @@
  * Pure rules for burned-in captions: which line and word to show at a time, how big and where to draw them, and how to
  * sanitise captions read back from a saved project. No browser or Remotion code here, so it is fully testable.
  */
+import { isCapiteStyleId } from './capiteStyles'
 import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptionWord, PreviewCaptions } from '../preview/types'
 
 export const CAPTION_STYLES: readonly { id: CaptionStyleId; label: string; hint: string }[] = Object.freeze([
@@ -59,7 +60,7 @@ export function captionLayout(style: CaptionStyleId, position: CaptionPosition, 
   return { fontSizePx, maxWidthPx: Math.round(w * 0.86), marginPx, anchor: position }
 }
 
-const isStyle = (v: unknown): v is CaptionStyleId => v === 'bold' || v === 'bar' || v === 'clean'
+const isStyle = (v: unknown): v is CaptionStyleId => v === 'bold' || v === 'bar' || v === 'clean' || isCapiteStyleId(v)
 const isPosition = (v: unknown): v is CaptionPosition => v === 'bottom' || v === 'middle' || v === 'top'
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
 

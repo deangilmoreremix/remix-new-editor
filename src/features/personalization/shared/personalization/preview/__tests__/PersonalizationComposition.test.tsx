@@ -8,6 +8,7 @@
  * same static fallback used when no video is selected — never throwing, and
  * never dropping the branding overlays rendered on top of the background.
  */
+import { CAPITE_CAPTION_STYLES } from '../../captions/capiteStyles'
 import React from 'react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { act } from 'react'
@@ -307,5 +308,30 @@ describe('burned-in captions', () => {
     const outlineSize = (style: string) => Math.max(...shadows(mountComposition(withCaptions({ style }, 30)).container).filter((p) => p.blur === 0).map((p) => Math.abs(p.x)))
     expect(outlineSize('clean')).toBeGreaterThan(0)
     expect(outlineSize('clean')).toBeLessThan(outlineSize('bold'))
+  })
+
+  it('draws every Capite look with its own colours and picks out the spoken word the way that look says', () => {
+    for (const st of CAPITE_CAPTION_STYLES) {
+      const { container } = mountComposition(withCaptions({ style: st.id }, 30))
+      const el = layer(container) as HTMLElement
+      expect(el, st.id).toBeTruthy()
+      expect(el.style.fontFamily, st.id).toContain(st.fontName)
+      const spans = [...el.querySelectorAll('span')]
+      expect(spans.map((x) => x.textContent?.trim()), st.id).toEqual(['Call', 'us', 'today'])
+      // "us" is spoken at 1000 ms: it must differ from the not-yet-spoken "today" in colour, background or size.
+      const sig = (x: HTMLElement) => [x.style.color, x.style.background, x.style.transform].join('|')
+      expect(sig(spans[1]), st.id).not.toBe(sig(spans[2]))
+    }
+  })
+  it('karaoke keeps already-spoken words lit, a highlight look does not', () => {
+    const color = (id: string, i: number) => ([...(layer(mountComposition(withCaptions({ style: id }, 42)).container) as HTMLElement).querySelectorAll('span')][i]).style.color // 1400 ms, inside the cue
+    const karaoke = CAPITE_CAPTION_STYLES.find((s) => s.animationType === 'karaoke')!.id
+    const highlight = CAPITE_CAPTION_STYLES.find((s) => s.animationType === 'highlight')!.id
+    expect(color(karaoke, 0)).toBe(color(karaoke, 2))
+    expect(color(highlight, 0)).not.toBe(color(highlight, 2))
+  })
+  it('an unknown look id draws nothing special and does not crash', () => {
+    const { container } = mountComposition(withCaptions({ style: 'does-not-exist' }, 30))
+    expect(layer(container)?.getAttribute('data-caption-text')).toBe('Call us today')
   })
 })

@@ -184,4 +184,18 @@ describe('CaptionsPanel', () => {
     const { el } = mount(); await generate(el)
     expect(q(el, 'captions-notes')?.textContent).toMatch(/different sound track/)
   })
+
+  it('offers all 27 Capite looks in a grouped picker and applies the chosen one', async () => {
+    const { el } = mount(); await generate(el)
+    const select = q(el, 'captions-capite-select') as HTMLSelectElement
+    expect(select.querySelectorAll('option[value]:not([value=""])')).toHaveLength(27)
+    expect(select.querySelectorAll('optgroup')).toHaveLength(4)
+    expect(q(el, 'captions-capite-hint')).toBeNull()
+    await act(async () => { select.value = 'hormozi'; select.dispatchEvent(new Event('change', { bubbles: true })) })
+    expect(stored()?.style).toBe('hormozi')
+    expect(q(el, 'captions-capite-hint')?.textContent).toMatch(/Capite/)
+    await click(q(el, 'captions-style-bar'))
+    expect(stored()?.style).toBe('bar')
+    expect((q(el, 'captions-capite-select') as HTMLSelectElement).value).toBe('')
+  })
 })

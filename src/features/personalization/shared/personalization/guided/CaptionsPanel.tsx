@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Captions as CaptionsIcon, Copy, Download, Trash2 } from 'lucide-react'
 import { clockLabel, cuesToSrt, cuesToText, cuesToVtt } from '../captions/captionCues'
+import { CAPITE_CAPTION_STYLES, CAPITE_CATEGORIES, capiteStyleById } from '../captions/capiteStyles'
 import { CAPTION_POSITIONS, CAPTION_STYLES } from '../captions/captionStyle'
 import { useCaptions } from '../captions/useCaptions'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
@@ -75,6 +76,19 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
               <button key={p.id} type="button" data-testid={`captions-position-${p.id}`} aria-pressed={c.captions!.position === p.id} onClick={() => c.setPosition(p.id)} style={chipStyle(c.captions!.position === p.id)}>{p.label}</button>
             ))}
           </div>
+
+          <label style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', fontSize: 12, color: C.text }}>
+            <span style={{ ...hintStyle, margin: 0 }}>More looks:</span>
+            <select data-testid="captions-capite-select" aria-label="More caption looks" value={capiteStyleById(c.captions!.style) ? c.captions!.style : ''} onChange={(e) => { if (e.target.value) c.setStyle(e.target.value) }} style={{ ...inputStyle, width: 'auto', minHeight: 30, fontSize: 11 }}>
+              <option value="">Choose one of {CAPITE_CAPTION_STYLES.length}…</option>
+              {CAPITE_CATEGORIES.map((cat) => (
+                <optgroup key={cat.id} label={cat.label}>
+                  {CAPITE_CAPTION_STYLES.filter((s) => s.category === cat.id).map((s) => <option key={s.id} value={s.id}>{s.name} · {s.bestFor.split(',')[0]}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+          {capiteStyleById(c.captions!.style) && <p data-testid="captions-capite-hint" style={{ ...hintStyle, margin: 0 }}>{capiteStyleById(c.captions!.style)!.description}. Looks from Capite (MIT). Fonts that are not on this device fall back to the studio font.</p>}
 
           <p data-testid="captions-look-hint" style={{ ...hintStyle, margin: 0 }}>Bold stands out most; Bar is the safest on very busy footage; Clean is the plainest.</p>
 

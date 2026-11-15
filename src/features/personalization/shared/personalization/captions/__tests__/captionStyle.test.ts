@@ -103,3 +103,11 @@ describe('captions in saved project settings', () => {
     expect(normalizePreviewSettings(createDefaultPreviewSettings()).captions).toBeUndefined()
   })
 })
+
+describe('Capite looks in saved projects', () => {
+  const base = { enabled: true, forUrl: 'https://x/v.mp4', position: 'bottom', cues: [{ startMs: 0, endMs: 900, text: 'Hi' }] }
+  it('keeps a known Capite look and falls back to bold for an unknown one', () => {
+    expect(normalizeCaptions({ ...base, style: 'mrbeast' })?.style).toBe('mrbeast')
+    expect(normalizeCaptions({ ...base, style: 'nope' })?.style).toBe('bold')
+  })
+})

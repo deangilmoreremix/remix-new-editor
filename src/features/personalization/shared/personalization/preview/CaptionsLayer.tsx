@@ -1,5 +1,6 @@
 import React from 'react'
 import { AbsoluteFill, useCurrentFrame } from 'remotion'
+import { capiteStyleById, capiteTextCss, capiteWordCss } from '../captions/capiteStyles'
 import { activeCueAt, activeWordIndex, captionLayout } from '../captions/captionStyle'
 import { endCardFrames } from './endCard'
 import { fontStackById } from './presets'
@@ -36,10 +37,14 @@ export const CaptionsLayer: React.FC<{
 
   const layout = captionLayout(captions.style, captions.position, width, height)
   const font = fontStackById(undefined)
-  const wordIdx = captions.style === 'bold' ? activeWordIndex(cue, ms) : -1
+  const capite = capiteStyleById(captions.style)
+  const wordIdx = captions.style === 'bold' || capite ? activeWordIndex(cue, ms) : -1
   const justify = layout.anchor === 'bottom' ? 'flex-end' : layout.anchor === 'top' ? 'flex-start' : 'center'
 
-  const text: React.CSSProperties = {
+  const text: React.CSSProperties = capite ? {
+    ...(capiteTextCss(capite, layout.fontSizePx, font) as React.CSSProperties),
+    lineHeight: 1.18, maxWidth: layout.maxWidthPx, textAlign: 'center',
+  } : {
     fontFamily: font,
     fontSize: layout.fontSizePx,
     lineHeight: 1.18,
@@ -62,7 +67,11 @@ export const CaptionsLayer: React.FC<{
       style={{ zIndex: CAPTIONS_Z_INDEX, pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: justify, alignItems: 'center', padding: `${layout.marginPx}px ${Math.round(width * 0.07)}px` }}
     >
       <div data-testid="captions-layer" data-caption-text={cue.text} style={text}>
-        {wordIdx >= 0 && cue.words
+        {wordIdx >= 0 && cue.words && capite
+          ? cue.words.map((w, i) => (
+              <span key={`${w.startMs}-${i}`} style={capiteWordCss(capite, i === wordIdx ? 'active' : i < wordIdx ? 'spoken' : 'idle', layout.fontSizePx) as React.CSSProperties}>{i > 0 ? ' ' : ''}{w.text}</span>
+            ))
+          : wordIdx >= 0 && cue.words
           ? cue.words.map((w, i) => (
               <span key={`${w.startMs}-${i}`} style={{ color: i === wordIdx ? accent : '#ffffff' }}>{i > 0 ? ' ' : ''}{w.text}</span>
             ))

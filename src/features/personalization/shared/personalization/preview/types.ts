@@ -162,7 +162,9 @@ export interface PreviewAudioSelection {
 }
 
 /** Look of burned-in captions. */
-export type CaptionStyleId = 'bold' | 'bar' | 'clean'
+export type BuiltInCaptionStyleId = 'bold' | 'bar' | 'clean'
+/** A built-in look, or the id of one of the 27 Capite looks (captions/capiteStyles.ts). Checked when a project is read back. */
+export type CaptionStyleId = BuiltInCaptionStyleId | (string & {})
 export type CaptionPosition = 'bottom' | 'middle' | 'top'
 
 export interface PreviewCaptionWord { text: string; startMs: number; endMs: number }
