@@ -521,3 +521,13 @@ h2.generator-offer__text { font-size: 30px; }
 .tg-mix { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 .tg-mix-row { display: grid !important; grid-template-columns: 90px 1fr 44px; align-items: center; gap: 10px !important; }
 .tg-mix-row output { text-align: right; color: var(--tg-strong); font-size: 12px; }
+
+/* Background removal (cut-out) */
+.video-tile .tg-cutout { position: absolute; left: 6px; top: 6px; z-index: 3; padding: 3px 8px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(8, 11, 18, 0.78); color: #fff; font-size: 11px; font-weight: 600; cursor: pointer; backdrop-filter: blur(6px); }
+.video-tile .tg-cutout:hover:not(:disabled) { border-color: var(--tg-accent); color: var(--tg-accent); }
+.video-tile .tg-cutout:disabled { opacity: 0.45; cursor: not-allowed; }
+.video-tile .tg-cutout.is-done { border-color: rgba(52, 211, 153, 0.7); color: #6ee7b7; }
+.video-tile .tg-cutout.is-busy { border-color: var(--tg-fx); color: #c4b5fd; }
+.tg-bgstatus { margin: 8px 0; }
+.tg-bgprogress { position: relative; overflow: hidden; padding: 8px 12px; border-radius: 10px; background: var(--tg-surface); border: 1px solid var(--tg-line-soft); font-size: 12px; color: var(--tg-strong); }
+.tg-bgprogress i { position: absolute; left: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, var(--tg-accent), var(--tg-fx)); transition: width .3s; }

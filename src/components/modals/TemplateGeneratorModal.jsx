@@ -22,6 +22,7 @@ import { snapshotTemplate, restoreTemplate, splitDurable } from './template-gene
 import { createSyncedTemplateStore, SYNC_STATUS } from './template-generator/sync.js';
 import { templateScript, placeholdersLeft, DETAIL_FIELDS } from '../../lib/nicheScripts/index.js';
 import { TEXT_PRESETS, TEXT_ROLES, ROLE_LABEL, TEXT_ENTRANCES, TEXT_FONTS, ROLE_DEFAULTS, resolveTextStyle, withTextStyle, withPreset, presetOf } from './template-generator/textStyles.js';
+import { removeClipBackground, canCutOut } from './template-generator/cutout.js';
 import { makeVoiceover, narrationText, VOICE_ENGINES, OPENAI_VOICE_CHOICES, FREE_VOICE_CHOICES } from './template-generator/voiceover.js';
 import { MUSIC_TRACKS } from './template-generator/music.js';
 import { audioPlan } from './template-generator/audioPlan.js';
@@ -97,6 +98,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this.extra = new Map((options.extraSources || []).map((x) => [x.id, x]));
     // The project's own videos / images ("My media"); an array, or a function returning one.
     this.projectMedia = options.projectMedia || null;
+    this.bgRemover = options.bgRemover || null;     // tests replace the cut-out service
     this.voiceMaker = options.voiceMaker || null;   // tests replace the voiceover service
     this.templateCatalog = options.templateCatalog || (() => loadTemplateCatalog());
     this.stock = options.stockSearch || createStockClient({ pexels: pexelsApi, pixabay: pixabayApi });
@@ -141,6 +143,7 @@ export class TemplateGeneratorModal extends BaseModal {
       overlayQuery: '',
       overlayCategory: 'all',
       ltCategory: 'all',
+      bg: { busy: false, id: null, progress: 0, eta: null, error: '', note: '' },
       voiceBusy: false, voiceError: '', voiceNote: '',
       textRole: null,        // the text being styled in the Preview step ('caption' | 'title' | 'lowerThird' | 'cta')
       popup: null,       // { kind: 'video'|'script', id }
@@ -899,6 +902,7 @@ export class TemplateGeneratorModal extends BaseModal {
                   <div class="video-tile video__item video-element" style="background-image:${cssUrl(stillOf(it))}" title="${esc(it.title)}">
                     ${firstFrame(it)}
                     <button type="button" class="preview__delete" aria-label="Remove ${esc(it.title)}" data-act="remove-video" data-id="${esc(it.id)}">−</button>
+                    ${this.renderCutoutButton(it)}
                     <div class="tg-card-title">${esc(it.title)}</div>
                   </div>`).join('')}
                 ${s.selectedAnimations.map((a) => `
@@ -913,6 +917,7 @@ export class TemplateGeneratorModal extends BaseModal {
                 </div>
               </div>
             </div>
+            <div id="tg-bgstatus" class="tg-bgstatus">${this.renderCutoutStatus()}</div>
             <div class="preview-tab__content-scripts">
               <div class="niche-script" role="button" tabindex="0" data-act="tab" data-step="${STEPS.SCRIPT}">
                 ${(() => { const still = s.selectedVideos.map((v) => stillOf(v)).find(Boolean); return still ? `<span class="niche-script__still" style="background-image:${cssUrl(still)}" aria-hidden="true"></span>` : ''; })()}
@@ -993,6 +998,58 @@ export class TemplateGeneratorModal extends BaseModal {
       ${made && !u.voiceBusy ? `<p class="tg-status">✓ Voiceover ready · ${Math.round(made.duration || 0)} s${stale ? ' · your script changed since, make it again to match' : ''}</p>` : ''}
       ${u.voiceNote ? `<p class="tg-status tg-status--warn">${esc(u.voiceNote)}</p>` : ''}
       ${u.voiceError ? `<p class="tg-status tg-status--error">${esc(u.voiceError)}</p>` : ''}`;
+  }
+
+  // ----------------------------------------------------------- background removal (cut-out)
+
+  renderCutoutButton(it) {
+    const b = this.ui.bg;
+    if (b.busy && b.id === it.id) return '<button type="button" class="tg-cutout is-busy" data-act="bg-cancel" data-id="' + esc(it.id) + '" title="Cancel">Cutting out… ✕</button>';
+    if (it.bgRemoval) return `<button type="button" class="tg-cutout is-done" data-act="bg-restore" data-id="${esc(it.id)}" title="Put the original background back">↺ Original</button>`;
+    const ok = canCutOut(it) && !b.busy;
+    return `<button type="button" class="tg-cutout" data-act="bg-remove" data-id="${esc(it.id)}" ${ok ? '' : 'disabled'} title="${canCutOut(it) ? 'Remove the background (runs on this device)' : 'Needs Chrome or Edge'}">✂ Cut out</button>`;
+  }
+
+  renderCutoutStatus() {
+    const b = this.ui.bg;
+    if (b.busy) {
+      const pct = Math.round((b.progress || 0) * 100);
+      return `<div class="tg-bgprogress"><span>${b.stage === 'download' ? 'Downloading the cut-out model (first time only, about 25 MB)…' : `Removing the background… ${pct}%${b.eta ? ` · about ${Math.max(1, Math.round(b.eta))} s left` : ''}`}</span><i style="width:${pct}%"></i></div>`;
+    }
+    if (b.error) return `<p class="tg-status tg-status--error">${esc(b.error)}</p>`;
+    if (b.note) return `<p class="tg-status tg-status--warn">${esc(b.note)}</p>`;
+    return this.s.selectedVideos.some((v) => canCutOut(v)) ? '<p class="tg-hint">✂ Cut out removes a person\'s background on this device (no upload, no key). It works best on someone close to the camera, in good light. The first time it downloads a ~25 MB model.</p>' : '';
+  }
+
+  _refreshCutout() { this._setHTML('#tg-bgstatus', this.renderCutoutStatus()); }
+
+  async removeBackground(id) {
+    const it = this.s.selectedVideos.find((v) => v.id === id);
+    if (!it || this.ui.bg.busy) return;
+    this._bgAbort = new AbortController();
+    this.ui.bg = { busy: true, id, progress: 0, eta: null, error: '', note: '', stage: 'process' };
+    this.paint();
+    try {
+      const res = await (this.bgRemover || removeClipBackground)(it, {
+        signal: this._bgAbort.signal,
+        onProgress: (p) => { const pr = typeof p === 'number' ? p : p?.progress; Object.assign(this.ui.bg, { progress: pr || 0, stage: p?.stage || 'process', eta: p?.etaSec ?? null }); this._refreshCutout(); },
+      });
+      it.bgRemoval = { originalUrl: it.url, originalPreview: it.preview || '' };
+      it.url = res.url; it.preview = res.url;
+      this.ui.bg = { busy: false, id: null, progress: 0, eta: null, error: '', note: res.durable === false ? 'The cut-out could not be saved to your storage, so it works for this session only.' : '' };
+    } catch (err) {
+      this.ui.bg = { busy: false, id: null, progress: 0, eta: null, note: '', error: err?.name === 'AbortError' ? '' : (err?.message || 'The background could not be removed.') };
+    } finally {
+      this._bgAbort = null;
+      this.paint();
+    }
+  }
+
+  restoreBackground(id) {
+    const it = this.s.selectedVideos.find((v) => v.id === id);
+    if (!it?.bgRemoval) return;
+    it.url = it.bgRemoval.originalUrl; it.preview = it.bgRemoval.originalPreview || it.bgRemoval.originalUrl; delete it.bgRemoval;
+    this.paint();
   }
 
   _refreshVoice() { this._setHTML('#tg-voice', this.renderVoiceFields()); }
@@ -1389,6 +1446,9 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'ai-script': this.runScriptAction(el.dataset.kind); break;
       case 'use-template-script': this._applyTemplateScript(true); this.paint(); break;
       case 'overlay-tab': this.ui.overlayTab = id; this.paint(); break;
+      case 'bg-remove': this.removeBackground(id); break;
+      case 'bg-cancel': this._bgAbort?.abort(); break;
+      case 'bg-restore': this.restoreBackground(id); break;
       case 'voice-generate': this.generateVoice(); break;
       case 'voice-cancel': this._voiceAbort?.abort(); break;
       case 'text-role': this.ui.textRole = id; this._player?.selectRole?.(id); this._setHTML('#tg-textpanel', this.renderTextPanel()); break;

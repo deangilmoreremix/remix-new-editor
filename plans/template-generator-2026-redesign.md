@@ -130,3 +130,8 @@ Step 1 now starts on **Video templates**: the public 184-clip library kept in th
 - **Music** (`music.js`): the three bundled tracks the app licenses, trimmed to the cut with a fade; optional ducking under the voice. **Mix** panel: footage / voiceover / music volumes. One `audioPlan` feeds the live preview, the composition and the saved template.
 - The preview now plays the audio in sync with the video (`preview.js`). `applyComposition` honours audio duration, volume and volume keyframes. `netlify.toml` serves `/motion-studio/bgmlib/*` with CORS so the export runner can read the music.
 - CineGen editor only: the classic editor's add-to-timeline drops audio.
+
+## Cut out a presenter (background removal) (added)
+- "✂ Cut out" on each clip in the Preview step (`template-generator/cutout.js`): the editor's on-device MODNet model (no key, no upload for processing, ~25 MB first-time download). The result is stored in the customer's storage; the original link is kept so "↺ Original" restores it; saved templates keep both.
+- Safety: a result that keeps under 6% of the picture is rejected and the clip is left as it is.
+- Honest limits (tested with the real model in headless Chrome on CPU/WASM): a 1 s clip takes about 30-40 s including the model download, an 8 s clip is estimated at several minutes without WebGPU; on AI-generated full-body, dark or stylised clips the model keeps only fragments (works best on a person close to the camera in good light). Not tested on WebGPU.

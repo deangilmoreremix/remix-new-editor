@@ -21,6 +21,7 @@ const clipRecord = (it) => ({
   id: it.id, kind: it.kind, source: it.source, title: it.title,
   url: it.url, preview: it.preview, poster: it.poster, duration: it.duration || 0,
   width: it.width, height: it.height, user: it.user || '', pageURL: it.pageURL || '',
+  ...(it.bgRemoval ? { bgRemoval: { originalUrl: it.bgRemoval.originalUrl, originalPreview: it.bgRemoval.originalPreview || '' } } : {}),
 });
 
 /** Split picked clips into the ones a template can keep and those it can't (blob:/data: links). */
