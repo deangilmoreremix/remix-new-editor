@@ -115,7 +115,7 @@
 .pk-d-realtor .rl-cta-act { display: grid; gap: 14px; justify-items: start; align-content: center; }
 .pk-d-realtor .rl-cta-act .pk-btn { min-height: 46px; padding: 10px 28px; font-size: 14px; border-radius: 4px; }
 .pk-d-realtor .rl-cta-act small { font-size: 13px; color: #cddcf3; }
-.pk-d-realtor .pk-footer { max-width: none; margin: 0; padding: 14px var(--rl-pad); background: #fff; }
+.pk-d-realtor .pk-footer { max-width: none; margin: 0; padding: 6px var(--rl-pad); background: #fff; }
 
 @media (min-width: 640px) {
   .pk-d-realtor .pk-strip-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
@@ -143,7 +143,7 @@
   .pk-d-realtor .rl-cta-act { justify-items: center; }
 }
 @media (min-width: 1024px) {
-  .pk-d-realtor .pk-hero { grid-template-columns: minmax(0, 1fr) calc(302 * var(--u)); gap: calc(40 * var(--u)); padding: calc(56 * var(--u)) var(--rl-pad) calc(32 * var(--u)); min-height: calc(378 * var(--u));
+  .pk-d-realtor .pk-hero { grid-template-columns: minmax(0, 1fr) calc(302 * var(--u)); gap: calc(40 * var(--u)); padding: calc(52 * var(--u)) var(--rl-pad) calc(26 * var(--u)); min-height: calc(364 * var(--u));
     background: linear-gradient(90deg, #0b2a5e 0, #0b2a5e calc(100% - 640 * var(--u)), rgba(11,42,94,0) calc(100% - 500 * var(--u))), var(--pk-hero-bg, none) right center / auto 100% no-repeat, #0b2a5e; }
   .pk-d-realtor .pk-hero-copy { gap: calc(14 * var(--u)); max-width: calc(400 * var(--u)); }
   .pk-d-realtor .pk-headline { font-size: calc(30 * var(--u)); line-height: calc(34 * var(--u)); }
@@ -163,16 +163,16 @@
   .pk-d-realtor .pk-strip-item .pk-ico { width: calc(48 * var(--u)); height: calc(48 * var(--u)); padding: calc(12 * var(--u)); flex: none; }
   .pk-d-realtor .pk-strip-item b { font-size: calc(11.5 * var(--u)); }
   .pk-d-realtor .pk-strip-item small { font-size: calc(10.5 * var(--u)); line-height: calc(18 * var(--u)); }
-  .pk-d-realtor .rl-vid { padding: calc(26 * var(--u)) var(--rl-pad) calc(36 * var(--u)); grid-template-columns: calc(435 * var(--u)) minmax(0, 1fr); gap: calc(40 * var(--u)); }
-  .pk-d-realtor .rl-vid-copy { gap: calc(8 * var(--u)); padding-top: calc(2 * var(--u)); }
+  .pk-d-realtor .rl-vid { padding: calc(22 * var(--u)) var(--rl-pad) calc(30 * var(--u)); grid-template-columns: calc(435 * var(--u)) minmax(0, 1fr); gap: calc(40 * var(--u)); }
+  .pk-d-realtor .rl-vid-copy { gap: calc(4 * var(--u)); padding-top: calc(2 * var(--u)); }
   .pk-d-realtor .pk-h2 { font-size: calc(24 * var(--u)); line-height: calc(30 * var(--u)); }
   .pk-d-realtor .rl-vid-copy .pk-h2 { max-width: calc(270 * var(--u)); }
-  .pk-d-realtor .rl-vid-text { font-size: calc(12.5 * var(--u)); line-height: calc(18 * var(--u)); max-width: calc(295 * var(--u)); margin-top: calc(10 * var(--u)); }
-  .pk-d-realtor .rl-callout { margin-top: calc(16 * var(--u)); padding: calc(12 * var(--u)) calc(18 * var(--u)); gap: calc(18 * var(--u)); }
+  .pk-d-realtor .rl-vid-text { font-size: calc(12.5 * var(--u)); line-height: calc(18 * var(--u)); max-width: calc(295 * var(--u)); margin-top: calc(4 * var(--u)); }
+  .pk-d-realtor .rl-callout { margin-top: calc(6 * var(--u)); padding: calc(12 * var(--u)) calc(18 * var(--u)); gap: calc(18 * var(--u)); }
   .pk-d-realtor .rl-callout .pk-ico { width: calc(30 * var(--u)); height: calc(30 * var(--u)); }
   .pk-d-realtor .rl-callout p { font-size: calc(11 * var(--u)); line-height: calc(17 * var(--u)); }
   .pk-d-realtor .rl-vid-note p { font-size: calc(24 * var(--u)); }
-  .pk-d-realtor .rl-steps { grid-template-columns: minmax(0, 1fr) calc(166 * var(--u)) calc(96 * var(--u)); gap: 0 calc(30 * var(--u)); min-height: calc(263 * var(--u)); padding-top: calc(32 * var(--u)); }
+  .pk-d-realtor .rl-steps { grid-template-columns: minmax(0, 1fr) calc(166 * var(--u)) calc(96 * var(--u)); gap: 0 calc(30 * var(--u)); min-height: calc(246 * var(--u)); padding-top: calc(28 * var(--u)); }
   .pk-d-realtor .rl-step-list { margin-top: calc(18 * var(--u)); gap: calc(14 * var(--u)); }
   .pk-d-realtor .rl-step-list b { font-size: calc(11.5 * var(--u)); }
   .pk-d-realtor .rl-step-list li > span:last-child { font-size: calc(10.5 * var(--u)); line-height: calc(16 * var(--u)); }
@@ -185,9 +185,9 @@
   .pk-d-realtor .rl-note > span { font-size: calc(26 * var(--u)); }
   .pk-d-realtor .rl-note .rl-arrow { position: absolute; left: calc(-62 * var(--u)); top: calc(8 * var(--u)); width: calc(22 * var(--u)); height: calc(36 * var(--u)); }
   .pk-d-realtor .rl-note { position: relative; }
-  .pk-d-realtor .pk-textblock { padding: calc(26 * var(--u)) var(--rl-pad) 0; }
-  .pk-d-realtor .pk-grid { padding: calc(18 * var(--u)) var(--rl-pad) calc(20 * var(--u)); }
-  .pk-d-realtor .pk-card--quotes { padding: calc(16 * var(--u)) calc(14 * var(--u)); }
+  .pk-d-realtor .pk-textblock { padding: calc(20 * var(--u)) var(--rl-pad) 0; }
+  .pk-d-realtor .pk-grid { padding: calc(12 * var(--u)) var(--rl-pad) calc(16 * var(--u)); }
+  .pk-d-realtor .pk-card--quotes { padding: calc(12 * var(--u)) calc(14 * var(--u)); }
   .pk-d-realtor .pk-card--quotes .pk-quote { grid-template-columns: calc(52 * var(--u)) 1fr; column-gap: calc(16 * var(--u)); }
   .pk-d-realtor .pk-card--quotes .pk-avatar { width: calc(52 * var(--u)); height: calc(52 * var(--u)); }
   .pk-d-realtor .pk-card--quotes blockquote { font-size: calc(10.5 * var(--u)); line-height: calc(15.5 * var(--u)); }
@@ -195,7 +195,7 @@
   .pk-d-realtor .pk-card--quotes figcaption small { font-size: calc(9.5 * var(--u)); }
   .pk-d-realtor .pk-card--quotes figcaption small::after { font-size: calc(12 * var(--u)); margin-top: calc(6 * var(--u)); letter-spacing: calc(2 * var(--u)); }
   .pk-d-realtor .rl-cta { background: linear-gradient(90deg, #0a2250 0, #0a2250 calc(100% - 300 * var(--u)), rgba(10,34,80,0) calc(100% - 190 * var(--u))), url(/landing-art/realtor/cta.webp) right center / auto 100% no-repeat, #0a2250; }
-  .pk-d-realtor .rl-cta { min-height: calc(155 * var(--u)); padding: calc(18 * var(--u)) var(--rl-pad); grid-template-columns: calc(514 * var(--u)) calc(161 * var(--u)); column-gap: 0; }
+  .pk-d-realtor .rl-cta { min-height: calc(148 * var(--u)); padding: calc(14 * var(--u)) var(--rl-pad); grid-template-columns: calc(514 * var(--u)) calc(161 * var(--u)); column-gap: 0; }
   .pk-d-realtor .rl-cta-title { font-size: calc(20.5 * var(--u)); line-height: calc(24 * var(--u)); }
   .pk-d-realtor .rl-cta-copy p { font-size: calc(11 * var(--u)); line-height: calc(17 * var(--u)); max-width: calc(330 * var(--u)); }
   .pk-d-realtor .rl-cta-act { margin-top: calc(10 * var(--u)); }

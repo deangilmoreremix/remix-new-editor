@@ -85,6 +85,13 @@ describe('editable (Puck) pages', () => {
     expect(bar('#lead')).toContain('href="#lead"');
     expect(bar('javascript:alert(1)')).toContain('href="#lead"');
   });
+  it('the bar shows social icons with safe links only', () => {
+    const bar = (icons) => html({ root: { props: {} }, zones: {}, content: [{ type: 'CtaBar', props: { id: 'b', label: 'Follow Us', url: '#lead', icons } }] });
+    const out = bar([{ icon: 'facebook', url: 'https://facebook.com/x' }, { icon: 'instagram', url: 'javascript:alert(1)' }, { icon: 'nope', url: 'https://a.io' }]);
+    expect(out).toContain('href="https://facebook.com/x"');
+    expect(out).not.toContain('javascript:');
+    expect(out.match(/pk-ctabar-social/g)).toHaveLength(1);
+  });
   it('the phone and desktop markup is the same responsive markup (no fixed canvas)', () => {
     const out = html(starter);
     expect(out).not.toMatch(/is-canvas|zoom:/);

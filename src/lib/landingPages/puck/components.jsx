@@ -436,11 +436,21 @@ export function PageImage({ src, alt, rounded = 'yes' }) {
 }
 
 /** A full-width button bar (usually the last thing on a phone-style page). */
-export function CtaBar({ text, label, url, icon }) {
+export function CtaBar({ text, label, url, icon, icons }) {
   const t = useTokens();
   const href = safeUrl(url) || anchor(url) || '#lead';
   const ext = /^https?:/i.test(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {};
-  if (!text) return <a className="pk-ctabar" href={href} {...ext}>{icon ? <Icon name={icon} /> : null}<span>{t(label)}</span></a>;
+  const social = (Array.isArray(icons) ? icons : []).filter((i) => i && ICON_PATHS[i.icon] && (safeUrl(i.url) || anchor(i.url))).slice(0, 6);
+  if (!text) {
+    const bar = <a className="pk-ctabar" href={href} {...ext}>{icon ? <Icon name={icon} /> : null}<span>{t(label)}</span></a>;
+    if (!social.length) return bar;
+    return (
+      <div className="pk-ctabar pk-ctabar--social">
+        <span>{t(label)}</span>
+        {social.map((i, n) => <SafeLink key={n} className="pk-ctabar-social" href={i.url}><Icon name={i.icon} /><span className="pk-sr">{i.icon}</span></SafeLink>)}
+      </div>
+    );
+  }
   return (
     <section className="pk-ctabar pk-ctabar--split">
       {icon ? <Icon name={icon} className="pk-ico pk-ico--lg" /> : null}

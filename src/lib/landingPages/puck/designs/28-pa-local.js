@@ -138,7 +138,12 @@ export default {
           "text": "",
           "label": "Follow Us",
           "url": "#lead",
-          "icon": ""
+          "icon": "",
+          "icons": [
+            { "icon": "facebook", "url": "https://facebook.com" },
+            { "icon": "instagram", "url": "https://instagram.com" },
+            { "icon": "youtube", "url": "https://youtube.com" }
+          ]
         }
       }
     ],
