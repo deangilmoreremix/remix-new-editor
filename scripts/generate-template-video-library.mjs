@@ -93,6 +93,25 @@ const words = (str) => String(str).toLowerCase().replace(/[^a-z0-9&\s-]/g, ' ').
 const topicsFor = (category, subcategory, title, tags) => [...new Set([category.toLowerCase(), ...words(subcategory.replace(/&/g, ' ')), ...words(title), ...(tags ?? []).filter((t) => !GENERATION_TAG.test(t)).map((t) => t.toLowerCase())])];
 const orientationOf = (ar) => { const [w, h] = String(ar).split(':').map(Number); const r = w > 0 && h > 0 ? w / h : 16 / 9; return Math.abs(r - 1) < 0.12 ? 'square' : r > 1 ? 'landscape' : 'portrait'; };
 
+// Flat browse groups (one wrapping row of chips in the modal, like the Animations tab): granular, named by what the clip shows. Groups with
+// fewer than MIN_GROUP clips fold into "More". `category` stays the broad type (Action, Cinema, ...) used by the Type filter.
+const MIN_GROUP = 8;
+const GROUP_OF = {
+  'Commercial/Food & Beverage': 'Food & Drink', 'Social/Lifestyle & Food': 'Lifestyle & Food',
+  'Commercial/Beauty & Fragrance': 'Beauty & Fragrance', 'Commercial/Automotive & Mobility': 'Cars & Vehicles',
+  'Commercial/Product Reveals': 'Products & Brands', 'Commercial/Luxury Goods': 'Products & Brands', 'Commercial/Tech & Gadgets': 'Products & Brands', 'Commercial/Brand Films': 'Products & Brands',
+  'Fashion/Editorial': 'Fashion & Editorial', 'Fashion/Streetwear': 'Fashion & Editorial', 'Fashion/Runway & Lookbook': 'Fashion & Editorial',
+  'Action/Chases & Stunts': 'Chases & Stunts', 'Action/Fights & Martial Arts': 'Fights & Battles', 'Action/Battles & Disaster': 'Fights & Battles',
+  'Action/Aerial & FPV': 'Aerial & FPV', 'Action/Creatures & Heroes': 'Creatures & Heroes',
+  'Cinema/Drama & Thriller': 'Drama & Thriller', 'Cinema/Fantasy & Surreal': 'Fantasy & Surreal', 'Cinema/Sci-Fi': 'Sci-Fi',
+  'Cinema/Period & Historical': 'Period & Historical', 'Cinema/Travel & Documentary': 'Travel & Documentary', 'Cinema/Comedy': 'Comedy & Pets', 'Social/Comedy & Pets': 'Comedy & Pets',
+  'Social/Vlogs & UGC': 'Vlogs & UGC', 'Social/Music & Dance': 'Music & Dance', 'Social/Fitness & Sports': 'Fitness & Sports',
+  'Animation/Illustrated & Craft': 'Illustrated & Anime', 'Animation/Cute & Kids': 'Cute & Kids', 'Animation/3D Animated': '3D Animated',
+  'Animation/Title Sequences': 'Titles & Typography', 'VFX/Title Sequences': 'Titles & Typography',
+  'VFX/Effects & Motion Graphics': 'Effects & Motion Graphics', 'VFX/Loops & Hero Backgrounds': 'Effects & Motion Graphics',
+};
+const groupOf = (category, subcategory) => GROUP_OF[`${category}/${subcategory}`] ?? 'More';
+
 // Hosting: the 184 hand-reviewed clips (and every CDN clip) are in the bucket; clips already in this repo under /media keep their local path.
 const isCdn = (u) => typeof u === 'string' && u.startsWith(CDN);
 const usableLocalPoster = (p) => typeof p === 'string' && p.startsWith('/media/') && existsSync(resolve(root, 'public' + p)) && statSync(resolve(root, 'public' + p)).size > 500;
@@ -138,6 +157,7 @@ for (const id of order) {
     videoSrc: hosted ? (baseUrl ? `${baseUrl}/clips/${set}/${slug}${extOf(d.videoSrc)}` : same(d.videoSrc)) : d.videoSrc,
     posterSrc: poster && hosted && baseUrl ? `${baseUrl}/posters/${set}/${slug}${extOf(poster)}` : poster,
     tags: d.tags ?? [],
+    group: groupOf(label.category, label.subcategory),
     topics: topicsFor(label.category, label.subcategory, title, d.tags),
     orientation: orientationOf(d.aspectRatio ?? '16:9'),
     source: SETS[set].label,
@@ -151,6 +171,12 @@ for (const id of order) {
 }
 if (missing.length) { console.error('Missing from data files:', missing); process.exit(1); }
 writeFileSync(resolve(root, 'scripts/template-video-sources.json'), JSON.stringify(sources, null, 1));
+
+// Fold tiny groups into More, then order groups by size (largest first), More last.
+const groupCounts = rows.reduce((m, r) => ((m[r.group] = (m[r.group] ?? 0) + 1), m), {});
+for (const r of rows) if (r.group !== 'More' && groupCounts[r.group] < MIN_GROUP) r.group = 'More';
+const GROUP_COUNTS = rows.reduce((m, r) => ((m[r.group] = (m[r.group] ?? 0) + 1), m), {});
+const GROUP_ORDER = Object.keys(GROUP_COUNTS).filter((g) => g !== 'More').sort((a, b) => GROUP_COUNTS[b] - GROUP_COUNTS[a] || a.localeCompare(b)).concat(GROUP_COUNTS.More ? ['More'] : []);
 
 const PREFERRED = MAIN;
 const present = new Set(rows.map((r) => r.category));
@@ -167,13 +193,16 @@ const out = `// AUTO-GENERATED FILE — do not edit by hand.
 // ${rows.length} clips. Each carries a \`branding\` verdict: "none" = reviewed, no visible logo / watermark / credit; "logo" = has one
 // (see scripts/template-video-branding.json). \`autoLabeled\` clips use a generated title/subcategory until curated in the labels file.
 
-/** @typedef {{ id: string, slug: string, title: string, sourceTitle: string, category: string, subcategory: string, duration: number | null, aspectRatio: string, videoSrc: string, posterSrc: string | null, tags: string[], source: string, topics: string[], orientation: 'landscape' | 'portrait' | 'square', branding: 'none' | 'logo', marks?: string, autoLabeled?: boolean }} TemplateVideo */
+/** @typedef {{ id: string, slug: string, title: string, sourceTitle: string, category: string, subcategory: string, duration: number | null, aspectRatio: string, videoSrc: string, posterSrc: string | null, tags: string[], source: string, topics: string[], orientation: 'landscape' | 'portrait' | 'square', group: string, branding: 'none' | 'logo', marks?: string, autoLabeled?: boolean }} TemplateVideo */
 
 /** @type {TemplateVideo[]} */
 export const templateVideos = ${JSON.stringify(rows, null, 1)};
 
 /** Category tabs in display order (only categories that actually hold clips). */
 export const TEMPLATE_VIDEO_CATEGORIES = ${JSON.stringify(CATEGORY_ORDER)};
+
+/** Flat browse groups in display order (the chip row of the modal), More last. */
+export const TEMPLATE_VIDEO_GROUPS = ${JSON.stringify(GROUP_ORDER)};
 
 /** Subcategory chips per category, largest first. */
 export const TEMPLATE_VIDEO_SUBCATEGORIES = ${JSON.stringify(SUBCATEGORIES, null, 1)};
@@ -199,8 +228,9 @@ if (baseUrl) {
     count: rows.length,
     brandingCounts: bc,
     categories: SUBCATEGORIES,
+    groups: GROUP_ORDER,
     clips: rows.map((r) => ({
-      id: r.id, title: r.title, originalTitle: r.sourceTitle, category: r.category, subcategory: r.subcategory, branding: r.branding, orientation: r.orientation, topics: r.topics,
+      id: r.id, title: r.title, originalTitle: r.sourceTitle, category: r.category, subcategory: r.subcategory, branding: r.branding, group: r.group, orientation: r.orientation, topics: r.topics,
       ...(r.marks ? { marks: r.marks } : {}),
       duration: r.duration, aspectRatio: r.aspectRatio, videoUrl: r.videoSrc, posterUrl: r.posterSrc, source: r.source,
       credit: credits[r.id],

@@ -67,6 +67,15 @@ describe('template video library', () => {
     }
   });
 
+  it('every clip is hand-named (no auto-generated titles) and sits in a browse group', () => {
+    const groups = (JSON.parse(readFileSync(resolve(root, 'scripts/template-video-catalog.json'), 'utf8')) as { groups: string[] }).groups;
+    for (const r of rows as Array<Row & { group: string; autoLabeled?: boolean }>) {
+      expect(r.autoLabeled, r.id).toBeFalsy();
+      expect(groups, r.id).toContain(r.group);
+    }
+    expect(groups.length).toBeGreaterThan(10);
+  });
+
   it('every clip has a playable video (hosted or a repo file)', () => {
     for (const r of rows) expect(r.videoSrc, r.id).toMatch(HOSTED);
   });
