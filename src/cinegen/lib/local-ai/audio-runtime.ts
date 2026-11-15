@@ -1,0 +1,156 @@
+// [remix] Port I2: the browser side of the audio model manager: capability check, Cache Storage inspection / deletion, storage quota and
+// the real pipelines (kokoro-js for speech, @huggingface/transformers MusicGen for music). Everything is imported lazily so the app
+// bundle does not pay for it until the user opens the feature. Weights are fetched from huggingface.co by the library, never bundled.
+import { AudioModelManager, ManagerError, type GenerateRequest, type ModelRuntime, type RawAudio } from './audio-manager';
+import type { AudioModel } from './models-audio';
+import { chunkText, concatSamples } from './wav';
+
+const CACHE_NAME = 'transformers-cache'; // transformers.js default env.cacheKey
+
+let gpuProbe: Promise<boolean> | null = null;
+/** `navigator.gpu` can exist with no usable adapter (headless Chromium, blocklisted GPUs): ask for an adapter once. */
+function hasGpuAdapter(): Promise<boolean> {
+  gpuProbe ??= (async () => {
+    try { const gpu = (navigator as unknown as { gpu?: { requestAdapter(): Promise<unknown> } }).gpu; return !!gpu && !!(await gpu.requestAdapter()); } catch { return false; }
+  })();
+  return gpuProbe;
+}
+export async function detectCapability(): Promise<{ webgpu: boolean; wasm: boolean }> {
+  return { webgpu: typeof navigator !== 'undefined' && (await hasGpuAdapter()), wasm: typeof WebAssembly !== 'undefined' };
+}
+
+async function cacheKeys(): Promise<{ cache: Cache; keys: readonly Request[] } | null> {
+  try {
+    if (!globalThis.caches || !(await caches.has(CACHE_NAME))) return null;
+    const cache = await caches.open(CACHE_NAME);
+    return { cache, keys: await cache.keys() };
+  } catch { return null; }
+}
+
+export async function isModelCached(m: AudioModel): Promise<boolean> {
+  const c = await cacheKeys();
+  return !!c && c.keys.some((r) => r.url.toLowerCase().includes(m.loader.cacheFragments[0]));
+}
+
+export async function deleteModelCache(m: AudioModel): Promise<void> {
+  const c = await cacheKeys();
+  if (!c) return;
+  for (const r of c.keys) if (m.loader.cacheFragments.some((f) => r.url.toLowerCase().includes(f))) await c.cache.delete(r);
+}
+
+export async function storageQuota(): Promise<{ usage: number; quota: number } | null> {
+  try {
+    const e = await navigator.storage?.estimate?.();
+    return e && e.quota ? { usage: e.usage ?? 0, quota: e.quota } : null;
+  } catch { return null; }
+}
+
+type Progress = { status?: string; file?: string; loaded?: number; total?: number };
+/** Sum of bytes loaded over the known download size: files arrive one after another so a per-file ratio would jump around. */
+function progressTracker(m: AudioModel, emit: (message: string, fraction: number) => void) {
+  const files = new Map<string, number>();
+  return (p: Progress) => {
+    if (p.status !== 'progress' || !p.file || typeof p.loaded !== 'number') return;
+    files.set(p.file, p.loaded);
+    const got = [...files.values()].reduce((a, b) => a + b, 0);
+    const f = Math.min(0.99, got / (m.sizeMB * 1e6));
+    emit(`Downloading ${m.name} ${Math.round(f * 100)}% (${Math.round(got / 1e6)} of ${m.sizeMB} MB)`, f);
+  };
+}
+
+/**
+ * Make the library's Hugging Face downloads abortable: while a load runs, requests to huggingface.co carry its signal, so Cancel stops the
+ * transfer instead of letting it finish in the background. Done on the global fetch because kokoro-js bundles its own copy of
+ * transformers.js (a different `env` than the app's) and both fetch through the global. One permanent wrapper + loads run one at a time,
+ * so overlapping loads cannot leave a stale (aborted) signal installed.
+ */
+let activeSignal: AbortSignal | null = null;
+let fetchPatched = false;
+let loadChain: Promise<unknown> = Promise.resolve();
+function patchFetchOnce() {
+  if (fetchPatched) return; fetchPatched = true;
+  const orig = globalThis.fetch.bind(globalThis);
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    return activeSignal && /^https:\/\/([\w-]+\.)?huggingface\.co\//.test(url) ? orig(input, { ...init, signal: activeSignal }) : orig(input, init);
+  }) as typeof fetch;
+}
+function withAbortableFetch<T>(signal: AbortSignal, fn: () => Promise<T>): Promise<T> {
+  const run = loadChain.then(async () => {
+    if (signal.aborted) throw aborted();
+    patchFetchOnce(); activeSignal = signal;
+    try { return await fn(); } finally { activeSignal = null; }
+  });
+  loadChain = run.catch(() => undefined);
+  return run;
+}
+async function transformers() {
+  const t = await import('@huggingface/transformers');
+  t.env.useBrowserCache = true;
+  t.env.allowLocalModels = false;
+  return t;
+}
+
+const aborted = () => new ManagerError('cancelled', 'Cancelled.');
+const withAbort = <T,>(p: Promise<T>, signal: AbortSignal): Promise<T> =>
+  new Promise<T>((res, rej) => { if (signal.aborted) { rej(aborted()); return; } const on = () => rej(aborted()); signal.addEventListener('abort', on, { once: true }); p.then(res, rej).finally(() => signal.removeEventListener('abort', on)); });
+
+type KokoroLike = { generate(text: string, o: { voice: string; speed: number }): Promise<{ audio: Float32Array; sampling_rate: number }> };
+export function kokoroRuntime(tts: KokoroLike & { model?: { dispose?: () => Promise<void> } }): ModelRuntime {
+  return {
+    async generate(req: GenerateRequest, io): Promise<RawAudio> {
+      if (req.kind !== 'tts') throw new ManagerError('failed', 'Kokoro makes speech only.');
+      const parts = chunkText(req.text); const out: Float32Array[] = []; let sr = 24000;
+      if (!parts.length) throw new ManagerError('failed', 'Type the narration text first.');
+      for (const [i, part] of parts.entries()) {
+        if (io.signal.aborted) throw aborted();
+        io.onProgress(`Speaking part ${i + 1} of ${parts.length}…`, i / parts.length);
+        const a = await tts.generate(part, { voice: req.voice, speed: req.speed });
+        if (!a.audio?.length) throw new ManagerError('failed', 'The voice returned no audio for part ' + (i + 1) + '.');
+        sr = a.sampling_rate; out.push(a.audio);
+        out.push(new Float32Array(Math.round(sr * 0.12))); // short gap between sentences
+      }
+      return { samples: concatSamples(out), sampleRate: sr };
+    },
+    async dispose() { await tts.model?.dispose?.(); },
+  };
+}
+
+export async function loadAudioModel(m: AudioModel, device: 'webgpu' | 'wasm', io: { signal: AbortSignal; onProgress: (message: string, fraction: number) => void }): Promise<ModelRuntime> {
+  return withAbortableFetch(io.signal, async () => {
+    const track = progressTracker(m, io.onProgress);
+    if (m.loader.kind === 'kokoro') {
+      const { KokoroTTS } = await import('kokoro-js');
+      await transformers();
+      const tts = await withAbort(KokoroTTS.from_pretrained(m.loader.repo, { dtype: m.loader.dtype as 'q8', device, progress_callback: track as never }), io.signal);
+      return kokoroRuntime(tts as unknown as Parameters<typeof kokoroRuntime>[0]);
+    }
+    const t = await transformers();
+    const tokenizer = await withAbort(t.AutoTokenizer.from_pretrained(m.loader.repo, { progress_callback: track as never }), io.signal);
+    const model = await withAbort(t.MusicgenForConditionalGeneration.from_pretrained(m.loader.repo, { device, dtype: m.loader.dtype as never, progress_callback: track as never }), io.signal);
+    return {
+      async generate(req, gio): Promise<RawAudio> {
+        if (req.kind !== 'music') throw new ManagerError('failed', 'MusicGen makes music only.');
+        const lim = m.durationSeconds!; const seconds = Math.min(lim.max, Math.max(lim.min, req.seconds));
+        const maxNew = Math.max(1, Math.round(seconds * 50));
+        let n = 0;
+        const streamer = { put: () => { if (gio.signal.aborted) throw aborted(); n++; gio.onProgress(`Composing… ${Math.round(Math.min(1, n / maxNew) * 100)}%`, Math.min(1, n / maxNew)); }, end: () => undefined };
+        const values = await model.generate({ ...tokenizer(req.prompt), max_new_tokens: maxNew, do_sample: true, guidance_scale: 3, streamer: streamer as never });
+        const sr = (model.config as { audio_encoder?: { sampling_rate?: number } }).audio_encoder?.sampling_rate ?? 32000;
+        const data = (values as unknown as { data: Float32Array }).data;
+        return { samples: data instanceof Float32Array ? data : new Float32Array(data as ArrayLike<number>), sampleRate: sr };
+      },
+      async dispose() { await (model as unknown as { dispose?: () => Promise<void> }).dispose?.(); },
+    };
+  });
+}
+
+let shared: AudioModelManager | null = null;
+/** The app-wide manager (browser dependencies). */
+export function getAudioModelManager(): AudioModelManager {
+  if (!shared) shared = new AudioModelManager({
+    capability: detectCapability, isCached: isModelCached, deleteCache: deleteModelCache, quota: storageQuota, load: loadAudioModel,
+    storage: typeof localStorage !== 'undefined' ? localStorage : undefined,
+  });
+  return shared;
+}

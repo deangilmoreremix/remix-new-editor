@@ -5,6 +5,8 @@ import type { PlaybackEngine } from '@cinegen/lib/editor/playback-engine';
 import { defaultClipEq, EQ_PRESETS, eqResponseDb, logFrequencies, normalizeClipEq, type ClipEq, type EqBand, EQ_GAIN_DB_MAX, EQ_GAIN_DB_MIN } from '@cinegen/lib/audio/eq';
 import { dbToFraction, holdPeak } from '@cinegen/lib/audio/meter';
 import { defaultClipPitch, normalizeClipPitch, audiblePitchSemitones, PITCH_CENTS_MAX, PITCH_CENTS_MIN, PITCH_SEMITONES_MAX, PITCH_SEMITONES_MIN, type ClipPitch } from '@cinegen/lib/audio/pitch'; // [remix] Stage 11
+import { LocalAudioPanel } from './local-audio-panel';
+import type { Asset } from '@cinegen/types/project';
 import { S } from './ui';
 
 export function StereoMeters({ engine, playing }: { engine: PlaybackEngine; playing: boolean }) {
@@ -63,9 +65,9 @@ export function eqTarget(tl: Timeline, c: Clip): Clip | undefined {
   return (c.linkedClipIds ?? []).map((id) => tl.clips.find((x) => x.id === id)).find((x): x is Clip => !!x && kind(x.trackId) === 'audio');
 }
 
-interface Props { timeline: Timeline; selectedClipIds: Set<string>; engine: PlaybackEngine; isPlaying: boolean; commit: (t: Timeline) => void }
+interface Props { timeline: Timeline; selectedClipIds: Set<string>; engine: PlaybackEngine; isPlaying: boolean; commit: (t: Timeline) => void; currentTime?: number; addAsset?: (a: Asset) => void }
 
-export function AudioPanel({ timeline, selectedClipIds, engine, isPlaying, commit }: Props) {
+export function AudioPanel({ timeline, selectedClipIds, engine, isPlaying, commit, currentTime = 0, addAsset }: Props) {
   const picked: Clip | undefined = timeline.clips.find((c) => selectedClipIds.has(c.id));
   // sound lives on audio-track clips: a selected video clip edits its linked audio clip
   const clip: Clip | undefined = picked && eqTarget(timeline, picked);
@@ -95,6 +97,7 @@ export function AudioPanel({ timeline, selectedClipIds, engine, isPlaying, commi
         <span style={{ width: 36, fontSize: 11 }}>{Math.round(master * 100)}%</span>
       </div>
       <div style={S.small}>Applies to everything you hear and to the exported file (clip volume, track volume and fades are in the clip and track controls).</div>
+      {addAsset && <LocalAudioPanel timeline={timeline} currentTime={currentTime} addAsset={addAsset} commit={commit} />}
       <div style={S.h}>Meters</div>
       <StereoMeters engine={engine} playing={isPlaying} />
       <div style={S.h}>Pitch {clip ? `for “${clip.name}”` : ''}</div>
