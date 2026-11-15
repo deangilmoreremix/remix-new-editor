@@ -1,5 +1,5 @@
-import { createAnalytics } from '/home/user/wt-stage7/src/lib/editor/publish/analyticsClient.js';
-import { createHeatmapCapture } from '/home/user/wt-stage7/src/lib/editor/publish/heatmapCapture.js';
+import { createAnalytics } from '__ROOT__/src/lib/editor/publish/analyticsClient.js';
+import { createHeatmapCapture } from '__ROOT__/src/lib/editor/publish/heatmapCapture.js';
 const container = document.getElementById('c');
 const frame = document.getElementById('frame');
 const analytics = createAnalytics({ videoId: 'vidA000001', beacon: null });

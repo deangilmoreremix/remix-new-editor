@@ -1,21 +1,24 @@
 import { createRequire } from 'node:module';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 import { spawnSync, execSync } from 'node:child_process';
 import fs from 'node:fs';
-const require = createRequire('/home/user/wt-stage7/package.json');
+const require = createRequire(`${ROOT}/package.json`);
 const { chromium } = require('playwright');
-const S = '/tmp/heat-e2e';
-const { handle } = await import('/home/user/wt-stage7/netlify/functions/video-events.js');
-const DB = 'heat2';
+const S = process.env.HEAT_S || '/tmp/heat-e2e';
+const { handle } = await import(`${ROOT}/netlify/functions/video-events.js`);
+const DB = process.env.DB || 'heat2';
 let n = 0;
 const sql = (q, role) => {
-  const f = `/tmp/heatq/q${n++}.sql`;
+  const f = `${process.env.HEAT_Q || '/tmp/heatq'}/q${n++}.sql`;
   fs.writeFileSync(f, `${role ? `set role ${role.r}; set request.jwt.claims = '${JSON.stringify(role.c || {})}';` : ''}\n${q}`);
   fs.chmodSync(f, 0o644);
   const r = spawnSync('runuser', ['-u', 'postgres', '--', 'psql', '-d', DB, '-At', '-q', '-v', 'ON_ERROR_STOP=1', '-f', f], { encoding: 'utf8' });
   if (r.status !== 0) throw new Error(r.stderr);
   return r.stdout.trim();
 };
-execSync(`bash /home/user/wt-stage7/tests/browser-harness/heatmaps/mkdb.sh ${DB}`, { stdio: 'ignore' });
+execSync(`bash ${ROOT}/tests/browser-harness/heatmaps/mkdb.sh ${DB}`, { stdio: 'ignore' });
 sql(`insert into published_videos(id,title,project,clerk_user_id) values ('vidA000001','Promo','{"timelineSeconds":12,"tracks":[]}','userA');`);
 
 // fetchImpl that maps PostgREST rpc calls onto the real Postgres (service role)
@@ -120,12 +123,13 @@ const rpcs = {
   video_heat_scroll: J('video_heat_scroll'), video_heat_engagement: J('video_heat_engagement'),
 };
 console.log(JSON.stringify(rpcs).slice(0, 900));
-check('db: 6 sessions pass the cohort; 18 clicks (3 per session)', rpcs.video_heat_clicks.suppressed === false && rpcs.video_heat_clicks.clicks === 24 || rpcs.video_heat_clicks.clicks === 18, `clicks=${rpcs.video_heat_clicks.clicks}`);
+const cl = rpcs.video_heat_clicks;
+check('db: 6 sessions pass the cohort; displayed clicks (cells + merged blocks + pool) never exceed the 18 sent, and a withheld cell is only a boolean', cl.suppressed === false && cl.clicks <= 18 && (cl.withheld === true || cl.clicks === 18), `clicks=${cl.clicks} withheld=${cl.withheld} cells=${JSON.stringify(cl.cells)} coarse=${JSON.stringify(cl.coarse)}`);
 check('db: CTA impressions 6, clicks 0 (no cta_click events in this harness) -> ctr 0', rpcs.video_heat_cta_stats.ctas[0].impressions === 6);
 check('db: scroll all 6 reached 100', rpcs.video_heat_scroll.reached['100'] === 6);
 const eng = rpcs.video_heat_engagement.seconds;
 check('db: per-second viewers 6 at second 0..8; replays 6 at seconds 2..5', eng.viewers[0] === 6 && eng.viewers[8] === 6 && eng.replays[3] === 6 && eng.replays[0] === 0, JSON.stringify(eng));
-check('db: drop-off at second 8 for all', eng.dropoff[8] === 6);
+check('db: drop-off is reported as bins of >= 5 sessions (one bin covering seconds 0..8 with all 6), no per-second drop-off', JSON.stringify(eng.dropoff_bins) === '[[0,8,6]]' && eng.dropoff === undefined, JSON.stringify(eng.dropoff_bins));
 
 // ---- render the React section in a real browser with those aggregates
 const ctx = await browser.newContext({ viewport: { width: 1100, height: 1500 }, deviceScaleFactor: 2 });
@@ -133,7 +137,7 @@ const page = await ctx.newPage();
 await page.route('http://heat.test/**', (route) => {
   const u = route.request().url();
   if (u.endsWith('/section.bundle.js')) return route.fulfill({ contentType: 'text/javascript', body: fs.readFileSync(`${S}/section.bundle.js`) });
-  if (u.endsWith('/heatmaps.css')) return route.fulfill({ contentType: 'text/css', body: fs.readFileSync('/home/user/wt-stage7/styles/heatmaps.css') + fs.readFileSync('/home/user/wt-stage7/styles/smartvideo-analytics.css') });
+  if (u.endsWith('/heatmaps.css')) return route.fulfill({ contentType: 'text/css', body: fs.readFileSync(`${ROOT}/styles/heatmaps.css`) + fs.readFileSync(`${ROOT}/styles/smartvideo-analytics.css`) });
   return route.fulfill({ contentType: 'text/html', body: `<!doctype html><link rel=stylesheet href="/heatmaps.css"><body style="background:#0b1020;margin:0"><div id=root></div><script>window.__rpc=${JSON.stringify(rpcs)}</script><script src="/section.bundle.js"></script>` });
 });
 await page.goto('http://heat.test/');
@@ -183,6 +187,8 @@ const csv = fs.readFileSync(await dl.path(), 'utf8');
 check('export: scroll CSV downloaded with rows', csv.startsWith('milestone_percent,sessions_reached,percent_of_sessions') && csv.includes('100,6,100'), csv.replace(/\r\n/g, '|'));
 await page.emulateMedia({ media: 'print' });
 const printVis = await page.evaluate(() => ({ controls: getComputedStyle(document.querySelector('.sv-heat-controls')).visibility, report: getComputedStyle(document.querySelector('.sv-heat-report')).visibility }));
+const privacyPrinted = await page.evaluate(() => { const e = document.querySelector('[data-testid=heat-privacy]'); return e ? getComputedStyle(e).visibility : 'absent'; });
+console.log('privacy note in print (scroll view, only shown when a step is merged):', privacyPrinted);
 check('print stylesheet hides controls and shows the report', printVis.controls === 'hidden' && printVis.report === 'visible', JSON.stringify(printVis));
 await browser.close();
 console.log(`\nSUMMARY passed=${results.passed.length} failed=${results.failed.length}`);

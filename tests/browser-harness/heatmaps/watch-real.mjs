@@ -84,6 +84,12 @@ async function viewer({ query = '', dnt = false, gpc = false, w = 900, h = 500, 
   // Headless Chromium has no handler for tel: and a click on such a link leaves the page unresponsive to later input; let the page's own
   // listeners run (they are registered earlier / in the capture phase) and then cancel the navigation, as a desktop browser without a phone app would.
   await ctx.addInitScript(() => window.addEventListener('click', (e) => { if (e.target?.closest?.('a[href^="tel:"]')) e.preventDefault(); }));
+  // Records whether the preview engine ever showed its "play pending" state (a Play queued before the Remotion player bound).
+  await ctx.addInitScript(() => {
+    window.__pendingSeen = false;
+    new MutationObserver(() => { if (document.querySelector('[data-play-pending]')) window.__pendingSeen = true; })
+      .observe(document, { subtree: true, attributes: true, attributeFilter: ['data-play-pending'], childList: true });
+  });
   const page = await ctx.newPage();
   const posts = [];
   const rpcCalls = [];
@@ -186,6 +192,47 @@ for (let i = 0; i < 6; i += 1) {
   }
 }
 
+// ---------- Stage 10 (Fix F): Play pressed IMMEDIATELY after load, before the Remotion player is bound (was silently lost).
+// Three ways to press it: the big-play overlay, the control-bar button, the keyboard (Space on the page). Nothing waits for the player.
+// Each run must (a) have really pressed before the player existed (asserted via the stage having no .__remotion-player at click time),
+// (b) show a pending state meanwhile, (c) start playback by itself once the player binds (clock advances), (d) not double-fire
+// (control-bar label still "Pause", exactly one play-through bucket range starting at 0), (e) send watch_buckets.
+const earlyResults = [];
+const earlyOk = (r) => r.clockOk && r.labelAtPress === 'Pause' && r.pendingSeen && r.pendingCleared && r.ranges.length === 1 && r.ranges[0][0] <= 1 && r.ranges[0][1] >= 1 && r.types.includes('watch_buckets');
+for (const mode of ['bigplay', 'playbtn', 'keyboard']) {
+  let r = null;
+  // Retried only for a stalled software-rendered player (clock never starts on a loaded machine, same safety net as above) or a flush
+  // that did not arrive in time; every attempt still presses BEFORE the player exists, so a lost press fails every attempt.
+  for (let attempt = 1; attempt <= 4 && !(r && earlyOk(r)); attempt += 1) {
+    const v = await viewer();
+    const { ctx, page, posts } = v;
+    const unbound = await page.evaluate(() => !document.querySelector('[data-stage] .__remotion-player'));
+    if (!unbound) { await ctx.close(); continue; }          // machine too fast this time: the player was already bound, retry
+    if (mode === 'bigplay') await page.click('[data-bigplay]');
+    else if (mode === 'playbtn') await page.click('[data-play]');
+    else { await page.focus('[data-seek]'); await page.keyboard.press('Space'); }
+    const labelAtPress = await page.getAttribute('[data-play]', 'aria-label');
+    const pendingSeen = await page.evaluate(() => window.__pendingSeen);
+    let clockOk = true;
+    try { await waitTime(page, 2); } catch { clockOk = false; }
+    const label = await page.getAttribute('[data-play]', 'aria-label').catch(() => null);
+    const pendingCleared = await page.evaluate(() => !document.querySelector('[data-play-pending]')).catch(() => false);
+    if (clockOk) await page.click('[data-play]');            // pause: closes the play-through so the range is flushed
+    for (let w = 0; w < 30 && !flat(posts).some((e) => e.type === 'watch_buckets'); w += 1) await page.waitForTimeout(500); // regular batch flush on a slow machine
+    await hide(page);
+    const ev = flat(posts);
+    const ranges = ev.filter((e) => e.type === 'watch_buckets').flatMap((e) => e.props.r);
+    r = { mode, attempt, unbound, labelAtPress, pendingSeen, clockOk, label, pendingCleared, ranges, types: [...new Set(ev.map((e) => e.type))] };
+    await ctx.close();
+  }
+  earlyResults.push(r || { mode, attempt: 0 });
+}
+for (const mode of ['bigplay', 'playbtn', 'keyboard']) {
+  const r = earlyResults.find((x) => x.mode === mode);
+  check(`early Play (${mode}) pressed before the player existed: not lost, clock advances, no double fire, pending state shown then cleared, watch_buckets sent`,
+    !!r && r.attempt > 0 && earlyOk(r), JSON.stringify(r));
+}
+
 // ---- assertions on what the real page sent
 const s0 = flat(allPosts[0].posts);
 const types0 = {}; s0.forEach((e) => { types0[e.type] = (types0[e.type] || 0) + 1; });
@@ -256,7 +303,8 @@ check('db: scroll depth 100 reached by all 6 sessions', rpcs.scroll.reached && r
 const eng = rpcs.eng.seconds || {};
 check('db: per-second viewers: seconds 0..3 watched by all 6', eng.viewers && [0, 1, 2, 3].every((s) => eng.viewers[s] === 6), JSON.stringify(eng.viewers));
 check('db: no replays (single play-through) and no second beyond the video', eng.replays && eng.replays.every((n) => n === 0) && (eng.viewers.length <= T + 1), JSON.stringify(eng.replays));
-check('db: the existing analytics rows were written too (6 sessions, plays)', Number(sql(`select count(*) from video_view_sessions where video_id='${VID}';`)) === 6);
+const sentSessions = new Set(allPosts.flatMap((x) => x.posts.map((p) => p.session))).size;
+check('db: the existing analytics rows were written too (one session row per session the pages sent)', Number(sql(`select count(*) from video_view_sessions where video_id='${VID}';`)) === sentSessions && sentSessions === 6, `sentSessions=${sentSessions}`);
 
 await browser.close();
 console.log(`\nSUMMARY passed=${results.passed.length} failed=${results.failed.length}`);
