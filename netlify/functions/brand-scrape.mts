@@ -8,7 +8,10 @@
 import './_personalization/shims/env'
 import { BrowserSsrfError, scrapeBrandSite } from './_personalization/src/server/browserDiscovery'
 
-type Config = { path: string | string[] }
+type Config = {
+  path: string | string[]
+  rateLimit?: { windowLimit: number; windowSize: number; aggregateBy: Array<'ip' | 'domain'>; action?: 'rate_limit' | 'block' }
+}
 
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), {
@@ -16,8 +19,7 @@ const json = (status: number, body: Record<string, unknown>) =>
     headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
   })
 
-// A warm instance serves many requests; cap each client so the endpoint cannot
-// be used as a free headless-browser farm. Per-instance, so best effort.
+// Second line of defence behind config.rateLimit: per warm instance only, so best effort.
 const WINDOW_MS = 60_000
 const MAX_PER_WINDOW = 6
 const hits = new Map<string, number[]>()
@@ -58,4 +60,9 @@ export default async function handler(req: Request): Promise<Response> {
   }
 }
 
-export const config: Config = { path: '/api/scrape' }
+// Every call can launch a headless browser, so the platform limits it per client IP before the function runs.
+// (The in-function limiter above is per instance only, and Netlify runs many instances.)
+export const config: Config = {
+  path: '/api/scrape',
+  rateLimit: { windowLimit: 8, windowSize: 60, aggregateBy: ['ip', 'domain'] },
+}
