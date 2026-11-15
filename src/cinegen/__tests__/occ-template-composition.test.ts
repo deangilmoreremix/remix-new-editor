@@ -194,3 +194,17 @@ describe('export arguments for a template rendered on its own', () => {
     expect(args.mgOverlays).toEqual([]); expect(args.hfOverlays).toEqual([]);
   });
 });
+
+describe('Connect forms get the business\'s own number', () => {
+  it('a picked Connect form is placed with the number in its call button; without a number the template stays as authored', () => {
+    const mk = (call?: { phone: string; country?: string }) => buildCompositionFromState({
+      media: [], mediaByScene: [{ sceneName: 'A', sceneIndex: 0, media: { id: 'm1', type: 'video', url: 'https://x/1.mp4', duration: 8, name: 'V1' }, mediaType: 'video', status: 'ready' }],
+      overlays: [{ kind: 'animation', type: 'animation', trackName: 'Animations', name: 'Call now', startTime: 1, duration: 6, animation: { templateId: 'cf-call-now', ...(call ? { call } : {}) } }], transitions: [],
+    } as never) as never;
+    const withNumber = applyComposition(createDefaultTimeline('T'), mk({ phone: '555 010 7777', country: '1' }));
+    const calls = withNumber.overlays.filter((o) => o.type === 'click-to-call');
+    expect(calls.length).toBeGreaterThan(0);
+    expect(JSON.stringify(withNumber.overlays)).toContain('555 010 7777');
+    expect(JSON.stringify(applyComposition(createDefaultTimeline('T'), mk()).overlays)).not.toContain('555 010 7777');
+  });
+});

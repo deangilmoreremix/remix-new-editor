@@ -89,7 +89,15 @@ export function toggleVideo(s, item) {
 export const animationRef = (it) => ({
   id: it.id, source: it.source, title: it.title, badge: it.badge || 'ANIMATION', category: it.category || '',
   duration: Number(it.duration) > 0 ? Number(it.duration) : 4, placeAt: it.placeAt || 'spread', thumb: it.poster || it.thumb || '',
+  ...(it.needsPhone ? { needsPhone: true, call: it.call ? { ...it.call } : { phone: '', country: '1', buttonText: '' } } : {}),
 });
+
+/** A Connect form (click-to-call) needs the business's own phone number before it can be added. */
+export const COUNTRY_CODES = [['1', 'US / Canada +1'], ['44', 'UK +44'], ['61', 'Australia +61'], ['91', 'India +91'], ['49', 'Germany +49'], ['33', 'France +33'], ['34', 'Spain +34'], ['52', 'Mexico +52'], ['55', 'Brazil +55']];
+export const phoneDigits = (v) => String(v || '').replace(/\D/g, '');
+export const phoneValid = (v) => { const n = phoneDigits(v).length; return n >= 6 && n <= 15; };
+/** Connect forms in the selection that still have no usable number. */
+export const callMissing = (s) => (s.selectedAnimations || []).filter((a) => a.needsPhone && !phoneValid(a.call?.phone));
 
 /**
  * Toggle an animation / motion graphic / end screen in the overlay tray (max MAX_ANIMATIONS).

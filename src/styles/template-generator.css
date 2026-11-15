@@ -531,3 +531,9 @@ h2.generator-offer__text { font-size: 30px; }
 .tg-bgstatus { margin: 8px 0; }
 .tg-bgprogress { position: relative; overflow: hidden; padding: 8px 12px; border-radius: 10px; background: var(--tg-surface); border: 1px solid var(--tg-line-soft); font-size: 12px; color: var(--tg-strong); }
 .tg-bgprogress i { position: absolute; left: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, var(--tg-accent), var(--tg-fx)); transition: width .3s; }
+
+/* Call button (Connect forms) */
+.tg-panel__head--static { padding: 12px 14px; font-weight: 600; color: var(--tg-strong); }
+.tg-call-row { padding: 8px 0; border-top: 1px solid var(--tg-line-soft); }
+.tg-call-row:first-child { border-top: 0; }
+.tg-call-row > b { color: var(--tg-strong); font-size: 13px; }

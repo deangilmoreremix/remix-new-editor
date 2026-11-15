@@ -11,7 +11,7 @@ import * as pixabayApi from '../../lib/pixabayApi.js';
 import { uploadFileToSupabase } from '../../lib/uploadService.js';
 import {
   STEPS, STEP_LABELS, MAX_VIDEOS, createWizardState, guardStep, nextStepIndex, nextDisabled, nextLabel, clipDuration,
-  toggleVideo, toggleAnimation, toBuilderState, previewTexts, hasScript, sceneNames, MAX_ANIMATIONS, splitLowerThird,
+  toggleVideo, toggleAnimation, toBuilderState, previewTexts, hasScript, sceneNames, MAX_ANIMATIONS, splitLowerThird, callMissing, COUNTRY_CODES, phoneValid,
 } from './template-generator/rules.js';
 import {
   PROVIDERS, MEDIA_FILTERS, STOCK_HOME, createStockClient, remoteItem, probeVideo, kindFromUrlOrType,
@@ -691,7 +691,7 @@ export class TemplateGeneratorModal extends BaseModal {
       <div class="tg-selected tg-selected--anim" aria-label="Selected animations">
         ${anim.map((a) => `
           <span class="tg-selected__item tg-selected__item--anim tg-selected__item--media" title="${esc(a.title)}">
-            <span class="tg-selected__thumb" style="background-image:${cssUrl(a.thumb)}"></span><b>✺</b><i>${esc(a.title)}</i>
+            <span class="tg-selected__thumb" style="background-image:${cssUrl(a.thumb)}"></span><b>✺</b><i>${esc(a.title)}${a.needsPhone ? ' 📞' : ''}</i>
             <button type="button" aria-label="Remove ${esc(a.title)}" data-act="remove-animation" data-id="${esc(a.id)}">✕</button></span>`).join('')}
       </div>` : '';
     return clips + motion;
@@ -945,6 +945,7 @@ export class TemplateGeneratorModal extends BaseModal {
           </div>
         </div>
         <div class="tg-extras">
+          ${this.renderCallPanel()}
           ${this.renderPanel('voice', '🎙️ Voice narration (optional)', voiceOpen, `<div id="tg-voice">${this.renderVoiceFields()}</div>`)}
           ${this.renderPanel('mix', '🎚️ Music and volume (optional)', this.ui.openPanels.mix, this.renderMixFields())}
           ${this.renderPanel('personalization', '👤 Personalization (optional)', persOpen, this.renderPersonalizationFields())}
@@ -1010,6 +1011,43 @@ export class TemplateGeneratorModal extends BaseModal {
       ${made && !u.voiceBusy ? `<p class="tg-status">✓ Voiceover ready · ${Math.round(made.duration || 0)} s${stale ? ' · your script changed since, make it again to match' : ''}</p>` : ''}
       ${u.voiceNote ? `<p class="tg-status tg-status--warn">${esc(u.voiceNote)}</p>` : ''}
       ${u.voiceError ? `<p class="tg-status tg-status--error">${esc(u.voiceError)}</p>` : ''}`;
+  }
+
+  // ----------------------------------------------------------- Call button (Connect forms)
+
+  /** A Connect form is a click-to-call button: it needs the business's own number. Shown only when one is picked. */
+  renderCallPanel() {
+    const items = this.s.selectedAnimations.filter((a) => a.needsPhone);
+    if (!items.length) return '';
+    const rows = items.map((a) => {
+      const c = a.call || {};
+      const ok = phoneValid(c.phone);
+      return `
+        <div class="tg-call-row" data-call-row="${esc(a.id)}">
+          <b>${esc(a.title)}</b>
+          <div class="tg-form-row">
+            <label>Country <select data-call="${esc(a.id)}|country">${COUNTRY_CODES.map(([v, l]) => `<option value="${v}"${(c.country || '1') === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
+            <label>Your phone number <input type="tel" inputmode="tel" data-call="${esc(a.id)}|phone" placeholder="e.g. 555 010 0100" value="${esc(c.phone || '')}" maxlength="24" aria-label="Phone number"></label>
+            <label>Button text (optional) <input type="text" data-call="${esc(a.id)}|buttonText" placeholder="e.g. Call us now" value="${esc(c.buttonText || '')}" maxlength="40"></label>
+          </div>
+          <p class="tg-status ${ok ? '' : 'tg-status--warn'}" data-call-hint="${esc(a.id)}">${ok ? '✓ The call button will dial this number.' : 'Add the number people should call. The button is not added without it.'}</p>
+        </div>`;
+    }).join('');
+    return `<section class="tg-panel is-open"><div class="tg-panel__head tg-panel__head--static">📞 Call button</div><div class="tg-panel__body">${rows}</div></section>`;
+  }
+
+  /** Typing a number or choosing a country: stored on the picked form, validated live (no repaint, so typing keeps focus). */
+  _onCallEdit(t) {
+    const [id, field] = String(t.dataset.call).split('|');
+    const a = this.s.selectedAnimations.find((x) => x.id === id);
+    if (!a) return;
+    a.call = { ...(a.call || {}), [field]: t.value };
+    const hint = [...(this.overlay?.querySelectorAll('[data-call-hint]') || [])].find((el) => el.dataset.callHint === id);
+    if (hint) {
+      const ok = phoneValid(a.call.phone);
+      hint.textContent = ok ? '✓ The call button will dial this number.' : 'Add the number people should call. The button is not added without it.';
+      hint.classList.toggle('tg-status--warn', !ok);
+    }
   }
 
   // ----------------------------------------------------------- background removal (cut-out)
@@ -1343,6 +1381,7 @@ export class TemplateGeneratorModal extends BaseModal {
 
   _onInput(e) {
     const t = e.target;
+    if (t.dataset?.call) { this._onCallEdit(t); return; }
     if (t.dataset?.mix) { this.s.mix[t.dataset.mix] = Number(t.value) / 100; const o = t.parentElement?.querySelector('output'); if (o) o.textContent = `${t.value}%`; this._pushAudio(); return; }
     if (t.dataset?.tbind || (t.dataset?.tstyle && t.type === 'color')) { this._onTextEdit(t); return; }
     if (t.dataset?.query) {
@@ -1397,6 +1436,7 @@ export class TemplateGeneratorModal extends BaseModal {
   _onChange(e) {
     const t = e.target;
     if (t.dataset?.tstyle) { this._onTextEdit(t); return; }
+    if (t.dataset?.call) { this._onCallEdit(t); return; }
     if (t.dataset?.voice) {
       const k = t.dataset.voice; const v = this.s.voice;
       if (k === 'engine') { v.engine = t.value; v.voice = t.value === 'free' ? FREE_VOICE_CHOICES[0][0] : 'marin'; this._refreshVoice(); }
@@ -2044,6 +2084,8 @@ export class TemplateGeneratorModal extends BaseModal {
     const u = this.ui;
     if (!this.exportHost || u.exp.busy) return;
     if (!canExportInBrowser()) { u.exp = { busy: false, progress: 0, error: 'Exporting needs a browser with video encoding (Chrome or Edge).', done: '' }; this._refreshExport(); return; }
+    const noPhone = callMissing(this.s);
+    if (noPhone.length) { u.exp = { busy: false, progress: 0, error: `Add your phone number for the call button (${noPhone.map((a) => a.title).join(', ')}) first, or remove it.`, done: '' }; this._refreshExport(); return; }
     if (this.exampleQuoteStillIn() && !u.exp.ackQuote) {
       u.exp = { busy: false, progress: 0, error: `${REAL_QUOTE_NOTICE} Export again to continue anyway.`, done: '', ackQuote: true };
       this._refreshExport(); return;
@@ -2065,6 +2107,12 @@ export class TemplateGeneratorModal extends BaseModal {
   }
 
   async addToTimeline() {
+    const noPhone = callMissing(this.s);
+    if (noPhone.length) {
+      this.ui.openPanels.call = true;
+      this.toast(`Add your phone number for the call button (${noPhone.map((a) => a.title).join(', ')}) in the Preview step, or remove it.`);
+      return;
+    }
     this.ui.busy = true;
     this._updateNext();
     try {

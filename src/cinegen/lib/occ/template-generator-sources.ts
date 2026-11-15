@@ -25,11 +25,11 @@ import type { GlslTransitionType } from '../../../openchatcut/types';
 const FPS = 30;
 const PER_PAGE = 24;
 
-export interface GeneratorCard { id: string; kind: 'animation'; source: string; title: string; description?: string; badge: string; category: string; duration: number; placeAt?: 'spread' | 'end'; glyph?: string; /** real still of the animation (made by scripts/generate-template-generator-thumbs.mjs) */ poster: string; ratio?: number }
+export interface GeneratorCard { id: string; kind: 'animation'; source: string; title: string; description?: string; badge: string; category: string; duration: number; needsPhone?: boolean; placeAt?: 'spread' | 'end'; glyph?: string; /** real still of the animation (made by scripts/generate-template-generator-thumbs.mjs) */ poster: string; ratio?: number }
 export interface GeneratorSource {
   id: string; label: string; blurb: string; group?: string; filters: Array<[string, string]>;
   search: (q: { query: string; filter: string; page: number }) => Promise<{ items: GeneratorCard[]; hasMore: boolean }>;
-  resolve: (ref: { id: string }) => Promise<{ overlay?: OverlayClip; templateId?: string }>;
+  resolve: (ref: { id: string; call?: { phone: string; country?: string; buttonText?: string } }) => Promise<{ overlay?: OverlayClip; templateId?: string; call?: { phone: string; country?: string; buttonText?: string } }>;
   mountPreview?: (host: HTMLElement, item: GeneratorCard) => () => void;
 }
 
@@ -111,20 +111,21 @@ export function motionGraphicsSource(): GeneratorSource {
 }
 
 export function endScreensSource(): GeneratorSource {
-  // Connect forms ask for the viewer's phone number, which the wizard can't collect: the timeline's own overlay menu still offers them.
-  const all = overlayTemplates().filter((t) => !isConnectTemplate(t.id));
+  // Connect forms are click-to-call buttons: the wizard's "Call button" panel collects the business's own number before they are added.
+  const all = overlayTemplates();
   const card = (t: (typeof all)[number]): GeneratorCard => ({
     id: `tpl:${t.id}`, kind: 'animation', source: 'endscreens', title: t.name.replace(/^[^:]+:\s*/, ''), description: t.description,
-    badge: t.library === 'endScreens' ? 'END SCREEN' : 'FORM', category: t.library, duration: t.library === 'endScreens' ? 6 : 8,
+    badge: t.library === 'endScreens' ? 'END SCREEN' : isConnectTemplate(t.id) ? 'CALL' : 'FORM', category: t.library, duration: t.library === 'endScreens' ? 6 : 8,
+    ...(isConnectTemplate(t.id) ? { needsPhone: true } : {}),
     placeAt: t.library === 'endScreens' ? 'end' : 'spread', glyph: t.library === 'endScreens' ? '⏹' : '▭', poster: tplThumb(t.id), ratio: 16 / 9,
   });
   const libs = [...new Set(all.map((t) => t.library))];
   return {
     id: 'endscreens', label: 'End screens & forms', group: 'Motion & templates',
     blurb: 'End screens, calls to action and lead forms, placed at the end of your video or where they fit.',
-    filters: [['all', 'All'], ...libs.map((l): [string, string] => [l, l === 'endScreens' ? 'End screens' : 'Lead forms'])],
+    filters: [['all', 'All'], ...libs.map((l): [string, string] => [l, l === 'endScreens' ? 'End screens' : l === 'connect' ? 'Call buttons' : 'Lead forms'])],
     async search({ query, filter, page: n }) { return page(all.filter((t) => (filter === 'all' || t.library === filter) && matches(query, t.name, t.description)).map(card), n); },
-    async resolve(ref) { return { templateId: ref.id.replace(/^tpl:/, '') }; },
+    async resolve(ref) { return { templateId: ref.id.replace(/^tpl:/, ''), ...(ref.call?.phone ? { call: ref.call } : {}) }; },
     /** The template window's own preview: the real overlays, animated, over the same backdrop the window uses. */
     mountPreview(host, item) {
       let dead = false; let engine: { play: () => void; seekToFrame: (f: number) => void; destroy: () => void } | null = null;

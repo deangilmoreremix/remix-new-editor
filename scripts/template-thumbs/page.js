@@ -4,7 +4,7 @@ import { createCodePreview } from '/src/lib/editor/remotion/codePreviewClient.js
 import { createPreviewEngine } from '/src/lib/editor/remotion/previewEngine.jsx';
 import { timelineToComposition } from '/src/lib/editor/remotion/timelineToComposition.js';
 import '/src/lib/editor/addons/index.js';
-import { END_SCREENS, LEAD_FORMS, templatePreviewProject } from '/src/lib/editor/addons/templateLibrary.js';
+import { END_SCREENS, LEAD_FORMS, CONNECT_FORMS, templatePreviewProject } from '/src/lib/editor/addons/templateLibrary.js';
 import { presetToClips } from '/src/lib/editor/addons/overlayPresets.js';
 import { hyperframesItems, createHyperframesOverlay, hyperframesOverlayLayer } from '/src/cinegen/lib/hyperframes/overlay.ts';
 import { loadMgTemplates, createMgOverlay, mgOverlayLayer } from '/src/cinegen/lib/occ/mg-templates.ts';
@@ -30,7 +30,7 @@ async function list() {
   const out = [];
   for (const i of hyperframesItems()) out.push({ kind: 'hf', id: i.id, url: hfThumb(i.id) });
   for (const t of (await loadMgTemplates()).filter((x) => x.usable)) out.push({ kind: 'mg', id: t.id, url: mgThumb(t.id) });
-  for (const t of [...END_SCREENS, ...LEAD_FORMS]) out.push({ kind: 'tpl', id: t.id, url: tplThumb(t.id) });
+  for (const t of [...END_SCREENS, ...LEAD_FORMS, ...CONNECT_FORMS]) out.push({ kind: 'tpl', id: t.id, url: tplThumb(t.id) });
   return out;
 }
 
@@ -57,7 +57,7 @@ async function render({ kind, id, frac, wait }) {
     const layer = mgOverlayLayer(createMgOverlay(t, 0), FPS);
     return renderLayer(layer, t.width, t.height, Math.round(layer.durationInFrames * (frac ?? 0.55)), wait);
   }
-  const tpl = [...END_SCREENS, ...LEAD_FORMS].find((x) => x.id === id);
+  const tpl = [...END_SCREENS, ...LEAD_FORMS, ...CONNECT_FORMS].find((x) => x.id === id);
   const model = timelineToComposition(templatePreviewProject(tpl, presetToClips), { quality: '720p' });
   mount(model.width || 1280, model.height || 720);
   const frame = Math.round((model.durationInFrames || 90) * (frac ?? 0.6));

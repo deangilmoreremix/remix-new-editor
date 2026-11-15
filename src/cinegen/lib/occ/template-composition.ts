@@ -10,7 +10,7 @@ import { createOverlay, createTemplateOverlays } from '@cinegen/lib/overlays/ove
 import { generateId } from '@cinegen/lib/utils/ids';
 import { isGlTransition } from './transitions';
 
-interface CompClip { volume?: number; keyframes?: { volume?: Array<{ t: number; v: number }> }; _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string }; lowerThird?: { template?: string; name?: string; title?: string }; textStyle?: Record<string, unknown> }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
+interface CompClip { volume?: number; keyframes?: { volume?: Array<{ t: number; v: number }> }; _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string; call?: { phone: string; country?: string; buttonText?: string } }; lowerThird?: { template?: string; name?: string; title?: string }; textStyle?: Record<string, unknown> }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
 interface CompTrack { type?: string; name?: string; clips?: CompClip[] }
 export interface Composition { name?: string; tracks?: CompTrack[]; transitions?: Array<{ fromClipIndex: number; toClipIndex: number; inTrack?: number; type?: string; duration?: number }> }
 
@@ -66,7 +66,7 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
         else if (cfg?.templateId) {
           // an end-screen template is anchored to the cut's end; when the cut is shorter than the template, slide it forward so it
           // never starts before this cut (it must not cover footage that was already on the timeline)
-          const made = createTemplateOverlays(cfg.templateId, start, compEnd);
+          const made = createTemplateOverlays(cfg.templateId, start, compEnd, cfg.call);
           const earliest = made.length ? Math.min(...made.map((o) => o.start)) : base;
           const shift = earliest < base ? base - earliest : 0;
           overlays.push(...made.map((o) => (shift ? { ...o, start: o.start + shift, end: o.end + shift } : o)));
