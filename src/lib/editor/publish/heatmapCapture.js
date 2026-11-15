@@ -137,13 +137,18 @@ export function createHeatmapCapture(o = {}) {
     watchEvents += 1;
     analytics.track('watch_buckets', { props: { vp: vp(), r: r.slice(0, 30) } });
   }
-  function endRun() { flushPending(); runSeen = new Set(); last = null; }
+  // A pause (or a hidden tab) closes the current batch but not the play-through: resuming at the same spot (forward, within 1.5 s)
+  // continues it, so the second the viewer paused in is not counted a second time as a "replay". A seek back (or a long jump) starts a new one.
+  let resumeAt = null;
+  function endRun() { flushPending(); resumeAt = last ?? resumeAt; last = null; }
   function onPlayerChange({ playing, time, duration } = {}) {
     if (destroyed || !(duration > 0) || !Number.isFinite(time)) return;
     const effective = !!playing && !doc?.hidden;
     if (!effective) { endRun(); return; }
     const continuous = last != null && time >= last && time - last <= 1.5;
-    if (!continuous) { flushPending(); runSeen = new Set(); } // a seek starts a new play-through
+    const resumed = last == null && resumeAt != null && time >= resumeAt && time - resumeAt <= 1.5;
+    resumeAt = null;
+    if (!continuous && !resumed) { flushPending(); runSeen = new Set(); } // a seek starts a new play-through
     else {
       const s = Math.floor(time);
       if (s >= 0 && s <= 3599 && !runSeen.has(s)) { runSeen.add(s); pending.push(s); }
