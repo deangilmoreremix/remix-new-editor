@@ -5073,6 +5073,53 @@ export function TimelineEditorPage() {
       else if (fix.type === 'show-layer') showBridgedLayer(fix.layerId);
     }
 
+    // The Personalization Studio service the AI chat agent (and WebMCP) works through:
+    // the same functions the panels call, so there is one behaviour.
+    function personalizationService() {
+      const profileFor = (id) => (id ? contactStore.getProfile?.(id) : getActivePersonalizationProfile());
+      const nameFor = (p) => (p ? contactName(p) : null);
+      return {
+        layouts: () => PERSONALIZED_LAYOUTS,
+        async status() {
+          await loadLayoutCheck();
+          const active = getActivePersonalizationProfile();
+          return {
+            activeContact: active ? { id: active.id, name: nameFor(active) } : null,
+            contacts: listContactProfiles(contactStore).map((c) => ({ id: c.id, name: nameFor(c) })),
+            imageTokensUsed: projectImageKeys(),
+            readiness: readinessData(),
+          };
+        },
+        listImages(contactId) {
+          const p = profileFor(contactId);
+          return p ? listTimelineImageAssets(p).filter((m) => m.saved) : null;
+        },
+        async checkLayout() { await loadLayoutCheck(); return layoutCheckData(); },
+        removeBackground: (assetId, contactId) => {
+          const p = profileFor(contactId);
+          return p ? removeContactImageBackground(p, assetId) : Promise.resolve({ ok: false, error: 'No such contact' });
+        },
+        async prepareImages() {
+          const skippedDone = planPrepareImages(listContactProfiles(contactStore), projectImageKeys(), { contactName }).skipped.done;
+          const outcome = await prepareAllContactImages();
+          if (!outcome) return null;
+          return {
+            prepared: outcome.results.filter((r) => r.ok).length,
+            failed: outcome.results.filter((r) => !r.ok).map((r) => ({ name: r.name, error: r.error })),
+            cancelled: outcome.cancelled,
+            skippedDone,
+          };
+        },
+        addLayout: (layoutId) => addLayout(layoutId),
+        setActiveContact(id) {
+          if (!id) { contactStore.selectContact(null); return true; }
+          if (!contactStore.getProfile?.(id)) return false;
+          contactStore.selectContact(id);
+          return true;
+        },
+      };
+    }
+
     // Prepare all contacts' images: free on-device background removal for the
     // logo / photo / product image each contact's video uses, in one batch.
     let prepareRun = null; // { abort, progress, message } while running
@@ -5082,10 +5129,10 @@ export function TimelineEditorPage() {
       return { hasKeys: keys.length > 0, items, running: prepareRun ? { progress: prepareRun.progress, message: prepareRun.message } : null };
     }
     async function prepareAllContactImages(redraw) {
-      if (prepareRun) return;
+      if (prepareRun) return null;
       const { items } = prepareInfo();
-      if (!items.length) { showToast('Every contact image this video uses is already prepared', 'info'); return; }
-      if (!window.confirm(`Remove the background from ${items.length} image${items.length === 1 ? '' : 's'}? It runs on this device and is free. The first time it downloads a ~192 MB model.`)) return;
+      if (!items.length) { showToast('Every contact image this video uses is already prepared', 'info'); return null; }
+      if (!window.confirm(`Remove the background from ${items.length} image${items.length === 1 ? '' : 's'}? It runs on this device and is free. The first time it downloads a ~192 MB model.`)) return null;
       const abort = new AbortController();
       prepareRun = { abort, progress: 0, message: 'Starting…' };
       redraw?.();
@@ -5104,8 +5151,10 @@ export function TimelineEditorPage() {
         measureLogos();
         const failed = outcome.results.some((r) => !r.ok);
         showToast(summarizeBatch(outcome, { noun: 'image', verb: 'Prepared' }), failed ? 'error' : 'success');
+        return outcome;
       } catch (err) {
         showToast(`Preparing images failed: ${err?.message || err}`, 'error');
+        return null;
       } finally {
         prepareRun = null;
         redraw?.();
@@ -5144,9 +5193,9 @@ export function TimelineEditorPage() {
     const cutoutBusy = new Set();
     async function removeContactImageBackground(profile, assetId, redraw) {
       const asset = profile && assetId ? listTimelineImageAssets(profile).find((m) => m.saved && m.id === assetId) : null;
-      if (!asset || cutoutBusy.has(assetId)) return false;
+      if (!asset || cutoutBusy.has(assetId)) return { ok: false, error: cutoutBusy.has(assetId) ? 'Already working on that image' : 'No such saved image for this contact' };
       const full = [...Object.values(profile.personalization?.assets || {}).flat()].find((a) => a?.id === assetId);
-      if (!full) return false;
+      if (!full) return { ok: false, error: 'No such saved image for this contact' };
       cutoutBusy.add(assetId);
       redraw?.();
       showToast('Removing background… the first time downloads a ~192 MB model', 'info');
@@ -5155,10 +5204,10 @@ export function TimelineEditorPage() {
         saveContactAsset(contactStore.getProfile?.(profile.id) || profile, assetId, () => patch);
         if (full.role === 'logo') measureLogos([contactStore.getProfile?.(profile.id) || profile]);
         showToast(uploaded ? 'Background removed' : 'Background removed (kept on this device only: could not upload it)', uploaded ? 'success' : 'info');
-        return true;
+        return { ok: true, uploaded };
       } catch (err) {
         showToast(`Background removal failed: ${err?.message || err}`, 'error');
-        return false;
+        return { ok: false, error: String(err?.message || err) };
       } finally {
         cutoutBusy.delete(assetId);
         redraw?.();
@@ -5405,16 +5454,16 @@ export function TimelineEditorPage() {
     function addLayout(layoutId) {
       const profile = getActivePersonalizationProfile();
       const layout = PERSONALIZED_LAYOUTS.find((l) => l.id === layoutId);
-      if (!layout) return;
+      if (!layout) return 0;
       if (!profile) {
         showToast('Select a contact in the Personalize window first', 'info');
-        return;
+        return 0;
       }
       const T = state.timelineSeconds || 60;
       const plan = buildLayoutPlan(layoutId, profile, { timelineSeconds: T, startSec: (state.playheadPercent / 100) * T });
       if (!plan.length) {
         showToast(`${contactName(profile)} has no logo, CTA graphic or CTA text yet. Add them in the Personalize window's image finder.`, 'info');
-        return;
+        return 0;
       }
       saveStateSnapshot(state);
       let last = null;
@@ -5436,6 +5485,7 @@ export function TimelineEditorPage() {
         return key && !resolveToken(p, key);
       })).length;
       showToast(`Added ${layout.label}${missing ? ` — ${missing} contact${missing === 1 ? ' has' : 's have'} no image for it yet (Check contacts)` : ''}`, missing ? 'info' : 'success');
+      return plan.length;
     }
 
     // Settings panel for schema-driven addons (Skip / Pause / Loop). Mirrors
@@ -5918,6 +5968,7 @@ export function TimelineEditorPage() {
         confirm: (message) => Promise.resolve(window.confirm(message)),
         /** Free on-device AI + MuAPI generation (src/lib/editor/ml, src/lib/editor/ai). */
         aiEditor: () => localAIEditor(),
+        personalization: () => personalizationService(),
       };
     }
 

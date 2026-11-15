@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', '71393ebad48b0ab17d0ccc14db796d96e04898d6e172073b3622319c8181528c'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check, prepare images, readiness); semantic coverage in section 5
+        ['src/components/TimelineEditorPage.jsx', '619aca90d30a48c51535ae9eed03d724d50d343157fd315e4621ec2a55a0f1d4'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check, prepare images, readiness, agent service); semantic coverage in section 5
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -1039,6 +1039,11 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain("import { buildReadiness } from '../lib/personalization/readiness.js';");
     expect(source).toContain('async function checkImagesLoad(redraw)');
     expect(source).toContain('function openPersonalizeWindow(onDone)');
+    // AI chat agent: personalization tools reach the page only through one
+    // service object built from the same functions the panels call (no new
+    // provider, key or upload path; the agent's own confirm gate still applies).
+    expect(source).toContain('function personalizationService()');
+    expect(source).toContain('personalization: () => personalizationService(),');
     expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
     expect(source).not.toMatch(BROWSER_EXPOSED_KEY);
     // The cutout module reaches storage only through the studio's persistence

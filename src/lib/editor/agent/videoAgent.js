@@ -117,6 +117,13 @@ export function describeToolCall(name, args = {}) {
     case 'remove_clip': return 'Removing a clip';
     case 'set_duration': return `Setting length to ${a.seconds}s`;
     case 'preview_frame': return `Previewing ${a.time}s`;
+    case 'personalization_status': return 'Checking personalization';
+    case 'list_contact_images': return 'Listing contact images';
+    case 'check_layout': return 'Checking the layout';
+    case 'remove_contact_image_background': return 'Removing an image background (free, on this device)';
+    case 'prepare_contact_images': return "Preparing every contact's images (free, on this device)";
+    case 'add_personalized_layout': return `Adding the ${String(a.layout_id || '')} layout`;
+    case 'set_active_contact': return a.contact_id ? 'Previewing as another contact' : 'Clearing the previewed contact';
     case 'export_video': return 'Exporting the video';
     default: return name;
   }
