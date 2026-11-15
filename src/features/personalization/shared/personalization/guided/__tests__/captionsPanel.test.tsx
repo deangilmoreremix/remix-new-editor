@@ -73,6 +73,12 @@ describe('CaptionsPanel', () => {
     expect(q(el, 'captions-style-bar')?.getAttribute('aria-pressed')).toBe('true')
   })
 
+  it('describes the looks, with Clean as a plain white text with a thin outline', async () => {
+    const { el } = mount(); await generate(el)
+    expect(q(el, 'captions-style-clean')?.getAttribute('title')).toBe('Plain white text with a thin dark outline')
+    expect(q(el, 'captions-look-hint')?.textContent).toMatch(/Bar is the safest on very busy footage/)
+  })
+
   it('corrects a line, and deletes a line that is cleared', async () => {
     engine.transcribeVideo.mockResolvedValue({ text: '', captions: [w('Call', 0, 300), w('us', 320, 500), w('Free', 3000, 3300), w('quote', 3320, 3600)] })
     const { el } = mount(); await generate(el)

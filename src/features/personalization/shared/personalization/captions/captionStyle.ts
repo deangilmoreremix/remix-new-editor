@@ -7,7 +7,7 @@ import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaption
 export const CAPTION_STYLES: readonly { id: CaptionStyleId; label: string; hint: string }[] = Object.freeze([
   { id: 'bold', label: 'Bold', hint: 'Big, with the spoken word picked out' },
   { id: 'bar', label: 'Bar', hint: 'White text on a dark bar' },
-  { id: 'clean', label: 'Clean', hint: 'Plain text with a soft shadow' },
+  { id: 'clean', label: 'Clean', hint: 'Plain white text with a thin dark outline' },
 ])
 export const CAPTION_POSITIONS: readonly { id: CaptionPosition; label: string }[] = Object.freeze([
   { id: 'bottom', label: 'Bottom' }, { id: 'middle', label: 'Middle' }, { id: 'top', label: 'Top' },

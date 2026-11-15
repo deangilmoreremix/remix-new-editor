@@ -287,4 +287,25 @@ describe('burned-in captions', () => {
     expect(layer(container)?.querySelectorAll('span').length).toBe(0)
     expect(layer(container)?.textContent).toBe('Call us today')
   })
+
+  // The text-shadow of the caption text, split into its parts.
+  const shadows = (c: HTMLElement) => {
+    const raw = (layer(c) as HTMLElement).style.textShadow
+    const parts = [...raw.matchAll(/((?:-?\d+(?:px)?\s+){2,3})(?:rgba?\([^)]*\)|#[0-9a-f]{3,8})/gi)]
+    return parts.map((m) => {
+      const n = m[1].match(/-?\d+/g)!.map(Number)
+      return { x: n[0], y: n[1], blur: n[2] ?? 0 }
+    })
+  }
+  it('Clean has a dark outline as well as a soft shadow, so it stays readable on light footage', () => {
+    const parts = shadows(mountComposition(withCaptions({ style: 'clean' }, 30)).container)
+    const outline = parts.filter((p) => p.blur === 0)
+    expect(outline).toHaveLength(8) // all eight directions around the letters
+    expect(parts.some((p) => p.blur > 0)).toBe(true) // and the soft shadow is still there
+  })
+  it('Clean\'s outline is thinner than Bold\'s, so it still looks plainer', () => {
+    const outlineSize = (style: string) => Math.max(...shadows(mountComposition(withCaptions({ style }, 30)).container).filter((p) => p.blur === 0).map((p) => Math.abs(p.x)))
+    expect(outlineSize('clean')).toBeGreaterThan(0)
+    expect(outlineSize('clean')).toBeLessThan(outlineSize('bold'))
+  })
 })

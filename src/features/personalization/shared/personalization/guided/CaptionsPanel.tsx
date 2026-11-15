@@ -76,6 +76,8 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
             ))}
           </div>
 
+          <p data-testid="captions-look-hint" style={{ ...hintStyle, margin: 0 }}>Bold stands out most; Bar is the safest on very busy footage; Clean is the plainest.</p>
+
           <ol data-testid="captions-list" style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 220, overflow: 'auto', display: 'grid', gap: 4 }}>
             {cues.map((cue, i) => (
               <li key={`${cue.startMs}-${i}-${cue.text}`} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: C.text }}>

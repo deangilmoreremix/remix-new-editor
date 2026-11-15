@@ -51,7 +51,9 @@ export const CaptionsLayer: React.FC<{
       ? { background: 'rgba(0,0,0,0.68)', padding: `${Math.round(layout.fontSizePx * 0.28)}px ${Math.round(layout.fontSizePx * 0.55)}px`, borderRadius: Math.round(layout.fontSizePx * 0.28) }
       : captions.style === 'bold'
         ? { textShadow: outline(layout.fontSizePx * 0.07, '#000000'), letterSpacing: '0.01em' }
-        : { textShadow: `0 ${Math.round(layout.fontSizePx * 0.06)}px ${Math.round(layout.fontSizePx * 0.2)}px rgba(0,0,0,0.75)` }),
+        // Plain look: white text with a THIN dark outline (about half Bold's) and a soft shadow. The shadow alone vanished on
+        // light footage; the outline keeps it readable on any background while it still looks lighter than Bold.
+        : { textShadow: `${outline(layout.fontSizePx * 0.035, 'rgba(0,0,0,0.85)')}, 0 ${Math.round(layout.fontSizePx * 0.06)}px ${Math.round(layout.fontSizePx * 0.2)}px rgba(0,0,0,0.75)` }),
   }
   const accent = settings.brandColors.accent
 
