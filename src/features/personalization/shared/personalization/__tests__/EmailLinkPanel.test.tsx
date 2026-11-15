@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import EmailLinkPanel from '../EmailLinkPanel'
-import { mergeTagLink, tokensInText, isUnreplacedMergeTag, EMAIL_PROVIDERS } from '../emailMergeLink'
+import { mergeTagLink, mergeTagFor, tokensInText, isUnreplacedMergeTag, EMAIL_PROVIDERS } from '../emailMergeLink'
 
 const BASE = 'https://watch.example/v/abc'
 
@@ -55,5 +55,38 @@ describe('EmailLinkPanel', () => {
     unmount()
     render(<EmailLinkPanel tokens={['firstName']} />)
     expect((screen.getByTestId('pz-email-base') as HTMLInputElement).value).toBe(BASE)
+  })
+})
+
+describe('per-provider tags (snapshot of the verified catalogue)', () => {
+  const expected: Record<string, [string, string]> = {
+    mailchimp: ['*|FNAME|*', '*|COMPANY|*'],            // company is not a default Mailchimp field -> custom
+    activecampaign: ['%FIRSTNAME%', '%ORGNAME%'],
+    klaviyo: ['{{ first_name }}', '{{ organization }}'],
+    hubspot: ['{{contact.firstname}}', '{{contact.company}}'],
+    constantcontact: ['[[FirstName]]', '[[company]]'],
+    brevo: ['{{ contact.FIRSTNAME }}', '{{ contact.COMPANY }}'],
+    mailerlite: ['{$name}', '{$company}'],
+    kit: ['{{ subscriber.first_name }}', '{{ subscriber.company }}'],
+    getresponse: ['[[firstname]]', '[[company]]'],
+    campaignmonitor: ['[firstname,fallback=]', '[company,fallback=]'],
+    salesforcemc: ['%%FirstName%%', '%%company%%'],
+    custom: ['{{firstName}}', '{{company}}'],
+  }
+  it('covers every provider', () => {
+    expect(Object.keys(expected).sort()).toEqual(EMAIL_PROVIDERS.map((p) => p.key).sort())
+  })
+  Object.entries(expected).forEach(([key, [first, company]]) => {
+    it(`${key}: first name and company tags`, () => {
+      const p = EMAIL_PROVIDERS.find((x) => x.key === key)!
+      expect(mergeTagFor(p, 'firstName').tag).toBe(first)
+      expect(mergeTagFor(p, 'company').tag).toBe(company)
+    })
+  })
+  it('only maps built-in fields it can stand behind', () => {
+    const mc = EMAIL_PROVIDERS.find((p) => p.key === 'mailchimp')!
+    expect(mergeTagFor(mc, 'company').mapped).toBe(false)
+    expect(mergeTagFor(mc, 'fullName').mapped).toBe(false)
+    expect(mergeTagFor(EMAIL_PROVIDERS.find((p) => p.key === 'salesforcemc')!, 'email').tag).toBe('%%emailaddr%%')
   })
 })
