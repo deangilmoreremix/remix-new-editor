@@ -45,7 +45,7 @@ export function safeWebUrl(url) {
 }
 
 export const AFTER_SUBMIT_ACTIONS = [
-  ['continue', 'Keep watching (just the message)'],
+  ['continue', 'Keep watching (nothing extra)'],
   ['button', 'Show a thank-you button'],
   ['redirect', 'Send the viewer to a page'],
 ];
@@ -91,7 +91,10 @@ export function showThanks(layer, config, { allowRedirect = false, navigate = (u
     card.appendChild(close);
     schedule(() => card.remove(), THANKS_BUTTON_MS);
   } else if (allowRedirect) {
-    schedule(() => navigate(url), REDIRECT_DELAY_MS);
+    // If the page's player is destroyed during the delay (the viewer navigated away), its layer is
+    // removed from the document: don't then replace whatever page they moved on to.
+    const attached = layer.isConnected;
+    schedule(() => { if (attached && !layer.isConnected) return; navigate(url); }, REDIRECT_DELAY_MS);
   } else {
     const note = document.createElement('p');
     note.className = 'addon-thanks__note';

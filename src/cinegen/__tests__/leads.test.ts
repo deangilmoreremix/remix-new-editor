@@ -1,6 +1,6 @@
 // [remix] Leads tab logic: forms, counts, filter/search, columns, CSV, includes, delete/list via a fake client, tab registration.
 import { describe, it, expect } from 'vitest';
-import { answerColumns, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
+import { answerColumns, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, csvSafe, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
 import { createOverlay } from '@cinegen/lib/overlays/overlays';
 import { setLeadsForm, getLeadsForm } from '@cinegen/lib/leads/leads-filter';
 // @ts-expect-error plain JS
@@ -59,6 +59,15 @@ describe('leads logic', () => {
     expect(csv[0]).toContain('"Referrer"');
     expect(csv[1]).toContain('"google"');
     expect(rowsToCsv([row('p', 'lead-form', 'x', { EMAIL: 'a@x.com' })], []).split('\r\n')[0]).not.toContain('UTM'); // older exports keep their shape
+  });
+  it('neutralizes spreadsheet formulas in the attribution columns', () => {
+    for (const bad of ['=1+1', '+SUM(A1)', '-2+3', '@cmd', '\tx', '\rx']) expect(csvSafe(bad)).toBe(`'${bad}`);
+    for (const fine of ['google', 'spring sale', 'a=b', 'https://x.test/p']) expect(csvSafe(fine)).toBe(fine);
+    const csv = rowsToCsv([{ ...row('f', 'lead-form', 'x', { EMAIL: 'a@x.com' }), source: { utm: { source: '=HYPERLINK("http://evil","x")', campaign: '@SUM(1)' }, referrer: 'https://r.test/p' } }], []);
+    expect(csv).toContain(`"'=HYPERLINK(""http://evil"",""x"")"`);
+    expect(csv).toContain(`"'@SUM(1)"`);
+    expect(csv).toContain('"https://r.test/p"');
+    expect(csv).not.toMatch(/(^|,)"=/m);
   });
   it('builds columns and CSV', () => {
     expect(answerColumns(rows).map((c) => c.label)).toEqual(['Email', 'First Name', 'Phone']);

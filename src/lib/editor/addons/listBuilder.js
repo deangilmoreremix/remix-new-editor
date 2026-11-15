@@ -452,7 +452,7 @@ export function applyOptinToLeadForm(clip, next) {
   clip.design = clip.design || {};
   for (const [key, value] of Object.entries(next)) {
     if (OWN_KEYS.has(key)) continue;
-    if (CLIP_KEYS[key]) clip[CLIP_KEYS[key]] = value;
+    if (CLIP_KEYS[key]) { clip[CLIP_KEYS[key]] = value; delete clip.design[key]; } // an older design.<key> would win on read
     else if (STYLE_KEYS[key]) clip.style[STYLE_KEYS[key]] = value;
     else clip.design[key] = value;
   }

@@ -143,6 +143,11 @@ describe('lead-capture email-list delivery', () => {
   it('picks the email (and name) out of a lead', () => {
     expect(leadContact({ NAME: 'Ada', EMAIL: 'ada@x.io' })).toEqual({ email: 'ada@x.io', name: 'Ada' });
     expect(leadContact({ 'EMAIL ADDRESS': 'a@b.co' })).toEqual({ email: 'a@b.co', name: '' });
+    // the answer key is the editable field label, so a valid address under any label still counts
+    expect(leadContact({ 'CONTACT ADDRESS': 'c@x.io', NAME: 'Cy' })).toEqual({ email: 'c@x.io', name: 'Cy' });
+    // ...but a MAIL-labelled value wins when there are several
+    expect(leadContact({ 'BACKUP': 'z@x.io', EMAIL: 'a@x.io' })).toEqual({ email: 'a@x.io', name: '' });
+    expect(leadContact({ PHONE: '555', 'CONTACT ADDRESS': 'nope' })).toBeNull();
     expect(leadContact({ PHONE: '555', EMAIL: 'not-an-email' })).toBeNull();
     expect(leadContact({ PHONE: '555' })).toBeNull();
   });

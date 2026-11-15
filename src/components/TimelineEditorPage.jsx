@@ -3674,7 +3674,7 @@ export function TimelineEditorPage() {
             </div>
             <div class="clip-editor__field">
               <label for="lf-success-msg">Message after the form is sent</label>
-              <input id="lf-success-msg" type="text" value="${clip.successMessage || ''}" placeholder="Thanks!" />
+              <input id="lf-success-msg" type="text" value="${escapeHtml(clip.successMessage || '')}" placeholder="Thanks!" />
             </div>
             <div class="clip-editor__field">
               <label for="lf-after-action">After the form is sent</label>
@@ -3682,10 +3682,10 @@ export function TimelineEditorPage() {
             </div>
             <div class="clip-editor__field" id="lf-after-extra" ${clip.afterSubmitAction === 'button' || clip.afterSubmitAction === 'redirect' ? '' : 'hidden'}>
               <label for="lf-after-url">Thank-you button / redirect link</label>
-              <input id="lf-after-url" type="url" value="${clip.afterSubmitUrl || ''}" placeholder="https://example.com/thanks" />
+              <input id="lf-after-url" type="url" value="${escapeHtml(clip.afterSubmitUrl || '')}" placeholder="https://example.com/thanks" />
               <div id="lf-after-btn-wrap" ${clip.afterSubmitAction === 'button' ? '' : 'hidden'}>
                 <label for="lf-after-btn">Thank-you button text</label>
-                <input id="lf-after-btn" type="text" value="${clip.afterSubmitButtonText || ''}" placeholder="Book a call" />
+                <input id="lf-after-btn" type="text" value="${escapeHtml(clip.afterSubmitButtonText || '')}" placeholder="Book a call" />
               </div>
             </div>
           </div>
@@ -3838,7 +3838,7 @@ export function TimelineEditorPage() {
             </div>
             <div class="clip-editor__field" id="lf-esp-extra" ${clip.espProvider ? '' : 'hidden'}>
               <label for="lf-esp-list" id="lf-esp-list-label">${espListLabel(clip.espProvider)}</label>
-              <input id="lf-esp-list" type="text" value="${clip.espListId || ''}" placeholder="1234567" />
+              <input id="lf-esp-list" type="text" value="${escapeHtml(clip.espListId || '')}" placeholder="1234567" />
               <button id="lf-esp-connect" type="button" class="mini-btn" style="width:100%;margin-top:6px">Connect ${espName(clip.espProvider) || 'account'}</button>
               <span id="lf-esp-status" role="status" style="font-size:11px;color:var(--text-dim)"></span>
             </div>
@@ -3847,15 +3847,15 @@ export function TimelineEditorPage() {
             </div>
             <div class="clip-editor__field">
               <label for="lf-email-address">Notification Address (person 1)</label>
-              <input id="lf-email-address" type="email" value="${clip.notificationEmail || ''}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+              <input id="lf-email-address" type="email" value="${escapeHtml(clip.notificationEmail || '')}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
             </div>
             <div class="clip-editor__field">
               <label for="lf-email-address2">Notification Address (person 2, optional)</label>
-              <input id="lf-email-address2" type="email" value="${clip.notificationEmail2 || ''}" placeholder="teammate@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+              <input id="lf-email-address2" type="email" value="${escapeHtml(clip.notificationEmail2 || '')}" placeholder="teammate@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
             </div>
             <div class="clip-editor__field">
               <label for="lf-email-address3">Notification Address (person 3, optional)</label>
-              <input id="lf-email-address3" type="email" value="${clip.notificationEmail3 || ''}" placeholder="partner@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+              <input id="lf-email-address3" type="email" value="${escapeHtml(clip.notificationEmail3 || '')}" placeholder="partner@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
             </div>
             <div class="clip-editor__field">
               <label for="lf-fb-pixel">Facebook Pixel ID</label>
@@ -3863,15 +3863,15 @@ export function TimelineEditorPage() {
             </div>
             <div class="clip-editor__field">
               <label for="lf-ga-id">Google Analytics 4 Measurement ID</label>
-              <input id="lf-ga-id" type="text" value="${clip.gaMeasurementId || ''}" placeholder="G-XXXXXXXXXX" />
+              <input id="lf-ga-id" type="text" value="${escapeHtml(clip.gaMeasurementId || '')}" placeholder="G-XXXXXXXXXX" />
             </div>
             <div class="clip-editor__field">
               <label for="lf-tiktok-pixel">TikTok Pixel ID</label>
-              <input id="lf-tiktok-pixel" type="text" value="${clip.tiktokPixelId || ''}" placeholder="C1A2B3C4D5E6F7G8H9" />
+              <input id="lf-tiktok-pixel" type="text" value="${escapeHtml(clip.tiktokPixelId || '')}" placeholder="C1A2B3C4D5E6F7G8H9" />
             </div>
             <div class="clip-editor__field">
               <label for="lf-gtm-id">Google Tag Manager ID</label>
-              <input id="lf-gtm-id" type="text" value="${clip.gtmId || ''}" placeholder="GTM-XXXXXXX" />
+              <input id="lf-gtm-id" type="text" value="${escapeHtml(clip.gtmId || '')}" placeholder="GTM-XXXXXXX" />
               <span style="font-size:11px;color:var(--text-dim)">These fire a lead event on published videos only (not in the editor preview). If your Tag Manager already sends leads to Google Analytics, use one or the other so leads aren't counted twice.</span>
             </div>
             <div class="clip-editor__field">

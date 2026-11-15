@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { pixelIdFor, fireLeadPixel, trackersFor, fireLeadTrackers } from '../pixel.js';
+import { pixelIdFor, fireLeadPixel, trackersFor, fireLeadTrackers, safePageLocation } from '../pixel.js';
 import { listBuilderFields, leadFormToOptin, defaultListBuilder } from '../../addons/index.js';
 
 const project = {
@@ -76,6 +76,18 @@ describe('GA4 / TikTok / GTM trackers', () => {
     expect(calls.filter((c) => c[0] === 'event')).toEqual([
       ['event', 'generate_lead', { send_to: 'G-AB12CD34EF' }], ['event', 'generate_lead', { send_to: 'G-AB12CD34EF' }],
     ]);
+  });
+
+  it('GA4 sends a cleaned page location: campaign tags kept, personal link params and #hash dropped', () => {
+    expect(safePageLocation('https://app.test/watch/abc?firstname=Ann&company=Acme&utm_source=g&utm_campaign=spring#x')).toBe('https://app.test/watch/abc?utm_source=g&utm_campaign=spring');
+    expect(safePageLocation('https://app.test/watch/abc?firstname=Ann&c=7')).toBe('https://app.test/watch/abc');
+    expect(safePageLocation('not a url')).toBeUndefined();
+    const win = fakeWin();
+    win.location = { href: 'https://app.test/v/biz/promo?firstname=Ann&utm_medium=email' };
+    fireLeadTrackers({ ga: 'G-AB12CD34EF' }, { win, mode: 'full' });
+    const config = win.dataLayer.map((a) => Array.from(a)).find((c) => c[0] === 'config');
+    expect(config[2]).toEqual({ send_page_view: false, page_location: 'https://app.test/v/biz/promo?utm_medium=email' });
+    expect(JSON.stringify(win.dataLayer)).not.toMatch(/Ann/);
   });
 
   it('GTM: loads the container once and pushes a generate_lead event', () => {

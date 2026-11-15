@@ -78,18 +78,21 @@ export function answerColumns(rows: LeadRow[]): Array<{ key: string; label: stri
   return seen.map((key) => ({ key, label: key.replace(/_\d+$/, '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()) }));
 }
 
+/** A viewer controls utm_* and the referrer; a leading = + - @ (or tab/CR) would be read as a formula by spreadsheets. */
+export const csvSafe = (v: string): string => (/^[=+\-@\t\r]/.test(v) ? `'${v}` : v);
+
 export function rowsToCsv(rows: LeadRow[], forms: LeadForm[]): string {
   const name = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r))?.label ?? 'Form';
   // Source columns only appear when at least one lead has them, so older exports keep their shape.
   return leadsToCsv(rows.map((r) => {
     const utm = r.source?.utm ?? {};
     const src: Record<string, string> = {};
-    if (utm.source) src['UTM Source'] = utm.source;
-    if (utm.medium) src['UTM Medium'] = utm.medium;
-    if (utm.campaign) src['UTM Campaign'] = utm.campaign;
-    if (utm.term) src['UTM Term'] = utm.term;
-    if (utm.content) src['UTM Content'] = utm.content;
-    if (r.source?.referrer) src.Referrer = r.source.referrer;
+    if (utm.source) src['UTM Source'] = csvSafe(utm.source);
+    if (utm.medium) src['UTM Medium'] = csvSafe(utm.medium);
+    if (utm.campaign) src['UTM Campaign'] = csvSafe(utm.campaign);
+    if (utm.term) src['UTM Term'] = csvSafe(utm.term);
+    if (utm.content) src['UTM Content'] = csvSafe(utm.content);
+    if (r.source?.referrer) src.Referrer = csvSafe(r.source.referrer);
     return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src };
   }));
 }

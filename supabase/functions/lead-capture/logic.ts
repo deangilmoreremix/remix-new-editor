@@ -175,7 +175,9 @@ export function savedEsp(config: Json | null | undefined): { provider: EspProvid
 /** The subscriber to add: the first valid email answer, plus a name if one was asked for. */
 export function leadContact(data: Record<string, string>): { email: string; name: string } | null {
   const entries = Object.entries(data);
-  const email = entries.find(([k, v]) => /MAIL/i.test(k) && isValidEmail(v))?.[1];
+  // The answer key is the (editable) field label, so a label like "Contact address" must still count:
+  // prefer a MAIL-labelled value, otherwise take the first value that is a valid email address.
+  const email = entries.find(([k, v]) => /MAIL/i.test(k) && isValidEmail(v))?.[1] ?? entries.find(([, v]) => isValidEmail(v))?.[1];
   if (!email) return null;
   const name = entries.find(([k, v]) => /NAME/i.test(k) && !/MAIL/i.test(k) && v)?.[1] ?? "";
   return { email: email.trim(), name: name.slice(0, 100) };

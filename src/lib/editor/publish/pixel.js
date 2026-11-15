@@ -103,6 +103,21 @@ export function fireLeadPixel(pixelId, { win = globalThis, mode = consentMode() 
   }
 }
 
+// Campaign tags are kept so GA can attribute the lead; everything else in the query (personal links carry
+// ?firstname=&company=…) and the #hash are dropped before the URL is sent as page metadata.
+const KEEP_PARAMS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid'];
+export function safePageLocation(href) {
+  try {
+    const u = new URL(href);
+    const keep = new URLSearchParams();
+    for (const k of KEEP_PARAMS) if (u.searchParams.has(k)) keep.set(k, u.searchParams.get(k));
+    const q = keep.toString();
+    return `${u.origin}${u.pathname}${q ? `?${q}` : ''}`;
+  } catch {
+    return undefined;
+  }
+}
+
 // Google Analytics 4: gtag.js, then the standard `generate_lead` event.
 function fireGa(win, id) {
   if (!win.dataLayer) win.dataLayer = [];
@@ -111,7 +126,8 @@ function fireGa(win, id) {
   if (once(win, `ga:${id}`)) {
     addScript(win, `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`);
     win.gtag('js', new Date());
-    win.gtag('config', id, { send_page_view: false });
+    const page_location = safePageLocation(win.location?.href);
+    win.gtag('config', id, { send_page_view: false, ...(page_location ? { page_location } : {}) });
   }
   win.gtag('event', 'generate_lead', { send_to: id });
 }

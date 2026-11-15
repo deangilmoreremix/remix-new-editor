@@ -3,7 +3,7 @@ import {
   submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, deliveriesSummary, fetchSigningSecret, integrationStatusText, fetchIntegrations, saveIntegration, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   buildOptinForm, showListBuilderOverlay, showPauseOverlay, ensureOverlayLayer, formBackground,
-  renderAddonEditor, getAddon, showThanks, safeWebUrl, showOptinOverlay, leadFormToOptin,
+  renderAddonEditor, getAddon, showThanks, safeWebUrl, showOptinOverlay, leadFormToOptin, applyOptinToLeadForm, AFTER_SUBMIT_ACTIONS,
 } from '../index.js';
 
 describe('lead client', () => {
@@ -333,6 +333,35 @@ describe('after-submit actions', () => {
     expect(navigate).not.toHaveBeenCalled(); // waits so the viewer sees the message first
     live.forEach((fn) => fn());
     expect(navigate).toHaveBeenCalledWith('https://a.test/thanks');
+  });
+
+  it('does not redirect if the player was torn down during the delay', () => {
+    const navigate = vi.fn();
+    const pending = [];
+    const layer = layerOf();
+    document.body.appendChild(layer); // a real page: the layer is in the document
+    showThanks(layer, { afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' }, { allowRedirect: true, navigate, schedule: (fn) => pending.push(fn) });
+    layer.remove(); // player.destroy() removes its layer
+    pending.forEach((fn) => fn());
+    expect(navigate).not.toHaveBeenCalled();
+    const live = layerOf();
+    document.body.appendChild(live);
+    showThanks(live, { afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' }, { allowRedirect: true, navigate, schedule: (fn) => pending.push(fn) });
+    pending.slice(1).forEach((fn) => fn());
+    expect(navigate).toHaveBeenCalledWith('https://a.test/thanks'); // still redirects when the page is still there
+  });
+
+  it('labels the default action honestly (it shows nothing extra)', () => {
+    expect(AFTER_SUBMIT_ACTIONS.find(([id]) => id === 'continue')[1]).toBe('Keep watching (nothing extra)');
+  });
+
+  it('saving the thank-you message also clears an older design.successMessage that would override it', () => {
+    const clip = { fields: [], design: { successMessage: 'Old thanks', other: 1 } };
+    applyOptinToLeadForm(clip, { ...leadFormToOptin(clip), successMessage: 'New thanks' });
+    expect(clip.successMessage).toBe('New thanks');
+    expect(clip.design).not.toHaveProperty('successMessage');
+    expect(clip.design.other).toBe(1);
+    expect(leadFormToOptin(clip).successMessage).toBe('New thanks');
   });
 
   it('shows after a successful form submit', async () => {
