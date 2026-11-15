@@ -127,7 +127,7 @@ describe('clip fades', () => {
     const b = { ...clip, id: 'b', linkedClipIds: ['a'], fadeIn: undefined, fadeOut: undefined };
     const tl: any = { id: 't', clips: [a, b], tracks: [], duration: 10, markers: [], transitions: [] };
     const out = updateClipProperties(tl, 'a', { fadeIn: 1.5 });
-    expect(out.clips.find((c: any) => c.id === 'b').fadeIn).toBe(1.5);
+    expect(out.clips.find((c: any) => c.id === 'b')?.fadeIn).toBe(1.5);
   });
 });
 

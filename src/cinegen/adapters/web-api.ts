@@ -37,7 +37,7 @@ function toSegments(words: Array<{ text: string; start: number; end: number }>) 
   return segments;
 }
 
-type ExportJobState = { id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; warnings?: string[]; createdAt: string; completedAt?: string };
+type ExportJobState = { id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; warnings?: string[]; qaStatus?: string; qa?: unknown; createdAt: string; completedAt?: string };
 const exportJobs = new Map<string, ExportJobState>();
 
 const batchListeners = new Set<(e: unknown) => void>();
@@ -140,7 +140,7 @@ export function registerWebApi() {
           }
           // [remix] OpenChatCut captions (words already in timeline ms) → one caption layer per captioned clip
           (model as { occCaptions?: unknown[] }).occCaptions = a.clips.flatMap((c) => (c.captions ? [c.captions] : []));
-          for (const c of a.clips) { const cap = c.captions as { template?: string; styleOverride?: { fontFamily?: string } } | undefined; const tpl = cap?.template; const fam = cap?.styleOverride?.fontFamily || (tpl && CAPTION_STYLE_BY_ID[tpl as never]?.fontFamily); if (fam) { const m = model as { fonts?: string[] }; m.fonts = [...new Set([...(m.fonts ?? []), fam])]; } }
+          for (const c of a.clips) { const cap = c.captions as { template?: string; styleOverride?: { fontFamily?: string } } | undefined; const tpl = cap?.template; const fam = cap?.styleOverride?.fontFamily || (tpl && (CAPTION_STYLE_BY_ID as Record<string, { fontFamily?: string } | undefined>)[tpl]?.fontFamily); if (fam) { const m = model as { fonts?: string[] }; m.fonts = [...new Set([...(m.fonts ?? []), fam])]; } }
           // [remix] imported caption fonts travel with the render
           (model as { userFonts?: unknown[] }).userFonts = userFontsFor(a.clips.map((c) => (c.captions as { styleOverride?: { fontFamily?: string } } | undefined)?.styleOverride?.fontFamily));
           // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips

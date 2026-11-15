@@ -1225,7 +1225,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
             : [];
           const providerUsage = normalizeProjectProviderUsage(snapshot.providerUsage);
           const sets = normalizeProjectSets(snapshot.sets);
-          const overlays = normalizeOverlays(snapshot.overlays);
+          const overlays = normalizeOverlays((snapshot as { overlays?: unknown }).overlays);
           const AUDIO_EXTS = /\.(mp3|wav|ogg|aac|m4a|flac|webm)(\?|$)/i;
           const rawAssets = (snapshot.assets ?? []) as Asset[];
           // Migrate: fix audio assets that were saved as 'image' before audio type support

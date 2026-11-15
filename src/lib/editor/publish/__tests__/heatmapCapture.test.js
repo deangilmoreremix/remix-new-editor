@@ -137,6 +137,31 @@ describe('heatmap capture: impressions, scroll, watch buckets', () => {
   });
 });
 
+describe('heatmap capture: pause and resume', () => {
+  const seconds = (queue) => types(queue, 'watch_buckets').flatMap((e) => e.props.r.flatMap(([a, b]) => Array.from({ length: b - a + 1 }, (_, i) => a + i)));
+  it('pausing and resuming at the same spot does not count the second the viewer paused in as a replay (found in the real watch page)', () => {
+    const s = setup();
+    for (let t = 0; t <= 4.3; t += 0.1) s.heat.onPlayerChange({ playing: true, time: Math.round(t * 10) / 10, duration: 60 });
+    s.heat.onPlayerChange({ playing: false, time: 4.3, duration: 60 });
+    for (let t = 4.3; t <= 6.2; t += 0.1) s.heat.onPlayerChange({ playing: true, time: Math.round(t * 10) / 10, duration: 60 });
+    s.heat.onPlayerChange({ playing: false, time: 6.2, duration: 60 });
+    const secs = seconds(s.analytics._state().queue);
+    expect(new Set(secs).size).toBe(secs.length);           // no second reported twice
+    expect([...new Set(secs)].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    s.heat.destroy();
+  });
+  it('a real replay still is one: resuming after a seek back reports the seconds again', () => {
+    const s = setup();
+    for (let t = 0; t <= 5; t += 0.5) s.heat.onPlayerChange({ playing: true, time: t, duration: 60 });
+    s.heat.onPlayerChange({ playing: false, time: 5, duration: 60 });
+    for (let t = 2; t <= 4; t += 0.5) s.heat.onPlayerChange({ playing: true, time: t, duration: 60 });
+    s.heat.onPlayerChange({ playing: false, time: 4, duration: 60 });
+    const secs = seconds(s.analytics._state().queue);
+    expect(secs.filter((n) => n === 3)).toHaveLength(2);
+    s.heat.destroy();
+  });
+});
+
 describe('singleLeadClipId', () => {
   it('returns the id only when there is exactly one lead-form clip', () => {
     const p = (n) => ({ tracks: [{ items: Array.from({ length: n }, (_, i) => ({ id: `l${i}`, type: 'lead-form' })) }] });
