@@ -14,7 +14,8 @@ import { CAPTION_STYLE_BY_ID } from '../../openchatcut/captions/styles';
 import { userFontsFor } from '@cinegen/lib/occ/user-fonts';
 import { exportItem, type ExportTrackInfo } from '@cinegen/lib/editor/export-mapping';
 import { buildExportStateWithAudio } from '@cinegen/lib/audio/export-prepare'; // [remix] Stage 4: EQ bake + master volume
-import { buildGlTransitionLayers } from '@cinegen/lib/editor/gl-transition-export'; // [remix] Stage 6
+import { buildGlTransitionLayers, attachGlSideLooks } from '@cinegen/lib/editor/gl-transition-export'; // [remix] Stage 6
+import { glSideLayerFrom } from '../../lib/editor/remotion/glSideLook.js'; // [remix] Fix A
 type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
 const transcriptionListeners = new Set<(e: TranscriptionEvent) => void>();
 const emitTranscription = (e: TranscriptionEvent) => transcriptionListeners.forEach((fn) => fn(e));
@@ -144,7 +145,7 @@ export function registerWebApi() {
           // [remix] imported caption fonts travel with the render
           (model as { userFonts?: unknown[] }).userFonts = userFontsFor(a.clips.map((c) => (c.captions as { styleOverride?: { fontFamily?: string } } | undefined)?.styleOverride?.fontFamily));
           // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
-          (model as { glTransitions?: unknown[] }).glTransitions = buildGlTransitionLayers(a.transitions, a.clips as never, a.fps);
+          (model as { glTransitions?: unknown[] }).glTransitions = attachGlSideLooks(buildGlTransitionLayers(a.transitions, a.clips as never, a.fps), a.clips as never, (model as { layers: never[] }).layers, glSideLayerFrom as never); // [remix] Fix A: each side keeps its clip's own transform / keys / effects / opacity
           const blob = await exportModel(model, { container: 'mp4', quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
           job.outputUrl = URL.createObjectURL(blob);
           job.fileSize = blob.size;

@@ -11,8 +11,15 @@ import { customTransitionUniforms, type CustomTransitionDef } from './customTran
 import { buildTransitionShaderFrame } from './shaderFrame';
 import type { GlslTransitionType } from '../types';
 import { gltFrag, gltUniforms, isGltId, type GltParams } from './glt';
+import { ALL_FX } from './fx/effects';
+import { cubeSettled, ensureCube } from './fx/cube';
+import { buildEffectShaderFrame } from './shaderFrame';
+import { drawStyledFrame, type StyledLook } from './styledFrame';
 
 export interface GlSource { src: string; trimBefore: number; playbackRate?: number }
+/** [remix] Fix A: how a clip is composited on the timeline (transform, keys, effects, fit, opacity), resolved per frame by `resolveLook` (host-provided, pure). */
+export interface GlSideLook { fit?: 'contain' | 'cover'; [k: string]: unknown }
+export type ResolveSideLook = (side: GlSideLook, frame: number, fps: number) => { look: StyledLook; effects: Array<{ id: string; overrides?: Record<string, number | number[]> }>; localFrame: number };
 
 function drawFit(ctx: CanvasRenderingContext2D, source: CanvasImageSource, fit: 'contain' | 'cover') {
   const W = ctx.canvas.width; const H = ctx.canvas.height;
@@ -24,7 +31,7 @@ function drawFit(ctx: CanvasRenderingContext2D, source: CanvasImageSource, fit: 
   ctx.drawImage(source, (W - nw * k) / 2, (H - nh * k) / 2, nw * k, nh * k);
 }
 
-export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'cover', customDef, glParams }: { out: GlSource; inn: GlSource; glType: string; durationInFrames: number; fit?: 'contain' | 'cover'; customDef?: CustomTransitionDef; glParams?: GltParams }) {
+export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'cover', customDef, glParams, outLook, innLook, resolveLook, windowFrom = 0, background = '#000' }: { out: GlSource; inn: GlSource; glType: string; durationInFrames: number; fit?: 'contain' | 'cover'; customDef?: CustomTransitionDef; glParams?: GltParams; outLook?: GlSideLook; innLook?: GlSideLook; resolveLook?: ResolveSideLook; /** composition frame where this window starts (the looks are resolved on the composition clock) */ windowFrom?: number; background?: string }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const env = useRemotionEnvironment();
@@ -35,6 +42,13 @@ export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'c
   const staged = useRef({ out: -1, inn: -1 });
   const mk = () => { const c = document.createElement('canvas'); c.width = width; c.height = height; return c; };
   const stage = useMemo(() => ({ out: mk(), inn: mk() }), [width, height]); // eslint-disable-line react-hooks/exhaustive-deps
+  // [remix] Fix A: per side, the composited clip (effects -> transform / crop / zoom / flip / opacity over the background) that the shader blends
+  const styled = useMemo(() => ({ out: mk(), inn: mk() }), [width, height]); // eslint-disable-line react-hooks/exhaustive-deps
+  const fxCanvas = useMemo(() => ({ out: mk(), inn: mk() }), [width, height]); // eslint-disable-line react-hooks/exhaustive-deps
+  const fxRtOut = useRef<GlRuntime | null>(null);
+  const fxRtInn = useRef<GlRuntime | null>(null);
+  const fxRt = { out: fxRtOut, inn: fxRtInn };
+  const looks = useMemo(() => (resolveLook && (outLook || innLook) ? { out: outLook, inn: innLook } : null), [resolveLook, outLook, innLook]);
   // [remix] plugin (openchatcut-plugin@1) transitions arrive as a snapshot: same two-input fragment contract, props → u_<key> defaults
   // [remix] Stage 6: vendored gl-transitions (glt-*) with their stored parameter overrides
   const def = GLSL_TRANSITIONS[glType as GlslTransitionType] ?? (isGltId(glType) ? { frag: gltFrag(glType)!, uniforms: () => gltUniforms(glType, glParams) } : undefined) ?? (customDef ? { frag: customDef.frag, uniforms: () => customTransitionUniforms(customDef) } : undefined);
@@ -50,7 +64,30 @@ export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'c
       try {
         const runtime = ensureRuntimeSlot(runtimeRef, () => createGlRuntime(canvas));
         const f = buildTransitionShaderFrame({ frag: def.frag, uniforms: def.uniforms }, { sequenceFrame: frame, durationInFrames, windowStartFrame: 0, fps, width, height, direction: 'left' });
-        runtime.render(f.frag, stage.out, stage.inn, f.progress, f.uniforms);
+        let a: TexImageSource = stage.out; let b: TexImageSource = stage.inn;
+        if (looks && resolveLook) {
+          const resolved = { out: looks.out ? resolveLook(looks.out, windowFrom + frame, fps) : null, inn: looks.inn ? resolveLook(looks.inn, windowFrom + frame, fps) : null };
+          // a .cube LUT must be loaded before its pass runs
+          let waiting = false;
+          for (const key of ['out', 'inn'] as const) for (const e of resolved[key]?.effects ?? []) { const cube = ALL_FX[e.id]?.cube; if (cube) { void ensureCube(cube); if (!cubeSettled(cube)) waiting = true; } }
+          if (waiting) { raf = requestAnimationFrame(tick); return; }
+          for (const key of ['out', 'inn'] as const) {
+            const r = resolved[key];
+            const ctx = styled[key].getContext('2d');
+            if (!ctx) continue;
+            if (!r) { drawStyledFrame(ctx, stage[key], {}, background); continue; }
+            const active = r.effects.filter((e) => e.id in ALL_FX).map((e) => ({ def: ALL_FX[e.id], overrides: e.overrides }));
+            let picture: CanvasImageSource = stage[key];
+            if (active.length) {
+              const rt = ensureRuntimeSlot(fxRt[key], () => createGlRuntime(fxCanvas[key]));
+              rt.renderFxChain(buildEffectShaderFrame(active, r.localFrame, fps).passes, stage[key]);
+              picture = fxCanvas[key];
+            }
+            drawStyledFrame(ctx, picture, r.look, background);
+          }
+          a = styled.out; b = styled.inn;
+        }
+        runtime.render(f.frag, a, b, f.progress, f.uniforms);
         const mirror = outCanvasRef.current;
         if (mirror) { mirror.width = canvas.width; mirror.height = canvas.height; mirror.getContext('2d')?.drawImage(canvas, 0, 0); }
       } catch (e) { console.error('[gl-transition]', e); disposeRuntimeSlot(runtimeRef); }
@@ -58,15 +95,16 @@ export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'c
     };
     tick();
     return () => { cancelAnimationFrame(raf); finish(); };
-  }, [frame, def, glType, glParams, durationInFrames, fps, width, height, rendering, stage]);
-  useEffect(() => () => disposeRuntimeSlot(runtimeRef), []);
+  }, [frame, def, glType, glParams, durationInFrames, fps, width, height, rendering, stage, styled, fxCanvas, looks, resolveLook, windowFrom, background]);
+  useEffect(() => () => { disposeRuntimeSlot(runtimeRef); disposeRuntimeSlot(fxRtOut); disposeRuntimeSlot(fxRtInn); }, []);
 
   if (!def) return null;
+  const sideFit = (key: 'out' | 'inn'): 'contain' | 'cover' => (looks?.[key]?.fit === 'contain' ? 'contain' : looks?.[key] ? 'cover' : fit);
   const src = (s: GlSource, key: 'out' | 'inn') => (
     <AbsoluteFill style={{ opacity: 0, pointerEvents: 'none' }}>
-      <MediaVideo src={s.src} trimBefore={s.trimBefore} playbackRate={s.playbackRate ?? 1} muted headless={rendering} objectFit={fit}
+      <MediaVideo src={s.src} trimBefore={s.trimBefore} playbackRate={s.playbackRate ?? 1} muted headless={rendering} objectFit={sideFit(key)}
         style={{ width: '100%', height: '100%' }}
-        onVideoFrame={(frameSource: CanvasImageSource) => { const ctx = stage[key].getContext('2d'); if (ctx) { drawFit(ctx, frameSource, fit); staged.current[key] = frame; } }} />
+        onVideoFrame={(frameSource: CanvasImageSource) => { const ctx = stage[key].getContext('2d'); if (ctx) { drawFit(ctx, frameSource, sideFit(key)); staged.current[key] = frame; } }} />
     </AbsoluteFill>
   );
   return (

@@ -44,6 +44,7 @@ import { sampleKeyframes as sampleFxKey } from '../../../openchatcut/editor/keyf
 import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
 import { CaptionsLayer as OccCaptionsLayer } from '../../../openchatcut/captions/CaptionsLayer';
 import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
+import { resolveSideLook } from './glSideLook.js';
 import { registerUserLut } from '../../../cinegen/lib/occ/user-luts';
 import { registerSnapshot } from '../../../cinegen/lib/occ/plugins';
 import { ctaBox, CTA_FPS } from '../addons/ctaLottie.js';
@@ -701,7 +702,7 @@ export function TimelineComposition({ model }) {
         {/* [remix] OpenChatCut GL transitions between CineGen clips */}
         {(m.glTransitions || []).map((g) => (
           <Sequence key={g.id} from={g.from} durationInFrames={g.durationInFrames} layout="absolute-fill">
-            <GlTransitionLayer out={g.out} inn={g.inn} glType={g.glType} durationInFrames={g.durationInFrames} customDef={g.customDef} glParams={g.glParams} />
+            <GlTransitionLayer out={g.out} inn={g.inn} glType={g.glType} durationInFrames={g.durationInFrames} customDef={g.customDef} glParams={g.glParams} outLook={g.outLook} innLook={g.innLook} resolveLook={resolveSideLook} windowFrom={g.from} background={m.background || '#000'} />
           </Sequence>
         ))}
       </FontGate>

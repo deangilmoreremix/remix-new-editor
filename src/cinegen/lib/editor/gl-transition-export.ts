@@ -5,8 +5,26 @@ import type { ExportTransitionInfo } from './export-mapping';
 
 export interface GlExportClip { id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number }
 export interface GlTransitionLayerSpec {
-  id: string; glType: string; customDef: unknown; glParams?: Record<string, number | boolean | number[]>; from: number; durationInFrames: number;
+  id: string; outClipId?: string; innClipId?: string; glType: string; customDef: unknown; glParams?: Record<string, number | boolean | number[]>; from: number; durationInFrames: number;
   out: { src: string; trimBefore: number; playbackRate: number }; inn: { src: string; trimBefore: number; playbackRate: number };
+  /** [remix] Fix A: the composition layer (transform, keys, effects, fit, opacity, flip) of each clip, so the shader blends the clips as composited */
+  outLook?: Record<string, unknown>; innLook?: Record<string, unknown>;
+}
+
+/**
+ * [remix] Fix A: attach to every transition spec the look of its two clips, taken from the composition layers the export built for them.
+ * `clips` is the same array the export state was built from; the composition layer of clips[i] has id `c${i}` (buildExportState).
+ * `glSideLayerFrom` (lib/editor/remotion/glSideLook.js) picks the fields a side needs.
+ */
+export function attachGlSideLooks(specs: GlTransitionLayerSpec[], clips: GlExportClip[], layers: Array<Record<string, unknown> & { id?: string }>, pick: (layer: Record<string, unknown>) => Record<string, unknown>): GlTransitionLayerSpec[] {
+  const layerOf = (clipId: string) => {
+    const i = clips.findIndex((c) => c.id === clipId);
+    return i < 0 ? undefined : layers.find((l) => l.id === `c${i}` && (l.kind === 'video' || l.kind === 'image'));
+  };
+  return specs.map((s) => {
+    const outLayer = s.outClipId ? layerOf(s.outClipId) : undefined; const innLayer = s.innClipId ? layerOf(s.innClipId) : undefined;
+    return outLayer && innLayer ? { ...s, outLook: pick(outLayer), innLook: pick(innLayer) } : s;
+  });
 }
 
 export function buildGlTransitionLayers(transitions: ExportTransitionInfo[] | undefined, clips: GlExportClip[], fps: number): GlTransitionLayerSpec[] {
@@ -19,7 +37,7 @@ export function buildGlTransitionLayers(transitions: ExportTransitionInfo[] | un
     if (dur < 2) return [];
     const rate = (c: GlExportClip) => c.speed || 1;
     return [{
-      id: `gl-${t.clipAId}-${t.clipBId}`, glType: t.glType, customDef: t.glDef ?? customTransitionDefSync(t.glType), ...(t.glParams ? { glParams: t.glParams } : {}), from, durationInFrames: dur,
+      id: `gl-${t.clipAId}-${t.clipBId}`, outClipId: t.clipAId, innClipId: t.clipBId, glType: t.glType, customDef: t.glDef ?? customTransitionDefSync(t.glType), ...(t.glParams ? { glParams: t.glParams } : {}), from, durationInFrames: dur,
       out: { src: A.inputPath, trimBefore: Math.round((A.trimStart + (start - A.startTime) * rate(A)) * fps), playbackRate: rate(A) },
       inn: { src: B.inputPath, trimBefore: Math.round(B.trimStart * fps), playbackRate: rate(B) },
     }];

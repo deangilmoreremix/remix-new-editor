@@ -7,11 +7,15 @@ import { createGlRuntime } from '../../../openchatcut/gl/runtime';
 import type { GlRuntime } from '../../../openchatcut/gl/runtimeTypes';
 import { clipFxPasses, clipHasFx, primeClipLuts } from '@cinegen/lib/occ/clip-fx';
 import { resolveTransition } from '@cinegen/lib/occ/plugins';
+import { drawStyledFrame } from '../../../openchatcut/gl/styledFrame';
+import { interpolateProperty } from '@cinegen/lib/editor/timeline-operations';
 import { warnGlFxSkipped } from '../../../openchatcut/gl/fx/glSupport';
 import { GLSL_TRANSITIONS } from '../../../openchatcut/gl/transitions';
 import type { GlslTransitionType } from '../../../openchatcut/types';
 
-export interface GlTransitionState { glType: string; glDef?: import('../../../openchatcut/gl/customTransitions').CustomTransitionDef; glParams?: Record<string, number | boolean | number[]>; outClipId: string; inClipId: string; progress: number }
+export interface GlTransitionState { glType: string; glDef?: import('../../../openchatcut/gl/customTransitions').CustomTransitionDef; glParams?: Record<string, number | boolean | number[]>; outClipId: string; inClipId: string; progress: number;
+  /** [remix] Fix A: timeline time and the two clips, so each side is drawn with its own transform / keys / effects / opacity */
+  time?: number; outClip?: Clip; inClip?: Clip }
 
 interface Props {
   container: HTMLElement | null;
@@ -32,6 +36,8 @@ export function GlClipLayer({ container, clip, assetId, transition = null }: Pro
   const luts = clip ? JSON.stringify([clip.lut?.id, ...(clip.fx ?? []).map((f) => f.id)]) : '';
 
   useEffect(() => { if (clip && active) void primeClipLuts(clip); }, [luts]); // eslint-disable-line react-hooks/exhaustive-deps
+  const trLuts = transition ? `${transition.outClipId}|${transition.inClipId}` : '';
+  useEffect(() => { if (transition?.outClip) void primeClipLuts(transition.outClip); if (transition?.inClip) void primeClipLuts(transition.inClip); }, [trLuts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -40,6 +46,7 @@ export function GlClipLayer({ container, clip, assetId, transition = null }: Pro
     try { runtime = createGlRuntime(canvas); } catch (e) { warnGlFxSkipped(e instanceof Error ? e.message : undefined); return; }
     let raf = 0;
     let hidden: HTMLVideoElement[] = [];
+    let buffers: Array<{ stage: HTMLCanvasElement; styled: HTMLCanvasElement; fx: HTMLCanvasElement; rt: GlRuntime | null }> | null = null;
     const restore = () => { hidden.forEach((v) => { v.style.visibility = ''; }); hidden = []; };
     const tick = () => {
       raf = requestAnimationFrame(tick);
@@ -51,12 +58,41 @@ export function GlClipLayer({ container, clip, assetId, transition = null }: Pro
         if (!a || !b || a.readyState < 2 || b.readyState < 2 || !a.videoWidth) { canvas.style.visibility = 'hidden'; restore(); return; }
         const def = resolveTransition(tr.glType, tr.glDef, tr.glParams);
         if (!def) { canvas.style.visibility = 'hidden'; restore(); return; }
-        if (canvas.width !== a.videoWidth || canvas.height !== a.videoHeight) { canvas.width = a.videoWidth; canvas.height = a.videoHeight; }
+        // [remix] Fix A: blend the clips as they are composited in the viewer (fx -> fit / transform / crop / opacity over black), not their raw frames
+        const sides = tr.outClip && tr.inClip && tr.time !== undefined ? ([{ v: a, clip: tr.outClip, k: 0 }, { v: b, clip: tr.inClip, k: 1 }] as const) : null;
+        let from: TexImageSource = a; let to: TexImageSource = b;
+        if (sides) {
+          const cw = container.clientWidth || a.videoWidth; const ch = container.clientHeight || a.videoHeight;
+          const dpr = Math.min(2, window.devicePixelRatio || 1); const cap = Math.min(1, 1600 / Math.max(cw, ch, 1));
+          const W = Math.max(2, Math.round(cw * dpr * cap)); const H = Math.max(2, Math.round(ch * dpr * cap));
+          if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
+          const bufs = (buffers ??= [0, 1].map(() => ({ stage: document.createElement('canvas'), styled: document.createElement('canvas'), fx: document.createElement('canvas'), rt: null as GlRuntime | null })));
+          for (const { v, clip, k } of sides) {
+            const buf = bufs[k];
+            for (const c of [buf.stage, buf.styled, buf.fx]) if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+            const sctx = buf.stage.getContext('2d'); const dctx = buf.styled.getContext('2d');
+            if (!sctx || !dctx) continue;
+            const fit = v.style.objectFit === 'cover' ? 'cover' : 'contain';
+            const kk = fit === 'cover' ? Math.max(W / v.videoWidth, H / v.videoHeight) : Math.min(W / v.videoWidth, H / v.videoHeight);
+            sctx.clearRect(0, 0, W, H); sctx.drawImage(v, (W - v.videoWidth * kk) / 2, (H - v.videoHeight * kk) / 2, v.videoWidth * kk, v.videoHeight * kk);
+            let picture: CanvasImageSource = buf.stage;
+            if (clipHasFx(clip)) {
+              buf.rt ??= createGlRuntime(buf.fx);
+              buf.rt.renderFxChain(clipFxPasses(clip, v.currentTime, Math.max(0, (v.currentTime - clip.trimStart) / (clip.speed || 1))), buf.stage);
+              picture = buf.fx;
+            }
+            // the playback engine already writes the clip's flip + pose + crop onto the <video>: same strings, so the same geometry
+            drawStyledFrame(dctx, picture, { cssTransform: v.style.transform, clipPath: v.style.clipPath, opacity: interpolateProperty(clip, 'opacity', Math.max(0, (tr.time as number) - clip.startTime)) }, '#000');
+          }
+          from = bufs[0].styled; to = bufs[1].styled;
+        } else if (canvas.width !== a.videoWidth || canvas.height !== a.videoHeight) { canvas.width = a.videoWidth; canvas.height = a.videoHeight; }
         try {
           const time = performance.now() / 1000;
-          runtime!.render(def.frag, a, b, tr.progress, def.uniforms({ time, aspect: canvas.width / canvas.height }));
+          runtime!.render(def.frag, from, to, tr.progress, def.uniforms({ time, aspect: canvas.width / canvas.height }));
         } catch { canvas.style.visibility = 'hidden'; restore(); return; }
         canvas.style.visibility = 'visible';
+        // the clip-fx branch below styles this canvas like its <video>; the transition canvas already carries each side's geometry
+        canvas.style.transform = ''; canvas.style.clipPath = ''; canvas.style.opacity = ''; canvas.style.mixBlendMode = ''; canvas.style.objectFit = 'contain';
         for (const v of [a, b]) { if (!hidden.includes(v)) hidden.push(v); v.style.visibility = 'hidden'; }
         return;
       }
@@ -81,7 +117,7 @@ export function GlClipLayer({ container, clip, assetId, transition = null }: Pro
       canvas.style.mixBlendMode = c.blendMode && c.blendMode !== 'normal' ? c.blendMode : '';
     };
     raf = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(raf); restore(); runtime?.dispose(); };
+    return () => { cancelAnimationFrame(raf); restore(); runtime?.dispose(); buffers?.forEach((b) => b.rt?.dispose()); };
   }, [container, assetId, active, hasTransition]);
 
   if (!active && !hasTransition) return null;
