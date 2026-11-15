@@ -47,6 +47,12 @@ export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onE
   let player = null;
   let current = model;
   let detach = () => {};
+  // A play() pressed before the Player ref is bound is remembered (one flag, so it can never fire twice) and started by bind().
+  let pendingPlay = false;
+  const setPending = (on) => {
+    pendingPlay = on;
+    if (on) host.setAttribute('data-play-pending', '1'); else host.removeAttribute('data-play-pending');
+  };
 
   const bind = (ref) => {
     if (!ref || ref === player) return;
@@ -63,6 +69,7 @@ export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onE
     Object.entries(handlers).forEach(([ev, fn]) => player.addEventListener(ev, fn));
     detach = () => Object.entries(handlers).forEach(([ev, fn]) => player?.removeEventListener(ev, fn));
     onReady?.();
+    if (pendingPlay) { setPending(false); player.play(); }
   };
 
   // Effect modules and fonts load lazily; render once they're ready so the
@@ -84,8 +91,9 @@ export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onE
       current = nextModel;
       render();
     },
-    play() { player?.play(); },
-    pause() { player?.pause(); },
+    play() { if (player) player.play(); else setPending(true); },
+    pause() { setPending(false); player?.pause(); },
+    get playPending() { return pendingPlay; },
     isPlaying() { return !!player?.isPlaying(); },
     seekToFrame(frame) {
       if (!player) return;
@@ -94,6 +102,7 @@ export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onE
     },
     getFrame() { return player ? player.getCurrentFrame() : 0; },
     destroy() {
+      setPending(false);
       detach();
       root.unmount();
       player = null;

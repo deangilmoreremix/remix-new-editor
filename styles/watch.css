@@ -52,3 +52,8 @@ html.watch-embed, html.watch-embed body { background: #000; }
 @media (max-width: 520px) { .wf-card--fields-4 .wf-fields, .wf-card--fields-5 .wf-fields { grid-template-columns: 1fr; } }
 /* OpenAI's usage policy: tell viewers the voice is AI-generated. */
 .watch-ai-voice { position: absolute; top: 10px; right: 10px; z-index: 4; padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.55); color: rgba(255,255,255,.85); font-size: 11px; pointer-events: none; }
+
+/* A Play pressed before the player has loaded is queued by the preview engine (data-play-pending on the stage): show a spinner meanwhile. */
+.watch-stage[data-play-pending]::after { content: ''; position: absolute; left: 50%; top: 50%; width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 3px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: watch-pending-spin .8s linear infinite; pointer-events: none; }
+@keyframes watch-pending-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .watch-stage[data-play-pending]::after { animation: none; } }
