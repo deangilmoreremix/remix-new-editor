@@ -40,6 +40,18 @@ const layoutSection = (s) => {
     ${fixable ? '<button type="button" class="pz-btn pz-btn-primary pz-btn-xs" data-apply-recommended="1">Apply recommended placement</button>' : ''}
     <p class="pz-hint">${esc(report.notes[report.notes.length - 1] || '')} Only overlays made in the Personalize window are checked.</p>`;
 };
+const STATUS_CHIP = { ready: '✓ Ready to export', 'needs-attention': 'Needs attention', blocked: 'Fix before exporting' };
+const readinessSection = (s) => {
+  const r = s.readiness?.();
+  if (!r) return '';
+  const rows = r.items.map((i, n) => `
+    <li class="rp-issue"><div><strong>${esc(i.severity === 'blocker' ? 'Blocks export' : i.severity === 'info' ? 'Optional' : 'Check')}</strong><span>${esc(i.message)}</span></div>
+      ${i.fix ? `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-fix-item="${n}">${esc(i.fix.label || 'Fix')}</button>` : ''}</li>`).join('');
+  return `<span class="pz-label">Ready to export? <span class="pz-chip">${esc(STATUS_CHIP[r.status] || r.status)}</span></span>
+    ${rows ? `<ul class="rp-list">${rows}</ul>` : ''}
+    <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-check-images="1"${r.checking ? ' disabled' : ''}>${r.checking ? 'Checking images…' : r.counts.imagesChecked ? 'Check that images load again' : 'Check that images load'}</button>
+    ${r.counts.imagesChecked ? '' : '<p class="pz-hint">Images haven\'t been tested for loading yet.</p>'}`;
+};
 const prepareSection = (s) => {
   const info = s.prepareInfo?.();
   if (!info) return '';
@@ -91,6 +103,7 @@ export function renderPersonalizationPanel(el, s) {
         : '<p class="pz-hint">This contact has no details yet. Add them in the Personalize window (including Find a Business).</p>')
         : '<p class="pz-hint">Pick a contact, or add contacts in the Personalize window.</p>'}
       ${active ? imageGrid(s) : ''}
+      ${active ? readinessSection(s) : ''}
       ${prepareSection(s)}
       ${active ? layoutSection(s) : ''}`);
   };
@@ -100,6 +113,8 @@ export function renderPersonalizationPanel(el, s) {
     if (!b) return;
     if (b.dataset.rp === 'open') s.openPersonalize();
     else if (b.dataset.add) s.addText(`{{${b.dataset.add}}}`);
+    else if (b.dataset.fixItem != null) { const item = s.readiness?.().items[Number(b.dataset.fixItem)]; if (item) s.fix?.(item, draw); }
+    else if (b.dataset.checkImages) s.checkImages?.(draw);
     else if (b.dataset.prepareAll) s.prepareAll?.(draw);
     else if (b.dataset.prepareCancel) s.cancelPrepare?.();
     else if (b.dataset.showLayer) s.showLayer?.(b.dataset.showLayer);

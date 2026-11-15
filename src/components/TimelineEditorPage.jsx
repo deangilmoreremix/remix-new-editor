@@ -47,6 +47,7 @@ import { persistPersonalizationAssetVersion } from '../lib/personalization/asset
 import { buildRevertPatch, cutoutAsset } from '../lib/personalization/backgroundCutout.js';
 import { runBatch, summarizeBatch, uniqueFileName } from '../lib/personalization/batchExport.js';
 import { planPrepareImages, prepareImages } from '../lib/personalization/prepareImages.js';
+import { buildReadiness } from '../lib/personalization/readiness.js';
 import { isCutoutAsset } from '../lib/personalization/assetUrl.js';
 import { BRIDGE_SOURCE, layersToTimelineOverlays, timelineOverlaysToLayers } from '../lib/personalization/layerOverlayBridge.js';
 import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
@@ -5030,6 +5031,48 @@ export function TimelineEditorPage() {
       showToast(`Updated ${plan.length} overlay${plan.length === 1 ? '' : 's'} from Personalize`, 'success');
     }
 
+    // The Personalize window, seeded with (and reporting back) the shared overlays.
+    function openPersonalizeWindow(onDone) {
+      return import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
+        studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
+        initialLayers: personalizeInitialLayers(),
+        onLayersChange: applyPersonalizeLayers,
+        onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); onDone?.(); },
+      }));
+    }
+
+    // Ready to export?: one checklist from the checks the editor already has.
+    let brokenImages; // undefined until "Check that images load" has run
+    let checkingImages = false;
+    function readinessData() {
+      const contacts = listContactProfiles(contactStore);
+      const keys = projectImageKeys();
+      const layout = layoutCheckData();
+      const preparable = planPrepareImages(contacts, keys, { contactName }).items.length;
+      return { ...buildReadiness({ project: state, contacts, keys, layoutReport: layout.report, broken: brokenImages, preparable }), checking: checkingImages };
+    }
+    async function checkImagesLoad(redraw) {
+      if (checkingImages) return;
+      checkingImages = true;
+      redraw?.();
+      try {
+        brokenImages = await findBrokenImages(state, listContactProfiles(contactStore), { probe: browserImageProbe() });
+      } catch (err) {
+        showToast(`Could not check the images: ${err?.message || err}`, 'error');
+      } finally {
+        checkingImages = false;
+        redraw?.();
+      }
+    }
+    function fixReadinessItem(item, redraw) {
+      const fix = item?.fix;
+      if (!fix) return;
+      if (item.contactId) contactStore.selectContact(item.contactId);
+      if (fix.type === 'open-personalize') openPersonalizeWindow(redraw);
+      else if (fix.type === 'prepare-all') prepareAllContactImages(redraw);
+      else if (fix.type === 'show-layer') showBridgedLayer(fix.layerId);
+    }
+
     // Prepare all contacts' images: free on-device background removal for the
     // logo / photo / product image each contact's video uses, in one batch.
     let prepareRun = null; // { abort, progress, message } while running
@@ -8614,6 +8657,8 @@ export function TimelineEditorPage() {
           ...describeImageGaps(contactImageGaps(state, contacts)),
           ...describeUnreviewed(unreviewedAiImages(projectImageKeys(), contacts)),
           ...describeClipGaps(state, contacts),
+          // Layout problems in the overlays shared with the Personalize window.
+          ...readinessData().items.filter((i) => i.kind === 'layout').map((i) => i.message),
         ];
         if (run !== warningsRun) return;
         // Personalized-image warnings look like the Personalize window's.
@@ -8947,12 +8992,10 @@ export function TimelineEditorPage() {
           busy: () => cutoutBusy,
           removeBackground: (id, redraw) => removeContactImageBackground(activeContact(), id, redraw),
           useOriginal: (id, redraw) => useOriginalContactImage(activeContact(), id, redraw),
-          openPersonalize: () => import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
-            studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
-            initialLayers: personalizeInitialLayers(),
-            onLayersChange: applyPersonalizeLayers,
-            onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); panel.redraw(); },
-          })),
+          readiness: readinessData,
+          checkImages: checkImagesLoad,
+          fix: fixReadinessItem,
+          openPersonalize: () => openPersonalizeWindow(() => panel.redraw()),
         });
         loadLayoutCheck().then(() => panel.redraw()).catch(() => {});
         window.addEventListener('remix:contact-changed', panel.redraw);
