@@ -852,11 +852,19 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         if (input && input.name && ['text', 'textarea', 'select'].includes(input.type) && typeof currentInputs[input.name] === 'string') presetValues[input.name] = currentInputs[input.name];
       });
       let savedPreset = null;
+      let presetError = null;
       try {
         savedPreset = savePreset(currentTemplate.id, `Project ${new Date().toLocaleString()}`, presetValues);
-      } catch { /* the project itself is saved above; only the preset copy failed */ }
+      } catch (err) {
+        // The project itself is saved above; only the preset copy failed. Say so.
+        presetError = err;
+      }
       if (savedPreset && cinemaPresetsRefresh) cinemaPresetsRefresh(savedPreset.id);
-      showToast('Project saved!', 'success');
+      if (presetError) {
+        showToast(`Project saved, but no preset copy was made: ${presetError.message || 'it could not be stored.'}`, 'warning');
+      } else {
+        showToast('Project saved!', 'success');
+      }
     };
 
     container.querySelector('#generate-btn').onclick = () => {
