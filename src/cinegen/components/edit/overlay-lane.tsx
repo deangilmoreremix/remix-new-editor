@@ -185,7 +185,10 @@ function LowerThirdThumb({ clip }: { clip: OverlayClip }) {
 /** A small picture for the block, when the overlay has one (library animations ship a thumbnail). */
 function overlayThumb(o: OverlayClip): string | null {
   const id = typeof o.blockId === 'string' ? o.blockId : '';
-  return o.type === ('hyperframes' as OverlayKind) && id ? `/hyperframes/thumbs/${id.replace(':', '-')}.jpg` : null;
+  if (o.type === ('hyperframes' as OverlayKind) && id) return `/hyperframes/thumbs/${id.replace(':', '-')}.jpg`;
+  // motion-graphics templates (e.g. "Portrait · keyword pop-up"): one rendered frame per template, shipped in public/occ-templates/thumbs
+  const tpl = typeof (o as unknown as { templateId?: unknown }).templateId === 'string' ? (o as unknown as { templateId: string }).templateId : '';
+  return o.type === ('mg-template' as OverlayKind) && /^[a-zA-Z0-9_-]{1,80}$/.test(tpl) ? `/occ-templates/thumbs/${tpl}.jpg` : null;
 }
 
 /** The overlay's own text, so the block shows what it says and not just its name. */
