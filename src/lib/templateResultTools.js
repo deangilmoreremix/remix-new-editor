@@ -190,15 +190,17 @@ export function createResultHistory({ storageKey, onSelect, title = 'History' } 
  * Regenerate + Extend actions (with the Extend form) for the current result.
  * @param {Object} opts
  * @param {() => void} opts.onRegenerate
+ * @param {(entry: object) => void} [opts.onReuse]  load the entry's saved form inputs back into the form
  * @param {(entry: object, opts: {prompt: string, duration: number}) => Promise<void>} opts.onExtend
  */
-export function createResultActions({ onRegenerate, onExtend } = {}) {
+export function createResultActions({ onRegenerate, onExtend, onReuse } = {}) {
   let current = null;
   const el = document.createElement('div');
   el.className = 'template-result-actions mt-4 flex flex-col gap-3';
   el.innerHTML = `
     <div class="flex flex-wrap gap-3">
       <button type="button" data-action="regenerate" class="rounded-2xl border border-white/10 bg-white/10 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-white/20">↻ Regenerate</button>
+      <button type="button" data-action="reuse" title="Put this result's form inputs back in the form so you can edit them" class="hidden rounded-2xl border border-white/10 bg-white/10 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-white/20">✎ Use these inputs</button>
       <button type="button" data-action="extend" title="Extend this video using Seedance 2.0 Extend" class="hidden rounded-2xl border border-primary/30 bg-white/10 px-5 py-2.5 text-xs font-bold text-primary transition hover:bg-white/20">↗ Extend</button>
     </div>
     <div data-extend-form class="hidden flex flex-col gap-3 rounded-[20px] border border-primary/20 bg-black/40 p-4">
@@ -217,11 +219,13 @@ export function createResultActions({ onRegenerate, onExtend } = {}) {
   `;
   const regenBtn = el.querySelector('[data-action="regenerate"]');
   const extendBtn = el.querySelector('[data-action="extend"]');
+  const reuseBtn = el.querySelector('[data-action="reuse"]');
   const form = el.querySelector('[data-extend-form]');
   const runBtn = el.querySelector('[data-action="extend-run"]');
   const status = el.querySelector('[data-extend-status]');
 
   regenBtn.onclick = (e) => { e.stopPropagation(); onRegenerate?.(); };
+  reuseBtn.onclick = (e) => { e.stopPropagation(); if (current && current.inputs) onReuse?.(current); };
   extendBtn.onclick = (e) => { e.stopPropagation(); form.classList.toggle('hidden'); };
   runBtn.onclick = async (e) => {
     e.stopPropagation();
@@ -247,6 +251,8 @@ export function createResultActions({ onRegenerate, onExtend } = {}) {
     /** Show the actions for this result (Extend only for Seedance 2.0). */
     setEntry(entry) {
       current = entry || null;
+      // Only results saved with their form inputs can be reused (older ones can't).
+      reuseBtn.classList.toggle('hidden', !(current && current.inputs && typeof onReuse === 'function'));
       const extendable = canExtend(current);
       extendBtn.classList.toggle('hidden', !extendable);
       if (!extendable) form.classList.add('hidden');
@@ -270,6 +276,28 @@ export function snapshotGenerationParams(params) {
       if (typeof val === 'string' && val.startsWith('data:')) return undefined;
       return val;
     }));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Plain-data copy of the form values behind a result, stored on its history
+ * entry so "Use these inputs" can put them back. Media (urls / data: strings)
+ * and non-JSON values are left out, like `snapshotGenerationParams`.
+ * @param {object} inputs form values (and any nested groups such as tiles)
+ * @returns {object|null}
+ */
+export function snapshotFormInputs(inputs) {
+  if (!inputs || typeof inputs !== 'object') return null;
+  try {
+    const copy = JSON.parse(JSON.stringify(inputs, (key, val) => {
+      if (typeof val === 'function' || key === 'signal') return undefined;
+      if (typeof val === 'string' && (val.startsWith('data:') || /^blob:/.test(val))) return undefined;
+      if (key.startsWith('_')) return undefined;
+      return val;
+    }));
+    return Object.keys(copy).length ? copy : null;
   } catch {
     return null;
   }
