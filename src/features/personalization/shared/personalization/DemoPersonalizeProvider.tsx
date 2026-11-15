@@ -165,6 +165,14 @@ function mergeIntoClientLibrary(saved: ClientAssetLibrary, job: ClientAssetLibra
   }
 }
 
+export interface BatchExportState {
+  status: 'idle' | 'running' | 'done'
+  /** 0..100 */
+  progress: number
+  message: string
+}
+const IDLE_BATCH_EXPORT: BatchExportState = { status: 'idle', progress: 0, message: '' }
+
 const EMPTY_ASSET_LIBRARY: AssetLibrary = {
   identities: [],
   primaryIdentity: null,
@@ -1088,6 +1096,10 @@ export type DemoPersonalizeContextValue = {
     */
    createFinalVideo: (options?: { approveNow?: boolean }) => Promise<void>
    cancelExport: () => void
+  /** One branded video per saved client, with the approved layout (browser render, sequential). */
+  exportForAllClients: () => Promise<void>
+  /** Progress of `exportForAllClients`. */
+  batchExport: BatchExportState
    apiKey: string
    setPreviewAudio: (file: File) => Promise<void>
    removePreviewAudio: () => void
@@ -6215,9 +6227,75 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   }, [previewSettings, previewSeed, previewVideo, source, runGenerate, mode, access, apiKey, clientForm, assets, previewApproved, promptState, completeRun, genOptions])
   createFinalVideoRef.current = createFinalVideo
 
+  const [batchExport, setBatchExport] = useState<BatchExportState>(IDLE_BATCH_EXPORT)
+  const batchAbortRef = useRef<AbortController | null>(null)
+
   const cancelExport = useCallback(() => {
+    batchAbortRef.current?.abort()
     cancelActiveExport()
   }, [])
+
+  const exportForAllClients = useCallback(async () => {
+    // Same gate as the single branded render: exactly the approved layout.
+    if (!previewApproved || batchAbortRef.current) return
+    const everyClient = loadClients()
+    if (everyClient.length < 2) return
+    const frozenSettings = previewSettings
+    const frozenVideo = previewVideo
+    const frozenSource = source
+    const abort = new AbortController()
+    batchAbortRef.current = abort
+    const session = restoreSessionRef.current
+    const stale = () => restoreSessionRef.current !== session
+    setBatchExport({ status: 'running', progress: 0, message: 'Preparing…' })
+    try {
+      const [{ exportPersonalizedVideo, downloadWebExportBlob }, { runBatch, summarizeBatch, uniqueFileName }] = await Promise.all([
+        import('./webExport'),
+        import('../../../../lib/personalization/batchExport.js'),
+      ])
+      const used = new Set<string>()
+      const title = (frozenSource?.title || 'personalized').replace(/\s+/g, ' ').trim()
+      const outcome = await runBatch(
+        everyClient.map((client) => ({ id: client.id, name: client.businessName || client.name || client.id, client })),
+        async (item, ctx) => {
+          // Each client's own details and images, over the SAME approved layout.
+          const inputProps = buildPreviewInput({
+            source: frozenSource,
+            previewSettings: frozenSettings,
+            previewVideo: frozenVideo,
+            clientForm: item.client as ClientProfile,
+            assets: { ...EMPTY_ASSET_LIBRARY, ...loadClientAssets(item.id) } as AssetLibrary,
+          })
+          const exported = await exportPersonalizedVideo({ inputProps, signal: ctx.signal, onProgress: ctx.onProgress })
+          if (!exported.ok) throw new Error(exported.reason === 'cancelled' ? 'Cancelled' : exported.error)
+          return exported
+        },
+        {
+          signal: abort.signal,
+          onProgress: (overall, info) => {
+            if (stale()) return
+            setBatchExport({
+              status: 'running',
+              progress: Math.round(overall * 100),
+              message: `Video ${info.index + 1} of ${info.total} · ${info.item.name}`,
+            })
+          },
+          onItem: (r) => {
+            if (r.ok && r.value) {
+              const exported = r.value as { blob: Blob; extension: string }
+              downloadWebExportBlob(exported.blob, uniqueFileName(`${title} - ${r.name}`, used, exported.extension))
+            }
+          },
+        },
+      )
+      if (stale()) return
+      setBatchExport({ status: 'done', progress: 100, message: summarizeBatch(outcome, { noun: 'branded video' }) })
+    } catch (error) {
+      if (!stale()) setBatchExport({ status: 'done', progress: 0, message: error instanceof Error ? error.message : 'Export failed' })
+    } finally {
+      batchAbortRef.current = null
+    }
+  }, [previewApproved, previewSettings, previewVideo, source])
 
   const setPreviewAudio = useCallback(async (file: File) => {
     markSessionStarted()
@@ -6662,6 +6740,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     approvePersonalization,
      createFinalVideo,
      cancelExport,
+     exportForAllClients,
+     batchExport,
      apiKey,
      setPreviewAudio,
      removePreviewAudio,

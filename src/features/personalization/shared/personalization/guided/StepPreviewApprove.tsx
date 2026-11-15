@@ -15,6 +15,7 @@ import { PREVIEW_ASPECT_RATIOS } from '../preview/types'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
 import { getRemotionDesignFixedSvgIdWarning } from '../templates/catalog'
 import { chooseFinalOutputPath } from '../finalOutput'
+import { loadClients } from '../clientProfile'
 
 /**
  * Simple Mode step 4 — free Before/After preview, direct on-video overlay
@@ -48,6 +49,8 @@ export function StepPreviewApprove(): React.JSX.Element {
     setAdvancedSection,
     createFinalVideo,
     cancelExport,
+    exportForAllClients,
+    batchExport,
     generation,
     result,
     mode,
@@ -67,6 +70,12 @@ export function StepPreviewApprove(): React.JSX.Element {
   // (and disabled) so the two operations are never conflated.
   const finalPath = chooseFinalOutputPath({ personalizationMode: mode || null })
   const isBrandedPath = finalPath === 'branded-render'
+  // One branded video per saved client: the same approved layout, each client's
+  // own details and images. Only offered with 2+ saved clients, and gated
+  // exactly like the single render above.
+  const savedClientCount = isAnonymous ? 0 : loadClients().length
+  const batchRunning = batchExport?.status === 'running'
+  const batchDisabled = generating || batchRunning || !isBrandedPath || !previewApproved || exportBlocked || rightsGate
   // Phase 3 item 13: some frozen upstream designs hardcode SVG `id`s, so a
   // second instance of the same design is clipped by the first. The catalog
   // declares which designs are constrained; Step 4 shows a non-blocking
@@ -350,6 +359,31 @@ export function StepPreviewApprove(): React.JSX.Element {
                 <strong style={{ fontWeight: 800 }}>Generate with AI</strong> uses your account&apos;s AI
                 generation for changes that need new imagery or footage.
               </p>
+              {isBrandedPath && savedClientCount >= 2 && (
+                <div data-testid="guided-batch-export" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      data-testid="guided-export-all-clients"
+                      onClick={() => { void exportForAllClients() }}
+                      disabled={batchDisabled}
+                      title={!previewApproved ? 'Approve the preview first' : exportBlocked ? 'Fix the critical layout problem first' : rightsGate ? 'Confirm you may use this clip first' : `Render one video for each of your ${savedClientCount} saved clients`}
+                      style={{ ...secondaryButtonStyle, display: 'inline-flex', alignItems: 'center', gap: 8, opacity: batchDisabled ? 0.5 : 1 }}
+                    >
+                      {batchRunning ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                      {batchRunning ? `Rendering… ${batchExport.progress}%` : `Export one video per saved client (${savedClientCount})`}
+                    </button>
+                    {batchRunning && (
+                      <button type="button" data-testid="guided-export-all-cancel" onClick={() => cancelExport()} style={{ ...secondaryButtonStyle, border: `1px solid ${C.danger}`, color: C.danger, background: 'rgba(239,68,68,.10)' }}>
+                        <X size={14} /> Cancel
+                      </button>
+                    )}
+                  </div>
+                  {batchExport?.message && batchExport.status !== 'idle' && (
+                    <p data-testid="guided-export-all-status" role="status" style={{ ...hintStyle, color: batchExport.status === 'done' ? C.cyan : C.muted }}>{batchExport.message}</p>
+                  )}
+                </div>
+              )}
               {generating && isBrandedPath && (
                 <button
                   type="button"

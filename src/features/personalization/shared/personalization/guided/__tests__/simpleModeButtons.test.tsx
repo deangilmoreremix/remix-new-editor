@@ -98,6 +98,52 @@ describe('Step 4: approve, render and AI', () => {
     expect(renderButton().disabled).toBe(false)
   })
 
+  describe('Export one video per saved client', () => {
+    const seedClients = (n: number) => localStorage.setItem('smartvideo_clients', JSON.stringify(Object.fromEntries(
+      Array.from({ length: n }, (_, i) => [`c${i}`, { id: `c${i}`, name: `Biz ${i}`, businessName: `Biz ${i}`, audience: 'client', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }]),
+    )))
+    const batchButton = () => screen.queryByTestId('guided-export-all-clients') as HTMLButtonElement | null
+
+    it('is hidden with fewer than two saved clients', () => {
+      localStorage.clear(); seedClients(1)
+      previewCtx({ exportForAllClients: vi.fn(), batchExport: { status: 'idle', progress: 0, message: '' } })
+      render(<StepPreviewApprove />)
+      expect(batchButton()).toBeNull()
+    })
+
+    it('is gated exactly like the single render: approval, then the rights confirmation', () => {
+      localStorage.clear(); seedClients(3)
+      const exportForAllClients = vi.fn()
+      previewCtx({ exportForAllClients, batchExport: { status: 'idle', progress: 0, message: '' } })
+      const { rerender } = render(<StepPreviewApprove />)
+      expect(batchButton()!.textContent).toMatch(/Export one video per saved client \(3\)/)
+      expect(batchButton()!.disabled).toBe(true) // not approved
+
+      previewCtx({ previewApproved: true, exportForAllClients, batchExport: { status: 'idle', progress: 0, message: '' } })
+      rerender(<StepPreviewApprove />)
+      expect(batchButton()!.disabled).toBe(true) // licence not confirmed yet
+      act(() => { (screen.getByTestId('guided-rights-confirm').querySelector('input') as HTMLInputElement).click() })
+      expect(batchButton()!.disabled).toBe(false)
+      act(() => { batchButton()!.click() })
+      expect(exportForAllClients).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows progress with Cancel while running, and the summary when done', () => {
+      localStorage.clear(); seedClients(2)
+      const cancelExport = vi.fn()
+      previewCtx({ previewApproved: true, cancelExport, exportForAllClients: vi.fn(), batchExport: { status: 'running', progress: 40, message: 'Video 1 of 2 · Biz 0' } })
+      const { rerender } = render(<StepPreviewApprove />)
+      expect(batchButton()!.disabled).toBe(true)
+      expect(batchButton()!.textContent).toMatch(/Rendering… 40%/)
+      act(() => { (screen.getByTestId('guided-export-all-cancel') as HTMLButtonElement).click() })
+      expect(cancelExport).toHaveBeenCalled()
+
+      previewCtx({ previewApproved: true, exportForAllClients: vi.fn(), batchExport: { status: 'done', progress: 100, message: 'Exported 2 branded videos' } })
+      rerender(<StepPreviewApprove />)
+      expect(screen.getByTestId('guided-export-all-status').textContent).toBe('Exported 2 branded videos')
+    })
+  })
+
   it('says when a change cleared the approval', () => {
     previewCtx({ approvalStale: true })
     render(<StepPreviewApprove />)

@@ -45,6 +45,7 @@ import { generateImage as generateAiImage } from '../lib/editor/aiImageService.j
 import { makePersonalizationAssetVideoReady } from '../lib/personalization/videoReady.js';
 import { persistPersonalizationAssetVersion } from '../lib/personalization/assetDiscoveryService.js';
 import { buildRevertPatch, cutoutAsset } from '../lib/personalization/backgroundCutout.js';
+import { runBatch, summarizeBatch, uniqueFileName } from '../lib/personalization/batchExport.js';
 import { isCutoutAsset } from '../lib/personalization/assetUrl.js';
 import { BRIDGE_SOURCE, layersToTimelineOverlays, timelineOverlaysToLayers } from '../lib/personalization/layerOverlayBridge.js';
 import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
@@ -8575,19 +8576,28 @@ export function TimelineEditorPage() {
           // the text and their own Smart Speech line plays.
           if (q('#exportFor')?.value === 'each') {
             const contacts = listContactProfiles(contactStore);
-            for (let i = 0; i < contacts.length; i += 1) {
-              if (abort.signal.aborted) throw new Error('Cancelled');
-              const who = contactName(contacts[i]);
-              const part = await exportModel(await buildModel(quality, contacts[i]), {
+            const usedNames = new Set();
+            // One contact failing (e.g. an image that no longer loads) must not
+            // stop the others; the summary names what failed.
+            const batch = await runBatch(
+              contacts.map((c) => ({ id: c.id, name: contactName(c), contact: c })),
+              async (item, ctx) => exportModel(await buildModel(quality, item.contact), {
                 container,
                 quality,
+                signal: ctx.signal,
+                onProgress: (p) => ctx.onProgress(p),
+              }),
+              {
                 signal: abort.signal,
-                onProgress: (p) => setProgress(((i + p) / contacts.length) * 100, `Video ${i + 1} of ${contacts.length} · ${who} · ${Math.round(p * 100)}%`),
-              });
-              downloadBlob(part, `${name} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || contacts[i].id}.${EXTENSIONS[container] || 'mp4'}`);
-            }
-            setProgress(100, `Done: ${contacts.length} videos downloaded`);
-            showToast(`Exported ${contacts.length} personalized videos`, 'success');
+                onProgress: (overall, info) => setProgress(overall * 100, `Video ${info.index + 1} of ${info.total} · ${info.item.name} · ${Math.round(((overall * info.total) - info.index) * 100)}%`),
+                onItem: (r) => { if (r.ok) downloadBlob(r.value, uniqueFileName(`${name} - ${r.name || r.id}`, usedNames, EXTENSIONS[container] || 'mp4')); },
+              },
+            );
+            if (batch.cancelled) throw new Error('Cancelled');
+            const summary = summarizeBatch(batch, { noun: 'personalized video' });
+            const failed = batch.results.some((r) => !r.ok);
+            setProgress(100, failed ? summary : `Done: ${batch.results.length} videos downloaded`);
+            showToast(summary, failed ? 'error' : 'success');
             return;
           }
           const model = await buildModel(quality);
