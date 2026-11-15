@@ -313,3 +313,11 @@ describe('project persistence and export mapping', () => {
     expect(preview[0]!.u_count).toBeGreaterThanOrEqual(3);
   });
 });
+
+describe('export mirror canvas (regression found by the real export check)', () => {
+  it('ClipFx clears its 2D mirror before copying the GL frame, so a transparent area that shrinks over time is not smeared by earlier frames', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '../../openchatcut/gl/ClipFx.tsx'), 'utf8');
+    const clear = src.indexOf('clearRect(0, 0, mirror.width, mirror.height)'); const draw = src.indexOf('mctx?.drawImage(canvas, 0, 0)');
+    expect(clear).toBeGreaterThan(0); expect(draw).toBeGreaterThan(clear);
+  });
+});

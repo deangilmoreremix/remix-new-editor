@@ -196,7 +196,11 @@ export function ClipFx({ item, fit, width, height, frameOffset = 0, onPreviewSta
         if (isRendering && mirror) {
           if (mirror.width !== canvas.width) mirror.width = canvas.width;
           if (mirror.height !== canvas.height) mirror.height = canvas.height;
-          mirror.getContext('2d')?.drawImage(canvas, 0, 0);
+          // [remix] Fix C: clear first - drawImage() composites source-over, so without this every frame's opaque pixels stay in the mirror and
+          // a mask / key whose transparent area changes over time (animated masks, corner-pin) could only ever grow in the export.
+          const mctx = mirror.getContext('2d');
+          mctx?.clearRect(0, 0, mirror.width, mirror.height);
+          mctx?.drawImage(canvas, 0, 0);
           mirror.style.opacity = '1';
           canvas.style.opacity = '0';
         } else canvas.style.opacity = '1';

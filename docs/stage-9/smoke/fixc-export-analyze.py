@@ -95,21 +95,24 @@ for t in (1.0, 4.4):
     core = erode(in_unit & in_rect(poly, sx, sy, 0.02), 6)
     g_plus_b = exp[..., 1] + exp[..., 2]
     visible = g_plus_b > 30
-    sxp = np.clip((sx * SW).astype(int), 0, SW - 1); syp = np.clip((sy * SH).astype(int), 0, SH - 1)
-    mapped = srcf[syp, sxp]
+    # bilinear sample of the source frame at the homography-mapped position (pixel centres at +0.5)
+    fx_ = np.clip(sx * SW - 0.5, 0, SW - 1.001); fy_ = np.clip(sy * SH - 0.5, 0, SH - 1.001)
+    x0 = fx_.astype(int); y0 = fy_.astype(int); wx = (fx_ - x0)[..., None]; wy = (fy_ - y0)[..., None]
+    mapped = (srcf[y0, x0] * (1 - wx) * (1 - wy) + srcf[y0, x0 + 1] * wx * (1 - wy) + srcf[y0 + 1, x0] * (1 - wx) * wy + srcf[y0 + 1, x0 + 1] * wx * wy)
     confident = core & ((mapped[..., 1] + mapped[..., 2]) > 80)
     frac_vis = float(visible[confident].mean()) if confident.any() else 0.0
     outside = ~near
     frac_black = float((g_plus_b[outside] < 40).mean())
-    red_inside = float(exp[..., 0][core].mean()); gdiff = float(np.median(np.abs(exp[..., 1][core] - mapped[..., 1][core])))
-    xs_vis = np.where(visible.any(axis=0))[0]; extent = (float(xs_vis.min() / W), float(xs_vis.max() / W)) if len(xs_vis) else (0, 0)
-    exp_xs = np.where(inside.any(axis=0))[0]; exp_extent = (float(exp_xs.min() / W), float(exp_xs.max() / W)) if len(exp_xs) else (0, 0)
+    red_inside = float(exp[..., 0][core].mean()); gdiff = float(np.corrcoef(exp[..., 1][core], mapped[..., 1][core])[0, 1])  # Pearson r: ffmpeg decodes the source with BT.601, Chrome with BT.709 (constant ~14 level offset), so compare structure, not levels
+    xs_vis = np.where(visible.sum(axis=0) >= 40)[0]  # columns with >= 40 visible pixels (h264 leaves isolated 16 px block remnants)
+    extent = (float(xs_vis.min() / W), float(xs_vis.max() / W)) if len(xs_vis) else (0, 0)
+    exp_xs = np.where(inside.sum(axis=0) >= 40)[0]; exp_extent = (float(exp_xs.min() / W), float(exp_xs.max() / W)) if len(exp_xs) else (0, 0)
     extents.append((t, extent, exp_extent))
-    numbers['t=%.1f' % t] = {'expected_x_extent': exp_extent, 'measured_x_extent': extent, 'confident_pixels': int(confident.sum()), 'visible_fraction_inside': frac_vis, 'black_fraction_outside': frac_black, 'red_mean_inside': red_inside, 'green_median_abs_diff_vs_mapped_source': gdiff}
+    numbers['t=%.1f' % t] = {'expected_x_extent': exp_extent, 'measured_x_extent': extent, 'confident_pixels': int(confident.sum()), 'visible_fraction_inside': frac_vis, 'black_fraction_outside': frac_black, 'red_mean_inside': red_inside, 'green_correlation_with_mapped_source': gdiff}
     check(frac_vis > 0.97, 't=%.1fs: %.1f%% of the pixels that should show the (mask + pin) region are visible' % (t, 100 * frac_vis))
     check(frac_black > 0.985, 't=%.1fs: %.1f%% of the pixels outside the masked / pinned region are black' % (t, 100 * frac_black))
     check(red_inside < 8, 't=%.1fs: curve killed the red channel inside the region (mean R %.1f)' % (t, red_inside))
-    check(gdiff < 14, 't=%.1fs: green inside matches the source frame mapped through the inverse corner-pin homography (median abs diff %.1f)' % (t, gdiff))
+    check(gdiff > 0.95, 't=%.1fs: green inside correlates with the source frame mapped through the inverse corner-pin homography (Pearson r %.3f)' % (t, gdiff))
     check(abs(extent[0] - exp_extent[0]) < 0.03 and abs(extent[1] - exp_extent[1]) < 0.03, 't=%.1fs: horizontal extent of the visible region %s matches the expected %s' % (t, tuple(round(x, 3) for x in extent), tuple(round(x, 3) for x in exp_extent)))
 (t1, e1, x1), (t2, e2, x2) = extents
 check(e1[1] - e2[1] > 0.04, 'the animated mask anchors move the right edge between the two exported frames (%.3f -> %.3f)' % (e1[1], e2[1]))

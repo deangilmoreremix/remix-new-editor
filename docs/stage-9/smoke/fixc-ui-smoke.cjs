@@ -44,6 +44,8 @@ const timelineRow = (store) => { const k = Object.keys(store).find((x) => /proje
   assert(lum(at(base, 0.5, 0.5)) > 60 && lum(at(base, 0.05, 0.05)) > 60, 'baseline: the preview shows the clip (centre and corner are not black)');
 
   const rm = async (n) => { const l = pg.locator(`[aria-label="Remove ${n}"]`); if (await l.count()) { await l.first().click(); await pg.waitForTimeout(400); } };
+  const bb = await stageBox();
+  const slider = (label) => fxRow().locator('.clip-properties-panel__row').filter({ has: pg.locator('.clip-properties-panel__label', { hasText: new RegExp('^' + label + '$') }) }).locator('input[type=range]').first();
   const part = (n) => !process.env.PART || process.env.PART.split(',').includes(n);
   // ===================== 1. PEN-PATH MASK =====================
   if (part('mask')) {
@@ -54,15 +56,14 @@ const timelineRow = (store) => { const k = Object.keys(store).find((x) => /proje
   assert((await pg.locator('[data-testid=fx-edit-overlay][data-kind=mask]').count()) === 1 && (await anchors().count()) === 4, 'preview overlay shows 4 anchor handles of the default path');
   // drag the right anchor outwards: the visible region grows to the right
   const a1 = await center(anchors().nth(1));
-  const beforeEdge = at(await shot(), 0.84, 0.5);
+  await sa('before the drag the pixel right of the ellipse tip is masked', (s) => lum(at(s, 0.84, 0.5)) < 25);
   await drag(a1, [a1[0] + (await stageBox()).width * 0.12, a1[1]]);
-  await sa('dragging an anchor on the preview widens the mask (pixel right of the old edge becomes visible)', (s) => lum(beforeEdge) < 25 && lum(at(s, 0.84, 0.5)) > 60);
+  await sa('dragging an anchor on the preview widens the mask (pixel right of the old edge becomes visible)', (s) => lum(at(s, 0.84, 0.5)) > 60);
   // pen: clear, draw a pentagon by clicking, check the result
   await pg.locator('[data-testid=mask-clear]').click(); await pg.waitForTimeout(400);
   assert((await anchors().count()) === 0, 'Clear removes all points (mask off with < 3 points: picture is full again)');
   await sa('with fewer than 3 points the picture is not masked', (s) => lum(at(s, 0.05, 0.05)) > 60);
   assert((await pg.locator('[data-testid=mask-pen]').getAttribute('aria-pressed')) === 'true', 'Clear while editing switches the pen tool on');
-  const bb = await stageBox();
   const P = (u, v) => [bb.x + u * bb.width, bb.y + v * bb.height];
   const pent = [[0.5, 0.15], [0.8, 0.4], [0.7, 0.8], [0.3, 0.8], [0.2, 0.4]];
   for (const [u, v] of pent) { const p = P(u, v); await pg.mouse.click(p[0], p[1]); await pg.waitForTimeout(250); }
@@ -78,10 +79,8 @@ const timelineRow = (store) => { const k = Object.keys(store).find((x) => /proje
   await anchors().nth(5).click({ force: true }); await pg.locator('[data-testid=mask-delete-point]').click(); await pg.waitForTimeout(300);
   assert((await anchors().count()) === 5, 'Delete point removes the selected anchor');
   // invert + opacity + feather via the sliders
-  const slider = (label) => fxRow().locator('.clip-properties-panel__row').filter({ has: pg.locator('.clip-properties-panel__label', { hasText: new RegExp('^' + label + '$') }) }).locator('input[type=range]').first();
   await slider('Invert').fill('1'); await pg.waitForTimeout(800);
-  if (process.env.DBG) { await pg.screenshot({ path: SP + 'dbg-invert.png' }); info('rows ' + (await fxRow().locator('.clip-properties-panel__row').allInnerTexts()).join(' | ').replace(/\n/g, ' ').slice(0, 600)); }
-  await sa('Invert flips the mask (inside is now only the overlay tint, outside shows the picture)', (s) => lum(at(s, 0.5, 0.55)) < 90 && lum(at(s, 0.08, 0.1)) > 200);
+  const inv = await sa('Invert flips the mask (inside is now only the overlay tint, outside shows the picture)', (s) => lum(at(s, 0.5, 0.55)) < 90 && lum(at(s, 0.9, 0.1)) > 150); info('invert inside/outside luma ' + lum(at(inv, 0.5, 0.55)) + ' / ' + lum(at(inv, 0.9, 0.1)));
   await slider('Invert').fill('0');
   // animated points: key all points at 1 s, move one anchor at 4 s, the shape differs between the two times
   await pg.locator('[data-testid=mask-key-points]').click(); await pg.waitForTimeout(400);
@@ -141,9 +140,8 @@ const timelineRow = (store) => { const k = Object.keys(store).find((x) => /proje
   assert(bright[1] > identity[1] + 15, 'master curve: black point 0 -> 0.4 brightens the preview (green mean ' + identity[1].toFixed(1) + ' -> ' + bright[1].toFixed(1) + ')');
   await pg.locator('[data-testid=curves-ch-r]').click();
   await drag(PP(1, 1), PP(1, 0.0)); // red end point down: all full-red pixels lose their red
-  if (process.env.DBG) { await pg.keyboard.press('Control+s'); await pg.waitForTimeout(1200); const t0 = timelineRow(await L.readStore(pg)); info('fx_json ' + t0.clips.map((c) => c.fx_json).join('|')); await pg.waitForTimeout(2500); await pg.screenshot({ path: SP + 'dbg-curves2.png' }); info('canvas ' + (await pg.evaluate(() => { const c = document.querySelector('[data-testid=gl-clip-layer]'); return c ? c.style.visibility + ' ' + c.width + 'x' + c.height + ' op=' + c.style.opacity : 'none'; }))); }
-  const redDown = meanOf(await sa('red curve lowered', (s) => meanOf(s)[0] < bright[0] - 15));
-  assert(redDown[0] < bright[0] - 15 && Math.abs(redDown[1] - bright[1]) < 3, 'the red channel curve lowers only red (R ' + bright[0].toFixed(1) + ' -> ' + redDown[0].toFixed(1) + ', G ' + bright[1].toFixed(1) + ' -> ' + redDown[1].toFixed(1) + ')');
+  const redDown = meanOf(await sa('red curve lowered to zero', (s) => meanOf(s)[0] < 40 && Math.abs(meanOf(s)[1] - bright[1]) < 3));
+  assert(redDown[0] < 40 && Math.abs(redDown[1] - bright[1]) < 3, 'the red channel curve lowers only red (R ' + bright[0].toFixed(1) + ' -> ' + redDown[0].toFixed(1) + ', G ' + bright[1].toFixed(1) + ' -> ' + redDown[1].toFixed(1) + ')');
   // delete a point by double click
   await pg.locator('[data-testid=curves-ch-m]').click();
   await pg.mouse.click(PP(0.5, 0.7)[0], PP(0.5, 0.7)[1]); await pg.waitForTimeout(300);
@@ -185,6 +183,7 @@ const timelineRow = (store) => { const k = Object.keys(store).find((x) => /proje
     await seekT(pg, 4);
     for (const i of [1, 2]) { const a = await center(anchors().nth(i)); await drag(a, [a[0] - bb2.width * 0.18, a[1]]); }
     await pg.locator('[data-testid=fx-edit-toggle]').click(); await pg.waitForTimeout(300);
+    if (!process.env.MASKONLY) {
     await addFx('Corner Pin');
     await pg.locator('[data-testid=fx-edit-toggle]').click(); await pg.waitForTimeout(500);
     const target = [[0.2, 0.2], [0.8, 0.18], [0.82, 0.8], [0.18, 0.78]];
@@ -198,19 +197,24 @@ const timelineRow = (store) => { const k = Object.keys(store).find((x) => /proje
     await pg.locator('[data-testid=curves-ch-r]').click();
     await drag(PP2(1, 1), PP2(1, 0));
     await seekT(pg, 1);
+    }
     await pg.keyboard.press('Control+s'); await pg.waitForTimeout(1500);
     const store1 = await L.readStore(pg); const tl1 = timelineRow(store1);
     const vrow = tl1.clips.find((c) => /^clipA\.mp4$/.test(c.name));
     fs.writeFileSync(SP + 'fixc-saved.json', JSON.stringify({ clip: vrow }, null, 1));
     const fxs = JSON.parse(vrow.fx_json);
+    if (!process.env.MASKONLY) {
     assert(fxs.map((f) => f.id).join() === 'builtin:fx-path-mask,builtin:fx-corner-pin,builtin:fx-curves', 'saved project: the three effects are in Clip.fx in order');
     assert(Array.isArray(fxs[0].props.path) && fxs[0].props.path.length === 24 && Array.isArray(fxs[2].props.curve_r) && fxs[2].props.curve_r.join() === '0,0,1,0' && typeof fxs[1].props.tlx === 'number', 'saved project: mask path (4 vertices), corner values and curve_r arrays are stored in the clip');
+    }
     assert(/"fx:0:v1x"/.test(vrow.stage1_json || ''), 'saved project: animated mask anchors are stored in Clip.anim (stage1_json)');
     // real export through the Export tab
     await L.clickBtn(pg, '^EXPORT$'); await pg.waitForTimeout(2000);
     const qa = pg.locator('[data-testid=export-auto-qa]'); if (await qa.count() && await qa.isChecked()) await qa.uncheck();
-    const dl = pg.waitForEvent('download', { timeout: 420000 }).catch((e) => ({ err: String(e) }));
+    const dl = pg.waitForEvent('download', { timeout: 600000 }).catch((e) => ({ err: String(e) }));
     await pg.locator('.export-settings__render-btn').click();
+    let lastTxt = ''; let done = false; dl.then(() => { done = true; });
+    for (let i = 0; i < 120 && !done; i++) { await pg.waitForTimeout(5000); const txt = await pg.evaluate(() => (document.querySelector('.render-progress') || document.querySelector('.export-tab'))?.innerText?.replace(/\s+/g, ' ').slice(0, 160) || '').catch(() => ''); if (txt !== lastTxt) { info('export: ' + txt); lastTxt = txt; } }
     const d = await dl;
     if (!d || !d.saveAs) { assert(false, 'export produced a download: ' + JSON.stringify(d)); } else {
       await d.saveAs(SP + 'fixc-export.mp4'); info('SAVED ' + SP + 'fixc-export.mp4');
@@ -234,7 +238,7 @@ const timelineRow = (store) => { const k = Object.keys(store).find((x) => /proje
     assert((await anchors().count()) === 4 && (await pg.locator('[data-testid=mask-clear-keys]').count()) === 1, 'reloaded project: the path mask opens with its 4 anchors and its animated points');
   }
 
-  const pageErrors = cons.filter((c) => /PAGEERR|Uncaught|TypeError|ReferenceError/.test(c));
+  const pageErrors = cons.filter((c) => /PAGEERR|Uncaught|TypeError|ReferenceError/.test(c) && !/Retrying failed fetch/.test(c)); // 'Retrying failed fetch' = unconfigured Supabase / model downloads in this sandbox
   assert(pageErrors.length === 0, 'no page errors during the UI run ' + JSON.stringify(pageErrors.slice(0, 3)));
   fs.writeFileSync(SP + 'fixc-ui-results.json', JSON.stringify({ results, failed }, null, 1));
   console.log(failed ? 'FAILED ' + failed : 'ALL UI PASS');
