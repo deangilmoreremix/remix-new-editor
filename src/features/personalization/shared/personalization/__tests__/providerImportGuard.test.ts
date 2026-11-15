@@ -85,7 +85,7 @@ describe('Personalization provider import guard', () => {
     )
     expect(
       violations,
-      `Personalization files must not import generateImage from '@ohb/packages/studio/src/muapi' or '@ohb/lib/muapi'. Found:\n${violations.join('\n')}`,
+      `Personalization files must not import generateImage from '@ohb/packages/studio/src/muapi' or '@/lib/muapi'. Found:\n${violations.join('\n')}`,
     ).toEqual([])
   })
 

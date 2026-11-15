@@ -179,6 +179,7 @@ export async function POST(req: NextRequest) {
         description: cached.description,
         logo: cached.logo,
         assets: cached.assets,
+        ...(cached.brandColors ? { brandColors: cached.brandColors } : {}),
       })
     }
 
@@ -255,6 +256,7 @@ export async function POST(req: NextRequest) {
         description: result.description,
         logo: result.logo,
         assets: result.assets,
+        ...(result.brandColors ? { brandColors: result.brandColors } : {}),
       })
     } catch {
       logPersonalization({
@@ -284,6 +286,7 @@ export async function POST(req: NextRequest) {
       description: result.description,
       logo: result.logo,
       assets: result.assets,
+      ...(result.brandColors ? { brandColors: result.brandColors } : {}),
     })
   } catch (rawErr) {
     logPersonalization({

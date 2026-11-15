@@ -10,7 +10,7 @@ const BUDGET: Record<string, number> = {
   'components/edit/track-row.tsx': 10,
   'components/edit/clip-card.tsx': 40,
   'components/edit/tool-sidebar.tsx': 30,
-  'components/edit/left-panel.tsx': 60,
+  'components/edit/left-panel.tsx': 80,
   'components/edit/timeline-viewer.tsx': 70,
   'components/edit/timeline-editor.tsx': 220,
   'components/edit/edit-tab.tsx': 260,

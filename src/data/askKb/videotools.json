@@ -1,0 +1,557 @@
+{
+  "id": "videotools",
+  "name": "Video Tools",
+  "route": "#/videotools",
+  "description": "Video Tools is a page for working on videos you already have. It has three tabs: Tools (upscale, edit, reframe, clip, remix, translate, remove watermarks, caption), Recast (drive a character image with the motion from a video) and Motion control (rebuild a performance video with new characters while keeping its motion).",
+  "shortDescription": "Upscale, extend, translate, clean up and enhance videos, plus Recast and Motion control.",
+  "fullDescription": "Video Tools opens on the Tools tab. You choose a tool from the model button at the top (13 tools such as AI Video Upscaler, AI Video Upscaler Pro, Topaz Video Upscale, WAN 2.2 Edit Video, WAN 2.2 Animate, Luma Flash Reframe, Luma Modify Video, AI Clipping, Remix Video, HeyGen Video Translate, Seedance Watermark Remover, Wan 3.0 Upscale and AI Captions (Vadoo)), upload a Source Video (or pick a stock clip from Pexels), fill in the prompt or options if that tool offers them, and press Process Video. The result plays in the page with Download Video, Publish to Social and, for video files, Add AI Captions buttons. The Recast tab takes a Motion video and a Character image and makes the character perform that motion. The Motion control tab takes a Motion video and one or more Character images and rebuilds the scene with the new characters, either as Motion transfer or Objects swap. You can jump straight to a tab using ?mode=recast or ?mode=control in the URL.",
+  "bestFor": "Creators who already have a video and want to improve, change, translate, reframe, caption or re-cast it, rather than generate a brand new clip from an image or text.",
+  "whenToUse": [
+    "You want to upscale or enhance a video (AI Video Upscaler, AI Video Upscaler Pro, Topaz Video Upscale).",
+    "You want to edit or restyle an existing video with a text prompt (WAN 2.2 Edit Video, Luma Modify Video).",
+    "You want to reframe a video to another shape (Luma Flash Reframe) or cut a long video into short segments (AI Clipping).",
+    "You want to translate a video into another language (HeyGen Video Translate).",
+    "You want to remove a Seedance watermark (Seedance Watermark Remover).",
+    "You want animated captions (AI Captions (Vadoo)).",
+    "You want a character image to copy the movement from a video (Recast) or want to rebuild a performance video with new characters and assets (Motion control)."
+  ],
+  "whenToUseAnother": [
+    "Use Video Studio (#/video) to generate a video from text or an image, or to extend or edit videos with its own tool list.",
+    "Use Animate Studio (#/animate) to turn a still image into a video with a motion prompt.",
+    "Use Effects Studio (#/effects) or AI VFX Studio (#/ai-vfx) for one-click preset effects on a photo.",
+    "Use Lip Sync Studio (#/lipsync) to make lips match new audio, or Avatar Studio (#/avatar) for talking avatars.",
+    "Use Upscale Studio (#/upscale) for upscaling still images.",
+    "Use Timeline (#/timeline) to cut, arrange and export videos manually.",
+    "Use Audio Studio (#/audio) for voice-over, music or sound effects."
+  ],
+  "keyFeatures": [
+    "Three tabs: Tools, Recast, Motion control (top toggle; ?mode=recast or ?mode=control).",
+    "13 tools in the Tools tab chosen with a model selector dropdown.",
+    "Source Video upload with a stock clip button (Browse stock videos from Pexels).",
+    "Prompt (optional) box that appears only for tools that take a prompt.",
+    "Native Audio switch that appears only for tools that support it.",
+    "Advanced panel, Thumbnail button and Personalize button on the Tools tab.",
+    "Result actions: Download Video, Publish to Social, Add AI Captions.",
+    "Recast: three models with orientation control and optional prompt.",
+    "Motion control: two modes (Motion transfer, Objects swap), four Seedance models, duration, quality, bitrate and audio options.",
+    "Recast and Motion control keep the last 30 results in this browser."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Tool selector (Tools tab)",
+      "explanation": "The button at the top shows the selected tool and its provider. Click it to open the list and choose one. The form below adapts: the Prompt box and the Native Audio switch only appear if the tool supports them. Default tool is AI Video Upscaler.",
+      "whyToUse": "Pick the job you want to do to your video.",
+      "inputRequired": "A selected tool and a Source Video.",
+      "restrictions": "Only the 13 listed tools are available on this page."
+    },
+    {
+      "feature": "AI Video Upscaler, AI Video Upscaler Pro, Topaz Video Upscale, Wan 3.0 Upscale",
+      "explanation": "Upscaling tools. In the code AI Video Upscaler is described as basic AI video upscaling, AI Video Upscaler Pro as professional AI video upscaling and Topaz Video Upscale as Topaz-quality video enhancement. Wan 3.0 Upscale is the one tool with a Native Audio switch.",
+      "whyToUse": "Make low resolution or soft footage sharper and larger.",
+      "inputRequired": "A Source Video.",
+      "restrictions": "Output resolution and scale options are not exposed in this page for the first three tools; they run with the tool defaults."
+    },
+    {
+      "feature": "WAN 2.2 Edit Video and Luma Modify Video",
+      "explanation": "Prompt-based video editing. WAN 2.2 Edit Video is described as text-based video editing; Luma Modify Video as style transformation for videos. Both show the Prompt (optional) box with the placeholder Describe the transformation you want...",
+      "whyToUse": "Change style, look or elements of an existing clip with words.",
+      "inputRequired": "A Source Video and a prompt (the page marks it optional, but a prompt gives the tool something to do).",
+      "restrictions": "Results depend on clip length, resolution and prompt clarity."
+    },
+    {
+      "feature": "WAN 2.2 Animate",
+      "explanation": "Described as character animation from video. No prompt box on this page.",
+      "whyToUse": "Animate or replace characters in a clip.",
+      "inputRequired": "A Source Video. A character image is not requested on the Tools tab; use the Recast tab, which lists Wan2.2 Animate with an image slot, when you need to supply a character.",
+      "restrictions": "Use the Recast tab for character replacement."
+    },
+    {
+      "feature": "Luma Flash Reframe",
+      "explanation": "Intelligent video resizing and reframing.",
+      "whyToUse": "Convert a landscape video to a different shape for another platform.",
+      "inputRequired": "A Source Video.",
+      "restrictions": "Target shape controls are not shown on this page."
+    },
+    {
+      "feature": "AI Clipping",
+      "explanation": "Auto-clips long videos into short segments.",
+      "whyToUse": "Pull highlights from a long recording.",
+      "inputRequired": "A Source Video.",
+      "restrictions": "The page shows a single result player; how multiple clips are returned is not documented here."
+    },
+    {
+      "feature": "Remix Video",
+      "explanation": "Transform and resize video.",
+      "whyToUse": "Quick re-versioning of a clip.",
+      "inputRequired": "A Source Video.",
+      "restrictions": "No options are shown on this page."
+    },
+    {
+      "feature": "HeyGen Video Translate",
+      "explanation": "Translate a video to multiple languages.",
+      "whyToUse": "Reach another language audience.",
+      "inputRequired": "A Source Video.",
+      "restrictions": "This page does not show a target language control for this tool in the code read; see notConfirmed."
+    },
+    {
+      "feature": "Seedance Watermark Remover",
+      "explanation": "Removes watermarks from videos.",
+      "whyToUse": "Clean up your own Seedance output.",
+      "inputRequired": "A Source Video.",
+      "restrictions": "Only use on videos you have the right to modify."
+    },
+    {
+      "feature": "AI Captions (Vadoo)",
+      "explanation": "AI-generated animated captions with viral themes such as the Hormozi style.",
+      "whyToUse": "Add burned-in animated subtitles for social video.",
+      "inputRequired": "A Source Video with speech.",
+      "restrictions": "Caption style choices are not shown on this page."
+    },
+    {
+      "feature": "Recast tab",
+      "explanation": "Drive a character image with the motion from a video. Upload a Motion video and one Character image, choose a model (Kling 3.0 Pro Motion Control, Runway Act Two or Wan2.2 Animate), optionally an aspect ratio (Runway Act Two only: 16:9, 9:16, 1:1, 4:3, 3:4, 21:9) and Orientation: video (Follow the video) or Orientation: image (Follow the image), then press Generate.",
+      "whyToUse": "Make a still character perform a real performance or dance.",
+      "inputRequired": "Motion video and Character image.",
+      "restrictions": "Only one character image. The prompt box works only for models that take a prompt (Kling 3.0 Pro Motion Control and Wan2.2 Animate); for Runway Act Two it is disabled and reads: This model does not take a prompt."
+    },
+    {
+      "feature": "Motion control tab",
+      "explanation": "Rebuild a performance video with new characters and assets while keeping its motion. Choose Motion transfer (extract motion and rebuild the scene with your characters) or Objects swap (keep the scene as filmed and swap characters, products or clothes with your reference images). Upload a Motion video and one or more Character images, pick a model, aspect ratio, duration and options, and press Generate.",
+      "whyToUse": "Replace people or products in a clip, or recreate a dance with new characters.",
+      "inputRequired": "Motion video and at least one Character image.",
+      "restrictions": "Models differ: Seedance 2.5 Motion Control and its Intl and Spicy variants allow 4 to 30 seconds and up to 30 images with audio and bitrate options; Seedance 2.0 Motion Control allows 4 to 15 seconds and up to 9 images with quality (High or Basic) and audio options. Default duration is 5 seconds and default aspect ratio is 16:9."
+    }
+  ],
+  "howToUse": "1. Open Video Tools from the side menu (#/videotools). The page opens on the Tools tab. 2. Click the model button at the top and choose a tool, for example AI Video Upscaler. 3. Under Source Video, upload your video (hint: Upload a video or pick a stock clip) or use the stock video button. 4. If the Prompt (optional) box appears, describe what you want (placeholder: Describe the transformation you want...). If a Native Audio switch appears, turn it on to keep or create audio. 5. Optional: open Advanced for extra options, or use Thumbnail and Personalize. 6. Press Process Video. The button shows Processing... while it works. 7. When the result appears, press Download Video, Publish to Social or Add AI Captions. 8. For Recast: switch the top toggle to Recast, upload a Motion video and a Character image, choose the model, set Orientation, then press Generate. 9. For Motion control: switch to Motion control, choose Motion transfer or Objects swap, upload a Motion video and Character images, choose model, Aspect, duration, Quality, Bitrate and Audio, and press Generate.",
+  "howToSteps": [
+    "Open #/videotools and stay on Tools, or pick Recast or Motion control from the top toggle.",
+    "Tools tab: choose a tool, upload a Source Video, add a prompt if shown, press Process Video.",
+    "Recast tab: add a Motion video and Character image, choose a model, press Generate.",
+    "Motion control tab: add a Motion video and Character images, choose mode and model, set options, press Generate.",
+    "Download or publish the result."
+  ],
+  "gettingStarted": [
+    "Use a short clip for your first try; shorter clips process faster.",
+    "Keep video files at 50 MB or less (MuAPI video limit).",
+    "Make sure your MuAPI key is saved in settings and your account has full access.",
+    "Start with AI Video Upscaler to see the flow, then try Recast with a clear character picture."
+  ],
+  "inputs": [
+    "Source Video",
+    "Prompt (optional)",
+    "Native Audio",
+    "Reference attachments",
+    "Motion video",
+    "Character image(s)",
+    "Model",
+    "Aspect ratio",
+    "Duration",
+    "Quality",
+    "Bitrate",
+    "Audio",
+    "Orientation",
+    "Mode"
+  ],
+  "requiredInputs": [
+    "Source Video (Tools)",
+    "Motion video (Recast and Motion control)",
+    "Character image (Recast) / at least one Character image (Motion control)"
+  ],
+  "optionalInputs": [
+    "Prompt",
+    "Native Audio",
+    "Reference attachments",
+    "Aspect ratio",
+    "Duration",
+    "Quality",
+    "Bitrate",
+    "Audio",
+    "Orientation",
+    "Thumbnail"
+  ],
+  "inputDetails": [
+    {
+      "name": "Source Video",
+      "description": "The video to process on the Tools tab. Without it you see an alert: Upload a source video first.",
+      "required": true,
+      "whenToUse": "Always on the Tools tab.",
+      "restrictions": "MuAPI upload limit for videos is 50 MB (images 10 MB). The upload picker accepts MP4, WebM, MOV, MKV, AVI and M4V files. Stock videos from Pexels can be used instead."
+    },
+    {
+      "name": "Prompt (optional)",
+      "description": "Text instruction for tools that support it (WAN 2.2 Edit Video, Luma Modify Video).",
+      "required": false,
+      "whenToUse": "Edit or modify tools.",
+      "restrictions": "Hidden for tools that do not use a prompt."
+    },
+    {
+      "name": "Native Audio",
+      "description": "Switch shown only for tools that support it (Wan 3.0 Upscale in the current list).",
+      "required": false,
+      "whenToUse": "When you want audio handled by the tool.",
+      "restrictions": "Off by default."
+    },
+    {
+      "name": "Motion video",
+      "description": "Slot in Recast and Motion control. Without it: Please upload a motion video first.",
+      "required": true,
+      "whenToUse": "Always on those tabs.",
+      "restrictions": "Upload failures show: Upload failed: followed by the reason."
+    },
+    {
+      "name": "Character image(s)",
+      "description": "Slot named Character image (Recast, one image) or Character images (Motion control, several).",
+      "required": true,
+      "whenToUse": "Always on those tabs.",
+      "restrictions": "Recast without an image shows: Please upload a character image first. Motion control without images shows: Please add at least one character image. Max images per model: 30 for Seedance 2.5 variants, 9 for Seedance 2.0."
+    },
+    {
+      "name": "Model (Recast / Motion control)",
+      "description": "Chosen from the model pill. Recast default: Kling 3.0 Pro Motion Control. Motion control default: Seedance 2.5 Motion Control.",
+      "required": false,
+      "whenToUse": "Choose based on duration, image count and prompt support.",
+      "restrictions": "Options shown depend on the model (for example aspect ratio is hidden if a model has none)."
+    },
+    {
+      "name": "Duration (Motion control)",
+      "description": "Pill showing seconds; choices step by 1 second up to 9 and then by 5 seconds up to the model maximum.",
+      "required": false,
+      "whenToUse": "To control length.",
+      "restrictions": "Minimum 4 seconds; maximum 15 (Seedance 2.0) or 30 (Seedance 2.5). Default 5."
+    },
+    {
+      "name": "Quality, Bitrate, Audio (Motion control)",
+      "description": "Quality pill (High or Basic) for Seedance 2.0; Bitrate: normal or high for Seedance 2.5 variants; Audio: off or on for all four.",
+      "required": false,
+      "whenToUse": "Final renders or when sound is needed.",
+      "restrictions": "Pills appear only when the selected model supports them. Defaults: High, normal bitrate, audio off."
+    }
+  ],
+  "generationModes": [
+    "Tools",
+    "Recast",
+    "Motion control (Motion transfer)",
+    "Motion control (Objects swap)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Tools",
+      "description": "Choose one of 13 tools and process an existing video.",
+      "useCase": "Upscale, edit, reframe, clip, remix, translate, remove watermark, caption."
+    },
+    {
+      "mode": "Recast",
+      "description": "A character image performs the motion from your video.",
+      "useCase": "Animate a mascot or portrait with a real performance."
+    },
+    {
+      "mode": "Motion control (Motion transfer)",
+      "description": "Extracts motion from the reference video and rebuilds the scene with your new characters and assets, keeping choreography and camera movement.",
+      "useCase": "Recreate a dance or action with different characters."
+    },
+    {
+      "mode": "Motion control (Objects swap)",
+      "description": "Keeps the rest of the scene as filmed and swaps characters, products or clothes with your reference images.",
+      "useCase": "Product or outfit replacement in existing footage."
+    }
+  ],
+  "modelCapabilities": "Tools tab (13 tools): AI Video Upscaler (MuAPI, basic upscaling), AI Video Upscaler Pro (MuAPI, professional upscaling), Topaz Video Upscale (Topaz, Topaz-quality enhancement), WAN 2.2 Edit Video (Wan, text-based editing, takes a prompt), WAN 2.2 Animate (Wan, character animation from video), Luma Flash Reframe (Luma, reframing and resizing), Luma Modify Video (Luma, style transformation, takes a prompt), AI Clipping (MuAPI, auto-clips long videos), Remix Video (MuAPI, transform and resize), HeyGen Video Translate (HeyGen, translate to multiple languages), Seedance Watermark Remover (ByteDance, removes watermarks), Wan 3.0 Upscale (upscaling, has a Native Audio switch) and AI Captions (Vadoo, animated captions with viral themes). Recast models: Kling 3.0 Pro Motion Control (transfers motion from your video to a character image with maximum fidelity, takes a prompt), Runway Act Two (recast any character with the performance from your video, no prompt, several aspect ratios) and Wan2.2 Animate (animate or replace a character in existing clips, takes a prompt). Motion control models: Seedance 2.5 Motion Control (up to 30 s, up to 30 reference assets, adaptive aspect ratio and audio), Seedance 2.0 Motion Control (up to 15 s, 9 assets), Seedance 2.5 Intl Motion Control (international region version) and Seedance 2.5 Spicy Motion Control (described as a bolder creative treatment). No prices, speeds or quality scores for these tools appear in the catalog or comparison files read, so none are stated.",
+  "outputs": [
+    "An upgraded, edited, reframed, translated, clipped, captioned or watermark-free video from the Tools tab, shown in a player with Download Video.",
+    "A recast video where your character performs the motion (Recast tab).",
+    "A rebuilt performance video with new characters or swapped objects (Motion control tab), up to 30 seconds depending on the model.",
+    "Recast and Motion control results are kept in a gallery (last 30 in this browser)."
+  ],
+  "limitations": [
+    "Only the 13 listed tools are offered on the Tools tab.",
+    "Upload limits come from MuAPI: 50 MB for videos and 10 MB for images.",
+    "Most tools have no visible settings on this page, so you cannot choose target resolution, language or caption style here.",
+    "Recast takes only one Character image; Motion control takes up to 9 or 30 depending on the model.",
+    "Motion control duration is 4 to 15 seconds (Seedance 2.0) or 4 to 30 seconds (Seedance 2.5).",
+    "Processing may take several minutes for long or high resolution videos.",
+    "The Video Tools page does not generate new clips from text or images; use Video Studio or Animate for that."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Large video files",
+      "impact": "Files over 50 MB are rejected with: This file is too large for MuAPI (images 10 MB, videos 50 MB, other 10 MB).",
+      "workaround": "Trim or compress the video before uploading."
+    },
+    {
+      "limitation": "Few visible options per tool",
+      "impact": "For example, upscalers run with their defaults and translate has no language selector visible in the code read.",
+      "workaround": "Try the other upscale tool, or use Video Studio, which has its own tool options such as target resolution."
+    },
+    {
+      "limitation": "Prompt only on some tools",
+      "impact": "The Prompt (optional) box is hidden for most tools.",
+      "workaround": "Choose WAN 2.2 Edit Video or Luma Modify Video when you need a text instruction."
+    }
+  ],
+  "troubleshooting": [
+    "Alert says Upload a source video first: upload a video or pick a Pexels stock video on the Tools tab, then press Process Video.",
+    "Alert says Error: followed by a message after Process Video: read the message; typical causes are a missing MuAPI key, an unsupported file or a service problem. Fix the cause and press Process Video again.",
+    "A settings window opens when you press Process Video: save your MuAPI key, then press the button again.",
+    "An upgrade prompt appears: your account needs full access to process videos.",
+    "File is too large message: videos must be 50 MB or less. Compress or trim the clip.",
+    "The Prompt box is missing: the selected tool does not take a prompt. Choose WAN 2.2 Edit Video or Luma Modify Video if you need one.",
+    "Recast shows Please upload a motion video first. or Please upload a character image first.: add both before pressing Generate.",
+    "Motion control shows Please add at least one character image.: add one or more Character images.",
+    "Recast prompt box is greyed out with This model does not take a prompt: you selected Runway Act Two; pick Kling 3.0 Pro Motion Control or Wan2.2 Animate to use a prompt.",
+    "Motion control options are missing (no Quality, Bitrate or Audio pill): those pills only appear for models that support them. Seedance 2.0 shows Quality; Seedance 2.5 models show Bitrate; all four show Audio.",
+    "No video URL returned by API: the service finished without a video. Retry or try a shorter clip.",
+    "Add AI Captions button is missing on the result: it appears only when the result link looks like a video file."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Process Video fails",
+      "steps": [
+        "Confirm the Source Video preview or file name appears.",
+        "Check the file is 50 MB or less and a common format (MP4, WebM, MOV).",
+        "Make sure your MuAPI key is saved and your account has full access.",
+        "Try a shorter clip or a different tool."
+      ]
+    },
+    {
+      "issue": "Recast or Motion control result does not follow the motion",
+      "steps": [
+        "Use a motion video with one clear subject and steady camera.",
+        "Use a clear, full-body character image if the motion is full body.",
+        "In Recast try the other Orientation (Follow the video vs Follow the image).",
+        "Try another model."
+      ]
+    },
+    {
+      "issue": "Upload fails in Recast or Motion control",
+      "steps": [
+        "Look for the toast Upload failed: with the reason.",
+        "Check file size and type (video for Motion video, image for characters).",
+        "Retry the upload."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Output looks the same as the input",
+      "whyItHappens": "Some tools (like AI Video Upscaler) change quality, not content, and the page has no strength controls.",
+      "howToFix": "Compare at full size, or try Topaz Video Upscale or AI Video Upscaler Pro."
+    },
+    {
+      "problem": "Character does not match the reference image",
+      "whyItHappens": "Low quality or cropped character images make the match weaker.",
+      "howToFix": "Use a sharp, well lit, uncropped image; add more images in Motion control."
+    },
+    {
+      "problem": "Result is longer or shorter than expected",
+      "whyItHappens": "Motion control clamps duration to the model range (4 to 15 or 4 to 30 seconds).",
+      "howToFix": "Pick the model and duration that fit your clip."
+    },
+    {
+      "problem": "Tab opens on the wrong mode",
+      "whyItHappens": "The URL contains ?mode=recast or ?mode=control.",
+      "howToFix": "Use the Tools button in the top toggle."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Upscale a low resolution clip",
+      "steps": [
+        "Open Video Tools and choose AI Video Upscaler.",
+        "Upload a clip under 50 MB.",
+        "Press Process Video.",
+        "Press Download Video, or Add AI Captions if you need subtitles."
+      ]
+    },
+    {
+      "title": "Make a mascot dance (Recast)",
+      "steps": [
+        "Switch to the Recast tab.",
+        "Upload a dance clip as Motion video.",
+        "Upload the mascot as Character image.",
+        "Keep Kling 3.0 Pro Motion Control, set Orientation to Follow the video, and describe the performance if you like.",
+        "Press Generate and review the result."
+      ]
+    },
+    {
+      "title": "Swap a product in existing footage (Motion control)",
+      "steps": [
+        "Switch to Motion control and select Objects swap.",
+        "Upload the original clip as Motion video.",
+        "Add product reference images as Character images.",
+        "Choose Seedance 2.5 Motion Control and a duration that fits.",
+        "Press Generate."
+      ]
+    },
+    {
+      "title": "Restyle a clip with a prompt",
+      "steps": [
+        "Choose WAN 2.2 Edit Video or Luma Modify Video.",
+        "Upload the clip.",
+        "Write a prompt such as make it look like a watercolor painting.",
+        "Press Process Video."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Clean up a social clip",
+      "description": "Upscale and caption a short vertical video.",
+      "steps": [
+        "Process with AI Video Upscaler.",
+        "Press Add AI Captions on the result.",
+        "Download."
+      ],
+      "expectedOutput": "A sharper video with captions."
+    },
+    {
+      "title": "Recreate a performance with a new character",
+      "description": "Use a real person's performance to drive a brand character.",
+      "steps": [
+        "Use Recast or Motion control.",
+        "Upload motion video and character images.",
+        "Generate."
+      ],
+      "expectedOutput": "A video of the character repeating the performance."
+    },
+    {
+      "title": "Cut highlights from a long video",
+      "description": "Use AI Clipping to get short segments.",
+      "steps": [
+        "Select AI Clipping.",
+        "Upload the video.",
+        "Press Process Video."
+      ],
+      "expectedOutput": "Short clips from the source (how they are delivered is not documented in the page)."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What can I do in Video Tools?",
+      "answer": "On the Tools tab you can upscale, edit, reframe, clip, remix, translate, remove a Seedance watermark or add AI captions, using one of 13 tools. The Recast and Motion control tabs transfer motion from a video onto characters."
+    },
+    {
+      "question": "What is the difference between Recast and Motion control?",
+      "answer": "Recast drives one character image with the motion from a video using Kling 3.0 Pro Motion Control, Runway Act Two or Wan2.2 Animate. Motion control rebuilds the whole scene with one or more new characters and assets using Seedance models, with Motion transfer and Objects swap modes."
+    },
+    {
+      "question": "How big can my video be?",
+      "answer": "MuAPI allows videos up to 50 MB and images up to 10 MB."
+    },
+    {
+      "question": "Can I open Recast or Motion control directly?",
+      "answer": "Yes. Add ?mode=recast or ?mode=control to the Video Tools address, or use the top toggle."
+    },
+    {
+      "question": "How long can a Motion control video be?",
+      "answer": "From 4 seconds up to 15 seconds with Seedance 2.0 Motion Control, or up to 30 seconds with the Seedance 2.5 models. The default is 5 seconds."
+    },
+    {
+      "question": "Does Recast need a prompt?",
+      "answer": "No. It is optional, and the prompt box is disabled for Runway Act Two, which does not take a prompt."
+    },
+    {
+      "question": "Where are my results saved?",
+      "answer": "Tools results are registered in your generation history and shown on the page with Download Video. Recast and Motion control keep your last 30 results in a gallery in this browser."
+    },
+    {
+      "question": "Can I add captions to the result?",
+      "answer": "Yes, press Add AI Captions under the result on the Tools tab (shown for video results), or use the AI Captions (Vadoo) tool."
+    }
+  ],
+  "glossary": {
+    "Upscale": "Increase a video's resolution and apparent sharpness.",
+    "Reframe": "Change the shape (aspect ratio) of a video while keeping the subject in view.",
+    "Recast": "Make a different character perform the motion from a video.",
+    "Motion transfer": "Copy motion from a reference video and rebuild the scene with new characters.",
+    "Objects swap": "Keep the scene as filmed but replace characters, products or clothes with reference images.",
+    "Native Audio": "Audio produced or kept by the tool itself.",
+    "Bitrate": "Amount of data per second of video; high bitrate usually looks cleaner but makes bigger files.",
+    "Orientation (Recast)": "Whether the character follows the pose direction of the video or of the image.",
+    "Seedance": "ByteDance's video model family used for Motion control."
+  },
+  "tips": [
+    "Use steady footage with one clear subject for Recast and Motion control.",
+    "Use the shortest clip that does the job to save time.",
+    "For Recast, try both Orientation options if the character faces the wrong way.",
+    "In Motion control add several reference images for a better character match (up to the model limit)."
+  ],
+  "bestPractices": [
+    "Keep source videos at 50 MB or less and use common formats like MP4.",
+    "Run one tool at a time and download each result before the next step.",
+    "Upscale last, after edits and captions are done, to avoid repeating work."
+  ],
+  "relatedStudios": [
+    "video",
+    "animate",
+    "effects",
+    "ai-vfx",
+    "lipsync",
+    "avatar",
+    "upscale",
+    "timeline",
+    "audio"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "video",
+      "relationship": "Video generation plus its own list of video tools such as extend and edit.",
+      "whenToMove": "When you need text-to-video, image-to-video or longer continuations.",
+      "why": "Video Tools only processes existing videos."
+    },
+    {
+      "studio": "lipsync",
+      "relationship": "Syncs lips to new audio.",
+      "whenToMove": "When the speech or dubbing is the goal.",
+      "why": "Video Tools translation is a separate, simpler tool."
+    },
+    {
+      "studio": "animate",
+      "relationship": "Image to video.",
+      "whenToMove": "When you only have a still image.",
+      "why": "Video Tools requires a source video."
+    },
+    {
+      "studio": "timeline",
+      "relationship": "Manual editor.",
+      "whenToMove": "To trim, join or add music after processing.",
+      "why": "Video Tools does not edit timelines."
+    },
+    {
+      "studio": "effects",
+      "relationship": "Preset effects for photos.",
+      "whenToMove": "For one-click styles.",
+      "why": "Video Tools is for existing video."
+    }
+  ],
+  "notConfirmed": [
+    "Price or credit cost per tool or per model, and typical processing times; none are shown in the code or catalog files read.",
+    "Stabilization, color correction and frame interpolation tools are not among the 13 tools in the code, so they are not stated as available.",
+    "Whether HeyGen Video Translate, AI Clipping, Luma Flash Reframe and AI Captions expose language, shape or style options. The page builds extra controls from model inputs, and the models in the list define none, so no options are expected.",
+    "Wan 3.0 Upscale has no video field defined in its model entry, so the Upload a source video first alert does not apply to it and it is not confirmed to work end to end.",
+    "src/lib/videoToolCapabilities.js (extend, edit, Topaz factor, HeyGen languages, Happy Horse limits) is used by Video Studio, not by this page, so those options are not stated as Video Tools features.",
+    "Whether Recast and Motion control uploads use the same 10 MB and 50 MB limits; they upload directly through the MuAPI client, which validates files, but the exact wording shown is not confirmed.",
+    "Whether an entitlement (full access) check applies to Recast and Motion control: the code checks it before running, but what counts as full access is defined elsewhere.",
+    "How AI Clipping delivers several clips, since the page shows one result player."
+  ],
+  "sourceFiles": [
+    "src/components/VideoToolsStudio.js",
+    "src/components/studios/MotionPanels.js",
+    "src/lib/motionModels.js",
+    "src/lib/videoToolCapabilities.js (read; used by Video Studio)",
+    "src/lib/models.js (videoToolsModels)",
+    "src/lib/muapi.js (processVideoTool, processRecast, processMotionControl)",
+    "src/lib/instructions.js",
+    "src/lib/muapiUpload.js",
+    "src/components/UploadPicker.js",
+    "src/features/ask-smartvideo/studioRegistry.js",
+    "VIDEO_TOOLS_CHAT_LIPSYNC_AUDIT.md (not relied on)",
+    "public/api/model-catalog.json",
+    "src/lib/modelDescriptions.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read VideoToolsStudio.js and MotionPanels.js in full, motionModels.js, the videoToolsModels list in models.js, processVideoTool, processRecast and processMotionControl in muapi.js, and videoToolCapabilities.js (found to be used by Video Studio). instructions.js has an in-page help entry that mentions tools not present in the code.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

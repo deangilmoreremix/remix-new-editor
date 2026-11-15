@@ -885,7 +885,9 @@ body.is-dragging .floating-rail { pointer-events: none; }
   .brand-sub { display: none; }
   .top-actions { margin-left: auto; }
   /* Rail delta: full-width bar for the 17-button rail */
-  .floating-rail { left: 16px; right: 16px; transform: none; justify-content: center; }
+  /* `safe center`: an overflowing row stays scrollable from its first item (plain `center` pushed the first
+     buttons - Media, Projects, Generate... - to negative x where they could never be reached). */
+  .floating-rail { left: 16px; right: 16px; transform: none; justify-content: flex-start; justify-content: safe center; }
 }
 @media (max-width: 640px) {
   :root { --track-w: 76px; }

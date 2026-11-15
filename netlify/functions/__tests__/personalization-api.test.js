@@ -28,10 +28,22 @@ describe('personalization-api dispatcher', () => {
     expect(res.headers.get('allow')).toBe('PATCH, DELETE')
   })
 
-  it('acknowledges /api/video/record', async () => {
+  it('requires a signed-in user for /api/video/record (it writes generated_videos)', async () => {
     const res = await call('POST', '/api/video/record', { body: '{}' })
-    expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, recorded: false })
+    expect(res.status).toBe(401)
+  })
+
+  it('routes every personalization endpoint the modal calls (none may 404)', async () => {
+    // A route missing from the dispatcher table 404s in production even though its handler exists.
+    for (const [method, path] of [
+      ['POST', '/api/personalization/enrich-business'],
+      ['POST', '/api/personalization/resolve-website'],
+      ['POST', '/api/demo/download-image'],
+      ['GET', '/api/media/remote'],
+    ]) {
+      const res = await call(method, path, method === 'POST' ? { body: '{}' } : {})
+      expect([method, path, res.status === 404]).toEqual([method, path, false])
+    }
   })
 
   it('validates find-businesses input before any network call', async () => {

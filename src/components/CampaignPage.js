@@ -11,7 +11,7 @@ export function CampaignPage(params = {}) {
   container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar';
   mountStudioChrome(container, { currentRoute: 'campaign-page', title: 'Campaign Page' });
 
-  const campaignId = params.campaignId;
+  const campaignId = params.campaignId || new URLSearchParams(window.location.search).get('campaignId');
   const campaign = getCampaign(campaignId);
   const brand = campaign ? getBrand(campaign.brandId) : null;
 

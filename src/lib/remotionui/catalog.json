@@ -1191,11 +1191,19 @@
    },
    "fps": 30,
    "duration": 3.2,
-   "editables": [],
+   "editables": [
+    {
+     "key": "text1",
+     "label": "Text 1: Focus reveal",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Focus reveal"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "fb45f920aa3b6b73f82681a0df3b406a500b735c2cba6421931b628beb7da49c"
   },
   {
@@ -1216,11 +1224,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "1c33c9a733d1f046b61a2eae7fde7d6ec8ea856dde7415e28b8849e1714de6b5"
   },
   {
@@ -2052,11 +2082,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "6a103bfe61a6ab42613c63df381aba025bbddae176ce4071389705ee759e42cb"
   },
   {
@@ -3431,11 +3483,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "bbfe4dc1c33597f0a41a75f3f1cb2c1a01b33516f13697e8b0d2da2abad5548b"
   },
   {
@@ -4292,11 +4366,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "69fe204239c75c0ba6b3871ff062b82b345aee64778b0f061b13c52d9c4f6b42"
   },
   {
@@ -4833,28 +4929,32 @@
    "duration": 4,
    "editables": [
     {
-     "key": "cols",
-     "label": "Cols",
+     "key": "textA",
+     "label": "First scene text",
      "hint": "",
-     "type": "number",
-     "defaultValue": 12,
-     "step": 1
+     "type": "text",
+     "defaultValue": "Scene A"
     },
     {
-     "key": "rows",
-     "label": "Rows",
+     "key": "textB",
+     "label": "Second scene text",
      "hint": "",
-     "type": "number",
-     "defaultValue": 8,
-     "step": 1
+     "type": "text",
+     "defaultValue": "Scene B"
     },
     {
-     "key": "stagger",
-     "label": "Stagger",
-     "hint": "0 pops every cell together; 1 spreads them across the whole window.",
-     "type": "number",
-     "defaultValue": 0.82,
-     "step": 0.05
+     "key": "colorA",
+     "label": "First scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#2563eb"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
     }
    ],
    "needs": [],
@@ -8718,11 +8818,19 @@
    },
    "fps": 30,
    "duration": 3.2,
-   "editables": [],
+   "editables": [
+    {
+     "key": "text1",
+     "label": "Text 1: Slide in from the left",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Slide in from the left"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "e9b232fbbfeaf3ec945ed365253c0976055ce24de9ad27c3bbc46477b81e212d"
   },
   {
@@ -9001,11 +9109,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "9ca1f0bcee1b6a5f42ad8fec2b3f0d3d2fa360733fedcdf1d92ead20961e48b4"
   },
   {
@@ -10707,11 +10837,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "41752f040f06273e6755a097c2535c7ab4c9a4a669e63ecb434a174fd4629549"
   },
   {
@@ -10732,11 +10884,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "168308dc3c25971ae2688dfa4e09c65760ae2b44d1de5e72b3b34863a6b3b24a"
   },
   {
@@ -10757,11 +10931,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "90188a540f4e34bde756507e8ed3b2c90699972f66011baedfde9c3728ba7aed"
   },
   {
@@ -10782,11 +10978,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "14c347668da272cf272d0e909809acfb29d71e3cacb343cff0e2cf780f9b2687"
   },
   {
@@ -10807,11 +11025,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "e082c0c848c8e55c202b73a73d807b06c8bd4d908bc762c3243520900ce4c3fa"
   },
   {
@@ -10832,11 +11072,40 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorA",
+     "label": "First scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#2563eb"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "37f5ecc0924e083ed480c8e41e414350f684ca61bd9edc17364b544e96240673"
   },
   {
@@ -10857,11 +11126,40 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorA",
+     "label": "First scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#2563eb"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "f8bea5a05e1a4e48174504aa63dc4d9a030d2e4bf46ccb147a6b127b55daa990"
   },
   {
@@ -10882,11 +11180,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "0031006ee9203b46c497d406ef9a2244f99ac165fd9d41a50acce5d2c51fa29e"
   },
   {
@@ -10907,11 +11227,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "4da43a0451bf0e1db39a0d60497155642a68f12808ca0ea1d188e5f4e570b77f"
   },
   {
@@ -10932,11 +11274,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "5020396577575a4782f436b201b4b1811db1cb89f45d3af6ce65fcef53cb3701"
   },
   {
@@ -10957,11 +11321,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "9bc0e0968d7ea79ebaafe8de30e588a9a0cb23b580c822ed404e4cb701d8c571"
   },
   {
@@ -12046,11 +12432,33 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [],
+   "editables": [
+    {
+     "key": "textA",
+     "label": "First scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene A"
+    },
+    {
+     "key": "textB",
+     "label": "Second scene text",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "colorB",
+     "label": "Second scene color",
+     "hint": "",
+     "type": "color",
+     "defaultValue": "#f97316"
+    }
+   ],
    "needs": [],
    "slow": false,
-   "enabled": false,
-   "reason": "shows text that a customer cannot change (no field visibly changes it)",
+   "enabled": true,
+   "reason": "",
    "sourceSha256": "49fe0fa89e685b33c01547f3fd2ac8746d363a7493f617c9e8cde260f35b9a9d"
   }
  ]

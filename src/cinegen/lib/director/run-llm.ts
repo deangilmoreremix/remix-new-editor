@@ -63,7 +63,10 @@ function withCliImageMentions(
 }
 
 function providerLabel(provider: DirectorLlmProvider): string {
-    if (provider === 'luna') return LUNA_DIRECTOR_LLM_LABEL;
+  // [remix] 'fal' is the hosted-LLM slot in CineGen's picker; here it runs on OpenAI, so label it that way.
+  if (provider === 'fal') return FAL_DIRECTOR_LLM_LABEL;
+  if (provider === 'higgsfield') return HIGGSFIELD_DIRECTOR_LLM_LABEL;
+  if (provider === 'luna') return LUNA_DIRECTOR_LLM_LABEL;
   if (provider === 'openai') return OPENAI_DIRECTOR_LLM_LABEL;
   return getCliProviderLabel(provider);
 }

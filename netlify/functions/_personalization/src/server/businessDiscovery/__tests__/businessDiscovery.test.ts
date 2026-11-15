@@ -7,16 +7,15 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// The research provider's SSRF guard resolves every hostname before fetching it. These tests are about the
-// provider's behaviour, not the network, so DNS is answered locally (a public address) instead of asking real
-// DNS — otherwise they only pass on machines that can resolve example.com.
+// The SSRF gate resolves the host with dns.promises.resolve4/resolve6. Mock it
+// (as researchProviderSsrf.test.ts does) so these tests do not need real DNS
+// and pass without network access.
+const mockResolve4 = vi.hoisted(() => vi.fn())
+const mockResolve6 = vi.hoisted(() => vi.fn())
+
 vi.mock('node:dns', async (importOriginal) => {
-  const actual = (await importOriginal()) as typeof import('dns') & { default: { promises: Record<string, unknown> } }
-  const promises = {
-    ...actual.default.promises,
-    resolve4: vi.fn(async () => ['93.184.216.34']),
-    resolve6: vi.fn(async () => { const e = new Error('no AAAA') as Error & { code: string }; e.code = 'ENODATA'; throw e }),
-  }
+  const actual = (await importOriginal()) as typeof import('dns') & { default: { promises: { resolve4: typeof import('dns').promises.resolve4; resolve6: typeof import('dns').promises.resolve6 } } }
+  const promises = { ...actual.default.promises, resolve4: mockResolve4, resolve6: mockResolve6 }
   return { ...actual, default: { ...actual.default, promises } }
 })
 
@@ -440,6 +439,9 @@ describe('Website status handling', () => {
 describe('Research provider', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    // A public address (8.8.8.8) so the SSRF gate accepts example.com.
+    mockResolve4.mockReset().mockResolvedValue(['8.8.8.8'])
+    mockResolve6.mockReset().mockResolvedValue([])
   })
 
   it('returns reachable=false when website is unreachable', async () => {

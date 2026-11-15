@@ -3,6 +3,8 @@ import { geocodeLocation, discoverBusinesses, searchBusinessesViaNominatim, dedu
 import type { BusinessDiscoveryRecord, OwnershipType } from '../../../../src/server/businessDiscovery/index'
 import { getNicheMapping, getSupportedNiches } from '../../../../src/server/businessDiscovery/index'
 import { createStageDeadline, withDeadline, DeadlineExceededError, ROUTE_DEADLINE_MS } from '../../../../src/server/businessDiscovery/deadline'
+import { runBackfill, planBackfillStages, mergeDuplicates, BACKFILL_TARGET } from '../../../../src/server/businessDiscovery/backfill'
+import { clientIpFromHeaders } from '../../../../src/server/clientIp'
 import { logPersonalization, createCorrelationId } from '../../../../src/server/personalizationLog'
 import { rateLimit, rateLimit429, resolveRateLimitKey } from '../../../../lib/rateLimit'
 
@@ -58,25 +60,42 @@ const ERROR_CODES = {
   RATE_LIMITED: 'RATE_LIMITED',
 } as const
 
-// Proxy-trust assumption:
-// - `x-real-ip` is stamped by the trusted reverse proxy (nginx
-//   `proxy_set_header X-Real-IP $remote_addr`, or most load balancers) and is
-//   not client-controllable once the proxy overwrites it.
-// - `x-forwarded-for` is append-only ($proxy_add_x_forwarded_for): the FIRST
-//   hop is whatever the client sent (rotating it mints fresh rate-limit
-//   buckets), while the LAST hop is appended by the nearest trusted proxy.
-// Therefore prefer x-real-ip, then the LAST x-forwarded-for hop, and give up
-// (undefined) when neither exists so resolveRateLimitKey falls back to the
-// shared 'anon' bucket — which is rate-limited with a much higher max below.
-function clientIpOf(req: NextRequest): string | undefined {
-  const realIp = req.headers.get('x-real-ip')?.trim()
-  if (realIp) return realIp
-  const forwardedFor = req.headers.get('x-forwarded-for')
-  if (forwardedFor) {
-    const hops = forwardedFor.split(',').map((hop) => hop.trim()).filter(Boolean)
-    if (hops.length > 0) return hops[hops.length - 1]
+// Client IP for rate limiting: see `@/server/clientIp` (Netlify's own header first, then x-real-ip, then the
+// LAST x-forwarded-for hop; never the client-supplied first hops).
+
+const RESUME_MAX_RECORDS = 150
+const RESUME_STRING_FIELDS = [
+  'id', 'source', 'osmType', 'osmId', 'name', 'category', 'address', 'city', 'region', 'postalCode', 'country',
+  'phone', 'email', 'website', 'facebook', 'instagram', 'whatsapp', 'youtube', 'linkedin', 'tiktok', 'openingHours',
+  // Read by ownership classification / chain exclusion: dropping them would let a chain location pass as independent
+  // on a continuation, and would lose the social icons the first pass showed.
+  'operator', 'brand', 'network',
+  'websiteStatus', 'verificationStatus',
+] as const
+
+/**
+ * Validates a client-supplied resume cursor. The records only seed the merge/classify step and are echoed back to the
+ * same caller, but they are still treated as untrusted: only known fields survive, strings are length-capped, numbers
+ * must be finite, and the list is bounded.
+ */
+function parseResume(raw: unknown): { startStage: number; records: BusinessDiscoveryRecord[] } | null {
+  if (!raw || typeof raw !== 'object') return null
+  const r = raw as { startStage?: unknown; records?: unknown }
+  const startStage = Number(r.startStage)
+  if (!Number.isInteger(startStage) || startStage < 1 || startStage > 20 || !Array.isArray(r.records)) return null
+  const records: BusinessDiscoveryRecord[] = []
+  for (const item of r.records.slice(0, RESUME_MAX_RECORDS)) {
+    if (!item || typeof item !== 'object') continue
+    const src = item as Record<string, unknown>
+    if (typeof src.name !== 'string' || !src.name.trim()) continue
+    const out: Record<string, unknown> = {}
+    for (const k of RESUME_STRING_FIELDS) if (typeof src[k] === 'string') out[k] = (src[k] as string).slice(0, 300)
+    for (const k of ['latitude', 'longitude'] as const) if (typeof src[k] === 'number' && Number.isFinite(src[k])) out[k] = src[k]
+    if (!out.id) out.id = `resume-${records.length}`
+    out.source = 'OPENSTREETMAP'
+    records.push(out as unknown as BusinessDiscoveryRecord)
   }
-  return undefined
+  return records.length ? { startStage, records } : null
 }
 
 // Nominatim/Overpass outages are upstream failures, not caller mistakes: they
@@ -152,7 +171,9 @@ function processDiscoveryBatch(
   results: BusinessDiscoveryRecord[],
   includeChains: boolean,
 ): { enriched: BusinessDiscoveryRecord[]; stats: DiscoveryStats } {
-  const classified = classifyRecords(deduplicateBusinesses(results))
+  // Merge records of one business first (same website domain / phone / normalized name+address), so a
+  // business with several OSM nodes is counted once toward the target.
+  const classified = classifyRecords(deduplicateBusinesses(mergeDuplicates(results)))
   const { kept, excluded } = excludeNationalChains(classified)
   const pool = includeChains ? classified : kept
   // scoreAndSort assigns every score field itself; enriching again would just
@@ -295,7 +316,7 @@ export async function POST(req: NextRequest) {
   // Per-IP rate limit (unauthenticated public-proxy route). The limiter is
   // in-process only (see lib/rateLimit.ts), matching the other personalization
   // routes; it exists to protect the upstream Nominatim/Overpass quota.
-  const rateLimitKey = resolveRateLimitKey(undefined, clientIpOf(req))
+  const rateLimitKey = resolveRateLimitKey(undefined, clientIpFromHeaders(req.headers))
   // When neither proxy header exists (self-hosted / proxy-less deploys),
   // resolveRateLimitKey falls back to the shared 'anon' bucket, so ALL
   // anonymous callers would share one 10/min bucket and self-DoS each other.
@@ -356,6 +377,7 @@ export async function POST(req: NextRequest) {
     // Big-box/national chains are excluded by default; `includeChains: true`
     // opts in to keeping them.
     const includeChains = body?.includeChains === true
+    const resume = parseResume(body?.resume)
 
     // Validate input
     if (!niche) {
@@ -423,7 +445,8 @@ export async function POST(req: NextRequest) {
 
     // Check cache
     const cacheKey = createCacheKey(niche, location, boundedRadius)
-    const cached = businessDiscoveryCache.get(cacheKey)
+    // A resume request carries on a search the cache only holds the short first pass of, so it never reads the cache.
+    const cached = resume ? undefined : businessDiscoveryCache.get(cacheKey)
     if (cached) {
       logPersonalization({
         route: '/api/personalization/find-businesses',
@@ -521,74 +544,83 @@ export async function POST(req: NextRequest) {
     // discovery stage: it fires when the route budget expires AND when the
     // race is decided, so the losing provider's upstream requests are
     // cancelled instead of lingering after the answer was produced.
-    const providerAbort = new AbortController()
-    const abortProviders = () => providerAbort.abort()
-    deadline.signal.addEventListener('abort', abortProviders, { once: true })
-
-    const overpassOutcome = discoverBusinesses({
-      niche,
-      latitude: geocodeResult.latitude,
-      longitude: geocodeResult.longitude,
-      radiusMiles: boundedRadius,
-      limit: limit * 3, // Get extra for deduplication
-      signal: providerAbort.signal,
-    }).then(
-      (records) => ({ source: 'OPENSTREETMAP' as const, records }),
-      (error: Error) => ({ source: 'OPENSTREETMAP' as const, error }),
-    )
-
-    // The Nominatim search is scoped by the geocoded viewbox; the raw
-    // location string is accepted for API compatibility but is deliberately
-    // NOT part of the query: appending it made Nominatim parse the search as
-    // an address lookup and return nothing.
-    const nominatimOutcome = searchBusinessesViaNominatim({
-      niche,
-      latitude: geocodeResult.latitude,
-      longitude: geocodeResult.longitude,
-      radiusMiles: boundedRadius,
-      location,
-      limit: limit * 3, // Get extra for deduplication
-      signal: providerAbort.signal,
-    }).then(
-      (records) => ({ source: 'NOMINATIM_SEARCH' as const, records }),
-      (error: Error) => ({ source: 'NOMINATIM_SEARCH' as const, error }),
-    )
-
-    let race: { winner: ProviderOutcome<unknown> | null; outcomes: ProviderOutcome<unknown>[] }
-    try {
-      race = await withDeadline(
-        // The race is decided by the first provider with REAL records; the
-        // loser is cancelled the moment the race is decided.
-        raceProviders([overpassOutcome, nominatimOutcome], abortProviders),
-        deadline,
-      )
-    } catch (err) {
-      if (isBudgetExhausted(err)) {
-        logPersonalization({
-          route: '/api/personalization/find-businesses',
-          stage: 'discover',
-          provider: 'OPENSTREETMAP',
-          httpStatus: 504,
-          safeErrorCode: ERROR_CODES.SEARCH_TIMEOUT,
-          safeMessage: 'Request budget exhausted during business discovery',
-          correlationId,
-          durationMs: Date.now() - startTime,
-        })
-        return searchTimeoutResponse(correlationId, {
-          partial: {
-            geocode: {
-              latitude: geocodeResult.latitude,
-              longitude: geocodeResult.longitude,
-              displayName: geocodeResult.displayName,
-            },
-          },
-        })
+    let race!: { winner: ProviderOutcome<unknown> | null; outcomes: ProviderOutcome<unknown>[] }
+    if (resume) {
+      // Follow-up of a time-limited search: the first pass already ran, so continue from the stage that was cut
+      // off using the businesses the client already holds instead of searching them all again.
+      race = {
+        winner: { source: 'OPENSTREETMAP', records: resume.records },
+        outcomes: [{ source: 'OPENSTREETMAP', records: resume.records }],
       }
-      throw err
-    } finally {
-      // Whatever happened, the discovery stage is over: cancel the providers
-      // that are still working so nothing lingers behind the response.
-      abortProviders()
+    } else {
+      const providerAbort = new AbortController()
+      const abortProviders = () => providerAbort.abort()
+      deadline.signal.addEventListener('abort', abortProviders, { once: true })
+
+      const overpassOutcome = discoverBusinesses({
+        niche,
+        latitude: geocodeResult.latitude,
+        longitude: geocodeResult.longitude,
+        radiusMiles: boundedRadius,
+        limit: limit * 3, // Get extra for deduplication
+        signal: providerAbort.signal,
+      }).then(
+        (records) => ({ source: 'OPENSTREETMAP' as const, records }),
+        (error: Error) => ({ source: 'OPENSTREETMAP' as const, error }),
+      )
+
+      // The Nominatim search is scoped by the geocoded viewbox; the raw
+      // location string is accepted for API compatibility but is deliberately
+      // NOT part of the query: appending it made Nominatim parse the search as
+      // an address lookup and return nothing.
+      const nominatimOutcome = searchBusinessesViaNominatim({
+        niche,
+        latitude: geocodeResult.latitude,
+        longitude: geocodeResult.longitude,
+        radiusMiles: boundedRadius,
+        location,
+        limit: limit * 3, // Get extra for deduplication
+        signal: providerAbort.signal,
+      }).then(
+        (records) => ({ source: 'NOMINATIM_SEARCH' as const, records }),
+        (error: Error) => ({ source: 'NOMINATIM_SEARCH' as const, error }),
+      )
+
+      try {
+        race = await withDeadline(
+          // The race is decided by the first provider with REAL records; the
+          // loser is cancelled the moment the race is decided.
+          raceProviders([overpassOutcome, nominatimOutcome], abortProviders),
+          deadline,
+        )
+      } catch (err) {
+        if (isBudgetExhausted(err)) {
+          logPersonalization({
+            route: '/api/personalization/find-businesses',
+            stage: 'discover',
+            provider: 'OPENSTREETMAP',
+            httpStatus: 504,
+            safeErrorCode: ERROR_CODES.SEARCH_TIMEOUT,
+            safeMessage: 'Request budget exhausted during business discovery',
+            correlationId,
+            durationMs: Date.now() - startTime,
+          })
+          return searchTimeoutResponse(correlationId, {
+            partial: {
+              geocode: {
+                latitude: geocodeResult.latitude,
+                longitude: geocodeResult.longitude,
+                displayName: geocodeResult.displayName,
+              },
+            },
+          })
+        }
+        throw err
+      } finally {
+        // Whatever happened, the discovery stage is over: cancel the providers
+        // that are still working so nothing lingers behind the response.
+        abortProviders()
+      }
     }
 
     const winner = race.winner
@@ -657,15 +689,114 @@ export async function POST(req: NextRequest) {
     // Deduplicate, classify ownership, exclude big-box chains by default, then
     // score and sort (classification needs the full batch of names, so it runs
     // at the route level — see processDiscoveryBatch above).
-    const { enriched, stats } = processDiscoveryBatch(winner.records as any[], includeChains)
+    let { enriched, stats } = processDiscoveryBatch(winner.records as any[], includeChains)
+
+    // ── Backfill to the target ───────────────────────────────────────────
+    // `limit` is a cap, not a guarantee: after de-duplication and chain
+    // exclusion a first pass can hold fewer than the target. Widen the search
+    // (radius ladder, then related niches) while the request budget allows, and
+    // report honestly when the area simply has fewer independents. Opt out with
+    // `backfill: false`; the first-pass answer above is used as-is in that case.
+    const backfillTarget = Math.min(limit, BACKFILL_TARGET)
+    // A stage needs real headroom: the parent budget is ~24s and a Nominatim call alone can take ~7s.
+    const BACKFILL_MIN_REMAINING_MS = 8_000
+    const BACKFILL_STAGE_MAX_MS = 9_000
+    const BACKFILL_RESERVE_MS = 2_000 // always left for classification + the JSON response
+    let backfillMeta: Record<string, unknown> | undefined
+    if (body?.backfill !== false && (enriched.length < backfillTarget) && deadline.remaining() > BACKFILL_MIN_REMAINING_MS) {
+      const stages = planBackfillStages(niche, boundedRadius)
+      const outcome = await runBackfill({
+        target: backfillTarget,
+        stages,
+        startStage: resume ? resume.startStage : 1, // stage 0 is the search that just ran
+        seed: winner.records as BusinessDiscoveryRecord[],
+        qualify: (records) => processDiscoveryBatch(records, includeChains).enriched,
+        outOfTime: () => deadline.remaining() < BACKFILL_MIN_REMAINING_MS,
+        search: async (stage) => {
+          // Each stage gets its own hard budget, so one slow provider call cannot consume the whole request:
+          // when it expires the stage is recorded as failed and whatever was already found is still returned.
+          const stageBudget = Math.max(1_000, Math.min(BACKFILL_STAGE_MAX_MS, deadline.remaining() - BACKFILL_RESERVE_MS))
+          const stageDeadline = createStageDeadline(`backfill-stage-${stage.index}`, stageBudget)
+          const common = {
+            niche: stage.niche,
+            latitude: geocodeResult.latitude,
+            longitude: geocodeResult.longitude,
+            radiusMiles: stage.radiusMiles,
+            limit: limit * 3,
+          }
+          // One signal for this stage's providers: fires on the stage budget, the whole-request budget, or when
+          // the stage's race is decided.
+          const stageAbort = new AbortController()
+          stageDeadline.signal.addEventListener('abort', () => stageAbort.abort(), { once: true })
+          deadline.signal.addEventListener('abort', () => stageAbort.abort(), { once: true })
+          const sharedSignal = stageAbort.signal
+          try {
+            const stageRace = await withDeadline(
+              raceProviders(
+                [
+                  discoverBusinesses({ ...common, signal: sharedSignal }).then(
+                    (records) => ({ source: 'OPENSTREETMAP' as const, records }),
+                    (error: Error) => ({ source: 'OPENSTREETMAP' as const, error }),
+                  ),
+                  searchBusinessesViaNominatim({ ...common, signal: sharedSignal, location }).then(
+                    (records) => ({ source: 'NOMINATIM_SEARCH' as const, records }),
+                    (error: Error) => ({ source: 'NOMINATIM_SEARCH' as const, error }),
+                  ),
+                ],
+                () => stageAbort.abort(),
+              ),
+              stageDeadline,
+            )
+            if (!stageRace.winner?.records) {
+              const err = stageRace.outcomes.find((o) => o.error)?.error
+              throw new Error(err?.message ?? 'no results')
+            }
+            return stageRace.winner.records as BusinessDiscoveryRecord[]
+          } finally {
+            stageAbort.abort()
+          }
+        },
+      })
+      const final = processDiscoveryBatch(outcome.qualifying as BusinessDiscoveryRecord[], includeChains)
+      enriched = final.enriched
+      stats = final.stats
+      backfillMeta = {
+        requested: backfillTarget,
+        found: outcome.found,
+        exhausted: outcome.exhausted,
+        stoppedBy: outcome.stoppedBy,
+        stagesUsed: outcome.stages.length,
+        // Present only when the time budget cut the search short: send it back as `resume` to carry on from there.
+        ...(outcome.stoppedBy === 'budget' && outcome.found < backfillTarget
+          ? { resume: { startStage: (resume ? resume.startStage : 1) + outcome.stages.length } }
+          : {}),
+        maxRadiusMiles: outcome.stages.reduce((m, st) => Math.max(m, st.radiusMiles), boundedRadius),
+        stages: outcome.stages.map((st) => ({
+          radiusMiles: st.radiusMiles, niche: st.niche, kind: st.kind,
+          returned: st.returned, newUnique: st.newUnique, qualifyingAfter: st.qualifyingAfter,
+          ...(st.error ? { failed: true } : {}),
+        })),
+        ...(outcome.found < backfillTarget
+          ? {
+              message: outcome.exhausted
+                ? `Only ${outcome.found} independent local businesses were found within ${outcome.stages.reduce((m, st) => Math.max(m, st.radiusMiles), boundedRadius)} miles after widening the search and trying related categories.`
+                : `Found ${outcome.found} of ${backfillTarget} independent businesses before the time limit; try again or narrow the location.`,
+            }
+          : {}),
+      }
+    }
 
     // Limit results
     const limited = enriched.slice(0, limit)
 
     const durationMs = Date.now() - startTime
 
-    // Cache results
-    businessDiscoveryCache.set(cacheKey, limited, CACHE_TTL_MS)
+    // Cache results. Not a resume (its records come from the caller, so they must not be served to anyone else) and
+    // not a time-boxed partial list (a later search should run in full, or continue, rather than get the short one).
+    // Nor an under-target list whose backfill was enabled but skipped for lack of time (no meta, no cursor): caching it
+    // would pin the short answer for an hour with no way to continue.
+    const backfillSkippedForBudget = body?.backfill !== false && enriched.length < backfillTarget && !backfillMeta
+    if (!resume && !backfillMeta?.resume && !backfillSkippedForBudget) businessDiscoveryCache.set(cacheKey, limited, CACHE_TTL_MS)
 
     logPersonalization({
       route: '/api/personalization/find-businesses',
@@ -702,6 +833,7 @@ export async function POST(req: NextRequest) {
         providerUsed: winner.source,
         durationMs,
         correlationId,
+        ...(backfillMeta ? { backfill: backfillMeta } : {}),
         ...(partial ? { partial } : {}),
       },
       { headers: { 'x-correlation-id': correlationId } },

@@ -478,7 +478,7 @@ function ImageSegmentationPane({
       try {
         const apiKey = getApiKey();
         if (!apiKey) throw new Error('Masking runs on your device.');
-        const uploaded = await window.electronAPI.elements.uploadMediaSource(sourceUrl, apiKey);
+        const uploaded = { url: sourceUrl }; // [remix] segmentation runs on this device, so the picture is not uploaded anywhere
         const img = await loadImageElement(sourceUrl);
         if (cancelled) return;
         setRemoteSourceUrl(uploaded.url);
@@ -1182,7 +1182,7 @@ function VideoSegmentationPane({
       try {
         const apiKey = getApiKey();
         if (!apiKey) throw new Error('Masking runs on your device.');
-        const uploaded = await window.electronAPI.elements.uploadMediaSource(sourceUrl, apiKey);
+        const uploaded = { url: sourceUrl }; // [remix] segmentation runs on this device, so the picture is not uploaded anywhere
         if (cancelled) return;
         setRemoteSourceUrl(uploaded.url);
         setLoading(false);

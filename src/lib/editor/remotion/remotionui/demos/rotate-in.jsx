@@ -6,7 +6,7 @@ export function Demo(__o) {
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 96, fontWeight: 700 }}>
       <RotateIn axis="x" degrees={-24} origin="bottom" {...__o}>
-        <div>Hinge into place</div>
+        <div>{__o.text1 ?? "Hinge into place"}</div>
       </RotateIn>
     </div>
   );

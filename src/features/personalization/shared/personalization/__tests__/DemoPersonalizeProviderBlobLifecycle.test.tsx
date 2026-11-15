@@ -23,7 +23,7 @@ vi.mock('../assetUploadService', () => ({
   uploadPersonalizationAsset: vi.fn(),
 }))
 
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),

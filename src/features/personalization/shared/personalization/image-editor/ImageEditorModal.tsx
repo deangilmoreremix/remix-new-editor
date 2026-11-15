@@ -22,8 +22,8 @@ import {
   Wand2,
   X,
 } from 'lucide-react'
-import { type ImageFormat, type ImageSize } from '@ohb/shared/api/openaiImage'
-import { editSmartVideoGoImage } from './imageEditApi'
+import { type ImageFormat, type ImageQuality, type ImageSize } from '@ohb/shared/api/openaiImage'
+import { editSmartVideoGoImage, type ImageEditModel } from './imageEditApi'
 import { buttons, iconBadge, semantic } from '@ohb/shared/styles/designTokens'
 import type {
   AssetRole,
@@ -72,7 +72,7 @@ export type ImageEditorApplyResult = {
   originalUrl: string
   operation: string
   prompt: string
-  model: 'gpt-image-2.5-flare' | 'gpt-image-2.5-sunburst' | 'local'
+  model: ImageEditModel | 'local'
   quality: string
   transparent: boolean
   videoReady: boolean
@@ -95,6 +95,14 @@ type Props = {
 }
 
 type ModelMode = 'auto' | 'fast' | 'precision'
+/** 'standard' keeps the Images 2.5 routing; the others pin an Images 2.6 model. */
+type EngineChoice = 'standard' | 'draft' | 'detail'
+type QualityChoice = 'default' | ImageQuality
+type ComplexityChoice = '' | 'low' | 'medium' | 'high'
+const ENGINE_LABELS: Record<EngineChoice, string> = { standard: 'Standard (2.5)', draft: 'Fast draft (2.6 Flare)', detail: 'Detailed render (2.6 Sunburst)' }
+const QUALITY_CHOICES: QualityChoice[] = ['default', 'low', 'medium', 'high', 'xhigh', 'max']
+const COMPLEXITY_CHOICES: ComplexityChoice[] = ['', 'low', 'medium', 'high']
+const isSunburst = (model: string) => model.endsWith('-sunburst')
 type AspectRatio = 'original' | '9:16' | '16:9' | '1:1' | '4:5'
 type EditorMode = 'simple' | 'advanced'
 type FitMode = 'contain' | 'cover'
@@ -130,6 +138,8 @@ type Version = {
   operation: string
   prompt: string
   model: ImageEditorApplyResult['model']
+  /** Quality this version was generated with (not the current selector value). */
+  quality?: ImageQuality
   transparent: boolean
   videoReady: boolean
   responseId?: string | null
@@ -224,6 +234,9 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
 
   const [editorMode, setEditorMode] = useState<EditorMode>('simple')
   const [modelMode, setModelMode] = useState<ModelMode>('auto')
+  const [engine, setEngine] = useState<EngineChoice>('standard')
+  const [qualityChoice, setQualityChoice] = useState<QualityChoice>('default')
+  const [complexity, setComplexity] = useState<ComplexityChoice>('')
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('original')
   const [outputFormat, setOutputFormat] = useState<ImageFormat>('png')
   const [outputCompression, setOutputCompression] = useState<number | undefined>(undefined)
@@ -235,6 +248,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
   const [error, setError] = useState<string | null>(null)
   const [compareMode, setCompareMode] = useState(false)
   const [activeGroup, setActiveGroup] = useState<EditorOperationGroup>('smart')
+  const [canvasToolsOpen, setCanvasToolsOpen] = useState(false)
   const [maskMode, setMaskMode] = useState(false)
   const [maskBlob, setMaskBlob] = useState<Blob | null>(null)
   const [safeArea, setSafeArea] = useState(false)
@@ -284,6 +298,9 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     previousFocusRef.current = document.activeElement as HTMLElement | null
     setEditorMode('simple')
     setModelMode('auto')
+    setEngine('standard')
+    setQualityChoice('default')
+    setComplexity('')
     setAspectRatio('original')
     setOutputFormat('png')
     setVersions([{
@@ -304,6 +321,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     setSmartEditFailed(false)
     setCompareMode(false)
     setActiveGroup('smart')
+    setCanvasToolsOpen(false)
     setMaskMode(false)
     setMaskBlob(null)
     setSafeArea(false)
@@ -358,12 +376,19 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
 
   const resolvedModel = useCallback((operationId: EditorOperationId) => {
     const operation = getOperation(operationId)
-    if (modelMode === 'fast') return 'gpt-image-2.5-flare' as const
-    if (modelMode === 'precision') return 'gpt-image-2.5-sunburst' as const
-    return operation?.precision || sourceRecipe.precisionRecommended || recipe.precisionRecommended || visionAnalysis?.precisionRecommended
-      ? 'gpt-image-2.5-sunburst' as const
-      : 'gpt-image-2.5-flare' as const
-  }, [modelMode, recipe.precisionRecommended, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended])
+    if (engine === 'draft') return 'gpt-image-2.6-flare' as ImageEditModel
+    if (engine === 'detail') return 'gpt-image-2.6-sunburst' as ImageEditModel
+    if (modelMode === 'fast') return 'gpt-image-2.5-flare' as ImageEditModel
+    if (modelMode === 'precision') return 'gpt-image-2.5-sunburst' as ImageEditModel
+    return (operation?.precision || sourceRecipe.precisionRecommended || recipe.precisionRecommended || visionAnalysis?.precisionRecommended
+      ? 'gpt-image-2.5-sunburst'
+      : 'gpt-image-2.5-flare') as ImageEditModel
+  }, [engine, modelMode, recipe.precisionRecommended, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended])
+
+  const resolveQuality = useCallback((model: string): ImageQuality => {
+    if (qualityChoice !== 'default') return qualityChoice
+    return isSunburst(model) ? (modelMode === 'precision' ? 'xhigh' : 'high') : 'medium'
+  }, [modelMode, qualityChoice])
 
   const readDataUrl = useCallback(async (url: string) => {
     if (url.startsWith('data:')) return url
@@ -439,6 +464,16 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     }
   }, [asset, aspectRatio, displayUrl, modelMode, prepareDataUrl])
 
+  /** "Analyze Image" button: same analysis, with failures shown. */
+  const runAnalyzeButton = useCallback(async () => {
+    setError(null)
+    try {
+      await analyzeCurrentImage()
+    } catch (err) {
+      if (mountedRef.current) setError(err instanceof Error ? err.message : 'Image analysis failed')
+    }
+  }, [analyzeCurrentImage])
+
   const buildPrompt = useCallback((operationId: EditorOperationId, custom = '') => {
     const operation = getOperation(operationId)
     const businessContext = [asset?.businessName, asset?.industry].filter(Boolean).join(' - ')
@@ -484,7 +519,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     const model = resolvedModel(operationId)
     const prompt = buildPrompt(operationId, custom)
     const transparent = Boolean(options.forceTransparent || operation.transparency || (operationId === 'video_ready' && recipe.transparencyRecommended))
-    const quality = model === 'gpt-image-2.5-sunburst' ? (modelMode === 'precision' ? 'xhigh' : 'high') : 'medium'
+    const quality = resolveQuality(model)
     const size = aspectRatio === 'original' ? 'auto' : aspectSizes[aspectRatio]
     const format: ImageFormat = transparent && outputFormat === 'jpeg' ? 'png' : outputFormat
 
@@ -495,6 +530,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       mask: activeMask && operation.supportsMask ? activeMask : undefined,
       model,
       quality,
+      complexity: complexity || undefined,
       size,
       outputFormat: format,
       background: transparent ? 'transparent' : 'auto',
@@ -513,13 +549,14 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       operation: operationId,
       prompt,
       model,
+      quality,
       transparent,
       videoReady: operationId === 'video_ready',
     } satisfies Omit<Version, 'id'>
 
     if (addVersion) appendVersion(version)
     return version
-  }, [appendVersion, aspectRatio, asset, buildPrompt, maskBlob, modelMode, outputFormat, prepareDataUrl, recipe.precisionRecommended, recipe.transparencyRecommended, resolvedModel, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended])
+  }, [appendVersion, aspectRatio, asset, buildPrompt, complexity, maskBlob, outputFormat, resolveQuality, prepareDataUrl, recipe.precisionRecommended, recipe.transparencyRecommended, resolvedModel, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended])
 
   const runAiEdit = useCallback(async (operationId: EditorOperationId, custom = '') => {
     if (operationId === 'custom' && !custom.trim()) return
@@ -554,7 +591,9 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       const references = canContinueConversation
         ? []
         : (await Promise.all((asset.referenceImages || []).slice(0, 6).map((url) => prepareDataUrl(url).catch(() => '')))).filter(Boolean)
-      const model = resolvedModel('custom')
+      const chosenModel = resolvedModel('custom')
+      // Smart Edit (Responses API) only supports the 2.5 pair; map 2.6 choices to the same tier.
+      const model = (isSunburst(chosenModel) ? 'gpt-image-2.5-sunburst' : 'gpt-image-2.5-flare') as 'gpt-image-2.5-flare' | 'gpt-image-2.5-sunburst'
       setStreamingPreview(null)
       const result = await responsesSmartEditStream({
         imageUrl: sourceImage,
@@ -563,7 +602,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         previousResponseId: currentVersion?.responseId || undefined,
         imageModel: model,
         action: canContinueConversation ? 'auto' : 'edit',
-        quality: model === 'gpt-image-2.5-sunburst' ? (modelMode === 'precision' ? 'xhigh' : 'high') : 'medium',
+        quality: resolveQuality(chosenModel),
         size: aspectRatio === 'original' ? undefined : aspectSizes[aspectRatio],
         background: 'auto',
         outputFormat,
@@ -588,6 +627,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         operation: 'custom',
         prompt: customPrompt.trim(),
         model: result.model,
+        quality: resolveQuality(chosenModel),
         transparent: false,
         videoReady: false,
         responseId: result.responseId,
@@ -620,6 +660,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     modelMode,
     prepareDataUrl,
     recipe.outputRole,
+    resolveQuality,
     resolvedModel,
     runAiEdit,
     smartEditFailed,
@@ -849,8 +890,13 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
 
     setSaving(true)
     setError(null)
+    let applied = false
     try {
       const dataUrl = await prepareDataUrl(currentVersion.dataUrl)
+      // Saving rejects images over 10 MB; say so before trying.
+      if (dataUrlToBlob(dataUrl).size > 10 * 1024 * 1024) {
+        throw new Error('That image is over 10 MB. Choose a smaller image or edit it to reduce its size.')
+      }
       let validation = currentVersion.visionValidation
 
       if (
@@ -859,17 +905,29 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         !validation?.passed
       ) {
         setBusyLabel('SmartVideo GO Vision is validating the edit')
-      const originalUrlForValidation = await prepareDataUrl(asset.originalImageUrl)
-      validation = await validatePersonalizationImageEdit({
-        originalImageUrl: originalUrlForValidation,
-        editedImageUrl: dataUrl,
-        preserve: mergedPreserve,
-        intendedOperation: currentVersion.operation,
-        businessContext: {
-          businessName: asset.businessName,
-          industry: asset.industry,
-        },
-      })
+        try {
+          const originalUrlForValidation = await prepareDataUrl(asset.originalImageUrl)
+          validation = await validatePersonalizationImageEdit({
+            originalImageUrl: originalUrlForValidation,
+            editedImageUrl: dataUrl,
+            preserve: mergedPreserve,
+            intendedOperation: currentVersion.operation,
+            businessContext: {
+              businessName: asset.businessName,
+              industry: asset.industry,
+            },
+          })
+        } catch (checkError) {
+          // The check couldn't run (no key, limit, network): say so and let
+          // the user decide, instead of blocking the edit for good.
+          setValidationOverrideVersionId(currentVersion.id)
+          setError(
+            "SmartVideo GO Vision couldn't check this edit (" +
+            (checkError instanceof Error ? checkError.message : 'unknown error') +
+            '). Review it, then click Use Anyway to apply it.',
+          )
+          return
+        }
 
         setVersions((previous) => previous.map((version) => (
           version.id === currentVersion.id ? { ...version, visionValidation: validation } : version
@@ -892,7 +950,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         operation: currentVersion.operation,
         prompt: currentVersion.prompt,
         model: currentVersion.model,
-        quality: currentVersion.model === 'gpt-image-2.5-sunburst' ? 'high' : currentVersion.model === 'local' ? 'local' : 'medium',
+        quality: currentVersion.model === 'local' ? 'local' : currentVersion.quality ?? (qualityChoice !== 'default' ? qualityChoice : isSunburst(currentVersion.model) ? 'high' : 'medium'),
         transparent: currentVersion.transparent,
         videoReady: currentVersion.videoReady,
         visionAnalysis,
@@ -904,6 +962,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         outputCompression,
         inputFidelity: getOperation(currentVersion.operation as EditorOperationId)?.precision || sourceRecipe.precisionRecommended || recipe.precisionRecommended || visionAnalysis?.precisionRecommended ? 'high' : 'low',
       })
+      applied = true
     } catch (err) {
       if (mountedRef.current) setError(err instanceof Error ? err.message : 'Unable to save edited asset')
     } finally {
@@ -911,7 +970,9 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         setBusyLabel(null)
         setSaving(false)
       }
-      onClose()
+      // Close only once the edit is applied; otherwise stay open so the
+      // warning (and "Use Anyway") or the error can be seen.
+      if (applied) onClose()
     }
   }, [
     asset,
@@ -942,6 +1003,32 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     e.stopPropagation()
     setDragOver(false)
 
+    // An image file from the computer replaces the image as a new version
+    // (so Undo brings the previous one back).
+    const file = Array.from(e.dataTransfer.files || []).find((candidate) => candidate.type.startsWith('image/'))
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = async () => {
+        try {
+          const dataUrl = await ensureModelSupportedImage(String(reader.result))
+          appendVersion({
+            dataUrl,
+            label: 'Dropped Image',
+            operation: 'original',
+            prompt: '',
+            model: 'local',
+            transparent: false,
+            videoReady: false,
+          })
+        } catch (err) {
+          setError("Couldn't use that image: " + (err instanceof Error ? err.message : 'unknown error'))
+        }
+      }
+      reader.onerror = () => setError("Couldn't read that file.")
+      reader.readAsDataURL(file)
+      return
+    }
+
     if (!onDropAsset) return
 
     let payload: { assetId: string; source: string; assetType: string } | null = null
@@ -953,10 +1040,18 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     }
     if (payload) {
       onDropAsset(payload)
+    } else {
+      setError('Drop an image file, or an asset from the personalization panel.')
     }
-  }, [onDropAsset])
+  }, [appendVersion, onDropAsset])
 
   if (!open || !asset || !currentVersion) return null
+
+  // "Local Adjustments" is the canvas edit (free, uses the sliders), not a
+  // paid AI call with nothing to go on.
+  const runOperation = (operationId: EditorOperationId) => (
+    operationId === 'local_adjustments' ? applyLocalAdjustments() : runAiEdit(operationId)
+  )
 
   const recommendedOperationIds = (visionAnalysis?.recommendedOperations || recipe.recommended)
     .filter((id): id is EditorOperationId => id in IMAGE_EDIT_OPERATIONS)
@@ -965,6 +1060,16 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       return !applicable || applicable.includes(kind)
     })
   const recommendedOperations = recommendedOperationIds.map(getOperation)
+  // Quick actions: this asset's recommendations, plus a plain background
+  // removal whenever this asset supports it.
+  const quickOperations = recommendedOperations.slice(0, 6)
+  if (
+    !quickOperations.some((operation) => operation.id === 'remove_background') &&
+    groupedOperations.get('background')?.some((operation) => operation.id === 'remove_background')
+  ) {
+    quickOperations.push(getOperation('remove_background'))
+  }
+  const noEditYet = versionIndex === 0
   const advancedGroups = Array.from(groupedOperations.entries())
   const activeOperations = groupedOperations.get(activeGroup) || []
 
@@ -973,7 +1078,9 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       role="dialog"
       aria-modal="true"
       aria-labelledby="smartvideo-go-image-editor-title"
-      className="fixed inset-0 z-[120] flex items-center justify-center overflow-y-auto"
+      // Top-aligned below lg: a centered dialog taller than the screen
+      // would push its header above the top, out of scroll reach.
+      className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto lg:items-center"
       style={{ background: 'rgba(0,0,0,0.8)' }}
       onClick={onClose}
       onDragOver={handleDragOver}
@@ -982,11 +1089,14 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     >
       <div
         ref={modalRef}
-        className={'relative mx-4 my-8 w-full rounded-2xl border border-white/10 ' + (editorMode === 'advanced' ? 'max-w-7xl' : 'max-w-4xl') + (dragOver ? ' border-primary/60' : '')}
+        // Large screens: a fixed frame (header + panes that scroll on their
+        // own), so the image, the AI controls and "Use Edited Asset" are all
+        // on screen at once. Small screens keep one normal scroll.
+        className={'relative mx-4 my-8 w-full rounded-2xl border border-white/10 lg:my-0 lg:flex lg:h-[92vh] lg:flex-col lg:overflow-hidden ' + (editorMode === 'advanced' ? 'max-w-7xl' : 'max-w-6xl') + (dragOver ? ' border-primary/60' : '')}
         style={{ background: 'var(--bg-panel)', boxShadow: dragOver ? '0 0 40px rgba(217,255,0,.18)' : undefined }}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-white/10 p-4">
+        <div className="flex flex-none items-center justify-between border-b border-white/10 p-4">
           {dragOver && (
             <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-center rounded-t-2xl border border-primary/40 bg-primary/10 py-3 text-xs font-bold uppercase tracking-wide text-primary">
               Drop asset to replace current image
@@ -1018,16 +1128,21 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                 type="button"
                 onClick={async () => {
                   if (!asset) return
-                  const originalDataUrl = await prepareDataUrl(asset.originalImageUrl)
-                  appendVersion({
-                    dataUrl: originalDataUrl,
-                    label: 'Reverted to Original',
-                    operation: 'original',
-                    prompt: '',
-                    model: 'local',
-                    transparent: false,
-                    videoReady: false,
-                  })
+                  setError(null)
+                  try {
+                    const originalDataUrl = await prepareDataUrl(asset.originalImageUrl)
+                    appendVersion({
+                      dataUrl: originalDataUrl,
+                      label: 'Reverted to Original',
+                      operation: 'original',
+                      prompt: '',
+                      model: 'local',
+                      transparent: false,
+                      videoReady: false,
+                    })
+                  } catch (err) {
+                    setError("Couldn't load the original image: " + (err instanceof Error ? err.message : 'unknown error'))
+                  }
                 }}
                 className="rounded-lg px-2 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/70 transition hover:bg-white/10 hover:text-white"
                 aria-label="Revert to original"
@@ -1042,7 +1157,8 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         </div>
 
         {editorMode === 'simple' ? (
-          <div className="space-y-4 p-4">
+          <div data-testid="image-editor-simple" className="lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="flex flex-col gap-3 p-4 lg:min-h-0 lg:overflow-y-auto">
             <MediaStage
               src={streamingPreview || displayUrl}
               originalSrc={asset.originalImageUrl}
@@ -1051,6 +1167,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
               aspectRatio={aspectRatio}
               busyLabel={busyLabel}
               progressive={Boolean(streamingPreview)}
+              fill
             />
 
             <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color: semantic.textMuted }}>
@@ -1062,6 +1179,11 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
               {asset.source === 'discovered' && <><span>•</span><span>Discovered Asset</span></>}
             </div>
 
+            <VersionStrip versions={versions} versionIndex={versionIndex} onSelect={(index) => { setVersionIndex(index); setValidationOverrideVersionId(null) }} compact />
+          </div>
+
+          <div className="flex flex-col border-white/10 lg:min-h-0 lg:border-l">
+          <div data-testid="image-editor-controls" className="space-y-4 p-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
             <div className="rounded-xl border border-primary/20 bg-primary/[0.04] p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -1078,7 +1200,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                   ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => analyzeCurrentImage()} disabled={visionAnalyzing || Boolean(busyLabel)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold disabled:opacity-50" style={buttons.ghost}>
+                  <button type="button" onClick={runAnalyzeButton} disabled={visionAnalyzing || Boolean(busyLabel)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold disabled:opacity-50" style={buttons.ghost}>
                     {visionAnalyzing ? <Loader2 size={13} className="animate-spin" /> : <ShieldCheck size={13} />}
                     {visionAnalysis ? 'Re-analyze' : 'Analyze Image'}
                   </button>
@@ -1090,16 +1212,24 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {recommendedOperations.slice(0, 6).map((operation) => (
-                <button key={operation.id} type="button" onClick={() => runAiEdit(operation.id)} disabled={Boolean(busyLabel)} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold disabled:opacity-50" style={buttons.ghost}>
+              {quickOperations.map((operation) => (
+                <button key={operation.id} type="button" onClick={() => runOperation(operation.id)} disabled={Boolean(busyLabel)} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold disabled:opacity-50" style={buttons.ghost}>
                   <Wand2 size={13} /> {operation.label}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => { setEditorMode('advanced'); setCanvasToolsOpen(true) }}
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
+                style={buttons.ghost}
+              >
+                <RotateCw size={13} /> Crop / Rotate
+              </button>
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
               <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-white/80"><MessageSquare size={14} /> Ask SmartVideo GO AI</div>
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
                 <textarea
                   value={customPrompt}
                   onChange={(event) => setCustomPrompt(event.target.value)}
@@ -1107,13 +1237,11 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                   placeholder="Example: Remove the truck behind the contractor, but keep the contractor exactly the same."
                   className="min-h-[78px] flex-1 resize-none rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-primary/50"
                 />
-                <button type="button" onClick={runResponsesSmartEdit} disabled={!customPrompt.trim() || Boolean(busyLabel)} className="inline-flex min-w-[120px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold disabled:opacity-50" style={buttons.primary}>
+                <button type="button" onClick={runResponsesSmartEdit} disabled={!customPrompt.trim() || Boolean(busyLabel)} className="inline-flex min-h-[38px] min-w-[120px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold disabled:opacity-50" style={buttons.primary}>
                   <Sparkles size={14} /> Smart Edit
                 </button>
               </div>
             </div>
-
-            <VersionStrip versions={versions} versionIndex={versionIndex} onSelect={(index) => { setVersionIndex(index); setValidationOverrideVersionId(null) }} />
 
             {currentVersion.revisedPrompt && (
               <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3 text-[10px] leading-4 text-white/40">
@@ -1122,8 +1250,8 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
             )}
             {currentVersion.visionValidation && (
               <div className="rounded-xl border p-3 text-[10px] leading-4" style={{
-                borderColor: currentVersion.visionValidation.passed ? 'rgba(74,222,128,.25)' : 'rgba(245,158,11,.3)',
-                background: currentVersion.visionValidation.passed ? 'rgba(74,222,128,.06)' : 'rgba(245,158,11,.06)',
+                borderColor: currentVersion.visionValidation.passed ? 'rgba(74,222,128,.25)' : 'rgba(251,191,36,.3)',
+                background: currentVersion.visionValidation.passed ? 'rgba(74,222,128,.06)' : 'rgba(251,191,36,.06)',
                 color: currentVersion.visionValidation.passed ? '#86efac' : '#fcd34d',
               }}>
                 Vision QA: {currentVersion.visionValidation.passed ? 'Passed' : 'Review needed'} · {currentVersion.visionValidation.summary}
@@ -1140,8 +1268,9 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                 )}
               </div>
             )}
+          </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+            <div data-testid="image-editor-actions" className="sticky bottom-0 z-10 flex flex-none flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t border-white/10 p-4 lg:static" style={{ background: 'var(--bg-panel)' }}>
               <div className="flex flex-wrap gap-2">
                 {versions.length > 1 && (
                   <button type="button" onClick={() => setCompareMode((value) => !value)} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold" style={buttons.ghost}>
@@ -1156,32 +1285,41 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                 </button>
               </div>
 
-              <button type="button" onClick={handleApply} disabled={saving || Boolean(busyLabel) || versionIndex === 0} className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold disabled:opacity-40" style={buttons.primary}>
-                {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                {currentVersion.visionValidation && !currentVersion.visionValidation.passed && validationOverrideVersionId === currentVersion.id ? 'Use Anyway' : 'Use Edited Asset'}
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                <button type="button" onClick={handleApply} disabled={saving || Boolean(busyLabel) || noEditYet} className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold disabled:opacity-40" style={buttons.primary}>
+                  {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                  {validationOverrideVersionId === currentVersion.id && !currentVersion.visionValidation?.passed ? 'Use Anyway' : 'Use Edited Asset'}
+                </button>
+                {noEditYet && <span data-testid="image-editor-apply-hint" className="text-[10px] text-white/40">Make an edit first — try a quick action</span>}
+              </div>
             </div>
           </div>
+          </div>
         ) : (
-          <div className="grid min-h-[700px] grid-cols-1 lg:grid-cols-[210px_minmax(0,1fr)_300px]">
-            <aside className="border-r border-white/10 p-3">
+          <div data-testid="image-editor-advanced" className="grid grid-cols-1 lg:min-h-0 lg:flex-1 lg:grid-cols-[210px_minmax(0,1fr)_300px]">
+            <aside className="border-r border-white/10 p-3 lg:min-h-0 lg:overflow-y-auto">
               <button type="button" onClick={() => setEditorMode('simple')} className="mb-3 w-full rounded-xl px-3 py-2 text-left text-xs font-semibold" style={buttons.ghost}>← Back to Simple</button>
               <div className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[.15em] text-white/30">Tools</div>
               <div className="space-y-1">
                 {advancedGroups.map(([group]) => (
-                  <button key={group} type="button" onClick={() => setActiveGroup(group)} className="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold transition" style={activeGroup === group ? buttons.activePill : { color: 'rgba(255,255,255,.55)', background: 'transparent' }}>
+                  <button key={group} type="button" onClick={() => setActiveGroup(group)} className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition" style={activeGroup === group ? buttons.activePill : { color: 'rgba(255,255,255,.55)', background: 'transparent' }}>
                     {GROUP_LABELS[group]}
+                    <span className="text-[10px] font-bold opacity-60">{groupedOperations.get(group)?.length || 0}</span>
                   </button>
                 ))}
               </div>
               <div className="mt-4 border-t border-white/10 pt-3">
-                <button type="button" onClick={() => setMaskMode((value) => !value)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold" style={maskMode ? buttons.activePill : buttons.ghost}>
+                <button type="button" onClick={() => {
+                  // Turning the mask off also drops it, so later edits apply to the whole image.
+                  if (maskMode) setMaskBlob(null)
+                  setMaskMode(!maskMode)
+                }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold" style={maskMode ? buttons.activePill : buttons.ghost}>
                   <Paintbrush size={14} /> Select / Mask Area
                 </button>
               </div>
             </aside>
 
-            <main className="min-w-0 border-r border-white/10 p-4">
+            <main className="flex min-w-0 flex-col border-r border-white/10 p-4 lg:min-h-0 lg:overflow-y-auto">
               {maskMode ? (
                 <MaskEditor imageUrl={displayUrl} active={maskMode} onMaskChange={setMaskBlob} />
               ) : (
@@ -1194,6 +1332,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                     aspectRatio={aspectRatio}
                     busyLabel={busyLabel}
                     progressive={Boolean(streamingPreview)}
+                    fill
                     previewStyle={{
                       transform: 'scale(' + (zoom / 100) + ') rotate(' + rotation + 'deg) scaleX(' + (flipX ? -1 : 1) + ') scaleY(' + (flipY ? -1 : 1) + ')',
                       filter:
@@ -1209,12 +1348,13 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
               {error && <div className="mt-3"><ErrorBox message={error} /></div>}
             </main>
 
-            <aside className="max-h-[700px] overflow-y-auto p-4 custom-scrollbar">
+            <aside className="flex flex-col lg:min-h-0">
+              <div className="p-4 custom-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
               <div className="mb-4">
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[.15em] text-white/30">{GROUP_LABELS[activeGroup]} AI Tools</div>
                 <div className="space-y-2">
                   {activeOperations.map((operation) => (
-                    <button key={operation.id} type="button" onClick={() => runAiEdit(operation.id)} disabled={Boolean(busyLabel)} className="w-full rounded-xl p-3 text-left disabled:opacity-50" style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)' }}>
+                    <button key={operation.id} type="button" onClick={() => runOperation(operation.id)} disabled={Boolean(busyLabel)} className="w-full rounded-xl p-3 text-left disabled:opacity-50" style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)' }}>
                       <div className="text-xs font-semibold text-white">{operation.label}</div>
                       <div className="mt-1 text-[10px] leading-4 text-white/40">{operation.description}</div>
                     </button>
@@ -1231,6 +1371,29 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                         <button key={mode} type="button" onClick={() => setModelMode(mode)} className="rounded-lg px-2 py-2 text-[9px] font-bold uppercase" style={modelMode === mode ? buttons.activePill : buttons.inactivePill}>{mode}</button>
                       ))}
                     </div>
+                  </ControlLabel>
+
+                  <ControlLabel label="Engine">
+                    <select aria-label="Image engine" value={engine} onChange={(e) => setEngine(e.target.value as EngineChoice)} className="w-full rounded-lg bg-black/30 px-2 py-2 text-[10px] text-white outline-none" style={{ border: '1px solid rgba(255,255,255,.1)' }}>
+                      {(Object.keys(ENGINE_LABELS) as EngineChoice[]).map((key) => <option key={key} value={key}>{ENGINE_LABELS[key]}</option>)}
+                    </select>
+                  </ControlLabel>
+
+                  <ControlLabel label="Render detail">
+                    <select aria-label="Render detail" value={qualityChoice} onChange={(e) => setQualityChoice(e.target.value as QualityChoice)} className="w-full rounded-lg bg-black/30 px-2 py-2 text-[10px] text-white outline-none" style={{ border: '1px solid rgba(255,255,255,.1)' }}>
+                      {QUALITY_CHOICES.map((q) => <option key={q} value={q}>{q === 'default' ? 'Automatic' : q}</option>)}
+                    </select>
+                  </ControlLabel>
+
+                  <ControlLabel label="Composition complexity">
+                    <select aria-label="Composition complexity" value={complexity} onChange={(e) => setComplexity(e.target.value as ComplexityChoice)} disabled={engine === 'standard'} title={engine === 'standard' ? 'Available with the Images 2.6 engines' : undefined} className="w-full rounded-lg bg-black/30 px-2 py-2 text-[10px] text-white outline-none disabled:opacity-40" style={{ border: '1px solid rgba(255,255,255,.1)' }}>
+                      {COMPLEXITY_CHOICES.map((c) => <option key={c || 'unset'} value={c}>{c || 'Default'}</option>)}
+                    </select>
+                    {engine !== 'standard' && (
+                      <p data-testid="smart-edit-engine-note" className="mt-1 text-[9px] text-white/40">
+                        Quick actions and masked edits use this engine. "Ask SmartVideo GO AI" (Smart Edit) runs on the matching 2.5 model and does not use complexity.
+                      </p>
+                    )}
                   </ControlLabel>
 
                   <ControlLabel label="Aspect Ratio">
@@ -1251,8 +1414,12 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                 </div>
               </details>
 
-              <details className="group mt-3 rounded-xl border border-white/10 bg-white/[0.02] p-3">
-                <summary className="cursor-pointer list-none text-xs font-semibold text-white">Local Canvas Tools</summary>
+              <details
+                className="group mt-3 rounded-xl border border-white/10 bg-white/[0.02] p-3"
+                open={canvasToolsOpen}
+                onToggle={(event) => setCanvasToolsOpen((event.currentTarget as HTMLDetailsElement).open)}
+              >
+                <summary className="cursor-pointer list-none text-xs font-semibold text-white">Local Canvas Tools (crop, rotate, adjust)</summary>
                 <div className="mt-3 space-y-3">
                   <div className="grid grid-cols-3 gap-1">
                     <button type="button" onClick={() => setRotation((value) => (value + 90) % 360)} className="rounded-lg py-2" style={buttons.ghost}><RotateCw size={13} className="mx-auto" /></button>
@@ -1298,6 +1465,17 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                       <button key={position} type="button" onClick={() => setTextPosition(position)} className="rounded-lg px-2 py-2 text-[9px] font-bold uppercase" style={textPosition === position ? buttons.activePill : buttons.inactivePill}>{position}</button>
                     ))}
                   </div>
+                  {/* The text is drawn by the local canvas edit. */}
+                  <button
+                    type="button"
+                    data-testid="image-editor-apply-text"
+                    onClick={applyLocalAdjustments}
+                    disabled={!overlayText.trim() || Boolean(busyLabel)}
+                    className="w-full rounded-xl px-3 py-2.5 text-xs font-bold disabled:opacity-50"
+                    style={buttons.primary}
+                  >
+                    Apply text
+                  </button>
                 </div>
               </details>
 
@@ -1318,15 +1496,19 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                   ))}
                 </div>
               </div>
+              </div>
 
-              <div className="mt-4 flex gap-2">
+              <div data-testid="image-editor-advanced-actions" className="sticky bottom-0 z-10 flex-none rounded-b-2xl border-t border-white/10 p-4 lg:static" style={{ background: 'var(--bg-panel)' }}>
+              <div className="flex gap-2">
                 <button type="button" onClick={() => setSafeArea((value) => !value)} className="rounded-xl px-3 py-2 text-xs font-semibold" style={safeArea ? buttons.activePill : buttons.ghost}><Grid3X3 size={13} className="mr-1 inline" /> Safe Area</button>
                 {versions.length > 1 && <button type="button" onClick={() => setCompareMode((value) => !value)} className="rounded-xl px-3 py-2 text-xs font-semibold" style={buttons.ghost}><GitCompare size={13} className="mr-1 inline" /> Compare</button>}
               </div>
 
-              <button type="button" onClick={handleApply} disabled={saving || Boolean(busyLabel) || versionIndex === 0} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold disabled:opacity-40" style={buttons.primary}>
-                {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Use Edited Asset
+              <button type="button" onClick={handleApply} disabled={saving || Boolean(busyLabel) || noEditYet} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold disabled:opacity-40" style={buttons.primary}>
+                {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} {validationOverrideVersionId === currentVersion.id && !currentVersion.visionValidation?.passed ? 'Use Anyway' : 'Use Edited Asset'}
               </button>
+              {noEditYet && <p className="mt-1.5 text-center text-[10px] text-white/40">Make an edit first — pick a tool above</p>}
+              </div>
             </aside>
           </div>
         )}
@@ -1344,6 +1526,7 @@ function MediaStage({
   busyLabel,
   progressive = false,
   previewStyle,
+  fill = false,
 }: {
   src: string
   originalSrc: string
@@ -1353,6 +1536,8 @@ function MediaStage({
   busyLabel: string | null
   progressive?: boolean
   previewStyle?: CSSProperties
+  /** Grow to the height of its pane (fixed-frame layout) on large screens. */
+  fill?: boolean
 }) {
   if (compareMode) {
     return (
@@ -1364,9 +1549,9 @@ function MediaStage({
   }
 
   return (
-    <div className="relative flex min-h-[360px] w-full items-center justify-center overflow-hidden rounded-xl bg-black">
+    <div className={'relative flex w-full items-center justify-center overflow-hidden rounded-xl bg-black ' + (fill ? 'min-h-[220px] lg:min-h-[240px] lg:flex-1' : 'min-h-[360px]')}>
       <div className="absolute inset-0 opacity-25" style={{ backgroundImage: 'linear-gradient(45deg,#222 25%,transparent 25%),linear-gradient(-45deg,#222 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#222 75%),linear-gradient(-45deg,transparent 75%,#222 75%)', backgroundSize: '22px 22px', backgroundPosition: '0 0,0 11px,11px -11px,-11px 0' }} />
-      <img src={src} alt="SmartVideo GO edit preview" className="relative z-[1] max-h-[64vh] max-w-full object-contain transition-all" style={previewStyle} />
+      <img src={src} alt="SmartVideo GO edit preview" className={'relative z-[1] max-w-full object-contain transition-all ' + (fill ? 'max-h-[40vh] lg:absolute lg:inset-0 lg:m-auto lg:max-h-full' : 'max-h-[64vh]')} style={previewStyle} />
 
       {safeArea && (
         <div className="pointer-events-none absolute inset-[7%] z-[2] rounded-lg border border-dashed border-primary/70">

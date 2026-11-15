@@ -1,0 +1,434 @@
+{
+  "id": "motion-director",
+  "name": "Motion Director",
+  "route": "#/motion-director",
+  "description": "Motion Director is a chat that plans a short promotional film from your prompt and your website, builds it from a library of about 150 motion shot recipes, and opens it in an editable Motion Workbench where you can adjust and export an MP4.",
+  "shortDescription": "Chat that plans a film from a prompt and your website using shot recipes, then lets you edit and export it.",
+  "fullDescription": "Motion Director is an AI film director for product and launch videos. You describe the film (and usually give your website address); the director captures your real web pages, proposes a storyboard built from motion shot recipes (title cards, product-page shots, camera moves, data shots, transitions, outros), builds an editable film, and lets you play it in the chat. You can then click Open in Motion Workbench to fine-tune the timeline, text, colors and music with an Edit agent, and export an MP4. It has two views on the same route family: the chat at #/motion-director and the editor (Motion Workbench) at #/motion-director/workbench. It is not listed in the side menu; you reach it by its address. It needs your own OpenAI key for the director AI and a plan that includes SmartVideo GO to start a film.",
+  "bestFor": "Founders, marketers and agencies who want a polished launch or promo film made from their own website pages without building a timeline by hand, and who want to edit the result afterwards.",
+  "whenToUse": [
+    "You want a promo or launch film made from your website's real pages.",
+    "You want the AI to plan shots (storyboard) and you to approve or change it.",
+    "You want to pick specific shot cards (templates) and have them used in order.",
+    "You want a finished film that stays editable on a timeline, with an Edit agent to change text and styling.",
+    "You want a vertical (9:16), square (1:1) or widescreen (16:9) film."
+  ],
+  "whenToUseAnother": [
+    "Use Video Agent (#/video-agent) when you only want a quick coded animation from a prompt, such as a chart or animated title, with no website capture.",
+    "Use Workbench (#/workbench) when you already have clips, images or audio generated in other studios and want to arrange them on a timeline.",
+    "Use Timeline (#/timeline) when you want a general multi-track editor for footage.",
+    "Use Video (#/video) or Cinema (#/cinema) when you want AI-generated footage rather than designed motion graphics.",
+    "Use Brand (#/brand) or Find My Brand (#/find-my-brand) when you mainly want to discover or set up your brand look first."
+  ],
+  "keyFeatures": [
+    "Chat that turns a prompt plus your site address into a storyboard and then a film.",
+    "Real page capture of your website for product-page shots.",
+    "About 150 shot recipes in ten categories: opening, typography, ui-entrance, camera, data, interaction, transition, rhythm, effects, outro.",
+    "Ink Press template: a validated paper-and-ink launch film structure the director can offer.",
+    "'Work it out together' guided mode: the director proposes a product check, a visual direction and a shot plan, and you confirm each step.",
+    "Templates picker to choose shot cards by hand (up to 12) with live previews, search and categories.",
+    "Aspect ratio choice: 16:9, 9:16 or 1:1.",
+    "Attach images, video or audio from your computer, and connect your brand (Use My Brand).",
+    "Open in Motion Workbench: timeline, library, properties inspector, preview, Edit agent.",
+    "Export video to MP4 in your browser with Fast draft (720p) and Without music options.",
+    "Undo and redo, Export JSON, Import and Reset to sample for projects.",
+    "Interface languages English, Chinese and Russian in the editor."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Describe your motion video (chat composer)",
+      "explanation": "On the chat screen, titled 'Films are easier with Motion Director', type what you want in the box (label 'Describe your motion video'). The placeholder changes with the conversation stage. The send button says Generate for a new film and Send while you are answering the director.",
+      "whyToUse": "This is how every film starts. Include your website address, the length (for example 'a 30 second video') and the goal.",
+      "inputRequired": "A text message. A site address is strongly recommended.",
+      "restrictions": "If you do not say a length, 20 seconds is used. Film length is kept between 5 and 90 seconds, with 2 to 14 scenes, each scene between 1.5 and 12 seconds. A plan is needed to start (see limitations)."
+    },
+    {
+      "feature": "Storyboard planning with your options",
+      "explanation": "After your prompt the director may ask a question such as 'Use Ink Press? Or I can let the director pick shots from the whole library...' with buttons Use Ink Press, Let the director pick shots and Work it out together. You then see a storyboard and can tell it what to change before the film is built.",
+      "whyToUse": "Lets you control the look and the shots before time is spent building.",
+      "inputRequired": "Your answer in the chat or a button click.",
+      "restrictions": "In the guided flow the confirm buttons read 'Looks right - next', 'Use my recommendation' and 'Looks right - write the storyboard'."
+    },
+    {
+      "feature": "Templates picker",
+      "explanation": "The Templates pill opens 'Motion Templates' where you pick shot cards. Picking a card adds it (or removes it if already chosen) and returns you to the chat box. You can open Templates again to add more; the film uses them in the order picked. Tags warn when a shot 'Shows your site's pages', 'Draws a sample screen; your site appears beside it' or is 'Slow to export'.",
+      "whyToUse": "When you know which kind of shots you want.",
+      "inputRequired": "None.",
+      "restrictions": "Up to 12 shot cards can be picked (the storyboard holds 14 scenes and two go to title cards)."
+    },
+    {
+      "feature": "Aspect ratio",
+      "explanation": "An Aspect ratio pill in the composer lets you choose 16:9, 9:16 or 1:1.",
+      "whyToUse": "Pick vertical for TikTok/Reels/Shorts, square for feeds, widescreen for websites and YouTube.",
+      "inputRequired": "None, default is set by the app.",
+      "restrictions": "Only those three ratios."
+    },
+    {
+      "feature": "Attach image / video / audio",
+      "explanation": "The attach button (label 'Attach image / video / audio') adds local files from your computer; they appear as small chips you can remove with the x button and are carried into the new film.",
+      "whyToUse": "To use your own screenshots, clips or music.",
+      "inputRequired": "Local files.",
+      "restrictions": "Files are used locally in the browser; exact size limits for this attach button were not confirmed."
+    },
+    {
+      "feature": "Use My Brand",
+      "explanation": "Connects your brand kit (business name, colors, logos, images and reference frames) through the shared personalization modal. A chip shows the Brand Kit company in use; clicking it clears it.",
+      "whyToUse": "To make the film follow your brand colors and logo, especially if you have no site address.",
+      "inputRequired": "A saved brand or the brand form fields.",
+      "restrictions": "A site address you give in the prompt wins over the Brand Kit company."
+    },
+    {
+      "feature": "Open in Motion Workbench",
+      "explanation": "When a film is finished you get a card with a player, a Render MP4 button and Open in Motion Workbench. The Workbench (#/motion-director/workbench) has an 'Edit agent' panel (tell it what to change in this film), the shot library, the Properties inspector, the preview and a multi-track timeline. A 'Back to chat' button returns to the chat and your film stays available as Continue editing.",
+      "whyToUse": "Fine-tune text, timing, colors, music and shot order.",
+      "inputRequired": "A built film.",
+      "restrictions": "Keyboard shortcuts: Space play or pause, S split at the playhead, Delete or Backspace remove the selected clip, Ctrl/Cmd+D duplicate, Ctrl/Cmd+Z undo, Shift+Ctrl/Cmd+Z redo, Left and Right arrows step 1 frame (hold Shift for 10)."
+    },
+    {
+      "feature": "Export video",
+      "explanation": "The Workbench top bar has Export video. It renders the film to MP4 inside your browser tab with the Remotion web renderer (the button tooltip says to keep the tab open). While running it shows 'Exporting N%', with a Cancel button; on success it shows 'Exported' with a way to show or download the file; on error it shows 'Export failed - Retry'. Extra options: 'Fast draft (720p)' (about a third faster) and 'Without music'. A rough time estimate is shown.",
+      "whyToUse": "Get the final MP4.",
+      "inputRequired": "A project with clips.",
+      "restrictions": "Heavy shots and long films take longer. Some shot cards are tagged 'Slow to export'."
+    },
+    {
+      "feature": "Project file tools",
+      "explanation": "The Workbench top bar also offers Undo, Redo, Export JSON (saves the project as a .json file), Import (loads a project JSON) and Reset to sample (asks 'Replace the current project with the sample project? You can undo this.').",
+      "whyToUse": "Back up or share a project, or start over from a sample.",
+      "inputRequired": "A project JSON for Import.",
+      "restrictions": "Bad files show 'Import failed: not a valid project JSON'."
+    }
+  ],
+  "howToUse": "1. Open #/motion-director (it is not in the side menu, so type the address or follow a link). 2. Make sure your OpenAI key is saved in Settings. 3. In the box labelled 'Describe your motion video' write what you want and include your website address and length, for example 'Make a 30 second launch film for https://your-product.com'. 4. Optionally choose an Aspect ratio (16:9, 9:16, 1:1), click Templates to pick shot cards, attach files, or use Use My Brand. 5. Click Generate (the button is named Send while you are answering the director). 6. Answer the director's questions, for example choose Use Ink Press, Let the director pick shots or Work it out together, and confirm each step with the buttons such as 'Looks right - next'. 7. Review the storyboard and ask for changes in the chat. 8. When the film appears, play it in the result card. 9. Click Open in Motion Workbench to edit, using the Edit agent, the library, Properties and the timeline. 10. Click Export video to render an MP4 in your browser.",
+  "howToSteps": [
+    "Go to #/motion-director.",
+    "Check that your OpenAI key is saved in Settings.",
+    "Describe the film in 'Describe your motion video' and include your site address and length.",
+    "Optionally set Aspect ratio, Templates, attached files or Use My Brand.",
+    "Click Generate and answer the director's questions.",
+    "Review and adjust the storyboard in chat.",
+    "Play the finished film, then click Open in Motion Workbench for edits.",
+    "Click Export video to get the MP4."
+  ],
+  "gettingStarted": [
+    "Have your website address ready; real pages make the best shots.",
+    "Say how long the film should be, otherwise 20 seconds is used.",
+    "If unsure about style, choose Use Ink Press or Work it out together.",
+    "Use the one-click example prompts under the composer to see good phrasing."
+  ],
+  "inputs": ["Prompt", "Website address", "Aspect ratio", "Templates (shot cards)", "Attached media", "Brand kit (Use My Brand)", "Edit agent instructions", "Project JSON"],
+  "requiredInputs": ["Prompt", "OpenAI API key (saved in Settings)", "Plan that includes SmartVideo GO"],
+  "optionalInputs": ["Website address", "Aspect ratio", "Templates (shot cards)", "Attached media", "Brand kit (Use My Brand)", "Edit agent instructions", "Project JSON"],
+  "inputDetails": [
+    {
+      "name": "Prompt",
+      "description": "Your description of the film. The director also reads the first web address in it.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "Empty requests do nothing (the server answers 'Describe the film first')."
+    },
+    {
+      "name": "Website address",
+      "description": "A URL in your prompt (for example https://your-product.com). The director captures the pages to build product-page shots.",
+      "required": false,
+      "whenToUse": "Whenever you have a site.",
+      "restrictions": "The capture needs the site to be reachable; if it cannot be captured the film will lean on non-site shots."
+    },
+    {
+      "name": "OpenAI API key",
+      "description": "Your own key, used by the director AI.",
+      "required": true,
+      "whenToUse": "Save once in Settings.",
+      "restrictions": "Without it the server responds 'Add your OpenAI API key in SmartVideo GO Settings to use the Motion Studio director.' A rejected key gives 'OpenAI rejected the API key'."
+    },
+    {
+      "name": "Aspect ratio",
+      "description": "16:9, 9:16 or 1:1.",
+      "required": false,
+      "whenToUse": "Choose before generating.",
+      "restrictions": "Three options only."
+    },
+    {
+      "name": "Templates (shot cards)",
+      "description": "Specific shot recipes you want used, in the order picked.",
+      "required": false,
+      "whenToUse": "When you want specific effects.",
+      "restrictions": "Up to 12."
+    },
+    {
+      "name": "Attached media",
+      "description": "Images, video or audio from your computer.",
+      "required": false,
+      "whenToUse": "To include your own assets.",
+      "restrictions": "Size limits not confirmed."
+    }
+  ],
+  "generationModes": ["Use Ink Press", "Let the director pick shots", "Work it out together", "Named or picked shot cards", "Edit agent (in Workbench)"],
+  "modeExplanations": [
+    {
+      "mode": "Use Ink Press",
+      "description": "A validated launch-film template: a bold paper-and-ink title card, your real pages in product shots with caption strips, flash cuts on the beat, whoosh and impact sound design, and a launch outro. Default colors are a paper background (#f7f4ee), ink text (#1c1a17) and amber accent (#b5651d) unless brand colors are given.",
+      "useCase": "The fastest path to a polished launch film."
+    },
+    {
+      "mode": "Let the director pick shots",
+      "description": "The director chooses shots from the whole library to fit your product.",
+      "useCase": "When you have no strong preference."
+    },
+    {
+      "mode": "Work it out together",
+      "description": "The director reads your site and proposes a product check, a visual direction (up to three options labelled A, B, C) and a shot plan; you confirm each step before it writes the storyboard.",
+      "useCase": "When you want to steer the creative direction."
+    },
+    {
+      "mode": "Named or picked shot cards",
+      "description": "You name shot cards in chat (for example deck-deal-flyin and row-embed) or pick them in Templates.",
+      "useCase": "When you know exactly which effects you want."
+    },
+    {
+      "mode": "Edit agent (in Workbench)",
+      "description": "A panel where you tell the agent what to change in the film (for example make text bigger). It proposes edits to clips and text.",
+      "useCase": "Quick changes without manual timeline work."
+    }
+  ],
+  "modelCapabilities": "The director runs on OpenAI models through your own OpenAI key. The server default director model is gpt-6-astra, and only gpt-6-astra, gpt-4o and gpt-4o-mini are allowed values (the default can be overridden by the environment variable MOTION_STUDIO_DIRECTOR_MODEL). The model is used to plan briefs, visual directions, shot mappings, storyboards, text edits, adapted shot code, frame-by-frame quality review and Edit agent instructions; it only chooses among catalog recipes and a fixed set of edit operations. There is no AI video model: the film is rendered from motion shot code (Remotion) and your captured pages.",
+  "outputs": [
+    "A storyboard shown in the chat",
+    "An editable film project (tracks and clips) opened in the Motion Workbench",
+    "A playable film in the chat result card",
+    "An MP4 file rendered in your browser (Export video / Render MP4)",
+    "A project JSON file (Export JSON)"
+  ],
+  "limitations": [
+    "Not listed in the side menu; reach it at #/motion-director.",
+    "Starting a film requires an active plan that includes SmartVideo GO; otherwise an upgrade prompt appears.",
+    "Requires your own OpenAI key; there is no fallback platform key.",
+    "Film length is limited to 5 to 90 seconds, 2 to 14 scenes, each scene 1.5 to 12 seconds; headlines about 70 characters and captions about 90.",
+    "At most 12 shot cards can be picked in Templates.",
+    "MP4 export runs in your browser tab, so heavy shots and long films are slow; keep the tab open.",
+    "The film is built from catalog shot recipes, not from AI-generated footage."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Plan required",
+      "impact": "Clicking Generate can open an upgrade prompt instead of starting.",
+      "workaround": "Upgrade your plan to one that includes SmartVideo GO, or contact support."
+    },
+    {
+      "limitation": "OpenAI key required",
+      "impact": "The director cannot plan without your key.",
+      "workaround": "Add your OpenAI API key in Settings and retry."
+    },
+    {
+      "limitation": "Slow exports",
+      "impact": "Some shot cards are tagged 'Slow to export' and long films take longer.",
+      "workaround": "Tick Fast draft (720p) for a quicker preview export, choose lighter shots, or shorten the film."
+    },
+    {
+      "limitation": "Scene and length caps",
+      "impact": "Very long or very busy briefs are trimmed to the limits.",
+      "workaround": "Make several shorter films."
+    }
+  ],
+  "troubleshooting": [
+    "Generate shows an upgrade prompt: your account lacks the SmartVideo GO entitlement; upgrade your plan.",
+    "Error 'Add your OpenAI API key in SmartVideo GO Settings to use the Motion Studio director.': save your OpenAI key in Settings and retry.",
+    "Error 'OpenAI rejected the API key': replace the saved key with a valid one.",
+    "Page shows 'Motion Director could not be loaded. Please reload the page.': reload the browser tab; if it persists check your connection.",
+    "The film does not use my website: include a full address such as https://yoursite.com in the prompt and make sure the site is publicly reachable.",
+    "Export fails: press Export video again (it shows 'Export failed - Retry'), keep the tab open, try Fast draft (720p) or remove slow shots.",
+    "My film disappeared after going back to the chat: reopen it from the Continue editing tile or the Recent Projects list.",
+    "Import failed: the file is not a valid project JSON; use a file made with Export JSON."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "The director will not start",
+      "steps": [
+        "Check you are signed in and your plan includes SmartVideo GO.",
+        "Open Settings and confirm your OpenAI key is saved.",
+        "Make sure the message box is not empty and click Generate again."
+      ]
+    },
+    {
+      "issue": "Export is slow or fails",
+      "steps": [
+        "Keep the browser tab open and in front.",
+        "Tick Fast draft (720p) for a faster export.",
+        "Hide or remove shots marked 'Slow to export'.",
+        "Click Export again after 'Export failed - Retry'."
+      ]
+    },
+    {
+      "issue": "I cannot find my film in the editor",
+      "steps": [
+        "Go to #/motion-director and look for the Continue editing tile or Recent Projects.",
+        "Click it to reopen the Workbench with your project.",
+        "If you saved a JSON earlier, use Import."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "The film does not look like my site",
+      "whyItHappens": "No site address was given or the capture failed, so generic shots were used.",
+      "howToFix": "Include your full website address and ask the director to use real page shots, or use Use My Brand for colors and logos."
+    },
+    {
+      "problem": "I picked too many shot cards",
+      "whyItHappens": "A film holds at most 14 scenes and two are title cards, so 12 shots can be picked.",
+      "howToFix": "Remove some picks by clicking the x on their chips."
+    },
+    {
+      "problem": "Changes in the Edit agent were skipped",
+      "whyItHappens": "Every edit is checked; invalid edits are skipped.",
+      "howToFix": "Rephrase the instruction or use the Properties inspector manually. Undo with Ctrl/Cmd+Z."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Launch film from my website",
+      "steps": [
+        "Open #/motion-director.",
+        "Type 'Make a launch film for https://your-product.com with the Ink Press template' (one of the example prompts).",
+        "Click Generate and choose Use Ink Press if asked.",
+        "Review the storyboard and ask for tweaks.",
+        "Play the film, then click Open in Motion Workbench.",
+        "Use the Edit agent to change the headline, then click Export video."
+      ]
+    },
+    {
+      "title": "Hand-picked shots",
+      "steps": [
+        "Click the Templates pill and pick a few shot cards, one at a time.",
+        "Write a short message about your product.",
+        "Click Generate; the picked cards are used in order.",
+        "Open in Motion Workbench to adjust timing."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Product launch teaser",
+      "description": "Short film showing your real pages with bold titles.",
+      "steps": [
+        "Give your site address and a 20 to 30 second length.",
+        "Choose 9:16 for social.",
+        "Accept the Ink Press structure or ask for another look."
+      ],
+      "expectedOutput": "An editable film exported as MP4."
+    },
+    {
+      "title": "Feature walkthrough reel",
+      "description": "Present one feature with specific shot cards.",
+      "steps": [
+        "Name shots such as deck-deal-flyin and row-embed in your message.",
+        "Generate and review.",
+        "Edit text in the Workbench."
+      ],
+      "expectedOutput": "A film focused on the feature."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Where is Motion Director in the menu?",
+      "answer": "It is not in the side menu. Open it at #/motion-director. The editor is at #/motion-director/workbench."
+    },
+    {
+      "question": "Do I need an OpenAI key?",
+      "answer": "Yes. The director uses your own OpenAI key from Settings."
+    },
+    {
+      "question": "Do I need a paid plan?",
+      "answer": "Starting a film checks for a plan that includes SmartVideo GO and shows an upgrade prompt otherwise."
+    },
+    {
+      "question": "How long can the film be?",
+      "answer": "Between 5 and 90 seconds. If you do not say a length, the composer uses 20 seconds."
+    },
+    {
+      "question": "Is this the same as Workbench?",
+      "answer": "No. Workbench (#/workbench) is a separate studio for editing your generated clips, images and audio. Motion Director has its own editor called Motion Workbench, which opens from a film made in the chat."
+    },
+    {
+      "question": "Where is my exported MP4?",
+      "answer": "Export video renders in your browser and offers the file to download. Whether it is also saved to your library from this editor was not confirmed."
+    },
+    {
+      "question": "Can I change the text after the film is built?",
+      "answer": "Yes. Use the Edit agent, or select a clip in the timeline and change its text and style in Properties."
+    }
+  ],
+  "glossary": {
+    "Shot recipe / shot card": "A ready-made motion design for one scene, such as a title card or a product-page zoom.",
+    "Storyboard": "The shot-by-shot plan the director writes before building the film.",
+    "Ink Press": "A paper-and-ink launch film template the director can use.",
+    "Motion Workbench": "The editor with timeline, library, properties and Edit agent that opens from a finished film.",
+    "Edit agent": "A chat panel in the editor that changes the film from your instructions.",
+    "Fast draft (720p)": "An export option that renders at 720p for speed.",
+    "Playhead": "The marker showing the current time on the timeline."
+  },
+  "tips": [
+    "Always include your website address and a length in the first message.",
+    "Say 'you decide' when you do not mind the director choosing.",
+    "Use Fast draft (720p) while iterating, then export at full quality.",
+    "Use Export JSON to back up a project before big changes."
+  ],
+  "bestPractices": [
+    "Confirm the storyboard before building the film.",
+    "Keep headlines short (about 70 characters) and captions about 90.",
+    "Hold key moments at least a second so viewers can read them.",
+    "Keep the tab open during export."
+  ],
+  "relatedStudios": ["video-agent", "workbench", "timeline", "director", "brand", "find-my-brand", "video"],
+  "relatedStudioGuidance": [
+    {
+      "studio": "video-agent",
+      "relationship": "Both make motion graphics from prompts; Video Agent writes one animation from code with no website capture.",
+      "whenToMove": "When you want a single quick animation such as a chart or title.",
+      "why": "Simpler and faster for one-off graphics."
+    },
+    {
+      "studio": "workbench",
+      "relationship": "Workbench edits your generated media on a timeline; Motion Director builds a film from your site.",
+      "whenToMove": "When you want to combine AI clips, images and audio from other studios.",
+      "why": "Workbench imports from your generation history."
+    },
+    {
+      "studio": "find-my-brand",
+      "relationship": "Brand discovery from your site.",
+      "whenToMove": "When you want brand colors and logos set up before making films.",
+      "why": "Motion Director can use your Brand Kit through Use My Brand."
+    }
+  ],
+  "notConfirmed": [
+    "Exact price, credit cost or plan name: the code only shows an entitlement check for SmartVideo GO; pricing was not verified.",
+    "Whether the exported MP4 is saved to your library from the Motion Workbench: no library save was seen in the reviewed code.",
+    "Size and count limits for the attach (image/video/audio) button.",
+    "Whether the website capture runs for every site; blocked or login-only pages are not confirmed to work.",
+    "The exact count of shot recipes in each category and the precise total (about 150 per the app notes).",
+    "The full list of every label in the Motion Workbench panels and the Edit agent's exact abilities beyond clip and text edits.",
+    "Whether a deployment overrides the default director model gpt-6-astra with an environment variable.",
+    "Exact wording of all director chat messages, which are generated by the AI."
+  ],
+  "sourceFiles": [
+    "src/components/MotionDirectorPage.js",
+    "src/features/personalization/mount.jsx",
+    "src/features/personalization/apps/motion-director/MotionStudio.tsx",
+    "src/features/personalization/apps/motion-director/App.tsx",
+    "src/features/personalization/apps/motion-director/pages/MotionStudioEntry.tsx",
+    "src/features/personalization/apps/motion-director/components/FilmDirectorChat.tsx",
+    "src/features/personalization/apps/motion-director/lib/directorPlan.ts",
+    "src/features/personalization/apps/motion-director/lib/filmChat.ts",
+    "src/features/personalization/apps/motion-director/lib/exportCost.ts",
+    "src/features/personalization/apps/motion-director/i18n.ts",
+    "netlify/functions/_personalization/app/api/motion-studio/director/route.ts",
+    "src/features/ask-smartvideo/studioRegistry.js",
+    "src/lib/router.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the page wrapper, the Motion Studio router and entry page, the editor App and top bar, the film chat component, plan limits, export cost, i18n strings and the director API route.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

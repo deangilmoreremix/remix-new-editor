@@ -16,6 +16,8 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { openDrawModal } from './studio/drawModal.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
+import { pickI2IModel } from '../lib/imageStudioModels.js';
+import { resolvePrefillModel, takePrefillModelName } from '../lib/prefillModel.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
@@ -56,7 +58,9 @@ export function ImageStudio() {
         if (imageMode) return;
         try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ model: selectedModel, ar: selectedAr })); } catch { /* ignore */ }
     };
-    const defaultModel = t2iModels.find((m) => m.id === savedSettings.model) || t2iModels[0];
+    // A model picked on the Text to Image page wins over the remembered one (key is always cleared).
+    const prefillModel = resolvePrefillModel(t2iModels, takePrefillModelName());
+    const defaultModel = prefillModel || t2iModels.find((m) => m.id === savedSettings.model) || t2iModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
     let selectedAr = (savedSettings.ar && getAspectRatiosForModel(defaultModel.id).includes(savedSettings.ar))
@@ -185,8 +189,7 @@ export function ImageStudio() {
             uploadedImageUrls = urls || [url];
             if (!imageMode) {
                 imageMode = true;
-                selectedModel = i2iModels[0].id;
-                selectedModelName = i2iModels[0].name;
+                { const m = pickI2IModel(selectedModel); selectedModel = m.id; selectedModelName = m.name; }
                 selectedAr = getAspectRatiosForI2IModel(selectedModel)[0];
                 document.getElementById('model-btn-label').textContent = selectedModelName;
                 document.getElementById('ar-btn-label').textContent = selectedAr;
@@ -233,8 +236,7 @@ export function ImageStudio() {
           uploadedImageUrls = [asset.src?.large || asset.url || asset.original];
           if (!imageMode) {
             imageMode = true;
-            selectedModel = i2iModels[0]?.id || selectedModel;
-            selectedModelName = i2iModels[0]?.name || selectedModelName;
+            { const m = pickI2IModel(selectedModel); selectedModel = m.id; selectedModelName = m.name; }
             selectedAr = getAspectRatiosForI2IModel(selectedModel)?.[0] || selectedAr;
             const modelLabel = document.getElementById('model-btn-label');
             const arLabel = document.getElementById('ar-btn-label');
@@ -385,8 +387,7 @@ export function ImageStudio() {
             uploadedImageUrls.push(url);
             if (!imageMode) {
               imageMode = true;
-              selectedModel = i2iModels[0]?.id || selectedModel;
-              selectedModelName = i2iModels[0]?.name || selectedModelName;
+              { const m = pickI2IModel(selectedModel); selectedModel = m.id; selectedModelName = m.name; }
               const modelLabel = document.getElementById('model-btn-label');
               if (modelLabel) modelLabel.textContent = selectedModelName;
               updateModelBtnIcon();
@@ -405,8 +406,7 @@ export function ImageStudio() {
             if (!uploadedImageUrls.includes(url)) uploadedImageUrls.push(url);
             if (!imageMode) {
               imageMode = true;
-              selectedModel = i2iModels[0]?.id || selectedModel;
-              selectedModelName = i2iModels[0]?.name || selectedModelName;
+              { const m = pickI2IModel(selectedModel); selectedModel = m.id; selectedModelName = m.name; }
               const modelLabel = document.getElementById('model-btn-label');
               if (modelLabel) modelLabel.textContent = selectedModelName;
               updateModelBtnIcon();

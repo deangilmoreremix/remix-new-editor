@@ -2,7 +2,7 @@
 // move it, drag its edges to trim, click to select (opens its settings), and add new ones at the playhead from the lane header.
 import { useMemo, useRef, useState } from 'react';
 import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
-import { OVERLAY_KINDS, overlayTemplates, isGateOverlay } from '@cinegen/lib/overlays/overlays';
+import { isGateOverlay } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { decodeLibraryDrag, freeOverlayRow, hasLibraryDrag, LIBRARY_DND, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 
@@ -12,13 +12,11 @@ interface Props {
   scrollLeft: number;
   labelWidth: number;
   sequenceDuration: number;
-  onAdd: (kind: OverlayKind) => void;
-  /** End Screen / Connect Form template (adds several overlays) */
-  onAddTemplate?: (templateId: string) => void;
-  onBrowseMotion?: () => void;
-  /** [hyperframes] only passed when the HyperFrames feature flag is on */
-  onBrowseHyperframes?: () => void;
+  /** Opens the "Add to timeline" modal (animations, speech, overlays, forms, end screens) */
+  onOpenAdd: () => void;
+  /** Smart Speech has its own modal (personalized speech), so it is not part of the Add modal */
   onOpenSpeech?: () => void;
+  /** Template Generator and Personalization also have their own modals */
   onOpenGenerator?: () => void;
   onOpenPersonalization?: () => void;
   onUpdate: (id: string, updates: Partial<OverlayClip>) => void;
@@ -30,7 +28,10 @@ interface Props {
 
 const MIN = 0.5;
 
-export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onAdd, onAddTemplate, onBrowseMotion, onBrowseHyperframes, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate, onRemove, onLibraryDrop }: Props) {
+/** The small icon buttons next to + Add: each opens its own modal (they are not part of the Add modal). */
+const ICON_BTN = { flex: '0 0 auto', background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 12, padding: '2px 4px', cursor: 'pointer' } as const;
+
+export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onOpenAdd, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate, onRemove, onLibraryDrop }: Props) {
   const selected = useSelectedOverlay();
   const overlaysRef = useRef(overlays); overlaysRef.current = overlays;
   const rowsRef = useRef<Map<string, number>>(new Map());
@@ -90,17 +91,15 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
           <button type="button" className="overlay-lane__toggle" aria-expanded={open} aria-label={open ? 'Collapse overlays' : 'Expand overlays'} title={open ? 'Collapse overlays' : 'Expand overlays'} onClick={() => setOpen((v) => !v)}>{open ? '▾' : '▸'}</button>
           <span className="overlay-track__label-text">Overlays{overlays.length ? ` · ${overlays.length}` : ''}</span>
         </div>}
-        <select aria-label="Add overlay" title="Add an overlay at the playhead" value="" onChange={(e) => { if (!e.target.value) return; if (e.target.value === 'mg:') onBrowseMotion?.(); else if (e.target.value === 'hf:') onBrowseHyperframes?.(); else if (e.target.value === 'speech:') onOpenSpeech?.(); else if (e.target.value === 'generator:') onOpenGenerator?.(); else if (e.target.value === 'personalize:') onOpenPersonalization?.(); else if (e.target.value.startsWith('tpl:')) onAddTemplate?.(e.target.value.slice(4)); else onAdd(e.target.value as OverlayKind); }}
-          className="overlay-lane__add">
-          <option value="">+ Add overlay…</option>
-          {onBrowseMotion && <option value="mg:">Motion graphics…</option>}
-          {onBrowseHyperframes && <option value="hf:">Animations…</option>}
-          {onOpenSpeech && <option value="speech:">Smart Speech…</option>}
-          {onOpenGenerator && <option value="generator:">Template Generator…</option>}
-          {onOpenPersonalization && <option value="personalize:">Personalization…</option>}
-          {OVERLAY_KINDS.map((k) => <option key={k.kind} value={k.kind} title={k.blurb}>{k.label}</option>)}
-          {onAddTemplate && <optgroup label="End screens and connect forms">{overlayTemplates().map((t) => <option key={t.id} value={`tpl:${t.id}`} title={t.description}>{t.name}</option>)}</optgroup>}
-        </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}>
+          <button type="button" aria-label="Add to timeline" title="Add to timeline: animations, motion graphics, overlays, forms and end screens" onClick={onOpenAdd}
+            style={{ flex: '1 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: 'var(--bg-input, transparent)', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 11, padding: '3px 5px', cursor: 'pointer', textAlign: 'left' }}>
+            + Add
+          </button>
+          {onOpenSpeech && <button type="button" aria-label="Smart Speech" title="Smart Speech: personalized speech" onClick={onOpenSpeech} style={ICON_BTN}>🎙</button>}
+          {onOpenGenerator && <button type="button" aria-label="Template Generator" title="Template Generator: generate a templated video from a prompt" onClick={onOpenGenerator} style={ICON_BTN}>✨</button>}
+          {onOpenPersonalization && <button type="button" aria-label="Personalization" title="Personalization: personalize the video for each contact" onClick={onOpenPersonalization} style={ICON_BTN}>👤</button>}
+        </div>
       </div>
       <div className="overlay-track__clips" style={{ overflowX: 'hidden', overflowY: contentH > height ? 'auto' : 'hidden' }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}
         onDragOver={(e) => { if (hasLibraryDrag(e.dataTransfer.types)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }}

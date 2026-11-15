@@ -11,9 +11,11 @@ const project = {
     { id: 'plain', type: 'audio', src: 'https://x/c.mp3', tts: { text: 'Hello', personalized: false } },
   ] }],
 };
-const supabase = () => vi.fn(async (url) => {
-  expect(url).toMatch(/published_videos\?id=eq\.abcd1234&published=eq\.true/);
-  return new Response(JSON.stringify([{ project }]), { status: 200 });
+const supabase = () => vi.fn(async (url, init) => {
+  // The table is not publicly readable: the project comes from the sanitizing RPC.
+  expect(url).toBe('https://sb.test/rest/v1/rpc/get_published_video');
+  expect(JSON.parse(init.body)).toEqual({ p_id: 'abcd1234' });
+  return new Response(JSON.stringify({ id: 'abcd1234', project }), { status: 200 });
 });
 
 describe('watch-voice', () => {

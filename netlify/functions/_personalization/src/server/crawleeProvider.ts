@@ -22,6 +22,8 @@
  *    gate.
  */
 
+import { SITE_PAGE_HEADERS } from '../lib/siteRequestHeaders'
+import { elementStructureKey, extractEmbeddedImageUrls, extractImageContext } from './pageSignals'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { CheerioCrawler } from '@crawlee/cheerio'
@@ -29,6 +31,7 @@ import { Configuration, GotScrapingHttpClient } from '@crawlee/core'
 import * as cheerio from 'cheerio'
 import { sanitizeUrl } from './discoverAssets'
 import { isJunkAssetUrl, isSocialAssetUrl, normalizeAssetUrl, tokenize } from './discoveryAssetFilter'
+import { isThirdPartyAdUrl } from './adDomains'
 import { collectSiteLogoImages } from './discoverySiteLogo'
 import { checkDestination } from '../lib/networkSafety'
 import {
@@ -40,7 +43,7 @@ import {
 import type { ImageCandidate, DiscoveryResult } from './discoveryProvider'
 
 const REQUEST_TIMEOUT = DISCOVERY_REQUEST_TIMEOUT_MS
-const USER_AGENT = 'SmartVideoGO-AI/1.0 (https://go.smartvid.app)'
+// Website pages get the shared crawler headers (see src/lib/siteRequestHeaders.ts).
 
 const PERSONALIZATION_SLUG_PATTERNS = [
   'about',
@@ -122,7 +125,7 @@ class NoRedirectHttpClient extends GotScrapingHttpClient {
   }
 }
 
-function extractImagesFromHtml(baseUrl: string, html: string, pageUrl: string): ImageCandidate[] {
+export function extractImagesFromHtml(baseUrl: string, html: string, pageUrl: string): ImageCandidate[] {
   const $ = cheerio.load(html)
   const candidates: ImageCandidate[] = []
   const seen = new Set<string>()
@@ -148,11 +151,14 @@ function extractImagesFromHtml(baseUrl: string, html: string, pageUrl: string): 
     // The same junk rules as the static path, so the two layers cannot
     // disagree about what an asset is.
     if (!isSiteLogo && isSocialAssetUrl(absolute)) return
+    if (!isSiteLogo && isThirdPartyAdUrl(absolute, baseUrl)) return
     if (!isSiteLogo && isJunkAssetUrl(absolute, altText ? tokenize(altText) : [])) return
     const key = normalizeAssetUrl(absolute)
     if (!key || seen.has(key)) return
     seen.add(key)
-    candidates.push({ url: absolute, sourcePage: pageUrl, altText, ogContext, isSiteLogo })
+    const contextText = element ? extractImageContext($, element) || undefined : undefined
+    const similarGroup = element ? `${pageUrl}|${elementStructureKey($, element)}` : undefined
+    candidates.push({ url: absolute, sourcePage: pageUrl, altText, ogContext, isSiteLogo, contextText, similarGroup })
   }
 
   $('img[src]').each((_i, elem) => {
@@ -186,6 +192,19 @@ function extractImagesFromHtml(baseUrl: string, html: string, pageUrl: string): 
         add(content, undefined, val)
       })
     }
+  }
+
+  // Framework / site-builder page data, as in the static path: on a page only
+  // Crawlee visits, images that exist only in that data are candidates too.
+  for (const embedded of extractEmbeddedImageUrls(html, pageUrl)) {
+    add(embedded.url, undefined, 'embedded')
+    if (!embedded.context) continue
+    // Keep the data-key context (`teamMembers.photo`): for an image that only
+    // exists in framework data it is the one classification signal. Merge it
+    // into the candidate whether it was just added or already found in the DOM.
+    const key = normalizeAssetUrl(new URL(embedded.url, pageUrl).toString())
+    const match = key ? candidates.find((candidate) => normalizeAssetUrl(candidate.url) === key) : undefined
+    if (match) match.contextText = [match.contextText, embedded.context].filter(Boolean).join(' ')
   }
 
   return candidates
@@ -289,7 +308,7 @@ export async function discoverWithCrawlee(
         gotOptions.timeout = { request: budgetMs }
         gotOptions.headers = {
           ...(gotOptions.headers || {}),
-          'User-Agent': USER_AGENT,
+          ...SITE_PAGE_HEADERS,
         }
       },
     ],
