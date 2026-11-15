@@ -74,3 +74,65 @@ describe('templateUx', () => {
     expect(el.hasAttribute('aria-invalid')).toBe(false);
   });
 });
+
+import {
+  toggleFavoriteTemplate, isFavoriteTemplate, getFavoriteTemplateIds,
+  addRecentTemplate, getRecentTemplateIds,
+  encodeShareValues, decodeShareValues, buildShareUrl,
+} from '../../src/lib/templateUx.js';
+
+describe('templateUx favorites, recents and share links', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('toggles favorites', () => {
+    expect(toggleFavoriteTemplate('a')).toBe(true);
+    expect(toggleFavoriteTemplate('b')).toBe(true);
+    expect(getFavoriteTemplateIds()).toEqual(['b', 'a']);
+    expect(toggleFavoriteTemplate('a')).toBe(false);
+    expect(isFavoriteTemplate('a')).toBe(false);
+  });
+
+  it('keeps recents most-recent-first, de-duplicated and capped', () => {
+    for (let i = 0; i < 15; i++) addRecentTemplate(`t${i}`);
+    addRecentTemplate('t3');
+    const recent = getRecentTemplateIds();
+    expect(recent[0]).toBe('t3');
+    expect(recent.length).toBe(12);
+    expect(new Set(recent).size).toBe(12);
+  });
+
+  it('survives corrupt stored lists', () => {
+    localStorage.setItem('template_gallery_favorites', '{not json');
+    localStorage.setItem('template_gallery_recent', '{"a":1}');
+    expect(getFavoriteTemplateIds()).toEqual([]);
+    expect(getRecentTemplateIds()).toEqual([]);
+  });
+
+  const inputs = [
+    { name: 'prompt', type: 'text', label: 'Prompt' },
+    { name: 'style', type: 'select', label: 'Style', options: ['Plain', 'Retro'] },
+    { name: 'image_url', type: 'image', label: 'Photo' },
+  ];
+
+  it('round-trips share values, including unicode', () => {
+    const enc = encodeShareValues(inputs, { prompt: 'café at 5 — “fun” 🎬', style: 'Retro', image_url: 'https://x/y.png' });
+    expect(enc).not.toMatch(/[+/=]/);
+    expect(decodeShareValues(enc, inputs)).toEqual({ prompt: 'café at 5 — “fun” 🎬', style: 'Retro' });
+  });
+
+  it('ignores unknown fields, bad select values, junk and oversize text', () => {
+    const forged = encodeShareValues([{ name: 'evil', type: 'text' }, { name: 'style', type: 'text' }], { evil: 'x', style: 'Hacked' });
+    expect(decodeShareValues(forged, inputs)).toEqual({});
+    expect(decodeShareValues('not-base64!!', inputs)).toEqual({});
+    expect(decodeShareValues('', inputs)).toEqual({});
+    const long = encodeShareValues(inputs, { prompt: 'a'.repeat(900) });
+    expect(decodeShareValues(long, inputs).prompt.length).toBe(500);
+  });
+
+  it('builds a link that points at the template', () => {
+    const loc = { origin: 'https://smartvid.app', pathname: '/' } as any;
+    expect(buildShareUrl('t1', inputs, {}, loc)).toBe('https://smartvid.app/#/template/t1');
+    const url = buildShareUrl('t1', inputs, { prompt: 'hi' }, loc);
+    expect(url).toMatch(/^https:\/\/smartvid\.app\/\?fill=[\w-]+#\/template\/t1$/);
+  });
+});

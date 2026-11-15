@@ -112,3 +112,100 @@ export function setFieldInvalid(el, invalid) {
 export function isGenerateShortcut(event) {
   return !!(event && event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey);
 }
+
+// ---------------------------------------------------------------------------
+// Gallery favorites and recents (separate from Cinema's own TemplateStorage,
+// which tracks cinematic template ids).
+// ---------------------------------------------------------------------------
+const FAVORITES_KEY = 'template_gallery_favorites';
+const RECENT_KEY = 'template_gallery_recent';
+const MAX_RECENT = 12;
+
+function readList(key) {
+  const store = safeStorage();
+  if (!store) return [];
+  try {
+    const list = JSON.parse(store.getItem(key) || '[]');
+    return Array.isArray(list) ? list.filter((id) => typeof id === 'string') : [];
+  } catch { return []; }
+}
+
+function writeList(key, list) {
+  const store = safeStorage();
+  if (!store) return;
+  try { store.setItem(key, JSON.stringify(list)); } catch { /* optional */ }
+}
+
+export const getFavoriteTemplateIds = () => readList(FAVORITES_KEY);
+export const isFavoriteTemplate = (id) => readList(FAVORITES_KEY).includes(id);
+
+/** Toggle a favorite; returns the new state. */
+export function toggleFavoriteTemplate(id) {
+  if (!id) return false;
+  const list = readList(FAVORITES_KEY);
+  const next = list.includes(id) ? list.filter((x) => x !== id) : [id, ...list];
+  writeList(FAVORITES_KEY, next);
+  return next.includes(id);
+}
+
+export const getRecentTemplateIds = () => readList(RECENT_KEY);
+
+/** Move a template to the front of the recent list (most recent first, capped). */
+export function addRecentTemplate(id) {
+  if (!id) return;
+  writeList(RECENT_KEY, [id, ...readList(RECENT_KEY).filter((x) => x !== id)].slice(0, MAX_RECENT));
+}
+
+// ---------------------------------------------------------------------------
+// Shareable links: ?fill=<base64url JSON of text / select values>#/template/<id>
+// ---------------------------------------------------------------------------
+const MAX_SHARED_VALUE = 500;
+
+function toBase64Url(text) {
+  const bytes = new TextEncoder().encode(text);
+  let bin = '';
+  bytes.forEach((b) => { bin += String.fromCharCode(b); });
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function fromBase64Url(str) {
+  const b64 = String(str).replace(/-/g, '+').replace(/_/g, '/');
+  const bin = atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+}
+
+/** Encode the user's text / select values for a share link ('' when empty). */
+export function encodeShareValues(inputs = [], values = {}) {
+  const out = {};
+  inputs.filter(isFormInput).forEach((input) => {
+    const v = values[input.name];
+    if (typeof v === 'string' && v.trim()) out[input.name] = v.slice(0, MAX_SHARED_VALUE);
+  });
+  return Object.keys(out).length ? toBase64Url(JSON.stringify(out)) : '';
+}
+
+/**
+ * Decode a share parameter. Only inputs the template really has are kept, select
+ * values must still be options, and anything malformed is ignored.
+ */
+export function decodeShareValues(encoded, inputs = []) {
+  if (!encoded) return {};
+  let data;
+  try { data = JSON.parse(fromBase64Url(encoded)); } catch { return {}; }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return {};
+  const out = {};
+  inputs.filter(isFormInput).forEach((input) => {
+    const v = data[input.name];
+    if (typeof v !== 'string' || !v.trim()) return;
+    if (input.type === 'select' && !(input.options || []).includes(v)) return;
+    out[input.name] = v.slice(0, MAX_SHARED_VALUE);
+  });
+  return out;
+}
+
+/** Full URL a user can send to someone else. */
+export function buildShareUrl(templateId, inputs, values, loc = (typeof window !== 'undefined' ? window.location : null)) {
+  const base = loc ? `${loc.origin}${loc.pathname}` : '';
+  const fill = encodeShareValues(inputs, values);
+  return `${base}${fill ? `?fill=${fill}` : ''}#/template/${templateId}`;
+}

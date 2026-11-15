@@ -1,9 +1,15 @@
 import { allTemplates, getAllCategories } from '../lib/templates.js';
+import { getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { navigate } from '../lib/router.js';
 import { getTemplateThumbnail, createThumbnailImg, createStudioHeader } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+
+const FAVORITES_FILTER = '★ Favorites';
+const RECENT_FILTER = '🕒 Recent';
+// Filter currently shown, so the star on a card knows when to drop it from the view.
+let activeGalleryFilter = null;
 
 export function TemplatesPage() {
   const container = document.createElement('div');
@@ -41,7 +47,7 @@ export function TemplatesPage() {
     }
   })();
   const niches = Object.values(NICHE_LABELS_MAP || {});
-  const allFilters = ['All', 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
+  const allFilters = ['All', FAVORITES_FILTER, RECENT_FILTER, 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
   
   let activeFilter = null;
 
@@ -88,6 +94,7 @@ export function TemplatesPage() {
   }
 
   function renderCategories() {
+    activeGalleryFilter = activeFilter;
     sectionsContainer.innerHTML = '';
 
     const safeTemplates = (Array.isArray(allTemplates) ? allTemplates : []).filter(Boolean);
@@ -107,6 +114,23 @@ export function TemplatesPage() {
       }
       nicheGroups[t.niche].push(t);
     });
+
+    if (activeFilter === FAVORITES_FILTER || activeFilter === RECENT_FILTER) {
+      const ids = activeFilter === FAVORITES_FILTER ? getFavoriteTemplateIds() : getRecentTemplateIds();
+      const byId = new Map(safeTemplates.map(t => [t.id, t]));
+      const picked = ids.map(id => byId.get(id)).filter(Boolean);
+      if (picked.length > 0) {
+        sectionsContainer.appendChild(createTemplateSection(activeFilter, picked, false));
+      } else {
+        const empty = document.createElement('div');
+        empty.className = 'text-center text-sm text-muted py-12';
+        empty.textContent = activeFilter === FAVORITES_FILTER
+          ? 'No favorites yet. Tap the ☆ on a template to save it here.'
+          : 'Nothing here yet. Templates you open will show up here.';
+        sectionsContainer.appendChild(empty);
+      }
+      return;
+    }
 
     if (activeFilter === null) {
       const standardCategories = [...new Set(standardTemplates.map(t => t?.category).filter(Boolean))];
@@ -295,6 +319,29 @@ function createTemplateSection(category, catTemplates, isNiche) {
       <div class="text-[10px] font-bold text-muted mt-1 ml-11">${t.outputType === 'video' ? 'Video' : 'Image'}</div>
     `;
     card.appendChild(content);
+
+    card.classList.add('relative');
+    const heart = document.createElement('button');
+    heart.type = 'button';
+    heart.dataset.favorite = t.id;
+    heart.className = 'absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/70 text-sm text-zinc-300 transition hover:bg-black/90';
+    const paintHeart = () => {
+      const on = isFavoriteTemplate(t.id);
+      heart.textContent = on ? '★' : '☆';
+      heart.setAttribute('aria-pressed', String(on));
+      heart.setAttribute('aria-label', on ? `Remove ${t.name} from favorites` : `Add ${t.name} to favorites`);
+      heart.classList.toggle('text-yellow-300', on);
+    };
+    paintHeart();
+    heart.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      toggleFavoriteTemplate(t.id);
+      paintHeart();
+      if (activeGalleryFilter === FAVORITES_FILTER && !isFavoriteTemplate(t.id)) card.remove();
+    };
+    heart.onkeydown = (e) => e.stopPropagation();
+    card.appendChild(heart);
 
     const onClick = () => navigate(`template/${t.id}`);
     card.onclick = onClick;

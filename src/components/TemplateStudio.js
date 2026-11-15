@@ -1,6 +1,6 @@
 import { getTemplateById } from '../lib/templates.js';
 import { showToast } from '../lib/loading.js';
-import { buildExampleValues, saveTemplateInputs, loadTemplateInputs, missingRequiredInputs, applyValuesToForm, cssEscape, setFieldInvalid, isGenerateShortcut } from '../lib/templateUx.js';
+import { buildShareUrl, decodeShareValues, addRecentTemplate, buildExampleValues, saveTemplateInputs, loadTemplateInputs, missingRequiredInputs, applyValuesToForm, cssEscape, setFieldInvalid, isGenerateShortcut } from '../lib/templateUx.js';
 import { normalizeTemplate } from '../lib/templateAdapter.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
@@ -915,14 +915,34 @@ export function TemplateStudio(templateId) {
     };
     leftPanel.appendChild(exampleBtn);
   }
+  // Copy a link that reopens this template with the current text / select values.
+  const shareBtn = document.createElement('button');
+  shareBtn.type = 'button';
+  shareBtn.dataset.action = 'copy-link';
+  shareBtn.className = 'mt-2 flex w-full items-center justify-center rounded-[18px] border border-white/10 bg-white/[0.02] px-4 py-2 text-xs font-semibold text-zinc-400 transition hover:bg-white/[0.06] hover:text-white';
+  shareBtn.textContent = '🔗 Copy link with these inputs';
+  shareBtn.onclick = async () => {
+    const url = buildShareUrl(template.id, allInputs, formState);
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast('Link copied. Anyone who opens it gets these inputs filled in.', 'success');
+    } catch {
+      window.prompt('Copy this link', url);
+    }
+  };
+  leftPanel.appendChild(shareBtn);
   leftPanel.appendChild(genBtn);
   // Ctrl/Cmd+Enter generates from anywhere in the form.
   leftPanel.addEventListener('keydown', (e) => {
     if (isGenerateShortcut(e)) { e.preventDefault(); genBtn.click(); }
   });
   // Restore what the user typed last time they used this template.
-  const savedInputs = loadTemplateInputs(template.id, allInputs);
-  if (Object.keys(savedInputs).length) applyValuesToForm(leftPanel, savedInputs);
+  // A shared link's values win over what this browser remembered.
+  let sharedFill = '';
+  try { sharedFill = new URLSearchParams(window.location.search).get('fill') || ''; } catch { /* no window */ }
+  const startingInputs = { ...loadTemplateInputs(template.id, allInputs), ...decodeShareValues(sharedFill, allInputs) };
+  if (Object.keys(startingInputs).length) applyValuesToForm(leftPanel, startingInputs);
+  addRecentTemplate(template.id);
   mountPersonalizeTrigger({
     controlsContainer: actionRow,
     appId: 'template-studio',
