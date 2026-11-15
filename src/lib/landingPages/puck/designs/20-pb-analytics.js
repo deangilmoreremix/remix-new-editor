@@ -2,7 +2,7 @@
 export default {
   "id": "puck-pb-analytics",
   "name": "Analytics: track and grow",
-  "description": "Phone-first page with a wide-screen layout. Names, quotes and figures are sample content.",
+  "description": "Phone-first page with a wide-screen layout. Names, quotes and figures are sample content. Full landing page: stats, features, steps, testimonials, questions, contact form and footer.",
   "designClass": "pb-analytics",
   "theme": {
     "mode": "dark",
@@ -134,6 +134,277 @@ export default {
                   }
                 ]
               }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Strip",
+        "props": {
+          "id": "pb-analytics-stats",
+          "kind": "stats",
+          "title": "",
+          "items": [
+            {
+              "title": "views tracked",
+              "text": "",
+              "value": "128k",
+              "icon": ""
+            },
+            {
+              "title": "average watch time",
+              "text": "",
+              "value": "72%",
+              "icon": ""
+            },
+            {
+              "title": "click-through",
+              "text": "",
+              "value": "18%",
+              "icon": ""
+            }
+          ]
+        }
+      },
+      {
+        "type": "TextBlock",
+        "props": {
+          "id": "pb-analytics-why",
+          "eyebrow": "What you get",
+          "title": "Everything your your viewers needs, in [[one place]]",
+          "text": "Sample copy. Replace it with what you offer.",
+          "align": "center"
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "id": "pb-analytics-feat",
+          "columns": 3,
+          "items": [
+            {
+              "type": "FeaturesCard",
+              "props": {
+                "id": "pb-analytics-feat-0",
+                "columns": 1,
+                "title": "",
+                "items": [
+                  {
+                    "icon": "chart",
+                    "title": "Watch-time insight",
+                    "text": "See where viewers stay or leave."
+                  }
+                ]
+              }
+            },
+            {
+              "type": "FeaturesCard",
+              "props": {
+                "id": "pb-analytics-feat-1",
+                "columns": 1,
+                "title": "",
+                "items": [
+                  {
+                    "icon": "target",
+                    "title": "Click tracking",
+                    "text": "Know who clicked your call to action."
+                  }
+                ]
+              }
+            },
+            {
+              "type": "FeaturesCard",
+              "props": {
+                "id": "pb-analytics-feat-2",
+                "columns": 1,
+                "title": "",
+                "items": [
+                  {
+                    "icon": "users",
+                    "title": "Per-contact reports",
+                    "text": "See who watched, by name."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "TextBlock",
+        "props": {
+          "id": "pb-analytics-how",
+          "eyebrow": "How it works",
+          "title": "Three simple [[steps]]",
+          "text": "",
+          "align": "center"
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "id": "pb-analytics-steps",
+          "columns": 1,
+          "items": [
+            {
+              "type": "StepsCard",
+              "props": {
+                "id": "pb-analytics-steps-card",
+                "columns": 1,
+                "title": "",
+                "layout": "row",
+                "items": [
+                  {
+                    "title": "Publish your page",
+                    "text": "Share one link or one per contact.",
+                    "icon": ""
+                  },
+                  {
+                    "title": "Collect activity",
+                    "text": "Plays, progress and clicks are recorded.",
+                    "icon": ""
+                  },
+                  {
+                    "title": "Act on it",
+                    "text": "Follow up with the people who watched.",
+                    "icon": ""
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "TextBlock",
+        "props": {
+          "id": "pb-analytics-say",
+          "eyebrow": "What people say",
+          "title": "Loved by your viewers",
+          "text": "",
+          "align": "center"
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "id": "pb-analytics-quotes",
+          "columns": 2,
+          "items": [
+            {
+              "type": "QuoteCard",
+              "props": {
+                "id": "pb-analytics-q-0",
+                "columns": 1,
+                "heading": "",
+                "quotes": [
+                  {
+                    "text": "Now we know exactly who to call.",
+                    "name": "Ben A.",
+                    "role": "Sales ops",
+                    "avatar": ""
+                  }
+                ]
+              }
+            },
+            {
+              "type": "QuoteCard",
+              "props": {
+                "id": "pb-analytics-q-1",
+                "columns": 1,
+                "heading": "",
+                "quotes": [
+                  {
+                    "text": "The reports replaced three tools.",
+                    "name": "Carla N.",
+                    "role": "Marketing lead",
+                    "avatar": ""
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "TextBlock",
+        "props": {
+          "id": "pb-analytics-faqh",
+          "eyebrow": "Questions",
+          "title": "Frequently asked [[questions]]",
+          "text": "",
+          "align": "center"
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "id": "pb-analytics-faq",
+          "columns": 1,
+          "items": [
+            {
+              "type": "FaqCard",
+              "props": {
+                "id": "pb-analytics-faq-card",
+                "columns": 1,
+                "title": "",
+                "items": [
+                  {
+                    "q": "What is tracked?",
+                    "a": "Views, plays, progress, clicks and leads."
+                  },
+                  {
+                    "q": "Can I export it?",
+                    "a": "Sample answer: edit this to match your plan."
+                  },
+                  {
+                    "q": "Is it private?",
+                    "a": "Only you can see the stats for your pages."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "ContactBand",
+        "props": {
+          "id": "pb-analytics-contact",
+          "eyebrow": "Let's talk",
+          "title": "See your results",
+          "text": "Leave your details and we will get back to you. Sample text, edit it in the studio.",
+          "fields": [
+            {
+              "key": "name",
+              "label": "Your name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "key": "email",
+              "label": "Your email",
+              "type": "email",
+              "required": true
+            }
+          ],
+          "submitLabel": "Send",
+          "successMessage": "Thanks! We will be in touch shortly."
+        }
+      },
+      {
+        "type": "Footer",
+        "props": {
+          "id": "pb-analytics-footer",
+          "text": "© Your business · Sample footer",
+          "links": [
+            {
+              "label": "Privacy",
+              "url": ""
+            },
+            {
+              "label": "Contact",
+              "url": "#contact"
             }
           ]
         }

@@ -49,3 +49,20 @@
 .pk-ctabar--split p { margin: 0; flex: 1; font-weight: 700; font-size: clamp(14px, 3.6vw, 24px); line-height: 1.25; }
 .pk-btn--cta { background: var(--pk-cta, #fff); color: var(--pk-cta-text, #111827); border-radius: 10px; white-space: nowrap; }
 .pk-ctabar { background: var(--pk-bar, var(--pk-accent)); color: var(--pk-bar-text, #fff); }
+
+/* Full-page sections added below the hero: cards fill the column and use 2-3 columns on wide screens. */
+.pk-page[class*="pk-d-pb-"] .pk-grid-in, .pk-page[class*="pk-d-pa-"] .pk-grid-in { justify-items: stretch; }
+.pk-page[class*="pk-d-pb-"] .pk-grid-in > *, .pk-page[class*="pk-d-pa-"] .pk-grid-in > * { width: 100%; min-width: 0; }
+@media (min-width: 900px) {
+  .pk-page[class*="pk-d-pb-"] .pk-grid[style*="--pk-cols: 2"] .pk-grid-in, .pk-page[class*="pk-d-pa-"] .pk-grid[style*="--pk-cols: 2"] .pk-grid-in { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 1100px; }
+  .pk-page[class*="pk-d-pb-"] .pk-grid[style*="--pk-cols: 3"] .pk-grid-in, .pk-page[class*="pk-d-pa-"] .pk-grid[style*="--pk-cols: 3"] .pk-grid-in { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 1100px; }
+}
+.pk-page[class*="pk-d-pb-"] .pk-grid-in > * > *, .pk-page[class*="pk-d-pa-"] .pk-grid-in > * > * { width: 100%; max-width: none; }
+/* In the page's flex column, sections keep their max-width but fill the row. */
+.pk-page:has(> div > .pk-ctabar:last-child) > div > * { width: 100%; }
+/* Contact band on the A/B pages: page colours, white form card, readable on every palette. */
+.pk-page[class*="pk-d-pb-"] .pk-band--contact, .pk-page[class*="pk-d-pa-"] .pk-band--contact { background: color-mix(in srgb, var(--pk-text) 9%, var(--pk-bg)); color: var(--pk-text); }
+.pk-page[class*="pk-d-pb-"] .pk-band--contact .pk-eyebrow-plain, .pk-page[class*="pk-d-pa-"] .pk-band--contact .pk-eyebrow-plain { color: var(--pk-accent); opacity: 1; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; filter: brightness(1.15); }
+.pk-page[class*="pk-d-pb-"] .pk-band--contact .pk-form, .pk-page[class*="pk-d-pa-"] .pk-band--contact .pk-form { background: #fff; color: #111; border-radius: 14px; }
+.pk-page[class*="pk-d-pb-"] .pk-band--contact .pk-field input, .pk-page[class*="pk-d-pa-"] .pk-band--contact .pk-field input { background: #fff; color: #111; border: 1px solid #cfd6e4; }
+.pk-page[class*="pk-d-pb-"] .pk-band--contact .pk-btn--primary, .pk-page[class*="pk-d-pa-"] .pk-band--contact .pk-btn--primary { background: var(--pk-accent); color: var(--pk-on-accent, #fff); }

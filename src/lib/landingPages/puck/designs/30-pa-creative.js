@@ -2,7 +2,7 @@
 export default {
   "id": "puck-pa-creative",
   "name": "Creative studio",
-  "description": "Phone-first photo-story page with a wide-screen layout. Names, quotes and copy are sample content.",
+  "description": "Phone-first photo-story page with a wide-screen layout. Names, quotes and copy are sample content. Full landing page: stats, features, steps, testimonials, questions, contact form and footer.",
   "designClass": "pa-creative",
   "theme": {
     "mode": "dark",
@@ -127,6 +127,277 @@ export default {
                   }
                 ]
               }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Strip",
+        "props": {
+          "id": "pa-creative-stats",
+          "kind": "stats",
+          "title": "",
+          "items": [
+            {
+              "title": "projects shipped",
+              "text": "",
+              "value": "150+",
+              "icon": ""
+            },
+            {
+              "title": "client rating",
+              "text": "",
+              "value": "4.9",
+              "icon": ""
+            },
+            {
+              "title": "faster approvals",
+              "text": "",
+              "value": "5x",
+              "icon": ""
+            }
+          ]
+        }
+      },
+      {
+        "type": "TextBlock",
+        "props": {
+          "id": "pa-creative-why",
+          "eyebrow": "What you get",
+          "title": "Everything your clients needs, in [[one place]]",
+          "text": "Sample copy. Replace it with what you offer.",
+          "align": "center"
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "id": "pa-creative-feat",
+          "columns": 3,
+          "items": [
+            {
+              "type": "FeaturesCard",
+              "props": {
+                "id": "pa-creative-feat-0",
+                "columns": 1,
+                "title": "",
+                "items": [
+                  {
+                    "icon": "sparkles",
+                    "title": "Creative solutions",
+                    "text": "Ideas that make people stop and look."
+                  }
+                ]
+              }
+            },
+            {
+              "type": "FeaturesCard",
+              "props": {
+                "id": "pa-creative-feat-1",
+                "columns": 1,
+                "title": "",
+                "items": [
+                  {
+                    "icon": "palette",
+                    "title": "Design and video",
+                    "text": "Brand, motion and story together."
+                  }
+                ]
+              }
+            },
+            {
+              "type": "FeaturesCard",
+              "props": {
+                "id": "pa-creative-feat-2",
+                "columns": 1,
+                "title": "",
+                "items": [
+                  {
+                    "icon": "rocket",
+                    "title": "Grow your brand",
+                    "text": "Work that moves your numbers."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "TextBlock",
+        "props": {
+          "id": "pa-creative-how",
+          "eyebrow": "How it works",
+          "title": "Three simple [[steps]]",
+          "text": "",
+          "align": "center"
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "id": "pa-creative-steps",
+          "columns": 1,
+          "items": [
+            {
+              "type": "StepsCard",
+              "props": {
+                "id": "pa-creative-steps-card",
+                "columns": 1,
+                "title": "",
+                "layout": "row",
+                "items": [
+                  {
+                    "title": "Watch your video",
+                    "text": "See how we think.",
+                    "icon": ""
+                  },
+                  {
+                    "title": "Share your brief",
+                    "text": "Tell us your goals.",
+                    "icon": ""
+                  },
+                  {
+                    "title": "Launch the project",
+                    "text": "We deliver on time.",
+                    "icon": ""
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "TextBlock",
+        "props": {
+          "id": "pa-creative-say",
+          "eyebrow": "What people say",
+          "title": "Loved by clients",
+          "text": "",
+          "align": "center"
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "id": "pa-creative-quotes",
+          "columns": 2,
+          "items": [
+            {
+              "type": "QuoteCard",
+              "props": {
+                "id": "pa-creative-q-0",
+                "columns": 1,
+                "heading": "",
+                "quotes": [
+                  {
+                    "text": "They turned our ideas into stunning videos.",
+                    "name": "Daniel K.",
+                    "role": "Founder",
+                    "avatar": ""
+                  }
+                ]
+              }
+            },
+            {
+              "type": "QuoteCard",
+              "props": {
+                "id": "pa-creative-q-1",
+                "columns": 1,
+                "heading": "",
+                "quotes": [
+                  {
+                    "text": "The team understood us immediately.",
+                    "name": "Mia F.",
+                    "role": "Marketing lead",
+                    "avatar": ""
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "TextBlock",
+        "props": {
+          "id": "pa-creative-faqh",
+          "eyebrow": "Questions",
+          "title": "Frequently asked [[questions]]",
+          "text": "",
+          "align": "center"
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "id": "pa-creative-faq",
+          "columns": 1,
+          "items": [
+            {
+              "type": "FaqCard",
+              "props": {
+                "id": "pa-creative-faq-card",
+                "columns": 1,
+                "title": "",
+                "items": [
+                  {
+                    "q": "How long does a project take?",
+                    "a": "Sample answer: edit this with your timelines."
+                  },
+                  {
+                    "q": "Do you work with startups?",
+                    "a": "Sample answer: edit this to match your offer."
+                  },
+                  {
+                    "q": "Can I see your work?",
+                    "a": "Yes. Ask in the form below."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "ContactBand",
+        "props": {
+          "id": "pa-creative-contact",
+          "eyebrow": "Let's talk",
+          "title": "Start a project",
+          "text": "Leave your details and we will get back to you. Sample text, edit it in the studio.",
+          "fields": [
+            {
+              "key": "name",
+              "label": "Your name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "key": "email",
+              "label": "Your email",
+              "type": "email",
+              "required": true
+            }
+          ],
+          "submitLabel": "Send",
+          "successMessage": "Thanks! We will be in touch shortly."
+        }
+      },
+      {
+        "type": "Footer",
+        "props": {
+          "id": "pa-creative-footer",
+          "text": "© Your business · Sample footer",
+          "links": [
+            {
+              "label": "Privacy",
+              "url": ""
+            },
+            {
+              "label": "Contact",
+              "url": "#contact"
             }
           ]
         }
