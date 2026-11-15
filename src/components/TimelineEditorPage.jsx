@@ -46,6 +46,7 @@ import { makePersonalizationAssetVideoReady } from '../lib/personalization/video
 import { persistPersonalizationAssetVersion } from '../lib/personalization/assetDiscoveryService.js';
 import { buildRevertPatch, cutoutAsset } from '../lib/personalization/backgroundCutout.js';
 import { isCutoutAsset } from '../lib/personalization/assetUrl.js';
+import { BRIDGE_SOURCE, layersToTimelineOverlays, timelineOverlaysToLayers } from '../lib/personalization/layerOverlayBridge.js';
 import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
 import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';
 import { addPersonalizationAsset, createPersonalizationAsset, removePersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
@@ -4983,6 +4984,50 @@ export function TimelineEditorPage() {
       }
     }
 
+    // Overlays shared with the Personalization window's guided overlay editor:
+    // one overlay model. Clips made from its layers carry `bridge` so they can
+    // be turned back into layers (and replaced when the window closes).
+    const bridgedClips = () => state.tracks.flatMap((t) => t.items || t.clips || []).filter((c) => c.bridge?.source === BRIDGE_SOURCE);
+
+    // The layers to open the window on: the last layers it produced, with any
+    // edits made to their overlays here applied. Undefined = its own defaults.
+    function personalizeInitialLayers() {
+      const saved = state.personalizeModal;
+      if (!saved?.layers?.length) return undefined;
+      const items = bridgedClips().map((c) => ({ source: c.bridge.source, layerId: c.bridge.layerId, startSec: c.start, endSec: c.end, addon: c.addon }));
+      return timelineOverlaysToLayers(items, saved.layers, saved.settings);
+    }
+
+    function applyPersonalizeLayers({ layers, settings }) {
+      const T = state.timelineSeconds || 60;
+      const compSec = (settings.durationInFrames || 0) / (settings.fps || 30);
+      const plan = layersToTimelineOverlays(layers, settings);
+      saveStateSnapshot(state);
+      bridgedClips().forEach((c) => {
+        state.tracks.forEach((t) => {
+          const items = t.items || t.clips || [];
+          const i = items.findIndex((x) => x.id === c.id);
+          if (i >= 0) items.splice(i, 1);
+        });
+      });
+      plan.forEach((item) => {
+        // A layer that ran to the end of the window's short preview runs to the end of this video.
+        const end = compSec && item.endSec >= compSec - 1e-6 ? T : Math.min(T, item.endSec);
+        const clip = createAddonClip(item.type, { startSec: item.startSec, timelineSeconds: T });
+        clip.start = item.startSec;
+        clip.end = end;
+        clip.addon = { ...clip.addon, ...item.addon };
+        clip.name = item.name;
+        clip.bridge = { source: BRIDGE_SOURCE, layerId: item.layerId };
+        insertClipIntoTrack(clip, getAddon(item.type)?.track || 'Text');
+      });
+      state.personalizeModal = { layers, settings };
+      try { renderTracks(); renderOverlayLayer(); } catch { /* not mounted */ }
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Updated ${plan.length} overlay${plan.length === 1 ? '' : 's'} from Personalize`, 'success');
+    }
+
     // Free on-device background removal (the studio's engine) for one saved
     // image of a contact; "Use original" puts the first image back.
     const cutoutBusy = new Set();
@@ -8821,6 +8866,8 @@ export function TimelineEditorPage() {
           useOriginal: (id, redraw) => useOriginalContactImage(activeContact(), id, redraw),
           openPersonalize: () => import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
             studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
+            initialLayers: personalizeInitialLayers(),
+            onLayersChange: applyPersonalizeLayers,
             onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); panel.redraw(); },
           })),
         });

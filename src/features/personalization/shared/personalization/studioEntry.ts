@@ -36,6 +36,8 @@ import type {
   GenerationResult,
   PersonalizationAccessMode,
   PersonalizationCompletion,
+  PersonalizationLayersPayload,
+  PreviewLayer,
   PersonalizationSource,
 } from './types';
 
@@ -143,6 +145,12 @@ export interface StudioPersonalizeOptions {
 
   /** Called once, with the finished outputs, when the run produces a final result. */
   onComplete?: (completion: PersonalizationCompletion) => void;
+
+  /** Seed the guided preview's overlay layers (the host's current overlays). */
+  initialLayers?: PreviewLayer[];
+
+  /** Called on close when the overlay layers were edited (see `initialLayers`). */
+  onLayersChange?: (payload: PersonalizationLayersPayload) => void;
 
   /** Element to restore focus to on close → the provider's focus restore. */
   trigger?: HTMLElement | null;
@@ -288,6 +296,8 @@ export function useStudioPersonalize(): {
           originStudio: options.originStudio,
           initialAssets: options.initialAssets,
           onComplete: options.onComplete,
+          initialLayers: options.initialLayers,
+          onLayersChange: options.onLayersChange,
           returnTo: options.returnTo,
           returnPayload: options.returnPayload,
         })

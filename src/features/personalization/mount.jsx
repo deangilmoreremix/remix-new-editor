@@ -291,6 +291,8 @@ export function openPersonalization(options = {}) {
       access: options.access === 'anonymous' ? 'anonymous' : 'authenticated',
       originStudio: ORIGIN_STUDIO[identity.studioId] || undefined,
       onComplete: options.onComplete,
+      initialLayers: options.initialLayers,
+      onLayersChange: options.onLayersChange,
     }
   }
   ensureMounted()

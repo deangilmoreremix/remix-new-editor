@@ -49,6 +49,7 @@ import type {
   BusinessResearchResult,
   PersonalizationAccessMode,
   PersonalizationCompletion,
+  PersonalizationLayersPayload,
   GuidedStep,
   PersonalizationViewMode,
   AdvancedEditingTab,
@@ -681,6 +682,16 @@ type OpenPersonalizeOptions = {
    * open.
    */
   onComplete?: (completion: PersonalizationCompletion) => void
+  /**
+   * Seed the guided preview's overlay layers (the Timeline Editor passes the
+   * overlays it already has, so the modal opens on the same layout).
+   */
+  initialLayers?: PreviewLayer[]
+  /**
+   * Called when the modal closes with overlay layers that differ from what it
+   * opened with, so the host can apply the edits.
+   */
+  onLayersChange?: (payload: PersonalizationLayersPayload) => void
   /**
    * Where the finished result is handed off when the run completes. Uses the
    * existing cross-studio transport (`StudioHandoff` / `writeHandoff`) — the
@@ -1473,6 +1484,10 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   // callback can never fire on the next open.
   const originStudioRef = useRef<string | null>(null)
   const initialAssetsRef = useRef<AssetLibrary | null>(null)
+  const initialLayersRef = useRef<PreviewLayer[] | null>(null)
+  const onLayersChangeRef = useRef<((payload: PersonalizationLayersPayload) => void) | null>(null)
+  /** JSON of the layers the modal opened with (seed or defaults): "changed" means differing from it. */
+  const baselineLayersRef = useRef<string>('')
   const onCompleteRef = useRef<((completion: PersonalizationCompletion) => void) | null>(null)
   const returnToRef = useRef<StudioTarget | null>(null)
   const returnPayloadRef = useRef<Record<string, unknown> | null>(null)
@@ -2066,7 +2081,13 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // The view mode is intentionally NOT reset: an explicit Advanced Editing
     // choice is a session preference and survives opening another source.
     setGuidedStepState(1)
-    setPreviewSettings(sourcePreviewDefaults(source))
+    {
+      const defaults = sourcePreviewDefaults(source)
+      const seed = initialLayersRef.current
+      const seeded = seed ? { ...defaults, layers: seed.map((layer) => clampPreviewLayer({ ...layer })) } : defaults
+      baselineLayersRef.current = JSON.stringify(seeded.layers)
+      setPreviewSettings(seeded)
+    }
     setPreviewVideo(null)
     setPreviewApproved(false)
     setApprovalStale(false)
@@ -2756,6 +2777,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       originStudioRef.current = opts.originStudio || null
       initialAssetsRef.current = opts.initialAssets || null
       onCompleteRef.current = opts.onComplete || null
+      initialLayersRef.current = opts.initialLayers?.length ? opts.initialLayers : null
+      onLayersChangeRef.current = opts.onLayersChange || null
       returnToRef.current = opts.returnTo || null
       returnPayloadRef.current = opts.returnPayload || null
       onCompleteFiredRef.current = false
@@ -2768,7 +2791,20 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     }
   }, [accessProp])
 
+  const previewSettingsRef = useRef(previewSettings)
+  previewSettingsRef.current = previewSettings
+
   const closePersonalize = useCallback(() => {
+    // Hand edited overlay layers back to the host (the Timeline Editor) once.
+    const emitLayers = onLayersChangeRef.current
+    if (emitLayers) {
+      const s = previewSettingsRef.current
+      if (JSON.stringify(s.layers) !== baselineLayersRef.current) {
+        try {
+          emitLayers({ layers: s.layers, settings: { fps: s.fps, durationInFrames: s.durationInFrames, width: s.width, height: s.height, aspectRatio: s.aspectRatio } })
+        } catch { /* a host error must not keep the modal open */ }
+      }
+    }
     // Invalidate any restore still loading for the session being closed.
     restoreSessionRef.current += 1
     // A branded render still running for the closing session stops too.
@@ -2791,6 +2827,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     originStudioRef.current = null
     initialAssetsRef.current = null
     onCompleteRef.current = null
+    initialLayersRef.current = null
+    onLayersChangeRef.current = null
     returnToRef.current = null
     returnPayloadRef.current = null
     onCompleteFiredRef.current = false

@@ -656,6 +656,15 @@ export type {
   PersonalizationPreviewSettings,
 } from './preview/types'
 
+/**
+ * The overlay layers of the guided preview, handed back to the host that opened
+ * the modal (the Timeline Editor) so both edit ONE overlay model.
+ */
+export interface PersonalizationLayersPayload {
+  layers: import('./preview/types').PreviewLayer[]
+  settings: { fps: number; durationInFrames: number; width: number; height: number; aspectRatio: string }
+}
+
 // ── Shared Remotion design registry ──────────────────────────────────────────
 
 export type {
