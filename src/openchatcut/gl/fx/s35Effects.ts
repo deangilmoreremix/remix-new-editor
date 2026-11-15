@@ -4,7 +4,7 @@
 // web-renderer export (ClipFx.tsx resolves ALL_FX by id) all work unchanged. Only number props are used so that every
 // parameter can be keyframed from the inspector. Licence / provenance of each effect is in S35_META (and THIRD_PARTY_NOTICES).
 import type { FxDef, FxProperty } from './uniforms';
-import curvesFrag from './s35/curves.frag?raw';
+import { CURVES_FX } from './s9/s9Effects'; // [remix] Fix C: draggable curves editor (was five sliders)
 import gradientMapFrag from './s35/gradient-map.frag?raw';
 import vibranceFrag from './s35/vibrance.frag?raw';
 import temperatureTintFrag from './s35/temperature-tint.frag?raw';
@@ -50,13 +50,7 @@ const ORIG = 'AGPL-3.0-or-later (original work in this repo)';
 const MIT = 'MIT, Copyright (c) 2012-2014 Brian Chirls';
 
 export const S35_EFFECTS: Record<string, FxDef> = {
-  'builtin:fx-curves': {
-    id: 'builtin:fx-curves', name: 'Curves',
-    desc: 'Master tone curve with five control points (black, shadows, mids, highlights, white) plus per-channel mid bends.',
-    frag: curvesFrag,
-    props: [n('p0', 'Black point', 0, 0, 1), n('p1', 'Shadows', 0.25, 0, 1), n('p2', 'Midtones', 0.5, 0, 1), n('p3', 'Highlights', 0.75, 0, 1), n('p4', 'White point', 1, 0, 1),
-      n('r_mid', 'Red mid bend', 0, -0.5, 0.5), n('g_mid', 'Green mid bend', 0, -0.5, 0.5), n('b_mid', 'Blue mid bend', 0, -0.5, 0.5)],
-  },
+  'builtin:fx-curves': CURVES_FX,
   'builtin:fx-gradient-map': {
     id: 'builtin:fx-gradient-map', name: 'Gradient Map',
     desc: 'Maps luminance onto a three-stop colour ramp (shadow, mid, highlight) defined by hue / saturation / value.',
@@ -65,6 +59,8 @@ export const S35_EFFECTS: Record<string, FxDef> = {
       n('midHue', 'Mid hue', 330, 0, 360, 1), n('midSat', 'Mid saturation', 0.55, 0, 1), n('midVal', 'Mid value', 0.6, 0, 1),
       n('highHue', 'Highlight hue', 45, 0, 360, 1), n('highSat', 'Highlight saturation', 0.45, 0, 1), n('highVal', 'Highlight value', 1, 0, 1),
       n('midPos', 'Mid position', 0.5, 0.05, 0.95), n('intensity', 'Intensity', 1, 0, 1)],
+    // [remix] Fix C: a colour swatch per stop; picking writes the three HSV sliders (so the stops stay keyframeable and old projects are unchanged)
+    colorPicks: [{ label: 'Shadow colour', h: 'shadowHue', s: 'shadowSat', v: 'shadowVal' }, { label: 'Mid colour', h: 'midHue', s: 'midSat', v: 'midVal' }, { label: 'Highlight colour', h: 'highHue', s: 'highSat', v: 'highVal' }],
   },
   'builtin:fx-vibrance': {
     id: 'builtin:fx-vibrance', name: 'Vibrance',
@@ -166,7 +162,8 @@ export const S35_EFFECTS: Record<string, FxDef> = {
     id: 'builtin:fx-nightvision', name: 'Night Vision',
     desc: 'Green phosphor night-vision goggles: luma amplification, sensor noise, round vignette. Animated.',
     frag: nightvisionFrag,
-    props: [n('amplification', 'Amplification', 1.4, 0.5, 4, 0.05), n('threshold', 'Threshold', 0.05, 0, 0.5), n('noise', 'Noise', 0.25, 0, 1), n('goggle', 'Goggle vignette', 0.6, 0, 1)],
+    props: [n('amplification', 'Amplification', 1.4, 0.5, 4, 0.05), n('threshold', 'Threshold', 0.05, 0, 0.5), n('noise', 'Noise', 0.25, 0, 1), n('goggle', 'Goggle vignette', 0.6, 0, 1),
+      { key: 'tint', label: 'Phosphor tint', kind: 'color', default: [0.12, 1, 0.25], uniform: 'u_tint' }], // [remix] Fix C: was hard-coded; default = the old colour
   },
   'builtin:fx-sketch': {
     id: 'builtin:fx-sketch', name: 'Pencil Sketch',
