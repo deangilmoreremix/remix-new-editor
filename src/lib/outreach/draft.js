@@ -381,7 +381,7 @@ const clipsTimeline = (draft) => {
  * from perContact.voiceForContacts. Track and clip shapes are the ones the public player reads
  * (same as the editor's publish: tracks with items, start/end seconds or left/width percent).
  */
-export function buildCampaignProject(draft, { variants = {}, now = Date.now() } = {}) {
+export function buildCampaignProject(draft, { variants = {}, lipsync = null, now = Date.now() } = {}) {
   for (const step of [1, 2, 3, 4]) {
     const errors = stepErrors(draft, step);
     if (errors.length) throw new Error(errors[0]);
@@ -405,6 +405,17 @@ export function buildCampaignProject(draft, { variants = {}, now = Date.now() } 
 
   const name = String(draft.name || '').trim() || `Outreach ${new Date(now).toISOString().slice(0, 10)}`;
   const recording = { id: `outreach-video-${id}`, name: 'Outreach recording', type: 'video', src: draft.video.url, left: 0, width: (videoSeconds / T) * 100 };
+  // Lip-synced greeting (src/lib/outreach/lipsync.js): the first seconds play each contact's
+  // synced intro (muted: the greeting audio plays on the voiceover track), then the recording
+  // continues from there. Contacts without a synced intro see the original first seconds.
+  const synced = lipsync?.introUrl && Object.keys(lipsync.clips || {}).length && lipsync.seconds < videoSeconds;
+  const cameraItems = synced
+    ? [
+      { id: `outreach-intro-${id}`, name: 'Greeting (lip-synced)', type: 'video', src: lipsync.introUrl, volume: 0, left: 0, width: (lipsync.seconds / T) * 100,
+        aiPerContact: { variants: Object.fromEntries(Object.entries(lipsync.clips).map(([cid, url]) => [cid, { url }])) } },
+      { ...recording, id: `outreach-video-${id}`, trimIn: lipsync.seconds, left: (lipsync.seconds / T) * 100, width: ((videoSeconds - lipsync.seconds) / T) * 100 },
+    ]
+    : [recording];
   const voiceTrack = { id: `track-voiceover-${id}`, type: 'audio', name: 'Voiceover', muted: false, solo: false,
     items: [{ id: `speech-outreach-${id}`, type: 'audio', role: 'voiceover', name: 'Greeting', src: draft.voice.fallbackUrl, volume: 1, tts, start: 0, end: greetingSeconds }] };
 
@@ -418,12 +429,12 @@ export function buildCampaignProject(draft, { variants = {}, now = Date.now() } 
       { id: `track-bg-${id}`, type: 'video', name: 'Website background', muted: true, solo: false,
         // scroll: the page moves from its top (header, logo) to its bottom over the video.
         items: [{ id: `outreach-site-${id}`, name: 'Contact website', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', scroll: true, left: 0, width: 100 }] },
-      { id: `track-cam-${id}`, type: 'video', name: 'Camera', muted: false, solo: false, items: [recording] },
+      { id: `track-cam-${id}`, type: 'video', name: 'Camera', muted: false, solo: false, items: cameraItems },
       voiceTrack,
     ]
     : [
       // The greeting plays over the first seconds of the recording (the Record step asks for a pause there).
-      { id: `track-video-${id}`, type: 'video', name: 'Main Video', muted: false, solo: false, items: [recording] },
+      { id: `track-video-${id}`, type: 'video', name: 'Main Video', muted: false, solo: false, items: cameraItems },
       voiceTrack,
     ];
 

@@ -31,7 +31,9 @@
     "Campaigns table with videos, watched and button clicks, and per-contact views, plays and clicks",
     "Show the calendar: Calendly, Cal.com, Google Calendar appointment, HubSpot, SavvyCal or TidyCal booking pages embedded under the video",
     "Add from Lead Finder: pick saved leads with an email as contacts",
-    "Email card: thumbnail text, subject and message with {{firstname}}, {{company}} and {{link}}; Make thumbnails; Copy email (with the thumbnail) and Email per contact; mail-merge .csv"
+    "Email card: thumbnail text, subject and message with {{firstname}}, {{company}} and {{link}}; Make thumbnails; Copy email (with the thumbnail) and Email per contact; mail-merge .csv",
+    "MP4 per contact: download that contact's finished video as a file",
+    "Lip-sync the greeting (optional, paid): your mouth says each contact's name"
   ],
   "featureExplanations": [
     {
@@ -110,6 +112,20 @@
       "whyToUse": "Video emails get more clicks with a personalized thumbnail.",
       "inputRequired": "A generated campaign.",
       "restrictions": "The app doesn't send email itself: paste into Gmail or Outlook, or use a mail-merge tool. Thumbnails are still images, not GIFs."
+    },
+    {
+      "feature": "MP4 per contact",
+      "explanation": "In Personal links, MP4 renders that contact's video (their greeting and website background) in your browser and downloads it.",
+      "whyToUse": "Attach the video or post it somewhere links don't work.",
+      "inputRequired": "A generated campaign.",
+      "restrictions": "Rendering takes about as long as the video; MP4 in Chrome and Edge, WebM elsewhere."
+    },
+    {
+      "feature": "Lip-sync the greeting",
+      "explanation": "In Generate, tick Lip-sync the greeting before generating. The first seconds of your recording are lip-synced to each contact's greeting, so your mouth says their name.",
+      "whyToUse": "A more natural personal greeting.",
+      "inputRequired": "A personalized greeting and a recording that starts with you facing the camera.",
+      "restrictions": "Paid: one MuAPI lip-sync video request per distinct greeting, on top of the voice, about a minute each. If one fails, that contact still hears their greeting without lip-sync."
     }
   ],
   "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",

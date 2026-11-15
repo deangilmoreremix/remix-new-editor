@@ -589,7 +589,8 @@ export function OutreachStudio() {
   async function generateCampaign() {
     const personal = tokensIn(draft.greeting).length > 0;
     const n = draft.contacts.length;
-    if (personal && !window.confirm(`This voices the greeting for up to ${n} contact${n === 1 ? '' : 's'} (repeated names are voiced once). Each one is a paid speech request on your MuAPI key. Continue?`)) return;
+    const wantSync = personal && !!draft.voice.lipsync;
+    if (personal && !window.confirm(`This voices the greeting for up to ${n} contact${n === 1 ? '' : 's'} (repeated names are voiced once). Each one is a paid speech request on your MuAPI key.${wantSync ? ` Lip-sync is on: each distinct greeting is also a paid lip-sync video request (up to ${n}), which costs more and takes about a minute each.` : ''} Continue?`)) return;
     notice = '';
     abort = new AbortController();
     try {
@@ -613,21 +614,34 @@ export function OutreachStudio() {
           },
         }));
       }
+      let lipsync = null;
+      if (wantSync && Object.keys(variants).length) {
+        const [{ lipsyncContacts, LIPSYNC_MODEL }, { muapi }] = await Promise.all([
+          import('../lib/outreach/lipsync.js'),
+          import('../lib/muapi.js'),
+        ]);
+        setBusy('Lip-syncing greetings: preparing your video…');
+        lipsync = await lipsyncContacts({
+          draft, variants, upload: uploadToStorage, signal: abort.signal,
+          lipSync: ({ video_url, audio_url, signal }) => muapi.processLipSync({ model: LIPSYNC_MODEL, video_url, audio_url }, signal),
+          onProgress: ({ done, total }) => setBusy(`Lip-syncing greetings: ${done} of ${total}…`),
+        });
+      }
       setBusy('Publishing the campaign…');
       const [{ preparePublishProject, publishVideo, makeSlug, watchUrl }, { personalLink }] = await Promise.all([
         import('../lib/editor/publish/publishClient.js'),
         import('../lib/editor/personalize/perContact.js'),
       ]);
-      const built = buildCampaignProject(draft, { variants });
+      const built = buildCampaignProject(draft, { variants, lipsync });
       const project = preparePublishProject(built, { title: built.title });
       const id = draft.campaign?.id || makeSlug();
       await publishVideo(await ownerClient(), { id, project });
       const url = watchUrl(id);
-      draft.campaign = { id, url, publishedAt: new Date().toISOString(), links: campaignLinks(draft, url, personalLink, variants) };
+      draft.campaign = { id, url, publishedAt: new Date().toISOString(), links: campaignLinks(draft, url, personalLink, variants).map((l) => (lipsync?.clips?.[l.contactId] ? { ...l, lipsynced: true } : l)) };
       persist();
       campaigns.loaded = false; // refresh the Campaigns list next time it opens
       busy = '';
-      notice = `Campaign published: ${draft.campaign.links.length} personal link${draft.campaign.links.length === 1 ? '' : 's'} ready.`;
+      notice = `Campaign published: ${draft.campaign.links.length} personal link${draft.campaign.links.length === 1 ? '' : 's'} ready.${lipsync?.failed?.length ? ` Lip-sync failed for ${lipsync.failed.length} contact${lipsync.failed.length === 1 ? '' : 's'}; they hear their greeting without it.` : ''}`;
       render();
     } catch (err) {
       if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped. Nothing was published.'; render(); return; }
@@ -657,6 +671,16 @@ export function OutreachStudio() {
       facts.appendChild(f);
     }
     top.appendChild(facts);
+    if (personal) {
+      const syncRow = el('label', 'flex items-start gap-3 text-sm');
+      const syncOn = el('input'); syncOn.type = 'checkbox'; syncOn.checked = !!draft.voice.lipsync; syncOn.className = 'mt-1';
+      syncOn.setAttribute('data-outreach-lipsync', '');
+      syncOn.addEventListener('change', () => { draft.voice = { ...draft.voice, lipsync: syncOn.checked }; persist(); });
+      const txt = el('span', '');
+      txt.append(el('span', 'font-bold', 'Lip-sync the greeting'), el('span', 'block text-xs text-secondary', 'Your mouth says each contact\u2019s name. Paid: one MuAPI lip-sync video per distinct greeting, on top of the voice. Leave a pause at the start of your recording.'));
+      syncRow.append(syncOn, txt);
+      top.appendChild(syncRow);
+    }
     const actions = el('div', 'flex flex-wrap gap-2');
     if (busy && abort) {
       const stop = button('Stop');
@@ -689,7 +713,7 @@ export function OutreachStudio() {
         row.append(el('span', 'w-8 text-white/40 tabular-nums', String(i + 1).padStart(2, '0')));
         const who = el('div', 'min-w-0 flex-1');
         who.append(el('div', 'truncate font-semibold', l.name || '(no name)'), el('div', 'truncate text-xs text-white/50', l.email || ''));
-        const state = el('span', `text-xs ${l.voiced ? 'text-emerald-300' : 'text-white/50'}`, l.voiced ? '● Greeted by name' : '● Fallback greeting');
+        const state = el('span', `text-xs ${l.voiced ? 'text-emerald-300' : 'text-white/50'}`, l.voiced ? (l.lipsynced ? '● Greeted by name, lip-synced' : '● Greeted by name') : '● Fallback greeting');
         const siteState = l.site ? el('span', `text-xs ${l.site === 'own' ? 'text-emerald-300' : 'text-white/50'}`, l.site === 'own' ? '● Their website' : '● Fallback website') : null;
         const copy = button('Copy link', { small: true });
         copy.addEventListener('click', async () => {
@@ -698,9 +722,14 @@ export function OutreachStudio() {
         const mailBtn = button('Copy email', { small: true });
         mailBtn.setAttribute('data-outreach-copy-email', '');
         mailBtn.addEventListener('click', () => copyEmail(l, mailBtn));
+        const mp4 = button('MP4', { small: true });
+        mp4.setAttribute('data-outreach-mp4', '');
+        mp4.title = 'Download this contact\u2019s video as a file';
+        mp4.disabled = !!busy;
+        mp4.addEventListener('click', () => downloadContactVideo(l));
         const mailto = el('a', 'text-xs font-bold text-white/70 hover:text-white', 'Email');
         if (l.email) { mailto.href = mailtoUrl(emailOf(l)); } else { mailto.classList.add('hidden'); }
-        row.append(who, state, ...(siteState ? [siteState] : []), ...(l.thumbnailUrl ? [el('span', 'text-xs text-emerald-300', '● Thumbnail')] : []), copy, mailBtn, mailto);
+        row.append(who, state, ...(siteState ? [siteState] : []), ...(l.thumbnailUrl ? [el('span', 'text-xs text-emerald-300', '● Thumbnail')] : []), copy, mailBtn, mp4, mailto);
         rows.appendChild(row);
       });
       list.appendChild(rows);
@@ -708,6 +737,28 @@ export function OutreachStudio() {
       wrap.appendChild(renderEmailCard());
     }
     return wrap;
+  }
+
+  // ---- One contact's video as a file -------------------------------------------
+  async function downloadContactVideo(l) {
+    const { renderContactVideo, contactVideoName } = await import('../lib/outreach/contactVideo.js');
+    const contact = contactOf(l);
+    abort = new AbortController();
+    try {
+      setBusy(`Making ${l.name || 'the contact'}\u2019s video…`);
+      const blob = await renderContactVideo({
+        campaignId: draft.campaign.id, contact, siteShots: draft.siteShots, signal: abort.signal,
+        onProgress: (p) => { busy = `Making ${l.name || 'the contact'}\u2019s video… ${Math.round((p || 0) * 100)}%`; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; },
+      });
+      const { downloadBlob } = await import('../lib/editor/remotion/exportClient.js');
+      downloadBlob(blob, `${contactVideoName(draft.name, contact)}.${/webm/.test(blob.type) ? 'webm' : 'mp4'}`);
+      busy = ''; abort = null; notice = `Downloaded ${l.name || 'the contact'}\u2019s video.`;
+      render();
+    } catch (err) {
+      abort = null;
+      if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped.'; render(); return; }
+      fail(err);
+    }
   }
 
   // ---- Email and thumbnails ------------------------------------------------
@@ -969,6 +1020,7 @@ export function OutreachStudio() {
     const errors = step <= SETUP_STEPS + 1 ? stepErrors(draft, step) : [];
     const msg = busy || notice || errors[0] || '';
     const status = el('p', `flex-1 text-sm ${busy ? 'text-primary' : notice && !errors.length ? 'text-emerald-300' : 'text-amber-300'}`, msg);
+    status.setAttribute('data-outreach-busy', '');
     // Buttons sit on the left so the floating Ask SmartVideo button (bottom right) never covers them.
     if (step > 1) {
       const back = button('Back'); back.disabled = !!busy;
