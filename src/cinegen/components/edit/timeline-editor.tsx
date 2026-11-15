@@ -940,6 +940,19 @@ export function TimelineEditor({
       projectMedia: state.assets
         .filter((x) => x.type === 'video' || x.type === 'image')
         .map((x) => ({ id: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height })),
+      // Export the template as a video, on its own (not the user's project): built on an empty timeline and rendered in this browser
+      exportVideo: async ({ composition, onProgress }: { composition: Composition; onProgress?: (p: number) => void }) => {
+        const [{ createDefaultTimeline }, { buildExportArgs }] = await Promise.all([import('@cinegen/lib/editor/timeline-operations'), import('@cinegen/lib/occ/export-args')]);
+        const applied = applyComposition(createDefaultTimeline('Template'), composition);
+        let job = await window.electronAPI.export.start(buildExportArgs(applied.timeline, applied.assets, applied.overlays, { preset: 'standard', fps: 30 }));
+        while (job.status === 'rendering' || job.status === 'queued') {
+          await new Promise((r) => setTimeout(r, 1000));
+          job = await window.electronAPI.export.poll(job.id);
+          onProgress?.((job.progress ?? 0) / 100);
+        }
+        if (job.status === 'failed') throw new Error(job.error || 'The export failed');
+        return { filename: 'cinegen-export.mp4', fileSize: job.fileSize ?? 0 };
+      },
       onConfirm: (result: { composition?: Composition }) => {
         if (!result?.composition) return;
         const applied = applyComposition(timelineRef.current, result.composition);

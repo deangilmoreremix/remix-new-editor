@@ -22,6 +22,7 @@ import { snapshotTemplate, restoreTemplate, splitDurable } from './template-gene
 import { createSyncedTemplateStore, SYNC_STATUS } from './template-generator/sync.js';
 import { templateScript, placeholdersLeft, DETAIL_FIELDS } from '../../lib/nicheScripts/index.js';
 import { TEXT_PRESETS, TEXT_ROLES, ROLE_LABEL, TEXT_ENTRANCES, TEXT_FONTS, ROLE_DEFAULTS, resolveTextStyle, withTextStyle, withPreset, presetOf } from './template-generator/textStyles.js';
+import { canExportInBrowser } from '../../lib/editor/remotion/exportWarnings.js';
 import { removeClipBackground, canCutOut } from './template-generator/cutout.js';
 import { makeVoiceover, narrationText, VOICE_ENGINES, OPENAI_VOICE_CHOICES, FREE_VOICE_CHOICES } from './template-generator/voiceover.js';
 import { MUSIC_TRACKS } from './template-generator/music.js';
@@ -98,6 +99,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this.extra = new Map((options.extraSources || []).map((x) => [x.id, x]));
     // The project's own videos / images ("My media"); an array, or a function returning one.
     this.projectMedia = options.projectMedia || null;
+    this.exportHost = options.exportVideo || null;   // the host editor renders a composition to a video file
     this.bgRemover = options.bgRemover || null;     // tests replace the cut-out service
     this.voiceMaker = options.voiceMaker || null;   // tests replace the voiceover service
     this.templateCatalog = options.templateCatalog || (() => loadTemplateCatalog());
@@ -143,6 +145,7 @@ export class TemplateGeneratorModal extends BaseModal {
       overlayQuery: '',
       overlayCategory: 'all',
       ltCategory: 'all',
+      exp: { busy: false, progress: 0, error: '', done: '' },
       bg: { busy: false, id: null, progress: 0, eta: null, error: '', note: '' },
       voiceBusy: false, voiceError: '', voiceNote: '',
       textRole: null,        // the text being styled in the Preview step ('caption' | 'title' | 'lowerThird' | 'cta')
@@ -417,6 +420,7 @@ export class TemplateGeneratorModal extends BaseModal {
           <button type="button" class="tg-btn tg-btn--ghost" data-act="back" ${step === STEPS.VIDEO ? 'disabled' : ''}>← Back</button>
           <div class="tg-summary" id="tg-summary">${this.renderSummary()}</div>
           <span class="tg-stepcount" id="tg-stepcount">Step ${step + 1} of ${STEP_LABELS.length}</span>
+ ${last ? this.renderExportButton() : ''}
           ${last ? `<button type="button" class="tg-btn" id="tg-save" data-act="save-open" ${nextDisabled(this.s, step, this.ui.busy) ? 'disabled' : ''}>💾 ${this.s.templateId ? 'Save changes' : 'Save as template'}</button>` : ''}
           <button type="button" class="btn-add next-button tg-btn tg-btn--primary${disabled ? ' disabled' : ''}" id="tg-next" data-act="next" ${disabled ? 'disabled' : ''}>${this.ui.busy ? 'Adding…' : nextLabel(step)}${last ? '' : ' →'}</button>
         </footer>
@@ -918,6 +922,7 @@ export class TemplateGeneratorModal extends BaseModal {
               </div>
             </div>
             <div id="tg-bgstatus" class="tg-bgstatus">${this.renderCutoutStatus()}</div>
+            <div id="tg-exportstatus" class="tg-bgstatus">${this.renderExportStatus()}</div>
             <div class="preview-tab__content-scripts">
               <div class="niche-script" role="button" tabindex="0" data-act="tab" data-step="${STEPS.SCRIPT}">
                 ${(() => { const still = s.selectedVideos.map((v) => stillOf(v)).find(Boolean); return still ? `<span class="niche-script__still" style="background-image:${cssUrl(still)}" aria-hidden="true"></span>` : ''; })()}
@@ -1446,6 +1451,7 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'ai-script': this.runScriptAction(el.dataset.kind); break;
       case 'use-template-script': this._applyTemplateScript(true); this.paint(); break;
       case 'overlay-tab': this.ui.overlayTab = id; this.paint(); break;
+      case 'export-video': this.exportNow(); break;
       case 'bg-remove': this.removeBackground(id); break;
       case 'bg-cancel': this._bgAbort?.abort(); break;
       case 'bg-restore': this.restoreBackground(id); break;
@@ -1990,22 +1996,69 @@ export class TemplateGeneratorModal extends BaseModal {
     }
   }
 
+  /** The composition the editor receives (shared by Add to timeline and Export): durable footage, resolved animations, normalised assets. */
+  async _buildComposition(durable) {
+    const payloads = await this._resolveAnimations();
+    const state = toBuilderState({ ...this.s, selectedVideos: durable }, payloads);
+    const composition = buildCompositionFromState(state);
+    composition.name = this.s.selectedScript?.name || composition.name;
+    for (const track of composition.tracks) {
+      for (const clip of track.clips) {
+        if (clip.asset && !clip.assetId) clip.asset = normalizeAsset(clip.asset);
+      }
+    }
+    return { composition, state };
+  }
+
+  // ----------------------------------------------------------- export (Preview step)
+
+  renderExportButton() {
+    if (!this.exportHost) return '';
+    const ok = canExportInBrowser() && !this.ui.exp.busy && this.s.selectedVideos.length > 0;
+    return `<button type="button" class="tg-btn" id="tg-export" data-act="export-video" ${ok ? '' : 'disabled'} title="${canExportInBrowser() ? 'Render this video in your browser and download it' : 'Exporting needs Chrome or Edge'}">⬇ ${this.ui.exp.busy ? 'Exporting…' : 'Export video'}</button>`;
+  }
+
+  renderExportStatus() {
+    const e = this.ui.exp;
+    if (e.busy) { const pct = Math.round((e.progress || 0) * 100); return `<div class="tg-bgprogress"><span>Rendering your video in this browser… ${pct}%. Keep this tab open and visible.</span><i style="width:${pct}%"></i></div>`; }
+    if (e.error) return `<p class="tg-status tg-status--error">${esc(e.error)}</p>`;
+    if (e.done) return `<p class="tg-status">✓ ${esc(e.done)}</p>`;
+    return '';
+  }
+
+  _refreshExport() {
+    this._setHTML('#tg-exportstatus', this.renderExportStatus());
+    const btn = this.overlay?.querySelector('#tg-export');
+    if (btn) { btn.disabled = this.ui.exp.busy || !canExportInBrowser() || !this.s.selectedVideos.length; btn.textContent = `⬇ ${this.ui.exp.busy ? 'Exporting…' : 'Export video'}`; }
+  }
+
+  async exportNow() {
+    const u = this.ui;
+    if (!this.exportHost || u.exp.busy) return;
+    if (!canExportInBrowser()) { u.exp = { busy: false, progress: 0, error: 'Exporting needs a browser with video encoding (Chrome or Edge).', done: '' }; this._refreshExport(); return; }
+    const left = placeholdersLeft(this.s.script.text);
+    if (left.length) { u.exp = { busy: false, progress: 0, error: `Your script still says ${left.join(', ')}. Fill in your details on the Script step so the video says your real business, city and offer.`, done: '' }; this._refreshExport(); return; }
+    u.exp = { busy: true, progress: 0, error: '', done: '' };
+    this._refreshExport();
+    try {
+      const durable = [];
+      for (const it of this.s.selectedVideos) durable.push(await this._ensureDurable(it));
+      const { composition } = await this._buildComposition(durable);
+      const out = await this.exportHost({ composition, onProgress: (p) => { u.exp.progress = p; this._setHTML('#tg-exportstatus', this.renderExportStatus()); } });
+      u.exp = { busy: false, progress: 1, error: '', done: `Exported ${out?.filename || 'your video'}${out?.fileSize ? ` (${(out.fileSize / 1048576).toFixed(1)} MB)` : ''}. Check your downloads.` };
+    } catch (err) {
+      u.exp = { busy: false, progress: 0, error: err?.message || 'The export failed. Please try again.', done: '' };
+    }
+    this._refreshExport();
+  }
+
   async addToTimeline() {
     this.ui.busy = true;
     this._updateNext();
     try {
       const durable = [];
       for (const it of this.s.selectedVideos) durable.push(await this._ensureDurable(it));
-      const payloads = await this._resolveAnimations();
-      const state = toBuilderState({ ...this.s, selectedVideos: durable }, payloads);
-      const composition = buildCompositionFromState(state);
-      composition.name = this.s.selectedScript?.name || composition.name;
-
-      for (const track of composition.tracks) {
-        for (const clip of track.clips) {
-          if (clip.asset && !clip.assetId) clip.asset = normalizeAsset(clip.asset);
-        }
-      }
+      const { composition, state } = await this._buildComposition(durable);
 
       const payload = {
         action: 'add-to-timeline',

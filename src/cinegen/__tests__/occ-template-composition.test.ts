@@ -167,5 +167,30 @@ describe('voice and music reach the timeline with the mix', () => {
     expect(voice.duration).toBe(6); expect(voice.volume).toBe(0.9);
     const video = r.timeline.clips.find((c) => !audioTrackIds.has(c.trackId))!;
     expect(video.volume).toBe(0.8);
+    expect(r.timeline.clips.filter((c) => c.assetId === video.assetId).every((c) => c.volume === 0.8)).toBe(true);   // and its linked sound clip
+  });
+});
+
+describe('export arguments for a template rendered on its own', () => {
+  it('builds clips (footage + music with a full address), styled text overlays and GL transitions', async () => {
+    const { buildExportArgs } = await import('@cinegen/lib/occ/export-args');
+    const comp = buildCompositionFromState({
+      media: [], mediaByScene: [1, 2].map((n) => ({ sceneName: `S${n}`, sceneIndex: n - 1, media: { id: `m${n}`, type: 'video', url: `https://x/${n}.mp4`, duration: 6, name: `V${n}` }, mediaType: 'video', status: 'ready' })),
+      overlays: [{ kind: 'text', type: 'text', name: 'Title', text: 'Summer Sale', startTime: 0, duration: 3, textStyle: { fontFamily: 'Poppins', fontColor: '#22D3EE' } }],
+      transitions: [{ type: 'whip-pan', duration: 1 }],
+      music: { url: '/motion-studio/bgmlib/cat-walk.mp3', name: 'Cat Walk', trackId: 'cat-walk', start: 0, duration: 12, sourceDuration: 124, volume: 0.3, keyframes: [{ t: 0, v: 0 }, { t: 1, v: 0.3 }, { t: 12, v: 0 }] },
+    } as never) as never;
+    const applied = applyComposition(createDefaultTimeline('T'), comp);
+    const args = buildExportArgs(applied.timeline, applied.assets, applied.overlays, { preset: 'standard', fps: 30 });
+    expect(args.clips.filter((c) => c.type === 'video' && c.trackKind === 'video')).toHaveLength(2);   // each video also has its own sound clip
+    const music = args.clips.find((c) => c.type === 'audio')!;
+    expect(music.inputPath).toBe(`${location.origin}/motion-studio/bgmlib/cat-walk.mp3`);   // the export frame has no origin of its own
+    expect(music.duration).toBe(12);
+    expect(music.kf?.length).toBe(3);
+    expect(args.totalDuration).toBe(12);
+    expect(args.overlays.map((o) => (o.addon as { text?: string; fontFamily?: string })?.text)).toContain('Summer Sale');
+    expect((args.overlays[0].addon as { fontFamily: string }).fontFamily).toBe('Poppins');
+    expect(args.transitions).toEqual([expect.objectContaining({ glType: 'whip-pan' })]);
+    expect(args.mgOverlays).toEqual([]); expect(args.hfOverlays).toEqual([]);
   });
 });

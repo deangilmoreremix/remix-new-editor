@@ -1,47 +1,22 @@
 
 
 import { resolveFit, DEFAULT_ASPECT } from '@cinegen/lib/occ/frame-geometry';
+import { exportClipsOf, exportTotalDuration, exportOverlaysOf, exportTransitionsOf } from '@cinegen/lib/occ/export-args';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { ExportSettings, type ExportExtras } from './export-settings';
 import { RenderProgress } from './render-progress';
 import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
 import type { ExportPreset, ExportJob } from '@cinegen/types/export';
-import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 
 export function ExportTab() {
   const { state, dispatch } = useWorkspace();
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
   const activeTimeline = getActiveTimeline(state);
-  const exportClips = useMemo(() => {
-    const assetsById = new Map(state.assets.map((asset) => [asset.id, asset]));
-    return activeTimeline.clips.flatMap((clip) => {
-      const asset = assetsById.get(clip.assetId);
-      const inputPath = asset?.fileRef || asset?.url;
-      const duration = clipEffectiveDuration(clip);
-      if (!asset || !inputPath || duration <= 0) return [];
-      return [{
-        id: clip.id,
-        inputPath,
-        startTime: clip.startTime,
-        duration,
-        trimStart: clip.trimStart,
-        speed: clip.speed || 1,
-        volume: clip.volume ?? 1,
-        type: asset.type,
-        // [remix] a clip on an audio track plays sound only, even when its media file is a video
-        trackKind: activeTimeline.tracks.find((t) => t.id === clip.trackId)?.kind,
-        // [remix] OpenChatCut effects burned into the render
-        fadeIn: clip.fadeIn, fadeOut: clip.fadeOut, kf: clip.keyframes, transform: clip.transform, fit: resolveFit(clip, activeTimeline), fx: clip.fx, lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions,
-      }];
-    });
-  }, [activeTimeline.clips, activeTimeline.tracks, state.assets]);
+  const exportClips = useMemo(() => exportClipsOf(activeTimeline, state.assets), [activeTimeline.clips, activeTimeline.tracks, state.assets]);
   const hasClips = exportClips.length > 0;
-  const totalDuration = Math.max(
-    activeTimeline.duration,
-    ...activeTimeline.clips.map(clipEndTime),
-  );
+  const totalDuration = exportTotalDuration(activeTimeline);
   const activeJob = state.exports.find(
     (e) => e.status === 'queued' || e.status === 'rendering'
   );
@@ -56,14 +31,10 @@ export function ExportTab() {
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
-        // [remix] OpenChatCut motion-graphics templates on the overlay lane are rendered into the export
-        // [remix] visual overlays (text, stickers, call buttons, End Screens, Connect Forms…) are drawn into the render; interactive forms stay player-only
-        overlays: (state.overlays ?? []).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
-        mgOverlays: (state.overlays ?? []).filter((o) => o.type === 'mg-template').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, code: o.code, props: o.props })),
-        // [hyperframes] verified HyperFrames animations on the overlay lane (rendered by the sandboxed export runner)
-        hfOverlays: (state.overlays ?? []).filter((o) => o.type === 'hyperframes').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, blockId: o.blockId, props: o.props, blockWidth: o.blockWidth, blockHeight: o.blockHeight })),
-        // [remix] OpenChatCut GL transitions on dissolve cuts
-        transitions: (activeTimeline.transitions ?? []).filter((t) => t.glType && t.type === 'dissolve' && t.clipBId).map((t) => ({ glType: t.glType, glDef: t.glDef, clipAId: t.clipAId, clipBId: t.clipBId })),
+        // [remix] visual overlays (text, stickers, call buttons, End Screens, Connect Forms…) are drawn into the render; interactive forms stay player-only;
+        // motion-graphics templates and HyperFrames animations are rendered by the sandboxed runner; GL transitions go on dissolve cuts
+        ...exportOverlaysOf(state.overlays ?? []),
+        transitions: exportTransitionsOf(activeTimeline),
       });
       dispatch({ type: 'ADD_EXPORT', exportJob: job });
     } catch (error) {

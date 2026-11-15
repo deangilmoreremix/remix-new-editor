@@ -135,3 +135,7 @@ Step 1 now starts on **Video templates**: the public 184-clip library kept in th
 - "✂ Cut out" on each clip in the Preview step (`template-generator/cutout.js`): the editor's on-device MODNet model (no key, no upload for processing, ~25 MB first-time download). The result is stored in the customer's storage; the original link is kept so "↺ Original" restores it; saved templates keep both.
 - Safety: a result that keeps under 6% of the picture is rejected and the clip is left as it is.
 - Honest limits (tested with the real model in headless Chrome on CPU/WASM): a 1 s clip takes about 30-40 s including the model download, an 8 s clip is estimated at several minutes without WebGPU; on AI-generated full-body, dark or stylised clips the model keeps only fragments (works best on a person close to the camera in good light). Not tested on WebGPU.
+
+## Export video from the Preview step (added)
+- "⬇ Export video" (CineGen editor): the template is built on its own empty timeline (never the user's project) and rendered in the browser with the editor's export (WebCodecs + Remotion web renderer); progress is shown and the MP4 downloads. Shared mapper `cinegen/lib/occ/export-args.ts` (also used by the Export tab). Blocked with a clear message while the script still says `[Your business]`, and disabled where the browser cannot encode video.
+- Verified for real in headless Chrome: a 16 s 720p H.264 + AAC MP4 with the styled title/captions burned in and the music audible. Not done: classic editor export (it drops audio), WebGPU path, long/4K renders.

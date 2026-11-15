@@ -43,9 +43,11 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
         const added = tl.clips.find((x) => !before.has(x.id) && x.assetId === asset.id && x.trackId === target.id);
         if (added) ids.push(added.id);
         // the wizard's mix: the clip's volume and (for music) the fade / ducking curve, as the editor's volume keyframes
+        // (a video also gets its own sound clip on the audio track: the footage volume applies to both)
         if (added && (c.volume != null || c.keyframes?.volume?.length)) {
+          const created = new Set(tl.clips.filter((x) => !before.has(x.id)).map((x) => x.id));
           const kfs = (c.keyframes?.volume ?? []).map((k) => ({ time: k.t, property: 'volume' as const, value: k.v }));
-          tl = { ...tl, clips: tl.clips.map((x) => (x.id === added.id ? { ...x, ...(c.volume != null ? { volume: c.volume } : {}), ...(kfs.length ? { keyframes: [...(x.keyframes ?? []), ...kfs] } : {}) } : x)) };
+          tl = { ...tl, clips: tl.clips.map((x) => (created.has(x.id) ? { ...x, ...(c.volume != null ? { volume: c.volume } : {}), ...(kfs.length ? { keyframes: [...(x.keyframes ?? []), ...kfs] } : {}) } : x)) };
         }
         assets.push(asset);
       } else if (c.type === 'cta' || c.type === 'lead-form' || c.type === 'lower-third' || c.type === 'sticker') {
