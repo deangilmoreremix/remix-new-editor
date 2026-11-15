@@ -246,6 +246,24 @@ describe('form answers go into the video', () => {
     }
   });
 
+  it('a submission that finishes after the player was destroyed shows no thank-you card or redirect', async () => {
+    const { create } = fakeEngine();
+    const p = project();
+    p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'email', type: 'email', label: 'Email' }], afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+    let finish;
+    const onLead = vi.fn(() => new Promise((resolve) => { finish = () => resolve({ stored: true, error: null }); }));
+    const player = createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, onLead });
+    const layer = frame.querySelector('.addon-overlay-layer');
+    const form = frame.querySelector('form');
+    form.querySelector('input').value = 'a@b.co';
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+    await new Promise((r) => setTimeout(r, 0)); // submit is now in flight
+    player.destroy(); // the viewer left the page
+    finish();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(layer.querySelector('[data-overlay="thanks"]')).toBeNull();
+  });
+
   it('a viewer who already filled the List Builder in is not asked again (unless askEveryVisit)', () => {
     const store = new Map();
     const ls = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };

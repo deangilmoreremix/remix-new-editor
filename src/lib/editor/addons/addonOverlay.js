@@ -60,9 +60,12 @@ const REDIRECT_DELAY_MS = 1500;
  * (even during live playback) shows "viewers go to <host>" instead of navigating away from your work.
  * Returns the card element, or null when there is nothing to show.
  */
-export function showThanks(layer, config, { allowRedirect = false, navigate = (url) => globalThis.location?.assign(url), schedule = setTimeout } = {}) {
+export function showThanks(layer, config, { allowRedirect = false, isActive = () => true, navigate = (url) => globalThis.location?.assign(url), schedule = setTimeout } = {}) {
   const action = config?.afterSubmitAction;
   if (action !== 'button' && action !== 'redirect') return null;
+  // The owner (the published player) says whether it still exists: a submission that finishes after the
+  // viewer left must not show a card or schedule a redirect.
+  if (!isActive()) return null;
   const url = safeWebUrl(config.afterSubmitUrl);
   if (!url) return null; // a missing or unsafe link falls back to the default behavior
   clearOverlay(layer, 'thanks');
@@ -94,7 +97,7 @@ export function showThanks(layer, config, { allowRedirect = false, navigate = (u
     // If the page's player is destroyed during the delay (the viewer navigated away), its layer is
     // removed from the document: don't then replace whatever page they moved on to.
     const attached = layer.isConnected;
-    schedule(() => { if (attached && !layer.isConnected) return; navigate(url); }, REDIRECT_DELAY_MS);
+    schedule(() => { if (!isActive() || (attached && !layer.isConnected)) return; navigate(url); }, REDIRECT_DELAY_MS);
   } else {
     const note = document.createElement('p');
     note.className = 'addon-thanks__note';
@@ -633,7 +636,7 @@ export function attachTextEditing(wrap, onEditText) {
  * (default 5, as upstream; 0 = stays until clicked) or on click.
  * Options: prefill, preview (editor: see-through backdrop).
  */
-export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, prefill = {}, preview = false, name = 'list-builder', allowRedirect = false } = {}) {
+export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, prefill = {}, preview = false, name = 'list-builder', allowRedirect = false, isActive = () => true } = {}) {
   clearOverlay(layer, name);
   const wrap = document.createElement('div');
   wrap.className = 'addon-overlay addon-overlay--optin';
@@ -685,7 +688,7 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
       status.textContent = message || '';
       clearTimeout(hintTimer);
       wrap.remove();
-      try { showThanks(layer, config, { allowRedirect }); } catch { /* the thank-you card is cosmetic; the lead is already saved */ }
+      try { showThanks(layer, config, { allowRedirect, isActive }); } catch { /* the thank-you card is cosmetic; the lead is already saved */ }
     } catch (err) {
       btn.disabled = false;
       status.textContent = err?.message || 'Something went wrong — try again.';

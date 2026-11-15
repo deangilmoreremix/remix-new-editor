@@ -351,6 +351,24 @@ describe('after-submit actions', () => {
     expect(navigate).toHaveBeenCalledWith('https://a.test/thanks'); // still redirects when the page is still there
   });
 
+  it('shows nothing and schedules nothing when the player is no longer active', () => {
+    const layer = layerOf();
+    const schedule = vi.fn();
+    const cfg = { afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+    expect(showThanks(layer, cfg, { allowRedirect: true, isActive: () => false, schedule })).toBeNull();
+    expect(showThanks(layer, { ...cfg, afterSubmitAction: 'button' }, { isActive: () => false, schedule })).toBeNull();
+    expect(schedule).not.toHaveBeenCalled();
+    expect(layer.children).toHaveLength(0);
+    // becomes inactive during the delay: the pending redirect is dropped
+    let active = true;
+    const navigate = vi.fn();
+    const pending = [];
+    showThanks(layer, cfg, { allowRedirect: true, isActive: () => active, navigate, schedule: (fn) => pending.push(fn) });
+    active = false;
+    pending.forEach((fn) => fn());
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('labels the default action honestly (it shows nothing extra)', () => {
     expect(AFTER_SUBMIT_ACTIONS.find(([id]) => id === 'continue')[1]).toBe('Keep watching (nothing extra)');
   });
