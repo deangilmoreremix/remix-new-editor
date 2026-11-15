@@ -3,6 +3,7 @@
  * Every visible string, image, link and list item is a field.
  */
 import * as C from './components.jsx';
+import { withImagePickers } from './ImageField.jsx';
 import { ICON_KEYS } from '../siteIcons.js';
 import { PUCK_TEMPLATES } from './designs.js';
 
@@ -127,3 +128,6 @@ export const puckConfig = {
     ButtonCard: { label: 'Text and buttons card', fields: { columns: cols, eyebrow: T('Small label'), title: T('Title'), text: A('Text'), buttons: buttonArray }, defaultProps: { columns: 2, eyebrow: 'Have a question?', title: "Let's connect", text: 'Our team is here to help.', buttons: [{ label: 'Contact our team', url: 'mailto:hello@example.com', style: 'secondary' }] }, render: (p) => <C.ButtonCard {...p} /> },
   },
 };
+
+// Every image-link field also offers "Choose from my library" (images made in any studio).
+withImagePickers(puckConfig.components);

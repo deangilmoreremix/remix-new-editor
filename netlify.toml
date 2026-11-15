@@ -136,6 +136,13 @@
   status = 200
   force = true
 
+# Landing page copy rewrite (OpenAI Responses API, user's own key).
+[[redirects]]
+  from = "/api/landing-rewrite"
+  to = "/.netlify/functions/landing-rewrite"
+  status = 200
+  force = true
+
 # Timeline Editor text AI (OpenAI Responses API, user's own key): chat modes,
 # storyboard, script breakdown, shot list, beat sheet.
 [[redirects]]

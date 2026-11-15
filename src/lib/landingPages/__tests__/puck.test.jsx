@@ -154,3 +154,25 @@ describe.each(PUCK_TEMPLATES.map((t) => [t.name, t]))('design: %s', (_n, t) => {
     expect(ratio(t.theme.text, t.theme.bg)).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+describe('image fields offer the studio library', () => {
+  it('every image-link field is a library-aware custom field and colour fields are not', () => {
+    const isImgLabel = (l) => /image|photo|picture|logo|avatar/i.test(l || '') && !/#hex|colou?r/i.test(l || '');
+    let custom = 0;
+    for (const [name, c] of Object.entries(puckConfig.components)) {
+      const all = Object.entries(c.fields || {}).flatMap(([k, f]) => (f?.type === 'array' ? Object.entries(f.arrayFields || {}) : [[k, f]]));
+      for (const [k, f] of all) {
+        if (f?.type === 'custom') custom += 1;
+        if (f?.type === 'text') expect(isImgLabel(f.label), `${name}.${k} ${f.label}`).toBe(false);
+      }
+    }
+    expect(custom).toBeGreaterThan(10);
+  });
+  it('only https non-video library entries are offered', async () => {
+    const { isHttpsImage } = await import('../puck/ImageField.jsx');
+    expect(isHttpsImage({ url: 'https://a.io/x.png', type: 'image' })).toBe(true);
+    expect(isHttpsImage({ url: 'http://a.io/x.png', type: 'image' })).toBe(false);
+    expect(isHttpsImage({ url: 'https://a.io/x.mp4', type: 'video' })).toBe(false);
+    expect(isHttpsImage({ url: 'data:image/png;base64,AA', type: 'image' })).toBe(false);
+  });
+});
