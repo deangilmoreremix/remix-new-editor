@@ -1185,21 +1185,8 @@
 }
 
 /* Email Campaign Modal */
-.campaign-container {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
 
-.campaign-progress {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.campaign-content {
-  min-height: 400px;
-}
 
 .setup-step, .template-step, .recipients-step, .review-step, .sending-step {
   display: flex;
@@ -4060,7 +4047,6 @@
 
 .saveproject-container,
 .connect-modal,
-.email-campaign-modal,
 .social-publisher,
 .template-generator,
 .gtm-prompt-modal,
@@ -4077,7 +4063,6 @@
 
 .saveproject-container { max-width: 560px; }
 .connect-modal { max-width: 520px; }
-.email-campaign-modal { max-width: 640px; }
 .social-publisher { max-width: 640px; }
 .template-generator { max-width: 720px; }
 .gtm-prompt-modal { max-width: 480px; }

@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import EmailLinkPanel from '../EmailLinkPanel'
-import { mergeTagLink, mergeTagFor, tokensInText, isUnreplacedMergeTag, EMAIL_PROVIDERS } from '../emailMergeLink'
+import { mergeTagLink, mergeTagFor, leadLinks, leadLinksCsv, tokensInText, isUnreplacedMergeTag, EMAIL_PROVIDERS } from '../emailMergeLink'
 
 const BASE = 'https://watch.example/v/abc'
 
@@ -88,5 +88,70 @@ describe('per-provider tags (snapshot of the verified catalogue)', () => {
     expect(mergeTagFor(mc, 'company').mapped).toBe(false)
     expect(mergeTagFor(mc, 'fullName').mapped).toBe(false)
     expect(mergeTagFor(EMAIL_PROVIDERS.find((p) => p.key === 'salesforcemc')!, 'email').tag).toBe('%%emailaddr%%')
+  })
+})
+
+describe('per-lead links and CSV', () => {
+  beforeEach(() => { cleanup(); try { window.localStorage.clear() } catch { /* ignore */ } })
+  const leads = [
+    { id: '1', business: { name: 'Acme, Inc.', email: 'hi@acme.test', city: 'Austin' } },
+    { id: '2', business: { name: 'Bob "Best" Plumbing', city: '' } },
+  ]
+  it('builds one link per lead from the values it has, skipping image tokens', () => {
+    const rows = leadLinks(BASE, ['company', 'email', 'location', 'firstName', 'logoUrl'], leads)
+    expect(rows[0].link).toBe(`${BASE}?company=Acme%2C+Inc.&email=hi%40acme.test&location=Austin`)
+    expect(rows[1].link).toBe(`${BASE}?company=Bob+%22Best%22+Plumbing`)
+    expect(rows.map((r) => r.name)).toEqual(['Acme, Inc.', 'Bob "Best" Plumbing'])
+  })
+  it('quotes CSV cells', () => {
+    const csv = leadLinksCsv(leadLinks(BASE, ['company'], leads))
+    const lines = csv.split('\r\n')
+    expect(lines[0]).toBe('Name,Email,Company,Link')
+    expect(lines[1].startsWith('"Acme, Inc.",hi@acme.test,"Acme, Inc.",')).toBe(true)
+    expect(lines[2].startsWith('"Bob ""Best"" Plumbing",,')).toBe(true)
+  })
+  it('the panel loads saved leads on demand, lists them and offers the CSV', async () => {
+    window.localStorage.setItem('pz-email-link-base', BASE)
+    const fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ leads }) }))
+    vi.stubGlobal('fetch', fetchMock)
+    URL.createObjectURL = vi.fn(() => 'blob:x')
+    URL.revokeObjectURL = vi.fn()
+    render(<EmailLinkPanel tokens={['company']} />)
+    fireEvent.click(screen.getByText('Load saved leads'))
+    await screen.findByText(/Download CSV \(2\)/)
+    expect(fetchMock).toHaveBeenCalledWith('/api/personalization/leads', { credentials: 'same-origin' })
+    expect(screen.getByText(/Acme, Inc\./)).toBeTruthy()
+    vi.unstubAllGlobals()
+  })
+  it('shows a sign-in message on 401', async () => {
+    window.localStorage.setItem('pz-email-link-base', BASE)
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) })))
+    render(<EmailLinkPanel tokens={['company']} />)
+    fireEvent.click(screen.getByText('Load saved leads'))
+    await screen.findByText(/Sign in to use your saved leads/)
+    vi.unstubAllGlobals()
+  })
+})
+
+// Golden table. KEEP IN SYNC with the twin file: remix-new-editor/src/lib/editor/personalize/emailMergeLink.js
+// <-> OpenHiggsBolt/src/shared/personalization/emailMergeLink.ts. If you change a provider tag in one repo, change it in the other.
+describe('golden provider tags (cross-repo drift guard)', () => {
+  const golden: Record<string, string> = {
+    mailchimp: '*|FNAME|*|*|LNAME|*|*|EMAIL|*',
+    activecampaign: '%FIRSTNAME%|%LASTNAME%|%EMAIL%',
+    klaviyo: '{{ first_name }}|{{ last_name }}|{{ email }}',
+    hubspot: '{{contact.firstname}}|{{contact.lastname}}|{{contact.email}}',
+    constantcontact: '[[FirstName]]|[[lastName]]|[[email]]',
+    brevo: '{{ contact.FIRSTNAME }}|{{ contact.LASTNAME }}|{{ contact.EMAIL }}',
+    mailerlite: '{$name}|{$last_name}|{$email}',
+    kit: '{{ subscriber.first_name }}|{{ subscriber.lastName }}|{{ subscriber.email_address }}',
+    getresponse: '[[firstname]]|[[lastname]]|[[email]]',
+    campaignmonitor: '[firstname,fallback=]|[lastname,fallback=]|[email,fallback=]',
+    salesforcemc: '%%FirstName%%|%%LastName%%|%%emailaddr%%',
+    custom: '{{firstName}}|{{lastName}}|{{email}}',
+  }
+  it('matches the shared table', () => {
+    const actual = Object.fromEntries(EMAIL_PROVIDERS.map((p) => [p.key, ['firstName', 'lastName', 'email'].map((t) => mergeTagFor(p, t).tag).join('|')]))
+    expect(actual).toEqual(golden)
   })
 })

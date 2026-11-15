@@ -156,3 +156,50 @@ export function tokensInText(text) {
   }
   return out;
 }
+
+const LEAD_TOKEN_SOURCES = {
+  firstName: () => '',
+  fullName: (b) => b.name,
+  company: (b) => b.name,
+  email: (b) => b.email,
+  phone: (b) => b.phone,
+  title: () => '',
+  location: (b) => b.city || b.region || b.address,
+};
+
+/** The value a saved lead (a business record) gives for one token, or '' when it has none. */
+export function leadTokenValue(business, tokenKey) {
+  const key = canonicalTokenKey(tokenKey) || tokenKey;
+  const pick = LEAD_TOKEN_SOURCES[key];
+  return String((pick ? pick(business || {}) : '') ?? '').trim().slice(0, 200);
+}
+
+/**
+ * One personal link per lead: the base link plus the values that lead has for the video's tokens.
+ * Image tokens and tokens the lead has no value for are left out (the video shows its fallback).
+ * Returns [{ name, email, company, link }].
+ */
+export function leadLinks(baseUrl, tokens = [], leads = []) {
+  return leads.map((lead) => {
+    const b = lead?.business || lead || {};
+    const url = new URL(baseUrl);
+    for (const raw of tokens) {
+      const key = canonicalTokenKey(raw) || String(raw);
+      if (!key || isImageTokenKey(key)) continue;
+      const v = leadTokenValue(b, key);
+      if (v) url.searchParams.set(key, v);
+    }
+    return { name: b.name || '', email: b.email || '', company: b.name || '', link: url.toString() };
+  });
+}
+
+const csvCell = (v) => {
+  const s = String(v ?? '');
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+
+/** CSV of name, email, company, link, for email tools. */
+export function leadLinksCsv(rows) {
+  const head = ['Name', 'Email', 'Company', 'Link'];
+  return [head, ...rows.map((r) => [r.name, r.email, r.company, r.link])].map((r) => r.map(csvCell).join(',')).join('\r\n');
+}

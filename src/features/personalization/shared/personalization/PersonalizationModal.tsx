@@ -1860,7 +1860,7 @@ function ErrorView({ errorMessage, retry, generate, stage }: { errorMessage: str
   )
 }
 
-function ResultView(props: any) {
+export function ResultView(props: any) {
   const {
     result, resultTab, setResultTab, source, promptState,
     generateAgain, retryBranding, outputType, setOutputType, download,
