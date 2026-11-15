@@ -18,6 +18,7 @@ import { PREVIEW_ASPECT_RATIOS } from '../preview/types'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
 import { getRemotionDesignFixedSvgIdWarning } from '../templates/catalog'
 import { chooseFinalOutputPath } from '../finalOutput'
+import { ExtraFormatsExport } from './ExtraFormatsExport'
 
 /**
  * Simple Mode step 4 — free Before/After preview, direct on-video overlay
@@ -166,6 +167,11 @@ export function StepPreviewApprove(): React.JSX.Element {
               aspectRatio={previewSettings.aspectRatio}
               activeDesignId={activeRemotionDesignId}
               available={{ logo: Boolean(assets?.primaryLogo), product: (assets?.products?.length || 0) > 0, service: (assets?.products?.length || 0) > 0 }}
+              context={{
+                textLength: Math.max(0, ...previewSettings.layers.filter((l) => l.visible && l.kind !== 'design').map((l) => (l.text ?? '').trim().length)),
+                hasLogo: Boolean(assets?.primaryLogo),
+                imageCount: assets?.products?.length || 0,
+              }}
               onSelectDesign={setRemotionDesign}
               onAddDesign={ctx.addRemotionDesign}
               onSelectLayout={setPreviewLayout}
@@ -395,6 +401,7 @@ export function StepPreviewApprove(): React.JSX.Element {
             </div>
           )}
         </div>
+        {isBrandedPath && previewApproved && <ExtraFormatsExport inputProps={inputProps} disabled={generating} />}
         {generating && generation?.progressMessage && (
           <p style={{ ...hintStyle, marginTop: 8, color: C.cyan }}>{generation.progressMessage}</p>
         )}

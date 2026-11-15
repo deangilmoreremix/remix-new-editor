@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { isRemotionDesignTemplateSupported } from '../templates'
-import { DESIGN_GOALS, recommendDesigns, type DesignGoalId } from '../templates/recommendations'
+import { DESIGN_GOALS, recommendDesigns, type DesignGoalId, type RecommendContext } from '../templates/recommendations'
 import type { RemotionDesignTemplate } from '../templates/types'
 import type { PreviewAspectRatio, PreviewLayoutId } from '../preview/types'
 import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser'
@@ -18,6 +18,7 @@ export function DesignRecommendations({
   aspectRatio,
   activeDesignId,
   available,
+  context,
   onSelectDesign,
   onAddDesign,
   onSelectLayout,
@@ -26,6 +27,8 @@ export function DesignRecommendations({
   aspectRatio: PreviewAspectRatio
   activeDesignId: string | null
   available: { logo: boolean; product: boolean; service: boolean }
+  /** Project facts that tune the ranking and the "why this one" line. */
+  context?: RecommendContext
   onSelectDesign: (designId: string | null) => void
   /** Adds a design on top of the current layout (keeps the customer's layers). When omitted, only Replace is offered. */
   onAddDesign?: (designId: string) => void
@@ -38,10 +41,10 @@ export function DesignRecommendations({
   const choose = (id: string, active: boolean) => (how === 'add' && onAddDesign && !active ? onAddDesign(id) : onSelectDesign(active ? null : id))
   const recommended = useMemo(
     () => recommendDesigns({
-      designs, aspectRatio, goal, available,
+      designs, aspectRatio, goal, available, context,
       isSupported: (d) => isRemotionDesignTemplateSupported(d.id, aspectRatio).supported,
     }),
-    [designs, aspectRatio, goal, available],
+    [designs, aspectRatio, goal, available, context?.textLength, context?.hasLogo, context?.imageCount],
   )
   return (
     <div data-testid="design-recommendations" style={{ marginBottom: 12 }}>
@@ -62,7 +65,7 @@ export function DesignRecommendations({
       )}
       <div style={{ ...labelStyle, marginBottom: 6 }}>Recommended designs</div>
       <div data-testid="design-recommended" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 8 }}>
-        {recommended.map(({ design }) => {
+        {recommended.map(({ design, reasons }) => {
           const active = activeDesignId === design.id
           return (
             <button
@@ -76,6 +79,7 @@ export function DesignRecommendations({
             >
               <div style={{ color: C.text, fontSize: 12, fontWeight: 700 }}>{design.name}</div>
               <div style={{ ...hintStyle, margin: '2px 0 0' }}>{design.description}</div>
+              {reasons.length > 1 && <div data-testid={`design-why-${design.id}`} style={{ ...hintStyle, margin: '4px 0 0', color: C.cyan }}>Why: {reasons.slice(1).join(' · ')}</div>}
             </button>
           )
         })}

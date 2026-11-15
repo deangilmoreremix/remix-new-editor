@@ -1,6 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
+import { loadImageBlob } from '../backgroundRemoval/loadImageBlob'
+import { LogoTraceError, traceLogo } from '../preview/logoVectorize'
 import { summarizeAssetUsage, type AssetUsage } from '../preview/assetUsage'
 import { buildPreviewInput } from './buildPreviewInput'
 import { C, badgeStyle, hintStyle, panelStyle, secondaryButtonStyle } from './tokens'
@@ -16,6 +19,8 @@ const STATE_LABEL: Record<AssetUsage['state'], string> = { imported: 'Imported â
 export function AssetUsagePanel(): React.JSX.Element | null {
   const ctx = useDemoPersonalize()
   const { assets, previewSettings, updatePreviewLayer } = ctx
+  const [tracing, setTracing] = useState<string | null>(null)
+  const [traceNote, setTraceNote] = useState<{ id: string; text: string } | null>(null)
   const library = [...(assets.logos ?? []), ...(assets.products ?? [])]
   if (library.length === 0) return null
   const { brand } = buildPreviewInput(ctx)
@@ -32,6 +37,20 @@ export function AssetUsagePanel(): React.JSX.Element | null {
       if (layer && (layer.imageUrl === a.url)) updatePreviewLayer(layer.id, { imageUrl: undefined, visible: false })
       else if (layer && a.usedBy.length && !layer.imageUrl) updatePreviewLayer(layer.id, { visible: false })
     }
+  }
+
+  const logoIds = new Set((assets.logos ?? []).map((l) => l.id))
+  // Free, in-browser: redraws a raster logo as a crisp SVG and adds it as an extra logo (the original stays).
+  const trace = async (a: AssetUsage) => {
+    setTracing(a.assetId); setTraceNote(null)
+    try {
+      const blob = await loadImageBlob(a.url)
+      const out = await traceLogo(blob)
+      ctx.addLogoUrl(out.dataUrl)
+      setTraceNote({ id: a.assetId, text: 'Added a traced SVG copy to your logos. Make it the main logo if it looks right.' })
+    } catch (e) {
+      setTraceNote({ id: a.assetId, text: e instanceof LogoTraceError ? e.message : 'The logo could not be traced.' })
+    } finally { setTracing(null) }
   }
 
   return (
@@ -53,12 +72,21 @@ export function AssetUsagePanel(): React.JSX.Element | null {
             </span>
             <button type="button" aria-label={`Use ${a.name} as the product image`} onClick={() => assign(a, 'productImage')} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Product</button>
             <button type="button" aria-label={`Use ${a.name} as the service image`} onClick={() => assign(a, 'serviceImage')} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Service</button>
+            {logoIds.has(a.assetId) && !a.url.startsWith('data:image/svg') && (
+              <button type="button" data-testid={`logo-trace-${a.assetId}`} disabled={tracing !== null} aria-label={`Trace ${a.name} to SVG`} onClick={() => void trace(a)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>
+                {tracing === a.assetId ? 'Tracingâ€¦' : 'Trace to SVG'}
+              </button>
+            )}
+            {logoIds.has(a.assetId) && assets.primaryLogo?.id !== a.assetId && (
+              <button type="button" aria-label={`Use ${a.name} as the main logo`} onClick={() => ctx.setPrimaryLogo(a.assetId)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Main logo</button>
+            )}
             {a.state !== 'imported' && (
               <button type="button" aria-label={`Remove ${a.name} from the video`} onClick={() => remove(a)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Remove</button>
             )}
           </li>
         ))}
       </ul>
+      {traceNote && <p role="status" data-testid="logo-trace-note" style={{ ...hintStyle, margin: '8px 0 0', color: C.cyan }}>{traceNote.text}</p>}
     </div>
   )
 }

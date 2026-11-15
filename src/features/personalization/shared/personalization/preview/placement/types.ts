@@ -114,6 +114,8 @@ export type QualityIssueCode =
   | 'overlay-crowded'
   | 'baked-in-unknown'
   | 'rights-unverified'
+  | 'text-contrast-bright'
+  | 'reading-speed'
 
 export interface QualityIssue {
   code: QualityIssueCode
