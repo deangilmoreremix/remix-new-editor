@@ -142,3 +142,14 @@ export function mergeTagLink(baseUrl, tokens = [], provider, { preload = true } 
   const sep = url.search ? '&' : '?';
   return { link: `${base}${sep}${parts.join('&')}`, unmapped, skipped };
 }
+
+/** Token names used in a text ({{firstName}}, {{d company "there"}}, {{first name}}), in order, de-duplicated. */
+export function tokensInText(text) {
+  const out = [];
+  for (const m of String(text || '').matchAll(/\{\{\s*([^{}]+?)\s*\}\}/g)) {
+    const body = m[1].trim().replace(/\s+(["']).*\1$/, '').replace(/^(?:d|up)\s+(?=\S)/, '');
+    const key = canonicalTokenKey(body) || body;
+    if (key && !out.includes(key)) out.push(key);
+  }
+  return out;
+}

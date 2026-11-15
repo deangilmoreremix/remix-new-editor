@@ -958,8 +958,8 @@ export type DemoPersonalizeContextValue = {
 
   // Result
   result: GenerationResult | null
-  resultTab: 'prompt' | 'images' | 'videos'
-  setResultTab: (tab: 'prompt' | 'images' | 'videos') => void
+  resultTab: 'prompt' | 'images' | 'videos' | 'email'
+  setResultTab: (tab: 'prompt' | 'images' | 'videos' | 'email') => void
   editInImageStudio: () => void
   editInVideoStudio: () => void
   openImageEditor?: (asset: {
@@ -1692,7 +1692,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
   // Result
   const [result, setResult] = useState<GenerationResult | null>(null)
-  const [resultTab, setResultTab] = useState<'prompt' | 'images' | 'videos'>('prompt')
+  const [resultTab, setResultTab] = useState<'prompt' | 'images' | 'videos' | 'email'>('prompt')
 
   // Shared media
   const [sharedMediaEntries, setSharedMediaEntries] = useState<SharedMediaEntry[]>(getSharedMedia)
