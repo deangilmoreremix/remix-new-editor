@@ -618,3 +618,6 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 
 ### Function-access hardening applied to production (2026-11-15)
 - Anon-callable SECURITY DEFINER functions 80 -> 14, authenticated 90 -> 51, Cloudflare view fixed. Probe verified. Log re-check pending.
+
+### Netlify VAPID settings (2026-11-15)
+- VAPID public/private keys and subject set on `smartvideo2` production (new key pair). Pending: confirm `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` exist, deploy, real-device push test.

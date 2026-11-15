@@ -166,3 +166,6 @@ Branch: `claude/jolly-cannon-ofqf7h`
 
 ### Function-access hardening on production
 - Authorization: "yes, apply the function fix to production". Applied the tested migration with apply_migration; verified counts and behaviour with a rolled-back probe as anon/authenticated; listed the 14 remaining anon-callable functions (all intentional).
+
+### Netlify settings
+- Authorization: user answers (site smartvideo2, I set the key, new key). Generated a fresh pair, upserted three variables via the Netlify tool (private key marked secret). Did not list other variables. Docs updated with the new public key; the old public key (1 occurrence(s)) replaced.
