@@ -61,8 +61,38 @@ export const STUDIO_DESIGN = registerAddon({
     { key: 'designId', label: 'Design', type: 'text' },
     { key: 'opacity', label: 'Opacity', type: 'range', min: 1, max: 100 },
   ],
+  fieldsFor: (o) => studioDesignFields(o),
   summary: (o) => (o.designId ? `Design: ${o.designId}` : 'Studio design'),
 });
+
+const pretty = (key) => String(key).replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
+
+/**
+ * The settings form for a design clip: one input per text slot, per image and per color the clip holds, so a
+ * design's wording, logo and colors can be edited (or pointed at a {{token}}) after it is added.
+ */
+export function studioDesignFields(o) {
+  const slots = Object.keys(o?.slots || {}).map((k) => ({ key: `slots.${k}`, label: `${pretty(k)} (text)`, type: 'text', placeholder: 'Text or a {{token}}' }));
+  const media = Object.keys(o?.media || {}).map((k) => ({ key: `media.${k}`, label: `${pretty(k)} image`, type: 'text', placeholder: 'https://… or {{logoUrl}}' }));
+  const colors = ['primary', 'accent', 'text'].map((k) => ({ key: `colors.${k}`, label: `${pretty(k)} color`, type: 'text', placeholder: '#d9ff00 or {{brandColor}}' }));
+  return [
+    { key: 'designId', label: 'Design', type: 'text' },
+    ...slots,
+    ...media,
+    ...colors,
+    { key: 'opacity', label: 'Opacity', type: 'range', min: 1, max: 100 },
+  ];
+}
+
+/** Box (percent of the frame) for a design's own default placement: centre x/y and size as fractions of the frame. */
+export function geometryFromPlacement(placement) {
+  if (!placement || !Number.isFinite(placement.scale) || placement.scale <= 0) return null;
+  const size = Math.min(100, Math.max(2, placement.scale * 100));
+  const left = Math.min(100 - size, Math.max(0, (Number.isFinite(placement.x) ? placement.x : 0.5) * 100 - size / 2));
+  const top = Math.min(100 - size, Math.max(0, (Number.isFinite(placement.y) ? placement.y : 0.5) * 100 - size / 2));
+  const r = (n) => Math.round(n * 10) / 10;
+  return { left: r(left), top: r(top), width: r(size), height: r(size) };
+}
 
 /**
  * Slot values for a design as tokens. `design.textSlots` entries are
@@ -102,7 +132,8 @@ export function defaultStudioDesignOptions(design, { overrides, primaryText, bra
     ...base,
     designId: design.id,
     slots: slotsForDesign(design, { overrides, primaryText, brand }),
-    ...(geometry ? { geometry } : {}),
+    // The size and place the Studio gives this design (an overlay is a small box, a full scene fills the frame).
+    ...((geometry || geometryFromPlacement(design.placement)) ? { geometry: geometry || geometryFromPlacement(design.placement) } : {}),
   };
 }
 

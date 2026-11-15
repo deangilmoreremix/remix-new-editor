@@ -389,7 +389,25 @@ function buildVideoTransition(opts) {
   return el;
 }
 
+/**
+ * Editor-only stand-in for clips the Remotion player (or the published page) draws itself: a labelled dashed box
+ * at the clip's geometry. It is what gets selected, dragged and resized in the editor; it is never exported.
+ */
+function buildPlaceholder(kind, text) {
+  const el = document.createElement('div');
+  el.className = `addon-placeholder addon-placeholder--${kind}`;
+  const tag = document.createElement('span');
+  tag.className = 'addon-placeholder__tag';
+  tag.textContent = text;
+  el.appendChild(tag);
+  return el;
+}
+
 const BUILDERS = {
+  // Hotspot: clickable only on the published page, so in the editor it is a box you can place.
+  'addon-hotspot': (o) => buildPlaceholder('hotspot', `🎯 ${o.label || (o.action === 'seek' ? `Jump to ${Number(o.seekTime) || 0}s` : 'Hotspot')}`),
+  // Studio design: the player draws the design; this box lets you move and resize it.
+  'overlay-studio-design': (o) => buildPlaceholder('design', `🎨 ${o.designId || 'Studio design'}`),
   'overlay-transition': (o) => buildOverlayTransition(o),
   'overlay-video-transition': (o) => buildVideoTransition(o),
   'overlay-lower-third': (o, ctx) => buildLowerThird(o, ctx),
@@ -628,12 +646,15 @@ export function playOutAndRemove(el, animation) {
 // ---------------------------------------------------------------- active set
 
 /** Overlay clips active at time t (s), in paint order: earlier tracks first. */
+/** An addon the editor draws as an overlay box: real overlays, and viewer-only ones flagged `editorOverlay` (Hotspot). */
+export const isEditorOverlay = (addon) => !!addon && (addon.category === 'overlay' || addon.editorOverlay === true);
+
 export function activeOverlays(tracks, t, timelineSeconds) {
   const out = [];
   (tracks || []).forEach((track, trackIndex) => {
     (track.items || track.clips || []).forEach((clip) => {
       const addon = getAddon(clip.type);
-      if (!addon || addon.category !== 'overlay') return;
+      if (!isEditorOverlay(addon)) return;
       const start = (clip.left / 100) * timelineSeconds;
       const end = start + (clip.width / 100) * timelineSeconds;
       if (t >= start && t < end) out.push({ clip, trackIndex, start });

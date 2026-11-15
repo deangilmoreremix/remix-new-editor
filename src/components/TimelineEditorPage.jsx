@@ -28,7 +28,7 @@ import {
   submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
-  createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
+  createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, isEditorOverlay, attachDragResize,
   OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT, CTA_COLOR_THEMES, ctaColorParts,
   BLEND_CATEGORIES, blendItemToAddon, getBlendItem, blendThumbStyle,
   openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES, resolveOverlayText,
@@ -1625,7 +1625,7 @@ export function TimelineEditorPage() {
       // Overlays (Smart Text, Image, Stickers, ...) are drawn by the overlay
       // compositor on top of the video, so selecting one shows the video
       // clip under the playhead rather than replacing it.
-      if (getAddon(selected.type)?.category === 'overlay') {
+      if (isEditorOverlay(getAddon(selected.type))) {
         const base = findBaseClipAtPlayhead();
         if (base) renderPreviewAsset(base);
         else if (!els.previewStage.firstElementChild) els.previewEmpty.style.display = 'none';
@@ -5299,7 +5299,8 @@ export function TimelineEditorPage() {
       activeAddonEditor?.destroy();
       activeAddonEditor = renderAddonEditor(els.clipEditorContainer.querySelector('#addonOptionsForm'), {
         fields: addon.fields,
-        options: clip.addon,
+        fieldsFor: addon.fieldsFor ? (o) => addon.fieldsFor(o) : undefined,
+        options: addonOptions(clip),
         idPrefix: `addon-${clip.id}`,
         services: addonEditorServices,
         onFieldChange: addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined,
@@ -5313,7 +5314,8 @@ export function TimelineEditorPage() {
             clip.width = Math.min(100 - clip.left, (next.durationSec / T) * 100);
           }
           renderTracks();
-          if (addon.category !== 'overlay') updatePreview(clip);
+          if (!isEditorOverlay(addon)) updatePreview(clip);
+          else renderOverlayLayer();
           debouncedSave();
         },
       });

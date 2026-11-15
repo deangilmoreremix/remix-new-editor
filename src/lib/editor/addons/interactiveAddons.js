@@ -158,6 +158,7 @@ export const HOTSPOT = registerAddon({
   defaultDuration: 5,
   timing: ['start', 'end'],
   positioned: true,
+  editorOverlay: true, // drawn as a movable box in the editor (see overlayRender.js buildPlaceholder)
   defaults: () => ({
     label: '',
     action: 'link',

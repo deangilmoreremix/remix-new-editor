@@ -1358,3 +1358,11 @@
 .addon-overlay-layer .is-editable .overlay-arrow { background: transparent !important; pointer-events: none; }
 .addon-overlay-layer .is-editable .overlay-arrow .container-hint { pointer-events: auto; }
 .addon-overlay-layer .overlay-arrow .click-text { font-weight: 300 !important; }
+
+/* Editor-only stand-ins for clips the player draws itself (Hotspot, Studio design): a labelled, movable box. */
+.addon-placeholder { box-sizing: border-box; border: 2px dashed rgba(255,255,255,.7); border-radius: 6px; }
+.addon-placeholder--hotspot { background: rgba(251,191,36,.14); border-color: #fbbf24; }
+.addon-placeholder--design { border-color: #22d3ee; }
+.addon-placeholder__tag { position: absolute; left: 12px; top: 6px; max-width: calc(100% - 8px); padding: 1px 6px; border-radius: 4px; background: rgba(0,0,0,.65); color: #fff; font: 600 11px/1.4 system-ui, sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
+/* With the Remotion player on, overlay children are hidden (it draws them); the label of these boxes stays. */
+.addon-overlay-layer.engine-on > .addon-overlay-clip > .addon-placeholder__tag.addon-placeholder__tag { visibility: visible; }
