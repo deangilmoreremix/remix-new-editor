@@ -844,7 +844,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       new TemplateInputBuilder(currentTemplate, currentMode).buildFormSchema().forEach((input) => {
         if (input && input.name && ['text', 'textarea', 'select'].includes(input.type) && typeof currentInputs[input.name] === 'string') presetValues[input.name] = currentInputs[input.name];
       });
-      const savedPreset = savePreset(currentTemplate.id, `Project ${new Date().toLocaleString()}`, presetValues);
+      let savedPreset = null;
+      try {
+        savedPreset = savePreset(currentTemplate.id, `Project ${new Date().toLocaleString()}`, presetValues);
+      } catch { /* the project itself is saved above; only the preset copy failed */ }
       if (savedPreset && cinemaPresetsRefresh) cinemaPresetsRefresh(savedPreset.id);
       showToast('Project saved!', 'success');
     };
@@ -1010,13 +1013,18 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       exampleBtn.textContent = '✨ Try an example';
       exampleBtn.onclick = () => {
         applyValuesToForm(formContainer, exampleValues);
+        markFieldsEdited(exampleValues);
         showToast('Example filled in. Edit anything, then press Generate.', 'info');
       };
       formContainer.appendChild(exampleBtn);
     }
     const remembered = loadTemplateInputs(currentTemplate.id, schema);
     Object.keys(remembered).forEach((name) => { if (currentInputs[name]) delete remembered[name]; });
-    if (Object.keys(remembered).length) applyValuesToForm(formContainer, remembered);
+    if (Object.keys(remembered).length) {
+      applyValuesToForm(formContainer, remembered);
+      // Restored values are the user's own: Video Intent sync must not replace them.
+      markFieldsEdited(remembered);
+    }
     const presetsControl = createPresetsControl({
       templateId: currentTemplate.id,
       getValues: () => {
@@ -1026,7 +1034,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         });
         return values;
       },
-      applyValues: (values) => applyValuesToForm(formContainer, values),
+      applyValues: (values) => { applyValuesToForm(formContainer, values); markFieldsEdited(values); },
       notify: (msg, type) => showToast(msg, type),
     });
     formContainer.appendChild(presetsControl.element);
@@ -1183,6 +1191,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       view = 'storyboard';
       render();
     });
+  }
+
+  // Values the user chose (typed, restored, example, preset, reused) stay
+  // theirs: Video Intent sync never replaces fields in this set.
+  function markFieldsEdited(values) {
+    Object.keys(values || {}).forEach((name) => userEditedFields.add(name));
   }
 
   function syncVideoIntentToTemplate(intent) {
@@ -2610,8 +2624,19 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       const formRoot = container.querySelector('#inputs-form');
       if (formRoot) {
         formRoot.querySelectorAll('[aria-invalid]').forEach((el) => setFieldInvalid(el, false));
+        container.querySelector('#cin-required-error')?.remove();
         const bad = errors.map((e) => formRoot.querySelector(`[name="${cssEscape(e.field)}"]`)).filter(Boolean);
-        bad.forEach((el) => setFieldInvalid(el, true));
+        // A persistent message the invalid fields point to (the toast disappears).
+        let errNote = container.querySelector('#cin-required-error');
+        if (!errNote) {
+          errNote = document.createElement('div');
+          errNote.id = 'cin-required-error';
+          errNote.setAttribute('role', 'alert');
+          errNote.className = 'mb-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
+          formRoot.prepend(errNote);
+        }
+        errNote.textContent = `Please fill in: ${errors.map((e) => e.field).join(', ')}.`;
+        bad.forEach((el) => setFieldInvalid(el, true, 'cin-required-error'));
         bad[0]?.focus();
       }
       return;
@@ -2923,9 +2948,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
    *   earlier run (Regenerate) — do not re-apply the current form's Advanced /
    *   Character Lock / ratio on top of it.
    */
-  async function runGeneration(params, { exact = false } = {}) {
+  async function runGeneration(params, { exact = false, inputs: submittedInputs } = {}) {
     if (isGenerating) return;
     const exactParams = exact ? { ...params } : null;
+    // The form values behind this run, captured now so edits made while it is
+    // in flight are not stored with its result. A re-run of a saved result
+    // (or a retry) passes the original snapshot through instead.
+    const inputsSnapshot = submittedInputs !== undefined
+      ? submittedInputs
+      : (exact ? null : snapshotFormInputs({ fields: currentInputs, mode: currentMode }));
 
     isGenerating = true;
     let genBtn = container.querySelector('#generate-btn');
@@ -2996,7 +3027,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           type: isVideo ? 'video' : 'image',
           templateId: currentTemplate.id,
           regenParams: snapshotGenerationParams(params),
-          inputs: snapshotFormInputs({ fields: currentInputs, mode: currentMode }),
+          inputs: inputsSnapshot,
         };
         resultHistory.add(currentResultEntry);
         const spent = formatActualCost(result);
@@ -3027,8 +3058,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           retryCount++;
           if (errEl && errEl.parentNode) errEl.remove();
           // A failed Regenerate retries that same stored run, not the newest form.
-          if (exact) runGeneration({ ...exactParams }, { exact: true });
-          else runGeneration(lastGenerationParams);
+          if (exact) runGeneration({ ...exactParams }, { exact: true, inputs: inputsSnapshot });
+          else runGeneration(lastGenerationParams, { inputs: inputsSnapshot });
         };
         errEl.appendChild(retryBtn);
       }
@@ -3181,7 +3212,7 @@ const firstChild = storyboardRoot.firstElementChild;
         // rather than silently re-running a different, newer generation.
         const templateType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
         if (entry.regenParams && (!entry.type || entry.type === templateType)) {
-          runGeneration({ ...entry.regenParams }, { exact: true });
+          runGeneration({ ...entry.regenParams }, { exact: true, inputs: entry.inputs || null });
         } else {
           // Only open the form; the user starts the new generation.
           view = 'create';
@@ -3198,6 +3229,7 @@ const firstChild = storyboardRoot.firstElementChild;
           return;
         }
         currentInputs = { ...currentInputs, ...(saved.fields || {}) };
+        markFieldsEdited(saved.fields || {});
         if (saved.mode === 'quick' || saved.mode === 'advanced') currentMode = saved.mode;
         lastBuiltPrompt = '';
         promptManuallyEdited = false;

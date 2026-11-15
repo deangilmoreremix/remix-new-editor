@@ -96,21 +96,27 @@ export function applyValuesToForm(root, values = {}) {
   return filled;
 }
 
-/** Mark / unmark a field as invalid for assistive tech and sighted users. */
-export function setFieldInvalid(el, invalid) {
+/**
+ * Mark / unmark a field as invalid for assistive tech and sighted users.
+ * Pass the id of the visible error message so the field is tied to it.
+ */
+export function setFieldInvalid(el, invalid, errorId) {
   if (!el) return;
   if (invalid) {
     el.setAttribute('aria-invalid', 'true');
+    if (errorId) el.setAttribute('aria-describedby', errorId);
     el.classList.add('border-red-400/60');
   } else {
     el.removeAttribute('aria-invalid');
+    if (errorId === undefined || el.getAttribute('aria-describedby') === errorId) el.removeAttribute('aria-describedby');
     el.classList.remove('border-red-400/60');
   }
 }
 
-/** True for Ctrl/Cmd+Enter. */
+/** True for Ctrl/Cmd+Enter (never while an IME composition is being confirmed). */
 export function isGenerateShortcut(event) {
-  return !!(event && event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey);
+  if (!event || event.isComposing || event.keyCode === 229) return false;
+  return !!(event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey);
 }
 
 // ---------------------------------------------------------------------------
@@ -216,6 +222,8 @@ export function buildShareUrl(templateId, inputs, values, loc = (typeof window !
 const PRESETS_KEY = 'template_presets';
 const MAX_PRESETS_PER_TEMPLATE = 20;
 const MAX_PRESET_NAME = 40;
+// Local presets keep full values; only share links are length-limited.
+const MAX_PRESET_VALUE = 5000;
 
 function readPresets() {
   const store = safeStorage();
@@ -228,8 +236,8 @@ function readPresets() {
 
 function writePresets(list) {
   const store = safeStorage();
-  if (!store) return;
-  try { store.setItem(PRESETS_KEY, JSON.stringify(list)); } catch { /* optional */ }
+  if (!store) return false;
+  try { store.setItem(PRESETS_KEY, JSON.stringify(list)); return true; } catch { return false; }
 }
 
 export function listPresets(templateId) {
@@ -239,13 +247,14 @@ export function listPresets(templateId) {
 /**
  * Save (or overwrite, by name) a preset for a template.
  * @returns {object|null} the saved preset, or null when there was nothing to save
+ * @throws {Error} with code 'storage' when the browser would not store it
  */
 export function savePreset(templateId, name, values = {}) {
   const cleanName = String(name || '').trim().slice(0, MAX_PRESET_NAME);
   if (!templateId || !cleanName) return null;
   const clean = {};
   Object.entries(values).forEach(([k, v]) => {
-    if (typeof v === 'string' && v.trim() && !v.startsWith('data:') && !v.startsWith('blob:')) clean[k] = v.slice(0, MAX_SHARED_VALUE);
+    if (typeof v === 'string' && v.trim() && !v.startsWith('data:') && !v.startsWith('blob:')) clean[k] = v.slice(0, MAX_PRESET_VALUE);
   });
   if (!Object.keys(clean).length) return null;
   const all = readPresets();
@@ -259,12 +268,14 @@ export function savePreset(templateId, name, values = {}) {
   };
   const others = all.filter((p) => p.id !== preset.id);
   const mine = [preset, ...others.filter((p) => p.templateId === templateId)].slice(0, MAX_PRESETS_PER_TEMPLATE);
-  writePresets([...others.filter((p) => p.templateId !== templateId), ...mine]);
+  if (!writePresets([...others.filter((p) => p.templateId !== templateId), ...mine])) {
+    throw Object.assign(new Error('Could not save the preset: browser storage is unavailable or full.'), { code: 'storage' });
+  }
   return preset;
 }
 
 export function deletePreset(id) {
-  writePresets(readPresets().filter((p) => p.id !== id));
+  return writePresets(readPresets().filter((p) => p.id !== id));
 }
 
 /**
@@ -319,7 +330,13 @@ export function createPresetsControl({ templateId, getValues, applyValues, notif
     const ask = askName || ((msg) => (typeof window !== 'undefined' ? window.prompt(msg, '') : null));
     const name = ask('Name this preset');
     if (!name || !name.trim()) return;
-    const saved = savePreset(templateId, name, getValues());
+    let saved;
+    try {
+      saved = savePreset(templateId, name, getValues());
+    } catch (err) {
+      notify(err && err.message ? err.message : 'Could not save the preset.', 'error');
+      return;
+    }
     if (!saved) { notify('Fill in at least one field before saving a preset.', 'warning'); return; }
     refresh(saved.id);
     notify(`Preset "${saved.name}" saved.`, 'success');

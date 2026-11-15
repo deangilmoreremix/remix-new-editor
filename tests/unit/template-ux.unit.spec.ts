@@ -59,6 +59,11 @@ describe('templateUx', () => {
     expect(seen).toEqual(['1', '2']);
   });
 
+  it('ignores Ctrl+Enter while an IME composition is being confirmed', () => {
+    expect(isGenerateShortcut({ key: 'Enter', ctrlKey: true, isComposing: true } as any)).toBe(false);
+    expect(isGenerateShortcut({ key: 'Enter', ctrlKey: true, keyCode: 229 } as any)).toBe(false);
+  });
+
   it('detects Ctrl/Cmd+Enter only', () => {
     expect(isGenerateShortcut({ key: 'Enter', ctrlKey: true } as any)).toBe(true);
     expect(isGenerateShortcut({ key: 'Enter', metaKey: true } as any)).toBe(true);
@@ -72,6 +77,14 @@ describe('templateUx', () => {
     expect(el.getAttribute('aria-invalid')).toBe('true');
     setFieldInvalid(el, false);
     expect(el.hasAttribute('aria-invalid')).toBe(false);
+  });
+
+  it('ties an invalid field to its error message and clears it again', () => {
+    const el = document.createElement('input');
+    setFieldInvalid(el, true, 'err-1');
+    expect(el.getAttribute('aria-describedby')).toBe('err-1');
+    setFieldInvalid(el, false);
+    expect(el.hasAttribute('aria-describedby')).toBe(false);
   });
 });
 

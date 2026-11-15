@@ -202,3 +202,15 @@ describe('niche detection uses whole words', () => {
     expect(detectTemplateNiche({ template: { name: 'x' }, userPrompt: 'a used car dealership promo' })).toBe('automotive');
   });
 });
+
+describe('niche detection keeps real longer words', () => {
+  it('detects "dentistry" and "technology" (not only "dentist" / "tech")', () => {
+    expect(detectTemplateNiche({ template: { name: 'x' }, advanced: { businessType: 'dentistry' } })).toBe('dental');
+    expect(detectTemplateNiche({ template: { name: 'x' }, advanced: { businessType: 'technology' } })).toBe('saas');
+    expect(detectTemplateNiche({ template: { name: 'x' }, advanced: { businessType: 'we are launching soon' } })).toBe('event');
+  });
+
+  it('still rejects look-alike substrings', () => {
+    expect(detectTemplateNiche({ template: { name: 'x' }, userPrompt: 'a character with a carpet' })).toBe('general-business');
+  });
+});

@@ -8,8 +8,6 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 
 const FAVORITES_FILTER = '★ Favorites';
 const RECENT_FILTER = '🕒 Recent';
-// Filter currently shown, so the star on a card knows when to drop it from the view.
-let activeGalleryFilter = null;
 
 export function TemplatesPage() {
   const container = document.createElement('div');
@@ -79,6 +77,34 @@ export function TemplatesPage() {
   const sectionsContainer = document.createElement('div');
   inner.appendChild(sectionsContainer);
 
+  const emptyState = document.createElement('div');
+  emptyState.className = 'hidden py-16 text-center text-sm text-muted';
+  emptyState.setAttribute('role', 'status');
+  inner.appendChild(emptyState);
+
+  let searchTimer = null;
+  function applySearch() {
+    const q = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+    container.querySelectorAll('[data-searchable]').forEach(el => {
+      const match = el.dataset.searchable.toLowerCase().includes(q);
+      el.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    const none = q !== '' && visible === 0;
+    emptyState.classList.toggle('hidden', !none);
+    if (none) {
+      emptyState.textContent = '';
+      emptyState.append(`No templates match "${searchInput.value.trim()}". `);
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.textContent = 'Clear search';
+      clear.className = 'underline text-primary';
+      clear.onclick = () => { searchInput.value = ''; applySearch(); searchInput.focus(); };
+      emptyState.appendChild(clear);
+    }
+  }
+
   function updateFilters() {
     filterRow.querySelectorAll('button').forEach(btn => {
       const isActive = (activeFilter === null && btn.dataset.filter === 'all') ||
@@ -93,8 +119,14 @@ export function TemplatesPage() {
     });
   }
 
+  // Draws the sections for the active chip, then re-applies the search box so
+  // the cards and the "no matches" message always agree with the query.
   function renderCategories() {
-    activeGalleryFilter = activeFilter;
+    renderSections();
+    applySearch();
+  }
+
+  function renderSections() {
     sectionsContainer.innerHTML = '';
 
     const safeTemplates = (Array.isArray(allTemplates) ? allTemplates : []).filter(Boolean);
@@ -180,36 +212,15 @@ export function TemplatesPage() {
     }
   }
 
+  // Un-starring inside the Favorites view redraws it (fresh count and the
+  // "No favorites yet" message), keeping the current search.
+  container.addEventListener('template-favorite-changed', () => {
+    if (activeFilter === FAVORITES_FILTER) renderCategories();
+  });
+
   renderCategories();
   container.appendChild(inner);
 
-  const emptyState = document.createElement('div');
-  emptyState.className = 'hidden py-16 text-center text-sm text-muted';
-  emptyState.setAttribute('role', 'status');
-  inner.appendChild(emptyState);
-
-  let searchTimer = null;
-  const applySearch = () => {
-    const q = searchInput.value.trim().toLowerCase();
-    let visible = 0;
-    container.querySelectorAll('[data-searchable]').forEach(el => {
-      const match = el.dataset.searchable.toLowerCase().includes(q);
-      el.style.display = match ? '' : 'none';
-      if (match) visible++;
-    });
-    const none = q !== '' && visible === 0;
-    emptyState.classList.toggle('hidden', !none);
-    if (none) {
-      emptyState.textContent = '';
-      emptyState.append(`No templates match "${searchInput.value.trim()}". `);
-      const clear = document.createElement('button');
-      clear.type = 'button';
-      clear.textContent = 'Clear search';
-      clear.className = 'underline text-primary';
-      clear.onclick = () => { searchInput.value = ''; applySearch(); searchInput.focus(); };
-      emptyState.appendChild(clear);
-    }
-  };
   // Debounced: filtering hundreds of cards on every keystroke is wasteful.
   searchInput.oninput = () => {
     clearTimeout(searchTimer);
@@ -338,7 +349,7 @@ function createTemplateSection(category, catTemplates, isNiche) {
       e.preventDefault();
       toggleFavoriteTemplate(t.id);
       paintHeart();
-      if (activeGalleryFilter === FAVORITES_FILTER && !isFavoriteTemplate(t.id)) card.remove();
+      card.dispatchEvent(new CustomEvent('template-favorite-changed', { bubbles: true }));
     };
     heart.onkeydown = (e) => e.stopPropagation();
     card.appendChild(heart);

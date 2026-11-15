@@ -1289,6 +1289,7 @@ export function TemplateStudio(templateId) {
     if (!errEl) {
       errEl = document.createElement('div');
       errEl.setAttribute('role', 'alert');
+      errEl.id = 'ts-inline-error';
       errEl.className = 'ts-inline-error mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
       errorContainer.appendChild(errEl);
     }
@@ -1333,7 +1334,7 @@ export function TemplateStudio(templateId) {
     leftPanel.querySelectorAll('[data-input-name]').forEach((el) => setFieldInvalid(el, false));
     if (missing.length) {
       const els = missing.map((m) => leftPanel.querySelector(`[data-input-name="${cssEscape(m.name)}"]`));
-      els.forEach((el) => setFieldInvalid(el, true));
+      els.forEach((el) => setFieldInvalid(el, true, 'ts-inline-error'));
       els.find(Boolean)?.focus();
       showInlineError(container, `Please fill in: ${missing.map((m) => m.label || m.name).join(', ')}.`);
       return;
@@ -1435,9 +1436,13 @@ export function TemplateStudio(templateId) {
    *   stored final request of an earlier result (Regenerate) — send them as
    *   they are instead of rebuilding prompt, media and model from the form.
    */
-  async function runGeneration(params, { exact = false, route: exactRoute = null } = {}) {
+  async function runGeneration(params, { exact = false, route: exactRoute = null, inputs: submittedInputs } = {}) {
     if (isGenerating) return;
     const exactParams = exact ? { ...params } : null;
+    // The form values behind this run, captured now so edits made while it is
+    // in flight are not stored with its result. A re-run of a saved result
+    // (or a retry) passes the original snapshot through instead.
+    const inputsSnapshot = submittedInputs !== undefined ? submittedInputs : (exact ? null : collectReusableInputs());
 
     isGenerating = true;
     genBtn.disabled = true;
@@ -1527,7 +1532,7 @@ export function TemplateStudio(templateId) {
           templateId: template.id,
           regenParams,
           regenRoute: route,
-          inputs: collectReusableInputs(),
+          inputs: inputsSnapshot,
         };
         resultHistory.add(entry);
         showResult(result.url, entry);
@@ -1553,8 +1558,8 @@ export function TemplateStudio(templateId) {
           const errEl = container.querySelector('.ts-inline-error');
           if (errEl) errEl.remove();
           // A failed Regenerate retries that same stored run, not the current form.
-          if (exact) runGeneration({ ...exactParams }, { exact: true, route: exactRoute });
-          else runGeneration(lastGenerationParams);
+          if (exact) runGeneration({ ...exactParams }, { exact: true, route: exactRoute, inputs: inputsSnapshot });
+          else runGeneration(lastGenerationParams, { inputs: inputsSnapshot });
         };
       }
     } finally {
@@ -1643,7 +1648,7 @@ export function TemplateStudio(templateId) {
       return;
     }
     if (e?.regenParams && e.regenRoute) {
-      runGeneration({ ...e.regenParams }, { exact: true, route: e.regenRoute });
+      runGeneration({ ...e.regenParams }, { exact: true, route: e.regenRoute, inputs: e.inputs || null });
       return;
     }
     showToast("This result's settings weren't saved, so it can't be re-run. Adjust the form and press Generate.", 'warning');

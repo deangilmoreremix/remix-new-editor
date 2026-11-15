@@ -78,6 +78,24 @@ export const NICHE_TYPES = {
   GENERAL: 'general-business'
 };
 
+// Whole-word match so "car" does not fire inside "character". Stems that are
+// deliberately partial match at the start of a word; a few terms also list the
+// longer words people really type ("dentistry", "technology"). Terms are fixed
+// strings from detectNiche below, never user input.
+const NICHE_STEMS = new Set(['chiro', 'barber', 'auto']);
+const NICHE_ALIASES = { dentist: ['dentistry'], tech: ['technology', 'technologies'], launch: ['launching'] };
+const nicheMatchers = new Map();
+function nicheTermMatcher(term) {
+  let re = nicheMatchers.get(term);
+  if (!re) {
+    const words = [term, ...(NICHE_ALIASES[term] || [])].map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const body = words.map((w, i) => (NICHE_STEMS.has(term) && i === 0 ? w : `${w}(?:s|es)?\\b`)).join('|');
+    re = new RegExp(`\\b(?:${body})`);
+    nicheMatchers.set(term, re);
+  }
+  return re;
+}
+
 /**
  * Detect niche from user input
  */
@@ -88,10 +106,7 @@ export function detectNiche(input) {
     input.productService,
     input.rawIdea
   ].join(' ').toLowerCase();
-  // Whole-word match so "car" does not fire inside "character" (stems that
-  // are deliberately partial match at the start of a word only).
-  const STEMS = new Set(['chiro', 'barber', 'auto']);
-  const has = (term) => new RegExp(STEMS.has(term) ? `\\b${term}` : `\\b${term}(?:s|es)?\\b`).test(text);
+  const has = (term) => nicheTermMatcher(term).test(text);
 
   if (has('restaurant') || has('cafe') || has('food') || has('chef') || has('steakhouse')) {
     return NICHE_TYPES.RESTAURANT;

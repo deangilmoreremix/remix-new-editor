@@ -29,6 +29,21 @@ describe('named presets', () => {
     expect(p.values).toEqual({ a: 'ok' });
   });
 
+  it('keeps long local values intact (only share links are limited)', () => {
+    const long = 'a'.repeat(900);
+    expect(savePreset('t1', 'long', { prompt: long })!.values.prompt).toBe(long);
+  });
+
+  it('throws a storage error when the browser will not save', () => {
+    const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('quota'); });
+    expect(() => savePreset('t1', 'x', { a: '1' })).toThrow(/storage/i);
+    const notes: Array<[string, string?]> = [];
+    const ctl = createPresetsControl({ templateId: 't1', getValues: () => ({ a: '1' }), applyValues: () => {}, notify: (m: string, t?: string) => notes.push([m, t]), askName: () => 'x' });
+    (ctl.element.querySelector('[data-preset-save]') as HTMLElement).click();
+    expect(notes[0][1]).toBe('error');
+    spy.mockRestore();
+  });
+
   it('caps presets per template and name length', () => {
     for (let i = 0; i < 25; i++) savePreset('t1', `p${i}`, { a: String(i) });
     expect(listPresets('t1')).toHaveLength(20);
