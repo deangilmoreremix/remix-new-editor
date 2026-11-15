@@ -6,6 +6,7 @@
  * The composition groups them into pages (createTikTokStyleCaptions) and
  * renders them identically in the Player preview and the exported video.
  */
+import { CAPITE_CAPTION_STYLES, CAPITE_CATEGORIES } from '../../../features/personalization/shared/personalization/captions/capiteStyles';
 import { parseSrt, parseVtt, serializeSrt, createTikTokStyleCaptions } from '@remotion/captions';
 
 export const CAPTION_PRESETS = {
@@ -16,12 +17,25 @@ export const CAPTION_PRESETS = {
   minimal: { label: 'Minimal', fontFamily: 'Inter', bold: false, uppercase: false, color: '#FFFFFF', highlightColor: '#FFFFFF', stroke: false, background: false, combineMs: 2000 },
 };
 
+/**
+ * The 27 Capite looks (MIT, https://github.com/muneebkhan08/Capite) as presets for this editor: font, colours, outline,
+ * and how the spoken word is picked out (highlight / box / karaoke wipe). The editor draws a plain outline, so the finer
+ * Capite effects (scale, pop, bounce, glow) become a word highlight here; the personalization studio draws them fully.
+ */
+export const CAPITE_PRESETS = Object.fromEntries(CAPITE_CAPTION_STYLES.map((c) => [`capite-${c.id}`, {
+  label: c.name, group: c.category, fontFamily: c.fontName, bold: c.bold, italic: c.italic, uppercase: true, color: c.primaryColor, highlightColor: c.highlightColor,
+  stroke: c.outlineSize > 0 && c.animationType !== 'box', strokeColor: c.outlineColor, background: c.animationType === 'box', backgroundColor: 'rgba(0,0,0,0)',
+  boxed: c.animationType === 'box', karaoke: c.animationType === 'karaoke', combineMs: 900,
+}]));
+export const CAPITE_PRESET_GROUPS = CAPITE_CATEGORIES;
+const ALL_PRESETS = { ...CAPTION_PRESETS, ...CAPITE_PRESETS };
+
 export const CAPTION_POSITIONS = ['bottom', 'middle', 'top'];
 
 export function defaultCaptionStyle(preset = 'tiktok') {
-  const p = CAPTION_PRESETS[preset] || CAPTION_PRESETS.tiktok;
-  const { label, ...rest } = p;
-  return { preset: CAPTION_PRESETS[preset] ? preset : 'tiktok', ...rest, fontSize: 6, position: 'bottom', backgroundColor: 'rgba(0,0,0,0.6)', highlightActive: preset !== 'classic' && preset !== 'minimal' };
+  const p = ALL_PRESETS[preset] || CAPTION_PRESETS.tiktok;
+  const { label, group, ...rest } = p;
+  return { preset: ALL_PRESETS[preset] ? preset : 'tiktok', ...rest, fontSize: 6, position: 'bottom', backgroundColor: 'rgba(0,0,0,0.6)', highlightActive: preset !== 'classic' && preset !== 'minimal' };
 }
 
 const num = (n, d = 0) => (Number.isFinite(Number(n)) ? Number(n) : d);

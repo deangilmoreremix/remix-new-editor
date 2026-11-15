@@ -565,22 +565,22 @@ export function CaptionsLayer({ layer }) {
   const page = pageAt(pages, ms);
   if (!page) return null;
   const fontSize = (Math.max(1, Number(s.fontSize) || 6) / 100) * H;
-  const stroke = s.stroke ? strokeShadow('#000000', fontSize * 0.06) : undefined;
+  const stroke = s.stroke ? strokeShadow(s.strokeColor || '#000000', fontSize * 0.06) : undefined;
   const shadow = [stroke, '0 2px 10px rgba(0,0,0,0.55)'].filter(Boolean).join(', ');
-  const boxedWords = s.preset === 'box';
+  const boxedWords = s.preset === 'box' || s.boxed === true;
   const lineBg = s.background && !boxedWords ? (s.backgroundColor || 'rgba(0,0,0,0.6)') : undefined;
   return (
     <AbsoluteFill style={{ pointerEvents: 'none' }}>
       <div style={{ position: 'absolute', left: '6%', right: '6%', top: CAPTION_TOP[s.position] || CAPTION_TOP.bottom, transform: 'translateY(-50%)', display: 'flex', justifyContent: 'center' }}>
         <div style={{
-          fontFamily: `"${s.fontFamily || 'Inter'}", Arial, sans-serif`, fontWeight: s.bold ? 800 : 500, fontSize, lineHeight: 1.25,
+          fontFamily: `"${s.fontFamily || 'Inter'}", Arial, sans-serif`, fontWeight: s.bold ? 800 : 500, fontStyle: s.italic ? 'italic' : 'normal', fontSize, lineHeight: 1.25,
           textAlign: 'center', color: s.color || '#fff', textTransform: s.uppercase ? 'uppercase' : 'none', textShadow: lineBg ? undefined : shadow,
           background: lineBg, padding: lineBg ? `${fontSize * 0.12}px ${fontSize * 0.35}px` : undefined, borderRadius: lineBg ? fontSize * 0.18 : undefined,
           whiteSpace: 'pre-wrap',
         }}>
           {page.tokens.map((tk, i) => {
             const active = s.highlightActive !== false && ms >= tk.fromMs && ms < tk.toMs;
-            const spoken = s.preset === 'karaoke' && ms >= tk.fromMs;
+            const spoken = (s.preset === 'karaoke' || s.karaoke === true) && ms >= tk.fromMs;
             const color = active || spoken ? (s.highlightColor || '#FFE14D') : (s.color || '#fff');
             const box = boxedWords ? { background: active ? (s.highlightColor || '#EB5054') : (s.backgroundColor || 'rgba(0,0,0,0.6)'), color: '#fff', borderRadius: fontSize * 0.15, padding: `0 ${fontSize * 0.15}px`, textShadow: 'none' } : null;
             return <span key={i} style={{ color, ...(box || {}) }}>{tk.text}</span>;
