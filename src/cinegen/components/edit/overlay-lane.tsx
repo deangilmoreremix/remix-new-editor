@@ -1,9 +1,15 @@
 // [remix] The Overlays lane under the timeline ruler: one block per overlay (Lead Generator, List Builder, CTA). Drag a block to
 // move it, drag its edges to trim, click to select (opens its settings), and add new ones at the playhead from the lane header.
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
 import { isGateOverlay } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
+// @ts-expect-error plain JS add-on modules (the same Lottie builder the viewer uses)
+import { buildLowerThirdLottie, LT_HOLD_FRAME } from '../../../lib/editor/addons/lowerThirds.js';
+// @ts-expect-error plain JS add-on registry
+import { addonOptions } from '../../../lib/editor/addons/registry.js';
+// @ts-expect-error plain JS add-on renderer helpers
+import { ensureFormFont } from '../../../lib/editor/addons/addonOverlay.js';
 import { decodeLibraryDrag, freeOverlayRow, hasLibraryDrag, LIBRARY_DND, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 
 interface Props {
@@ -129,6 +135,7 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
                 onKeyDown={(e) => { if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); onRemove(o.id); } }}
                 style={{ left: o.start * pxPerSecond, width: w, top: 4 + row * rowH, height: rowH - 6, bottom: 'auto' }}>
                 {!gate && <span className="overlay-card__handle overlay-card__handle--start" onPointerDown={(e) => begin(e, o, 'start')} />}
+                {open && o.type === ('overlay-lower-third' as OverlayKind) && <LowerThirdThumb clip={o} />}
                 {open && thumb && <img className="overlay-card__thumb" src={thumb} alt="" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
                 <span className="overlay-card__body">
                   <span className="overlay-card__name">{gate ? `🔒 ${o.name}` : o.name}</span>
@@ -149,10 +156,38 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   );
 }
 
+/** A small picture of the lower third (its template, text and colours) at its fully-in frame, so the block shows the animation itself. */
+function LowerThirdThumb({ clip }: { clip: OverlayClip }) {
+  const host = useRef<HTMLDivElement>(null);
+  const key = JSON.stringify((clip as unknown as { addon?: unknown }).addon ?? null);
+  useEffect(() => {
+    const el = host.current;
+    if (!el) return undefined;
+    let anim: { destroy: () => void; goToAndStop: (f: number, isFrame: boolean) => void } | null = null;
+    let live = true;
+    try {
+      const opts = addonOptions(clip) as Record<string, unknown>;
+      ensureFormFont(opts.fontFamily);
+      const data = buildLowerThirdLottie(opts);
+      void import('lottie-web').then(({ default: lottie }) => {
+        if (!live || !el.isConnected) return;
+        anim = lottie.loadAnimation({ container: el, renderer: 'svg', loop: false, autoplay: false, animationData: data });
+        anim.goToAndStop(LT_HOLD_FRAME, true);
+      }).catch(() => { /* no picture: the block keeps its name and time */ });
+    } catch { /* unreadable options: no picture */ }
+    return () => { live = false; try { anim?.destroy(); } catch { /* already gone */ } };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return <div ref={host} className="overlay-card__thumb overlay-card__thumb--lt" aria-hidden="true" />;
+}
+
 /** A small picture for the block, when the overlay has one (library animations ship a thumbnail). */
 function overlayThumb(o: OverlayClip): string | null {
   const id = typeof o.blockId === 'string' ? o.blockId : '';
-  return o.type === ('hyperframes' as OverlayKind) && id ? `/hyperframes/thumbs/${id.replace(':', '-')}.jpg` : null;
+  if (o.type === ('hyperframes' as OverlayKind) && id) return `/hyperframes/thumbs/${id.replace(':', '-')}.jpg`;
+  // motion-graphics templates (e.g. "Portrait · keyword pop-up"): one rendered frame per template, shipped in public/occ-templates/thumbs
+  const tpl = typeof (o as unknown as { templateId?: unknown }).templateId === 'string' ? (o as unknown as { templateId: string }).templateId : '';
+  return o.type === ('mg-template' as OverlayKind) && /^[a-zA-Z0-9_-]{1,80}$/.test(tpl) ? `/occ-templates/thumbs/${tpl}.jpg` : null;
 }
 
 /** The overlay's own text, so the block shows what it says and not just its name. */
