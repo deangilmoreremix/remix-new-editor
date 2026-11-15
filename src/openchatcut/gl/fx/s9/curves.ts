@@ -71,7 +71,36 @@ export function lutLookup(lut: number[], channel: 0 | 1 | 2, x: number): number 
 export function editorPoints(props: Props | undefined, c: CurveChannel): CurvePoint[] {
   const p = props ?? {};
   if (hasNewCurves(p)) return flatToPoints(p[curveKey(c)]);
-  if (c === 'm') return [0, 0.25, 0.5, 0.75, 1].map((x, i) => ({ x, y: num(p[`p${i}`], x) }));
+  if (c === 'm') {
+    const ys = [0, 0.25, 0.5, 0.75, 1].map((x, i) => num(p[`p${i}`], x));
+    if (ys.every((y, i) => Math.abs(y - i / 4) < 1e-9)) return IDENTITY_CURVE.map((q) => ({ ...q })); // untouched: start from a plain line
+    return ys.map((y, i) => ({ x: i / 4, y }));
+  }
   const mid = num(p[`${c}_mid`], 0);
   return mid ? [{ x: 0, y: 0 }, { x: 0.5, y: Math.min(1, Math.max(0, 0.5 + mid)) }, { x: 1, y: 1 }] : IDENTITY_CURVE.map((q) => ({ ...q }));
 }
+
+// ---- editor operations (pure; the dragged curve is always kept valid for the monotone spline) ------------------------------------
+const MIN_GAP = 0.01;
+const c01 = (v: number) => Math.min(1, Math.max(0, v));
+/** Move point i. The first / last point keep x = 0 / 1; interior points stay between their neighbours. */
+export function movePoint(points: CurvePoint[], i: number, x: number, y: number): CurvePoint[] {
+  const pts = points.map((p) => ({ ...p }));
+  if (i < 0 || i >= pts.length) return pts;
+  const last = pts.length - 1;
+  const nx = i === 0 ? 0 : i === last ? 1 : Math.min(pts[i + 1].x - MIN_GAP, Math.max(pts[i - 1].x + MIN_GAP, c01(x)));
+  pts[i] = { x: nx, y: c01(y) };
+  return pts;
+}
+/** Insert a point (keeps the list sorted). Returns the new list and the index of the new point (an existing near-duplicate x moves instead). */
+export function addPoint(points: CurvePoint[], x: number, y: number): { points: CurvePoint[]; index: number } {
+  const pts = points.map((p) => ({ ...p }));
+  const px = c01(x);
+  const near = pts.findIndex((p) => Math.abs(p.x - px) < MIN_GAP);
+  if (near >= 0) return { points: movePoint(pts, near, px, y), index: near };
+  pts.push({ x: px, y: c01(y) });
+  pts.sort((a, b) => a.x - b.x);
+  return { points: pts, index: pts.findIndex((p) => p.x === px) };
+}
+/** Remove an interior point (the two end points cannot be removed). */
+export const removePoint = (points: CurvePoint[], i: number): CurvePoint[] => (i <= 0 || i >= points.length - 1 ? points.map((p) => ({ ...p })) : points.filter((_, j) => j !== i).map((p) => ({ ...p })));

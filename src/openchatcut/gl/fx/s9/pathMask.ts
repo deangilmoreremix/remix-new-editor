@@ -163,7 +163,6 @@ export function insertVertexNear(path: PathVertex[], x: number, y: number, aspec
   let bestI = 0, best = Infinity;
   const poly = flattenPath(path);
   // find the closest flattened edge and map it back to its path segment
-  let seg = 0;
   const segOf: number[] = [];
   for (let i = 0; i < path.length; i++) {
     const a = path[i], b = path[(i + 1) % path.length];
@@ -177,7 +176,7 @@ export function insertVertexNear(path: PathVertex[], x: number, y: number, aspec
     const d = Math.hypot((x - a[0]) * aspect - t * dx, y - a[1] - t * dy);
     if (d < best) { best = d; bestI = i; }
   }
-  seg = segOf[bestI];
+  const seg = segOf[bestI];
   const next = [...path];
   next.splice(seg + 1, 0, { x, y, inX: 0, inY: 0, outX: 0, outY: 0 });
   return { path: next, index: seg + 1 };

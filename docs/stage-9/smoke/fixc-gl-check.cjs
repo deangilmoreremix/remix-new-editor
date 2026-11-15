@@ -54,8 +54,11 @@ const rawPlugin = {
     const scurve = { curve_m: F.pointsToFlat([{ x: 0, y: 0 }, { x: 0.25, y: 0.15 }, { x: 0.75, y: 0.85 }, { x: 1, y: 1 }]), curve_r: F.pointsToFlat([{ x: 0, y: 0.1 }, { x: 1, y: 0.9 }]), curve_g: [0, 0, 1, 1], curve_b: [0, 0, 1, 1] };
     curves.newVsCpuRef = +mad(read(rt1, 'builtin:fx-curves', scurve), curveRef(scurve)).toFixed(3);
     curves.newDiffFromInput = +mad(read(rt1, 'builtin:fx-curves', scurve), inputData).toFixed(3);
+    const flatRed = { curve_m: [0, 0.4, 0.5, 0.5, 1, 1], curve_r: [0, 0, 1, 0], curve_g: [0, 0, 1, 1], curve_b: [0, 0, 1, 1] }; // what the editor stores after dragging the red end point to the bottom
+    curves.flatRedVsCpuRef = +mad(read(rt1, 'builtin:fx-curves', flatRed), curveRef(flatRed)).toFixed(3);
+    curves.flatRedKillsRed = (() => { const d = read(rt1, 'builtin:fx-curves', flatRed); let m = 0; for (let i = 0; i < d.length; i += 4) m = Math.max(m, d[i]); return m === 0; })();
     curves.deterministic = same(read(rt1, 'builtin:fx-curves', scurve), read(rt2, 'builtin:fx-curves', scurve));
-    curves.ok = curves.identityDiff <= 1.5 && curves.legacyVsCpuRef <= 1.5 && curves.legacyDiffFromInput > 2 && curves.newVsCpuRef <= 1.5 && curves.newDiffFromInput > 2 && curves.deterministic;
+    curves.ok = curves.identityDiff <= 1.5 && curves.legacyVsCpuRef <= 1.5 && curves.legacyDiffFromInput > 2 && curves.newVsCpuRef <= 1.5 && curves.newDiffFromInput > 2 && curves.deterministic && curves.flatRedVsCpuRef <= 1.5 && curves.flatRedKillsRed;
     r.curves = curves;
     // ---- corner pin --------------------------------------------------------------------------------------------------------
     const cp = {};

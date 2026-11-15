@@ -5,6 +5,8 @@
     "legacyDiffFromInput": 25.715,
     "newVsCpuRef": 0,
     "newDiffFromInput": 13.431,
+    "flatRedVsCpuRef": 0,
+    "flatRedKillsRed": true,
     "deterministic": true,
     "ok": true
   },
