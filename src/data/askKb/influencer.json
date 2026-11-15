@@ -1,0 +1,447 @@
+{
+  "id": "influencer",
+  "name": "AI Influencer",
+  "route": "#/influencer",
+  "description": "AI Influencer Studio lets you design a consistent-looking AI character by picking visual attributes (face, body, style), a style preset and an output format, then generates a portrait from your reference photo. It is reachable at #/influencer but is not shown in the side menu.",
+  "shortDescription": "Design a consistent AI influencer and their content",
+  "fullDescription": "AI Influencer Studio (route #/influencer; the page title is 'AI Influencer Studio' and the app's route list calls it 'AI Influencer' in the Image category) is an image-to-image character builder. You upload a reference photo (or video, or a Pexels stock photo), then build the character with a 'Visual Attributes' panel split into Face, Body and Style tabs, each with picture-card options (character type, gender, ethnicity/origin, eye color and type, mouth, ears, horns, skin conditions, skin material and pattern, body type, arms and legs, hair, accessories and rendering style). Shuffle randomises all attributes and Reset clears them. You also choose one of 20 Style Presets and one of four Output Formats, optionally add instructions, and click Generate Content. Results appear in a 3:4 preview with a Save button and a History strip of your last 50 images. It makes still images only: there is no voice, script or video in this studio.",
+  "bestFor": "Creators and brands who want to invent a stylised virtual influencer or character look (realistic, anime, cartoon or 2D) and produce social-ready portraits, and who like building a character from picture options rather than writing long prompts.",
+  "whenToUse": [
+    "You want to design a character by choosing options (gender, eye color, hair, body type, rendering style) instead of writing a prompt.",
+    "You want a style preset such as Quiet luxury, Y2K Posters or Tokyo Streetstyle on your portrait.",
+    "You want output sized for Instagram Post, Story / Reel, YouTube Thumb or Pinterest Pin.",
+    "You want to randomise ideas quickly with Shuffle.",
+    "You want a running history of the characters you generated."
+  ],
+  "whenToUseAnother": [
+    "Use Character Studio (#/character) when you must keep a real person's face recognisable; it has face-preserving models (Flux PuLID, Subject Reference) and expression presets.",
+    "Use Image Studio (#/image) for general text-to-image generation with many models.",
+    "Use Avatar Studio (#/avatar) or Lip Sync Studio (#/lipsync) to make your influencer talk.",
+    "Use Audio Studio (#/audio) for voices and music.",
+    "Use Video Studio (#/video), Animate Studio (#/animate) or Cinema Studio (#/cinema) for moving content.",
+    "Use Product Shot Studio (#/commercial) when the product, not the person, is the subject."
+  ],
+  "keyFeatures": [
+    "Reference upload for a photo or video, plus a Pexels stock-photo button.",
+    "Visual Attributes with Face, Body and Style tabs and about 20 sub-categories of picture options.",
+    "Shuffle (randomise) and Reset (clear) buttons.",
+    "20 Style Presets, default Realistic.",
+    "4 Output Formats: Instagram Post (1:1), Story / Reel (9:16), YouTube Thumb (16:9), Pinterest Pin (2:3), plus quick ratio buttons 3:4, 1:1, 9:16, 16:9 above the preview.",
+    "Style Intensity slider (0-100%, default 70%) and Seed lock toggle in the Advanced panel.",
+    "Optional 'Additional instructions' text box.",
+    "Model selector listing the app's image-to-image models.",
+    "History strip of up to 50 generated characters with download and delete.",
+    "Thumbnail, Personalize, GTM Boost, Recipes, Monetize and Prompts helpers.",
+    "Example Gallery at the bottom."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Your Photo (reference upload)",
+      "explanation": "An upload button with hint 'Upload reference photo or video' and a Pexels button (tooltip 'Browse stock photos from Pexels'; after picking, the hint reads 'Media from Pexels').",
+      "whyToUse": "The generated character is built from this image.",
+      "inputRequired": "Required. Without it: toast 'Upload a photo first'.",
+      "restrictions": "Shared upload limits: images 10MB, videos 50MB."
+    },
+    {
+      "feature": "Visual Attributes (Face / Body / Style tabs)",
+      "explanation": "Picture cards you click to choose one option per sub-category. Face: Character Type (Human, Elf, Alien, Amphibian, Reptile, Mantis, Bee, Octopus, Crocodile, Iguana, Lizard, Beetle, Ant), Gender, Ethnicity / Origin, Eye Color, Eye Type, Eye Features, Mouth & Teeth, Ears, Horns, Skin Conditions. Body: Face Skin Material, Skin Pattern, Body Type, Left/Right Arm, Left/Right Leg. Style: Hair / Head Growth, Accessories & Markings, Rendering Style (Hyper-Realistic, Anime, Cartoon, 2D Illustration). A tag bar below shows the chosen options ('show more' / 'hide').",
+      "whyToUse": "Build a detailed character without writing a prompt.",
+      "inputRequired": "Optional, but every sub-category starts with its first option selected (for example Human, Female, African, Blue eyes, Normal arms and legs, Bald), and those are sent to the model unless you change or Reset them.",
+      "restrictions": "One option per sub-category. Some options (for example 'no left arm', 'no ears') are literal descriptions."
+    },
+    {
+      "feature": "Shuffle and Reset",
+      "explanation": "Shuffle picks a random option in every sub-category. Reset clears every choice so no attribute wording is sent.",
+      "whyToUse": "Shuffle for ideas; Reset to rely on your photo and text only.",
+      "inputRequired": "None.",
+      "restrictions": "Shuffle changes all sub-categories at once."
+    },
+    {
+      "feature": "Style Preset",
+      "explanation": "Twenty chips: Realistic, DigitalCam, Quiet luxury, FashionShow, 90s Grain, Sunset beach, Amalfi Summer, Bimbocore, Vintage PhotoBooth, Gorpcore, Indie sleaze, Fairycore, Avant-garde, Y2K Posters, Grunge, Coquette core, Tokyo Streetstyle, 2049, Night rider, Glazed doll skin makeup. The preset name is added to the prompt as 'Style preset: <name>'.",
+      "whyToUse": "One-click overall look.",
+      "inputRequired": "Defaults to Realistic.",
+      "restrictions": "Choose one."
+    },
+    {
+      "feature": "Output Format",
+      "explanation": "Instagram Post (1:1), Story / Reel (9:16), YouTube Thumb (16:9), Pinterest Pin (2:3). Quick ratio buttons 3:4, 1:1, 9:16 and 16:9 above the preview change the aspect ratio sent.",
+      "whyToUse": "Match the platform.",
+      "inputRequired": "Defaults to Instagram Post (1:1).",
+      "restrictions": "The 3:4 button is the only way to choose 3:4; 2:3 comes from the Pinterest Pin preset."
+    },
+    {
+      "feature": "Style Intensity and Seed lock (Advanced)",
+      "explanation": "Style Intensity is a 0-100% slider in steps of 5, default 70%, sent as 0.0-1.0. Seed lock is a switch ('Toggle seed lock'); when on, a fixed random number shown as '#<number>' is sent as the seed.",
+      "whyToUse": "Intensity to strengthen or soften the style; seed lock to repeat a look.",
+      "inputRequired": "Optional.",
+      "restrictions": "Whether the chosen model honours these settings depends on the model; see notConfirmed."
+    },
+    {
+      "feature": "Additional instructions",
+      "explanation": "Text box with placeholder 'Additional instructions (optional)'. If empty, 'Fashion editorial photo, professional quality' is used.",
+      "whyToUse": "Add pose, outfit, setting or mood.",
+      "inputRequired": "Optional.",
+      "restrictions": "Contact tokens are replaced if a contact profile is selected (Personalize)."
+    },
+    {
+      "feature": "History strip",
+      "explanation": "A side strip labelled 'Generated - N characters' showing up to 50 thumbnails. Hover for Download and Delete; clicking a thumbnail shows it with Download and Generate Again.",
+      "whyToUse": "Compare and re-download earlier results.",
+      "inputRequired": "None.",
+      "restrictions": "Stored in your browser only (key influencer_history)."
+    },
+    {
+      "feature": "Result preview and Save",
+      "explanation": "A 3:4 preview area shows the newest image with a Save button that downloads it. Generate and Generate Content buttons both start a run.",
+      "whyToUse": "See and keep results.",
+      "inputRequired": "None.",
+      "restrictions": "The preview shows a placeholder until the first result."
+    }
+  ],
+  "howToUse": "1. Go to #/influencer (it is not in the side menu). 2. Under Your Photo, click the upload button and add a reference photo (or use the Pexels button). 3. In Visual Attributes, switch between the Face, Body and Style tabs and click the picture cards you want; click Shuffle for random choices or Reset to clear them. 4. Under Style Preset pick a look such as Realistic or Quiet luxury. 5. Under Output Format pick Instagram Post (1:1), Story / Reel (9:16), YouTube Thumb (16:9) or Pinterest Pin (2:3). 6. Optionally open Advanced to set Style Intensity or turn on the seed lock. 7. Optionally type extra instructions in 'Additional instructions (optional)'. 8. Click Generate Content (or the Generate button above the preview). 9. Click Save to download, or use the History strip to review past results.",
+  "howToSteps": [
+    "Open #/influencer.",
+    "Upload a reference photo.",
+    "Pick attributes in Face, Body and Style tabs (or Shuffle/Reset).",
+    "Choose a Style Preset and Output Format.",
+    "Optionally adjust Style Intensity and Seed lock under Advanced.",
+    "Add optional instructions.",
+    "Click Generate Content and Save the result."
+  ],
+  "gettingStarted": [
+    "Upload a sharp photo of the person or look you want to base the character on.",
+    "Click Reset if you do not want any attribute wording sent, otherwise review the default selections.",
+    "Sign in with an active plan and connect your API key."
+  ],
+  "inputs": [
+    "Your Photo",
+    "Visual Attributes",
+    "Style Preset",
+    "Output Format",
+    "Style Intensity",
+    "Seed lock",
+    "Additional instructions",
+    "Model"
+  ],
+  "requiredInputs": [
+    "Your Photo"
+  ],
+  "optionalInputs": [
+    "Visual Attributes",
+    "Style Preset (default Realistic)",
+    "Output Format (default Instagram Post 1:1)",
+    "Style Intensity (default 70%)",
+    "Seed lock (default off)",
+    "Additional instructions",
+    "Model"
+  ],
+  "inputDetails": [
+    {
+      "name": "Your Photo",
+      "description": "Reference photo or video.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "Images up to 10MB, videos up to 50MB."
+    },
+    {
+      "name": "Visual Attributes",
+      "description": "Picture-card choices across Face, Body and Style tabs.",
+      "required": false,
+      "whenToUse": "To define the character.",
+      "restrictions": "Defaults are the first option of each group until you change or Reset them."
+    },
+    {
+      "name": "Style Preset",
+      "description": "One of 20 look presets.",
+      "required": false,
+      "whenToUse": "To set an overall aesthetic.",
+      "restrictions": "One at a time."
+    },
+    {
+      "name": "Output Format",
+      "description": "Four social formats.",
+      "required": false,
+      "whenToUse": "Match your platform.",
+      "restrictions": "None."
+    },
+    {
+      "name": "Style Intensity",
+      "description": "Slider 0-100% (steps of 5).",
+      "required": false,
+      "whenToUse": "To control style strength.",
+      "restrictions": "Default 70%."
+    },
+    {
+      "name": "Seed lock",
+      "description": "Switch that reuses one fixed seed number.",
+      "required": false,
+      "whenToUse": "To repeat a result more closely.",
+      "restrictions": "Seed changes each time you reload the page."
+    }
+  ],
+  "generationModes": [
+    "Image-to-image character portrait"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Image-to-image",
+      "description": "Your photo plus a prompt built from attributes, style preset and instructions goes to the selected model.",
+      "useCase": "Creating a stylised influencer or character portrait."
+    }
+  ],
+  "modelCapabilities": "The studio starts with an internal model id 'higgsfield-soul-image-to-image' labelled 'Influencer Image' and also shows the app's full list of image-to-image models in a model selector. That default id does not appear in the model catalog, descriptions or comparison files read, so its provider, price, speed and quality cannot be stated. The built prompt asks for an 'Ultra-realistic professional portrait photograph of an AI influencer character, 8k resolution, cinematic lighting, sharp detail' followed by your chosen attributes and style preset; choosing Anime, Cartoon or 2D Illustration under Rendering Style adds that wording. No per-model prices or rankings are given in the files read.",
+  "outputs": [
+    "One still image per run",
+    "Preview with Save",
+    "History entry (up to 50 in the browser)",
+    "Generation-history entry (studio: influencer)"
+  ],
+  "limitations": [
+    "Image only: no voice, script, camera or video.",
+    "One reference image only.",
+    "Attribute defaults are applied automatically unless you click Reset.",
+    "Seed and intensity may not be honoured by every model.",
+    "History is stored in this browser only.",
+    "No batch generation; one image per click.",
+    "Not shown in the side menu."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Default attributes are always sent",
+      "impact": "Your result may include features you did not choose (for example 'female', 'african heritage', 'striking blue eyes').",
+      "workaround": "Click Reset, then choose only the attributes you want."
+    },
+    {
+      "limitation": "No voice or video",
+      "impact": "Cannot make a talking influencer here.",
+      "workaround": "Download and use Avatar, Lip Sync, Audio or Video studios."
+    },
+    {
+      "limitation": "Browser-only history",
+      "impact": "History disappears if you clear site data.",
+      "workaround": "Click Save on images you want to keep."
+    }
+  ],
+  "troubleshooting": [
+    "Toast 'Upload a photo first': add a reference photo before clicking Generate Content.",
+    "An upgrade prompt appears: your account needs full access; follow the prompt.",
+    "A key dialog appears: connect your API key, then click Generate again.",
+    "Toast 'Error: ...': read the message and retry; try another model from the model selector if it persists.",
+    "The character has unwanted features: those come from default attribute picks; click Reset and select only what you want.",
+    "Output has the wrong shape: choose another Output Format or the ratio buttons (3:4, 1:1, 9:16, 16:9) above the preview.",
+    "I cannot find the studio in the menu: open #/influencer directly.",
+    "History is empty: it only records images generated on this browser.",
+    "Style looks weak: raise Style Intensity under Advanced, or pick a different Style Preset."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Generate Content does nothing",
+      "steps": [
+        "Check that a photo is uploaded.",
+        "Complete any upgrade/key dialog.",
+        "Click Generate Content again."
+      ]
+    },
+    {
+      "issue": "The result ignores my attributes",
+      "steps": [
+        "Check the tag bar shows your choices.",
+        "Avoid contradictory options (for example Human character type with Tentacles hair).",
+        "Shorten extra instructions."
+      ]
+    },
+    {
+      "issue": "Same look every time or too random",
+      "steps": [
+        "Turn Seed lock on for repeatability.",
+        "Turn it off for variety."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Unexpected eyes, hair or skin",
+      "whyItHappens": "Default first options are sent.",
+      "howToFix": "Use Reset."
+    },
+    {
+      "problem": "Rendering style not what I wanted",
+      "whyItHappens": "Rendering Style default is Hyper-Realistic.",
+      "howToFix": "Select Anime, Cartoon or 2D Illustration on the Style tab."
+    },
+    {
+      "problem": "Image cropped",
+      "whyItHappens": "Chosen ratio differs from the preview 3:4 box.",
+      "howToFix": "Download the image; the file uses your chosen ratio."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Quiet luxury fashion portrait",
+      "steps": [
+        "Upload a reference photo.",
+        "Click Reset.",
+        "Choose Gender, Hair and Body Type you want.",
+        "Pick Style Preset 'Quiet luxury' and Instagram Post (1:1).",
+        "Click Generate Content, then Save."
+      ]
+    },
+    {
+      "title": "Random character ideas",
+      "steps": [
+        "Upload any photo.",
+        "Click Shuffle several times.",
+        "Click Generate each time and review the History strip."
+      ]
+    },
+    {
+      "title": "Vertical story image",
+      "steps": [
+        "Pick Story / Reel (9:16).",
+        "Add instructions like 'standing on a sunset beach'.",
+        "Generate and Save."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Virtual influencer profile images",
+      "description": "Create a recognisable character look.",
+      "steps": [
+        "Define attributes.",
+        "Generate with the same preset repeatedly.",
+        "Pick favourites from History."
+      ],
+      "expectedOutput": "A set of stylised portraits."
+    },
+    {
+      "title": "Fantasy or sci-fi character art",
+      "description": "Use Character Type, Horns, Ears and Eye Features.",
+      "steps": [
+        "Choose Elf or Alien and extras.",
+        "Pick Anime or Cartoon."
+      ],
+      "expectedOutput": "Character concept images."
+    },
+    {
+      "title": "Thumbnail faces",
+      "description": "Generate faces in YouTube Thumb 16:9.",
+      "steps": [
+        "Choose YouTube Thumb.",
+        "Generate."
+      ],
+      "expectedOutput": "16:9 character images."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Is AI Influencer Studio the same as Character Studio?",
+      "answer": "No. Character Studio focuses on keeping a real face with two face-preserving models and expression presets. AI Influencer Studio focuses on building a stylised character from attribute options and style presets."
+    },
+    {
+      "question": "Why is it not in the side menu?",
+      "answer": "It is reachable at #/influencer; the menu does not list it."
+    },
+    {
+      "question": "Can it clone a voice or make videos?",
+      "answer": "No. This studio only generates images."
+    },
+    {
+      "question": "How many images does History keep?",
+      "answer": "Up to 50, stored in your browser."
+    },
+    {
+      "question": "What does Shuffle do?",
+      "answer": "Randomly selects an option in every attribute group."
+    },
+    {
+      "question": "What does Reset do?",
+      "answer": "Clears all attribute choices."
+    },
+    {
+      "question": "What are the default settings?",
+      "answer": "Style Preset Realistic, Instagram Post (1:1), Style Intensity 70%, Seed lock off."
+    },
+    {
+      "question": "Does the seed lock guarantee identical results?",
+      "answer": "No. It sends a fixed seed, but whether a model repeats results depends on the model."
+    }
+  ],
+  "glossary": {
+    "Visual Attributes": "The picture-card options for building a character.",
+    "Style Preset": "A named overall look added to the prompt.",
+    "Style Intensity": "A 0-100% slider for how strongly the style is applied.",
+    "Seed": "A number that starts the random generator; reusing it can repeat a look.",
+    "Shuffle": "Randomises all attributes.",
+    "Reset": "Clears all attributes.",
+    "History": "Your last 50 generated images stored in this browser."
+  },
+  "tips": [
+    "Click Reset first if you want full control.",
+    "Keep choices consistent with each other.",
+    "Use Shuffle for inspiration, then fine-tune.",
+    "Use the same reference photo and preset for a consistent series."
+  ],
+  "bestPractices": [
+    "Save images you like; history is browser-only.",
+    "Use only photos you have the right to use.",
+    "Check generated images before publishing as a real person's likeness."
+  ],
+  "relatedStudios": [
+    "character",
+    "image",
+    "avatar",
+    "lipsync",
+    "audio",
+    "video",
+    "animate"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "character",
+      "relationship": "Face-preserving alternative",
+      "whenToMove": "You need a specific real face kept recognisable.",
+      "why": "Character Studio uses Flux PuLID or Subject Reference."
+    },
+    {
+      "studio": "avatar",
+      "relationship": "Next step for speaking characters",
+      "whenToMove": "You want the character to speak.",
+      "why": "Avatar Studio animates a face with audio."
+    },
+    {
+      "studio": "video",
+      "relationship": "Motion",
+      "whenToMove": "You want movement.",
+      "why": "Video Studio makes clips from images."
+    }
+  ],
+  "notConfirmed": [
+    "The default model id 'higgsfield-soul-image-to-image' is not in the catalog files read, so its provider, quality, price and speed are unknown.",
+    "Whether Style Preset, Style Intensity and seed are accepted by the chosen model (the generation helper only forwards parameters a model's schema allows) was not verified.",
+    "The landing page promises voice cloning, lip-sync and batch pipelines; the studio code has none of these.",
+    "INFLUENCER_CONTENT_AUDIT.md describes an older 233-line version without attributes, history or sliders; the code was trusted.",
+    "SMARTVIDEO_UIUX_RECOVERY_REPORT.md lists features (e.g. Character Studio seed lock) that are only present in Influencer Studio in the code.",
+    "Exact side-menu visibility rules were not traced beyond the studio route list.",
+    "Credits and prices are not in the files read.",
+    "Which models appear in the model selector depends on the app's image-to-image model list (about 88 in the catalog); individual model behaviour was not checked."
+  ],
+  "sourceFiles": [
+    "src/components/InfluencerStudio.js",
+    "src/data/studioLandingPages.js",
+    "INFLUENCER_CONTENT_AUDIT.md",
+    "SMARTVIDEO_UIUX_RECOVERY_REPORT.md",
+    "src/lib/studioRoutes.js",
+    "src/lib/muapi.js",
+    "src/lib/router.js",
+    "public/api/model-catalog.json",
+    "src/lib/modelDescriptions.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read InfluencerStudio.js (attributes, presets, generate handler, history), studioLandingPages.js influencer entry, studioRoutes.js, the audit docs and muapi.generateI2I; no influencer entry in instructions.js.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

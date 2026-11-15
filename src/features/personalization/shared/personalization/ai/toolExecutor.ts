@@ -64,24 +64,46 @@ function executeListAssets(_args: Record<string, unknown>, ctx: DemoPersonalizeC
   if ((!promptState?.personalized && !promptState?.edited) && outputType !== 'prompt') {
     recs.push({ type: 'missing_prompt', message: 'Prompt has not been personalized yet.', priority: 'medium', suggestedAction: 'personalize_prompt' })
   }
-  if (outputType !== 'prompt' && !mode) {
+  // Creating without AI is a local render of the approved overlays: no mode is needed.
+  if (outputType !== 'prompt' && !mode && ctx.creationMethod !== 'browser') {
     recs.push({ type: 'missing_mode', message: 'No personalization mode selected.', priority: 'high', suggestedAction: 'select_mode' })
   }
   return recs
 }
 
 function doValidateProject(_args: Record<string, unknown>, ctx: DemoPersonalizeContextValue): AIMissingRequirement[] {
+  return validateProjectRequirements(ctx)
+}
+
+const LIKENESS_MODES = ['face_only', 'full_body', 'replace_face', 'replace_person']
+
+/**
+ * What still has to be done (errors) or is recommended (warnings) before this
+ * project can be created. Used by the AI assistant and by the Advanced Editing
+ * checklist / footer, so both always agree.
+ */
+export function validateProjectRequirements(
+  ctx: Pick<DemoPersonalizeContextValue, 'assets' | 'clientForm' | 'source' | 'mode' | 'outputType' | 'promptState' | 'genOptions'> & { creationMethod?: 'browser' | 'ai' },
+): AIMissingRequirement[] {
   const missing: AIMissingRequirement[] = []
-  const { assets, clientForm, source, mode, outputType, promptState, generation, genOptions } = ctx
+  const { clientForm, source, mode, outputType, promptState, genOptions } = ctx
+  const assets = {
+    ...ctx.assets,
+    identities: ctx.assets?.identities || [],
+    logos: ctx.assets?.logos || [],
+    products: ctx.assets?.products || [],
+    brandReferences: ctx.assets?.brandReferences || [],
+  }
 
   if (!source) {
     missing.push({ field: 'source', label: 'Source Demo', severity: 'error', message: 'No source demo selected.' })
   }
   const businessName = clientForm?.businessName || clientForm?.name
   if (!businessName) {
-    missing.push({ field: 'client.businessName', label: 'Business Name', severity: 'error', message: 'Enter the client business name before generating.' })
+    missing.push({ field: 'client.businessName', label: 'Business Name', severity: 'error', message: 'Add the business name.' })
   }
-  if (outputType !== 'prompt' && !mode) {
+  // Creating without AI is a local render of the approved overlays: no mode is needed.
+  if (outputType !== 'prompt' && !mode && ctx.creationMethod !== 'browser') {
     missing.push({ field: 'mode', label: 'Personalization Mode', severity: 'error', message: 'Select how this should be personalized.' })
   }
 
@@ -107,8 +129,26 @@ function doValidateProject(_args: Record<string, unknown>, ctx: DemoPersonalizeC
     missing.push({ field: 'prompt', label: 'Personalized Prompt', severity: 'warning', message: 'Personalize the prompt before generating.' })
   }
 
-  if (genOptions?.consentGiven === false && mode && ['face_only', 'full_body', 'replace_face', 'replace_person'].includes(mode)) {
+  if (outputType !== 'prompt' && !genOptions?.consentGiven && mode && LIKENESS_MODES.includes(mode)) {
     missing.push({ field: 'consent', label: 'Consent', severity: 'error', message: 'Confirm permission to use this person\'s likeness.' })
+  }
+
+  // Same checks generate() makes, shown before the click instead of after.
+  if (outputType !== 'prompt') {
+    const all = [
+      ...assets.identities, ...assets.logos, ...assets.products, ...assets.brandReferences,
+      assets.firstFrame, assets.lastFrame, assets.ctaGraphic,
+    ].filter(Boolean) as PersonalizationAsset[]
+    // A local (blob:) image that isn't a failed upload is still on its way
+    // to storage, just like one marked uploading.
+    const uploading = all.filter((a) => a.uploadStatus === 'uploading' || (a.uploadStatus !== 'error' && typeof a.url === 'string' && a.url.startsWith('blob:'))).length
+    const failed = all.filter((a) => a.uploadStatus === 'error').length
+    if (uploading) {
+      missing.push({ field: 'uploads', label: 'Uploads', severity: 'error', message: `${uploading} image${uploading === 1 ? ' is' : 's are'} still uploading.` })
+    }
+    if (failed) {
+      missing.push({ field: 'uploads', label: 'Uploads', severity: 'error', message: `${failed} image${failed === 1 ? '' : 's'} failed to upload — retry or remove ${failed === 1 ? 'it' : 'them'}.` })
+    }
   }
 
   return missing

@@ -1,0 +1,377 @@
+{
+  "id": "lipsync",
+  "name": "Lip Sync Studio",
+  "route": "#/lipsync",
+  "description": "Lip Sync Studio makes a still portrait talk, or re-syncs the mouth of an existing video, to an audio file you upload. You pick a model, upload your media and audio, and click Generate.",
+  "shortDescription": "Make a portrait talk or re-sync any video to new audio.",
+  "fullDescription": "Lip Sync Studio has two input modes. In Portrait Image mode you upload one clear face photo plus an audio file, and the studio produces a talking video of that person. In Video mode you upload an existing video plus new audio, and the studio changes the lip movement so it matches the new audio (useful for dubbing or replacing a voice-over). You choose from a list of lip sync and talking-avatar models, optionally set a resolution, optionally type a prompt for talking style, then click Generate. Finished videos play in a result canvas where you can download, regenerate, publish to social, or add AI captions, and a History panel keeps your recent results.",
+  "bestFor": "Beginners and creators who want a talking-head video from a photo and a voice recording, or who want to dub or replace the speech in a short video clip without re-filming.",
+  "whenToUse": [
+    "You have a portrait photo and an audio recording (voice-over, narration, song) and want the person in the photo to appear to speak it.",
+    "You have a video of someone talking and want the mouth movement to match new or translated audio.",
+    "You want to turn text-to-speech or a cloned voice from Audio Studio into a talking face video.",
+    "You want a quick talking-head clip for a social post, explainer, or personalized message."
+  ],
+  "whenToUseAnother": [
+    "Use Avatar Studio (#/avatar) when you want the avatar-style lip sync and talking models in a simpler single-form layout with a Source Video/Image upload and optional Native Audio toggle.",
+    "Use Audio Studio (#/audio) when you first need to create the speech, music, or sound effects that will drive the lip sync.",
+    "Use Video Studio (#/video) when you want to generate a brand new video from a text prompt rather than animate a photo to speak.",
+    "Use Video Tools (#/videotools) for other video-to-video utilities that are not lip sync.",
+    "Use Character Studio (#/character) when you first need a consistent character image to use as your portrait."
+  ],
+  "keyFeatures": [
+    "Two input modes: Portrait Image (photo + audio -> talking video) and Video (existing video + audio -> re-synced video).",
+    "A model picker that lists image-mode models and video-mode models in separate groups.",
+    "Resolution picker (for models that offer one): 480p, 720p, and on some models 1080p.",
+    "Optional prompt box: 'Optional: describe the talking style or motion...' (only shown for models that accept a prompt).",
+    "Upload buttons for portrait image, source video and audio, with progress and a READY state; drag and drop is supported.",
+    "Pexels stock photo and stock video browsers for portrait or video sources.",
+    "Result canvas with Download, Regenerate, New, Publish to Social, and Add AI Captions buttons.",
+    "History panel of recent generations (stored in your browser, up to 30 entries).",
+    "Resumes generations that were still running if you refresh the page (banner: 'Resuming N pending generation(s)...').",
+    "Extra tools menu with GTM Boost, Recipes, Monetize, Prompts; a Thumbnail button; and a Personalize trigger."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Portrait Image mode",
+      "explanation": "Turns one face photo into a talking video driven by your audio file. This is the default mode when you open the studio.",
+      "whyToUse": "You only have a photo (not a video) of the person or character.",
+      "inputRequired": "A portrait image and an audio file.",
+      "restrictions": "Image uploads are limited to 10MB and audio uploads to 10MB under the app's shared MuAPI upload limits (see notConfirmed for the exact audio limit)."
+    },
+    {
+      "feature": "Video mode",
+      "explanation": "Takes an existing video and your audio, and changes the lip movement to match the audio.",
+      "whyToUse": "Dubbing, replacing a voice-over, or fixing the mouth movement after changing the speech.",
+      "inputRequired": "A source video and an audio file.",
+      "restrictions": "Video uploads are limited to 50MB under the shared upload limits."
+    },
+    {
+      "feature": "Model selector",
+      "explanation": "Click the model button to open a list. The list is grouped into 'Portrait Image' and 'Video' models. Switching mode automatically selects the first model of that mode.",
+      "whyToUse": "Different models differ in quality, speed and which extra options they offer.",
+      "inputRequired": "None.",
+      "restrictions": "You can only use models that belong to the current mode. Switch between Portrait Image and Video to see the other group."
+    },
+    {
+      "feature": "Resolution picker",
+      "explanation": "A resolution button appears only for models that offer a resolution choice. Infinite Talk, Wan 2.2 and Infinite Talk V2V offer 480p and 720p (default 480p). LTX 2.3 and LTX 2 19B offer 480p, 720p and 1080p (default 720p).",
+      "whyToUse": "Higher resolution looks sharper but is expected to take longer.",
+      "inputRequired": "None (a default is chosen for you).",
+      "restrictions": "Hidden for models with no resolution option such as Sync Lipsync, LatentSync, Creatify and Veed."
+    },
+    {
+      "feature": "Optional prompt",
+      "explanation": "A text box with the placeholder 'Optional: describe the talking style or motion...'. If filled, it is sent only to models that accept a prompt.",
+      "whyToUse": "To hint at the expression or style of the talking performance.",
+      "inputRequired": "None.",
+      "restrictions": "The box is hidden for models that do not support prompts (for example Sync Lipsync, LatentSync, Creatify, Veed)."
+    },
+    {
+      "feature": "Pending job recovery and History",
+      "explanation": "Each submitted job is remembered. If you reload the page while a job is running, the studio resumes waiting for it and adds it to History when ready. History is kept in your browser, newest first.",
+      "whyToUse": "Long generations do not get lost if you close or refresh the tab.",
+      "inputRequired": "None.",
+      "restrictions": "History keeps up to 30 entries and lives in this browser only."
+    },
+    {
+      "feature": "Result actions",
+      "explanation": "After a video is ready you see it in a canvas with '+ New', '↻ Regenerate', '↓ Download', 'Publish to Social' and '💬 Add AI Captions'.",
+      "whyToUse": "To save, repeat, share or caption the result.",
+      "inputRequired": "A finished generation.",
+      "restrictions": "Regenerate reuses the current inputs and clicks Generate again."
+    }
+  ],
+  "howToUse": "1. Open Lip Sync Studio from the side menu (#/lipsync). 2. Next to 'Input:' choose '🖼 Portrait Image' (photo + audio) or '🎬 Video' (existing video + audio). 3. Upload your media: click the portrait image button (Upload portrait image) or the video button (Upload source video), or browse Pexels stock media. 4. Upload an audio file with the audio button (Upload audio file). The status labels change from 'No image'/'No video'/'No audio' to a check mark with the file name. 5. Click the model button and pick a model from the 'Portrait Image' or 'Video' group. 6. If a resolution button is shown, choose a resolution. 7. Optionally type a prompt in 'Optional: describe the talking style or motion...' (only if the model shows the box). 8. Click 'Generate ✨' and wait while the button shows 'Generating...'. 9. When the video appears, press '↓ Download', '↻ Regenerate', 'Publish to Social' or '💬 Add AI Captions'. Use '+ New' to start again.",
+  "howToSteps": [
+    "Choose the input mode: Portrait Image or Video.",
+    "Upload a portrait image (Portrait Image mode) or a source video (Video mode).",
+    "Upload the audio file that should drive the lips.",
+    "Pick a model from the model list.",
+    "Pick a resolution if the studio shows one.",
+    "Optionally add a prompt describing the talking style.",
+    "Click Generate and wait for the result.",
+    "Download, regenerate, publish or caption the result."
+  ],
+  "gettingStarted": [
+    "Stay in Portrait Image mode with the default model for your first test.",
+    "Use a clear, front-facing photo with the face well lit.",
+    "Use a short audio clip (the built-in tips suggest keeping audio under 60 seconds).",
+    "Leave the resolution on its default, click Generate, and judge the result before trying other models."
+  ],
+  "inputs": ["Portrait image", "Source video", "Audio file", "Model", "Resolution", "Prompt (optional)", "Thumbnail (optional)"],
+  "requiredInputs": ["Audio file", "Portrait image (Portrait Image mode) or Source video (Video mode)", "Model (a default is preselected)"],
+  "optionalInputs": ["Resolution", "Prompt", "Custom thumbnail", "Seed (advanced, only on models that expose it)"],
+  "inputDetails": [
+    {
+      "name": "Portrait image",
+      "description": "A photo of the face you want to animate. Upload it, or pick one from the Pexels stock photo browser ('Select Portrait Photo').",
+      "required": true,
+      "whenToUse": "Portrait Image mode only.",
+      "restrictions": "Image uploads are limited to 10MB. Front-facing, clear, well-lit faces work best."
+    },
+    {
+      "name": "Source video",
+      "description": "The video whose mouth movement will be re-synced. Upload it or pick one from the Pexels stock video browser.",
+      "required": true,
+      "whenToUse": "Video mode only.",
+      "restrictions": "Video uploads are limited to 50MB."
+    },
+    {
+      "name": "Audio file",
+      "description": "The speech, singing or voice track that drives the lip movement. Any file the audio picker accepts (audio/*).",
+      "required": true,
+      "whenToUse": "Always. Without audio the studio shows 'Please upload an audio file first.'",
+      "restrictions": "The shared upload limit for audio is 10MB. Built-in tip: keep audio under 60 seconds."
+    },
+    {
+      "name": "Model",
+      "description": "Which AI model does the lip sync. Preselected to the first model of the current mode.",
+      "required": true,
+      "whenToUse": "Change it if the first result is not good enough or you want a different resolution option.",
+      "restrictions": "Models are split by mode."
+    },
+    {
+      "name": "Resolution",
+      "description": "Output resolution for models that offer it.",
+      "required": false,
+      "whenToUse": "Choose higher for final deliverables, lower for quick tests.",
+      "restrictions": "Options depend on the model (480p, 720p, 1080p)."
+    },
+    {
+      "name": "Prompt",
+      "description": "Optional text describing talking style or motion.",
+      "required": false,
+      "whenToUse": "When a model offers the prompt box and you want to guide expression.",
+      "restrictions": "Not sent for models that do not accept prompts."
+    }
+  ],
+  "generationModes": ["Portrait Image (image + audio -> video)", "Video (video + audio -> video)"],
+  "modeExplanations": [
+    {
+      "mode": "Portrait Image",
+      "description": "Animates one still face photo so it speaks your audio.",
+      "useCase": "Talking-head intros, avatars, explainers from a single photo."
+    },
+    {
+      "mode": "Video",
+      "description": "Re-syncs the mouth in an existing video to new audio.",
+      "useCase": "Dubbing, translating, replacing narration."
+    }
+  ],
+  "modelCapabilities": "Models are read from the studio's model list in src/lib/models.js. Portrait Image group (first is the default, Infinite Talk): Infinite Talk, Wan 2.2 Speech to Video, LTX 2.3 Lipsync, LTX 2 19B Lipsync (these four take a prompt; Infinite Talk and Wan offer 480p/720p, the two LTX models offer 480p/720p/1080p with 720p default), Kling v1 Avatar Standard, Kling v1 Avatar Pro, Kling v2 Avatar Standard, Kling v2 Avatar Pro, and Omnihuman 1 5 (a separate output resolution of 720 or 1080 is defined in its inputs, but the studio resolution button only reads a field named 'resolution', so it may not appear). Video group (first is the default, Sync Lipsync): Sync Lipsync, LatentSync, Creatify Lipsync, Veed Lipsync, Infinite Talk V2V (prompt and 480p/720p), and Volcengine Video to Video Lip Sync (its own mode option lite/basic). Catalog descriptions: Infinite Talk animates a portrait into a talking video driven by audio; Wan 2.2 generates a talking portrait from an image and audio; LTX 2.3 is described as high-quality lipsync from portrait and audio; Sync Lipsync produces realistic lipsync from audio; LatentSync is video-to-video lipsync for high-quality audio-driven lip animation; Creatify is optimized for speed, quality and consistency; Veed generates realistic lipsync from any audio; Kling Avatar Standard vs Pro are the standard and premium tiers for talking avatars from a single image plus audio; Omnihuman 1.5 generates realistic talking head video from a portrait and audio. The comparison data file (price/speed/quality scores) contains no entries for lip sync models, so no price, speed or quality ranking is stated here. The public model catalog also lists FLUX 3 Lip Sync, but it has no mode category in the studio and does not appear in either group.",
+  "outputs": ["A lip-synced video (MP4) shown in the result canvas", "Downloadable file named like lipsync-<id>.mp4", "A History entry stored in your browser", "Optional AI-captioned preview"],
+  "limitations": [
+    "Audio is required in both modes; a portrait or video is required depending on mode.",
+    "Upload size limits come from the shared MuAPI limits: images 10MB, video 50MB, audio 10MB.",
+    "You can only use models from the current mode's group.",
+    "There is no phoneme-level timing editor, voice library, background replacement or expression sliders in this studio; you control the result with the audio, the photo, the model and an optional prompt.",
+    "History is stored locally in your browser (up to 30 entries) and is not synced between devices.",
+    "Generating requires being signed in with credits; otherwise you are asked to sign in or add credits."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "No voice library",
+      "impact": "You must bring your own audio file.",
+      "workaround": "Create speech or a cloned voice in Audio Studio (#/audio), download it, then upload it here."
+    },
+    {
+      "limitation": "Upload size limits",
+      "impact": "Large files are rejected.",
+      "workaround": "Trim or compress the video to under 50MB and keep audio under 10MB."
+    },
+    {
+      "limitation": "Model groups are tied to the mode",
+      "impact": "A video-only model cannot be used with a photo.",
+      "workaround": "Switch the Input toggle to the mode that contains the model you want."
+    }
+  ],
+  "troubleshooting": [
+    "Toast 'Please upload an audio file first.': upload an audio file with the audio button before clicking Generate.",
+    "Toast 'Please upload a portrait image first.': you are in Portrait Image mode with no photo; upload one or switch to Video mode.",
+    "Toast 'Please upload a source video first.': you are in Video mode with no video; upload one or switch to Portrait Image mode.",
+    "Alert 'Please sign in and add api credits.' during upload: sign in and make sure your account has credits, then retry.",
+    "Toast 'Image upload failed: ...' / 'Video upload failed: ...' / 'Audio upload failed: ...': check the file size and type, then try again or use a different file.",
+    "Generate button shows 'Error: ...' for about 4 seconds then returns to 'Generate ✨': read the message, fix the input, and click Generate again.",
+    "Error 'No video URL returned by API': the model finished without a usable video; try again, use another model, or a different photo/audio.",
+    "No prompt box or resolution button visible: the selected model does not support them; pick a model that does if you need them.",
+    "Page was refreshed during generation: a banner 'Resuming N pending generation(s)...' appears and the result is added to History when ready.",
+    "Mouth does not match well: use a clear front-facing portrait, clean speech with little background noise, and try another model."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Generate does nothing and a red message appears",
+      "steps": [
+        "Read the toast text.",
+        "If it asks for audio, portrait image or source video, upload that file and wait for the status label to show a check mark.",
+        "Click Generate again."
+      ]
+    },
+    {
+      "issue": "Upload fails",
+      "steps": [
+        "Check you are signed in and have credits.",
+        "Check the file size (image 10MB, video 50MB, audio 10MB).",
+        "Try a more common format such as JPG/PNG, MP4 and MP3/WAV.",
+        "Retry the upload."
+      ]
+    },
+    {
+      "issue": "Result looks poor",
+      "steps": [
+        "Use a sharper, front-facing, well-lit photo (or a clean source video).",
+        "Use clear audio with one speaker.",
+        "Raise the resolution if a resolution button is available.",
+        "Switch to a different model and use Regenerate."
+      ]
+    },
+    {
+      "issue": "Generation is taking very long",
+      "steps": [
+        "Wait; the studio polls for a long time before giving up.",
+        "Do not worry if you refresh: pending jobs are resumed.",
+        "If it fails, try a lower resolution or shorter audio."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "I cannot find the resolution or prompt option",
+      "whyItHappens": "These controls only appear for models that support them.",
+      "howToFix": "Pick a model such as Infinite Talk or LTX 2.3 Lipsync, which offer resolution and a prompt."
+    },
+    {
+      "problem": "The model list is different after I clicked Video",
+      "whyItHappens": "The list depends on the mode, and switching mode resets the model to the first one in that group.",
+      "howToFix": "Re-select the model you want after switching modes."
+    },
+    {
+      "problem": "My earlier results disappeared",
+      "whyItHappens": "History is stored in this browser only and keeps 30 entries.",
+      "howToFix": "Download results you want to keep."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Talking portrait from a photo and a voice-over",
+      "steps": [
+        "Open Lip Sync Studio and keep '🖼 Portrait Image' selected.",
+        "Upload a clear front-facing photo.",
+        "Upload your voice-over audio.",
+        "Keep the default model and resolution.",
+        "Click 'Generate ✨', then '↓ Download'."
+      ]
+    },
+    {
+      "title": "Dub an existing clip",
+      "steps": [
+        "Click '🎬 Video'.",
+        "Upload the source video.",
+        "Upload the new audio (for example a translated voice-over).",
+        "Pick a model from the Video group, such as Sync Lipsync.",
+        "Click 'Generate ✨' and review the preview."
+      ]
+    },
+    {
+      "title": "Text to talking face",
+      "steps": [
+        "Create speech from your script in Audio Studio (#/audio) and download it.",
+        "Come back to Lip Sync Studio, upload the portrait and the speech file.",
+        "Generate, then use '💬 Add AI Captions' if you want subtitles."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Personalized greeting video",
+      "description": "Make a person in a photo say a custom message.",
+      "steps": ["Record or generate the message audio.", "Upload a portrait.", "Upload the audio.", "Generate."],
+      "expectedOutput": "A short talking-head MP4."
+    },
+    {
+      "title": "Dubbing a social clip into another language",
+      "description": "Replace the original speech with translated speech and match the lips.",
+      "steps": ["Switch to Video mode.", "Upload the clip and the translated audio.", "Pick a Video-group model.", "Generate."],
+      "expectedOutput": "The same clip with lip movement matched to the new audio."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What do I need to make a portrait talk?",
+      "answer": "A portrait image and an audio file, in Portrait Image mode. Then click Generate."
+    },
+    {
+      "question": "What is the difference between Portrait Image and Video mode?",
+      "answer": "Portrait Image animates a still photo to speak your audio. Video re-syncs the mouth in an existing video to your audio."
+    },
+    {
+      "question": "Which model is the default?",
+      "answer": "In Portrait Image mode the first model, Infinite Talk, is selected (480p by default). In Video mode the first model, Sync Lipsync, is selected."
+    },
+    {
+      "question": "Can I type what the person should say?",
+      "answer": "No. This studio is driven by an audio file. Create speech from text in Audio Studio first, then upload it here. The optional prompt only describes talking style or motion."
+    },
+    {
+      "question": "How long can the audio be?",
+      "answer": "The in-app tips suggest keeping audio under 60 seconds for best results. The studio itself does not show a hard duration limit."
+    },
+    {
+      "question": "Where are my results saved?",
+      "answer": "In the History panel in your browser (up to 30 entries) and in your generation history. Always download anything important."
+    }
+  ],
+  "glossary": {
+    "Lip sync": "Making a mouth move so it matches spoken audio.",
+    "Portrait image": "A photo of a face, ideally front-facing and well lit.",
+    "Video-to-video": "Changing an existing video rather than creating one from nothing.",
+    "Resolution": "Output sharpness, shown as 480p, 720p or 1080p.",
+    "Prompt": "Optional text that guides the style of the result.",
+    "GTM Boost": "An extra tool in the more-tools menu that helps write or improve prompts for this studio."
+  },
+  "tips": [
+    "Clear, front-facing portraits work best.",
+    "Keep audio files under 60 seconds for best results.",
+    "Higher resolution models take longer but produce better quality.",
+    "Use clean audio with little background noise.",
+    "Test with a short clip before making a long one."
+  ],
+  "bestPractices": [
+    "Test your photo and audio at the default resolution first, then raise the resolution for the final render.",
+    "Keep faces uncovered and large in frame.",
+    "Download finished videos right away.",
+    "Use Audio Studio to produce consistent voice tracks."
+  ],
+  "relatedStudios": ["avatar", "audio", "video", "videotools", "character"],
+  "relatedStudioGuidance": [
+    {"studio": "audio", "relationship": "Creates the voice or music you upload here.", "whenToMove": "When you need speech from text or a cloned voice.", "why": "Lip Sync Studio needs an audio file as input."},
+    {"studio": "avatar", "relationship": "Offers talking-avatar and lip sync models in a single-form layout.", "whenToMove": "When you prefer the Avatar Studio form or want its Native Audio toggle on supporting models.", "why": "Uses an overlapping set of models with a different interface."},
+    {"studio": "character", "relationship": "Creates consistent character images.", "whenToMove": "When you need a portrait of a character before animating it.", "why": "A good portrait improves lip sync results."},
+    {"studio": "video", "relationship": "Generates new videos from prompts.", "whenToMove": "When you want a new scene instead of animating a face.", "why": "Lip Sync Studio does not create scenes."}
+  ],
+  "notConfirmed": [
+    "Exact maximum audio/video duration per model is not stated in code.",
+    "The audio size limit: shared upload limits say 10MB for audio, while the Audio Studio's own check says 20MB; Lip Sync Studio itself defines no separate audio limit.",
+    "Credit cost, price, speed or quality ranking per lip sync model: not present in the comparison data.",
+    "Whether the Omnihuman 1 5 resolution control appears in the studio (its field is named output_resolution, not resolution).",
+    "How well each model handles side-angle faces, multiple speakers or non-human characters.",
+    "Supported audio file formats beyond the generic audio/* file picker."
+  ],
+  "sourceFiles": [
+    "src/components/LipSyncStudio.js",
+    "src/lib/instructions.js",
+    "src/lib/models.js",
+    "public/api/model-catalog.json",
+    "src/lib/modelDescriptions.js",
+    "src/lib/modelComparisonData.js",
+    "src/lib/modelInputExtensions.js",
+    "src/lib/editor/uploadLimits.js",
+    "VIDEO_TOOLS_CHAT_LIPSYNC_AUDIT.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read LipSyncStudio.js (labels, toasts, defaults, generate handler), models.js lipsyncModels, model-catalog.json, instructions.js, uploadLimits.js, comparison and description files.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

@@ -1,5 +1,7 @@
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { muapi } from '../lib/muapi.js';
+import { createNotificationsBell } from '../lib/notificationsBell.js';
+import { supabase, primeSupabaseIdentity } from '../lib/supabase.js';
 
 // App top bar: logo, credit balance, API key and account.
 // Studio navigation lives only in the left side menu (src/components/Sidebar.js),
@@ -69,6 +71,12 @@ export function Header(navigate) {
   window.addEventListener('muapi:job-finished', refreshBalance);
   window.addEventListener('focus', refreshBalanceOnFocus);
 
+  // Unread video alerts (owner-only; hidden when signed out).
+  const bell = createNotificationsBell({
+    navigate,
+    getClient: async () => { await primeSupabaseIdentity(); return supabase; },
+  });
+  rightPart.appendChild(bell.element);
   rightPart.appendChild(balanceChip);
   rightPart.appendChild(keyBtn);
 

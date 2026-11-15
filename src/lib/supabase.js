@@ -247,21 +247,33 @@ export async function assertVerifiedWriteIdentity(identity) {
  *   - no verified identity  → `x-user-key` alone (anonymous header
  *     fallback, unchanged behaviour).
  */
+/**
+ * Set or clear a header on either shape the SDKs use: a plain object (older
+ * postgrest-js / storage-js) or a `Headers` instance (current supabase-js,
+ * where assigning `headers.Authorization = ...` is silently ignored and every
+ * "signed-in" request would go out as the anonymous key).
+ */
+function setClientHeader(headers, name, value) {
+  if (!headers) return;
+  if (typeof headers.set === 'function' && typeof headers.delete === 'function') {
+    if (value === null || value === undefined) headers.delete(name);
+    else headers.set(name, value);
+    return;
+  }
+  if (value === null || value === undefined) delete headers[name];
+  else headers[name] = value;
+}
+
 function applyIdentity(client, token) {
   const identity = getIdentity();
   // Identity changed (sign-out / account switch): the cached token is stale.
   if (cachedToken && identity && cachedToken.subject !== identity) clearCachedToken();
   const bearer = token ? `Bearer ${token}` : null;
   try {
-    if (client?.rest?.headers) {
-      if (bearer) client.rest.headers.Authorization = bearer;
-      else delete client.rest.headers.Authorization;
-      client.rest.headers['x-user-key'] = identity;
-    }
-    if (client?.storage?.headers) {
-      if (bearer) client.storage.headers.Authorization = bearer;
-      else delete client.storage.headers.Authorization;
-      client.storage.headers['x-user-key'] = identity;
+    for (const headers of [client?.rest?.headers, client?.storage?.headers]) {
+      if (!headers) continue;
+      setClientHeader(headers, 'Authorization', bearer);
+      setClientHeader(headers, 'x-user-key', identity);
     }
   } catch { /* identity unavailable — policies fall back to the anonymous owner */ }
 }

@@ -24,7 +24,7 @@
  *   size?: '1024x1024' | '1024x1536' | '1536x1024' | 'auto',
  *   quality?: 'low' | 'medium' | 'high' | 'auto',
  *   referenceImageUrl?: string,  // for editing
- *   referenceImageUrls?: string[], // up to 8 public https images: edit / keep a
+ *   referenceImageUrls?: string[], // up to 8 public https (or inline data:image) images: edit / keep a
  *                                  // character, product or location consistent
  *   editInstruction?: string,    // for editing
  *   n?: number (1-4),
@@ -203,8 +203,12 @@ export async function handler(event) {
 
   // Reference images (edit / consistency). Public https only — never data: or
   // internal URLs — and at most 8.
+  // Inline images (data:image/png|jpeg|webp;base64) are accepted too: a generated panel or a local upload used as a reference
+  // arrives that way. They are size-capped, and the OpenAI edit API takes them in `image_url` as-is.
+  const INLINE_IMAGE = /^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/i;
+  const MAX_INLINE_REF_CHARS = 2_500_000;
   const refs = [...new Set([referenceImageUrl, ...(Array.isArray(referenceImageUrls) ? referenceImageUrls : [])]
-    .filter((u) => typeof u === 'string' && /^https:\/\//i.test(u)))].slice(0, 8);
+    .filter((u) => typeof u === 'string' && (/^https:\/\//i.test(u) || (u.length <= MAX_INLINE_REF_CHARS && INLINE_IMAGE.test(u)))))].slice(0, 8);
 
   if (!prompt || !prompt.trim()) {
     return jsonResponse(400, { ok: false, error: 'Prompt is required' });

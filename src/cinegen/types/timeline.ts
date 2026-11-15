@@ -142,7 +142,7 @@ export interface EditorLayout {
 export const DEFAULT_EDITOR_LAYOUT: EditorLayout = {
   leftPanelWidth: 240,
   leftPanelMode: 'full',
-  viewerTimelineSplit: 0.55,
+  viewerTimelineSplit: 0.42, // [remix] was 0.55: more room so the four default tracks show
   sourceTimelineSplit: 0.5,
   sourceViewerVisible: false,
   rightPanelWidth: 280,

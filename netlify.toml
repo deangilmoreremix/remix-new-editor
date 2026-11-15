@@ -91,6 +91,14 @@
   status = 200
   force = true
 
+# Local demo / template clips and posters (public/media/**). The Remotion export runner is a sandboxed frame with an opaque origin,
+# so reading these (decoding frames into a canvas) is a cross-origin request and needs CORS (same reason as /assets/* and /hyperframes/*).
+# The Template videos library itself is hosted in the Supabase bucket demo-template-videos (public, CORS *), not here.
+[[headers]]
+  for = "/media/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+
 # Template Generator AI (script writing + image generation). These /api paths had no
 # rewrite, so production served index.html (404) and the AI buttons failed.
 [[redirects]]
@@ -110,6 +118,13 @@
 [[redirects]]
   from = "/api/video-agent"
   to = "/.netlify/functions/video-agent"
+  status = 200
+  force = true
+
+# Zack D studio (curiosity-loop 3D shorts): script/trends (OpenAI) + media jobs (MuAPI), BYOK.
+[[redirects]]
+  from = "/api/zackd"
+  to = "/.netlify/functions/zackd"
   status = 200
   force = true
 
@@ -167,6 +182,12 @@
 [[redirects]]
   from = "/api/watch-voice"
   to = "/.netlify/functions/watch-voice"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/video-events"
+  to = "/.netlify/functions/video-events"
   status = 200
   force = true
 

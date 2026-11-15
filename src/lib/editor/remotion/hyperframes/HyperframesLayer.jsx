@@ -13,7 +13,7 @@ import { useVideoConfig, useDelayRender } from 'remotion';
 import enabled from '../../../hyperframes/catalog.enabled.json';
 import { reportCodeError } from '../codeLayer.jsx';
 import { componentHostHtml, routeVarsToInstance } from './host.js';
-import { hfPlacement, defaultFitFor } from '../../../hyperframes/placement.js';
+import { hfPlacement, defaultFitFor, isReactItem } from '../../../hyperframes/placement.js';
 
 const byId = new Map(enabled.items.map((i) => [i.id, i]));
 export const isEnabledBlock = (id) => byId.has(id);
@@ -26,7 +26,7 @@ const RuiClip = React.lazy(() => import('../remotionui/RemotionUiClip.jsx').then
 
 export function HyperframesLayer({ layer }) {
   // RemotionUI items share this layer kind (blockId "rui:<name>") so the lane, persistence, toasts, kill switch and export gating are the same
-  if (String(layer.blockId || '').startsWith('rui:')) {
+  if (isReactItem(layer.blockId)) {
     if (layer.runtimeDisabled) { reportCodeError(layer.id, `${HF_ERROR}"${layer.title || layer.blockId}" was not rendered: Animations are temporarily switched off. Your project data is unchanged.`); return null; }
     return <RuiPlaced layer={layer} />;
   }

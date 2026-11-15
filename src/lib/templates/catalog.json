@@ -1,0 +1,5828 @@
+{
+ "source": "MIT-licensed template repos (see docs/third-party-templates.md)",
+ "count": 138,
+ "items": [
+  {
+   "id": "tpl:free:brush-stroke-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "brush-stroke-reveal",
+   "title": "Brush stroke reveal",
+   "description": "Brush stroke reveal template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "Brush Stroke",
+     "type": "text"
+    },
+    {
+     "key": "description",
+     "label": "Description",
+     "hint": "",
+     "defaultValue": "painted on, stroke by stroke",
+     "type": "text"
+    },
+    {
+     "key": "strokes",
+     "label": "Strokes",
+     "hint": "",
+     "defaultValue": 3,
+     "type": "number",
+     "step": 0.05
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "8d2b2cc836b9ccc9b693e9723e9dd8f4fda03cb423faeaf4371dd6b7a168d97b"
+  },
+  {
+   "id": "tpl:free:logo-blur-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "logo-blur-reveal",
+   "title": "Logo blur reveal",
+   "description": "Logo blur reveal template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "logoText",
+     "label": "Logo Text",
+     "hint": "",
+     "defaultValue": "HELLO",
+     "type": "text"
+    },
+    {
+     "key": "revealDuration",
+     "label": "Reveal Duration",
+     "hint": "",
+     "defaultValue": 1.6,
+     "type": "number",
+     "step": 0.05
+    },
+    {
+     "key": "logoColor",
+     "label": "Logo Color",
+     "hint": "",
+     "defaultValue": "#0F172A",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "bf45191f4a304117ec7f45b875145063aa2e33045631b3d7efc077037be4f6e1"
+  },
+  {
+   "id": "tpl:free:logo-bounce-drop",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "logo-bounce-drop",
+   "title": "Logo bounce drop",
+   "description": "Logo bounce drop template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3,
+   "editables": [
+    {
+     "key": "logoText",
+     "label": "Logo Text",
+     "hint": "",
+     "defaultValue": "RENDERCOMP",
+     "type": "text"
+    },
+    {
+     "key": "svgPath",
+     "label": "Svg Path",
+     "hint": "",
+     "defaultValue": "",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "1eae0fa65f5d3838b2639801793adce3fe784112201ab1850a528483a419fe93"
+  },
+  {
+   "id": "tpl:free:logo-mask-wipe",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "logo-mask-wipe",
+   "title": "Logo mask wipe",
+   "description": "Logo mask wipe template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3.3333333333333335,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0a0800",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#eab308",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#fefce8",
+     "type": "color"
+    },
+    {
+     "key": "monogram",
+     "label": "Monogram",
+     "hint": "",
+     "defaultValue": "A",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "618c3f64166c71bd9536178f3d7b904c658838dc8491bed8fe99edf5a6723869"
+  },
+  {
+   "id": "tpl:free:logo-split-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "logo-split-reveal",
+   "title": "Logo split reveal",
+   "description": "Logo split reveal template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "logoText",
+     "label": "Logo Text",
+     "hint": "",
+     "defaultValue": "RENDERCOMP",
+     "type": "text"
+    },
+    {
+     "key": "revealDuration",
+     "label": "Reveal Duration",
+     "hint": "",
+     "defaultValue": 1.4,
+     "type": "number",
+     "step": 0.05
+    },
+    {
+     "key": "logoColor",
+     "label": "Logo Color",
+     "hint": "",
+     "defaultValue": "#0F172A",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "26f19f1b98465419c6632d13da87264e7144654c670dee2fdd7911f11caa55cb"
+  },
+  {
+   "id": "tpl:free:logo-stroke-draw",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "logo-stroke-draw",
+   "title": "Logo stroke draw",
+   "description": "Logo stroke draw template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3.6666666666666665,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0a0800",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#eab308",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#fefce8",
+     "type": "color"
+    },
+    {
+     "key": "monogram",
+     "label": "Monogram",
+     "hint": "",
+     "defaultValue": "A",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "54c8efd1b4dd2547a32d6b3c1f2130b39fbcb51ed9dece285aade210eaae779a"
+  },
+  {
+   "id": "tpl:free:neon-sign",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "neon-sign",
+   "title": "Neon sign",
+   "description": "Neon sign template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3.3333333333333335,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#080010",
+     "type": "color"
+    },
+    {
+     "key": "neonColor",
+     "label": "Neon Color",
+     "hint": "",
+     "defaultValue": "#f0abfc",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "dd91f6cd55195d52a2c1160232f6695e439ff48c1cfebef0656d4464cfe53289"
+  },
+  {
+   "id": "tpl:free:shatter-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "shatter-reveal",
+   "title": "Shatter reveal",
+   "description": "Shatter reveal template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "Reveal",
+     "type": "text"
+    },
+    {
+     "key": "subtitle",
+     "label": "Subtitle",
+     "hint": "",
+     "defaultValue": "Fragments converge into focus",
+     "type": "text"
+    },
+    {
+     "key": "pieces",
+     "label": "Pieces",
+     "hint": "",
+     "defaultValue": 36,
+     "type": "number",
+     "step": 1
+    },
+    {
+     "key": "spread",
+     "label": "Spread",
+     "hint": "",
+     "defaultValue": 280,
+     "type": "number",
+     "step": 1
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "630cf15be8ae9a9953de31e83245363dc39629bc25b52ef9ca637f3b52309546"
+  },
+  {
+   "id": "tpl:free:bounce-in-headline",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "bounce-in-headline",
+   "title": "Bounce in headline",
+   "description": "Bounce in headline template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "headline",
+     "label": "Headline",
+     "hint": "",
+     "defaultValue": "Make It Bounce",
+     "type": "text"
+    },
+    {
+     "key": "background",
+     "label": "Background",
+     "hint": "",
+     "defaultValue": "#111827",
+     "type": "color"
+    },
+    {
+     "key": "color",
+     "label": "Color",
+     "hint": "",
+     "defaultValue": "#fbbf24",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "ebb556bd1a4f2ffe351a603e41ffba6e3f4ef2c62d6529dda3a647bab89d6252"
+  },
+  {
+   "id": "tpl:free:chapter-title",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "chapter-title",
+   "title": "Chapter title",
+   "description": "Chapter title template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "chapterLabel",
+     "label": "Chapter Label",
+     "hint": "",
+     "defaultValue": "Chapter 1",
+     "type": "text"
+    },
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "Chapter One: The Beginning",
+     "type": "text"
+    },
+    {
+     "key": "subtitle",
+     "label": "Subtitle",
+     "hint": "",
+     "defaultValue": "Where the journey starts",
+     "type": "text"
+    },
+    {
+     "key": "background",
+     "label": "Background",
+     "hint": "",
+     "defaultValue": "#0d1117",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "155e6c462890931f8e59f97fd07ef7ec6d0bd0914e46e2101e1caad664dbf1e9"
+  },
+  {
+   "id": "tpl:free:four-tone-mono-titler",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "four-tone-mono-titler",
+   "title": "Four tone mono titler",
+   "description": "Four tone mono titler template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "LANTERN HOLLOW",
+     "type": "text"
+    },
+    {
+     "key": "subtitle",
+     "label": "Subtitle",
+     "hint": "",
+     "defaultValue": "STAGE 01 - THE QUIET MARSH",
+     "type": "text"
+    },
+    {
+     "key": "titleCell",
+     "label": "Title Cell",
+     "hint": "",
+     "defaultValue": 4,
+     "type": "number",
+     "step": 0.05
+    },
+    {
+     "key": "subtitleCell",
+     "label": "Subtitle Cell",
+     "hint": "",
+     "defaultValue": 2,
+     "type": "number",
+     "step": 0.05
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "1407850bb1d67a3f780432646ae312e9647fa39dbd95f9a3fdaa1f685d1ff9e4"
+  },
+  {
+   "id": "tpl:free:glitch-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "glitch-text",
+   "title": "Glitch text",
+   "description": "Glitch text template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "text",
+     "label": "Text",
+     "hint": "",
+     "defaultValue": "OVERDRIVE",
+     "type": "text"
+    },
+    {
+     "key": "glitchColor",
+     "label": "Glitch Color",
+     "hint": "",
+     "defaultValue": "#FFFFFF",
+     "type": "color"
+    },
+    {
+     "key": "intensity",
+     "label": "Intensity",
+     "hint": "",
+     "defaultValue": 0.8,
+     "type": "number",
+     "step": 0.05
+    },
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0A0A0F",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "0e79fede2a9366343b580e3f2075d85ce3be3066faf1fa938de21d3a2c775978"
+  },
+  {
+   "id": "tpl:free:gradient-text-sweep",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "gradient-text-sweep",
+   "title": "Gradient text sweep",
+   "description": "Gradient text sweep template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3.6666666666666665,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#050818",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#22d3ee",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#ecfeff",
+     "type": "color"
+    },
+    {
+     "key": "headline",
+     "label": "Headline",
+     "hint": "",
+     "defaultValue": "BUILD BOLD",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "dce4739002b22c0d75464019530f191c2afc7176576a51943054fb8686ce2da1"
+  },
+  {
+   "id": "tpl:free:kinetic-word-stack",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "kinetic-word-stack",
+   "title": "Kinetic word stack",
+   "description": "Kinetic word stack template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#050818",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#22d3ee",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#ecfeff",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "b9702ff6e808867edb499839104da06a737db1625b852985ea493f6fe8080e0a"
+  },
+  {
+   "id": "tpl:free:pixel-typewriter-quote",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "pixel-typewriter-quote",
+   "title": "Pixel typewriter quote",
+   "description": "Pixel typewriter quote template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 6,
+   "editables": [
+    {
+     "key": "quote",
+     "label": "Quote",
+     "hint": "",
+     "defaultValue": "Make it work, make it right, make it fast.",
+     "type": "text"
+    },
+    {
+     "key": "attribution",
+     "label": "Attribution",
+     "hint": "",
+     "defaultValue": "- Kent Beck",
+     "type": "text"
+    },
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0c0e1a",
+     "type": "color"
+    },
+    {
+     "key": "inkColor",
+     "label": "Ink Color",
+     "hint": "",
+     "defaultValue": "#dfe7ff",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "fce74a17aac4710c4c9fa2a674ba9469506934faf7d6d87cc5f069b6b7b38384"
+  },
+  {
+   "id": "tpl:free:scramble-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "scramble-text",
+   "title": "Scramble text",
+   "description": "Scramble text template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "text",
+     "label": "Text",
+     "hint": "",
+     "defaultValue": "ACCESS GRANTED",
+     "type": "text"
+    },
+    {
+     "key": "label",
+     "label": "Label",
+     "hint": "",
+     "defaultValue": "DECRYPTING",
+     "type": "text"
+    },
+    {
+     "key": "background",
+     "label": "Background",
+     "hint": "",
+     "defaultValue": "#05080f",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#00ff9c",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "4a52d58f9104c20bd13f16f5dd604e37f8a76e34bc054e0890fc0c5651244bd0"
+  },
+  {
+   "id": "tpl:free:text-mask-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "text-mask-reveal",
+   "title": "Text mask reveal",
+   "description": "Text mask reveal template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3.6666666666666665,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#050818",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#22d3ee",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#ecfeff",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "efa46f24442cda49a8e400b65417617117b33272d4565a53a11b966406f050c5"
+  },
+  {
+   "id": "tpl:free:typewriter",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "typewriter",
+   "title": "Typewriter",
+   "description": "Typewriter template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3.3333333333333335,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0f0c00",
+     "type": "color"
+    },
+    {
+     "key": "machineColor",
+     "label": "Machine Color",
+     "hint": "",
+     "defaultValue": "#374151",
+     "type": "color"
+    },
+    {
+     "key": "machineDarkColor",
+     "label": "Machine Dark Color",
+     "hint": "",
+     "defaultValue": "#1f2937",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "7dabf0f17c7559143b412a5612088386f69bde3b32cc4d8c08034cb1fb36875f"
+  },
+  {
+   "id": "tpl:free:wave-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "wave-text",
+   "title": "Wave text",
+   "description": "Wave text template (free)",
+   "category": "Titles & text",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "text",
+     "label": "Text",
+     "hint": "",
+     "defaultValue": "WAVE",
+     "type": "text"
+    },
+    {
+     "key": "subText",
+     "label": "Sub Text",
+     "hint": "",
+     "defaultValue": "Shape the Future",
+     "type": "text"
+    },
+    {
+     "key": "background",
+     "label": "Background",
+     "hint": "",
+     "defaultValue": "#0c2342",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#ffffff",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "92703378c926b8907e07809aee80dd9eeb7327f1173e00b892f5805566efa1d7"
+  },
+  {
+   "id": "tpl:free:camera-shake",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "camera-shake",
+   "title": "Camera shake",
+   "description": "Camera shake template (free)",
+   "category": "Transitions",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "IMPACT",
+     "type": "text"
+    },
+    {
+     "key": "subtitle",
+     "label": "Subtitle",
+     "hint": "",
+     "defaultValue": "System breach detected",
+     "type": "text"
+    },
+    {
+     "key": "background",
+     "label": "Background",
+     "hint": "",
+     "defaultValue": "#111827",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#fef3c7",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "9665d4192cf149e9cde2c26614a06f795bc73c78c6ba6b08764eeafba6da2744"
+  },
+  {
+   "id": "tpl:free:card-flip-transition",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "card-flip-transition",
+   "title": "Card flip transition",
+   "description": "Card flip transition template (free)",
+   "category": "Transitions",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "colorAfter",
+     "label": "Color After",
+     "hint": "",
+     "defaultValue": "#9a8c98",
+     "type": "color"
+    },
+    {
+     "key": "labelAfter",
+     "label": "Label After",
+     "hint": "",
+     "defaultValue": "After",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "96d3a65d480b3df452f33b7e869a1dc583040f0e3bc05d64cc26d5d9ad69b169"
+  },
+  {
+   "id": "tpl:free:transition-circle-wipe",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "transition-circle-wipe",
+   "title": "Transition circle wipe",
+   "description": "Transition circle wipe template (free)",
+   "category": "Transitions",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0b0f1a",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#6366f1",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#eef2ff",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "9d8a579463caaa2c88b0c6298f776b1ef59ae08657a98812d9cd4a14f9b40c5e"
+  },
+  {
+   "id": "tpl:free:ink-spread-transition",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "ink-spread-transition",
+   "title": "Ink spread transition",
+   "description": "Ink spread transition template (free)",
+   "category": "Transitions",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "colorBefore",
+     "label": "Color Before",
+     "hint": "",
+     "defaultValue": "#f5f1e8",
+     "type": "color"
+    },
+    {
+     "key": "colorAfter",
+     "label": "Color After",
+     "hint": "",
+     "defaultValue": "#1a1a1a",
+     "type": "color"
+    },
+    {
+     "key": "labelAfter",
+     "label": "Label After",
+     "hint": "",
+     "defaultValue": "After",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": true,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "586e1287deb0cdcdbaf4af2b0639bfb746906d5b11edac0a3f99c1e95dc8c696"
+  },
+  {
+   "id": "tpl:free:flip-page-transition",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "flip-page-transition",
+   "title": "Flip page transition",
+   "description": "Flip page transition template (free)",
+   "category": "Transitions",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "colorBefore",
+     "label": "Color Before",
+     "hint": "",
+     "defaultValue": "#fefae0",
+     "type": "color"
+    },
+    {
+     "key": "colorAfter",
+     "label": "Color After",
+     "hint": "",
+     "defaultValue": "#283618",
+     "type": "color"
+    },
+    {
+     "key": "labelBefore",
+     "label": "Label Before",
+     "hint": "",
+     "defaultValue": "Before",
+     "type": "text"
+    },
+    {
+     "key": "labelAfter",
+     "label": "Label After",
+     "hint": "",
+     "defaultValue": "After",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "38b87f00ee342f3b5ef8e835430c2e2283e91db32f0958c82dac29df1fc393fd"
+  },
+  {
+   "id": "tpl:free:pixel-mosaic-transition",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "pixel-mosaic-transition",
+   "title": "Pixel mosaic transition",
+   "description": "Pixel mosaic transition template (free)",
+   "category": "Transitions",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3,
+   "editables": [
+    {
+     "key": "screenBColor",
+     "label": "Screen BColor",
+     "hint": "",
+     "defaultValue": "#1b2b66",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": true,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "356cb646c4db8baf6c5f49d17868b5691aa380d1b5ef31bdb5edb8c1f344a692"
+  },
+  {
+   "id": "tpl:free:slide-wipe",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "slide-wipe",
+   "title": "Slide wipe",
+   "description": "Slide wipe template (free)",
+   "category": "Transitions",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "colorBefore",
+     "label": "Color Before",
+     "hint": "",
+     "defaultValue": "#0d4f8b",
+     "type": "color"
+    },
+    {
+     "key": "colorAfter",
+     "label": "Color After",
+     "hint": "",
+     "defaultValue": "#ffb703",
+     "type": "color"
+    },
+    {
+     "key": "labelAfter",
+     "label": "Label After",
+     "hint": "",
+     "defaultValue": "After",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "29eca88c5590021aefd3152d600c9dc639a7350bfd538b4a8d2d60ea35490782"
+  },
+  {
+   "id": "tpl:free:whip-pan",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "whip-pan",
+   "title": "Whip pan",
+   "description": "Whip pan template (free)",
+   "category": "Transitions",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "panLeft",
+     "label": "Pan Left",
+     "hint": "",
+     "defaultValue": true,
+     "type": "boolean"
+    },
+    {
+     "key": "maxBlur",
+     "label": "Max Blur",
+     "hint": "",
+     "defaultValue": 24,
+     "type": "number",
+     "step": 1
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "13b436b43dbb02db58b32467f8cb97e3bc8efb1eda7d92e9113ad8fc402c696a"
+  },
+  {
+   "id": "tpl:free:bar-chart-anim",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "bar-chart-anim",
+   "title": "Bar chart anim",
+   "description": "Bar chart anim template (free)",
+   "category": "Data & charts",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "Quarterly Revenue",
+     "type": "text"
+    },
+    {
+     "key": "subtitle",
+     "label": "Subtitle",
+     "hint": "",
+     "defaultValue": "Year over year +28%",
+     "type": "text"
+    },
+    {
+     "key": "background",
+     "label": "Background",
+     "hint": "",
+     "defaultValue": "#0f172a",
+     "type": "color"
+    },
+    {
+     "key": "titleColor",
+     "label": "Title Color",
+     "hint": "",
+     "defaultValue": "#ffffff",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "a6f0609d6bc1ae7ef7ca84d63ab7ebf566ac7a5d9927a41b92405b2ae69b26db"
+  },
+  {
+   "id": "tpl:free:line-chart-anim",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "line-chart-anim",
+   "title": "Line chart anim",
+   "description": "Line chart anim template (free)",
+   "category": "Data & charts",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "Monthly Active Users",
+     "type": "text"
+    },
+    {
+     "key": "subtitle",
+     "label": "Subtitle",
+     "hint": "",
+     "defaultValue": "Last six months (thousands)",
+     "type": "text"
+    },
+    {
+     "key": "background",
+     "label": "Background",
+     "hint": "",
+     "defaultValue": "#0b1220",
+     "type": "color"
+    },
+    {
+     "key": "titleColor",
+     "label": "Title Color",
+     "hint": "",
+     "defaultValue": "#ffffff",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "5da93751dc40f12475105b005ddc1c6d6972876aaa182263cbb8847fdc0ecc56"
+  },
+  {
+   "id": "tpl:free:pourover-drip-fill-gauge",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "pourover-drip-fill-gauge",
+   "title": "Pourover drip fill gauge",
+   "description": "Pourover drip fill gauge template (free)",
+   "category": "Data & charts",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 6,
+   "editables": [
+    {
+     "key": "toneBg",
+     "label": "Tone Bg",
+     "hint": "",
+     "defaultValue": "#1c1206",
+     "type": "color"
+    },
+    {
+     "key": "toneDark",
+     "label": "Tone Dark",
+     "hint": "",
+     "defaultValue": "#6b4410",
+     "type": "color"
+    },
+    {
+     "key": "toneMid",
+     "label": "Tone Mid",
+     "hint": "",
+     "defaultValue": "#c88a1e",
+     "type": "color"
+    },
+    {
+     "key": "toneLight",
+     "label": "Tone Light",
+     "hint": "",
+     "defaultValue": "#f6d27a",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": true,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "19edaed3660fd2eed817ab9947f97b1f63bd6a41b42eda6ebaf752b607ee4fbf"
+  },
+  {
+   "id": "tpl:free:kpi-counter",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "kpi-counter",
+   "title": "Kpi counter",
+   "description": "Kpi counter template (free)",
+   "category": "Data & charts",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0f172a",
+     "type": "color"
+    },
+    {
+     "key": "cardColor",
+     "label": "Card Color",
+     "hint": "",
+     "defaultValue": "#1e293b",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#f8fafc",
+     "type": "color"
+    },
+    {
+     "key": "subtextColor",
+     "label": "Subtext Color",
+     "hint": "",
+     "defaultValue": "#94a3b8",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "ee037276a87d4892cc71c607fa0b1a55a9bcdd62aa23cbd9463df8ac21eef95d"
+  },
+  {
+   "id": "tpl:free:pixel-candlestick-ohlc",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "pixel-candlestick-ohlc",
+   "title": "Pixel candlestick ohlc",
+   "description": "Pixel candlestick ohlc template (free)",
+   "category": "Data & charts",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 6,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0a0f1e",
+     "type": "color"
+    },
+    {
+     "key": "gridColor",
+     "label": "Grid Color",
+     "hint": "",
+     "defaultValue": "#1b2942",
+     "type": "color"
+    },
+    {
+     "key": "bullColor",
+     "label": "Bull Color",
+     "hint": "",
+     "defaultValue": "#2ee06a",
+     "type": "color"
+    },
+    {
+     "key": "bearColor",
+     "label": "Bear Color",
+     "hint": "",
+     "defaultValue": "#ff4d5e",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": true,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "2c702c041d6086d514173bc11e26a7922ddd89bedf6b85a7133546ccd35512db"
+  },
+  {
+   "id": "tpl:free:racing-chart",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "racing-chart",
+   "title": "Racing chart",
+   "description": "Racing chart template (free)",
+   "category": "Data & charts",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 7,
+   "editables": [
+    {
+     "key": "frames",
+     "label": "Frames",
+     "hint": "",
+     "defaultValue": 36,
+     "type": "number",
+     "step": 1
+    },
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "Market Share Race",
+     "type": "text"
+    },
+    {
+     "key": "background",
+     "label": "Background",
+     "hint": "",
+     "defaultValue": "#0b1f3a",
+     "type": "color"
+    },
+    {
+     "key": "titleColor",
+     "label": "Title Color",
+     "hint": "",
+     "defaultValue": "#ffffff",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "308845e207a0ce67d1982be0e1c301857cbd6bd1aae891280568a21f6f537e35"
+  },
+  {
+   "id": "tpl:free:community-chat",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "community-chat",
+   "title": "Community chat",
+   "description": "Community chat template (free)",
+   "category": "Social & UI",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1920
+   },
+   "fps": 30,
+   "duration": 9,
+   "editables": [
+    {
+     "key": "workspaceName",
+     "label": "Workspace Name",
+     "hint": "",
+     "defaultValue": "Nimbus",
+     "type": "text"
+    },
+    {
+     "key": "channelName",
+     "label": "Channel Name",
+     "hint": "",
+     "defaultValue": "announcements",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": true,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "0ec9b1600443887e4627652d3880326ac46d08795fbb9402d45b7a5e6337c584"
+  },
+  {
+   "id": "tpl:free:end-card",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "end-card",
+   "title": "End card",
+   "description": "End card template (free)",
+   "category": "Social & UI",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "Thanks for watching",
+     "type": "text"
+    },
+    {
+     "key": "subtitle",
+     "label": "Subtitle",
+     "hint": "",
+     "defaultValue": "LEARN MORE AT OUR SITE",
+     "type": "text"
+    },
+    {
+     "key": "ctaText",
+     "label": "Cta Text",
+     "hint": "",
+     "defaultValue": "Visit our website",
+     "type": "text"
+    },
+    {
+     "key": "background",
+     "label": "Background",
+     "hint": "",
+     "defaultValue": "#0b1f3a",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "5872ac116045481d5ec6aaef8a11a4648665239711109202479f4cd553fb5bd5"
+  },
+  {
+   "id": "tpl:free:eye-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "eye-reveal",
+   "title": "Eye reveal",
+   "description": "Eye reveal template (free)",
+   "category": "Social & UI",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0f172a",
+     "type": "color"
+    },
+    {
+     "key": "scleraColor",
+     "label": "Sclera Color",
+     "hint": "",
+     "defaultValue": "#f8fafc",
+     "type": "color"
+    },
+    {
+     "key": "irisColor",
+     "label": "Iris Color",
+     "hint": "",
+     "defaultValue": "#3b82f6",
+     "type": "color"
+    },
+    {
+     "key": "pupilColor",
+     "label": "Pupil Color",
+     "hint": "",
+     "defaultValue": "#0f172a",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "206a09baaddea53aa2131fb6eaf3acc96f845271aa7e4049ff598055123c7c8f"
+  },
+  {
+   "id": "tpl:free:lower-third-glass-card",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "lower-third-glass-card",
+   "title": "Lower third glass card",
+   "description": "Lower third glass card template (free)",
+   "category": "Lower thirds",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0c1a2e",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#06b6d4",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#f0f9ff",
+     "type": "color"
+    },
+    {
+     "key": "nameText",
+     "label": "Name Text",
+     "hint": "",
+     "defaultValue": "Alex Morgan",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "7240007ee09711a33da7b6ec44dab9f6f4bef6a2416fa2db8fa2e78d41e14be2"
+  },
+  {
+   "id": "tpl:free:character-jumping",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "character-jumping",
+   "title": "Character jumping",
+   "description": "Character jumping template (free)",
+   "category": "Social & UI",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#e0f2fe",
+     "type": "color"
+    },
+    {
+     "key": "characterColor",
+     "label": "Character Color",
+     "hint": "",
+     "defaultValue": "#0ea5e9",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "0a0f666338affd4e628eb66bf5700477a78155d83abecef9541520e5e898e589"
+  },
+  {
+   "id": "tpl:free:social-reel",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "social-reel",
+   "title": "Social reel",
+   "description": "Social reel template (free)",
+   "category": "Social & UI",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "brandName",
+     "label": "Brand Name",
+     "hint": "",
+     "defaultValue": "Streamly",
+     "type": "text"
+    },
+    {
+     "key": "handle",
+     "label": "Handle",
+     "hint": "",
+     "defaultValue": "@aria.studio",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "8c5bcbd4710a2d5895e2358ea35cc576144c6739a4c7cfcd4b8bb546357d169c"
+  },
+  {
+   "id": "tpl:free:split-screen",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "split-screen",
+   "title": "Split screen",
+   "description": "Split screen template (free)",
+   "category": "Social & UI",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "direction",
+     "label": "Direction",
+     "hint": "",
+     "defaultValue": "horizontal",
+     "type": "select",
+     "options": [
+      "horizontal",
+      "vertical"
+     ]
+    },
+    {
+     "key": "dividerColor",
+     "label": "Divider Color",
+     "hint": "",
+     "defaultValue": "#fbbf24",
+     "type": "color"
+    },
+    {
+     "key": "dividerWidth",
+     "label": "Divider Width",
+     "hint": "",
+     "defaultValue": 6,
+     "type": "number",
+     "step": 1
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "488ad5c9c542de755c0fb363cc8abd296fbb75e0ed2e2e9ae57726e0263233b9"
+  },
+  {
+   "id": "tpl:free:thinking-bubble",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "thinking-bubble",
+   "title": "Thinking bubble",
+   "description": "Thinking bubble template (free)",
+   "category": "Social & UI",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#fafaf9",
+     "type": "color"
+    },
+    {
+     "key": "characterColor",
+     "label": "Character Color",
+     "hint": "",
+     "defaultValue": "#78716c",
+     "type": "color"
+    },
+    {
+     "key": "bubbleColor",
+     "label": "Bubble Color",
+     "hint": "",
+     "defaultValue": "#ffffff",
+     "type": "color"
+    },
+    {
+     "key": "bubbleBorder",
+     "label": "Bubble Border",
+     "hint": "",
+     "defaultValue": "#d6d3d1",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "1a497dc9f88d1af3325efe858701b5682ef06f4b9eb58a47eeec60f22bf538a3"
+  },
+  {
+   "id": "tpl:free:wave-hello",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "wave-hello",
+   "title": "Wave hello",
+   "description": "Wave hello template (free)",
+   "category": "Social & UI",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#e0f2fe",
+     "type": "color"
+    },
+    {
+     "key": "skinColor",
+     "label": "Skin Color",
+     "hint": "",
+     "defaultValue": "#fbbf24",
+     "type": "color"
+    },
+    {
+     "key": "bodyColor",
+     "label": "Body Color",
+     "hint": "",
+     "defaultValue": "#3b82f6",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#1d4ed8",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "aca90cbb2937f315aad43beac3adf2260438bc448fe4eabcc502c5e9ef88e9e7"
+  },
+  {
+   "id": "tpl:free:bokeh-circles",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "bokeh-circles",
+   "title": "Bokeh circles",
+   "description": "Bokeh circles template (free)",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "baseColor",
+     "label": "Base Color",
+     "hint": "",
+     "defaultValue": "#1a0f1f",
+     "type": "color"
+    },
+    {
+     "key": "count",
+     "label": "Count",
+     "hint": "",
+     "defaultValue": 24,
+     "type": "number",
+     "step": 1
+    },
+    {
+     "key": "label",
+     "label": "Label",
+     "hint": "",
+     "defaultValue": "Background Demo",
+     "type": "text"
+    },
+    {
+     "key": "labelColor",
+     "label": "Label Color",
+     "hint": "",
+     "defaultValue": "#ffffff",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "export too slow (1.2 fps at 1080p)",
+   "sourceSha256": "253fcd4308207cd5146dce41ceb1717448199206d23ea0494a26df7ed489073e"
+  },
+  {
+   "id": "tpl:free:fireworks-burst",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "fireworks-burst",
+   "title": "Fireworks burst",
+   "description": "Fireworks burst template (free)",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3.6666666666666665,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0f172a",
+     "type": "color"
+    },
+    {
+     "key": "sparkColor",
+     "label": "Spark Color",
+     "hint": "",
+     "defaultValue": "#fbbf24",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#f8fafc",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "c29c869e487e7cc4173272053edaf97a919b84ce73f32b453e032b9b202c66d5"
+  },
+  {
+   "id": "tpl:free:loop-grid-wave",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "loop-grid-wave",
+   "title": "Loop grid wave",
+   "description": "Loop grid wave template (free)",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0a0f1e",
+     "type": "color"
+    },
+    {
+     "key": "dotColor",
+     "label": "Dot Color",
+     "hint": "",
+     "defaultValue": "#334155",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#38bdf8",
+     "type": "color"
+    },
+    {
+     "key": "amplitude",
+     "label": "Amplitude",
+     "hint": "",
+     "defaultValue": 1,
+     "type": "number",
+     "step": 0.05
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "c394027b53bbf340a021e419c4a6ccf9405dd51e274c943d4fb02b3f17ffed59"
+  },
+  {
+   "id": "tpl:free:parallax-pan",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "parallax-pan",
+   "title": "Parallax pan",
+   "description": "Parallax pan template (free)",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 4,
+   "editables": [
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "Beyond the Horizon",
+     "type": "text"
+    },
+    {
+     "key": "subtitle",
+     "label": "Subtitle",
+     "hint": "",
+     "defaultValue": "A journey through layered worlds",
+     "type": "text"
+    },
+    {
+     "key": "skyTop",
+     "label": "Sky Top",
+     "hint": "",
+     "defaultValue": "#1e3a8a",
+     "type": "color"
+    },
+    {
+     "key": "skyBottom",
+     "label": "Sky Bottom",
+     "hint": "",
+     "defaultValue": "#f59e0b",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "c2b211b81932311b5c159bcbb136b9ea326e5b19b325fd99f2b914df16ea3673"
+  },
+  {
+   "id": "tpl:free:pencil-draw",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "pencil-draw",
+   "title": "Pencil draw",
+   "description": "Pencil draw template (free)",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3.3333333333333335,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#fffbeb",
+     "type": "color"
+    },
+    {
+     "key": "pencilColor",
+     "label": "Pencil Color",
+     "hint": "",
+     "defaultValue": "#fbbf24",
+     "type": "color"
+    },
+    {
+     "key": "lineColor",
+     "label": "Line Color",
+     "hint": "",
+     "defaultValue": "#1e293b",
+     "type": "color"
+    },
+    {
+     "key": "eraserColor",
+     "label": "Eraser Color",
+     "hint": "",
+     "defaultValue": "#fca5a5",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "524b912509f2c61ef7f06d4155a3186e37e4f9bc00239f9376ecf9b12910c3b4"
+  },
+  {
+   "id": "tpl:free:pixel-waterfall-cycle",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "pixel-waterfall-cycle",
+   "title": "Pixel waterfall cycle",
+   "description": "Pixel waterfall cycle template (free)",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1920
+   },
+   "fps": 30,
+   "duration": 6,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0a1430",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#e6fbff",
+     "type": "color"
+    },
+    {
+     "key": "cliffColor",
+     "label": "Cliff Color",
+     "hint": "",
+     "defaultValue": "#1a2238",
+     "type": "color"
+    },
+    {
+     "key": "cycleSpeed",
+     "label": "Cycle Speed",
+     "hint": "",
+     "defaultValue": 0.2,
+     "type": "number",
+     "step": 0.05
+    }
+   ],
+   "needs": [],
+   "slow": true,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "feddbfd5812227798e1bcad2df8b09337484bdac4f361d1dc95c33dc1b284d09"
+  },
+  {
+   "id": "tpl:free:particle-snow",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "particle-snow",
+   "title": "Particle snow",
+   "description": "Particle snow template (free)",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0f172a",
+     "type": "color"
+    },
+    {
+     "key": "snowColor",
+     "label": "Snow Color",
+     "hint": "",
+     "defaultValue": "#e2e8f0",
+     "type": "color"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#38bdf8",
+     "type": "color"
+    },
+    {
+     "key": "flakeCount",
+     "label": "Flake Count",
+     "hint": "",
+     "defaultValue": 70,
+     "type": "number",
+     "step": 1
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "5ddb0ba1c64b496688e810825eb3da771d541f885a55897737fb72bbba66f4ac"
+  },
+  {
+   "id": "tpl:free:starfield",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "free",
+   "name": "starfield",
+   "title": "Starfield",
+   "description": "Starfield template (free)",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "free"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "count",
+     "label": "Count",
+     "hint": "",
+     "defaultValue": 180,
+     "type": "number",
+     "step": 1
+    },
+    {
+     "key": "starColor",
+     "label": "Star Color",
+     "hint": "",
+     "defaultValue": "#ffffff",
+     "type": "color"
+    },
+    {
+     "key": "baseColor",
+     "label": "Base Color",
+     "hint": "",
+     "defaultValue": "#02030a",
+     "type": "color"
+    },
+    {
+     "key": "warpSpeed",
+     "label": "Warp Speed",
+     "hint": "",
+     "defaultValue": 4,
+     "type": "number",
+     "step": 0.05
+    }
+   ],
+   "needs": [],
+   "slow": true,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "e2401d120ea5b8743eeb25f5178d8ce9fbe20656e7f0c64e6583cc1ba196fe6b"
+  },
+  {
+   "id": "tpl:video:LogoIntro",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "video",
+   "name": "LogoIntro",
+   "title": "Logo Intro",
+   "description": "Logo Intro template (video)",
+   "category": "Titles & text",
+   "tags": [
+    "video"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 3,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#FFFFFF",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "6a1d0b2cd1d46506840c175b84a10a8188e6319e4166fef1dee44a8d91e647d9"
+  },
+  {
+   "id": "tpl:video:LowerThirds",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "video",
+   "name": "LowerThirds",
+   "title": "Lower Thirds",
+   "description": "Lower Thirds template (video)",
+   "category": "Lower thirds",
+   "tags": [
+    "video"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 9.8,
+   "editables": [
+    {
+     "key": "name",
+     "label": "Name",
+     "hint": "",
+     "defaultValue": "Alejandro Brito",
+     "type": "text"
+    },
+    {
+     "key": "role",
+     "label": "Role",
+     "hint": "",
+     "defaultValue": "Full-stack + AI Developer",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "eaea8e6c8fb3377be02fa9ce56d346a5f6499fb5c072f7d03b8abc4c54eaea5a"
+  },
+  {
+   "id": "tpl:video:KineticText",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "video",
+   "name": "KineticText",
+   "title": "Kinetic Text",
+   "description": "Kinetic Text template (video)",
+   "category": "Titles & text",
+   "tags": [
+    "video"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 10,
+   "editables": [
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#09090B",
+     "type": "color"
+    },
+    {
+     "key": "textColor",
+     "label": "Text Color",
+     "hint": "",
+     "defaultValue": "#FAFAFA",
+     "type": "color"
+    },
+    {
+     "key": "emphasisColor",
+     "label": "Emphasis Color",
+     "hint": "",
+     "defaultValue": "#60A5FA",
+     "type": "color"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "34ce52ae7c822e1405f653d1447da9ec13bd85df0f4e45ea8fd64a3e1cc885d9"
+  },
+  {
+   "id": "tpl:video:BarChartRace",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "video",
+   "name": "BarChartRace",
+   "title": "Bar Chart Race",
+   "description": "Bar Chart Race template (video)",
+   "category": "Data & charts",
+   "tags": [
+    "video"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 9.6,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "8701e1d455971f3ae46a73c1deabc821161629ba97d20d5fd4a169a79a7d9e04"
+  },
+  {
+   "id": "tpl:video:LineChartDraw",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "video",
+   "name": "LineChartDraw",
+   "title": "Line Chart Draw",
+   "description": "Line Chart Draw template (video)",
+   "category": "Data & charts",
+   "tags": [
+    "video"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 6.433333333333334,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "1a7d9b5e6b594ae2e3af9814d35858e9f0559c19cb4bc60543a3ab3bf18a122b"
+  },
+  {
+   "id": "tpl:video:CaptionedShort",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "video",
+   "name": "CaptionedShort",
+   "title": "Captioned Short",
+   "description": "Captioned Short template (video)",
+   "category": "Social & UI",
+   "tags": [
+    "video"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1080,
+    "height": 1920
+   },
+   "fps": 30,
+   "duration": 10,
+   "editables": [
+    {
+     "key": "title",
+     "label": "Title",
+     "hint": "",
+     "defaultValue": "Programmatic captions",
+     "type": "text"
+    },
+    {
+     "key": "accentColor",
+     "label": "Accent Color",
+     "hint": "",
+     "defaultValue": "#FACC15",
+     "type": "color"
+    },
+    {
+     "key": "backgroundColor",
+     "label": "Background Color",
+     "hint": "",
+     "defaultValue": "#0B1220",
+     "type": "color"
+    },
+    {
+     "key": "mode",
+     "label": "Mode",
+     "hint": "",
+     "defaultValue": "group",
+     "type": "select",
+     "options": [
+      "single",
+      "group"
+     ]
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "4345b0d0f15aa3476ca3d30898d04222cd4261beb5c0e7cd066d564ac056d046"
+  },
+  {
+   "id": "tpl:video:PromoTemplate",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "video",
+   "name": "PromoTemplate",
+   "title": "Promo Template",
+   "description": "Promo Template template (video)",
+   "category": "Social & UI",
+   "tags": [
+    "video"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 11.333333333333334,
+   "editables": [
+    {
+     "key": "productName",
+     "label": "Product Name",
+     "hint": "",
+     "defaultValue": "Morph",
+     "type": "text"
+    },
+    {
+     "key": "cta",
+     "label": "Cta",
+     "hint": "",
+     "defaultValue": "Try it free at morph.dev",
+     "type": "text"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "d3b54c06f99ff1adfeb8c35b3b602a1d6a8931f436803f70cbbe2795ea1b2fa1"
+  },
+  {
+   "id": "tpl:rve:animated-list",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "animated-list",
+   "title": "Animated List",
+   "description": "Staggered list item entrance",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "7e55770e06b244bbc18cd7ff33b40f447aef75290ec72d14f2fc81dffc74820e"
+  },
+  {
+   "id": "tpl:rve:animated-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "animated-text",
+   "title": "Animated Text",
+   "description": "Character-by-character text reveal",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Hello Remotion",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Hello Remotion"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "4d0ee69079664cb4559e5d8a4cd99ac0a2d22a2acc21935168882dcc53d90687"
+  },
+  {
+   "id": "tpl:rve:area-chart",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "area-chart",
+   "title": "Area Chart",
+   "description": "Gradient-filled area under a line, revealing left to right",
+   "category": "Data & charts",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Performance Metrics",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Performance Metrics"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "e72fee666010f1ce0bbfaddad647e7d2a1eaa3266a8bc03cd091176d2df52c57"
+  },
+  {
+   "id": "tpl:rve:blinds-transition",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "blinds-transition",
+   "title": "Blinds Transition",
+   "description": "Horizontal blinds opening",
+   "category": "Transitions",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Scene B",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Behind the blinds",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Behind the blinds"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "MP4 export failed: Failed to set the 'width' property on 'OffscreenCanvas': Value is not of type 'unsigned long'.",
+   "sourceSha256": "61c15fa5d3dc2f2e984e8b32f1fc66f76eb21252e1f2545ef364d7b2b433cd0c"
+  },
+  {
+   "id": "tpl:rve:bokeh-circles",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "bokeh-circles",
+   "title": "Bokeh Circles",
+   "description": "Floating soft circles with drift",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:bokeh-circles (the version with typed props)",
+   "sourceSha256": "9dc2b85e727376fd9855be47d659206d6aa500f60e93bb0e4fc6049624690e8c"
+  },
+  {
+   "id": "tpl:rve:bounce-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "bounce-text",
+   "title": "Bounce Text",
+   "description": "Spring bounce entrance for titles",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Start Building",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Start Building"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Theres never been a better",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Theres never been a better time"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "a61897767eb69462f9380f6eb4dc67bf898a762e9371ee25e0e1b53335382562"
+  },
+  {
+   "id": "tpl:rve:bubble-pop-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "bubble-pop-text",
+   "title": "Bubble Pop Text",
+   "description": "Characters pop in inside bubbles",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: HELLO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "HELLO"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "408f3924ef103dadd6d11ce8567ca43873e9fc7c50b75d75b6b3711ca0139811"
+  },
+  {
+   "id": "tpl:rve:camera-shake",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "camera-shake",
+   "title": "Camera Shake",
+   "description": "Decaying shake for impact moments",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: IMPACT",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "IMPACT"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Camera shake with decaying",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Camera shake with decaying amplitude"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:camera-shake (the version with typed props)",
+   "sourceSha256": "1179e638b8a6df0339b4be0f8bec39dd31b0e47e26b9326bb3d9c6474b852a3d"
+  },
+  {
+   "id": "tpl:rve:card-flip",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "card-flip",
+   "title": "Card Flip",
+   "description": "3D card flip with front/back content",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Remotion 👋",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Remotion 👋"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "e382d5595622310d2eea5fa6fe863049bb9f2d1a88af5de46501398c4e4f6cad"
+  },
+  {
+   "id": "tpl:rve:chapter-title",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "chapter-title",
+   "title": "Chapter Title",
+   "description": "Chapter number with extending lines",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Chapter",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Chapter"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: 1",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "1"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: The Beginning",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "The Beginning"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:chapter-title (the version with typed props)",
+   "sourceSha256": "2c7a0d88f1d05897f9cb1b281789fc152689369a9d813156534d1317566fc752"
+  },
+  {
+   "id": "tpl:rve:chart-animation",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "chart-animation",
+   "title": "Bar Chart",
+   "description": "Animated SVG bar chart with staggered bar growth",
+   "category": "Data & charts",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Monthly Performance",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Monthly Performance"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Data visualization for 202",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Data visualization for 2023"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "bc3b8bae838968dfd510f6e6c374946479491da5e27d81a6a859be212cb0f7e5"
+  },
+  {
+   "id": "tpl:rve:cinematic-title-intro",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "cinematic-title-intro",
+   "title": "Cinematic Title Intro",
+   "description": "Title spring-in with growing underline",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Your Story Begins",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Your Story Begins"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: A Cinematic Experience",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "A Cinematic Experience"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "7c3c530bb580d178e86d47f779a353cbdebd64901cefc48f830433ae0b2126bb"
+  },
+  {
+   "id": "tpl:rve:circular-progress",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "circular-progress",
+   "title": "Circular Progress",
+   "description": "Animated progress ring with percentage",
+   "category": "Data & charts",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "7bfbedc39d99408eca76ac1a0eece7ea52e051ab7f526c58d863a1e217b4091c"
+  },
+  {
+   "id": "tpl:rve:clock-wipe",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "clock-wipe",
+   "title": "Clock Wipe",
+   "description": "Radial clock-hand sweep",
+   "category": "Transitions",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Scene B",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Revealed by clock wipe",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Revealed by clock wipe"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "f289637bebe5f8c31f0c5fe64550160159bed3cac3e12a4105745112516eb445"
+  },
+  {
+   "id": "tpl:rve:comparison-chart",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "comparison-chart",
+   "title": "Comparison Chart",
+   "description": "Side-by-side before/after metric comparison",
+   "category": "Data & charts",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Performance Comparison",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Performance Comparison"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Before",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Before"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: After",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "After"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "6154c04da3974547c985efaf542e7f45cb5fe348eb94ce2ceea602bf553ce56a"
+  },
+  {
+   "id": "tpl:rve:countdown-intro",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "countdown-intro",
+   "title": "Countdown Intro",
+   "description": "Ring countdown 3-2-1-GO",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: GO!",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "GO!"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "d2a09159bd97a925d2d2a64e08bd6aa896e369bc6a37f3e7079f04560e932ada"
+  },
+  {
+   "id": "tpl:rve:countdown-timer",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "countdown-timer",
+   "title": "Countdown Timer",
+   "description": "5-4-3-2-1-GO with spring scale",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t4",
+     "label": "Text 4: 2",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "2"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "c4251393d969f62cb7c72a3771c3adbd3bb464b6303c53f4062ac745d0313771"
+  },
+  {
+   "id": "tpl:rve:credits-roll",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "credits-roll",
+   "title": "Credits Roll",
+   "description": "Scrolling movie-style credits",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "19bc1d81a34205717c3c087bfde059460ed776ac17f53939175e7c7cabe53351"
+  },
+  {
+   "id": "tpl:rve:cross-dissolve",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "cross-dissolve",
+   "title": "Cross Dissolve",
+   "description": "Classic cross-fade between scenes",
+   "category": "Transitions",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t3",
+     "label": "Text 3: Scene B",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Appearing...",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Appearing..."
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "c7fea79669de4d19812cf173c07472479e1a6beabb1941b21f99737e19cfaca7"
+  },
+  {
+   "id": "tpl:rve:donut-chart",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "donut-chart",
+   "title": "Donut Chart",
+   "description": "Ring chart with animated segments and centre metric",
+   "category": "Data & charts",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Completion Rate",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Completion Rate"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Completion Rate",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Completion Rate"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "428762aae2d38dea7a291da42f8125b6b3d059bf41d077e4ff84a69a56398b6e"
+  },
+  {
+   "id": "tpl:rve:end-card",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "end-card",
+   "title": "End Card",
+   "description": "Outro with subscribe CTA",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Thanks for Watching",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Thanks for Watching"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Subscribe for More",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Subscribe for More"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: STUDIO CREATIVE",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "STUDIO CREATIVE"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:end-card (the version with typed props)",
+   "sourceSha256": "351415df4dabda752f2675921e14483c1b44a37c504dba7ea909ed67bf3a6c33"
+  },
+  {
+   "id": "tpl:rve:fade-through-black",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "fade-through-black",
+   "title": "Fade Through Black",
+   "description": "Dip to black between scenes",
+   "category": "Transitions",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t3",
+     "label": "Text 3: Scene 2",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene 2"
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Fading in...",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Fading in..."
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "86b04a2b75b1d85afe240b73d3365b36555c3ec5460819a0c0bc283b6c634068"
+  },
+  {
+   "id": "tpl:rve:film-burn",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "film-burn",
+   "title": "Film Burn",
+   "description": "Warm light leak overlay",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Film Burn Effect",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Film Burn Effect"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Light leak overlay",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Light leak overlay"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "86b846404a3b0c882a1c617a36481c7016f4f17d0b796ded105217e2abfad338"
+  },
+  {
+   "id": "tpl:rve:floating-bubble-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "floating-bubble-text",
+   "title": "Floating Text Chip",
+   "description": "Floating label with sine-wave wobble",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Floating",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Floating"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "d6c047a10cff0d41913592e819756edd776d7ede6d587e2d64cae411bc7cf9d5"
+  },
+  {
+   "id": "tpl:rve:gallery-grid",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "gallery-grid",
+   "title": "Gallery Grid",
+   "description": "Staggered 2x3 grid reveal",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "03b3f6061279f22c157b1142876c81dde966218f24b4090d3d80ba2487638a5c"
+  },
+  {
+   "id": "tpl:rve:geometric-patterns",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "geometric-patterns",
+   "title": "Geometric Patterns",
+   "description": "Rotating/scaling geometric shapes",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "78c8449872dffee594adea17a379255a1c5b16efcbe1ce1fbe4178c76b43efc3"
+  },
+  {
+   "id": "tpl:rve:glitch-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "glitch-text",
+   "title": "Glitch Text",
+   "description": "RGB split glitch with decay",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: GLITCH",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "GLITCH"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: GLITCH",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "GLITCH"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: GLITCH",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "GLITCH"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:glitch-text (the version with typed props)",
+   "sourceSha256": "de24411598395de1c43200dbc7f09d86610792b82c8cdcee2cfd01fd06727d66"
+  },
+  {
+   "id": "tpl:rve:gradient-shift",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "gradient-shift",
+   "title": "Gradient Shift",
+   "description": "Slowly shifting ambient gradient",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "3e1bbe0aaa09acb7ef5ef662d2520523ba02ce17469d08437ee839d738808e8c"
+  },
+  {
+   "id": "tpl:rve:grid-pulse",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "grid-pulse",
+   "title": "Grid Pulse",
+   "description": "Dot grid with ripple wave pulse",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "f4df9989c333078a25c623566a41cc64e18da10d9d1287fdb7c4d2e209f4c1a9"
+  },
+  {
+   "id": "tpl:rve:image-carousel",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "image-carousel",
+   "title": "Image Carousel",
+   "description": "Horizontal sliding with centre focus",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "264b64dd89f7f4051dbcc766d57313b8e2ace0d4d825c511e386aa678b8f4e5a"
+  },
+  {
+   "id": "tpl:rve:image-comparison-slider",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "image-comparison-slider",
+   "title": "Image Comparison Slider",
+   "description": "Before/after sliding divider",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t2",
+     "label": "Text 2: Before",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Before"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "55d074f72ae5daf13caa7c528ac261c85a78029123c632eda51a8293d4006842"
+  },
+  {
+   "id": "tpl:rve:image-zoom-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "image-zoom-reveal",
+   "title": "Image Zoom Reveal",
+   "description": "Zoom-out focus-pull reveal",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Featured Image",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Featured Image"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "c0b8f545289bf18f7950e25b6ff7e0db845bc7872820aa627ea8be6c3aea0575"
+  },
+  {
+   "id": "tpl:rve:iris-transition",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "iris-transition",
+   "title": "Iris Transition",
+   "description": "Circular iris close/open",
+   "category": "Transitions",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Scene B",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Iris opening...",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Iris opening..."
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "99f6c4cefa4ddca8f3c3a8e315c4c97a54c417b187273420a848a524230d930e"
+  },
+  {
+   "id": "tpl:rve:ken-burns",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "ken-burns",
+   "title": "Ken Burns",
+   "description": "Pan and zoom for images",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "MP4 export failed: Failed to construct 'VideoFrame': VideoFrames can't be created from tainted sources.",
+   "sourceSha256": "f8ff0d3ce51fde0c0152569272be03a9d0777e50461fe9ee6c6757c915c48d36"
+  },
+  {
+   "id": "tpl:rve:letterbox-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "letterbox-reveal",
+   "title": "Letterbox Reveal",
+   "description": "Black bars retracting to reveal",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: CINEMATIC",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "CINEMATIC"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: A letterbox reveal",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "A letterbox reveal"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "39013328f119ba0058abcd1a979fefd64a0df6875606f0a24c8f6693228d2ea5"
+  },
+  {
+   "id": "tpl:rve:line-chart",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "line-chart",
+   "title": "Line Chart",
+   "description": "SVG polyline drawing left-to-right with data points",
+   "category": "Data & charts",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Revenue Growth",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Revenue Growth"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "0ef51635535f688514dbeac24e4e648f4082485352fbccfcaf06e2e4c22e86c5"
+  },
+  {
+   "id": "tpl:rve:liquid-wave",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "liquid-wave",
+   "title": "Liquid Wave",
+   "description": "Flowing SVG wave shapes",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "7235814ce5eb9ec4c720cdb3ff2c9b955e1c688c19c9a0a9ae7278dbf3bc2e07"
+  },
+  {
+   "id": "tpl:rve:logo-blur-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "logo-blur-reveal",
+   "title": "Logo Blur Reveal",
+   "description": "Focus-pull blur to sharp",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: LOGO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "LOGO"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Company Name",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Company Name"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:logo-blur-reveal (the version with typed props)",
+   "sourceSha256": "32bd687f1c62c3f28866323c36e70fec6e175257a7625640ce9eab1ffaede2d6"
+  },
+  {
+   "id": "tpl:rve:logo-bounce-drop",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "logo-bounce-drop",
+   "title": "Logo Bounce Drop",
+   "description": "Drop from above with bounce",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: LOGO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "LOGO"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Company Name",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Company Name"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:logo-bounce-drop (the version with typed props)",
+   "sourceSha256": "6938aa234353c3894a80aba0aa5340348e781bf63309805a17fc069710269aa8"
+  },
+  {
+   "id": "tpl:rve:logo-fade-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "logo-fade-reveal",
+   "title": "Logo Fade Reveal",
+   "description": "Fade in with subtle scale-up",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: LOGO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "LOGO"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Company Name",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Company Name"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Your tagline here",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Your tagline here"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "2b45963e8b368af439d1b904ec478c6e2e0d79907d0b9fa916eb23bf63dd52a0"
+  },
+  {
+   "id": "tpl:rve:logo-glitch-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "logo-glitch-reveal",
+   "title": "Logo Glitch Reveal",
+   "description": "RGB split glitch decaying to clean",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t4",
+     "label": "Text 4: LOGO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "LOGO"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "4c03025ad277b47188d1644dd64260a229b5f00da392a9002bdc0cccd0dcb0fc"
+  },
+  {
+   "id": "tpl:rve:logo-scale-rotate",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "logo-scale-rotate",
+   "title": "Logo Scale Rotate",
+   "description": "Spinning scale entrance",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: LOGO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "LOGO"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Company Name",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Company Name"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "7381bc3fb0e7c5fca519f7001fca6e5ad8d1dd7ab67c5bc670e75c88b066f53b"
+  },
+  {
+   "id": "tpl:rve:logo-spin-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "logo-spin-reveal",
+   "title": "Logo Spin Reveal",
+   "description": "3D Y-axis spin reveal",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: LOGO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "LOGO"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Company Name",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Company Name"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Your tagline here",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Your tagline here"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "e9e8a353022f0d85f9a1ddcd0542d68f9daeedbc690de3ba41ec5a348274a956"
+  },
+  {
+   "id": "tpl:rve:logo-split-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "logo-split-reveal",
+   "title": "Logo Split Reveal",
+   "description": "Left/right halves expanding",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: LO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "LO"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: GO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "GO"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Company Name",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Company Name"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:logo-split-reveal (the version with typed props)",
+   "sourceSha256": "484be56a1f80b17d22e14eadfdbd9e497b537da691aa7a28cb8a304166d3afdf"
+  },
+  {
+   "id": "tpl:rve:logo-stroke-draw",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "logo-stroke-draw",
+   "title": "Logo Stroke Draw",
+   "description": "SVG stroke drawing animation",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Company Name",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Company Name"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:logo-stroke-draw (the version with typed props)",
+   "sourceSha256": "506422f6a4969ed7954c1b847655c40abf796a86db391bd75d581dc3b55860aa"
+  },
+  {
+   "id": "tpl:rve:logo-typewriter",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "logo-typewriter",
+   "title": "Logo Typewriter",
+   "description": "Icon + typed company name",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: ACME STUDIO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "ACME STUDIO"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "34203e676a74ddddd8dc6be06cbf863ec1704a28b860338c63e28c01fee61284"
+  },
+  {
+   "id": "tpl:rve:lower-third",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "lower-third",
+   "title": "Lower Third",
+   "description": "News-style name/title bar",
+   "category": "Lower thirds",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: John Smith",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "John Smith"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Senior Producer",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Senior Producer"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "cfce824fca0767f4861924ab1869b2bf47036442a12fa825b3ede14c44facdfc"
+  },
+  {
+   "id": "tpl:rve:masonry-gallery",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "masonry-gallery",
+   "title": "Masonry Gallery",
+   "description": "Pinterest-style staggered grid",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "a2d29b36c726f534e9678fc641794095f42f2193cf153ef16b0296194ad94cb2"
+  },
+  {
+   "id": "tpl:rve:matrix-rain",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "matrix-rain",
+   "title": "Matrix Rain",
+   "description": "Falling code rain columns",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "1e7eb0a2b972f2c402dea778a51349f232a1e1339bf51612c520b0d91cba8cb4"
+  },
+  {
+   "id": "tpl:rve:morph-transition",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "morph-transition",
+   "title": "Morph Transition",
+   "description": "Scale-and-fade morph",
+   "category": "Transitions",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t3",
+     "label": "Text 3: Scene B",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Morphing in...",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Morphing in..."
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "9c78770f8b61cda13b3896a9cd632b07b0eb5e3f4e4c1b6860f584294e021b4c"
+  },
+  {
+   "id": "tpl:rve:noise-grain",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "noise-grain",
+   "title": "Noise Grain",
+   "description": "Subtle film grain overlay",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Film Grain Overlay",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Film Grain Overlay"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Subtle noise texture effec",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Subtle noise texture effect"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "export too slow (1.3 fps at 1080p)",
+   "sourceSha256": "1337f58b299983129987087defc5fb0f4f055e4b1e2b607feabaf0e9fd489b70"
+  },
+  {
+   "id": "tpl:rve:notification-pop",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "notification-pop",
+   "title": "Notification Pop",
+   "description": "Stacking notification toasts",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Notifications",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Notifications"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: 3",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "3"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "46e62d6c04dcad4a3c9b708cfabdf2222e363ebbb5d09e099c35f2c5dfe5015e"
+  },
+  {
+   "id": "tpl:rve:parallax-pan",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "parallax-pan",
+   "title": "Parallax Pan",
+   "description": "Multi-layer parallax scrolling",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:parallax-pan (the version with typed props)",
+   "sourceSha256": "70531561f7410242306c46002a19a8560b7745a2886f8ba917492b12487cc838"
+  },
+  {
+   "id": "tpl:rve:particle-explosion",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "particle-explosion",
+   "title": "Particle Explosion",
+   "description": "Burst particles from centre",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "fc13d3160c420a70a002b4391f74a315b84664bb06a7ed8942cc9c4d8204c38c"
+  },
+  {
+   "id": "tpl:rve:photo-stack",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "photo-stack",
+   "title": "Photo Stack",
+   "description": "Overlapping frames with rotation",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "ae61b8a539c5f768d87fe84ceb161f775ece326f70ebe605c845c7905e9736f0"
+  },
+  {
+   "id": "tpl:rve:picture-in-picture",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "picture-in-picture",
+   "title": "Picture in Picture",
+   "description": "PiP overlay layout",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Main Content",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Main Content"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Speaker",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Speaker"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "4555f52a9abb0036b28fe2d1aa229afdd6606c41b5e6d4d82dd334dc382dd8d9"
+  },
+  {
+   "id": "tpl:rve:pie-chart",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "pie-chart",
+   "title": "Pie Chart",
+   "description": "Segmented circle with sequential segment reveals",
+   "category": "Data & charts",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Market Share",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Market Share"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "0cf8cb3d06e047e39033e9c5edb5ef2dd74600ff53e43fed2b64aac27c1036cd"
+  },
+  {
+   "id": "tpl:rve:pixel-transition",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "pixel-transition",
+   "title": "Pixel Transition",
+   "description": "Pixelated grid reveal",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "export too slow (0.6 fps at 1080p)",
+   "sourceSha256": "a570c1aa2df18341c75fe3aa0d10655a176986cae6f5994b916535f75af405c8"
+  },
+  {
+   "id": "tpl:rve:polaroid-frame",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "polaroid-frame",
+   "title": "Polaroid Frame",
+   "description": "Polaroid-style photo with drop-in",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Summer 2024",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Summer 2024"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "60bfbc822e0b38b780b529ae0775b8d1837de6599d75d7a04cb9eaeb67c3246f"
+  },
+  {
+   "id": "tpl:rve:popping-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "popping-text",
+   "title": "Popping Scale Text",
+   "description": "Spring-based scale pop entrance",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: BINGO!",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "BINGO!"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "18c0f32b14e2beb783995b614ff1a0dbf20695ed1a80ef24aa7491d71f5d6f37"
+  },
+  {
+   "id": "tpl:rve:progress-bars",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "progress-bars",
+   "title": "Progress Bars",
+   "description": "Horizontal bars filling to different widths",
+   "category": "Data & charts",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Skills Overview",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Skills Overview"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "c24d572338d23cdf606f2de03ec960a852995372646b9336911b9ba6a885b031"
+  },
+  {
+   "id": "tpl:rve:progress-steps",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "progress-steps",
+   "title": "Progress Steps",
+   "description": "Step indicator filling in sequence",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Research",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Research"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Design",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Design"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Build",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Build"
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Launch",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Launch"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "226487ecfc7ed08086bf7b4e2634c78f235a6878590d5f70eb5c6761c9148c4d"
+  },
+  {
+   "id": "tpl:rve:pulsing-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "pulsing-text",
+   "title": "Pulsing Text",
+   "description": "Continuous scale pulse for emphasis",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Pulse",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Pulse"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "5367ffe83e86091ad10b970b15ba3409bbe997c4902bc7587dac1979d6b93c83"
+  },
+  {
+   "id": "tpl:rve:push-transition",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "push-transition",
+   "title": "Push Transition",
+   "description": "New scene pushes old off-screen",
+   "category": "Transitions",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t3",
+     "label": "Text 3: Scene B",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Pushing in...",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Pushing in..."
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "f65a815801a5365256b471ffe8480b51ded540f67a682b3672ab9464c55d81a6"
+  },
+  {
+   "id": "tpl:rve:quote-card",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "quote-card",
+   "title": "Quote Card",
+   "description": "Animated quotation with attribution",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Design is not just what it",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Design is not just what it looks like. Design is how it works."
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: — Steve Jobs",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "— Steve Jobs"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "e8d9759270a9e990ab5c0a134d7adadfcecb614347fc823178cd56e474e24e85"
+  },
+  {
+   "id": "tpl:rve:rotating-carousel",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "rotating-carousel",
+   "title": "Rotating Carousel",
+   "description": "3D rotating card carousel",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Our Features",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Our Features"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "5dc3cfb8205fe48cbc7db28e2879c86a6960f36aa092f74d5eabcefe87021bd8"
+  },
+  {
+   "id": "tpl:rve:slide-text",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "slide-text",
+   "title": "Slide Text",
+   "description": "Directional slide-in text",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Sliding Text!",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Sliding Text!"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "230ac5415200d51178006f436e4ff433aecef047fd3c1db4fb664c3e15c3baed"
+  },
+  {
+   "id": "tpl:rve:slide-wipe",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "slide-wipe",
+   "title": "Slide Wipe",
+   "description": "Spring-driven panel slide",
+   "category": "Transitions",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: New Scene",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "New Scene"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Revealed underneath",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Revealed underneath"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:slide-wipe (the version with typed props)",
+   "sourceSha256": "6b60226b8f8a744888746096894ac71d8759691ee27cfaa6de68d71b2e8f635a"
+  },
+  {
+   "id": "tpl:rve:sound-wave",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "sound-wave",
+   "title": "Sound Wave",
+   "description": "Audio waveform bar visualiser",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "0c5bf7fbc8f3bbb707f5693244f59b5d20ea19fc16c8c9e6d5858454510f460f"
+  },
+  {
+   "id": "tpl:rve:split-screen",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "split-screen",
+   "title": "Split Screen",
+   "description": "Two panels sliding to meet",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Panel A",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Panel A"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Left side content slides i",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Left side content slides in from the left edge"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Panel B",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Panel B"
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Right side content slides ",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Right side content slides in from the right edge"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:split-screen (the version with typed props)",
+   "sourceSha256": "4ee99e7c164fc69d546fe9b7fefa4eeefeb72bd84b32d280ba4cfac60ce65fa5"
+  },
+  {
+   "id": "tpl:rve:spotlight-reveal",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "spotlight-reveal",
+   "title": "Spotlight Reveal",
+   "description": "Expanding circle clip-path reveal",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: REVEALED",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "REVEALED"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Spotlight reveal transitio",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Spotlight reveal transition"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "152f1c0908181fbe4a284a03e1ef8f60862b80f809ccd2fe6d6468b23c14f113"
+  },
+  {
+   "id": "tpl:rve:starfield",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "starfield",
+   "title": "Starfield",
+   "description": "Flying-through-space star effect",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:starfield (the version with typed props)",
+   "sourceSha256": "e90aa23f490edf5d89bb6419aedf577ab62db2305953346e06ff63ec86418868"
+  },
+  {
+   "id": "tpl:rve:stat-counter",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "stat-counter",
+   "title": "Stat Counter",
+   "description": "Large number counting up with comma formatting",
+   "category": "Data & charts",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Total Users",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Total Users"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: ↑ 12.5%",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "↑ 12.5%"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: This Month",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "This Month"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "b3d56ea9a06f3ff2b65413a6282013414055cd429589ee6208f34791063b2350"
+  },
+  {
+   "id": "tpl:rve:subscribe-reminder",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "subscribe-reminder",
+   "title": "Subscribe Reminder",
+   "description": "Floating subscribe overlay",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Your Video Content",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Your Video Content"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: &#128276;",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "&#128276;"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Subscribe",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Subscribe"
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: @CreativeStudio",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "@CreativeStudio"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "648831b5d64a7b788290e87ab33e08895f2b5367b35cc3fabb0478c236ef5840"
+  },
+  {
+   "id": "tpl:rve:text-highlight",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "text-highlight",
+   "title": "Text Highlight",
+   "description": "Sequential word highlighting",
+   "category": "Social & UI",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Build",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Build"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: amazing",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "amazing"
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: videos",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "videos"
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: with",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "with"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "0f1c390dcd18d9d900e8d2152a894236463a96ed2ef59644b7ef1dedd6967667"
+  },
+  {
+   "id": "tpl:rve:title-split",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "title-split",
+   "title": "Title Split",
+   "description": "Split text meeting in centre",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: CREATIVE",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "CREATIVE"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: STUDIO",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "STUDIO"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "81d867c0f3353ab706f0859d0c3d09056763e1b4f7b1d2e7d9ad7dd9e88b622d"
+  },
+  {
+   "id": "tpl:rve:typewriter-subtitle",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "typewriter-subtitle",
+   "title": "Typewriter Subtitle",
+   "description": "Character-by-character typing with cursor",
+   "category": "Titles & text",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: I like typing...",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "I like typing..."
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "01e010e253a2d4ba7d372f9cc97669576ccc54818db1cec05704a4bc81255b00"
+  },
+  {
+   "id": "tpl:rve:vignette-pulse",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "vignette-pulse",
+   "title": "Vignette Pulse",
+   "description": "Pulsing darkened edges overlay",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Your Content Here",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Your Content Here"
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Vignette pulses around the",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Vignette pulses around the edges"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "5ba10a45c0dbcf9207d872fc86e122a7309a77faf9e1622fd85852a45c674365"
+  },
+  {
+   "id": "tpl:rve:whip-pan",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "whip-pan",
+   "title": "Whip Pan",
+   "description": "Fast horizontal pan with motion blur",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t3",
+     "label": "Text 3: Scene B",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Scene B"
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Purple content",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Purple content"
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "duplicate of tpl:free:whip-pan (the version with typed props)",
+   "sourceSha256": "e331ebca6cdfdf674f1604557f19819acfc2a40e68842b27c6dbceabeea9c7ce"
+  },
+  {
+   "id": "tpl:rve:zoom-pulse",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "zoom-pulse",
+   "title": "Zoom Pulse",
+   "description": "Rhythmic zoom in/out pulse",
+   "category": "Backgrounds & effects",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [],
+   "needs": [],
+   "slow": false,
+   "enabled": false,
+   "reason": "MP4 export failed: Failed to construct 'VideoFrame': VideoFrames can't be created from tainted sources.",
+   "sourceSha256": "29abf629239fa72085224f3b7ffd23e9ef81b8c9b29ad3989e3697bce45950ac"
+  },
+  {
+   "id": "tpl:rve:zoom-through",
+   "type": "remotionui",
+   "source": "Templates",
+   "repo": "rve",
+   "name": "zoom-through",
+   "title": "Zoom Through",
+   "description": "Zoom in then zoom out reveal",
+   "category": "Transitions",
+   "tags": [
+    "rve"
+   ],
+   "kind": "templates",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "fps": 30,
+   "duration": 5,
+   "editables": [
+    {
+     "key": "t2",
+     "label": "Text 2: Arriving...",
+     "hint": "",
+     "type": "text",
+     "defaultValue": "Arriving..."
+    }
+   ],
+   "needs": [],
+   "slow": false,
+   "enabled": true,
+   "reason": "",
+   "sourceSha256": "ab0930d60c92ba297854f38d4af822ae40e5e77ab0acceb20bbce3688c7e6900"
+  }
+ ]
+}

@@ -1,0 +1,244 @@
+{
+  "id": "animate",
+  "name": "Animate Studio",
+  "route": "#/animate",
+  "description": "Animate Studio turns a single still image or product shot into a 3 to 12 second video with AI motion. You add an image, optionally describe the motion, choose duration and resolution, and press Animate. By default it uses Seedance Lite; you can switch to Choose a model to pick any image-to-video model.",
+  "shortDescription": "Turn any image or product shot into a 3-12s video with AI motion.",
+  "fullDescription": "Animate Studio is a simple image-to-video page. The source can be an uploaded image or a photoshoot you made earlier in Photo Studio. You write a Motion Prompt (or tap one of five suggestion chips such as Slow pan across the scene with subtle motion), pick a Duration (3, 5, 10 or 12 seconds) and a Resolution (480p, 720p or 1080p), and press Animate. In the default mode the studio calls the Seedance Lite image-to-video model with your prompt, duration and resolution. If you want another model, press the Model button so it reads Choose a model, pick from the MuAPI Model (I2V) list and optionally open extra controls (Negative Prompt, Seed, Steps, Guidance Scale, Denoise Strength, CFG Scale, Thumbnail URL, Prompt Extend). The finished video plays in a result card with a Download button, is saved to your generation history, and (when a brand exists) appears under Animation History. A Use My Brand row lets you connect brand details through a personalization window. Storyboard Studio can also send a frame and its motion prompt straight to this page.",
+  "bestFor": "Anyone who wants to bring a photo, product shot, poster or generated image to life with a short camera move or ambient motion, and wants control over the motion prompt, length and model.",
+  "whenToUse": [
+    "You have one image (product shot, portrait, artwork, storyboard frame) and want a short moving clip.",
+    "You want to describe the motion yourself, for example slow pan, zoom in with focus pull, or floating dust particles.",
+    "You want to compare different image-to-video models on the same image.",
+    "You want to animate a photoshoot created in Photo Studio.",
+    "You are continuing from Storyboard Studio and want to animate a frame."
+  ],
+  "whenToUseAnother": [
+    "Use Effects Studio (#/effects) or AI VFX Studio (#/ai-vfx) when you want a named preset effect (Dolly In, Cakeify, Building Explosion) rather than a free-form prompt.",
+    "Use Video Studio (#/video) for text-to-video, start and end frame control, reference video and the full set of video model options.",
+    "Use Lip Sync Studio (#/lipsync) or Avatar Studio (#/avatar) when the image should talk.",
+    "Use Video Tools (#/videotools) to upscale, caption, translate or recast a finished clip.",
+    "Use Storyboard Studio (#/storyboard) to plan several frames first, then send frames here.",
+    "Use Image Studio (#/image) if you still need to create the image."
+  ],
+  "keyFeatures": [
+    "Two source types: Upload image, or From Photo Studio.",
+    "Motion Prompt box with five one-click suggestion chips.",
+    "Duration choices 3, 5, 10 and 12 seconds; Resolution choices 480p, 720p and 1080p.",
+    "Default model Seedance Lite, or Choose a model with a large list of image-to-video models.",
+    "Optional advanced fields when choosing a model: Negative Prompt, Seed, Steps, Guidance Scale, Denoise Strength, CFG Scale, Thumbnail URL, Prompt Extend.",
+    "Use My Brand / Connect Personalization row for brand details.",
+    "Result card with video player, details line and Download button.",
+    "Animation History grid of the latest 8 animations for your brand.",
+    "Hand-off from Storyboard Studio of frame image, motion prompt and duration."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Source: Upload image",
+      "explanation": "Uses the upload picker to add one image. After you choose it a small preview appears under the picker.",
+      "whyToUse": "The normal way to start.",
+      "inputRequired": "One image.",
+      "restrictions": "Images only (videos and documents are not accepted here). The MuAPI image limit is 10 MB."
+    },
+    {
+      "feature": "Source: From Photo Studio",
+      "explanation": "Shows a drop-down labelled Select a photoshoot... listing photoshoots you created in Photo Studio for your first brand, in the form category and style.",
+      "whyToUse": "Animate a branded product image you already made.",
+      "inputRequired": "At least one saved photoshoot. Otherwise you see: No photoshoots found. Create one in Photo Studio first.",
+      "restrictions": "Reads photoshoots stored in this browser for your first saved brand."
+    },
+    {
+      "feature": "Motion Prompt and suggestion chips",
+      "explanation": "Textarea with the placeholder Describe the motion or effect (optional). Five chips fill it for you: Slow pan across the scene with subtle motion; Zoom into the subject with gentle focus pull; Drift camera to the right with parallax; Fade in from black with soft light bloom; Particle dust floating in light beams.",
+      "whyToUse": "Quick, safe motion ideas.",
+      "inputRequired": "Optional.",
+      "restrictions": "The first chip looks highlighted from the start but the text box stays empty until you click a chip. In the default Seedance Lite mode an empty prompt automatically uses the first suggestion (Slow pan across the scene with subtle motion)."
+    },
+    {
+      "feature": "Duration and Resolution",
+      "explanation": "Two drop-downs. Duration: 3, 5 (default), 10, 12 seconds. Resolution: 480p (default), 720p, 1080p.",
+      "whyToUse": "Pick length and sharpness; start at 480p for quick tests.",
+      "inputRequired": "Optional, defaults apply.",
+      "restrictions": "The page offers all values to every model. If a chosen model does not support a value the service may reject the request or adjust it; this is not checked in the code."
+    },
+    {
+      "feature": "Model: Seedance Lite (default) / Choose a model",
+      "explanation": "A toggle button beside the label Model. In the default state it reads Seedance Lite (default). Press it and it reads Choose a model, a MuAPI Model (I2V) drop-down appears with Select a model... as the first entry, plus the advanced fields.",
+      "whyToUse": "Try a different look, higher fidelity or different length limits.",
+      "inputRequired": "Pick a model after switching, otherwise the studio quietly uses the default Seedance Lite.",
+      "restrictions": "The list is built from the image-to-video models in the catalog, excluding the effect presets, so it contains well over 100 entries (184 at the time of review) such as Kling, Veo, Seedance, Wan, Runway, Pixverse, Vidu, MiniMax Hailuo, Sora, LTX and others. Some entries need extra inputs (reference or first and last frames) that this page does not provide."
+    },
+    {
+      "feature": "Advanced model fields",
+      "explanation": "After Choose a model is on: Negative Prompt (Things to avoid...), Seed (-1 for random), Steps (20), Guidance Scale (7.5), Denoise Strength (0.7), CFG Scale (0.5), Thumbnail URL (https://...), and a Prompt Extend checkbox. Placeholders show typical values; empty fields are not sent.",
+      "whyToUse": "Reproducibility and steering for models that support these settings.",
+      "inputRequired": "Optional.",
+      "restrictions": "Not every video model supports every field; unsupported ones may be ignored."
+    },
+    {
+      "feature": "Use My Brand",
+      "explanation": "A card labelled Use My Brand with the text Connect your brand: business name, colors, logos and reference frames. The Connect Personalization button opens the personalization window.",
+      "whyToUse": "Keep animations on-brand.",
+      "inputRequired": "Optional.",
+      "restrictions": "The page does not state how the personalization data is applied to the animation request."
+    },
+    {
+      "feature": "Result and Animation History",
+      "explanation": "After Animate, a card shows the looping video with the length and resolution (for example 5s, 480p), the label Image to Video and a Download button. Below, Animation History (Recent animations for your brand.) shows up to 8 saved animations.",
+      "whyToUse": "Review and download.",
+      "inputRequired": "A completed animation.",
+      "restrictions": "History is only shown and saved when a brand exists in this browser. Every animation is also saved to the general generation history."
+    }
+  ],
+  "howToUse": "1. Open Animate Studio from the side menu (#/animate). 2. Choose a source tab: Upload image or From Photo Studio. 3. Upload your image (or choose a photoshoot under Select a photoshoot...). 4. In Motion Prompt, type how the image should move, or click one of the five suggestion chips. 5. Choose Duration (3, 5, 10 or 12) and Resolution (480p, 720p or 1080p). 6. Leave the Model button on Seedance Lite (default), or press it to switch to Choose a model and pick one from MuAPI Model (I2V); optionally fill the advanced fields. 7. Press Animate. The button reads Animating... and an overlay says Animating image.... 8. When the toast says Animation complete, watch the result card and press Download.",
+  "howToSteps": [
+    "Open #/animate.",
+    "Pick Upload image or From Photo Studio and add your source.",
+    "Write a Motion Prompt or tap a suggestion chip.",
+    "Set Duration and Resolution.",
+    "Optionally press the Model button to Choose a model.",
+    "Press Animate.",
+    "Download the result."
+  ],
+  "gettingStarted": [
+    "Upload a clean image with an obvious subject.",
+    "Tap the first suggestion chip and press Animate at 5s and 480p for a fast first test.",
+    "If you like it, rerun at 720p or 1080p, or try another model.",
+    "Make sure your MuAPI key is saved in settings."
+  ],
+  "inputs": ["Source image", "Motion Prompt", "Duration", "Resolution", "Model", "Advanced fields", "Use My Brand"],
+  "requiredInputs": ["Source image"],
+  "optionalInputs": ["Motion Prompt", "Duration", "Resolution", "Model", "Advanced fields", "Use My Brand"],
+  "inputDetails": [
+    {"name": "Source image", "description": "The image to animate, from Upload image or From Photo Studio. Without it you see the toast: Please upload an image first.", "required": true, "whenToUse": "Always.", "restrictions": "Image only. 10 MB MuAPI image limit. Changing the source tab clears the current image and result."},
+    {"name": "Motion Prompt", "description": "Text describing the motion.", "required": false, "whenToUse": "When you want to control camera or subject movement.", "restrictions": "In Seedance Lite mode, empty means the first suggestion is used."},
+    {"name": "Duration", "description": "3, 5, 10 or 12 seconds.", "required": false, "whenToUse": "Longer for slower moves.", "restrictions": "Default 5. Storyboard hand-off clamps duration between 3 and 12."},
+    {"name": "Resolution", "description": "480p, 720p or 1080p.", "required": false, "whenToUse": "Higher for final output.", "restrictions": "Default 480p. Model support per resolution not checked by the page."},
+    {"name": "Model", "description": "Seedance Lite (default) or any entry from the MuAPI Model (I2V) list.", "required": false, "whenToUse": "To try another look or quality tier.", "restrictions": "You must actually select a model after pressing Choose a model, otherwise Seedance Lite is used."},
+    {"name": "Advanced fields", "description": "Negative Prompt, Seed, Steps, Guidance Scale, Denoise Strength, CFG Scale, Thumbnail URL, Prompt Extend.", "required": false, "whenToUse": "Only with Choose a model.", "restrictions": "Hidden in the default Seedance Lite mode."}
+  ],
+  "generationModes": ["Default (Seedance Lite)", "Choose a model", "From Photo Studio source", "Storyboard hand-off"],
+  "modeExplanations": [
+    {"mode": "Default (Seedance Lite)", "description": "Sends your prompt, source image, duration and resolution to the seedance-lite-i2v model.", "useCase": "Fast, simple animation with no setup."},
+    {"mode": "Choose a model", "description": "Uses the model you pick from MuAPI Model (I2V) and forwards the advanced fields you filled in.", "useCase": "Comparing models or using a higher end one."},
+    {"mode": "From Photo Studio source", "description": "Uses a saved photoshoot image as the source.", "useCase": "Animating branded product photos."},
+    {"mode": "Storyboard hand-off", "description": "Opens with the frame image, motion prompt and duration already filled when sent from Storyboard Studio.", "useCase": "Turning storyboard frames into clips."}
+  ],
+  "modelCapabilities": "Default model: Seedance Lite I2V (id seedance-lite-i2v), described in the code as ByteDance Seedance Lite lightweight image-to-video. With Choose a model, the dropdown lists the image-to-video models from the app's model list, excluding effect presets (184 entries when reviewed). Families visible by name include Veo 3, 3.1 and Veo 4, Runway (including Act Two), Kling v2.1 to v3.0 and O1, Wan 2.1 to 3.0, Seedance Lite, Pro, 1.5, 2.0 and 2.5, Pixverse v4.5 to v6, Vidu, MiniMax Hailuo and H3, OpenAI Sora 2 and Sora 2 Pro, LTX 2 and 2.3, Midjourney v7, Hunyuan, Leonardo Motion 2.0, Grok Imagine, Gemini Omni, Flux 3 and Happy Horse. Catalog one-liners include: Veo 3.1 as high-fidelity image-to-video, Seedance Pro as image-to-video generation, Kling V2.5 Turbo Pro as fast image-to-video, Wan 2.5 Fast as rapid iteration, Runway Act Two as expressive image-to-video, LTX 2 Fast as low-latency. A separate relative price, speed and quality table exists for a few models (for example Seedance 2.5 I2V price 4, speed 5, quality 5; Wan 3.0 I2V 3, 4, 4; Flux 3 I2V 3, 4, 5; MiniMax H3 I2V 2, 3, 4) but it is in relative units and not shown in this studio, so treat it as a rough guide only.",
+  "outputs": [
+    "One video from 3 to 12 seconds, at 480p, 720p or 1080p as requested.",
+    "A looping preview in the result card with a Download button.",
+    "An entry in your generation history and, if a brand exists, Animation History."
+  ],
+  "limitations": [
+    "Image input only (no video input); one image at a time.",
+    "Duration choices are limited to 3, 5, 10 and 12 seconds.",
+    "Models that need first and last frames, reference videos or audio cannot be fully used from this page.",
+    "Animation History only shows when a brand exists and shows the latest 8.",
+    "Resolution and duration support depends on the model; the page does not filter options by model."
+  ],
+  "limitationDetails": [
+    {"limitation": "Options are not filtered per model", "impact": "A model may not support 1080p or 12 seconds and could reject or change the request.", "workaround": "Use 5s and 480p/720p if you see an error, then increase gradually."},
+    {"limitation": "Choose a model without picking one", "impact": "The studio silently falls back to Seedance Lite.", "workaround": "Pick an entry from MuAPI Model (I2V) before pressing Animate."},
+    {"limitation": "Reference-style models", "impact": "Models named Reference, First Last Frame or Omni Reference need extra inputs that Animate does not collect.", "workaround": "Use Video Studio (#/video) for those models."}
+  ],
+  "troubleshooting": [
+    "Toast says Please upload an image first: add an image on the Upload image tab, or pick a photoshoot, before pressing Animate.",
+    "From Photo Studio shows No photoshoots found. Create one in Photo Studio first.: make a photoshoot in Photo Studio or switch to Upload image.",
+    "Animation returned no video: the service finished without output. Retry, shorten the duration, or try another model.",
+    "Error toast after Animate (shows the error text): read the message; common causes are a missing MuAPI key, unsupported duration or resolution for the chosen model, or a service problem. Retry with 5s and 480p.",
+    "My model choice seems ignored: press the Model button so it reads Choose a model, then select an entry in MuAPI Model (I2V). If left on Select a model... the default Seedance Lite is used.",
+    "Chosen advanced values have no effect: not every model supports Seed, Steps, Guidance, Denoise or CFG. Leave them empty to use model defaults.",
+    "Animation History is empty: it only records when a brand exists in this browser; your result card and generation history still show the video.",
+    "Prompt box looks empty although a chip is highlighted: click the chip to fill the text, or type your own. Empty is fine in default mode.",
+    "Upload fails or the image is rejected: use a JPEG, PNG or WebP under 10 MB."
+  ],
+  "troubleshootingSteps": [
+    {"issue": "Animate fails right away", "steps": ["Check an image is shown in the preview.", "Make sure your MuAPI key is saved in settings.", "Switch the Model button back to Seedance Lite (default).", "Use 5s and 480p and try again."]},
+    {"issue": "Motion is too subtle or wrong", "steps": ["Be specific: say what moves and how (camera pans left, steam rises).", "Try a different suggestion chip.", "Try Choose a model with a higher end model.", "Use a longer duration for slower moves."]},
+    {"issue": "Result is low resolution", "steps": ["Change Resolution to 720p or 1080p.", "If a model errors, drop to 720p.", "Use Video Tools to upscale afterwards."]}
+  ],
+  "commonProblems": [
+    {"problem": "The subject distorts or morphs", "whyItHappens": "Large motions on complex images are hard for image-to-video models.", "howToFix": "Use a gentler prompt (subtle camera move), a shorter duration or a different model."},
+    {"problem": "Prompt is not followed", "whyItHappens": "Some models weigh the image more than the text.", "howToFix": "Simplify the prompt to one motion, add Negative Prompt, or try another model."},
+    {"problem": "Clip is shorter than expected", "whyItHappens": "The chosen model may cap duration.", "howToFix": "Pick a different model or shorter setting; join clips in Timeline."}
+  ],
+  "exampleWorkflows": [
+    {"title": "Quick product animation", "steps": ["Open Upload image and add a product photo.", "Click Zoom into the subject with gentle focus pull.", "Keep 5 seconds and 480p.", "Press Animate and watch the result.", "If happy, rerun at 1080p and Download."]},
+    {"title": "Compare two models", "steps": ["Upload your image and write one motion prompt.", "Run once with Seedance Lite (default).", "Press the Model button to Choose a model and select another entry.", "Press Animate again and compare both clips in your generation history."]},
+    {"title": "Animate a branded photoshoot", "steps": ["Create a photoshoot in Photo Studio.", "In Animate pick From Photo Studio.", "Choose Select a photoshoot... entry.", "Pick Particle dust floating in light beams.", "Press Animate and Download."]}
+  ],
+  "useCases": [
+    {"title": "Ad teaser from a product shot", "description": "Add a slow camera drift to a still.", "steps": ["Upload the shot.", "Use Drift camera to the right with parallax.", "Animate at 720p."], "expectedOutput": "A 5 second product video."},
+    {"title": "Bring an illustration to life", "description": "Add floating particles or light to artwork.", "steps": ["Upload artwork.", "Use the particle dust chip.", "Animate."], "expectedOutput": "A looping atmospheric clip."},
+    {"title": "Storyboard frame to clip", "description": "Turn a storyboard frame into video.", "steps": ["Send the frame from Storyboard Studio.", "Review the prefilled prompt and duration.", "Press Animate."], "expectedOutput": "A short video for that scene."}
+  ],
+  "faqs": [
+    {"question": "What model does Animate use by default?", "answer": "Seedance Lite (model id seedance-lite-i2v). The Model button reads Seedance Lite (default) until you switch it."},
+    {"question": "How long can the video be?", "answer": "You can choose 3, 5, 10 or 12 seconds. Default is 5."},
+    {"question": "Which resolutions are available?", "answer": "480p (default), 720p and 1080p. Whether a specific model supports each is not checked by the page."},
+    {"question": "Do I have to write a prompt?", "answer": "No. In the default mode an empty prompt uses Slow pan across the scene with subtle motion. A specific prompt usually gives better control."},
+    {"question": "Can I animate a video?", "answer": "No. Animate takes images only. For video, use Video Tools or Video Studio."},
+    {"question": "Where do my animations go?", "answer": "You get a result card with Download, an entry in your generation history, and (when a brand exists) an Animation History entry."},
+    {"question": "Why is Animation History empty?", "answer": "It is tied to a brand saved in this browser. Without one, history is not shown there."},
+    {"question": "What is Use My Brand?", "answer": "A button that opens a personalization window to connect your business name, colours, logos and reference frames."}
+  ],
+  "glossary": {
+    "Image-to-video (I2V)": "AI that creates a short video from one still image.",
+    "Motion Prompt": "A sentence describing how the image should move.",
+    "Seedance Lite": "ByteDance's lightweight image-to-video model, used by default.",
+    "Seed": "A number that makes a result repeatable; -1 means random.",
+    "Negative Prompt": "What to avoid in the result.",
+    "Guidance Scale": "How strictly the model follows the prompt.",
+    "Denoise Strength": "How much the result may change from the source.",
+    "CFG Scale": "Another strength setting for following the prompt; exact effect depends on the model.",
+    "Prompt Extend": "An option that lets the model expand your prompt automatically, where supported.",
+    "Photoshoot": "A branded image set created in Photo Studio."
+  },
+  "tips": [
+    "Describe only one motion at a time.",
+    "Start at 480p to save time; upscale later if needed.",
+    "Use clean, high contrast images with a clear subject.",
+    "Add a Negative Prompt such as distortion or flicker when using Choose a model."
+  ],
+  "bestPractices": [
+    "Test with the default model first, then compare one or two others.",
+    "Keep the same image and prompt when comparing models.",
+    "Download the clip you like straight away."
+  ],
+  "relatedStudios": ["effects", "ai-vfx", "video", "storyboard", "image", "videotools", "lipsync", "brand", "timeline"],
+  "relatedStudioGuidance": [
+    {"studio": "storyboard", "relationship": "Can send a frame, motion prompt and duration to Animate.", "whenToMove": "When you are planning a multi-shot sequence.", "why": "It organises frames before animation."},
+    {"studio": "video", "relationship": "Full video generation with every model option.", "whenToMove": "When you need start and end frames, reference clips or audio.", "why": "Animate is deliberately simple."},
+    {"studio": "effects", "relationship": "Preset effects instead of free prompts.", "whenToMove": "When you want a named effect like Cakeify or Dolly In.", "why": "No prompt writing required."},
+    {"studio": "videotools", "relationship": "Post-processing for finished clips.", "whenToMove": "To upscale or caption an animation.", "why": "Animate does not edit existing videos."},
+    {"studio": "lipsync", "relationship": "Makes an image or video speak.", "whenToMove": "When the subject should talk.", "why": "Animate adds motion but not speech."}
+  ],
+  "notConfirmed": [
+    "Price or credit cost per animation, and per model, is not shown in the code. The comparison table is relative and covers only a few models.",
+    "How long an animation takes; the page shows a loading overlay without a stated timeout.",
+    "Which models accept 1080p or 12 second durations; the page offers all values for every model.",
+    "How Use My Brand personalization data changes the generated animation.",
+    "Whether a missing MuAPI key shows a specific message on this page; the generate handler does not open a key window itself and the error text comes from the service client.",
+    "Whether an upgrade or full-access check applies to Animate; no entitlement check is in this page's code.",
+    "The exact set of 184 models can change as the catalog is updated."
+  ],
+  "sourceFiles": [
+    "src/components/AnimatePage.js",
+    "src/lib/animate.js",
+    "src/lib/muapi.js (videoI2V, generateI2V)",
+    "src/lib/models.js (i2vModels)",
+    "src/lib/modelDescriptions.js",
+    "src/lib/modelComparisonData.js",
+    "public/api/model-catalog.json",
+    "src/features/ask-smartvideo/studioRegistry.js",
+    "ANIMATE_UI_PLAN.md (not relied on)",
+    "src/components/UploadPicker.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read AnimatePage.js in full, animate.js default prompts, muapi.videoI2V, and enumerated i2vModels from src/lib/models.js. instructions.js and studioLandingPages.js have no Animate entry.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

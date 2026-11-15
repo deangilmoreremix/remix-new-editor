@@ -81,3 +81,12 @@ export type {
   VerificationStatus,
   OwnershipType,
 } from './types'
+
+export {
+  resolveBusinessWebsite,
+  candidateDomains,
+  isParkedPage,
+  verifyPageMatchesBusiness,
+  type WebsiteResolveInput,
+  type WebsiteResolveResult,
+} from './websiteResolver'

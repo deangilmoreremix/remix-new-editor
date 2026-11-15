@@ -6,7 +6,7 @@ export function Demo(__o) {
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 96, fontWeight: 700 }}>
       <SpringIn config="bouncy" durationInFrames={40} {...__o}>
-        <div>Physical entrance</div>
+        <div>{__o.text1 ?? "Physical entrance"}</div>
       </SpringIn>
     </div>
   );

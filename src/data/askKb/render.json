@@ -1,0 +1,227 @@
+{
+  "id": "render",
+  "name": "Video Render",
+  "route": "#/render",
+  "description": "Finish and re-export a video from your library: choose a style preset, set output format, frame rate and quality, then export, queue a render, or make trailer cuts, social resizes, shorts, subtitles and more.",
+  "shortDescription": "Export and finish a generated video with presets and format options.",
+  "fullDescription": "Video Render (#/render, not in the side menu) edits videos made in other studios. If no video is selected it shows 'Choose a video to render' with a grid of your library videos. Once a video is loaded you pick a look preset (Luxury Brand Grade, Documentary Contrast, Film Trailer Punch or Emotional Story Tone), set Output Format, Frame Rate and Quality, and use action buttons such as Export Video, Download Frame, Queue Render, Trailer Cut, Social Resize and Remix Scene, plus AI tiles like Create Shorts, Generate Highlights, Add Subtitles and Dub / Voiceover. Exports happen in your browser. A render queue lists jobs with progress and a Download render link, and you can save drafts and templates.",
+  "bestFor": "Anyone who has a generated video and wants a polished export, a trailer or short version, resized social variants or a delivery package without building a timeline.",
+  "whenToUse": [
+    "You have a video in your library and want to export it as WebM or MP4.",
+    "You want a trailer cut, short vertical clips, highlights or subtitles.",
+    "You want social formats (9:16, 1:1, 4:5, 16:9) from one video.",
+    "You want to queue renders and download them later."
+  ],
+  "whenToUseAnother": [
+    "Use Timeline Editor (#/timeline) when you need to combine several clips, music and voice-over on tracks.",
+    "Use Video (#/video) to generate a new video first.",
+    "Use Video Tools (#/videotools) for other quick video operations.",
+    "Use Storyboard (#/storyboard) to plan scenes (Render has a Send to Storyboard action)."
+  ],
+  "keyFeatures": [
+    "Video picker from your library ('Choose a video to render')",
+    "Four presets: Luxury Brand Grade, Documentary Contrast, Film Trailer Punch, Emotional Story Tone",
+    "Output Format: WebM (VP9), MP4 (H.264), MP4 (H.265), depending on what your browser can encode",
+    "Frame Rate: 24 FPS Cinematic, 30 FPS Standard, and 60",
+    "Quality slider from 1 to 100, default 82",
+    "Action buttons: Export Video, Download Frame, Queue Render, Trailer Cut, Social Resize, Remix Scene",
+    "Quick actions: Copy Prompt, Duplicate Render, Save as Template, Send to Storyboard, Publish / Deliver",
+    "AI tiles: Create Shorts, Generate Highlights, Add Subtitles, Dub / Voiceover, Trailer Cut, Social Resize",
+    "Render queue with progress, Remove and Download render",
+    "Save Draft and a Saved list of drafts and templates"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Choosing a video",
+      "explanation": "Open Render with a video id (the address carries an asset parameter) or choose one from the grid. Clicking a card loads it. Header shows the title and ID.",
+      "whyToUse": "Render works on videos that already exist.",
+      "inputRequired": "A video in your library.",
+      "restrictions": "'No videos in your library yet. Generate one in Video Studio, then open it in Render.' If the id is wrong: 'Video not found'."
+    },
+    {
+      "feature": "Presets",
+      "explanation": "Clicking a preset sets the look and shows its Color Profile, Pacing and Export Profile, with a toast like 'Preset: Film Trailer Punch'. Luxury Brand Grade is measured and elegant, Documentary Contrast grounded, Film Trailer Punch aggressive and dramatic, Emotional Story Tone emotive and warm.",
+      "whyToUse": "Quickly set a finishing style.",
+      "inputRequired": "None.",
+      "restrictions": "Presets are applied while exporting by the browser renderer; exact visual effect is not described beyond names."
+    },
+    {
+      "feature": "Output settings",
+      "explanation": "Output Format lists only the formats your browser can encode (WebM VP9, MP4 H.264, MP4 H.265). If none are detected it shows WebM (browser default). Frame Rate offers 24, 30 and 60. Quality is a slider with labels: 85 and above 'High quality master export', 60-84 'Standard quality', below 60 'Low quality draft'.",
+      "whyToUse": "Control file type and size.",
+      "inputRequired": "None; defaults apply.",
+      "restrictions": "Some browsers cannot encode MP4 or H.265."
+    },
+    {
+      "feature": "Export Video",
+      "explanation": "Starts the export in your browser, shows progress, validates the result and shows 'Video exported successfully'. Failures show messages such as 'Export produced no output' or 'Export failed validation: ...'.",
+      "whyToUse": "Get the finished file.",
+      "inputRequired": "A loaded video.",
+      "restrictions": "Requires full access (see below). Without a video: 'Load a video first'."
+    },
+    {
+      "feature": "Queue Render",
+      "explanation": "Adds a job to the render queue ('Queued: ...'). The queue lists status, shows errors for failed jobs, offers Remove and, when done, a Download render link. A background processor works through the queue. Empty queue says 'No jobs in queue'.",
+      "whyToUse": "Line up renders.",
+      "inputRequired": "A loaded video.",
+      "restrictions": "The queue works in this browser."
+    },
+    {
+      "feature": "Download Frame",
+      "explanation": "Saves the current frame as a PNG (file name ends _frame.png) and shows 'Frame downloaded'.",
+      "whyToUse": "Grab a thumbnail or still.",
+      "inputRequired": "A loaded video, positioned at the frame you want.",
+      "restrictions": "None stated."
+    },
+    {
+      "feature": "Trailer Cut, Social Resize, Remix Scene",
+      "explanation": "Trailer Cut builds a shorter trailer-style export ('Trailer cut exported'). Social Resize exports variants for aspect ratios 9:16 (1080x1920), 1:1 (1080x1080), 4:5 (1080x1350) and 16:9 (1920x1080) ('Social variants exported'). Remix Scene exports a remixed version ('Remix exported').",
+      "whyToUse": "Make platform-ready versions.",
+      "inputRequired": "A loaded video.",
+      "restrictions": "Each says '<name> produced no output' if the export fails."
+    },
+    {
+      "feature": "Publish / Deliver",
+      "explanation": "Exports a delivery package in MP4 (H.264), MP4 (H.265) and WebM (VP9). It reports 'Delivery package ready (N formats)' or that in-browser delivery is unavailable in this browser. Skipped formats are listed.",
+      "whyToUse": "Get multiple formats at once.",
+      "inputRequired": "A loaded video.",
+      "restrictions": "Only formats your browser supports are produced."
+    },
+    {
+      "feature": "AI tiles",
+      "explanation": "Create Shorts plans and exports vertical short clips. Generate Highlights detects standout scenes. Add Subtitles makes a subtitled video and reports the number of segments. Dub / Voiceover needs a script and makes narration. An AI Auto-Edit action also exists. Messages include 'Script is required for voiceover', 'No highlight scenes detected' and 'Could not generate short - no suitable scenes found'.",
+      "whyToUse": "Fast repurposing.",
+      "inputRequired": "A loaded video (and a script for voiceover).",
+      "restrictions": "These call external services; if unreachable you see 'Service unavailable - please check configuration' or 'Subtitles unavailable - Director/VideoDB not reachable'."
+    },
+    {
+      "feature": "Drafts, templates and saved items",
+      "explanation": "Save Draft stores the current setup ('Draft saved'). Save as Template stores a template ('Saved as template'). Duplicate Render copies the last template ('Render duplicated') or says 'Nothing to duplicate yet - save a template first'. The Saved button toggles the saved list. Copy Prompt copies the prompt ('Prompt copied to clipboard'). Send to Storyboard sends the video to Storyboard.",
+      "whyToUse": "Reuse settings and move work between studios.",
+      "inputRequired": "None.",
+      "restrictions": "Stored in this browser."
+    },
+    {
+      "feature": "Personalization overlays",
+      "explanation": "If you set up personalization (logo, business name, CTA), those overlays can be drawn on exports. The export setting can disable them.",
+      "whyToUse": "Brand each export.",
+      "inputRequired": "Personalization data.",
+      "restrictions": "Exact controls for disabling overlays were not confirmed."
+    }
+  ],
+  "howToUse": "1. Open Video Render at #/render. 2. If asked 'Choose a video to render', click a video from your library. 3. Pick a preset such as Film Trailer Punch. 4. Under Output Format choose WebM (VP9) or an MP4 option, set Frame Rate and move the Quality slider. 5. Click Export Video and wait for the progress to finish. 6. Download the result. 7. Optionally click Trailer Cut, Social Resize, Remix Scene or Publish / Deliver for more versions, or Queue Render to run it later from the queue.",
+  "howToSteps": [
+    "Select a video from the library.",
+    "Choose a preset.",
+    "Set Output Format, Frame Rate and Quality.",
+    "Click Export Video.",
+    "Download the finished file or open the queue."
+  ],
+  "gettingStarted": [
+    "Generate a video in Video Studio first, then open it in Render.",
+    "Leave Quality at 82 and Frame Rate at the default for your first export.",
+    "Try Download Frame for a quick thumbnail."
+  ],
+  "inputs": ["Library video", "Preset", "Output Format", "Frame Rate", "Quality", "Script (for voiceover)"],
+  "requiredInputs": ["Library video"],
+  "optionalInputs": ["Preset", "Output Format", "Frame Rate", "Quality", "Script"],
+  "inputDetails": [
+    {"name": "Library video", "description": "A video previously generated or saved.", "required": true, "whenToUse": "Always.", "restrictions": "Must have a playable URL."},
+    {"name": "Output Format", "description": "WebM (VP9), MP4 (H.264) or MP4 (H.265).", "required": false, "whenToUse": "When you need a particular file type.", "restrictions": "Only formats your browser can encode are listed."},
+    {"name": "Frame Rate", "description": "24, 30 or 60 FPS.", "required": false, "whenToUse": "Every export.", "restrictions": "None stated."},
+    {"name": "Quality", "description": "Slider 1 to 100, default 82.", "required": false, "whenToUse": "To balance size and clarity.", "restrictions": "85 or higher is labelled master export."},
+    {"name": "Script", "description": "Narration text for Dub / Voiceover.", "required": false, "whenToUse": "Only for voiceover.", "restrictions": "Required for voiceover."}
+  ],
+  "generationModes": ["Export Video", "Queue Render", "Trailer Cut", "Social Resize", "Remix Scene", "Create Shorts", "Generate Highlights", "Add Subtitles", "Dub / Voiceover"],
+  "modeExplanations": [
+    {"mode": "Export Video", "description": "Renders the current video with your settings.", "useCase": "Final file."},
+    {"mode": "Queue Render", "description": "Adds the job to a queue.", "useCase": "Several renders in a row."},
+    {"mode": "Trailer Cut", "description": "Builds a short trailer-style version.", "useCase": "Teasers."},
+    {"mode": "Social Resize", "description": "Exports 9:16, 1:1, 4:5 and 16:9 variants.", "useCase": "Different platforms."},
+    {"mode": "Create Shorts", "description": "Plans and exports short vertical clips.", "useCase": "Reels, Shorts, TikTok."}
+  ],
+  "modelCapabilities": "",
+  "outputs": ["WebM, MP4 (H.264) or MP4 (H.265) video", "PNG frame", "Social aspect ratio variants", "Subtitled video or highlight reel links", "Saved drafts and templates"],
+  "limitations": [
+    "Exports run in your browser and depend on which formats it can encode.",
+    "Needs a video that already exists in your library.",
+    "Actions require full access; otherwise an upgrade prompt appears.",
+    "AI actions depend on external services."
+  ],
+  "limitationDetails": [
+    {"limitation": "Browser encoding support", "impact": "Some formats do not appear or fail.", "workaround": "Use WebM, or try another browser such as current Chrome."},
+    {"limitation": "Full access required", "impact": "Actions show an upgrade prompt.", "workaround": "Upgrade your plan or sign in with an account that has full access."}
+  ],
+  "troubleshooting": [
+    "Load a video first: pick a video from the library grid.",
+    "Video not found: the id is wrong or the video was deleted; choose another.",
+    "Could not load video preview: the video URL may be broken or expired; reopen from the library.",
+    "Export produced no output: try WebM, lower the Quality or try another browser.",
+    "Export failed validation: the result file was unusable; export again.",
+    "In-browser export for the requested formats is unavailable in this browser: switch browsers.",
+    "Service unavailable - please check configuration: the AI service could not be reached; try again later.",
+    "Script is required for voiceover: enter a script before using Dub / Voiceover."
+  ],
+  "troubleshootingSteps": [
+    {"issue": "Export does nothing", "steps": ["Check that a video is loaded.", "If an upgrade prompt appears, complete access first.", "Click Export Video again."]},
+    {"issue": "Exported file will not play", "steps": ["Export as WebM (VP9).", "Play it in a current browser.", "Lower Quality if the file is very large."]}
+  ],
+  "commonProblems": [
+    {"problem": "MP4 option missing", "whyItHappens": "Your browser cannot encode MP4.", "howToFix": "Use WebM or another browser."},
+    {"problem": "Library is empty", "whyItHappens": "No videos generated yet.", "howToFix": "Generate one in Video Studio, then open Render."},
+    {"problem": "Duplicate Render says nothing to duplicate", "whyItHappens": "No template saved yet.", "howToFix": "Click Save as Template first."}
+  ],
+  "exampleWorkflows": [
+    {"title": "Export for Instagram and YouTube", "steps": ["Open Render and pick your video.", "Click Social Resize.", "Wait for 'Social variants exported'.", "Download each variant."]},
+    {"title": "Trailer", "steps": ["Pick the Film Trailer Punch preset.", "Click Trailer Cut.", "Download the trailer."]}
+  ],
+  "useCases": [
+    {"title": "Multi-platform delivery", "description": "One video, several formats.", "steps": ["Load the video.", "Click Publish / Deliver."], "expectedOutput": "MP4 and WebM files where supported."}
+  ],
+  "faqs": [
+    {"question": "What formats can I export?", "answer": "WebM (VP9), MP4 (H.264) and MP4 (H.265), limited to those your browser can encode."},
+    {"question": "What is the default quality?", "answer": "The Quality slider starts at 82, labelled High quality master export from 85 upward."},
+    {"question": "Which social sizes does Social Resize make?", "answer": "9:16 (1080x1920), 1:1 (1080x1080), 4:5 (1080x1350) and 16:9 (1920x1080)."},
+    {"question": "Do I need a video first?", "answer": "Yes. Render edits videos made in other studios and shows your library to choose from."}
+  ],
+  "glossary": {
+    "Preset": "A finishing style with color, pacing and export settings.",
+    "Queue": "A list of render jobs waiting or finished.",
+    "Frame rate": "How many pictures per second the video shows.",
+    "Trailer cut": "A shorter, punchier version of a video."
+  },
+  "tips": [
+    "Use the queue for several exports.",
+    "Download Frame makes a quick thumbnail.",
+    "Save a template once you like a setup."
+  ],
+  "bestPractices": [
+    "Export a short test first.",
+    "Pick the format your destination platform prefers.",
+    "Keep the original video untouched; exports create new files."
+  ],
+  "relatedStudios": ["timeline", "video", "videotools", "storyboard", "library"],
+  "relatedStudioGuidance": [
+    {"studio": "timeline", "relationship": "Multi-clip editing", "whenToMove": "You need to combine clips.", "why": "Render handles one video at a time."},
+    {"studio": "video", "relationship": "Source of videos", "whenToMove": "Your library is empty.", "why": "Generate a video first."}
+  ],
+  "notConfirmed": [
+    "Exact credit or plan requirements for full access.",
+    "Maximum video length or file size.",
+    "How long exported result links stay available (the code keeps the URL for 60 seconds after render completion before revoking).",
+    "The full effect of each preset on the picture.",
+    "How the Director and VideoDB services are configured in this deployment."
+  ],
+  "sourceFiles": [
+    "src/components/RenderPage.js",
+    "src/lib/instructions.js",
+    "src/lib/editor/renderHelpers.js",
+    "src/lib/clerkEntitlements.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read RenderPage.js constants, handlers and toasts, renderHelpers aspect sizes, clerkEntitlements and the render entry in instructions.js.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

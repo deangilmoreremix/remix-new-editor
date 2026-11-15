@@ -21,6 +21,7 @@
  * the same reason.
  */
 
+import { SITE_XML_HEADERS } from '../lib/siteRequestHeaders'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
 import { sanitizeUrl } from './discoverAssets'
@@ -37,7 +38,7 @@ import {
 } from './discoveryPolicy'
 
 const REQUEST_TIMEOUT = DISCOVERY_REQUEST_TIMEOUT_MS
-const USER_AGENT = 'SmartVideoGO-AI/1.0 (https://go.smartvid.app)'
+// Sitemaps get the shared crawler headers (see src/lib/siteRequestHeaders.ts).
 const REDIRECT_LIMIT = 5
 
 const PERSONALIZATION_SLUG_PATTERNS = [
@@ -172,7 +173,7 @@ async function fetchSitemap(url: string, deadlineAt?: number): Promise<string | 
         ...safeRequestConfig(destination),
         timeout,
         maxContentLength: 5 * 1024 * 1024,
-        headers: { 'User-Agent': USER_AGENT },
+        headers: { ...SITE_XML_HEADERS },
         validateStatus: (s) => s >= 200 && s < 400,
       })
     } catch {

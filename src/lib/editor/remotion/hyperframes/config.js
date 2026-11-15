@@ -9,6 +9,24 @@ const FORBIDDEN = /(^|\.)(__proto__|prototype|constructor)(\.|$)/;
 
 export const isCfgKey = (key) => typeof key === 'string' && key.startsWith('cfg.') && PATH.test(key.slice(4)) && !FORBIDDEN.test(key.slice(4)) && key.length <= 120;
 
+const DATA_PATH = /^[A-Za-z_][A-Za-z0-9_]*(\.([A-Za-z_][A-Za-z0-9_]*|[0-9]{1,3}))*$/;
+export const isDataKey = (key) => typeof key === 'string' && key.startsWith('data.') && DATA_PATH.test(key.slice(5)) && !FORBIDDEN.test(key.slice(5)) && key.length <= 120;
+
+/** Applies validated `data.<path>` overrides to the JSON text of a block's declarative data blob. Only EXISTING leaves of the same primitive type are replaced
+ *  (nothing is added), the result is serialised back as JSON text, and nothing customer-supplied is evaluated. Returns the new text, or the input unchanged. */
+export function patchDataBlob(text, overrides) {
+  let obj; try { obj = JSON.parse(text.replace(/\s*[\r\n]+\s*/g, ' ')); } catch { return text; }
+  let changed = false;
+  for (const [key, value] of Object.entries(overrides)) {
+    if (!isDataKey(key)) continue;
+    const parts = key.slice(5).split('.'); let t = obj; let i = 0;
+    for (; i < parts.length - 1 && t && typeof t === 'object' && Object.prototype.hasOwnProperty.call(t, parts[i]); i++) t = t[parts[i]];
+    const last = parts[parts.length - 1];
+    if (i === parts.length - 1 && t && typeof t === 'object' && Object.prototype.hasOwnProperty.call(t, last) && typeof t[last] === typeof value && typeof value !== 'object') { t[last] = value; changed = true; }
+  }
+  return changed ? JSON.stringify(obj) : text;
+}
+
 /** Returns [start, end) of the `{ ... }` literal that follows `var CONFIG =`, or null. Skips strings, template literals and comments. */
 export function findConfigLiteral(code) {
   const m = /\bvar\s+CONFIG\s*=\s*\{/.exec(code);

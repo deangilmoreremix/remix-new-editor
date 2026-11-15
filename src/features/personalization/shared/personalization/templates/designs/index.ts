@@ -14,8 +14,6 @@ export { PromoCtaDesign } from './PromoCtaDesign'
 export { VisualEffectDesign } from './VisualEffectDesign'
 
 export {
-  DESIGN_VIDEO_CREDIT,
-  DesignCreditLine,
   DesignStage,
   TRANSPARENT,
   darkenColor,

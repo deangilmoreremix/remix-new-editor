@@ -312,6 +312,12 @@ export interface AssetClassificationContext {
    * do not apply to it, and it is classified as a logo.
    */
   isSiteLogo?: boolean
+  /**
+   * Words AROUND the image: caption, nearest heading, section id / class
+   * names, framework data keys. Used only when the file name and alt text
+   * say nothing (CDN-hashed file names), and never as a junk signal.
+   */
+  contextText?: string
 }
 
 export interface AssetClassification {
@@ -404,6 +410,20 @@ export function classifyAssetCandidate(
     return {
       category: fromAlt.category,
       confidence: Math.max(fromAlt.confidence - 5, 50),
+      recommended: true,
+    }
+  }
+
+  // The image's surroundings ("Meet the team", `class="product-card"`,
+  // `teamMembers.photo`) classify a CDN-hashed file the name cannot.
+  // Class and data-key names are often camelCase (`teamGrid`, `ourWork`).
+  const fromContext = context.contextText
+    ? matchCategory(tokenize(context.contextText.replace(/([a-z0-9])([A-Z])/g, '$1 $2')))
+    : null
+  if (fromContext) {
+    return {
+      category: fromContext.category,
+      confidence: Math.max(fromContext.confidence - 10, 50),
       recommended: true,
     }
   }

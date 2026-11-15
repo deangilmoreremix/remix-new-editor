@@ -33,6 +33,7 @@ import {
 } from '@cinegen/lib/media/asset-local-storage';
 import { ExportTab } from '@cinegen/components/export/export-tab';
 import { LeadsTab } from '@cinegen/components/leads/leads-tab';
+import { AnalyticsTab } from '@cinegen/components/analytics/analytics-tab'; // [remix]
 import { SettingsPage } from '@cinegen/components/settings/settings-page';
 import { AppToastHost, type AppToast } from '@cinegen/components/ui/app-toast';
 import { AssistantDrawer } from '@cinegen/components/assistant/assistant-drawer';
@@ -73,6 +74,7 @@ import {
 } from '@cinegen/lib/utils/api-key';
 import { markWorkspaceSavePending } from './workspace-persistence';
 import { useMcpBridge } from './use-mcp-bridge';
+import { HelpTooltipLayer } from '@cinegen/components/ui/help-tooltip-layer'; // [remix] hover help for every control
 
 /* ------------------------------------------------------------------
    Actions
@@ -197,6 +199,7 @@ const UNDOABLE_ACTIONS: WorkspaceAction['type'][] = [
   'MOVE_ELEMENTS', 'ADD_ELEMENT_FOLDER', 'UPDATE_ELEMENT_FOLDER', 'REMOVE_ELEMENT_FOLDER',
   'SET_DIRECTOR',
   'ADD_SET', 'UPDATE_SET', 'REMOVE_SET',
+  'ADD_OVERLAY', 'REMOVE_OVERLAY', // [remix] adding / removing an overlay can be undone (moving one is not pushed per pixel)
 ];
 
 interface HistoryState {
@@ -410,6 +413,13 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
       setLlmCopilotStatus((current) => ({ ...current, hasUnreadResponse: false }));
     }
     wrappedDispatch({ type: 'SET_TAB', tab });
+  }, [wrappedDispatch]);
+
+  // [remix] The header bell (alerts) opens this project's Analytics tab, which shows the alerts.
+  useEffect(() => {
+    const open = () => wrappedDispatch({ type: 'SET_TAB', tab: 'analytics' });
+    window.addEventListener('remix:open-projects', open);
+    return () => window.removeEventListener('remix:open-projects', open);
   }, [wrappedDispatch]);
 
   const handleCopilotThinkingChange = useCallback((isThinking: boolean) => {
@@ -1469,6 +1479,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
 
   return (
     <WorkspaceContext.Provider value={{ state, dispatch: wrappedDispatch, projectId }}>
+      <HelpTooltipLayer />
       <TopTabs
         activeTab={state.activeTab}
         onTabChange={handleTabChange}
@@ -1522,6 +1533,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
             </div>
             {state.activeTab === 'export' && <ExportTab />}
             {state.activeTab === 'leads' && <LeadsTab />}
+            {state.activeTab === 'analytics' && <AnalyticsTab />} {/* [remix] */}
             {state.activeTab === 'settings' && (
               <SettingsPage
                 projectId={projectId}

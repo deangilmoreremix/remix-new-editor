@@ -63,6 +63,8 @@ export async function extractFilmstripFrames(
   const jpegQuality = Math.max(0.25, Math.min(options.jpegQuality ?? 0.45, 0.9));
 
   const video = document.createElement('video');
+  // Frames are exported from a canvas: a cross-origin source (stock CDN, storage URL) must be CORS-enabled or the canvas is tainted.
+  video.crossOrigin = 'anonymous';
   video.preload = 'metadata';
   video.muted = true;
   video.playsInline = true;

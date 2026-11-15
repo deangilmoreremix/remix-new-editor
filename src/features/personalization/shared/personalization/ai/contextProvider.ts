@@ -18,6 +18,9 @@ import type {
  * AI Assist context types
  */
 
+/** How much of the website's own text the AI context carries. */
+const AI_PAGE_TEXT_MAX_CHARS = 3_000
+
 export interface AIAssistContext {
   project: {
     id: string | null
@@ -58,6 +61,8 @@ export interface AIAssistContext {
       logoUrl: string | null
       socialLinks: Record<string, string>
       reachable: boolean
+      /** The website's own words (Markdown), trimmed for the AI context. */
+      pageText: string | null
     } | null
   } | null
   assets: {
@@ -275,6 +280,9 @@ export function buildAIAssistContext(params: {
                   Object.entries(businessResearch.socialLinks || {}).filter(([, v]) => v),
                 ) as Record<string, string>,
                 reachable: businessResearch.reachable,
+                pageText: businessResearch.pageMarkdown
+                  ? businessResearch.pageMarkdown.slice(0, AI_PAGE_TEXT_MAX_CHARS)
+                  : null,
               }
             : null,
         }
