@@ -179,3 +179,27 @@ describe('cost estimate', () => {
     expect(formatActualCost(null)).toBe('');
   });
 });
+
+import { TemplateInputBuilder } from '../../src/lib/cinematicTemplates.js';
+
+describe('Cinema required-field validation', () => {
+  const builder = new TemplateInputBuilder({ quickInputs: [
+    { name: 'premise', type: 'text', label: 'Premise', required: true },
+    { name: 'tone', type: 'text', label: 'Tone' },
+  ] }, 'quick');
+
+  it('treats a whitespace-only required value as missing', () => {
+    expect(builder.validateInputs({ premise: '   ' }).map((e: any) => e.field)).toEqual(['premise']);
+    expect(builder.validateInputs({ premise: '\n\t' }).map((e: any) => e.field)).toEqual(['premise']);
+  });
+
+  it('accepts real values and ignores blank optional ones', () => {
+    expect(builder.validateInputs({ premise: 'A story', tone: '  ' })).toEqual([]);
+  });
+
+  it('still flags empty and missing values', () => {
+    expect(builder.validateInputs({ premise: '' })).toHaveLength(1);
+    expect(builder.validateInputs({})).toHaveLength(1);
+    expect(builder.validateInputs(undefined)).toHaveLength(1);
+  });
+});

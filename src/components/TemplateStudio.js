@@ -1290,32 +1290,39 @@ export function TemplateStudio(templateId) {
     updateApiKeyIndicator();
   }, 100);
 
-  // `persistent` errors (required-field validation) stay until the fields they
-  // describe are fixed, so aria-describedby never points at a missing element.
-  function showInlineError(container, message, { persistent = false } = {}) {
+  // Temporary message (auto-dismisses). Required-field validation uses its own
+  // element below, so a temporary error can never replace or remove the message
+  // that invalid fields point to.
+  function showInlineError(container, message) {
     let errEl = container.querySelector('.ts-inline-error');
     if (!errEl) {
       errEl = document.createElement('div');
       errEl.setAttribute('role', 'alert');
-      errEl.id = 'ts-inline-error';
       errEl.className = 'ts-inline-error mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
       errorContainer.appendChild(errEl);
     }
     errEl.innerHTML = message;
     clearTimeout(errEl.__dismissTimer);
-    if (persistent) {
-      errEl.dataset.validation = '1';
-    } else {
-      delete errEl.dataset.validation;
-      errEl.__dismissTimer = setTimeout(() => { if (errEl && errEl.parentNode) errEl.remove(); }, 5000);
+    errEl.__dismissTimer = setTimeout(() => { if (errEl && errEl.parentNode) errEl.remove(); }, 5000);
+  }
+
+  // Required-field message: stays until the fields it describes are fixed.
+  function showValidationError(message) {
+    let el = errorContainer.querySelector('#ts-validation-error');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'ts-validation-error';
+      el.setAttribute('role', 'alert');
+      el.className = 'mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
+      errorContainer.appendChild(el);
     }
+    el.textContent = message;
   }
 
   // Drops the required-field message once no field is marked invalid any more.
   function clearValidationErrorIfResolved() {
     if (leftPanel.querySelector('[aria-invalid]')) return;
-    const errEl = container.querySelector('.ts-inline-error[data-validation]');
-    if (errEl) errEl.remove();
+    errorContainer.querySelector('#ts-validation-error')?.remove();
   }
 
   function updateApiKeyIndicator() {
@@ -1354,9 +1361,9 @@ export function TemplateStudio(templateId) {
     leftPanel.querySelectorAll('[data-input-name]').forEach((el) => setFieldInvalid(el, false));
     if (missing.length) {
       const els = missing.map((m) => leftPanel.querySelector(`[data-input-name="${cssEscape(m.name)}"]`));
-      els.forEach((el) => setFieldInvalid(el, true, 'ts-inline-error'));
+      els.forEach((el) => setFieldInvalid(el, true, 'ts-validation-error'));
       els.find(Boolean)?.focus();
-      showInlineError(container, `Please fill in: ${missing.map((m) => m.label || m.name).join(', ')}.`, { persistent: true });
+      showValidationError(`Please fill in: ${missing.map((m) => m.label || m.name).join(', ')}.`);
       return;
     }
     clearValidationErrorIfResolved();
