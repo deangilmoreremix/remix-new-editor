@@ -143,3 +143,7 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Authorization: your answers (keep branch, no production migration yet, create Kit fields, 90-day retention).
 - Added: `20261119000000_recipient_videos_retention.sql`, `recipient-video-purge.js` (daily), tests, extended SQL assertions. Applied to the branch only.
 - Verified: SQL assertions, 6 purge tests, 5 mutations, lint. Production check found 117 tables without RLS (reported, not changed).
+
+### RLS fix for exposed tables
+- Authorization: "apply the RLS fix to the branch first". Branch only; production untouched.
+- Added: migration `20261120000000`, `supabase/tests/84_enable_rls_assertions.sql`, `run-enable-rls-assertions.sh`. The branch lacks the real 117 tables, so two stand-ins proved the behaviour and were dropped.

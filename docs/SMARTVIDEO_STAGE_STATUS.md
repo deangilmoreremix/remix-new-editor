@@ -597,3 +597,6 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 ### Remaining items (2026-11-15)
 - 90-day retention for private recipient videos (migration, daily purge function, tests; branch only). Kit custom fields created. Production untouched; branch kept.
 - Read-only finding: 117 production tables have RLS off with anon write grants (not SmartVideo tables); decision pending.
+
+### RLS fix (2026-11-15)
+- `20261120000000_enable_rls_on_exposed_tables.sql`: generic RLS enable + write-grant revoke for exposed public tables, with an insert-only exception for `admin_analytics_events`. 15 SQL assertions, 5 mutations, verified on the validation branch with stand-ins. NOT applied to production.

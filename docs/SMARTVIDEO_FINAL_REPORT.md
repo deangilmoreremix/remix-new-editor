@@ -50,8 +50,14 @@ Production was not touched. Nothing was sent. No secret is in the repository or 
 * **Security finding on production (read-only check, nothing changed).** 117 of 314 tables in `public` have row-level security OFF, and `anon` and `authenticated` hold SELECT and INSERT/UPDATE/DELETE on all of them, including `api_keys`, `user_api_keys`, `subscriptions`, `user_credits`, `credit_transactions`, `payouts`, `partners`, `access_tokens`, `sessions`, `user`, `audit_log`. None are SmartVideo tables. Recommended: check which live apps use them with the anon key, then try an RLS-enabling migration on a branch. Not done: it could break running apps and needs your decision.
 * **Still yours to do:** set the three VAPID variables in Netlify and test push on a real device; sending-domain DNS; the real Storage upload test needs a service-role key for the branch.
 
+## RLS fix for the exposed production tables (2026-11-15): written and tested, NOT on production
+`supabase/migrations/20261120000000_enable_rls_on_exposed_tables.sql` finds every ordinary `public` table without RLS (not partitions, not extension-owned), enables RLS, and removes INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER from `anon` and `authenticated`. SELECT stays granted, so an app that polls a table gets an empty result instead of an error. One exception keeps the live write path: `admin_analytics_events` accepts INSERT only from anon/authenticated (no read, update or delete). `service_role` bypasses RLS, so server-side code is unaffected. It is idempotent.
+* **Tested:** 15 SQL assertions on a throwaway local Postgres (`supabase/tests/run-enable-rls-assertions.sh`), 5 mutations caught, and the same behaviour confirmed on the real Supabase validation branch using two stand-in tables with production-style open grants (anon read 0 rows, insert/delete denied 42501, analytics insert allowed but not readable or updatable, service role sees all). The stand-ins were removed afterwards.
+* **Not proven:** the branch does not contain the real 117 tables (they exist only on production), so the effect on the real tables and on the other apps that use this database is untested. Those apps (admin dashboards and others) read tables such as `user_credits`, `failed_logins`, `api_keys` and write `admin_analytics_events`; a client that writes to any other of the 117 tables with the public key would now fail. Production still has the exposure until you approve applying it.
+* Roll back: `alter table ... disable row level security` and re-GRANT.
+
 ## Decisions still waiting for you
-1. Fix the 117 open tables: approve a branch trial?
-2. Apply the SmartVideo migrations (now 6, with retention) to production when ready; delete the branch afterwards.
+1. Apply the RLS migration to production? Safer first: tell me which apps use this database, or apply it in a quiet window and watch for errors.
+2. Apply the SmartVideo migrations (now 6) to production when ready; delete the validation branch afterwards.
 3. Recorder status and the private capture bucket (unchanged).
 4. The queued "Personalization Studio" prompt remains unstarted.
