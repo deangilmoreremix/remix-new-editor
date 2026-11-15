@@ -75,7 +75,8 @@ export async function exportFormats(options: ExportFormatsOptions): Promise<Form
     })
     results.push({ aspect, result })
     if (result.ok) onFile?.(aspect, result)
-    if (!result.ok && result.reason === 'cancelled') break
+    // A cancel stops the batch; so does a busy renderer (every later shape would be refused the same way).
+    if (!result.ok && (result.reason === 'cancelled' || result.reason === 'busy')) break
   }
   return results
 }

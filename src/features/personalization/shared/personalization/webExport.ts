@@ -51,6 +51,8 @@ export type WebExportFailureReason =
   | 'unsupported-codec'
   | 'render-failed'
   | 'cancelled'
+  /** Another render is still running (or still finishing after a cancel). Only one runs at a time. */
+  | 'busy'
 
 export interface WebExportOptions {
   /** The approved preview props — exactly what the preview rendered. */
@@ -309,6 +311,16 @@ export async function exportPersonalizedVideo(
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
+  // One render at a time. `activeController` is cleared only when a render has fully settled, so a render that was
+  // just cancelled still counts until it is done; a second one started in that window is refused rather than
+  // overwriting the controller (which would leave "Cancel" aimed at the wrong render).
+  if (activeController) {
+    return {
+      ok: false,
+      reason: 'busy',
+      error: 'Another render is still running or finishing. Try again in a moment.',
+    }
+  }
   const controller = new AbortController()
   activeController = controller
   const forwardAbort = () => controller.abort()

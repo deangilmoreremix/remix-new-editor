@@ -70,6 +70,12 @@ describe('exportFormats', () => {
     expect(exporter).toHaveBeenCalledTimes(1)
     expect(res).toHaveLength(1)
   })
+  it('stops on a busy renderer instead of trying every remaining shape', async () => {
+    const exporter = vi.fn().mockResolvedValue({ ok: false, reason: 'busy', error: 'busy' })
+    const res = await exportFormats({ inputProps: input(), aspects: ['9:16', '1:1', '4:5'], exporter })
+    expect(exporter).toHaveBeenCalledTimes(1)
+    expect(res).toHaveLength(1)
+  })
   it('does not start when already aborted', async () => {
     const exporter = vi.fn()
     const ac = new AbortController(); ac.abort()
