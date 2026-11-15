@@ -79,6 +79,12 @@ describe('capability and quota', () => {
     const b = mk({ capability: () => ({ webgpu: true, wasm: true }) }); b.mgr.grantConsent('kokoro-82m-q8'); await b.mgr.install('kokoro-82m-q8');
     expect(b.loads).toEqual(['kokoro-82m-q8:webgpu']);
   });
+  it('retries on WASM when the WebGPU load fails, but not when cancelled', async () => {
+    const devices: string[] = [];
+    const { mgr } = mk({ capability: async () => ({ webgpu: true, wasm: true }), load: async (_m, d) => { devices.push(d); if (d === 'webgpu') throw new Error('no GPU adapter'); return { generate: async () => ({ samples: new Float32Array(4).fill(1), sampleRate: 1 }), dispose: async () => undefined }; } });
+    mgr.grantConsent('kokoro-82m-q8'); await mgr.install('kokoro-82m-q8');
+    expect(devices).toEqual(['webgpu', 'wasm']); expect(mgr.getState('kokoro-82m-q8')).toMatchObject({ status: 'ready', device: 'wasm' });
+  });
   it('refuses when free storage is below size x headroom, before downloading; a cached model skips the check', async () => {
     const { mgr, loads, cache } = mk({ quota: async () => ({ usage: 900e6, quota: 1000e6 }) });
     mgr.grantConsent('kokoro-82m-fp32');

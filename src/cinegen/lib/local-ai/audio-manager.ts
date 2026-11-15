@@ -17,7 +17,8 @@ export interface GenerateIo { signal: AbortSignal; onProgress: (message: string,
 export interface ModelRuntime { generate(req: GenerateRequest, io: GenerateIo): Promise<RawAudio>; dispose(): Promise<void> }
 
 export interface ManagerDeps {
-  capability(): { webgpu: boolean; wasm: boolean };
+  /** webgpu = a real GPU adapter can be obtained (not just `navigator.gpu` existing); wasm = WebAssembly is available */
+  capability(): { webgpu: boolean; wasm: boolean } | Promise<{ webgpu: boolean; wasm: boolean }>;
   isCached(m: AudioModel): Promise<boolean>;
   deleteCache(m: AudioModel): Promise<void>;
   /** bytes used / available in this origin's storage, or null when the browser cannot say */
@@ -90,7 +91,7 @@ export class AudioModelManager {
     const why = blockedReason(m, st.optedIn);
     if (why) return new ManagerError('blocked', why);
     if (!st.consent) return new ManagerError('consent-required', `Download of ${m.name} (${m.sizeMB} MB) needs your consent first.`);
-    const cap = this.deps.capability();
+    const cap = await this.deps.capability();
     if (!cap.webgpu && !cap.wasm) return new ManagerError('unsupported', 'This browser has neither WebGPU nor WebAssembly, so local models cannot run.');
     if (!st.cached) {
       const q = await this.deps.quota().catch(() => null);
@@ -112,12 +113,22 @@ export class AudioModelManager {
       try {
       const bad = await this.preflight(id);
       if (bad) { this.patch(id, { status: 'error', error: bad.message, message: bad.message }); throw bad; }
-      const cap = this.deps.capability();
-      const device: Device = m.loader.devices.find((d) => (d === 'webgpu' ? cap.webgpu : cap.wasm)) ?? 'wasm';
+      const cap = await this.deps.capability();
+      const usable = m.loader.devices.filter((d) => (d === 'webgpu' ? cap.webgpu : cap.wasm));
+      const device: Device = usable[0] ?? 'wasm';
       const cached = this.getState(id).cached;
       this.patch(id, { status: 'downloading', progress: 0, error: undefined, device, message: cached ? 'Loading from cache…' : `Downloading ${m.name} (${m.sizeMB} MB)…` });
       try {
-        const rt = await this.deps.load(m, device, { signal: ctl.signal, onProgress: (message, fraction) => this.patch(id, { message, progress: Math.max(0, Math.min(1, fraction)) }) });
+        const io = { signal: ctl.signal, onProgress: (message: string, fraction: number) => this.patch(id, { message, progress: Math.max(0, Math.min(1, fraction)) }) };
+        let used: Device = device;
+        let rt: ModelRuntime;
+        try { rt = await this.deps.load(m, device, io); } catch (e) {
+          // the GPU path can fail at session creation even when an adapter exists: retry once on WASM (the files are cached by then)
+          if (ctl.signal.aborted || device === 'wasm' || !cap.wasm || !m.loader.devices.includes('wasm')) throw e;
+          used = 'wasm'; this.patch(id, { device: 'wasm', message: 'WebGPU failed, retrying on WASM (CPU)…' });
+          rt = await this.deps.load(m, 'wasm', io);
+        }
+        if (used !== device) this.patch(id, { device: used });
         if (ctl.signal.aborted) { await rt.dispose().catch(() => undefined); throw new ManagerError('cancelled', 'Cancelled.'); }
         this.runtimes.set(id, rt);
         this.patch(id, { status: 'ready', progress: 1, message: 'Ready', cached: true });

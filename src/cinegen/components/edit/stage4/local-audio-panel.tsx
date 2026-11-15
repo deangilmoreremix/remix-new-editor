@@ -102,7 +102,7 @@ export function LocalAudioPanel({ timeline, currentTime, addAsset, commit }: Pro
           <div style={S.row}>
             <select data-testid="lai-model" aria-label="Model" style={S.input} value={modelId} onChange={(e) => setModelId(e.target.value)}>{models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select>
           </div>
-          <ModelCard m={model} />
+          <ModelCard key={model.id} m={model} />
           {kind === 'tts' ? (
             <>
               <textarea data-testid="lai-text" aria-label="Narration text" rows={3} placeholder="Type the narration…" value={text} onChange={(e) => setText(e.target.value)} style={{ ...S.input, width: '100%', marginTop: 6, boxSizing: 'border-box' }} />

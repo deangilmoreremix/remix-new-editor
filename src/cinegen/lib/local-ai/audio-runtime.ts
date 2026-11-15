@@ -7,9 +7,16 @@ import { chunkText, concatSamples } from './wav';
 
 const CACHE_NAME = 'transformers-cache'; // transformers.js default env.cacheKey
 
-export function detectCapability(): { webgpu: boolean; wasm: boolean } {
-  const nav = typeof navigator !== 'undefined' ? navigator : undefined;
-  return { webgpu: !!nav && 'gpu' in nav, wasm: typeof WebAssembly !== 'undefined' };
+let gpuProbe: Promise<boolean> | null = null;
+/** `navigator.gpu` can exist with no usable adapter (headless Chromium, blocklisted GPUs): ask for an adapter once. */
+function hasGpuAdapter(): Promise<boolean> {
+  gpuProbe ??= (async () => {
+    try { const gpu = (navigator as unknown as { gpu?: { requestAdapter(): Promise<unknown> } }).gpu; return !!gpu && !!(await gpu.requestAdapter()); } catch { return false; }
+  })();
+  return gpuProbe;
+}
+export async function detectCapability(): Promise<{ webgpu: boolean; wasm: boolean }> {
+  return { webgpu: typeof navigator !== 'undefined' && (await hasGpuAdapter()), wasm: typeof WebAssembly !== 'undefined' };
 }
 
 async function cacheKeys(): Promise<{ cache: Cache; keys: readonly Request[] } | null> {
@@ -51,20 +58,42 @@ function progressTracker(m: AudioModel, emit: (message: string, fraction: number
   };
 }
 
-let currentSignal: AbortSignal | undefined;
+/**
+ * Make the library's Hugging Face downloads abortable: while a load runs, requests to huggingface.co carry its signal, so Cancel stops the
+ * transfer instead of letting it finish in the background. Done on the global fetch because kokoro-js bundles its own copy of
+ * transformers.js (a different `env` than the app's) and both fetch through the global. One permanent wrapper + loads run one at a time,
+ * so overlapping loads cannot leave a stale (aborted) signal installed.
+ */
+let activeSignal: AbortSignal | null = null;
+let fetchPatched = false;
+let loadChain: Promise<unknown> = Promise.resolve();
+function patchFetchOnce() {
+  if (fetchPatched) return; fetchPatched = true;
+  const orig = globalThis.fetch.bind(globalThis);
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    return activeSignal && /^https:\/\/([\w-]+\.)?huggingface\.co\//.test(url) ? orig(input, { ...init, signal: activeSignal }) : orig(input, init);
+  }) as typeof fetch;
+}
+function withAbortableFetch<T>(signal: AbortSignal, fn: () => Promise<T>): Promise<T> {
+  const run = loadChain.then(async () => {
+    if (signal.aborted) throw aborted();
+    patchFetchOnce(); activeSignal = signal;
+    try { return await fn(); } finally { activeSignal = null; }
+  });
+  loadChain = run.catch(() => undefined);
+  return run;
+}
 async function transformers() {
   const t = await import('@huggingface/transformers');
   t.env.useBrowserCache = true;
   t.env.allowLocalModels = false;
-  // make the library's downloads abortable: Cancel stops the transfer instead of letting it finish in the background
-  const base = globalThis.fetch.bind(globalThis);
-  t.env.fetch = (input: string | URL, init?: RequestInit) => base(input, { ...init, signal: currentSignal ?? init?.signal });
   return t;
 }
 
 const aborted = () => new ManagerError('cancelled', 'Cancelled.');
 const withAbort = <T,>(p: Promise<T>, signal: AbortSignal): Promise<T> =>
-  new Promise<T>((res, rej) => { const on = () => rej(aborted()); signal.addEventListener('abort', on, { once: true }); p.then(res, rej).finally(() => signal.removeEventListener('abort', on)); });
+  new Promise<T>((res, rej) => { if (signal.aborted) { rej(aborted()); return; } const on = () => rej(aborted()); signal.addEventListener('abort', on, { once: true }); p.then(res, rej).finally(() => signal.removeEventListener('abort', on)); });
 
 type KokoroLike = { generate(text: string, o: { voice: string; speed: number }): Promise<{ audio: Float32Array; sampling_rate: number }> };
 export function kokoroRuntime(tts: KokoroLike & { model?: { dispose?: () => Promise<void> } }): ModelRuntime {
@@ -88,8 +117,7 @@ export function kokoroRuntime(tts: KokoroLike & { model?: { dispose?: () => Prom
 }
 
 export async function loadAudioModel(m: AudioModel, device: 'webgpu' | 'wasm', io: { signal: AbortSignal; onProgress: (message: string, fraction: number) => void }): Promise<ModelRuntime> {
-  currentSignal = io.signal;
-  try {
+  return withAbortableFetch(io.signal, async () => {
     const track = progressTracker(m, io.onProgress);
     if (m.loader.kind === 'kokoro') {
       const { KokoroTTS } = await import('kokoro-js');
@@ -114,7 +142,7 @@ export async function loadAudioModel(m: AudioModel, device: 'webgpu' | 'wasm', i
       },
       async dispose() { await (model as unknown as { dispose?: () => Promise<void> }).dispose?.(); },
     };
-  } finally { currentSignal = undefined; }
+  });
 }
 
 let shared: AudioModelManager | null = null;
