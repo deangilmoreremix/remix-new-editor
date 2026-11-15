@@ -78,3 +78,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Pixel Sort (Fix G) - inspired by FreeCut, no code copied
+
+`src/openchatcut/gl/fx/s10/*` (Pixel Sort, `builtin:fx-pixel-sort`) is an independent re-implementation. The idea (threshold-masked runs of pixels sorted by a colour key along a row or column) is inspired by FreeCut's pixel-sort effect (https://github.com/walterlow/freecut, MIT, commit 5ceeeb388eef5423640b7db157706274bf1b8165). FreeCut's version is a WGSL compute shader; none of its code or text was copied or adapted. This repo's version is GLSL ES 3.00 fragment passes (odd-even transposition sort, ping-pong). No MIT notice is required for an idea; this entry is attribution only.

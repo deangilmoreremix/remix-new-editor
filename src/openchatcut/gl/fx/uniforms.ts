@@ -110,6 +110,7 @@ export function fxPasses(
       out.push({
         ...pass,
         inputFrom: pass.inputFrom == null ? undefined : pass.inputFrom + offset,
+        slot: pass.slot == null ? undefined : pass.slot + offset, // [remix] Fix G
         samplers: pass.samplers
           ? Object.fromEntries(Object.entries(pass.samplers).map(([name, index]) => [name, index + offset]))
           : undefined,
