@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', 'e23ec431ad139603cc185c452e7f0ca60c9ac68ce3ba63dd3bbd750b407b2a7e'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check, prepare images, readiness, agent service, templates); semantic coverage in section 5
+        ['src/components/TimelineEditorPage.jsx', 'd96f4b04f73f6c4e24056c6444f587fd38a4727bf1c90b0e220bad8265fcb945'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check, prepare images, readiness, agent service, templates); semantic coverage in section 5
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -1052,6 +1052,12 @@ describe('protected files — semantic integrity assertions', () => {
     // opens the Personalize window on them and says what stays there.
     expect(source).toContain("browseTemplates: () => openPersonalizeWindow(() => panel.redraw(), { openTo: 'templates' }),");
     expect(source).toContain('const kept = countKeptInModal(layers);');
+    // The window shows its guided editor only with a video: the timeline hands it its first base video clip
+    // (same page, same origin; no new fetch or upload path), and the cutout is written to the studio's own library.
+    expect(source).toContain('function firstBaseVideoUrl() {');
+    expect(source).toContain("mediaType: 'video'");
+    expect(source).toContain("import { writeAssetToStudioLibrary } from '../lib/personalization/studioLibrarySync.js';");
+    expect(source).toContain('if (asset) writeAssetToStudioLibrary(profile.id, assetId, asset);');
     // The old Personalization Suite hub simulated generation: its entry points (chip, rail item,
     // global function) now open the real Personalize window, and the hub class is no longer imported here.
     expect(source).not.toContain("from './modals/VideoPersonalizationHub.jsx'");

@@ -60,6 +60,17 @@ const NOOP_SEQUENCE_MANAGER = {
   sequences: [],
 }
 
+/**
+ * Applies the no-op provider only where remotion has one. Newer remotion (4.0.5xx) has no
+ * `Internals.SequenceManager` at all and its <Player> supplies what <Sequence> needs, so reading
+ * `.Provider` off it crashed the preview and the browser export in a real browser.
+ */
+const SequenceManagerCompat: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const Provider = (Internals as unknown as { SequenceManager?: { Provider?: React.ComponentType<{ value: unknown; children?: React.ReactNode }> } })
+    .SequenceManager?.Provider
+  return Provider ? <Provider value={NOOP_SEQUENCE_MANAGER}>{children}</Provider> : <>{children}</>
+}
+
 interface EntranceState {
   opacity: number
   scale: number
@@ -432,7 +443,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
   const { start: endCardStart, length: endCardLen } = endCardFrames(settings.durationInFrames)
 
   return (
-    <Internals.SequenceManager.Provider value={NOOP_SEQUENCE_MANAGER}>
+    <SequenceManagerCompat>
     <AbsoluteFill style={{ background: '#05070a' }}>
       {renderBackground()}
       {audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
@@ -682,6 +693,6 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           </Sequence>
         ) : null}
       </AbsoluteFill>
-    </Internals.SequenceManager.Provider>
+    </SequenceManagerCompat>
   )
 }

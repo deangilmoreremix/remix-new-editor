@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { buildCutoutPatch, buildRevertPatch, cutoutAsset } from '../backgroundCutout.js';
+import { buildCutoutPatch, buildRevertPatch, cutoutAsset, MAX_LOCAL_DATA_URL } from '../backgroundCutout.js';
 import { resolveAssetUrl } from '../assetUrl.js';
 
 const logo = { id: 'logo-1', role: 'logo', name: 'Logo', url: 'https://a.test/logo.jpg' };
@@ -46,10 +46,16 @@ describe('cutoutAsset', () => {
     expect(uploaded).toBe(true);
     expect(patch).toMatchObject({ url: 'https://a.test/up.png', hasTransparency: true, width: 10, height: 20 });
   });
-  it('falls back to a local blob url when the upload fails', async () => {
-    globalThis.URL.createObjectURL = vi.fn(() => 'blob:local/1');
+  it('keeps a small un-uploaded cutout as a data url, so it survives a reload and a sync', async () => {
     const { patch, uploaded } = await cutoutAsset(logo, { deps: deps({ persist: async () => ({ ok: false }) }) });
     expect(uploaded).toBe(false);
+    expect(patch.url).toBe('data:image/png;base64,eA==');
+    expect(patch.uploadStatus).toBe('local');
+  });
+  it('falls back to a blob url only when the cutout is too large to keep in localStorage', async () => {
+    globalThis.URL.createObjectURL = vi.fn(() => 'blob:local/1');
+    const big = 'data:image/png;base64,' + 'A'.repeat(MAX_LOCAL_DATA_URL + 10);
+    const { patch } = await cutoutAsset(logo, { deps: deps({ persist: async () => ({ ok: false }), blobToDataUrl: async () => big }) });
     expect(patch.url).toBe('blob:local/1');
   });
   it('fails clearly when the browser cannot run it or there is no url', async () => {

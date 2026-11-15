@@ -8,6 +8,9 @@
 // So the studio and the timeline see one asset, and `{{logoUrl}}` etc. follow.
 import { resolveAssetUrl, resolveOriginalAssetUrl } from './assetUrl.js';
 
+/** Largest data URL kept in localStorage for a cutout that could not be uploaded (~0.5 MB of PNG). */
+export const MAX_LOCAL_DATA_URL = 700_000;
+
 const nowIso = () => new Date().toISOString();
 
 /** The asset after a cutout. `url` is the new image (durable `uploadedUrl` when uploaded). */
@@ -79,8 +82,9 @@ export async function cutoutAsset(asset, { onProgress, signal, deps, clientId } 
   // Make it durable (survives reload, usable by the export). If the upload
   // fails the cutout still works on this device until the tab is closed.
   let uploadedUrl = '';
+  let dataUrl = '';
   try {
-    const dataUrl = engine.blobToDataUrl ? await engine.blobToDataUrl(out.blob) : '';
+    dataUrl = engine.blobToDataUrl ? await engine.blobToDataUrl(out.blob) : '';
     const saved = await engine.persist({
       assetId: asset.id,
       originalAssetId: asset.id,
@@ -99,6 +103,8 @@ export async function cutoutAsset(asset, { onProgress, signal, deps, clientId } 
     if (saved?.ok && saved.publicUrl) uploadedUrl = saved.publicUrl;
   } catch { /* keep the local result */ }
 
-  const url = uploadedUrl || URL.createObjectURL(out.blob);
+  // Not uploaded: a small cutout stays as a data URL (it survives a reload and can be shared with the
+  // studio's library); a large one falls back to a blob URL that lasts only as long as this tab.
+  const url = uploadedUrl || (dataUrl && dataUrl.length <= MAX_LOCAL_DATA_URL ? dataUrl : URL.createObjectURL(out.blob));
   return { patch: buildCutoutPatch(asset, { url, uploadedUrl, provider: out.provider, width: out.width, height: out.height }), uploaded: Boolean(uploadedUrl) };
 }

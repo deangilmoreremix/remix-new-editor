@@ -45,6 +45,7 @@ import { generateImage as generateAiImage } from '../lib/editor/aiImageService.j
 import { makePersonalizationAssetVideoReady } from '../lib/personalization/videoReady.js';
 import { persistPersonalizationAssetVersion } from '../lib/personalization/assetDiscoveryService.js';
 import { buildRevertPatch, cutoutAsset } from '../lib/personalization/backgroundCutout.js';
+import { writeAssetToStudioLibrary } from '../lib/personalization/studioLibrarySync.js';
 import { runBatch, summarizeBatch, uniqueFileName } from '../lib/personalization/batchExport.js';
 import { planPrepareImages, prepareImages } from '../lib/personalization/prepareImages.js';
 import { buildReadiness } from '../lib/personalization/readiness.js';
@@ -4933,6 +4934,12 @@ export function TimelineEditorPage() {
       if (!profile || !assetId) return null;
       const next = updatePersonalizationAsset(profile, assetId, updater);
       const saved = contactStore.saveProfile(next);
+      // The Personalize window keeps its own copy of the client's images: write the edit there too, so
+      // the window shows it and the next sync does not put the old image back.
+      try {
+        const asset = Object.values(saved?.personalization?.assets || {}).flat().find((a) => a && typeof a === 'object' && a.id === assetId);
+        if (asset) writeAssetToStudioLibrary(profile.id, assetId, asset);
+      } catch { /* the timeline copy is still saved */ }
       try { renderOverlayLayer(); } catch { /* not mounted */ }
       scheduleEngineUpdate();
       return saved;
@@ -5032,9 +5039,21 @@ export function TimelineEditorPage() {
     }
 
     // The Personalize window, seeded with (and reporting back) the shared overlays.
+    // The window shows its guided editor (choose video, overlay editor, preview, approve, per-client export)
+    // only when it has a video to work on, so hand it the timeline's first base video clip.
+    function firstBaseVideoUrl() {
+      for (const track of state.tracks) {
+        if (String(track.type || '').toLowerCase() !== 'video') continue;
+        const clip = (track.items || track.clips || []).find((c) => c?.type === 'video' && /^(https?:|blob:|data:video\/)/i.test(String(c.src || '')));
+        if (clip) return String(clip.src);
+      }
+      return '';
+    }
     function openPersonalizeWindow(onDone, { openTo } = {}) {
+      const mediaUrl = firstBaseVideoUrl();
       return import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
         studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
+        ...(mediaUrl ? { mediaUrl, mediaType: 'video', title: state.projectTitle || 'Timeline Editor project' } : {}),
         ...(openTo ? { openTo } : {}),
         initialLayers: personalizeInitialLayers(),
         onLayersChange: applyPersonalizeLayers,

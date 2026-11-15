@@ -6,7 +6,8 @@
 // `blob:` url that dies on reload and is useless to an export, so a durable
 // `uploadedUrl` wins over it. Pure: no DOM, no imports.
 
-const isTemporary = (u) => /^(blob:|data:)/i.test(String(u || ''));
+// Only blob: urls die with the tab. A data: url is self-contained and survives a reload.
+const isTemporary = (u) => /^blob:/i.test(String(u || ''));
 
 /** The URL to display or render: the edited/cutout image, durable when possible. */
 export function resolveAssetUrl(asset) {

@@ -110,7 +110,8 @@ export function overlaysFromTimeline(state, { profile = null } = {}) {
     overlays.push({
       id: `clip:${clip.id}`,
       clipId: String(clip.id),
-      name: String(clip.name || '').trim(),
+      // A clip named after its token ('Text: {{businessName}}') is shown with the contact's value instead.
+      name: resolveOverlayText(String(clip.name || '').trim(), profile).replace(/\{\{[^}]*\}\}/g, '').replace(/:\s*$/, '').trim(),
       type,
       kind: isText ? 'text' : isDesign ? 'design' : 'image',
       startSec,

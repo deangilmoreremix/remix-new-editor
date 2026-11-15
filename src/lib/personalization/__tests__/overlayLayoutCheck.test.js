@@ -22,6 +22,12 @@ describe('overlaysFromTimeline', () => {
     expect(overlays[0].bridged).toBe(true);
     expect(notMeasured).toBe(1); // the lower third; the backdrop is full-frame by design
   });
+  it('names an overlay after the contact\'s value, not its raw {{token}}', () => {
+    const profile = { id: 'c', name: 'Ann', personalization: { business: { businessName: 'Acme' } } };
+    const named = { ...text('a', { left: 1, top: 1, width: 10, height: 10 }), name: 'Text: {{businessName}}' };
+    expect(overlaysFromTimeline(state(named), { profile }).overlays[0].name).toBe('Text: Acme');
+    expect(overlaysFromTimeline(state(named), { profile: null }).overlays[0].name).toBe('Text');
+  });
   it('skips overlays without usable geometry and copes with an empty project', () => {
     expect(overlaysFromTimeline(state({ id: 'x', type: 'overlay-text', addon: {} })).overlays).toEqual([]);
     expect(overlaysFromTimeline(null)).toEqual({ overlays: [], notMeasured: 0 });

@@ -104,7 +104,14 @@ function mergeAssets(existing, incoming) {
     // background-removed cutout keeps its id, new url), that version replaces
     // the copy synced earlier. Assets only the editor has are kept.
     const incById = new Map(inc.filter((a) => a?.id).map((a) => [a.id, a]));
-    const kept = have.map((a) => (a?.id && incById.has(a.id) ? { ...a, ...incById.get(a.id) } : a));
+    const kept = have.map((a) => {
+      const theirs = a?.id ? incById.get(a.id) : null;
+      if (!theirs) return a;
+      // A cutout made here (not yet in the studio's library) stays while the studio still has the
+      // image it was made from. If the studio re-saved the asset itself (changed or also edited), it wins.
+      const madeHere = a.edited && a.originalUrl && !theirs.edited && !theirs.hasTransparency && a.originalUrl === (theirs.originalUrl || theirs.url);
+      return madeHere ? a : { ...a, ...theirs };
+    });
     const seen = new Set(have.map((a) => a?.id).filter(Boolean));
     const add = inc.filter((a) => !a?.id || !seen.has(a.id));
     if (kept.length || add.length) out[k] = [...kept, ...add];

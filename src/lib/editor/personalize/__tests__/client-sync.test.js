@@ -148,3 +148,35 @@ describe('a not-yet-uploaded edit does not leak a blob url into the video', () =
     expect(resolveToken(store.getProfile(ann.id), 'logoUrl')).toBe('https://cdn.test/logo-cutout.png');
   });
 });
+
+describe('a cutout made on the timeline survives a sync until the studio changes the image', () => {
+  beforeEach(() => localStorage.clear());
+  const original = { id: 'logo-1', role: 'logo', url: 'https://cdn.test/logo.jpg' };
+  const madeHere = { ...original, url: 'data:image/png;base64,Q1VU', originalUrl: original.url, edited: true, hasTransparency: true };
+
+  const syncWith = (studioLogo) => {
+    seed([ann], { smartvideo_client_assets: { [ann.id]: { logos: [studioLogo], primaryLogo: studioLogo } } });
+    syncPersonalizeContacts({ store });
+    return store.getProfile(ann.id).personalization.assets.logos[0];
+  };
+
+  it('keeps the local cutout when the studio still has the original it was made from', () => {
+    syncWith(original);
+    store.saveProfile({ ...store.getProfile(ann.id), personalization: { ...store.getProfile(ann.id).personalization, assets: { ...store.getProfile(ann.id).personalization.assets, logos: [madeHere] } } });
+    const after = syncWith(original);
+    expect(after).toMatchObject({ url: 'data:image/png;base64,Q1VU', hasTransparency: true, originalUrl: original.url });
+    expect(resolveToken(store.getProfile(ann.id), 'logoUrl')).toBe('data:image/png;base64,Q1VU');
+  });
+  it('lets the studio win when it changed the asset itself', () => {
+    syncWith(original);
+    store.saveProfile({ ...store.getProfile(ann.id), personalization: { ...store.getProfile(ann.id).personalization, assets: { ...store.getProfile(ann.id).personalization.assets, logos: [madeHere] } } });
+    const replaced = { ...original, url: 'https://cdn.test/new-logo.jpg' };
+    expect(syncWith(replaced).url).toBe('https://cdn.test/new-logo.jpg');
+  });
+  it('lets the studio win when it has its own cutout of the asset', () => {
+    syncWith(original);
+    store.saveProfile({ ...store.getProfile(ann.id), personalization: { ...store.getProfile(ann.id).personalization, assets: { ...store.getProfile(ann.id).personalization.assets, logos: [madeHere] } } });
+    const studioCut = { ...original, url: 'https://cdn.test/studio-cut.png', originalUrl: original.url, edited: true, hasTransparency: true };
+    expect(syncWith(studioCut).url).toBe('https://cdn.test/studio-cut.png');
+  });
+});

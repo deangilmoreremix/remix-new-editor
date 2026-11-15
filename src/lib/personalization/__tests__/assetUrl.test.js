@@ -20,6 +20,9 @@ describe('resolveAssetUrl', () => {
     expect(resolveAssetUrl({ url: 'blob:http://x/1', originalUrl: 'https://a.test/o.jpg' })).toBe('https://a.test/o.jpg');
     expect(resolveAssetUrl({ url: 'blob:http://x/1' })).toBe('blob:http://x/1');
   });
+  it('treats a data: url as durable: a cutout kept as a data url beats the original it was made from', () => {
+    expect(resolveAssetUrl({ url: 'data:image/png;base64,Q1VU', originalUrl: 'https://a.test/o.jpg', edited: true })).toBe('data:image/png;base64,Q1VU');
+  });
   it('falls back through preview, source, original', () => {
     expect(resolveAssetUrl({ previewUrl: 'p', sourceUrl: 's', originalUrl: 'o' })).toBe('p');
     expect(resolveAssetUrl({ originalUrl: 'o' })).toBe('o');
