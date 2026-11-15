@@ -168,7 +168,7 @@ export function StepPreviewApprove(): React.JSX.Element {
               activeDesignId={activeRemotionDesignId}
               available={{ logo: Boolean(assets?.primaryLogo), product: (assets?.products?.length || 0) > 0, service: (assets?.products?.length || 0) > 0 }}
               context={{
-                textLength: Math.max(0, ...previewSettings.layers.filter((l) => l.visible && l.kind !== 'design').map((l) => (l.text ?? '').trim().length)),
+                textLength: Math.max(0, ...(previewSettings.layers ?? []).filter((l) => l.visible && l.kind !== 'design').map((l) => (l.text ?? '').trim().length)),
                 hasLogo: Boolean(assets?.primaryLogo),
                 imageCount: assets?.products?.length || 0,
               }}
