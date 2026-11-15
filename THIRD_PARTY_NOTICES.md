@@ -24,5 +24,5 @@ re-check its notices and keep any required attribution and distribution terms.
   `src/cinegen/vendor-soundtouch/LICENSE-LGPL-2.1.txt`; the file is kept separate so it can be replaced (see the README next to it).
 - **FreeCut** (MIT, Copyright (c) 2025 FreeCut): the pitch limits and semitone/cent maths of `src/shared/utils/audio-pitch.ts` and the idea of the
   SoundTouch preview worklet (`soundtouch-preview-processor.worklet.ts`) were adapted into `src/cinegen/lib/audio/pitch.ts` and
-  `pitch-worklet.processor.ts` (marked in their headers).
+  `pitch-worklet.processor.js` (marked in their headers).
 
