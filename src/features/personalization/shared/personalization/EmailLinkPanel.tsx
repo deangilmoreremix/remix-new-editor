@@ -16,6 +16,33 @@ function readSaved(): string {
 
 type SavedLead = { id: string; business: { name?: string; email?: string; city?: string; region?: string } }
 
+const CUSTOM_KEY = 'pz-email-custom-provider'
+type CustomDef = { open: string; close: string; fields: string }
+const DEFAULT_CUSTOM: CustomDef = { open: '{{', close: '}}', fields: '' }
+
+function readCustom(): CustomDef {
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(CUSTOM_KEY) || 'null')
+    if (raw && typeof raw === 'object') {
+      return { open: String(raw.open ?? ''), close: String(raw.close ?? ''), fields: String(raw.fields ?? '') }
+    }
+  } catch { /* private mode or bad JSON */ }
+  return DEFAULT_CUSTOM
+}
+
+/** "firstName=FNAME" lines -> { firstName: 'FNAME' } (blank or malformed lines are ignored). */
+function parseFields(text: string): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const line of text.split(/\r?\n/)) {
+    const i = line.indexOf('=')
+    if (i < 1) continue
+    const k = line.slice(0, i).trim()
+    const v = line.slice(i + 1).trim()
+    if (k && v) out[k] = v
+  }
+  return out
+}
+
 const isHttpUrl = (v: string) => {
   try { const u = new URL(v); return u.protocol === 'https:' || u.protocol === 'http:' } catch { return false }
 }
@@ -29,12 +56,25 @@ export default function EmailLinkPanel({ tokens }: { tokens: string[] }) {
   const [base, setBase] = useState(readSaved)
   const [providerKey, setProviderKey] = useState(EMAIL_PROVIDERS[0].key)
   const [preload, setPreload] = useState(true)
+  const [custom, setCustom] = useState<CustomDef>(readCustom)
   const [copied, setCopied] = useState(false)
   const [leads, setLeads] = useState<SavedLead[] | null>(null)
   const [leadsState, setLeadsState] = useState<'idle' | 'loading' | 'error'>('idle')
   const [leadsError, setLeadsError] = useState('')
 
-  const provider = EMAIL_PROVIDERS.find((p) => p.key === providerKey) || EMAIL_PROVIDERS[0]
+  const builtIn = EMAIL_PROVIDERS.find((p) => p.key === providerKey) || EMAIL_PROVIDERS[0]
+  // "Custom" is the user's own provider: their wrapper and field names (empty wrapper falls back to {{ }}).
+  const provider = useMemo(
+    () => (builtIn.key === 'custom'
+      ? { ...builtIn, label: 'your email provider', open: custom.open.trim() ? custom.open : '{{', close: custom.close.trim() ? custom.close : '}}', fields: parseFields(custom.fields) }
+      : builtIn),
+    [builtIn, custom],
+  )
+  const onCustom = (patch: Partial<CustomDef>) => {
+    const next = { ...custom, ...patch }
+    setCustom(next)
+    try { window.localStorage.setItem(CUSTOM_KEY, JSON.stringify(next)) } catch { /* private mode */ }
+  }
   const baseOk = isHttpUrl(base.trim())
   const result = useMemo(
     () => (baseOk ? mergeTagLink(base.trim(), tokens, provider, { preload }) : null),
@@ -117,6 +157,22 @@ export default function EmailLinkPanel({ tokens }: { tokens: string[] }) {
           <input type="checkbox" checked={preload} onChange={(e) => setPreload(e.target.checked)} /> Preload video
         </label>
       </div>
+      {builtIn.key === 'custom' && (
+        <div data-testid="pz-email-custom" className="space-y-2 rounded-xl border border-white/10 bg-black/30 p-4">
+          <p className="text-xs text-white/40">Tell us how your email provider writes a merge tag, for example <code>{'<<'}</code> and <code>{'>>'}</code> for <code>{'<<FirstName>>'}</code>.</p>
+          <div className="flex gap-3">
+            <label className="text-xs text-white/60">Starts with
+              <input data-testid="pz-email-custom-open" value={custom.open} onChange={(e) => onCustom({ open: e.target.value })} className="ml-2 w-20 rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-sm text-white" />
+            </label>
+            <label className="text-xs text-white/60">Ends with
+              <input data-testid="pz-email-custom-close" value={custom.close} onChange={(e) => onCustom({ close: e.target.value })} className="ml-2 w-20 rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-sm text-white" />
+            </label>
+          </div>
+          <label className="block text-xs text-white/60">Field names (optional, one per line as <code>firstName=FirstName</code>)
+            <textarea data-testid="pz-email-custom-fields" rows={3} value={custom.fields} onChange={(e) => onCustom({ fields: e.target.value })} className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-sm text-white" />
+          </label>
+        </div>
+      )}
       {!baseOk && (
         <p className="text-xs text-white/40">The link must point to a page that reads token values from the link (for example a published personalized video).</p>
       )}
@@ -131,7 +187,9 @@ export default function EmailLinkPanel({ tokens }: { tokens: string[] }) {
           </button>
           {result.unmapped.length > 0 && (
             <p className="text-xs text-amber-300">
-              {provider.label} has no standard field for {result.unmapped.join(', ')}. Create a custom field with that name there, or those values stay blank.
+              {builtIn.key === 'custom'
+                ? `No field name set for ${result.unmapped.join(', ')}, so the token name is used as-is.`
+                : `${provider.label} has no standard field for ${result.unmapped.join(', ')}. Create a custom field with that name there, or those values stay blank.`}
             </p>
           )}
           {result.skipped.length > 0 && (

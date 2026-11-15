@@ -155,3 +155,48 @@ describe('golden provider tags (cross-repo drift guard)', () => {
     expect(actual).toEqual(golden)
   })
 })
+
+describe('custom (user-defined) provider', () => {
+  beforeEach(() => { cleanup(); try { window.localStorage.clear() } catch { /* ignore */ } window.localStorage.setItem('pz-email-link-base', BASE) })
+
+  const pickCustom = () => fireEvent.change(screen.getByTestId('pz-email-provider'), { target: { value: 'custom' } })
+
+  it('uses the user\'s own wrapper', () => {
+    render(<EmailLinkPanel tokens={['firstName']} />)
+    pickCustom()
+    fireEvent.change(screen.getByTestId('pz-email-custom-open'), { target: { value: '<<' } })
+    fireEvent.change(screen.getByTestId('pz-email-custom-close'), { target: { value: '>>' } })
+    expect(screen.getByTestId('pz-email-link').textContent).toBe(`${BASE}?firstName=<<firstName>>`)
+  })
+  it('applies per-token field names and ignores malformed lines', () => {
+    render(<EmailLinkPanel tokens={['firstName', 'company']} />)
+    pickCustom()
+    fireEvent.change(screen.getByTestId('pz-email-custom-fields'), { target: { value: 'firstName=FirstName\nnonsense\n=x\ncompany=Org' } })
+    expect(screen.getByTestId('pz-email-link').textContent).toBe(`${BASE}?firstName={{FirstName}}&company={{Org}}`)
+  })
+  it('falls back to {{ }} when the wrapper is emptied', () => {
+    render(<EmailLinkPanel tokens={['firstName']} />)
+    pickCustom()
+    fireEvent.change(screen.getByTestId('pz-email-custom-open'), { target: { value: '' } })
+    fireEvent.change(screen.getByTestId('pz-email-custom-close'), { target: { value: '  ' } })
+    expect(screen.getByTestId('pz-email-link').textContent).toBe(`${BASE}?firstName={{firstName}}`)
+  })
+  it('remembers the custom provider across remounts', () => {
+    const { unmount } = render(<EmailLinkPanel tokens={['firstName']} />)
+    pickCustom()
+    fireEvent.change(screen.getByTestId('pz-email-custom-open'), { target: { value: '[[' } })
+    fireEvent.change(screen.getByTestId('pz-email-custom-close'), { target: { value: ']]' } })
+    unmount()
+    render(<EmailLinkPanel tokens={['firstName']} />)
+    pickCustom()
+    expect((screen.getByTestId('pz-email-custom-open') as HTMLInputElement).value).toBe('[[')
+    expect(screen.getByTestId('pz-email-link').textContent).toBe(`${BASE}?firstName=[[firstName]]`)
+  })
+  it('shows the editor only for Custom, and shows no vendor "create a field" advice for it', () => {
+    render(<EmailLinkPanel tokens={['painPoint']} />)
+    expect(screen.queryByTestId('pz-email-custom')).toBeNull()
+    pickCustom()
+    expect(screen.getByTestId('pz-email-custom')).toBeTruthy()
+    expect(screen.queryByText(/Create a custom field/)).toBeNull()
+  })
+})
