@@ -7,6 +7,7 @@
  */
 import { TOKEN_DEFS, TOKEN_LABELS, buildVariables, resolveToken, extractTokens } from '../../../components/personalize/tokenSchema.js';
 import { contactName } from '../personalize/perContact.js';
+import { GUEST_NOTICE, friendlyPublishError } from '../publish/guestMessages.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const wrap = (inner) => `<div class="pz-ui rp">${inner}</div>`;
@@ -206,6 +207,7 @@ export function renderBatchHub(el, s) {
           <button type="button" class="pz-btn pz-btn-secondary" data-rp="share">${s.createLinks ? 'Manage links' : 'Personal links'}</button>
         </div>
         ${result?.message ? `<p class="${result.error ? 'pz-warning' : 'pz-hint'}" role="status">${esc(result.message)}${result.needsPublish ? ' <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="share">Open Share</button>' : ''}</p>` : ''}
+        ${s.guest?.() && s.createLinks ? `<p class="pz-hint" role="note">${esc(GUEST_NOTICE)}</p>` : ''}
         ${(result?.rows || []).length ? `<div class="pz-card"><span class="pz-label">Links</span>
           <ul class="rp-list">${result.rows.map((r, i) => `<li class="rp-var rp-var--2"><div><strong>${esc(r.name)}</strong>${r.note ? ` <span class="pz-chip pz-chip-warn">${esc(r.note)}</span>` : ''}</div>
             ${r.link ? `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="copy" data-i="${i}">${result.copied === i ? 'Copied ✓' : 'Copy link'}</button>` : ''}</li>`).join('')}</ul>
@@ -220,7 +222,7 @@ export function renderBatchHub(el, s) {
       result = { rows: r.rows || [], message: [`${(r.rows || []).filter((x) => x.link).length} link${(r.rows || []).filter((x) => x.link).length === 1 ? '' : 's'} ready.`, r.notice].filter(Boolean).join(' ') };
       return true;
     } catch (err) {
-      result = { error: true, message: err?.message || 'Could not create links', needsPublish: err?.code === 'not_published' };
+      result = { error: true, message: friendlyPublishError(err, 'Could not create links'), needsPublish: err?.code === 'not_published' };
       return false;
     } finally { draw(); }
   };

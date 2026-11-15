@@ -4,6 +4,7 @@
  */
 import { watchUrl, embedCode, canonicalUrl, validateSlug, slugify, personalizedUrl } from './publishClient.js';
 import { effectiveVariables } from './personalLinksClient.js';
+import { GUEST_NOTICE, friendlyPublishError } from './guestMessages.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -20,6 +21,7 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
  *   fetchStats()   → Promise<[{ contactId, views, plays, completes, ctaClicks, leads, lastSeen }]>
  *   contactLabel(id) → display name for a contact id
  *   defaultTitle
+ *   guest()        → boolean   true while nobody is signed in: shows the no-account notice, hides readable link names / privacy
  *   saveLink({ business?, slug }) → Promise<info>   claim business name (if given) and set the video's slug
  *   setPrivacy('public'|'unlisted') → Promise
  *   listRevisions() → Promise<[{ revision, title, created_at }]>
@@ -78,7 +80,7 @@ export function renderSharePanel(container, opts) {
   // Readable link: /v/<business>/<slug>. The database validates, reserves and
   // guarantees uniqueness; the inputs only give instant feedback.
   const linkEditorHtml = (info) => {
-    if (!opts.saveLink) return '';
+    if (!opts.saveLink || opts.guest?.()) return '';
     const biz = info.business || '';
     const slug = info.slug || slugify(info.title, '');
     return `<div class="share-link-editor">
@@ -161,7 +163,7 @@ export function renderSharePanel(container, opts) {
   };
   const linkAction = async (fn, okMsg) => {
     ui.linksBusy = true; ui.linksMsg = ''; draw();
-    try { await fn(); if (okMsg) ui.linksMsg = okMsg; } catch (err) { ui.linksMsg = err?.message || 'That did not work'; }
+    try { await fn(); if (okMsg) ui.linksMsg = okMsg; } catch (err) { ui.linksMsg = friendlyPublishError(err, 'That did not work'); }
     ui.linksBusy = false; ui.confirm = null;
     await loadLinks(true);
   };
@@ -190,6 +192,7 @@ export function renderSharePanel(container, opts) {
     const link = info ? urlOf(info) : '';
     container.innerHTML = `
       <div class="share-panel">
+        ${opts.guest?.() ? `<p class="share-guest" role="note">${esc(GUEST_NOTICE)}</p>` : ''}
         <p class="addon-field__hint">Publish this timeline as an interactive video: viewers get your pauses, loops, skips, lead forms, CTA buttons and List Builder, and their leads come to you.</p>
         <label class="cap-row"><span>Title</span><input type="text" data-share-title maxlength="200" value="${esc(info?.title || opts.defaultTitle || 'Untitled video')}"/></label>
         ${ui.error ? `<p class="agent-msg agent-msg--error" role="alert">${esc(ui.error)}</p>` : ''}
@@ -238,7 +241,7 @@ export function renderSharePanel(container, opts) {
         ui.info = await opts.publish({ title: typedTitle });
         ui.leads = await opts.countLeads?.().catch(() => null);
       } catch (err) {
-        ui.error = err?.message || 'Publishing failed';
+        ui.error = friendlyPublishError(err, 'Publishing failed');
       }
       ui.busy = false;
       draw();

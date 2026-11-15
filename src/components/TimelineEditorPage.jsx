@@ -6091,12 +6091,36 @@ export function TimelineEditorPage() {
     // Share: publish the timeline as an interactive video (/watch/<id>).
     // eslint-disable-next-line no-var -- created on first open
     var sharePanel = null;
+    // Signed in: the account's client. Signed out: a private guest identity (lib/guestIdentity.js), so publishing,
+    // personal links and lead lists work without an account. Cloud projects and thumbnails stay signed-in only.
+    const isGuest = () => !window.Clerk?.user;
     async function publishOwnerClient() {
-      if (!window.Clerk?.user) throw new Error('Sign in to publish videos');
+      if (isGuest()) return (await import('../lib/guestIdentity.js')).getGuestOwnerClient();
       await supabase.refreshUserHeader?.();
       if (!supabase.supabase) throw new Error('The video service is unavailable — check your connection');
       return supabase.supabase;
     }
+    // After signing in: offer to move what this browser published as a guest into the account (asked once per page load).
+    let guestClaimAsked = false;
+    async function offerGuestClaim() {
+      if (guestClaimAsked || !window.Clerk?.user) return;
+      try {
+        const guest = await import('../lib/guestIdentity.js');
+        if (!guest.hasGuestIdentity()) return;
+        guestClaimAsked = true;
+        if (!window.confirm('Videos and links you published without an account are still in this browser. Move them to your account so you keep them?')) return;
+        const token = await window.Clerk.session?.getToken?.();
+        if (!token) throw new Error('Please try again in a moment.');
+        const { moved } = await guest.claimGuestContent(token);
+        showToast(`Moved ${moved.videos} video${moved.videos === 1 ? '' : 's'} and ${moved.links} link${moved.links === 1 ? '' : 's'} to your account`, 'success');
+        sharePanel?.refresh?.();
+      } catch (err) {
+        guestClaimAsked = false;
+        showToast(err?.message || 'Could not move your videos to your account', 'error');
+      }
+    }
+    cleanup.addTimer(setTimeout(offerGuestClaim, 2500));
+    cleanup.addTimer(setTimeout(offerGuestClaim, 9000));
     const publishedKey = () => String(currentTimelineId(state) || 'default');
     let scopesMounted = null;
     async function mountColorScopesPanel() {
@@ -6143,7 +6167,7 @@ export function TimelineEditorPage() {
         defaultTitle: state.projectTitle || 'Untitled video',
         async getInfo() {
           const id = videoId();
-          if (!id || !window.Clerk?.user) return null;
+          if (!id) return null;
           return pub.getMyVideo(await publishOwnerClient(), id);
         },
         async publish({ title }) {
@@ -6177,6 +6201,7 @@ export function TimelineEditorPage() {
           captureProjectThumbnail();
           return { ...(await pub.getMyVideo(client, id).catch(() => info)), published: true };
         },
+        guest: isGuest,
         async saveLink({ business, slug }) {
           const client = await publishOwnerClient();
           if (business) await pub.claimBusinessSlug(client, business);
@@ -8970,8 +8995,8 @@ export function TimelineEditorPage() {
         exportSelected: (ids) => openExportModal(state, showToast, { contactIds: ids }),
         // Links for the chosen contacts, for the published video. Stored links when the database has them,
         // otherwise the older links that carry the details in the address.
+        guest: isGuest,
         createLinks: async (ids) => {
-          if (!window.Clerk?.user) throw Object.assign(new Error('Sign in to create links.'), { code: 'sign_in' });
           const pub = await import('../lib/editor/publish/publishClient.js');
           const pl = await import('../lib/editor/publish/personalLinksClient.js');
           const client = await publishOwnerClient();
