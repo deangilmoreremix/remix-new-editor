@@ -147,3 +147,8 @@ Step 1 now starts on **Video templates**: the public 184-clip library kept in th
 
 ## Scope: the new (CineGen) editor only
 The Template Generator's text looks, real transitions, lower-third styles, audio, cut-out and export are built for the new CineGen editor. The classic editor's entry points still open the wizard with its legacy fallbacks (legacy transition list, no styled text on its timeline, no audio, no export), and are not maintained. Decision: leave that code as it is.
+
+## Call button (Connect forms) and uniform stills (added)
+- Connect forms (click-to-call) are offered again as "Call buttons". A Call button panel in the Preview step collects the business's own number (country, number, optional button text), validates it live, blocks Add to timeline / Export until it is given, passes it into the form's call button (`applyCallSetup`), and saves it with the template. Stills for the four forms were generated.
+- All 385 Animations and 232 Motion graphics stills were re-rendered with the composed tile. Six that landed on a flat frame were restored to their earlier version; the generator now scores every sampled moment and keeps the most detailed one.
+- Left as is on purpose: the old root-level `components/modals/TemplateGenerator/*` files (the app still imports them through `lib/constants/modals.js`); the missing `agent-stream.jpg` motion-director texture (not in this repo or in `develop`).

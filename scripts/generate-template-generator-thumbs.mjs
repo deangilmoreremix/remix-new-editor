@@ -78,8 +78,10 @@ try {
             await page.evaluate((x) => window.__thumbs.render(x), { kind: e.kind, id: e.id, ...t });
             const shot = await page.locator('#host').screenshot({ type: 'png', omitBackground: true });
             const out = await composeStill(shot);
-            if (!best || out.coverage > best.coverage) best = out;
-            if (out.kind !== 'empty' && out.coverage >= 0.01) break;
+            // score by how much the tile shows: a frame that is one flat colour (a transition fully covering the screen) is not a good still
+            out.score = out.jpeg ? await contentShare(out.jpeg) : -1;
+            if (!best || out.score > best.score) best = out;
+            if (out.kind !== 'empty' && out.score >= 0.05) break;
           }
           if (best.kind === 'empty') {
             if (e.kind === 'mg') {                                // draws nothing in the sandbox: don't keep a blank picture, don't offer it
@@ -91,7 +93,7 @@ try {
           if (e.kind === 'mg') blocked.delete(e.id);
           await mkdir(dirname(e.file), { recursive: true });
           await writeFile(e.file, best.jpeg);
-          if (best.coverage < 0.01) flat.push(`${e.kind}:${e.id} — very little is drawn (${(best.coverage * 100).toFixed(2)}% of the frame)`);
+          if (best.score < 0.01) flat.push(`${e.kind}:${e.id} — very little to see (${(best.score * 100).toFixed(2)}% of the tile differs from its background)`);
           lastErr = null; break;
         } catch (err) {
           lastErr = err;
