@@ -2,6 +2,8 @@
  * Shared Personalization System — Types
  */
 
+import type { PreviewLayer, PreviewInputProps } from './preview/types'
+
 export type PersonalizationSourceType =
   | 'landing-demo'
   | 'go-ai-viral-prompt'
@@ -357,6 +359,16 @@ export interface PersonalizationCompletion {
   originStudio?: string
   /** The source id the run was keyed on. */
   sourceId?: string
+  /**
+   * The approved overlay layers of a branded render (not set for AI-generated
+   * runs). Lets a studio such as the timeline place them as its own clips.
+   */
+  overlay?: {
+    layers: PreviewLayer[]
+    fps: number
+    durationInFrames: number
+    brand: PreviewInputProps['brand']
+  }
 }
 
 export interface ImageStudioHandoff {

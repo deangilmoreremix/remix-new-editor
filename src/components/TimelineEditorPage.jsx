@@ -38,6 +38,7 @@ import { openSmartSpeechModal } from '../lib/editor/agent/smartSpeechModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import * as contactStore from '../lib/contactStore.js';
 import { PERSONALIZED_LAYOUTS, assetForImageToken, buildLayoutPlan, imageTokenChoices, imageTokenOf, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
+import { studioLayersToPlan } from '../lib/editor/personalize/studioLayers.js';
 import { measureImageLuminance } from '../lib/personalization/imageStyle.js';
 import { AI_FILLABLE, describeUnreviewed, markAiGenerated, planAiImages, unreviewedAiImages } from '../lib/personalization/aiContactImages.js';
 import { AI_CLIP_MODELS, CLIP_IMAGE_SLOTS, aiClipConfig, clipSrcFor, describeClipGaps, planClipJobs } from '../lib/personalization/aiContactClips.js';
@@ -8778,13 +8779,46 @@ export function TimelineEditorPage() {
           addText: addSmartText,
           openPersonalize: () => import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
             studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
-            onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); panel.redraw(); },
+            onComplete: (completion) => {
+              contactSync.run({ leads: true }).catch(() => {});
+              renderContactSwitcher();
+              panel.redraw();
+              addStudioLayers(completion?.overlay);
+            },
           })),
         });
         window.addEventListener('remix:contact-changed', panel.redraw);
         return panel;
       });
     }
+
+    // The Personalization Studio's approved layers as token-based overlay
+    // clips (logo, business name, CTA ... resolve per contact), placed at the
+    // playhead. Only a branded render carries layers; AI runs hand back media.
+    function addStudioLayers(overlay) {
+      if (!overlay?.layers?.length) return;
+      const T = state.timelineSeconds || 60;
+      const plan = studioLayersToPlan(overlay.layers, {
+        fps: overlay.fps, durationInFrames: overlay.durationInFrames, timelineSeconds: T,
+        startSec: (state.playheadPercent / 100) * T, brand: overlay.brand,
+      });
+      if (!plan.length) return;
+      saveStateSnapshot(state);
+      plan.forEach((item) => {
+        const clip = createAddonClip(item.type, { startSec: item.startSec, timelineSeconds: T });
+        clip.start = item.startSec;
+        clip.end = item.endSec;
+        clip.addon = { ...clip.addon, ...item.addon };
+        clip.name = item.name;
+        insertClipIntoTrack(clip, getAddon(item.type)?.track || 'Text');
+      });
+      if (plan.some((i) => i.addon?.plate === 'auto')) measureLogos();
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added ${plan.length} Studio layer${plan.length === 1 ? '' : 's'} to the timeline`, 'success');
+    }
+    // The "AI Personalizer" rail action fires this event.
+    cleanup.addWindowListener('open-personalizer', () => showPersonalizationPanel());
 
     function showPersonalizationEditorPanel() {
       openPanel('personalizationEditorPanel');

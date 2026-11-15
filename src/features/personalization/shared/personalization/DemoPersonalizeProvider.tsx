@@ -5231,7 +5231,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
    * Both halves are opt-in: without an `onComplete` callback and without a
    * `returnTo` target this is a no-op, so the demo flow is unchanged.
    */
-  const completeRun = useCallback((result: GenerationResult, personalizedPrompt: string) => {
+  const completeRun = useCallback((result: GenerationResult, personalizedPrompt: string, overlay?: PersonalizationCompletion['overlay']) => {
     const callback = onCompleteRef.current
     const target = returnToRef.current
     if (!callback && !target) return
@@ -5251,6 +5251,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       projectId: loadedProjectIdRef.current,
       originStudio: originStudioRef.current || undefined,
       sourceId: source?.id,
+      ...(overlay ? { overlay } : {}),
     })
 
     if (!target) return
@@ -6217,7 +6218,12 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       })
       // Hand the rendered result back to whoever opened the modal (studio
       // hand-off) and, when a return destination was requested, to that studio.
-      completeRun(brandedResult, promptState.edited || promptState.personalized || promptState.original)
+      completeRun(brandedResult, promptState.edited || promptState.personalized || promptState.original, {
+        layers: inputProps.settings.layers,
+        fps: inputProps.settings.fps,
+        durationInFrames: inputProps.settings.durationInFrames,
+        brand: inputProps.brand,
+      })
     } catch (error) {
       if (stale()) return
       setGeneration({
