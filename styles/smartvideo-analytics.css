@@ -1,0 +1,65 @@
+.sv-analytics{--sv-bg:#fff;--sv-panel:#fff;--sv-panel-soft:#f5f6f8;--sv-text:#1c2432;--sv-muted:#667085;--sv-grid:#e4e8ef;--sv-border:#e5e7eb;--sv-blue:#3b82f6;--sv-green:#16a34a;--sv-radius:14px;box-sizing:border-box;max-width:1060px;margin:0 auto;padding:24px;color:var(--sv-text);background:var(--sv-bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.45}.sv-analytics *{box-sizing:border-box}.sv-analytics button{font:inherit;cursor:pointer}.sv-analytics button:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}.sv-analytics button:disabled{opacity:.45;cursor:not-allowed}.sv-analytics h1{margin:6px 0 0;font-size:24px;letter-spacing:-.5px}.sv-analytics h3{font-size:16px;margin:0;font-weight:700}.sv-analytics h4{font-size:14px;margin:0 0 14px}.sv-analytics p{margin:7px 0}.sv-icon{display:inline-flex;justify-content:center;align-items:center;width:18px;flex:none;font-size:17px}.sv-heading,.sv-panel-head,.sv-toolbar,.sv-toolbar-actions{display:flex;justify-content:space-between;align-items:center;gap:14px}.sv-heading{margin-bottom:20px}.sv-breadcrumb{font-size:12px;color:var(--sv-muted);display:flex;align-items:center;gap:6px}.sv-status,.sv-pill{font-size:11px;font-weight:650;padding:5px 10px;background:var(--sv-panel-soft);border-radius:100px;text-transform:capitalize;white-space:nowrap}.sv-status-published{color:#16803e;background:#e9f8ee}.sv-toolbar{align-items:end;flex-wrap:wrap;margin-bottom:18px}.sv-project-name{flex:1;min-width:220px}.sv-project-name label{display:block;color:var(--sv-muted);font-size:12px;margin-bottom:6px}.sv-project-name div{padding:11px 14px;border:1px solid var(--sv-border);border-radius:10px;font-weight:600;font-size:14px}.sv-toolbar-actions{flex-wrap:wrap;justify-content:flex-end}.sv-segment,.sv-tabs{display:flex;gap:3px;background:var(--sv-panel-soft);padding:4px;border-radius:11px}.sv-segment button,.sv-tabs button{border:0;border-radius:8px;padding:9px 13px;background:transparent;font-size:12px;font-weight:650;color:var(--sv-muted)}.sv-segment .active,.sv-tabs .active{background:var(--sv-panel);box-shadow:0 1px 4px #00000012;color:var(--sv-text)}.sv-secondary-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--sv-border);border-radius:9px;background:var(--sv-panel);padding:10px 12px;font-size:12px;font-weight:600}.sv-tabs{margin-bottom:20px}.sv-tabs button{flex:1;font-size:13px}.sv-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px}.sv-stat{background:var(--sv-panel-soft);border-radius:12px;padding:18px;min-height:101px}.sv-stat-label{display:flex;gap:7px;align-items:center;color:var(--sv-muted);font-size:12px}.sv-stat-value{font-size:27px;font-weight:750;letter-spacing:-.6px;margin-top:12px;font-variant-numeric:tabular-nums}.sv-card{border:1px solid var(--sv-border);background:var(--sv-panel);border-radius:var(--sv-radius);padding:20px;margin-bottom:18px}.sv-panel-head{margin-bottom:12px}.sv-subtitle,.sv-hint{color:var(--sv-muted);font-size:12px}.sv-chart-box svg{width:100%;height:auto;display:block}.sv-insight{background:var(--sv-panel-soft);padding:18px;border-radius:12px;margin-bottom:18px}.sv-insight-title{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:700}.sv-insight p{font-size:13px;color:#505a6b;margin:12px 0 16px}.sv-primary-btn{border:0;color:white;background:#2563eb;padding:11px 16px;border-radius:9px;font-weight:650;font-size:13px}.sv-primary-btn span{margin-left:8px}.sv-bars{display:flex;flex-direction:column;gap:20px;margin:22px 0}.sv-bar-row{display:grid;grid-template-columns:minmax(110px,150px) 1fr 40px;align-items:center;gap:14px;font-size:13px}.sv-bar-track,.sv-progress{height:12px;background:var(--sv-panel-soft);border-radius:99px;overflow:hidden}.sv-bar-fill,.sv-progress span{height:100%;display:block;background:var(--sv-blue);border-radius:99px}.sv-bar-number{text-align:right;font-weight:700}.sv-video-preview{background:#e8ecf1;position:relative;aspect-ratio:16/9;max-height:460px;border-radius:12px;overflow:hidden;margin:16px 0 20px}.sv-video-preview img{width:100%;height:100%;object-fit:cover}.sv-video-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:#64748b;font-weight:700}.sv-video-placeholder small{font-weight:400}.sv-play-overlay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#111827aa;color:#fff;width:54px;height:54px;display:grid;place-items:center;border-radius:100%;pointer-events:none}.sv-heatmap{height:70px;display:grid;grid-template-columns:repeat(34,1fr);gap:3px;align-items:end}.sv-heatmap span{background:#3b82f6;border-radius:3px 3px 0 0;min-height:5px}.sv-heatmap span.sv-heat-highlight{background:#16a34a}.sv-time-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--sv-muted);margin-top:9px}.sv-sections{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:18px}.sv-section{display:flex;flex-direction:column;text-align:left;gap:5px;border:0;background:var(--sv-panel-soft);border-radius:10px;padding:12px;color:var(--sv-text)}.sv-section strong{font-size:12px}.sv-section small{font-size:11px;color:var(--sv-muted)}.sv-hint{margin-top:16px!important}.sv-section-bar{margin-top:18px}.sv-section-bar>div:first-child{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}.sv-progress{height:9px}.sv-opportunity{background:none;border:0;border-top:1px solid var(--sv-border);text-align:left;display:flex;align-items:flex-start;width:100%;padding:17px 0;gap:13px;color:var(--sv-text)}.sv-opportunity:first-of-type{border-top:0}.sv-op-icon{background:var(--sv-panel-soft);border-radius:10px;padding:12px}.sv-op-content{flex:1;display:flex;flex-direction:column;gap:5px}.sv-op-content strong{font-size:14px}.sv-op-content span{font-size:12px;color:var(--sv-muted)}.sv-op-content b{font-size:12px}.sv-op-chevron{color:var(--sv-muted);font-size:22px}.sv-footer-note{font-size:11px;color:var(--sv-muted);text-align:center}.sv-analytics.sv-dark{--sv-bg:#111827;--sv-panel:#192332;--sv-panel-soft:#253143;--sv-text:#f3f4f6;--sv-muted:#a6b1c2;--sv-grid:#364253;--sv-border:#344053}.sv-dark .sv-insight p{color:#a6b1c2}.sv-dark .sv-status-published{background:#134e34;color:#9be6b5}@media(min-width:800px){.sv-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:600px){.sv-analytics{padding:12px}.sv-heading{align-items:start}.sv-toolbar-actions{width:100%;justify-content:space-between}.sv-segment{flex:1}.sv-segment button{flex:1}.sv-card{padding:14px}.sv-stat{padding:13px;min-height:90px}.sv-stat-value{font-size:23px}.sv-sections{grid-template-columns:1fr}.sv-bar-row{grid-template-columns:100px 1fr 32px;gap:8px;font-size:11px}}
+
+
+/* ===== ADAPT: additions for the editor integration (supplied rules above are unchanged) ===== */
+/* Dark editor: the supplied dark theme, mapped onto the timeline design tokens. */
+.sv-analytics.sv-dark{--sv-bg:transparent;--sv-panel:var(--surface-2,#192332);--sv-panel-soft:var(--surface-3,#253143);--sv-border:var(--border,#344053)}
+/* chart/button blue stays exactly as supplied (--sv-blue / .sv-primary-btn are not overridden) */
+.sv-dark .sv-video-preview,.sv-dark .sv-video-placeholder{background:var(--surface-3,#253143);color:var(--sv-muted)}
+/* Inside the side panel the component fills the available width. */
+.prj-tabpanel .sv-analytics{max-width:100%;padding:12px 0}
+.sv-custom-range{display:flex;flex-wrap:wrap;gap:12px;margin:-6px 0 16px}
+.sv-custom-range label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--sv-muted)}
+.sv-custom-range input{font:inherit;color:var(--sv-text);background:var(--sv-panel-soft);border:1px solid var(--sv-border);border-radius:8px;padding:8px 10px;color-scheme:dark}
+.sv-empty{padding:24px 0;text-align:center}
+.sv-op-icon{position:relative}
+.sv-op-unread{position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:2px solid var(--sv-panel)}
+.sv-segment{flex-wrap:wrap}
+.sv-live-preview-host{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:#000}
+.sv-live-preview-host[hidden]{display:none}
+.sv-live-preview-host .watch-frame{flex:none}
+.sv-live-preview-host .watch-stage{width:100%;height:100%}
+.sv-preview-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:100%;border:0;background:#111827aa;color:#fff;font-size:18px}
+@media(max-width:600px){.sv-segment button{padding:9px 8px}}
+.sv-live-preview-host .watch-frame{background:#000}
+.sv-video-preview .sv-live-preview-host{background:#000}
+.sv-video-preview .sv-preview-play:disabled{opacity:.7}
+/* The editor's global reset flattens heading weights; the supplied design uses the bold UA default for h1/h4. */
+.sv-analytics h1,.sv-analytics h4{font-weight:700}
+
+.sv-explorer .sv-video-preview{margin-left:auto;margin-right:auto}
+@media(max-width:600px){.sv-tabs button{padding:9px 4px;min-width:0}.sv-segment button{padding:9px 6px}}
+@media(max-width:600px){.sv-segment{flex-wrap:nowrap;flex:1 1 100%}.sv-segment button{padding:9px 2px;font-size:11.5px;min-width:0}.sv-toolbar-actions .sv-secondary-btn{flex:1 1 100%;justify-content:center}}
+
+/* ===== EDITOR THEME START: Timeline Editor palette. Accent colours are read from the editor's live tokens
+   (--cyan / --emerald / --cyan-soft / --accent-grad), which the editor overrides at runtime with its lime brand,
+   so nothing here hard-codes an accent. ===== */
+.sv-analytics.sv-editor{--sv-bg:transparent;--sv-panel:var(--surface-1);--sv-panel-soft:var(--surface-3);--sv-text:var(--text);--sv-muted:var(--text-muted);--sv-grid:var(--border-soft);--sv-border:var(--border);--sv-blue:var(--cyan);--sv-green:var(--emerald);--sv-radius:var(--r-lg)}
+.sv-editor button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;box-shadow:var(--shadow-focus)}
+.sv-editor .sv-project-name div,.sv-editor .sv-custom-range input{background:var(--surface-sunken);border-color:var(--border);color:var(--text-strong)}
+.sv-editor .sv-segment,.sv-editor .sv-tabs{background:var(--surface-sunken);border:1px solid var(--border-soft)}
+.sv-editor .sv-segment button,.sv-editor .sv-tabs button{color:var(--text-muted)}
+.sv-editor .sv-segment button:not(.active):hover,.sv-editor .sv-tabs button:not(.active):hover{color:var(--text-strong)}
+.sv-editor .sv-segment .active,.sv-editor .sv-tabs .active{background:var(--cyan-soft);color:#cffafe;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cyan) 45%,transparent)}
+.sv-editor .sv-secondary-btn{background:var(--surface-2);color:var(--text);border-color:var(--border)}
+.sv-editor .sv-secondary-btn:hover:not(:disabled){border-color:color-mix(in srgb,var(--cyan) 40%,transparent);background:var(--surface-3)}
+.sv-editor .sv-primary-btn{background:var(--accent-grad);color:#03131a;font-weight:700}
+.sv-editor .sv-primary-btn:hover:not(:disabled){filter:brightness(1.08)}
+.sv-editor .sv-stat,.sv-editor .sv-insight,.sv-editor .sv-section{background:var(--surface-2)}
+.sv-editor .sv-section:hover{background:var(--surface-3);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cyan) 40%,transparent)}
+.sv-editor .sv-card{box-shadow:var(--shadow-card)}
+.sv-editor .sv-insight p{color:var(--text-muted)}
+.sv-editor .sv-status,.sv-editor .sv-pill{background:var(--surface-3);color:var(--text)}
+.sv-editor .sv-status-published{background:var(--success-soft);color:var(--success-text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--success-dot) 35%,transparent)}
+.sv-editor .sv-bar-track,.sv-editor .sv-progress{background:var(--surface-sunken)}
+.sv-editor .sv-bar-fill,.sv-editor .sv-progress span{background:var(--accent-grad)}
+.sv-editor .sv-heatmap span{background:var(--cyan)}
+.sv-editor .sv-heatmap span.sv-heat-highlight{background:var(--text-strong);box-shadow:0 0 0 1px var(--cyan)}
+.sv-editor .sv-video-preview,.sv-editor .sv-video-placeholder{background:var(--surface-sunken);color:var(--text-muted)}
+.sv-editor .sv-op-icon{background:var(--surface-3)}
+.sv-editor .sv-op-unread{background:var(--danger);border-color:var(--bg)}
+.sv-editor .sv-opportunity{border-top-color:var(--border-soft)}
+.sv-editor .sv-opportunity:hover .sv-op-chevron{color:var(--cyan)}
+.sv-editor .sv-preview-play{background:var(--panel-solid);border:1px solid color-mix(in srgb,var(--cyan) 30%,transparent);color:var(--cyan)}
+.sv-editor .sv-hint,.sv-editor .sv-subtitle,.sv-editor .sv-footer-note,.sv-editor .sv-breadcrumb{color:var(--text-dim)}
+/* ===== EDITOR THEME END ===== */

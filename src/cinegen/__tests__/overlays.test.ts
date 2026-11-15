@@ -1,7 +1,9 @@
 // [remix] Overlays on the video: reducer actions, creation defaults (old add-on options, red button), persistence normalizer.
 import { describe, it, expect } from 'vitest';
 import { workspaceReducer, createInitialWorkspaceState } from '@cinegen/lib/mcp/workspace-state';
-import { createOverlay, normalizeOverlays, overlaysAt } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, normalizeOverlays, overlaysAt, findGate, isGateOverlay, startAfterGate, GATE_SECONDS } from '@cinegen/lib/overlays/overlays';
+import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
+import { textEditUpdates } from '@cinegen/lib/overlays/text-edit';
 
 describe('overlays', () => {
   it('creates a Lead Generator with the old add-on defaults (red button, email field)', () => {
@@ -17,6 +19,42 @@ describe('overlays', () => {
     const o = createOverlay('list-builder', 0, 30) as unknown as { config: { btnText: string; buttonBackground: string } };
     expect(o.config.btnText).toBe('Play');
     expect(o.config.buttonBackground).toBe('#eb5054');
+  });
+  it('the List Builder is a locked gate at 0s, one per video (whatever the playhead says)', () => {
+    const o = createOverlay('list-builder', 12, 30) as unknown as { start: number; end: number; config: { enabled: boolean; backdropOpacity: number; pointerStyle: string } };
+    expect(o.start).toBe(0);
+    expect(o.end).toBe(GATE_SECONDS);
+    expect(o.config).toMatchObject({ enabled: true, backdropOpacity: 100, pointerStyle: 'curly' });
+    const lead = createOverlay('lead-form', 12, 30);
+    expect(isGateOverlay(lead)).toBe(false);
+    expect(findGate([lead, createOverlay('list-builder', 0, 30)])?.type).toBe('list-builder');
+    expect(findGate([lead])).toBeUndefined();
+    // a new form never lands on top of the gate
+    expect(startAfterGate([createOverlay('list-builder', 0, 30)], 0)).toBe(GATE_SECONDS);
+    expect(startAfterGate([createOverlay('list-builder', 0, 30)], 8)).toBe(8);
+    expect(startAfterGate([], 0)).toBe(0);
+  });
+  it('the Lead Generator and List Builder share one settings schema (Styles / Fields / Pointer / Integrations)', () => {
+    const lead = overlaySchema(createOverlay('lead-form', 2, 30));
+    const tabs = (kind: Record<string, unknown>) => new Set((lead.fieldsFor as (o: unknown) => Array<{ tab: string }>)(kind).map((f) => f.tab));
+    expect(tabs(lead.options)).toEqual(new Set(['Text', 'Styles', 'Fields', 'Pointer', 'Integrations']));
+    expect(lead.options).toMatchObject({ kind: 'lead-generator', btnText: 'Play', buttonBackground: '#eb5054', pointerEnabled: false });
+    const lb = overlaySchema(createOverlay('list-builder', 0, 30));
+    expect(lb.options).toMatchObject({ kind: 'list-builder', pointerEnabled: true });
+  });
+  it('clicking text on the form updates the overlay (List Builder config / Lead Generator clip)', () => {
+    const lb = createOverlay('list-builder', 0, 30);
+    const a = textEditUpdates(lb, 'btnText', 'Watch now') as { config: Record<string, unknown> };
+    expect(a.config.btnText).toBe('Watch now');
+    expect(a.config.caption).toBe((lb as unknown as { config: { caption: string } }).config.caption); // the rest is kept
+    const lead = createOverlay('lead-form', 2, 30);
+    const b = textEditUpdates(lead, 'caption', 'Tell us about you') as unknown as { heading: string; start?: number; id?: string };
+    expect(b.heading).toBe('Tell us about you');
+    expect('id' in b || 'start' in b).toBe(false); // timing and identity are never touched
+    const c = textEditUpdates(lead, 'btnText', 'Send') as unknown as { ctaText: string };
+    expect(c.ctaText).toBe('Send');
+    const d = textEditUpdates(lead, 'elements.0.placeholder', 'you@work.com') as unknown as { fields: Array<{ placeholder?: string }> };
+    expect(d.fields[0].placeholder).toBe('you@work.com');
   });
   it('adds, updates and removes overlays through the reducer', () => {
     let s = createInitialWorkspaceState();

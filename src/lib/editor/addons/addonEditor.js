@@ -251,6 +251,23 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
         ${grid}
       </div>`;
     }
+    case 'designPicker': {
+      // A grid of design thumbnails (field.designs, field.thumb(design, options) → markup),
+      // grouped under field.categories headings when given.
+      const tile = (d) => `<button type="button" class="addon-design${d.id === value ? ' active' : ''}" data-design-pick="${esc(d.id)}" data-pick-key="${esc(field.key)}" aria-pressed="${d.id === value}" title="${esc(d.label)}">${field.thumb ? field.thumb(d, options) : ''}<span>${esc(d.label)}</span></button>`;
+      const groups = field.categories
+        ? field.categories.map(([cid, clabel]) => {
+          const items = (field.designs || []).filter((d) => (d.category || 'arrow') === cid);
+          return items.length ? `<div class="addon-designs__heading">${esc(clabel)}</div><div class="addon-designs" role="group" aria-label="${esc(clabel)}">${items.map(tile).join('')}</div>` : '';
+        }).join('')
+        : `<div class="addon-designs" role="group" aria-label="${esc(field.label)}">${(field.designs || []).map(tile).join('')}</div>`;
+      return `<div class="clip-editor__field addon-field addon-field--designs"><label>${esc(field.label)}</label>${groups}</div>`;
+    }
+    case 'themePicker': {
+      // One-click colour schemes: each theme sets several keys at once.
+      const tiles = (field.themes || []).map((t) => `<button type="button" class="addon-theme" data-theme-pick="${esc(t.id)}" data-theme-key="${esc(field.key)}" title="${esc(t.label)}"><span class="addon-theme__swatch" style="background:${esc(t.hintBackground)};border-color:${esc(t.hintBorderColor)}"><i style="background:${esc(t.pointerColor)}"></i></span><span>${esc(t.label)}</span></button>`).join('');
+      return `<div class="clip-editor__field addon-field addon-field--themes"><label>${esc(field.label)}</label><div class="addon-themes" role="group" aria-label="${esc(field.label)}">${tiles}</div></div>`;
+    }
     case 'color':
       return `<div class="clip-editor__field addon-field">${label}<input id="${id}" type="color" data-key="${field.key}" data-kind="text" value="${esc(value || '#000000')}"/></div>`;
     case 'url':
@@ -268,6 +285,7 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
           <label class="addon-fieldlist__req" title="Required"><input type="checkbox" class="addon-fieldlist__required" ${f.required ? 'checked' : ''}/> req</label>
           <button type="button" class="mini-btn addon-fieldlist__up" ${i === 0 ? 'disabled' : ''} aria-label="Move up">↑</button>
           <button type="button" class="mini-btn addon-fieldlist__remove" ${list.length <= (field.min ?? 1) ? 'disabled' : ''} aria-label="Remove field">✕</button>
+          ${field.placeholders ? `<input type="text" class="addon-fieldlist__placeholder" value="${esc(f.placeholder ?? '')}" placeholder="Hint shown inside the box (empty = the label)" aria-label="Box hint text" />` : ''}
         </div>`).join('');
       return `<div class="clip-editor__field addon-field addon-fieldlist" data-key="${field.key}" data-kind="fieldList">
         <label>${esc(field.label)}</label>${rows}
@@ -434,6 +452,20 @@ export function renderAddonEditor(container, {
         setAndEmit(btn.dataset.positionKey, btn.dataset.positionValue);
         return;
       }
+      if (btn?.dataset.designPick) {
+        setAndEmit(btn.dataset.pickKey, btn.dataset.designPick);
+        return;
+      }
+      if (btn?.dataset.themePick) {
+        const field = drawnFields.find((f) => f.key === btn.dataset.themeKey);
+        const theme = (field?.themes || []).find((t) => t.id === btn.dataset.themePick);
+        if (theme) {
+          const { id: _id, label: _label, ...values } = theme;
+          Object.entries(values).forEach(([k, v]) => setPath(current, k, v));
+          emit(true);
+        }
+        return;
+      }
       if (btn?.dataset.imagePick) {
         setAndEmit(btn.dataset.pickKey, btn.dataset.imagePick);
         return;
@@ -573,6 +605,8 @@ export function renderAddonEditor(container, {
         list[i].label = el.value;
         // Upstream token = label upper-cased; it is the submitted field name.
         list[i].token = String(el.value || '').trim().toUpperCase() || 'FIELD';
+      } else if (el.classList.contains('addon-fieldlist__placeholder')) {
+        list[i].placeholder = el.value;
       } else if (el.classList.contains('addon-fieldlist__type')) {
         list[i].type = el.value;
       } else if (el.classList.contains('addon-fieldlist__required')) {

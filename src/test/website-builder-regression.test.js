@@ -26,7 +26,10 @@ describe('Website Builder regression', () => {
     const iframe = container.querySelector('iframe');
     expect(iframe).not.toBeNull();
     expect(iframe.getAttribute('loading')).toBe('lazy');
-    expect(iframe.getAttribute('sandbox')).toBeTruthy();
+    // Code export needs downloads; deployed-site links need to escape the sandbox.
+    const sandbox = iframe.getAttribute('sandbox').split(/\s+/);
+    expect(sandbox).toEqual(expect.arrayContaining(['allow-scripts', 'allow-same-origin', 'allow-downloads', 'allow-popups-to-escape-sandbox']));
+    expect(iframe.getAttribute('allow')).toContain('clipboard-write');
     expect(iframe.getAttribute('title')).toBe('Smart Website Builder');
     // The builder must open on its Dashboard, never the upstream marketing landing.
     expect(iframe.getAttribute('src')).toMatch(/\/dashboard$/);

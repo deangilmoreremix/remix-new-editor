@@ -1,17 +1,17 @@
 // [remix] Extra Element kinds for the Timeline Editor (not in CineGen): List Builder and Lead Generator.
 // These keep the Timeline Editor's EXISTING designs and logic: the Elements tab only lists and launches them.
-//  - List Builder  -> the editor's List Builder settings panel (Interactive panel, renderListBuilderSettings)
+//  - List Builder  -> the shared opt-in form settings (Styles / Fields / Pointer / Integrations): one per video, a locked gate at 0s
 //  - Lead Generator -> the editor's Lead Generator add-on (Interactive panel, `lead-form`: the form overlay + Fields/Style/Integrations settings)
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import type { OverlayKind } from '@cinegen/types/workspace';
-import { createOverlay } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay } from '@cinegen/lib/overlays/selection';
 export type WebKind = 'list-builder' | 'lead-generator';
 export interface WebKindItem { id: string; kind: WebKind }
 
 export const WEB_KINDS: Array<{ id: WebKind; label: string; blurb: string }> = [
-  { id: 'list-builder', label: 'List Builder', blurb: 'Opt-in / personalizer form shown over your video. Opens the List Builder settings.' },
-  { id: 'lead-generator', label: 'Lead Generator', blurb: 'Lead capture form shown over your video (Fields, Style, Integrations). Adds the Lead Generator at the playhead.' },
+  { id: 'list-builder', label: 'List Builder', blurb: 'Viewers fill this in before the video plays (one per video, at the start). Pick from 22 pointers and animations.' },
+  { id: 'lead-generator', label: 'Lead Generator', blurb: 'Lead capture form that pauses the video wherever you place it (Styles, Fields, Pointer, Integrations).' },
 ];
 
 export function newWebKind(kind: WebKind): WebKindItem { return { id: `wk-${kind}`, kind }; }
@@ -34,7 +34,10 @@ export function WebKindsPanel({ kind, onEdit }: { kind: WebKind; editing?: WebKi
   const mine = state.overlays.filter((o) => o.type === type);
   const open = (id: string) => { selectOverlay(id); dispatch({ type: 'SET_TAB', tab: 'edit' }); };
   const add = () => {
-    const overlay = createOverlay(type, 0, 10);
+    // one List Builder per video: open the one that is there
+    const gate = type === 'list-builder' ? findGate(state.overlays) : undefined;
+    if (gate) { onEdit(null); open(gate.id); return; }
+    const overlay = createOverlay(type, startAfterGate(state.overlays, 0), 10);
     dispatch({ type: 'ADD_OVERLAY', overlay });
     onEdit(null);
     open(overlay.id);

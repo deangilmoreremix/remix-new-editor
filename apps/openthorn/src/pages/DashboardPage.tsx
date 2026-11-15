@@ -7,6 +7,7 @@ import { usePageTitle } from '../lib/usePageTitle'
 import type { AgentThinkingLevel } from '../lib/agent-thinking'
 import DashboardSidebar, { type ProjectFilter, type SidebarNotification } from '../components/DashboardSidebar/DashboardSidebar'
 import PromptInput from '../components/PromptInput/PromptInput'
+import FloatingParticles from '../components/FloatingParticles/FloatingParticles'
 import { shouldShowQuickstart } from '../lib/quickstart'
 import { startDashboardTour } from '../lib/dashboard-tour'
 import type { SelectedModel } from '../components/ModelSelector/ModelSelector'
@@ -612,6 +613,18 @@ export default function DashboardPage() {
   return (
     <>
       <div className={styles.root}>
+      <FloatingParticles
+        particleCount={30}
+        particleSize={2}
+        particleOpacity={0.25}
+        particleColor="#d9ff00"
+        glowIntensity={10}
+        movementSpeed={0.25}
+        mouseInfluence={100}
+        mouseGravity="attract"
+        gravityStrength={20}
+        glowAnimation="ease"
+      />
       <DashboardSidebar
         projects={projects}
         activeFilter={activeFilter}

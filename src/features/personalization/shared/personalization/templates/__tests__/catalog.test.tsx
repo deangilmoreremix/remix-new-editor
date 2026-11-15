@@ -35,13 +35,13 @@ import {
   promoCtaTemplate,
   visualEffectTemplate,
 } from '../catalog'
+import { BRITO_ATTRIBUTION } from '../designs/batch3d/britoShared'
 import type {
   RemotionDesignCategory,
   RemotionDesignComponentProps,
   RemotionDesignTemplate,
   RemotionDesignTextField,
 } from '../types'
-import { DESIGN_VIDEO_CREDIT } from '../designs/shared'
 import {
   applyDesignTemplate,
   createDefaultPreviewSettings,
@@ -67,8 +67,37 @@ vi.mock('remotion', async (importOriginal) => {
     // cover the adapter's mapping, so a plain <img> stands in for it.
     Img: ({ src, ...rest }: { src: string }) =>
       ReactMod.createElement('img', { src, alt: '', ...rest }),
+    // <Sequence>, <Series> and <Freeze> also need a registered composition.
+    // These tests cover each adapter's mapping and credit, not timing, so
+    // they render their children directly.
+    Sequence: ({ children }: { children?: React.ReactNode }) =>
+      ReactMod.createElement(ReactMod.Fragment, null, children),
+    Freeze: ({ children }: { children?: React.ReactNode }) =>
+      ReactMod.createElement(ReactMod.Fragment, null, children),
+    Series: Object.assign(
+      ({ children }: { children?: React.ReactNode }) =>
+        ReactMod.createElement(ReactMod.Fragment, null, children),
+      {
+        Sequence: ({ children }: { children?: React.ReactNode }) =>
+          ReactMod.createElement(ReactMod.Fragment, null, children),
+      },
+    ),
   }
 })
+
+// @remotion/transitions also needs a registered composition. These tests do
+// not cover transition timing, so the series renders its scenes directly.
+vi.mock('@remotion/transitions', async () => {
+  const ReactMod = await import('react')
+  const pass = ({ children }: { children?: React.ReactNode }) =>
+    ReactMod.createElement(ReactMod.Fragment, null, children)
+  return {
+    TransitionSeries: Object.assign(pass, { Sequence: pass, Transition: () => null }),
+    linearTiming: (options: unknown) => options,
+  }
+})
+vi.mock('@remotion/transitions/fade', () => ({ fade: () => ({}) }))
+vi.mock('@remotion/transitions/slide', () => ({ slide: () => ({}) }))
 
 const EXPECTED_IDS = [
   'animated-headline',
@@ -90,6 +119,9 @@ const ALL_CATEGORIES: RemotionDesignCategory[] = [
   'lower-third',
   'promo-cta',
   'visual-effect',
+  'transition',
+  'data-visualization',
+  'full-scene',
   'other',
 ]
 
@@ -97,7 +129,7 @@ const ALL_CATEGORIES: RemotionDesignCategory[] = [
  * The exact size of the catalog: five Phase 1 designs + ten batch-1 designs
  * + four batch-2 designs.
  */
-const EXPECTED_TOTAL = 19
+const EXPECTED_TOTAL = 124
 
 const VALID_TEXT_FIELDS: RemotionDesignTextField[] = [
   'businessName',
@@ -185,7 +217,7 @@ describe('Remotion design catalog', () => {
     }
   })
 
-  it('registers exactly nineteen designs under unique ids', () => {
+  it('registers exactly 124 designs under unique ids', () => {
     const ids = listRemotionDesignTemplates().map((template) => template.id)
     expect(ids).toHaveLength(EXPECTED_TOTAL)
     expect(REMOTION_DESIGN_TEMPLATES).toHaveLength(EXPECTED_TOTAL)
@@ -217,6 +249,9 @@ describe('Remotion design catalog', () => {
       if (template.source.repository === 'free-remotion-templates') {
         expect(template.source.attribution).toBe(REMOTION_DESIGN_ATTRIBUTION)
         expect(template.source.sourcePath).toMatch(/^src\/components\/.+\.tsx$/)
+      } else if (template.source.repository === 'remotion-video-templates') {
+        expect(template.source.attribution).toBe(BRITO_ATTRIBUTION)
+        expect(template.source.sourcePath).toMatch(/^src\/templates\/.+\.tsx$/)
       } else {
         expect(template.source.repository).toBe('remotion-templates')
         expect(template.source.attribution).toBe(RVE_ATTRIBUTION)
@@ -307,21 +342,25 @@ describe('Remotion design catalog', () => {
     expect(DESIGN_FONT_LICENSE_FILE).toBe('/fonts/OFL.txt')
   })
 
-  it('carries the OFL typeface attribution in the rendered credit line', () => {
-    // BOTH notices in one line: the MIT upstream credit (which the e2e
-    // spec asserts) and the OFL typeface attribution (D2).
-    expect(DESIGN_VIDEO_CREDIT).toContain('MIT')
-    expect(DESIGN_VIDEO_CREDIT).toContain(DESIGN_FONT_ATTRIBUTION)
-  })
-
   it('declares the fixed-SVG-id constraint for the affected designs (item 13)', () => {
-    expect(Object.keys(REMOTION_DESIGN_FIXED_SVG_IDS).sort()).toEqual([
+    const constrainedIds = [
+      'eye-reveal',
+      'ink-spread-transition',
       'logo-mask-wipe',
       'logo-reveal',
+      'particle-snow',
+      'pixel-candlestick-ohlc',
+      'pixel-mosaic-transition',
+      'pixel-typewriter-quote',
+      'pixel-waterfall-cycle',
+      'pourover-drip-fill-gauge',
+      'rve-area-chart',
+      'rve-chart-animation',
       'rve-circular-progress',
-    ])
+    ]
+    expect(Object.keys(REMOTION_DESIGN_FIXED_SVG_IDS).sort()).toEqual(constrainedIds)
 
-    for (const constrained of ['logo-mask-wipe', 'logo-reveal', 'rve-circular-progress']) {
+    for (const constrained of constrainedIds) {
       const warning = getRemotionDesignFixedSvgIdWarning(constrained)
       expect(typeof warning).toBe('string')
       expect(warning).toContain('SVG id')
@@ -452,18 +491,11 @@ describe('Remotion design adapters', () => {
     }
   })
 
-  it('draws the MIT credit line inside every design', () => {
+  it('draws no copyright or licence credit inside any design', () => {
     for (const template of REMOTION_DESIGN_TEMPLATES) {
       const { container, unmount } = renderTemplate(template)
-      const credit = container.querySelector('[data-remotion-design-credit]')
-      expect(credit).not.toBeNull()
-      // The credit names the upstream the design came from.
-      if (template.source.repository === 'free-remotion-templates') {
-        expect(credit?.textContent).toContain('Trimora')
-      } else {
-        expect(credit?.textContent).toContain('React Video Editor')
-        expect(credit?.textContent).not.toContain('RenderComp')
-      }
+      expect(container.querySelector('[data-remotion-design-credit]'), template.id).toBeNull()
+      expect(container.textContent ?? '', template.id).not.toMatch(/MIT License|Permission is hereby granted|©/)
       unmount()
     }
   })

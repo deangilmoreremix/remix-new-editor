@@ -19,6 +19,18 @@ import type { BusinessDiscoveryRecord, OwnershipType } from './types'
  * once at module load before matching.
  */
 export const NATIONAL_CHAIN_NAMES: readonly string[] = [
+  // Added after a live run returned Checkers as an "independent": regional and national chains missing from the
+  // original list (fast food, grocery, discount, auto, fitness, convenience/fuel, wireless, rental). Appended
+  // only; existing entries are untouched. Matching stays exact-name or chain + number/location/format word, so
+  // independents that merely share a first word (e.g. "Marathon Pet Grooming") are not caught.
+  'Checkers', "Rally's", 'Krystal', "Zaxby's", 'Cook Out', "Raising Cane's", 'Bojangles', "Church's Chicken",
+  "Church's Texas Chicken", 'Del Taco', 'Waffle House', "Moe's Southwest Grill", 'Qdoba', 'El Pollo Loco',
+  'In-N-Out Burger', 'Steak n Shake', 'Buffalo Wild Wings', 'Firehouse Subs', 'Tim Hortons', 'Panera Bread',
+  "Papa Murphy's", 'Chipotle Mexican Grill', 'Aldi', 'Lidl', 'Food Lion', 'Piggly Wiggly', 'Harris Teeter', 'Meijer',
+  'H-E-B', 'HEB', 'Wegmans', 'Family Dollar', 'Big Lots', "Ollie's Bargain Outlet", 'Tractor Supply', 'Harbor Freight',
+  'Ace Hardware', "O'Reilly Auto Parts", 'Pep Boys', 'Firestone', 'Goodyear', 'Discount Tire', 'Take 5 Oil Change',
+  'Orangetheory Fitness', 'Snap Fitness', 'The UPS Store', "Aaron's", 'Rent-A-Center', 'Boost Mobile',
+  'Metro by T-Mobile', 'Cricket Wireless', 'QuikTrip', 'Speedway', 'Cumberland Farms', 'Marathon', 'Citgo',
   "McDonald's", 'Starbucks', 'Subway', "Dunkin'", 'Chick-fil-A', 'Taco Bell',
   'Burger King', "Wendy's", 'KFC', 'Pizza Hut', "Domino's", 'Popeyes',
   "Jimmy John's", 'Five Guys', 'Chipotle', 'Panera', 'Walmart', 'Target',
@@ -106,6 +118,21 @@ function isLocationQualifierToken(token: string): boolean {
 }
 
 /**
+ * Generic store-format descriptors a chain's own branches carry ("Walmart Supercenter", "CVS Pharmacy",
+ * "Target Express"). A name that is a chain plus ONLY these words is still that chain. Deliberately small:
+ * a trade word ("Ross Plumbing") is not in it, so independents sharing a first word stay independent.
+ */
+const CHAIN_FORMAT_TOKENS = new Set([
+  'supercenter', 'super', 'center', 'centre', 'store', 'stores', 'pharmacy', 'drugstore', 'market', 'neighborhood',
+  'express', 'fuel', 'gas', 'station', 'drive', 'thru', 'drivethru', 'outlet', 'warehouse', 'club', 'photo', 'optical',
+  'tire', 'auto', 'service', 'services', 'cafe', 'restaurant', 'kitchen', 'grill',
+])
+
+function isChainFormatRemainder(tokens: string[]): boolean {
+  return tokens.length > 0 && tokens.every((t) => CHAIN_FORMAT_TOKENS.has(t) || isLocationQualifierToken(t))
+}
+
+/**
  * Match on the FIRST token(s) of the normalized name: "McDonald's of Fort
  * Lauderdale" must classify national_bigbox. A longer name only matches a
  * chain when the remainder is a location qualifier (of/in/at or a unit
@@ -122,7 +149,7 @@ function isNationalChain(name: string): boolean {
     if (
       tokens.length > chainTokens.length &&
       tokens.slice(0, chainTokens.length).join(' ') === chainTokens.join(' ') &&
-      isLocationQualifierToken(tokens[chainTokens.length])
+      (isLocationQualifierToken(tokens[chainTokens.length]) || isChainFormatRemainder(tokens.slice(chainTokens.length)))
     ) {
       return true
     }

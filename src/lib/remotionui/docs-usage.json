@@ -1,0 +1,2167 @@
+{
+ "source": "https://remotionui.com/docs/components/<name> (\"Usage\" example and preview metadata)",
+ "license": "MIT (remotion-ui)",
+ "items": {
+  "ai-composer-showcase": {
+   "usage": [
+    "import { AiComposerShowcase } from \"@/compositions/ai-composer-showcase\";\n\n<AiComposerShowcase />"
+   ],
+   "preview": {
+    "durationInFrames": 533,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "ai-generation-canvas": {
+   "usage": [
+    "import { AiGenerationCanvas } from \"@/compositions/ai-generation-canvas\";\n\n<AiGenerationCanvas\n  prompt=\"Generate a revenue dashboard for this launch\"\n  accentColor=\"#e8b86d\"\n  cardCount={4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 180,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "animated-bar-chart": {
+   "usage": [
+    "import { AnimatedBarChart } from \"@/remotion/scenes/animated-bar-chart\";\n\n<AnimatedBarChart\n  title=\"Views by format\"\n  data={[{ label: \"Shorts\", value: 124000, delta: \"+32%\" }]}\n  highlightLabel=\"Shorts\"\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "animated-noise-grain": {
+   "usage": [
+    "import { AnimatedNoiseGrain } from \"@/remotion/primitives/animated-noise-grain\";\n\n<AnimatedNoiseGrain opacity={0.18}>\n  <YourScene />\n</AnimatedNoiseGrain>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "arrow-annotate": {
+   "usage": [
+    "import { ArrowAnnotate } from \"@/remotion/primitives/arrow-annotate\";\n\n<ArrowAnnotate\n  from={{ x: 0.08, y: 0.16 }}\n  to={{ x: 0.82, y: 0.74 }}\n  bow={0.28}\n  label=\"this one\"\n  durationInFrames={70}\n  exitAtInFrames={92}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "audio-pulse": {
+   "usage": [
+    "import { AudioPulse } from \"@/remotion/primitives/audio-pulse\";\n\n<AudioPulse src={staticFile(\"voice.wav\")} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "audio-reactive-scale": {
+   "usage": [
+    "import { AudioReactiveScale } from \"@/remotion/primitives/audio-reactive-scale\";\n\n<AudioReactiveScale src={staticFile(\"track.wav\")} maxScale={1.2}>\n  <Img src={staticFile(\"logo.png\")} />\n</AudioReactiveScale>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "audio-scrubber": {
+   "usage": [
+    "import { AudioScrubber } from \"@/remotion/primitives/audio-scrubber\";\n\n<AudioScrubber\n  durationInFrames={120}\n  marks={[{ atInFrames: 66, label: \"Quote\" }]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "audiogram-bars": {
+   "usage": [
+    "import { AudiogramBars } from \"@/remotion/primitives/audiogram-bars\";\n\n<AudiogramBars src={staticFile(\"podcast.wav\")} height={120} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "audiogram-scene": {
+   "usage": [
+    "import { AudiogramScene } from \"@/remotion/scenes/audiogram-scene\";\n\n<AudiogramScene src={staticFile(\"podcast.wav\")} title=\"Episode 1\" />"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "aurora-bg": {
+   "usage": [
+    "import { AuroraBg } from \"@/remotion/primitives/aurora-bg\";\n\n<AbsoluteFill>\n  <AuroraBg ribbonCount={4} />\n  <YourScene />\n</AbsoluteFill>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "auto-fit-title": {
+   "usage": [
+    "import { AutoFitTitle } from \"@/remotion/scenes/auto-fit-title\";\n\n<AutoFitTitle title=\"Headlines that always fit\" subtitle=\"Any resolution\" />"
+   ],
+   "preview": {
+    "durationInFrames": 130,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "b-roll-stack": {
+   "usage": [
+    "import { BRollStack } from \"@/remotion/scenes/b-roll-stack\";\n\n<BRollStack\n  kicker=\"Cutaway\"\n  title=\"Layer proof shots behind the narration\"\n  items={[{ src: staticFile(\"shot.png\"), title: \"Proof\", fit: \"cover\" }]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 165,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "badge-stamp": {
+   "usage": [
+    "import { BadgeStamp } from \"@/remotion/primitives/badge-stamp\";\n\n<BadgeStamp\n  label=\"APPROVED\"\n  ringText=\"REMOTIONUI\"\n  ringTextBottom=\"VERIFIED BUILD\"\n  sublabel=\"2026\"\n  delayInFrames={14}\n  exitAtInFrames={92}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "bar-chart-race": {
+   "usage": [
+    "import { BarChartRace } from \"@/remotion/primitives/bar-chart-race\";\n\n<BarChartRace\n  series={[\n    { label: \"Studio\", values: [42, 58, 66, 72, 78, 84] },\n    { label: \"Motion\", values: [18, 34, 57, 76, 92, 108] },\n  ]}\n  steps={[\"Q1\", \"Q2\", \"Q3\", \"Q4\", \"Q5\", \"Q6\"]}\n  framesPerStep={18}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "beat-pulse-grid": {
+   "usage": [
+    "import { BeatPulseGrid } from \"@/remotion/primitives/beat-pulse-grid\";\n\n<BeatPulseGrid src={audioSrc} columns={14} rows={7} mapping=\"radial\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "bento-pan": {
+   "usage": [
+    "import { BentoPan } from \"@/compositions/bento-pan\";\n\n<BentoPan />"
+   ],
+   "preview": {
+    "durationInFrames": 180,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "blob-morph": {
+   "usage": [
+    "import { BlobMorph } from \"@/remotion/primitives/blob-morph\";\n\n<BlobMorph size={320} periodInFrames={96} amplitude={0.22} seed={1} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "blur-focus-in": {
+   "usage": [
+    "import { BlurFocusIn } from \"@/remotion/primitives/blur-focus-in\";\n\n<BlurFocusIn text=\"Sharp focus\" maxBlur={18} />"
+   ],
+   "preview": {
+    "durationInFrames": 48,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "blur-in": {
+   "usage": [
+    "import { BlurIn } from \"@/remotion/primitives/blur-in\";\n\n<BlurIn maxBlur={12}>\n  <h1>Focus reveal</h1>\n</BlurIn>"
+   ],
+   "preview": {
+    "durationInFrames": 96,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "blur-reveal": {
+   "usage": [
+    "import { transitionBlurReveal } from \"@/remotion/primitives/blur-reveal\";\n\n<TransitionSeries.Transition {...transitionBlurReveal({ maxBlur: 24 })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "browser-flow": {
+   "usage": [
+    "import { BrowserFlow } from \"@/compositions/browser-flow\";\n\n<BrowserFlow url=\"remotionui.com/docs\" title=\"Browse the registry\" />"
+   ],
+   "preview": {
+    "durationInFrames": 168,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "bubble-chart-pack": {
+   "usage": [
+    "import { BubbleChartPack } from \"@/remotion/primitives/bubble-chart-pack\";\n\n<BubbleChartPack\n  bubbles={[\n    { label: \"Atoms\", value: 42 },\n    { label: \"Blocks\", value: 31 },\n    { label: \"Signals\", value: 26 },\n  ]}\n  staggerInFrames={12}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "calendar-month-fill": {
+   "usage": [
+    "import { CalendarMonthFill } from \"@/remotion/scenes/calendar-month-fill\";\n\n<CalendarMonthFill\n  month=\"August\"\n  year=\"2026\"\n  daysInMonth={31}\n  startWeekday={5}\n  todayDay={15}\n  events={[\n    { day: 4, label: \"Kickoff\", color: \"#7DD3E8\" },\n    { day: 15, label: \"Render day\", color: \"#9BD4A0\" },\n  ]}\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "callout-spotlight": {
+   "usage": [
+    "import { CalloutSpotlight } from \"@/remotion/scenes/callout-spotlight\";\n\n<CalloutSpotlight kicker=\"Tutorial\" title=\"Click export\" target={{ x: 320, y: 180, width: 420, height: 180 }} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "candlestick-chart": {
+   "usage": [
+    "import { CandlestickChart } from \"@/remotion/primitives/candlestick-chart\";\n\n<CandlestickChart\n  candles={[{ open: 101, high: 106, low: 99, close: 104, label: \"W1\" }]}\n  movingAverage={6}\n  staggerInFrames={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "caption-bumper": {
+   "usage": [
+    "import { CaptionBumper } from \"@/remotion/scenes/caption-bumper\";\n\n<CaptionBumper text=\"This is the key moment.\" />"
+   ],
+   "preview": {
+    "durationInFrames": 140,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "caption-emoji-beat": {
+   "usage": [
+    "import { CaptionEmojiBeat } from \"@/remotion/primitives/caption-emoji-beat\";\n\n<CaptionEmojiBeat\n  text=\"Punctuate the beat, not the sentence\"\n  beats={[\n    { emoji: \"\ud83d\udd25\", atInFrames: 10, x: 22, y: 26, rotate: -8 },\n    { emoji: \"\ud83d\ude80\", atInFrames: 80, x: 50, y: 16, scale: 96 },\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "caption-highlight": {
+   "usage": [
+    "import { CaptionHighlight } from \"@/remotion/primitives/caption-highlight\";\n\n<CaptionHighlight page={page} activeColor=\"#60a5fa\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "caption-scene": {
+   "usage": [
+    "import { CaptionScene } from \"@/remotion/scenes/caption-scene\";\n\n<CaptionScene captions={captions} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "card-stack-3d": {
+   "usage": [
+    "@/remotion/scenes/card-stack-3d",
+    "import { CardStack3d } from \"@/remotion/scenes/card-stack-3d\";\n\n<CardStack3d />"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "caustics-bg": {
+   "usage": [
+    "import { CausticsBg } from \"@/remotion/primitives/caustics-bg\";\n\n<AbsoluteFill>\n  <CausticsBg scale={130} />\n  <YourScene />\n</AbsoluteFill>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "changelog-entry": {
+   "usage": [
+    "import { ChangelogEntry } from \"@/remotion/scenes/changelog-entry\";\n\n<ChangelogEntry\n  version=\"v2.4.0\"\n  date=\"16 August\"\n  summary=\"Captions, webhooks, and a queue that stops sulking.\"\n  changes={[\n    { kind: \"added\", text: \"Caption presets for nine languages\" },\n    { kind: \"fixed\", text: \"Retry backoff no longer stalls the queue\" },\n    { kind: \"removed\", text: \"Legacy waveform atom\" },\n  ]}\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "chat-gpt": {
+   "usage": [
+    "import { ChatGpt } from \"@/remotion/scenes/chat-gpt\";\n\n<ChatGpt prompt=\"Make a sunset over a calm ocean\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "chat-to-preview": {
+   "usage": [
+    "import { ChatToPreview } from \"@/remotion/scenes/chat-to-preview\";\n\n<ChatToPreview messages={messages} previewTitle=\"Ship the scene\" />"
+   ],
+   "preview": {
+    "durationInFrames": 190,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "chromatic-aberration-wipe": {
+   "usage": [
+    "import { transitionChromaticAberrationWipe } from \"@/remotion/primitives/chromatic-aberration-wipe\";\n\n<TransitionSeries.Transition {...transitionChromaticAberrationWipe({ intensity: 12 })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "claude-chat": {
+   "usage": [
+    "import { ClaudeChat } from \"@/remotion/scenes/claude-chat\";\n\n<ClaudeChat prompt=\"Draft a launch tweet for our new release\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "claude-code": {
+   "usage": [
+    "import { ClaudeCode } from \"@/remotion/scenes/claude-code\";\n\n<ClaudeCode prompt='edit src/theme.ts to add a dark mode toggle' />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "code-accordion": {
+   "usage": [
+    "import { CodeAccordion } from \"@/remotion/scenes/code-accordion\";\n\n<CodeAccordion sections={sections} />"
+   ],
+   "preview": {
+    "durationInFrames": 210,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "code-diff-wipe": {
+   "usage": [
+    "import { CodeDiffWipe } from \"@/remotion/scenes/code-diff-wipe\";\n\n<CodeDiffWipe before={before} after={after} title=\"render.ts\" />"
+   ],
+   "preview": {
+    "durationInFrames": 135,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "code-reveal": {
+   "usage": [
+    "import { CodeReveal } from \"@/remotion/scenes/code-reveal\";\n\n<CodeReveal title=\"pipeline.ts\" code={source} highlightedLines={[4, 5]} />"
+   ],
+   "preview": {
+    "durationInFrames": 165,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "comment-callout": {
+   "usage": [
+    "import { CommentCallout } from \"@/remotion/scenes/comment-callout\";\n\n<CommentCallout\n  author=\"Mina Lee\"\n  handle=\"@minamakes\"\n  body=\"Can you turn this into a quick video breakdown?\"\n  highlight=\"a quick video breakdown\"\n  reply=\"Dropping it Thursday, here's the short version.\"\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 165,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "commit-graph": {
+   "usage": [
+    "import { CommitGraph } from \"@/remotion/scenes/commit-graph\";\n\n<CommitGraph\n  commits={[\n    { message: \"Seed the registry manifest\", hash: \"9c41f0a\" },\n    { message: \"Add render queue worker\", hash: \"3ab77e2\" },\n    { message: \"Branch: retry backoff\", hash: \"d0e91c4\", lane: 1, parent: 1 },\n    { message: \"Cap retries at five\", hash: \"51b2fa8\", lane: 1 },\n    { message: \"Ship caption presets\", hash: \"7f30dd1\", lane: 0, parent: 1 },\n    { message: \"Merge retry backoff\", hash: \"b8c4e05\", parent: 4, mergeFrom: 3, ref: \"main\" },\n  ]}\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "comparison-bars": {
+   "usage": [
+    "import { ComparisonBars } from \"@/remotion/primitives/comparison-bars\";\n\n<ComparisonBars\n  rows={[\n    { label: \"Time to first cut\", before: 240, after: 96 },\n    { label: \"Renders / week\", before: 120, after: 310 },\n  ]}\n  seriesLabels={[\"Before\", \"After\"]}\n  staggerInFrames={18}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "comparison-table": {
+   "usage": [
+    "import { ComparisonTable } from \"@/remotion/scenes/comparison-table\";\n\n<ComparisonTable\n  title=\"What you get\"\n  columns={[\"Free\", \"Studio\", \"Scale\"]}\n  rows={[\n    { label: \"Render minutes\", cells: [\"60\", \"2,000\", \"Unlimited\"] },\n    { label: \"4K exports\", cells: [false, true, true] },\n    { label: \"Priority queue\", cells: [false, false, true] },\n  ]}\n  highlightColumn={1}\n  highlightLabel=\"Most picked\"\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "confetti-burst": {
+   "usage": [
+    "import { ConfettiBurst } from \"@/remotion/primitives/confetti-burst\";\n\n<ConfettiBurst originX={50} originY={40} seed=\"launch\" />"
+   ],
+   "preview": {
+    "durationInFrames": 96,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "connector-lines": {
+   "usage": [
+    "import { ConnectorLines } from \"@/remotion/primitives/connector-lines\";\n\n<ConnectorLines\n  anchors={[\n    { id: \"source\", x: 0.12, y: 0.5 },\n    { id: \"parse\", x: 0.44, y: 0.18 },\n    { id: \"output\", x: 0.86, y: 0.5 },\n  ]}\n  edges={[\n    { from: \"source\", to: \"parse\", shape: \"curve\", bow: 0.12, dot: true },\n    { from: \"parse\", to: \"output\", shape: \"curve\", bow: 0.12, dot: true },\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "countdown-timer": {
+   "usage": [
+    "import { CountdownTimer } from \"@/remotion/scenes/countdown-timer\";\n\n<CountdownTimer from={5} label=\"Starting in\" zeroLabel=\"Live\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "counter": {
+   "usage": [
+    "import { Counter } from \"@/remotion/primitives/counter\";\n\n<Counter from={0} to={124000} roll durationInFrames={64} />"
+   ],
+   "preview": {
+    "durationInFrames": 110,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "creator-reel": {
+   "usage": [
+    "import { CreatorReel } from \"@/compositions/creator-reel\";\n\n<CreatorReel\n  mediaSrc={staticFile(\"speaker.mp4\")}\n  audioSrc={staticFile(\"voice.wav\")}\n  captions={captions}\n/>"
+   ],
+   "preview": null
+  },
+  "cursor-path": {
+   "usage": [
+    "import { CursorPath } from \"@/remotion/primitives/cursor-path\";\n\n<CursorPath points={[{ x: 80, y: 120 }, { x: 320, y: 80 }]} clickAt={[1]} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "dashboard-populate": {
+   "usage": [
+    "import { DashboardPopulate } from \"@/compositions/dashboard-populate\";\n\n<DashboardPopulate metrics={metrics} barData={barData} />"
+   ],
+   "preview": {
+    "durationInFrames": 168,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "dashed-path-travel": {
+   "usage": [
+    "import { DashedPathTravel } from \"@/remotion/primitives/dashed-path-travel\";\n\n<DashedPathTravel\n  waypoints={[\n    { x: 20, y: 150 },\n    { x: 90, y: 60 },\n    { x: 280, y: 40 },\n  ]}\n  orient\n  durationInFrames={86}\n  exitAtInFrames={92}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "data-flow-pipes": {
+   "usage": [
+    "import { DataFlowPipes } from \"@/remotion/scenes/data-flow-pipes\";\n\n<DataFlowPipes stages={[{ label: \"Ingest\" }, { label: \"Deliver\" }]} />"
+   ],
+   "preview": {
+    "durationInFrames": 165,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "data-story": {
+   "usage": [
+    "import { DataStory } from \"@/compositions/data-story\";\n\n<DataStory barData={barData} metrics={metrics} steps={steps} />"
+   ],
+   "preview": null
+  },
+  "deploy-reveal": {
+   "usage": [
+    "import { DeployReveal } from \"@/compositions/deploy-reveal\";\n\n<DeployReveal />"
+   ],
+   "preview": {
+    "durationInFrames": 168,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "depth-of-field-blur": {
+   "usage": [
+    "import { DepthOfFieldBlur } from \"@/remotion/primitives/depth-of-field-blur\";\n\n<DepthOfFieldBlur\n  focusFrom={1}\n  focusTo={0}\n  layers={[\n    { content: <Background />, depth: 1 },\n    { content: <Card />, depth: 0.4 },\n    { content: <Foreground />, depth: 0 },\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "device-mockup-3d": {
+   "usage": [
+    "import { staticFile } from \"remotion\";\nimport { DeviceMockup3D } from \"@/remotion/scenes/device-mockup-3d\";\n\n// Render with --gl=angle\n<DeviceMockup3D src={staticFile(\"app.png\")} />"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "device-mockup-zoom": {
+   "usage": [
+    "import { DeviceMockupZoom } from \"@/remotion/scenes/device-mockup-zoom\";\n\n<DeviceMockupZoom src={staticFile(\"app.png\")} device=\"laptop\" />"
+   ],
+   "preview": {
+    "durationInFrames": 90,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "directional-wipe": {
+   "usage": [
+    "import { transitionDirectionalWipe } from \"@/remotion/primitives/directional-wipe\";\n\n<TransitionSeries.Transition {...transitionDirectionalWipe({ direction: \"from-left\" })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "dither-field-bg": {
+   "usage": [
+    "import { DitherFieldBg } from \"@/remotion/primitives/dither-field-bg\";\n\n// Render with --gl=angle\n<DitherFieldBg shape=\"warp\" pattern=\"4x4\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "donut-chart": {
+   "usage": [
+    "import { DonutChart } from \"@/remotion/primitives/donut-chart\";\n\n<DonutChart\n  segments={[\n    { label: \"Direct\", value: 4820 },\n    { label: \"Search\", value: 3140 },\n    { label: \"Social\", value: 1960 },\n  ]}\n  totalLabel=\"Sessions\"\n  staggerInFrames={16}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "drag-drop-flow": {
+   "usage": [
+    "import { DragDropFlow } from \"@/remotion/scenes/drag-drop-flow\";\n\n<DragDropFlow fileName=\"hero-loop.tsx\" />"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "dynamic-grid": {
+   "usage": [
+    "import { DynamicGrid } from \"@/remotion/primitives/dynamic-grid\";\n\n<DynamicGrid spacing={64} />"
+   ],
+   "preview": {
+    "durationInFrames": 90,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "ecosystem-orbit": {
+   "usage": [
+    "import { EcosystemOrbit } from \"@/compositions/ecosystem-orbit\";\n\n<EcosystemOrbit centerLabel=\"Your product\" satellites={[\"GitHub\", \"Vercel\", \"Stripe\"]} />"
+   ],
+   "preview": {
+    "durationInFrames": 180,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "effector-field": {
+   "usage": [
+    "@/remotion/primitives/effector-field",
+    "import { EffectorField } from \"@/remotion/primitives/effector-field\";\n\n<EffectorField\n  layout={{ mode: \"grid\", columns: 24, rows: 12, spacing: 26 }}\n  effectors={[\n    {\n      fields: [{ shape: \"spherical\", center: ({ time }) => [Math.cos(time) * 200, 0], radius: 160 }],\n      position: [0, 0, 120],\n      scale: 1.5,\n      color: \"#e8b86d\",\n    },\n  ]}\n  tilt={50}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "end-card": {
+   "usage": [
+    "import { EndCard } from \"@/remotion/scenes/end-card\";\n\n<EndCard title=\"Thanks for watching\" cta=\"Subscribe\" url=\"youtube.com\" />"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "fade-in": {
+   "usage": [
+    "import { FadeIn } from \"@/remotion/primitives/fade-in\";\n\n<FadeIn durationInFrames={30} exit>\n  <div>Hello world</div>\n</FadeIn>"
+   ],
+   "preview": {
+    "durationInFrames": 96,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "fade-out": {
+   "usage": [
+    "import { FadeOut } from \"@/remotion/primitives/fade-out\";\n\n<FadeOut durationInFrames={24}>\n  <div>Goodbye</div>\n</FadeOut>"
+   ],
+   "preview": {
+    "durationInFrames": 96,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "faq-accordion": {
+   "usage": [
+    "import { FaqAccordion } from \"@/remotion/scenes/faq-accordion\";\n\n<FaqAccordion\n  title=\"Questions people ask\"\n  items={[\n    { question: \"Do I own the components?\", answer: \"Yes. The CLI copies the source into your repo.\" },\n    { question: \"Can I render on my own machine?\", answer: \"Renders run wherever Remotion runs.\" },\n  ]}\n  openOrder={[0, 1]}\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "feature-list": {
+   "usage": [
+    "import { FeatureList } from \"@/remotion/scenes/feature-list\";\n\n<FeatureList\n  title=\"Why RemotionUI\"\n  items={[\"Own your components\", \"Live previews\", \"CLI workflow\"]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "file-tree-reveal": {
+   "usage": [
+    "import { FileTreeReveal } from \"@/remotion/scenes/file-tree-reveal\";\n\n<FileTreeReveal\n  title=\"northstar-studio\"\n  nodes={[\n    { name: \"src\", children: [{ name: \"index.ts\" }] },\n    { name: \"package.json\" },\n  ]}\n  selectedPath=\"src/index.ts\"\n  holdSeconds={4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "follow-through": {
+   "usage": [
+    "@/remotion/primitives/follow-through",
+    "import { FollowThrough } from \"@/remotion/primitives/follow-through\";\n\n<FollowThrough\n  leader={[easyEase(0, [200, 300]), easyEase(30, [760, 240])]}\n  links={12}\n  damping={0.45}\n  renderSpine={({ d }) => <path d={d} stroke=\"#e8b86d\" strokeWidth={6} fill=\"none\" />}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "form-fill-sequence": {
+   "usage": [
+    "import { FormFillSequence } from \"@/remotion/scenes/form-fill-sequence\";\n\n<FormFillSequence\n  title=\"Create your workspace\"\n  fields={[\n    { label: \"Full name\", value: \"Ada Lovelace\", placeholder: \"Your name\" },\n    { label: \"Work email\", value: \"ada@northstar.dev\" },\n  ]}\n  submitLabel=\"Create workspace\"\n  successLabel=\"Workspace created\"\n  holdSeconds={4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "frosted-glass-wipe": {
+   "usage": [
+    "import { transitionFrostedGlassWipe } from \"@/remotion/primitives/frosted-glass-wipe\";\n\n<TransitionSeries.Transition {...transitionFrostedGlassWipe({ blur: 20 })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "funnel-chart": {
+   "usage": [
+    "import { FunnelChart } from \"@/remotion/primitives/funnel-chart\";\n\n<FunnelChart\n  stages={[\n    { label: \"Visited docs\", value: 42800 },\n    { label: \"Ran the CLI\", value: 18600 },\n    { label: \"Shipped it\", value: 1750 },\n  ]}\n  staggerInFrames={15}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "gantt-timeline": {
+   "usage": [
+    "import { GanttTimeline } from \"@/remotion/primitives/gantt-timeline\";\n\n<GanttTimeline\n  tasks={[\n    { label: \"Registry build\", start: 1, end: 4, progress: 0.8 },\n    { label: \"Launch\", start: 7.6, end: 7.6, milestone: true },\n  ]}\n  columns={[\"W1\", \"W2\", \"W3\", \"W4\", \"W5\", \"W6\", \"W7\", \"W8\"]}\n  markerAt={5.5}\n  markerLabel=\"Today\"\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "gauge-dial": {
+   "usage": [
+    "import { GaugeDial } from \"@/remotion/primitives/gauge-dial\";\n\n<GaugeDial value={78} label=\"Render budget\" unit=\"%\" durationInFrames={70} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "globe-arc": {
+   "usage": [
+    "import { GlobeArc } from \"@/remotion/primitives/globe-arc\";\n\n<GlobeArc\n  size={380}\n  routes={[\n    { from: { lng: -74, lat: 40.7, label: \"NYC\" }, to: { lng: -0.1, lat: 51.5, label: \"London\" } },\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "globe-points-3d": {
+   "usage": [
+    "@/remotion/scenes/globe-points-3d",
+    "import { GlobePoints3d } from \"@/remotion/scenes/globe-points-3d\";\n\n<GlobePoints3d />"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "glow-pulse": {
+   "usage": [
+    "import { GlowPulse } from \"@/remotion/primitives/glow-pulse\";\n\n<GlowPulse mode=\"beat\" periodInFrames={36}>\n  <CtaPill />\n</GlowPulse>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "grain-gradient-bg": {
+   "usage": [
+    "import { GrainGradientBg } from \"@/remotion/primitives/grain-gradient-bg\";\n\n// Render with --gl=angle\n<GrainGradientBg shape=\"wave\" noise={0.35} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "grid-pixelate-wipe": {
+   "usage": [
+    "import { transitionGridPixelateWipe } from \"@/remotion/primitives/grid-pixelate-wipe\";\n\n<TransitionSeries.Transition {...transitionGridPixelateWipe({ cols: 12, rows: 8 })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "handwriting-text": {
+   "usage": [
+    "import { HandwritingText } from \"@/remotion/primitives/handwriting-text\";\n\n<HandwritingText text=\"Signed by hand\" staggerInFrames={9} penColor=\"#e8b86d\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "heatmap-grid": {
+   "usage": [
+    "import { HeatmapGrid } from \"@/remotion/primitives/heatmap-grid\";\n\n<HeatmapGrid\n  cells={weeks}\n  rowLabels={[\"Mon\", \"\", \"Wed\", \"\", \"Fri\", \"\", \"Sun\"]}\n  columnStaggerInFrames={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "hero-device-assemble": {
+   "usage": [
+    "import { HeroDeviceAssemble } from \"@/compositions/hero-device-assemble\";\n\n<HeroDeviceAssemble title=\"Ship on every screen\" />"
+   ],
+   "preview": {
+    "durationInFrames": 180,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "hero-loop": {
+   "usage": [
+    "import { HeroLoop } from \"@/compositions/hero-loop\";\n\n<HeroLoop />\n<HeroLoop background=\"transparent\" tone=\"light\" />"
+   ],
+   "preview": {
+    "durationInFrames": 360,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "hook-card": {
+   "usage": [
+    "import { HookCard } from \"@/remotion/scenes/hook-card\";\n\n<HookCard\n  kicker=\"Creator insight\"\n  headline=\"Make the first second count\"\n  emphasis=\"first second\"\n  subtitle=\"Hook viewers before they scroll\"\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "ik-rig": {
+   "usage": [
+    "@/remotion/primitives/ik-rig",
+    "import { IkRig } from \"@/remotion/primitives/ik-rig\";\n\n// A plotter: the arm draws the strokes, ink lands exactly under the solved hand.\n<IkRig\n  base={[640, 480]}\n  lengths={[220, 200]}\n  plot={{ d: \"M300 260 C380 160 520 360 600 240\", speed: 600, park: [700, 300] }}\n/>\n\n// A reach: point the hand at anything \u2014 a keyframed track, an expression, another rig's hand.\n<IkRig base={[480, 470]} target={({ time }) => [480 + Math.sin(time * 2) * 180, 220]} />"
+   ],
+   "preview": {
+    "durationInFrames": 252,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "image-expand": {
+   "usage": [
+    "import { ImageExpand } from \"@/compositions/image-expand\";\n\n<ImageExpand accentColor=\"#e8b86d\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "infinite-marquee": {
+   "usage": [
+    "import { InfiniteMarquee } from \"@/remotion/primitives/infinite-marquee\";\n\n<InfiniteMarquee text=\"Scrolling band\" speed={2} direction=\"left\" fade={0.08} />"
+   ],
+   "preview": {
+    "durationInFrames": 1800,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "intro": {
+   "usage": [
+    "import { Intro } from \"@/remotion/compositions/intro\";\n\n<Intro title=\"My Product\" subtitle=\"Launch video\" />"
+   ],
+   "preview": null
+  },
+  "kanban-move": {
+   "usage": [
+    "import { KanbanMove } from \"@/remotion/scenes/kanban-move\";\n\n<KanbanMove\n  columns={[\"Backlog\", \"In progress\", \"Shipped\"]}\n  cards={[\n    { title: \"Caption presets\", meta: \"RUI-218 \u00b7 Ana\", column: 0 },\n    {\n      title: \"Render queue retries\",\n      meta: \"RUI-204 \u00b7 Piotr\",\n      column: 0,\n      moveTo: 1,\n      moveAtSeconds: 0.95,\n    },\n    { title: \"Theme tokens\", meta: \"RUI-177 \u00b7 Kit\", column: 1 },\n  ]}\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "karaoke-captions": {
+   "usage": [
+    "import { KaraokeCaptions } from \"@/remotion/primitives/karaoke-captions\";\n\n<KaraokeCaptions page={page} mode=\"scale\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "landing-code-showcase": {
+   "usage": [
+    "import { LandingCodeShowcase } from \"@/compositions/landing-code-showcase\";\n\n<LandingCodeShowcase />"
+   ],
+   "preview": {
+    "durationInFrames": 168,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "light-rays": {
+   "usage": [
+    "import { LightRays } from \"@/remotion/primitives/light-rays\";\n\n<AbsoluteFill>\n  <LightRays originX={28} originY={-14} angle={20} spread={56} />\n  <YourScene />\n</AbsoluteFill>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "light-sweep-text": {
+   "usage": [
+    "import { LightSweepText } from \"@/remotion/primitives/light-sweep-text\";\n\n<LightSweepText text=\"Light pass\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "light-tunnel-bg": {
+   "usage": [
+    "import { LightTunnelBg } from \"@/remotion/primitives/light-tunnel-bg\";\n\n// Render with --gl=angle\n<LightTunnelBg ribbons={14} twist={0.16} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "line-chart-draw": {
+   "usage": [
+    "import { LineChartDraw } from \"@/remotion/primitives/line-chart-draw\";\n\n<LineChartDraw\n  points={[\n    { x: 0, y: 12000, label: \"Jan\" },\n    { x: 1, y: 24000, label: \"Feb\" },\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 60,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "liquid-text-morph": {
+   "usage": [
+    "import { LiquidTextMorph } from \"@/remotion/primitives/liquid-text-morph\";\n\n<LiquidTextMorph words={[\"Melt\", \"Merge\", \"Reform\"]} morphInFrames={22} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "live-code-split": {
+   "usage": [
+    "import { LiveCodeSplit } from \"@/compositions/live-code-split\";\n\n<LiveCodeSplit code={sourceCode} />"
+   ],
+   "preview": {
+    "durationInFrames": 168,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "logo-reveal": {
+   "usage": [
+    "import { LogoReveal } from \"@/remotion/scenes/logo-reveal\";\n\n<LogoReveal pathD=\"M 100 20 L 180 180 L 20 180 Z\" wordmark=\"Acme\" tagline=\"Ship faster\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "logo-wall": {
+   "usage": [
+    "import { LogoWall } from \"@/remotion/scenes/logo-wall\";\n\n<LogoWall\n  eyebrow=\"Trusted by\"\n  title=\"Teams shipping with RemotionUI\"\n  logos={[\n    { name: \"Northstar\", color: \"#E8B86D\" },\n    { name: \"Halcyon\", color: \"#7DD3E8\" },\n    { name: \"Fernweh\", color: \"#9BD4A0\" },\n    { name: \"Orbital\", color: \"#C99BE8\" },\n  ]}\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "lower-third": {
+   "usage": [
+    "import { LowerThird } from \"@/remotion/scenes/lower-third\";\n\n<LowerThird\n  title=\"Jane Doe\"\n  subtitle=\"Product Designer\"\n  accentColor=\"#f97316\"\n  align=\"left\"\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 96,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "map-canvas": {
+   "usage": [
+    "import { MapCanvas } from \"@/remotion/primitives/map-canvas\";\n\n<MapCanvas center={[8.54, 47.38]} zoom={7} onMapReady={setMap} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "map-flight": {
+   "usage": [
+    "import { MapFlight } from \"@/remotion/scenes/map-flight\";\n\n<MapFlight from={[8.54, 47.38]} to={[-74, 40.71]} fromLabel=\"Zurich\" toLabel=\"New York\" />"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "map-heat-overlay": {
+   "usage": [
+    "import { MapCanvas } from \"@/remotion/primitives/map-canvas\";\nimport { MapHeatOverlay } from \"@/remotion/primitives/map-heat-overlay\";\n\nconst [map, setMap] = useState<Map | null>(null);\n\n<AbsoluteFill>\n  <MapCanvas center={[2.2, 49.6]} zoom={4} onMapReady={setMap} />\n  <MapHeatOverlay map={map} points={points} radius={18} />\n</AbsoluteFill>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "map-markers": {
+   "usage": [
+    "import { MapMarkers } from \"@/remotion/primitives/map-markers\";\n\n<MapMarkers map={map} markers={markerCollection} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "map-route": {
+   "usage": [
+    "import { MapRoute } from \"@/remotion/primitives/map-route\";\n\n<MapRoute map={map} route={targetRoute} progress={0.5} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "marker-highlight": {
+   "usage": [
+    "import { MarkerHighlight } from \"@/remotion/primitives/marker-highlight\";\n\n<MarkerHighlight\n  text=\"The best motion is code you can read and change.\"\n  phrase=\"code you can read and change\"\n  markerColor=\"#f97316\"\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 110,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "masked-slide-reveal": {
+   "usage": [
+    "import { MaskedSlideReveal } from \"@/remotion/primitives/masked-slide-reveal\";\n\n<MaskedSlideReveal\n  lines={[\n    \"Three layers in your repo\",\n    \"Drop scenes into\",\n    \"TransitionSeries\",\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "matrix-decode": {
+   "usage": [
+    "import { MatrixDecode } from \"@/remotion/primitives/matrix-decode\";\n\n<MatrixDecode text=\"DECODED\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "media-frame": {
+   "usage": [
+    "import { MediaFrame } from \"@/remotion/scenes/media-frame\";\n\n<MediaFrame src={staticFile(\"demo.png\")} title=\"Product demo\" />"
+   ],
+   "preview": {
+    "durationInFrames": 130,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "media-sequence": {
+   "usage": [
+    "import { MediaSequence } from \"@/remotion/scenes/media-sequence\";\n\n<MediaSequence items={[{ src: staticFile(\"one.png\"), title: \"Hook\" }]} />"
+   ],
+   "preview": {
+    "durationInFrames": 210,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "mesh-gradient-bg": {
+   "usage": [
+    "import { MeshGradientBg } from \"@/remotion/primitives/mesh-gradient-bg\";\n\n<MeshGradientBg />"
+   ],
+   "preview": {
+    "durationInFrames": 90,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "metric-ticker": {
+   "usage": [
+    "import { MetricTicker } from \"@/remotion/scenes/metric-ticker\";\n\n<MetricTicker\n  title=\"Channel momentum\"\n  metrics={[\n    { label: \"Views\", value: 124000, delta: \"+18%\", trend: [62, 84, 96, 124] },\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "motion-trail": {
+   "usage": [
+    "import { MotionTrail } from \"@/remotion/primitives/motion-trail\";\n\n<MotionTrail count={6} gapInFrames={3}>\n  <TheMovingThing />\n</MotionTrail>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "multi-device-lineup": {
+   "usage": [
+    "import { MultiDeviceLineup } from \"@/remotion/primitives/multi-device-lineup\";\n\n<MultiDeviceLineup\n  scale={0.72}\n  phone={{ label: \"Phone\" }}\n  tablet={{ label: \"Tablet\" }}\n  laptop={{ label: \"Laptop\" }}\n>\n  <YourResponsiveScreen />\n</MultiDeviceLineup>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "neon-flicker-text": {
+   "usage": [
+    "import { NeonFlickerText } from \"@/remotion/primitives/neon-flicker-text\";\n\n<NeonFlickerText text=\"Open all night\" order=\"random\" glowColor=\"#f472b6\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "news-ticker-bar": {
+   "usage": [
+    "import { NewsTickerBar } from \"@/remotion/scenes/news-ticker-bar\";\n\n<NewsTickerBar\n  flag=\"Breaking\"\n  headlines={[\"Registry crosses 165 components\", \"CLI adds batch install\"]}\n  strapline=\"Live from the newsroom\"\n  timestamp=\"21:04\"\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "notification-stack": {
+   "usage": [
+    "import { NotificationStack } from \"@/remotion/scenes/notification-stack\";\n\n<NotificationStack\n  align=\"top-right\"\n  toasts={[\n    { title: \"Render finished\", body: \"launch-teaser.mp4\", tone: \"success\", meta: \"now\" },\n    { title: \"Storage at 86%\", tone: \"warn\", meta: \"2m\" },\n  ]}\n  lifeSeconds={2.3}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "opencode": {
+   "usage": [
+    "import { Opencode } from \"@/remotion/scenes/opencode\";\n\n<Opencode query='\"What is the tech stack of this project?\"' />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "orbit-motion": {
+   "usage": [
+    "import { OrbitMotion } from \"@/remotion/primitives/orbit-motion\";\n\n<OrbitMotion periodInFrames={120} center={<Logo />}>\n  <Chip label=\"One\" />\n  <Chip label=\"Two\" />\n</OrbitMotion>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "org-chart-build": {
+   "usage": [
+    "import { OrgChartBuild } from \"@/remotion/scenes/org-chart-build\";\n\n<OrgChartBuild\n  title=\"How the team is wired\"\n  nodes={[\n    { name: \"Ada Okonjo\", role: \"Founder\" },\n    { name: \"Piotr Nowak\", role: \"Engineering\", parent: 0 },\n    { name: \"Dai Nakamura\", role: \"Design\", parent: 0 },\n    { name: \"Sam Rhodes\", role: \"Infrastructure\", parent: 1 },\n  ]}\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "parallax-layers": {
+   "usage": [
+    "import { ParallaxLayers } from \"@/remotion/primitives/parallax-layers\";\n\n<ParallaxLayers\n  travel={420}\n  layers={[\n    { content: <Sky />, depth: 0.2, blur: 2 },\n    { content: <Headline />, depth: 0.55 },\n    { content: <Foreground />, depth: 1, blur: 8 },\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "particle-field": {
+   "usage": [
+    "import { ParticleField } from \"@/remotion/primitives/particle-field\";\n\n<AbsoluteFill>\n  <ParticleField count={70} angle={8} />\n  <YourScene />\n</AbsoluteFill>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "path-draw": {
+   "usage": [
+    "import { PathDraw } from \"@/remotion/primitives/path-draw\";\n\n<PathDraw d={[\"M 20 180 L 100 20 L 180 180\", \"M 60 120 L 140 120\"]} durationInFrames={60} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "perspective-marquee": {
+   "usage": [
+    "import { PerspectiveMarquee } from \"@/remotion/primitives/perspective-marquee\";\n\n<PerspectiveMarquee text=\"Depth scroll\" speed={10} floorTilt={70} perspective={640} />"
+   ],
+   "preview": {
+    "durationInFrames": 1800,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "pie-slice-reveal": {
+   "usage": [
+    "import { PieSliceReveal } from \"@/remotion/primitives/pie-slice-reveal\";\n\n<PieSliceReveal\n  slices={[\n    { label: \"Pro\", value: 44 },\n    { label: \"Team\", value: 26 },\n    { label: \"Free\", value: 18 },\n  ]}\n  staggerInFrames={18}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "podcast-clip": {
+   "usage": [
+    "import { PodcastClip } from \"@/compositions/podcast-clip\";\n\n<PodcastClip audioSrc={staticFile(\"podcast.wav\")} captions={captions} />"
+   ],
+   "preview": null
+  },
+  "poll-overlay": {
+   "usage": [
+    "import { PollOverlay } from \"@/remotion/scenes/poll-overlay\";\n\n<PollOverlay\n  badge=\"Poll\"\n  question=\"Which should we build next?\"\n  options={[\n    { label: \"Timeline editor\", votes: 412 },\n    { label: \"Batch renders\", votes: 268 },\n    { label: \"Team presets\", votes: 143 },\n  ]}\n  totalLabel=\"823 votes \u00b7 closes in 2m\"\n  holdSeconds={4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "pricing-card": {
+   "usage": [
+    "import { PricingCard } from \"@/remotion/scenes/pricing-card\";\n\n<PricingCard\n  tier=\"Studio\"\n  badge=\"Most picked\"\n  price={32}\n  period=\"/mo\"\n  note=\"Billed annually. Cancel whenever.\"\n  features={[\"2,000 render minutes a month\", \"4K exports, no watermark\", \"9 team seats\"]}\n  ctaLabel=\"Start rendering\"\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "pricing-focus": {
+   "usage": [
+    "import { PricingFocus } from \"@/compositions/pricing-focus\";\n\n<PricingFocus tiers={[{ name: \"Starter\", price: \"$0\" }, { name: \"Studio\", price: \"$29\", featured: true }]} />"
+   ],
+   "preview": {
+    "durationInFrames": 180,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "product-turntable-3d": {
+   "usage": [
+    "@/remotion/scenes/product-turntable-3d",
+    "import { ProductTurntable3d } from \"@/remotion/scenes/product-turntable-3d\";\n\n<ProductTurntable3d />"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "progress-bar": {
+   "usage": [
+    "import { ProgressBar } from \"@/remotion/primitives/progress-bar\";\n\n<ProgressBar progress={0.75} label=\"Rendering\" showValue segments={4} />"
+   ],
+   "preview": {
+    "durationInFrames": 110,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "quiz-question": {
+   "usage": [
+    "import { QuizQuestion } from \"@/remotion/scenes/quiz-question\";\n\n<QuizQuestion\n  question=\"What does the RemotionUI CLI actually do?\"\n  options={[\n    \"It bundles a runtime you ship\",\n    \"It copies the source into your repo\",\n    \"It renders on our servers\",\n  ]}\n  correctIndex={1}\n  pickedIndex={2}\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "quote-card": {
+   "usage": [
+    "import { QuoteCard } from \"@/remotion/scenes/quote-card\";\n\n<QuoteCard\n  quote=\"The best motion is code you can read and change\"\n  emphasis=\"motion\"\n  author=\"Team\"\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 113,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "radar-chart": {
+   "usage": [
+    "import { RadarChart } from \"@/remotion/primitives/radar-chart\";\n\n<RadarChart\n  axes={[\"Speed\", \"Polish\", \"Reuse\", \"Docs\", \"Types\", \"Motion\"]}\n  series={[\n    { label: \"Before\", values: [42, 38, 24, 30, 46, 34] },\n    { label: \"After\", values: [88, 92, 84, 78, 90, 86] },\n  ]}\n  maxValue={100}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "reaction-burst": {
+   "usage": [
+    "import { ReactionBurst } from \"@/remotion/scenes/reaction-burst\";\n\n<ReactionBurst align=\"right\" ratePerSecond={7} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "rgb-glitch-text": {
+   "usage": [
+    "import { RgbGlitchText } from \"@/remotion/primitives/rgb-glitch-text\";\n\n<RgbGlitchText text=\"SIGNAL LOCK\" glitchDurationInFrames={34} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "roadmap-lanes": {
+   "usage": [
+    "import { RoadmapLanes } from \"@/remotion/scenes/roadmap-lanes\";\n\n<RoadmapLanes\n  title=\"What we are building\"\n  lanes={[\n    { title: \"Shipped\", color: \"#9BD4A0\", done: true, items: [{ label: \"Render API\" }] },\n    {\n      title: \"Building\",\n      color: \"#E8B86D\",\n      showProgress: true,\n      items: [{ label: \"Timeline scrubber\", progress: 0.72 }],\n    },\n    { title: \"Planned\", color: \"#7A828F\", dashed: true, items: [{ label: \"Stem export\" }] },\n  ]}\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "rotate-in": {
+   "usage": [
+    "import { RotateIn } from \"@/remotion/primitives/rotate-in\";\n\n<RotateIn axis=\"x\" degrees={-24} origin=\"bottom\">\n  <div>Hinge into place</div>\n</RotateIn>"
+   ],
+   "preview": {
+    "durationInFrames": 100,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "scale-in": {
+   "usage": [
+    "import { ScaleIn } from \"@/remotion/primitives/scale-in\";\n\n<ScaleIn from={0.9} spring=\"snappy\">\n  <img src={staticFile(\"logo.png\")} />\n</ScaleIn>"
+   ],
+   "preview": {
+    "durationInFrames": 96,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "scanline-crt": {
+   "usage": [
+    "import { ScanlineCrt } from \"@/remotion/primitives/scanline-crt\";\n\n<ScanlineCrt curvature={0.6}>\n  <YourScene />\n</ScanlineCrt>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "scatter-plot-pop": {
+   "usage": [
+    "import { ScatterPlotPop } from \"@/remotion/primitives/scatter-plot-pop\";\n\n<ScatterPlotPop\n  points={[{ x: 4, y: 24, weight: 0.8 }, { x: 11, y: 39 }]}\n  xLabel=\"Scenes per project\"\n  staggerInFrames={3}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "scramble-text": {
+   "usage": [
+    "import { ScrambleText } from \"@/remotion/primitives/scramble-text\";\n\n<ScrambleText text=\"Resolve out of noise\" order=\"center\" charset=\"symbols\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "search-results-populate": {
+   "usage": [
+    "import { SearchResultsPopulate } from \"@/remotion/scenes/search-results-populate\";\n\n<SearchResultsPopulate\n  query=\"transition between scenes\"\n  results={[\n    { title: \"Slide transition\", detail: \"docs/transitions/slide\", score: 0.64 },\n    { title: \"Cross-fade two compositions\", detail: \"docs/transitions/fade\", score: 0.98 },\n  ]}\n  holdSeconds={4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "shake-emphasis": {
+   "usage": [
+    "import { ShakeEmphasis } from \"@/remotion/primitives/shake-emphasis\";\n\n<ShakeEmphasis startAtInFrames={24}>\n  <Headline />\n</ShakeEmphasis>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "shape-layer": {
+   "usage": [
+    "@/remotion/primitives/shape-layer",
+    "import { ShapeLayer } from \"@/remotion/primitives/shape-layer\";\nimport { easyEase } from \"@/remotion/lib/ae-motion\";\n\n<ShapeLayer\n  shapes={[{ type: \"star\", points: 5, outerRadius: 160, innerRadius: 70 }]}\n  operators={[\n    { op: \"repeater\", copies: 12, scale: 0.88, rotation: 8, position: [0, 0] },\n    { op: \"trim\", mode: \"individual\", end: 0.3, offset: [easyEase(0, 0), easyEase(90, 1)] },\n    { op: \"wiggle\", size: 2, detail: 3 },\n  ]}\n  width={480}\n  height={480}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "shape-morph": {
+   "usage": [
+    "import { ShapeMorph } from \"@/remotion/primitives/shape-morph\";\n\n<ShapeMorph\n  shapes={[\"circle\", \"squircle\", \"triangle\", \"diamond\"]}\n  size={300}\n  durationInFrames={96}\n  exitAtInFrames={92}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "showcase": {
+   "usage": [
+    "import { Showcase } from \"@/remotion/compositions/showcase\";\n\n<Showcase title=\"Product story\" subtitle=\"Install source, compose scenes, render on your timeline\" statValue={3} statLabel=\"Runtime dependencies\" />"
+   ],
+   "preview": {
+    "durationInFrames": 249,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "simulated-cursor": {
+   "usage": [
+    "import { SimulatedCursor } from \"@/remotion/primitives/simulated-cursor\";\n\n<SimulatedCursor\n  points={[\n    { x: 20, y: 60, frame: 0 },\n    { x: 70, y: 40, frame: 30, target: 96, label: \"Render\" },\n  ]}\n  clickFrames={[32]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 72,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "skew-in": {
+   "usage": [
+    "import { SkewIn } from \"@/remotion/primitives/skew-in\";\n\n<SkewIn skew={16} travel={72} durationInFrames={40}>\n  <h1>Leans in, straightens up</h1>\n</SkewIn>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "slide-left": {
+   "usage": [
+    "import { SlideLeft } from \"@/remotion/primitives/slide-left\";\n\n<SlideLeft distance={60} from=\"left\">\n  <p>Slide in from the left</p>\n</SlideLeft>"
+   ],
+   "preview": {
+    "durationInFrames": 96,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "slide-up": {
+   "usage": [
+    "import { SlideUp } from \"@/remotion/primitives/slide-up\";\n\n<SlideUp mask exit>\n  <h1>Title</h1>\n</SlideUp>"
+   ],
+   "preview": {
+    "durationInFrames": 96,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "slit-scan": {
+   "usage": [
+    "@/remotion/primitives/slit-scan",
+    "import { SlitScan } from \"@/remotion/primitives/slit-scan\";\n\n<SlitScan mode=\"radial\" strips={120} levels={60} maxDelay={30} loopFrames={150}>\n  <MyLoopingScene />\n</SlitScan>"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "slot-roll": {
+   "usage": [
+    "import { SlotRoll } from \"@/remotion/primitives/slot-roll\";\n\n<SlotRoll from=\"1200\" to=\"9840\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "social-clip": {
+   "usage": [
+    "import { SocialClip } from \"@/compositions/social-clip\";\n\n<SocialClip audioSrc={staticFile(\"podcast.wav\")} captions={captions} />"
+   ],
+   "preview": null
+  },
+  "sparkline-row": {
+   "usage": [
+    "import { SparklineRow } from \"@/remotion/primitives/sparkline-row\";\n\n<SparklineRow\n  rows={[\n    { label: \"Renders / day\", values: [180, 240, 320, 480, 610], delta: \"+24%\" },\n    { label: \"Median render\", values: [92, 86, 74, 66, 61], delta: \"-18%\" },\n  ]}\n  staggerInFrames={20}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "spatial-push": {
+   "usage": [
+    "import { transitionSpatialPush } from \"@/remotion/primitives/spatial-push\";\n\n<TransitionSeries.Transition {...transitionSpatialPush()} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "speaker-label-captions": {
+   "usage": [
+    "import { SpeakerLabelCaptions } from \"@/remotion/primitives/speaker-label-captions\";\nimport { parseSubtitles } from \"@/remotion/lib/caption-utils\";\n\n<SpeakerLabelCaptions\n  cues={parseSubtitles(vttSource)}\n  speakers={[\n    { name: \"Nadia\", color: \"#e8b86d\", align: \"left\" },\n    { name: \"Sam\", color: \"#2dd4bf\", align: \"right\" },\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "split-screen": {
+   "usage": [
+    "import { SplitScreen } from \"@/remotion/scenes/split-screen\";\n\n<SplitScreen left={{ src: before }} right={{ src: after }} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "split-text-chars": {
+   "usage": [
+    "import { SplitTextChars } from \"@/remotion/primitives/split-text-chars\";\n\n<SplitTextChars text=\"Ship it on Friday\" mode=\"chars\" order=\"center\" />\n\n// Headless: build your own effect on the same split and stagger.\nimport { useSplitText } from \"@/remotion/lib/text-split\";\nconst { lines } = useSplitText({ text, mode: \"words\" });"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "sports-scorebug": {
+   "usage": [
+    "import { SportsScorebug } from \"@/remotion/scenes/sports-scorebug\";\n\n<SportsScorebug\n  away={{ abbr: \"NOR\", score: 66, color: \"#7DD3E8\" }}\n  home={{ abbr: \"VAL\", score: 71, color: \"#E8B86D\", possession: true }}\n  period=\"Q4\"\n  clockSeconds={154}\n  changes={[{ side: \"away\", atSeconds: 1.1, points: 3 }]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "spring-in": {
+   "usage": [
+    "import { SpringIn } from \"@/remotion/primitives/spring-in\";\n\n<SpringIn config=\"bouncy\" durationInFrames={40}>\n  <div>Physical entrance</div>\n</SpringIn>"
+   ],
+   "preview": {
+    "durationInFrames": 105,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "squash-stretch": {
+   "usage": [
+    "import { SquashStretch } from \"@/remotion/primitives/squash-stretch\";\n\n<SquashStretch mode=\"bounce\" periodInFrames={36}>\n  <Ball />\n</SquashStretch>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "srt-caption-track": {
+   "usage": [
+    "import { SrtCaptionTrack } from \"@/remotion/primitives/srt-caption-track\";\n\n<SrtCaptionTrack src={staticFile(\"episode.srt\")} />\n\n// Any caption style can render the pages.\n<SrtCaptionTrack\n  src={staticFile(\"episode.srt\")}\n  renderPage={(page) => <KaraokeCaptions page={page} mode=\"underline\" />}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 170,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "stacked-area-chart": {
+   "usage": [
+    "import { StackedAreaChart } from \"@/remotion/primitives/stacked-area-chart\";\n\n<StackedAreaChart\n  series={[\n    { label: \"Reels\", values: [140, 210, 300, 430, 520] },\n    { label: \"Ads\", values: [90, 130, 210, 300, 340] },\n  ]}\n  labels={[\"Jan\", \"Mar\", \"May\", \"Jul\", \"Aug\"]}\n  durationInFrames={62}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "stagger-children": {
+   "usage": [
+    "import { StaggerChildren } from \"@/remotion/primitives/stagger-children\";\nimport { SlideLeft } from \"@/remotion/primitives/slide-left\";\n\n<StaggerChildren staggerInFrames={8} exitStaggerInFrames={6}>\n  {items.map((item) => (\n    <SlideLeft key={item} exit><span>{item}</span></SlideLeft>\n  ))}\n</StaggerChildren>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "staggered-fade-up": {
+   "usage": [
+    "import { StaggeredFadeUp } from \"@/remotion/primitives/staggered-fade-up\";\n\n<StaggeredFadeUp text=\"Words rise in sequence\" />"
+   ],
+   "preview": {
+    "durationInFrames": 60,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "stat-card": {
+   "usage": [
+    "import { StatCard } from \"@/remotion/scenes/stat-card\";\n\n<StatCard value={98} label=\"Satisfaction\" suffix=\"%\" />"
+   ],
+   "preview": {
+    "durationInFrames": 123,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "strikethrough-replace": {
+   "usage": [
+    "import { StrikethroughReplace } from \"@/remotion/primitives/strikethrough-replace\";\n\n<StrikethroughReplace from=\"Motion you rent\" to=\"Motion you own\" delayInFrames={10} />"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "stroke-to-fill-text": {
+   "usage": [
+    "import { StrokeToFillText } from \"@/remotion/primitives/stroke-to-fill-text\";\n\n<StrokeToFillText\n  text=\"Ship faster with source\"\n  strokeColor=\"#e8b86d\"\n  staggerInFrames={5}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "subtitle-translate": {
+   "usage": [
+    "import { SubtitleTranslate } from \"@/remotion/primitives/subtitle-translate\";\n\n<SubtitleTranslate\n  cues={[\n    {\n      text: \"The transcript is the edit.\",\n      translation: \"La transcripci\u00f3n es el montaje.\",\n      startMs: 0,\n      endMs: 1450,\n    },\n  ]}\n  languageLabels={[\"EN\", \"ES\"]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "svg-mask-reveal": {
+   "usage": [
+    "import { SvgMaskReveal } from \"@/remotion/primitives/svg-mask-reveal\";\n\n<SvgMaskReveal\n  shape=\"squircle\"\n  origin={{ x: 0.32, y: 0.36 }}\n  durationInFrames={90}\n  rotation={40}\n>\n  <YourContent />\n</SvgMaskReveal>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "tab-switch-panel": {
+   "usage": [
+    "import { TabSwitchPanel } from \"@/remotion/scenes/tab-switch-panel\";\n\n<TabSwitchPanel\n  windowTitle=\"Northstar Studio\"\n  tabs={[\n    { label: \"Overview\", title: \"1,284 renders\", rows: [{ label: \"Queued\", value: \"12\" }] },\n    { label: \"Billing\", title: \"Studio plan\", rows: [{ label: \"Seats\", value: \"9 of 12\" }] },\n  ]}\n  switchEverySeconds={0.9}\n  holdSeconds={4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "talking-head-layout": {
+   "usage": [
+    "import { TalkingHeadLayout } from \"@/remotion/scenes/talking-head-layout\";\n\n<TalkingHeadLayout\n  mediaSrc={staticFile(\"speaker.mp4\")}\n  audioSrc={staticFile(\"voice.wav\")}\n  eyebrow=\"On camera\"\n  title=\"Maya Okonkwo\"\n  subtitle=\"Founder, Northlight Studio\"\n  captions={[\"Keep the speaker readable.\", \"Reserve the lower frame.\"]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 195,
+    "width": 1080,
+    "height": 1920
+   }
+  },
+  "team-grid": {
+   "usage": [
+    "import { TeamGrid } from \"@/remotion/scenes/team-grid\";\n\n<TeamGrid\n  title=\"The people behind it\"\n  subtitle=\"Eight of us, four timezones.\"\n  members={[\n    { name: \"Ada Okonjo\", role: \"Founder\" },\n    { name: \"Piotr Nowak\", role: \"Rendering\" },\n    { name: \"Dai Nakamura\", role: \"Design systems\" },\n  ]}\n  columns={4}\n  holdSeconds={3.4}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "terminal-simulator": {
+   "usage": [
+    "import { TerminalSimulator } from \"@/remotion/scenes/terminal-simulator\";\n\n<TerminalSimulator command=\"pnpm build\" summary=\"done in 4.2s\" />"
+   ],
+   "preview": {
+    "durationInFrames": 180,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "text-animator": {
+   "usage": [
+    "@/remotion/primitives/text-animator",
+    "import { TextAnimator } from \"@/remotion/primitives/text-animator\";\nimport { easyEase } from \"@/remotion/lib/ae-motion\";\n\n<TextAnimator\n  text=\"Every letter keeps its own clock\"\n  animators={[\n    {\n      properties: { position: [0, 60], opacity: 0, blur: 12 },\n      selectors: [{ shape: \"ramp-up\", start: 0, end: 0.3, offset: [easyEase(0, -0.3), easyEase(45, 1)] }],\n    },\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "text-extrude-3d": {
+   "usage": [
+    "@/remotion/scenes/text-extrude-3d",
+    "import { TextExtrude3d } from \"@/remotion/scenes/text-extrude-3d\";\n\n<TextExtrude3d />"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "text-mask-video": {
+   "usage": [
+    "import { staticFile } from \"remotion\";\nimport { TextMaskVideo } from \"@/remotion/primitives/text-mask-video\";\n\n<TextMaskVideo\n  text={\"IN\\nMOTION\"}\n  src={staticFile(\"clips/skyline.mp4\")}\n  fontSize={172}\n  fontWeight={900}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "text-reveal-shader": {
+   "usage": [
+    "import { TextRevealShader } from \"@/remotion/primitives/text-reveal-shader\";\n\n// Render with --gl=angle\n<TextRevealShader text={\"LIQUID\\nCHROME\"} bandWidth={0.022} settle={0.16} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "timeline-steps": {
+   "usage": [
+    "import { TimelineSteps } from \"@/remotion/scenes/timeline-steps\";\n\n<TimelineSteps steps={[{ title: \"Record\" }, { title: \"Render\" }]} />"
+   ],
+   "preview": {
+    "durationInFrames": 165,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "title-card": {
+   "usage": [
+    "import { TitleCard } from \"@/remotion/scenes/title-card\";\n\n<TitleCard title=\"Launch Week\" subtitle=\"Day 1\" />"
+   ],
+   "preview": {
+    "durationInFrames": 90,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "tool-menu-slide": {
+   "usage": [
+    "import { ToolMenuSlide } from \"@/compositions/tool-menu-slide\";\n\n<ToolMenuSlide />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "topographic-lines-bg": {
+   "usage": [
+    "import { TopographicLinesBg } from \"@/remotion/primitives/topographic-lines-bg\";\n\n<AbsoluteFill>\n  <TopographicLinesBg speed={1} />\n  <YourScene />\n</AbsoluteFill>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "track-matte": {
+   "usage": [
+    "@/remotion/primitives/track-matte",
+    "import { MatteVideo, TrackMatte } from \"@/remotion/primitives/track-matte\";\n\n<TrackMatte mode=\"alpha\" matte={<text x={480} y={330} textAnchor=\"middle\" fontSize={220} fill=\"white\">WORD</text>}>\n  <OffthreadVideo src={staticFile(\"clip.mp4\")} />\n</TrackMatte>\n\n// Footage as the matte:\n<TrackMatte mode=\"luma\" matte={<MatteVideo src={staticFile(\"clip.mp4\")} />}>\n  <Gradient />\n</TrackMatte>"
+   ],
+   "preview": {
+    "durationInFrames": 150,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "tracking-in": {
+   "usage": [
+    "import { TrackingIn } from \"@/remotion/primitives/tracking-in\";\n\n<TrackingIn text=\"Tracking snap\" />"
+   ],
+   "preview": {
+    "durationInFrames": 72,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transcript-scroll": {
+   "usage": [
+    "import { TranscriptScroll } from \"@/remotion/primitives/transcript-scroll\";\nimport { parseSubtitles } from \"@/remotion/lib/caption-utils\";\n\n<TranscriptScroll cues={parseSubtitles(vttSource)} width={740} height={400} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-blinds": {
+   "usage": [
+    "import { transitionBlinds } from \"@/remotion/primitives/transition-blinds\";\n\n<TransitionSeries.Transition {...transitionBlinds({ slats: 12, stagger: 0.45 })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-card-flip": {
+   "usage": [
+    "import { transitionCardFlip } from \"@/remotion/primitives/transition-card-flip\";\n\n<TransitionSeries.Transition {...transitionCardFlip({ axis: \"y\" })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-circle-reveal": {
+   "usage": [
+    "import { transitionCircleReveal } from \"@/remotion/primitives/transition-circle-reveal\";\n\n<TransitionSeries.Transition {...transitionCircleReveal({ originX: 0.3, originY: 0.4 })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-clock-wipe": {
+   "usage": [
+    "import { transitionClockWipe } from \"@/remotion/primitives/transition-clock-wipe\";\n\n<TransitionSeries.Transition {...transitionClockWipe({ width: 1920, height: 1080 })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-fade": {
+   "usage": [
+    "import { TransitionSeries } from \"@remotion/transitions\";\nimport { transitionFade } from \"@/remotion/primitives/transition-fade\";\n\n<TransitionSeries>\n  <TransitionSeries.Sequence durationInFrames={60}>...</TransitionSeries.Sequence>\n  <TransitionSeries.Transition {...transitionFade({ durationInFrames: 15 })} />\n  <TransitionSeries.Sequence durationInFrames={60}>...</TransitionSeries.Sequence>\n</TransitionSeries>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-light-leak": {
+   "usage": [
+    "import { TransitionLightLeak } from \"@/remotion/primitives/transition-light-leak\";\n\n<TransitionSeries.Overlay durationInFrames={30}>\n  <TransitionLightLeak seed={2} hueShift={45} />\n</TransitionSeries.Overlay>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-liquid-warp": {
+   "usage": [
+    "import { transitionLiquidWarp } from \"@/remotion/primitives/transition-liquid-warp\";\n\n<TransitionSeries.Transition {...transitionLiquidWarp({ scaleRatio: 0.12 })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-morph-shape": {
+   "usage": [
+    "import { transitionMorphShape } from \"@/remotion/primitives/transition-morph-shape\";\n\n<TransitionSeries.Transition {...transitionMorphShape({ from: \"circle\", to: \"diamond\" })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-slide": {
+   "usage": [
+    "import { transitionSlide } from \"@/remotion/primitives/transition-slide\";\n\n<TransitionSeries.Transition\n  {...transitionSlide({ direction: \"from-left\", durationInFrames: 20 })}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-whip-pan": {
+   "usage": [
+    "import { transitionWhipPan } from \"@/remotion/primitives/transition-whip-pan\";\n\n<TransitionSeries.Transition {...transitionWhipPan({ direction: \"from-left\", blur: 26 })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "transition-wipe": {
+   "usage": [
+    "import { transitionWipe } from \"@/remotion/primitives/transition-wipe\";\n\n<TransitionSeries.Transition {...transitionWipe({ direction: \"from-left\" })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "treemap-blocks": {
+   "usage": [
+    "import { TreemapBlocks } from \"@/remotion/primitives/treemap-blocks\";\n\n<TreemapBlocks\n  blocks={[\n    { label: \"Atoms\", value: 46 },\n    { label: \"Blocks\", value: 31 },\n    { label: \"Signals\", value: 26 },\n  ]}\n  staggerInFrames={12}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "tutorial-clip": {
+   "usage": [
+    "import { TutorialClip } from \"@/compositions/tutorial-clip\";\n\n<TutorialClip mediaSrc={staticFile(\"demo.png\")} />"
+   ],
+   "preview": {
+    "durationInFrames": 248,
+    "width": 1080,
+    "height": 1920
+   }
+  },
+  "typewriter": {
+   "usage": [
+    "import { Typewriter } from \"@/remotion/primitives/typewriter\";\n\n<Typewriter\n  text=\"Build videos with React.[pause:0.5] One frame at a time.\"\n  charFrames={2}\n  humanize\n  respectPunctuation\n  cursorStyle=\"block\"\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 165,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "v0": {
+   "usage": [
+    "import { V0Composer } from \"@/remotion/scenes/v0\";\n\n<V0Composer prompt=\"a landing page for my SaaS with pricing\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "variable-font-morph": {
+   "usage": [
+    "import { VariableFontMorph } from \"@/remotion/primitives/variable-font-morph\";\n\n<VariableFontMorph text=\"Weight in motion\" weight={[200, 900]} oscillate />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "voice-note-bubble": {
+   "usage": [
+    "import { VoiceNoteBubble } from \"@/remotion/primitives/voice-note-bubble\";\n\n<VoiceNoteBubble durationInFrames={120} sender=\"Sam\" avatar=\"S\" />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "vu-meter": {
+   "usage": [
+    "import { VuMeter } from \"@/remotion/primitives/vu-meter\";\n\n<VuMeter src={audioSrc} orientation=\"vertical\" labels={[\"L\", \"R\"]} />"
+   ],
+   "preview": {
+    "durationInFrames": 100,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "warp-bands-bg": {
+   "usage": [
+    "import { WarpBandsBg } from \"@/remotion/primitives/warp-bands-bg\";\n\n// Render with --gl=angle\n<WarpBandsBg softness={1} swirl={0.8} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "waterfall-chart": {
+   "usage": [
+    "import { WaterfallChart } from \"@/remotion/primitives/waterfall-chart\";\n\n<WaterfallChart\n  steps={[\n    { label: \"Q1 open\", value: 320, isTotal: true },\n    { label: \"New\", value: 180 },\n    { label: \"Churn\", value: -74 },\n    { label: \"Q2 close\", value: 484, isTotal: true },\n  ]}\n  staggerInFrames={15}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "wave-text": {
+   "usage": [
+    "import { WaveText } from \"@/remotion/primitives/wave-text\";\n\n<WaveText text=\"Ride the sine\" amplitude={0.2} wavelength={5} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "waveform-bars-radial": {
+   "usage": [
+    "import { WaveformBarsRadial } from \"@/remotion/primitives/waveform-bars-radial\";\n\n<WaveformBarsRadial src={audioSrc} radius={112} barCount={80}>\n  <CoverArt />\n</WaveformBarsRadial>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "waveform-line": {
+   "usage": [
+    "import { WaveformLine } from \"@/remotion/primitives/waveform-line\";\n\n<WaveformLine src={staticFile(\"voice.wav\")} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "weather-card": {
+   "usage": [
+    "import { WeatherCard } from \"@/remotion/scenes/weather-card\";\n\n<WeatherCard\n  place=\"Lisbon\"\n  temperature={24}\n  condition=\"sun\"\n  conditionLabel=\"Clear, light breeze\"\n  forecast={[\n    { label: \"Sat\", condition: \"sun\", high: 24, low: 14 },\n    { label: \"Sun\", condition: \"cloud\", high: 22, low: 13 },\n    { label: \"Mon\", condition: \"rain\", high: 18, low: 12 },\n  ]}\n/>"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "word-pop-captions": {
+   "usage": [
+    "import { WordPopCaptions } from \"@/remotion/primitives/word-pop-captions\";\nimport { groupCaptionsIntoPages } from \"@/remotion/lib/caption-utils\";\n\nconst [page] = groupCaptionsIntoPages(captions, 4000);\n\n<WordPopCaptions page={page} strokeWidth={4} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "zoom-pan-frame": {
+   "usage": [
+    "import { ZoomPanFrame } from \"@/remotion/scenes/zoom-pan-frame\";\n\n<ZoomPanFrame src={staticFile(\"screenshot.png\")} to={{ x: 0.38, y: 0.4, scale: 1.2 }} />"
+   ],
+   "preview": {
+    "durationInFrames": 140,
+    "width": 960,
+    "height": 540
+   }
+  },
+  "zoom-through": {
+   "usage": [
+    "import { transitionZoomThrough } from \"@/remotion/primitives/zoom-through\";\n\n<TransitionSeries.Transition {...transitionZoomThrough({ maxScale: 2.4 })} />"
+   ],
+   "preview": {
+    "durationInFrames": 120,
+    "width": 960,
+    "height": 540
+   }
+  }
+ }
+}

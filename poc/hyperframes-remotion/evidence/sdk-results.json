@@ -1,0 +1,110 @@
+{
+ "block": "lt-clean-bar",
+ "masterSha256": "b3264493a651f6db103310f71c09276a093a527d5e9a3139ea22c6313952c268",
+ "checks": [
+  {
+   "name": "found editable ids by content",
+   "pass": true,
+   "detail": "{\"nameId\":\"hf-tjqa\",\"roleId\":\"hf-jkgi\",\"accent\":\"hf-0l4y\",\"total\":7}"
+  },
+  {
+   "name": "override set A is sparse",
+   "pass": true,
+   "detail": "3 keys, 118 bytes vs master 3325 bytes"
+  },
+  {
+   "name": "override set B is sparse",
+   "pass": true,
+   "detail": "3 keys, 121 bytes vs master 3325 bytes"
+  },
+  {
+   "name": "restored A contains its business text",
+   "pass": true
+  },
+  {
+   "name": "restored B contains its business text",
+   "pass": true
+  },
+  {
+   "name": "A and B outputs differ",
+   "pass": true
+  },
+  {
+   "name": "A output does not leak B text",
+   "pass": true
+  },
+  {
+   "name": "master file bytes unchanged",
+   "pass": true
+  },
+  {
+   "name": "restored HTML differs from master only where edited",
+   "pass": true
+  },
+  {
+   "name": "canUndo after edit",
+   "pass": true
+  },
+  {
+   "name": "undo restores original serialization",
+   "pass": true,
+   "detail": "edited!==before:true"
+  },
+  {
+   "name": "canRedo after undo",
+   "pass": true
+  },
+  {
+   "name": "redo restores edit",
+   "pass": true
+  },
+  {
+   "name": "persist adapter stored the edited html",
+   "pass": true,
+   "detail": "versions=1"
+  },
+  {
+   "name": "master file still unchanged after adapter save",
+   "pass": true
+  }
+ ],
+ "elements": {
+  "nameId": "hf-tjqa",
+  "roleId": "hf-jkgi",
+  "accent": "hf-0l4y",
+  "total": 7
+ },
+ "hostileInput": [
+  {
+   "probe": "setText html payload",
+   "threw": null,
+   "payloadReachesOutput": false
+  },
+  {
+   "probe": "setAttribute onclick",
+   "threw": "setAttribute: event-handler attributes (\"onclick\") are not permitted: they produ",
+   "payloadReachesOutput": false
+  },
+  {
+   "probe": "setAttribute javascript: href",
+   "threw": "setAttribute: unsafe URI value for \"href\".",
+   "payloadReachesOutput": false
+  },
+  {
+   "probe": "setAttribute remote img src",
+   "threw": null,
+   "payloadReachesOutput": true
+  },
+  {
+   "probe": "addElement with <script>",
+   "threw": null,
+   "payloadReachesOutput": false
+  },
+  {
+   "probe": "addElement with onerror img",
+   "threw": null,
+   "payloadReachesOutput": true
+  }
+ ],
+ "failed": []
+}

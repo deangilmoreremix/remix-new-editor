@@ -3,6 +3,13 @@ const FAILURE_STATUSES = new Set(["failed", "error", "cancelled", "canceled"]);
 
 const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
+function cancelledError(requestId) {
+  const error = new Error("Generation polling cancelled.");
+  error.name = "AbortError";
+  error.requestId = requestId;
+  return error;
+}
+
 function getGenerationErrorDetail(result) {
   if (typeof result?.error === "string") return result.error;
   if (typeof result?.error?.message === "string") return result.error.message;
@@ -36,11 +43,15 @@ export async function pollForGenerationResult({
   interval = 2000,
   onAuthRequired,
   fetchImpl = fetch,
+  signal,
 }) {
   const pollUrl = `${baseUrl}/api/v1/predictions/${requestId}/result`;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    // Cancelling stops waiting; the provider job itself may still finish.
+    if (signal?.aborted) throw cancelledError(requestId);
     await wait(interval);
+    if (signal?.aborted) throw cancelledError(requestId);
 
     let response;
     try {

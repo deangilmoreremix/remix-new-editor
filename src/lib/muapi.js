@@ -1279,7 +1279,9 @@ export class MuapiClient {
         const finalPayload = {};
 
         if (params.model) finalPayload.model = params.model;
-        if (params.prompt) finalPayload.prompt = params.prompt;
+        // Speech callers pass the text as `text`; it was never forwarded. Send it as `prompt`.
+        const spokenText = params.prompt || params.text;
+        if (spokenText) finalPayload.prompt = spokenText;
         if (params.duration) finalPayload.duration = params.duration;
         if (params.style) finalPayload.style = params.style;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;

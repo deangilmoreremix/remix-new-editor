@@ -1,0 +1,109 @@
+{
+ "checks": [
+  {
+   "name": "frame runs in an opaque origin",
+   "pass": true,
+   "detail": "window.origin=null"
+  },
+  {
+   "name": "cannot read parent document",
+   "pass": true,
+   "detail": "blocked: SecurityError"
+  },
+  {
+   "name": "cannot read parent location",
+   "pass": true,
+   "detail": "blocked: SecurityError"
+  },
+  {
+   "name": "cannot read host cookie",
+   "pass": true,
+   "detail": "blocked: SecurityError"
+  },
+  {
+   "name": "cannot fetch external site",
+   "pass": true,
+   "detail": "blocked: TypeError"
+  },
+  {
+   "name": "cannot load remote script",
+   "pass": true,
+   "detail": "blocked: Error"
+  },
+  {
+   "name": "cannot open windows",
+   "pass": true,
+   "detail": "blocked (null)"
+  },
+  {
+   "name": "cannot navigate the top page",
+   "pass": true,
+   "detail": "blocked: SecurityError"
+  },
+  {
+   "name": "inline event handlers do not execute",
+   "pass": true,
+   "detail": "not executed"
+  },
+  {
+   "name": "sandboxed render works: lt-clean-bar",
+   "pass": true,
+   "detail": "errors=[]"
+  },
+  {
+   "name": "sandboxed render works: code-diff",
+   "pass": true,
+   "detail": "errors=[]"
+  },
+  {
+   "name": "sandboxed render works: caption-highlight",
+   "pass": true,
+   "detail": "errors=[]"
+  },
+  {
+   "name": "sandboxed render works: slack-notification-ad",
+   "pass": true,
+   "detail": "errors=[]"
+  },
+  {
+   "name": "sandboxed render works: heygen-avatar-promo-card",
+   "pass": true,
+   "detail": "errors=[]"
+  },
+  {
+   "name": "MP4 export works inside the sandbox",
+   "pass": true,
+   "detail": "81496B in 1343ms"
+  },
+  {
+   "name": "adapter refuses scripts outside a sandbox",
+   "pass": true,
+   "detail": "[\"refused lt-clean-bar: scripts not run: not in an opaque-origin sandbox\",\"timeline lt-clean-bar: no __timelines entry\"]"
+  }
+ ],
+ "probe": {
+  "id": 1,
+  "ok": true,
+  "origin": "null",
+  "sandboxed": true,
+  "scriptsAllowed": true,
+  "escape": {
+   "parent.document": "blocked: SecurityError",
+   "parent.location": "blocked: SecurityError",
+   "document.cookie": "blocked: SecurityError",
+   "localStorage": "0",
+   "fetch external": "blocked: TypeError",
+   "fetch same-origin app api": "status 200 (readable)",
+   "window.open": "blocked (null)",
+   "top navigation": "blocked: SecurityError",
+   "inject remote script": "blocked: Error",
+   "inline handler injection": "not executed"
+  }
+ },
+ "notes": {
+  "fetch same-origin app api": "status 200 (readable)",
+  "localStorage": "0"
+ },
+ "pageErrors": [],
+ "failed": []
+}

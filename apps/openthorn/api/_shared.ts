@@ -1,6 +1,7 @@
 // Shared server-side helpers for Vercel Functions and the Vite dev shims.
 // Files prefixed with "_" are not treated as routes by Vercel.
 import { createCipheriv, createDecipheriv, randomBytes, hkdfSync } from 'node:crypto'
+import { TBL } from './_tables.js'
 import { blake3 } from 'hash-wasm'
 
 // ---------------------------------------------------------------------------
@@ -82,7 +83,7 @@ export async function getProjectForDeploy(
 
   try {
     const res = await fetch(
-      `${env.url}/rest/v1/projects?id=eq.${encodeURIComponent(projectId)}&select=cf_pages_project_name,title&limit=1`,
+      `${env.url}/rest/v1/${TBL.projects}?id=eq.${encodeURIComponent(projectId)}&select=cf_pages_project_name,title&limit=1`,
       { headers: { apikey: env.anonKey, Authorization: `Bearer ${token}`, Accept: 'application/json' } },
     )
     if (!res.ok) return { ok: false, siteId: null, title: null }
@@ -111,7 +112,7 @@ export async function persistProjectSiteId(
   if (!env || !token || !PROJECT_ID_RE.test(projectId)) return
 
   try {
-    await fetch(`${env.url}/rest/v1/projects?id=eq.${encodeURIComponent(projectId)}`, {
+    await fetch(`${env.url}/rest/v1/${TBL.projects}?id=eq.${encodeURIComponent(projectId)}`, {
       method: 'PATCH',
       headers: {
         apikey: env.anonKey,
@@ -487,7 +488,7 @@ export async function isAdminUser(userId: string): Promise<boolean> {
   if (!env || !key || !isValidUserId(userId)) return false
   try {
     const res = await fetch(
-      `${env.url}/rest/v1/profiles?id=eq.${userId}&select=is_admin&limit=1`,
+      `${env.url}/rest/v1/${TBL.profiles}?id=eq.${userId}&select=is_admin&limit=1`,
       { headers: { ...serviceHeaders(key), Accept: 'application/json' } },
     )
     if (!res.ok) return false
@@ -498,27 +499,26 @@ export async function isAdminUser(userId: string): Promise<boolean> {
   }
 }
 
-/** Ban or unban a user at the auth level and mirror the flag on profiles. */
+/**
+ * Suspend or restore a user's access to the BUILDER only.
+ *
+ * The builder shares SmartVideo's Supabase project, so the auth account is the
+ * person's SmartVideo login. It must never be banned from here; the flag lives on
+ * wb_profiles, and the sign-in function (website-builder-session) refuses a
+ * suspended profile.
+ */
 export async function adminSetUserSuspended(userId: string, suspended: boolean): Promise<void> {
   const env = supabaseEnv()
   const key = serviceRoleKey()
   if (!env || !key) throw new Error('Service role not configured')
   if (!isValidUserId(userId)) throw new Error('Invalid user id')
 
-  const res = await fetch(`${env.url}/auth/v1/admin/users/${userId}`, {
-    method: 'PUT',
-    headers: serviceHeaders(key),
-    // "none" lifts the ban; 876000h ≈ 100 years.
-    body: JSON.stringify({ ban_duration: suspended ? '876000h' : 'none' }),
-  })
-  if (!res.ok) throw new Error(`Auth admin error ${res.status}`)
-
-  const mirror = await fetch(`${env.url}/rest/v1/profiles?id=eq.${userId}`, {
+  const res = await fetch(`${env.url}/rest/v1/${TBL.profiles}?id=eq.${userId}`, {
     method: 'PATCH',
     headers: { ...serviceHeaders(key), Prefer: 'return=minimal' },
     body: JSON.stringify({ suspended }),
   })
-  if (!mirror.ok) throw new Error(`Profile update error ${mirror.status}`)
+  if (!res.ok) throw new Error(`Profile update error ${res.status}`)
 }
 
 /** True when a Vercel deploy hook is configured. */
@@ -543,7 +543,7 @@ export async function adminCreateNotification(text: string, timeLabel = 'New'): 
   if (!env || !key) throw new Error('Service role not configured')
   if (!cleanText) throw new Error('Message is required')
 
-  const res = await fetch(`${env.url}/rest/v1/notifications`, {
+  const res = await fetch(`${env.url}/rest/v1/${TBL.notifications}`, {
     method: 'POST',
     headers: { ...serviceHeaders(key), Prefer: 'return=minimal' },
     body: JSON.stringify({ text: cleanText, time_label: cleanTimeLabel, is_active: true }),
@@ -551,16 +551,30 @@ export async function adminCreateNotification(text: string, timeLabel = 'New'): 
   if (!res.ok) throw new Error(`Notification insert error ${res.status}`)
 }
 
-/** Permanently delete a user. The profiles row cascades via its FK. */
+/**
+ * Delete a user's BUILDER data (projects, provider keys, hosting credentials,
+ * Supabase connection, community posts, profile). The Supabase auth account is
+ * deliberately kept: in the shared project it is the person's SmartVideo login.
+ */
 export async function adminDeleteUser(userId: string): Promise<void> {
   const env = supabaseEnv()
   const key = serviceRoleKey()
   if (!env || !key) throw new Error('Service role not configured')
   if (!isValidUserId(userId)) throw new Error('Invalid user id')
 
-  const res = await fetch(`${env.url}/auth/v1/admin/users/${userId}`, {
-    method: 'DELETE',
-    headers: serviceHeaders(key),
-  })
-  if (!res.ok) throw new Error(`Auth admin error ${res.status}`)
+  const targets: Array<[string, string]> = [
+    [TBL.projects, 'user_id'],
+    ['wb_provider_keys', 'user_id'],
+    ['wb_community_posts', 'user_id'],
+    [TBL.supabase_connections, 'user_id'],
+    [TBL.cloudflare_credentials, 'user_id'],
+    [TBL.profiles, 'id'],
+  ]
+  for (const [table, column] of targets) {
+    const res = await fetch(`${env.url}/rest/v1/${table}?${column}=eq.${userId}`, {
+      method: 'DELETE',
+      headers: { ...serviceHeaders(key), Prefer: 'return=minimal' },
+    })
+    if (!res.ok) throw new Error(`Delete error ${res.status} on ${table}`)
+  }
 }

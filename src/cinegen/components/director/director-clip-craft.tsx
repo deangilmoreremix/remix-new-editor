@@ -169,6 +169,9 @@ export function DirectorClipCraft({ clip, sceneLabel, aspectRatio, onPatch, onMa
   );
 }
 
+/** [remix] Higgsfield blocking maps are not available on the web editor (no Higgsfield provider). */
+const HIGGSFIELD_MAP = false;
+
 function StagingBlock({ clip, sceneLabel, aspectRatio, onPatch, onMakeDiagram, onFetchDiagram }: DirectorClipCraftProps) {
   const diagramCopy = useCopiedFlash();
   const map = clip.staging;
@@ -237,7 +240,7 @@ function StagingBlock({ clip, sceneLabel, aspectRatio, onPatch, onMakeDiagram, o
             </div>
           )}
           <div className="director-tab__row">
-            {onMakeDiagram && (
+            {HIGGSFIELD_MAP && onMakeDiagram && (
               <button
                 type="button"
                 className="director-tab__btn director-tab__btn--accent"
@@ -247,7 +250,7 @@ function StagingBlock({ clip, sceneLabel, aspectRatio, onPatch, onMakeDiagram, o
                 {map.status === 'generating' ? 'Drawing map…' : 'Make blocking map'}
               </button>
             )}
-            {onFetchDiagram && (
+            {HIGGSFIELD_MAP && onFetchDiagram && (
               <button
                 type="button"
                 className="director-tab__btn"

@@ -28,6 +28,7 @@
 import type { BusinessDiscoveryRecord, OverpassQueryOptions } from './types'
 import { getNicheMapping, getSupportedNiches } from './nicheMappings'
 import { createStageDeadline, withDeadline, type StageDeadline } from './deadline'
+import { extractWebsiteAndSocial } from './websiteTags'
 
 const DEFAULT_ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
@@ -210,7 +211,6 @@ const CLOSED_LIFEcycle_TAGS = [
 const NAME_TAGS = ['name', 'name:en']
 const PHONE_TAGS = ['phone', 'contact:phone', 'contact:mobile', 'mobile']
 const EMAIL_TAGS = ['email', 'contact:email']
-const WEBSITE_TAGS = ['website', 'contact:website', 'url', 'contact:url']
 const ADDRESS_TAGS: Record<string, string> = {
   addr: 'address',
   'addr:street': 'street',
@@ -219,16 +219,8 @@ const ADDRESS_TAGS: Record<string, string> = {
   'addr:postcode': 'postalCode',
   'addr:country': 'country',
 }
-const SOCIAL_TAGS: Record<string, string> = {
-  facebook: 'facebook',
-  instagram: 'instagram',
-  whatsapp: 'whatsapp',
-  youtube: 'youtube',
-  linkedin: 'linkedin',
-  'contact:linkedin': 'linkedin',
-  'contact:youtube': 'youtube',
-  'contact:instagram': 'instagram',
-}
+// Website/social tags are parsed by extractWebsiteAndSocial (./websiteTags),
+// which keeps social profiles out of the website field.
 // Ownership hints. `brand` is the primary OSM franchise/chain tag; `owner` and
 // `contact:person` are weaker ownership hints kept in the same field so
 // classifyOwnership can use them as evidence (they are not strictly brands,
@@ -347,14 +339,7 @@ function normalizeElement(
   const phone = extractFirst(tags, PHONE_TAGS)
   const email = extractFirst(tags, EMAIL_TAGS)
 
-  let website: string | undefined
-  const rawWebsite = extractFirst(tags, WEBSITE_TAGS)
-  if (rawWebsite) {
-    website = rawWebsite
-    if (!/^https?:\/\//i.test(website)) {
-      website = `https://${website}`
-    }
-  }
+  const links = extractWebsiteAndSocial(tags)
 
   const addressParts: string[] = []
   let city: string | undefined
@@ -381,21 +366,6 @@ function normalizeElement(
 
   const address = addressParts.join(', ') || undefined
 
-  const social: Record<string, string> = {}
-  for (const [osmKey, socialKey] of Object.entries(SOCIAL_TAGS)) {
-    const value = tags[osmKey]
-    if (value && value.trim()) {
-      let url = value.trim()
-      if (!/^https?:\/\//i.test(url)) {
-        url = `https://${url}`
-      }
-      social[socialKey] = url
-    }
-  }
-
-  const websiteStatus: 'confirmed' | 'unknown' | 'not_found_after_research' =
-    rawWebsite ? 'confirmed' : 'unknown'
-
   const osmType = element.type as 'node' | 'way' | 'relation'
   const osmId = String(element.id)
 
@@ -415,16 +385,17 @@ function normalizeElement(
     longitude: element.lon,
     phone,
     email,
-    website,
-    facebook: social.facebook,
-    instagram: social.instagram,
-    whatsapp: social.whatsapp,
-    youtube: social.youtube,
-    linkedin: social.linkedin,
+    website: links.website,
+    facebook: links.facebook,
+    instagram: links.instagram,
+    whatsapp: links.whatsapp,
+    youtube: links.youtube,
+    linkedin: links.linkedin,
+    tiktok: links.tiktok,
     openingHours: tags['opening_hours'],
     operator: tags['operator'],
     brand: extractFirst(tags, BRAND_TAGS),
-    websiteStatus,
+    websiteStatus: links.websiteStatus,
     verificationStatus: 'unverified',
     rawSource: tags,
   }

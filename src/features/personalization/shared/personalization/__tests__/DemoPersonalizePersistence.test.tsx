@@ -67,7 +67,7 @@ vi.mock('../supabaseProjectPersistence', async (importOriginal) => {
 
 vi.mock('@ohb/packages/studio/src/muapi', () => ({ uploadFile: vi.fn() }))
 vi.mock('../assetUploadService', () => ({ uploadPersonalizationAsset: vi.fn() }))
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
 }))
 vi.mock('@ohb/components/SocialPublishProvider', () => ({
@@ -511,5 +511,56 @@ describe('DemoPersonalizeProvider debounced project persistence', () => {
     await settle()
     expect(persistenceSpy.persist).not.toHaveBeenCalled()
     expect(projectWrites()).toHaveLength(0)
+  })
+})
+
+describe('saved recast videos and the "Continue with …" offer', () => {
+  const RECAST = { id: 'rv-1', url: 'https://cdn.example.com/recast.mp4', name: 'Recast', sourceUrl: 'https://cdn.example.com/performance.mp4' }
+
+  async function savedRecastsKey() {
+    const { recastOwnerKey } = await import('../recast/recastJob')
+    return `pz_recast_videos:${recastOwnerKey('test-key')}:${SOURCE.id}`
+  }
+
+  beforeEach(async () => {
+    localStorage.setItem(await savedRecastsKey(), JSON.stringify([RECAST]))
+    persistenceSpy.loadProject.mockResolvedValue({
+      ok: true,
+      data: {
+        id: RESTORED_ID,
+        sourceType: 'go-ai-viral-video',
+        sourceDemoId: SOURCE.id,
+        originalPrompt: 'Original prompt',
+        personalizedPrompt: 'Restored prompt',
+        identityAssetIds: [],
+        logoAssetIds: [],
+        productAssetIds: [],
+        brandReferenceAssetIds: [],
+        outputUrls: [],
+        outputType: 'video',
+      },
+    })
+  })
+
+  it('loading saved recasts still offers the saved project and writes nothing over it', async () => {
+    await mount()
+    await open()
+
+    expect((ctx().assets.presenterVideos || []).map((v) => v.url)).toContain(RECAST.url)
+    expect(ctx().resumableProject).not.toBeNull()
+    expect(projectWrites()).toHaveLength(0)
+  })
+
+  it('continuing the saved project keeps the saved recasts', async () => {
+    await mount()
+    await open()
+    await act(async () => {
+      await ctx().resumeLastProject()
+    })
+    await settle()
+
+    expect(ctx().promptState.personalized).toBe('Restored prompt')
+    expect((ctx().assets.presenterVideos || []).map((v) => v.url)).toContain(RECAST.url)
+    expect(JSON.parse(localStorage.getItem(await savedRecastsKey()) || '[]')).toHaveLength(1)
   })
 })

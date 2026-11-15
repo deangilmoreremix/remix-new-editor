@@ -1,0 +1,846 @@
+[
+ {
+  "id": "arc-motion-path",
+  "ok": true,
+  "ms": 13495,
+  "bytes": 47537,
+  "fps": 4.4,
+  "hfErrors": {}
+ },
+ {
+  "id": "ascii-render-pass",
+  "ok": true,
+  "ms": 7548,
+  "bytes": 37528,
+  "fps": 7.9,
+  "hfErrors": {}
+ },
+ {
+  "id": "aurora-drift",
+  "ok": true,
+  "ms": 17750,
+  "bytes": 136927,
+  "fps": 3.4,
+  "hfErrors": {}
+ },
+ {
+  "id": "avatar-group-hover",
+  "ok": true,
+  "ms": 13262,
+  "bytes": 32270,
+  "fps": 4.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "badge-pop",
+  "ok": true,
+  "ms": 12759,
+  "bytes": 29193,
+  "fps": 4.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "beat-accent",
+  "ok": true,
+  "ms": 6669,
+  "bytes": 156156,
+  "fps": 9,
+  "hfErrors": {}
+ },
+ {
+  "id": "blur-in",
+  "ok": true,
+  "ms": 13008,
+  "bytes": 35185,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "blur-out-up",
+  "ok": true,
+  "ms": 12967,
+  "bytes": 28548,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "bottom-up-letters",
+  "ok": true,
+  "ms": 11852,
+  "bytes": 28075,
+  "fps": 5.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "camera-rig-depth-stack",
+  "ok": true,
+  "ms": 14169,
+  "bytes": 48311,
+  "fps": 4.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "caption-clip-wipe",
+  "ok": true,
+  "ms": 8359,
+  "bytes": 157991,
+  "fps": 7.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "caption-editorial-emphasis",
+  "ok": true,
+  "ms": 7414,
+  "bytes": 146823,
+  "fps": 8.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "caption-emoji-pop",
+  "ok": true,
+  "ms": 8577,
+  "bytes": 180605,
+  "fps": 7,
+  "hfErrors": {}
+ },
+ {
+  "id": "caption-glitch-rgb",
+  "ok": true,
+  "ms": 8487,
+  "bytes": 308105,
+  "fps": 7.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "caption-matrix-decode",
+  "ok": true,
+  "ms": 7315,
+  "bytes": 251644,
+  "fps": 8.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "caption-particle-burst",
+  "ok": true,
+  "ms": 7419,
+  "bytes": 286841,
+  "fps": 8.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "caption-texture",
+  "ok": false,
+  "error": "@remotion/web-renderer only supports URL masks with mask-size: 100% 100%, mask-position: 0% 0%, mask-repeat: no-repeat, the border box as origin and clip, and alpha semantics. Unsupported values: mask-size: 200% 200%, mask-position: 0% 50%, mask-repeat: repeat, mask-mode: luminance",
+  "ms": 0,
+  "fps": null
+ },
+ {
+  "id": "caption-weight-shift",
+  "ok": true,
+  "ms": 7722,
+  "bytes": 120000,
+  "fps": 7.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "card-resize",
+  "ok": true,
+  "ms": 13419,
+  "bytes": 33180,
+  "fps": 4.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "chat-message",
+  "ok": true,
+  "ms": 6844,
+  "bytes": 73644,
+  "fps": 8.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "chromatic-aberration-wipe",
+  "ok": true,
+  "ms": 13764,
+  "bytes": 44393,
+  "fps": 4.4,
+  "hfErrors": {}
+ },
+ {
+  "id": "colorama-wipe",
+  "ok": true,
+  "ms": 11834,
+  "bytes": 28124,
+  "fps": 5.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "confetti",
+  "ok": true,
+  "ms": 14478,
+  "bytes": 43299,
+  "fps": 4.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "conic-progress-ring",
+  "ok": true,
+  "ms": 6963,
+  "bytes": 119735,
+  "fps": 8.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "cursor-annotate",
+  "ok": true,
+  "ms": 6539,
+  "bytes": 85996,
+  "fps": 9.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "cursor-drag-drop",
+  "ok": true,
+  "ms": 11571,
+  "bytes": 520522,
+  "fps": 5.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "cursor-glyph-trail",
+  "ok": true,
+  "ms": 13369,
+  "bytes": 96326,
+  "fps": 4.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "cut-the-curve",
+  "ok": true,
+  "ms": 9176,
+  "bytes": 142765,
+  "fps": 6.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "dart-cursor",
+  "ok": true,
+  "ms": 8802,
+  "bytes": 28064,
+  "fps": 6.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "directional-wipe",
+  "ok": true,
+  "ms": 13757,
+  "bytes": 33228,
+  "fps": 4.4,
+  "hfErrors": {}
+ },
+ {
+  "id": "dynamic-grid",
+  "ok": true,
+  "ms": 12391,
+  "bytes": 66656,
+  "fps": 4.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "echo-smear",
+  "ok": true,
+  "ms": 12017,
+  "bytes": 28075,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "echo-trail",
+  "ok": true,
+  "ms": 8740,
+  "bytes": 232371,
+  "fps": 6.9,
+  "hfErrors": {}
+ },
+ {
+  "id": "extended-keyframe",
+  "ok": true,
+  "ms": 11907,
+  "bytes": 28062,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "fade-through",
+  "ok": true,
+  "ms": 11953,
+  "bytes": 28062,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "focus-blur-resolve",
+  "ok": true,
+  "ms": 13336,
+  "bytes": 29077,
+  "fps": 4.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "grid-pixelate-wipe",
+  "ok": true,
+  "ms": 14894,
+  "bytes": 28085,
+  "fps": 4,
+  "hfErrors": {}
+ },
+ {
+  "id": "headline-slam",
+  "ok": true,
+  "ms": 7678,
+  "bytes": 192763,
+  "fps": 7.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "hw-arrow",
+  "ok": true,
+  "ms": 7252,
+  "bytes": 274344,
+  "fps": 8.3,
+  "hfErrors": {}
+ },
+ {
+  "id": "hw-box-label",
+  "ok": true,
+  "ms": 7299,
+  "bytes": 221377,
+  "fps": 8.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "hw-callout-circle",
+  "ok": true,
+  "ms": 7608,
+  "bytes": 180860,
+  "fps": 7.9,
+  "hfErrors": {}
+ },
+ {
+  "id": "hw-underline",
+  "ok": true,
+  "ms": 7550,
+  "bytes": 67455,
+  "fps": 7.9,
+  "hfErrors": {}
+ },
+ {
+  "id": "icon-morph-beat",
+  "ok": true,
+  "ms": 9681,
+  "bytes": 72457,
+  "fps": 6.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "icon-swap",
+  "ok": true,
+  "ms": 12157,
+  "bytes": 28382,
+  "fps": 4.9,
+  "hfErrors": {}
+ },
+ {
+  "id": "inline-highlight",
+  "ok": true,
+  "ms": 11903,
+  "bytes": 28129,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "input-feedback",
+  "ok": true,
+  "ms": 12888,
+  "bytes": 31710,
+  "fps": 4.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "line-by-line-slide",
+  "ok": true,
+  "ms": 13176,
+  "bytes": 30033,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "locked-nucleus-orbit",
+  "ok": true,
+  "ms": 8828,
+  "bytes": 586834,
+  "fps": 6.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "magnetic-cursor",
+  "ok": true,
+  "ms": 8136,
+  "bytes": 30862,
+  "fps": 7.4,
+  "hfErrors": {}
+ },
+ {
+  "id": "matrix-decode",
+  "ok": true,
+  "ms": 13053,
+  "bytes": 35896,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "menu-morph",
+  "ok": true,
+  "ms": 13188,
+  "bytes": 30349,
+  "fps": 4.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "mesh-gradient-bg",
+  "ok": true,
+  "ms": 14428,
+  "bytes": 46799,
+  "fps": 4.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "motion-blur",
+  "ok": true,
+  "ms": 11868,
+  "bytes": 28065,
+  "fps": 5.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "notes-typing",
+  "ok": true,
+  "ms": 9245,
+  "bytes": 63204,
+  "fps": 6.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "number-pop-in",
+  "ok": true,
+  "ms": 13469,
+  "bytes": 28841,
+  "fps": 4.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "number-wheel",
+  "ok": true,
+  "ms": 12019,
+  "bytes": 28064,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "onboarding-stepper-flow",
+  "ok": true,
+  "ms": 13624,
+  "bytes": 39531,
+  "fps": 4.4,
+  "hfErrors": {}
+ },
+ {
+  "id": "oversized-cursor",
+  "ok": true,
+  "ms": 9775,
+  "bytes": 82499,
+  "fps": 6.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "page-slide",
+  "ok": true,
+  "ms": 12969,
+  "bytes": 35198,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "panel-reveal",
+  "ok": true,
+  "ms": 12884,
+  "bytes": 31418,
+  "fps": 4.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "parallax-unzoom",
+  "ok": true,
+  "ms": 11936,
+  "bytes": 28113,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "parallax-zoom",
+  "ok": true,
+  "ms": 12046,
+  "bytes": 28118,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "pendulum-swing",
+  "ok": true,
+  "ms": 12737,
+  "bytes": 32317,
+  "fps": 4.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "per-word-crossfade",
+  "ok": true,
+  "ms": 13423,
+  "bytes": 30535,
+  "fps": 4.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "perspective-marquee",
+  "ok": true,
+  "ms": 13634,
+  "bytes": 33949,
+  "fps": 4.4,
+  "hfErrors": {}
+ },
+ {
+  "id": "push-in",
+  "ok": true,
+  "ms": 7686,
+  "bytes": 353140,
+  "fps": 7.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "rgb-glitch-text",
+  "ok": true,
+  "ms": 12716,
+  "bytes": 31348,
+  "fps": 4.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "separator",
+  "ok": true,
+  "ms": 12030,
+  "bytes": 28226,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "settings-toggle-flow",
+  "ok": true,
+  "ms": 13333,
+  "bytes": 35529,
+  "fps": 4.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "shared-axis-y",
+  "ok": true,
+  "ms": 13150,
+  "bytes": 29360,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "shared-axis-z",
+  "ok": true,
+  "ms": 13072,
+  "bytes": 29234,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "sheet-spring-up",
+  "ok": true,
+  "ms": 12576,
+  "bytes": 33879,
+  "fps": 4.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "shimmer-sweep",
+  "ok": true,
+  "ms": 11917,
+  "bytes": 28070,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "signup-flow",
+  "ok": true,
+  "ms": 13185,
+  "bytes": 36199,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "skeleton-reveal",
+  "ok": true,
+  "ms": 12667,
+  "bytes": 28768,
+  "fps": 4.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "slit-scan-reveal",
+  "ok": true,
+  "ms": 7224,
+  "bytes": 580001,
+  "fps": 8.3,
+  "hfErrors": {}
+ },
+ {
+  "id": "slot-machine-roll",
+  "ok": true,
+  "ms": 12776,
+  "bytes": 28569,
+  "fps": 4.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "soft-blur-in",
+  "ok": true,
+  "ms": 11841,
+  "bytes": 28114,
+  "fps": 5.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "spotlight-card",
+  "ok": true,
+  "ms": 14062,
+  "bytes": 39034,
+  "fps": 4.3,
+  "hfErrors": {}
+ },
+ {
+  "id": "staggered-fade-up",
+  "ok": true,
+  "ms": 13046,
+  "bytes": 29705,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "state-chip-rail",
+  "ok": true,
+  "ms": 7555,
+  "bytes": 135094,
+  "fps": 7.9,
+  "hfErrors": {}
+ },
+ {
+  "id": "sticky-mock-swap",
+  "ok": true,
+  "ms": 8243,
+  "bytes": 134716,
+  "fps": 7.3,
+  "hfErrors": {}
+ },
+ {
+  "id": "stitched-text-draw",
+  "ok": true,
+  "ms": 6582,
+  "bytes": 50500,
+  "fps": 9.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "stop-motion-cadence",
+  "ok": true,
+  "ms": 9544,
+  "bytes": 89853,
+  "fps": 6.3,
+  "hfErrors": {}
+ },
+ {
+  "id": "strikethrough-replace",
+  "ok": true,
+  "ms": 12752,
+  "bytes": 28936,
+  "fps": 4.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "success-check",
+  "ok": true,
+  "ms": 12076,
+  "bytes": 29597,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "tabs-slide-indicator",
+  "ok": true,
+  "ms": 13083,
+  "bytes": 29482,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "terminal-simulator",
+  "ok": true,
+  "ms": 13760,
+  "bytes": 40188,
+  "fps": 4.4,
+  "hfErrors": {}
+ },
+ {
+  "id": "text-shimmer",
+  "ok": true,
+  "ms": 7081,
+  "bytes": 58259,
+  "fps": 8.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "text-stagger",
+  "ok": false,
+  "error": "Error: page.evaluate: Page crashed"
+ },
+ {
+  "id": "text-state-swap",
+  "ok": true,
+  "ms": 12377,
+  "bytes": 28339,
+  "fps": 4.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "texture-mask-text",
+  "ok": true,
+  "ms": 11839,
+  "bytes": 28077,
+  "fps": 5.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "tilt-card",
+  "ok": true,
+  "ms": 13108,
+  "bytes": 37220,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "top-down-letters",
+  "ok": true,
+  "ms": 13095,
+  "bytes": 29438,
+  "fps": 4.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "touch-indicator",
+  "ok": true,
+  "ms": 6346,
+  "bytes": 36568,
+  "fps": 9.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "tracking-in",
+  "ok": true,
+  "ms": 11979,
+  "bytes": 28116,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "trust-strip",
+  "ok": true,
+  "ms": 7861,
+  "bytes": 83452,
+  "fps": 7.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "typewriter",
+  "ok": true,
+  "ms": 12832,
+  "bytes": 29887,
+  "fps": 4.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "typing-indicator",
+  "ok": true,
+  "ms": 12352,
+  "bytes": 28980,
+  "fps": 4.9,
+  "hfErrors": {}
+ },
+ {
+  "id": "variable-font-flex",
+  "ok": true,
+  "ms": 6895,
+  "bytes": 87911,
+  "fps": 8.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "vignette",
+  "ok": true,
+  "ms": 11984,
+  "bytes": 28079,
+  "fps": 5,
+  "hfErrors": {}
+ },
+ {
+  "id": "x-follow-card",
+  "ok": true,
+  "ms": 13274,
+  "bytes": 42406,
+  "fps": 4.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "yt-circle-pointer",
+  "ok": true,
+  "ms": 7306,
+  "bytes": 206057,
+  "fps": 8.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "decision-tree",
+  "ok": true,
+  "ms": 8987,
+  "bytes": 98646,
+  "fps": 6.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "nyt-graph",
+  "ok": true,
+  "ms": 8642,
+  "bytes": 63410,
+  "fps": 6.9,
+  "hfErrors": {}
+ },
+ {
+  "id": "product-promo",
+  "ok": true,
+  "ms": 4923,
+  "bytes": 240762,
+  "fps": 12.2,
+  "hfErrors": {}
+ }
+]

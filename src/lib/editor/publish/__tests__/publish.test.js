@@ -85,11 +85,18 @@ describe('publish client', () => {
     expect(client.from).toHaveBeenCalledWith('published_videos');
     expect(upsert.mock.calls[0][0]).toMatchObject({ id: 'abcdefgh12', title: 'T', published: true });
 
-    const fetchImpl = vi.fn(async () => ({ ok: true, json: async () => [{ id: 'abcdefgh12', project: { tracks: [] } }] }));
+    const fetchImpl = vi.fn(async () => ({ ok: true, json: async () => ({ id: 'abcdefgh12', project: { tracks: [] } }) }));
     const v = await fetchPublishedVideo('abcdefgh12', { url: 'https://sb', key: 'anon', fetchImpl });
     expect(v.id).toBe('abcdefgh12');
-    expect(fetchImpl.mock.calls[0][0]).toBe('https://sb/rest/v1/published_videos?id=eq.abcdefgh12&published=eq.true&select=id,title,project,updated_at');
+    // Public read goes through the sanitizing RPC, never the table.
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://sb/rest/v1/rpc/get_published_video');
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toEqual({ p_id: 'abcdefgh12' });
     expect(await fetchPublishedVideo('../etc', { url: 'https://sb', key: 'k', fetchImpl })).toBeNull();
+    // Readable links resolve by business + slug; invalid ones never hit the network.
+    await fetchPublishedVideo({ business: 'acme-roofing', slug: 'spring-promo' }, { url: 'https://sb', key: 'anon', fetchImpl });
+    expect(JSON.parse(fetchImpl.mock.calls[1][1].body)).toEqual({ p_business: 'acme-roofing', p_slug: 'spring-promo' });
+    expect(await fetchPublishedVideo({ business: 'admin', slug: 'x' }, { url: 'https://sb', key: 'k', fetchImpl })).toBeNull();
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
 
     const post = vi.fn(async () => ({ ok: true, json: async () => ({ ok: true, stored: true }) }));
     expect(await submitViewerLead({ publishedId: 'abcdefgh12', clipId: 5, kind: 'lead-form', data: { EMAIL: 'a@b.c' } }, { url: 'https://sb', key: 'anon', fetchImpl: post })).toEqual({ stored: true, error: null });
@@ -133,8 +140,8 @@ describe('interactive player', () => {
     expect(player.playing).toBe(true);
     e.advance(5.2);
     expect(player.playing).toBe(false);
-    const form = frame.querySelector('.wf-card form');
-    expect(frame.querySelector('.wf-heading').textContent).toBe('Hi Ann');
+    const form = frame.querySelector('.addon-overlay--optin form');
+    expect(frame.querySelector('.retarget-caption').textContent).toBe('Hi Ann');
     player.play();
     expect(player.playing).toBe(false); // gated until submit/skip
     form.querySelector('input').value = 'ann@example.com';
@@ -142,7 +149,7 @@ describe('interactive player', () => {
     await new Promise((r) => setTimeout(r, 0));
     expect(onLead).toHaveBeenCalledWith({ clipId: 'lf', kind: 'lead-form', data: { EMAIL: 'ann@example.com' } });
     expect(player.playing).toBe(true);
-    expect(frame.querySelector('.wf-card')).toBeNull();
+    expect(frame.querySelector('.addon-overlay--optin')).toBeNull();
     e.advance(8.5);
     const cta = frame.querySelector('.wf-cta');
     expect(cta.getAttribute('href')).toBe('https://example.com/buy');
@@ -158,7 +165,7 @@ describe('interactive player', () => {
     expect(player.playing).toBe(false);
     player.play();
     e.advance(5.5);
-    expect(frame.querySelector('.wf-card')).toBeNull();
+    expect(frame.querySelector('.addon-overlay--optin')).toBeNull();
     player.destroy();
   });
 
@@ -201,10 +208,39 @@ describe('form answers go into the video', () => {
     const p = project();
     p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'firstname', type: 'singleline', label: 'First name' }], caption: 'Join the list' };
     const player = createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, onLead: async () => ({ stored: true }) });
-    expect(e.model.layers.find((l) => l.id === 'txt').options.text).toBe('Hello');
+    // Registration wall: the video isn't even loaded until the form is submitted.
+    expect(e.model).toBeNull();
+    expect(frame.querySelector('.addon-overlay--optin')).not.toBeNull();
     player.play();
+    player.seek(5); // no scrubbing past the form
+    expect(e.model).toBeNull();
+    expect(player.time).toBe(0);
     await submit('Zoe');
     expect(e.model.layers.find((l) => l.id === 'txt').options.text).toBe('Hello Zoe');
+    expect(e.playing).toBe(true);
+  });
+
+  it('a viewer who already filled the List Builder in is not asked again (unless askEveryVisit)', () => {
+    const store = new Map();
+    const ls = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };
+    vi.stubGlobal('localStorage', ls);
+    try {
+      const mk = (extra = {}) => {
+        const { e, create } = fakeEngine();
+        const p = project();
+        p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'email', type: 'email', label: 'Email' }], ...extra };
+        const player = createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, rememberKey: 'vid1', onLead: async () => ({ stored: true }) });
+        return { e, player };
+      };
+      const first = mk();
+      expect(first.e.model).toBeNull();
+      first.player.destroy();
+      store.set('remix-optin:vid1', '1');
+      expect(mk().e.model).not.toBeNull(); // remembered: straight to the video
+      expect(mk({ askEveryVisit: true }).e.model).toBeNull(); // asked every visit
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('Lead Generator form answers fill tokens too, by name, company or any canonical token', async () => {
@@ -259,8 +295,8 @@ describe('viewer overlays', () => {
     form.querySelector('input').value = 'a@b.co';
     form.dispatchEvent(new Event('submit', { cancelable: true }));
     await new Promise((r) => setTimeout(r, 0));
-    expect(layer.querySelector('.wf-status').textContent).toBe('Nope');
-    expect(layer.querySelector('.wf-card')).not.toBeNull();
+    expect(layer.querySelector('.addon-optin__status').textContent).toBe('Nope');
+    expect(layer.querySelector('.addon-overlay--optin')).not.toBeNull();
   });
 });
 
@@ -279,14 +315,13 @@ describe('share panel and watch page', () => {
     expect(box.textContent).toContain('2 leads');
   });
 
-  it('watch page loads a video, plays it and counts a view', async () => {
+  it('watch page loads a video and plays it', async () => {
     const box = document.createElement('div');
     document.body.appendChild(box);
     const { e, create } = fakeEngine();
-    const countView = vi.fn();
-    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, countView, onLead: vi.fn() });
+    const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, analytics, onLead: vi.fn() });
     expect(box.querySelector('h1').textContent).toBe('Demo');
-    expect(countView).toHaveBeenCalledWith('abcdefgh12');
     box.querySelector('[data-bigplay]').click();
     expect(e.playing).toBe(true);
     e.advance(1);

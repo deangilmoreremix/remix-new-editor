@@ -36,10 +36,10 @@ function stubFetch({ callerIsAdmin }: { callerIsAdmin: boolean }) {
   fetchMock.mockImplementation(async (url: unknown) => {
     const u = String(url)
     if (u.includes('/auth/v1/user')) return jsonResponse({ id: ADMIN_ID, email: 'admin@test.dev' })
-    if (u.includes(`/rest/v1/profiles?id=eq.${ADMIN_ID}`)) return jsonResponse([{ is_admin: callerIsAdmin }])
-    if (u.includes('/auth/v1/admin/users/')) return jsonResponse({})
-    if (u.includes('/rest/v1/notifications')) return jsonResponse({})
-    if (u.includes('/rest/v1/profiles?id=eq.')) return jsonResponse([])
+    if (u.includes(`/rest/v1/wb_profiles?id=eq.${ADMIN_ID}`)) return jsonResponse([{ is_admin: callerIsAdmin }])
+    if (u.includes('/auth/v1/admin/users/')) return jsonResponse({ error: 'must never be called' }, false, 500)
+    if (u.includes('/rest/v1/wb_notifications')) return jsonResponse({})
+    if (u.includes('/rest/v1/wb_')) return jsonResponse([])
     return jsonResponse({ error: 'unexpected' }, false, 404)
   })
 }
@@ -97,28 +97,29 @@ describe('api/admin handler', () => {
     expect(res.statusCode).toBe(400)
   })
 
-  it('suspend-user bans the target via the auth admin API', async () => {
+  it('suspend-user flags the builder profile and never bans the auth account', async () => {
     stubFetch({ callerIsAdmin: true })
     const { default: handler } = await import('../../../api/admin')
     const res = makeRes()
     await handler(makeReq({ action: 'suspend-user', userId: TARGET_ID }), res)
     expect(res.statusCode).toBe(200)
     expect(res.body).toEqual({ ok: true })
-    const adminCall = fetchMock.mock.calls.find(([u]) => String(u).includes(`/auth/v1/admin/users/${TARGET_ID}`))
-    expect(adminCall).toBeDefined()
-    expect(adminCall![1].method).toBe('PUT')
+    const patch = fetchMock.mock.calls.find(
+      ([u, init]) => String(u).includes(`/rest/v1/wb_profiles?id=eq.${TARGET_ID}`) && init.method === 'PATCH',
+    )
+    expect(patch).toBeDefined()
+    expect(fetchMock.mock.calls.some(([u]) => String(u).includes('/auth/v1/admin/'))).toBe(false)
   })
 
-  it('delete-user deletes the target via the auth admin API', async () => {
+  it('delete-user removes builder data and never deletes the auth account', async () => {
     stubFetch({ callerIsAdmin: true })
     const { default: handler } = await import('../../../api/admin')
     const res = makeRes()
     await handler(makeReq({ action: 'delete-user', userId: TARGET_ID }), res)
     expect(res.statusCode).toBe(200)
-    const adminCall = fetchMock.mock.calls.find(
-      ([u, init]) => String(u).includes(`/auth/v1/admin/users/${TARGET_ID}`) && init.method === 'DELETE',
-    )
-    expect(adminCall).toBeDefined()
+    const deletes = fetchMock.mock.calls.filter(([, init]) => init?.method === 'DELETE')
+    expect(deletes.length).toBeGreaterThan(0)
+    expect(fetchMock.mock.calls.some(([u]) => String(u).includes('/auth/v1/admin/'))).toBe(false)
   })
 
   it('returns 503 when the service role key is missing', async () => {
@@ -135,7 +136,7 @@ describe('api/admin handler', () => {
     fetchMock.mockImplementation(async (url: unknown) => {
       const u = String(url)
       if (u.includes('/auth/v1/user')) return jsonResponse({ id: ADMIN_ID, email: 'a@test.dev' })
-      if (u.includes(`/rest/v1/profiles?id=eq.${ADMIN_ID}`)) return jsonResponse([{ is_admin: true }])
+      if (u.includes(`/rest/v1/wb_profiles?id=eq.${ADMIN_ID}`)) return jsonResponse([{ is_admin: true }])
       if (u.startsWith('https://api.vercel.com/')) return jsonResponse({ job: { id: 'j' } })
       return jsonResponse({ error: 'unexpected' }, false, 404)
     })
@@ -164,7 +165,7 @@ describe('api/admin handler', () => {
     await handler(makeReq({ action: 'send-notification', text: 'Hello users', timeLabel: 'Now' }), res)
     expect(res.statusCode).toBe(200)
     expect(res.body).toEqual({ ok: true })
-    const notificationCall = fetchMock.mock.calls.find(([u]) => String(u).includes('/rest/v1/notifications'))
+    const notificationCall = fetchMock.mock.calls.find(([u]) => String(u).includes('/rest/v1/wb_notifications'))
     expect(notificationCall).toBeDefined()
     expect(notificationCall![1].method).toBe('POST')
     expect(JSON.parse(String(notificationCall![1].body))).toMatchObject({

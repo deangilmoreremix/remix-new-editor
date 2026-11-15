@@ -64,6 +64,8 @@
   width: 100%;
 }
 
+/* Primary action: the SmartVideo studios' Generate-button design (src/styles/gtm-prompt-modal.css
+   .btn-primary-modern): transparent, thin light border, 2px lime edge on the left. */
 .btnPrimary {
   display: block;
   box-sizing: border-box;
@@ -71,19 +73,32 @@
   text-decoration: none;
   width: 100%;
   padding: 11px var(--space-lg);
-  border-radius: var(--radius-md);
-  background: var(--color-accent);
-  color: #050505;
   font-size: 0.9rem;
-  font-weight: 600;
-  border: none;
+  font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.15s, transform 0.15s;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid var(--color-accent);
+  border-radius: 8px;
+  box-shadow: none;
+  transition: all 200ms ease;
 }
 
-.btnPrimary:hover {
-  opacity: 0.9;
+.btnPrimary:hover  {
+  color: #ffffff;
+  background: transparent;
+  border-color: rgba(217, 255, 0, 0.5);
+  border-left-color: var(--color-accent);
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08);
+  filter: none;
+  opacity: 1;
   transform: translateY(-1px);
+}
+
+.btnPrimary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px rgba(217, 255, 0, 0.4);
 }
 
 .btnSecondary {

@@ -40,6 +40,8 @@ export interface PersonalizePromptInput {
   client: ClientProfile
   assets: AssetLibrary
   outputType: string
+  /** Called when the AI call fails and the prompt is filled from the client's details instead. */
+  onAiFailure?: (error: unknown) => void
 }
 
 export async function personalizePrompt({
@@ -47,6 +49,7 @@ export async function personalizePrompt({
   client,
   assets,
   outputType,
+  onAiFailure,
 }: PersonalizePromptInput): Promise<string> {
   const identity = assets.primaryIdentity?.name || assets.identities[0]?.name || ''
   const logo = assets.primaryLogo?.name || ''
@@ -108,6 +111,11 @@ Replace generic references with the client's actual details. Keep the entire cre
     return trimmed
   } catch (error) {
     console.error('Prompt personalization failed:', error)
+    if (error instanceof Error && error.message === 'PERSONALIZATION_NOOP') {
+      // The AI answered with the same prompt; not a connection problem.
+    } else {
+      onAiFailure?.(error)
+    }
     let personalized = originalPrompt
     if (client.businessName) personalized = personalized.replace(/\{business_name\}/gi, client.businessName)
     if (client.productService) personalized = personalized.replace(/\{product\}/gi, client.productService)

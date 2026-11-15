@@ -21,6 +21,8 @@
 //      URLs and notification emails in the request body are ignored.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, type Json } from "./logic.ts";
+export { isForwardableWebhook, savedWebhooks, isCallClip, leadConfigFor };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
@@ -30,7 +32,6 @@ const ALLOWED_ORIGINS = (Deno.env.get("LEAD_CAPTURE_ALLOWED_ORIGINS") ?? "*")
   .split(",").map((s) => s.trim()).filter(Boolean);
 
 const KINDS = new Set(["lead-form", "list-builder", "personalizer", "call-attempt"]);
-const MAX_WEBHOOKS = 3;
 const WEBHOOK_TIMEOUT_MS = 8000;
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -72,74 +73,22 @@ function clientKey(req: Request): string {
     req.headers.get("authorization")?.slice(-24) ?? "anonymous";
 }
 
-// Only public https endpoints: blocks localhost / private-range literals so
-// the function can't be used to probe internal services.
-export function isForwardableWebhook(raw: unknown): raw is string {
-  if (typeof raw !== "string" || raw.length > 2048) return false;
-  let url: URL;
-  try { url = new URL(raw.trim()); } catch { return false; }
-  if (url.protocol !== "https:" || url.username || url.password) return false;
-  const host = url.hostname.toLowerCase();
-  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".internal") || host.endsWith(".local")) return false;
-  if (/^\[.*\]$/.test(host) || host.includes(":")) return false; // IPv6 literals
-  const v4 = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
-  if (v4) {
-    const [a, b] = [Number(v4[1]), Number(v4[2])];
-    if (a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || a >= 224) return false;
-  }
-  return true;
-}
-
-function sanitizeData(input: unknown): Record<string, string> {
-  const out: Record<string, string> = {};
-  if (!input || typeof input !== "object" || Array.isArray(input)) return out;
-  let n = 0;
-  for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
-    if (n >= 20 || !k || k.length > 64 || v == null) continue;
-    const s = String(v).trim().slice(0, 2000);
-    if (s) { out[k] = s; n++; }
-  }
-  return out;
-}
-
-type Json = Record<string, unknown>;
-
-/** Webhook URLs saved on a Lead Generator clip or the List Builder config. */
-export function savedWebhooks(config: Json | null | undefined, listBuilder = false): string[] {
-  if (!config) return [];
-  const pick = (v: unknown) => (v && typeof v === "object" ? (v as Json).value : v);
-  const enabled = listBuilder ? !!config.webhookEnabled : config.webhookEnabled !== false;
-  if (!enabled) return [];
-  const urls = listBuilder
-    ? [config.webhook, pick(config.webhook2), pick(config.webhook3)]
-    : [config.webhookUrl, config.webhookUrl2, config.webhookUrl3];
-  return urls.filter(isForwardableWebhook).slice(0, MAX_WEBHOOKS);
-}
-
-/** A clip with a click-to-call phone number (CTA button, or an overlay link set to PHONE). */
-export function isCallClip(c: Json): boolean {
-  if (c.type === "click-to-call") return !!c.phoneNumber;
-  const o = (c.addon && typeof c.addon === "object" ? c.addon : {}) as Json;
-  return o.linkMode === "phone" ? !!o.phoneNumber : /^tel:/i.test(String(o.linkUrl || ""));
-}
-
-/** Find the lead config (clip or List Builder) in a published project. */
-export function leadConfigFor(project: Json, kind: string, clipId: string | null): { config: Json | null; listBuilder: boolean } {
-  if (kind === "list-builder" || kind === "personalizer") {
-    const lb = project.listBuilder && typeof project.listBuilder === "object" ? project.listBuilder as Json : null;
-    return { config: lb && lb.enabled ? lb : null, listBuilder: true };
-  }
-  const tracks = Array.isArray(project.tracks) ? project.tracks as Json[] : [];
-  for (const t of tracks) {
-    const items = (Array.isArray(t.items) ? t.items : Array.isArray(t.clips) ? t.clips : []) as Json[];
-    const clip = items.find((c) => String(c.id) === clipId && (kind === "call-attempt" ? isCallClip(c) : c.type === "lead-form"));
-    if (clip) return { config: clip, listBuilder: false };
-  }
-  return { config: null, listBuilder: false };
+/** Best-effort DNS check: refuse hosts that resolve to private addresses (rebinding / split-horizon DNS). */
+async function resolvesPublic(url: string): Promise<boolean> {
+  const host = new URL(url).hostname;
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) return true; // literal already vetted
+  try {
+    const resolve = (Deno as unknown as { resolveDns?: (h: string, t: string) => Promise<string[]> }).resolveDns;
+    if (!resolve) return true; // runtime has no DNS API: literal checks only
+    const [a, aaaa] = await Promise.all([resolve(host, "A").catch(() => []), resolve(host, "AAAA").catch(() => [])]);
+    const all = [...a, ...aaaa];
+    return all.length > 0 && all.every((ip) => !isPrivateAddress(ip));
+  } catch { return false; } // deny on resolver errors: only forward when every resolved address is public
 }
 
 async function forward(urls: string[], payload: unknown): Promise<{ forwarded: number; failed: number }> {
   const results = await Promise.allSettled(urls.map(async (url) => {
+    if (!(await resolvesPublic(url))) throw new Error("blocked address");
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), WEBHOOK_TIMEOUT_MS);
     try {
@@ -186,6 +135,16 @@ Deno.serve(async (req: Request) => {
     if (!SUPABASE_SERVICE_ROLE_KEY) return json(req, { ok: false, error: "Lead backend not configured" }, 500);
     const leadData = sanitizeData(body.data);
     if (!Object.keys(leadData).length) return json(req, { ok: false, error: "Empty submission" }, 400);
+    // Shared (database) limits survive across function instances: per video
+    // (bounds spam an owner can receive) and per hashed client (raw IPs are never stored).
+    const limiter = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    const [perVideo, perClient] = await Promise.all([
+      limiter.rpc("rate_limit_check", { p_scope: "lead-video", p_key: publishedId, p_limit: 60, p_window_seconds: 60 }),
+      limiter.rpc("rate_limit_check", { p_scope: "lead-client", p_key: await hashKey(clientKey(req), publishedId), p_limit: 8, p_window_seconds: 60 }),
+    ]);
+    if (perVideo.data?.allowed === false || perClient.data?.allowed === false) {
+      return json(req, { ok: false, error: "Too many submissions — try again shortly" }, 429);
+    }
     const leadKind = typeof body.kind === "string" && KINDS.has(body.kind) ? body.kind : "lead-form";
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data: video, error: videoError } = await admin.from("published_videos")
@@ -231,7 +190,9 @@ Deno.serve(async (req: Request) => {
   const data = sanitizeData(body.data);
   if (!Object.keys(data).length) return json(req, { ok: false, error: "Empty submission" }, 400);
   const kind = typeof body.kind === "string" && KINDS.has(body.kind) ? body.kind : "lead-form";
-  const webhooks = (Array.isArray(body.webhooks) ? body.webhooks : [])
+  // Caller-supplied webhook URLs are only relayed for a signed-in editor session
+  // (preview). Anonymous callers could otherwise use this as an open relay.
+  const webhooks = !hasSession ? [] : (Array.isArray(body.webhooks) ? body.webhooks : [])
     .filter(isForwardableWebhook).slice(0, MAX_WEBHOOKS);
   const source = body.source && typeof body.source === "object" ? body.source as Record<string, unknown> : {};
   const createdAt = new Date().toISOString();

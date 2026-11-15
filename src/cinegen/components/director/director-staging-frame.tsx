@@ -114,6 +114,9 @@ export function DirectorStagingFrame({
           >
             Set as frame
           </button>
+          {/* [remix] The blocking map is drawn by Higgsfield's tig-diagram model, which the web editor does not offer. */}
+          {HIGGSFIELD_MAP && (
+            <>
           <button
             type="button"
             className={`director-tab__btn director-tab__btn--accent${waiting ? ' director-tab__btn--busy' : ''}`}
@@ -133,6 +136,8 @@ export function DirectorStagingFrame({
             >
               {waiting ? 'Loading…' : 'Load from Higgsfield'}
             </button>
+          )}
+            </>
           )}
           {waiting && onCancel && (
             <button type="button" className="director-tab__btn" onClick={onCancel}>
@@ -196,6 +201,9 @@ export function DirectorStagingFrame({
     </details>
   );
 }
+
+/** [remix] Higgsfield blocking maps are not available on the web editor (no Higgsfield provider). */
+const HIGGSFIELD_MAP = false;
 
 function Still({ label, url, empty }: { label: string; url: string; empty: string }) {
   return (

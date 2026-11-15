@@ -1,0 +1,167 @@
+{
+  "id": "ugc-ad-batch",
+  "title": "Make a batch of UGC-style ad videos",
+  "goal": "You end with a finished UGC-style ad video (an MP4 you can play and download), and a repeatable way to make more variants of it.",
+  "bestFor": "Marketers, freelancers and small brands who want several short talking-to-camera style ads of one product with the same AI creator, to test different hooks.",
+  "whatYouNeed": [
+    "MuAPI key saved in Settings -> API keys (Muapi API Key). Generation in Character, Video, Audio and Lip Sync studios uses your own MuAPI credits. Cost per model is not documented in the studio guides.",
+    "Character Studio and Lip Sync need you to be signed in; Character Studio can show an upgrade prompt if your plan lacks full access.",
+    "One clear, front-facing, well-lit face photo (JPG/PNG/WebP, 10 MB or smaller) of a person you have permission to use, or a generated portrait.",
+    "A short script for each ad: hook, pitch, proof and call to action (the Academy lesson How UGC Works suggests under 30 seconds spoken, about 75 to 90 words).",
+    "Your product photo or product clips for b-roll (optional)."
+  ],
+  "studios": ["character", "video", "audio", "lipsync", "library", "timeline"],
+  "steps": [
+    {
+      "n": 1,
+      "studio": "character",
+      "action": "Make your AI creator: one face, shown in a new look and setting.",
+      "buttons": ["Flux PuLID", "Reference Face", "Character Description", "Generate Character", "Generate Again", "Download"],
+      "details": "Open Character Studio (#/character). Leave the model on Flux PuLID. Under Reference Face upload one clear, front-facing face photo. In Character Description describe the outfit, place and mood, not the face, for example 'wearing a casual hoodie, sitting in a car, natural daylight'. Click Generate Character, then use Generate Again for a few variations and Download the one you like best. Keep this same reference photo and a similar description pattern for the whole batch. Note: the Academy lesson talks about anchor images and training a LoRA; Character Studio has one reference only, no training step and no seed lock, so reuse the same reference every time.",
+      "result": "A portrait image of your creator, saved on your computer.",
+      "handoff": "No one-click hand-off exists from Character Studio to Video Studio. Download the image, then upload it in Video Studio with the start frame image button."
+    },
+    {
+      "n": 2,
+      "studio": "video",
+      "action": "Animate the portrait into a short clip of your creator.",
+      "buttons": ["Animate image", "Advanced", "Native Audio", "Character Lock", "Generate", "Download"],
+      "details": "Open Video Studio (#/video). Attach your portrait as the start frame image; the studio switches to an image-to-video model and the prompt box says 'Describe the motion or effect (optional)'. Describe one subject and one action, for example the creator looks at the camera, smiles and holds up the product. Match the aspect ratio to where you will post (the Academy lesson uses 9:16 for Reels, TikTok and Shorts) if the model offers it. Click Generate and then Download the clip. The Academy example made speech and mouth movement together in one image-to-video pass; Video Studio has a Native Audio toggle under Advanced, but which models support it is not confirmed. If your clip already has the voice you want, you can skip steps 3 and 4. To make a clip without a start image, use the 'Text to video' workflow instead.",
+      "result": "A short silent or generated-sound clip of your creator saved on your computer (the clip also appears in the Library and in the History strip).",
+      "handoff": "No one-click hand-off to Lip Sync Studio. Download the clip, then upload it in Lip Sync Studio (Video mode) with the Upload source video button. If you prefer, you can skip this clip and upload the portrait from step 1 with Upload portrait image in Portrait Image mode."
+    },
+    {
+      "n": 3,
+      "studio": "audio",
+      "action": "Turn your script into a voice-over file.",
+      "buttons": ["Prompt", "Generate Audio", "Download Audio"],
+      "details": "Open Audio Studio (#/audio) and pick a speech model (the guide suggests Minimax Speech Turbo for a first try, with a Voice from the list). In the Prompt box write the exact words to be spoken, written the way a real person talks. Numbers and acronyms should be written as you want them spoken. Click Generate Audio, play the result, then click Download Audio. Make two or three takes if the first sounds read-aloud. Keep each file short: Lip Sync Studio suggests audio under 60 seconds. For a batch, change only the hook line and keep the pitch and call to action the same.",
+      "result": "A speech audio file for one ad.",
+      "handoff": "No one-click hand-off to Lip Sync Studio. Download it, then upload it in Lip Sync Studio with the Upload audio file button."
+    },
+    {
+      "n": 4,
+      "studio": "lipsync",
+      "action": "Add the speech: make your creator say the script.",
+      "buttons": ["Video", "Portrait Image", "Upload source video", "Upload portrait image", "Upload audio file", "Generate ✨", "↓ Download"],
+      "details": "Open Lip Sync Studio (#/lipsync). Next to Input: choose Video to re-sync your clip from step 2, or Portrait Image to make the step 1 portrait talk. Upload the clip with Upload source video (up to 50 MB) or the portrait with Upload portrait image (up to 10 MB), then upload your voice with Upload audio file. Wait until each label shows a check mark with the file name. Leave the default model and resolution first, click Generate ✨, and wait for the button to return from 'Generating...'. Check the mouth against the audio, then click ↓ Download. If it looks off, use a clearer front-facing face and clean one-speaker audio, or try another model.",
+      "result": "A talking video of your creator saying your script, downloaded to your computer.",
+      "handoff": "No one-click hand-off to Timeline. Repeat steps 2 to 4 for each variant (same face and product, new hook line), then collect the clips in Library (step 5) and import them in Timeline (step 6)."
+    },
+    {
+      "n": 5,
+      "studio": "library",
+      "action": "Collect the batch: find every clip you made and download the ones you want to assemble.",
+      "buttons": ["Videos", "Search by prompt or model...", "Newest first", "Download"],
+      "details": "Open Library (#/library). Everything you generate in any studio is saved here automatically. Click Videos to show only clips, search with 'Search by prompt or model...' and use the sort menu (Newest first or Oldest first) to find your batch. Hover a clip and click Download, or click it to preview first. Use the Audio filter for your voice files. The Uploads view has Use in studio, but its list is only Image Studio, Edit Studio, Upscale Suite, Effects Studio, Cinema Studio, Storyboard Studio, Video Tools and Audio Studio, so it does not send files to Timeline.",
+      "result": "The clips and voice files for your batch are downloaded in one folder, named by ad.",
+      "handoff": "Download the files, then import them in Timeline Editor using the Import media from files button in the media pool."
+    },
+    {
+      "n": 6,
+      "studio": "timeline",
+      "action": "Assemble one ad: put the talking clip first and cut in your product footage.",
+      "buttons": ["New project", "Project name...", "Add Track"],
+      "details": "Open Timeline Editor (#/timeline). Click New project, type a name in the Project name... box and open it, then open the Edit tab. In the media pool, import your downloaded files with the Import media from files button (its tooltip), then drag the talking clip onto a track. Add a second track with Add Track and place product shots or screen recordings over the pitch and proof parts; the Academy lesson says this also hides small imperfections in the face footage. Use the Blade Tool (B) to cut, and the clip Properties panel for fades and captions. Keep the hook in the first 2 seconds. The Music Tool can add a soundtrack if you want one. Make one timeline per ad variant using the plus button for a new timeline tab.",
+      "result": "One assembled ad on the timeline that plays from hook to call to action.",
+      "handoff": "Stay in Timeline Editor and open the Export tab (step 7)."
+    },
+    {
+      "n": 7,
+      "studio": "timeline",
+      "action": "Export the ad as an MP4, then repeat for the next variant.",
+      "buttons": ["Export", "Render", "Export FCPXML"],
+      "details": "Open the Export tab (Render your timeline as an MP4 video). Choose a Preset (Draft 720p, Standard 1080p or High Quality 4K), a Frame Rate (default 30) and the Aspect ratio for your platform, for example 9:16 for Reels, TikTok and Shorts if it is offered. If the picture looks cropped or has bars, change the Contain or Cover fit. Click Render and wait for the progress to finish. Then click Open Export on the latest job: the finished MP4 opens in a new browser tab, and you save it from there with your browser's download or Save video as option. Do a test with the sound off (do the captions or visuals carry the hook?) and once with sound on before you ship it. Then go back to step 2, keep the same face, product and call to action, and change only the hook or angle for the next ad.",
+      "result": "You have a finished UGC-style ad video: an MP4 you can play and save: after Render finishes, Open Export opens it in a new browser tab.",
+      "handoff": "Done. Download the MP4 from the Export tab. Use Export FCPXML only if you want to finish in Final Cut Pro, Premiere or DaVinci Resolve."
+    }
+  ],
+  "checkpoints": [
+    "The face in your portrait is the same person across all variants (same reference photo every time).",
+    "Each ad changes only one thing, such as the hook line, so you can tell later what worked.",
+    "The mouth in the Lip Sync result matches the audio, with a clear single speaker and no background noise.",
+    "Your Timeline export plays from start to end with the right aspect ratio, with sound on and with sound off.",
+    "You downloaded your files right away; History in Lip Sync and Audio studios lives only in this browser."
+  ],
+  "troubleshooting": [
+    {
+      "problem": "Character Studio says 'Upload a reference face first', or the face does not look like the reference.",
+      "fix": "Upload a sharp, front-facing, evenly lit photo under Reference Face. Describe only clothes, place and mood in Character Description, not the face. Open the Model dropdown and try Subject Reference, or click Generate Again."
+    },
+    {
+      "problem": "An upgrade prompt or sign-in box appears when I click Generate Character, Generate or Generate Audio.",
+      "fix": "Sign in, finish the upgrade or credits prompt if shown, and connect your MuAPI key (Settings -> API keys), then click the button again."
+    },
+    {
+      "problem": "Video Studio says 'Please upload a start frame image first.' or 'Please enter a prompt to generate a video.'",
+      "fix": "Attach your portrait as the start frame image for image-to-video, or switch the workflow to 'Text to video' and type a prompt."
+    },
+    {
+      "problem": "Lip Sync says 'Please upload an audio file first.' or 'Please upload a source video first.'",
+      "fix": "Upload the missing file with Upload audio file or Upload source video (or switch Input to Portrait Image and use Upload portrait image). Wait for the check mark, then click Generate ✨ again."
+    },
+    {
+      "problem": "An upload is rejected for size.",
+      "fix": "Keep images at 10 MB or smaller, videos at 50 MB or smaller and Lip Sync audio at 10 MB or smaller (the Audio Studio reference upload checks 20 MB). Trim or compress the file and retry."
+    },
+    {
+      "problem": "The Lip Sync mouth does not match well.",
+      "fix": "Use a clear front-facing portrait or clip, clean audio with one speaker, a shorter audio file (under 60 seconds), and try another model with Regenerate."
+    },
+    {
+      "problem": "Timeline Render is greyed out.",
+      "fix": "Add at least one clip to the timeline in the Edit tab first, then open Export again."
+    }
+  ],
+  "tips": [
+    "Lock the constants (same creator, same product, same proof, same call to action) and vary one thing per ad, usually the hook.",
+    "Write the script like speech, not ad copy. Read it out loud before you make the voice.",
+    "Test your photo and audio at the default settings and a short clip first, then raise the resolution for the final version.",
+    "Name your downloaded files by ad number and hook so you can match results later.",
+    "The Academy track 'AI Video Ads & UGC' has the full method: lesson 1 (How AI UGC works), lesson 2 (Character & face consistency) and lesson 3 (Building a 10-ad batch)."
+  ],
+  "relatedJourneys": ["talking-video", "product-ad", "photo-to-clip", "social-shorts"],
+  "academy": { "track": "01-ai-video-ads-ugc", "lesson": "03-building-an-ad-batch" },
+  "intents": [
+    "make ugc ads",
+    "make a batch of ugc videos",
+    "make ai ugc video ads for my product",
+    "make the same ai character in many videos",
+    "make a talking creator ad",
+    "make 10 ad variations",
+    "make tiktok style product ads",
+    "how do I keep the same face across videos",
+    "make an ai influencer ad",
+    "make several ad videos to test hooks"
+  ],
+  "notConfirmed": [
+    "Cost per model is not documented. Generation uses your own MuAPI credits; the guides give no prices, credits or timings.",
+    "Whether Native Audio and Character Lock work on a given Video Studio model.",
+    "Maximum clip or audio duration per model, and the exact audio format list for Lip Sync.",
+    "Whether a Timeline export is also saved to the Library, and how long download links last.",
+    "Which Timeline Export aspect ratios are offered (9:16 is only suggested if it appears in the dropdown).",
+    "Whether burned-in captions from Add AI Captions end up in a downloaded file; this journey does not rely on them.",
+    "The Academy lesson names specific models, prices and a LoRA training step; those were not treated as app features."
+  ],
+  "sourceFiles": [
+    "src/data/askKb/character.json",
+    "src/data/askKb/video.json",
+    "src/data/askKb/audio.json",
+    "src/data/askKb/lipsync.json",
+    "src/data/askKb/library.json",
+    "src/data/askKb/timeline.json",
+    "src/data/askKb/_app.json",
+    "src/data/askAcademyMap.js",
+    "src/content/academy/01-ai-video-ads-ugc/lessons/01-how-ugc-works.md",
+    "src/content/academy/01-ai-video-ads-ugc/lessons/02-character-consistency.md",
+    "src/content/academy/01-ai-video-ads-ugc/lessons/03-building-an-ad-batch.md",
+    "src/components/timeline-editor/AssetsPanel.tsx",
+    "src/components/UploadPicker.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the six studio guides, the app key facts, the Academy map and lessons 1 to 3 of the UGC track, the Timeline media pool (Import media from files) and the Video Studio upload picker; found no one-click hand-off between these studios.",
+    "verifiedAt": "2026-11-13",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

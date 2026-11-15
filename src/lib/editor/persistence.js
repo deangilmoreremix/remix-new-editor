@@ -261,7 +261,7 @@ export function migrate(project, fromVersion) {
 // STRIP / RESTORE RUNTIME FIELDS
 // ============================================================================
 
-function stripForPersist(state) {
+export function stripForPersist(state) {
   if (!state || typeof state !== 'object') return state;
   if (Array.isArray(state)) return state.map(stripForPersist);
   const nonSerializable = getNonSerializableKeys(state);

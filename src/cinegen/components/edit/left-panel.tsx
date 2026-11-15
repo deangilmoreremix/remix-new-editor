@@ -6,6 +6,8 @@ import { copyButtonLabel, useCopiedFlash } from '@cinegen/hooks/use-copied-flash
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { createSyncedTimeline } from '@cinegen/lib/editor/timeline-operations';
 import { BatchSyncDialog } from './batch-sync-dialog';
+import { filesToUrls } from '@cinegen/adapters/web-media'; // [remix]
+import { AddVideoControl, useDesktopImport } from './add-video-dialog'; // [remix]
 import {
   getAnalyzeVisionOnImportEnabled,
   getApiKey,
@@ -14,8 +16,7 @@ import {
   getDefaultTranscriptionEngine,
 } from '@cinegen/lib/utils/api-key';
 
-/* ============================================
-   Types
+/* =====================================   Types
    ============================================ */
 type ViewMode = 'grid' | 'list';
 type SortBy = 'name' | 'date' | 'type';
@@ -53,6 +54,8 @@ interface LeftPanelProps {
   onDragAsset: (asset: Asset) => void;
   panelMode: 'full' | 'compact';
   onToggleMode: () => void;
+  /** [remix] the Library browser (animations, effects, transitions, looks, overlays & forms, sounds), shown by the Media | Library switch */
+  libraryNode?: React.ReactNode;
   onDeleteTimeline?: (id: string) => void;
   onAssetDoubleClick?: (asset: Asset) => void;
   onAddFolder: (folder: MediaFolder) => void;
@@ -64,6 +67,8 @@ interface LeftPanelProps {
   projectId?: string;
   onAddAsset?: (asset: Asset) => void;
   onAddTimeline?: (timeline: Timeline) => void;
+  /** [remix] opens the Pexels / Pixabay stock media browser */
+  onOpenStock?: () => void;
 }
 
 /* ============================================
@@ -247,8 +252,11 @@ export function LeftPanel({
   projectId,
   onAddAsset,
   onAddTimeline,
+  onOpenStock,
+  libraryNode,
 }: LeftPanelProps) {
   // --- State ---
+  const [leftView, setLeftView] = useState<'media' | 'library'>('media'); // [remix]
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [thumbScale, setThumbScale] = useState(100 / 70);
   const [sortBy, setSortBy] = useState<SortBy>('date');
@@ -364,10 +372,10 @@ export function LeftPanel({
     if (currentFolderId === folderId) setCurrentFolderId(null);
   }, [onRemoveFolder, currentFolderId]);
 
-  const handleImport = useCallback(async () => {
-    if (!projectId || !onAddAsset) return;
+  const handleImport = useCallback(async (dropped?: string[]): Promise<Asset[]> => { // [remix] `dropped`: files dragged in from the desktop skip the dialog
+    if (!projectId || !onAddAsset) return [];
 
-    const result = await window.electronAPI.dialog.showOpen({
+    const result = dropped ?? await window.electronAPI.dialog.showOpen({
       properties: ['openFile', 'multiSelections'],
       filters: [
         { name: 'Media Files', extensions: ['mp4', 'mov', 'avi', 'mkv', 'webm', 'mxf', 'm4v', 'wav', 'mp3', 'aac', 'flac', 'ogg', 'm4a', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'] },
@@ -377,10 +385,11 @@ export function LeftPanel({
       ],
     });
 
-    if (!result) return;
+    if (!result) return [];
 
     const filePaths = Array.isArray(result) ? result : [result];
-    if (filePaths.length === 0) return;
+    if (filePaths.length === 0) return [];
+    const createdAssets: Asset[] = []; // [remix]
 
     const autoTranscribeBatchId = `txn-batch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const defaultTranscriptionEngine = getDefaultTranscriptionEngine();
@@ -433,12 +442,16 @@ export function LeftPanel({
         folderId: currentFolderId ?? undefined,
       };
       onAddAsset(asset);
+      createdAssets.push(asset);
     }
 
     if (autoTranscribeAssetIds.length > 0) {
       transcriptionBatchAssetIdsRef.current.set(autoTranscribeBatchId, autoTranscribeAssetIds);
     }
+    return createdAssets;
   }, [projectId, currentFolderId, onAddAsset]);
+
+  useDesktopImport(handleImport); // [remix] timeline / media-pool drops of desktop files
 
   const commitRename = useCallback(() => {
     if (!renamingId || !renameValue.trim()) { setRenamingId(null); return; }
@@ -928,6 +941,9 @@ export function LeftPanel({
     if (e.dataTransfer.types.includes('application/x-asset-id')) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
+    } else if (e.dataTransfer.types.includes('Files')) { // [remix] desktop files
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
     }
   }, []);
 
@@ -935,7 +951,10 @@ export function LeftPanel({
     // Don't move assets on background drop — too easy to trigger accidentally
     // (e.g. cancelled timeline drags). Use context menu "Move to Root" instead.
     e.preventDefault();
-  }, []);
+    // [remix] Files dragged in from the desktop are imported like the Import dialog.
+    const files = Array.from(e.dataTransfer?.files ?? []).filter((f) => /^(video|audio|image)\//.test(f.type));
+    if (files.length > 0) void filesToUrls(files).then((urls) => handleImport(urls));
+  }, [handleImport]);
 
   // --- Breadcrumb drag-drop ---
   const handleCrumbDragOver = useCallback((e: React.DragEvent) => {
@@ -1292,8 +1311,23 @@ export function LeftPanel({
     );
   };
 
+  if (leftView === 'library' && libraryNode) {
+    return (
+      <div className="left-panel left-panel--library">
+      <div className="left-panel__switch" role="tablist" aria-label="Left panel">
+        <button type="button" role="tab" aria-selected={leftView === 'media'} className={`left-panel__switch-btn${leftView === 'media' ? ' left-panel__switch-btn--on' : ''}`} title="Media" onClick={() => setLeftView('media')}>Media</button>
+        <button type="button" role="tab" aria-selected={leftView === 'library'} className={`left-panel__switch-btn${leftView === 'library' ? ' left-panel__switch-btn--on' : ''}`} title="Library" data-testid="open-library" onClick={() => setLeftView('library')}>Library</button>
+      </div>
+        {libraryNode}
+      </div>
+    );
+  }
   return (
     <div className="left-panel">
+      <div className="left-panel__switch" role="tablist" aria-label="Left panel">
+        <button type="button" role="tab" aria-selected={leftView === 'media'} className={`left-panel__switch-btn${leftView === 'media' ? ' left-panel__switch-btn--on' : ''}`} title="Media" onClick={() => setLeftView('media')}>Media</button>
+        <button type="button" role="tab" aria-selected={leftView === 'library'} className={`left-panel__switch-btn${leftView === 'library' ? ' left-panel__switch-btn--on' : ''}`} title="Library" data-testid="open-library" onClick={() => setLeftView('library')}>Library</button>
+      </div>
       {/* Header / breadcrumb */}
       <div className="mp__header">
         {currentFolderId && (
@@ -1419,8 +1453,15 @@ export function LeftPanel({
       <div className="mp__toolbar">
         <div className="mp__toolbar-left">
           {projectId && onAddAsset && (
-            <button className="mp__tool-btn" onClick={handleImport} title="Import media files">
+            <button className="mp__tool-btn" onClick={() => void handleImport()} title="Import media files">
               <ImportIcon />
+            </button>
+          )}
+          {projectId && onAddAsset && <AddVideoControl handleImport={handleImport} />}{/* [remix] */}
+=======
+          {onOpenStock && (
+            <button className="mp__tool-btn" onClick={onOpenStock} title="AI & stock media (Pexels, Pixabay)" aria-label="AI and stock media" data-testid="open-stock-media-panel">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.5" /><path d="m21 16-5-5-8 8" /></svg>
             </button>
           )}
           <button className="mp__tool-btn" onClick={handleCreateFolder} title="New folder">

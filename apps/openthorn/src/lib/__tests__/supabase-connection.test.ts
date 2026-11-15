@@ -95,7 +95,7 @@ describe('connection persistence', () => {
       scopes: 'all',
     })
     const [url, init] = fetchMock.mock.calls[0]
-    expect(String(url)).toContain('/rest/v1/supabase_connections')
+    expect(String(url)).toContain('/rest/v1/wb_supabase_connections')
     expect(init.headers.Authorization).toBe('Bearer service-key')
     const row = JSON.parse(init.body as string)
     expect(row.user_id).toBe(USER)
@@ -187,7 +187,7 @@ describe('management api', () => {
     const { saveProjectBackend } = await import('../../../api/_supabase')
     await saveProjectBackend(USER, 'proj-9', 'ref1', { supabaseUrl: 'https://ref1.supabase.co', anonKey: 'anon-xyz' })
     const [url, init] = fetchMock.mock.calls[0]
-    expect(String(url)).toContain('/rest/v1/project_backends')
+    expect(String(url)).toContain('/rest/v1/wb_project_backends')
     const row = JSON.parse(init.body as string)
     expect(row).toEqual(expect.objectContaining({
       project_id: 'proj-9', user_id: USER, project_ref: 'ref1',

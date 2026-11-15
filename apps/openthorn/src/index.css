@@ -17,7 +17,7 @@
   --color-accent-contrast: #050505;
   --color-secondary: #d9ff00;
   --color-secondary-wash: rgba(217, 255, 0, 0.08);
-  --color-warm-accent: #d9ff00;
+  --color-warm-accent: #a3e635; /* deeper lime: gives the Send button's diagonal gradient its second stop */
   --color-warm-wash: rgba(217, 255, 0, 0.08);
   --color-error: #ff4d4d;
 
@@ -31,9 +31,9 @@
   --color-border-visible: #27272a;
   --color-border-glow: rgba(217, 255, 0, 0.25);
 
-  /* Typography — Inter, like the rest of SmartVideo */
-  --font-display: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
-  --font-body: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  /* Typography — upstream OpenThorn's fonts (Fraunces display, Roboto body) */
+  --font-display: 'Fraunces Variable', Georgia, serif;
+  --font-body: 'Roboto', -apple-system, 'Helvetica Neue', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   /* Spacing — 4px base grid */

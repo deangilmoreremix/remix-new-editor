@@ -6,7 +6,10 @@
  * every x/y pair describes the CENTER of a layer box.
  */
 
+import { contractFor, roleForLayer } from './mediaRoles'
+import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle'
 import type {
+  ProtectedZone,
   PersonalizationPreviewSettings,
   PreviewAnimationId,
   PreviewAspectRatio,
@@ -27,6 +30,7 @@ import type {
 // deterministic typeface. `templates/typography` imports nothing from
 // `preview/`, so this import cannot form a cycle.
 import { DESIGN_FONT_STACK } from '../templates/typography'
+import { normalizeAngle } from './rotation'
 
 const LAYER_KINDS: PreviewLayerKind[] = [
   'logo',
@@ -358,6 +362,9 @@ export function clampLayer(layer: PreviewLayer): PreviewLayer {
   } else {
     delete clamped.endFrame
   }
+  const rotation = normalizeAngle(layer.rotation)
+  if (rotation !== 0) clamped.rotation = rotation
+  else delete clamped.rotation
   return clamped
 }
 
@@ -381,7 +388,7 @@ export function createDefaultPreviewSettings(
   const { width, height } = getCompositionDimensions('16:9')
   const base: PersonalizationPreviewSettings = {
     layout: 'business-introduction',
-    layers: LAYER_IDS_BY_LAYOUT['business-introduction'].map((kind) => createLayer(kind)),
+    layers: createLayoutLayers('business-introduction', '16:9'),
     brandColors: { ...DEFAULT_PREVIEW_BRAND_COLORS },
     aspectRatio: '16:9',
     fps: DEFAULT_PREVIEW_FPS,
@@ -423,7 +430,127 @@ export interface ApplyLayoutContext {
   serviceUrl?: string
 }
 
-function createSeededLayer(kind: PreviewLayerKind, ctx?: ApplyLayoutContext): PreviewLayer {
+type LayerGeometry = Pick<PreviewLayer, 'x' | 'y' | 'scale'>
+
+/**
+ * Per-layout, per-aspect default geometry for layers whose generic default
+ * collides with a neighbour. Only the two image layouts need it: every layout
+ * used to share one set of defaults, so the product/service image (a 30%-wide
+ * square at x = 0.62) landed on top of the offer text (x = 0.5).
+ *
+ * Landscape: text column on the left, the image on the right.
+ * Portrait / square / 4:5: text above, the image centred below it.
+ * Coordinates are normalised centres, exactly like every other layer. Layers
+ * not listed here keep `LAYER_DEFAULTS`.
+ */
+const IMAGE_LAYOUT_GEOMETRY: Record<
+  'business-introduction' | 'product-showcase' | 'service-promotion',
+  Record<PreviewAspectRatio, Partial<Record<PreviewLayerKind, LayerGeometry>>>
+> = (() => {
+  const landscape = (image: PreviewLayerKind) => ({
+    logo: { x: 0.08, y: 0.08, scale: 0.22 },
+    headline: { x: 0.3, y: 0.38, scale: 0.045 },
+    tagline: { x: 0.3, y: 0.47, scale: 0.032 },
+    offer: { x: 0.3, y: 0.56, scale: 0.05 },
+    [image]: { x: 0.74, y: 0.52, scale: 0.3 },
+  })
+  const stacked = (image: PreviewLayerKind, head: number, sub: number, imgY: number, imgScale: number) => ({
+    logo: { x: 0.08, y: 0.08, scale: 0.22 },
+    headline: { x: 0.5, y: head, scale: 0.045 },
+    tagline: { x: 0.5, y: sub, scale: 0.032 },
+    offer: { x: 0.5, y: sub, scale: 0.05 },
+    [image]: { x: 0.5, y: imgY, scale: imgScale },
+  })
+  const build = (image: PreviewLayerKind) => ({
+    '16:9': landscape(image),
+    '9:16': stacked(image, 0.28, 0.4, 0.65, 0.46),
+    '4:5': stacked(image, 0.2, 0.34, 0.64, 0.42),
+    '1:1': stacked(image, 0.18, 0.31, 0.66, 0.4),
+  })
+  // Business Introduction sits as a lower-third (name over headline, bottom-left) so the
+  // subject of the footage stays clear. Only the two text layers move; the logo keeps its
+  // corner. Text is left-aligned against the safe-area margin (see `textAlignFor`).
+  const lowerThird = (name: number, head: number) => ({
+    businessName: { x: 0.08, y: name, scale: 0.055 },
+    headline: { x: 0.08, y: head, scale: 0.045 },
+  })
+  return {
+    'business-introduction': {
+      // One position for every shape: it sits in the bottom third and clear of the 9:16
+      // social-UI strip, and "untouched" detection stays stable across aspect changes.
+      '16:9': lowerThird(0.68, 0.76),
+      '9:16': lowerThird(0.68, 0.76),
+      '4:5': lowerThird(0.68, 0.76),
+      '1:1': lowerThird(0.68, 0.76),
+    },
+    'product-showcase': build('productImage'),
+    'service-promotion': build('serviceImage'),
+  }
+})()
+
+/** Default geometry for a layer of `kind` in `layoutId` at `aspect`, if the layout defines one. */
+export function layoutLayerGeometry(
+  layoutId: PreviewLayoutId | null | undefined,
+  kind: PreviewLayerKind,
+  aspect: PreviewAspectRatio | undefined,
+): LayerGeometry | undefined {
+  if (layoutId !== 'business-introduction' && layoutId !== 'product-showcase' && layoutId !== 'service-promotion') return undefined
+  return IMAGE_LAYOUT_GEOMETRY[layoutId][aspect ?? '16:9']?.[kind]
+}
+
+/**
+ * The layers a layout starts with, each at the layout's own default geometry
+ * (not the generic one), so a brand-new project and `applyLayoutPreset` agree on
+ * what "untouched" means.
+ */
+export function createLayoutLayers(
+  layoutId: PreviewLayoutId,
+  aspect: PreviewAspectRatio | undefined,
+): PreviewLayer[] {
+  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? LAYER_IDS_BY_LAYOUT['business-introduction']
+  return kinds.map((kind) => createLayer(kind, { ...layoutLayerGeometry(layoutId, kind, aspect) }))
+}
+
+/** A layer's untouched geometry: the layout's own default, else the generic one. */
+export function layoutDefaultGeometry(
+  layoutId: PreviewLayoutId | null | undefined,
+  kind: PreviewLayerKind,
+  aspect: PreviewAspectRatio | undefined,
+): LayerGeometry {
+  const specific = layoutLayerGeometry(layoutId, kind, aspect)
+  if (specific) return specific
+  const d = LAYER_DEFAULTS[kind]
+  return { x: d.x, y: d.y, scale: d.scale }
+}
+
+const sameGeometry = (layer: PreviewLayer, g: LayerGeometry) =>
+  Math.abs(layer.x - g.x) < 1e-6 && Math.abs(layer.y - g.y) < 1e-6 && Math.abs(layer.scale - g.scale) < 1e-6
+
+/**
+ * Moves layers that still sit exactly on the previous aspect ratio's default
+ * geometry to the new aspect ratio's default. A layer the customer moved,
+ * scaled or otherwise edited no longer matches that default and is left alone.
+ * Design layers and layouts without per-aspect geometry are never touched.
+ */
+export function reflowLayersForAspect(
+  settings: PersonalizationPreviewSettings,
+  previousAspect: PreviewAspectRatio,
+  nextAspect: PreviewAspectRatio,
+): PersonalizationPreviewSettings {
+  if (previousAspect === nextAspect || settings.remotionDesignId) return settings
+  let changed = false
+  const layers = (Array.isArray(settings.layers) ? settings.layers : []).map((layer) => {
+    if (layer.kind === 'design') return layer
+    const was = layoutDefaultGeometry(settings.layout, layer.kind, previousAspect)
+    const now = layoutDefaultGeometry(settings.layout, layer.kind, nextAspect)
+    if (sameGeometry(layer, now) || !sameGeometry(layer, was)) return layer
+    changed = true
+    return { ...layer, ...now }
+  })
+  return changed ? { ...settings, layers } : settings
+}
+
+function createSeededLayer(kind: PreviewLayerKind, ctx?: ApplyLayoutContext, layoutId?: PreviewLayoutId, aspect?: PreviewAspectRatio): PreviewLayer {
   const overrides: Partial<PreviewLayer> = {}
   if (kind === 'headline') {
     const text = nonEmptyString(ctx?.headline)
@@ -438,7 +565,14 @@ function createSeededLayer(kind: PreviewLayerKind, ctx?: ApplyLayoutContext): Pr
     const text = nonEmptyString(ctx?.cta)
     if (text) overrides.text = text
   } else if (kind === 'tagline') {
-    const text = nonEmptyString(ctx?.tagline) ?? nonEmptyString(ctx?.businessName)
+    // The tagline is the branding line (the business name). When the headline
+    // already IS the business name, repeating it as own text would draw the
+    // name twice, so the tagline is left unseeded and the composition drops
+    // the duplicate fallback.
+    const name = nonEmptyString(ctx?.businessName)
+    const headlineIsName =
+      !!name && nonEmptyString(ctx?.headline)?.toLowerCase() === name.toLowerCase()
+    const text = nonEmptyString(ctx?.tagline) ?? (headlineIsName ? undefined : name)
     if (text) overrides.text = text
   } else if (kind === 'productImage') {
     const imageUrl = nonEmptyString(ctx?.productUrl)
@@ -453,7 +587,7 @@ function createSeededLayer(kind: PreviewLayerKind, ctx?: ApplyLayoutContext): Pr
     const imageUrl = nonEmptyString(ctx?.logoUrl)
     if (imageUrl) overrides.imageUrl = imageUrl
   }
-  return createLayer(kind, overrides)
+  return createLayer(kind, { ...layoutLayerGeometry(layoutId, kind, aspect), ...overrides })
 }
 
 /**
@@ -472,8 +606,14 @@ export function applyLayoutPreset(
   }
   const layers = kinds.map((kind) => {
     const kept = existingById.get(kind)
-    if (kept) return clampLayer({ ...kept })
-    return createSeededLayer(kind, ctx)
+    if (kept) {
+      // A kept layer the customer never moved follows the NEW layout's default
+      // geometry; one they moved or resized keeps exactly where they put it.
+      const next = layoutDefaultGeometry(layoutId, kind, settings.aspectRatio)
+      const untouched = sameGeometry(kept, layoutDefaultGeometry(settings.layout, kind, settings.aspectRatio))
+      return clampLayer({ ...kept, ...(untouched ? next : {}) })
+    }
+    return createSeededLayer(kind, ctx, layoutId, settings.aspectRatio)
   })
   return {
     ...settings,
@@ -513,7 +653,7 @@ export function resetLayoutToDefaults(
     if (layer && typeof layer.kind === 'string') previousByKind.set(layer.kind, layer)
   }
   const layers = kinds.map((kind) => {
-    const seeded = createSeededLayer(kind, ctx)
+    const seeded = createSeededLayer(kind, ctx, layoutId, settings.aspectRatio)
     const previous = previousByKind.get(kind)
     if (!previous) return seeded
     // Carry over brand content the seed did not provide. The seed wins when
@@ -616,6 +756,7 @@ export function applyDesignTemplate(
   if (typeof placement?.y === 'number') overrides.y = placement.y
   if (typeof placement?.scale === 'number') overrides.scale = placement.scale
   if (typeof placement?.opacity === 'number') overrides.opacity = placement.opacity
+  if (typeof placement?.endFrame === 'number') overrides.endFrame = placement.endFrame
   if (text !== undefined) overrides.text = text
   if (imageUrl !== undefined) overrides.imageUrl = imageUrl
   if (textSlotOverrides) overrides.textSlotOverrides = textSlotOverrides
@@ -628,6 +769,36 @@ export function applyDesignTemplate(
     brandColors: { ...prev.brandColors },
     remotionDesignId: design.id,
   }
+}
+
+/**
+ * ADD a design on top of the current layout instead of replacing it: every existing layer (the customer's
+ * text, positions, pictures, locks) is kept exactly as it is and the design joins as one more layer.
+ *
+ * Pure. Adding a design that is already on the video, or an unknown id, is a no-op. The design layer is built by
+ * `applyDesignTemplate`, so its text/media defaults come from the same place. `remotionDesignId` records the
+ * design only when none was applied before (it is the single "main design" the saved projects carry).
+ */
+export function addDesignTemplate(
+  prev: PersonalizationPreviewSettings,
+  designId: string,
+  ctx?: ApplyLayoutContext,
+): PersonalizationPreviewSettings {
+  const design = getRemotionDesignTemplate(designId)
+  if (!design) return prev
+  const layers = Array.isArray(prev.layers) ? prev.layers : []
+  if (layers.some((l) => l && l.kind === 'design' && l.designId === design.id)) return prev
+  const built = applyDesignTemplate({ ...prev, layers: [] }, design.id, ctx).layers[0]
+  if (!built) return prev
+  return { ...prev, layers: [...layers, built], remotionDesignId: prev.remotionDesignId ?? design.id }
+}
+
+/** Takes ONE design layer off the video (other layers untouched). */
+export function removeDesignLayer(prev: PersonalizationPreviewSettings, layerId: string): PersonalizationPreviewSettings {
+  const layers = (prev.layers ?? []).filter((l) => !(l.id === layerId && l.kind === 'design'))
+  if (layers.length === (prev.layers ?? []).length) return prev
+  const remaining = layers.find((l) => l.kind === 'design' && l.designId)
+  return { ...prev, layers, remotionDesignId: remaining?.designId ?? null }
 }
 
 /**
@@ -660,6 +831,29 @@ export function isImageLayerKind(kind: PreviewLayerKind): boolean {
   return IMAGE_LAYER_KINDS.includes(kind)
 }
 
+/** Fraction of the frame kept clear on each side (mirrors SAFE_AREA_MARGIN in guided/overlayGeometry). */
+const BOX_SAFE_MARGIN = 0.02
+
+/**
+ * Keeps a box inside the frame's safe area horizontally. Boxes are centered on
+ * `x`, so a layer placed near an edge (the defaults use x = 0.08) used to hang
+ * half outside the frame and get clipped.
+ */
+function clampLeftToSafeArea(leftPx: number, widthPx: number, frameWidth: number): number {
+  const margin = Math.round(frameWidth * BOX_SAFE_MARGIN)
+  const max = frameWidth - margin - widthPx
+  if (max < margin) return Math.round((frameWidth - widthPx) / 2)
+  return Math.min(max, Math.max(margin, leftPx))
+}
+
+/** Vertical counterpart of `clampLeftToSafeArea` for boxes whose height is known. */
+function clampTopToSafeArea(topPx: number, heightPx: number, frameHeight: number): number {
+  const margin = Math.round(frameHeight * BOX_SAFE_MARGIN)
+  const max = frameHeight - margin - heightPx
+  if (max < margin) return Math.round((frameHeight - heightPx) / 2)
+  return Math.min(max, Math.max(margin, topPx))
+}
+
 /**
  * Converts normalized center coordinates plus scale into pixels.
  * Image layers use scale as a width fraction and are square; text layers use
@@ -671,6 +865,7 @@ export function toBox(
   layer: PreviewLayer,
   compW: number,
   compH: number,
+  resolvedText?: string,
 ): { leftPx: number; topPx: number; widthPx: number; heightPx?: number; fontSizePx: number } {
   const width = Math.max(1, finiteNumber(compW, 1920))
   const height = Math.max(1, finiteNumber(compH, 1080))
@@ -688,15 +883,28 @@ export function toBox(
 
   if (isImageLayerKind(layer.kind)) {
     const widthPx = Math.round(scale * width)
-    const leftPx = Math.round(x * width - widthPx / 2)
-    const topPx = Math.max(0, Math.round(y * height - widthPx / 2))
+    const rawLeft = Math.round(x * width - widthPx / 2)
+    const leftPx = contractFor(roleForLayer(layer)).clampToSafeArea
+      ? clampLeftToSafeArea(rawLeft, widthPx, width)
+      : rawLeft
+    const rawTop = Math.round(y * height - widthPx / 2)
+    const topPx = contractFor(roleForLayer(layer)).clampToSafeArea
+      ? clampTopToSafeArea(rawTop, widthPx, height)
+      : Math.max(0, rawTop)
     return { leftPx, topPx, widthPx, heightPx: widthPx, fontSizePx: 0 }
   }
 
   const fontSizePx = Math.round(scale * height)
-  const chars = Math.max(4, (layer.text?.length ?? 8) * 0.55)
+  // Size from the text that is actually DRAWN. A layer with no text of its own
+  // shows the brand's name/headline/etc.; sizing from `layer.text` alone made
+  // those boxes ~4 characters wide and wrapped long names mid-word.
+  const drawn = resolvedText ?? layer.text ?? ''
+  const chars = Math.max(4, (drawn.length || 8) * 0.55)
   const widthPx = Math.round(Math.min(width * 0.9, fontSizePx * chars))
-  const leftPx = Math.round(x * width - widthPx / 2)
+  const rawLeft = Math.round(x * width - widthPx / 2)
+  const leftPx = contractFor(roleForLayer(layer)).clampToSafeArea
+    ? clampLeftToSafeArea(rawLeft, widthPx, width)
+    : rawLeft
   const topPx = Math.max(0, Math.round(y * height - fontSizePx / 2))
   return { leftPx, topPx, widthPx, fontSizePx }
 }
@@ -742,7 +950,63 @@ function normalizeLayer(raw: unknown): PreviewLayer | null {
   // keeps rendering the brand values for the slots the customer never edited.
   const textSlotOverrides = normalizeTextSlotOverrides(raw.textSlotOverrides)
   if (textSlotOverrides) normalized.textSlotOverrides = textSlotOverrides
+  if (raw.locked === true) normalized.locked = true
+  const rotation = normalizeAngle(raw.rotation)
+  if (rotation !== 0) normalized.rotation = rotation
+  const imageStyle = normalizeImageStyle(raw.imageStyle)
+  if (imageStyle) normalized.imageStyle = imageStyle
+  if (typeof raw.imageRole === 'string' && (IMAGE_ROLES as readonly string[]).includes(raw.imageRole)) normalized.imageRole = raw.imageRole as ImageRole
+  if (Array.isArray(raw.imageUrls)) {
+    const urls = raw.imageUrls.filter((u): u is string => typeof u === 'string' && u.trim() !== '' && !u.startsWith('blob:')).slice(0, 4)
+    if (urls.length) normalized.imageUrls = urls
+  }
+  if (raw.placementSource === 'manual' || raw.placementSource === 'recommended') {
+    normalized.placementSource = raw.placementSource
+  }
   return normalized
+}
+
+/** Keeps only well-formed image hints (booleans and a positive finite aspect). */
+export function normalizeImageHints(raw: unknown): Record<string, ImageHints> | undefined {
+  if (!isRecord(raw)) return undefined
+  const out: Record<string, ImageHints> = {}
+  for (const [url, h] of Object.entries(raw)) {
+    if (!url || url.startsWith('blob:') || !isRecord(h)) continue
+    const hint: ImageHints = {}
+    if (typeof h.aspect === 'number' && Number.isFinite(h.aspect) && h.aspect > 0) hint.aspect = h.aspect
+    for (const k of ['transparentCorners', 'alreadyFramed', 'hasTransparency', 'isHeadshot'] as const) {
+      if (h[k] === true) hint[k] = true
+    }
+    if (['product', 'service', 'portrait', 'property', 'portfolio', 'logo', 'general'].includes(h.role as string)) hint.role = h.role as ImageHints['role']
+    if (Object.keys(hint).length) out[url] = hint
+  }
+  return Object.keys(out).length ? out : undefined
+}
+
+/** Keeps only well-formed zones: finite numbers, positive size, inside the frame. */
+export function normalizeProtectedZones(raw: unknown): ProtectedZone[] | undefined {
+  if (!Array.isArray(raw)) return undefined
+  const out: ProtectedZone[] = []
+  for (const z of raw) {
+    if (!isRecord(z)) continue
+    const x = finiteNumber(z.x, NaN)
+    const y = finiteNumber(z.y, NaN)
+    const w = finiteNumber(z.w, NaN)
+    const h = finiteNumber(z.h, NaN)
+    if (![x, y, w, h].every(Number.isFinite) || w <= 0 || h <= 0) continue
+    const cx = Math.min(1, Math.max(0, x))
+    const cy = Math.min(1, Math.max(0, y))
+    out.push({
+      id: nonEmptyString(z.id) ?? `zone-${out.length + 1}`,
+      label: nonEmptyString(z.label) ?? 'Subject',
+      source: z.source === 'template' ? 'template' : 'user',
+      x: cx,
+      y: cy,
+      w: Math.min(1 - cx, w),
+      h: Math.min(1 - cy, h),
+    })
+  }
+  return out.length ? out : undefined
 }
 
 /**
@@ -868,7 +1132,7 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
        out.layers =
          layers.length > 0
            ? layers
-           : LAYER_IDS_BY_LAYOUT[out.layout].map((kind) => createLayer(kind))
+           : createLayoutLayers(out.layout, out.aspectRatio)
    }
 
    out.audio = normalizePreviewAudio(raw.audio) ?? null
@@ -876,6 +1140,10 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
    // The applied Remotion design. Absent in projects saved before the design
    // registry existed, so it falls back to null instead of throwing.
    out.remotionDesignId = nonEmptyString(raw.remotionDesignId) ?? null
+  const zones = normalizeProtectedZones(raw.protectedZones)
+  if (zones) out.protectedZones = zones
+  const hints = normalizeImageHints(raw.imageHints)
+  if (hints) out.imageHints = hints
 
    return out
   } catch {

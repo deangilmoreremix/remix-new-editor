@@ -6,6 +6,22 @@ import { preparePublishProject } from '../../lib/editor/publish/publishClient.js
 import { createOverlay } from '@cinegen/lib/overlays/overlays';
 
 describe('publish snapshot', () => {
+  it('lifts the List Builder to project.listBuilder and keeps Lead Generators as items', () => {
+    const tl: any = { id: 't', name: 'T', duration: 10, tracks: [{ id: 'V1', kind: 'video' }], clips: [] };
+    const wall = createOverlay('list-builder', 0, 10);
+    const lead = createOverlay('lead-form', 3, 10);
+    const state: any = buildPublishState(tl, [], [wall, lead], 'x');
+    expect(state.listBuilder).toMatchObject({ enabled: true });
+    expect(state.listBuilder.elements.length).toBeGreaterThan(0);
+    const items = state.tracks[2].items as any[];
+    expect(items.map((i) => i.type)).toEqual(['lead-form']);
+    expect(items[0].id).toBe(lead.id);
+    expect(preparePublishProject(state, { title: 'x' }).listBuilder).toBeTruthy();
+  });
+  it('has no listBuilder without the wall', () => {
+    const tl: any = { id: 't', name: 'T', duration: 5, tracks: [], clips: [] };
+    expect((buildPublishState(tl, [], [], 'x') as any).listBuilder).toBeUndefined();
+  });
   it('maps clips and overlays and passes the publish client checks', () => {
     const tl: any = { id: 't', name: 'T', duration: 10, tracks: [{ id: 'V1', kind: 'video' }, { id: 'A1', kind: 'audio' }], clips: [
       { id: 'c1', assetId: 'a1', trackId: 'V1', startTime: 1, duration: 6, trimStart: 1, trimEnd: 0, speed: 2, volume: 1 },

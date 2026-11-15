@@ -36,8 +36,8 @@ export const STOCK_HOME = { pixabay: 'https://pixabay.com', pexels: 'https://www
 
 /** Kinds of media each stock provider can return: [id, label, kind, pixabay image_type]. */
 export const MEDIA_FILTERS = {
-  pixabay: [['videos', 'Videos', 'video'], ['photos', 'Photos', 'image', 'photo'], ['illustrations', 'Illustrations', 'image', 'illustration'], ['vectors', 'Vectors', 'image', 'vector']],
-  pexels: [['videos', 'Videos', 'video'], ['photos', 'Photos', 'image'], ['collections', 'Collections', 'collection']],
+  pixabay: [['all', 'All', 'mixed'], ['videos', 'Videos', 'video'], ['photos', 'Photos', 'image', 'photo'], ['illustrations', 'Illustrations', 'image', 'illustration'], ['vectors', 'Vectors', 'image', 'vector']],
+  pexels: [['all', 'All', 'mixed'], ['videos', 'Videos', 'video'], ['photos', 'Photos', 'image'], ['collections', 'Collections', 'collection']],
 };
 
 const tagTitle = (tags, fallback) => String(tags || '').split(',').map((t) => t.trim()).filter(Boolean)[0] || fallback;
@@ -164,8 +164,22 @@ export function createStockClient(clients, { perPage = PER_PAGE } = {}) {
     return err?.message || `${name} search failed`;
   };
 
-  return async function search({ source, filter = 'videos', query = '', page = 1, collectionId = null }) {
+  async function search({ source, filter = 'all', query = '', page = 1, collectionId = null }) {
     const q = String(query || '').trim().slice(0, 100);
+    if (filter === 'all' && (source === 'pexels' || source === 'pixabay')) {
+      // Videos and photos side by side, interleaved so both kinds show up first.
+      const [v, p] = await Promise.all([
+        search({ source, filter: 'videos', query: q, page }),
+        search({ source, filter: 'photos', query: q, page }),
+      ]);
+      if (v.error && p.error) return { items: [], hasMore: false, error: v.error };
+      const items = [];
+      for (let i = 0; i < Math.max(v.items.length, p.items.length); i += 1) {
+        if (v.items[i]) items.push(v.items[i]);
+        if (p.items[i]) items.push(p.items[i]);
+      }
+      return { items, hasMore: !!(v.hasMore || p.hasMore) };
+    }
     try {
       if (source === 'pexels') {
         const c = clients.pexels;
@@ -209,7 +223,9 @@ export function createStockClient(clients, { perPage = PER_PAGE } = {}) {
     } catch (err) {
       return { items: [], hasMore: false, error: friendly(source, err) };
     }
-  };
+  }
+
+  return search;
 }
 
 // ------------------------------------------------------- upload + remote URL

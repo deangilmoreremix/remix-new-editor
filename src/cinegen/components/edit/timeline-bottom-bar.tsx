@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { TrackKind } from '@cinegen/types/timeline';
 
 interface TimelineBottomBarProps {
@@ -55,6 +55,7 @@ export function TimelineBottomBar({
   trackCount,
   sequenceDuration,
 }: TimelineBottomBarProps) {
+  const [addMenu, setAddMenu] = useState(false); // [remix]
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleFitZoom = useCallback(() => {
@@ -93,6 +94,16 @@ export function TimelineBottomBar({
           <PlusIcon />
           <span>Add Track</span>
         </button>
+        {/* [remix] add just one video or one audio track (the button above adds a pair, as CineGen does) */}
+        <span className="timeline-bottom-bar__add-menu-wrap">
+          <button className="timeline-bottom-bar__snap timeline-bottom-bar__add-caret" aria-label="Add one track" aria-haspopup="menu" aria-expanded={addMenu} title="Add one track" onClick={() => setAddMenu((v) => !v)}>▾</button>
+          {addMenu && (
+            <div className="timeline-bottom-bar__add-menu" role="menu">
+              <button role="menuitem" onClick={() => { onAddTrack('video'); setAddMenu(false); }}>Video track</button>
+              <button role="menuitem" onClick={() => { onAddTrack('audio'); setAddMenu(false); }}>Audio track</button>
+            </div>
+          )}
+        </span>
       </div>
       <div className="timeline-bottom-bar__right">
         <button

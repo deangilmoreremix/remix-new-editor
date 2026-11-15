@@ -11,6 +11,7 @@ export async function extractWaveformPeaks(
   const audioContext = new AudioContext();
   try {
     const response = await fetch(url);
+    if (!response.ok) throw new Error(`Could not read this media (HTTP ${response.status})`); // an error page must not reach the audio decoder
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 

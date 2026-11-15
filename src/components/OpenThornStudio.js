@@ -33,7 +33,11 @@ function createIframe() {
   iframe.src = isDev ? OPENTHORN_DEV_URL : OPENTHORN_PROD_PATH;
   iframe.style.cssText = 'flex:1;width:100%;border:none;background:#050505;display:block;';
   iframe.setAttribute('loading', 'lazy');
-  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation-by-user-activation');
+  // allow-downloads: "Download code" (ZIP) would otherwise be blocked.
+  // allow-popups-to-escape-sandbox: links to a deployed site open as normal tabs.
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-top-navigation-by-user-activation');
+  // Copy buttons (share links, code) and fullscreen preview.
+  iframe.setAttribute('allow', 'clipboard-write; fullscreen');
   iframe.setAttribute('title', 'Smart Website Builder');
   return iframe;
 }

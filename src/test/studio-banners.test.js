@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
-import { createStudioHeader, createEditorBanner, getHeroThumbnail } from '../lib/thumbnails.js';
+import { createStudioHeader, createEditorBanner, getHeroThumbnail, getBannerThumbnail, getStudioThumbnail } from '../lib/thumbnails.js';
 
 // Every picture a banner points at must exist, otherwise the banner is a blank box.
 const heroPaths = () => {
@@ -28,17 +28,18 @@ describe('studio banners', () => {
     expect(paths).not.toContain(getHeroThumbnail('video-agent'));
   });
 
-  it('is 128px / 176px tall (the old 96-112px box showed only a thin strip of the picture)', () => {
+  it('is 128px tall on phones and 176-264px on desktop (scales with width so the picture is not a thin strip)', () => {
     const el = createStudioHeader('image', 'Image Studio', 'x');
     expect(el.className).toContain('h-32');
-    expect(el.className).toContain('md:h-44');
+    expect(el.className).toContain('md:h-[clamp(176px,14vw,264px)]');
     expect(el.className).toContain('hero-banner');
     expect(el.querySelector('img')).not.toBeNull();
   });
 
   it('aims the crop at the subject instead of the exact centre', () => {
-    expect(createStudioHeader('audio', 'Audio Studio').querySelector('img').style.objectPosition).toBe('50% 47%');
-    expect(createStudioHeader('character', 'Character Studio').querySelector('img').style.objectPosition).toBe('50% 20%');
+    const sharp = (id) => createStudioHeader(id, 'x').querySelector('.absolute img:not([aria-hidden])');
+    expect(sharp('audio').style.objectPosition).toBe('50% 40%');
+    expect(sharp('character').style.objectPosition).toBe('50% 25%');
   });
 
   it('the editor banner is the compact variant inside a non-shrinking row', () => {
@@ -47,12 +48,22 @@ describe('studio banners', () => {
     const banner = row.querySelector('.hero-banner');
     expect(banner.className).toContain('h-20');
     expect(banner.querySelector('h1').textContent).toBe('Director');
-    expect(banner.querySelector('img').getAttribute('src')).toContain('/thumbnails/heroes/director.webp');
+    expect(banner.querySelector('img:not([aria-hidden])').getAttribute('src')).toContain('/thumbnails/heroes/director.webp');
   });
 
   it('the Timeline Editor banner is added after the editor mounts (the editor replaces the container contents)', () => {
     const src = fs.readFileSync('src/components/TimelineEditorPage.jsx', 'utf-8');
     expect(src.indexOf('createTimelineEditorApp(container);')).toBeLessThan(src.indexOf("createEditorBanner('timeline'"));
     expect(src).not.toContain("createHeroSection('timeline'");
+  });
+
+  it('banners use the same picture as the Apps-page card where the studio has its own art', () => {
+    for (const id of ['image', 'video', 'cinema', 'audio', 'avatar', 'videotools', 'training', 'upscale', 'lipsync', 'render']) {
+      expect(getBannerThumbnail(id), id).toBe(getStudioThumbnail(id));
+    }
+    // no studio art of their own -> keep the hero picture
+    for (const id of ['director', 'workbench', 'timeline', 'website-builder', 'viral', 'personalizer']) {
+      expect(getBannerThumbnail(id), id).toBe(getHeroThumbnail(id));
+    }
   });
 });

@@ -709,7 +709,7 @@
    "rel": "components/edit/clip-card.tsx",
    "up": "src",
    "status": "adapted",
-   "diff": 19,
+   "diff": 22,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -725,7 +725,7 @@
    "rel": "components/edit/edit-tab.tsx",
    "up": "src",
    "status": "adapted",
-   "diff": 92,
+   "diff": 158,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -781,7 +781,7 @@
    "rel": "components/edit/left-panel.tsx",
    "up": "src",
    "status": "adapted",
-   "diff": 11,
+   "diff": 25,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -861,7 +861,7 @@
    "rel": "components/edit/timeline-editor.tsx",
    "up": "src",
    "status": "adapted",
-   "diff": 106,
+   "diff": 122,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -885,7 +885,7 @@
    "rel": "components/edit/timeline-viewer.tsx",
    "up": "src",
    "status": "adapted",
-   "diff": 39,
+   "diff": 41,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -1085,7 +1085,7 @@
    "rel": "components/export/export-tab.tsx",
    "up": "src",
    "status": "adapted",
-   "diff": 44,
+   "diff": 42,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -1269,7 +1269,7 @@
    "rel": "components/workspace/top-tabs.tsx",
    "up": "src",
    "status": "adapted",
-   "diff": 4,
+   "diff": 8,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -1317,7 +1317,7 @@
    "rel": "components/workspace/workspace-shell.tsx",
    "up": "src",
    "status": "adapted",
-   "diff": 9,
+   "diff": 19,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -1405,7 +1405,7 @@
    "rel": "lib/cloud/elements.ts",
    "up": "src",
    "status": "adapted",
-   "diff": 6,
+   "diff": 9,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -1429,7 +1429,7 @@
    "rel": "lib/cloud/funding.ts",
    "up": "src",
    "status": "adapted",
-   "diff": 336,
+   "diff": 325,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -1909,7 +1909,7 @@
    "rel": "lib/editor/playback-engine.ts",
    "up": "src",
    "status": "adapted",
-   "diff": 27,
+   "diff": 42,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -2333,7 +2333,7 @@
    "rel": "lib/llm/skill-actions.ts",
    "up": "src",
    "status": "adapted",
-   "diff": 47,
+   "diff": 49,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -2413,7 +2413,7 @@
    "rel": "lib/mcp/workspace-state.ts",
    "up": "src",
    "status": "adapted",
-   "diff": 14,
+   "diff": 16,
    "upstreamReachable": true,
    "reachable": true
   },
@@ -3069,7 +3069,7 @@
    "rel": "types/workspace.ts",
    "up": "src",
    "status": "adapted",
-   "diff": 11,
+   "diff": 13,
    "upstreamReachable": true,
    "reachable": true
   }

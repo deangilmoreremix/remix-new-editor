@@ -178,6 +178,13 @@ export function openStockMediaBrowser({
     content.querySelector('.retry-btn')?.addEventListener('click', () => loadItems(true));
   }
 
+  /** Interleave two result lists so both kinds show up from the first page. */
+  function interleave(a, b) {
+    const out = [];
+    for (let i = 0; i < Math.max(a.length, b.length); i += 1) { if (a[i]) out.push(a[i]); if (b[i]) out.push(b[i]); }
+    return out;
+  }
+
   async function loadItems(reset = false) {
     if (isLoading) return;
     if (reset) {
@@ -195,7 +202,14 @@ export function openStockMediaBrowser({
       if (activeProvider === PROVIDERS.PEXELS) {
         if (activeTab === 'search') {
           const type = filterType === 'video' ? 'videos' : 'photos';
-          if (type === 'videos') {
+          if (filterType === 'all') {
+            const [v, p] = await Promise.all([
+              searchVideos({ query: searchQuery, page: currentPage, per_page: 20 }),
+              searchPhotos({ query: searchQuery, page: currentPage, per_page: 20 }),
+            ]);
+            items = interleave((v.videos || []).map(x => normalizePexelsVideo(x)), (p.photos || []).map(x => normalizePexelsPhoto(x)));
+            total = (v.total_results || 0) + (p.total_results || 0);
+          } else if (type === 'videos') {
             const data = await searchVideos({ query: searchQuery, page: currentPage, per_page: 20 });
             items = (data.videos || []).map(v => normalizePexelsVideo(v));
             total = data.total_results || 0;
@@ -205,9 +219,18 @@ export function openStockMediaBrowser({
             total = data.total_results || 0;
           }
         } else if (activeTab === 'curated') {
-          const data = await getCuratedPhotos({ page: currentPage, per_page: 20 });
-          items = (data.photos || []).map(p => normalizePexelsPhoto(p));
-          total = data.total_results || 0;
+          if (filterType === 'all') {
+            const [v, p] = await Promise.all([
+              getPopularVideos({ page: currentPage, per_page: 20 }),
+              getCuratedPhotos({ page: currentPage, per_page: 20 }),
+            ]);
+            items = interleave((v.videos || []).map(x => normalizePexelsVideo(x)), (p.photos || []).map(x => normalizePexelsPhoto(x)));
+            total = (v.total_results || 0) + (p.total_results || 0);
+          } else {
+            const data = await getCuratedPhotos({ page: currentPage, per_page: 20 });
+            items = (data.photos || []).map(p => normalizePexelsPhoto(p));
+            total = data.total_results || 0;
+          }
         } else if (activeTab === 'popular') {
           const data = await getPopularVideos({ page: currentPage, per_page: 20 });
           items = (data.videos || []).map(v => normalizePexelsVideo(v));
@@ -230,7 +253,14 @@ export function openStockMediaBrowser({
         }
       } else if (activeProvider === PROVIDERS.PIXABAY) {
         if (activeTab === 'search') {
-          if (filterType === 'video') {
+          if (filterType === 'all') {
+            const [v, p] = await Promise.all([
+              searchPixabayVideos({ query: searchQuery, page: currentPage, per_page: 20 }),
+              searchPixabayImages({ query: searchQuery, page: currentPage, per_page: 20 }),
+            ]);
+            items = interleave((v.hits || []).map(h => normalizePixabayVideo(h)), (p.hits || []).map(h => normalizePixabayImage(h)));
+            total = (v.totalHits || 0) + (p.totalHits || 0);
+          } else if (filterType === 'video') {
             const data = await searchPixabayVideos({ query: searchQuery, page: currentPage, per_page: 20 });
             items = (data.hits || []).map(h => normalizePixabayVideo(h));
             total = data.totalHits || 0;
@@ -240,7 +270,14 @@ export function openStockMediaBrowser({
             total = data.totalHits || 0;
           }
         } else if (activeTab === 'curated') {
-          if (filterType === 'video') {
+          if (filterType === 'all') {
+            const [v, p] = await Promise.all([
+              getPopularPixabayVideos({ page: currentPage, per_page: 20 }),
+              getCuratedPixabayImages({ page: currentPage, per_page: 20 }),
+            ]);
+            items = interleave((v.hits || []).map(h => normalizePixabayVideo(h)), (p.hits || []).map(h => normalizePixabayImage(h)));
+            total = (v.totalHits || 0) + (p.totalHits || 0);
+          } else if (filterType === 'video') {
             const data = await getPopularPixabayVideos({ page: currentPage, per_page: 20 });
             items = (data.hits || []).map(h => normalizePixabayVideo(h));
             total = data.totalHits || 0;
