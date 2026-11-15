@@ -335,7 +335,7 @@ function buildSticker(opts) {
   if (opts.kind === 'lottie') {
     el.dataset.lottie = src;
     // [remix] Stage 2: colour / text replacement + speed (cinegen/lib/editor/stage2/lottie-edit.ts)
-    el._lottieEdits = { colors: opts.lottieColors, texts: opts.lottieTexts };
+    el._lottieEdits = { colors: opts.lottieColors, texts: opts.lottieTexts, values: opts.lottieValues, hidden: opts.lottieHidden }; // [remix] Stage 11: value slots + hidden layers
     el._lottieSpeed = Number(opts.lottieSpeed) > 0 ? Number(opts.lottieSpeed) : 1;
   } else {
     const img = document.createElement('img');

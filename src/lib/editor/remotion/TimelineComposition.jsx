@@ -244,7 +244,7 @@ function useJson(url) {
 function StickerOverlay({ o, durationInFrames, effects }) {
   const rawLottie = useJson(o.kind === 'lottie' ? o.resolvedSrc : null);
   // [remix] Stage 2: colour / text replacement of the Lottie (same patcher as the editor preview)
-  const lottieData = useMemo(() => applyLottieEdits(rawLottie, { colors: o.lottieColors, texts: o.lottieTexts }), [rawLottie, o.lottieColors, o.lottieTexts]);
+  const lottieData = useMemo(() => applyLottieEdits(rawLottie, { colors: o.lottieColors, texts: o.lottieTexts, values: o.lottieValues, hidden: o.lottieHidden }), [rawLottie, o.lottieColors, o.lottieTexts, o.lottieValues, o.lottieHidden]); // [remix] Stage 11
   if (!o.resolvedSrc) return null;
   return (
     <Animated o={o} durationInFrames={durationInFrames}>
