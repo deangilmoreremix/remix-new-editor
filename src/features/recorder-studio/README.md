@@ -18,7 +18,18 @@ The Remotion Recorder, inside the timeline editors. Upstream = https://github.co
 chapters, transitions, end card, B-roll, music). Upstream edits it in **Remotion Studio**, which needs a Node/Bun server and cannot run in a
 browser-only app, so these files are ours and replace that Studio: `RecorderStudio.tsx` + `ui/` (scene/caption/style/export panels),
 `project.ts`, `project-store.ts`, `studio-shim.ts` (in-memory stand-ins for the Studio/filesystem APIs the composition calls),
-`useStudioMetadata.ts`, `export.ts` (web-renderer export) and `captions/` (in-browser Whisper replacing Whisper.cpp on the server).
+`persistence.ts` (browser storage in place of the project folder upstream keeps on disk), `useStudioMetadata.ts`, `export.ts` (web-renderer export) and `captions/` (in-browser Whisper replacing Whisper.cpp on the server).
+
+## Studio features (what a browser user can do)
+
+All of these work in the browser; none needs upstream's server.
+
+- **Scenes:** recordings (facecam position, trim start/end, chapter title, music, transition, B-roll), title, chapters list, end card, and Remotion's animated **Intro** (shows the text "remotion.dev/recorder"). Reorder, delete, **Start over**.
+- **B-roll:** upload from the scene panel, or **drag an image/video onto the preview** (upstream's own drop handler).
+- **Captions:** generate in-browser (language, quality), **click a caption in the preview to correct it**, automatic silence trimming from the captions, and **Word fixes** (a list of "heard -> write as", applied on top of upstream's autocorrect).
+- **Style:** landscape/square canvas, light/dark theme, platform, your channel for the end card.
+- **Export:** MP4 in the browser (captions burned in; optional for landscape) plus a `.srt`.
+- **Saved in this browser:** the project (takes, captions, scenes, B-roll) is kept in IndexedDB and restored on reload (`persistence.ts`). Word fixes and the channel are kept in localStorage. It is per browser and device; export to keep a copy elsewhere.
 
 ## Where to open it
 
@@ -42,9 +53,10 @@ Keep this list when re-syncing with upstream.
 - `captions/srt/SrtPreviewAndEditor`: honours `shouldBurnLandscapeCaptions()` so landscape exports can burn captions in.
 - `captions/editor/Footer.tsx`: wording (no on-disk file here).
 - `layout/get-broll-dimensions.ts`: image/video type from the original file name (blob URLs have no extension).
+- `config/autocorrect.ts`: also applies the user's Word fixes (upstream's two examples are kept).
 - `audio/AudioTrack.tsx`: music fade shrinks for clips of ~2 s or less (upstream throws).
 
-Not ported on purpose: the upstream `recorder` intro scene (a Remotion Recorder promo). Video scenes are bound to takes by recording order, as upstream.
+Video scenes are bound to takes by recording order, as upstream.
 
 ## Tests
 

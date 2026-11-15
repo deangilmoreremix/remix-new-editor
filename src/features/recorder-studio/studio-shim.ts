@@ -10,6 +10,7 @@ export type { StaticFile };
 const ASSET_BASE = `${import.meta.env?.BASE_URL ?? "/"}recorder-studio/`;
 
 const files = new Map<string, StaticFile>();
+const blobs = new Map<string, Blob>(); // the data behind each blob URL, kept so the project can be saved
 const folderListeners = new Set<() => void>();
 const fileListeners = new Map<string, Set<(f: StaticFile | null) => void>>();
 
@@ -47,9 +48,13 @@ export const registerBlobFile = (name: string, blob: Blob): StaticFile => {
     sizeInBytes: blob.size,
   };
   files.set(name, file);
+  blobs.set(name, blob);
   notify(name);
   return file;
 };
+
+/** The data of a registered file, for saving the project. */
+export const getFileBlob = (name: string): Blob | undefined => blobs.get(name);
 
 export const clearProjectFiles = (prefix: string) => {
   [...files.keys()]
@@ -57,6 +62,7 @@ export const clearProjectFiles = (prefix: string) => {
     .forEach((n) => {
       URL.revokeObjectURL(files.get(n)!.src);
       files.delete(n);
+      blobs.delete(n);
     });
   folderListeners.forEach((l) => l());
 };
@@ -86,6 +92,7 @@ export const deleteStaticFile = async (name: string) => {
   if (!file) return;
   URL.revokeObjectURL(file.src);
   files.delete(name);
+  blobs.delete(name);
   notify(name);
 };
 
@@ -107,7 +114,16 @@ type PropsUpdater = ({ unsavedDefaultProps }: { unsavedDefaultProps: Record<stri
 export const updateDefaultProps = ({ defaultProps }: { compositionId: string; defaultProps: PropsUpdater }) => {
   const store = getActiveProjectStore();
   if (!store) return;
-  store.setProps((old) => defaultProps({ unsavedDefaultProps: old as unknown as Record<string, unknown> }) as unknown as StudioProps);
+  store.setProps((old) => {
+    const next = defaultProps({ unsavedDefaultProps: old as unknown as Record<string, unknown> }) as unknown as StudioProps;
+    // Upstream's B-roll drop handler starts the clip at (playhead - transition), which is negative near the start of a scene.
+    return {
+      ...next,
+      scenes: next.scenes.map((scene) =>
+        scene.type === "videoscene" ? { ...scene, bRolls: scene.bRolls.map((b) => ({ ...b, from: Math.max(0, b.from) })) } : scene,
+      ),
+    };
+  });
 };
 
 export const saveDefaultProps = async (args: { compositionId: string; defaultProps: PropsUpdater }) => {

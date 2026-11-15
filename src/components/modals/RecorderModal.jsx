@@ -182,10 +182,12 @@ export class RecorderModal extends BaseModal {
   }
 
   async openStudio({ withLatest = false } = {}) {
-    const [{ getRecorderProject }, { RecorderStudioModal }] = await Promise.all([
+    const [{ getRecorderProject, ensureRestored }, { RecorderStudioModal }] = await Promise.all([
       import('../../features/recorder-studio/mount.tsx'),
       import('./RecorderStudioModal.jsx'),
     ]);
+    // Bring back the project saved in this browser first, so a new take is added to it instead of replacing it.
+    await ensureRestored(getRecorderProject());
     if (withLatest && this.latest != null) {
       const sources = this.sourcesOf(this.latest);
       const project = getRecorderProject();

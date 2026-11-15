@@ -7,6 +7,7 @@ import type { TakeSource } from "./project";
 
 export type { ExportResult, TakeSource };
 export { getRecorderProject };
+export { ensureRestored } from "./persistence";
 
 /** Mounts Recorder Studio into `el`; returns an unmount function. */
 export const mountRecorderStudio = (

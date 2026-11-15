@@ -2,6 +2,7 @@ import { useRef } from "react";
 import type { BRoll, SelectableScene } from "../composition/config/scenes";
 import { FPS } from "../composition/config/fps";
 import { COMPOSITION_ID } from "../project-store";
+import { startOver } from "../persistence";
 import type { RecorderProject } from "../project";
 import { staticFile, writeStaticFile } from "../studio-shim";
 import { Check, Field, Select, SecondsInput, TextInput } from "./controls";
@@ -41,7 +42,7 @@ export const sceneLabel = (scene: SelectableScene, videoNumber: number): string 
   }
 };
 
-const KIND: Record<string, string> = { videoscene: "Video", title: "Title", endcard: "End card", tableofcontents: "Chapters" };
+const KIND: Record<string, string> = { videoscene: "Video", title: "Title", endcard: "End card", tableofcontents: "Chapters", recorder: "Intro" };
 
 const BRollEditor = ({ scene, onChange }: { scene: VideoScene; onChange: (bRolls: BRoll[]) => void }) => {
   const input = useRef<HTMLInputElement>(null);
@@ -167,6 +168,18 @@ const SceneForm = ({ project, index, scene }: { project: RecorderProject; index:
     );
   }
 
+  if (scene.type === "recorder") {
+    return (
+      <>
+        <Field label="Length (s)">
+          <SecondsInput frames={scene.durationInFrames} min={1} onChange={(durationInFrames) => patch({ durationInFrames })} />
+        </Field>
+        <span className="rs-hint">Remotion's animated Recorder intro. It shows the text "remotion.dev/recorder".</span>
+        {common}
+      </>
+    );
+  }
+
   return <span className="rs-hint">This scene has no settings.</span>;
 };
 
@@ -208,10 +221,27 @@ export const ScenesPanel = ({
         <button className="rs-btn" onClick={() => project.addScene({ type: "tableofcontents", durationInFrames: 200, music: "previous", transitionToNextScene: true })}>
           + Chapters
         </button>
+        <button className="rs-btn" title="Remotion's animated Recorder intro (shows remotion.dev/recorder)" onClick={() => project.addScene({ type: "recorder", durationInFrames: 90, music: "previous", transitionToNextScene: true })}>
+          + Intro
+        </button>
         <button className="rs-btn" onClick={() => project.addScene({ type: "endcard", durationInFrames: 200, channel: "custom", links: [], music: "previous", transitionToNextScene: true })}>
           + End card
         </button>
       </div>
+
+      {scenes.length > 0 ? (
+        <button
+          className="rs-btn danger"
+          style={{ alignSelf: "flex-start" }}
+          onClick={() => {
+            if (window.confirm("Start over? This removes every recording, caption and scene from this project, including the copy saved in this browser.")) {
+              void startOver(project).then(() => setSelected(0));
+            }
+          }}
+        >
+          Start over
+        </button>
+      ) : null}
 
       {current ? (
         <>

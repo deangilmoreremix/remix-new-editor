@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { captionsFileName } from "../project";
+import { loadWordFixes, saveWordFixes } from "../persistence";
+import type { WordFix } from "../composition/config/autocorrect";
 import type { RecorderProject } from "../project";
 import { COMPOSITION_ID } from "../project-store";
 import { deleteStaticFile, getStaticFiles } from "../studio-shim";
 import { transcribeTake } from "../captions/transcribe";
 import type { TranscribeProgress, WhisperModelId } from "../captions/transcribe-core";
-import { Field, Select } from "./controls";
+import { Field, Select, TextInput } from "./controls";
 
 const LANGUAGES = [
   { value: "english", label: "English" },
@@ -37,6 +39,13 @@ export const CaptionsPanel = ({ project }: { project: RecorderProject }) => {
   const [job, setJob] = useState<Job | null>(null);
   const [error, setError] = useState("");
   const abort = useRef<AbortController | null>(null);
+  const [wordFixes, setWordFixes] = useState<WordFix[]>(loadWordFixes);
+
+  const updateWordFixes = (next: WordFix[]) => {
+    setWordFixes(next);
+    saveWordFixes(next);
+    store.bumpRevision(); // re-reads the captions so the preview and the .srt use the new spelling
+  };
 
   useEffect(() => {
     let live = true;
@@ -134,6 +143,19 @@ export const CaptionsPanel = ({ project }: { project: RecorderProject }) => {
           </div>
         );
       })}
+
+      <div className="rs-divider" />
+      <span className="rs-label">Word fixes</span>
+      <span className="rs-hint">Whisper writes words as it hears them. List a word it gets wrong and how it should be written (names, brands, product terms). Applied to every caption, preview and .srt.</span>
+      {wordFixes.map((fix, i) => (
+        <div className="rs-row" key={i}>
+          <TextInput value={fix.from} placeholder="heard, e.g. kubernetes" onChange={(from) => updateWordFixes(wordFixes.map((f, j) => (j === i ? { ...f, from } : f)))} />
+          <span aria-hidden>→</span>
+          <TextInput value={fix.to} placeholder="write as, e.g. Kubernetes" onChange={(to) => updateWordFixes(wordFixes.map((f, j) => (j === i ? { ...f, to } : f)))} />
+          <button className="rs-btn danger" onClick={() => updateWordFixes(wordFixes.filter((_, j) => j !== i))} aria-label="Remove word fix">✕</button>
+        </div>
+      ))}
+      <button className="rs-btn" onClick={() => updateWordFixes([...wordFixes, { from: "", to: "" }])}>+ Add word fix</button>
 
       {error ? <span className="rs-hint" style={{ color: "#fca5a5" }} role="alert">{error}</span> : null}
       <span className="rs-hint">Click any caption in the preview to correct its words. Captions also trim silence at the start and end of each recording.</span>

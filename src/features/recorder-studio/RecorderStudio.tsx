@@ -1,8 +1,11 @@
 import { Player } from "@remotion/player";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Main } from "./composition/remotion/Main";
+import { COMPOSITION_ID } from "./project-store";
 import type { RecorderProject } from "./project";
 import type { ExportResult } from "./export";
+import { ensureRestored, startAutosave } from "./persistence";
+import type { SaveStatus } from "./persistence";
 import { useStudioMetadata } from "./useStudioMetadata";
 import { CaptionsPanel } from "./ui/CaptionsPanel";
 import { ExportPanel } from "./ui/ExportPanel";
@@ -35,6 +38,8 @@ export const RecorderStudio = ({
   // project change gives the preview a fresh Player.
   const playerErrored = useRef(false);
   const [resetKey, setResetKey] = useState(0);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>({ state: "idle" });
+  const [restoredAt, setRestoredAt] = useState<number | null>(null);
 
   // The vendored composition reaches its project through module-level hooks; keep this one active.
   useEffect(() => {
@@ -51,6 +56,21 @@ export const RecorderStudio = ({
     }
   }, [state]);
 
+  // Bring back the project saved in this browser (once per session), then keep saving it as it changes.
+  useEffect(() => {
+    let stop: (() => void) | null = null;
+    let cancelled = false;
+    void ensureRestored(project).then((saved) => {
+      if (cancelled) return;
+      if (saved) setRestoredAt(saved.savedAt);
+      stop = startAutosave(project, setSaveStatus);
+    });
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
+  }, [project]);
+
   const shown = state.status === "ready" ? state.metadata : state.status === "loading" || state.status === "error" ? state.previous : null;
   const liveIndex = focused && focused[0] === "scenes" && typeof focused[1] === "number" ? focused[1] : null;
   const clamped = Math.min(selected, Math.max(0, props.scenes.length - 1));
@@ -62,6 +82,7 @@ export const RecorderStudio = ({
           {shown ? (
             <Player
               key={resetKey}
+              id={COMPOSITION_ID} /* upstream's B-roll drop handler names files after the composition id, as Remotion Studio would */
               component={Main as never}
               inputProps={shown.props as never}
               durationInFrames={Math.max(1, shown.durationInFrames)}
@@ -89,7 +110,13 @@ export const RecorderStudio = ({
           {state.status === "loading" && shown ? <div className="rs-banner">Updating preview…</div> : null}
           {state.status === "error" ? <div className="rs-banner err" role="alert">Could not build the preview: {state.message}</div> : null}
         </div>
-        <span className="rs-hint">Tip: click a caption in the preview to correct its words.</span>
+        <span className="rs-hint">
+          Tip: click a caption in the preview to correct its words, or drop an image or video on a recording to add B-roll.
+          {restoredAt && saveStatus.state === "idle" ? ` Restored your project from ${new Date(restoredAt).toLocaleString()}.` : ""}
+          {saveStatus.state === "saving" ? " Saving…" : ""}
+          {saveStatus.state === "saved" && saveStatus.at ? ` Saved in this browser at ${new Date(saveStatus.at).toLocaleTimeString()}.` : ""}
+          {saveStatus.state === "error" ? ` Could not save in this browser (${saveStatus.message}). Export before closing.` : ""}
+        </span>
       </div>
 
       <div className="rs-side">

@@ -134,7 +134,7 @@ export const createRecorderProject = () => {
     setPlatform: (platform: StudioProps["platform"]) => store.setProps((p) => ({ ...p, platform })),
 
     reset: () => {
-      clearProjectFiles(`${COMPOSITION_ID}/`);
+      clearProjectFiles(""); // every registered file belongs to the project
       store.setProps(initialProps());
       store.bumpRevision();
     },
