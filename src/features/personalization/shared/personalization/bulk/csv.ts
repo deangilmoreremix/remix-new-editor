@@ -128,7 +128,7 @@ export function normalizeWebsite(raw: string): string | null {
 }
 
 /** Short, stable (same input → same id), not a security value. */
-function fnv(s: string): string { let h = 0x811c9dc5; for (let i = 0; i < s.length; i += 1) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) } return (h >>> 0).toString(16).padStart(8, '0') }
+export function fnv(s: string): string { let h = 0x811c9dc5; for (let i = 0; i < s.length; i += 1) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) } return (h >>> 0).toString(16).padStart(8, '0') }
 const hostOf = (site: string) => { try { return new URL(site).hostname.replace(/^www\./, '') } catch { return '' } }
 
 export function buildRecipients(rows: string[][], header: string[], mapping: ColumnTarget[]): ImportResult {

@@ -621,3 +621,6 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 
 ### Netlify VAPID settings (2026-11-15)
 - VAPID public/private keys and subject set on `smartvideo2` production (new key pair). Pending: confirm `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` exist, deploy, real-device push test.
+
+### Tie-ins, part A: Lead Finder -> personalized videos (2026-11-15)
+- `bulk/leadToRecipient.ts` (saved lead -> recipient), `bulk/savedLeadsClient.ts`, and a "Use my saved Lead Finder leads" source in `BulkPanel` (stage and starred filters; the same batch, personal-link, private-video and package flow as a CSV). Hint on the Lead Finder page. 27 new tests + the existing bulk suite (34 passing), 12 mutations caught, lint clean, typecheck gate 0. No database change. Not yet checked in a real browser or against real saved leads (the production table has 0 rows).

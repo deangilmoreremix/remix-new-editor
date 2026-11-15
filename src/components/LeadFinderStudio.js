@@ -126,6 +126,9 @@ export function LeadFinderStudio() {
   const leadsBody = el('div', '');
   leadsSection.append(leadsHeader, leadsBody);
   inner.appendChild(leadsSection);
+  // Where saved leads turn into tracked, personalized videos (the "Many recipients" tools in the video editor read these same leads).
+  leadsSection.appendChild(el('div', 'px-4 py-3 border-t border-white/10 text-xs text-secondary',
+    'Next step: open a video in the editor, go to “Many recipients”, and choose “Use my saved Lead Finder leads”. Each lead gets their own personal link, so their views, clicks and form answers come back to that business and alert you.'));
 
   const showMessage = (text) => {
     leadsBody.replaceChildren(el('div', 'px-4 py-8 text-center text-sm text-secondary', text));

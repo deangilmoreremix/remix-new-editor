@@ -169,3 +169,6 @@ Branch: `claude/jolly-cannon-ofqf7h`
 
 ### Netlify settings
 - Authorization: user answers (site smartvideo2, I set the key, new key). Generated a fresh pair, upserted three variables via the Netlify tool (private key marked secret). Did not list other variables. Docs updated with the new public key; the old public key (1 occurrence(s)) replaced.
+
+### Tie-ins, part A (Lead Finder -> personalized videos)
+- Authorization: user chose all three connections (plan approved). Added the converter, client, panel source and page hint; tests and mutations as in the status doc. No production change.

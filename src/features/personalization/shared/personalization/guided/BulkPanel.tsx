@@ -10,6 +10,9 @@ import type { PreviewInputProps } from '../preview/types'
 import { buildRecipients, CORE_FIELDS, parseCsv, suggestMapping, type ColumnTarget, type ImportResult, type ParsedCsv, type Recipient } from '../bulk/csv'
 import { canResume, createIdbStores, createJob, markStepsMissing, retryFailed, runBatch, summarize, withExclusiveRun, type ArtifactStore, type BatchJob, type JobStore, type RunDeps, type StepName } from '../bulk/batchJob'
 import { buildPackage } from '../bulk/outputPackage'
+import { filterLeads, leadsToRecipients, type SavedLead } from '../bulk/leadToRecipient'
+import { fetchSavedLeads } from '../bulk/savedLeadsClient'
+import { LEAD_STAGES } from '../leadStages'
 import { chunk, linkLabels, templateFingerprint } from '../bulk/recipientInput'
 import { issueRecipientLinks, parseVideoId } from '../publish/recipientLinksClient'
 import { uploadRecipientVideo } from '../publish/recipientVideosClient'
@@ -26,6 +29,7 @@ export interface BulkPanelProps {
   downloadFn?: (fileName: string, blob: Blob) => void
   issueLinksFn?: typeof issueRecipientLinks
   uploadFn?: typeof uploadRecipientVideo
+  leadsFn?: typeof fetchSavedLeads
   locks?: LockManager | undefined
   retryDelayMs?: number
 }
@@ -37,9 +41,13 @@ const TARGETS: Array<[string, string]> = [['', 'Ignore'], ...CORE_FIELDS.map((f)
 const targetValue = (t: ColumnTarget) => (t === null ? '' : typeof t === 'string' ? t : 'custom')
 const RECIPIENTS_KEY = (jobId: string) => `${jobId}/recipients`
 
-export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLinksFn, uploadFn, locks, retryDelayMs }: BulkPanelProps) {
+export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLinksFn, uploadFn, leadsFn, locks, retryDelayMs }: BulkPanelProps) {
   const [text, setText] = useState('')
   const [parsed, setParsed] = useState<ParsedCsv | null>(null)
+  const [leads, setLeads] = useState<SavedLead[] | null>(null)
+  const [stage, setStage] = useState('')
+  const [starredOnly, setStarredOnly] = useState(false)
+  const [loadingLeads, setLoadingLeads] = useState(false)
   const [mapping, setMapping] = useState<ColumnTarget[]>([])
   const [steps, setSteps] = useState<StepName[]>(['thumbnail', 'gif'])
   const [job, setJob] = useState<BatchJob | null>(null)
@@ -75,10 +83,21 @@ export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLin
     window.addEventListener('beforeunload', warn); return () => window.removeEventListener('beforeunload', warn)
   }, [running])
 
-  const result: ImportResult | null = useMemo(() => (parsed ? buildRecipients(parsed.rows, parsed.header, mapping) : null), [parsed, mapping])
+  const csvResult: ImportResult | null = useMemo(() => (parsed ? buildRecipients(parsed.rows, parsed.header, mapping) : null), [parsed, mapping])
+  const leadResult: ImportResult | null = useMemo(() => (leads ? leadsToRecipients(filterLeads(leads, { stage, starredOnly })) : null), [leads, stage, starredOnly])
+  const result: ImportResult | null = leadResult ?? csvResult
+  const useSavedLeads = async () => {
+    setLoadingLeads(true)
+    try {
+      const r = await (leadsFn ?? fetchSavedLeads)()
+      if (!r.ok) { say(r.message, true); return }
+      setParsed(null); setLeads(r.leads); setStage(''); setStarredOnly(false)
+      say(r.leads.length === 0 ? 'You have no saved leads yet. Save some in Lead Finder first.' : `${r.leads.length} saved lead${r.leads.length === 1 ? '' : 's'} loaded.`, r.leads.length === 0)
+    } finally { setLoadingLeads(false) }
+  }
 
   const load = (csv: string) => {
-    const p = parseCsv(csv); setParsed(p); setMapping(suggestMapping(p.header)); setMessage(p.rows.length === 0 ? { text: p.problems.join(' ') || 'No rows found.', bad: true } : null)
+    const p = parseCsv(csv); setLeads(null); setParsed(p); setMapping(suggestMapping(p.header)); setMessage(p.rows.length === 0 ? { text: p.problems.join(' ') || 'No rows found.', bad: true } : null)
   }
   const onFile = async (file: File | undefined) => { if (!file) return; if (file.size > 5_000_000) { say('That file is larger than 5 MB.', true); return } const t = await file.text(); setText(t); load(t) }
   const setTarget = (col: number, value: string) => setMapping((m) => m.map((t, i) => {
@@ -159,7 +178,8 @@ export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLin
   const sum = job ? summarize(job) : null
   const stale = job ? !canResume(job, fingerprint).ok : false
   const toggle = (s: StepName) => setSteps((cur) => (cur.includes(s) ? cur.filter((x) => x !== s) : (['thumbnail', 'gif', 'video'] as StepName[]).filter((x) => x === s || cur.includes(x))))
-  const errorsShown = (result?.issues ?? []).filter((i) => i.level === 'error').slice(0, 8)
+  const errorsShown = (csvResult?.issues ?? []).filter((i) => i.level === 'error').slice(0, 8)
+  const leadNotes = (leadResult?.issues ?? []).slice(0, 8)
 
   return (
     <div style={{ ...softPanelStyle, display: 'flex', flexDirection: 'column', gap: 10 }} data-testid="bulk-panel">
@@ -198,11 +218,12 @@ export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLin
           <div style={row}>
             <input aria-label="Open a CSV file" type="file" accept=".csv,text/csv,text/plain" onChange={(e) => void onFile(e.target.files?.[0])} style={{ fontSize: 11, color: C.muted }} />
             <button type="button" style={small} disabled={!text.trim()} onClick={() => load(text)}>Read the list</button>
+            <button type="button" style={small} disabled={loadingLeads} onClick={() => void useSavedLeads()}>{loadingLeads ? 'Loading…' : 'Use my saved Lead Finder leads'}</button>
           </div>
         </>
       ) : null}
 
-      {parsed && result && !running ? (
+      {parsed && csvResult && !running ? (
         <div data-testid="bulk-import">
           {parsed.problems.map((p) => <div key={p} style={hintStyle}>⚠ {p}</div>)}
           <table style={{ width: '100%', fontSize: 11, color: C.text }}>
@@ -213,10 +234,25 @@ export function BulkPanel({ inputProps, storesFn, runnerFn, downloadFn, issueLin
                   {typeof mapping[i] === 'object' && mapping[i] ? <span style={hintStyle}> as {'{{'}{(mapping[i] as { custom: string }).custom}{'}}'}</span> : null}</td>
                 <td style={{ color: C.muted }}>{parsed.rows[0]?.[i] ?? ''}</td></tr>))}</tbody>
           </table>
-          <div data-testid="bulk-counts" style={{ ...hintStyle, color: C.text }}>{result.counts.accepted} recipients ready{result.counts.skipped ? `; ${result.counts.skipped} rows skipped (${result.counts.duplicates} repeats)` : ''}.</div>
+          <div data-testid="bulk-counts" style={{ ...hintStyle, color: C.text }}>{csvResult.counts.accepted} recipients ready{csvResult.counts.skipped ? `; ${csvResult.counts.skipped} rows skipped (${csvResult.counts.duplicates} repeats)` : ''}.</div>
           {errorsShown.map((i) => <div key={`${i.row}-${i.code}`} style={hintStyle}>Row {i.row}: {i.message}</div>)}
           <div style={row}>{(['thumbnail', 'gif', 'video'] as StepName[]).map((s) => <label key={s} style={{ ...hintStyle, display: 'flex', gap: 4, alignItems: 'center' }}><input type="checkbox" checked={steps.includes(s)} onChange={() => toggle(s)} />{STEP_LABEL[s]}</label>)}</div>
-          <button type="button" style={small} disabled={result.counts.accepted === 0 || steps.length === 0} onClick={() => void start()}>Start making {result.counts.accepted} {result.counts.accepted === 1 ? 'set' : 'sets'} of files</button>
+          <button type="button" style={small} disabled={csvResult.counts.accepted === 0 || steps.length === 0} onClick={() => void start()}>Start making {csvResult.counts.accepted} {csvResult.counts.accepted === 1 ? 'set' : 'sets'} of files</button>
+        </div>
+      ) : null}
+
+      {leads && leadResult && !running ? (
+        <div data-testid="bulk-lead-import">
+          <div style={row}>
+            <label style={{ ...hintStyle, display: 'flex', gap: 4, alignItems: 'center' }}>Stage
+              <select aria-label="Lead stage" value={stage} onChange={(e) => setStage(e.target.value)} style={{ ...inputStyle, minHeight: 24, fontSize: 11 }}><option value="">All stages</option>{LEAD_STAGES.map((st) => <option key={st} value={st}>{st}</option>)}</select></label>
+            <label style={{ ...hintStyle, display: 'flex', gap: 4, alignItems: 'center' }}><input type="checkbox" checked={starredOnly} onChange={(e) => setStarredOnly(e.target.checked)} />Starred only</label>
+            <button type="button" style={small} onClick={() => { setLeads(null); setStage(''); setStarredOnly(false) }}>Back to a spreadsheet</button>
+          </div>
+          <div data-testid="bulk-lead-counts" style={{ ...hintStyle, color: C.text }}>{leadResult.counts.accepted} lead{leadResult.counts.accepted === 1 ? '' : 's'} ready{leadResult.counts.skipped ? `; ${leadResult.counts.skipped} skipped` : ''}. Each one gets its own personal link, so their views, clicks and answers come back to that business.</div>
+          {leadNotes.map((i) => <div key={`${i.row}-${i.code}`} style={hintStyle}>Lead {i.row}: {i.message}</div>)}
+          <div style={row}>{(['thumbnail', 'gif', 'video'] as StepName[]).map((st) => <label key={st} style={{ ...hintStyle, display: 'flex', gap: 4, alignItems: 'center' }}><input type="checkbox" checked={steps.includes(st)} onChange={() => toggle(st)} />{STEP_LABEL[st]}</label>)}</div>
+          <button type="button" style={small} disabled={leadResult.counts.accepted === 0 || steps.length === 0} onClick={() => void start()}>Start making {leadResult.counts.accepted} {leadResult.counts.accepted === 1 ? 'set' : 'sets'} of files</button>
         </div>
       ) : null}
 
