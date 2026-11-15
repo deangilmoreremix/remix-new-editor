@@ -84,6 +84,24 @@ describe('AssetUsagePanel logo tracing', () => {
     await act(async () => { blobGate.release?.() }); await settle()
     expect(add).not.toHaveBeenCalled()
   })
+  it('drops a trace for client A even if the person goes A -> B -> A before it finishes', async () => {
+    const { el, root, add } = setupLogo()
+    act(() => { (el.querySelector('[data-testid="logo-trace-L1"]') as HTMLButtonElement).click() })
+    ctx.clientForm = { id: 'client-B', businessName: 'B' }
+    act(() => { root.render(<AssetUsagePanel />) })
+    ctx.clientForm = { id: 'client-A', businessName: 'A' }
+    act(() => { root.render(<AssetUsagePanel />) })
+    await act(async () => { blobGate.release?.() }); await settle()
+    expect(add).not.toHaveBeenCalled()
+  })
+  it('re-enables the trace buttons after the client changes mid-trace', async () => {
+    const { el, root } = setupLogo()
+    act(() => { (el.querySelector('[data-testid="logo-trace-L1"]') as HTMLButtonElement).click() })
+    expect((el.querySelector('[data-testid="logo-trace-L1"]') as HTMLButtonElement).disabled).toBe(true)
+    ctx.clientForm = { id: 'client-B', businessName: 'B' }
+    act(() => { root.render(<AssetUsagePanel />) })
+    expect((el.querySelector('[data-testid="logo-trace-L1"]') as HTMLButtonElement).disabled).toBe(false)
+  })
   it('drops a trace that finishes after the panel is gone', async () => {
     const { el, root, add } = setupLogo()
     act(() => { (el.querySelector('[data-testid="logo-trace-L1"]') as HTMLButtonElement).click() })
