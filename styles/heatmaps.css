@@ -32,3 +32,12 @@
   .sv-bar-track{border:1px solid #999;background:#eee!important}.sv-bar-fill{background:#2563eb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   @page{margin:14mm}
 }
+
+/* Small-cell suppression (Fix F): merged blocks, withheld cells, and the privacy notes (also printed with the report). */
+.sv-heat-block { position: absolute; box-sizing: border-box; border: 1.5px dashed rgba(255,255,255,.85); outline: 1px solid rgba(15,23,42,.55); pointer-events: none; }
+.sv-heat-badge { display: inline-block; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 600; background: rgba(148,163,184,.25); }
+.sv-heat-badge--block { border: 1px dashed currentColor; background: transparent; }
+.sv-heat-badge--hidden { background: repeating-linear-gradient(135deg, rgba(148,163,184,.35) 0 4px, rgba(148,163,184,.1) 4px 8px); }
+.sv-heat-cell-hidden { display: inline-block; padding: 0 6px; border-radius: 4px; font-style: italic; opacity: .85; background: repeating-linear-gradient(135deg, rgba(148,163,184,.3) 0 4px, rgba(148,163,184,.1) 4px 8px); }
+.sv-bar-track--merged { background: repeating-linear-gradient(135deg, rgba(148,163,184,.3) 0 4px, rgba(148,163,184,.1) 4px 8px); }
+@media print { .sv-heat-privacy { display: block !important; } .sv-heat-block { border-color: #000; } }

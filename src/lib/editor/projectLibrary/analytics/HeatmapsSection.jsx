@@ -2,7 +2,7 @@
  * "Heatmaps" section of the Analytics tab (Stage 7). Mounted from SmartVideoAnalytics.tsx via its `renderHeatmaps`
  * slot. Four views (click / CTA / video engagement / scroll depth), date range, video, CTA and device filters,
  * intensity slider, overlay toggle, CSV export and a printable report. All data: owner-only aggregated RPCs; sets
- * smaller than the minimum cohort are shown as "not enough data" (nothing is drawn or exported for them).
+ * smaller than the minimum cohort are shown as "not enough data" (nothing is drawn or exported for them); inside a large enough view, every cell with fewer than the minimum number of distinct sessions is merged or hidden (see heatmapData.js, and the owner RPCs for the rules).
  * There is NO pointer-movement heatmap by design (privacy: it approximates reading behaviour per person, and is not
  * eye tracking). There is no campaign filter: campaign data does not exist on this branch.
  */
@@ -11,7 +11,7 @@ import '../../../../../styles/heatmaps.css';
 import { periodRange, defaultCustomRange } from './analyticsData.js';
 import { HeatmapCanvas, EngagementStrip } from './heatmap/HeatmapCanvas.jsx';
 import {
-  HEATMAP_TYPES, VIEWPORTS, loadHeatmap, cellsToPoints, pageAspect, topPageBucket, ctaRows, engagementSeries, scrollRows,
+  HEATMAP_TYPES, VIEWPORTS, loadHeatmap, cellsToPoints, coarseToPoints, coarseBlocks, minCohort, pageAspect, topPageBucket, ctaRows, engagementSeries, scrollRows,
   heatmapCsv, csvFilename, downloadCsv,
 } from './heatmap/heatmapData.js';
 
@@ -65,7 +65,9 @@ export default function HeatmapsSection({ client, video, projectName, thumbnailU
 
   const ctas = useMemo(() => ctaRows(loaded?.ctas), [loaded]);
   const d = loaded?.data;
-  const points = useMemo(() => (type === 'click' && d && !d.suppressed ? cellsToPoints(d.cells, d.grid) : []), [type, d]);
+  const points = useMemo(() => (type === 'click' && d && !d.suppressed ? [...cellsToPoints(d.cells, d.grid), ...coarseToPoints(d.coarse, d.coarse_grid)] : []), [type, d]);
+  const blocks = useMemo(() => (type === 'click' && d && !d.suppressed ? coarseBlocks(d.coarse, d.coarse_grid) : []), [type, d]);
+  const K = minCohort(type === 'cta' ? loaded?.ctas : d);
   const series = useMemo(() => (type === 'engagement' ? engagementSeries(d) : null), [type, d]);
   const scroll = useMemo(() => (type === 'scroll' ? scrollRows(d) : []), [type, d]);
   const bucket = topPageBucket(d?.page_buckets);
@@ -136,11 +138,18 @@ export default function HeatmapsSection({ client, video, projectName, thumbnailU
         )}
         {!error && loaded && type === 'click' && d && !d.suppressed && (
           <>
-            <HeatmapCanvas points={points} aspect={pageAspect(bucket, viewport === 'all' ? 'desktop' : viewport)} intensity={intensity} visible={overlay}
+            <HeatmapCanvas points={points} blocks={blocks} aspect={pageAspect(bucket, viewport === 'all' ? 'desktop' : viewport)} intensity={intensity} visible={overlay}
               label={`Click heatmap from ${d.clicks} clicks in ${d.sessions} sessions`}>
               {thumbnailUrl ? <img src={thumbnailUrl} alt="" className="sv-heat-backdrop" /> : <div className="sv-heat-wire" aria-hidden="true"><span>Video</span></div>}
             </HeatmapCanvas>
-            <p className="sv-subtitle">{d.clicks} clicks from {d.sessions} sessions. Position is relative to the watch page; the backdrop is a schematic of a page about {bucket * 400}px tall, not a screenshot of each visit.</p>
+            {((d.cells || []).length === 0 && (d.coarse || []).length === 0) && <p className="sv-subtitle sv-empty" role="status" data-testid="heat-nocells">No area has {K} or more viewers' clicks yet, so no position is shown.</p>}
+            <p className="sv-subtitle sv-heat-privacy" data-testid="heat-privacy">
+              <span className="sv-heat-badge">Privacy</span> Only areas clicked by at least {K} different viewers are shown at full detail.
+              {(d.coarse || []).length > 0 && <> <span className="sv-heat-badge sv-heat-badge--block">dashed squares</span> are merged, approximate areas (smaller spots there had fewer than {K} viewers each).</>}
+              {d.other && <> Other merged areas: {d.other.clicks} clicks from {d.other.sessions} sessions (no position).</>}
+              {d.withheld && <> <span className="sv-heat-badge sv-heat-badge--hidden">Some clicks are withheld</span>: they came from fewer than {K} viewers, so neither their position nor their number is shown, and the total below counts only what is shown.</>}
+            </p>
+            <p className="sv-subtitle">{d.clicks} clicks shown from {d.sessions} sessions. Position is relative to the watch page; the backdrop is a schematic of a page about {bucket * 400}px tall, not a screenshot of each visit.</p>
           </>
         )}
         {!error && loaded && type === 'cta' && (
@@ -149,11 +158,14 @@ export default function HeatmapsSection({ client, video, projectName, thumbnailU
               <thead><tr><th>CTA</th><th>Type</th><th>Impressions</th><th>Clicks</th><th>CTR</th></tr></thead>
               <tbody>{ctas.map((c) => (
                 <tr key={c.key}><td>{c.label}</td><td>{c.kindLabel}</td>
-                  <td>{c.suppressed ? 'not enough data' : c.impressions ?? '—'}</td><td>{c.suppressed ? '—' : c.clicks ?? '—'}</td><td>{pctText(c.ctr)}</td></tr>))}
+                  <td>{c.suppressed ? <span className="sv-heat-cell-hidden" title={`Fewer than ${K} sessions: hidden to protect individual viewers`}>&lt;{K}</span> : c.impressions ?? '—'}</td>
+                  <td>{c.suppressed || c.clicksSuppressed ? <span className="sv-heat-cell-hidden" title={`Fewer than ${K} sessions: hidden to protect individual viewers`}>&lt;{K}</span> : c.clicks ?? '—'}</td>
+                  <td>{c.suppressed || c.clicksSuppressed ? <span className="sv-heat-cell-hidden">hidden</span> : pctText(c.ctr)}</td></tr>))}
               </tbody>
             </table>
           )
         )}
+        {!error && loaded && type === 'cta' && <p className="sv-subtitle sv-heat-privacy"><span className="sv-heat-badge">Privacy</span> <span className="sv-heat-cell-hidden">&lt;{K}</span> = fewer than {K} sessions: the number and the click-through rate are hidden. No totals are shown, so a hidden value cannot be worked out from them.</p>}
         {!error && loaded && type === 'cta' && <p className="sv-subtitle">Impression = the CTA was at least 50% visible once in a session. CTR = sessions that used the CTA / sessions that saw it; "—" where no impressions were recorded (older views).</p>}
         {!error && loaded && type === 'engagement' && series && (
           <>
@@ -161,10 +173,11 @@ export default function HeatmapsSection({ client, video, projectName, thumbnailU
             <div className="sv-time-labels"><span>0:00</span><span>{Math.round(series.seconds / 2)}s</span><span>{series.seconds}s</span></div>
             <ul className="sv-heat-facts">
               <li>{d.sessions} sessions with playback</li>
-              <li>Peak drop-off: {series.peakDropoffSecond == null ? '—' : `second ${series.peakDropoffSecond}`} (red marker)</li>
-              <li>Replayed seconds: {series.totalReplays} · Skipped seconds: {series.totalSkips}</li>
+              <li>Busiest drop-off: {series.peakDropoffRange ? `seconds ${series.peakDropoffRange[0]} to ${series.peakDropoffRange[1]}` : '—'} (red bar under the strip)</li>
+              <li>Replayed seconds: {series.totalReplays} · Skipped seconds: {series.totalSkips} (shown seconds only)</li>
             </ul>
-            <p className="sv-subtitle">Colour = viewers per second; white bars = replays.</p>
+            <p className="sv-subtitle">Colour = viewers per second; white bars = replays. Drop-off is grouped into ranges of seconds so that each holds at least {K} sessions.</p>
+            <p className="sv-subtitle sv-heat-privacy" data-testid="heat-privacy"><span className="sv-heat-badge">Privacy</span> <span className="sv-heat-badge sv-heat-badge--hidden">hatched</span> seconds ({series.withheld.filter(Boolean).length} here) had fewer than {K} viewers (or replays or skips) and are not shown. The strip stops at the last second watched by at least {K} viewers.</p>
           </>
         )}
         {!error && loaded && type === 'scroll' && !suppressed && (
@@ -172,10 +185,11 @@ export default function HeatmapsSection({ client, video, projectName, thumbnailU
             <div className="sv-bars" data-testid="scroll-bars">
               {scroll.map((r) => (
                 <div className="sv-bar-row" key={r.milestone}><div className="sv-bar-label">{r.milestone}% of page</div>
-                  <div className="sv-bar-track"><div className="sv-bar-fill" style={{ width: `${r.percent ?? 0}%` }} /></div>
-                  <div className="sv-bar-number">{r.percent == null ? '—' : `${r.percent}%`}</div></div>))}
+                  <div className={`sv-bar-track${r.merged ? ' sv-bar-track--merged' : ''}`}>{r.merged ? null : <div className="sv-bar-fill" style={{ width: `${r.percent ?? 0}%` }} />}</div>
+                  <div className="sv-bar-number">{r.merged ? <span className="sv-heat-cell-hidden" title={`This step is merged with a neighbouring one: it had fewer than ${K} sessions on its own`}>merged</span> : r.percent == null ? '—' : `${r.percent}%`}</div></div>))}
             </div>
-            <p className="sv-subtitle">{d?.sessions} sessions. CTA exposure: {d?.sessions ? pctText(d.cta_exposed_sessions / d.sessions) : '—'} of sessions saw at least one CTA. A page that fits the screen counts as 100% reached.</p>
+            {scroll.some((r) => r.merged) && <p className="sv-subtitle sv-heat-privacy" data-testid="heat-privacy"><span className="sv-heat-badge">Privacy</span> <span className="sv-heat-cell-hidden">merged</span> steps are not shown: a step that fewer than {K} sessions stopped at is merged with its neighbour, so no small group can be worked out from the figures shown.</p>}
+            <p className="sv-subtitle">{d?.sessions} sessions. CTA exposure: {d?.sessions && d.cta_exposed_sessions != null ? pctText(d.cta_exposed_sessions / d.sessions) : 'hidden (a group under ' + K + ' sessions)'} of sessions saw at least one CTA. A page that fits the screen counts as 100% reached.</p>
           </>
         )}
       </div>

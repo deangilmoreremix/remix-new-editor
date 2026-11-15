@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { cellsToPoints, pageAspect, topPageBucket, ctaRows, engagementSeries, scrollRows, csvCell, toCsv, heatmapCsv, csvFilename, loadHeatmap } from '../heatmap/heatmapData.js';
+import { cellsToPoints, coarseToPoints, coarseBlocks, pageAspect, topPageBucket, ctaRows, engagementSeries, scrollRows, csvCell, toCsv, heatmapCsv, csvFilename, loadHeatmap } from '../heatmap/heatmapData.js';
 
 describe('heatmap aggregation helpers', () => {
   it('converts grid cells to normalized centre points', () => {
@@ -22,15 +22,29 @@ describe('heatmap aggregation helpers', () => {
     expect(rows[2].suppressed).toBe(true);
     expect(ctaRows(null)).toEqual([]);
   });
-  it('computes the engagement series with the peak drop-off second', () => {
-    const s = engagementSeries({ seconds: { viewers: [10, 8, 5, 2], replays: [0, 1, 2, 0], skips: [0, 0, 1, 1], dropoff: [0, 2, 3, 5] } });
-    expect(s).toMatchObject({ seconds: 4, maxViewers: 10, peakDropoffSecond: 3, totalReplays: 3, totalSkips: 2 });
+  it('computes the engagement series: withheld seconds stay null, drop-off is a bin range', () => {
+    const s = engagementSeries({ seconds: { viewers: [10, 8, 5, null], replays: [0, 6, null, 0], skips: [0, 0, 5, null], dropoff_bins: [[0, 1, 5], [2, 4, 12]] } });
+    expect(s).toMatchObject({ seconds: 4, maxViewers: 10, peakDropoffRange: [2, 4], peakDropoffSecond: 2, totalReplays: 6, totalSkips: 5 });
+    expect(s.withheld).toEqual([false, false, true, true]);
     expect(engagementSeries({ suppressed: true })).toBeNull();
-    expect(engagementSeries({ seconds: { viewers: [1], replays: [0], skips: [0], dropoff: [0] } }).peakDropoffSecond).toBeNull();
+    expect(engagementSeries({ seconds: { viewers: [], replays: [], skips: [], dropoff_bins: [] } })).toBeNull();
+    // a single bin has nothing to compare: no peak marker
+    expect(engagementSeries({ seconds: { viewers: [6], replays: [0], skips: [0], dropoff_bins: [[0, 0, 6]] } }).peakDropoffRange).toBeNull();
+  });
+  it('turns merged coarse blocks into an area (25 faint points) plus a dashed outline, never a precise spot', () => {
+    const pts = coarseToPoints([[1, 2, 5]], 10, 5);
+    expect(pts).toHaveLength(25);
+    expect(Math.min(...pts.map((p) => p.x))).toBeCloseTo(0.11, 5);
+    expect(Math.max(...pts.map((p) => p.x))).toBeCloseTo(0.19, 5);
+    expect(pts.every((p) => p.value === 1)).toBe(true);
+    expect(coarseBlocks([[1, 2, 5]], 10)).toEqual([{ left: 10, top: 20, size: 10, n: 5 }]);
+    expect(coarseToPoints(null)).toEqual([]);
   });
   it('computes scroll rows and hides suppressed sets', () => {
     expect(scrollRows({ sessions: 10, reached: { 25: 10, 50: 7, 75: 4, 100: 1 } }).map((r) => r.percent)).toEqual([100, 70, 40, 10]);
     expect(scrollRows({ suppressed: true })).toEqual([]);
+    // merged steps (null) are flagged, never turned into a number
+    expect(scrollRows({ sessions: 12, reached: { 25: 12, 50: null, 75: null, 100: 5 } }).map((r) => [r.sessions, r.merged])).toEqual([[12, false], [null, true], [null, true], [5, false]]);
   });
 });
 
@@ -47,13 +61,21 @@ describe('CSV export', () => {
   });
   it('exports each heatmap type; suppressed data exports a header only', () => {
     const click = heatmapCsv('click', { data: { suppressed: false, grid: 50, cells: [[0, 1, 4]] } });
-    expect(click).toBe('cell_x,cell_y,x_center,y_center,clicks\r\n0,1,0.0100,0.0300,4\r\n');
-    expect(heatmapCsv('click', { data: { suppressed: true } })).toBe('cell_x,cell_y,x_center,y_center,clicks\r\n');
+    expect(click).toBe('level,cell_x,cell_y,x_center,y_center,clicks\r\ncell,0,1,0.0100,0.0300,4\r\n');
+    expect(heatmapCsv('click', { data: { suppressed: true } })).toBe('level,cell_x,cell_y,x_center,y_center,clicks\r\n');
+    // merged blocks, the pool and the withheld marker are exported as such (no precise position for merged data, "<5" for the withheld part)
+    expect(heatmapCsv('click', { data: { suppressed: false, min_cohort: 5, grid: 50, coarse_grid: 10, cells: [], coarse: [[1, 1, 5]], other: { sessions: 6, clicks: 7 }, withheld: true } }))
+      .toBe('level,cell_x,cell_y,x_center,y_center,clicks\r\nmerged_block,1,1,0.1500,0.1500,5\r\nother_merged,,,,,7\r\nwithheld,,,,,<5\r\n');
     expect(heatmapCsv('cta', { ctas: { ctas: [{ cta_key: 'a', kind: 'book_call', label: '=x', impressions: 10, clicks: 2, ctr: 0.2 }] } }))
       .toBe("cta_id,kind,label,impressions,clicks,ctr\r\na,book_call,'=x,10,2,0.2\r\n");
+    expect(heatmapCsv('cta', { ctas: { min_cohort: 5, ctas: [
+      { cta_key: 'a', kind: 'contact', label: 'A', impressions: 12, clicks: null, clicks_suppressed: true, ctr: null, suppressed: false },
+      { cta_key: 'b', kind: 'contact', label: 'B', impressions: null, clicks: null, ctr: null, suppressed: true }] } }))
+      .toBe('cta_id,kind,label,impressions,clicks,ctr\r\na,contact,A,12,<5,\r\nb,contact,B,<5,<5,\r\n');
     expect(heatmapCsv('scroll', { data: { sessions: 4, reached: { 25: 4, 50: 2, 75: 1, 100: 0 } } })).toContain('50,2,50');
-    expect(heatmapCsv('engagement', { data: { seconds: { viewers: [3, 2], replays: [0, 1], skips: [0, 0], dropoff: [1, 2] } } }))
-      .toBe('second,viewers,replays,skips,dropoff\r\n0,3,0,0,1\r\n1,2,1,0,2\r\n');
+    expect(heatmapCsv('scroll', { data: { sessions: 12, reached: { 25: 12, 50: null, 75: null, 100: 5 } } })).toContain('50,merged,');
+    expect(heatmapCsv('engagement', { data: { min_cohort: 5, seconds: { viewers: [12, 6, null], replays: [0, null, 0], skips: [0, 0, null], dropoff_bins: [[0, 2, 12]] } } }))
+      .toBe('second,viewers,replays,skips,dropoff_bin,dropoff_bin_sessions\r\n0,12,0,0,0-2,12\r\n1,6,<5,0,0-2,\r\n2,<5,0,<5,0-2,\r\n');
     expect(csvFilename('click', 'abc/../d', '2026-01-01', '2026-01-31')).toBe('smartvideo-heatmap-click-abcd-2026-01-01_2026-01-31.csv');
   });
 });
