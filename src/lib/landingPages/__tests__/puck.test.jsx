@@ -134,8 +134,7 @@ describe.each(PUCK_TEMPLATES.map((t) => [t.name, t]))('design: %s', (_n, t) => {
   it('renders one h1, one video and a working lead form, with tokens filled', () => {
     expect((out.match(/<h1/g) || []).length).toBe(1);
     expect((out.match(/<video/g) || []).length).toBe(1);
-    // The supplied "Results" design has no form (add a Contact band in the editor); every other design captures leads.
-    if (!t.noLeadForm) expect(out).toContain('pk-form');
+    expect(out).toContain('pk-form');
     // Designs whose copy uses {{tokens}} must greet the contact; the supplied Results copy has none.
     if (JSON.stringify(t.puckData).includes('{{')) expect(out).toContain('Maya');
     expect(out).not.toMatch(/\{\{|\[\[/);

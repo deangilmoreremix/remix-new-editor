@@ -4,7 +4,6 @@ export default {
   "name": "Results page (laptop demo)",
   "description": "Hero with presenter photo and video card, feature tiles, laptop demo, testimonials and a closing CTA band. Names and quotes are sample content.",
   "designClass": "results",
-  "noLeadForm": true,
   "theme": {
     "mode": "light",
     "accent": "#1565f2",
@@ -195,6 +194,21 @@ export default {
               "label": "Start in minutes"
             }
           ]
+        }
+      },
+      {
+        "type": "ContactBand",
+        "props": {
+          "id": "results-contact",
+          "eyebrow": "Get your free personalized video",
+          "title": "Tell us where to send it",
+          "text": "Enter your details and we will create a personalized video for you. Sample text, edit it in the studio.",
+          "fields": [
+            { "key": "name", "label": "Your name", "type": "text", "required": true },
+            { "key": "email", "label": "Your email", "type": "email", "required": true }
+          ],
+          "submitLabel": "Send me my video",
+          "successMessage": "Thanks! We will be in touch shortly."
         }
       }
     ],

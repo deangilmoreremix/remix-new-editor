@@ -162,3 +162,8 @@
   .pk-d-results .rs-checks { margin: calc(22 * var(--u)) 0 0; gap: calc(12 * var(--u)); font-size: calc(15.5 * var(--u)); }
   .pk-d-results .rs-checks li { gap: calc(10 * var(--u)); } .pk-d-results .rs-checks li::before { width: calc(22 * var(--u)); height: calc(22 * var(--u)); }
 }
+
+/* Contact band added for lead capture (not in the supplied design): matches the closing CTA band. */
+.pk-d-results .pk-band--contact { background: linear-gradient(90deg, #0b2a6b, #1565f2); color: #fff; }
+.pk-d-results .pk-band--contact .pk-eyebrow-plain { color: #cfe0ff; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; }
+.pk-d-results .pk-band--contact .pk-form { background: #fff; color: #0b1a3d; border-radius: 12px; }
