@@ -49,7 +49,7 @@ Limits: lines are an estimate from the character budget (as the paginator's), no
 
 ## Test status
 
-`npx vitest run src/cinegen src/openchatcut`: 2 failed before my last fix, **1 failed | 1673 passed | 30 skipped** after: the failure is the unchanged `timeline-editor.tsx` parity budget (228 > 220, identical with my changes stashed). The first run also caught a new hover-help coverage failure for a `title` I added; fixed. ESLint on all changed / new TS files: 0 errors, 53 warnings (`no-unused-vars` on type-signature parameter names, the same pattern as existing files). **Not run:** a repo-wide `tsc` (it stops on syntax errors in unrelated `apps/director` files), so the new code is type-checked only by vite / vitest transpilation.
+`npx vitest run src/cinegen src/openchatcut` (full run, before the help fix): 2 failed | 1672 passed | 30 skipped; the two failures were the unchanged `timeline-editor.tsx` parity budget (228 > 220, identical with my changes stashed) and a new hover-help coverage failure for a `title` I had added. After the fix I re-ran only `help-coverage` and `timeline-parity`: help passes, parity is the one baseline failure. **The full suite was not re-run after that fix.** ESLint on all changed / new TS files: 0 errors, 53 warnings (`no-unused-vars` on type-signature parameter names, the same pattern as existing files). **Not run:** a repo-wide `tsc` (it stops on syntax errors in unrelated `apps/director` files), so the new code is type-checked only by vite / vitest transpilation.
 
 ## Files
 
