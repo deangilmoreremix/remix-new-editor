@@ -13,9 +13,9 @@
  * Motion-graphics templates the sandbox renders as nothing (its code gate is stricter than the static check) are listed in
  * src/cinegen/lib/occ/mg-render-blocklist.json and the Template Generator does not offer them.
  *
- * A render that comes out (almost) one flat colour — an animation that hasn't started drawing at the sampled moment — is
- * retried at other moments with a longer settle time, and the most detailed result is kept. --blank redoes only the existing
- * thumbnails that are still blank.
+ * Each render is shot over a transparent page and composed into a tile (template-thumbs/compose.mjs): a small element is
+ * cropped to its own bounds and enlarged, dark artwork is put on a light backdrop. A render that draws nothing at the sampled
+ * moment is retried at other moments with a longer settle time. --blank redoes only the existing thumbnails that look empty.
  *
  * Existing files are kept unless --force. Run it again after the catalogs change.
  * Set CHROMIUM_PATH to use a specific Chromium (e.g. /opt/pw-browsers/chromium).
@@ -24,24 +24,23 @@ import { createServer } from 'vite';
 import { chromium } from 'playwright';
 import { mkdir, access, writeFile, readFile, unlink } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { createRequire } from 'node:module';
-const sharp = createRequire(import.meta.url)('sharp');
+import { composeStill, contentShare } from './template-thumbs/compose.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => { const [k, v = true] = a.replace(/^--/, '').split('='); return [k, v]; }));
 const root = process.cwd();
 const PORT = 5198;
 const exists = (p) => access(p).then(() => true, () => false);
-const detail = async (input) => { const st = await sharp(input).stats(); return st.channels.slice(0, 3).reduce((a, c) => a + c.stdev, 0) / 3; };
 const BLOCKLIST = 'src/cinegen/lib/occ/mg-render-blocklist.json';
-const EMPTY = 1;                                  // below this nothing was drawn at all
-const FLAT = 6;                                   // below this the picture is effectively empty
+const PHOTO = join(root, 'public/library-previews/sample-out.jpg');      // a real street photo that sparse overlays are shown over
+const FLAT = 0.03;                                // an existing still where less than this share differs from its background tone looks empty (--blank redoes those)
 const TRIES = [{}, { frac: 0.8, wait: 2200 }, { frac: 0.3, wait: 2200 }, { frac: 0.95, wait: 2600 }, { frac: 0.15, wait: 2600 }];
 
+const photo = await readFile(PHOTO).catch(() => null);
 const server = await createServer({ root, logLevel: 'error', server: { port: PORT, strictPort: true, host: '127.0.0.1' } });
 await server.listen();
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--autoplay-policy=no-user-gesture-required', '--no-sandbox'] });
 const open = async () => {
-  const page = await browser.newPage({ viewport: { width: 640, height: 400 } });
+  const page = await browser.newPage({ viewport: { width: 640, height: 400 }, deviceScaleFactor: 3 });   // 3x so a small element enlarged into its tile stays sharp
   await page.goto(`http://127.0.0.1:${PORT}/scripts/template-thumbs/page.html`);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
   return page;
@@ -55,7 +54,7 @@ try {
   for (const e of entries) {
     const file = join(root, 'public', e.url);
     const have = await exists(file);
-    if (args.force || !have || (args.blank && (await detail(file)) < FLAT)) todo.push({ ...e, file });
+    if (args.force || !have || (args.blank && (await contentShare(file)) < FLAT)) todo.push({ ...e, file });
   }
   const limited = args.limit ? todo.slice(0, Number(args.limit)) : todo;
   console.log(`${entries.length} items, ${limited.length} to render`);
@@ -74,23 +73,27 @@ try {
       for (let attempt = 0; attempt < 4; attempt += 1) {
         try {
           await ready(page);
-          let best = null; let bestDetail = -1;
+          // The render is shot over a transparent page and composed into a tile (see template-thumbs/compose.mjs): a small element is
+          // cropped and enlarged, dark artwork goes on a light backdrop. Other moments are tried while nothing is drawn.
+          let best = null;
           for (const t of TRIES) {
             await page.evaluate((x) => window.__thumbs.render(x), { kind: e.kind, id: e.id, ...t });
-            const shot = await page.locator('#host').screenshot({ type: 'jpeg', quality: 74 });
-            const d = await detail(shot);
-            if (d > bestDetail) { best = shot; bestDetail = d; }
-            if (d >= FLAT) break;
+            const shot = await page.locator('#host').screenshot({ type: 'png', omitBackground: true });
+            const out = await composeStill(shot, { photo });
+            if (!best || out.coverage > best.coverage) best = out;
+            if (out.kind !== 'empty' && out.coverage >= 0.01) break;
           }
-          if (e.kind === 'mg' && bestDetail < EMPTY) {            // draws nothing in the sandbox: don't keep a blank picture, don't offer it
-            const why = (await page.evaluate(() => window.__thumbs.errors()))[0] || 'renders as an empty frame';
-            blocked.set(e.id, why); await unlink(e.file).catch(() => {});
+          if (best.kind === 'empty') {
+            if (e.kind === 'mg') {                                // draws nothing in the sandbox: don't keep a blank picture, don't offer it
+              const why = (await page.evaluate(() => window.__thumbs.errors()))[0] || 'renders as an empty frame';
+              blocked.set(e.id, why); await unlink(e.file).catch(() => {});
+            } else flat.push(`${e.kind}:${e.id} — nothing is drawn at any sampled moment (the existing still was kept)`);
             lastErr = null; break;
           }
           if (e.kind === 'mg') blocked.delete(e.id);
           await mkdir(dirname(e.file), { recursive: true });
-          await writeFile(e.file, best);
-          if (bestDetail < FLAT) flat.push(`${e.kind}:${e.id}${(await page.evaluate(() => window.__thumbs.errors())).length ? ` — ${(await page.evaluate(() => window.__thumbs.errors()))[0]}` : ''}`);
+          await writeFile(e.file, best.jpeg);
+          if (best.coverage < 0.01) flat.push(`${e.kind}:${e.id} — very little is drawn (${(best.coverage * 100).toFixed(2)}% of the frame)`);
           lastErr = null; break;
         } catch (err) {
           lastErr = err;
