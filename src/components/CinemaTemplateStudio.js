@@ -780,6 +780,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       formEl.addEventListener('keydown', (e) => {
         if (isGenerateShortcut(e)) { e.preventDefault(); generateVideo(); }
       });
+      // Correcting a field clears its invalid state; the message goes once none is left.
+      ['input', 'change'].forEach((evt) => formEl.addEventListener(evt, (e) => {
+        const t = e.target;
+        if (t && t.hasAttribute && t.hasAttribute('aria-invalid')) setFieldInvalid(t, false);
+        if (!formEl.querySelector('[aria-invalid]')) container.querySelector('#cin-required-error')?.remove();
+      }));
       formEl.addEventListener('input', () => {
         if (sceneTimelineDebounce) clearTimeout(sceneTimelineDebounce);
         sceneTimelineDebounce = setTimeout(() => {
@@ -2619,12 +2625,16 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     const formBuilder = new TemplateInputBuilder(currentTemplate, currentMode);
     const errors = formBuilder.validateInputs(currentInputs);
 
+    // Start from a clean slate, so a passing validation leaves no stale
+    // invalid state or error message behind.
+    const formRootNow = container.querySelector('#inputs-form');
+    if (formRootNow) formRootNow.querySelectorAll('[aria-invalid]').forEach((el) => setFieldInvalid(el, false));
+    container.querySelector('#cin-required-error')?.remove();
+
     if (errors.length > 0) {
       showToast(`Please fill in required fields: ${errors.map(e => e.field).join(', ')}`, 'error');
       const formRoot = container.querySelector('#inputs-form');
       if (formRoot) {
-        formRoot.querySelectorAll('[aria-invalid]').forEach((el) => setFieldInvalid(el, false));
-        container.querySelector('#cin-required-error')?.remove();
         const bad = errors.map((e) => formRoot.querySelector(`[name="${cssEscape(e.field)}"]`)).filter(Boolean);
         // A persistent message the invalid fields point to (the toast disappears).
         let errNote = container.querySelector('#cin-required-error');

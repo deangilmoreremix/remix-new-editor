@@ -368,7 +368,7 @@ export function TemplateStudio(templateId) {
       el.id = `ts-field-${input.name}`;
       el.setAttribute('aria-label', input.label || input.name);
       if (input.required) el.setAttribute('aria-required', 'true');
-      el.oninput = () => { formState[input.name] = el.value; setFieldInvalid(el, false); };
+      el.oninput = () => { formState[input.name] = el.value; setFieldInvalid(el, false); clearValidationErrorIfResolved(); };
       if (isPrimaryPrompt) {
         promptEl = el;
         primaryPromptField = el;
@@ -390,7 +390,7 @@ export function TemplateStudio(templateId) {
       select.dataset.inputName = input.name;
       select.id = `ts-field-${input.name}`;
       select.setAttribute('aria-label', input.label || input.name);
-      select.onchange = () => { formState[input.name] = select.value; };
+      select.onchange = () => { formState[input.name] = select.value; setFieldInvalid(select, false); clearValidationErrorIfResolved(); };
       fieldWrapper.appendChild(select);
       if (input.name === 'aspect_ratio') {
         // Shown when the selected model has no aspect-ratio setting.
@@ -1284,7 +1284,9 @@ export function TemplateStudio(templateId) {
     updateApiKeyIndicator();
   }, 100);
 
-  function showInlineError(container, message) {
+  // `persistent` errors (required-field validation) stay until the fields they
+  // describe are fixed, so aria-describedby never points at a missing element.
+  function showInlineError(container, message, { persistent = false } = {}) {
     let errEl = container.querySelector('.ts-inline-error');
     if (!errEl) {
       errEl = document.createElement('div');
@@ -1295,7 +1297,19 @@ export function TemplateStudio(templateId) {
     }
     errEl.innerHTML = message;
     clearTimeout(errEl.__dismissTimer);
-    errEl.__dismissTimer = setTimeout(() => { if (errEl && errEl.parentNode) errEl.remove(); }, 5000);
+    if (persistent) {
+      errEl.dataset.validation = '1';
+    } else {
+      delete errEl.dataset.validation;
+      errEl.__dismissTimer = setTimeout(() => { if (errEl && errEl.parentNode) errEl.remove(); }, 5000);
+    }
+  }
+
+  // Drops the required-field message once no field is marked invalid any more.
+  function clearValidationErrorIfResolved() {
+    if (leftPanel.querySelector('[aria-invalid]')) return;
+    const errEl = container.querySelector('.ts-inline-error[data-validation]');
+    if (errEl) errEl.remove();
   }
 
   function updateApiKeyIndicator() {
@@ -1336,9 +1350,10 @@ export function TemplateStudio(templateId) {
       const els = missing.map((m) => leftPanel.querySelector(`[data-input-name="${cssEscape(m.name)}"]`));
       els.forEach((el) => setFieldInvalid(el, true, 'ts-inline-error'));
       els.find(Boolean)?.focus();
-      showInlineError(container, `Please fill in: ${missing.map((m) => m.label || m.name).join(', ')}.`);
+      showInlineError(container, `Please fill in: ${missing.map((m) => m.label || m.name).join(', ')}.`, { persistent: true });
       return;
     }
+    clearValidationErrorIfResolved();
     saveTemplateInputs(template.id, allInputs, formState);
 
     // Validate that there's some prompt content to work with
