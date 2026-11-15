@@ -134,6 +134,15 @@ export function OutreachStudio() {
     modal.open();
   }
 
+  // The full Remotion Recorder (multi-camera, captions, scenes, B-roll, end card), exported in
+  // the browser and brought back as this campaign's video.
+  async function openFullRecorder() {
+    const { openRecorderStudio } = await import('../features/recorder/mount.tsx');
+    openRecorderStudio({
+      onUseVideo: (v) => addVideo(v.blob, { duration: v.durationInFrames / v.fps, hasAudio: true, type: 'recorder', name: v.name }),
+    });
+  }
+
   function renderRecord() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_360px]');
     const main = card('Record your video', 'Screen, camera, or both, with your microphone. Or upload a video you already have.');
@@ -152,13 +161,16 @@ export function OutreachStudio() {
     const file = el('input'); file.type = 'file'; file.accept = 'video/*'; file.hidden = true;
     file.addEventListener('change', () => { const f = file.files?.[0]; if (f) addVideo(f, { type: 'upload', name: f.name }); file.value = ''; });
     upload.addEventListener('click', () => file.click());
-    actions.append(rec, upload, file);
+    const pro = button('Full Recorder (captions, scenes, B-roll)');
+    pro.setAttribute('data-outreach-full-recorder', '');
+    pro.addEventListener('click', openFullRecorder);
+    actions.append(rec, upload, pro, file);
     main.append(preview, actions);
 
     const side = el('div', 'flex flex-col gap-5');
     const info = card('Your recording');
     info.appendChild(el('p', 'text-sm text-secondary', draft.video
-      ? `${fmtTime(draft.video.duration)} · ${draft.video.hasAudio ? 'with sound' : 'no sound'} · ${draft.video.type === 'both' ? 'screen + camera' : draft.video.type}`
+      ? `${fmtTime(draft.video.duration)} · ${draft.video.hasAudio ? 'with sound' : 'no sound'} · ${draft.video.type === 'both' ? 'screen + camera' : draft.video.type === 'recorder' ? 'made in the Recorder' : draft.video.type}`
       : 'Nothing recorded yet.'));
     if (draft.video && !draft.video.hasAudio) info.appendChild(el('p', 'text-xs text-amber-300', 'This video has no sound, so it cannot be used as your voice sample. You can still record a separate sample in the next step.'));
     const tips = card('Tips');

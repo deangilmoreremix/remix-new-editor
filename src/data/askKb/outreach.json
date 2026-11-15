@@ -20,6 +20,7 @@
   ],
   "keyFeatures": [
     "Record step with Screen, Camera, Both (face bubble over the screen) and Audio modes, or Upload a video",
+    "Full Recorder button: the browser Remotion Recorder (multiple cameras, captions, scenes, B-roll, end card); Use this video makes its export the campaign video",
     "Voice cloning from your recording or a separate 10 to 60 second voice sample, only after ticking 'This is my own voice'",
     "Stock voice option instead of cloning",
     "Greeting with {{firstname}} or {{company}}, up to 70 characters, with a first-name fallback (there or friend)",
@@ -32,7 +33,7 @@
   "featureExplanations": [
     {
       "feature": "Record",
-      "explanation": "Click Record to open the recorder; it defaults to Both (screen with a round camera bubble) and you can switch to Screen, Camera or Audio. Click Use Recording and the video is uploaded to your storage. Or click Upload a video. The Your recording card shows the length and whether it has sound.",
+      "explanation": "Click Record to open the recorder; it defaults to Both (screen with a round camera bubble) and you can switch to Screen, Camera or Audio. Click Use Recording and the video is uploaded to your storage. Or click Upload a video. The Your recording card shows the length and whether it has sound. Or click Full Recorder (captions, scenes, B-roll) to open the Recorder studio, export there, and click Use this video.",
       "whyToUse": "Every campaign starts from one video.",
       "inputRequired": "Camera, screen and microphone permission, or a video file.",
       "restrictions": "Uploading needs you to be signed in. Leave a two-second pause at the start: the personalized greeting plays there."
@@ -238,7 +239,8 @@
   "relatedStudios": [
     "leadfinder",
     "personalizer",
-    "avatar"
+    "avatar",
+    "recorder"
   ],
   "relatedStudioGuidance": [
     {

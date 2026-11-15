@@ -1,0 +1,197 @@
+{
+  "id": "recorder",
+  "name": "Recorder",
+  "route": "#/recorder",
+  "description": "The Remotion Recorder in your browser: record up to four sources at once (webcam, screen and two more cameras), then edit the video with scenes, captions, chapters, B-roll, music and an end card, and export it, without installing anything.",
+  "shortDescription": "Record webcam and screen together, add captions and scenes, export a finished video.",
+  "fullDescription": "Recorder (#/recorder, under Agents in the side menu) has three tabs. Record: pick a camera and microphone for Webcam, a screen or second camera for Display, and up to two more views with Show more views; each view has resolution, mirror, rotate and crop options, a volume meter and Rescan devices. Start recording (or press R), Stop recording, then Save to <project> keeps the take (it is converted in the browser and captions are made automatically), or discard it. Edit: the whole video plays in a preview; the Scenes list sets the layout (landscape or square), theme (light or dark) and platform, and each scene's type: Video (a take), Title, Table of contents, End card or Recorder intro, with webcam position, chapter titles, start and end trims, B-roll images or videos, music and transitions. Takes & captions lists every take with its screen and extra angles, makes or redoes captions, and imports outside videos. Click any caption word in the preview to fix it. Export renders the whole video in the browser to MP4 (Chrome and Edge) or WebM, with Download and Download captions (SRT). From Video Outreach, Full Recorder opens the same studio and Use this video sends the export back as the campaign video.",
+  "bestFor": "People who record talking-head, tutorial or screen-share videos and want captions, chapters and a polished end card without a video editor.",
+  "whenToUse": [
+    "You want to record your webcam and screen at the same time.",
+    "You want automatic captions you can correct word by word.",
+    "You want a finished video with title, chapters, B-roll and an end card.",
+    "You want a better-produced video for a Video Outreach campaign."
+  ],
+  "whenToUseAnother": [
+    "Use Video Outreach (#/outreach) to send one video to many contacts with their names spoken in your voice.",
+    "Use the Timeline Editor for free-form editing of any clips.",
+    "Use Avatar (#/avatar) for an AI presenter instead of recording yourself."
+  ],
+  "keyFeatures": [
+    "Up to four sources at once: Webcam, Display and two alternative views",
+    "Device pickers, Rescan devices, resolution limit, mirror, rotate and crop indicator",
+    "Volume meter, timer, R to start or stop",
+    "Save or discard each take; projects keep your takes in this browser",
+    "Captions made in the browser (Whisper), editable word by word, SRT download",
+    "Automatic trim to the first and last spoken word, with start and end offsets",
+    "Scenes: video takes, title, table of contents, end card, Recorder intro",
+    "Landscape (1920×1080) or square (1080×1080) layouts, light or dark theme",
+    "Chapters, B-roll images and videos, music with fades, transitions",
+    "End card with your own avatar, social handles and links",
+    "Export to MP4 or WebM in the browser"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Record",
+      "explanation": "Choose devices for each view, then Start recording. Every view is recorded as its own file. Save to <project> keeps them and makes captions.",
+      "whyToUse": "Recording separate files lets the editor lay out webcam and screen for you.",
+      "inputRequired": "Camera, microphone and screen permission.",
+      "restrictions": "Recording needs a recent Chrome, Edge or Firefox; takes stay in this browser."
+    },
+    {
+      "feature": "Scenes",
+      "explanation": "Each scene is a take, a title, a table of contents, an end card or an intro. Edit opens its settings; arrows reorder; ▶ jumps the preview to it.",
+      "whyToUse": "Build a full video from your takes.",
+      "inputRequired": "At least one scene.",
+      "restrictions": "Video scenes use takes in recording order."
+    },
+    {
+      "feature": "Captions",
+      "explanation": "Captions are made in your browser after each take, or with Generate captions. Click a word in the preview to correct it; changes save at once.",
+      "whyToUse": "Readable videos and trimmed silences.",
+      "inputRequired": "A take with sound.",
+      "restrictions": "The first run downloads the speech model (about 80 MB)."
+    },
+    {
+      "feature": "Export",
+      "explanation": "Export video renders everything into one file in the browser, with a progress bar and Stop.",
+      "whyToUse": "Get a finished video to download or use in Video Outreach.",
+      "inputRequired": "A project with scenes.",
+      "restrictions": "MP4 needs Chrome or Edge; other browsers export WebM."
+    }
+  ],
+  "howToUse": "Open Recorder, pick your camera and microphone, add your screen in Display, press Start recording, then Save. Switch to Edit to arrange scenes and fix captions, then Export.",
+  "howToSteps": [
+    "Open #/recorder.",
+    "Under Webcam pick your camera and microphone; under Display pick Screen capture.",
+    "Click Start recording (or press R), talk, then Stop recording.",
+    "Click Save to <project>; captions are made automatically.",
+    "Open Edit: set the layout and add a Title or End card scene.",
+    "Click a caption word to fix it.",
+    "Open Export and click Export video, then Download."
+  ],
+  "gettingStarted": [
+    "Allow camera, microphone and screen access when asked.",
+    "A project called my-video is created for you; create more in Edit."
+  ],
+  "inputs": [
+    "Camera",
+    "Microphone",
+    "Screen",
+    "Video files to import",
+    "B-roll images or videos"
+  ],
+  "requiredInputs": [
+    "A camera or a video file"
+  ],
+  "optionalInputs": [
+    "Screen",
+    "Extra cameras",
+    "B-roll",
+    "End card avatar and handles"
+  ],
+  "inputDetails": [
+    {
+      "name": "Webcam",
+      "description": "Your main camera and microphone.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "One microphone per take."
+    }
+  ],
+  "generationModes": [
+    "Landscape",
+    "Square"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Landscape",
+      "explanation": "1920×1080 with SRT-style captions and chapter labels."
+    },
+    {
+      "mode": "Square",
+      "explanation": "1080×1080 with animated boxed captions."
+    }
+  ],
+  "modelCapabilities": "Captions use a Whisper speech model that runs in your browser. Nothing is uploaded and there is no cost.",
+  "outputs": [
+    "MP4 or WebM video",
+    "SRT captions"
+  ],
+  "limitations": [
+    "Takes and projects are stored in this browser only.",
+    "MP4 export needs Chrome or Edge."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Projects stay in this browser",
+      "impact": "Another computer or a cleared browser won't have them.",
+      "workaround": "Export and download the video."
+    }
+  ],
+  "troubleshooting": [
+    "If no devices show, click Rescan devices and allow permissions.",
+    "If export says the browser cannot export, use Chrome or Edge."
+  ],
+  "troubleshootingSteps": [
+    "Allow camera and microphone in the browser's site settings, then Rescan devices."
+  ],
+  "commonProblems": [
+    "Captions contain words you didn't say during silence: delete them in the caption editor or use the start and end offsets."
+  ],
+  "exampleWorkflows": [
+    "Record a product demo with webcam and screen, add a Title and End card, export MP4."
+  ],
+  "useCases": [
+    "Tutorials",
+    "Product demos",
+    "Sales videos for Video Outreach"
+  ],
+  "faqs": [
+    {
+      "question": "Do I need to install anything?",
+      "answer": "No. Recording, captions and export all run in the browser."
+    },
+    {
+      "question": "Where are my takes saved?",
+      "answer": "In this browser, per project. Export to keep a copy."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "Take",
+      "definition": "One recording, with a file for each view."
+    },
+    {
+      "term": "Scene",
+      "definition": "One part of the final video: a take, a title, a table of contents, an end card or an intro."
+    }
+  ],
+  "tips": [
+    "Start talking a moment after you press record; Recorder trims the silence."
+  ],
+  "bestPractices": [
+    "Record each topic as its own take so each becomes its own scene and chapter."
+  ],
+  "relatedStudios": [
+    "outreach"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "Video Outreach",
+      "relationship": "Full Recorder in its Record step opens this studio.",
+      "whenToMove": "When you want to send the video to many contacts."
+    }
+  ],
+  "notConfirmed": [],
+  "sourceFiles": [
+    "src/features/recorder/",
+    "src/components/RecorderStudioPage.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Written from src/features/recorder; recording, captions (in-browser Whisper), scene editing, the caption editor and export were run in a local Chromium build with fake devices.",
+    "verifiedAt": "2026-11-15",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}
