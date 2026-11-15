@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', '9b9dc93320787dd9f6407e2e56366e571d9cad0b81a161deebb3a1d95a45557e'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check); semantic coverage in section 5
+        ['src/components/TimelineEditorPage.jsx', 'e9a555ec6c2d48335ba5546b605eca76ec9538e68f7ef2c76e005a027d40eb61'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check, prepare images); semantic coverage in section 5
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -1029,6 +1029,11 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain("import('../lib/personalization/layoutCheck.js')");
     expect(source).toContain('function applyRecommendedLayout()');
     expect(source).toContain('layoutCheck: layoutCheckData,');
+    // Prepare all contacts' images: free on-device cutouts through the shared
+    // cutout + batch code, saved through the same saveContactAsset as a single one.
+    expect(source).toContain("import { planPrepareImages, prepareImages } from '../lib/personalization/prepareImages.js';");
+    expect(source).toContain('async function prepareAllContactImages(redraw)');
+    expect(source).toContain('cutout: (asset, item) => cutoutAsset(asset,');
     expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
     expect(source).not.toMatch(BROWSER_EXPOSED_KEY);
     // The cutout module reaches storage only through the studio's persistence
@@ -1038,6 +1043,9 @@ describe('protected files — semantic integrity assertions', () => {
     const layoutCheckModule = readSource('src/lib/personalization/layoutCheck.js');
     expect(layoutCheckModule).not.toMatch(/\bfetch\(|XMLHttpRequest|import\.meta\.env/);
     expect(layoutCheckModule).not.toMatch(DIRECT_PROVIDER_FETCH);
+    const prepareModule = readSource('src/lib/personalization/prepareImages.js');
+    expect(prepareModule).not.toMatch(/\bfetch\(|XMLHttpRequest|import\.meta\.env/);
+    expect(prepareModule).not.toMatch(DIRECT_PROVIDER_FETCH);
     const cutout = readSource('src/lib/personalization/backgroundCutout.js');
     expect(cutout).toContain('editedAssetPersistence');
     expect(cutout).not.toMatch(DIRECT_PROVIDER_FETCH);

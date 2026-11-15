@@ -12,4 +12,4 @@ export function runBatch<I extends BatchItem, T = unknown>(
     onItem?: (result: BatchResult<T>, index: number) => void | Promise<void>
   },
 ): Promise<BatchOutcome<T>>
-export function summarizeBatch(outcome: BatchOutcome, opts?: { noun?: string }): string
+export function summarizeBatch(outcome: BatchOutcome, opts?: { noun?: string; verb?: string }): string

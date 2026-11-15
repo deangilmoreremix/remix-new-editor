@@ -62,5 +62,6 @@ describe('summarizeBatch', () => {
     expect(summarizeBatch({ results: [{ ok: true, name: 'A' }, { ok: true, name: 'B' }] })).toBe('Exported 2 videos');
     expect(summarizeBatch({ results: [{ ok: true, name: 'A' }, { ok: false, name: 'Raj', error: 'no image' }] })).toBe('Exported 1 of 2. Failed: Raj (no image)');
     expect(summarizeBatch({ results: [{ ok: true, name: 'A' }], cancelled: true })).toBe('Exported 1 of 1 (cancelled)');
+    expect(summarizeBatch({ results: [{ ok: true, name: 'A' }, { ok: true, name: 'B' }] }, { noun: 'image', verb: 'Prepared' })).toBe('Prepared 2 images');
   });
 });

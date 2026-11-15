@@ -46,6 +46,7 @@ import { makePersonalizationAssetVideoReady } from '../lib/personalization/video
 import { persistPersonalizationAssetVersion } from '../lib/personalization/assetDiscoveryService.js';
 import { buildRevertPatch, cutoutAsset } from '../lib/personalization/backgroundCutout.js';
 import { runBatch, summarizeBatch, uniqueFileName } from '../lib/personalization/batchExport.js';
+import { planPrepareImages, prepareImages } from '../lib/personalization/prepareImages.js';
 import { isCutoutAsset } from '../lib/personalization/assetUrl.js';
 import { BRIDGE_SOURCE, layersToTimelineOverlays, timelineOverlaysToLayers } from '../lib/personalization/layerOverlayBridge.js';
 import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
@@ -5029,6 +5030,45 @@ export function TimelineEditorPage() {
       showToast(`Updated ${plan.length} overlay${plan.length === 1 ? '' : 's'} from Personalize`, 'success');
     }
 
+    // Prepare all contacts' images: free on-device background removal for the
+    // logo / photo / product image each contact's video uses, in one batch.
+    let prepareRun = null; // { abort, progress, message } while running
+    function prepareInfo() {
+      const keys = projectImageKeys();
+      const { items } = planPrepareImages(listContactProfiles(contactStore), keys, { contactName });
+      return { hasKeys: keys.length > 0, items, running: prepareRun ? { progress: prepareRun.progress, message: prepareRun.message } : null };
+    }
+    async function prepareAllContactImages(redraw) {
+      if (prepareRun) return;
+      const { items } = prepareInfo();
+      if (!items.length) { showToast('Every contact image this video uses is already prepared', 'info'); return; }
+      if (!window.confirm(`Remove the background from ${items.length} image${items.length === 1 ? '' : 's'}? It runs on this device and is free. The first time it downloads a ~192 MB model.`)) return;
+      const abort = new AbortController();
+      prepareRun = { abort, progress: 0, message: 'Starting…' };
+      redraw?.();
+      try {
+        const outcome = await prepareImages({
+          items,
+          signal: abort.signal,
+          cutout: (asset, item) => cutoutAsset(asset, { clientId: item.profileId, signal: abort.signal }),
+          save: (profile, assetId, patch) => saveContactAsset(contactStore.getProfile?.(profile.id) || profile, assetId, () => patch),
+          onProgress: (overall, info) => {
+            prepareRun.progress = Math.round(overall * 100);
+            prepareRun.message = `${Math.min(info.index + 1, info.total)} of ${info.total} · ${info.item.name}`;
+            if (info.stage !== 'render') redraw?.();
+          },
+        });
+        measureLogos();
+        const failed = outcome.results.some((r) => !r.ok);
+        showToast(summarizeBatch(outcome, { noun: 'image', verb: 'Prepared' }), failed ? 'error' : 'success');
+      } catch (err) {
+        showToast(`Preparing images failed: ${err?.message || err}`, 'error');
+      } finally {
+        prepareRun = null;
+        redraw?.();
+      }
+    }
+
     // Layout check (free): the Personalize window's layout-quality engine on the
     // overlays shared with it. Loaded on first use.
     let layoutCheckModule = null;
@@ -8898,6 +8938,9 @@ export function TimelineEditorPage() {
           select: (id) => contactStore.selectContact(id),
           addText: addSmartText,
           images: () => listTimelineImageAssets(activeContact()),
+          prepareInfo,
+          prepareAll: prepareAllContactImages,
+          cancelPrepare: () => prepareRun?.abort.abort(),
           layoutCheck: layoutCheckData,
           applyRecommended: applyRecommendedLayout,
           showLayer: showBridgedLayer,

@@ -66,13 +66,13 @@ export async function runBatch(items, renderOne, { signal, onProgress, onItem } 
 }
 
 /** One line for a toast / status: "Exported 4 of 5. Failed: Raj (reason)". */
-export function summarizeBatch({ results = [], cancelled = false } = {}, { noun = 'video' } = {}) {
+export function summarizeBatch({ results = [], cancelled = false } = {}, { noun = 'video', verb = 'Exported' } = {}) {
   const ok = results.filter((r) => r.ok).length;
   const failed = results.filter((r) => !r.ok);
   const plural = (n) => `${n} ${noun}${n === 1 ? '' : 's'}`;
   let text = failed.length || cancelled
-    ? `Exported ${ok} of ${results.length}`
-    : `Exported ${plural(ok)}`;
+    ? `${verb} ${ok} of ${results.length}`
+    : `${verb} ${plural(ok)}`;
   if (cancelled) text += ' (cancelled)';
   if (failed.length) text += `. Failed: ${failed.map((f) => `${f.name} (${f.error})`).join(', ')}`;
   return text;

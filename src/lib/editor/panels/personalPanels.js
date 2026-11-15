@@ -40,6 +40,22 @@ const layoutSection = (s) => {
     ${fixable ? '<button type="button" class="pz-btn pz-btn-primary pz-btn-xs" data-apply-recommended="1">Apply recommended placement</button>' : ''}
     <p class="pz-hint">${esc(report.notes[report.notes.length - 1] || '')} Only overlays made in the Personalize window are checked.</p>`;
 };
+const prepareSection = (s) => {
+  const info = s.prepareInfo?.();
+  if (!info) return '';
+  if (info.running) {
+    return `<span class="pz-label">Prepare images</span>
+      <div class="pz-card"><p class="pz-hint" style="margin:0" role="status">Removing backgrounds… ${esc(String(info.running.progress))}% · ${esc(info.running.message)}</p>
+      <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-prepare-cancel="1">Cancel</button></div>`;
+  }
+  if (!info.hasKeys) return '<span class="pz-label">Prepare images</span><p class="pz-hint">Add a Personalized Image (or a layout) to prepare every contact\'s images for it.</p>';
+  const left = info.items.length;
+  return `<span class="pz-label">Prepare images</span>
+    <div class="pz-card">${left
+    ? `<p class="pz-hint" style="margin:0">${left} contact image${left === 1 ? '' : 's'} used by this video still ha${left === 1 ? 's' : 've'} a background. Free, on this device.</p>
+       <button type="button" class="pz-btn pz-btn-primary pz-btn-xs" data-prepare-all="1">✂️ Prepare all contacts' images (${left})</button>`
+    : '<p class="pz-hint" style="margin:0">✓ Every contact image this video uses is already prepared.</p>'}</div>`;
+};
 const wrap = (inner) => `<div class="pz-ui rp">${inner}</div>`;
 
 /** [{ key, label, value }] for the details a contact actually has. */
@@ -75,6 +91,7 @@ export function renderPersonalizationPanel(el, s) {
         : '<p class="pz-hint">This contact has no details yet. Add them in the Personalize window (including Find a Business).</p>')
         : '<p class="pz-hint">Pick a contact, or add contacts in the Personalize window.</p>'}
       ${active ? imageGrid(s) : ''}
+      ${prepareSection(s)}
       ${active ? layoutSection(s) : ''}`);
   };
   el.onchange = (e) => { if (e.target.dataset?.rp === 'contact') { s.select(e.target.value || null); } };
@@ -83,6 +100,8 @@ export function renderPersonalizationPanel(el, s) {
     if (!b) return;
     if (b.dataset.rp === 'open') s.openPersonalize();
     else if (b.dataset.add) s.addText(`{{${b.dataset.add}}}`);
+    else if (b.dataset.prepareAll) s.prepareAll?.(draw);
+    else if (b.dataset.prepareCancel) s.cancelPrepare?.();
     else if (b.dataset.showLayer) s.showLayer?.(b.dataset.showLayer);
     else if (b.dataset.applyRecommended) { s.applyRecommended?.(); draw(); }
     else if (b.dataset.cutout) s.removeBackground?.(b.dataset.cutout, draw);
