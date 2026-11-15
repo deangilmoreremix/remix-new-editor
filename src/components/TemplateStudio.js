@@ -1,6 +1,8 @@
 import { getTemplateById } from '../lib/templates.js';
 import { showToast } from '../lib/loading.js';
-import { buildShareUrl, decodeShareValues, addRecentTemplate, buildExampleValues, saveTemplateInputs, loadTemplateInputs, missingRequiredInputs, applyValuesToForm, cssEscape, setFieldInvalid, isGenerateShortcut } from '../lib/templateUx.js';
+import { createTemplateCost } from '../lib/templateCost.js';
+import { formatActualCost } from '../lib/templateUx.js';
+import { createPresetsControl, createTipStrip, buildShareUrl, decodeShareValues, addRecentTemplate, buildExampleValues, saveTemplateInputs, loadTemplateInputs, missingRequiredInputs, applyValuesToForm, cssEscape, setFieldInvalid, isGenerateShortcut } from '../lib/templateUx.js';
 import { normalizeTemplate } from '../lib/templateAdapter.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
@@ -27,7 +29,7 @@ import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { composeTemplatePrompt, defaultCreativeTiles, detectTemplateNiche } from '../lib/templatePromptComposer.js';
 import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
-import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, snapshotGenerationParams } from '../lib/templateResultTools.js';
+import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, snapshotGenerationParams, snapshotFormInputs } from '../lib/templateResultTools.js';
 import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
@@ -84,6 +86,8 @@ export function TemplateStudio(templateId) {
   let isGenerating = false;
   let lastGeneratedUrl = '';
   let mediaRouteBadge = null;
+  // Re-prices the estimate under Generate (set once that line exists).
+  let costEstimateRefresh = () => {};
   let aspectRatioNote = null;
   // Set by the model picker: switches its model list when the route changes.
   let syncModelPickerToRoute = null;
@@ -129,6 +133,7 @@ export function TemplateStudio(templateId) {
     if (syncModelPickerToRoute) syncModelPickerToRoute(route);
     if (videoSettings) videoSettings.refresh();
     if (videoTools) videoTools.refresh();
+    costEstimateRefresh();
   }
   // Validate the template's default model against its modelType so video
   // generation always starts with a real, type-compatible model ID.
@@ -191,11 +196,13 @@ export function TemplateStudio(templateId) {
 
   // Main content area
   const main = document.createElement('main');
-  main.className = 'flex-1';
+  // min-w-0 lets this flex child shrink to the viewport instead of growing to
+  // its widest content (which pushed the form off-screen on phones).
+  main.className = 'flex-1 min-w-0';
 
   // Content area with padding
   const contentArea = document.createElement('div');
-  contentArea.className = 'px-8 py-10';
+  contentArea.className = 'px-4 py-6 sm:px-8 sm:py-10';
 
   // Back button
   const backBtn = document.createElement('button');
@@ -203,6 +210,8 @@ export function TemplateStudio(templateId) {
   backBtn.innerHTML = '&larr; Back to Templates';
   backBtn.onclick = () => navigate('templates');
   contentArea.appendChild(backBtn);
+  const tipStrip = createTipStrip();
+  if (tipStrip) contentArea.appendChild(tipStrip);
 
   // Centered template container
   const centeredContainer = document.createElement('div');
@@ -269,7 +278,7 @@ export function TemplateStudio(templateId) {
 
   // Title
   const title = document.createElement('h1');
-  title.className = 'text-5xl font-semibold tracking-tight';
+  title.className = 'text-3xl sm:text-5xl font-semibold tracking-tight break-words';
   title.textContent = template.name;
   heroSection.appendChild(title);
 
@@ -296,7 +305,7 @@ export function TemplateStudio(templateId) {
 
   // Left panel - Form inputs
   const leftPanel = document.createElement('div');
-  leftPanel.className = 'rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
+  leftPanel.className = 'min-w-0 rounded-[24px] sm:rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-4 sm:p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
 
   // Identify the primary prompt field. Templates usually have one input
   // with name === 'prompt'; if not, fall back to the first text/textarea
@@ -322,7 +331,7 @@ export function TemplateStudio(templateId) {
     const label = document.createElement('div');
     label.className = 'mb-3 flex items-center justify-between gap-3';
     label.innerHTML = `
-      <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">${input.label}</div>
+      <label for="ts-field-${input.name}" class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">${input.label}</label>
       ${showTextButtons ? `
         <div class="flex items-center gap-2">
           <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
@@ -356,6 +365,7 @@ export function TemplateStudio(templateId) {
       }
       el.placeholder = input.placeholder || '';
       el.dataset.inputName = input.name;
+      el.id = `ts-field-${input.name}`;
       el.setAttribute('aria-label', input.label || input.name);
       if (input.required) el.setAttribute('aria-required', 'true');
       el.oninput = () => { formState[input.name] = el.value; setFieldInvalid(el, false); };
@@ -378,6 +388,7 @@ export function TemplateStudio(templateId) {
         formState[input.name] = input.options[0];
       }
       select.dataset.inputName = input.name;
+      select.id = `ts-field-${input.name}`;
       select.setAttribute('aria-label', input.label || input.name);
       select.onchange = () => { formState[input.name] = select.value; };
       fieldWrapper.appendChild(select);
@@ -714,6 +725,7 @@ export function TemplateStudio(templateId) {
     if (outputType === 'video') {
       // Same per-model controls as the Video Studio prompt bar.
       videoSettings = createVideoSettingsControls({
+        onChange: () => costEstimateRefresh(),
         getTarget: () => {
           const { route, model } = currentMediaRoute();
           return { route, model };
@@ -931,7 +943,30 @@ export function TemplateStudio(templateId) {
     }
   };
   leftPanel.appendChild(shareBtn);
+  const presetsControl = createPresetsControl({
+    templateId: template.id,
+    getValues: () => {
+      const values = {};
+      allInputs.forEach((input) => {
+        if (input && input.name && ['text', 'textarea', 'select'].includes(input.type) && typeof formState[input.name] === 'string') values[input.name] = formState[input.name];
+      });
+      return values;
+    },
+    applyValues: (values) => applyValuesToForm(leftPanel, values),
+    notify: (msg, type) => showToast(msg, type),
+  });
+  leftPanel.appendChild(presetsControl.element);
   leftPanel.appendChild(genBtn);
+  // Estimated price for one generation (best-effort; hidden when unavailable).
+  const costEstimate = createTemplateCost({
+    getRequest: () => {
+      const { model } = currentMediaRoute();
+      return { model, settings: videoSettings ? videoSettings.getSettings() : {} };
+    },
+  });
+  leftPanel.appendChild(costEstimate.element);
+  costEstimateRefresh = () => costEstimate.refresh();
+  costEstimate.refresh();
   // Ctrl/Cmd+Enter generates from anywhere in the form.
   leftPanel.addEventListener('keydown', (e) => {
     if (isGenerateShortcut(e)) { e.preventDefault(); genBtn.click(); }
@@ -1043,7 +1078,7 @@ export function TemplateStudio(templateId) {
 
   // Right panel - Preview and Output
   const rightPanel = document.createElement('div');
-  rightPanel.className = 'space-y-5';
+  rightPanel.className = 'min-w-0 space-y-5';
 
   // Preview section
   const previewSection = document.createElement('div');
@@ -1080,6 +1115,7 @@ export function TemplateStudio(templateId) {
   const resultActions = createResultActions({
     onRegenerate: () => regenerateShown(),
     onExtend: (entry, opts) => extendResult(entry, opts),
+    onReuse: (entry) => reuseInputs(entry),
   });
   let currentResultEntry = null;
   let lastRequestId = null;
@@ -1491,9 +1527,12 @@ export function TemplateStudio(templateId) {
           templateId: template.id,
           regenParams,
           regenRoute: route,
+          inputs: collectReusableInputs(),
         };
         resultHistory.add(entry);
         showResult(result.url, entry);
+        const spent = formatActualCost(result);
+        if (spent) showToast(spent, 'info');
         saveToHistory(result.url, params.prompt || template.name, params.model || selectedModel, template.outputType || 'video');
         retryCount = 0; // Reset on success
         updateApiKeyIndicator();
@@ -1608,6 +1647,45 @@ export function TemplateStudio(templateId) {
       return;
     }
     showToast("This result's settings weren't saved, so it can't be re-run. Adjust the form and press Generate.", 'warning');
+  }
+
+  // Form values behind a result, kept on its history entry ("Use these inputs").
+  function collectReusableInputs() {
+    const fields = {};
+    allInputs.forEach((input) => {
+      if (input && input.name && ['text', 'textarea', 'select'].includes(input.type) && typeof formState[input.name] === 'string') {
+        fields[input.name] = formState[input.name];
+      }
+    });
+    const advanced = {};
+    leftPanel.querySelectorAll('[data-advanced-field]').forEach((el) => { advanced[el.dataset.advancedField] = el.value; });
+    return snapshotFormInputs({ fields, advanced, tiles: { ...tileState }, model: selectedModel });
+  }
+
+  // Put a result's saved inputs back in the form so they can be edited.
+  function reuseInputs(entry) {
+    const saved = entry && entry.inputs;
+    if (!saved) return;
+    if (entry.templateId && entry.templateId !== template.id) {
+      showToast('These inputs belong to another template. Open that template to reuse them.', 'warning');
+      return;
+    }
+    applyValuesToForm(leftPanel, saved.fields || {});
+    Object.entries(saved.advanced || {}).forEach(([name, value]) => {
+      const el = leftPanel.querySelector(`[data-advanced-field="${cssEscape(name)}"]`);
+      if (!el) return;
+      el.value = value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    Object.entries(saved.tiles || {}).forEach(([name, value]) => {
+      const el = leftPanel.querySelector(`[data-tile="${cssEscape(name)}"]`);
+      if (!el || typeof value !== 'string') return;
+      el.value = value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    leftPanel.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    showToast('Inputs loaded. Edit anything, then press Generate.', 'info');
   }
 
   function showResult(url, entry) {
