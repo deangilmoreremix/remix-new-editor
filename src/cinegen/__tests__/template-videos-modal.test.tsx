@@ -19,10 +19,11 @@ describe('TemplateVideosModal', () => {
     render(<TemplateVideosModal onClose={onClose} onPick={onPick} />);
   });
 
-  it('shows every clip under All, with per-category counts that add up to the total', () => {
-    expect(ALL.length).toBeGreaterThan(150);
+  it('shows every clip under All, with per-group counts that add up to the total', () => {
+    expect(ALL.length).toBeGreaterThan(500);
     expect(tab(/^▦All/).textContent).toContain(String(ALL.length));
     const tabs = screen.getAllByRole('tab').filter((t) => !/^▦All/.test(t.textContent ?? ''));
+    expect(tabs.length).toBeGreaterThan(10);
     const sum = tabs.reduce((n, t) => n + Number((t.textContent ?? '').match(/(\d+)$/)?.[1] ?? 0), 0);
     expect(sum).toBe(ALL.length);
   });
@@ -34,11 +35,21 @@ describe('TemplateVideosModal', () => {
     expect(cards()).toHaveLength(48);
   });
 
-  it('filters by category tab', () => {
-    fireEvent.click(tab(/Fashion/));
-    const expected = ALL.filter((v) => v.category === 'Fashion').length;
-    expect(cards()).toHaveLength(expected);
-    expect(screen.getByText(new RegExp(`Showing ${expected} of ${expected} videos`))).toBeTruthy();
+  it('filters by group chip', () => {
+    fireEvent.click(tab(/Food & Drink/));
+    const expected = ALL.filter((v) => v.group === 'Food & Drink').length;
+    expect(expected).toBeGreaterThan(5);
+    expect(cards()).toHaveLength(Math.min(24, expected));
+    expect(screen.getByText(new RegExp(`Showing ${Math.min(24, expected)} of ${expected} videos`))).toBeTruthy();
+  });
+
+  it('filters by Type and keeps the chip counts in step with it', () => {
+    fireEvent.change(screen.getByLabelText('Video type'), { target: { value: 'Commercial' } });
+    const typed = ALL.filter((v) => v.category === 'Commercial').length;
+    expect(screen.getByText(new RegExp(`of ${typed} videos`))).toBeTruthy();
+    const tabs = screen.getAllByRole('tab').filter((t) => !/^▦All/.test(t.textContent ?? ''));
+    const sum = tabs.reduce((n, t) => n + Number((t.textContent ?? '').match(/(\d+)$/)?.[1] ?? 0), 0);
+    expect(sum).toBe(typed);
   });
 
   it('searches titles, and shows an empty state when nothing matches', () => {
@@ -48,23 +59,6 @@ describe('TemplateVideosModal', () => {
     fireEvent.change(screen.getByLabelText('Search template videos'), { target: { value: 'zzzz-no-such-clip' } });
     expect(cards()).toHaveLength(0);
     expect(screen.getByText(/No template videos match your search/)).toBeTruthy();
-  });
-
-  it('shows a subcategory row for the chosen category and filters by it, with counts that add up', () => {
-    expect(screen.queryByRole('tablist', { name: 'Template video subcategories' })).toBeNull();
-    fireEvent.click(tab(/^◈Commercial/));
-    const row = within(screen.getByRole('tablist', { name: 'Template video subcategories' }));
-    const chips = row.getAllByRole('tab').filter((c) => !/^All/.test(c.textContent ?? ''));
-    expect(chips.length).toBeGreaterThan(3);
-    const sum = chips.reduce((n, c) => n + Number((c.textContent ?? '').match(/(\d+)$/)?.[1] ?? 0), 0);
-    const total = ALL.filter((v) => v.category === 'Commercial').length;
-    expect(sum).toBe(total);
-    fireEvent.click(row.getByRole('tab', { name: /^Food & Beverage/ }));
-    const expected = ALL.filter((v) => v.category === 'Commercial' && v.subcategory === 'Food & Beverage').length;
-    expect(screen.getByText(new RegExp(`of ${expected} videos`))).toBeTruthy();
-    // switching category resets the subcategory
-    fireEvent.click(tab(/^⚡Action/));
-    expect(screen.getByText(new RegExp(`of ${ALL.filter((v) => v.category === 'Action').length} videos`))).toBeTruthy();
   });
 
   it('filters by duration', () => {
@@ -79,6 +73,24 @@ describe('TemplateVideosModal', () => {
     expect(searchTemplateVideos(ALL, v.title).map((x) => x.id)).toContain(v.id);
     expect(searchTemplateVideos(ALL, v.sourceTitle).map((x) => x.id)).toContain(v.id);
     expect(searchTemplateVideos(ALL, 'food & beverage').length).toBeGreaterThan(3);
+  });
+
+  it('labels every card No logo or Has logo and filters by that label', () => {
+    const badges = () => [...document.querySelectorAll('[data-branding]')].map((b) => b.getAttribute('data-branding'));
+    expect(badges().every((b) => b === 'none' || b === 'logo')).toBe(true);
+    expect(badges()).toHaveLength(cards().length);
+    fireEvent.change(screen.getByLabelText('Logo filter'), { target: { value: 'none' } });
+    const none = ALL.filter((v) => v.branding === 'none').length;
+    expect(none).toBeGreaterThan(0);
+    expect(screen.getByText(new RegExp(`of ${none} videos`))).toBeTruthy();
+    expect(badges().every((b) => b === 'none')).toBe(true);
+    expect(screen.getAllByText('No logo').length).toBeGreaterThan(0);
+    fireEvent.change(screen.getByLabelText('Logo filter'), { target: { value: 'logo' } });
+    const logo = ALL.filter((v) => v.branding === 'logo').length;
+    expect(logo).toBeGreaterThan(0);
+    expect(screen.getByText(new RegExp(`of ${logo} videos`))).toBeTruthy();
+    expect(badges().every((b) => b === 'logo')).toBe(true);
+    expect(none + logo).toBe(ALL.length);
   });
 
   it('filters by aspect ratio', () => {
