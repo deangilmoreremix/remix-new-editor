@@ -275,6 +275,7 @@ export function timelineFromRows(
     ...(tlRow['fit'] === 'contain' || tlRow['fit'] === 'cover' ? { fit: tlRow['fit'] as 'contain' | 'cover' } : {}),
     ...(typeof tlRow['aspect'] === 'string' ? { aspect: tlRow['aspect'] as string } : {}),
     ...(typeof tlRow['master_volume'] === 'number' ? { masterVolume: tlRow['master_volume'] as number } : {}), // [remix] Stage 4
+    ...(typeof tlRow['range_in'] === 'number' || typeof tlRow['range_out'] === 'number' ? { range: { in: typeof tlRow['range_in'] === 'number' ? tlRow['range_in'] as number : null, out: typeof tlRow['range_out'] === 'number' ? tlRow['range_out'] as number : null } } : {}), // [remix] Fix B2
   };
 }
 

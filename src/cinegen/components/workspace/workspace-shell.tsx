@@ -1340,6 +1340,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         transitions: tl.transitions.map((tr) => transitionToRow(tr, tl.id)),
         markers: JSON.stringify(tl.markers ?? []),
         master_volume: tl.masterVolume ?? null, // [remix] Stage 4
+        range_in: tl.range?.in ?? null, range_out: tl.range?.out ?? null, // [remix] Fix B2
       }));
 
       const dbState = {

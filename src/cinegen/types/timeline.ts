@@ -132,6 +132,8 @@ export interface Timeline {
   fit?: 'contain' | 'cover';
   /** [remix] Stage 4: master volume 0 to 1 (absent = 1). Preview master gain; export multiplies every clip volume. */
   masterVolume?: number;
+  /** [remix] Fix B2: timeline in / out points in seconds (loop + export range; lib/editor/range/timeline-range.ts) */
+  range?: { in: number | null; out: number | null };
 }
 
 /** Effective duration of a clip (what plays on the timeline). */
