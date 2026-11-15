@@ -65,11 +65,11 @@ function pieces(clip: Clip, speeds: number[]): Clip[] {
 export interface RampResult { timeline: Timeline; clipIds: string[] }
 
 /** Replace the clip (and its linked clips) by a stepped speed ramp. Clips after it on the same tracks ripple by the length change. */
-export function applySpeedRamp(timeline: Timeline, clipId: string, points: RampPoint[], opts: { steps?: number; ripple?: boolean } = {}): RampResult {
+export function applySpeedRamp(timeline: Timeline, clipId: string, points: RampPoint[], opts: { steps?: number; ripple?: boolean; /** [remix] Stage 11: explicit constant speed per piece (the speed-curve path) */ speeds?: number[] } = {}): RampResult {
   const clip = timeline.clips.find((c) => c.id === clipId);
   if (!clip || !points.length || clip.compound) return { timeline, clipIds: [] };
   const steps = Math.max(2, Math.min(32, Math.round(opts.steps ?? DEFAULT_RAMP_STEPS)));
-  const speeds = rampSpeeds(points, steps);
+  const speeds = opts.speeds?.length ? opts.speeds.map(clampSpeed) : rampSpeeds(points, steps);
   const group = [clip, ...(clip.linkedClipIds ?? []).map((id) => timeline.clips.find((c) => c.id === id)).filter((c): c is Clip => !!c)];
   const groupIds = new Set(group.map((c) => c.id));
   const made = new Map<string, Clip[]>(group.map((c) => [c.id, pieces(c, speeds)]));
