@@ -5,6 +5,7 @@ import type { Asset } from '@cinegen/types/project';
 import type { PlaybackProxyMode } from '@cinegen/lib/editor/playback-engine';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { detectCapabilities, summarizeCapabilities, type Capability } from '@cinegen/lib/perf/capabilities';
+import { persistLocalMedia } from '@cinegen/adapters/local-media-restore';
 import { matchRelinks, probeSource } from '@cinegen/lib/perf/relink';
 import { PreviewQualityMonitor } from '@cinegen/lib/perf/adaptive-quality';
 import { jobs } from '@cinegen/lib/perf/jobs';
@@ -74,6 +75,7 @@ export function MediaHealth({ assets, isPlaying, proxyMode, setProxyMode, update
     for (const m of matches) {
       const url = URL.createObjectURL(files[m.fileIndex]);
       updateAsset({ id: m.assetId, fileRef: url, url, status: 'online' });
+      void persistLocalMedia(m.assetId, url); // [remix] Fix B1: a relinked file survives the next reload too
       setStatus((s) => ({ ...s, [m.assetId]: true }));
     }
     setMsg(matches.length ? `Relinked ${matches.length} of ${missing.length}: ${matches.map((m) => `${assets.find((a) => a.id === m.assetId)?.name} (${m.reasons.join(', ')})`).join('; ')}` : 'No picked file matched the missing media by name, size or duration.');

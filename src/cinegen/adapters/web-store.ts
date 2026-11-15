@@ -3,6 +3,7 @@
 // lives: IndexedDB in the browser instead of files under CINEGEN_WEB_DATA_ROOT. It backs `project.*`, `db.*` and
 // `elements.{load,save}Library`, the same RPC methods CineGen's web server exposes (buildRpcHandlers).
 import { registerElectronApi } from './electron-shim';
+import { localBlobStore } from '@cinegen/lib/media/local-blob-store';
 
 const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
 const DB_NAME = 'remix-cinegen-web';
@@ -385,7 +386,7 @@ export function registerWebStore() {
     createProject: (name: unknown) => store.create(name),
     loadProject: (id: unknown) => store.load(id),
     saveProject: async (id: unknown, state: unknown) => { await store.save(id, state); },
-    deleteProject: (id: unknown) => store.delete(id),
+    deleteProject: async (id: unknown) => { await store.delete(id); void localBlobStore.removeProject(String(id)); }, // [remix] Fix B1
     closeProject: async () => {},
     updateProject: async (id: unknown, data: unknown) => { await store.patchProject(id, data); },
     insertAsset: (asset: unknown) => store.insertAsset(asset),

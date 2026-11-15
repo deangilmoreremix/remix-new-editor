@@ -9,6 +9,7 @@ import { extractFilmstripFrames } from '@cinegen/lib/editor/filmstrip';
 import { uploadFileToStorage } from '../../lib/supabase.js';
 import { generateProxyBlob } from '@cinegen/lib/perf/proxy-job'; // [remix] Stage 4: cancellable proxies
 import { jobs as longJobs } from '@cinegen/lib/perf/jobs';
+import { persistLocalMedia } from './local-media-restore'; // [remix] Fix B1: keep imported files across reloads
 
 type JobEvent = { jobId: string; assetId?: string; jobType?: string; result?: unknown; error?: string };
 const completeListeners = new Set<(e: JobEvent) => void>();
@@ -205,6 +206,7 @@ export const webMediaApi = {
         const assetId = `asset-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
         const jobs = type === 'video' ? ['extract_metadata', 'generate_thumbnail', 'compute_waveform', 'generate_filmstrip']
           : type === 'audio' ? ['extract_metadata', 'compute_waveform'] : ['extract_metadata', 'generate_thumbnail'];
+        void persistLocalMedia(assetId, filePath); // [remix] Fix B1
         // Run after the caller has added the asset (events for unknown assets are queued by the workspace anyway).
         setTimeout(() => { for (const job of jobs) void runJob(assetId, filePath, job); }, 0);
         return { assetId, filePath, type };
@@ -218,6 +220,7 @@ export const webMediaApi = {
       webFiles.set(url, { name, type: file.type, size: file.size });
       (window as unknown as { __remixFileNames: Map<string, string> }).__remixFileNames.set(url, name);
       const assetId = `asset-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+      void persistLocalMedia(assetId, url); // [remix] Fix B1
       setTimeout(() => { for (const job of ['extract_metadata', 'compute_waveform']) void runJob(assetId, url, job); }, 0);
       return { assetId, filePath: url, type: 'audio' as const };
     },
