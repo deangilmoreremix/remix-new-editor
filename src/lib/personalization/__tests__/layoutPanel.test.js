@@ -19,7 +19,7 @@ describe('Layout check section', () => {
   });
   it('says it is loading, then explains what is needed when there are no overlays', () => {
     expect(mount(base({ loading: true })).textContent).toContain('Loading');
-    expect(mount(base({ hasLayers: false })).textContent).toMatch(/Add overlays from Open Personalize/);
+    expect(mount(base({ hasLayers: false })).textContent).toMatch(/no text or image overlays on the timeline/);
     expect(mount(base({ hasLayers: false, message: 'Pick a contact first.' })).textContent).toContain('Pick a contact first.');
   });
   it('shows a clean report', () => {
@@ -53,5 +53,25 @@ describe('Browse templates button', () => {
     el.querySelector('[data-rp="templates"]').click();
     expect(withIt.browseTemplates).toHaveBeenCalledTimes(1);
     expect(mount(base(null)).querySelector('[data-rp="templates"]')).toBeNull();
+  });
+});
+
+describe('Measure readability button', () => {
+  const report = { status: 'review-required', issues: [], notes: ['Not checked: whether text covers the subject of the video.'] };
+  it('is offered until measured, and calls the host', () => {
+    const s = base({ hasLayers: true, report, measured: false }, { measureReadability: vi.fn() });
+    const el = mount(s);
+    el.querySelector('[data-measure]').click();
+    expect(s.measureReadability).toHaveBeenCalledTimes(1);
+    expect(mount(base({ hasLayers: true, report, measured: true }, { measureReadability: vi.fn() })).querySelector('[data-measure]')).toBeNull();
+  });
+  it('is disabled while measuring, and absent when the host cannot measure', () => {
+    const b = mount(base({ hasLayers: true, report, measuring: true }, { measureReadability: vi.fn() })).querySelector('[data-measure]');
+    expect(b.disabled).toBe(true);
+    expect(b.textContent).toBe('Measuring…');
+    expect(mount(base({ hasLayers: true, report })).querySelector('[data-measure]')).toBeNull();
+  });
+  it('shows every note, including what is never checked', () => {
+    expect(mount(base({ hasLayers: true, report })).textContent).toContain('whether text covers the subject');
   });
 });

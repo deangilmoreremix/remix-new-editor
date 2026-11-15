@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', 'ce9d3b093c7da3a4b209718f369010ef0d9a86efb7f00b14b6bb3affcd94274d'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check, prepare images, readiness, agent service, templates); semantic coverage in section 5
+        ['src/components/TimelineEditorPage.jsx', 'b72dc4bb1584313b70fdaf3accc1d1a41661b633f2ad0f1c1d4effb82012f599'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check, prepare images, readiness, agent service, templates); semantic coverage in section 5
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -1029,6 +1029,9 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain("import('../lib/personalization/layoutCheck.js')");
     expect(source).toContain('function applyRecommendedLayout()');
     expect(source).toContain('layoutCheck: layoutCheckData,');
+    // Readability is measured from the video's own frames in this browser (canvas only; no network).
+    expect(source).toContain('async function measureReadability(redraw)');
+    expect(source).toContain('measureReadability,');
     // Prepare all contacts' images: free on-device cutouts through the shared
     // cutout + batch code, saved through the same saveContactAsset as a single one.
     expect(source).toContain("import { planPrepareImages, prepareImages } from '../lib/personalization/prepareImages.js';");

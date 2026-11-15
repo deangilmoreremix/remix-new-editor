@@ -53,6 +53,13 @@ describe('buildReadiness', () => {
     expect(r.items[0].message).toContain('3 contact images still have a background');
   });
 
+  it('treats a review note (readability not measured) as optional so the checklist can be ready', () => {
+    const layoutReport = { issues: [{ code: 'contrast-unverified', severity: 'review', message: 'Readability has not been measured yet.', fixable: false }] };
+    const r = buildReadiness({ project: project(), contacts: [], layoutReport });
+    expect(r.status).toBe('ready');
+    expect(r.items[0]).toMatchObject({ severity: 'info', kind: 'layout' });
+  });
+
   it('orders blockers before warnings before info', () => {
     const layoutReport = { issues: [{ code: 'overlay-collision', severity: 'adjust', layerId: 'a', message: 'x', fixable: false }, { code: 'missing-media', severity: 'critical', layerId: 'b', message: 'y', fixable: false }] };
     const r = buildReadiness({ project: project(), contacts: [], layoutReport, preparable: 1 });

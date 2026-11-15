@@ -28,7 +28,7 @@ const layoutSection = (s) => {
   if (!check) return '';
   if (check.loading) return '<span class="pz-label">Layout check</span><p class="pz-hint">Loading…</p>';
   if (!check.hasLayers) {
-    return `<span class="pz-label">Layout check</span><p class="pz-hint">${esc(check.message || 'Add overlays from Open Personalize to check their layout.')}</p>`;
+    return `<span class="pz-label">Layout check</span><p class="pz-hint">${esc(check.message || 'There are no text or image overlays on the timeline to check.')}</p>`;
   }
   const { report } = check;
   const chip = report.status === 'ready' ? '<span class="pz-chip">✓ Looks good</span>' : `<span class="pz-chip">${esc(report.status === 'review-required' ? 'Review required' : 'Needs adjustment')}</span>`;
@@ -38,7 +38,8 @@ const layoutSection = (s) => {
       <li class="rp-issue"><div><strong>${esc(SEVERITY_LABEL[i.severity] || i.severity)}</strong><span>${esc(i.message)}</span></div>
         ${i.layerId ? `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-show-layer="${esc(i.layerId)}" data-issue="${n}">Show</button>` : ''}</li>`).join('')}</ul>` : ''}
     ${fixable ? '<button type="button" class="pz-btn pz-btn-primary pz-btn-xs" data-apply-recommended="1">Apply recommended placement</button>' : ''}
-    <p class="pz-hint">${esc(report.notes[report.notes.length - 1] || '')} Only overlays made in the Personalize window are checked.</p>`;
+    ${s.measureReadability && !check.measured ? `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-measure="1"${check.measuring ? ' disabled' : ''}>${check.measuring ? 'Measuring…' : 'Measure readability on the video'}</button>` : ''}
+    <p class="pz-hint">${esc((report.notes || []).join(' '))}</p>`;
 };
 const STATUS_CHIP = { ready: '✓ Ready to export', 'needs-attention': 'Needs attention', blocked: 'Fix before exporting' };
 const readinessSection = (s) => {
@@ -119,6 +120,7 @@ export function renderPersonalizationPanel(el, s) {
     else if (b.dataset.prepareAll) s.prepareAll?.(draw);
     else if (b.dataset.prepareCancel) s.cancelPrepare?.();
     else if (b.dataset.showLayer) s.showLayer?.(b.dataset.showLayer);
+    else if (b.dataset.measure) s.measureReadability?.(draw);
     else if (b.dataset.applyRecommended) { s.applyRecommended?.(); draw(); }
     else if (b.dataset.cutout) s.removeBackground?.(b.dataset.cutout, draw);
     else if (b.dataset.original) s.useOriginal?.(b.dataset.original, draw);

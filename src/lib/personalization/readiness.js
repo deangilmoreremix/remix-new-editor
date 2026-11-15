@@ -9,7 +9,8 @@ import { describeClipGaps } from './aiContactClips.js';
 import { unreviewedAiImages } from './aiContactImages.js';
 
 const SEVERITY_ORDER = { blocker: 0, warning: 1, info: 2 };
-const FROM_LAYOUT = { critical: 'blocker', adjust: 'warning', review: 'warning' };
+// A review note (e.g. readability not measured yet) is optional, not a reason to hold the export.
+const FROM_LAYOUT = { critical: 'blocker', adjust: 'warning', review: 'info' };
 
 /**
  * @param {object} args

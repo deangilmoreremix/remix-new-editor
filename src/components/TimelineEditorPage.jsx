@@ -5168,27 +5168,53 @@ export function TimelineEditorPage() {
     // overlays shared with it. Loaded on first use.
     let layoutCheckModule = null;
     const loadLayoutCheck = () => import('../lib/personalization/layoutCheck.js').then((m) => { layoutCheckModule = m; return m; });
+    // Frames measured for the readability check; stale once the video clips change.
+    let frameMeasure = { sig: '', samples: [], state: 'not-measured', measuring: false };
+    const frameSig = () => JSON.stringify(layoutCheckModule.videoSampleRequests(state).map((r) => [r.clipId, r.src, r.start, r.end, r.trimIn]));
     function layoutCheckData() {
       if (!layoutCheckModule) return { loading: true };
       const profile = getActivePersonalizationProfile();
-      const layers = personalizeInitialLayers();
-      if (!layers?.length) return { hasLayers: false };
-      if (!profile) return { hasLayers: false, message: 'Pick a contact to check the layout as they would see it.' };
-      return { hasLayers: true, report: layoutCheckModule.checkTimelineLayout({ layers, settings: state.personalizeModal.settings, profile }) };
+      const { overlays, notMeasured } = layoutCheckModule.overlaysFromTimeline(state, { profile });
+      if (!overlays.length) return { hasLayers: false, message: 'There are no text or image overlays on the timeline to check.' };
+      const fresh = frameMeasure.sig === frameSig();
+      const report = layoutCheckModule.checkOverlays({ overlays, notMeasured, samples: fresh ? frameMeasure.samples : [], frames: fresh ? frameMeasure.state : 'not-measured' });
+      return { hasLayers: true, report, measuring: frameMeasure.measuring, measured: fresh && frameMeasure.state === 'measured' };
+    }
+    async function measureReadability(redraw) {
+      if (!layoutCheckModule || frameMeasure.measuring) return;
+      frameMeasure.measuring = true;
+      redraw?.();
+      try {
+        const r = await layoutCheckModule.measureTimelineFrames(state);
+        if (!r.clips) {
+          frameMeasure = { ...frameMeasure, state: 'not-measured' };
+          showToast('There is no video clip on the timeline to measure the text against', 'info');
+        } else {
+          frameMeasure = { ...frameMeasure, sig: frameSig(), samples: r.samples, state: r.samples.length ? 'measured' : 'unavailable' };
+          if (!r.samples.length) showToast('The video could not be read in this browser, so readability could not be measured', 'info');
+          else if (r.failed) showToast(`${r.failed} video clip${r.failed === 1 ? '' : 's'} could not be read, so text over ${r.failed === 1 ? 'it was' : 'them were'} not measured`, 'info');
+        }
+      } catch (err) {
+        showToast(`Could not measure readability: ${err?.message || err}`, 'error');
+      } finally {
+        frameMeasure.measuring = false;
+        redraw?.();
+      }
     }
     function applyRecommendedLayout() {
       if (!layoutCheckModule) return;
       const profile = getActivePersonalizationProfile();
       const layers = personalizeInitialLayers();
-      if (!profile || !layers?.length) return;
+      if (!profile) { showToast('Pick a contact first', 'info'); return; }
+      if (!layers?.length) { showToast('Only overlays made in the Personalize window can be moved automatically', 'info'); return; }
       const settings = state.personalizeModal.settings;
       const { layers: next, moved } = layoutCheckModule.applyRecommendedPlacement({ layers, settings, profile });
       if (!moved) { showToast('Nothing to move: the engine has no better placement', 'info'); return; }
       applyPersonalizeLayers({ layers: next, settings });
     }
     function showBridgedLayer(layerId) {
-      const clip = bridgedClips().find((c) => c.bridge.layerId === layerId);
-      if (clip) showClipEditor(clip.id);
+      const id = String(layerId).startsWith('clip:') ? String(layerId).slice(5) : bridgedClips().find((c) => c.bridge.layerId === layerId)?.id;
+      if (id) showClipEditor(id);
     }
 
     // Free on-device background removal (the studio's engine) for one saved
@@ -8712,7 +8738,7 @@ export function TimelineEditorPage() {
           ...describeUnreviewed(unreviewedAiImages(projectImageKeys(), contacts)),
           ...describeClipGaps(state, contacts),
           // Layout problems in the overlays shared with the Personalize window.
-          ...readinessData().items.filter((i) => i.kind === 'layout').map((i) => i.message),
+          ...readinessData().items.filter((i) => i.kind === 'layout' && i.severity !== 'info').map((i) => i.message),
         ];
         if (run !== warningsRun) return;
         // Personalized-image warnings look like the Personalize window's.
@@ -9041,6 +9067,7 @@ export function TimelineEditorPage() {
           prepareAll: prepareAllContactImages,
           cancelPrepare: () => prepareRun?.abort.abort(),
           layoutCheck: layoutCheckData,
+          measureReadability,
           applyRecommended: applyRecommendedLayout,
           showLayer: showBridgedLayer,
           busy: () => cutoutBusy,
