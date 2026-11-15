@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', 'b8bc40369d738dfbe8b075a08cd00476c813366dac71cbaf0bfeb3ed84949721'], // re-recorded after merging develop with the Projects / publishing work
+        ['src/components/TimelineEditorPage.jsx', '0ef39c671ff3ec1953d6f26998f986ccaff4d12b280d0a622a0aa7b6d84570ff'], // re-recorded for the approved Personalization work (on-device cutouts + shared overlays); semantic coverage in section 5
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -999,6 +999,33 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain('describeImageGaps(contactImageGaps(state, contacts))');
     expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
     expect(source).not.toMatch(BROWSER_EXPOSED_KEY);
+  });
+
+  it('TimelineEditorPage.jsx adds cutouts and shared overlays without a new upload or provider path', () => {
+    // Re-recorded for the approved Personalization work: free on-device
+    // background removal for a contact's images, and one overlay model shared
+    // with the Personalization window's guided overlay editor. The cutout runs
+    // through the studio's own engine and stores through the studio's
+    // /api/personalization/persist-edited-asset route (inside
+    // src/lib/personalization/backgroundCutout.js), never through a direct
+    // fetch, a provider key or a new upload entry point in this file.
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    expect(source).toContain("import { buildRevertPatch, cutoutAsset } from '../lib/personalization/backgroundCutout.js';");
+    expect(source).toContain("import { isCutoutAsset } from '../lib/personalization/assetUrl.js';");
+    expect(source).toContain('async function removeContactImageBackground(profile, assetId, redraw)');
+    expect(source).toContain('removeBackground: (id, redraw) => removeContactImageBackground(activeContact(), id, redraw)');
+    expect(source).toContain("import { BRIDGE_SOURCE, layersToTimelineOverlays, timelineOverlaysToLayers } from '../lib/personalization/layerOverlayBridge.js';");
+    expect(source).toContain('initialLayers: personalizeInitialLayers()');
+    expect(source).toContain('onLayersChange: applyPersonalizeLayers');
+    expect(source).toContain('function applyPersonalizeLayers({ layers, settings })');
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+    expect(source).not.toMatch(BROWSER_EXPOSED_KEY);
+    // The cutout module reaches storage only through the studio's persistence
+    // service, and has no provider key or direct provider fetch of its own.
+    const cutout = readSource('src/lib/personalization/backgroundCutout.js');
+    expect(cutout).toContain('editedAssetPersistence');
+    expect(cutout).not.toMatch(DIRECT_PROVIDER_FETCH);
+    expect(cutout).not.toMatch(BROWSER_EXPOSED_KEY);
   });
 
   it('ChatStudio.js still routes generation through the shared muapi singleton', () => {
