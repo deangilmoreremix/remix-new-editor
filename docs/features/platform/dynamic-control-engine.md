@@ -1,6 +1,6 @@
 ---
 name: Dynamic Control Engine
-area: studios
+area: platform
 status: live
 added: TBD   # confirm from git log
 pr: TBD

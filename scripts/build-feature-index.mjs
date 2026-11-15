@@ -23,7 +23,7 @@ function parse(file) {
   const meta = { code: [] };
   let list = null;
   for (const raw of m[1].split('\n')) {
-    const line = raw.replace(/\s+#.*$/, '');
+    const line = raw.replace(/\s+#\s.*$/, '');
     const item = line.match(/^\s+-\s+(.+)$/);
     if (item && list) { meta[list].push(item[1].trim()); continue; }
     const kv = line.match(/^(\w+):\s*(.*)$/);
