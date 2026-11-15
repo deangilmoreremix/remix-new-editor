@@ -4,7 +4,6 @@ import BaseModal from './BaseModal.jsx';
 const MODAL_FILES = [
   { name: 'ConnectModal', path: './ConnectModal.jsx', exportName: 'ConnectModal' },
   { name: 'ContactImporterModal (jsx)', path: './ContactImporterModal.jsx', exportName: 'ContactImporterModal' },
-  { name: 'EmailCampaignModal', path: './EmailCampaignModal.jsx', exportName: 'EmailCampaignModal' },
   { name: 'EndScreenModal', path: './EndScreenModal.jsx', exportName: 'EndScreenModal' },
   { name: 'EnhancedRecorderModal', path: './EnhancedRecorderModal.jsx', exportName: 'EnhancedRecorderModal' },
   { name: 'GTMPromptModal', path: './GTMPromptModal.jsx', exportName: 'GTMPromptModal' },

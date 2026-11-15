@@ -3,6 +3,7 @@
  * link or embed code, see views and leads, update or unpublish it.
  */
 import { watchUrl, embedCode, canonicalUrl, validateSlug, slugify } from './publishClient.js';
+import { EMAIL_PROVIDERS, emailProviderByKey, mergeTagLink } from '../personalize/emailMergeLink.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -15,6 +16,7 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
  *   countLeads()   → Promise<number|null>
  *   copy(text)     → Promise
  *   personalLinks(link) → [{ name, email, company, link }]   one link per contact
+ *   mergeTokens()  → string[]   tokens the video uses; enables the one-link email merge-tag section
  *   downloadCsv(rows)
  *   fetchStats()   → Promise<[{ contactId, views, plays, completes, ctaClicks, leads, lastSeen }]>
  *   contactLabel(id) → display name for a contact id
@@ -115,6 +117,27 @@ export function renderSharePanel(container, opts) {
     </div>`;
   };
 
+  // ONE link for a whole email campaign: the provider (Mailchimp, Klaviyo, …)
+  // swaps in each recipient's values when it sends.
+  const mergeHtml = (link) => {
+    if (!opts.mergeTokens) return '';
+    const tokens = opts.mergeTokens() || [];
+    if (!tokens.length) return '<p class="addon-field__hint">Email merge tags: use {{tokens}} like {{firstName}} in your text to get one link your email provider can personalize for every recipient.</p>';
+    const prov = emailProviderByKey(ui.provider) || EMAIL_PROVIDERS[0];
+    const { link: mlink, unmapped, skipped } = mergeTagLink(link, tokens, prov, { preload: ui.preload !== false });
+    ui.mergeLink = mlink;
+    return `<div class="share-merge pz-ui">
+      <div class="share-personal__head"><strong>Email merge-tag link</strong></div>
+      <label class="addon-field"><span>Email provider</span>
+        <select data-share-provider aria-label="Email provider">${EMAIL_PROVIDERS.map((p) => `<option value="${esc(p.key)}"${p.key === prov.key ? ' selected' : ''}>${esc(p.label)}</option>`).join('')}</select></label>
+      <label class="cap-row"><span>Preload video</span><input type="checkbox" data-share-preload ${ui.preload !== false ? 'checked' : ''}/></label>
+      <span class="share-copy"><textarea readonly rows="3" data-share-mergelink aria-label="Merge-tag link">${esc(mlink)}</textarea><button type="button" class="mini-btn" data-share-mergecopy>${ui.copied === 'merge' ? 'Copied ✓' : 'Copy'}</button></span>
+      <p class="addon-field__hint">Paste this link into your ${esc(prov.label)} campaign; each recipient gets a video with their own details.</p>
+      ${unmapped.length ? `<p class="pz-warning">${esc(prov.label)} has no standard field for ${unmapped.map((k) => esc(k)).join(', ')}. Create a custom field with that name there, or those values stay blank.</p>` : ''}
+      ${skipped.length ? `<p class="addon-field__hint">Not in the link (images can't be merge tags): ${skipped.map((k) => esc(k)).join(', ')}. Use personal links for those.</p>` : ''}
+    </div>`;
+  };
+
   const draw = () => {
     const info = ui.info;
     const link = info ? urlOf(info) : '';
@@ -136,6 +159,7 @@ export function renderSharePanel(container, opts) {
             <p class="addon-field__hint">Personalize a link with the viewer's details, e.g. <code>${esc(link)}?firstname=Ann&amp;company=Acme</code> — {{tokens}} in your text fill in automatically.</p>
             <div class="share-stats"><span>👁 ${Number(info.view_count) || 0} views</span><span>✉️ ${ui.leads == null ? '–' : ui.leads} leads</span><a href="${esc(link)}" target="_blank" rel="noopener">Open ↗</a></div>
             ${linkEditorHtml(info)}
+            ${mergeHtml(link)}
             ${personalHtml(link)}
             ${statsHtml()}
             ${revisionsHtml()}
@@ -204,6 +228,10 @@ export function renderSharePanel(container, opts) {
       try { await opts.copy(row.link); ui.copied = `p${d.sharePersonal}`; } catch { ui.copied = ''; }
       draw();
       setTimeout(() => { ui.copied = ''; draw(); }, 1800);
+    } else if (d.shareMergecopy !== undefined) {
+      try { await opts.copy(ui.mergeLink || ''); ui.copied = 'merge'; } catch { ui.copied = ''; }
+      draw();
+      setTimeout(() => { ui.copied = ''; draw(); }, 1800);
     } else if (d.shareCopy) {
       const text = d.shareCopy === 'link' ? urlOf(ui.info) : embedCode(ui.info.id);
       try { await opts.copy(text); ui.copied = d.shareCopy; } catch { ui.copied = ''; }
@@ -213,6 +241,8 @@ export function renderSharePanel(container, opts) {
   };
 
   const onChange = async (e) => {
+    if (e.target.matches('[data-share-provider]')) { ui.provider = e.target.value; draw(); return; }
+    if (e.target.matches('[data-share-preload]')) { ui.preload = e.target.checked; draw(); return; }
     if (e.target.matches('[data-share-privacy]')) {
       try { await opts.setPrivacy(e.target.value); ui.info = { ...ui.info, privacy: e.target.value }; ui.linkMsg = 'Privacy updated.'; } catch (err) { ui.linkMsg = err?.message || 'Could not update privacy'; }
       draw();

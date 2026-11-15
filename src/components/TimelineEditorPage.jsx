@@ -98,7 +98,6 @@ import { EnhancedRecorderModal } from './modals/EnhancedRecorderModal.jsx';
 import { TemplateGeneratorModal } from './modals/TemplateGeneratorModal.jsx';
 import { TemplatePreviewModal } from './modals/TemplatePreviewModal.jsx';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { EmailCampaignModal } from './modals/EmailCampaignModal.jsx';
 import { UrlVideoModal } from './modals/UrlVideoModal.jsx';
 import { PageShotModal } from './modals/PageShotModal.jsx';
 import { ContactImporterModal } from './modals/ContactImporterModal.jsx';
@@ -6174,6 +6173,7 @@ export function TimelineEditorPage() {
           return Array.isArray(leads) ? leads.length : null;
         },
         copy: (text) => navigator.clipboard.writeText(text),
+        mergeTokens: () => projectTokens(state.tracks),
         personalLinks: (link) => {
           const tokens = projectTokens(state.tracks);
           const contacts = listContactProfiles(contactStore);
@@ -7549,19 +7549,10 @@ export function TimelineEditorPage() {
       }
     }
 
-    function openEmailCampaignModal(state, showToast) {
-      try {
-        const modal = new EmailCampaignModal({
-          projectData: state,
-          onComplete: (result) => {
-          },
-          onError: (error) => console.log(`Email campaign creation failed: ${error}`, 'error')
-        });
-        modal.open();
-      } catch (error) {
-        console.error('Email campaign creation failed:', error);
-        showToast(`Email campaign creation failed: ${error.message || error}`, 'error');
-      }
+    // Email: the Share panel holds the email-ready links (one merge-tag link
+    // for any provider, plus one personal link per contact and a CSV).
+    function openEmailCampaignModal() {
+      openPanel('sharePanel');
     }
 
     function openUrlVideoModal(state, showToast) {

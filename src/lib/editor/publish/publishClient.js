@@ -8,6 +8,7 @@
  * Clerk `sub`); public reads go straight to the REST API with the anon key.
  */
 
+import { isUnreplacedMergeTag } from '../personalize/emailMergeLink.js';
 import { isImageTokenKey, shareableImageValue } from '../../personalization/imageReadiness.js';
 
 export const PROJECT_VERSION = 1;
@@ -308,6 +309,8 @@ export function profileFromQuery(search = globalThis.location?.search || '') {
   });
   params.forEach((v, k) => {
     if (['embed', 'autoplay', 't', 'c'].includes(k) || k.length > 40) return;
+    // An email merge tag the provider never replaced ("*|FNAME|*") must not be shown as text.
+    if (isUnreplacedMergeTag(v)) return;
     if (/__(f|l)$/.test(k) && isImageTokenKey(k.replace(/__(f|l)$/, ''))) return;
     // Image URLs from personal links ({{logoUrl}}, …) are kept whole — a cut
     // URL is a broken image — but only http(s) ones of sane length.

@@ -333,3 +333,33 @@ describe('share panel and watch page', () => {
     expect(missing.textContent).toContain('Video not found');
   });
 });
+
+describe('share panel email merge-tag link', () => {
+  const mount = async (mergeTokens) => {
+    const box = document.createElement('div');
+    const copy = vi.fn(async () => {});
+    renderSharePanel(box, {
+      getInfo: async () => ({ id: 'abcdefgh12', title: 'Promo', published: true, view_count: 0 }),
+      countLeads: async () => 0, copy, setPublished: vi.fn(), defaultTitle: 'Promo', mergeTokens,
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    return { box, copy };
+  };
+
+  it('shows one link with the chosen provider\'s tags, and copies it', async () => {
+    const { box, copy } = await mount(() => ['firstName', 'company']);
+    expect(box.querySelector('[data-share-mergelink]').value).toMatch(/\/watch\/abcdefgh12\?firstName=\*\|FNAME\|\*&company=\*\|COMPANY\|\*$/);
+    const sel = box.querySelector('[data-share-provider]');
+    sel.value = 'klaviyo';
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(box.querySelector('[data-share-mergelink]').value).toContain('firstName={{ first_name }}');
+    box.querySelector('[data-share-mergecopy]').click();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(copy).toHaveBeenCalledWith(expect.stringContaining('{{ first_name }}'));
+  });
+
+  it('explains how to get merge tags when the video has no tokens, and is off without mergeTokens', async () => {
+    expect((await mount(() => [])).box.textContent).toContain('Email merge tags');
+    expect((await mount(undefined)).box.querySelector('[data-share-mergelink]')).toBeNull();
+  });
+});
