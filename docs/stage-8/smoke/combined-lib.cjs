@@ -16,7 +16,9 @@ const clickBtn = (pg, re) => pg.evaluate((s) => [...document.querySelectorAll('b
 exports.clickBtn = clickBtn;
 exports.goTimeline = async (pg, route = 'timeline') => {
   await pg.goto('http://127.0.0.1:' + (process.env.SMOKE_PORT || 3100) + '/#/' + route, { waitUntil: 'domcontentloaded' });
-  await pg.waitForSelector('.pm-window', { timeout: 90000 });
+  // develop added a first-run "set up your API keys" modal that covers the app on a fresh profile; dismiss it when it shows.
+  await pg.getByRole('button', { name: 'Skip for now' }).click({ timeout: 15000 }).catch(() => {});
+  await pg.waitForSelector('.pm-window', { timeout: 150000 });
   await pg.waitForTimeout(3000);
 };
 exports.newProject = async (pg, name) => {
