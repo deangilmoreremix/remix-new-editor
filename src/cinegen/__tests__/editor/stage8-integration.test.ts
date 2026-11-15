@@ -33,7 +33,7 @@ function featureTimeline(): { tl: Timeline; aId: string; aAudId: string; bId: st
   trim(a.id, 0, 7, 3); trim(aAud.id, 0, 7, 3); trim(b.id, 1, 6, 3); trim(bAud.id, 1, 6, 3);
   tl = updateClipProperties(tl, a.id, { anim: { keys: { x: [{ t: 0.25, v: -30, ease: 'ease-out' }, { t: 1.25, v: 30, ease: { bezier: [0.4, 0, 0.2, 1] } }], 'fx:0:exposure': [{ t: 0, v: -1 }, { t: 2, v: 1, ease: { spring: { tension: 170, friction: 26, mass: 1 } } }] }, modifiers: [{ id: 'm1', type: 'sway', enabled: true, amplitude: 1, frequency: 0.5, phase: 0, seed: 1 }] } } as never);
   tl = updateClipProperties(tl, a.id, { fx: [{ id: 'builtin:fx-exposure', props: { exposure: 0.5 }, keys: { exposure: [{ frame: 0, value: -2 }, { frame: 60, value: 1.5 }] } } as never, { id: 'builtin:fx-glass', props: { amount: 0.02 } } as never, { id: 'builtin:fx-scanlines', props: {} } as never] });
-  tl = updateClipProperties(tl, aAud.id, { eq: { ...defaultClipEq(), enabled: true, bands: defaultClipEq().bands.map((b, i) => (i === 1 ? { ...b, enabled: true, frequency: 440, gain: -12 } : b)) } });
+  tl = updateClipProperties(tl, aAud.id, { eq: { ...defaultClipEq(), enabled: true, bands: defaultClipEq().bands.map((b, i) => (i === 1 ? { ...b, enabled: true, frequency: 440, gain: -12 } : b)) } } as never);
   tl = groupClips(tl, [a.id, aAud.id]).timeline;
   tl = addGlTransition(tl, tl.clips.find((c) => c.id === a.id)!, tl.clips.find((c) => c.id === b.id)!, 'glt-directional-wipe', 0.5, undefined, { direction: [1, 0], smoothness: 0 });
   tl = { ...tl, masterVolume: 0.5 };

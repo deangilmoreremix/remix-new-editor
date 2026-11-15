@@ -82,7 +82,7 @@ export function EngagementExplorer({project,onSeekTo,renderPreview}:{project:Pro
     const nearest=project.retention.reduce((best,p)=>Math.abs(p.positionPercent-pos)<Math.abs(best.positionPercent-pos)?p:best, project.retention[0] ?? {positionPercent:0,retentionPercent:0});
     return nearest.retentionPercent;
   });
-  const topSection=project.sections.slice().sort((a,b)=>b.engagementPercent-a.engagementPercent)[0];
+  const topSection=project.sections.slice().sort((a,b)=>(b.engagementPercent??0)-(a.engagementPercent??0))[0];
   return <div className="sv-card sv-explorer">
     <h3>Video engagement explorer</h3><p className="sv-subtitle">Select a section to seek the existing project preview</p>
     {renderPreview ? <div className="sv-video-preview" data-testid="sv-live-preview">{renderPreview(project)}</div> : <div className="sv-video-preview">{project.thumbnailUrl ? <img src={project.thumbnailUrl} alt={`${project.projectName} video thumbnail`}/> : <div className="sv-video-placeholder">Video preview<br/><small>No thumbnail saved for this project yet</small></div>}<span className="sv-play-overlay" aria-hidden="true">▶</span></div>}

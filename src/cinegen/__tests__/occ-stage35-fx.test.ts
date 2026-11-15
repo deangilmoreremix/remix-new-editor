@@ -131,7 +131,7 @@ describe('Stage 3/5 effects: project persistence, keyframes, export', () => {
     tl = addClipToTrack(tl, v1, asset('A'), 0);
     tl = { ...tl, clips: tl.clips.map((c) => ({ ...c, fx: [...fxStack.slice(0, 20), { id: 'builtin:fx-exposure', props: {}, keys: { exposure: [{ frame: 0, value: 0 }, { frame: 30, value: 2 }] } }] })) };
     const clips = exportClipsFromTimeline(tl, [asset('A')]);
-    const item = exportItem(clips[0], 0) as { occFx: Array<{ id: string; overrides: Record<string, number>; keys?: unknown }> };
+    const item = exportItem(clips[0], 0) as unknown as { occFx: Array<{ id: string; overrides: Record<string, number>; keys?: unknown }> };
     expect(item.occFx.map((e) => e.id)).toEqual([...IDS.slice(0, 20), 'builtin:fx-exposure']);
     expect(item.occFx.every((e) => e.id in ALL_FX)).toBe(true); // ClipFx.tsx resolves ALL_FX by id when rendering the export
     expect(item.occFx[0].overrides).toEqual(S35_META[IDS[0]].probe);

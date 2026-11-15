@@ -103,7 +103,7 @@ describe('Stage 6: export mapping carries vendored transitions', () => {
     const model = timelineToComposition(state, { fps: 30, quality: '720p' }) as { layers: Array<{ src?: string; keyframes?: { opacity?: unknown } }> & unknown[] };
     expect(model.layers.find((l) => l.src === ASSETS[0].url)?.keyframes?.opacity).toBeUndefined();
     (model as unknown as { glTransitions: unknown }).glTransitions = layers;
-    expect(structuredClone(model).glTransitions).toEqual(layers);
+    expect((structuredClone(model) as unknown as { glTransitions: unknown }).glTransitions).toEqual(layers);
     expect(gltUniforms('glt-doorway', L.glParams).reflection).toBe(0.1);
   });
 
