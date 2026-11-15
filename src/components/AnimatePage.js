@@ -500,6 +500,7 @@ export function AnimatePage() {
     } catch (err) {
       state.error = String(err);
       showToast(state.error, 'error');
+      renderResult();
     } finally {
       state.loading = false;
       generateBtn.disabled = false;
@@ -537,7 +538,24 @@ export function AnimatePage() {
 
   function renderResult() {
     resultSection.innerHTML = '';
-    if (!state.result?.videoUrl) return;
+    if (!state.result?.videoUrl) {
+      // A failed generation (e.g. "Insufficient credits") stays visible instead of vanishing with the toast.
+      if (state.error) {
+        const banner = document.createElement('div');
+        banner.dataset.animateError = '';
+        banner.className = 'bg-red-900/30 border border-red-500/40 rounded-xl p-4';
+        const title = document.createElement('div');
+        title.className = 'text-xs font-bold text-red-400 mb-1';
+        title.textContent = 'Animation failed';
+        const msg = document.createElement('div');
+        msg.className = 'text-xs text-red-300';
+        msg.textContent = state.error.replace(/^Error:\s*/, '');
+        banner.appendChild(title);
+        banner.appendChild(msg);
+        resultSection.appendChild(banner);
+      }
+      return;
+    }
 
     const card = document.createElement('div');
     card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden';

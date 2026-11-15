@@ -570,11 +570,21 @@ export class MuapiClient {
                         notFound.terminal = true;
                         throw notFound;
                     }
+                    // MuAPI answers a failed job with a 4xx and { detail: { status: 'failed', error } }. It will never
+                    // succeed on retry, so report the real reason now instead of polling until the attempt limit.
                     const errText = await response.text();
-                    throw new Error(`Poll Failed: ${response.status} - ${errText.slice(0, 100)}`);
+                    let detail = null;
+                    try { detail = JSON.parse(errText)?.detail ?? null; } catch { /* not JSON */ }
+                    const reason = typeof detail === 'string' ? detail : (detail?.error?.message || detail?.error || null);
+                    const failed = new Error(reason ? `Generation failed: ${reason}` : `Poll Failed: ${response.status} - ${errText.slice(0, 100)}`);
+                    failed.requestId = requestId;
+                    failed.terminal = response.status !== 429 && response.status !== 408;
+                    throw failed;
                 }
 
-                const data = await response.json();
+                let data = await response.json();
+                // The same failure shape can arrive through a proxy as a 200 { detail: { status: 'failed', ... } }.
+                if (data && !data.status && data.detail && typeof data.detail === 'object' && data.detail.status) data = data.detail;
 
                 // NEW: Validate output integrity before accepting completed results
                 const status = data.status?.toLowerCase();

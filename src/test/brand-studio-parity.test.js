@@ -170,3 +170,31 @@ describe('scrape client + DNA editor safety', () => {
     expect(el.querySelectorAll('[data-campaign-id]')).toHaveLength(1);
   });
 });
+
+describe('MuAPI failure handling (found by the real-API run)', () => {
+  it('only raster logos are sent as edit references', async () => {
+    const { isUsableImageRef, usableImageRefs } = await import('../lib/imageRefs.js');
+    expect(isUsableImageRef('https://cdn.x/logo.png')).toBe(true);
+    expect(isUsableImageRef('https://cdn.x/logo.JPG?v=2')).toBe(true);
+    expect(isUsableImageRef('https://cdn.x/logo')).toBe(true);
+    for (const bad of ['https://cdn.x/logo.svg', 'https://cdn.x/logo.svg?v=1', 'https://x/favicon.ico', 'https://x/a.gif', 'data:image/svg+xml;base64,AAA', '', null]) expect(isUsableImageRef(bad)).toBe(false);
+    expect(usableImageRefs(['https://a/b.png', 'https://a/b.svg'])).toEqual(['https://a/b.png']);
+  });
+  it('an SVG logo means text-to-image, and a rejected reference falls back to it', async () => {
+    muapiMock.text.mockResolvedValue('{"headline":"h","body":"b","cta":"c"}');
+    const { generateAssetForConcept } = await import('../lib/campaignGenerator.js');
+    await generateAssetForConcept({ ...BRAND, logoUrl: 'https://x/logo.svg' }, { index: 0 }, 'instagram-feed');
+    expect(muapiMock.imageEdit).not.toHaveBeenCalled();
+    expect(muapiMock.image).toHaveBeenCalledTimes(1);
+    vi.clearAllMocks(); muapiMock.text.mockResolvedValue('{"headline":"h","body":"b","cta":"c"}');
+    muapiMock.imageEdit.mockRejectedValueOnce(new Error('Generation failed: The file format is not supported'));
+    const asset = await generateAssetForConcept(BRAND, { index: 0 }, 'instagram-feed');
+    expect(muapiMock.image).toHaveBeenCalledTimes(1);
+    expect(asset.imageUrl).toBe('https://img/new.png');
+  });
+  it('photo studio drops an SVG logo from the references', async () => {
+    const { generateProductPhoto } = await import('../lib/photoStudio.js');
+    await generateProductPhoto({ productImageUrl: 'https://x/p.png', logoUrl: 'https://x/logo.svg', category: 'home', style: 'scandi_living' });
+    expect(muapiMock.imageEdit2.mock.calls[0][1]).toEqual(['https://x/p.png']);
+  });
+});

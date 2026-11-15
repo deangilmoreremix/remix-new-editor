@@ -2626,7 +2626,8 @@ export async function capturePageScreenshots(
 export const BRAND_SCRAPE_DEADLINE_MS = 24_000
 export const BRAND_SCRAPE_NAVIGATION_TIMEOUT = 14_000
 const BRAND_SCRAPE_IDLE_TIMEOUT = 4_000
-const BRAND_SCRAPE_SHOT_TIMEOUT = 4_000
+/** Longest the screenshot may take; it is also capped by what is left of the overall deadline. */
+const BRAND_SCRAPE_SHOT_TIMEOUT = 9_000
 const BRAND_SCRAPE_CLOSE_MS = 1_500
 const BRAND_SCRAPE_BLOCKED_RESOURCE_TYPES = ['media'] as const
 
@@ -2658,9 +2659,17 @@ export async function scrapeBrandSite(
   const baseTarget = await guard.validateNavigationTarget(rawUrl)
   const deadlineMs = options.deadlineMs ?? BRAND_SCRAPE_DEADLINE_MS
 
+  // Text, fonts and colours are what the brand analysis needs most. Once they are read they are kept here, so a
+  // heavy page whose screenshot (or teardown) runs out the clock still returns them instead of failing outright.
+  let partial: BrandScrapeResult | null = null
+  const left = () => deadlineMs - (Date.now() - started)
+
   let timer: ReturnType<typeof setTimeout> | undefined
-  const deadline = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error('The page took too long to scrape')), deadlineMs)
+  const deadline = new Promise<BrandScrapeResult>((resolve, reject) => {
+    timer = setTimeout(() => {
+      if (partial) resolve(partial)
+      else reject(new Error('The page took too long to scrape'))
+    }, deadlineMs)
   })
 
   const running = withGuardedContext(
@@ -2676,11 +2685,23 @@ export async function scrapeBrandSite(
     async (context) => {
       const page = await context.newPage()
       try {
-        await page.goto(baseTarget.url, {
-          waitUntil: 'domcontentloaded',
-          timeout: Math.min(BRAND_SCRAPE_NAVIGATION_TIMEOUT, Math.max(2_000, deadlineMs - (Date.now() - started) - 6_000)),
-        })
-        await page.waitForLoadState('networkidle', { timeout: BRAND_SCRAPE_IDLE_TIMEOUT }).catch(() => undefined)
+        // A heavy page may not finish loading in time; what has rendered so far is still worth reading.
+        let navigationTimedOut = false
+        await page
+          .goto(baseTarget.url, {
+            waitUntil: 'domcontentloaded',
+            timeout: Math.min(BRAND_SCRAPE_NAVIGATION_TIMEOUT, Math.max(2_000, left() - 8_000)),
+          })
+          .catch((error: unknown) => {
+            if (error instanceof Error && /Timeout/i.test(error.message) && page.url() && page.url() !== 'about:blank') {
+              navigationTimedOut = true
+              return
+            }
+            throw error
+          })
+        if (!navigationTimedOut) {
+          await page.waitForLoadState('networkidle', { timeout: Math.min(BRAND_SCRAPE_IDLE_TIMEOUT, Math.max(500, left() - 10_000)) }).catch(() => undefined)
+        }
 
         const data = await page.evaluate(() => {
           const meta = (sel: string) =>
@@ -2726,16 +2747,7 @@ export async function scrapeBrandSite(
           }
         })
 
-        // The screenshot is a bonus: a page that will not paint still yields its text, fonts and colours.
-        let screenshot: string | null = null
-        try {
-          const png: Buffer = await page.screenshot({ type: 'png', fullPage: false, timeout: BRAND_SCRAPE_SHOT_TIMEOUT })
-          screenshot = png.toString('base64')
-        } catch (error) {
-          console.warn(`[brand-scrape] ${baseTarget.hostname} screenshot failed: ${error instanceof Error ? error.message.split('\n')[0] : String(error)}`)
-        }
-
-        return {
+        const result: BrandScrapeResult = {
           url: rawUrl,
           title: data.title,
           description: data.description,
@@ -2745,8 +2757,22 @@ export async function scrapeBrandSite(
           logoCandidates: data.logoCandidates,
           fonts: data.fonts,
           rawColors: data.colors,
-          screenshot,
+          screenshot: null,
         }
+        partial = result
+
+        // The screenshot is a bonus: a page that will not paint still yields its text, fonts and colours.
+        // Animations are frozen (they are what keeps heavy marketing pages from ever being "stable").
+        const shotBudget = Math.min(BRAND_SCRAPE_SHOT_TIMEOUT, left() - 1_500)
+        if (shotBudget >= 1_000) {
+          try {
+            const png: Buffer = await page.screenshot({ type: 'png', fullPage: false, animations: 'disabled', caret: 'hide', timeout: shotBudget })
+            result.screenshot = png.toString('base64')
+          } catch (error) {
+            console.warn(`[brand-scrape] ${baseTarget.hostname} screenshot failed: ${error instanceof Error ? error.message.split('\n')[0] : String(error)}`)
+          }
+        }
+        return result
       } finally {
         void page.close().catch(() => undefined)
       }

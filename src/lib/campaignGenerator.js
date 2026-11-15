@@ -6,6 +6,7 @@ import { muapi } from './muapi.js';
 import { generateId } from './brandStore.js';
 import { PLATFORMS } from './platforms.js';
 import { defaultLayout } from './layout.js';
+import { usableImageRefs } from './imageRefs.js';
 
 export const CAMPAIGN_GOALS = [
   { value: 'product-launch', label: 'Product Launch', description: 'Announce a new product or feature' },
@@ -150,12 +151,21 @@ ${textRule}
 Composition rules: clean focal hierarchy, brand-consistent palette, no extraneous logos, no watermarks, no stock-photo aesthetic, no lorem ipsum. Make it feel native to the brand.`;
 }
 
-/** The logo (when detected) is passed as a reference image so the creative stays on-brand. */
+/**
+ * The logo (when it is a raster image) is passed as a reference so the creative stays on-brand. An SVG/ICO logo, or a
+ * reference the model rejects, never blocks the asset: it falls back to plain text-to-image.
+ */
 async function renderImage(brand, platformMeta, imagePrompt) {
-  const refs = brand.logoUrl ? [brand.logoUrl] : [];
-  return refs.length > 0
-    ? muapi.imageEdit(imagePrompt, refs, platformMeta.aspect)
-    : muapi.image(imagePrompt, platformMeta.aspect);
+  const refs = usableImageRefs([brand.logoUrl]);
+  if (refs.length > 0) {
+    try {
+      const url = await muapi.imageEdit(imagePrompt, refs, platformMeta.aspect);
+      if (url) return url;
+    } catch (e) {
+      console.warn('[campaignGenerator] logo-referenced image failed, retrying without the logo:', e?.message || e);
+    }
+  }
+  return muapi.image(imagePrompt, platformMeta.aspect);
 }
 
 /** New background for an existing asset ("Swap image"), or a text-free one for the canvas editor ("Clean background"). */

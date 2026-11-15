@@ -4,6 +4,7 @@
 
 import { muapi } from './muapi.js';
 import { generateId } from './brandStore.js';
+import { usableImageRefs } from './imageRefs.js';
 
 export const PHOTO_CATEGORIES = [
   {
@@ -150,8 +151,8 @@ export async function generateProductPhoto({ productImageUrl, logoUrl, brand = n
   const prompt = buildPhotoshootPrompt(styleMeta, brand, direction);
   const aspectRatio = aspect || styleMeta.aspect;
 
-  const refs = [productImageUrl];
-  if (logoUrl) refs.push(logoUrl);
+  // The logo is a bonus reference: an SVG/ICO logo would make the edit model reject the whole job.
+  const refs = [productImageUrl, ...usableImageRefs([logoUrl])];
 
   // nano-banana-2-edit with the product photo (and brand logo) as references.
   const imageUrl = await muapi.imageEdit2(prompt, refs, {
