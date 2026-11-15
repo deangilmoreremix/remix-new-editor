@@ -176,3 +176,33 @@ describe('image fields offer the studio library', () => {
     expect(isHttpsImage({ url: 'data:image/png;base64,AA', type: 'image' })).toBe(false);
   });
 });
+
+describe('heading and body font choices', () => {
+  const withFonts = (props) => html({ root: { props: { design: 'clean', ...props } }, zones: {}, content: [{ type: 'TextBlock', props: { id: 't', title: 'Hello', text: 'World' } }] });
+  it('a chosen font sets a CSS variable and a marker; no choice leaves the design font alone', () => {
+    const out = withFonts({ headingFont: 'outfit', bodyFont: 'lora' });
+    expect(out).toContain('--pk-fh:&quot;Outfit Variable&quot;');
+    expect(out).toContain('--pk-fb:&quot;Lora Variable&quot;');
+    expect(out).toContain('data-fh');
+    expect(out).toContain('data-fb');
+    const none = withFonts({});
+    expect(none).not.toContain('data-fh');
+    expect(none).not.toContain('--pk-fh');
+  });
+  it('unknown or hostile values are ignored (a page cannot inject CSS)', () => {
+    const out = withFonts({ headingFont: 'x;}body{background:url(//evil)', bodyFont: '__proto__' });
+    expect(out).not.toContain('evil');
+    expect(out).not.toContain('--pk-fh');
+    expect(out).not.toContain('--pk-fb');
+  });
+  it('every offered font has a stack and an import in the font stylesheet', async () => {
+    const { FONT_OPTIONS, FONT_CSS } = await import('../puck/fontChoices.js');
+    const css = (await import('node:fs')).readFileSync('styles/puck/00-fonts.css', 'utf8');
+    FONT_OPTIONS.filter((o) => o.value).forEach((o) => {
+      expect(FONT_CSS[o.value], o.value).toBeTruthy();
+      const family = FONT_CSS[o.value].split(',')[0].replace(/"/g, '').replace(' Variable', '');
+      const slug = family.toLowerCase().replace(/ /g, '-');
+      expect(css.includes(`/${slug}/`) || css.includes(`${slug.replace('baloo-2', 'baloo-2')}`), `${o.value} (${slug}) is not imported`).toBe(true);
+    });
+  });
+});

@@ -162,3 +162,7 @@
 .pk-page:has(> div > .pk-ctabar:last-child) { display: flex; flex-direction: column; }
 .pk-page:has(> div > .pk-ctabar:last-child) > div { flex: 1 0 auto; display: flex; flex-direction: column; }
 .pk-page > div > .pk-ctabar:last-child { margin-top: auto; }
+
+/* Editor font choices (Page panel → Heading font / Body font). Only set when the page picks a font, so designs keep their own fonts by default. */
+.pk-page[data-fb] :is(p, li, a, button, input, textarea, select, label, small, blockquote, figcaption, td, th, dt, dd, summary) { font-family: var(--pk-fb) !important; }
+.pk-page[data-fh] :is(h1, h2, h3, h4, .pk-headline, .pk-h2, .pk-card-title, .pk-form-title, .pk-eyebrow-plain), .pk-page[data-fh] :is(h1, h2, h3, h4, .pk-headline, .pk-h2, .pk-card-title, .pk-form-title) * { font-family: var(--pk-fh) !important; }

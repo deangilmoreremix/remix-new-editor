@@ -4,6 +4,7 @@
  */
 import * as C from './components.jsx';
 import { withImagePickers } from './ImageField.jsx';
+import { FONT_OPTIONS, fontStack } from './fontChoices.js';
 import { ICON_KEYS } from '../siteIcons.js';
 import { PUCK_TEMPLATES } from './designs.js';
 
@@ -29,16 +30,22 @@ export const puckConfig = {
       background: T('Page background (#hex)'),
       text: T('Text colour (#hex)'),
       surface: T('Card colour (#hex)'),
+      headingFont: { type: 'select', label: 'Heading font', options: FONT_OPTIONS },
+      bodyFont: { type: 'select', label: 'Body font', options: FONT_OPTIONS },
     },
-    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '' },
-    render: ({ children, design, accent, background, text, surface }) => {
+    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '' },
+    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont }) => {
       const ok = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? v : d);
       const acc = ok(accent, '#2563eb');
       // Button text: white on dark accents, near-black on light ones, so every accent stays readable.
       const lum = (h) => { const [r, g, b] = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
       const style = { '--pk-accent': acc, '--pk-on-accent': lum(acc) > 0.4 ? '#0b0f19' : '#ffffff', '--pk-bg': ok(background, '#ffffff'), '--pk-text': ok(text, '#0f172a') };
       if (ok(surface, '')) style['--pk-card'] = surface;
-      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style}>{children}</div>;
+      // Optional font overrides: only allow-listed keys map to a CSS stack (see fontChoices.js).
+      const fh = fontStack(headingFont); const fb = fontStack(bodyFont);
+      if (fh) style['--pk-fh'] = fh;
+      if (fb) style['--pk-fb'] = fb;
+      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}>{children}</div>;
     },
   },
   categories: {
