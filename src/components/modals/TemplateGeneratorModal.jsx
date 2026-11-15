@@ -11,7 +11,7 @@ import * as pixabayApi from '../../lib/pixabayApi.js';
 import { uploadFileToSupabase } from '../../lib/uploadService.js';
 import {
   STEPS, STEP_LABELS, MAX_VIDEOS, createWizardState, guardStep, nextStepIndex, nextDisabled, nextLabel, clipDuration,
-  toggleVideo, toggleAnimation, toBuilderState, previewTexts, hasScript, sceneNames, MAX_ANIMATIONS, splitLowerThird, callMissing, COUNTRY_CODES, phoneValid,
+  toggleVideo, toggleAnimation, toBuilderState, previewTexts, hasScript, sceneNames, MAX_ANIMATIONS, splitLowerThird, callMissing, COUNTRY_CODES, phoneValid, captionTrackFor,
 } from './template-generator/rules.js';
 import {
   PROVIDERS, MEDIA_FILTERS, STOCK_HOME, createStockClient, remoteItem, probeVideo, kindFromUrlOrType,
@@ -27,6 +27,10 @@ import { removeClipBackground, canCutOut } from './template-generator/cutout.js'
 import { makeVoiceover, narrationText, VOICE_ENGINES, OPENAI_VOICE_CHOICES, FREE_VOICE_CHOICES } from './template-generator/voiceover.js';
 import { MUSIC_TRACKS } from './template-generator/music.js';
 import { audioPlan } from './template-generator/audioPlan.js';
+import { CAPTION_ENGINES, CAPTION_MODELS, CAPTION_LANGUAGES, DEFAULT_CAPTION_ENGINE, defaultModelFor, transcribeCaptions } from './template-generator/captions.js';
+import { captionTextCss, captionSampleHTML, captionPages, pagesToSrt } from './template-generator/captionPreview.js';
+import { CAPITE_STYLES, CAPITE_CATEGORY_LABEL } from '../../openchatcut/captions/capiteStyles';
+import { CAPTION_STYLES, captionStyleFor } from '../../openchatcut/captions/styles';
 import { createPreviewPlayer, renderPlayerHTML, playlistFromPreview, formatTime } from './template-generator/preview.js';
 import '../../styles/template-generator.css';
 
@@ -102,6 +106,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this.exportHost = options.exportVideo || null;   // the host editor renders a composition to a video file
     this.bgRemover = options.bgRemover || null;     // tests replace the cut-out service
     this.voiceMaker = options.voiceMaker || null;   // tests replace the voiceover service
+    this.captionMaker = options.captionMaker || null;   // tests replace the caption transcription
     this.templateCatalog = options.templateCatalog || (() => loadTemplateCatalog());
     this.stock = options.stockSearch || createStockClient({ pexels: pexelsApi, pixabay: pixabayApi });
 
@@ -148,6 +153,7 @@ export class TemplateGeneratorModal extends BaseModal {
       exp: { busy: false, progress: 0, error: '', done: '' },
       bg: { busy: false, id: null, progress: 0, eta: null, error: '', note: '' },
       voiceBusy: false, voiceError: '', voiceNote: '',
+      capBusy: false, capProgress: 0, capNote: '', capError: '',
       textRole: null,        // the text being styled in the Preview step ('caption' | 'title' | 'lowerThird' | 'cta')
       popup: null,       // { kind: 'video'|'script', id }
       openPanels: {},    // 'voice' | 'personalization'
@@ -946,6 +952,7 @@ export class TemplateGeneratorModal extends BaseModal {
         </div>
         <div class="tg-extras">
           ${this.renderCallPanel()}
+          ${this.renderPanel('captions', '💬 Styled captions (optional)', this.ui.openPanels.captions, `<div id="tg-captions">${this.renderCaptionFields()}</div>`)}
           ${this.renderPanel('voice', '🎙️ Voice narration (optional)', voiceOpen, `<div id="tg-voice">${this.renderVoiceFields()}</div>`)}
           ${this.renderPanel('mix', '🎚️ Music and volume (optional)', this.ui.openPanels.mix, this.renderMixFields())}
           ${this.renderPanel('personalization', '👤 Personalization (optional)', persOpen, this.renderPersonalizationFields())}
@@ -1100,6 +1107,113 @@ export class TemplateGeneratorModal extends BaseModal {
     if (!it?.bgRemoval) return;
     it.url = it.bgRemoval.originalUrl; it.preview = it.bgRemoval.originalPreview || it.bgRemoval.originalUrl; delete it.bgRemoval;
     this.paint();
+  }
+
+  // ----------------------------------------------------------- styled, word-timed captions
+
+  _refreshCaptions() { this._setHTML('#tg-captions', this.renderCaptionFields()); }
+
+  /** What the captions can listen to: the made voiceover, else each video clip's own sound (offset to where it sits in the cut). */
+  _captionSources() {
+    const v = this.s.voice;
+    if (v.enabled && v.generatedAsset?.url) return [{ url: v.generatedAsset.url, offsetMs: 0, label: 'the voiceover' }];
+    let at = 0;
+    const out = [];
+    for (const it of this.s.selectedVideos) {
+      if (it.kind !== 'image' && it.url) out.push({ url: it.url, offsetMs: Math.round(at * 1000), label: 'the sound of your clips' });
+      at += clipDuration(it);
+    }
+    return out;
+  }
+
+  /** The caption look as the preview player draws it, or null (plain script captions). */
+  _captionTrackForPlayer() {
+    const total = this.s.selectedVideos.reduce((n, v) => n + clipDuration(v), 0);
+    const tr = captionTrackFor(this.s, total);
+    return tr ? { style: captionStyleFor(tr.template), words: tr.words, motion: tr.motionPreset } : null;
+  }
+
+  _redrawCaptions() {
+    this._player?.setCaptionTrack?.(this._captionTrackForPlayer());
+    this._player?.setTexts?.(previewTexts(this.s));
+    this._refreshCaptions();
+    this._updateNext();
+  }
+
+  renderCaptionFields() {
+    const c = this.s.captions;
+    const u = this.ui;
+    const tile = (st) => `<button type="button" class="tg-capstyle${c.style === st.id ? ' is-active' : ''}" data-act="cap-style" data-id="${esc(st.id)}" title="${esc(st.label)}${st.bestFor ? ` — ${esc(st.bestFor)}` : ''}"><span class="tg-capstyle__demo" style="${esc(captionTextCss(st, 300))}">${captionSampleHTML(st)}</span><span class="tg-capstyle__name">${esc(st.label)}</span></button>`;
+    const groups = Object.keys(CAPITE_CATEGORY_LABEL).map((cat) => [CAPITE_CATEGORY_LABEL[cat], CAPITE_STYLES.filter((x) => x.category === cat)]).concat([['Editor looks', CAPTION_STYLES]]);
+    const engine = CAPTION_ENGINES.find((e) => e.id === c.engine) || CAPTION_ENGINES[0];
+    const models = CAPTION_MODELS[engine.id];
+    const sources = this._captionSources();
+    const heard = Array.isArray(c.words) && c.words.length;
+    const stale = heard && c.wordsFor && c.wordsFor !== sources.map((x) => x.url).join('|');
+    return `
+      <p class="tg-hint">Pick a look and the words light up as they are spoken. Capite's 27 looks are here, and the editor's own. Listening runs on this device: free, no key, and nothing is uploaded.</p>
+      <div class="tg-capstyle-row"><button type="button" class="tg-capstyle tg-capstyle--plain${c.style ? '' : ' is-active'}" data-act="cap-style" data-id=""><span class="tg-capstyle__demo">Plain script lines</span><span class="tg-capstyle__name">No styled captions</span></button></div>
+      ${groups.map(([label, list]) => `<h5 class="tg-capgroup">${esc(label)}</h5><div class="tg-capstyles">${list.map(tile).join('')}</div>`).join('')}
+      <div class="tg-form-row tg-voice-row">
+        <label>Listen with <select data-cap="engine">${CAPTION_ENGINES.map((e) => `<option value="${e.id}"${c.engine === e.id ? ' selected' : ''}>${esc(e.label)}</option>`).join('')}</select></label>
+        <label>Model <select data-cap="model">${models.map(([id, l]) => `<option value="${esc(id)}"${(c.model || defaultModelFor(engine.id)) === id ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
+        <label>Language <select data-cap="language">${CAPTION_LANGUAGES.map(([id, l]) => `<option value="${id}"${c.language === id ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
+      </div>
+      <p class="tg-hint">${esc(engine.note)} The first time it downloads the model, then it works offline.</p>
+      <div class="tg-voice-actions">
+        <button type="button" class="tg-chip is-active" data-act="cap-generate" ${u.capBusy || !sources.length ? 'disabled' : ''}>${u.capBusy ? 'Listening…' : (heard ? '↻ Listen again' : '💬 Make word-timed captions')}</button>
+        ${u.capBusy ? '<button type="button" class="tg-chip" data-act="cap-cancel">Cancel</button>' : ''}
+        ${heard && !u.capBusy ? '<button type="button" class="tg-chip" data-act="cap-srt">⬇ .srt</button><button type="button" class="tg-chip" data-act="cap-clear">Use my script instead</button>' : ''}
+      </div>
+      ${u.capBusy ? `<div class="tg-bgprogress"><span>${esc(u.capNote || 'Listening…')} ${Math.round((u.capProgress || 0) * 100)}%</span><i style="width:${Math.round((u.capProgress || 0) * 100)}%"></i></div>` : ''}
+      ${!sources.length && !heard ? '<p class="tg-hint">Nothing to listen to yet: make the voiceover below, or pick footage with speech. Until then the words follow your script.</p>' : ''}
+      ${heard && !u.capBusy ? `<p class="tg-status">✓ ${c.words.length} words timed${stale ? ' · your audio changed since, listen again to match' : ''}</p>` : (c.style ? '<p class="tg-hint">The words are spread over your video from your script until you listen to the audio.</p>' : '')}
+      ${u.capNote && !u.capBusy ? `<p class="tg-status tg-status--warn">${esc(u.capNote)}</p>` : ''}
+      ${u.capError ? `<p class="tg-status tg-status--error">${esc(u.capError)}</p>` : ''}`;
+  }
+
+  async generateCaptions() {
+    const u = this.ui; const c = this.s.captions;
+    const sources = this._captionSources();
+    if (!sources.length) { u.capError = 'There is no audio to listen to yet. Make the voiceover, or pick footage with speech.'; this._refreshCaptions(); return; }
+    u.capBusy = true; u.capError = ''; u.capNote = ''; u.capProgress = 0;
+    this._capAbort = new AbortController();
+    this._refreshCaptions();
+    try {
+      const all = [];
+      let used = c.engine; let note = '';
+      for (const [i, src] of sources.entries()) {
+        const res = await (this.captionMaker || transcribeCaptions)(src.url, {
+          engine: c.engine, model: c.model || undefined, language: c.language, signal: this._capAbort.signal,
+          onProgress: (p) => { u.capNote = p.stage === 'download' ? 'Downloading the speech model…' : p.stage === 'decode' ? 'Reading the sound…' : `Listening${sources.length > 1 ? ` (clip ${i + 1} of ${sources.length})` : ''}…`; u.capProgress = (i + (p.progress || 0)) / sources.length; this._refreshCaptions(); },
+        });
+        used = res.engine; if (res.note) note = res.note;
+        all.push(...res.words.map((w) => ({ ...w, start: w.start + src.offsetMs, end: w.end + src.offsetMs })));
+      }
+      c.words = all.sort((a, b) => a.start - b.start);
+      c.wordsFor = sources.map((x) => x.url).join('|');
+      c.source = sources[0].label;
+      if (!c.style) c.style = 'capite-hormozi';
+      this.s.elements.captions = true;
+      u.capNote = note || `Captions made on this device with ${(CAPTION_ENGINES.find((e) => e.id === used) || {}).label || used}.`;
+    } catch (err) {
+      if (err?.name !== 'AbortError') u.capError = err?.message || 'The captions could not be made.';
+      u.capNote = '';
+    } finally {
+      u.capBusy = false; this._capAbort = null;
+      this._redrawCaptions();
+    }
+  }
+
+  downloadCaptionsSrt() {
+    const c = this.s.captions;
+    if (!c.words?.length) return;
+    const st = captionStyleFor(c.style || 'plain');
+    const blob = new Blob([pagesToSrt(captionPages(c.words, st))], { type: 'application/x-subrip' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = `${(this.s.selectedScript?.name || 'captions').replace(/[^\w-]+/g, '-')}.srt`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
   _refreshVoice() { this._setHTML('#tg-voice', this.renderVoiceFields()); }
@@ -1437,6 +1551,13 @@ export class TemplateGeneratorModal extends BaseModal {
     const t = e.target;
     if (t.dataset?.tstyle) { this._onTextEdit(t); return; }
     if (t.dataset?.call) { this._onCallEdit(t); return; }
+    if (t.dataset?.cap) {
+      const k = t.dataset.cap; const c = this.s.captions;
+      c[k] = t.value;
+      if (k === 'engine') c.model = '';
+      if (k === 'engine') this._refreshCaptions();
+      return;
+    }
     if (t.dataset?.voice) {
       const k = t.dataset.voice; const v = this.s.voice;
       if (k === 'engine') { v.engine = t.value; v.voice = t.value === 'free' ? FREE_VOICE_CHOICES[0][0] : 'marin'; this._refreshVoice(); }
@@ -1503,6 +1624,11 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'bg-remove': this.removeBackground(id); break;
       case 'bg-cancel': this._bgAbort?.abort(); break;
       case 'bg-restore': this.restoreBackground(id); break;
+      case 'cap-style': this.s.captions.style = id || ''; if (id) this.s.elements.captions = true; this._redrawCaptions(); break;
+      case 'cap-generate': this.generateCaptions(); break;
+      case 'cap-cancel': this._capAbort?.abort(); break;
+      case 'cap-srt': this.downloadCaptionsSrt(); break;
+      case 'cap-clear': this.s.captions.words = null; this.s.captions.wordsFor = ''; this._redrawCaptions(); break;
       case 'voice-generate': this.generateVoice(); break;
       case 'voice-cancel': this._voiceAbort?.abort(); break;
       case 'text-role': this.ui.textRole = id; this._player?.selectRole?.(id); this._setHTML('#tg-textpanel', this.renderTextPanel()); break;
@@ -1885,6 +2011,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this._player = createPreviewPlayer(this.overlay, pl, {
       captions,
       texts: previewTexts(st),
+      captionTrack: this._captionTrackForPlayer(),
       audio: this._audioDefs(),
       onSelect: (role) => { this.ui.textRole = role; this._setHTML('#tg-textpanel', this.renderTextPanel()); },
       onChange: (role, patch) => this._setTextStyle(role, patch),
@@ -2050,6 +2177,7 @@ export class TemplateGeneratorModal extends BaseModal {
     const state = toBuilderState({ ...this.s, selectedVideos: durable }, payloads);
     const composition = buildCompositionFromState(state);
     composition.name = this.s.selectedScript?.name || composition.name;
+    composition.captionTrack = state.captionTrack || null;
     for (const track of composition.tracks) {
       for (const clip of track.clips) {
         if (clip.asset && !clip.assetId) clip.asset = normalizeAsset(clip.asset);

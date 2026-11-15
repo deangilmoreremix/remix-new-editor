@@ -136,6 +136,7 @@
     "@remotion/player": "4.0.540",
     "@remotion/transitions": "4.0.540",
     "@remotion/web-renderer": "4.0.540",
+    "@remotion/whisper-web": "4.0.540",
     "@remotion/zod-types": "4.0.540",
     "@sparticuz/chromium": "^153.0.0",
     "@sparkjsdev/spark": "^2.4.0",

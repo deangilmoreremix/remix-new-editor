@@ -12,7 +12,9 @@ import { isGlTransition } from './transitions';
 
 interface CompClip { volume?: number; keyframes?: { volume?: Array<{ t: number; v: number }> }; _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string; call?: { phone: string; country?: string; buttonText?: string } }; lowerThird?: { template?: string; name?: string; title?: string }; textStyle?: Record<string, unknown> }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
 interface CompTrack { type?: string; name?: string; clips?: CompClip[] }
-export interface Composition { name?: string; tracks?: CompTrack[]; transitions?: Array<{ fromClipIndex: number; toClipIndex: number; inTrack?: number; type?: string; duration?: number }> }
+/** [remix] A styled, word-timed caption track for the cut (words in ms from the cut's start); it lands as the first clip's OpenChatCut captions. */
+export interface CompositionCaptions { template: string; motionPreset?: string; pacing?: 'word' | 'phrase'; words: Array<{ text: string; start: number; end: number }> }
+export interface Composition { name?: string; captionTrack?: CompositionCaptions | null; tracks?: CompTrack[]; transitions?: Array<{ fromClipIndex: number; toClipIndex: number; inTrack?: number; type?: string; duration?: number }> }
 
 export interface AppliedComposition { timeline: Timeline; assets: Asset[]; overlays: OverlayClip[]; clipIds: string[] }
 
@@ -91,5 +93,13 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
     transitions.push({ id: generateId(), type: 'dissolve', duration: Math.max(0.1, Math.min(t.duration ?? 1, 2)), clipAId: a, clipBId: b, ...(isGlTransition(t.type) ? { glType: t.type } : {}) });
   }
   if (transitions.length) tl = { ...tl, transitions: [...tl.transitions, ...transitions] };
+  // the caption track rides on the first footage clip: words are timeline ms, so shift them to where this cut starts
+  const ct = comp.captionTrack;
+  const first = ct?.words?.length ? [...placed.values()].flat().find((id) => tl.clips.some((x) => x.id === id && x.type !== 'audio')) : undefined;
+  if (ct && first) {
+    const off = Math.round(base * 1000);
+    const captions = { enabled: true, template: ct.template, pacing: ct.pacing ?? 'phrase', motionPreset: ct.motionPreset ?? 'pop', offsetFrames: 0, words: ct.words.map((w) => ({ text: w.text, start: w.start + off, end: w.end + off })) } as unknown as NonNullable<Timeline['clips'][number]['captions']>;
+    tl = { ...tl, clips: tl.clips.map((x) => (x.id === first ? { ...x, captions } : x)) };
+  }
   return { timeline: tl, assets, overlays, clipIds: [...placed.values()].flat() };
 }

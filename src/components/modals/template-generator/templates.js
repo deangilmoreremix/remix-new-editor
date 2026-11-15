@@ -53,6 +53,8 @@ export function snapshotTemplate(s, { name = '', description = '' } = {}) {
       // the made voiceover is kept only when it is stored for good (a blob: / data: URL would be dead on another device)
       generatedAsset: durableAsset(s.voice.generatedAsset),
     },
+    // the caption look and, when the audio was transcribed, its word timings (small: text + two numbers per word)
+    captions: { style: s.captions?.style || '', motion: s.captions?.motion || '', engine: s.captions?.engine, model: s.captions?.model || '', language: s.captions?.language || 'auto', words: s.captions?.words || null, wordsFor: s.captions?.wordsFor || '' },
     music: { ...s.music },
     mix: { ...s.mix },
     personalization: { enabled: !!s.personalization.enabled },
@@ -84,6 +86,7 @@ export function restoreTemplate(rec, findScript = () => null) {
   s.voice = { ...s.voice, ...rec.voice };
   s.music = { ...s.music, ...(rec.music || {}) };
   s.mix = { ...s.mix, ...(rec.mix || {}) };
+  s.captions = { ...s.captions, ...(rec.captions || {}) };
   s.personalization = { ...s.personalization, enabled: !!rec.personalization?.enabled };
   s.selectedVideos = (rec.clips || []).map((c) => ({ ...c }));
   s.selectedAnimations = (rec.animations || []).map((a) => ({ ...a }));

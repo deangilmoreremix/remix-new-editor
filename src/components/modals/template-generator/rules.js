@@ -14,6 +14,8 @@
 
 import { resolveTextStyle } from './textStyles.js';
 import { audioPlan } from './audioPlan.js';
+import { evenWords } from './captions.js';
+import { captionStyleFor } from '../../../openchatcut/captions/styles';
 
 export const STEPS = { VIDEO: 0, SCRIPT: 1, OVERLAY: 2, PREVIEW: 3 };
 export const STEP_LABELS = ['Video', 'Script', 'Overlay', 'Preview'];
@@ -125,6 +127,8 @@ export function createWizardState() {
     selectedTransition: null,    // { type, duration } from the editor's transitions library
     // Text elements the timeline can create today (applyTemplate makes media + text/caption clips).
     elements: { captions: true, title: '', lowerThird: '', lowerThirdStyle: '', cta: '', styles: {} },   // styles: the user's changes to each text's look (see textStyles.js)
+    // word-timed captions (captions.js): `style` = a caption look id from the editor's list (Capite's 27 among them); '' = the plain script text above
+    captions: { style: '', motion: '', engine: 'whisper-webgpu', model: '', language: 'auto', words: null, wordsFor: '', source: '' },   // words: [{text,start,end}] ms once transcribed
     voice: { enabled: false, provider: 'openai', engine: 'openai', voice: 'marin', speed: 1, text: '', instructions: '', generatedAsset: null },   // generatedAsset: { url, duration, name } once the voiceover has been made
     music: { id: '', duck: true },                      // a bundled track (music.js); trimmed to the cut
     mix: { footage: 1, voice: 1, music: 0.3 },          // volumes 0..1
@@ -210,6 +214,22 @@ export function scriptLines(text, sceneCount) {
 }
 
 /**
+ * The styled, word-timed caption track for the cut, or null when the plain script captions apply.
+ * `{ template, motionPreset, pacing, words:[{text,start,end}] (ms from the start of the cut), source: 'transcript' | 'script' }`
+ */
+export function captionTrackFor(s, total) {
+  const c = s.captions || {};
+  if (!s.elements?.captions || !c.style) return null;
+  const style = captionStyleFor(c.style);
+  if (style.id !== c.style) return null;   // an id this build does not know → plain captions
+  const limit = Math.max(0.5, total) * 1000;
+  const heard = Array.isArray(c.words) && c.words.length ? c.words : null;
+  const words = (heard || evenWords(s.script?.text, total)).filter((w) => w.start < limit).map((w) => ({ ...w, end: Math.min(w.end, limit) }));
+  if (!words.length) return null;
+  return { template: style.id, motionPreset: c.motion || style.motion || 'pop', pacing: 'phrase', words, source: heard ? 'transcript' : 'script' };
+}
+
+/**
  * Wizard state → the `state` shape of buildCompositionFromState():
  * videos become the per-scene media; the script becomes captions timed per scene;
  * the picked transition is applied between consecutive clips; elements/voice carry over.
@@ -262,7 +282,9 @@ export function toBuilderState(s, payloads = {}) {
     lowerThirdClip(s.elements, Math.min(1, total - 1), Math.min(4, total)) || text('Lower third', 'Lower Third', s.elements.lowerThird, Math.min(1, total - 1), 4, 'lowerThird'),
     text('Call to action', 'CTA', s.elements.cta || s.script.cta, Math.max(total - 4, 0), 4, 'cta'),
   ].filter(Boolean);
-  const captionClips = s.elements.captions ? captions : [];
+  // A chosen caption look makes ONE word-timed caption track (transcribed words, else the script spread over the cut) instead of per-scene text clips.
+  const captionTrack = captionTrackFor(s, total);
+  const captionClips = s.elements.captions && !captionTrack ? captions : [];
 
   // Animations: each lasts its own length (capped to the video). End screens sit at the end; the rest are
   // spread evenly from the start so they don't pile on top of each other.
@@ -287,6 +309,7 @@ export function toBuilderState(s, payloads = {}) {
     media: [],
     mediaByScene,
     transitions,
+    captionTrack,
     overlays: [...captionClips, ...elements, ...animations],
     voice: { ...s.voice, text: s.voice.text || s.script.text, volume: plan.voice?.volume ?? 1 },
     music: plan.music,

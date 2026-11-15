@@ -10,6 +10,7 @@
 // The text on the video is drawn by the editor's own overlay renderer (the same fonts, outline, box and entrance the timeline gets), so the
 // preview is what you will get, and a selected text can be moved and resized with the editor's drag handles.
 import '../../../lib/editor/addons/overlayAddons.js';
+import { captionPages, captionTextCss, captionPageHTML, captionAt } from './captionPreview.js';
 import { buildOverlayElement, finishOverlayElement, destroyOverlayElement, playInAnimation } from '../../../lib/editor/addons/overlayRender.js';
 import { attachDragResize } from '../../../lib/editor/addons/dragResize.js';
 import { lowerThirdFrame, LOWER_THIRD_DEFAULTS } from '../../../lib/editor/addons/lowerThirds.js';
@@ -61,7 +62,7 @@ export function renderPlayerHTML(playlist) {
 }
 
 /** Wire a rendered player. Returns { destroy }. */
-export function createPreviewPlayer(root, playlist, { captions = [], texts = null, audio = [], onSelect, onChange } = {}) {
+export function createPreviewPlayer(root, playlist, { captions = [], texts = null, captionTrack = null, audio = [], onSelect, onChange } = {}) {
   const host = root?.querySelector?.('#tg-player');
   if (!host || !playlist.length) return { destroy() {} };
   const video = host.querySelector('.tg-player__video');
@@ -120,6 +121,32 @@ export function createPreviewPlayer(root, playlist, { captions = [], texts = nul
       }
     }
   };
+  // ---- word-timed captions: the active word picked out, in the chosen caption look ----
+  let capTrack = null;
+  let capPages = [];
+  let capEl = null;
+  const setCapTrack = (track) => {
+    capTrack = track && track.words?.length && track.style ? track : null;
+    capPages = capTrack ? captionPages(capTrack.words, capTrack.style) : [];
+    if (!capTrack && capEl) capEl.hidden = true;
+  };
+  const renderCaps = (now) => {
+    if (!capTrack || !screen) return;
+    if (!capEl) {
+      capEl = document.createElement('div');
+      capEl.className = 'tg-capwords';
+      capEl.setAttribute('aria-live', 'off');
+      screen.appendChild(capEl);
+    }
+    const page = captionAt(capPages, now * 1000);
+    capEl.hidden = !page;
+    if (!page) return;
+    const h = screen.clientHeight || 360;
+    const st = capTrack.style;
+    capEl.style.cssText = `${captionTextCss(st, h)};${st.wholeLine && st.background ? `background:${st.background};` : ''}`;
+    capEl.innerHTML = captionPageHTML(st, page, now * 1000, { motion: capTrack.motion });
+  };
+  setCapTrack(captionTrack);
   screen?.addEventListener('pointerdown', (e) => { if (e.target === screen || e.target.classList?.contains('tg-player__video') || e.target === layer) { if (selectedRole) { selectedRole = null; onSelect?.(null); renderTexts(timeNow()); } } });
 
   let index = 0;
@@ -192,6 +219,7 @@ export function createPreviewPlayer(root, playlist, { captions = [], texts = nul
     fill.style.width = `${Math.min(100, (t / total) * 100)}%`;
     timeEl.textContent = `${formatTime(t)} / ${formatTime(total)}`;
     renderTexts(t);
+    renderCaps(t);
     syncAudio(t);
     toggleBtn.textContent = playing ? '❚❚' : '▶';
     toggleBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
@@ -254,6 +282,8 @@ export function createPreviewPlayer(root, playlist, { captions = [], texts = nul
     /** Replace the voice / music tracks (after a change in the mix) and resync them to the playhead. */
     setAudio(defs) { setAudioDefs(defs); paint(); },
     /** Replace the texts (after an edit) and redraw them at the current moment. */
+    /** Replace the word-timed caption track (`{ style, words, motion }` or null) and redraw it. */
+    setCaptionTrack(track) { setCapTrack(track); paint(); },
     setTexts(next) { textItems = Array.isArray(next) ? next : null; for (const id of [...mounted.keys()]) drop(id); paint(); },
     /** Select a text role: pause, jump to where it first shows, and give it handles. */
     selectRole(role) {

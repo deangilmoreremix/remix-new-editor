@@ -40,6 +40,16 @@ The published `catalog.json` in the `demo-template-videos` bucket still has the 
 3. Re-upload `catalog.json` (and `README.txt` if it repeats the note) to the same path with `node scripts/upload-template-videos.mjs` (needs `SUPABASE_SERVICE_ROLE_KEY`; it only writes to that bucket). Other apps only read from this bucket; do not rename or delete it.
 Nothing in the Template Generator depends on this wording.
 
-## 6. Other notes
+## 6. Styled captions (Preview step → "💬 Styled captions")
+Pick a look (Capite's 27, grouped by category, plus the editor's own) and the words light up as they are spoken. "Make word-timed captions" listens to the voiceover (or, with none, to each clip's own sound) on the device: free, no key, nothing uploaded.
+- **Whisper WebGPU** (default): Whisper through Transformers.js, the engine behind `@remotion/whisper-webgpu`. Uses the GPU when the browser has WebGPU, otherwise WASM. Measured in a CPU-only headless browser: a 5 s clip with the tiny model takes about 8 s after the model download.
+- **Whisper.cpp (WASM)**: `@remotion/whisper-web`, the browser build of Whisper.cpp. (`@remotion/install-whisper-cpp` installs a native binary on a server and cannot run in a browser or on Netlify.) It needs a cross-origin-isolated page (`Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: credentialless`). This site is not isolated today, so choosing it shows "Whisper.cpp needs a cross-origin-isolated page" and the work runs on Whisper WebGPU instead. To turn it on, serve the page with those two headers (this can break third-party embeds and sign-in popups, so test the whole app first).
+- **Not verified in a real browser:** with the page isolated, the Whisper.cpp run did not finish in the sandbox (the model downloaded fine; the WASM run hung and was stopped after about 20 minutes). Its code path is covered by tests with the package mocked only. Check it on a machine with the two headers on before relying on it; Cancel stops a listen that hangs.
+- With no audio to listen to, the words follow the written script over the cut. Listening is capped at the first 3 minutes.
+- On the timeline the captions are the editor's own (the first clip's Captions section), so they can be edited there. `.srt` can be downloaded from the panel.
+- Capite's looks are ported from <https://github.com/muneebkhan08/Capite> (MIT, © 2026 Capite Contributors): fonts, colours, outline, glow and highlight style, drawn with the editor's caption renderer. Capite's server and its ASS/VTT/MP4 export are not used.
+- User check: WebGPU speed on a machine with a GPU, and a real spoken clip in another language.
+
+## 7. Other notes
 - `public/motion-studio/legacy-textures/agent-stream.jpg` is a generated placeholder (the original artwork was never committed in this repo or in `develop`). Replace it with the real image when you have it.
 - Merging the pull request is done in GitHub.

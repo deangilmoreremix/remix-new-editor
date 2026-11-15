@@ -208,3 +208,30 @@ describe('Connect forms get the business\'s own number', () => {
     expect(JSON.stringify(applyComposition(createDefaultTimeline('T'), mk()).overlays)).not.toContain('555 010 7777');
   });
 });
+
+describe('word-timed caption track', () => {
+  const track = { template: 'capite-hormozi', motionPreset: 'word-pop', pacing: 'phrase' as const, words: [{ text: 'Hello', start: 0, end: 400 }, { text: 'world', start: 450, end: 900 }] };
+  const base = () => ({ ...(buildCompositionFromState({ media: [m(1, 8), m(2, 6)], overlays: [], transitions: [] }) as object), captionTrack: track }) as never;
+
+  it('rides on the first footage clip as the editor\'s own captions (look, motion, words)', () => {
+    const r = applyComposition(createDefaultTimeline('T'), base());
+    const first = r.timeline.clips.find((c) => r.clipIds[0] === c.id)!;
+    expect(first.captions).toMatchObject({ enabled: true, template: 'capite-hormozi', motionPreset: 'word-pop', pacing: 'phrase' });
+    expect(first.captions!.words!.map((w) => [w.text, w.start, w.end])).toEqual([['Hello', 0, 400], ['world', 450, 900]]);
+    expect(r.timeline.clips.filter((c) => c.captions)).toHaveLength(1);
+  });
+
+  it('shifts the words to where the cut starts when the timeline already has content', () => {
+    const r1 = applyComposition(createDefaultTimeline('T'), base());
+    const r2 = applyComposition(r1.timeline, base());
+    const second = r2.timeline.clips.find((c) => c.id === r2.clipIds[0])!;
+    expect(second.captions!.words![0].start).toBe(Math.round(r1.timeline.duration * 1000));
+  });
+
+  it('adds nothing without a track, or with no words', () => {
+    const none = applyComposition(createDefaultTimeline('T'), buildCompositionFromState({ media: [m(1, 8)], overlays: [], transitions: [] }) as never);
+    expect(none.timeline.clips.some((c) => c.captions)).toBe(false);
+    const empty = applyComposition(createDefaultTimeline('T'), { ...(buildCompositionFromState({ media: [m(1, 8)], overlays: [], transitions: [] }) as object), captionTrack: { ...track, words: [] } } as never);
+    expect(empty.timeline.clips.some((c) => c.captions)).toBe(false);
+  });
+});
