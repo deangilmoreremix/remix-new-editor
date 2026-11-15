@@ -5,8 +5,8 @@ import './components/modals/modal-styles.css';
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
 // real error surfaces in the dev-tools console if any step fails.
 import { initPopcorn } from './lib/popcornInit.js';
-const IS_WATCH_PAGE = /^\/(watch|v)\//.test(window.location.pathname) || /^#\/(watch|v)\//.test(window.location.hash);
-// The public video player (/watch/<id>) doesn't use Popcorn.
+const IS_WATCH_PAGE = /^\/(watch|v|p)\//.test(window.location.pathname) || /^#\/(watch|v|p)\//.test(window.location.hash);
+// The public video player (/watch/<id>, /v/<business>/<slug>) and landing pages (/p/<slug>) don't use Popcorn.
 (IS_WATCH_PAGE ? Promise.resolve(null) : initPopcorn()).then(() => {
   if (IS_WATCH_PAGE) return;
   console.log('[popcorn]', typeof window.Popcorn, Object.keys(window.Popcorn.registryByName || {}).length);
@@ -155,6 +155,14 @@ try {
     const { mountWatchPage } = await import('./pages/WatchPage.jsx');
     await mountWatchPage(app, decodeURIComponent(initialPage.slice('watch/'.length).split(/[/?#]/)[0]));
     console.log('[App] Watch page rendered');
+    return;
+  }
+
+  // Public video landing page (/p/<slug>): no app shell, no sign-in.
+  if (initialPage.startsWith('p/')) {
+    const { mountVideoPage } = await import('./pages/VideoPage.jsx');
+    await mountVideoPage(app, decodeURIComponent(initialPage.slice('p/'.length).split(/[/?#]/)[0]));
+    console.log('[App] Video landing page rendered');
     return;
   }
 

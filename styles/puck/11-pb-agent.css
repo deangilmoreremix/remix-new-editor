@@ -1,0 +1,9 @@
+.pk-d-pb-agent { --pk-bg-grad: linear-gradient(180deg,#06122b 0%,#0a2a6b 55%,#0f4fb8 100%); --pk-h1: linear-gradient(90deg,#a8f5ee,#6fd0ff); --pk-h1-color: transparent; --pk-h1-fill: transparent; --pk-h1-accent: #fff; --pk-form-bg: rgba(40,118,255,.88); --pk-form-text: #ffffff; --pk-bar: linear-gradient(90deg,#0b3f9e,#1470e8); --pk-bar-text: #fff; --pk-cta: #bfe7ff; --pk-cta-text: #0a2a5a; --pk-tile: #9ad7ff; }
+.pk-d-pb-agent .pk-hero--duo .pk-headline {  }
+.pk-d-pb-agent .pk-hero--duo .pk-form-sub { display: none; }
+.pk-d-pb-agent .pk-hero--duo .pk-headline { white-space: pre-line; }
+.pk-d-pb-agent .pk-hero--duo .pk-video video { object-position: 60% 30%; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22%); mask-image: linear-gradient(90deg, transparent 0, #000 22%); }
+.pk-d-pb-agent .pk-logo-word { color: #ffffff; opacity: .8; }
+.pk-d-pb-agent { font-family: "Plus Jakarta Sans Variable", "Inter Variable", system-ui, sans-serif; }
+.pk-d-pb-agent .pk-hero--duo .pk-headline { font-size: clamp(32px, 8vw, 56px); font-weight: 800; }
+.pk-d-pb-agent .pk-brand img { width: 30px; height: 30px; object-fit: cover; border-radius: 6px; }
