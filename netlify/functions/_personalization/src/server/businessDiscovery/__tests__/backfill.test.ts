@@ -39,6 +39,11 @@ describe('mergeDuplicates', () => {
     expect(out[0].phone).toBeTruthy()
     expect(normalizeDomain(out[0].website)).toBe('joes.com')
   })
+  it('does not merge storefronts in different cities that share a switchboard number', () => {
+    const a = rec(1, { phone: '813-555-0100', city: 'Tampa', osmId: '1', name: 'Alpha Salon' })
+    const b = rec(2, { phone: '(813) 555-0100', city: 'Orlando', osmId: '2', name: 'Bravo Barbers' })
+    expect(mergeDuplicates([a, b])).toHaveLength(2)
+  })
   it('keeps genuinely different businesses apart', () => {
     expect(mergeDuplicates([rec(1), rec(2), rec(3)])).toHaveLength(3)
   })

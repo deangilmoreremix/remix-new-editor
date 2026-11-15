@@ -106,7 +106,8 @@ export function identityKeys(r: BusinessDiscoveryRecord): string[] {
   const place = (r.postalCode || r.city || '').toLowerCase().trim()
   if (site && place) keys.push(`domain:${site}|${place}`)
   const phone = phoneDigits(r.phone)
-  if (phone) keys.push(`phone:${phone}`)
+  // A phone number alone is not identity either: distinct storefronts can share one switchboard line. Same place required.
+  if (phone && place) keys.push(`phone:${phone}|${place}`)
   const name = normalizeBusinessName(r.name)
   const addr = normalizeAddress(r)
   if (name && addr) keys.push(`na:${name}|${addr}`)

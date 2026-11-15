@@ -793,7 +793,10 @@ export async function POST(req: NextRequest) {
 
     // Cache results. Not a resume (its records come from the caller, so they must not be served to anyone else) and
     // not a time-boxed partial list (a later search should run in full, or continue, rather than get the short one).
-    if (!resume && !backfillMeta?.resume) businessDiscoveryCache.set(cacheKey, limited, CACHE_TTL_MS)
+    // Nor an under-target list whose backfill was enabled but skipped for lack of time (no meta, no cursor): caching it
+    // would pin the short answer for an hour with no way to continue.
+    const backfillSkippedForBudget = body?.backfill !== false && enriched.length < backfillTarget && !backfillMeta
+    if (!resume && !backfillMeta?.resume && !backfillSkippedForBudget) businessDiscoveryCache.set(cacheKey, limited, CACHE_TTL_MS)
 
     logPersonalization({
       route: '/api/personalization/find-businesses',

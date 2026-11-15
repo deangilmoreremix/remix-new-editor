@@ -90,6 +90,30 @@ describe('find-businesses resume', () => {
   })
 })
 
+describe('find-businesses cache with skipped backfill', () => {
+  it('does not cache an under-target list when backfill was skipped for lack of time', async () => {
+    vi.mocked(businessDiscoveryCache.get).mockReset().mockReturnValue(undefined as any)
+    vi.mocked(businessDiscoveryCache.set).mockReset()
+    const realNow = Date.now.bind(Date)
+    let offset = 0
+    const spy = vi.spyOn(Date, 'now').mockImplementation(() => realNow() + offset)
+    // The first pass is short AND eats almost the whole request budget, so backfill is skipped.
+    vi.mocked(discoverBusinesses).mockImplementation(async () => { offset = 100_000; return batch(0, 5) as any })
+    try {
+      const body = await (await post()).json()
+      expect(body.backfill).toBeUndefined()
+      expect(vi.mocked(businessDiscoveryCache.set)).not.toHaveBeenCalled()
+    } finally { spy.mockRestore() }
+  })
+  it('still caches an under-target list when backfill was switched off by the caller', async () => {
+    vi.mocked(businessDiscoveryCache.get).mockReset().mockReturnValue(undefined as any)
+    vi.mocked(businessDiscoveryCache.set).mockReset()
+    vi.mocked(discoverBusinesses).mockResolvedValue(batch(0, 5) as any)
+    await post({ backfill: false })
+    expect(vi.mocked(businessDiscoveryCache.set)).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('find-businesses backfill', () => {
   it('widens the radius until 30 independents are found', async () => {
     vi.mocked(discoverBusinesses).mockImplementation(async (o: any) => batch(0, o.radiusMiles === 15 ? 12 : o.radiusMiles === 25 ? 24 : 40) as any)
