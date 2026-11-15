@@ -40,6 +40,18 @@ describe('Studio Design addon', () => {
     expect(r.media).toEqual({ logo: null, product: 'https://cdn.test/p.png' });
   });
 
+  it('a design clip takes each contact\'s own brand colors, and the Studio defaults when a contact has none', () => {
+    const o = defaultStudioDesignOptions(design);
+    expect(o.colors).toEqual({ primary: '{{brandColor}}', accent: '{{accentColor}}', text: '#ffffff' });
+    const red = { ...ann, brand: { colors: { primary: '#e11d48', accent: '#f59e0b' } } };
+    expect(resolveStudioDesignOptions(o, red).colors).toEqual({ primary: '#e11d48', accent: '#f59e0b', text: '#ffffff' });
+    expect(resolveStudioDesignOptions(o, ann).colors).toEqual({ primary: '#d9ff00', accent: '#22c55e', text: '#ffffff' }); // no colors: as before
+    const half = { ...ann, brand: { colors: { primary: '#0ea5e9' } } };
+    expect(resolveStudioDesignOptions(o, half).colors).toEqual({ primary: '#0ea5e9', accent: '#22c55e', text: '#ffffff' });
+    const bad = { ...ann, brand: { colors: { primary: 'red; background:url(x)' } } };
+    expect(resolveStudioDesignOptions(o, bad).colors.primary).toBe('#d9ff00'); // never an unchecked string
+  });
+
   it('timelineToComposition emits a per-contact overlay layer, not a skipped one', () => {
     const clip = { ...createAddonClip('overlay-studio-design', { startSec: 1, timelineSeconds: 20 }) };
     clip.addon = defaultStudioDesignOptions(design);

@@ -63,6 +63,19 @@ const NOOP_SEQUENCE_MANAGER = {
   sequences: [],
 }
 
+/**
+ * Remotion 4.0.540 (the version this repo pins) no longer exports `Internals.SequenceManager`; it exports
+ * `Internals.SequenceManagerProvider` and friends instead. Reading `.Provider` off the missing object threw on
+ * the very first render, so the whole preview (and the in-browser render of it) showed only the error icon.
+ * Use the legacy provider when this Remotion has it (older versions and the test mocks), else render the
+ * children as they are: a browser <Player> needs no provider at all.
+ */
+const SequenceManagerShim: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const Legacy = (Internals as unknown as { SequenceManager?: { Provider?: React.ComponentType<{ value: unknown; children?: React.ReactNode }> } })
+    .SequenceManager?.Provider
+  return Legacy ? <Legacy value={NOOP_SEQUENCE_MANAGER}>{children}</Legacy> : <>{children}</>
+}
+
 /** Dark text on light colors, white on dark ones (hex colors; else the default). */
 export function readableTextOn(background: string, dark: string): string {
   const match = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(background.trim())
@@ -393,7 +406,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
   const { start: endCardStart, length: endCardLen } = endCardFrames(settings.durationInFrames)
 
   return (
-    <Internals.SequenceManager.Provider value={NOOP_SEQUENCE_MANAGER}>
+    <SequenceManagerShim>
     <AbsoluteFill style={{ background: '#05070a' }}>
       {renderBackground()}
       {audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
@@ -706,6 +719,6 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           </Sequence>
         ) : null}
       </AbsoluteFill>
-    </Internals.SequenceManager.Provider>
+    </SequenceManagerShim>
   )
 }

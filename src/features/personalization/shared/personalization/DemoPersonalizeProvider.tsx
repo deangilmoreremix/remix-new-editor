@@ -2925,6 +2925,11 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // picked colours (then theirs win). Colours auto-applied for an earlier
     // business are replaced, never mistaken for the visitor's choice.
     const researchedColors = researchBrandColors(research.brandColors)
+    // The same colours are kept on the client record (the form feeds both save paths and resets when the
+    // visitor switches client), so the timeline editor can tint designs for this business.
+    if (researchedColors) {
+      setClientForm((prev) => ({ ...prev, brandColors: { ...(prev.brandColors ?? {}), ...researchedColors } }))
+    }
     // Read once, outside the updater, so a re-run updater (StrictMode) sees
     // the same input and produces the same result.
     const previouslyAutoApplied = autoAppliedBrandColorsRef.current

@@ -141,6 +141,8 @@ export interface ClientProfile {
   phone: string
   website: string
   brandDescription: string
+  /** The business's own brand colors (researched from its site, or chosen); lets the timeline editor tint designs per contact. */
+  brandColors?: { primary?: string; accent?: string }
   createdAt: string
   updatedAt: string
 }

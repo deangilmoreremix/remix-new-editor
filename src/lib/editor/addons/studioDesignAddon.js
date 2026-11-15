@@ -53,7 +53,8 @@ export const STUDIO_DESIGN = registerAddon({
     designId: '',
     slots: {},
     media: { ...ROLE_TOKEN },
-    colors: { primary: DEFAULT_DESIGN_COLORS.primary, accent: DEFAULT_DESIGN_COLORS.accent, text: DEFAULT_DESIGN_COLORS.text },
+    // The contact's own brand colors when they have them; otherwise the Studio's defaults (see resolveStudioDesignOptions).
+    colors: { primary: '{{brandColor}}', accent: '{{accentColor}}', text: DEFAULT_DESIGN_COLORS.text },
     geometry: { left: 0, top: 0, width: 100, height: 100 },
     opacity: 100,
   }),
