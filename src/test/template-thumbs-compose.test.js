@@ -40,15 +40,16 @@ describe('composeStill', () => {
     expect(specks.kind).toBe('empty');
   });
 
-  it('a sparse full-frame overlay is shown over the real photo, and with no photo it is cropped as before', async () => {
-    const photo = await sharp({ create: { width: 640, height: 360, channels: 3, background: { r: 200, g: 120, b: 60 } } }).jpeg().toBuffer();
+  it('a sparse overlay that spans the frame keeps its whole frame (cropping would hide it), on a contrasting backdrop', async () => {
+    const mark = { create: { width: 24, height: 24, channels: 4, background: { r: 255, g: 255, b: 255, alpha: 1 } } };
     const marks = await sharp({ create: { width: W, height: H, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-      .composite([{ input: { create: { width: 24, height: 24, channels: 4, background: { r: 255, g: 255, b: 255, alpha: 1 } } }, left: 20, top: 20 }, { input: { create: { width: 24, height: 24, channels: 4, background: { r: 255, g: 255, b: 255, alpha: 1 } } }, left: W - 44, top: H - 44 }]).png().toBuffer();
-    const out = await composeStill(marks, { photo });
-    expect(out.kind).toBe('overlay'); expect(out.backdrop).toBe('photo');
-    const [r, , b] = await pixel(out.jpeg, TILE.w >> 1, TILE.h >> 1);
-    expect(r).toBeGreaterThan(b + 40);                                      // the orange photo shows through, not a flat backdrop
-    expect((await composeStill(marks)).kind).toBe('cropped');
+      .composite([{ input: mark, left: 20, top: 20 }, { input: mark, left: W - 44, top: H - 44 }]).png().toBuffer();
+    const out = await composeStill(marks);
+    expect(out.kind).toBe('whole'); expect(out.backdrop).toBe('dark');
+    const meta = await sharp(out.jpeg).metadata();
+    expect([meta.width, meta.height]).toEqual([TILE.w, TILE.h]);
+    const [r, g, b] = await pixel(out.jpeg, 14, 12);                          // the corner mark is still in the corner
+    expect(r + g + b).toBeGreaterThan(450);
   });
 
   it('does not enlarge a tiny element past the zoom limit', async () => {

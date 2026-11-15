@@ -31,11 +31,9 @@ const root = process.cwd();
 const PORT = 5198;
 const exists = (p) => access(p).then(() => true, () => false);
 const BLOCKLIST = 'src/cinegen/lib/occ/mg-render-blocklist.json';
-const PHOTO = join(root, 'public/library-previews/sample-out.jpg');      // a real street photo that sparse overlays are shown over
 const FLAT = 0.03;                                // an existing still where less than this share differs from its background tone looks empty (--blank redoes those)
 const TRIES = [{}, { frac: 0.8, wait: 2200 }, { frac: 0.3, wait: 2200 }, { frac: 0.95, wait: 2600 }, { frac: 0.15, wait: 2600 }];
 
-const photo = await readFile(PHOTO).catch(() => null);
 const server = await createServer({ root, logLevel: 'error', server: { port: PORT, strictPort: true, host: '127.0.0.1' } });
 await server.listen();
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--autoplay-policy=no-user-gesture-required', '--no-sandbox'] });
@@ -79,7 +77,7 @@ try {
           for (const t of TRIES) {
             await page.evaluate((x) => window.__thumbs.render(x), { kind: e.kind, id: e.id, ...t });
             const shot = await page.locator('#host').screenshot({ type: 'png', omitBackground: true });
-            const out = await composeStill(shot, { photo });
+            const out = await composeStill(shot);
             if (!best || out.coverage > best.coverage) best = out;
             if (out.kind !== 'empty' && out.coverage >= 0.01) break;
           }

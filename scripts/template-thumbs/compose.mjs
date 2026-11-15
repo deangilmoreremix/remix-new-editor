@@ -4,8 +4,8 @@
  * An animation is often a small element (a lower third, a name bar, an icon) or dark type on a transparent background. Shot over a dark
  * frame it vanishes. Here the element is cropped to its own bounds, enlarged to fill most of a 16:9 tile, and placed on a backdrop that
  * contrasts with it (light behind dark artwork, the app's dark behind light artwork). Fully opaque renders (scenes, backgrounds,
- * full-frame effects) keep their whole frame. A sparse full-frame overlay (a HUD, a frame, scan lines) is shown over a real photo, so
- * you can see what it does to footage.
+ * full-frame effects) keep their whole frame. A sparse overlay that spans the frame (a HUD, snow, stars) keeps its
+ * whole frame: cropping it would hide what it is.
  *
  *   composeStill(pngBuffer) → { jpeg: Buffer|null, kind: 'empty' | 'opaque' | 'cropped', coverage, backdrop }
  */
@@ -20,8 +20,7 @@ const MAX_ZOOM = 1.6;          // never enlarge the rendered pixels more than th
 const hex = (h) => ({ r: parseInt(h.slice(1, 3), 16), g: parseInt(h.slice(3, 5), 16), b: parseInt(h.slice(5, 7), 16) });
 
 /** @param {Buffer} input PNG (or any image) with alpha, rendered over a transparent page */
-/** @param {{ photo?: Buffer }} opts photo: a real picture to show sparse overlays over */
-export async function composeStill(input, { jpegQuality = 85, photo = null } = {}) {
+export async function composeStill(input, { jpegQuality = 85 } = {}) {
   const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H } = info;
   let minX = W, minY = H, maxX = -1, maxY = -1, drawn = 0, dark = 0, lumSum = 0;
@@ -49,12 +48,12 @@ export async function composeStill(input, { jpegQuality = 85, photo = null } = {
     return { jpeg: whole, kind: 'opaque', coverage, backdrop: 'dark' };
   }
 
-  // a sparse overlay that spans the frame (HUD marks, borders, scan lines): over a real photo, whole
+  // a sparse overlay that spans the frame: keep the whole frame (cropping would hide it), on a backdrop that contrasts with its artwork
   const spansFrame = (maxX - minX) / W > 0.6 && (maxY - minY) / H > 0.6;
-  if (spansFrame && coverage < 0.25 && photo) {
-    const base = await sharp(photo).resize(TILE.w, TILE.h, { fit: 'cover' }).modulate({ brightness: 0.85 }).toBuffer();
-    const layer = await sharp(input).resize(TILE.w, TILE.h, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
-    return { jpeg: await sharp(base).composite([{ input: layer }]).jpeg({ quality: jpegQuality }).toBuffer(), kind: 'overlay', coverage, backdrop: 'photo' };
+  if (spansFrame) {
+    const side = dark / drawn > 0.25 || lumSum / drawn < 90 ? 'light' : 'dark';
+    const whole = await sharp(input).flatten({ background: bg(side) }).resize(TILE.w, TILE.h, { fit: 'contain', background: bg(side) }).jpeg({ quality: jpegQuality }).toBuffer();
+    return { jpeg: whole, kind: 'whole', coverage, backdrop: side };
   }
 
   // a small element: crop to its bounds (with a little air), enlarge, and put it on a contrasting backdrop
