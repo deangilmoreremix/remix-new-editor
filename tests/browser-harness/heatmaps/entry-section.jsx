@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import HeatmapsSection from '/home/user/wt-stage7/src/lib/editor/projectLibrary/analytics/HeatmapsSection.jsx';
+import HeatmapsSection from '__ROOT__/src/lib/editor/projectLibrary/analytics/HeatmapsSection.jsx';
 const client = { from: () => ({ select: () => ({ order: () => ({ limit: async () => ({ data: [], error: null }) }) }) }),
   rpc: async (name, args) => { window.__calls.push([name, args]); return { data: window.__rpc[name], error: null }; } };
 window.__calls = [];

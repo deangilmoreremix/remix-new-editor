@@ -22,3 +22,9 @@ Scripts 10-41 are independent: re-create the database between them.
   anon cannot enumerate or ingest, forged owner, public payload carries no secrets, ingest idempotency/allowlist/limits,
   owner-only delete of analytics).
 - `60_perf_seed.sql` seeds 100k sessions / 600k events; `61_perf_queries.sql` times the owner RPCs (results in `docs/video-analytics.md`).
+
+## Hardening simulation (Stage 10)
+`HARDEN=1 ./run-assertions.sh` and `HARDEN=1 ./run-heatmap-assertions.sh` apply `05_hardening_preamble.sql` right before the heatmap migration. It mimics the live project's hardening
+(default privileges revoked from PUBLIC/anon/authenticated for new tables, functions and sequences, RLS enabled on every existing table), so the migration must work with only its own
+explicit GRANT / REVOKE / ENABLE ROW LEVEL SECURITY. The heatmap assertions end with ACL checks (no PUBLIC/anon execute, authenticated-only owner RPCs, service_role-only writer, no table privileges).
+Both scripts need a Postgres role that can `createdb` (e.g. run them as the `postgres` OS user).

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Runs the asserting SQL checks against a throwaway local Postgres database (no Supabase CLI / Docker).
+# HARDEN=1 first applies supabase/tests/05_hardening_preamble.sql (live-project hardening) before the heatmap migration.
 # Usage: PGHOST=127.0.0.1 PGUSER=postgres PGPASSWORD=... supabase/tests/run-assertions.sh
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -12,6 +13,9 @@ for m in 20260730_create_distributed_rate_limiter 20261105120000_create_publishe
          20261112010000_publish_hardening_slugs 20261112020000_video_analytics \
          20261112030000_retargeting_notifications 20261112040000_label_smartvideo_timeline_objects 20261112050000_drop_public_published_videos_read \
          20261114100000_heatmap_analytics; do  # the last one redefines prune_video_analytics / delete_video_analytics (Stage 7): 50_assertions must still hold
+  if [ "${HARDEN:-}" = 1 ] && [ "$m" = 20261114100000_heatmap_analytics ] && [ -z "${HARDENED_DONE:-}" ]; then  # live-project hardening, see 05_hardening_preamble.sql
+    psql -q -v ON_ERROR_STOP=1 -d "$DB" -f supabase/tests/05_hardening_preamble.sql >/dev/null; HARDENED_DONE=1
+  fi
   PGOPTIONS="-c client_min_messages=warning" psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "supabase/migrations/$m.sql" >/dev/null
 done
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -f supabase/tests/50_assertions.sql 2>&1 | sed -n 's/^psql:.*NOTICE:  //p;/ALL ASSERTIONS/p;/ERROR/p'

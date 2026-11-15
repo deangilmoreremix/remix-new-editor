@@ -14,6 +14,7 @@ import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publis
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createHeatmapCapture, singleLeadClipId } from '../lib/editor/publish/heatmapCapture.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
+import { captureEarlyPlay } from '../lib/editor/publish/earlyPlay.js';
 
 const FPS = 30;
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -93,6 +94,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
     </main>`;
   const $ = (s) => container.querySelector(s);
   const frame = $('[data-frame]');
+  const early = captureEarlyPlay(container); // a Play pressed before the player is wired is kept and released below
 
   const createEngine = deps.createEngine || await (async () => {
     const { createPreviewEngine } = await import('../lib/editor/remotion/previewEngine.jsx');
@@ -191,5 +193,6 @@ export async function mountWatchPage(container, ref, deps = {}) {
   frame.addEventListener('error', (e) => { if (e.target?.tagName === 'VIDEO' || e.target?.tagName === 'AUDIO') analytics.track('error', { props: { reason: 'media' } }); }, true);
   globalThis.addEventListener?.('pagehide', () => { heat.destroy(); analytics.destroy(); }, { once: true });
 
+  early.release(player);
   return player;
 }

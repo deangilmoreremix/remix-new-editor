@@ -9,10 +9,12 @@
 --   * clicks are stored as normalized coordinates (permille of the watch-page container) plus a CTA id/kind/label
 --     when a CTA was hit. No element text, selectors, form values, keystrokes, IPs or pointer movement.
 --   * every row hangs off video_view_sessions, so the existing 90-day prune/delete removes it with the session.
---   * owner reads are AGGREGATED RPCs. Below a minimum cohort (5 distinct sessions) they return no distribution.
+--   * owner reads are AGGREGATED RPCs with small-cell suppression: the view needs K sessions AND every displayed cell K distinct
+--     sessions (cells are merged / withheld otherwise; no complementary disclosure). See the rules above video_heat_clicks().
+--   * hardening-safe: explicit grants only, REVOKE from public/anon on every function, no reliance on default privileges.
 --
 -- Auth convention (same as the 20261112* analytics tables): owner = published_videos.clerk_user_id = JWT `sub`.
--- RLS: owner select only; all writes revoked (service_role bypasses RLS and is the only writer).
+-- RLS: enabled, deny by default (no client policy/grant; see below). Writer: ingest_video_heat_events (service_role only).
 -- Idempotent: safe to run twice.
 -- ===========================================================================
 
@@ -71,6 +73,12 @@ create table if not exists public.video_watch_seconds (
   primary key (video_id, day, viewport_class, sec)
 );
 
+-- RLS is ENABLED on every new table and no client role gets any table privilege or policy: deny by default, with nothing
+-- depending on Supabase default privileges (which the live project has revoked for new tables). Owners read ONLY through the
+-- aggregated, small-cell-protected RPCs below; a direct SELECT on the raw rows (per-session x/y, CTA, second counts) would
+-- bypass the cohort rules, which is why these tables, unlike the 20261112* ones, have no owner SELECT policy. The writer
+-- (ingest_video_heat_events) and the owner RPCs are SECURITY DEFINER functions owned by the migration role, so they need no
+-- table grants for service_role / authenticated either.
 do $$
 declare t text;
 begin
@@ -78,13 +86,10 @@ begin
   loop
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists "Owners read own video analytics" on public.%I', t);
-    execute format($p$create policy "Owners read own video analytics" on public.%I for select to anon, authenticated
-      using (exists (select 1 from public.published_videos v
-                      where v.id = %I.video_id and v.clerk_user_id = (select auth.jwt() ->> 'sub')))$p$, t, t);
-    execute format('revoke all on public.%I from anon, authenticated', t);
-    execute format('grant select on public.%I to anon, authenticated', t);
+    execute format('revoke all on public.%I from public, anon, authenticated', t);
   end loop;
 end $$;
+revoke all on sequence public.video_heat_events_id_seq from public, anon, authenticated;
 
 -- ---------------------------------------------------------------- ingest (service role only)
 -- p_events: already shaped by the Netlify function. Types: heat_click, cta_impression, scroll_depth, watch_buckets.
@@ -262,11 +267,26 @@ $$;
 revoke all on function public.ingest_video_heat_events(text, text, jsonb) from public, anon, authenticated;
 grant execute on function public.ingest_video_heat_events(text, text, jsonb) to service_role;
 
--- ---------------------------------------------------------------- owner reads (aggregated, cohort-protected)
+-- ---------------------------------------------------------------- owner reads (aggregated, small-cell protected)
 -- SECURITY DEFINER with an explicit ownership check (same pattern as delete_video_analytics): a caller who is not the
--- owner of p_video_id gets 42501 and nothing else. Below the minimum cohort no distribution is returned.
+-- owner of p_video_id gets 42501 and nothing else.
+--
+-- Privacy rules (the threshold K lives ONLY in _heat_min_cohort(); every RPC reads it from there):
+--   1. View level: fewer than K distinct sessions in the filtered view => {suppressed:true}, no distribution.
+--   2. Cell level: every displayed non-zero count is based on >= K DISTINCT SESSIONS. A cell/bucket below K is never shown;
+--      it is merged into a coarser cell or an "other" pool, and the pool itself is shown only if it reaches K sessions.
+--   3. Complementary disclosure: no total is returned that includes withheld cells (totals are sums of DISPLAYED cells, so a
+--      withheld value cannot be recovered by subtracting displayed cells from a displayed total), and partitions of the
+--      sessions (scroll bands, drop-off bins) are merged until each part is >= K, so no part can be derived by subtraction.
+--      A withheld cell is signalled only by a boolean ("withheld"/"suppressed"), never by a count or a position.
+--   Residual risk (documented in docs/stage-10/FIX_F_REPORT.md): differencing across OVERLAPPING filters / date ranges
+--   (e.g. the same view for 7 and 8 days) is not prevented.
 create or replace function public._heat_min_cohort() returns integer
 language sql immutable set search_path = '' as $$ select 5 $$;
+
+-- A count may be displayed when it is zero (nobody) or at least K.
+create or replace function public._heat_ok(n numeric) returns boolean
+language sql immutable set search_path = '' as $$ select n = 0 or n >= public._heat_min_cohort() $$;
 
 create or replace function public._heat_assert_owner(p_video_id text)
 returns void
@@ -282,9 +302,14 @@ begin
   end if;
 end;
 $$;
-revoke all on function public._heat_assert_owner(text) from public, anon, authenticated;
+revoke all on function public._heat_min_cohort() from public, anon, authenticated, service_role;
+revoke all on function public._heat_ok(numeric) from public, anon, authenticated, service_role;
+revoke all on function public._heat_assert_owner(text) from public, anon, authenticated, service_role;
 
--- Click heatmap: 50x50 grid cells over the normalized container. p_viewport/p_cta/p_page_bucket are optional filters.
+-- Click heatmap. Fine cells (50x50 grid) with >= K distinct sessions are returned as they are. Events in the other fine cells
+-- are merged into 10x10 blocks (5x5 fine cells); a block is returned if the merged events come from >= K sessions. What is
+-- left forms one "other" pool, returned only if it has >= K sessions, otherwise only "withheld": true.
+-- cells/coarse/other are disjoint, "clicks" = sum of what is returned.
 create or replace function public.video_heat_clicks(
   p_video_id text, p_from date, p_to date,
   p_viewport text default null, p_cta text default null, p_page_bucket integer default null)
@@ -295,38 +320,52 @@ security definer
 set search_path = ''
 as $$
 declare
-  sess integer; total integer; cells jsonb; buckets jsonb; top_bucket integer;
+  k integer := public._heat_min_cohort();
+  sess integer; res jsonb;
 begin
   perform public._heat_assert_owner(p_video_id);
-  select count(distinct e.session_id), count(*) into sess, total
+  select count(distinct e.session_id) into sess
     from public.video_heat_events e
    where e.video_id = p_video_id and e.type = 'heat_click' and e.day between p_from and p_to
      and (p_viewport is null or e.viewport_class = p_viewport)
      and (p_cta is null or e.cta_key = p_cta)
      and (p_page_bucket is null or e.page_bucket = p_page_bucket);
-  if sess < public._heat_min_cohort() then
-    return jsonb_build_object('suppressed', true, 'min_cohort', public._heat_min_cohort(), 'sessions', sess);
+  if sess < k then
+    return jsonb_build_object('suppressed', true, 'min_cohort', k, 'sessions', sess);
   end if;
-  select coalesce(jsonb_agg(jsonb_build_array(c.cx, c.cy, c.n) order by c.cy, c.cx), '[]'::jsonb) into cells from (
-    select least(49, e.x / 20) as cx, least(49, e.y / 20) as cy, count(*) as n
+  with evp as (
+    select e.session_id as sid, least(49, e.x / 20) as cx, least(49, e.y / 20) as cy, e.page_bucket as pb, e.cta_key
       from public.video_heat_events e
      where e.video_id = p_video_id and e.type = 'heat_click' and e.day between p_from and p_to
-       and (p_viewport is null or e.viewport_class = p_viewport)
-       and (p_cta is null or e.cta_key = p_cta)
-       and (p_page_bucket is null or e.page_bucket = p_page_bucket)
-     group by 1, 2) c;
-  select coalesce(jsonb_agg(jsonb_build_object('page_bucket', b.page_bucket, 'clicks', b.n) order by b.n desc), '[]'::jsonb) into buckets from (
-    select e.page_bucket, count(*) as n from public.video_heat_events e
-     where e.video_id = p_video_id and e.type = 'heat_click' and e.day between p_from and p_to
-       and (p_viewport is null or e.viewport_class = p_viewport) and (p_cta is null or e.cta_key = p_cta)
-     group by 1) b;
-  return jsonb_build_object('suppressed', false, 'min_cohort', public._heat_min_cohort(), 'sessions', sess,
-                            'clicks', total, 'grid', 50, 'cells', cells, 'page_buckets', buckets);
+       and (p_viewport is null or e.viewport_class = p_viewport)),
+  ev as (select * from evp where (p_cta is null or cta_key = p_cta) and (p_page_bucket is null or pb = p_page_bucket)),
+  fine as (select cx, cy, count(distinct sid) as s, count(*) as n from ev group by cx, cy),
+  rest as (select ev.sid, ev.cx, ev.cy from ev join fine f on f.cx = ev.cx and f.cy = ev.cy where f.s < k),
+  blk as (select cx / 5 as bx, cy / 5 as bj, count(distinct sid) as s, count(*) as n from rest group by 1, 2),
+  oth as (select count(distinct r.sid) as s, count(*) as n
+            from rest r join blk b on b.bx = r.cx / 5 and b.bj = r.cy / 5 where b.s < k),
+  pbs as (select pb, count(distinct sid) as s, count(*) as n from evp group by pb),
+  pbo as (select count(distinct p.sid) as s, count(*) as n from evp p join pbs b on b.pb = p.pb where b.s < k)
+  select jsonb_build_object(
+    'suppressed', false, 'min_cohort', k, 'sessions', sess,
+    'clicks', coalesce((select sum(n) from fine where s >= k), 0) + coalesce((select sum(n) from blk where s >= k), 0)
+              + coalesce((select n from oth where s >= k), 0),
+    'grid', 50, 'coarse_grid', 10,
+    'cells', coalesce((select jsonb_agg(jsonb_build_array(cx, cy, n) order by cy, cx) from fine where s >= k), '[]'::jsonb),
+    'coarse', coalesce((select jsonb_agg(jsonb_build_array(bx, bj, n) order by bj, bx) from blk where s >= k), '[]'::jsonb),
+    'other', (select jsonb_build_object('sessions', s, 'clicks', n) from oth where s >= k),
+    'withheld', (select s > 0 and s < k from oth),
+    'page_buckets', coalesce((select jsonb_agg(jsonb_build_object('page_bucket', pb, 'clicks', n) order by n desc) from pbs where s >= k), '[]'::jsonb),
+    'page_buckets_other', (select jsonb_build_object('sessions', s, 'clicks', n) from pbo where s >= k)
+  ) into res;
+  return res;
 end;
 $$;
 
 -- CTA table: impressions (distinct sessions that saw the CTA >= 50% visible) vs clicks (distinct sessions that used it).
--- A CTR is only returned when the CTA has impressions (never fabricated for old data without them).
+-- impressions < K  => the row is "suppressed" (no numbers).  clicks in 1..K-1 => clicks_suppressed (no number, no CTR).
+-- A CTR is only returned when both numbers are displayed and impressions exist (never fabricated for old data).
+-- No total row exists, so there is nothing to subtract from.
 create or replace function public.video_heat_cta_stats(p_video_id text, p_from date, p_to date, p_viewport text default null)
 returns jsonb
 language plpgsql
@@ -334,7 +373,7 @@ stable
 security definer
 set search_path = ''
 as $$
-declare out jsonb; sess integer;
+declare out jsonb; sess integer; k integer := public._heat_min_cohort();
 begin
   perform public._heat_assert_owner(p_video_id);
   select count(*) into sess from public.video_heat_sessions hs
@@ -353,25 +392,34 @@ begin
      where ve.video_id = p_video_id and ve.type in ('cta_click', 'call_click', 'lead_submit') and ve.clip_id is not null
        and (vs.started_at at time zone 'utc')::date between p_from and p_to
        and (p_viewport is null or hs.viewport_class = p_viewport)
-     group by ve.clip_id)
+     group by ve.clip_id),
+  j as (
+    select coalesce(i.cta_key, c.cta_key) as cta_key, i.kind, coalesce(i.label, c.label) as label,
+           i.impressions, coalesce(c.clicks, case when i.impressions is not null then 0 end) as clicks
+      from imp i full join clk c on c.cta_key = i.cta_key
+     limit 100),
+  d as (
+    select j.*,
+           (j.impressions is not null and j.impressions < k) as imp_hidden,
+           (j.clicks is not null and not (j.impressions is not null and j.impressions < k) and public._heat_ok(j.clicks)) as clk_shown
+      from j)
   select coalesce(jsonb_agg(jsonb_build_object(
-           'cta_key', k.cta_key, 'kind', coalesce(k.kind, 'other'), 'label', k.label,
-           'suppressed', coalesce(k.impressions, 0) < public._heat_min_cohort() and k.impressions is not null,
-           'impressions', case when k.impressions >= public._heat_min_cohort() then k.impressions end,
-           'clicks', case when k.impressions is null or k.impressions >= public._heat_min_cohort() then k.clicks end,
-           'ctr', case when k.impressions >= public._heat_min_cohort() and k.clicks is not null
-                       then round(least(k.clicks, k.impressions)::numeric / k.impressions, 4) end)
-         order by k.impressions desc nulls last, k.clicks desc nulls last), '[]'::jsonb) into out
-    from (
-      select coalesce(i.cta_key, c.cta_key) as cta_key, i.kind, coalesce(i.label, c.label) as label,
-             i.impressions, coalesce(c.clicks, case when i.impressions is not null then 0 end) as clicks
-        from imp i full join clk c on c.cta_key = i.cta_key
-       limit 100) k;
-  return jsonb_build_object('min_cohort', public._heat_min_cohort(), 'sessions', sess, 'ctas', out);
+           'cta_key', d.cta_key, 'kind', coalesce(d.kind, 'other'), 'label', d.label,
+           'suppressed', d.imp_hidden,
+           'impressions', case when not d.imp_hidden then d.impressions end,
+           'clicks', case when d.clk_shown then d.clicks end,
+           'clicks_suppressed', d.clicks is not null and not d.clk_shown,
+           'ctr', case when d.clk_shown and d.impressions >= k then round(least(d.clicks, d.impressions)::numeric / d.impressions, 4) end)
+         order by d.impressions desc nulls last, d.clicks desc nulls last), '[]'::jsonb) into out
+    from d;
+  return jsonb_build_object('min_cohort', k, 'sessions', sess, 'ctas', out);
 end;
 $$;
 
--- Scroll depth distribution + CTA exposure. Denominator = sessions that reported anything from the page.
+-- Scroll depth. The sessions fall into 5 disjoint bands by deepest milestone (none, 25, 50, 75, 100). A band is displayed only
+-- through "reached" values that are sums of whole groups of bands, and groups are merged (a small band joins its deeper
+-- neighbour) until each group has >= K sessions (or is empty), so no band can be derived by subtracting two displayed values.
+-- reached[m] is null when depth m falls inside a merged group.
 create or replace function public.video_heat_scroll(p_video_id text, p_from date, p_to date, p_viewport text default null)
 returns jsonb
 language plpgsql
@@ -379,7 +427,12 @@ stable
 security definer
 set search_path = ''
 as $$
-declare sess integer; r25 integer; r50 integer; r75 integer; r100 integer; cta_seen integer;
+declare
+  k integer := public._heat_min_cohort();
+  sess integer; r25 integer; r50 integer; r75 integer; r100 integer; cta_seen integer;
+  b integer[]; starts boolean[] := array[false, false, false, false, false];
+  acc integer := 0; lowest_real integer := 6; i integer; j integer; nxt integer; tot integer;
+  reached jsonb := '{}'::jsonb; bands jsonb := '[]'::jsonb;
 begin
   perform public._heat_assert_owner(p_video_id);
   select count(*), count(*) filter (where max_scroll >= 25), count(*) filter (where max_scroll >= 50),
@@ -387,21 +440,50 @@ begin
     into sess, r25, r50, r75, r100
     from public.video_heat_sessions
    where video_id = p_video_id and day between p_from and p_to and (p_viewport is null or viewport_class = p_viewport);
-  if sess < public._heat_min_cohort() then
-    return jsonb_build_object('suppressed', true, 'min_cohort', public._heat_min_cohort(), 'sessions', sess);
+  if sess < k then
+    return jsonb_build_object('suppressed', true, 'min_cohort', k, 'sessions', sess);
   end if;
+  b := array[sess - r25, r25 - r50, r50 - r75, r75 - r100, r100];   -- bands idx 1..5 = depth 0, 25, 50, 75, 100
+  for i in reverse 5..1 loop
+    acc := acc + b[i];
+    if acc >= k then starts[i] := true; lowest_real := i; acc := 0;
+    elsif acc = 0 then starts[i] := true;                            -- an empty band is safe to show on its own
+    end if;
+  end loop;
+  if acc > 0 then                                                    -- leftover < K joins the deepest-side group(s) next to it
+    for j in 2..lowest_real loop starts[j] := false; end loop;
+    starts[1] := true;
+  end if;
+  for i in 2..5 loop
+    tot := 0;
+    for j in i..5 loop tot := tot + b[j]; end loop;
+    reached := reached || jsonb_build_object(((i - 1) * 25)::text, case when starts[i] then to_jsonb(tot) else 'null'::jsonb end);
+  end loop;
+  for i in 1..5 loop
+    if starts[i] then
+      nxt := 6;
+      for j in i + 1..5 loop if starts[j] then nxt := j; exit; end if; end loop;
+      tot := 0;
+      for j in i..nxt - 1 loop tot := tot + b[j]; end loop;
+      bands := bands || jsonb_build_array(jsonb_build_object('from', (i - 1) * 25, 'sessions', tot));
+    end if;
+  end loop;
   select count(distinct e.session_id) into cta_seen from public.video_heat_events e
    where e.video_id = p_video_id and e.type = 'cta_impression' and e.day between p_from and p_to
      and (p_viewport is null or e.viewport_class = p_viewport);
-  return jsonb_build_object('suppressed', false, 'min_cohort', public._heat_min_cohort(), 'sessions', sess,
-    'reached', jsonb_build_object('25', r25, '50', r50, '75', r75, '100', r100),
-    'cta_exposed_sessions', cta_seen);
+  return jsonb_build_object('suppressed', false, 'min_cohort', k, 'sessions', sess,
+    'reached', reached, 'bands', bands,
+    -- both "saw a CTA" and "saw none" are cells of the same partition: shown only if each is zero or >= K
+    'cta_exposed_sessions', case when public._heat_ok(cta_seen) and public._heat_ok(sess - cta_seen) then to_jsonb(cta_seen) end);
 end;
 $$;
 
--- Per-second engagement: viewers / replays / skips / drop-off per second index.
---   skips(sec)   = sessions that watched later but not this second
---   dropoff(sec) = sessions whose furthest watched second is this one
+-- Per-second engagement: viewers / replays / skips per second index, drop-off in bins.
+--   skips(sec) = sessions that watched later but not this second
+--   drop-off   = sessions whose furthest watched second falls in the bin; bins are consecutive second ranges merged until
+--                each holds >= K sessions (so the bins partition all sessions and no bin can be derived by subtraction)
+-- A per-second value of 1..K-1 is null (withheld); 0 is shown. The series ends at the last second watched by >= K viewers
+-- (the length of the series never reveals how far one single viewer got).
 create or replace function public.video_heat_engagement(p_video_id text, p_from date, p_to date, p_viewport text default null)
 returns jsonb
 language plpgsql
@@ -409,51 +491,77 @@ stable
 security definer
 set search_path = ''
 as $$
-declare sess integer; dur numeric; top_sec integer; out jsonb;
+declare
+  k integer := public._heat_min_cohort();
+  sess integer; dur numeric; cut integer; out jsonb; dv integer[];
+  acc integer := 0; st integer := 0; i integer;
+  bfrom integer[] := '{}'; bto integer[] := '{}'; bn integer[] := '{}'; bins jsonb := '[]'::jsonb;
 begin
   perform public._heat_assert_owner(p_video_id);
   select (project ->> 'timelineSeconds')::numeric into dur from public.published_videos where id = p_video_id;
-  select count(*), coalesce(max(max_sec), -1) into sess, top_sec
+  select count(*) into sess
     from public.video_heat_sessions
    where video_id = p_video_id and day between p_from and p_to and max_sec >= 0
      and (p_viewport is null or viewport_class = p_viewport);
-  if sess < public._heat_min_cohort() then
-    return jsonb_build_object('suppressed', true, 'min_cohort', public._heat_min_cohort(), 'sessions', sess, 'duration_s', dur);
+  if sess < k then
+    return jsonb_build_object('suppressed', true, 'min_cohort', k, 'sessions', sess, 'duration_s', dur);
+  end if;
+  select coalesce(max(sec), -1) into cut from (
+    select sec from public.video_watch_seconds
+     where video_id = p_video_id and day between p_from and p_to and (p_viewport is null or viewport_class = p_viewport)
+     group by sec having sum(viewers) >= k) q;
+  if cut < 0 then
+    return jsonb_build_object('suppressed', false, 'min_cohort', k, 'sessions', sess, 'duration_s', dur,
+      'seconds', jsonb_build_object('viewers', '[]'::jsonb, 'replays', '[]'::jsonb, 'skips', '[]'::jsonb, 'dropoff_bins', '[]'::jsonb));
   end if;
   with ends as (
-    select max_sec as sec, count(*) as d from public.video_heat_sessions
+    select least(max_sec, cut) as sec, count(*) as d from public.video_heat_sessions
      where video_id = p_video_id and day between p_from and p_to and max_sec >= 0
        and (p_viewport is null or viewport_class = p_viewport)
-     group by max_sec),
+     group by 1),
   agg as (
     select sec, sum(viewers) as viewers, sum(replays) as replays from public.video_watch_seconds
      where video_id = p_video_id and day between p_from and p_to and (p_viewport is null or viewport_class = p_viewport)
      group by sec),
   g as (
     select gs as sec, coalesce(a.viewers, 0) as viewers, coalesce(a.replays, 0) as replays, coalesce(e.d, 0) as d
-      from generate_series(0, top_sec) gs left join agg a on a.sec = gs left join ends e on e.sec = gs),
+      from generate_series(0, cut) gs left join agg a on a.sec = gs left join ends e on e.sec = gs),
   w as (
     select sec, viewers, replays, d,
            coalesce(sum(d) over (order by sec desc rows between unbounded preceding and 1 preceding), 0) as later
       from g)
   select jsonb_build_object(
-      'viewers', jsonb_agg(viewers order by sec), 'replays', jsonb_agg(replays order by sec),
-      'dropoff', jsonb_agg(d order by sec),
-      'skips', jsonb_agg(greatest(0, later - viewers + d) order by sec)) into out
+      'viewers', jsonb_agg(case when public._heat_ok(viewers) then viewers end order by sec),
+      'replays', jsonb_agg(case when public._heat_ok(replays) then replays end order by sec),
+      'skips', jsonb_agg(case when public._heat_ok(greatest(0, later - viewers + d)) then greatest(0, later - viewers + d) end order by sec)),
+      array_agg(d::integer order by sec)
+    into out, dv
     from w;
-  return jsonb_build_object('suppressed', false, 'min_cohort', public._heat_min_cohort(), 'sessions', sess,
-                            'duration_s', dur, 'seconds', out);
+  for i in 0..cut loop
+    acc := acc + dv[i + 1];
+    if acc >= k then bfrom := bfrom || st; bto := bto || i; bn := bn || acc; st := i + 1; acc := 0; end if;
+  end loop;
+  if st <= cut then                                                  -- leftover seconds (< K sessions, maybe none) join the last bin
+    bto[array_length(bto, 1)] := cut;
+    bn[array_length(bn, 1)] := bn[array_length(bn, 1)] + acc;
+  end if;
+  for i in 1..coalesce(array_length(bfrom, 1), 0) loop
+    bins := bins || jsonb_build_array(jsonb_build_array(bfrom[i], bto[i], bn[i]));
+  end loop;
+  return jsonb_build_object('suppressed', false, 'min_cohort', k, 'sessions', sess,
+                            'duration_s', dur, 'seconds', out || jsonb_build_object('dropoff_bins', bins));
 end;
 $$;
 
-revoke all on function public.video_heat_clicks(text, date, date, text, text, integer) from public;
-revoke all on function public.video_heat_cta_stats(text, date, date, text) from public;
-revoke all on function public.video_heat_scroll(text, date, date, text) from public;
-revoke all on function public.video_heat_engagement(text, date, date, text) from public;
-grant execute on function public.video_heat_clicks(text, date, date, text, text, integer) to anon, authenticated;
-grant execute on function public.video_heat_cta_stats(text, date, date, text) to anon, authenticated;
-grant execute on function public.video_heat_scroll(text, date, date, text) to anon, authenticated;
-grant execute on function public.video_heat_engagement(text, date, date, text) to anon, authenticated;
+revoke all on function public.video_heat_clicks(text, date, date, text, text, integer) from public, anon, authenticated, service_role;
+revoke all on function public.video_heat_cta_stats(text, date, date, text) from public, anon, authenticated, service_role;
+revoke all on function public.video_heat_scroll(text, date, date, text) from public, anon, authenticated, service_role;
+revoke all on function public.video_heat_engagement(text, date, date, text) from public, anon, authenticated, service_role;
+-- explicit revokes above also cover Supabase's default grants to service_role: the deployed ACLs are identical with or without them
+grant execute on function public.video_heat_clicks(text, date, date, text, text, integer) to authenticated;
+grant execute on function public.video_heat_cta_stats(text, date, date, text) to authenticated;
+grant execute on function public.video_heat_scroll(text, date, date, text) to authenticated;
+grant execute on function public.video_heat_engagement(text, date, date, text) to authenticated;
 
 -- ---------------------------------------------------------------- retention (90 days, like the raw analytics)
 -- video_heat_sessions / video_heat_events cascade from video_view_sessions (pruned at 90 days). video_watch_seconds is
@@ -503,13 +611,14 @@ begin
   return jsonb_build_object('ok', true, 'sessions_deleted', n_sessions);
 end;
 $$;
-revoke all on function public.delete_video_analytics(text) from public;
-grant execute on function public.delete_video_analytics(text) to anon, authenticated;
+revoke all on function public.delete_video_analytics(text) from public, anon, authenticated;
+grant execute on function public.delete_video_analytics(text) to authenticated;
 
 -- ---------------------------------------------------------------- labels (same convention as 20261112040000)
 comment on table public.video_heat_sessions is '[smartvideo-timeline-editor] SmartVideo AI Timeline Editor: per-session heatmap aggregates (viewport, scroll, per-second counts); pruned with the session at 90 days.';
 comment on table public.video_heat_events is '[smartvideo-timeline-editor] SmartVideo AI Timeline Editor: normalized click coordinates, CTA impressions and scroll milestones (no text, no pointer movement); pruned at 90 days.';
 comment on table public.video_watch_seconds is '[smartvideo-timeline-editor] SmartVideo AI Timeline Editor: aggregated per-second watch counts per video/day/viewport; pruned at 90 days.';
+comment on function public._heat_min_cohort() is '[smartvideo-timeline-editor] SmartVideo AI Timeline Editor: the single definition of the minimum cohort (K).';
 comment on function public.ingest_video_heat_events(text, text, jsonb) is '[smartvideo-timeline-editor] SmartVideo AI Timeline Editor';
 comment on function public.video_heat_clicks(text, date, date, text, text, integer) is '[smartvideo-timeline-editor] SmartVideo AI Timeline Editor';
 comment on function public.video_heat_cta_stats(text, date, date, text) is '[smartvideo-timeline-editor] SmartVideo AI Timeline Editor';

@@ -7,12 +7,12 @@ import AnalyticsTabView from '../AnalyticsTabView.jsx';
 
 const NOW = new Date('2026-11-11T15:30:00Z');
 const VIDEO = { id: 'abcdefgh12', title: 'Kitchen' };
-const CLICKS = { suppressed: false, min_cohort: 5, sessions: 9, clicks: 14, grid: 50, cells: [[25, 12, 6], [5, 40, 8]], page_buckets: [{ page_bucket: 3, clicks: 14 }] };
+const CLICKS = { suppressed: false, min_cohort: 5, sessions: 9, clicks: 14, grid: 50, cells: [[25, 12, 6], [5, 40, 8]], coarse: [[1, 1, 5]], coarse_grid: 10, other: null, withheld: true, page_buckets: [{ page_bucket: 3, clicks: 14 }] };
 const CTAS = { min_cohort: 5, sessions: 9, ctas: [
   { cta_key: 'c1', kind: 'book_call', label: 'Book a call', impressions: 20, clicks: 5, ctr: 0.25, suppressed: false },
   { cta_key: 'c2', kind: 'other', label: '=Sneaky', impressions: null, clicks: 2, ctr: null, suppressed: false }] };
-const ENG = { suppressed: false, sessions: 9, duration_s: 4, min_cohort: 5, seconds: { viewers: [9, 7, 4, 1], replays: [0, 2, 0, 0], skips: [0, 0, 2, 1], dropoff: [0, 2, 3, 1] } };
-const SCROLL = { suppressed: false, sessions: 10, min_cohort: 5, reached: { 25: 10, 50: 6, 75: 3, 100: 1 }, cta_exposed_sessions: 4 };
+const ENG = { suppressed: false, sessions: 10, duration_s: 4, min_cohort: 5, seconds: { viewers: [9, 7, 5, null], replays: [0, 6, 0, null], skips: [0, 0, 5, null], dropoff_bins: [[0, 1, 5], [2, 3, 5]] } };
+const SCROLL = { suppressed: false, sessions: 10, min_cohort: 5, reached: { 25: 10, 50: 6, 75: null, 100: null }, cta_exposed_sessions: 4 };
 const mkClient = (over = {}) => {
   const calls = [];
   return { calls, from: () => ({ select: () => ({ order: () => ({ limit: async () => ({ data: [{ id: 'abcdefgh12', title: 'Kitchen' }, { id: 'zzzzzzzz99', title: 'Other video' }], error: null }) }) }) }),
@@ -27,7 +27,7 @@ describe('Heatmaps section controls', () => {
     render(<HeatmapsSection client={c} video={VIDEO} projectName="Kitchen" now={NOW} />);
     await waitFor(() => expect(screen.getByTestId('heat-stage')).toBeTruthy());
     expect(last(c, 'video_heat_clicks')).toMatchObject({ p_video_id: 'abcdefgh12', p_from: '2026-10-13', p_to: '2026-11-11', p_viewport: null, p_cta: null });
-    expect(screen.getByText(/14 clicks from 9 sessions/)).toBeTruthy();
+    expect(screen.getByText(/14 clicks shown from 9 sessions/)).toBeTruthy();
   });
   it('device, CTA, date range and video controls change the query', async () => {
     const c = mkClient();
@@ -71,10 +71,31 @@ describe('Heatmaps section controls', () => {
     expect(screen.getAllByText('—').length).toBeGreaterThan(0); // no impressions -> no fabricated CTR
     fireEvent.click(screen.getByRole('tab', { name: 'Video engagement' }));
     await waitFor(() => expect(screen.getByTestId('engagement-strip')).toBeTruthy());
-    expect(screen.getByText(/Peak drop-off: second 2/)).toBeTruthy();
+    expect(screen.getByText(/Busiest drop-off: seconds 0 to 1/)).toBeTruthy();
     fireEvent.click(screen.getByRole('tab', { name: 'Scroll depth' }));
     await waitFor(() => expect(screen.getByTestId('scroll-bars')).toBeTruthy());
     expect(screen.getByText('60%')).toBeTruthy();
+  });
+  it('shows suppressed cells distinctly and explains them (merged blocks, withheld clicks, hatched seconds, <5 CTA cells, merged scroll steps)', async () => {
+    const c = mkClient({ video_heat_cta_stats: { min_cohort: 5, sessions: 9, ctas: [
+      { cta_key: 'c1', kind: 'book_call', label: 'Book a call', impressions: 20, clicks: null, clicks_suppressed: true, ctr: null, suppressed: false },
+      { cta_key: 'c2', kind: 'other', label: 'Other', impressions: null, clicks: null, ctr: null, suppressed: true }] } });
+    render(<HeatmapsSection client={c} video={VIDEO} projectName="Kitchen" now={NOW} />);
+    await waitFor(() => screen.getByTestId('heat-stage'));
+    expect(screen.getAllByTestId('heat-block')).toHaveLength(1);
+    expect(screen.getByTestId('heat-privacy').textContent).toMatch(/at least 5 different viewers/);
+    expect(screen.getByTestId('heat-privacy').textContent).toMatch(/Some clicks are withheld/);
+    fireEvent.click(screen.getByRole('tab', { name: 'CTA performance' }));
+    await waitFor(() => screen.getByRole('table'));
+    expect(screen.getByRole('table').textContent).toContain('<5');
+    expect(screen.getByRole('table').textContent).not.toContain('NaN');
+    fireEvent.click(screen.getByRole('tab', { name: 'Video engagement' }));
+    await waitFor(() => screen.getByTestId('engagement-strip'));
+    expect(screen.getByTestId('heat-privacy').textContent).toMatch(/hatched.*1 here.*fewer than 5 viewers/);
+    fireEvent.click(screen.getByRole('tab', { name: 'Scroll depth' }));
+    await waitFor(() => screen.getByTestId('scroll-bars'));
+    expect(screen.getByTestId('scroll-bars').textContent).toContain('merged');
+    expect(screen.getByTestId('heat-privacy').textContent).toMatch(/fewer than 5 sessions/);
   });
   it('shows "not enough data" for small cohorts and disables export', async () => {
     const c = mkClient({ video_heat_clicks: { suppressed: true, min_cohort: 5, sessions: 2 } });
