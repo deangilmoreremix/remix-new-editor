@@ -67,7 +67,7 @@ export function familyFromSrc(videoSrc: string | null | undefined): SourceFamily
   const m = /\/media\/(minimax-h3|promptfeed|seedance-1|seedance-25)\//.exec(src)
   if (m) return m[1] as SourceFamily
   // The Template videos library: its hosted bucket, and the clips it serves from the repo (the owner confirmed rights for these too).
-  if (/\/storage\/v1\/object\/public\/demo-template-videos\/clips\//.test(src) || /\/media\/(seedance-2\.5|awesome-seedance)\/videos\//.test(src)) return 'template-library'
+  if (/^https:\/\/bzxohkrxcwodllketcpz\.supabase\.co\/storage\/v1\/object\/public\/demo-template-videos\/clips\//.test(src) || /^\/media\/(seedance-2\.5|awesome-seedance)\/videos\//.test(src)) return 'template-library'
   return 'unknown'
 }
 
