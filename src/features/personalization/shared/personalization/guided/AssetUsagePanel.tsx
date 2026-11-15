@@ -63,7 +63,11 @@ export function AssetUsagePanel(): React.JSX.Element | null {
       setTraceNote({ id: a.assetId, text: 'Added a traced SVG copy to your logos. Make it the main logo if it looks right.' })
     } catch (e) {
       if (epochRef.current === startedIn) setTraceNote({ id: a.assetId, text: e instanceof LogoTraceError ? e.message : 'The logo could not be traced.' })
-    } finally { setTracing(null) }
+    } finally {
+      // Only the trace that still belongs to the current client/session may clear the busy state; an older one finishing
+      // must not re-enable the buttons while a newer trace is still running.
+      if (epochRef.current === startedIn) setTracing(null)
+    }
   }
 
   return (
