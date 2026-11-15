@@ -3,11 +3,22 @@
 One page per feature, kept in the same PR that ships it. Copy `_TEMPLATE.md` into `docs/features/<area>/<feature>.md`,
 fill it in, then run `node scripts/build-feature-index.mjs` to refresh this table.
 Use `--check` in CI or before committing to catch bad status values and dead code paths.
+`added` is the date of the first commit that added the page's main file (a guide, not a release date). `TBD` marks anything not yet verified.
 
 <!-- generated: do not edit below this line -->
 
 | Feature | Area | Status | Where in app | Added | Details |
 |---|---|---|---|---|---|
+| AI VFX app | apps | live | apps/ai-vfx (in-app: #/ai-vfx) | 2026-07-06 | [page](apps/ai-vfx-app.md) |
+| CineGen app | apps | live | apps/cinegen (in-app: #/timeline) | 2026-10-25 | [page](apps/cinegen-app.md) |
+| Director app (VideoDB agents) | apps | live | apps/director (in-app: #/director) | 2026-03-26 | [page](apps/director-app.md) |
+| Motion Agent app (Remotion prompt to motion graphics) | apps | live | apps/motion-agent (in-app: #/video-agent) | 2026-11-02 | [page](apps/motion-agent-app.md) |
+| OpenChatCut (video-agent-studio) | apps | live | apps/video-agent-studio | TBD | [page](apps/video-agent-studio-app.md) |
+| OpenThorn app (AI website builder) | apps | live | apps/openthorn (in-app: #/website-builder) | 2026-10-08 | [page](apps/openthorn-app.md) |
+| ShotCraft and Motion Workbench | apps | live | apps/shotcraft (in-app: #/workbench) | 2026-11-02 | [page](apps/shotcraft-app.md) |
+| ViMax pipelines | apps | live | apps/vimax | 2026-03-26 | [page](apps/vimax-app.md) |
+| Ask SmartVideo | personalization | live | Floating help assistant on every page | 2026-11-13 | [page](personalization/ask-smartvideo.md) |
+| Personalization and Lead Finder Modal | personalization | live | Personalize button in studios; Lead Finder; Find My Brand | 2026-11-02 | [page](personalization/personalization-modal.md) |
 | Client Analytics Events | platform | live | `src/lib/analytics.js` | 2026-03-18 | [page](platform/analytics-events.md) |
 | Dynamic Control Engine | platform | live | Every studio > Advanced controls panel | 2026-08-11 | [page](platform/dynamic-control-engine.md) |
 | Error Boundary and Global Error Handlers | platform | live | Wraps the app | 2026-07-31 | [page](platform/error-handling.md) |
