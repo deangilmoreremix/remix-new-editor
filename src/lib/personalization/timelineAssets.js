@@ -15,7 +15,7 @@
 // Pure (no DOM, no storage) so it is unit-tested and reusable.
 
 import { ensurePersonalizationProfile } from './personalizationProfile.js';
-import { resolveAssetUrl } from './assetUrl.js';
+import { resolveAssetUrl, isCutoutAsset } from './assetUrl.js';
 import { buildPersonalizationContext } from './studioContext.js';
 import { IMAGE_TOKEN_DEFS, canonicalTokenKey, resolveToken } from '../../components/personalize/tokenSchema.js';
 
@@ -82,6 +82,8 @@ export function listTimelineImageAssets(profile) {
       src,
       saved: true,
       videoReady: Boolean(asset.videoReady),
+      transparent: isCutoutAsset(asset),
+      hasOriginal: Boolean(asset.originalUrl),
     });
   });
 

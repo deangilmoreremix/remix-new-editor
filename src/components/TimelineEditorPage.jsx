@@ -44,6 +44,8 @@ import { AI_CLIP_MODELS, CLIP_IMAGE_SLOTS, aiClipConfig, clipSrcFor, describeCli
 import { generateImage as generateAiImage } from '../lib/editor/aiImageService.js';
 import { makePersonalizationAssetVideoReady } from '../lib/personalization/videoReady.js';
 import { persistPersonalizationAssetVersion } from '../lib/personalization/assetDiscoveryService.js';
+import { buildRevertPatch, cutoutAsset } from '../lib/personalization/backgroundCutout.js';
+import { isCutoutAsset } from '../lib/personalization/assetUrl.js';
 import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
 import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';
 import { addPersonalizationAsset, createPersonalizationAsset, removePersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
@@ -4902,7 +4904,8 @@ export function TimelineEditorPage() {
           url: asset.url,
           focus: asset.focus || null,
           videoReady: Boolean(asset.videoReady),
-          busy: videoReadyBusy.has(asset.id),
+          transparent: isCutoutAsset(asset),
+          busy: videoReadyBusy.has(asset.id) || cutoutBusy.has(asset.id),
           contact: contactName(profile),
           label: imageTokenChoices(profile).find((c) => c.key === key)?.label?.toLowerCase() || 'image',
         };
@@ -4915,6 +4918,11 @@ export function TimelineEditorPage() {
         saveContactAsset(profile, asset.id, (a) => ({ ...a, focus: { x, y } }));
       },
       makeVideoReady: (src, redraw) => makeContactImageVideoReady(getActivePersonalizationProfile(), imageTokenOf(src), redraw),
+      removeBackground: (src, redraw) => {
+        const profile = getActivePersonalizationProfile();
+        const key = imageTokenOf(src);
+        return removeContactImageBackground(profile, key ? assetForImageToken(profile, key)?.id : null, redraw);
+      },
     };
 
     // Update one saved image on a contact and refresh what shows it.
@@ -4973,6 +4981,37 @@ export function TimelineEditorPage() {
         videoReadyBusy.delete(asset.id);
         redraw?.();
       }
+    }
+
+    // Free on-device background removal (the studio's engine) for one saved
+    // image of a contact; "Use original" puts the first image back.
+    const cutoutBusy = new Set();
+    async function removeContactImageBackground(profile, assetId, redraw) {
+      const asset = profile && assetId ? listTimelineImageAssets(profile).find((m) => m.saved && m.id === assetId) : null;
+      if (!asset || cutoutBusy.has(assetId)) return false;
+      const full = [...Object.values(profile.personalization?.assets || {}).flat()].find((a) => a?.id === assetId);
+      if (!full) return false;
+      cutoutBusy.add(assetId);
+      redraw?.();
+      showToast('Removing background… the first time downloads a ~192 MB model', 'info');
+      try {
+        const { patch, uploaded } = await cutoutAsset(full, { clientId: profile.id });
+        saveContactAsset(contactStore.getProfile?.(profile.id) || profile, assetId, () => patch);
+        if (full.role === 'logo') measureLogos([contactStore.getProfile?.(profile.id) || profile]);
+        showToast(uploaded ? 'Background removed' : 'Background removed (kept on this device only: could not upload it)', uploaded ? 'success' : 'info');
+        return true;
+      } catch (err) {
+        showToast(`Background removal failed: ${err?.message || err}`, 'error');
+        return false;
+      } finally {
+        cutoutBusy.delete(assetId);
+        redraw?.();
+      }
+    }
+    function useOriginalContactImage(profile, assetId, redraw) {
+      if (!profile || !assetId) return;
+      saveContactAsset(profile, assetId, (a) => buildRevertPatch(a));
+      redraw?.();
     }
 
     // Images the timeline's Personalized Images use, for every contact.
@@ -8776,6 +8815,10 @@ export function TimelineEditorPage() {
           active: activeContact,
           select: (id) => contactStore.selectContact(id),
           addText: addSmartText,
+          images: () => listTimelineImageAssets(activeContact()),
+          busy: () => cutoutBusy,
+          removeBackground: (id, redraw) => removeContactImageBackground(activeContact(), id, redraw),
+          useOriginal: (id, redraw) => useOriginalContactImage(activeContact(), id, redraw),
           openPersonalize: () => import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
             studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
             onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); panel.redraw(); },

@@ -9,6 +9,19 @@ import { TOKEN_DEFS, TOKEN_LABELS, buildVariables, resolveToken, extractTokens }
 import { contactName } from '../personalize/perContact.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const imageGrid = (s) => {
+  const images = (s.images?.() || []).filter((m) => m.saved).slice(0, 24);
+  if (!images.length) return '';
+  const busy = s.busy?.() || new Set();
+  return `<span class="pz-label">Images</span>
+    <div class="rp-images" role="list" aria-label="Contact images">${images.map((m) => `
+      <div class="pz-card rp-image" role="listitem">
+        <span class="pz-thumb" style="background-image:url(${esc(JSON.stringify(m.src))})" title="${esc(m.name)}"></span>
+        <div class="rp-image__meta"><strong>${esc(m.roleLabel)}</strong>${m.transparent ? '<span class="pz-chip">✓ Transparent</span>' : ''}</div>
+        ${busy.has(m.id) ? '<span class="pz-hint">Working…</span>'
+    : `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-cutout="${esc(m.id)}" title="Free, runs on this device. First use downloads a ~192 MB model.">✂️ ${m.transparent ? 'Redo' : 'Remove background'}</button>${m.hasOriginal ? `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-original="${esc(m.id)}">Use original</button>` : ''}`}
+      </div>`).join('')}</div>`;
+};
 const wrap = (inner) => `<div class="pz-ui rp">${inner}</div>`;
 
 /** [{ key, label, value }] for the details a contact actually has. */
@@ -42,7 +55,8 @@ export function renderPersonalizationPanel(el, s) {
         <li class="rp-var"><div><strong>${esc(v.label)}</strong><code>{{${esc(v.key)}}}</code></div><span title="${esc(v.value)}">${esc(v.value)}</span>
           <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-add="${esc(v.key)}">Add as text</button></li>`).join('')}</ul>`
         : '<p class="pz-hint">This contact has no details yet. Add them in the Personalize window (including Find a Business).</p>')
-        : '<p class="pz-hint">Pick a contact, or add contacts in the Personalize window.</p>'}`);
+        : '<p class="pz-hint">Pick a contact, or add contacts in the Personalize window.</p>'}
+      ${active ? imageGrid(s) : ''}`);
   };
   el.onchange = (e) => { if (e.target.dataset?.rp === 'contact') { s.select(e.target.value || null); } };
   el.onclick = (e) => {
@@ -50,6 +64,8 @@ export function renderPersonalizationPanel(el, s) {
     if (!b) return;
     if (b.dataset.rp === 'open') s.openPersonalize();
     else if (b.dataset.add) s.addText(`{{${b.dataset.add}}}`);
+    else if (b.dataset.cutout) s.removeBackground?.(b.dataset.cutout, draw);
+    else if (b.dataset.original) s.useOriginal?.(b.dataset.original, draw);
   };
   draw();
   return { redraw: draw };

@@ -98,6 +98,9 @@ function renderContactImageBox(current, services) {
   const ready = info.videoReady
     ? '<span class="pz-chip">✓ Video Ready</span>'
     : `<button type="button" class="pz-btn pz-btn-primary" data-make-video-ready="1"${info.busy ? ' disabled' : ''}>${info.busy ? 'Preparing…' : '✨ Make Video Ready'}</button>`;
+  const cut = info.transparent
+    ? '<span class="pz-chip">✓ Transparent</span>'
+    : (typeof services.removeBackground === 'function' ? `<button type="button" class="pz-btn pz-btn-secondary" data-remove-bg="1"${info.busy ? ' disabled' : ''} title="Free, runs on this device">${info.busy ? 'Working…' : '✂️ Remove background'}</button>` : '');
   return `<div class="pz-card pz-contact-image">
     <button type="button" class="pz-thumb pz-thumb-lg" data-focus-pick="1" title="Click where the image should stay in view when it's cropped" aria-label="Set crop focus" style="background-image:url(${esc(JSON.stringify(String(info.url)))})">
       <span class="pz-focus-dot" style="left:${fx}%;top:${fy}%"></span>
@@ -106,6 +109,7 @@ function renderContactImageBox(current, services) {
       <span class="pz-label" style="margin:0">${esc(info.contact || 'This contact')} · ${esc(info.label || 'image')}</span>
       <span class="pz-hint" style="margin:0">Click the image to set what stays in view when it's cropped.</span>
       ${ready}
+      ${cut}
     </div>
   </div>`;
 }
@@ -475,6 +479,13 @@ export function renderAddonEditor(container, {
         const x = Math.round(((e.clientX - r.left) / Math.max(1, r.width)) * 100);
         const y = Math.round(((e.clientY - r.top) / Math.max(1, r.height)) * 100);
         services.setImageFocus(String(getPath(current, 'src') || ''), x, y);
+        draw();
+        return;
+      }
+      if (btn?.dataset.removeBg && typeof services.removeBackground === 'function') {
+        Promise.resolve(services.removeBackground(String(getPath(current, 'src') || ''), () => draw()))
+          .catch((err) => services.onError?.(err))
+          .finally(() => draw());
         draw();
         return;
       }
