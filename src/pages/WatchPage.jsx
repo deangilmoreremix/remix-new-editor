@@ -125,6 +125,8 @@ export async function mountWatchPage(container, ref, deps = {}) {
       if (kind !== 'call-attempt' && res?.stored !== false) analytics.track('lead_submit', { clip: clipId, props: labelFor(clipId) ? { label: labelFor(clipId) } : undefined });
       return res;
     },
+    // A viewer clicked a hotspot: its own event type (not a CTA click), labelled with the owner's text.
+    onHotspot: ({ clip, label, time }) => analytics.track('overlay_click', { clip: String(clip.id), t: time, props: (label || labelFor(String(clip.id))) ? { label: label || labelFor(String(clip.id)) } : undefined }),
     onChange: ({ playing, time, duration, gating }) => {
       analytics.onPlayerChange({ playing, time, duration });
       $('[data-play]').textContent = playing ? '❚❚' : '▶';
@@ -176,7 +178,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
   // CTA buttons and links in the video (click-to-call, Smart Text links…).
   frame.addEventListener('click', (e) => {
     const a = e.target.closest('a[href]');
-    if (!a || !frame.contains(a)) return;
+    if (!a || !frame.contains(a) || a.dataset.hotspot) return; // hotspots report overlay_click themselves
     const clip = a.closest('[data-clip-id]')?.dataset.clipId || null;
     const label = labelFor(clip) || String(a.textContent || '').trim().slice(0, 60) || null;
     const isCall = /^tel:/i.test(a.getAttribute('href') || '');
