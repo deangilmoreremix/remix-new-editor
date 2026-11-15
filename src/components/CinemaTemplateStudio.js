@@ -4,6 +4,7 @@
  */
 
 import { showToast } from '../lib/loading.js';
+import { buildExampleValues, saveTemplateInputs, loadTemplateInputs, applyValuesToForm, cssEscape, setFieldInvalid, isGenerateShortcut } from '../lib/templateUx.js';
 import { escapeHtml } from '../lib/security.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { createActionRow, createAdvancedButton, setActionPillLabel, styleThumbnailButton, arrangeActionRow } from './studio/actionRow.js';
@@ -767,6 +768,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     // Debounced scene timeline refresh on input changes
     const formEl = container.querySelector('#inputs-form');
     if (formEl) {
+      // Ctrl/Cmd+Enter generates from any field.
+      formEl.addEventListener('keydown', (e) => {
+        if (isGenerateShortcut(e)) { e.preventDefault(); generateVideo(); }
+      });
       formEl.addEventListener('input', () => {
         if (sceneTimelineDebounce) clearTimeout(sceneTimelineDebounce);
         sceneTimelineDebounce = setTimeout(() => {
@@ -979,6 +984,24 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       const field = createFormField(input, primaryPromptFieldName);
       formContainer.appendChild(field);
     });
+
+    // Try an example + remembered inputs (only fills fields that are still empty).
+    const exampleValues = buildExampleValues(schema);
+    if (Object.keys(exampleValues).length) {
+      const exampleBtn = document.createElement('button');
+      exampleBtn.type = 'button';
+      exampleBtn.dataset.action = 'try-example';
+      exampleBtn.className = 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:bg-white/[0.08]';
+      exampleBtn.textContent = '✨ Try an example';
+      exampleBtn.onclick = () => {
+        applyValuesToForm(formContainer, exampleValues);
+        showToast('Example filled in. Edit anything, then press Generate.', 'info');
+      };
+      formContainer.appendChild(exampleBtn);
+    }
+    const remembered = loadTemplateInputs(currentTemplate.id, schema);
+    Object.keys(remembered).forEach((name) => { if (currentInputs[name]) delete remembered[name]; });
+    if (Object.keys(remembered).length) applyValuesToForm(formContainer, remembered);
 
     if (currentTemplate.includeBrandContext) {
       const brandContainer = container.querySelector('#brand-form');
@@ -2540,9 +2563,17 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     if (errors.length > 0) {
       showToast(`Please fill in required fields: ${errors.map(e => e.field).join(', ')}`, 'error');
+      const formRoot = container.querySelector('#inputs-form');
+      if (formRoot) {
+        formRoot.querySelectorAll('[aria-invalid]').forEach((el) => setFieldInvalid(el, false));
+        const bad = errors.map((e) => formRoot.querySelector(`[name="${cssEscape(e.field)}"]`)).filter(Boolean);
+        bad.forEach((el) => setFieldInvalid(el, true));
+        bad[0]?.focus();
+      }
       return;
     }
 
+    saveTemplateInputs(currentTemplate.id, formBuilder.buildFormSchema(), currentInputs);
     TemplateStorage.addToRecent(currentTemplate.id, currentInputs);
 
     // Phase 1 scene selection: auto-pick scenes when the user hasn't

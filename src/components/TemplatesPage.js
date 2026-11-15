@@ -24,6 +24,7 @@ export function TemplatesPage() {
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
   searchInput.placeholder = 'Search templates...';
+  searchInput.setAttribute('aria-label', 'Search templates');
   searchInput.className = 'w-full max-w-md bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
   controlsRow.appendChild(searchInput);
 
@@ -158,12 +159,37 @@ export function TemplatesPage() {
   renderCategories();
   container.appendChild(inner);
 
-  searchInput.oninput = () => {
-    const q = searchInput.value.toLowerCase();
+  const emptyState = document.createElement('div');
+  emptyState.className = 'hidden py-16 text-center text-sm text-muted';
+  emptyState.setAttribute('role', 'status');
+  inner.appendChild(emptyState);
+
+  let searchTimer = null;
+  const applySearch = () => {
+    const q = searchInput.value.trim().toLowerCase();
+    let visible = 0;
     container.querySelectorAll('[data-searchable]').forEach(el => {
-      const text = el.dataset.searchable.toLowerCase();
-      el.style.display = text.includes(q) ? '' : 'none';
+      const match = el.dataset.searchable.toLowerCase().includes(q);
+      el.style.display = match ? '' : 'none';
+      if (match) visible++;
     });
+    const none = q !== '' && visible === 0;
+    emptyState.classList.toggle('hidden', !none);
+    if (none) {
+      emptyState.textContent = '';
+      emptyState.append(`No templates match "${searchInput.value.trim()}". `);
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.textContent = 'Clear search';
+      clear.className = 'underline text-primary';
+      clear.onclick = () => { searchInput.value = ''; applySearch(); searchInput.focus(); };
+      emptyState.appendChild(clear);
+    }
+  };
+  // Debounced: filtering hundreds of cards on every keystroke is wasteful.
+  searchInput.oninput = () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applySearch, 150);
   };
 
   return container;

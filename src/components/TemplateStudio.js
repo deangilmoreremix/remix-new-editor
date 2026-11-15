@@ -1,5 +1,6 @@
 import { getTemplateById } from '../lib/templates.js';
 import { showToast } from '../lib/loading.js';
+import { buildExampleValues, saveTemplateInputs, loadTemplateInputs, missingRequiredInputs, applyValuesToForm, cssEscape, setFieldInvalid, isGenerateShortcut } from '../lib/templateUx.js';
 import { normalizeTemplate } from '../lib/templateAdapter.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
@@ -354,7 +355,10 @@ export function TemplateStudio(templateId) {
         el.rows = 3;
       }
       el.placeholder = input.placeholder || '';
-      el.oninput = () => { formState[input.name] = el.value; };
+      el.dataset.inputName = input.name;
+      el.setAttribute('aria-label', input.label || input.name);
+      if (input.required) el.setAttribute('aria-required', 'true');
+      el.oninput = () => { formState[input.name] = el.value; setFieldInvalid(el, false); };
       if (isPrimaryPrompt) {
         promptEl = el;
         primaryPromptField = el;
@@ -373,6 +377,8 @@ export function TemplateStudio(templateId) {
       if (input.options && input.options.length > 0) {
         formState[input.name] = input.options[0];
       }
+      select.dataset.inputName = input.name;
+      select.setAttribute('aria-label', input.label || input.name);
       select.onchange = () => { formState[input.name] = select.value; };
       fieldWrapper.appendChild(select);
       if (input.name === 'aspect_ratio') {
@@ -895,7 +901,28 @@ export function TemplateStudio(templateId) {
   arrangeActionRow(actionRow, { thumbnail: thumbAction, advanced: advancedToggleBtn });
   leftPanel.appendChild(actionRow);
   leftPanel.appendChild(errorContainer);
+  // Try an example: fills every text / select field with sample values.
+  const exampleValues = buildExampleValues(allInputs);
+  if (Object.keys(exampleValues).length) {
+    const exampleBtn = document.createElement('button');
+    exampleBtn.type = 'button';
+    exampleBtn.dataset.action = 'try-example';
+    exampleBtn.className = 'mt-4 flex w-full items-center justify-center rounded-[18px] border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:bg-white/[0.08]';
+    exampleBtn.textContent = '✨ Try an example';
+    exampleBtn.onclick = () => {
+      applyValuesToForm(leftPanel, exampleValues);
+      showToast('Example filled in. Edit anything, then press Generate.', 'info');
+    };
+    leftPanel.appendChild(exampleBtn);
+  }
   leftPanel.appendChild(genBtn);
+  // Ctrl/Cmd+Enter generates from anywhere in the form.
+  leftPanel.addEventListener('keydown', (e) => {
+    if (isGenerateShortcut(e)) { e.preventDefault(); genBtn.click(); }
+  });
+  // Restore what the user typed last time they used this template.
+  const savedInputs = loadTemplateInputs(template.id, allInputs);
+  if (Object.keys(savedInputs).length) applyValuesToForm(leftPanel, savedInputs);
   mountPersonalizeTrigger({
     controlsContainer: actionRow,
     appId: 'template-studio',
@@ -1205,6 +1232,7 @@ export function TemplateStudio(templateId) {
     let errEl = container.querySelector('.ts-inline-error');
     if (!errEl) {
       errEl = document.createElement('div');
+      errEl.setAttribute('role', 'alert');
       errEl.className = 'ts-inline-error mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
       errorContainer.appendChild(errEl);
     }
@@ -1243,6 +1271,18 @@ export function TemplateStudio(templateId) {
       });
       return;
     }
+
+    // Required text / select fields: mark them and focus the first empty one.
+    const missing = missingRequiredInputs(allInputs, formState);
+    leftPanel.querySelectorAll('[data-input-name]').forEach((el) => setFieldInvalid(el, false));
+    if (missing.length) {
+      const els = missing.map((m) => leftPanel.querySelector(`[data-input-name="${cssEscape(m.name)}"]`));
+      els.forEach((el) => setFieldInvalid(el, true));
+      els.find(Boolean)?.focus();
+      showInlineError(container, `Please fill in: ${missing.map((m) => m.label || m.name).join(', ')}.`);
+      return;
+    }
+    saveTemplateInputs(template.id, allInputs, formState);
 
     // Validate that there's some prompt content to work with
     const userPrompt = (primaryPromptField?.value || '').trim() || lastBuiltPrompt;
