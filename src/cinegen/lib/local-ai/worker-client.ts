@@ -1,4 +1,4 @@
-// [remix] Port I1: main-thread client for local-ai.worker.ts. One lazily created worker; requests are matched by id; aborting a request terminates the worker
+// [remix] Port I1: main-thread client for local-ai.worker.js. One lazily created worker; requests are matched by id; aborting a request terminates the worker
 // (the only way to stop a running ONNX inference or a model load), and the next request creates a fresh one. Injectable `createWorker` for tests.
 import type { Backend } from './catalog';
 import type { ModelEntry } from './catalog';
@@ -15,7 +15,7 @@ export class LocalAiClient implements ModelLoader {
   private worker: WorkerLike | null = null;
   private seq = 0;
   private pending = new Map<number, { resolve: (r: WorkerResponse) => void; reject: (e: Error) => void; onProgress?: (l: number, t: number) => void }>();
-  constructor(private createWorker: () => WorkerLike = () => new Worker(new URL('./local-ai.worker.ts', import.meta.url), { type: 'module' }) as unknown as WorkerLike) {}
+  constructor(private createWorker: () => WorkerLike = () => new Worker(new URL('./local-ai.worker.js', import.meta.url), { type: 'module' }) as unknown as WorkerLike) {}
 
   private ensure(): WorkerLike {
     if (this.worker) return this.worker;

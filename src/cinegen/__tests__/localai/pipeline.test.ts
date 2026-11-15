@@ -53,6 +53,7 @@ describe('transcribeLocal', () => {
     expect(res.words.map((w) => w.text.trim())).toEqual(['start', 'boundary', 'tail']);
     expect(res.words[1].start).toBeCloseTo(118.4); expect(res.words[2].start).toBeCloseTo(118 + 3);
     expect(res.captions[0].text).toBe('start'); expect(res.captions[1].text).toBe(' boundary');
+    expect(worker.seen.filter((x) => x.type === 'asr').every((x) => (x as { multilingual: boolean }).multilingual === true)).toBe(true);
     expect(res.language).toBe('en'); expect(res.modelId).toBe('whisper-base'); expect(res.durationSec).toBeCloseTo(125);
     expect(progress[progress.length - 1]).toBe(1); expect(progress.some((p) => p > 0 && p < 1)).toBe(true);
     expect(res.segments.length).toBeGreaterThan(0);

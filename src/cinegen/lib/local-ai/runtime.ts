@@ -2,7 +2,7 @@
 import { detectCapabilities } from './capabilities';
 import { ConsentStore } from './consent';
 import { ModelManager } from './manager';
-import { ModelCache, idbBlobStore } from './model-cache';
+import { ModelCache, idbBlobStore } from './model-cache.js';
 import { LocalAiClient } from './worker-client';
 
 let rt: { cache: ModelCache; consent: ConsentStore; client: LocalAiClient; manager: ModelManager } | null = null;

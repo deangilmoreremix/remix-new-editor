@@ -49,7 +49,7 @@ describe('ModelManager', () => {
     await manager.download('whisper-tiny-en', { acceptedLicence: true });
     const s = manager.state('whisper-tiny-en')!;
     expect(s.status).toBe('installed'); expect(s.installedBytes).toBe(1000); expect(s.backend).toBe('wasm');
-    expect(seen).toContain(0.5); expect(consent.has(modelById('whisper-tiny-en')!)).toBe(true);
+    expect(seen.some((p) => p > 0 && p < 1)).toBe(true); expect(seen[seen.length - 1]).toBe(1); expect(consent.has(modelById('whisper-tiny-en')!)).toBe(true);
     const m2 = new ModelManager({ cache, consent, loader: { prepare: vi.fn() }, capabilities: async () => describeCapabilities(probe()) });
     await m2.refresh(); expect(m2.isInstalled('whisper-tiny-en')).toBe(true);
     expect(() => m2.requireInstalled('whisper-base')).toThrow(ConsentRequiredError);

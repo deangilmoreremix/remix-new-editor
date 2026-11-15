@@ -4,7 +4,7 @@
 import { MODEL_CATALOG, estimateBytes, isDownloadable, modelById, type Backend, type ModelEntry } from './catalog';
 import { checkQuota, pickBackend, type Capabilities } from './capabilities';
 import { ConsentRequiredError, ConsentStore } from './consent';
-import { ModelCache } from './model-cache';
+import { ModelCache } from './model-cache.js';
 
 export type ModelStatus = 'not-installed' | 'queued' | 'downloading' | 'installed' | 'error' | 'unavailable';
 export interface ModelState { id: string; status: ModelStatus; progress: number; loadedBytes: number; totalBytes: number; error?: string; installedBytes?: number; backend?: Backend }
@@ -79,7 +79,8 @@ export class ModelManager {
       this.set(id, { status: 'downloading', totalBytes: need, backend });
       await this.d.loader.prepare(m, backend, {
         signal: ac.signal,
-        onProgress: (loaded, total) => { const t = total > 0 ? total : need; this.set(id, { loadedBytes: loaded, totalBytes: t, progress: Math.min(1, t ? loaded / t : 0) }); },
+        // files are announced one by one, so the reported total alone would jump to 100% early: never go below the catalogue estimate
+        onProgress: (loaded, total) => { const t = Math.max(total, need); this.set(id, { loadedBytes: loaded, totalBytes: t, progress: Math.min(1, t ? loaded / t : 0) }); },
       });
       if (ac.signal.aborted) throw new DownloadCancelled();
       const usage = (await this.d.cache.usageByRepo())[m.repo];

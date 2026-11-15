@@ -54,7 +54,7 @@ export async function transcribeLocal(src: string, manager: ModelManager, client
     o.onProgress?.({ stage: 'transcribe', progress: sp.startSample / audio.length });
     const slice = audio.slice(sp.startSample, sp.endSample); // copy: the buffer is transferred to the worker
     const res = await client.request<Extract<WorkerResponse, { type: 'asr-result' }>>(
-      { type: 'asr', model: refOf(model, backend), audio: slice, language: o.language, batchSize }, { signal: o.signal, transfer: [slice.buffer] });
+      { type: 'asr', model: refOf(model, backend), audio: slice, language: o.language, batchSize, multilingual: model.languages === 'multilingual' }, { signal: o.signal, transfer: [slice.buffer] });
     usedBackend = res.backend;
     words.push(...dedupe.filter(resolveWhisperWordTimings(res.chunks, sp.startSec, (sp.endSample - sp.startSample) / SAMPLE_RATE)));
   }

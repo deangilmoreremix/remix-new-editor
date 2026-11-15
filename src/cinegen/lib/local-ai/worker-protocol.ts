@@ -1,4 +1,4 @@
-// [remix] Port I1: messages between the main thread and local-ai.worker.ts.
+// [remix] Port I1: messages between the main thread and local-ai.worker.js.
 import type { Backend, ModelKind } from './catalog';
 import type { RawWhisperWord } from './whisper-words';
 
@@ -6,7 +6,7 @@ export interface WorkerModelRef { id: string; kind: ModelKind; repo: string; bac
 
 export type WorkerRequest =
   | { type: 'prepare'; id: number; model: WorkerModelRef }
-  | { type: 'asr'; id: number; model: WorkerModelRef; audio: Float32Array; language?: string; batchSize: number }
+  | { type: 'asr'; id: number; model: WorkerModelRef; audio: Float32Array; language?: string; batchSize: number; multilingual: boolean }
   | { type: 'embed-images'; id: number; model: WorkerModelRef; blobs: Blob[] }
   | { type: 'embed-text'; id: number; model: WorkerModelRef; texts: string[] }
   | { type: 'caption'; id: number; model: WorkerModelRef; blob: Blob; prompt: string };
