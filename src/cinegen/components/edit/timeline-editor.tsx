@@ -958,33 +958,12 @@ export function TimelineEditor({
 
   // [remix] Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
   const handleOpenGenerator = useCallback(async () => {
-    const [{ TemplateGeneratorModal }, { buildGeneratorSources, generatorTransitions }] = await Promise.all([
+    const [{ TemplateGeneratorModal }, { generatorHostOptions }] = await Promise.all([
       import('../../../components/modals/TemplateGeneratorModal.jsx'),
-      import('@cinegen/lib/occ/template-generator-sources'),
+      import('@cinegen/lib/occ/template-generator-host'),
     ]);
     const modal = new TemplateGeneratorModal({
-      // Animations, motion graphics and end screens from this editor's own libraries (plus Pexels, Pixabay and upload built into the wizard)
-      extraSources: buildGeneratorSources(),
-      // the editor's own GL transitions (what the timeline really renders) and the animated lower-third styles, in categories
-      transitions: generatorTransitions(),
-      lowerThirdStyles: true,
-      // "My media": the project's own clips and images
-      projectMedia: state.assets
-        .filter((x) => x.type === 'video' || x.type === 'image')
-        .map((x) => ({ id: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height })),
-      // Export the template as a video, on its own (not the user's project): built on an empty timeline and rendered in this browser
-      exportVideo: async ({ composition, onProgress }: { composition: Composition; onProgress?: (p: number) => void }) => {
-        const [{ createDefaultTimeline }, { buildExportArgs }] = await Promise.all([import('@cinegen/lib/editor/timeline-operations'), import('@cinegen/lib/occ/export-args')]);
-        const applied = applyComposition(createDefaultTimeline('Template'), composition);
-        let job = await window.electronAPI.export.start(buildExportArgs(applied.timeline, applied.assets, applied.overlays, { preset: 'standard', fps: 30 }));
-        while (job.status === 'rendering' || job.status === 'queued') {
-          await new Promise((r) => setTimeout(r, 1000));
-          job = await window.electronAPI.export.poll(job.id);
-          onProgress?.((job.progress ?? 0) / 100);
-        }
-        if (job.status === 'failed') throw new Error(job.error || 'The export failed');
-        return { filename: 'cinegen-export.mp4', fileSize: job.fileSize ?? 0 };
-      },
+      ...generatorHostOptions(state.assets), // this editor's libraries, GL transitions, project media and video export
       onConfirm: (result: { composition?: Composition }) => {
         if (!result?.composition) return;
         const applied = applyComposition(timelineRef.current, result.composition);

@@ -8,7 +8,7 @@
  *   public/occ-templates/thumbs/<id>.jpg      motion graphics
  *   public/overlay-templates/thumbs/<id>.jpg  end screens and lead forms
  *
- *   node scripts/generate-template-generator-thumbs.mjs [--force] [--blank] [--only=hf|mg|tpl] [--limit=N] [--workers=4]
+ *   node scripts/generate-template-generator-thumbs.mjs [--force] [--blank] [--only=hf|mg|tpl] [--id=a,b] [--limit=N] [--workers=4]
  *
  * Motion-graphics templates the sandbox renders as nothing (its code gate is stricter than the static check) are listed in
  * src/cinegen/lib/occ/mg-render-blocklist.json and the Template Generator does not offer them.
@@ -48,6 +48,7 @@ try {
   const first = await open();
   let entries = await first.evaluate(() => window.__thumbs.list());
   if (args.only) entries = entries.filter((e) => e.kind === args.only);
+  if (args.id) { const want = new Set(String(args.id).split(',')); entries = entries.filter((e) => want.has(e.id)); }   // --id=a,b redoes just those
   const todo = [];
   for (const e of entries) {
     const file = join(root, 'public', e.url);
