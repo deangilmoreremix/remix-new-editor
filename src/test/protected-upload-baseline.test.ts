@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', '410ef2323b5558d58c2618d181800f949176b157de683e7b568e7646b049e270'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export); semantic coverage in section 5
+        ['src/components/TimelineEditorPage.jsx', '9b9dc93320787dd9f6407e2e56366e571d9cad0b81a161deebb3a1d95a45557e'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check); semantic coverage in section 5
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -1024,12 +1024,20 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain("import { runBatch, summarizeBatch, uniqueFileName } from '../lib/personalization/batchExport.js';");
     expect(source).toContain('const batch = await runBatch(');
     expect(source).toContain('downloadBlob(r.value, uniqueFileName(');
+    // Layout check: the Personalize window's pure layout-quality engine, loaded
+    // lazily; it analyses geometry only (no network, no provider call).
+    expect(source).toContain("import('../lib/personalization/layoutCheck.js')");
+    expect(source).toContain('function applyRecommendedLayout()');
+    expect(source).toContain('layoutCheck: layoutCheckData,');
     expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
     expect(source).not.toMatch(BROWSER_EXPOSED_KEY);
     // The cutout module reaches storage only through the studio's persistence
     // service, and has no provider key or direct provider fetch of its own.
     const batchModule = readSource('src/lib/personalization/batchExport.js');
     expect(batchModule).not.toMatch(/\bfetch\(|XMLHttpRequest|import\.meta\.env/);
+    const layoutCheckModule = readSource('src/lib/personalization/layoutCheck.js');
+    expect(layoutCheckModule).not.toMatch(/\bfetch\(|XMLHttpRequest|import\.meta\.env/);
+    expect(layoutCheckModule).not.toMatch(DIRECT_PROVIDER_FETCH);
     const cutout = readSource('src/lib/personalization/backgroundCutout.js');
     expect(cutout).toContain('editedAssetPersistence');
     expect(cutout).not.toMatch(DIRECT_PROVIDER_FETCH);

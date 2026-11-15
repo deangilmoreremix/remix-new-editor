@@ -1351,3 +1351,6 @@
 .rp-image { display: flex; flex-direction: column; gap: 6px; padding: 8px; }
 .rp-image .pz-thumb { width: 100%; aspect-ratio: 1; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: rgba(255,255,255,.06); border-radius: 8px; }
 .rp-image__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; }
+.rp-issue { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--pz-radius, 10px); border: 1px solid var(--pz-border, #27272a); background: var(--pz-card, #141414); font-size: 12px; }
+.rp-issue div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rp-issue strong { color: var(--pz-text, #fafafa); }

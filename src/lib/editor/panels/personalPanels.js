@@ -22,6 +22,24 @@ const imageGrid = (s) => {
     : `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-cutout="${esc(m.id)}" title="Free, runs on this device. First use downloads a ~192 MB model.">✂️ ${m.transparent ? 'Redo' : 'Remove background'}</button>${m.hasOriginal ? `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-original="${esc(m.id)}">Use original</button>` : ''}`}
       </div>`).join('')}</div>`;
 };
+const SEVERITY_LABEL = { critical: 'Blocks export', adjust: 'Needs adjustment', review: 'Review' };
+const layoutSection = (s) => {
+  const check = s.layoutCheck?.();
+  if (!check) return '';
+  if (check.loading) return '<span class="pz-label">Layout check</span><p class="pz-hint">Loading…</p>';
+  if (!check.hasLayers) {
+    return `<span class="pz-label">Layout check</span><p class="pz-hint">${esc(check.message || 'Add overlays from Open Personalize to check their layout.')}</p>`;
+  }
+  const { report } = check;
+  const chip = report.status === 'ready' ? '<span class="pz-chip">✓ Looks good</span>' : `<span class="pz-chip">${esc(report.status === 'review-required' ? 'Review required' : 'Needs adjustment')}</span>`;
+  const fixable = report.issues.some((i) => i.fixable);
+  return `<span class="pz-label">Layout check ${chip}</span>
+    ${report.issues.length ? `<ul class="rp-list">${report.issues.map((i, n) => `
+      <li class="rp-issue"><div><strong>${esc(SEVERITY_LABEL[i.severity] || i.severity)}</strong><span>${esc(i.message)}</span></div>
+        ${i.layerId ? `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-show-layer="${esc(i.layerId)}" data-issue="${n}">Show</button>` : ''}</li>`).join('')}</ul>` : ''}
+    ${fixable ? '<button type="button" class="pz-btn pz-btn-primary pz-btn-xs" data-apply-recommended="1">Apply recommended placement</button>' : ''}
+    <p class="pz-hint">${esc(report.notes[report.notes.length - 1] || '')} Only overlays made in the Personalize window are checked.</p>`;
+};
 const wrap = (inner) => `<div class="pz-ui rp">${inner}</div>`;
 
 /** [{ key, label, value }] for the details a contact actually has. */
@@ -56,7 +74,8 @@ export function renderPersonalizationPanel(el, s) {
           <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-add="${esc(v.key)}">Add as text</button></li>`).join('')}</ul>`
         : '<p class="pz-hint">This contact has no details yet. Add them in the Personalize window (including Find a Business).</p>')
         : '<p class="pz-hint">Pick a contact, or add contacts in the Personalize window.</p>'}
-      ${active ? imageGrid(s) : ''}`);
+      ${active ? imageGrid(s) : ''}
+      ${active ? layoutSection(s) : ''}`);
   };
   el.onchange = (e) => { if (e.target.dataset?.rp === 'contact') { s.select(e.target.value || null); } };
   el.onclick = (e) => {
@@ -64,6 +83,8 @@ export function renderPersonalizationPanel(el, s) {
     if (!b) return;
     if (b.dataset.rp === 'open') s.openPersonalize();
     else if (b.dataset.add) s.addText(`{{${b.dataset.add}}}`);
+    else if (b.dataset.showLayer) s.showLayer?.(b.dataset.showLayer);
+    else if (b.dataset.applyRecommended) { s.applyRecommended?.(); draw(); }
     else if (b.dataset.cutout) s.removeBackground?.(b.dataset.cutout, draw);
     else if (b.dataset.original) s.useOriginal?.(b.dataset.original, draw);
   };

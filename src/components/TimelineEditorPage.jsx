@@ -5029,6 +5029,33 @@ export function TimelineEditorPage() {
       showToast(`Updated ${plan.length} overlay${plan.length === 1 ? '' : 's'} from Personalize`, 'success');
     }
 
+    // Layout check (free): the Personalize window's layout-quality engine on the
+    // overlays shared with it. Loaded on first use.
+    let layoutCheckModule = null;
+    const loadLayoutCheck = () => import('../lib/personalization/layoutCheck.js').then((m) => { layoutCheckModule = m; return m; });
+    function layoutCheckData() {
+      if (!layoutCheckModule) return { loading: true };
+      const profile = getActivePersonalizationProfile();
+      const layers = personalizeInitialLayers();
+      if (!layers?.length) return { hasLayers: false };
+      if (!profile) return { hasLayers: false, message: 'Pick a contact to check the layout as they would see it.' };
+      return { hasLayers: true, report: layoutCheckModule.checkTimelineLayout({ layers, settings: state.personalizeModal.settings, profile }) };
+    }
+    function applyRecommendedLayout() {
+      if (!layoutCheckModule) return;
+      const profile = getActivePersonalizationProfile();
+      const layers = personalizeInitialLayers();
+      if (!profile || !layers?.length) return;
+      const settings = state.personalizeModal.settings;
+      const { layers: next, moved } = layoutCheckModule.applyRecommendedPlacement({ layers, settings, profile });
+      if (!moved) { showToast('Nothing to move: the engine has no better placement', 'info'); return; }
+      applyPersonalizeLayers({ layers: next, settings });
+    }
+    function showBridgedLayer(layerId) {
+      const clip = bridgedClips().find((c) => c.bridge.layerId === layerId);
+      if (clip) showClipEditor(clip.id);
+    }
+
     // Free on-device background removal (the studio's engine) for one saved
     // image of a contact; "Use original" puts the first image back.
     const cutoutBusy = new Set();
@@ -8871,6 +8898,9 @@ export function TimelineEditorPage() {
           select: (id) => contactStore.selectContact(id),
           addText: addSmartText,
           images: () => listTimelineImageAssets(activeContact()),
+          layoutCheck: layoutCheckData,
+          applyRecommended: applyRecommendedLayout,
+          showLayer: showBridgedLayer,
           busy: () => cutoutBusy,
           removeBackground: (id, redraw) => removeContactImageBackground(activeContact(), id, redraw),
           useOriginal: (id, redraw) => useOriginalContactImage(activeContact(), id, redraw),
@@ -8881,6 +8911,7 @@ export function TimelineEditorPage() {
             onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); panel.redraw(); },
           })),
         });
+        loadLayoutCheck().then(() => panel.redraw()).catch(() => {});
         window.addEventListener('remix:contact-changed', panel.redraw);
         return panel;
       });
