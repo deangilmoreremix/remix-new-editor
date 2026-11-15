@@ -1150,6 +1150,19 @@
 .share-personal__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow: auto; }
 .share-personal__list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text, rgba(255,255,255,.86)); }
 .share-personal__list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Stored personal links: the name gets its own line, the actions wrap under it, and the edit form is never clipped. */
+.share-personal__list--stored { max-height: 70vh; }
+.share-personal__list li.share-link-row { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; padding: 6px 0; border-top: 1px solid var(--border-soft, rgba(255,255,255,.06)); }
+.share-personal__list .share-link-row__name { overflow: visible; white-space: normal; font-weight: 600; }
+.share-link-row__actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.share-link-row__actions .mini-btn { white-space: nowrap; padding: 3px 8px; font-size: 11px; }
+.share-personal__list li.share-personal__editor { display: block; border-top: 0; }
+.share-personal__list li.share-personal__editor span { overflow: visible; text-overflow: clip; white-space: normal; }
+.rp-var--2 label { white-space: nowrap; }
+/* Contact rows (Personalized output): the name keeps its width; a long "missing …" chip wraps instead of covering it. */
+.rp-var--2.rp-var--2 { grid-template-columns: auto minmax(0, 1fr); }
+.pz-ui .rp-var--2 > .pz-chip { white-space: normal; justify-self: end; text-align: right; overflow: visible; }
+.share-link-row__actions .share-link-confirm { background: rgba(245,158,11,.18); border-color: rgba(245,158,11,.6); color: #fbbf24; }
 
 /* Bottom-row panels: close button, personalization panels, flash */
 .side-card .panel-close { float: right; width: 24px; height: 24px; margin: -2px 0 0 8px; border-radius: 6px; border: 1px solid var(--border, rgba(255,255,255,.1)); background: var(--surface-2, rgba(255,255,255,.05)); color: var(--text, #fff); font-size: 11px; line-height: 1; cursor: pointer; }

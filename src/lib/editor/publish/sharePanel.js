@@ -132,18 +132,19 @@ export function renderSharePanel(container, opts) {
   const storedHtml = () => {
     if (ui.links == null) return '<div class="share-personal pz-ui"><p class="pz-hint">Loading personal links…</p></div>';
     const rows = ui.links;
-    const sure = (kind, id, label, sureLabel) => `<button type="button" class="mini-btn${ui.confirm === `${kind}:${id}` ? ' cap-primary' : ''}" data-link-${kind}="${esc(id)}">${ui.confirm === `${kind}:${id}` ? esc(sureLabel) : esc(label)}</button>`;
+    const sure = (kind, id, label, sureLabel) => `<button type="button" class="mini-btn${ui.confirm === `${kind}:${id}` ? ' share-link-confirm' : ''}" data-link-${kind}="${esc(id)}">${ui.confirm === `${kind}:${id}` ? esc(sureLabel) : esc(label)}</button>`;
     return `<div class="share-personal pz-ui">
       <div class="share-personal__head"><strong>Personal links</strong><span>${rows.length} link${rows.length === 1 ? '' : 's'}</span>
-        <button type="button" class="mini-btn" data-link-sync ${ui.linksBusy ? 'disabled' : ''}>${ui.linksBusy ? 'Working…' : rows.length ? 'Add links for new contacts / refresh details' : 'Create a link for each contact'}</button>
+        <button type="button" class="mini-btn" data-link-sync title="Adds a link for each new contact and refreshes the details of existing links. Your own edits stay." ${ui.linksBusy ? 'disabled' : ''}>${ui.linksBusy ? 'Working…' : rows.length ? 'Add / refresh links' : 'Create a link for each contact'}</button>
         ${rows.length ? '<button type="button" class="mini-btn" data-share-csv>Download CSV</button>' : ''}</div>
       ${ui.linksMsg ? `<p class="addon-field__hint" role="status">${esc(ui.linksMsg)}</p>` : '<p class="addon-field__hint">Each link opens this video filled with that person\'s details. Edit what a link shows, give it a new address (the old one stops working), turn it off, or remove it.</p>'}
-      <ul class="share-personal__list">${rows.slice(0, 100).map((l) => `<li><span title="${esc(l.contactId || '')}">${esc(l.name || 'Link')} ${rowChips(l)}</span>
+      <ul class="share-personal__list share-personal__list--stored">${rows.slice(0, 100).map((l) => `<li class="share-link-row"><span class="share-link-row__name" title="${esc(l.contactId || '')}">${esc(l.name || 'Link')} ${rowChips(l)}</span>
+        <span class="share-link-row__actions">
         <button type="button" class="mini-btn" data-link-copy="${esc(l.id)}" ${l.revoked ? 'disabled' : ''}>${ui.copied === `l${l.id}` ? 'Copied ✓' : 'Copy link'}</button>
         <button type="button" class="mini-btn" data-link-edit="${esc(l.id)}">${ui.editing === l.id ? 'Close' : 'Edit'}</button>
         ${sure('new', l.id, 'New link', 'Sure? Old link stops')}
         <button type="button" class="mini-btn" data-link-revoke="${esc(l.id)}">${l.revoked ? 'Turn on' : 'Turn off'}</button>
-        ${sure('remove', l.id, 'Remove', 'Sure? Remove')}</li>${ui.editing === l.id ? `<li class="share-personal__editor">${editorFor(l)}</li>` : ''}`).join('')}</ul>
+        ${sure('remove', l.id, 'Remove', 'Sure? Remove')}</span></li>${ui.editing === l.id ? `<li class="share-personal__editor">${editorFor(l)}</li>` : ''}`).join('')}</ul>
       ${rows.length > 100 ? `<p class="addon-field__hint">Showing 100 of ${rows.length}. The CSV has them all.</p>` : ''}
     </div>`;
   };
