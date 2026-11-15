@@ -10,13 +10,15 @@ import { ensureProjectRow, linkVideoToProject, linkedProjectId } from '@cinegen/
 // @ts-expect-error plain JS
 import { audienceTab, retargetTab, notificationsTab } from '../../../lib/editor/projectLibrary/projectTabs.js';
 // @ts-expect-error plain JS
+import { leadsAlertsTab } from '../../../lib/editor/projectLibrary/alerts/leadsAlertsTab.js';
+// @ts-expect-error plain JS
 import { mountAnalyticsTab } from '../../../lib/editor/projectLibrary/analytics/mountAnalyticsTab.jsx';
 import '../../../../styles/smartvideo-analytics.css';
 import '../../../../styles/projects-panel.css';
 import '../../styles/analytics-tab.css';
 
-type View = 'analytics' | 'audience' | 'retarget' | 'notifications';
-const VIEWS: [View, string][] = [['analytics', 'Analytics'], ['audience', 'Audience'], ['retarget', 'Retarget'], ['notifications', 'Alerts']];
+type View = 'analytics' | 'audience' | 'retarget' | 'notifications' | 'leads-alerts';
+const VIEWS: [View, string][] = [['analytics', 'Analytics'], ['audience', 'Audience'], ['retarget', 'Retarget'], ['notifications', 'Alerts'], ['leads-alerts', 'Leads & alerts']];
 const OPEN_FLAG = 'remix_open_projects'; // set by the header bell
 
 export function AnalyticsTab() {
@@ -80,6 +82,7 @@ export function AnalyticsTab() {
       navigate: (page: string) => import('../../../lib/router.js').then((m) => m.navigate(page)),
       onToast: (msg: string) => setToast(msg),
       onUnreadChanged: () => window.dispatchEvent(new Event('remix:notifications-changed')),
+      openLeads: () => dispatch({ type: 'SET_TAB', tab: 'leads' }),
     };
     let stop: (() => void) | null = null; let cancelled = false;
     if (view === 'analytics') {
@@ -93,7 +96,7 @@ export function AnalyticsTab() {
         });
       }).catch((e: Error) => { panel.textContent = e.message; });
     } else {
-      const render = view === 'audience' ? audienceTab(deps) : view === 'retarget' ? retargetTab(deps) : notificationsTab(deps);
+      const render = view === 'audience' ? audienceTab(deps) : view === 'retarget' ? retargetTab(deps) : view === 'leads-alerts' ? leadsAlertsTab(deps) : notificationsTab(deps);
       const r = render(panel, ctx, opts);
       if (typeof r === 'function') stop = r;
     }

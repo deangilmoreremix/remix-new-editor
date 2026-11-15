@@ -172,3 +172,6 @@ Branch: `claude/jolly-cannon-ofqf7h`
 
 ### Tie-ins, part A (Lead Finder -> personalized videos)
 - Authorization: user chose all three connections (plan approved). Added the converter, client, panel source and page hint; tests and mutations as in the status doc. No production change.
+
+### Tie-ins, part C (Leads & alerts view)
+- Read-only view over existing tables (owner_notifications, video_leads) and the push route; no migration, no new RPC. Tests and mutations as in the status doc.
