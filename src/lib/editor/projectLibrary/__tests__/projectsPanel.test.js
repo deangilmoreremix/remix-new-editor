@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderProjectsPanel, fmtDuration, DETAIL_TABS, heatStripHtml, heatPlaceholderHtml, wantsHeat, canHaveHeat } from '../projectsPanel.js';
+import { resetRetentionLoader } from '../analytics/retentionLoader.js';
 
 const rows = [
   { id: 'a', name: 'Roofing promo', created_at: '2026-01-01T00:00:00Z', updated_at: '2026-02-01T00:00:00Z', duration_s: 65, aspect_ratio: '16:9', render: { status: 'complete' }, tags: [] },
@@ -179,6 +180,8 @@ describe('projects panel', () => {
   });
 
   describe('heatmap strip on cards', () => {
+    beforeEach(() => resetRetentionLoader());
+    const batchRows = (id) => Array.from({ length: 100 }, (_, b) => ({ video_id: id, bucket: b, viewers: 10 - Math.round(b / 20), base: 10 }));
     const curve = [0, 25, 50, 75, 100].map((p, i) => ({ positionPercent: p, retentionPercent: [100, 80, 60, 40, 20][i] }));
     const withPlays = (extra = {}) => ({
       ...deps,
@@ -236,17 +239,42 @@ describe('projects panel', () => {
       expect(strip.querySelectorAll('span')).toHaveLength(34);
     });
 
-    it('by default asks the database for the video\'s curve (30-day range) through the injected client', async () => {
-      const rpc = vi.fn(async () => ({ data: [{ bucket: 0, viewers: 10, base: 10 }, { bucket: 50, viewers: 6, base: 10 }, { bucket: 99, viewers: 4, base: 10 }], error: null }));
+    it('by default asks the database for ALL curves in one request (30-day range) through the injected client', async () => {
+      const rpc = vi.fn(async () => ({ data: batchRows('abc12345'), error: null }));
       renderProjectsPanel(host, { ...deps, getStats: async () => ({ a: { plays: 12 } }), getClient: async () => ({ ...clientFor(rows), rpc }) });
       await tick(); await tick(); await tick();
       expect(rpc).toHaveBeenCalledTimes(1);
       const [name, args] = rpc.mock.calls[0];
-      expect(name).toBe('video_retention_curve');
-      expect(args.p_video_id).toBe('abc12345');
+      expect(name).toBe('video_retention_curves');
+      expect(args.p_video_ids).toEqual(['abc12345']);
       expect(args.p_from).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(args.p_to).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(host.querySelector('[data-id="a"] .prj-heat')).toBeTruthy();
+      expect(host.querySelector('[data-id="a"] .prj-heat:not(.prj-heat-empty)')).toBeTruthy();
+    });
+
+    it('many videos still cost a single request, and each card gets its own curve', async () => {
+      const many = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}`, name: `P${i}`, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-02T00:00:00Z', render: {}, tags: [] }));
+      const rpc = vi.fn(async (_n, args) => ({ data: args.p_video_ids.flatMap(batchRows), error: null }));
+      renderProjectsPanel(host, {
+        ...deps,
+        getClient: async () => ({ ...clientFor(many), rpc }),
+        getPublished: async (ids) => Object.fromEntries(ids.map((id) => [id, { id: `v-${id}`, published: true }])),
+        getStats: async (ids) => Object.fromEntries(ids.map((id) => [id, { plays: 3 }])),
+      });
+      for (let i = 0; i < 8; i++) await tick();
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(rpc.mock.calls[0][1].p_video_ids).toHaveLength(9);
+      expect(host.querySelectorAll('.prj-heat:not(.prj-heat-empty)')).toHaveLength(9);
+    });
+
+    it('falls back to one request per video when the batch function does not exist yet', async () => {
+      const rpc = vi.fn(async (name, args) => (name === 'video_retention_curves'
+        ? { data: null, error: { code: '42883', message: 'function does not exist' } }
+        : { data: batchRows(args.p_video_id), error: null }));
+      renderProjectsPanel(host, { ...deps, getStats: async () => ({ a: { plays: 12 } }), getClient: async () => ({ ...clientFor(rows), rpc }) });
+      for (let i = 0; i < 5; i++) await tick();
+      expect(rpc.mock.calls.map(([n]) => n)).toEqual(['video_retention_curves', 'video_retention_curve']);
+      expect(host.querySelector('[data-id="a"] .prj-heat:not(.prj-heat-empty)')).toBeTruthy();
     });
 
     it('a failing database call (or a client without rpc) says the data is unavailable, never bars', async () => {

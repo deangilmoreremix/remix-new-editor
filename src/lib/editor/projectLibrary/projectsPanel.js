@@ -18,7 +18,7 @@ import {
   listProjects, loadProject, renameProject, duplicateProject, deleteProject, toCard, filterCards,
 } from './projectStore.js';
 import { heatBuckets, heatBarHeight } from './analytics/heatBuckets.js';
-import { periodRange, retentionPoints } from './analytics/analyticsData.js';
+import { loadRetentionCurves } from './analytics/retentionLoader.js';
 
 export const DETAIL_TABS = Object.freeze([
   ['overview', 'Overview'],
@@ -161,31 +161,43 @@ export function renderProjectsPanel(host, deps) {
   /** Fetch each published video's retention curve (a few at a time) and paint its card's strip as it arrives. */
   async function loadHeat() {
     const run = ++heatRun;
-    // Same curve and 30-day range the Engagement tab uses; a host can override how it is fetched.
-    const fetchRetention = deps.getRetention || (async (videoId) => {
-      const client = await deps.getClient();
-      const { from, to } = periodRange('30d');
-      const { data, error } = await client.rpc('video_retention_curve', { p_video_id: videoId, p_from: from, p_to: to });
-      if (error) throw error;
-      return retentionPoints(data);
-    });
     // Only videos that have been played can have a curve; everything else keeps its card unchanged.
     const ids = [...new Set(cards.filter(canHaveHeat).map((c) => c.publishedId))];
     // Keep the strips already shown while they reload; drop the ones that no longer apply.
     Object.keys(heat).forEach((k) => { if (!ids.includes(k)) delete heat[k]; });
     Object.keys(heatMiss).forEach((k) => delete heatMiss[k]);
-    let next = 0;
-    async function worker() {
-      while (alive && run === heatRun && next < ids.length) {
-        const videoId = ids[next++];
-        let points = null;
-        try { points = await fetchRetention(videoId); } catch { points = null; } // a failed request just leaves the strip out
-        if (!alive || run !== heatRun) return;
-        if (Array.isArray(points) && points.length) { heat[videoId] = points; delete heatMiss[videoId]; } else { heatMiss[videoId] = true; }
-        paintHeat(videoId);
-      }
+    if (!ids.length) return;
+    const stale = () => !alive || run !== heatRun;
+    const got = (videoId, points) => {
+      if (stale()) return;
+      if (Array.isArray(points) && points.length) { heat[videoId] = points; delete heatMiss[videoId]; } else { heatMiss[videoId] = true; }
+      paintHeat(videoId);
+    };
+
+    if (deps.getRetention) {
+      // A host-supplied fetcher answers for one video at a time (a few in parallel).
+      let next = 0;
+      const worker = async () => {
+        while (!stale() && next < ids.length) {
+          const videoId = ids[next++];
+          let points = null;
+          try { points = await deps.getRetention(videoId); } catch { points = null; } // a failed request just leaves the strip out
+          got(videoId, points);
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(HEAT_CONCURRENCY, ids.length) }, worker));
+      return;
     }
-    await Promise.all(Array.from({ length: Math.min(HEAT_CONCURRENCY, ids.length) }, worker));
+
+    // Default: one request for every video (falls back to one per video inside the loader).
+    let curves = {};
+    try {
+      const client = await deps.getClient();
+      curves = await loadRetentionCurves(client, ids, { period: '30d', concurrency: HEAT_CONCURRENCY, isCancelled: stale, onCurve: (id, points) => got(id, points) });
+    } catch { curves = {}; }
+    if (stale()) return;
+    // Anything that came back without a curve is marked, so its card says so instead of loading forever.
+    ids.filter((id) => !curves[id] && !heat[id]).forEach((id) => got(id, null));
   }
 
   /** What a card's heatmap area shows right now. */
