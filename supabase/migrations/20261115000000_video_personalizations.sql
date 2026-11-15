@@ -60,6 +60,9 @@ begin
 end;
 $$;
 
+-- A trigger helper, not an API: keep it out of the public RPC surface.
+revoke all on function public.video_personalizations_touch() from public, anon, authenticated;
+
 drop trigger if exists video_personalizations_touch on public.video_personalizations;
 create trigger video_personalizations_touch
   before update on public.video_personalizations
