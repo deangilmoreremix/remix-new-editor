@@ -1454,6 +1454,11 @@ export default defineConfig({
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },
+            // Video Outreach: website screenshots for backgrounds (netlify/functions/personalization-api.mts).
+            '/api/outreach/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
             '/api/personalizer': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,

@@ -216,7 +216,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         return;
       }
       if (clip.type === 'image' && src) {
-        const layer = { ...base, kind: 'image', src, ...flip, fit: clip.transform?.fit || clip.fit || 'cover' };
+        // A personalized image clip ({{websiteShotUrl}}, {{logoUrl}}, …): this contact's image, else
+        // the clip's fallback (Video Outreach website backgrounds). Same rule as personalized overlays.
+        const personal = /\{\{/.test(src);
+        const resolved = personal ? safeImageUrl(resolveOverlayText(src, profile)) : src;
+        const imageSrc = personal ? ((resolved && !/\{\{/.test(resolved) ? resolved : null) || safeImageUrl(clip.fallbackSrc)) : src;
+        if (!imageSrc) return;
+        const layer = { ...base, kind: 'image', src: imageSrc, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', ...(clip.scroll ? { scroll: true } : {}) };
         layers.push(layer);
         if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;

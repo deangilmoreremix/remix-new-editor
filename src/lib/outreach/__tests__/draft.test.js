@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   defaultDraft, loadDraft, saveDraft, DRAFT_KEY, tokensIn, fillTemplate, stepErrors,
   speakRequest, buildCampaignProject, campaignLinks, isHttpsUrl,
-  parseCsv, guessMapping, contactsFromRows, makeContact, mergeContacts, contactProfile,
+  parseCsv, guessMapping, contactsFromRows, makeContact, mergeContacts, contactProfile, siteKey, sitesToCapture,
 } from '../draft.js';
 import { personalLink, resolveLineFor } from '../../editor/personalize/perContact.js';
 import { encodeWav, encodeWavBuffer, mixToMono } from '../voiceSample.js';
@@ -163,5 +163,41 @@ describe('voice sample encoding', () => {
   it('mixes channels to mono and trims to the limit', () => {
     const buffer = { length: 4, numberOfChannels: 2, getChannelData: (c) => (c === 0 ? new Float32Array([1, 1, 1, 1]) : new Float32Array([0, 0, 0, 0])) };
     expect(Array.from(mixToMono(buffer, 3))).toEqual([0.5, 0.5, 0.5]);
+  });
+});
+
+describe('website background', () => {
+  const withSites = () => {
+    const d = readyDraft({ background: { mode: 'website', fallbackSite: 'mycompany.com' } });
+    d.siteShots = { 'https://acme.com/': 'https://cdn/acme.jpg', 'https://mycompany.com/': 'https://cdn/mine.jpg' };
+    return d;
+  };
+
+  it('needs a fallback website and lists each site once', () => {
+    expect(stepErrors(readyDraft({ background: { mode: 'website', fallbackSite: '' } }), 3)[0]).toMatch(/fallback website/);
+    const d = withSites();
+    d.contacts.push({ id: 'c3', firstName: 'Ann', lastName: '', email: 'ann@acme.com', company: 'Acme', website: 'https://ACME.com/about' });
+    expect(sitesToCapture(d)).toEqual(['https://acme.com/', 'https://mycompany.com/']);
+    expect(siteKey('localhost')).toBeNull();
+  });
+
+  it('puts each contact\'s site behind a round camera bubble', () => {
+    const p = buildCampaignProject(withSites(), { now: 1000 });
+    const [bg, cam] = p.tracks;
+    expect(bg.items[0]).toMatchObject({ type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: 'https://cdn/mine.jpg', fit: 'cover', scroll: true });
+    expect(cam.items[0]).toMatchObject({ type: 'video', src: 'https://store/rec.webm' });
+    expect(p.multiCam).toEqual({ mode: 'pip', mainTrackId: bg.id, secondTrackId: cam.id, pip: { corner: 'bottom-left', size: 26, shape: 'circle' } });
+    const noShot = withSites(); noShot.siteShots = {};
+    expect(() => buildCampaignProject(noShot)).toThrow(/fallback website/);
+  });
+
+  it('carries each contact\'s screenshot in their link, or nothing so the fallback shows', () => {
+    const links = campaignLinks(withSites(), 'https://app.test/watch/abcdefgh12', personalLink);
+    expect(new URL(links[0].link).searchParams.get('websiteShotUrl')).toBe('https://cdn/acme.jpg');
+    expect(links[0].site).toBe('own');
+    expect(new URL(links[1].link).searchParams.has('websiteShotUrl')).toBe(false);
+    expect(links[1].site).toBe('fallback');
+    // Recording background: no screenshot token in links.
+    expect(new URL(campaignLinks(readyDraft(), 'https://app.test/watch/x', personalLink)[0].link).searchParams.has('websiteShotUrl')).toBe(false);
   });
 });

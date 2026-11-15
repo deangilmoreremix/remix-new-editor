@@ -50,6 +50,10 @@ export function defaultDraft() {
     contacts: [],
     campaign: null,
     name: '',
+    // 'recording': the video as recorded. 'website': each contact's website behind the camera bubble.
+    background: { mode: 'recording', fallbackSite: '' },
+    // Screenshots captured during Generate: { [site home page]: image URL }.
+    siteShots: {},
   };
 }
 
@@ -66,6 +70,8 @@ export function loadDraft(storage = globalThis.localStorage) {
       fallbacks: { ...base.fallbacks, ...(saved.fallbacks || {}) },
       cta: { ...base.cta, ...(saved.cta || {}) },
       contacts: Array.isArray(saved.contacts) ? saved.contacts : [],
+      background: { ...base.background, ...(saved.background || {}) },
+      siteShots: saved.siteShots && typeof saved.siteShots === 'object' ? saved.siteShots : {},
     };
   } catch {
     return base;
@@ -139,6 +145,9 @@ export function stepErrors(draft, step) {
       else if (label.length > CTA_LIMIT) errors.push(`The button label can be up to ${CTA_LIMIT} characters.`);
       if (!isHttpsUrl(draft.cta.url)) errors.push('The booking link must be an https:// address.');
     }
+  }
+  if (step === 3 && draft.background?.mode === 'website') {
+    if (!siteKey(draft.background.fallbackSite)) errors.push('Add a fallback website for contacts without one.');
   }
   if (step === 4) {
     const n = (draft.contacts || []).length;
@@ -271,15 +280,40 @@ export function mergeContacts(existing, incoming) {
 
 export const CSV_TEMPLATE = 'First Name,Last Name,Email,Company,Website\r\nMike,Markovic,mike@example.com,Acme,acme.com\r\n';
 
+/** A website's home page, the key its screenshot is stored under (same rule as /api/outreach/site-shot). */
+export function siteKey(raw) {
+  const value = String(raw || '').trim();
+  if (!value) return null;
+  try {
+    const u = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+    if ((u.protocol !== 'https:' && u.protocol !== 'http:') || !u.hostname.includes('.')) return null;
+    return `${u.protocol}//${u.hostname.toLowerCase()}${u.port ? `:${u.port}` : ''}/`;
+  } catch {
+    return null;
+  }
+}
+
+/** Every website a campaign needs a screenshot of: each contact's site, then the fallback. */
+export function sitesToCapture(draft) {
+  const sites = new Set((draft.contacts || []).map((c) => siteKey(c.website)).filter(Boolean));
+  const fallback = siteKey(draft.background?.fallbackSite);
+  if (fallback) sites.add(fallback);
+  return [...sites];
+}
+
 /** The contact as a token profile, the shape the personalization helpers read (tokenSchema paths). */
-export function contactProfile(c) {
+export function contactProfile(c, siteShots = {}) {
+  const shot = siteShots[siteKey(c.website)] || '';
   const fullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
   return {
     id: c.id,
     name: fullName || c.email,
     contact: { firstName: c.firstName, lastName: c.lastName, name: fullName, email: c.email, company: c.company },
     social: { website: c.website },
-    variables: { firstName: c.firstName, lastName: c.lastName, fullName, email: c.email, company: c.company, website: c.website },
+    variables: {
+      firstName: c.firstName, lastName: c.lastName, fullName, email: c.email, company: c.company, website: c.website,
+      ...(shot ? { websiteShotUrl: shot } : {}),
+    },
   };
 }
 
@@ -322,16 +356,34 @@ export function buildCampaignProject(draft, { variants = {}, now = Date.now() } 
   };
 
   const name = String(draft.name || '').trim() || `Outreach ${new Date(now).toISOString().slice(0, 10)}`;
+  const recording = { id: `outreach-video-${id}`, name: 'Outreach recording', type: 'video', src: draft.video.url, left: 0, width: (videoSeconds / T) * 100 };
+  const voiceTrack = { id: `track-voiceover-${id}`, type: 'audio', name: 'Voiceover', muted: false, solo: false,
+    items: [{ id: `speech-outreach-${id}`, type: 'audio', role: 'voiceover', name: 'Greeting', src: draft.voice.fallbackUrl, volume: 1, tts, start: 0, end: greetingSeconds }] };
+
+  // Website background: each contact's site screenshot full frame (scrolling), the recording in a round
+  // bubble on top (Multi-Cam picture-in-picture, which the public player draws).
+  const website = draft.background?.mode === 'website';
+  const fallbackShot = website ? (draft.siteShots || {})[siteKey(draft.background.fallbackSite)] : null;
+  if (website && !fallbackShot) throw new Error('Capture the fallback website first.');
+  const tracks = website
+    ? [
+      { id: `track-bg-${id}`, type: 'video', name: 'Website background', muted: true, solo: false,
+        // scroll: the page moves from its top (header, logo) to its bottom over the video.
+        items: [{ id: `outreach-site-${id}`, name: 'Contact website', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', scroll: true, left: 0, width: 100 }] },
+      { id: `track-cam-${id}`, type: 'video', name: 'Camera', muted: false, solo: false, items: [recording] },
+      voiceTrack,
+    ]
+    : [
+      // The greeting plays over the first seconds of the recording (the Record step asks for a pause there).
+      { id: `track-video-${id}`, type: 'video', name: 'Main Video', muted: false, solo: false, items: [recording] },
+      voiceTrack,
+    ];
+
   return {
     title: name.slice(0, 200),
     timelineSeconds: T,
-    tracks: [
-      // The greeting plays over the first seconds of the recording (the Record step asks for a pause there).
-      { id: `track-video-${id}`, type: 'video', name: 'Main Video', muted: false, solo: false,
-        items: [{ id: `outreach-video-${id}`, name: 'Outreach recording', type: 'video', src: draft.video.url, left: 0, width: (videoSeconds / T) * 100 }] },
-      { id: `track-voiceover-${id}`, type: 'audio', name: 'Voiceover', muted: false, solo: false,
-        items: [{ id: `speech-outreach-${id}`, type: 'audio', role: 'voiceover', name: 'Greeting', src: draft.voice.fallbackUrl, volume: 1, tts, start: 0, end: greetingSeconds }] },
-    ],
+    tracks,
+    ...(website ? { multiCam: { mode: 'pip', mainTrackId: `track-bg-${id}`, secondTrackId: `track-cam-${id}`, pip: { corner: 'bottom-left', size: 26, shape: 'circle' } } } : {}),
     kind: 'outreach',
     campaign: { name: name.slice(0, 120), contacts: (draft.contacts || []).length },
     landing: {
@@ -345,13 +397,16 @@ export function buildCampaignProject(draft, { variants = {}, now = Date.now() } 
 
 /** Each contact's link, given the campaign's watch URL and the personalLink helper. */
 export function campaignLinks(draft, watchUrl, personalLink, variants = {}) {
-  const tokens = ['firstName', 'lastName', 'company', 'email', 'website'];
+  const website = draft.background?.mode === 'website';
+  const tokens = ['firstName', 'lastName', 'company', 'email', 'website', ...(website ? ['websiteShotUrl'] : [])];
   return (draft.contacts || []).map((c) => ({
     contactId: c.id,
     name: [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email,
     email: c.email,
     company: c.company,
     voiced: !!variants[c.id]?.url,
-    link: personalLink(watchUrl, contactProfile(c), tokens),
+    // Which background the contact sees: their own site, or the fallback.
+    ...(website ? { site: draft.siteShots?.[siteKey(c.website)] ? 'own' : 'fallback' } : {}),
+    link: personalLink(watchUrl, contactProfile(c, website ? draft.siteShots : {}), tokens),
   }));
 }

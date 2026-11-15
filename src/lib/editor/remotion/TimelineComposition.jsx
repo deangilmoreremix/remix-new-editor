@@ -448,7 +448,7 @@ function KeyframeWrap({ layer, seqFrom, origin, children }) {
 function CameraBox({ box, children }) {
   const border = box.border ? `${box.border}px solid rgba(255,255,255,0.9)` : undefined;
   return (
-    <div style={{ position: 'absolute', left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%`, overflow: 'hidden', borderRadius: box.radius ? `${box.radius}px` : undefined, border, boxSizing: 'border-box', boxShadow: box.radius ? '0 6px 24px rgba(0,0,0,0.5)' : undefined }}>
+    <div style={{ position: 'absolute', left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%`, overflow: 'hidden', borderRadius: box.radius ? (typeof box.radius === 'string' ? box.radius : `${box.radius}px`) : undefined, border, boxSizing: 'border-box', boxShadow: box.radius ? '0 6px 24px rgba(0,0,0,0.5)' : undefined }}>
       <AbsoluteFill>{children}</AbsoluteFill>
     </div>
   );
@@ -526,7 +526,10 @@ function MediaLayerBody({ layer, seqFrom }) {
     const volume = fadedVolume(layer, fps, Math.max(0, Math.min(1, layer.volume ?? 1)), layer.keyframes?.volume);
     return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%', ...mirror }} />;
   }
-  return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...mirror }} />;
+  // A scrolling page (e.g. a website screenshot behind the presenter): top of the image at the start,
+  // bottom at the end of the clip.
+  const scroll = layer.scroll ? { objectPosition: `50% ${Math.round(Math.max(0, Math.min(1, t / Math.max(0.001, layer.durationInFrames / fps))) * 1000) / 10}%` } : {};
+  return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...scroll, ...mirror }} />;
 }
 
 function OverlayLayer({ layer, Comp }) {

@@ -14,7 +14,7 @@ import {
   STEPS, SETUP_STEPS, STOCK_VOICES, FIRST_NAME_FALLBACKS, CONTACT_FIELDS, CSV_TEMPLATE, MAX_CONTACTS,
   loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, tokensIn,
   parseCsv, guessMapping, contactsFromRows, makeContact, mergeContacts, contactProfile, contactValues,
-  buildCampaignProject, campaignLinks,
+  buildCampaignProject, campaignLinks, siteKey, sitesToCapture,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -307,14 +307,46 @@ export function OutreachStudio() {
     main.append(field('Header', header), field('Message', message), field('If the company is missing, say', company), ctaRow,
       field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'));
 
+    // Background: the recording as it is, or each contact's own website behind a round camera bubble.
+    const bg = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
+    bg.appendChild(el('div', 'text-sm font-bold', 'Video background'));
+    const bgModes = el('div', 'flex flex-wrap gap-2');
+    for (const [mode, label] of [['recording', 'My recording'], ['website', 'Each contact\u2019s website']]) {
+      const b = button(label, { primary: draft.background.mode === mode, small: true });
+      b.addEventListener('click', () => { draft.background = { ...draft.background, mode }; draft.campaign = null; persist(); render(); });
+      bgModes.appendChild(b);
+    }
+    bg.appendChild(bgModes);
+    if (draft.background.mode === 'website') {
+      bg.appendChild(el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a screenshot of each contact\u2019s website (from the Website column). Screenshots are taken when you generate the campaign. Record in Camera mode for this.'));
+      const fallback = textInput(draft.background.fallbackSite, 'yourcompany.com');
+      fallback.addEventListener('input', () => { draft.background = { ...draft.background, fallbackSite: fallback.value.trim() }; draft.campaign = null; persist(); });
+      fallback.addEventListener('change', () => render());
+      bg.appendChild(field('Fallback website', fallback, 'Shown for contacts without a website, or whose site could not be captured.'));
+    }
+    main.appendChild(bg);
+
     const preview = el('div', 'rounded-2xl bg-[#f7f4ee] p-6 text-center text-[#1a1a1a] flex flex-col gap-3 self-start');
     const sample = { firstname: 'Mike', company: 'Acme' };
     const updatePreview = () => {
       preview.replaceChildren();
       preview.appendChild(el('div', 'text-[11px] uppercase tracking-wider text-black/50', 'Preview · Mike at Acme'));
       preview.appendChild(el('h3', 'text-xl font-extrabold', fillTemplate(draft.header, sample, draft.fallbacks)));
-      const media = el('div', 'aspect-video w-full overflow-hidden rounded-xl bg-black');
-      if (draft.video?.url) { const v = el('video', 'h-full w-full object-cover'); v.src = draft.video.url; v.muted = true; v.playsInline = true; media.appendChild(v); }
+      const media = el('div', 'relative aspect-video w-full overflow-hidden rounded-xl bg-black');
+      const camVideo = () => { const v = el('video', 'h-full w-full object-cover'); v.src = draft.video.url; v.muted = true; v.playsInline = true; return v; };
+      if (draft.background.mode === 'website') {
+        // The fallback site's screenshot when captured, else a placeholder page.
+        const shot = draft.siteShots?.[siteKey(draft.background.fallbackSite)];
+        const page = el('div', 'absolute inset-0');
+        if (shot) { page.style.backgroundImage = `url(${JSON.stringify(shot)})`; page.style.backgroundSize = 'cover'; page.style.backgroundPosition = 'top center'; } else {
+          page.className = 'absolute inset-0 flex flex-col gap-2 bg-gradient-to-br from-slate-200 to-slate-300 p-4';
+          page.append(el('div', 'h-3 w-1/3 rounded bg-white/80'), el('div', 'mt-2 h-2 w-3/4 rounded bg-white/70'), el('div', 'h-2 w-2/3 rounded bg-white/70'), el('div', 'mt-auto text-left text-[10px] text-black/40', 'acme.com'));
+        }
+        const bubble = el('div', 'absolute overflow-hidden rounded-full border-[3px] border-white shadow-lg');
+        Object.assign(bubble.style, { left: '3%', bottom: '5.4%', width: '26%', aspectRatio: '1 / 1' });
+        if (draft.video?.url) bubble.appendChild(camVideo()); else bubble.classList.add('bg-slate-700');
+        media.append(page, bubble);
+      } else if (draft.video?.url) media.appendChild(camVideo());
       preview.appendChild(media);
       if (draft.message.trim()) preview.appendChild(el('p', 'text-sm text-black/70', fillTemplate(draft.message, sample, draft.fallbacks)));
       if (draft.cta.enabled && draft.cta.label.trim()) preview.appendChild(el('span', 'mx-auto rounded-full bg-[#4f46e5] px-6 py-2.5 text-sm font-bold text-white', draft.cta.label));
@@ -438,6 +470,34 @@ export function OutreachStudio() {
     return supabase.supabase;
   }
 
+  // Website background: one screenshot per unique site (server-side, cached per site). A site that
+  // cannot be captured falls back to the fallback website; the fallback itself must work.
+  async function captureSites() {
+    const { installPersonalizationApiAuth } = await import('../features/personalization/lib/apiAuth.ts');
+    installPersonalizationApiAuth();
+    const todo = sitesToCapture(draft).filter((site) => !draft.siteShots[site]);
+    const failed = [];
+    for (let i = 0; i < todo.length; i++) {
+      if (abort?.signal.aborted) throw Object.assign(new Error('Stopped'), { name: 'AbortError' });
+      setBusy(`Capturing websites: ${i + 1} of ${todo.length} (${todo[i].replace(/^https?:\/\//, '').replace(/\/$/, '')})…`);
+      try {
+        const res = await fetch('/api/outreach/site-shot', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: todo[i] }), signal: abort?.signal,
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok || !body.imageUrl) throw new Error(body.error || `HTTP ${res.status}`);
+        draft.siteShots = { ...draft.siteShots, [todo[i]]: body.imageUrl };
+        persist();
+      } catch (err) {
+        if (err?.name === 'AbortError') throw err;
+        failed.push(todo[i]);
+      }
+    }
+    const fallback = siteKey(draft.background.fallbackSite);
+    if (!draft.siteShots[fallback]) throw new Error(`The fallback website (${draft.background.fallbackSite}) could not be captured. Check the address, or use another site.`);
+    return failed;
+  }
+
   async function generateCampaign() {
     const personal = tokensIn(draft.greeting).length > 0;
     const n = draft.contacts.length;
@@ -445,6 +505,7 @@ export function OutreachStudio() {
     notice = '';
     abort = new AbortController();
     try {
+      if (draft.background.mode === 'website') await captureSites();
       let variants = {};
       if (personal) {
         const [{ voiceForContacts }, audio] = await Promise.all([
@@ -454,7 +515,7 @@ export function OutreachStudio() {
         setBusy(`Voicing greetings: 0 of ${n}…`);
         ({ variants } = await voiceForContacts({
           text: draft.greeting,
-          contacts: draft.contacts.map(contactProfile),
+          contacts: draft.contacts.map((c) => contactProfile(c)),
           signal: abort.signal,
           onProgress: ({ done, total, name }) => setBusy(`Voicing greetings: ${done} of ${total} (${name})…`),
           generate: async (line) => {
@@ -541,11 +602,12 @@ export function OutreachStudio() {
         const who = el('div', 'min-w-0 flex-1');
         who.append(el('div', 'truncate font-semibold', l.name || '(no name)'), el('div', 'truncate text-xs text-white/50', l.email || ''));
         const state = el('span', `text-xs ${l.voiced ? 'text-emerald-300' : 'text-white/50'}`, l.voiced ? '● Greeted by name' : '● Fallback greeting');
+        const siteState = l.site ? el('span', `text-xs ${l.site === 'own' ? 'text-emerald-300' : 'text-white/50'}`, l.site === 'own' ? '● Their website' : '● Fallback website') : null;
         const copy = button('Copy link', { small: true });
         copy.addEventListener('click', async () => {
           try { await navigator.clipboard.writeText(l.link); copy.textContent = 'Copied'; } catch { window.prompt('Copy this link:', l.link); }
         });
-        row.append(who, state, copy);
+        row.append(who, state, ...(siteState ? [siteState] : []), copy);
         rows.appendChild(row);
       });
       list.appendChild(rows);
