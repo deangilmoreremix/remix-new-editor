@@ -218,7 +218,9 @@ export function TemplatesPage() {
     if (activeFilter !== FAVORITES_FILTER) return;
     const visibleHearts = () => Array.from(sectionsContainer.querySelectorAll('[data-favorite]'))
       .filter((h) => h.closest('[data-searchable]')?.style.display !== 'none');
-    const index = visibleHearts().indexOf(e.target.querySelector ? e.target.querySelector('[data-favorite]') : null);
+    // The event is dispatched on the card; also accept the star itself, so the position is found either way.
+    const heart = e.target.closest?.('[data-favorite]') || e.target.querySelector?.('[data-favorite]') || null;
+    const index = visibleHearts().indexOf(heart);
     renderCategories();
     // The redraw removes the focused star; keep keyboard users in the list.
     const remaining = visibleHearts();
