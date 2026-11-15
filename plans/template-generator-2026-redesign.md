@@ -139,3 +139,8 @@ Step 1 now starts on **Video templates**: the public 184-clip library kept in th
 ## Export video from the Preview step (added)
 - "⬇ Export video" (CineGen editor): the template is built on its own empty timeline (never the user's project) and rendered in the browser with the editor's export (WebCodecs + Remotion web renderer); progress is shown and the MP4 downloads. Shared mapper `cinegen/lib/occ/export-args.ts` (also used by the Export tab). Blocked with a clear message while the script still says `[Your business]`, and disabled where the browser cannot encode video.
 - Verified for real in headless Chrome: a 16 s 720p H.264 + AAC MP4 with the styled title/captions burned in and the music audible. Not done: classic editor export (it drops audio), WebGPU path, long/4K renders.
+
+## Animation and motion-graphic stills, fixed (added)
+- The stills were rendered over a dark frame, so dark artwork vanished and small elements (lower thirds, name bars) sat in a corner. The generator now shoots each render over a transparent page at 3x and composes the tile (`scripts/template-thumbs/compose.mjs`): the element is cropped and enlarged, dark artwork gets a light backdrop, full frames and sparse full-frame overlays keep their whole frame.
+- Re-rendered the 211 stills that looked empty. Near-empty stills went from 81 to 48 (Animations) and 13 to 5 (Motion graphics); the rest are ambient backgrounds, gradients, starfields and dark code windows, sparse by nature. One previously blocklisted motion graphic (it was dark-on-dark) is offered again (blocklist 23 → 22).
+- `src/test/template-stills-quality.test.js` guards against empty tiles coming back.
