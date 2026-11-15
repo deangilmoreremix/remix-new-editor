@@ -184,6 +184,8 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   function openLeadForm(clip) {
     gateOpen = true;
     showLeadForm(layer, clip, {
+      allowRedirect: true,
+      isActive: () => !destroyed,
       profile: currentProfile,
       onSubmit: async (data) => {
         const res = await onLead?.({ clipId: clip.id, kind: 'lead-form', data });
@@ -204,10 +206,15 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     emit(); // tells the page a form is up (hides the big play button)
     const prefill = currentProfile?.variables || {};
     showOptinOverlay(layer, listBuilder, {
+      allowRedirect: true,
+      isActive: () => !destroyed,
       prefill,
       onSkip: () => { gateOpen = false; ensureEngine(); play(); },
       onSubmit: async (data) => {
-        await onLead?.({ clipId: 'list-builder', kind: listBuilder.kind === 'personalizer' ? 'personalizer' : 'list-builder', data });
+        const res = await onLead?.({ clipId: 'list-builder', kind: listBuilder.kind === 'personalizer' ? 'personalizer' : 'list-builder', data });
+        // Like the Lead Generator: if the lead was not saved, keep the form open for a retry instead of
+        // marking it done (which would also suppress it on return and send the viewer away on a redirect).
+        if (res?.error && !res.stored) throw new Error('Sorry, that didn\u2019t go through \u2014 please try again.');
         listBuilder._submitted = true;
         if (storeKey) { try { globalThis.localStorage?.setItem(storeKey, '1'); } catch { /* storage blocked */ } }
         applyAnswers(data);
