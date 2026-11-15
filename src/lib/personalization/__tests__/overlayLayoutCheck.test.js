@@ -28,6 +28,21 @@ describe('overlaysFromTimeline', () => {
   });
 });
 
+describe('design overlays in the check', () => {
+  const design = (id, geometry) => ({ id, type: 'overlay-design', start: 0, end: 10, addon: { designId: 'animated-headline', geometry } });
+  it('are read as designs and counted as measured', () => {
+    const { overlays, notMeasured } = overlaysFromTimeline(state(design('d', { left: 10, top: 10, width: 50, height: 28 })));
+    expect(overlays[0]).toMatchObject({ id: 'clip:d', kind: 'design' });
+    expect(notMeasured).toBe(0);
+  });
+  it('are checked for leaving the frame but never called a collision', () => {
+    const { overlays } = overlaysFromTimeline(state(design('d', { left: 10, top: 10, width: 50, height: 28 }), text('t', { left: 12, top: 12, width: 30, height: 10 })));
+    expect(checkOverlayGeometry(overlays)).toEqual([]);
+    const off = overlaysFromTimeline(state(design('d', { left: 70, top: 10, width: 50, height: 28 }))).overlays;
+    expect(checkOverlayGeometry(off)[0]).toMatchObject({ code: 'off-frame', layerId: 'clip:d' });
+  });
+});
+
 describe('checkOverlayGeometry', () => {
   const ov = (id, rect, over = {}) => ({ id, name: id, kind: 'text', startSec: 0, endSec: 10, rect, bridged: false, ...over });
   it('flags an overlay reaching outside the frame', () => {

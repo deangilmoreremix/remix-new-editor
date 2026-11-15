@@ -97,7 +97,7 @@ export function renderPersonalizationPanel(el, s) {
     const values = contactValues(active);
     el.innerHTML = wrap(`
       <p class="pz-hint">Details from the Personalization Studio for the contact the video is previewed as. Click “Add as text” to put one on the video as Smart Text.</p>
-      <div class="rp-row">${contactSelect(contacts, active?.id)}<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="open">Open Personalize</button>${s.browseTemplates ? '<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="templates" title="Designs are shown and exported from the Personalize window">Browse templates</button>' : ''}</div>
+      <div class="rp-row">${contactSelect(contacts, active?.id)}<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="open">Open Personalize</button>${s.browseTemplates ? '<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="templates" title="Pick a design in the Personalize window; it is added to the timeline when you close it">Browse templates</button>' : ''}</div>
       ${active ? (values.length ? `<ul class="rp-list">${values.map((v) => `
         <li class="rp-var"><div><strong>${esc(v.label)}</strong><code>{{${esc(v.key)}}}</code></div><span title="${esc(v.value)}">${esc(v.value)}</span>
           <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-add="${esc(v.key)}">Add as text</button></li>`).join('')}</ul>`

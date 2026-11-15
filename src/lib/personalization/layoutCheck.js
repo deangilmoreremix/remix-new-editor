@@ -9,27 +9,9 @@ import { createDefaultPreviewSettings } from '../../features/personalization/sha
 import { buildPlacementInput } from '../../features/personalization/shared/personalization/preview/placement/buildInput';
 import { evaluateLayoutQuality } from '../../features/personalization/shared/personalization/preview/placement/quality';
 import { recommendPlacement } from '../../features/personalization/shared/personalization/preview/placement/engine';
-import { resolveToken } from '../../components/personalize/tokenSchema.js';
 
-const text = (profile, key) => String(resolveToken(profile, key) ?? '').trim();
-
-/** The same brand fields `buildPreviewInput` derives, from a timeline contact profile. */
-export function brandFromProfile(profile) {
-  const businessName = text(profile, 'businessName') || text(profile, 'company') || text(profile, 'fullName');
-  const website = text(profile, 'website');
-  const phone = text(profile, 'businessPhone');
-  return {
-    businessName,
-    headline: text(profile, 'ctaHeadline') || text(profile, 'productService') || businessName,
-    offer: text(profile, 'offer'),
-    cta: text(profile, 'callToAction') || (website ? `Visit ${website}` : phone ? `Call ${phone}` : ''),
-    phone,
-    website,
-    logoUrl: text(profile, 'logoUrl') || null,
-    productUrl: text(profile, 'productImageUrl') || null,
-    serviceUrl: text(profile, 'brandImageUrl') || text(profile, 'productImageUrl') || null,
-  };
-}
+export { brandFromProfile } from './brandFromProfile.js';
+import { brandFromProfile } from './brandFromProfile.js';
 
 function inputFor({ layers, settings = {}, profile }) {
   const base = createDefaultPreviewSettings({
@@ -89,6 +71,8 @@ import { BRIDGE_SOURCE } from './layerOverlayBridge.js';
 
 const TEXT_TYPES = new Set(['overlay-text']);
 const IMAGE_TYPES = new Set(['overlay-personalized-image', 'overlay-image', 'overlay-sticker']);
+/** A Personalize-window design: checked for leaving the frame, but not for overlapping (designs sit over things on purpose). */
+const DESIGN_TYPES = new Set(['overlay-design']);
 /** Full-frame by design (backgrounds, transitions): never "measured" or counted as collisions. */
 const BACKDROP_TYPES = new Set(['overlay-background', 'overlay-transition', 'overlay-video-transition']);
 const FRAME_W = 1920;
@@ -98,7 +82,7 @@ const MAX_ISSUES = 20;
 
 const clipsOf = (state) => (Array.isArray(state?.tracks) ? state.tracks : []).flatMap((t) => t?.items || t?.clips || []);
 const rectArea = (r) => Math.max(0, r.width) * Math.max(0, r.height);
-const labelOf = (o) => o.name || (o.kind === 'text' ? 'Text' : 'Image');
+const labelOf = (o) => o.name || (o.kind === 'text' ? 'Text' : o.kind === 'design' ? 'Design' : 'Image');
 
 /**
  * The text and image overlays the check can measure.
@@ -112,7 +96,8 @@ export function overlaysFromTimeline(state, { profile = null } = {}) {
     const type = String(clip?.type || '');
     const isText = TEXT_TYPES.has(type);
     const isImage = IMAGE_TYPES.has(type);
-    if (!isText && !isImage) {
+    const isDesign = DESIGN_TYPES.has(type);
+    if (!isText && !isImage && !isDesign) {
       if ((type.startsWith('overlay-') && !BACKDROP_TYPES.has(type)) || type === 'remotion-code') notMeasured += 1;
       continue;
     }
@@ -127,7 +112,7 @@ export function overlaysFromTimeline(state, { profile = null } = {}) {
       clipId: String(clip.id),
       name: String(clip.name || '').trim(),
       type,
-      kind: isText ? 'text' : 'image',
+      kind: isText ? 'text' : isDesign ? 'design' : 'image',
       startSec,
       endSec,
       rect: { left: Number(g.left), top: Number(g.top), width: Number(g.width), height: Number(g.height) },
@@ -158,7 +143,7 @@ export function checkOverlayGeometry(overlays) {
     }
   }
   // A near-full-frame overlay is a backdrop (e.g. an end-card image under its text): not a collision.
-  const foreground = overlays.filter((o) => rectArea(o.rect) < 80 * 80);
+  const foreground = overlays.filter((o) => o.kind !== 'design' && rectArea(o.rect) < 80 * 80);
   for (let i = 0; i < foreground.length; i += 1) {
     for (let j = i + 1; j < foreground.length; j += 1) {
       const a = foreground[i];

@@ -323,6 +323,16 @@ function buildWrapper(opts) {
   return el;
 }
 
+/** The editor's overlay layer only needs a box to select; the Remotion player draws the design itself. */
+function buildDesignPlaceholder(opts) {
+  const el = document.createElement('div');
+  el.className = 'popcorn-design-placeholder';
+  el.dataset.design = String(opts.designId || '');
+  el.style.cssText = 'display:flex;align-items:center;justify-content:center;border:1px dashed rgba(255,255,255,.45);color:rgba(255,255,255,.8);font:600 12px system-ui;text-align:center;pointer-events:none';
+  el.textContent = `Design · ${String(opts.designId || '').replace(/[-_]+/g, ' ')}`;
+  return el;
+}
+
 function buildSticker(opts) {
   const el = document.createElement('div');
   el.className = 'popcorn-lottie-json';
@@ -399,6 +409,7 @@ const BUILDERS = {
   'overlay-text-mask': (o, ctx, id) => buildTextMask(o, ctx, id),
   'overlay-background': (o) => buildWrapper(o),
   'overlay-sticker': (o) => buildSticker(o),
+  'overlay-design': (o) => buildDesignPlaceholder(o),
 };
 
 const FULL_FRAME = new Set(['overlay-text-mask', 'overlay-background', 'overlay-transition', 'overlay-video-transition']);

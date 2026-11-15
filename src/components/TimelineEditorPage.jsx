@@ -5029,7 +5029,7 @@ export function TimelineEditorPage() {
       scheduleEngineUpdate();
       debouncedSave();
       const kept = countKeptInModal(layers);
-      showToast(`Updated ${plan.length} overlay${plan.length === 1 ? '' : 's'} from Personalize${kept ? `. ${kept} design/end-card layer${kept === 1 ? ' stays' : 's stay'} in the Personalize window and ${kept === 1 ? 'is' : 'are'} not in this timeline's export` : ''}`, kept ? 'info' : 'success');
+      showToast(`Updated ${plan.length} overlay${plan.length === 1 ? '' : 's'} from Personalize${kept ? `. ${kept} end-card layer${kept === 1 ? ' stays' : 's stay'} in the Personalize window and ${kept === 1 ? 'is' : 'are'} not in this timeline's export` : ''}`, kept ? 'info' : 'success');
     }
 
     // The Personalize window, seeded with (and reporting back) the shared overlays.

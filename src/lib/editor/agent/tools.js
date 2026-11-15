@@ -30,7 +30,7 @@ import { CAPTION_PRESETS, defaultCaptionStyle, sortCaptions } from '../remotion/
 import { checkAnimationCode, normalizeAnimationCode } from './codeGate.js';
 import { VOICES, duckingKeyframes } from './audioGen.js';
 
-const OVERLAY_TYPES = () => listAddons('overlay').map((a) => a.type).filter((t) => t !== 'overlay-video-transition');
+const OVERLAY_TYPES = () => listAddons('overlay').map((a) => a.type).filter((t) => t !== 'overlay-video-transition' && t !== 'overlay-design');
 const INTERACTIVE_TYPES = () => listAddons('interactive').map((a) => a.type);
 const TRANSITIONS = () => VIDEO_TRANSITION_OPTIONS.map(([v]) => v);
 const EFFECT_CLIP_TYPES = new Set(['video', 'image', 'overlay-image', 'overlay-personalized-image', 'overlay-sticker']);

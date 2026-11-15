@@ -77,8 +77,34 @@ describe('timelineOverlaysToLayers', () => {
 
 describe('countKeptInModal', () => {
   it('counts visible layers the timeline cannot draw', () => {
-    expect(countKeptInModal([logo, headline, design, hidden, base({ id: 'end', kind: 'endCard' })])).toBe(2); // design + endCard; hidden offer is not counted
+    expect(countKeptInModal([logo, headline, design, hidden, base({ id: 'end', kind: 'endCard' })])).toBe(2); // a design with no id + the end card; hidden offer is not counted
+    expect(countKeptInModal([logo, base({ id: 'd', kind: 'design', designId: 'animated-headline', x: 0.5, y: 0.5, scale: 0.5 }), base({ id: 'end', kind: 'endCard' })])).toBe(1); // a real design is drawn by the timeline now
     expect(countKeptInModal([logo, headline])).toBe(0);
     expect(countKeptInModal(null)).toBe(0);
+  });
+});
+
+describe('design layers', () => {
+  const designLayer = base({ id: 'design-1', kind: 'design', designId: 'animated-headline', x: 0.5, y: 0.45, scale: 0.6, text: 'Spring sale', textSlotOverrides: { business: 'Acme' }, startFrame: 30, endFrame: 150 });
+  it('is bridgeable only with a design id', () => {
+    expect(isBridgeable(designLayer)).toBe(true);
+    expect(isBridgeable({ ...designLayer, designId: undefined })).toBe(false);
+  });
+  it('becomes an overlay-design clip with the design, text and a box from the design\'s own geometry', () => {
+    const [i] = layersToTimelineOverlays([designLayer], settings);
+    expect(i).toMatchObject({ type: 'overlay-design', source: BRIDGE_SOURCE, layerId: 'design-1', startSec: 1, endSec: 5 });
+    expect(i.addon).toMatchObject({ designId: 'animated-headline', text: 'Spring sale', textSlotOverrides: { business: 'Acme' } });
+    near(i.addon.geometry.width, 60, 1);   // scale .6 of the composition width
+    near(i.addon.geometry.height, 60, 1);  // and of its height (designs keep the frame's shape)
+    near(i.addon.geometry.left, 20, 1);    // centred on x = .5
+  });
+  it('round-trips, keeping the design and its text, and applies a timeline move', () => {
+    const items = layersToTimelineOverlays([designLayer], settings);
+    const back = timelineOverlaysToLayers(items, [designLayer], settings)[0];
+    near(back.x, 0.5, 2); near(back.y, 0.45, 2); near(back.scale, 0.6, 2);
+    expect(back).toMatchObject({ designId: 'animated-headline', text: 'Spring sale', textSlotOverrides: { business: 'Acme' }, startFrame: 30, endFrame: 150 });
+    items[0].addon.geometry = { left: 0, top: 0, width: 40, height: 40 };
+    const moved = timelineOverlaysToLayers(items, [designLayer], settings)[0];
+    near(moved.scale, 0.4, 3); near(moved.x, 0.2, 3); near(moved.y, 0.2 * (1080 / 1080) + 0, 1);
   });
 });

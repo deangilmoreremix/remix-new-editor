@@ -19,6 +19,7 @@ import './sandboxShims.js';
 import { renderMediaOnWeb, renderStillOnWeb } from '@remotion/web-renderer';
 import { TimelineComposition, registerGoogleFonts, registerUserFont } from '../lib/editor/remotion/TimelineComposition.jsx';
 import { loadEffects, effectIdsInModel } from '../lib/editor/remotion/effects.js';
+import { loadDesigns, designIdsInModel } from '../lib/editor/remotion/designOverlays.js';
 import { takeCodeErrors } from '../lib/editor/remotion/codeLayer.jsx';
 
 const jobs = new Map();
@@ -60,6 +61,7 @@ async function render(id, rawModel, options = {}) {
     await Promise.race([Promise.all((model.userFonts || []).map(registerUserFont)), new Promise((r) => setTimeout(r, 15000))]);
     await Promise.race([registerGoogleFonts(model.fonts || []), new Promise((r) => setTimeout(r, 15000))]);
     await loadEffects(effectIdsInModel(model));
+    await loadDesigns(designIdsInModel(model));
     const result = await renderMediaOnWeb({
       composition: {
         id: 'timeline',
@@ -102,6 +104,7 @@ async function still(id, rawModel, frame) {
     await Promise.race([Promise.all((model.userFonts || []).map(registerUserFont)), new Promise((r) => setTimeout(r, 15000))]);
     await Promise.race([registerGoogleFonts(model.fonts || []), new Promise((r) => setTimeout(r, 15000))]);
     await loadEffects(effectIdsInModel(model));
+    await loadDesigns(designIdsInModel(model));
     const result = await renderStillOnWeb({
       composition: {
         id: 'timeline', component: TimelineComposition, width: model.width, height: model.height, fps: model.fps,

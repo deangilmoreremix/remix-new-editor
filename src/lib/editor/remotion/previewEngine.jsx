@@ -14,6 +14,7 @@ import { createRoot } from 'react-dom/client';
 import { Player } from '@remotion/player';
 import { TimelineComposition, registerGoogleFonts } from './TimelineComposition.jsx';
 import { loadEffects, effectIdsInModel } from './effects.js';
+import { loadDesigns, designIdsInModel } from './designOverlays.js';
 
 const PlayerHost = forwardRef(function PlayerHost({ model }, ref) {
   return (
@@ -72,7 +73,7 @@ export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onE
   const render = () => {
     const v = ++version;
     const fonts = Promise.race([registerGoogleFonts(current?.fonts || []), new Promise((r) => setTimeout(r, 8000))]);
-    Promise.all([loadEffects(effectIdsInModel(current)), fonts]).then(() => {
+    Promise.all([loadEffects(effectIdsInModel(current)), loadDesigns(designIdsInModel(current)), fonts]).then(() => {
       if (v === version) root.render(<PlayerHost ref={bind} model={current} />);
     });
   };

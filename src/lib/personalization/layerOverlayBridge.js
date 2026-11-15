@@ -14,15 +14,15 @@ export const BRIDGE_SOURCE = 'personalize-modal';
 
 const IMAGE_TOKENS = { logo: '{{logoUrl}}', productImage: '{{productImageUrl}}', serviceImage: '{{brandImageUrl}}' };
 const TEXT_TOKENS = { businessName: '{{businessName}}', headline: '{{ctaHeadline}}', offer: '{{offer}}', cta: '{{callToAction}}', tagline: '{{ctaHeadline}}' };
-const LABELS = { logo: 'Logo', businessName: 'Business name', headline: 'Headline', offer: 'Offer', cta: 'Call to action', productImage: 'Product image', serviceImage: 'Service image', tagline: 'Tagline' };
+const LABELS = { design: 'Design', logo: 'Logo', businessName: 'Business name', headline: 'Headline', offer: 'Offer', cta: 'Call to action', productImage: 'Product image', serviceImage: 'Service image', tagline: 'Tagline' };
 
 const round = (n, d = 3) => Math.round(n * 10 ** d) / 10 ** d;
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
-/** Layers the timeline can show. `design` / `endCard` stay in the modal. */
-export const isBridgeable = (layer) => Boolean(layer && layer.visible !== false && (IMAGE_TOKENS[layer.kind] || TEXT_TOKENS[layer.kind]));
+/** Layers the timeline can show: logo/product/service images, text, and registered designs. The end card stays in the modal. */
+export const isBridgeable = (layer) => Boolean(layer && layer.visible !== false && (IMAGE_TOKENS[layer.kind] || TEXT_TOKENS[layer.kind] || (layer.kind === 'design' && layer.designId)));
 
-/** Visible layers the timeline cannot draw (designs, end card): they stay in the Personalize window. */
+/** Visible layers the timeline cannot draw (the end card): they stay in the Personalize window. */
 export const countKeptInModal = (layers) => (layers || []).filter((l) => l && l.visible !== false && !isBridgeable(l)).length;
 
 function settingsOf(s = {}) {
@@ -40,6 +40,19 @@ export function layersToTimelineOverlays(layers, settings) {
     const endSec = round(Math.min(durationInFrames, layer.endFrame ?? durationInFrames) / fps);
     const common = { name: LABELS[layer.kind], startSec, endSec, source: BRIDGE_SOURCE, layerId: layer.id };
     const opacity = round(clamp(layer.opacity ?? 1, 0, 1) * 100, 1);
+    if (layer.kind === 'design') {
+      return {
+        ...common,
+        type: 'overlay-design',
+        addon: {
+          designId: layer.designId, text: typeof layer.text === 'string' ? layer.text : '',
+          textSlotOverrides: layer.textSlotOverrides && typeof layer.textSlotOverrides === 'object' ? { ...layer.textSlotOverrides } : {},
+          ...(layer.imageUrl ? { imageUrl: layer.imageUrl } : {}), ...(layer.color ? { color: layer.color } : {}), ...(layer.fontFamily ? { fontFamily: layer.fontFamily } : {}),
+          opacity,
+          geometry: { left: round(m.leftPx / W * 100), top: round(m.topPx / H * 100), width: round(m.widthPx / W * 100), height: round(m.heightPx / H * 100) },
+        },
+      };
+    }
     if (isImageLayerKind(layer.kind)) {
       return {
         ...common,
@@ -84,7 +97,14 @@ export function timelineOverlaysToLayers(items, baseLayers, settings) {
     next.startFrame = startFrame;
     if (endFrame >= durationInFrames) delete next.endFrame; else next.endFrame = endFrame;
     const widthPx = (g.width / 100) * W;
-    if (isImageLayerKind(layer.kind)) {
+    if (layer.kind === 'design') {
+      const heightPx = (g.height / 100) * H;
+      next.scale = round(clamp(widthPx / W, 0.02, 1), 4);
+      next.x = round(clamp(((g.left / 100) * W + widthPx / 2) / W, 0, 1), 4);
+      next.y = round(clamp(((g.top / 100) * H + heightPx / 2) / H, 0, 1), 4);
+      if (typeof a.text === 'string') next.text = a.text;
+      if (a.textSlotOverrides && typeof a.textSlotOverrides === 'object') next.textSlotOverrides = { ...a.textSlotOverrides };
+    } else if (isImageLayerKind(layer.kind)) {
       next.scale = round(clamp(widthPx / W, 0.05, 1), 4);
       next.x = round(clamp(((g.left / 100) * W + widthPx / 2) / W, 0, 1), 4);
       next.y = round(clamp(((g.top / 100) * H + widthPx / 2) / H, 0, 1), 4);

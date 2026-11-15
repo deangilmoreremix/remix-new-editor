@@ -22,6 +22,7 @@ import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
 import { defaultCaptionStyle } from './captions.js';
 import { buildCtaLottie } from '../addons/ctaLottie.js';
+import { brandFromProfile } from '../../personalization/brandFromProfile.js';
 
 function ctaOptions(clip, profile) {
   const style = clip.style || {};
@@ -95,6 +96,14 @@ function overlayLayer(clip, opts, profile, base) {
       break;
     case 'overlay-lower-third':
       o.lottie = buildLowerThirdLottie(o);
+      break;
+    case 'overlay-design':
+      // The contact's brand fields and per-slot text, resolved up front like the other overlays.
+      o.resolvedBrand = brandFromProfile(profile);
+      if (o.textSlotOverrides && typeof o.textSlotOverrides === 'object') {
+        o.textSlotOverrides = Object.fromEntries(Object.entries(o.textSlotOverrides).map(([k, v]) => [k, typeof v === 'string' ? resolveOverlayText(v, profile) : v]));
+      }
+      o.resolvedImage = safeImageUrl(o.imageUrl) || null;
       break;
     default:
       break;

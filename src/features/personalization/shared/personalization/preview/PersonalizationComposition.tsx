@@ -164,7 +164,7 @@ function resolveDesignTextSlots(
  * The layer's own image replaces the design's primary (required) media
  * binding; every other role is fed by the matching brand asset.
  */
-function resolveDesignMedia(
+export function resolveDesignMedia(
   design: RemotionDesignTemplate,
   layer: PreviewLayer,
   brand: PreviewInputProps['brand'],

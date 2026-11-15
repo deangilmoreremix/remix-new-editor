@@ -308,6 +308,32 @@ export const WRAPPER = registerAddon({
   summary: () => 'Wrapper',
 });
 
+// A design chosen in the Personalize window (a Remotion component from its
+// template catalog), drawn by the Remotion player and the export. It is never
+// added from the Overlays panel (section 'Designs' is not listed there): it
+// arrives through the Personalize window (see personalization/layerOverlayBridge.js).
+export const DESIGN = registerAddon({
+  ...BASE,
+  type: 'overlay-design',
+  label: 'Design',
+  icon: '✨',
+  section: 'Designs',
+  description: 'An animated design from the Personalize window (templates). Edit its text and look in the Personalize window.',
+  positioned: true,
+  preserveRatio: true,
+  defaultDuration: 5,
+  defaults: () => ({
+    designId: '',
+    text: '',
+    textSlotOverrides: {},
+    geometry: { left: 0, top: 0, width: 100, height: 100 },
+    opacity: 100,
+    blendMode: 'normal',
+  }),
+  fields: [...LOOK_FIELDS()],
+  summary: (o) => `Design: ${String(o.designId || '').replace(/[-_]+/g, ' ').slice(0, 30)}`,
+});
+
 // Upstream "Lower Thirds" (CREATIVE section, lib/popcorn/plugins/jsonAnimation):
 // a Lottie lower third kept in step with the video. The templates are
 // original (./lowerThirds.js) since upstream's catalog files aren't available.

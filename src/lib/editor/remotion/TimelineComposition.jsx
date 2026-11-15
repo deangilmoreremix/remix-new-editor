@@ -28,6 +28,7 @@ import { cube } from '@remotion/transitions/cube';
 import { pushCut } from '@remotion/transitions/push-cut';
 import { loadFont } from '@remotion/fonts';
 import { animationStyle } from './overlayAnimations.js';
+import { getDesignOverlay } from './designOverlays.js';
 import { buildEffectDescriptors } from './effects.js';
 import { stretchLowerThird } from '../addons/lowerThirds.js';
 import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './keyframes.js';
@@ -358,7 +359,34 @@ function CtaButton({ o }) {
   );
 }
 
+/** A Personalize-window design drawn into the overlay's own box (see designOverlays.js). */
+function DesignOverlayItem({ o, durationInFrames }) {
+  const { width, height } = useVideoConfig();
+  const Design = getDesignOverlay();
+  const g = o.geometry || {};
+  if (!Design || !o.designId || !o.resolvedBrand) return null;
+  return (
+    <Animated o={o} durationInFrames={durationInFrames}>
+      <Design
+        designId={o.designId}
+        text={typeof o.text === 'string' && o.text.trim() ? o.text : undefined}
+        textSlotOverrides={o.textSlotOverrides}
+        brand={o.resolvedBrand}
+        brandColors={o.brandColors}
+        imageUrl={o.resolvedImage || undefined}
+        width={width}
+        height={height}
+        boxWidthPx={((Number(g.width) || 100) / 100) * width}
+        boxHeightPx={((Number(g.height) || 100) / 100) * height}
+        color={o.color || undefined}
+        fontFamily={o.fontFamily || undefined}
+      />
+    </Animated>
+  );
+}
+
 const OVERLAYS = {
+  'overlay-design': DesignOverlayItem,
   'cta-button': CtaButton,
   'overlay-text': SmartText,
   'overlay-image': (p) => <ImageOverlay {...p} />,
