@@ -603,3 +603,6 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 
 ### RLS fix corrected after production pre-checks (2026-11-15)
 - Migration `20261120000000` rewritten: keeps write grants on tables that already have policies, revokes truncate everywhere, fixes the decrypted-keys view, anon insert-only on `admin_analytics_events`. 26 assertions, 9 mutations, branch stand-in proof. NOT applied to production.
+
+### RLS stage 1 applied to production (2026-11-15)
+- 81 deny-by-default tables secured + keys view fixed on `bzxohkrxcwodllketcpz`; 117 -> 36 tables without RLS; verified; first log check clean. Stage 2 pending a watch and a fresh yes.

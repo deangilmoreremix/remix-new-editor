@@ -150,3 +150,6 @@ Branch: `claude/jolly-cannon-ofqf7h`
 
 ### RLS fix corrected
 - Read-only production pre-checks found 54 dormant policies and an owner-run view returning decrypted API keys; the first version of the migration would have broken the policies, so it was rewritten and re-tested (local, mutations, branch stand-ins). Production untouched.
+
+### RLS stage 1 on production
+- Authorization: "lets complete the above" after the stage 1 SQL was shown. Applied exactly the shown SQL via apply_migration; verified counts and grants; log check found no errors on the affected tables. Stage 2 not applied.

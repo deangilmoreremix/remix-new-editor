@@ -62,6 +62,9 @@ Production was not touched. Nothing was sent. No secret is in the repository or 
 **Not proven:** the branch lacks the real 117 tables, so the real effect on the other apps that share this database is untested. Policies that read `app_user_roles` (also exposed, empty) will see no rows once RLS is on, so only the `is_super_admin()` path grants admin access. Production still has the exposure until you approve a staged apply (view fix + deny-by-default tables first, then the tables with policies; watch the API logs after each).
 Roll back: `alter table ... disable row level security` and re-GRANT.
 
+### Stage 1 applied to PRODUCTION (2026-11-15, your approval)
+Migration `rls_stage1_deny_by_default_and_keys_view` on project `bzxohkrxcwodllketcpz`: RLS enabled and write/truncate grants removed on the 81 exposed tables that had no policy, and `user_api_keys_read` made `security_invoker` and taken from anon. Verified on production afterwards: tables without RLS 117 -> 36; `api_keys` RLS on; anon cannot insert into `api_keys`, delete from `user_credits` or read the keys view; no deny-by-default table is left open. First log check: no REST errors on any of these tables (3 unrelated 401s on `rpc/owner_unread_notifications` and the API root, not touched by this change). Still to do: a longer watch, then stage 2 (the 36 tables that already have policies, plus the `admin_analytics_events` anon insert-only exception) after a fresh yes. Rollback per table: `alter table public.<t> disable row level security;` plus `grant insert, update, delete on table public.<t> to anon, authenticated;`; for the view `alter view public.user_api_keys_read reset (security_invoker);`.
+
 ## Decisions still waiting for you
 1. Apply the RLS migration to production? Safer first: tell me which apps use this database, or apply it in a quiet window and watch for errors.
 2. Apply the SmartVideo migrations (now 6) to production when ready; delete the validation branch afterwards.
