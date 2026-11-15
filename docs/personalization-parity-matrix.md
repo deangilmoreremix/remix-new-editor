@@ -187,3 +187,16 @@ itself; those hunks merged without conflict.
 **Remix-specific adjustments kept**: still-image sources stay out of `videoUrl`; footage is measured on the cover crop of the frame shape
 (`sampleCacheKey`); `enrich-business` and `demo/download-image` are registered in `personalization-api.mts`, the Vite proxy and the auth prefix
 list; the enrichment integration test reads its local fixture with `node:http` because remix's test setup mocks global `fetch`.
+
+## Remix-only additions (not in OpenHiggsBolt)
+
+Free, in-browser tools added on top of the port. They need no server and no paid API; the on-device AI ones download their model once, only
+after the person agrees, and reuse the Timeline Editor's local AI (`src/lib/editor/ml`, `src/lib/editor/remotion`).
+
+- Brand kit, wording ideas, saved looks ("My templates"), readability checks with one-click fixes, design ranking with reasons, extra export
+  shapes, logo tracing (`brand/`, `copy/`, `guided/editor/savedTemplates.ts`, `preview/placement/a11y.ts`, `templates/recommendations.ts`,
+  `preview/exportFormats.ts`, `preview/logoVectorize.ts`).
+- On-device AI: find the subject (`preview/placement/subjectDetect.ts`), sharpen small pictures 2x (`preview/imageUpscale.ts`), captions
+  (`captions/`, `guided/CaptionsPanel.tsx`): written from the video's speech, editable, drawn INTO the video (`preview/CaptionsLayer.tsx`,
+  `settings.captions`, so they appear in the preview and in every export) and downloadable as SRT/VTT. Shared consent/progress control:
+  `localAI/`.

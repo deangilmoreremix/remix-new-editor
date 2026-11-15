@@ -6,6 +6,7 @@
  * every x/y pair describes the CENTER of a layer box.
  */
 
+import { normalizeCaptions } from '../captions/captionStyle'
 import { contractFor, roleForLayer } from './mediaRoles'
 import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle'
 import type {
@@ -1144,6 +1145,8 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
   if (zones) out.protectedZones = zones
   const hints = normalizeImageHints(raw.imageHints)
   if (hints) out.imageHints = hints
+  const captions = normalizeCaptions(raw.captions)
+  if (captions) out.captions = captions
 
    return out
   } catch {

@@ -17,7 +17,7 @@ import { createDefaultPreviewSettings, createLayer } from '../presets'
 import type { PreviewInputProps, PreviewLayer } from '../types'
 
 /** Deterministic frame: every startFrame-0 layer is visible, end card faded in. */
-const FRAME = 30
+let FRAME = 30
 
 const REMOTE_BAD_VIDEO = 'https://cdn.example.com/bad-video.mp4'
 const REMOTE_GOOD_VIDEO = 'https://cdn.example.com/good-video.mp4'
@@ -246,5 +246,45 @@ describe('layer rotation in the composition', () => {
   it('draws nothing rotated when no layer is rotated', () => {
     const { container } = mountComposition(withLayers([{ ...createLayer('headline'), text: 'Plain' }, createLayer('cta', { text: 'Go' })]))
     expect(container.innerHTML).not.toContain('rotate(')
+  })
+})
+
+describe('burned-in captions', () => {
+  const cues = [
+    { startMs: 500, endMs: 1500, text: 'Call us today', words: [{ text: 'Call', startMs: 500, endMs: 800 }, { text: 'us', startMs: 800, endMs: 1100 }, { text: 'today', startMs: 1100, endMs: 1500 }] },
+  ]
+  const withCaptions = (over: Record<string, unknown> = {}, frame = 30) => {
+    FRAME = frame
+    const settings = { ...createDefaultPreviewSettings(), fps: 30, durationInFrames: 150, captions: { enabled: true, forUrl: REMOTE_GOOD_VIDEO, style: 'bold' as const, position: 'bottom' as const, cues, ...over } }
+    return makeInputProps({ videoUrl: REMOTE_GOOD_VIDEO, settings })
+  }
+  const layer = (c: HTMLElement) => c.querySelector('[data-testid="captions-layer"]')
+  afterEach(() => { FRAME = 30 })
+
+  it('draws the line being spoken, with the current word picked out', () => {
+    const { container } = mountComposition(withCaptions({}, 30)) // 1000 ms: "us" is being spoken
+    expect(layer(container)?.getAttribute('data-caption-text')).toBe('Call us today')
+    const spans = [...layer(container)!.querySelectorAll('span')]
+    expect(spans.map((s) => s.textContent?.trim())).toEqual(['Call', 'us', 'today'])
+    expect(spans[1].style.color).not.toBe(spans[0].style.color)
+  })
+  it('draws nothing between lines, when switched off, or before they start', () => {
+    expect(layer(mountComposition(withCaptions({}, 90)).container)).toBeNull() // 3000 ms: after the cue
+    expect(layer(mountComposition(withCaptions({}, 3)).container)).toBeNull() // 100 ms: before it
+    expect(layer(mountComposition(withCaptions({ enabled: false }, 30)).container)).toBeNull()
+  })
+  it('never draws over a different video than the one they were written for', () => {
+    expect(layer(mountComposition(withCaptions({ forUrl: 'https://cdn.example.com/other.mp4' }, 30)).container)).toBeNull()
+  })
+  it('hides during the end card', () => {
+    const input = withCaptions({ cues: [{ startMs: 0, endMs: 9000, text: 'Long line' }] }, 120) // end card starts at frame 105 of 150
+    expect(layer(mountComposition(input).container)).toBeNull()
+    const early = withCaptions({ cues: [{ startMs: 0, endMs: 9000, text: 'Long line' }] }, 60)
+    expect(layer(mountComposition(early).container)?.getAttribute('data-caption-text')).toBe('Long line')
+  })
+  it('works in the plain styles too (no per-word colouring)', () => {
+    const { container } = mountComposition(withCaptions({ style: 'bar' }, 30))
+    expect(layer(container)?.querySelectorAll('span').length).toBe(0)
+    expect(layer(container)?.textContent).toBe('Call us today')
   })
 })

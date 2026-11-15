@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Captions as CaptionsIcon, Copy, Download } from 'lucide-react'
+import { Captions as CaptionsIcon, Copy, Download, Trash2 } from 'lucide-react'
 import { clockLabel, cuesToSrt, cuesToText, cuesToVtt } from '../captions/captionCues'
+import { CAPTION_POSITIONS, CAPTION_STYLES } from '../captions/captionStyle'
 import { useCaptions } from '../captions/useCaptions'
+import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { LocalAINotice } from './LocalAINotice'
-import { C, hintStyle, labelStyle, secondaryButtonStyle } from './tokens'
+import { C, chipStyle, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens'
 
 function saveText(text: string, fileName: string, mime: string) {
   const url = URL.createObjectURL(new Blob([text], { type: mime }))
@@ -15,46 +17,92 @@ function saveText(text: string, fileName: string, mime: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
+const smallButton = { ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 5 } as const
+
 /**
- * "Write captions": free speech-to-text on this device. v1 gives the person the caption text and standard caption
- * files (SRT/VTT) to upload with the video on YouTube, Facebook, LinkedIn and most other platforms. The captions are
- * not drawn into the rendered video itself.
+ * Captions, free and on this device. The video's own speech becomes caption text that is DRAWN INTO the video (live in
+ * the preview and in every export, including the extra shapes), and can also be downloaded as SRT/VTT files for
+ * platforms that take a separate caption file. Lines can be corrected; the speech recogniser is not perfect.
  */
 export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null; disabled?: boolean }): React.JSX.Element | null {
-  const captions = useCaptions(videoUrl)
+  const c = useCaptions(videoUrl)
+  const { previewSettings } = useDemoPersonalize()
   const [copied, setCopied] = useState<'copied' | 'failed' | null>(null)
+  const [confirmRedo, setConfirmRedo] = useState(false)
   if (!videoUrl) return null
-  const busy = captions.ai.phase !== 'idle'
+  const busy = c.ai.phase !== 'idle'
+  const cues = c.captions?.cues ?? []
   const copy = async () => {
-    try { await navigator.clipboard.writeText(cuesToText(captions.cues ?? [])); setCopied('copied') } catch { setCopied('failed') }
+    try { await navigator.clipboard.writeText(cuesToText(cues)); setCopied('copied') } catch { setCopied('failed') }
   }
+  const generate = () => { setConfirmRedo(false); void c.generate() }
   return (
     <div data-testid="captions-panel" style={{ marginTop: 12 }}>
       <div style={{ ...labelStyle, marginBottom: 6 }}>Captions</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button type="button" data-testid="captions-generate" disabled={disabled || busy} onClick={() => void captions.generate()} style={{ ...secondaryButtonStyle, minHeight: 30, fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 6, opacity: disabled || busy ? 0.5 : 1 }}>
-          <CaptionsIcon size={12} /> {captions.cues ? 'Write them again' : 'Write captions from the video’s sound'}
+        <button
+          type="button" data-testid="captions-generate" disabled={disabled || busy}
+          onClick={() => (c.captions ? setConfirmRedo(true) : generate())}
+          style={{ ...secondaryButtonStyle, minHeight: 30, fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 6, opacity: disabled || busy ? 0.5 : 1 }}
+        >
+          <CaptionsIcon size={12} /> {c.captions ? 'Write them again' : 'Write captions from the video’s sound'}
         </button>
         <span style={{ ...hintStyle, margin: 0 }}>Free, on this device.</span>
       </div>
-      <LocalAINotice ai={captions.ai} doing="turns the video’s own speech into caption text" />
-      {captions.note && <p data-testid="captions-note" style={{ ...hintStyle, margin: '6px 0 0' }}>{captions.note}</p>}
-      {captions.cues && (
-        <div data-testid="captions-result" style={{ marginTop: 8 }}>
-          <ol data-testid="captions-list" style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 180, overflow: 'auto', display: 'grid', gap: 4 }}>
-            {captions.cues.map((c, i) => (
-              <li key={`${c.startMs}-${i}`} style={{ display: 'flex', gap: 8, fontSize: 11, color: C.text }}>
-                <span style={{ color: C.muted, minWidth: 34 }}>{clockLabel(c.startMs)}</span><span>{c.text}</span>
+      {confirmRedo && (
+        <div data-testid="captions-redo-confirm" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 6 }}>
+          <span style={{ ...hintStyle, margin: 0, color: C.text }}>This replaces the captions you have now, including any corrections.</span>
+          <button type="button" data-testid="captions-redo-yes" onClick={generate} style={smallButton}>Replace them</button>
+          <button type="button" data-testid="captions-redo-no" onClick={() => setConfirmRedo(false)} style={smallButton}>Keep them</button>
+        </div>
+      )}
+      <LocalAINotice ai={c.ai} doing="turns the video’s own speech into caption text" />
+      {c.note && <p data-testid="captions-note" style={{ ...hintStyle, margin: '6px 0 0' }}>{c.note}</p>}
+
+      {c.captions && (
+        <div data-testid="captions-result" style={{ marginTop: 8, display: 'grid', gap: 8 }}>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, color: C.text, fontWeight: 700 }}>
+            <input type="checkbox" data-testid="captions-enabled" checked={c.captions.enabled} onChange={(e) => c.setEnabled(e.target.checked)} />
+            Show captions in the video
+          </label>
+          <div role="group" aria-label="Caption style" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ ...hintStyle, margin: 0 }}>Look:</span>
+            {CAPTION_STYLES.map((s) => (
+              <button key={s.id} type="button" data-testid={`captions-style-${s.id}`} aria-pressed={c.captions!.style === s.id} title={s.hint} onClick={() => c.setStyle(s.id)} style={chipStyle(c.captions!.style === s.id)}>{s.label}</button>
+            ))}
+            <span style={{ ...hintStyle, margin: '0 0 0 6px' }}>Place:</span>
+            {CAPTION_POSITIONS.map((p) => (
+              <button key={p.id} type="button" data-testid={`captions-position-${p.id}`} aria-pressed={c.captions!.position === p.id} onClick={() => c.setPosition(p.id)} style={chipStyle(c.captions!.position === p.id)}>{p.label}</button>
+            ))}
+          </div>
+
+          <ol data-testid="captions-list" style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 220, overflow: 'auto', display: 'grid', gap: 4 }}>
+            {cues.map((cue, i) => (
+              <li key={`${cue.startMs}-${i}-${cue.text}`} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: C.text }}>
+                <span style={{ color: C.muted, minWidth: 34 }}>{clockLabel(cue.startMs)}</span>
+                <input
+                  data-testid={`captions-edit-${i}`} aria-label={`Caption at ${clockLabel(cue.startMs)}`} defaultValue={cue.text}
+                  onBlur={(e) => { if (e.target.value !== cue.text) c.editCue(i, e.target.value) }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                  style={{ ...inputStyle, minHeight: 28, height: 28, fontSize: 11, padding: '0 8px', flex: 1 }}
+                />
               </li>
             ))}
           </ol>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-            <button type="button" data-testid="captions-srt" onClick={() => saveText(cuesToSrt(captions.cues ?? []), 'captions.srt', 'application/x-subrip')} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Download size={11} /> Download .srt</button>
-            <button type="button" data-testid="captions-vtt" onClick={() => saveText(cuesToVtt(captions.cues ?? []), 'captions.vtt', 'text/vtt')} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Download size={11} /> Download .vtt</button>
-            <button type="button" data-testid="captions-copy" onClick={() => void copy()} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Copy size={11} /> Copy text</button>
+          <p style={{ ...hintStyle, margin: 0 }}>Written automatically, so read it through and fix any mistakes. Clear a line to delete it.</p>
+
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <button type="button" data-testid="captions-srt" onClick={() => saveText(cuesToSrt(cues), 'captions.srt', 'application/x-subrip')} style={smallButton}><Download size={11} /> Download .srt</button>
+            <button type="button" data-testid="captions-vtt" onClick={() => saveText(cuesToVtt(cues), 'captions.vtt', 'text/vtt')} style={smallButton}><Download size={11} /> Download .vtt</button>
+            <button type="button" data-testid="captions-copy" onClick={() => void copy()} style={smallButton}><Copy size={11} /> Copy text</button>
+            <button type="button" data-testid="captions-remove" onClick={c.remove} style={smallButton}><Trash2 size={11} /> Remove captions</button>
             {copied && <span data-testid="captions-copy-note" style={{ ...hintStyle, margin: 0, alignSelf: 'center' }}>{copied === 'copied' ? 'Copied.' : 'Your browser would not copy it. Select the text above instead.'}</span>}
           </div>
-          <p style={{ ...hintStyle, margin: '6px 0 0' }}>Written automatically, so read it through before you publish. Upload the file next to your video; the captions are not drawn into the video itself.</p>
+          <p data-testid="captions-notes" style={{ ...hintStyle, margin: 0 }}>
+            Captions are drawn into the preview and into every file you export, and follow the video&apos;s own speech.
+            {previewSettings.audio ? ' You chose a different sound track, so check that the captions still match what people will hear.' : ''}
+            {' '}They are hidden while the end card shows.
+          </p>
         </div>
       )}
     </div>

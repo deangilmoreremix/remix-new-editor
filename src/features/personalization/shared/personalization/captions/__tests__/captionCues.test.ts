@@ -38,6 +38,10 @@ describe('groupCaptionCues', () => {
     expect(cues.map((c) => c.text)).toEqual(['a b c'])
     expect(cues[0].startMs).toBe(100)
   })
+  it('keeps each cue\'s per-word times so a style can highlight the spoken word', () => {
+    const [cue] = groupCaptionCues([w('Call', 0, 300), w('us', 320, 500)])
+    expect(cue.words).toEqual([{ text: 'Call', startMs: 0, endMs: 300 }, { text: 'us', startMs: 320, endMs: 500 }])
+  })
   it('returns nothing for no speech', () => { expect(groupCaptionCues([])).toEqual([]) })
 })
 

@@ -4,7 +4,7 @@
  * device (see `localAI/engine.ts`).
  */
 export interface WordCaption { text: string; startMs: number; endMs: number }
-export interface CaptionCue { startMs: number; endMs: number; text: string }
+export interface CaptionCue { startMs: number; endMs: number; text: string; /** Per-word times, when known (lets a style highlight the word being spoken). */ words?: WordCaption[] }
 
 /** A caption line breaks when it gets this long, lasts this long, or the speaker pauses this long. */
 export const MAX_WORDS_PER_CUE = 8
@@ -23,10 +23,10 @@ export function groupCaptionCues(words: WordCaption[]): CaptionCue[] {
     .map((w) => ({ ...w, startMs: Math.max(0, w.startMs), endMs: Math.max(w.endMs, w.startMs) }))
     .sort((a, b) => a.startMs - b.startMs)
   const cues: CaptionCue[] = []
-  let cur: { words: string[]; startMs: number; endMs: number } | null = null
+  let cur: { words: string[]; timed: WordCaption[]; startMs: number; endMs: number } | null = null
   const flush = () => {
     if (!cur) return
-    cues.push({ startMs: cur.startMs, endMs: Math.max(cur.endMs, cur.startMs + MIN_CUE_MS), text: cur.words.join(' ') })
+    cues.push({ startMs: cur.startMs, endMs: Math.max(cur.endMs, cur.startMs + MIN_CUE_MS), text: cur.words.join(' '), words: cur.timed })
     cur = null
   }
   for (const w of ordered) {
@@ -36,8 +36,9 @@ export function groupCaptionCues(words: WordCaption[]): CaptionCue[] {
       const sentenceEnd = /[.!?]$/.test(cur.words[cur.words.length - 1])
       if (gap > PAUSE_BREAK_MS || tooLong || cur.words.length >= MAX_WORDS_PER_CUE || (sentenceEnd && cur.words.length >= 3)) flush()
     }
-    if (!cur) cur = { words: [], startMs: w.startMs, endMs: w.endMs }
+    if (!cur) cur = { words: [], timed: [], startMs: w.startMs, endMs: w.endMs }
     cur.words.push(w.text)
+    cur.timed.push({ text: w.text, startMs: w.startMs, endMs: w.endMs })
     cur.endMs = Math.max(cur.endMs, w.endMs)
   }
   flush()

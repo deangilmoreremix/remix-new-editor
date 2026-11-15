@@ -61,7 +61,8 @@ import type {
   PreviewAspectRatio,
 } from './types'
 import { EMPTY_GENERATION_STATE } from './types'
-import type { ProtectedZone } from './preview/types'
+import type { PreviewCaptions, ProtectedZone } from './preview/types'
+import { applyCaptionsPatch } from './captions/captionStyle'
 import { measureImageHints } from './preview/imageHintsLoader'
 import { normalizePersonalizationSource, getEligibility } from './sourceNormalizer'
 import {
@@ -1054,6 +1055,8 @@ export type DemoPersonalizeContextValue = {
    */
   applyPreviewPlacements: (items: { layerId: string; x: number; y: number; scale?: number }[], options?: { overrideManual?: boolean }) => void
   updatePreviewBrandColors: (patch: Partial<PreviewBrandColors>) => void
+  /** Burned-in captions: merge a patch over them, or `null` to remove them. Counts for undo/redo, saves with the project. */
+  updatePreviewCaptions: (patch: Partial<PreviewCaptions> | null) => void
    updatePreviewComposition: (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard'>>) => void
    resetPreviewLayout: () => void
    /**
@@ -5951,6 +5954,20 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     }))
   }, [])
 
+  const updatePreviewCaptions = useCallback((patch: Partial<PreviewCaptions> | null) => {
+    markSessionStarted()
+    setPreviewSettings((prev) => {
+      const captions = applyCaptionsPatch(prev.captions, patch)
+      if (!captions) {
+        if (!prev.captions) return prev
+        const { captions: _removed, ...rest } = prev
+        void _removed
+        return rest
+      }
+      return { ...prev, captions }
+    })
+  }, [])
+
   const updatePreviewComposition = useCallback(
     (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard'>>) => {
       markSessionStarted()
@@ -6660,6 +6677,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setPreviewProtectedZones,
     applyPreviewPlacements,
     updatePreviewBrandColors,
+    updatePreviewCaptions,
     updatePreviewComposition,
     resetPreviewLayout,
     remotionDesignTemplates,
