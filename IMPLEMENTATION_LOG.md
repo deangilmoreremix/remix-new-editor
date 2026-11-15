@@ -153,3 +153,6 @@ Branch: `claude/jolly-cannon-ofqf7h`
 
 ### RLS stage 1 on production
 - Authorization: "lets complete the above" after the stage 1 SQL was shown. Applied exactly the shown SQL via apply_migration; verified counts and grants; log check found no errors on the affected tables. Stage 2 not applied.
+
+### RLS stage 2 on production
+- Authorization: "yes, apply stage 2" after the exact SQL was shown. Applied via apply_migration; verified counts and role behaviour with rolled-back probes. Remaining: a log watch over the next day.

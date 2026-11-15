@@ -606,3 +606,6 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 
 ### RLS stage 1 applied to production (2026-11-15)
 - 81 deny-by-default tables secured + keys view fixed on `bzxohkrxcwodllketcpz`; 117 -> 36 tables without RLS; verified; first log check clean. Stage 2 pending a watch and a fresh yes.
+
+### RLS stage 2 applied to production (2026-11-15)
+- Last 36 tables secured + analytics anon insert-only policy. 0 of 314 tables without RLS; role probes verified (rolled back). Longer log watch recommended.
