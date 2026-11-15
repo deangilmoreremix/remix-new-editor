@@ -362,7 +362,7 @@ export function OutreachStudio() {
     const errors = stepErrors(draft, step);
     const msg = busy || notice || errors[0] || '';
     const status = el('p', `flex-1 text-sm ${busy ? 'text-primary' : notice && !errors.length ? 'text-emerald-300' : 'text-amber-300'}`, msg);
-    footer.appendChild(status);
+    // Buttons sit on the left so the floating Ask SmartVideo button (bottom right) never covers them.
     if (step > 1) {
       const back = button('Back'); back.disabled = !!busy;
       back.addEventListener('click', () => { step -= 1; notice = ''; render(); });
@@ -373,7 +373,7 @@ export function OutreachStudio() {
     next.addEventListener('click', () => {
       if (step < READY_STEPS) { step += 1; notice = ''; render(); } else openInEditor();
     });
-    footer.appendChild(next);
+    footer.append(next, status);
     inner.appendChild(footer);
   }
 
