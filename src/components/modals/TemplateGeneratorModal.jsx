@@ -20,7 +20,7 @@ import { loadTemplateCatalog, searchTemplateClips, TEMPLATE_SOURCE } from './tem
 import { LOWER_THIRD_TEMPLATES, buildLowerThirdLottie, LT_HOLD_FRAME } from '../../lib/editor/addons/lowerThirds.js';
 import { snapshotTemplate, restoreTemplate, splitDurable } from './template-generator/templates.js';
 import { createSyncedTemplateStore, SYNC_STATUS } from './template-generator/sync.js';
-import { templateScript, placeholdersLeft, DETAIL_FIELDS } from '../../lib/nicheScripts/index.js';
+import { templateScript, placeholdersLeft, DETAIL_FIELDS, needsRealQuote, REAL_QUOTE_NOTICE } from '../../lib/nicheScripts/index.js';
 import { TEXT_PRESETS, TEXT_ROLES, ROLE_LABEL, TEXT_ENTRANCES, TEXT_FONTS, ROLE_DEFAULTS, resolveTextStyle, withTextStyle, withPreset, presetOf } from './template-generator/textStyles.js';
 import { canExportInBrowser } from '../../lib/editor/remotion/exportWarnings.js';
 import { removeClipBackground, canCutOut } from './template-generator/cutout.js';
@@ -726,6 +726,12 @@ export class TemplateGeneratorModal extends BaseModal {
       && (!q || `${t.name} ${t.description} ${t.niche}`.toLowerCase().includes(q)));
   }
 
+  /** The picked script is a testimonial / story one and its example wording has not been changed yet. */
+  exampleQuoteStillIn() {
+    const sel = this.s.selectedScript;
+    return !!sel && needsRealQuote(sel.id) && !!this.s.autoText && this.s.script.text === this.s.autoText;
+  }
+
   renderScriptStep() {
     const u = this.ui;
     const sc = this.s.script;
@@ -756,6 +762,7 @@ export class TemplateGeneratorModal extends BaseModal {
               <input type="text" data-bind="s.details.about" placeholder="e.g. Family-run Italian place, wood-fired pizza, cosy patio" value="${esc(this.s.details.about)}" maxlength="400"></label>
           </fieldset>
           <p class="tg-status tg-status--warn" id="tg-placeholders" ${placeholdersLeft(sc.text + ' ' + sc.cta).length ? '' : 'hidden'}>${this.placeholderHint()}</p>
+          ${this.exampleQuoteStillIn() ? `<p class="tg-status tg-status--warn" id="tg-quote-note">${esc(REAL_QUOTE_NOTICE)}</p>` : ''}
           ${sel && templateScript(sel.id) && sc.text !== this.s.autoText ? `<button type="button" class="tg-chip is-active" data-act="use-template-script">Use “${esc(sel.name)}” written script</button>` : ''}
           <textarea id="tg-script-text" class="tg-textarea" rows="8" data-bind="s.script.text" placeholder="Write or paste your script here…">${esc(sc.text)}</textarea>
           <div class="tg-form-row">
@@ -1187,6 +1194,7 @@ export class TemplateGeneratorModal extends BaseModal {
           <h4>${esc(t.name)}</h4>
           <p class="tg-meta">${esc(t.niche)} · ${esc((t.aspectRatios || []).join(' / '))}${d.default ? ` · about ${d.default}s` : ''}</p>
           <p>${esc(t.description)}</p>
+          ${needsRealQuote(t.id) ? `<p class="tg-status tg-status--warn">${esc(REAL_QUOTE_NOTICE)}</p>` : ''}
           ${(() => { const stills = this.s.selectedVideos.map((v) => stillOf(v)).filter(Boolean).slice(0, 5); return stills.length ? `<p class="tg-meta">Your clips, in order:</p><div class="tg-scene-stills" aria-hidden="true">${stills.map((u, i) => `<span style="background-image:${cssUrl(u)}"><i>${i + 1}</i></span>`).join('')}</div>` : ''; })()}
           ${(() => {
             const ts = templateScript(t.id, this.s.details);
@@ -2036,9 +2044,13 @@ export class TemplateGeneratorModal extends BaseModal {
     const u = this.ui;
     if (!this.exportHost || u.exp.busy) return;
     if (!canExportInBrowser()) { u.exp = { busy: false, progress: 0, error: 'Exporting needs a browser with video encoding (Chrome or Edge).', done: '' }; this._refreshExport(); return; }
+    if (this.exampleQuoteStillIn() && !u.exp.ackQuote) {
+      u.exp = { busy: false, progress: 0, error: `${REAL_QUOTE_NOTICE} Export again to continue anyway.`, done: '', ackQuote: true };
+      this._refreshExport(); return;
+    }
     const left = placeholdersLeft(this.s.script.text);
     if (left.length) { u.exp = { busy: false, progress: 0, error: `Your script still says ${left.join(', ')}. Fill in your details on the Script step so the video says your real business, city and offer.`, done: '' }; this._refreshExport(); return; }
-    u.exp = { busy: true, progress: 0, error: '', done: '' };
+    u.exp = { busy: true, progress: 0, error: '', done: '', ackQuote: u.exp.ackQuote };
     this._refreshExport();
     try {
       const durable = [];

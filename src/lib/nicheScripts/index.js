@@ -43,3 +43,13 @@ export function templateScript(id, details = {}) {
   const lines = s.lines.map((l) => fillPlaceholders(l, details));
   return { lines, text: lines.join('\n'), cta: fillPlaceholders(s.cta, details) };
 }
+
+/**
+ * Scripts that tell a customer's story or quote a customer ("testimonial" / "story" templates). The words in them are EXAMPLES: posting an
+ * invented testimonial as real is not allowed in advertising (FTC endorsement rules, and most platforms), so the Template Generator tells the
+ * user to replace them with a real customer's own words, used with their permission, before publishing.
+ */
+const QUOTE_SCRIPT_IDS = new Set(['sold_story_feature', 'speaker_cut_spotlight']);
+export const needsRealQuote = (id) => !!id && !!NICHE_SCRIPTS[id] && (/testimonial/i.test(id) || QUOTE_SCRIPT_IDS.has(id));
+
+export const REAL_QUOTE_NOTICE = 'This script contains an example customer story or quote. Replace it with a real customer\'s own words, used with their permission, before you publish. Invented testimonials are not allowed in advertising.';

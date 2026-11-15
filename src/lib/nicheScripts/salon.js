@@ -13,7 +13,7 @@ export const SALON_SCRIPTS = {
   the_chair_documentary: {
     lines: [
       "Every neighborhood has a place like this. A door that opens onto the sound of clippers, easy conversation, and a hundred stories. This is {business_name}.",
-      "And at the center of it, the chair. Worn in by thousands of visits, and still the best seat in {city}.",
+      "And at the center of it, the chair. Worn in by thousands of visits, and still a favorite seat in {city}.",
       "Someone sits down tired, a little unsure. They leave a few inches lighter, a few inches taller.",
       "It is a craft, learned over years. Fades, tapers, shapes, straight-razor lines, done by hand, one head at a time.",
       "But the shop is more than the work. It is where the neighborhood talks, laughs, and shows up for each other.",
