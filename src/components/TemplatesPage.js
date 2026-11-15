@@ -1,9 +1,13 @@
 import { allTemplates, getAllCategories } from '../lib/templates.js';
+import { getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { navigate } from '../lib/router.js';
 import { getTemplateThumbnail, createThumbnailImg, createStudioHeader } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+
+const FAVORITES_FILTER = '★ Favorites';
+const RECENT_FILTER = '🕒 Recent';
 
 export function TemplatesPage() {
   const container = document.createElement('div');
@@ -24,6 +28,7 @@ export function TemplatesPage() {
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
   searchInput.placeholder = 'Search templates...';
+  searchInput.setAttribute('aria-label', 'Search templates');
   searchInput.className = 'w-full max-w-md bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
   controlsRow.appendChild(searchInput);
 
@@ -40,7 +45,7 @@ export function TemplatesPage() {
     }
   })();
   const niches = Object.values(NICHE_LABELS_MAP || {});
-  const allFilters = ['All', 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
+  const allFilters = ['All', FAVORITES_FILTER, RECENT_FILTER, 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
   
   let activeFilter = null;
 
@@ -72,6 +77,34 @@ export function TemplatesPage() {
   const sectionsContainer = document.createElement('div');
   inner.appendChild(sectionsContainer);
 
+  const emptyState = document.createElement('div');
+  emptyState.className = 'hidden py-16 text-center text-sm text-muted';
+  emptyState.setAttribute('role', 'status');
+  inner.appendChild(emptyState);
+
+  let searchTimer = null;
+  function applySearch() {
+    const q = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+    container.querySelectorAll('[data-searchable]').forEach(el => {
+      const match = el.dataset.searchable.toLowerCase().includes(q);
+      el.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    const none = q !== '' && visible === 0;
+    emptyState.classList.toggle('hidden', !none);
+    if (none) {
+      emptyState.textContent = '';
+      emptyState.append(`No templates match "${searchInput.value.trim()}". `);
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.textContent = 'Clear search';
+      clear.className = 'underline text-primary';
+      clear.onclick = () => { searchInput.value = ''; applySearch(); searchInput.focus(); };
+      emptyState.appendChild(clear);
+    }
+  }
+
   function updateFilters() {
     filterRow.querySelectorAll('button').forEach(btn => {
       const isActive = (activeFilter === null && btn.dataset.filter === 'all') ||
@@ -86,7 +119,14 @@ export function TemplatesPage() {
     });
   }
 
+  // Draws the sections for the active chip, then re-applies the search box so
+  // the cards and the "no matches" message always agree with the query.
   function renderCategories() {
+    renderSections();
+    applySearch();
+  }
+
+  function renderSections() {
     sectionsContainer.innerHTML = '';
 
     const safeTemplates = (Array.isArray(allTemplates) ? allTemplates : []).filter(Boolean);
@@ -106,6 +146,23 @@ export function TemplatesPage() {
       }
       nicheGroups[t.niche].push(t);
     });
+
+    if (activeFilter === FAVORITES_FILTER || activeFilter === RECENT_FILTER) {
+      const ids = activeFilter === FAVORITES_FILTER ? getFavoriteTemplateIds() : getRecentTemplateIds();
+      const byId = new Map(safeTemplates.map(t => [t.id, t]));
+      const picked = ids.map(id => byId.get(id)).filter(Boolean);
+      if (picked.length > 0) {
+        sectionsContainer.appendChild(createTemplateSection(activeFilter, picked, false));
+      } else {
+        const empty = document.createElement('div');
+        empty.className = 'text-center text-sm text-muted py-12';
+        empty.textContent = activeFilter === FAVORITES_FILTER
+          ? 'No favorites yet. Tap the ☆ on a template to save it here.'
+          : 'Nothing here yet. Templates you open will show up here.';
+        sectionsContainer.appendChild(empty);
+      }
+      return;
+    }
 
     if (activeFilter === null) {
       const standardCategories = [...new Set(standardTemplates.map(t => t?.category).filter(Boolean))];
@@ -155,15 +212,29 @@ export function TemplatesPage() {
     }
   }
 
+  // Un-starring inside the Favorites view redraws it (fresh count and the
+  // "No favorites yet" message), keeping the current search.
+  container.addEventListener('template-favorite-changed', (e) => {
+    if (activeFilter !== FAVORITES_FILTER) return;
+    const visibleHearts = () => Array.from(sectionsContainer.querySelectorAll('[data-favorite]'))
+      .filter((h) => h.closest('[data-searchable]')?.style.display !== 'none');
+    // The event is dispatched on the card; also accept the star itself, so the position is found either way.
+    const heart = e.target.closest?.('[data-favorite]') || e.target.querySelector?.('[data-favorite]') || null;
+    const index = visibleHearts().indexOf(heart);
+    renderCategories();
+    // The redraw removes the focused star; keep keyboard users in the list.
+    const remaining = visibleHearts();
+    const next = remaining[Math.min(Math.max(index, 0), remaining.length - 1)];
+    (next || filterRow.querySelector(`[data-filter="${FAVORITES_FILTER}"]`))?.focus();
+  });
+
   renderCategories();
   container.appendChild(inner);
 
+  // Debounced: filtering hundreds of cards on every keystroke is wasteful.
   searchInput.oninput = () => {
-    const q = searchInput.value.toLowerCase();
-    container.querySelectorAll('[data-searchable]').forEach(el => {
-      const text = el.dataset.searchable.toLowerCase();
-      el.style.display = text.includes(q) ? '' : 'none';
-    });
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applySearch, 150);
   };
 
   return container;
@@ -269,6 +340,29 @@ function createTemplateSection(category, catTemplates, isNiche) {
       <div class="text-[10px] font-bold text-muted mt-1 ml-11">${t.outputType === 'video' ? 'Video' : 'Image'}</div>
     `;
     card.appendChild(content);
+
+    card.classList.add('relative');
+    const heart = document.createElement('button');
+    heart.type = 'button';
+    heart.dataset.favorite = t.id;
+    heart.className = 'absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/70 text-sm text-zinc-300 transition hover:bg-black/90';
+    const paintHeart = () => {
+      const on = isFavoriteTemplate(t.id);
+      heart.textContent = on ? '★' : '☆';
+      heart.setAttribute('aria-pressed', String(on));
+      heart.setAttribute('aria-label', on ? `Remove ${t.name} from favorites` : `Add ${t.name} to favorites`);
+      heart.classList.toggle('text-yellow-300', on);
+    };
+    paintHeart();
+    heart.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      toggleFavoriteTemplate(t.id);
+      paintHeart();
+      card.dispatchEvent(new CustomEvent('template-favorite-changed', { bubbles: true }));
+    };
+    heart.onkeydown = (e) => e.stopPropagation();
+    card.appendChild(heart);
 
     const onClick = () => navigate(`template/${t.id}`);
     card.onclick = onClick;

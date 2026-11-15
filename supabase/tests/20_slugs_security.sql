@@ -3,7 +3,7 @@
 \pset tuples_only on
 -- ===== A publishes
 set role authenticated; set request.jwt.claims = '{"sub":"userA"}';
-insert into published_videos(id,title,project,slug) values ('vidA000001','Promo','{"title":"Promo","tracks":[{"items":[{"id":"lf","type":"lead-form","webhookUrl":"https://hook.example/a","notificationEmail":"owner@x.com","fields":[{"id":"email","type":"email"}]},{"id":"cta","type":"click-to-call","callNotifyAddress":"me@x.com","phoneNumber":"+1555"}]}],"listBuilder":{"enabled":true,"webhook":"https://hook.example/b","webhook2":{"value":"https://h2"}}}','sneaky-direct');
+insert into published_videos(id,title,project,slug) values ('vidA000001','Promo','{"title":"Promo","tracks":[{"items":[{"id":"lf","type":"lead-form","webhookUrl":"https://hook.example/a","notificationEmail":"owner@x.com","notificationEmail2":"two@x.com","notificationEmail3":"three@x.com","fields":[{"id":"email","type":"email"}]},{"id":"cta","type":"click-to-call","callNotifyAddress":"me@x.com","phoneNumber":"+1555"}]}],"listBuilder":{"enabled":true,"webhook":"https://hook.example/b","webhook2":{"value":"https://h2"},"emailAddress":"lb@x.com","emailAddress2":"lb2@x.com","emailAddress3":"lb3@x.com"}}','sneaky-direct');
 select 'direct slug ignored: ' || coalesce(slug,'NULL') from published_videos where id='vidA000001';
 select 'claim: ' || claim_business_slug('Acme-Roofing','Acme');
 select 'claim reserved: ' ; select claim_business_slug('admin');
@@ -30,7 +30,7 @@ select 'B grabs released ns:'; select claim_business_slug('acme-roofing');
 set role anon; set request.jwt.claims = '{}';
 select 'anon table rows: ' || count(*) from published_videos;
 select 'by id has clerk id: ' || (get_published_video('vidA000001') ? 'clerk_user_id');
-select 'by id project webhook leaked: ' || (get_published_video('vidA000001')::text ~* 'hook\.example|owner@x|me@x|h2');
+select 'by id project webhook leaked: ' || (get_published_video('vidA000001')::text ~* 'hook\.example|owner@x|me@x|h2|two@x|three@x|lb@x|lb2@x|lb3@x');
 select 'by id keeps fields: ' || (get_published_video('vidA000001')::text ~ 'click-to-call' and get_published_video('vidA000001')::text ~ '\+1555' and get_published_video('vidA000001')::text ~ '"email"');
 select 'by new url: ' || (get_published_video(null,'acme-two','summer-promo')->>'id');
 select 'old slug redirect: ' || (get_published_video(null,'acme-two','spring-promo')->'redirect'->>'slug');
