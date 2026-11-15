@@ -19,7 +19,7 @@ export function ExportTab() {
 
   const activeTimeline = getActiveTimeline(state);
   const exportRange = useMemo(() => resolveTimelineRange(activeTimeline.range, activeTimeline.duration), [activeTimeline.range, activeTimeline.duration]); // [remix] Fix B2
-  const exportTimeline = useMemo(() => applyExportRange(flattenCompounds(activeTimeline), exportRange), [activeTimeline, exportRange]);
+  const exportTimeline = useMemo(() => applyExportRange(flattenCompounds(activeTimeline, { bake: !!exportRange }), exportRange), [activeTimeline, exportRange]);
   const exportClips = useMemo(() => exportClipsFromTimeline(exportTimeline, state.assets), [exportTimeline, state.assets]);
   const hasClips = exportClips.length > 0;
   // Clips that were dropped from the render, and why (so a disabled Render button can explain itself).

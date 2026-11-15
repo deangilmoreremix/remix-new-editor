@@ -718,6 +718,7 @@ export class PlaybackEngine {
     if (!cv) {
       cv = document.createElement('canvas'); cv.width = 64; cv.height = 36;
       cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
+      cv.dataset.fillFor = clipId; // [remix] Fix E: the GL transition layer draws this fill itself inside its window
       el.parentElement?.insertBefore(cv, el);
       this.fillCanvases.set(clipId, cv);
     }
@@ -793,6 +794,7 @@ export class PlaybackEngine {
       this.syncFill(entry.clip.id, el, entry.clip.transform, opacity);
 
       el.style.opacity = String(opacity);
+      el.style.mixBlendMode = entry.clip.blendMode && entry.clip.blendMode !== 'normal' ? entry.clip.blendMode : ''; // [remix] Fix E: a clip's blend mode shows in the preview even without effects (as in the export)
       el.style.zIndex = String(z++);
       if (!isVideoAsset) {
         el.pause();

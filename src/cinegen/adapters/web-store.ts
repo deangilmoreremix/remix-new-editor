@@ -367,6 +367,7 @@ const createLegacySnapshot = (state: any) => ({
   elements: state.elements,
   director: state.director ?? state.workflow?.director ?? EMPTY_DIRECTOR,
   sets: state.sets ?? state.workflow?.sets ?? [],
+  projectSchemaVersion: state.projectSchemaVersion ?? state.workflow?.projectSchemaVersion, // [remix] Fix E: versioned load migrations
 });
 
 /** Same method table as CineGen web's buildRpcHandlers (project / db / elements library). */

@@ -2,13 +2,15 @@
 // with the right time offset), in the flattened timeline the preview and export use, and survive expand and a save -> load.
 import { describe, it, expect } from 'vitest';
 import { createDefaultTimeline, addClipToTrack, updateClipProperties } from '@cinegen/lib/editor/timeline-operations';
-import { createCompound, flattenCompounds, expandCompound } from '@cinegen/lib/editor/stage1';
+import { createCompound, flattenCompounds as flattenGroups, expandCompound } from '@cinegen/lib/editor/stage1';
 import { poseAt, poseOpacity, animFxKeys } from '@cinegen/lib/editor/stage2/anim';
 import { clipFxInstances } from '@cinegen/lib/occ/clip-fx';
 import { exportClipsFromTimeline, exportItem } from '@cinegen/lib/editor/export-mapping';
 import { clipToRow, clipFromRow } from '@cinegen/lib/db-converters';
 import type { Asset } from '@cinegen/types/project';
 import type { Clip, Timeline } from '@cinegen/types/timeline';
+// Fix E: these tests pin the per-child distribution of the compound look (the `bake` mode used for expand, the export range and nested compounds); the group render is tested in fixe-compound-group.test.ts
+const flattenCompounds = (t: Timeline) => flattenGroups(t, { bake: true });
 
 const asset = (id: string): Asset => ({ id, name: id, type: 'video', url: `https://x.test/${id}.mp4`, duration: 10, createdAt: '2026-01-01' });
 const T = (tl: Timeline, n: string) => tl.tracks.find((t) => t.name === n)!.id;

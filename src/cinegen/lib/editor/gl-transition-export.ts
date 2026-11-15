@@ -9,6 +9,8 @@ export interface GlTransitionLayerSpec {
   out: { src: string; trimBefore: number; playbackRate: number }; inn: { src: string; trimBefore: number; playbackRate: number };
   /** [remix] Fix A: the composition layer (transform, keys, effects, fit, opacity, flip) of each clip, so the shader blends the clips as composited */
   outLook?: Record<string, unknown>; innLook?: Record<string, unknown>;
+  /** [remix] Fix E: composition layer ids of the two clips; the composition draws the window at the incoming clip's z position and hides both raw layers inside it */
+  outLayerId?: string; innLayerId?: string;
 }
 
 /**
@@ -23,7 +25,7 @@ export function attachGlSideLooks(specs: GlTransitionLayerSpec[], clips: GlExpor
   };
   return specs.map((s) => {
     const outLayer = s.outClipId ? layerOf(s.outClipId) : undefined; const innLayer = s.innClipId ? layerOf(s.innClipId) : undefined;
-    return outLayer && innLayer ? { ...s, outLook: pick(outLayer), innLook: pick(innLayer) } : s;
+    return outLayer && innLayer ? { ...s, outLook: pick(outLayer), innLook: pick(innLayer), outLayerId: String(outLayer.id), innLayerId: String(innLayer.id) } : s;
   });
 }
 

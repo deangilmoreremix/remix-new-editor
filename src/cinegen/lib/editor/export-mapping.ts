@@ -19,7 +19,7 @@ import { hasAnim, poseOpacity, type ClipAnim } from './stage2/anim';
 export interface ExportTrackInfo { id: string; kind: 'video' | 'audio'; muted: boolean; solo: boolean; visible: boolean; volume: number }
 export interface ExportTransitionInfo { type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; clipAId: string; clipBId?: string; glType?: string; glDef?: unknown; glParams?: Record<string, number | boolean | number[]> }
 export interface ExportClipInput {
-  id?: string; name?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: 'video' | 'audio' | 'image';
+  id?: string; name?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: 'video' | 'audio' | 'image' | 'group';
   trackKind?: string; trackId?: string; linkedClipIds?: string[]; opacity?: number; flipH?: boolean; flipV?: boolean;
   kf?: Array<{ time: number; property: string; value: number }>;
   /** [remix] Stage 2: unified keyframes + motion modifiers (lib/editor/stage2/anim.ts) */
@@ -31,14 +31,15 @@ export interface ExportItem { id: string; type: string; volume: number; keyframe
 /** Clip list sent to `electronAPI.export.start`, built from the active timeline (was inline in export-tab.tsx). */
 export function exportClipsFromTimeline(timeline: Timeline, assets: Asset[]): ExportClipInput[] {
   const assetsById = new Map(assets.map((a) => [a.id, a]));
-  return timeline.clips.flatMap((clip) => {
+  const one = (clip: Timeline['clips'][number], group: boolean): ExportClipInput[] => {
     const asset = assetsById.get(clip.assetId);
-    const inputPath = asset?.fileRef || asset?.url;
+    const inputPath = group ? '' : asset?.fileRef || asset?.url;
     const duration = clipEffectiveDuration(clip);
-    if (!asset || !inputPath || duration <= 0) return [];
+    if ((!group && (!asset || !inputPath)) || duration <= 0) return [];
     return [{
-      id: clip.id, name: clip.name, inputPath, startTime: clip.startTime, duration, trimStart: clip.trimStart, speed: clip.speed || 1,
-      volume: clip.volume ?? 1, type: asset.type,
+      id: clip.id, name: clip.name, inputPath: inputPath ?? '', startTime: clip.startTime, duration, trimStart: clip.trimStart, speed: clip.speed || 1,
+      // [remix] Fix E: a compound group is a picture-only item (its content's sound is exported by the children themselves)
+      volume: group ? 0 : clip.volume ?? 1, type: group ? 'group' : (asset as { type: 'video' | 'audio' | 'image' }).type,
       // a clip on an audio track plays sound only, even when its media file is a video
       trackKind: timeline.tracks.find((t) => t.id === clip.trackId)?.kind, trackId: clip.trackId,
       linkedClipIds: clip.linkedClipIds, // [remix] Stage 4: lets the export mute a video clip whose sound is exported by its linked audio clip
@@ -46,8 +47,11 @@ export function exportClipsFromTimeline(timeline: Timeline, assets: Asset[]): Ex
       eq: clip.eq, // [remix] Stage 4: baked into the audio at export (lib/audio/export-audio.ts)
       fadeIn: clip.fadeIn, fadeOut: clip.fadeOut, kf: clip.keyframes, transform: clip.transform, fit: resolveFit(clip, timeline), fx: clip.fx,
       lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions, ...(clip.anim ? { anim: clip.anim } : {}),
+      ...(clip.compoundGroup ? { compoundGroup: clip.compoundGroup } : {}),
     }];
-  });
+  };
+  // [remix] Fix E: the compound groups (Timeline.groups) go LAST, so the composition ids `c<index>` of the ordinary clips do not move
+  return [...timeline.clips.flatMap((c) => one(c, false)), ...(timeline.groups ?? []).flatMap((g) => one(g, true))];
 }
 
 export function exportTracksFromTimeline(timeline: Timeline): ExportTrackInfo[] {
@@ -88,7 +92,9 @@ function kfToComposition(kf: Array<{ time: number; property: string; value: numb
 export function exportItem(c: ExportClipInput, i: number): ExportItem {
   const k = c as ExportClipInput & { zoom?: unknown; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; blendMode?: string };
   return {
-    id: `c${i}`, type: c.type === 'audio' ? 'audio' : c.type === 'image' ? 'image' : 'video', src: c.inputPath,
+    id: `c${i}`, type: c.type === 'audio' ? 'audio' : c.type === 'image' ? 'image' : c.type === 'group' ? 'group' : 'video', src: c.inputPath,
+    ...(c.type === 'group' ? { groupKey: c.id } : {}), // [remix] Fix E: the composition id of an item is c<index>; its children name the group by the compound's clip id
+    ...((c as { compoundGroup?: string }).compoundGroup ? { compoundGroup: (c as { compoundGroup?: string }).compoundGroup } : {}),
     start: c.startTime, end: c.startTime + c.duration, trimIn: c.trimStart, playbackRate: c.speed || 1, volume: c.kf?.some((x) => x.property === 'volume') ? 1 : (c.volume ?? 1),
     // OpenChatCut effects / LUT -> burned in by the composition's GL layer
     occFx: occFxList(c as unknown as FxClip),

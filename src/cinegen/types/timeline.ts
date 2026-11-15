@@ -71,6 +71,8 @@ export interface Clip {
   /** [remix] Stage 1: compound clip. The clip is one object on the timeline; its content (start times relative to the clip, original
    *  track ids) is expanded to ordinary clips for playback and export (lib/editor/stage1/compound.ts, flattenCompounds). */
   compound?: CompoundContent;
+  /** [remix] Fix E: runtime only (set by flattenCompounds, never saved): this picture clip is rendered inside the group render of that compound (see Timeline.groups) */
+  compoundGroup?: string;
   /** [remix] Stage 4: 6-band parametric EQ (lib/audio/eq.ts). Preview: BiquadFilter chain; export: baked into the audio (lib/audio/eq-bake.ts). */
   eq?: import('../lib/audio/eq').ClipEq;
   /** [remix] Stage 2: unified keyframes (position, scale, rotation, opacity, crop, effect params; easing / bezier / spring) + procedural motion modifiers (lib/editor/stage2/anim.ts) */
@@ -134,6 +136,9 @@ export interface Timeline {
   masterVolume?: number;
   /** [remix] Fix B2: timeline in / out points in seconds (loop + export range; lib/editor/range/timeline-range.ts) */
   range?: { in: number | null; out: number | null };
+  /** [remix] Fix E: runtime only (set by flattenCompounds, never saved): the compounds that render as ONE group. Each entry is the compound clip itself
+   *  (its own fx / opacity / blend / transform / anim, startTime, duration), without `compound`; its picture children carry `compoundGroup` = its id. */
+  groups?: Clip[];
 }
 
 /** Effective duration of a clip (what plays on the timeline). */
