@@ -363,3 +363,18 @@ describe('share panel email merge-tag link', () => {
     expect((await mount(undefined)).box.querySelector('[data-share-mergelink]')).toBeNull();
   });
 });
+
+describe('remembering the published link for the Email tab', () => {
+  it('stores the watch url, then the readable /v/ url once the video has a business and slug', async () => {
+    const { rememberPublishedLink, EMAIL_LINK_STORAGE_KEY } = await import('../publishClient.js');
+    localStorage.clear();
+    rememberPublishedLink({ id: 'abcdefgh12' }, 'https://x.test');
+    expect(localStorage.getItem(EMAIL_LINK_STORAGE_KEY)).toBe('https://x.test/watch/abcdefgh12');
+    rememberPublishedLink({ id: 'abcdefgh12', business: 'acme', slug: 'promo' }, 'https://x.test');
+    expect(localStorage.getItem(EMAIL_LINK_STORAGE_KEY)).toBe('https://x.test/v/acme/promo');
+    rememberPublishedLink(null);
+    rememberPublishedLink({});
+    expect(localStorage.getItem(EMAIL_LINK_STORAGE_KEY)).toBe('https://x.test/v/acme/promo');
+    localStorage.clear();
+  });
+});

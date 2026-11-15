@@ -1,0 +1,186 @@
+[
+  {
+    "key": "mailchimp",
+    "label": "Mailchimp",
+    "open": "*|",
+    "close": "|*",
+    "fields": {
+      "firstName": "FNAME",
+      "lastName": "LNAME",
+      "email": "EMAIL",
+      "phone": "PHONE"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "activecampaign",
+    "label": "ActiveCampaign",
+    "open": "%",
+    "close": "%",
+    "fields": {
+      "firstName": "FIRSTNAME",
+      "lastName": "LASTNAME",
+      "email": "EMAIL",
+      "fullName": "FULLNAME",
+      "company": "ORGNAME"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "klaviyo",
+    "label": "Klaviyo",
+    "open": "{{ ",
+    "close": " }}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email",
+      "company": "organization",
+      "title": "title"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": "person."
+    }
+  },
+  {
+    "key": "hubspot",
+    "label": "HubSpot",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "contact.firstname",
+      "lastName": "contact.lastname",
+      "email": "contact.email",
+      "company": "contact.company",
+      "title": "contact.jobtitle"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": "contact."
+    }
+  },
+  {
+    "key": "constantcontact",
+    "label": "Constant Contact",
+    "open": "[[",
+    "close": "]]",
+    "fields": {
+      "firstName": "FirstName"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "brevo",
+    "label": "Brevo (Sendinblue)",
+    "open": "{{ contact.",
+    "close": " }}",
+    "fields": {
+      "firstName": "FIRSTNAME",
+      "lastName": "LASTNAME",
+      "email": "EMAIL"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "mailerlite",
+    "label": "MailerLite",
+    "open": "{$",
+    "close": "}",
+    "fields": {
+      "firstName": "name",
+      "lastName": "last_name",
+      "email": "email",
+      "company": "company",
+      "phone": "phone"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "kit",
+    "label": "Kit (ConvertKit)",
+    "open": "{{ subscriber.",
+    "close": " }}",
+    "fields": {
+      "firstName": "first_name",
+      "email": "email_address"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "getresponse",
+    "label": "GetResponse",
+    "open": "[[",
+    "close": "]]",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "email": "email",
+      "fullName": "name"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "campaignmonitor",
+    "label": "Campaign Monitor",
+    "open": "[",
+    "close": ",fallback=]",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "email": "email",
+      "fullName": "fullname"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "salesforcemc",
+    "label": "Salesforce Marketing Cloud",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "FirstName",
+      "lastName": "LastName",
+      "email": "emailaddr"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "custom",
+    "label": "Custom (your own format)",
+    "open": "{{",
+    "close": "}}",
+    "fields": {},
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    }
+  }
+]

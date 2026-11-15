@@ -17,73 +17,23 @@
 import { canonicalTokenKey } from '../../../components/personalize/tokenSchema.js';
 import { isImageTokenKey } from '../../personalization/imageReadiness.js';
 
+import PROVIDER_DATA from './emailProviders.json';
+
 /**
- * open/close wrap the provider's field name. `fields` maps OUR canonical token
- * keys to that provider's field. A token with no entry is sent as a custom
- * field named by `custom(key)` (default: the key itself); the caller is told
- * via `unmapped` so the UI can say "create this field in <provider>".
+ * Provider catalogue: DATA lives in emailProviders.json, which is byte-identical in remix-new-editor
+ * (src/lib/editor/personalize) and OpenHiggsBolt (src/shared/personalization). Edit it in one repo, copy it to
+ * the other, and run `node scripts/check-email-providers-sync.mjs <path-to-other-repo>` to confirm they match.
+ *
+ * open/close wrap the provider's field name. `fields` maps OUR canonical token keys to that provider's field.
+ * A token with no entry becomes a custom field named by `custom` ({ case: 'upper'|'lower'|'as-is', prefix }),
+ * and the caller is told via `unmapped` so the UI can say "create this field in <provider>".
  */
-export const EMAIL_PROVIDERS = [
-  {
-    key: 'mailchimp', label: 'Mailchimp', open: '*|', close: '|*',
-    fields: { firstName: 'FNAME', lastName: 'LNAME', email: 'EMAIL', phone: 'PHONE' },
-    custom: (k) => k.toUpperCase(),
-  },
-  {
-    key: 'activecampaign', label: 'ActiveCampaign', open: '%', close: '%',
-    fields: { firstName: 'FIRSTNAME', lastName: 'LASTNAME', email: 'EMAIL', fullName: 'FULLNAME', company: 'ORGNAME' },
-    custom: (k) => k.toUpperCase(),
-  },
-  {
-    key: 'klaviyo', label: 'Klaviyo', open: '{{ ', close: ' }}',
-    fields: { firstName: 'first_name', lastName: 'last_name', email: 'email', company: 'organization', title: 'title' },
-    custom: (k) => `person.${k}`,
-  },
-  {
-    key: 'hubspot', label: 'HubSpot', open: '{{', close: '}}',
-    fields: { firstName: 'contact.firstname', lastName: 'contact.lastname', email: 'contact.email', company: 'contact.company', title: 'contact.jobtitle' },
-    custom: (k) => `contact.${k.toLowerCase()}`,
-  },
-  {
-    key: 'constantcontact', label: 'Constant Contact', open: '[[', close: ']]',
-    fields: { firstName: 'FirstName' },
-  },
-  {
-    key: 'brevo', label: 'Brevo (Sendinblue)', open: '{{ contact.', close: ' }}',
-    fields: { firstName: 'FIRSTNAME', lastName: 'LASTNAME', email: 'EMAIL' },
-    custom: (k) => k.toUpperCase(),
-  },
-  {
-    key: 'mailerlite', label: 'MailerLite', open: '{$', close: '}',
-    fields: { firstName: 'name', lastName: 'last_name', email: 'email', company: 'company', phone: 'phone' },
-    custom: (k) => k.toLowerCase(),
-  },
-  {
-    key: 'kit', label: 'Kit (ConvertKit)', open: '{{ subscriber.', close: ' }}',
-    fields: { firstName: 'first_name', email: 'email_address' },
-    custom: (k) => k,
-  },
-  {
-    key: 'getresponse', label: 'GetResponse', open: '[[', close: ']]',
-    fields: { firstName: 'firstname', lastName: 'lastname', email: 'email', fullName: 'name' },
-    custom: (k) => k.toLowerCase(),
-  },
-  {
-    key: 'campaignmonitor', label: 'Campaign Monitor', open: '[', close: ',fallback=]',
-    fields: { firstName: 'firstname', lastName: 'lastname', email: 'email', fullName: 'fullname' },
-    custom: (k) => k.toLowerCase(),
-  },
-  {
-    key: 'salesforcemc', label: 'Salesforce Marketing Cloud', open: '%%', close: '%%',
-    fields: { firstName: 'FirstName', lastName: 'LastName', email: 'emailaddr' },
-  },
-  {
-    // Generic: {{token}} with our own canonical names, for tools that map by name.
-    key: 'custom', label: 'Custom ({{token}})', open: '{{', close: '}}',
-    fields: {},
-    custom: (k) => k,
-  },
-];
+const customName = (spec) => (k) => {
+  const base = spec?.case === 'upper' ? k.toUpperCase() : spec?.case === 'lower' ? k.toLowerCase() : k;
+  return `${spec?.prefix || ''}${base}`;
+};
+
+export const EMAIL_PROVIDERS = PROVIDER_DATA.map((p) => ({ ...p, custom: customName(p.custom) }));
 
 export const emailProviderByKey = (key) => EMAIL_PROVIDERS.find((p) => p.key === key) || null;
 

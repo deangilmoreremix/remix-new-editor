@@ -6154,13 +6154,17 @@ export function TimelineEditorPage() {
           } catch { /* the /watch/<id> link always works */ }
           showToast('Published — copy the link to share it', 'success');
           captureProjectThumbnail();
-          return { ...(await pub.getMyVideo(client, id).catch(() => info)), published: true };
+          const latest = await pub.getMyVideo(client, id).catch(() => info);
+          pub.rememberPublishedLink(latest);
+          return { ...latest, published: true };
         },
         async saveLink({ business, slug }) {
           const client = await publishOwnerClient();
           if (business) await pub.claimBusinessSlug(client, business);
           await pub.setVideoSlug(client, videoId(), slug);
-          return pub.getMyVideo(client, videoId());
+          const renamed = await pub.getMyVideo(client, videoId());
+          pub.rememberPublishedLink(renamed);
+          return renamed;
         },
         async setPrivacy(privacy) { await pub.setVideoPrivacy(await publishOwnerClient(), videoId(), privacy); },
         async listRevisions() { return pub.listRevisions(await publishOwnerClient(), videoId()); },

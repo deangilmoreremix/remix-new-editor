@@ -57,6 +57,16 @@ export function canonicalUrl(video, origin = globalThis.location?.origin || '') 
   return watchUrl(video.id, origin);
 }
 
+/**
+ * The Personalization modal's Email tab prefills its "Video link" from this key, so after publishing
+ * (or renaming the link) the user doesn't have to paste it. Same key EmailLinkPanel reads.
+ */
+export const EMAIL_LINK_STORAGE_KEY = 'pz-email-link-base';
+export function rememberPublishedLink(video, origin = globalThis.location?.origin || '') {
+  if (!video?.id) return;
+  try { globalThis.localStorage?.setItem(EMAIL_LINK_STORAGE_KEY, canonicalUrl(video, origin)); } catch { /* storage unavailable */ }
+}
+
 const SLUG_ERRORS = {
   slug_taken: 'That name is already taken. Try another.',
   invalid_slug: 'That name is not allowed. Use 3-48 lowercase letters, numbers and hyphens.',
