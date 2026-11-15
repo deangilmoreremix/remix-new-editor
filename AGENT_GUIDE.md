@@ -725,3 +725,7 @@ The `.agents/skills/` directory is large. When you're not coming in through a to
 - Do not present a single unavailable tool in isolation. Always show the full capability picture: "X of Y providers configured for this capability."
 - Do not skip the Provider Menu at preflight. The user must see what they have AND what they could unlock.
 - Do not change provider, model, or render path without telling the user first and getting approval when the change is material.
+
+## Feature Registry
+
+When you add or change a user-facing feature, add or update its page in `docs/features/<area>/` (copy `docs/features/_TEMPLATE.md`), then run `node scripts/build-feature-index.mjs`. Each page records what the feature does, where it lives in the app, and its key code paths.

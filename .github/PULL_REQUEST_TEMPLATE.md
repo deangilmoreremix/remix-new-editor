@@ -27,4 +27,5 @@ Closes #
 - [ ] The change is focused on a single logical concern.
 - [ ] I ran the relevant tests locally (`make test-contracts` / `make test`) where applicable.
 - [ ] I updated docs/README if behavior or usage changed.
+- [ ] New or changed user-facing feature has a page in `docs/features/` (then run `node scripts/build-feature-index.mjs`).
 - [ ] No unrelated files (build artifacts, local config) are included in the diff.
