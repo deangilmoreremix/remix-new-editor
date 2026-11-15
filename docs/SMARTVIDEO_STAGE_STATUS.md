@@ -609,3 +609,6 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 
 ### RLS stage 2 applied to production (2026-11-15)
 - Last 36 tables secured + analytics anon insert-only policy. 0 of 314 tables without RLS; role probes verified (rolled back). Longer log watch recommended.
+
+### Production go-live (2026-11-15)
+- All 6 SmartVideo migrations applied to production and verified; default privileges on new public tables hardened. Advisors: nothing new from us. Not done: real storage and push tests, Netlify settings, Kit test.

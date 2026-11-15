@@ -156,3 +156,7 @@ Branch: `claude/jolly-cannon-ofqf7h`
 
 ### RLS stage 2 on production
 - Authorization: "yes, apply stage 2" after the exact SQL was shown. Applied via apply_migration; verified counts and role behaviour with rolled-back probes. Remaining: a log watch over the next day.
+
+### Production go-live
+- Authorization: "Apply all 6 now, in order" and "Yes, do it" (default privileges). Applied each migration with apply_migration, verified RLS/grants/bucket, ran the production security advisors, then applied the default-privileges change and proved it with a rolled-back probe.
+- Left alone: pre-existing advisor findings (callable SECURITY DEFINER functions, one SECURITY DEFINER view, mutable search_path).
