@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
-  makeSlug, preparePublishProject, uploadLocalMedia, localSources, publishVideo, fetchPublishedVideo, submitViewerLead, profileFromQuery, embedCode, watchUrl,
+  makeSlug, preparePublishProject, cleanLanding, uploadLocalMedia, localSources, publishVideo, fetchPublishedVideo, submitViewerLead, profileFromQuery, embedCode, watchUrl,
 } from '../publishClient.js';
 import { createInteractivePlayer, stripUnresolvedTokens, profileWithAnswers } from '../interactivePlayer.js';
 import { showLeadForm, ctaElement, linkBoxElement, personalize } from '../viewerOverlays.js';
@@ -65,6 +65,24 @@ describe('publish client', () => {
     state.tracks[0].items.push({ id: 2, type: 'video', src: 'blob:http://x/1', addon: { src: 'blob:http://x/2' } });
     expect(localSources(state.tracks)).toEqual(['blob:http://x/1', 'blob:http://x/2']);
     expect(() => preparePublishProject(state)).toThrow(/only on this computer/);
+  });
+
+  it('passes Video Outreach landing text through, cleaned', () => {
+    const p = preparePublishProject({
+      tracks: [], timelineSeconds: 10, kind: 'outreach', campaign: { name: '  Cold   outreach ', contacts: '12', extra: 1 },
+      landing: { header: 'Hi {{firstname}}'.padEnd(300, '!'), message: 'Hello', fallbacks: { firstname: 'there', 'bad key': 'x' }, cta: { label: 'Book', url: 'https://cal.com/x' } },
+    }, { title: 'Campaign' });
+    expect(p.kind).toBe('outreach');
+    expect(p.campaign).toEqual({ name: 'Cold outreach', contacts: 12 });
+    expect(p.landing.header).toHaveLength(200);
+    expect(p.landing.fallbacks).toEqual({ firstname: 'there' });
+    expect(p.landing.cta).toEqual({ label: 'Book', url: 'https://cal.com/x' });
+    expect(cleanLanding({ cta: { label: 'Go', url: 'http://cal.com/x' } }).cta).toBeNull();
+    expect(cleanLanding({ cta: { label: 'Go', url: 'javascript:alert(1)' } }).cta).toBeNull();
+    // Ordinary videos are unchanged.
+    const plain = preparePublishProject({ tracks: [], kind: 'something' });
+    expect(plain).not.toHaveProperty('kind');
+    expect(plain).not.toHaveProperty('landing');
   });
 
   it('uploads local media and swaps the URLs in the timeline', async () => {
@@ -331,5 +349,45 @@ describe('share panel and watch page', () => {
     const missing = document.createElement('div');
     expect(await mountWatchPage(missing, 'nope12345', { fetchVideo: async () => null })).toBeNull();
     expect(missing.textContent).toContain('Video not found');
+  });
+
+  it('watch page shows a Video Outreach landing: personalized header, message and booking button', async () => {
+    const landing = {
+      header: 'Hi {{firstname}}, I made this for you',
+      message: 'Excited to help {{company}} <b>grow</b>.',
+      fallbacks: { firstname: 'there', company: 'your company' },
+      cta: { label: 'Book a call', url: 'https://cal.com/me/intro' },
+    };
+    const mount = async (search) => {
+      window.history.replaceState(null, '', `/watch/abcdefgh12${search}`);
+      const box = document.createElement('div');
+      document.body.appendChild(box);
+      const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+      const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Campaign', project: { ...project(), kind: 'outreach', landing } }), createEngine: fakeEngine().create, analytics, onLead: vi.fn() });
+      return { box, analytics, player };
+    };
+    const a = await mount('?c=c1&firstName=Mike&company=Acme');
+    expect(a.box.querySelector('h1').textContent).toBe('Hi Mike, I made this for you');
+    // Escaped: viewer-controlled values and owner text never become markup.
+    expect(a.box.querySelector('.watch-landing-msg').textContent).toBe('Excited to help Acme <b>grow</b>.');
+    expect(a.box.querySelector('.watch-landing-msg b')).toBeNull();
+    const cta = a.box.querySelector('[data-landing-cta]');
+    expect(cta.getAttribute('href')).toBe('https://cal.com/me/intro');
+    expect(cta.getAttribute('rel')).toContain('noopener');
+    cta.addEventListener('click', (ev) => ev.preventDefault());
+    cta.click();
+    expect(a.analytics.track).toHaveBeenCalledWith('cta_click', expect.objectContaining({ props: { label: 'Book a call' } }));
+    a.player.destroy();
+    // No personal link: fallbacks fill in.
+    const b = await mount('');
+    expect(b.box.querySelector('h1').textContent).toBe('Hi there, I made this for you');
+    expect(b.box.querySelector('.watch-landing-msg').textContent).toBe('Excited to help your company <b>grow</b>.');
+    b.player.destroy();
+    // A non-https booking link is never rendered.
+    landing.cta = { label: 'Book', url: 'javascript:alert(1)' };
+    const c = await mount('');
+    expect(c.box.querySelector('[data-landing-cta]')).toBeNull();
+    c.player.destroy();
+    window.history.replaceState(null, '', '/');
   });
 });

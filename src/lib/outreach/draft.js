@@ -1,30 +1,29 @@
 /**
- * Video Outreach studio (route: #/outreach) — the draft behind its steps and
- * the hand-off into the timeline editor. Pure logic, no DOM, so it is tested
- * on its own (src/lib/outreach/__tests__/draft.test.js).
+ * Video Outreach studio (route: #/outreach): the campaign draft behind its
+ * steps, the contact list, and the published campaign. Pure logic, no DOM,
+ * so it is tested on its own (src/lib/outreach/__tests__/draft.test.js).
  *
- *   Record    → draft.video   { url, duration, hasAudio, type, tracks }
- *   Voice     → draft.voice   { mode: 'clone' | 'stock', cloneVoiceId?, stockVoice?, consent?, fallbackUrl?, fallbackDuration? }
+ *   Record    → draft.video    { url, duration, hasAudio, type }
+ *   Voice     → draft.voice    { mode: 'clone' | 'stock', cloneVoiceId?, stockVoice?, consent?, fallbackUrl?, fallbackDuration? }
  *   Customize → draft.header, draft.message, draft.fallbacks, draft.cta
+ *   Contacts  → draft.contacts [{ id, firstName, lastName, email, company, website }]
+ *   Generate  → draft.campaign { id, url, publishedAt, links: [{ contactId, link, voiced }] }
  *
- * buildEditorProject() turns a finished draft into the project data the
- * classic editor (#/timeline-classic) restores from
- * localStorage['timeline-editor-project'] (see loadProjectFromStorage in TimelineEditorPage.jsx): the recording on the
- * Main Video track, the personalized greeting on the Voiceover track as a
- * Smart Speech clip (the same `tts` shape smartSpeech.ttsMeta writes, read by
- * watch-voice), and a CTA button (the click-to-call addon) on the Text track.
+ * A campaign is one published video (public.published_videos, played by the
+ * public page /watch/<id>). buildCampaignProject() makes that project: the
+ * recording, the greeting as a personalized Smart Speech clip with one voiced
+ * variant per contact (clip.tts.variants[contactId], played by the watch page
+ * for ?c=<contactId>), and `landing` (header, message, booking button) which
+ * the watch page shows around the video. Each contact's personal link carries
+ * ?c=<contactId> plus their token values, so no contact data is stored on a
+ * server.
  */
-import { createAddonClip } from '../editor/addons/registry.js';
-import '../editor/addons/interactiveAddons.js'; // registers the CTA addon used below
 
 export const DRAFT_KEY = 'outreach-draft-v1';
-export const EDITOR_PROJECT_KEY = 'timeline-editor-project';
-// The classic Timeline Editor reads EDITOR_PROJECT_KEY and has Smart Speech, personal links and
-// Share. (#/timeline now opens the CineGen editor, which does not read this key.)
-export const EDITOR_ROUTE = 'timeline-classic';
 export const STEPS = ['Record', 'Voice', 'Customize', 'Contacts', 'Generate', 'Campaigns'];
-/** Steps built so far; the rest show in the stepper as coming next. */
-export const READY_STEPS = 3;
+/** Steps that must be complete before a campaign can be generated. */
+export const SETUP_STEPS = 4;
+export const MAX_CONTACTS = 500;
 
 // Mirrors smartSpeech.PERSONAL_LIMIT: a personalized spoken line may be up to 70 characters.
 export const GREETING_LIMIT = 70;
@@ -48,6 +47,9 @@ export function defaultDraft() {
     message: 'Excited to show how we can help {{company}}.',
     fallbacks: { firstname: 'there', company: 'your company' },
     cta: { enabled: true, label: 'Schedule a demo', url: '' },
+    contacts: [],
+    campaign: null,
+    name: '',
   };
 }
 
@@ -63,6 +65,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       voice: { ...base.voice, ...(saved.voice || {}) },
       fallbacks: { ...base.fallbacks, ...(saved.fallbacks || {}) },
       cta: { ...base.cta, ...(saved.cta || {}) },
+      contacts: Array.isArray(saved.contacts) ? saved.contacts : [],
     };
   } catch {
     return base;
@@ -137,6 +140,14 @@ export function stepErrors(draft, step) {
       if (!isHttpsUrl(draft.cta.url)) errors.push('The booking link must be an https:// address.');
     }
   }
+  if (step === 4) {
+    const n = (draft.contacts || []).length;
+    if (!n) errors.push('Add at least one contact.');
+    if (n > MAX_CONTACTS) errors.push(`A campaign can have up to ${MAX_CONTACTS} contacts.`);
+  }
+  if (step === 5) {
+    if (!draft.campaign?.id) errors.push('Generate the campaign to get each contact\u2019s link.');
+  }
   return errors;
 }
 
@@ -155,25 +166,149 @@ export function speakRequest(draft, text) {
   return { provider: 'minimax', text, voice: s.voice, speed: 1, ...(s.cloneVoiceId ? { cloneVoiceId: s.cloneVoiceId } : {}) };
 }
 
+// ---------------------------------------------------------------- contacts
+
+export const CONTACT_FIELDS = [
+  ['firstName', 'First name'],
+  ['lastName', 'Last name'],
+  ['email', 'Email'],
+  ['company', 'Company'],
+  ['website', 'Website'],
+];
+
+// Header spellings that map to each field (compared lower-case, without spaces, _ or -).
+const HEADER_ALIASES = {
+  firstName: ['firstname', 'first', 'givenname', 'fname', 'name'],
+  lastName: ['lastname', 'last', 'surname', 'familyname', 'lname'],
+  email: ['email', 'emailaddress', 'mail', 'workemail'],
+  company: ['company', 'companyname', 'organization', 'organisation', 'business', 'account'],
+  website: ['website', 'url', 'site', 'domain', 'companywebsite', 'web'],
+};
+const norm = (h) => String(h || '').toLowerCase().replace(/[\s_\-.]+/g, '');
+
+/** Parse CSV text (quoted fields, "" escapes, CRLF) → { headers, rows: object[] }. */
+export function parseCsv(text) {
+  const records = [];
+  let row = [];
+  let field = '';
+  let quoted = false;
+  const src = String(text || '').replace(/^\uFEFF/, '');
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (quoted) {
+      if (ch === '"' && src[i + 1] === '"') { field += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else field += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ',') { row.push(field); field = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && src[i + 1] === '\n') i++;
+      row.push(field); field = '';
+      if (row.some((c) => c.trim())) records.push(row);
+      row = [];
+    } else field += ch;
+  }
+  row.push(field);
+  if (row.some((c) => c.trim())) records.push(row);
+  const [headers = [], ...body] = records;
+  const keys = headers.map((h) => h.trim());
+  return { headers: keys, rows: body.map((r) => Object.fromEntries(keys.map((k, i) => [k, (r[i] ?? '').trim()]))) };
+}
+
+/** Best guess of which CSV column feeds each contact field: { firstName: 'First Name', … }. */
+export function guessMapping(headers) {
+  const mapping = {};
+  for (const [field] of CONTACT_FIELDS) {
+    const hit = headers.find((h) => HEADER_ALIASES[field].includes(norm(h)) && !Object.values(mapping).includes(h));
+    if (hit) mapping[field] = hit;
+  }
+  return mapping;
+}
+
+const SAFE_ID = /^[A-Za-z0-9_-]{1,80}$/;
+const shortId = (rand = Math.random) => `c${Math.floor(rand() * 2 ** 40).toString(36)}`;
+
+/** A contact from loose input: trims, caps lengths, adds an id; null when it has no name and no email. */
+export function makeContact(input = {}, { rand } = {}) {
+  const c = {};
+  for (const [field] of CONTACT_FIELDS) c[field] = String(input[field] ?? '').trim().slice(0, field === 'website' ? 300 : 120);
+  if (c.website && !/^https?:\/\//i.test(c.website)) c.website = `https://${c.website}`;
+  if (!c.firstName && !c.lastName && !c.email) return null;
+  c.id = SAFE_ID.test(String(input.id || '')) ? String(input.id) : shortId(rand);
+  return c;
+}
+
+/** CSV rows + column mapping → { contacts, skipped } (rows without a name or email are skipped). */
+export function contactsFromRows(rows, mapping, opts) {
+  const contacts = [];
+  let skipped = 0;
+  for (const row of rows) {
+    const input = {};
+    for (const [field] of CONTACT_FIELDS) if (mapping[field]) input[field] = row[mapping[field]];
+    // A single "Name" column: split into first and last.
+    if (mapping.firstName && !mapping.lastName && /\s/.test(String(input.firstName || '').trim()) && norm(mapping.firstName) === 'name') {
+      const [first, ...rest] = String(input.firstName).trim().split(/\s+/);
+      input.firstName = first; input.lastName = rest.join(' ');
+    }
+    const c = makeContact(input, opts);
+    if (c) contacts.push(c); else skipped += 1;
+  }
+  return { contacts, skipped };
+}
+
+/** Merge new contacts into a list, skipping repeated emails (case-insensitive). */
+export function mergeContacts(existing, incoming) {
+  const seen = new Set(existing.map((c) => c.email.toLowerCase()).filter(Boolean));
+  const out = [...existing];
+  for (const c of incoming) {
+    const key = c.email.toLowerCase();
+    if (key && seen.has(key)) continue;
+    if (key) seen.add(key);
+    out.push(c);
+  }
+  return out;
+}
+
+export const CSV_TEMPLATE = 'First Name,Last Name,Email,Company,Website\r\nMike,Markovic,mike@example.com,Acme,acme.com\r\n';
+
+/** The contact as a token profile, the shape the personalization helpers read (tokenSchema paths). */
+export function contactProfile(c) {
+  const fullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
+  return {
+    id: c.id,
+    name: fullName || c.email,
+    contact: { firstName: c.firstName, lastName: c.lastName, name: fullName, email: c.email, company: c.company },
+    social: { website: c.website },
+    variables: { firstName: c.firstName, lastName: c.lastName, fullName, email: c.email, company: c.company, website: c.website },
+  };
+}
+
+/** Values for the studio's {{tokens}} (keys lower-cased, as fillTemplate reads them). */
+export const contactValues = (c) => ({ firstname: c.firstName, lastname: c.lastName, email: c.email, company: c.company, website: c.website });
+
+// ---------------------------------------------------------------- campaign
+
+const clipsTimeline = (draft) => {
+  const videoSeconds = Math.max(1, Math.round(Number(draft.video.duration) || 30));
+  const greetingSeconds = Math.max(0.5, Number(draft.voice.fallbackDuration) || 2);
+  return { videoSeconds, greetingSeconds, T: Math.max(videoSeconds, Math.ceil(greetingSeconds + 1)) };
+};
+
 /**
- * Project data for the timeline editor. Times use the editor's own models:
- * left/width percentages for the Main Video clip (as addVideoToTimeline
- * writes them) and start/end seconds for the speech and CTA clips (as Smart
- * Speech and addAddon write them).
+ * The published project for a campaign. `variants` is { [contactId]: { url, duration, text, name } }
+ * from perContact.voiceForContacts. Track and clip shapes are the ones the public player reads
+ * (same as the editor's publish: tracks with items, start/end seconds or left/width percent).
  */
-export function buildEditorProject(draft, { now = Date.now() } = {}) {
-  for (const step of [1, 2, 3]) {
+export function buildCampaignProject(draft, { variants = {}, now = Date.now() } = {}) {
+  for (const step of [1, 2, 3, 4]) {
     const errors = stepErrors(draft, step);
     if (errors.length) throw new Error(errors[0]);
   }
   const id = now.toString(36);
-  const videoSeconds = Math.max(1, Math.round(Number(draft.video.duration) || 30));
-  const greetingSeconds = Math.max(0.5, Number(draft.voice.fallbackDuration) || 2);
-  const T = Math.max(videoSeconds, Math.ceil(greetingSeconds + 1));
+  const { videoSeconds, greetingSeconds, T } = clipsTimeline(draft);
   const voice = voiceSettings(draft);
   const greeting = String(draft.greeting).trim();
-  const tokens = tokensIn(greeting);
-  const fallbackLine = fillTemplate(greeting, {}, draft.fallbacks);
+  const personal = tokensIn(greeting).length > 0;
 
   const tts = {
     provider: 'minimax',
@@ -181,48 +316,42 @@ export function buildEditorProject(draft, { now = Date.now() } = {}) {
     ...(voice.cloneVoiceId ? { cloneVoiceId: voice.cloneVoiceId } : {}),
     speed: 1,
     text: greeting,
-    fallback: tokens.length ? fallbackLine : '',
-    personalized: tokens.length > 0,
+    fallback: personal ? fillTemplate(greeting, {}, draft.fallbacks) : '',
+    personalized: personal,
+    ...(personal && Object.keys(variants).length ? { variants } : {}),
   };
 
-  const textItems = [];
-  if (draft.cta?.enabled) {
-    const cta = createAddonClip('click-to-call', { startSec: Math.max(0, T - 6), timelineSeconds: T, id: `outreach-cta-${id}` });
-    // The CTA stays up for the last stretch of the video and opens the booking link.
-    cta.end = T;
-    cta.linkMode = 'url';
-    cta.linkUrl = draft.cta.url;
-    cta.linkTarget = '_blank';
-    cta.buttonText = String(draft.cta.label).trim();
-    cta.name = cta.buttonText;
-    textItems.push(cta);
-  }
-
-  const tracks = [
-    // The personalized greeting plays over the first seconds of the recording, which is why the
-    // Record step asks for a short pause at the start.
-    { id: `track-video-${id}`, type: 'video', name: 'Main Video', muted: false, solo: false, locked: false,
-      items: [{ id: `outreach-video-${id}`, name: 'Outreach recording', type: 'video', src: draft.video.url, left: 0, width: (videoSeconds / T) * 100 }] },
-    { id: `track-voiceover-${id}`, type: 'audio', name: 'Voiceover', muted: false, solo: false, locked: false,
-      items: [{ id: `speech-outreach-${id}`, type: 'audio', role: 'voiceover', name: `Greeting: ${greeting}`.slice(0, 80), src: draft.voice.fallbackUrl, volume: 1, tts, start: 0, end: greetingSeconds }] },
-    { id: `track-text-${id}`, type: 'text', name: 'Text', muted: false, solo: false, locked: false, items: textItems },
-  ];
-  // The editor keeps `clips` as an alias of `items` and saves both; parts of it read `clips`
-  // before re-linking them, so the project carries both, like the editor's own saves.
-  for (const t of tracks) t.clips = t.items;
-
+  const name = String(draft.name || '').trim() || `Outreach ${new Date(now).toISOString().slice(0, 10)}`;
   return {
-    projectTitle: 'Video outreach',
+    title: name.slice(0, 200),
     timelineSeconds: T,
-    playheadPercent: 0,
-    tracks,
-    // Landing-page copy for the Share panel / watch page (read by later steps of the studio).
-    outreach: {
-      header: String(draft.header).trim(),
+    tracks: [
+      // The greeting plays over the first seconds of the recording (the Record step asks for a pause there).
+      { id: `track-video-${id}`, type: 'video', name: 'Main Video', muted: false, solo: false,
+        items: [{ id: `outreach-video-${id}`, name: 'Outreach recording', type: 'video', src: draft.video.url, left: 0, width: (videoSeconds / T) * 100 }] },
+      { id: `track-voiceover-${id}`, type: 'audio', name: 'Voiceover', muted: false, solo: false,
+        items: [{ id: `speech-outreach-${id}`, type: 'audio', role: 'voiceover', name: 'Greeting', src: draft.voice.fallbackUrl, volume: 1, tts, start: 0, end: greetingSeconds }] },
+    ],
+    kind: 'outreach',
+    campaign: { name: name.slice(0, 120), contacts: (draft.contacts || []).length },
+    landing: {
+      header: String(draft.header || '').trim(),
       message: String(draft.message || '').trim(),
       fallbacks: { ...draft.fallbacks },
       cta: draft.cta?.enabled ? { label: String(draft.cta.label).trim(), url: draft.cta.url } : null,
-      aiVoice: voice.cloneVoiceId ? 'cloned' : 'stock',
     },
   };
+}
+
+/** Each contact's link, given the campaign's watch URL and the personalLink helper. */
+export function campaignLinks(draft, watchUrl, personalLink, variants = {}) {
+  const tokens = ['firstName', 'lastName', 'company', 'email', 'website'];
+  return (draft.contacts || []).map((c) => ({
+    contactId: c.id,
+    name: [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email,
+    email: c.email,
+    company: c.company,
+    voiced: !!variants[c.id]?.url,
+    link: personalLink(watchUrl, contactProfile(c), tokens),
+  }));
 }

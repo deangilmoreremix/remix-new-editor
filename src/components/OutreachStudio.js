@@ -1,22 +1,20 @@
 // src/components/OutreachStudio.js
 //
-// Video Outreach studio (route: #/outreach): record one video, give it a
-// greeting spoken in your own (cloned) voice for each contact, set up the
-// landing page, then hand it to the timeline editor, which already does the
-// per-contact links, sharing and analytics.
+// Video Outreach studio (route: #/outreach), a standalone studio: record one
+// video, greet each contact by name in your own (cloned) voice, write the
+// landing page, add contacts, generate every contact's personal link, and
+// track who watched. Nothing here opens the Timeline Editor.
 //
-// Steps 1-3 (Record, Voice, Customize) live here. Contacts, Generate and
-// Campaigns show in the stepper and come next; until then the editor's
-// Personalization and Share panels cover them.
-//
-// The logic (draft, validation, the editor project) is in
-// src/lib/outreach/draft.js; this file is the page.
+// A campaign is one published video played by the public page /watch/<id>;
+// each contact's link (?c=<id>&firstName=…) picks their voiced greeting and
+// fills the landing text. The logic lives in src/lib/outreach/draft.js.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { navigate } from '../lib/router.js';
 import {
-  STEPS, READY_STEPS, STOCK_VOICES, FIRST_NAME_FALLBACKS, EDITOR_PROJECT_KEY, EDITOR_ROUTE,
-  loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, buildEditorProject,
+  STEPS, SETUP_STEPS, STOCK_VOICES, FIRST_NAME_FALLBACKS, CONTACT_FIELDS, CSV_TEMPLATE, MAX_CONTACTS,
+  loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, tokensIn,
+  parseCsv, guessMapping, contactsFromRows, makeContact, mergeContacts, contactProfile, contactValues,
+  buildCampaignProject, campaignLinks,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -89,7 +87,11 @@ export function OutreachStudio() {
   let busy = '';
   let notice = '';
   let step = 1;
-  for (let s = 1; s <= READY_STEPS; s++) { step = s; if (stepErrors(draft, s).length) break; }
+  for (let s = 1; s <= SETUP_STEPS + 1; s++) { step = s; if (stepErrors(draft, s).length) break; }
+  // CSV waiting for its columns to be matched, the running generation, and the campaigns list.
+  let pendingCsv = null;
+  let abort = null;
+  const campaigns = { loaded: false, loading: false, rows: [], error: '', openId: null, stats: {} };
 
   const stepper = el('div', 'flex flex-wrap gap-2 px-4 md:px-8 pt-5');
   const scroll = el('div', 'flex-1 overflow-y-auto');
@@ -323,43 +325,367 @@ export function OutreachStudio() {
     return grid;
   }
 
-  function openInEditor() {
-    let project;
-    try { project = buildEditorProject(draft); } catch (err) { notice = err.message; render(); return; }
-    // The editor restores whatever is under this key, so don't silently replace someone's open timeline.
-    if (localStorage.getItem(EDITOR_PROJECT_KEY) && !window.confirm('This opens your outreach video in the Timeline Editor and replaces the timeline that is open there now (saved projects are kept). Continue?')) return;
-    localStorage.setItem(EDITOR_PROJECT_KEY, JSON.stringify(project));
-    navigate(EDITOR_ROUTE);
+  // ---- Step 4: Contacts --------------------------------------------------
+  function addContacts(list, skipped = 0) {
+    const before = draft.contacts.length;
+    draft.contacts = mergeContacts(draft.contacts, list).slice(0, MAX_CONTACTS);
+    draft.campaign = null; // links must be regenerated for the new list
+    persist();
+    const added = draft.contacts.length - before;
+    notice = `Added ${added} contact${added === 1 ? '' : 's'}${skipped ? `, skipped ${skipped} row${skipped === 1 ? '' : 's'} without a name or email` : ''}${list.length - added > 0 ? `, ${list.length - added} already in the list` : ''}.`;
+    render();
+  }
+
+  function downloadText(name, text, type = 'text/csv') {
+    const a = el('a');
+    a.href = URL.createObjectURL(new Blob([text], { type }));
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  function renderContacts() {
+    const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_380px]');
+    const main = card('Add contacts', 'Upload a CSV, or add people one at a time. Each contact gets their own link.');
+    const nameInput = textInput(draft.name, 'Campaign name, e.g. Cold outreach November');
+    nameInput.addEventListener('input', () => { draft.name = nameInput.value; persist(); });
+    main.appendChild(field('Campaign name', nameInput));
+
+    const csvRow = el('div', 'flex flex-wrap gap-2');
+    const upload = button('Upload a .csv', { primary: !draft.contacts.length });
+    const file = el('input'); file.type = 'file'; file.accept = '.csv,text/csv'; file.hidden = true;
+    file.addEventListener('change', async () => {
+      const f = file.files?.[0]; file.value = '';
+      if (!f) return;
+      const { headers, rows } = parseCsv(await f.text());
+      if (!rows.length) { notice = 'That file has no rows under its header line.'; render(); return; }
+      pendingCsv = { name: f.name, headers, rows, mapping: guessMapping(headers) };
+      notice = ''; render();
+    });
+    upload.addEventListener('click', () => file.click());
+    const template = button('Download template');
+    template.addEventListener('click', () => downloadText('contacts-template.csv', CSV_TEMPLATE));
+    csvRow.append(upload, template, file);
+    main.appendChild(csvRow);
+
+    if (pendingCsv) {
+      const box = el('div', 'rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col gap-3');
+      box.appendChild(el('p', 'text-sm font-bold', `${pendingCsv.name}: ${pendingCsv.rows.length} row${pendingCsv.rows.length === 1 ? '' : 's'}. Match your columns:`));
+      const table = el('div', 'grid grid-cols-[140px_1fr_1fr] gap-2 items-center text-sm');
+      table.append(el('span', 'text-xs text-secondary', 'Field'), el('span', 'text-xs text-secondary', 'Your column'), el('span', 'text-xs text-secondary', 'First row'));
+      for (const [key, label] of CONTACT_FIELDS) {
+        const sel = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-sm text-white');
+        const none = el('option', '', '(none)'); none.value = ''; sel.appendChild(none);
+        for (const h of pendingCsv.headers) { const o = el('option', '', h); o.value = h; o.selected = pendingCsv.mapping[key] === h; sel.appendChild(o); }
+        sel.addEventListener('change', () => { pendingCsv.mapping[key] = sel.value || undefined; render(); });
+        const sample = pendingCsv.mapping[key] ? pendingCsv.rows[0][pendingCsv.mapping[key]] || '' : '';
+        table.append(el('span', '', label), sel, el('span', 'truncate text-white/60', sample || '—'));
+      }
+      const actions = el('div', 'flex gap-2');
+      const imp = button(`Import ${pendingCsv.rows.length}`, { primary: true, small: true });
+      imp.disabled = !pendingCsv.mapping.firstName && !pendingCsv.mapping.email;
+      imp.title = imp.disabled ? 'Match at least a first name or an email column.' : '';
+      imp.addEventListener('click', () => { const { contacts, skipped } = contactsFromRows(pendingCsv.rows, pendingCsv.mapping); pendingCsv = null; addContacts(contacts, skipped); });
+      const cancel = button('Cancel', { small: true });
+      cancel.addEventListener('click', () => { pendingCsv = null; render(); });
+      actions.append(imp, cancel);
+      box.append(table, actions);
+      main.appendChild(box);
+    }
+
+    // Add one contact.
+    const one = el('div', 'grid gap-2 sm:grid-cols-2');
+    const inputs = {};
+    for (const [key, label] of CONTACT_FIELDS) { inputs[key] = textInput('', label); one.appendChild(inputs[key]); }
+    const addOne = button('Add contact', { small: true });
+    addOne.addEventListener('click', () => {
+      const c = makeContact(Object.fromEntries(Object.entries(inputs).map(([k, i]) => [k, i.value])));
+      if (!c) { notice = 'Give the contact a name or an email.'; render(); return; }
+      addContacts([c]);
+    });
+    one.appendChild(addOne);
+    main.appendChild(field('Or add one', one));
+
+    // The list.
+    const side = card(`Contacts (${draft.contacts.length})`, draft.contacts.length ? 'Contacts without a first name hear the fallback greeting.' : 'No contacts yet.');
+    const list = el('div', 'flex flex-col divide-y divide-white/5 max-h-[460px] overflow-y-auto');
+    draft.contacts.forEach((c) => {
+      const row = el('div', 'flex items-center gap-3 py-2 text-sm');
+      const who = el('div', 'min-w-0 flex-1');
+      who.append(el('div', 'truncate font-semibold', [c.firstName, c.lastName].filter(Boolean).join(' ') || '(no name)'),
+        el('div', 'truncate text-xs text-white/50', [c.email, c.company].filter(Boolean).join(' · ')));
+      const rm = button('Remove', { small: true });
+      rm.addEventListener('click', () => { draft.contacts = draft.contacts.filter((x) => x.id !== c.id); draft.campaign = null; persist(); render(); });
+      row.append(who, rm);
+      list.appendChild(row);
+    });
+    side.appendChild(list);
+    if (draft.contacts.length) {
+      const clear = button('Remove all', { small: true });
+      clear.addEventListener('click', () => { if (window.confirm('Remove every contact from this campaign?')) { draft.contacts = []; draft.campaign = null; persist(); render(); } });
+      side.appendChild(clear);
+    }
+    grid.append(main, side);
+    return grid;
+  }
+
+  // ---- Step 5: Generate --------------------------------------------------
+  async function ownerClient() {
+    if (!globalThis.window?.Clerk?.user) throw new Error('Sign in to publish your campaign.');
+    const { supabase } = await import('../lib/hybrid-supabase.js');
+    await supabase.refreshUserHeader?.();
+    if (!supabase.supabase) throw new Error('The video service is unavailable. Check your connection and try again.');
+    return supabase.supabase;
+  }
+
+  async function generateCampaign() {
+    const personal = tokensIn(draft.greeting).length > 0;
+    const n = draft.contacts.length;
+    if (personal && !window.confirm(`This voices the greeting for up to ${n} contact${n === 1 ? '' : 's'} (repeated names are voiced once). Each one is a paid speech request on your MuAPI key. Continue?`)) return;
+    notice = '';
+    abort = new AbortController();
+    try {
+      let variants = {};
+      if (personal) {
+        const [{ voiceForContacts }, audio] = await Promise.all([
+          import('../lib/editor/personalize/perContact.js'),
+          import('../lib/editor/agent/audioGen.js'),
+        ]);
+        setBusy(`Voicing greetings: 0 of ${n}…`);
+        ({ variants } = await voiceForContacts({
+          text: draft.greeting,
+          contacts: draft.contacts.map(contactProfile),
+          signal: abort.signal,
+          onProgress: ({ done, total, name }) => setBusy(`Voicing greetings: ${done} of ${total} (${name})…`),
+          generate: async (line) => {
+            const remote = await audio.generateAudio('tts', speakRequest(draft, line), { signal: abort.signal });
+            const url = await audio.persistAudio(remote, { upload: uploadToStorage, name: 'greeting' });
+            return { url, duration: (await audio.probeDuration(url)) || 2 };
+          },
+        }));
+      }
+      setBusy('Publishing the campaign…');
+      const [{ preparePublishProject, publishVideo, makeSlug, watchUrl }, { personalLink }] = await Promise.all([
+        import('../lib/editor/publish/publishClient.js'),
+        import('../lib/editor/personalize/perContact.js'),
+      ]);
+      const built = buildCampaignProject(draft, { variants });
+      const project = preparePublishProject(built, { title: built.title });
+      const id = draft.campaign?.id || makeSlug();
+      await publishVideo(await ownerClient(), { id, project });
+      const url = watchUrl(id);
+      draft.campaign = { id, url, publishedAt: new Date().toISOString(), links: campaignLinks(draft, url, personalLink, variants) };
+      persist();
+      campaigns.loaded = false; // refresh the Campaigns list next time it opens
+      busy = '';
+      notice = `Campaign published: ${draft.campaign.links.length} personal link${draft.campaign.links.length === 1 ? '' : 's'} ready.`;
+      render();
+    } catch (err) {
+      if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped. Nothing was published.'; render(); return; }
+      fail(err);
+    } finally {
+      abort = null;
+    }
+  }
+
+  function renderGenerate() {
+    const wrap = el('div', 'flex flex-col gap-5');
+    const top = card(draft.campaign ? 'Your campaign is live' : 'Generate the campaign',
+      draft.campaign
+        ? 'Send each contact their own link. It opens your video with their greeting and your booking button.'
+        : 'Each contact’s greeting is voiced, the video is published, and every contact gets a personal link.');
+    const facts = el('div', 'grid grid-cols-2 md:grid-cols-4 gap-3');
+    const personal = tokensIn(draft.greeting).length > 0;
+    const named = draft.contacts.filter((c) => c.firstName).length;
+    for (const [label, value] of [
+      ['Contacts', draft.contacts.length],
+      ['Greeted by name', personal ? named : 0],
+      ['Voice', draft.voice.mode === 'clone' ? 'Your cloned voice' : (draft.voice.stockVoice || '').replace(/_/g, ' ')],
+      ['Booking button', draft.cta.enabled ? draft.cta.label : 'Off'],
+    ]) {
+      const f = el('div', 'rounded-xl border border-white/10 bg-white/[0.03] p-3');
+      f.append(el('div', 'text-lg font-extrabold truncate', String(value)), el('div', 'text-xs text-secondary', label));
+      facts.appendChild(f);
+    }
+    top.appendChild(facts);
+    const actions = el('div', 'flex flex-wrap gap-2');
+    if (busy && abort) {
+      const stop = button('Stop');
+      stop.addEventListener('click', () => abort?.abort());
+      actions.appendChild(stop);
+    } else {
+      const gen = button(draft.campaign ? 'Regenerate and republish' : 'Generate campaign', { primary: !draft.campaign });
+      gen.disabled = !!busy || [1, 2, 3, 4].some((s) => stepErrors(draft, s).length);
+      gen.addEventListener('click', generateCampaign);
+      actions.appendChild(gen);
+    }
+    if (draft.campaign) {
+      const csv = button('Download .csv of links');
+      csv.addEventListener('click', async () => {
+        const { linksCsv } = await import('../lib/editor/personalize/perContact.js');
+        downloadText(`${(draft.name || 'campaign').replace(/[^\w-]+/g, '_')}-links.csv`, linksCsv(draft.campaign.links));
+      });
+      const open = button('Open landing page');
+      open.addEventListener('click', () => window.open(draft.campaign.links[0]?.link || draft.campaign.url, '_blank', 'noopener'));
+      actions.append(csv, open);
+    }
+    top.appendChild(actions);
+    wrap.appendChild(top);
+
+    if (draft.campaign) {
+      const list = card('Personal links');
+      const rows = el('div', 'flex flex-col divide-y divide-white/5');
+      draft.campaign.links.forEach((l, i) => {
+        const row = el('div', 'flex flex-wrap items-center gap-3 py-2.5 text-sm');
+        row.append(el('span', 'w-8 text-white/40 tabular-nums', String(i + 1).padStart(2, '0')));
+        const who = el('div', 'min-w-0 flex-1');
+        who.append(el('div', 'truncate font-semibold', l.name || '(no name)'), el('div', 'truncate text-xs text-white/50', l.email || ''));
+        const state = el('span', `text-xs ${l.voiced ? 'text-emerald-300' : 'text-white/50'}`, l.voiced ? '● Greeted by name' : '● Fallback greeting');
+        const copy = button('Copy link', { small: true });
+        copy.addEventListener('click', async () => {
+          try { await navigator.clipboard.writeText(l.link); copy.textContent = 'Copied'; } catch { window.prompt('Copy this link:', l.link); }
+        });
+        row.append(who, state, copy);
+        rows.appendChild(row);
+      });
+      list.appendChild(rows);
+      wrap.appendChild(list);
+    }
+    return wrap;
+  }
+
+  // ---- Step 6: Campaigns -------------------------------------------------
+  async function loadCampaigns() {
+    campaigns.loading = true; campaigns.error = ''; render();
+    try {
+      const client = await ownerClient();
+      const { data, error } = await client.from('published_videos')
+        .select('id, title, updated_at, published, campaign:project->campaign')
+        .eq('project->>kind', 'outreach')
+        .order('updated_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      campaigns.rows = data || [];
+      const { fetchVideoStats } = await import('../lib/editor/publish/publishClient.js');
+      const stats = await Promise.all(campaigns.rows.map((r) => fetchVideoStats(client, r.id).catch(() => null)));
+      campaigns.stats = Object.fromEntries(campaigns.rows.map((r, i) => [r.id, stats[i]]));
+      campaigns.loaded = true;
+    } catch (err) {
+      campaigns.error = err?.message || 'Could not load your campaigns.';
+    } finally {
+      campaigns.loading = false;
+      render();
+    }
+  }
+
+  const summarize = (rows) => {
+    const list = Array.isArray(rows) ? rows : [];
+    return {
+      watched: list.filter((r) => r.contactId && r.plays > 0).length,
+      views: list.reduce((n, r) => n + r.views, 0),
+      clicks: list.reduce((n, r) => n + r.ctaClicks, 0),
+    };
+  };
+
+  function renderCampaigns() {
+    if (!campaigns.loaded && !campaigns.loading && !campaigns.error) setTimeout(loadCampaigns, 0);
+    const wrap = el('div', 'flex flex-col gap-5');
+    const all = campaigns.rows.map((r) => ({ r, s: summarize(campaigns.stats[r.id]) }));
+    const totals = el('div', 'grid grid-cols-2 md:grid-cols-4 gap-3');
+    for (const [label, value] of [
+      ['Campaigns', all.length],
+      ['Contacts', all.reduce((n, x) => n + (Number(x.r.campaign?.contacts) || 0), 0)],
+      ['Watched', all.reduce((n, x) => n + x.s.watched, 0)],
+      ['Button clicks', all.reduce((n, x) => n + x.s.clicks, 0)],
+    ]) {
+      const f = el('div', 'rounded-2xl border border-white/10 bg-panel-bg p-4');
+      f.append(el('div', 'text-2xl font-black', String(value)), el('div', 'text-xs text-secondary', label));
+      totals.appendChild(f);
+    }
+    wrap.appendChild(totals);
+
+    const table = card('Campaigns');
+    const head = el('div', 'flex flex-wrap gap-2 -mt-2');
+    const refresh = button(campaigns.loading ? 'Loading…' : 'Refresh', { small: true });
+    refresh.disabled = campaigns.loading;
+    refresh.addEventListener('click', loadCampaigns);
+    const fresh = button('+ New campaign', { small: true, primary: true });
+    fresh.addEventListener('click', () => {
+      if (!window.confirm('Start a new campaign? Your recording, voice and page text stay; the contact list and links are cleared.')) return;
+      draft.contacts = []; draft.campaign = null; draft.name = ''; persist(); step = 4; notice = ''; render();
+    });
+    head.append(refresh, fresh);
+    table.appendChild(head);
+    if (campaigns.error) table.appendChild(el('p', 'text-sm text-amber-300', campaigns.error));
+    else if (campaigns.loaded && !all.length) table.appendChild(el('p', 'text-sm text-secondary', 'No campaigns yet. Generate one in step 5.'));
+    if (all.length) {
+      const grid = el('div', 'grid grid-cols-[1fr_110px_90px_90px_90px] gap-x-3 text-sm');
+      for (const h of ['Campaign', 'Date', 'Videos', 'Watched', 'Clicks']) grid.appendChild(el('div', 'pb-2 text-xs text-white/45', h));
+      all.forEach(({ r, s }) => {
+        const nameBtn = el('button', 'truncate py-2 text-left font-semibold hover:text-primary', r.campaign?.name || r.title || r.id);
+        nameBtn.type = 'button';
+        nameBtn.addEventListener('click', () => { campaigns.openId = campaigns.openId === r.id ? null : r.id; render(); });
+        grid.append(nameBtn,
+          el('div', 'py-2 text-white/60', new Date(r.updated_at).toLocaleDateString()),
+          el('div', 'py-2 tabular-nums', String(Number(r.campaign?.contacts) || 0)),
+          el('div', 'py-2 tabular-nums', String(s.watched)),
+          el('div', 'py-2 tabular-nums', String(s.clicks)));
+        if (campaigns.openId === r.id) {
+          const detail = el('div', 'col-span-5 mb-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-sm');
+          const names = Object.fromEntries((draft.campaign?.id === r.id ? draft.campaign.links : []).map((l) => [l.contactId, l.name]));
+          const rows = (campaigns.stats[r.id] || []).filter((x) => x.contactId);
+          if (!rows.length) detail.appendChild(el('p', 'text-secondary', 'Nobody has opened a personal link yet.'));
+          rows.forEach((x) => {
+            const line = el('div', 'flex gap-3 py-1');
+            line.append(el('span', 'flex-1 truncate', names[x.contactId] || `Contact ${x.contactId}`),
+              el('span', 'text-white/60', `${x.views} view${x.views === 1 ? '' : 's'} · ${x.plays} play${x.plays === 1 ? '' : 's'} · ${x.ctaClicks} click${x.ctaClicks === 1 ? '' : 's'}`));
+            detail.appendChild(line);
+          });
+          const link = el('a', 'mt-2 inline-block text-xs text-primary underline', 'Open the video page');
+          link.href = `/watch/${encodeURIComponent(r.id)}`; link.target = '_blank'; link.rel = 'noopener';
+          detail.appendChild(link);
+          grid.appendChild(detail);
+        }
+      });
+      table.appendChild(grid);
+    }
+    wrap.appendChild(table);
+    return wrap;
   }
 
   // ---- Shell -------------------------------------------------------------
+  // A step can be opened once every earlier setup step is complete (Campaigns is always open).
+  const reachable = (n) => n === STEPS.length || [...Array(Math.min(n, SETUP_STEPS + 1) - 1).keys()].every((i) => !stepErrors(draft, i + 1).length);
+
   function renderStepper() {
     stepper.replaceChildren();
     STEPS.forEach((name, i) => {
       const n = i + 1;
-      const ready = n <= READY_STEPS;
-      const done = ready && n < step && !stepErrors(draft, n).length;
+      const open = reachable(n);
+      const done = n !== step && n <= SETUP_STEPS + 1 && !stepErrors(draft, n).length;
       const pill = el('button', [
         'flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold',
         n === step ? 'border-primary bg-primary text-black' : 'border-white/10 text-white/60',
-        ready ? '' : 'opacity-40 cursor-not-allowed',
+        open ? '' : 'opacity-40 cursor-not-allowed',
       ].join(' '));
       pill.type = 'button';
-      pill.disabled = !ready || busy;
-      pill.title = ready ? name : `${name}: coming next. Use the Timeline Editor’s Personalization and Share panels for now.`;
+      pill.disabled = !open || !!busy;
+      pill.title = open ? name : `${name}: finish the earlier steps first.`;
       pill.append(el('span', 'grid h-5 w-5 place-items-center rounded-full bg-black/20 text-[10px]', done ? '✓' : String(n)), el('span', '', name));
       pill.addEventListener('click', () => { step = n; notice = ''; render(); });
       stepper.appendChild(pill);
     });
   }
 
+  const VIEWS = { 1: () => renderRecord(), 2: () => renderVoice(), 3: () => renderCustomize(), 4: () => renderContacts(), 5: () => renderGenerate(), 6: () => renderCampaigns() };
+
   function render() {
     renderStepper();
     inner.replaceChildren();
-    inner.appendChild(step === 1 ? renderRecord() : step === 2 ? renderVoice() : renderCustomize());
+    inner.appendChild(VIEWS[step]());
 
     const footer = el('div', 'flex flex-wrap items-center gap-3');
-    const errors = stepErrors(draft, step);
+    const errors = step <= SETUP_STEPS + 1 ? stepErrors(draft, step) : [];
     const msg = busy || notice || errors[0] || '';
     const status = el('p', `flex-1 text-sm ${busy ? 'text-primary' : notice && !errors.length ? 'text-emerald-300' : 'text-amber-300'}`, msg);
     // Buttons sit on the left so the floating Ask SmartVideo button (bottom right) never covers them.
@@ -368,12 +694,13 @@ export function OutreachStudio() {
       back.addEventListener('click', () => { step -= 1; notice = ''; render(); });
       footer.appendChild(back);
     }
-    const next = button(step < READY_STEPS ? 'Next' : 'Open in Timeline Editor', { primary: true });
-    next.disabled = !!busy || errors.length > 0;
-    next.addEventListener('click', () => {
-      if (step < READY_STEPS) { step += 1; notice = ''; render(); } else openInEditor();
-    });
-    footer.append(next, status);
+    if (step < STEPS.length) {
+      const next = button(step === SETUP_STEPS + 1 ? 'See campaigns' : 'Next', { primary: true });
+      next.disabled = !!busy || errors.length > 0;
+      next.addEventListener('click', () => { step += 1; notice = ''; render(); });
+      footer.appendChild(next);
+    }
+    footer.appendChild(status);
     inner.appendChild(footer);
   }
 

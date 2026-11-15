@@ -13,6 +13,7 @@ import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
+import { fillTemplate } from '../lib/outreach/draft.js';
 
 const FPS = 30;
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -72,9 +73,23 @@ export async function mountWatchPage(container, ref, deps = {}) {
     }
   } catch { /* non-browser env */ }
 
+  // Video Outreach campaigns carry landing text: a header and message filled with the viewer's
+  // details from their personal link (fallbacks when missing) and a booking button.
+  const landing = video.project.landing && typeof video.project.landing === 'object' ? video.project.landing : null;
+  const linkValues = profileFromQuery()?.variables || {};
+  const fill = (text) => fillTemplate(text, linkValues, landing?.fallbacks || {});
+  const heading = landing?.header ? fill(landing.header) || title : title;
+  const ctaHref = (() => { try { const u = new URL(String(landing?.cta?.url || '')); return u.protocol === 'https:' ? u.toString() : null; } catch { return null; } })();
+  const landingBody = landing && !embed && (landing.message || (ctaHref && landing.cta?.label))
+    ? `<section class="watch-landing">
+        ${landing.message ? `<p class="watch-landing-msg">${esc(fill(landing.message))}</p>` : ''}
+        ${ctaHref && landing.cta?.label ? `<a class="watch-landing-cta" data-landing-cta href="${esc(ctaHref)}" target="_blank" rel="noopener noreferrer">${esc(landing.cta.label)}</a>` : ''}
+      </section>`
+    : '';
+
   container.innerHTML = `
     <main class="watch">
-      ${embed ? '' : `<header class="watch-head"><h1>${esc(title)}</h1></header>`}
+      ${embed ? '' : `<header class="watch-head"><h1>${esc(heading)}</h1></header>`}
       <section class="watch-player" aria-label="${esc(title)}">
         <div class="watch-frame" data-frame>
           <div class="watch-stage" data-stage></div>
@@ -89,6 +104,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
           <button type="button" class="watch-btn" data-fs aria-label="Full screen">⛶</button>
         </div>
       </section>
+      ${landingBody}
     </main>`;
   const $ = (s) => container.querySelector(s);
   const frame = $('[data-frame]');
@@ -183,6 +199,10 @@ export async function mountWatchPage(container, ref, deps = {}) {
     const props = { ...(label ? { label } : {}), ...(isPricingLabel(label) ? { pricing: true } : {}) };
     analytics.track(isCall ? 'call_click' : 'cta_click', { clip, t: player.time, props: Object.keys(props).length ? props : undefined });
   }, true);
+  // The landing page's booking button (Video Outreach) counts as a CTA click.
+  container.querySelector('[data-landing-cta]')?.addEventListener('click', () => {
+    analytics.track('cta_click', { t: player.time, props: { label: String(landing.cta.label).slice(0, 60) } });
+  });
   // Playback errors are measured too (the viewer sees the player's own message).
   frame.addEventListener('error', (e) => { if (e.target?.tagName === 'VIDEO' || e.target?.tagName === 'AUDIO') analytics.track('error', { props: { reason: 'media' } }); }, true);
   globalThis.addEventListener?.('pagehide', () => analytics.destroy(), { once: true });

@@ -2,9 +2,9 @@
   "id": "outreach",
   "name": "Video Outreach",
   "route": "#/outreach",
-  "description": "Record one video, give it a greeting spoken in your own cloned voice (or a stock voice) for each contact, set up the landing page text and booking button, then open it in the Timeline Editor for personal links and sharing.",
+  "description": "A standalone studio for personalized video outreach: record one video, greet each contact by name in your own cloned voice (or a stock voice), write the landing page and booking button, add contacts by CSV, generate every contact's personal link, and see who watched and clicked.",
   "shortDescription": "Record once, greet every contact by name in your own voice, and add a booking button.",
-  "fullDescription": "Video Outreach (#/outreach, under Agents in the side menu) is a step-by-step studio. The stepper shows Record, Voice, Customize, Contacts, Generate and Campaigns; Record, Voice and Customize work today and the other three are marked as coming next. Record opens the recorder (Screen, Camera, Both or Audio) or takes an uploaded video and stores it in your storage. Voice lets you clone your own voice from the recording or from a separate voice sample, after you tick 'This is my own voice', or pick a stock voice; you then write the greeting (for example 'Hi {{firstname}}!'), choose what to say when a first name is missing (there or friend) and click Generate greeting. Customize sets the landing page header, message, a company fallback, and a call-to-action button with a booking link, with a live preview. The last button, Open in Timeline Editor, opens the classic Timeline Editor (#/timeline-classic) with the recording on the Main Video track, the personalized greeting on the Voiceover track and the booking button on the Text track. The draft is saved in this browser, so you can leave and come back.",
+  "fullDescription": "Video Outreach (#/outreach, under Agents in the side menu) runs a whole outreach campaign in six steps, without opening any editor. Record opens the recorder (Screen, Camera, Both or Audio) or takes an uploaded video. Voice clones your own voice from the recording or a separate sample, after you tick 'This is my own voice', or uses a stock voice; you write the greeting (for example 'Hi {{firstname}}!'), choose a fallback (there or friend) and click Generate greeting. Customize sets the landing page header, message, company fallback and a booking button with an https link, with a live preview. Contacts takes a CSV (with a column-matching table and a downloadable template) or contacts added one at a time. Generate voices the greeting for each contact on your MuAPI key, publishes the campaign as one video page, and lists every contact's personal link with Copy link, Download .csv of links and Open landing page. Campaigns lists your outreach campaigns with videos, watched and button clicks, and per-contact views, plays and clicks. Each personal link opens the public video page (/watch/<id>) with that contact's greeting, the header and message filled with their details, and your booking button.",
   "bestFor": "Sales people, founders and agencies who send personalized video to prospects and want each person to hear their own name in the sender's voice.",
   "whenToUse": [
     "You want to record one video and send a personalized version to many contacts.",
@@ -14,19 +14,20 @@
   ],
   "whenToUseAnother": [
     "Use Lead Finder (#/leadfinder) to find businesses to contact first.",
-    "Use the Timeline Editor (#/timeline-classic) directly if you already have a video and only need Smart Speech or personal links.",
-    "Use Personalizer (#/personalizer) for personalized pages that are not built around a recorded video.",
-    "Use Avatar (#/avatar) if you want an AI presenter instead of recording yourself."
+    "Use Personalizer (#/personalizer) for personalized pages not built around a recorded video.",
+    "Use Avatar (#/avatar) if you want an AI presenter instead of recording yourself.",
+    "Use Video (#/video) to generate a video with AI instead of recording one."
   ],
   "keyFeatures": [
     "Record step with Screen, Camera, Both (face bubble over the screen) and Audio modes, or Upload a video",
     "Voice cloning from your recording or a separate 10 to 60 second voice sample, only after ticking 'This is my own voice'",
     "Stock voice option instead of cloning",
-    "Greeting with {{firstname}} or {{company}} tokens, up to 70 characters, with a first-name fallback (there or friend)",
-    "Generate greeting button and a one-name Preview",
-    "Landing page header, message, company fallback, call-to-action label and https booking link with live preview",
-    "'AI-personalized voice' label on the preview when a cloned voice is used",
-    "Open in Timeline Editor hand-off with the recording, greeting and booking button already placed"
+    "Greeting with {{firstname}} or {{company}}, up to 70 characters, with a first-name fallback (there or friend)",
+    "Landing page header, message, company fallback and https booking button with live preview",
+    "Contacts from a CSV (column matching, template download, repeated emails skipped) or added one at a time, up to 500",
+    "Generate campaign: one voiced greeting per contact, a published video page and a personal link per contact, with Stop",
+    "Copy link, Download .csv of links and Open landing page",
+    "Campaigns table with videos, watched and button clicks, and per-contact views, plays and clicks"
   ],
   "featureExplanations": [
     {
@@ -58,20 +59,42 @@
       "restrictions": "The booking link must start with https://."
     },
     {
-      "feature": "Open in Timeline Editor",
-      "explanation": "Opens the classic Timeline Editor with the recording on Main Video, the greeting as a personalized Smart Speech clip on Voiceover, and the booking button (CTA) on Text. If a timeline is already open there you are asked before it is replaced; saved projects are kept.",
-      "whyToUse": "Use the editor's personal links, Share and analytics.",
-      "inputRequired": "Record, Voice and Customize complete.",
-      "restrictions": "Contacts, Generate and Campaigns inside this studio are not built yet; use the editor's Personalization and Share panels."
+      "feature": "Contacts",
+      "explanation": "Click Upload a .csv, match your columns (First name, Last name, Email, Company, Website) and click Import, or fill the Or add one fields and click Add contact. Download template gives a ready CSV. The list on the right shows everyone with Remove and Remove all.",
+      "whyToUse": "Each contact gets their own personal link.",
+      "inputRequired": "At least a first name or an email per contact.",
+      "restrictions": "Up to 500 contacts. Rows without a name or email are skipped, and repeated emails are added once."
+    },
+    {
+      "feature": "Generate campaign",
+      "explanation": "Shows how many contacts there are, how many are greeted by name, the voice and the booking button, then Generate campaign voices each contact's greeting, publishes the video page and lists every personal link. Contacts without a first name get the fallback greeting. Stop cancels before anything is published. Regenerate and republish updates the same campaign.",
+      "whyToUse": "Gets every contact a link that greets them by name.",
+      "inputRequired": "Steps 1 to 4 complete, sign in, and your MuAPI key.",
+      "restrictions": "Each greeting is a paid speech request on your MuAPI key (repeated names are voiced once); you are asked to confirm first."
+    },
+    {
+      "feature": "Personal links",
+      "explanation": "Each link opens the public video page with the contact's greeting, the header and message filled with their details, and your booking button. Use Copy link, or Download .csv of links to paste into your email tool.",
+      "whyToUse": "Send in emails or messages.",
+      "inputRequired": "A generated campaign.",
+      "restrictions": "Contact details travel in the link itself, so anyone with a link can read the name and company in it."
+    },
+    {
+      "feature": "Campaigns",
+      "explanation": "Lists your outreach campaigns with the date, number of videos (contacts), how many contacts watched, and booking button clicks. Click a campaign name to see each contact's views, plays and clicks and to open its video page. Refresh reloads; + New campaign keeps your recording, voice and page text and clears the contacts and links.",
+      "whyToUse": "See who watched and who clicked.",
+      "inputRequired": "Sign in.",
+      "restrictions": "Shows up to 50 recent campaigns. Contact names show for the campaign in this browser; others show contact ids."
     }
   ],
-  "howToUse": "1. Open Video Outreach at #/outreach. 2. Click Record (or Upload a video), record with a two-second pause at the start, and click Use Recording. 3. Click Next. 4. Choose My cloned voice, tick 'This is my own voice' and click Clone from my recording, or choose Stock voice. 5. Write the greeting, pick the first-name fallback and click Generate greeting. 6. Click Next. 7. Write the header and message, set the button label and booking link. 8. Click Open in Timeline Editor, then use Personalization and Share there to make personal links.",
+  "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",
   "howToSteps": [
     "Record or upload your video.",
-    "Clone your voice or choose a stock voice.",
-    "Write the greeting and generate it.",
-    "Set the landing page text and booking link.",
-    "Open in Timeline Editor and share personal links."
+    "Clone your voice or choose a stock voice, and generate the greeting.",
+    "Write the landing page and booking button.",
+    "Add contacts by CSV or one at a time.",
+    "Generate the campaign and send the personal links.",
+    "Check Campaigns for views and clicks."
   ],
   "gettingStarted": [
     "Add your MuAPI key in Settings > API keys first: cloning and speech use it.",
@@ -140,34 +163,35 @@
   ],
   "modelCapabilities": "Voice cloning and speech use MiniMax (speech-2.6-hd) through MuAPI on your own key.",
   "outputs": [
-    "Uploaded recording",
-    "Cloned voice",
-    "Generated fallback greeting audio",
-    "A Timeline Editor project with the recording, personalized greeting and booking button"
+    "A published video page per campaign",
+    "A voiced greeting per contact",
+    "A personal link per contact, and a CSV of links",
+    "Views, plays and clicks per contact"
   ],
   "limitations": [
-    "Contacts, Generate and Campaigns steps are not built yet.",
-    "Cloning and speech need your own MuAPI key and use its credit.",
-    "The draft is stored in this browser only.",
-    "On the public watch page a live name in a cloned voice may not play; the saved fallback greeting plays instead."
+    "Voice cloning and per-contact greetings need your own MuAPI key and use its credit.",
+    "Contact details travel inside each personal link.",
+    "The in-progress draft is stored in this browser.",
+    "Up to 500 contacts per campaign."
   ],
   "limitationDetails": [
     {
-      "limitation": "Steps 4 to 6 not built",
-      "impact": "No contact import or campaign table in this studio yet.",
-      "workaround": "Use the Timeline Editor's Personalization and Share panels."
+      "limitation": "Paid voice requests",
+      "impact": "Each named contact's greeting costs one speech request.",
+      "workaround": "Repeated names are voiced once; a greeting without {{firstname}} needs no per-contact requests."
     },
     {
       "limitation": "Browser-only draft",
-      "impact": "Switching browsers loses the draft.",
-      "workaround": "Finish and open it in the Timeline Editor, then save the project."
+      "impact": "Switching browsers loses the unfinished draft.",
+      "workaround": "Generate the campaign; published campaigns show in Campaigns on any device when signed in."
     }
   ],
   "troubleshooting": [
     "Clone from my recording is greyed out: record or upload in step 1 during this visit, or use Record a voice sample.",
     "'The voice sample needs at least 10 seconds of speech': record a longer sample.",
-    "'The recording is silent': check the microphone and record again.",
-    "A message about the MuAPI key: add your key in Settings > API keys."
+    "'Sign in to publish your campaign': sign in, then click Generate campaign again.",
+    "A message about the MuAPI key: add your key in Settings > API keys.",
+    "Import is greyed out: match at least a first name or an email column."
   ],
   "troubleshootingSteps": [
     "Check the message at the bottom of the step.",
@@ -180,7 +204,7 @@
     "Booking link without https://"
   ],
   "exampleWorkflows": [
-    "Find prospects in Lead Finder, record one video in Video Outreach, open it in the Timeline Editor and copy each contact's personal link."
+    "Find prospects in Lead Finder, export them as CSV, record one video in Video Outreach, import the CSV, generate the campaign and send each personal link."
   ],
   "useCases": [
     "Cold outreach",
@@ -213,19 +237,14 @@
   ],
   "relatedStudios": [
     "leadfinder",
-    "timeline",
-    "personalizer"
+    "personalizer",
+    "avatar"
   ],
   "relatedStudioGuidance": [
     {
       "studio": "leadfinder",
       "relationship": "Finds the contacts to send to",
       "whenToMove": "Before recording, to build your list."
-    },
-    {
-      "studio": "timeline",
-      "relationship": "Where the outreach video opens for personal links and sharing",
-      "whenToMove": "After Customize."
     }
   ],
   "notConfirmed": [
@@ -235,10 +254,14 @@
     "src/components/OutreachStudio.js",
     "src/lib/outreach/draft.js",
     "src/lib/outreach/voiceSample.js",
+    "src/pages/WatchPage.jsx",
+    "src/lib/editor/publish/publishClient.js",
     "netlify/functions/agent-audio.js"
   ],
   "verification": {
-    "status": "verified-in-code",
-    "notes": "Written from the studio's source code; a real voice clone call has not been run."
+    "status": "code-review",
+    "evidence": "Written from the studio, draft, watch page and publish sources; steps rendered in a local dev build. A real voice clone and publish were not run.",
+    "verifiedAt": "2026-11-15",
+    "verifiedBy": "Code review (LLM-assisted)"
   }
 }

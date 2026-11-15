@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import {
   defaultDraft, loadDraft, saveDraft, DRAFT_KEY, tokensIn, fillTemplate, stepErrors,
-  speakRequest, buildEditorProject, isHttpsUrl,
+  speakRequest, buildCampaignProject, campaignLinks, isHttpsUrl,
+  parseCsv, guessMapping, contactsFromRows, makeContact, mergeContacts, contactProfile,
 } from '../draft.js';
+import { personalLink, resolveLineFor } from '../../editor/personalize/perContact.js';
 import { encodeWav, encodeWavBuffer, mixToMono } from '../voiceSample.js';
 
 const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
@@ -12,6 +14,10 @@ function readyDraft(overrides = {}) {
   d.video = { url: 'https://store/rec.webm', duration: 42, hasAudio: true, type: 'both' };
   d.voice = { ...d.voice, mode: 'clone', cloneVoiceId: 'voice_abc123', consent: { at: '2026-11-15T00:00:00Z', userId: 'user_1' }, fallbackUrl: 'https://store/greeting.mp3', fallbackDuration: 1.8 };
   d.cta = { enabled: true, label: 'Book a call', url: 'https://cal.com/me/intro' };
+  d.contacts = [
+    { id: 'c1', firstName: 'Mike', lastName: 'Markovic', email: 'mike@acme.com', company: 'Acme', website: 'https://acme.com' },
+    { id: 'c2', firstName: '', lastName: '', email: 'info@stay.ai', company: 'Stay', website: '' },
+  ];
   return Object.assign(d, overrides);
 }
 
@@ -64,28 +70,79 @@ describe('outreach draft', () => {
     expect(speakRequest(stock, 'Hi')).toEqual({ provider: 'minimax', text: 'Hi', voice: 'Calm_Woman', speed: 1 });
   });
 
-  it('builds an editor project: recording, personalized greeting and CTA', () => {
-    const p = buildEditorProject(readyDraft(), { now: 1000 });
-    expect(p.timelineSeconds).toBe(42);
-    const [video, voice, text] = p.tracks;
-    expect(video).toMatchObject({ type: 'video', name: 'Main Video', muted: false });
+  it('builds the campaign project: recording, voiced greeting per contact, landing text', () => {
+    const variants = { c1: { url: 'https://store/mike.mp3', duration: 1.2, text: 'Hi Mike!', name: 'Mike' } };
+    const p = buildCampaignProject(readyDraft({ name: 'Cold outreach' }), { variants, now: 1000 });
+    expect(p).toMatchObject({ title: 'Cold outreach', timelineSeconds: 42, kind: 'outreach', campaign: { name: 'Cold outreach', contacts: 2 } });
+    const [video, voice] = p.tracks;
     expect(video.items[0]).toMatchObject({ type: 'video', src: 'https://store/rec.webm', left: 0, width: 100 });
-    expect(voice).toMatchObject({ type: 'audio', name: 'Voiceover' });
     expect(voice.items[0]).toMatchObject({
       type: 'audio', role: 'voiceover', src: 'https://store/greeting.mp3', start: 0, end: 1.8,
-      tts: { provider: 'minimax', voice: 'voice_abc123', cloneVoiceId: 'voice_abc123', text: 'Hi {{firstname}}!', fallback: 'Hi there!', personalized: true },
+      tts: { voice: 'voice_abc123', cloneVoiceId: 'voice_abc123', text: 'Hi {{firstname}}!', fallback: 'Hi there!', personalized: true, variants },
     });
-    expect(text.name).toBe('Text');
-    expect(text.items[0]).toMatchObject({ type: 'click-to-call', linkMode: 'url', linkUrl: 'https://cal.com/me/intro', buttonText: 'Book a call', end: 42 });
-    expect(text.items[0].start).toBeGreaterThanOrEqual(36);
-    // Both keys, like the editor's own saves.
-    for (const t of p.tracks) expect(t.clips).toBe(t.items);
-    expect(p.outreach).toMatchObject({ header: 'Hi {{firstname}}, I made this for you', aiVoice: 'cloned', cta: { label: 'Book a call' } });
+    expect(p.landing).toEqual({
+      header: 'Hi {{firstname}}, I made this for you', message: 'Excited to show how we can help {{company}}.',
+      fallbacks: { firstname: 'there', company: 'your company' }, cta: { label: 'Book a call', url: 'https://cal.com/me/intro' },
+    });
+    // No CTA when it is off; no contacts means no campaign.
+    expect(buildCampaignProject(readyDraft({ cta: { enabled: false, label: '', url: '' } })).landing.cta).toBeNull();
+    expect(() => buildCampaignProject(readyDraft({ contacts: [] }))).toThrow(/at least one contact/);
+    expect(() => buildCampaignProject(defaultDraft())).toThrow(/Record or upload/);
   });
 
-  it('leaves out the CTA when it is off, and refuses an unfinished draft', () => {
-    expect(buildEditorProject(readyDraft({ cta: { enabled: false, label: '', url: '' } })).tracks[2].items).toEqual([]);
-    expect(() => buildEditorProject(defaultDraft())).toThrow(/Record or upload/);
+  it('gives each contact a personal link that carries their details and id', () => {
+    const links = campaignLinks(readyDraft(), 'https://app.test/watch/abcdefgh12', personalLink, { c1: { url: 'https://store/mike.mp3' } });
+    expect(links).toHaveLength(2);
+    const mike = new URL(links[0].link);
+    expect(mike.pathname).toBe('/watch/abcdefgh12');
+    expect(mike.searchParams.get('c')).toBe('c1');
+    expect(mike.searchParams.get('firstName')).toBe('Mike');
+    expect(mike.searchParams.get('company')).toBe('Acme');
+    expect(links[0]).toMatchObject({ name: 'Mike Markovic', email: 'mike@acme.com', voiced: true });
+    expect(links[1]).toMatchObject({ name: 'info@stay.ai', voiced: false });
+    expect(new URL(links[1].link).searchParams.has('firstName')).toBe(false);
+  });
+
+  it('makes contact profiles the shared personalization helpers can read', () => {
+    const [mike, noName] = readyDraft().contacts.map(contactProfile);
+    expect(resolveLineFor('Hi {{firstname}}!', mike)).toBe('Hi Mike!');
+    expect(resolveLineFor('Hi {{firstname}}!', noName)).toBeNull(); // the fallback greeting plays
+  });
+});
+
+describe('contact import', () => {
+  it('parses CSV with quotes, commas, CRLF and a BOM', () => {
+    const { headers, rows } = parseCsv('﻿First Name,Email,Company\r\n"Ann ""A""",ann@x.com,"Acme, Inc"\r\n\r\nBo,bo@y.com,\r\n');
+    expect(headers).toEqual(['First Name', 'Email', 'Company']);
+    expect(rows).toEqual([
+      { 'First Name': 'Ann "A"', Email: 'ann@x.com', Company: 'Acme, Inc' },
+      { 'First Name': 'Bo', Email: 'bo@y.com', Company: '' },
+    ]);
+  });
+
+  it('guesses which columns hold which field', () => {
+    expect(guessMapping(['First_Name', 'Surname', 'E-mail', 'Organization', 'Domain', 'Notes']))
+      .toEqual({ firstName: 'First_Name', lastName: 'Surname', email: 'E-mail', company: 'Organization', website: 'Domain' });
+    expect(guessMapping(['Name', 'Email'])).toEqual({ firstName: 'Name', email: 'Email' });
+  });
+
+  it('turns rows into contacts, splitting a single Name column and skipping empty rows', () => {
+    const rows = [{ Name: 'Mike Markovic', Email: 'mike@acme.com' }, { Name: '', Email: '' }, { Name: 'Luca', Email: '' }];
+    let n = 0;
+    const { contacts, skipped } = contactsFromRows(rows, { firstName: 'Name', email: 'Email' }, { rand: () => (n += 0.1) });
+    expect(skipped).toBe(1);
+    expect(contacts.map((c) => [c.firstName, c.lastName, c.email])).toEqual([['Mike', 'Markovic', 'mike@acme.com'], ['Luca', '', '']]);
+    expect(contacts.every((c) => /^[A-Za-z0-9_-]{1,80}$/.test(c.id))).toBe(true);
+  });
+
+  it('normalizes a contact and drops repeated emails', () => {
+    expect(makeContact({ firstName: '  Ann ', website: 'acme.com', id: '../bad' }, { rand: () => 0.5 })).toMatchObject({ firstName: 'Ann', website: 'https://acme.com' });
+    expect(makeContact({ firstName: '  Ann ', id: '../bad' }, { rand: () => 0.5 }).id).not.toBe('../bad');
+    expect(makeContact({ company: 'Acme' })).toBeNull();
+    const a = makeContact({ email: 'A@x.com', id: 'a' });
+    const b = makeContact({ email: 'a@X.com', id: 'b' });
+    const c = makeContact({ firstName: 'C', id: 'c' });
+    expect(mergeContacts([a], [b, c]).map((x) => x.id)).toEqual(['a', 'c']);
   });
 });
 

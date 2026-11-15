@@ -52,3 +52,10 @@ html.watch-embed, html.watch-embed body { background: #000; }
 @media (max-width: 520px) { .wf-card--fields-4 .wf-fields, .wf-card--fields-5 .wf-fields { grid-template-columns: 1fr; } }
 /* OpenAI's usage policy: tell viewers the voice is AI-generated. */
 .watch-ai-voice { position: absolute; top: 10px; right: 10px; z-index: 4; padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.55); color: rgba(255,255,255,.85); font-size: 11px; pointer-events: none; }
+/* Video Outreach landing text under the player (project.landing). */
+.watch-landing { width: min(1100px, 100%); display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.watch-landing-msg { margin: 0; max-width: 720px; font-size: 16px; line-height: 1.5; opacity: .85; white-space: pre-line; }
+.watch-landing-cta { display: inline-block; padding: 12px 28px; border-radius: 999px; background: #4f46e5; color: #fff; font-weight: 700; text-decoration: none; }
+.watch-landing-cta:hover { filter: brightness(1.08); }
+.watch-landing-cta:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+@media (max-width: 640px) { .watch-landing { padding: 0 16px; } }
