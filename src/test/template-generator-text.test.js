@@ -28,7 +28,7 @@ describe('text looks', () => {
   });
 
   it('saves only what the user changed, and a preset keeps the box they moved', () => {
-    let el = { styles: {} };
+    const el = { styles: {} };
     el.styles = withTextStyle(el, 'title', { geometry: { left: 20, top: 30, width: 50, height: 15 } });
     el.styles = withPreset(el, 'title', 'neon');
     expect(presetOf(el, 'title')).toBe('neon');
