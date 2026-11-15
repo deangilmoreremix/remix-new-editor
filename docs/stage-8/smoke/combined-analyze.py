@@ -45,9 +45,12 @@ mid, A, B = frame(fin, 2.75), frame(base, 2.75), frame(base, 4.2)
 L = (slice(None), slice(100, 500)); R = (slice(None), slice(1500, 1850)); dd = lambda x, y, s: float(np.abs(x[s] - y[s]).mean())
 nums['mid_transition'] = {'left_vs_B': dd(mid, B, L), 'left_vs_A': dd(mid, A, L), 'right_vs_B': dd(mid, B, R), 'right_vs_A': dd(mid, A, R), 'whole_vs_A': float(np.abs(mid - A).mean()), 'whole_vs_B': float(np.abs(mid - B).mean())}
 m = nums['mid_transition']
-chk(m['whole_vs_A'] > 20 and m['whole_vs_B'] > 20 and m['left_vs_B'] < 5 and m['right_vs_A'] < 5, 'mid-transition frame is neither clip A nor clip B: left of the wipe shows B, right still A (distances to A/B whole frame %.0f/%.0f)' % (m['whole_vs_A'], m['whole_vs_B']))
-# known limitation recorded as a number, not a pass/fail: A's keyed x (+30 %) is not applied inside the GL transition window
-nums['A_x_shift_inside_transition_px(known: transition samples raw frames)'] = shift(frame(base, 2.6), frame(fin, 2.6))
+# Stage 9 fixA: each side of a GL transition is composited with its clip's own transform/keys/effects before the shader blends, so the
+# mid frame is no longer raw A / raw B. Check (1) it is neither raw clip, (2) A's keyed x (held at +30% after 1.26 s) is continuous across the window start.
+sh_before, sh_inside = shift(frame(base, 2.4), frame(fin, 2.4)), shift(frame(base, 2.6), frame(fin, 2.6))
+nums['A_x_shift_before_vs_inside_transition_px'] = [sh_before, sh_inside]
+chk(m['whole_vs_A'] > 20 and m['whole_vs_B'] > 20, 'mid-transition frame is neither raw clip A nor raw clip B (distances to A/B whole frame %.0f/%.0f)' % (m['whole_vs_A'], m['whole_vs_B']))
+chk(abs(sh_inside - sh_before) < 60 and abs(sh_inside - 576) < 60, f"clip A's keyed x is continuous across the transition boundary (before {sh_before} px, inside {sh_inside} px, expected ~576)")
 # audio
 has_a = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=codec_name', '-of', 'csv=p=0', fin], capture_output=True, text=True).stdout.strip()
 chk(bool(has_a), 'export has an audio stream: ' + has_a)
