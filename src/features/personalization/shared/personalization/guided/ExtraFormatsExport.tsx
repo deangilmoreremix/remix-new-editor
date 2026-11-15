@@ -37,6 +37,9 @@ export function ExtraFormatsExport({ inputProps, disabled }: { inputProps: Previ
       if (ac.signal.aborted) setNote(`Cancelled. ${ok} file${ok === 1 ? '' : 's'} saved.`)
       else if (failed.length) setNote(`${ok} saved. ${failed.map((f) => `${f.aspect}: ${(f.result as { error: string }).error}`).join(' ')}`)
       else setNote(`${ok} file${ok === 1 ? '' : 's'} saved to your downloads.`)
+    } catch (error) {
+      // A failed lazy import or a throw from the renderer must reach the person, not become an unhandled rejection.
+      setNote(`Export failed: ${error instanceof Error && error.message ? error.message : 'something went wrong.'}`)
     } finally { setRunning(false); abortRef.current = null }
   }
 
