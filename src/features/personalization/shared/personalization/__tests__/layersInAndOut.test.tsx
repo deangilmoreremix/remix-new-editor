@@ -123,4 +123,12 @@ describe('overlay layers in and out for a host editor', () => {
     await act(async () => { ctx().closePersonalize() })
     expect(onLayersChange).not.toHaveBeenCalled()
   })
+
+  it('opens on the template step when asked, otherwise on the first, and does not leak', async () => {
+    await act(async () => { ctx().openPersonalize({ source: SOURCE, openTo: 'templates' }) })
+    expect(ctx().guidedStep).toBe(3)
+    await act(async () => { ctx().closePersonalize() })
+    await act(async () => { ctx().openPersonalize({ source: SOURCE }) })
+    expect(ctx().guidedStep).toBe(1)
+  })
 })

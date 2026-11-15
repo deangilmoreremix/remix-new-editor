@@ -45,3 +45,13 @@ describe('Layout check section', () => {
     expect(el.querySelector('img')).toBeNull();
   });
 });
+
+describe('Browse templates button', () => {
+  it('is offered only when the host provides it, and calls it', () => {
+    const withIt = base(null, { browseTemplates: vi.fn() });
+    const el = mount(withIt);
+    el.querySelector('[data-rp="templates"]').click();
+    expect(withIt.browseTemplates).toHaveBeenCalledTimes(1);
+    expect(mount(base(null)).querySelector('[data-rp="templates"]')).toBeNull();
+  });
+});

@@ -696,6 +696,11 @@ type OpenPersonalizeOptions = {
    */
   initialLayers?: PreviewLayer[]
   /**
+   * Open on a specific part of the guided flow. `'templates'` starts on the
+   * step that shows the template browser (Personalize, step 3).
+   */
+  openTo?: 'templates'
+  /**
    * Called when the modal closes with overlay layers that differ from what it
    * opened with, so the host can apply the edits.
    */
@@ -1497,6 +1502,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   const originStudioRef = useRef<string | null>(null)
   const initialAssetsRef = useRef<AssetLibrary | null>(null)
   const initialLayersRef = useRef<PreviewLayer[] | null>(null)
+  const openToRef = useRef<'templates' | null>(null)
   const onLayersChangeRef = useRef<((payload: PersonalizationLayersPayload) => void) | null>(null)
   /** JSON of the layers the modal opened with (seed or defaults): "changed" means differing from it. */
   const baselineLayersRef = useRef<string>('')
@@ -2092,7 +2098,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // effect (below) hydrates anything durable, so a saved project always wins.
     // The view mode is intentionally NOT reset: an explicit Advanced Editing
     // choice is a session preference and survives opening another source.
-    setGuidedStepState(1)
+    // Opened on the template browser from a host editor, else from the start.
+    setGuidedStepState(openToRef.current === 'templates' ? 3 : 1)
     {
       const defaults = sourcePreviewDefaults(source)
       const seed = initialLayersRef.current
@@ -2790,6 +2797,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       initialAssetsRef.current = opts.initialAssets || null
       onCompleteRef.current = opts.onComplete || null
       initialLayersRef.current = opts.initialLayers?.length ? opts.initialLayers : null
+      openToRef.current = opts.openTo === 'templates' ? 'templates' : null
       onLayersChangeRef.current = opts.onLayersChange || null
       returnToRef.current = opts.returnTo || null
       returnPayloadRef.current = opts.returnPayload || null
@@ -2840,6 +2848,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     initialAssetsRef.current = null
     onCompleteRef.current = null
     initialLayersRef.current = null
+    openToRef.current = null
     onLayersChangeRef.current = null
     returnToRef.current = null
     returnPayloadRef.current = null

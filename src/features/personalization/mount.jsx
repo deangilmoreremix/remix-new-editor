@@ -292,6 +292,7 @@ export function openPersonalization(options = {}) {
       originStudio: ORIGIN_STUDIO[identity.studioId] || undefined,
       onComplete: options.onComplete,
       initialLayers: options.initialLayers,
+      openTo: options.openTo,
       onLayersChange: options.onLayersChange,
     }
   }

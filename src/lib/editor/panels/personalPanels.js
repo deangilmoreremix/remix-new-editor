@@ -96,7 +96,7 @@ export function renderPersonalizationPanel(el, s) {
     const values = contactValues(active);
     el.innerHTML = wrap(`
       <p class="pz-hint">Details from the Personalization Studio for the contact the video is previewed as. Click “Add as text” to put one on the video as Smart Text.</p>
-      <div class="rp-row">${contactSelect(contacts, active?.id)}<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="open">Open Personalize</button></div>
+      <div class="rp-row">${contactSelect(contacts, active?.id)}<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="open">Open Personalize</button>${s.browseTemplates ? '<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="templates" title="Designs are shown and exported from the Personalize window">Browse templates</button>' : ''}</div>
       ${active ? (values.length ? `<ul class="rp-list">${values.map((v) => `
         <li class="rp-var"><div><strong>${esc(v.label)}</strong><code>{{${esc(v.key)}}}</code></div><span title="${esc(v.value)}">${esc(v.value)}</span>
           <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-add="${esc(v.key)}">Add as text</button></li>`).join('')}</ul>`
@@ -112,6 +112,7 @@ export function renderPersonalizationPanel(el, s) {
     const b = e.target.closest('button');
     if (!b) return;
     if (b.dataset.rp === 'open') s.openPersonalize();
+    else if (b.dataset.rp === 'templates') s.browseTemplates?.();
     else if (b.dataset.add) s.addText(`{{${b.dataset.add}}}`);
     else if (b.dataset.fixItem != null) { const item = s.readiness?.().items[Number(b.dataset.fixItem)]; if (item) s.fix?.(item, draw); }
     else if (b.dataset.checkImages) s.checkImages?.(draw);

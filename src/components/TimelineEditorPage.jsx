@@ -49,7 +49,7 @@ import { runBatch, summarizeBatch, uniqueFileName } from '../lib/personalization
 import { planPrepareImages, prepareImages } from '../lib/personalization/prepareImages.js';
 import { buildReadiness } from '../lib/personalization/readiness.js';
 import { isCutoutAsset } from '../lib/personalization/assetUrl.js';
-import { BRIDGE_SOURCE, layersToTimelineOverlays, timelineOverlaysToLayers } from '../lib/personalization/layerOverlayBridge.js';
+import { BRIDGE_SOURCE, countKeptInModal, layersToTimelineOverlays, timelineOverlaysToLayers } from '../lib/personalization/layerOverlayBridge.js';
 import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
 import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';
 import { addPersonalizationAsset, createPersonalizationAsset, removePersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
@@ -5028,13 +5028,15 @@ export function TimelineEditorPage() {
       try { renderTracks(); renderOverlayLayer(); } catch { /* not mounted */ }
       scheduleEngineUpdate();
       debouncedSave();
-      showToast(`Updated ${plan.length} overlay${plan.length === 1 ? '' : 's'} from Personalize`, 'success');
+      const kept = countKeptInModal(layers);
+      showToast(`Updated ${plan.length} overlay${plan.length === 1 ? '' : 's'} from Personalize${kept ? `. ${kept} design/end-card layer${kept === 1 ? ' stays' : 's stay'} in the Personalize window and ${kept === 1 ? 'is' : 'are'} not in this timeline's export` : ''}`, kept ? 'info' : 'success');
     }
 
     // The Personalize window, seeded with (and reporting back) the shared overlays.
-    function openPersonalizeWindow(onDone) {
+    function openPersonalizeWindow(onDone, { openTo } = {}) {
       return import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
         studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
+        ...(openTo ? { openTo } : {}),
         initialLayers: personalizeInitialLayers(),
         onLayersChange: applyPersonalizeLayers,
         onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); onDone?.(); },
@@ -9047,6 +9049,7 @@ export function TimelineEditorPage() {
           checkImages: checkImagesLoad,
           fix: fixReadinessItem,
           openPersonalize: () => openPersonalizeWindow(() => panel.redraw()),
+          browseTemplates: () => openPersonalizeWindow(() => panel.redraw(), { openTo: 'templates' }),
         });
         loadLayoutCheck().then(() => panel.redraw()).catch(() => {});
         window.addEventListener('remix:contact-changed', panel.redraw);

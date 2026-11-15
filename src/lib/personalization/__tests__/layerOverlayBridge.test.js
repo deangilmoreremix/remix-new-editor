@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { layersToTimelineOverlays, timelineOverlaysToLayers, isBridgeable, BRIDGE_SOURCE } from '../layerOverlayBridge.js';
+import { layersToTimelineOverlays, timelineOverlaysToLayers, isBridgeable, countKeptInModal, BRIDGE_SOURCE } from '../layerOverlayBridge.js';
 
 const settings = { fps: 30, durationInFrames: 300, width: 1920, height: 1080 };
 const base = (over = {}) => ({ animation: 'none', animationDelay: 0, startFrame: 0, opacity: 1, visible: true, ...over });
@@ -72,5 +72,13 @@ describe('timelineOverlaysToLayers', () => {
     expect(timelineOverlaysToLayers(items, layers, settings).find((l) => l.id === 'headline').text).toBeUndefined();
     items[1].addon.text = 'Big news';
     expect(timelineOverlaysToLayers(items, layers, settings).find((l) => l.id === 'headline').text).toBe('Big news');
+  });
+});
+
+describe('countKeptInModal', () => {
+  it('counts visible layers the timeline cannot draw', () => {
+    expect(countKeptInModal([logo, headline, design, hidden, base({ id: 'end', kind: 'endCard' })])).toBe(2); // design + endCard; hidden offer is not counted
+    expect(countKeptInModal([logo, headline])).toBe(0);
+    expect(countKeptInModal(null)).toBe(0);
   });
 });

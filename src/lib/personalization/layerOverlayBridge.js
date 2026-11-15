@@ -22,6 +22,9 @@ const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 /** Layers the timeline can show. `design` / `endCard` stay in the modal. */
 export const isBridgeable = (layer) => Boolean(layer && layer.visible !== false && (IMAGE_TOKENS[layer.kind] || TEXT_TOKENS[layer.kind]));
 
+/** Visible layers the timeline cannot draw (designs, end card): they stay in the Personalize window. */
+export const countKeptInModal = (layers) => (layers || []).filter((l) => l && l.visible !== false && !isBridgeable(l)).length;
+
 function settingsOf(s = {}) {
   const fps = Number(s.fps) > 0 ? Number(s.fps) : 30;
   const durationInFrames = Number(s.durationInFrames) > 0 ? Number(s.durationInFrames) : fps * 10;

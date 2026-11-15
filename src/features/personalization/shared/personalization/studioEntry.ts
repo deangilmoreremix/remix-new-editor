@@ -149,6 +149,9 @@ export interface StudioPersonalizeOptions {
   /** Seed the guided preview's overlay layers (the host's current overlays). */
   initialLayers?: PreviewLayer[];
 
+  /** Open on the template browser instead of the first step. */
+  openTo?: 'templates';
+
   /** Called on close when the overlay layers were edited (see `initialLayers`). */
   onLayersChange?: (payload: PersonalizationLayersPayload) => void;
 
@@ -297,6 +300,7 @@ export function useStudioPersonalize(): {
           initialAssets: options.initialAssets,
           onComplete: options.onComplete,
           initialLayers: options.initialLayers,
+          openTo: options.openTo,
           onLayersChange: options.onLayersChange,
           returnTo: options.returnTo,
           returnPayload: options.returnPayload,
