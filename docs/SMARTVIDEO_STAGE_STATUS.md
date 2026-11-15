@@ -615,3 +615,6 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 
 ### Function-access hardening prepared (2026-11-15)
 - `20261121000000_restrict_public_function_access.sql` + 25 assertions + 8 mutations. Preview on production read-only; NOT applied.
+
+### Function-access hardening applied to production (2026-11-15)
+- Anon-callable SECURITY DEFINER functions 80 -> 14, authenticated 90 -> 51, Cloudflare view fixed. Probe verified. Log re-check pending.

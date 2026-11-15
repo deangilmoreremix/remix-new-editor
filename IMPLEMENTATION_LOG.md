@@ -163,3 +163,6 @@ Branch: `claude/jolly-cannon-ofqf7h`
 
 ### Security review of callable functions
 - Read-only review of production (function list, 24h rpc traffic, function bodies, view row counts). Wrote and tested the fix locally; nothing changed on production.
+
+### Function-access hardening on production
+- Authorization: "yes, apply the function fix to production". Applied the tested migration with apply_migration; verified counts and behaviour with a rolled-back probe as anon/authenticated; listed the 14 remaining anon-callable functions (all intentional).
