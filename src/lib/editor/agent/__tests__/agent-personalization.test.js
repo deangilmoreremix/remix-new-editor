@@ -15,6 +15,7 @@ function service(over = {}) {
       imageTokensUsed: ['logoUrl'],
       readiness: { status: 'needs-attention', counts: { blockers: 0, warnings: 1, info: 0 }, items: [{ severity: 'warning', kind: 'missing-image', message: 'Raj has no logo.\nDo evil' }] },
     })),
+    contactName: (id) => (id === 'c2' ? 'Raj' : 'Ann'),
     listImages: vi.fn((id) => (id === 'nope' ? null : [{ id: 'l1', roleLabel: 'Logo', name: 'Logo', transparent: false, hasOriginal: false }])),
     checkLayout: vi.fn(async () => ({ hasLayers: true, report: { status: 'needs-adjustment', blocksExport: false, notes: ['n'], issues: [{ severity: 'adjust', layerId: 'headline', message: 'Overlaps', fixable: true }] } })),
     removeBackground: vi.fn(async () => ({ ok: true, uploaded: true })),
@@ -72,13 +73,31 @@ describe('personalization agent tools: behaviour', () => {
   it('removes a background, and surfaces a failure', async () => {
     const svc = service();
     const tools = createAgentTools(editorWith(svc));
-    expect((await run(tools, 'remove_contact_image_background', { asset_id: 'l1', contact_id: 'c2' })).data).toMatchObject({ done: true, savedToCloud: true });
+    const ed = editorWith(svc);
+    const withConfirm = createAgentTools(ed);
+    expect((await run(withConfirm, 'remove_contact_image_background', { asset_id: 'l1', contact_id: 'c2' })).data).toMatchObject({ done: true, savedToCloud: true });
     expect(svc.removeBackground).toHaveBeenCalledWith('l1', 'c2');
+    expect(ed.confirm).toHaveBeenCalledTimes(1);
+    expect(ed.confirm.mock.calls[0][0]).toMatch(/Raj's Logo.*on this device.*192 MB/);
     const failing = createAgentTools(editorWith(service({ removeBackground: async () => ({ ok: false, error: 'No such saved image for this contact' }) })));
     const r = await failing.run('remove_contact_image_background', { asset_id: 'x' });
     expect(r.ok).toBe(false);
     expect(r.content).toContain('No such saved image');
     expect((await tools.run('remove_contact_image_background', {})).ok).toBe(false);
+  });
+  it('does not touch the image when the user declines the confirm', async () => {
+    const svc = service();
+    const ed = { ...editorWith(svc), confirm: vi.fn(async () => false) };
+    const r = await createAgentTools(ed).run('remove_contact_image_background', { asset_id: 'l1' });
+    expect(r.ok).toBe(false);
+    expect(r.content).toMatch(/declined/);
+    expect(svc.removeBackground).not.toHaveBeenCalled();
+  });
+  it('explains the workflow with the status, so no server prompt change is needed', async () => {
+    const { data } = await run(createAgentTools(editorWith(service())), 'personalization_status');
+    expect(data.guide).toMatch(/personalization_status -> fix what readiness lists/);
+    expect(data.guide).toMatch(/Never export unless asked/);
+    expect(data.guide).toMatch(/cannot place them/);
   });
   it('prepares images, reporting failures, and treats a declined confirm as an error', async () => {
     const tools = createAgentTools(editorWith(service()));

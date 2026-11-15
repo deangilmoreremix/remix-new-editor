@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', '564be1f34ecc1677d631dc68a115a079a060d6fc409412c1aa8b1b96b0aebb4a'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check, prepare images, readiness, agent service, templates); semantic coverage in section 5
+        ['src/components/TimelineEditorPage.jsx', 'ce9d3b093c7da3a4b209718f369010ef0d9a86efb7f00b14b6bb3affcd94274d'], // re-recorded for the approved Personalization work (on-device cutouts, shared overlays, batch export, layout check, prepare images, readiness, agent service, templates); semantic coverage in section 5
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -1044,6 +1044,7 @@ describe('protected files — semantic integrity assertions', () => {
     // provider, key or upload path; the agent's own confirm gate still applies).
     expect(source).toContain('function personalizationService()');
     expect(source).toContain('personalization: () => personalizationService(),');
+    expect(source).toContain('contactName: (id) => nameFor(profileFor(id)),'); // names the contact in the agent's confirm prompt
     // Templates are Remotion designs the timeline engine cannot draw: the page
     // opens the Personalize window on them and says what stays there.
     expect(source).toContain("browseTemplates: () => openPersonalizeWindow(() => panel.redraw(), { openTo: 'templates' }),");

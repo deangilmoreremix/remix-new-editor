@@ -5082,6 +5082,7 @@ export function TimelineEditorPage() {
       const nameFor = (p) => (p ? contactName(p) : null);
       return {
         layouts: () => PERSONALIZED_LAYOUTS,
+        contactName: (id) => nameFor(profileFor(id)),
         async status() {
           await loadLayoutCheck();
           const active = getActivePersonalizationProfile();
