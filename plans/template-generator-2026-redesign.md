@@ -144,3 +144,6 @@ Step 1 now starts on **Video templates**: the public 184-clip library kept in th
 - The stills were rendered over a dark frame, so dark artwork vanished and small elements (lower thirds, name bars) sat in a corner. The generator now shoots each render over a transparent page at 3x and composes the tile (`scripts/template-thumbs/compose.mjs`): the element is cropped and enlarged, dark artwork gets a light backdrop, full frames and sparse full-frame overlays keep their whole frame.
 - Re-rendered the 211 stills that looked empty. Near-empty stills went from 81 to 48 (Animations) and 13 to 5 (Motion graphics); the rest are ambient backgrounds, gradients, starfields and dark code windows, sparse by nature. One previously blocklisted motion graphic (it was dark-on-dark) is offered again (blocklist 23 → 22).
 - `src/test/template-stills-quality.test.js` guards against empty tiles coming back.
+
+## Scope: the new (CineGen) editor only
+The Template Generator's text looks, real transitions, lower-third styles, audio, cut-out and export are built for the new CineGen editor. The classic editor's entry points still open the wizard with its legacy fallbacks (legacy transition list, no styled text on its timeline, no audio, no export), and are not maintained. Decision: leave that code as it is.
