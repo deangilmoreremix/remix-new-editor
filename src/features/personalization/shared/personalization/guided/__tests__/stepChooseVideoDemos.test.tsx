@@ -223,7 +223,7 @@ describe('Demos tab — search and filters', () => {
     const source = screen.getByLabelText('Source') as HTMLSelectElement
     const sourceValues = Array.from(source.options).map((option) => option.value)
     expect(sourceValues).toContain('all')
-    // promptfeed and seedance-1 are hidden until their video files are supplied (see EXCLUDED_DEMO_COLLECTIONS).
+    // The dead promptfeed / seedance-1 catalogs were removed; these are the collections that exist.
     for (const collection of ['minimax-h3', 'seedance-25', 'template-library']) {
       expect(sourceValues).toContain(collection)
     }
