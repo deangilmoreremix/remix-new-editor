@@ -443,7 +443,7 @@ export class RecorderModal extends BaseModal {
     try {
       const q = this.getQualityConstraints();
       const micTracks = this.recordingType === 'audio' ? [] : await this.getMicTracks();
-      const withMic = (videoStream) => new MediaStream([...videoStream.getVideoTracks(), ...micTracks.map(t => t.clone())]);
+      const withMic = (videoStream) => new globalThis.MediaStream([...videoStream.getVideoTracks(), ...micTracks.map(t => t.clone())]);
       const type = this.recordingType;
       let stream = null;
       this.trackBlobs = {};
@@ -470,7 +470,7 @@ export class RecorderModal extends BaseModal {
       } else if (type === 'camera') {
         stream = withMic(this.webcamStream);
       } else if (type === 'both') {
-        stream = new MediaStream([
+        stream = new globalThis.MediaStream([
           ...this.composeScreenAndCam(this.screenStream, this.webcamStream, q).getVideoTracks(),
           ...micTracks.map(t => t.clone())
         ]);

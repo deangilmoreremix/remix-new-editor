@@ -210,6 +210,7 @@ export const STUDIO_ACADEMY = {
     ],
   },
   'find-my-brand': { tracks: [], lessons: [] },
+  outreach: { tracks: [], lessons: [] },
   'website-builder': { tracks: [], lessons: [] },
   render: { tracks: [], lessons: [] },
   academy: { tracks: [], lessons: [] },

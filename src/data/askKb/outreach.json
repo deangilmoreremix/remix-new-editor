@@ -1,0 +1,244 @@
+{
+  "id": "outreach",
+  "name": "Video Outreach",
+  "route": "#/outreach",
+  "description": "Record one video, give it a greeting spoken in your own cloned voice (or a stock voice) for each contact, set up the landing page text and booking button, then open it in the Timeline Editor for personal links and sharing.",
+  "shortDescription": "Record once, greet every contact by name in your own voice, and add a booking button.",
+  "fullDescription": "Video Outreach (#/outreach, under Agents in the side menu) is a step-by-step studio. The stepper shows Record, Voice, Customize, Contacts, Generate and Campaigns; Record, Voice and Customize work today and the other three are marked as coming next. Record opens the recorder (Screen, Camera, Both or Audio) or takes an uploaded video and stores it in your storage. Voice lets you clone your own voice from the recording or from a separate voice sample, after you tick 'This is my own voice', or pick a stock voice; you then write the greeting (for example 'Hi {{firstname}}!'), choose what to say when a first name is missing (there or friend) and click Generate greeting. Customize sets the landing page header, message, a company fallback, and a call-to-action button with a booking link, with a live preview. The last button, Open in Timeline Editor, opens the classic Timeline Editor (#/timeline-classic) with the recording on the Main Video track, the personalized greeting on the Voiceover track and the booking button on the Text track. The draft is saved in this browser, so you can leave and come back.",
+  "bestFor": "Sales people, founders and agencies who send personalized video to prospects and want each person to hear their own name in the sender's voice.",
+  "whenToUse": [
+    "You want to record one video and send a personalized version to many contacts.",
+    "You want each contact to hear 'Hi <their name>' in your own voice.",
+    "You want a landing page with a booking button under the video.",
+    "You want a guided setup before working in the Timeline Editor."
+  ],
+  "whenToUseAnother": [
+    "Use Lead Finder (#/leadfinder) to find businesses to contact first.",
+    "Use the Timeline Editor (#/timeline-classic) directly if you already have a video and only need Smart Speech or personal links.",
+    "Use Personalizer (#/personalizer) for personalized pages that are not built around a recorded video.",
+    "Use Avatar (#/avatar) if you want an AI presenter instead of recording yourself."
+  ],
+  "keyFeatures": [
+    "Record step with Screen, Camera, Both (face bubble over the screen) and Audio modes, or Upload a video",
+    "Voice cloning from your recording or a separate 10 to 60 second voice sample, only after ticking 'This is my own voice'",
+    "Stock voice option instead of cloning",
+    "Greeting with {{firstname}} or {{company}} tokens, up to 70 characters, with a first-name fallback (there or friend)",
+    "Generate greeting button and a one-name Preview",
+    "Landing page header, message, company fallback, call-to-action label and https booking link with live preview",
+    "'AI-personalized voice' label on the preview when a cloned voice is used",
+    "Open in Timeline Editor hand-off with the recording, greeting and booking button already placed"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Record",
+      "explanation": "Click Record to open the recorder; it defaults to Both (screen with a round camera bubble) and you can switch to Screen, Camera or Audio. Click Use Recording and the video is uploaded to your storage. Or click Upload a video. The Your recording card shows the length and whether it has sound.",
+      "whyToUse": "Every campaign starts from one video.",
+      "inputRequired": "Camera, screen and microphone permission, or a video file.",
+      "restrictions": "Uploading needs you to be signed in. Leave a two-second pause at the start: the personalized greeting plays there."
+    },
+    {
+      "feature": "Clone your voice",
+      "explanation": "On the Voice step choose My cloned voice, tick 'This is my own voice', then click Clone from my recording or Record a voice sample. The studio takes up to 60 seconds of speech from the recording, prepares it as a WAV sample and clones it with MiniMax through MuAPI. When it finishes it shows 'Cloned voice ready'.",
+      "whyToUse": "Contacts hear the greeting in your own voice.",
+      "inputRequired": "At least 10 seconds of your speech, your MuAPI key in Settings > API keys, and the consent tick.",
+      "restrictions": "Only clone your own voice. Clone from my recording works only for a recording made or uploaded during this visit and with sound. Cloning uses your MuAPI credit."
+    },
+    {
+      "feature": "Greeting and fallback",
+      "explanation": "Type the greeting with tokens, for example 'Hi {{firstname}}!'. Pick what to say when a first name is missing (there or friend), then click Generate greeting. The fallback line ('Hi there!') is generated and saved so contacts without details still hear a greeting. Type a name and click Preview to hear one example.",
+      "whyToUse": "Every contact hears a greeting, even with missing details.",
+      "inputRequired": "A cloned or stock voice.",
+      "restrictions": "Up to 70 characters. Each Generate or Preview is one paid speech request on your MuAPI key."
+    },
+    {
+      "feature": "Customize the landing page",
+      "explanation": "Set the Header and Message with {{firstname}} and {{company}}, what to say if the company is missing, and the Call-to-action button label and Booking link. The preview on the right shows how it reads for a sample contact, Mike at Acme.",
+      "whyToUse": "Turns views into booked meetings.",
+      "inputRequired": "A header; a label and an https booking link if the button is on.",
+      "restrictions": "The booking link must start with https://."
+    },
+    {
+      "feature": "Open in Timeline Editor",
+      "explanation": "Opens the classic Timeline Editor with the recording on Main Video, the greeting as a personalized Smart Speech clip on Voiceover, and the booking button (CTA) on Text. If a timeline is already open there you are asked before it is replaced; saved projects are kept.",
+      "whyToUse": "Use the editor's personal links, Share and analytics.",
+      "inputRequired": "Record, Voice and Customize complete.",
+      "restrictions": "Contacts, Generate and Campaigns inside this studio are not built yet; use the editor's Personalization and Share panels."
+    }
+  ],
+  "howToUse": "1. Open Video Outreach at #/outreach. 2. Click Record (or Upload a video), record with a two-second pause at the start, and click Use Recording. 3. Click Next. 4. Choose My cloned voice, tick 'This is my own voice' and click Clone from my recording, or choose Stock voice. 5. Write the greeting, pick the first-name fallback and click Generate greeting. 6. Click Next. 7. Write the header and message, set the button label and booking link. 8. Click Open in Timeline Editor, then use Personalization and Share there to make personal links.",
+  "howToSteps": [
+    "Record or upload your video.",
+    "Clone your voice or choose a stock voice.",
+    "Write the greeting and generate it.",
+    "Set the landing page text and booking link.",
+    "Open in Timeline Editor and share personal links."
+  ],
+  "gettingStarted": [
+    "Add your MuAPI key in Settings > API keys first: cloning and speech use it.",
+    "Sign in so recordings and audio can be stored.",
+    "Speak naturally for at least 10 seconds in your recording so it can be used to clone your voice."
+  ],
+  "inputs": [
+    "Recording or video file",
+    "Voice sample",
+    "Greeting",
+    "First-name fallback",
+    "Header",
+    "Message",
+    "Company fallback",
+    "Button label",
+    "Booking link"
+  ],
+  "requiredInputs": [
+    "Recording or video file",
+    "Greeting",
+    "Header"
+  ],
+  "optionalInputs": [
+    "Voice sample",
+    "Message",
+    "Company fallback",
+    "Button label",
+    "Booking link"
+  ],
+  "inputDetails": [
+    {
+      "name": "Greeting",
+      "description": "The line spoken at the start, e.g. Hi {{firstname}}!",
+      "required": true,
+      "whenToUse": "Every campaign.",
+      "restrictions": "Up to 70 characters."
+    },
+    {
+      "name": "Booking link",
+      "description": "Your Cal.com, Calendly or other booking page.",
+      "required": false,
+      "whenToUse": "When the call-to-action button is on.",
+      "restrictions": "Must be an https:// address."
+    },
+    {
+      "name": "Voice sample",
+      "description": "Your own speech used to clone your voice.",
+      "required": false,
+      "whenToUse": "When you choose My cloned voice.",
+      "restrictions": "10 to 60 seconds; must be your own voice."
+    }
+  ],
+  "generationModes": [
+    "My cloned voice",
+    "Stock voice"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "My cloned voice",
+      "explanation": "The greeting is spoken in a clone of your own voice (MiniMax through MuAPI)."
+    },
+    {
+      "mode": "Stock voice",
+      "explanation": "The greeting uses one of the built-in MiniMax voices; no cloning or consent step."
+    }
+  ],
+  "modelCapabilities": "Voice cloning and speech use MiniMax (speech-2.6-hd) through MuAPI on your own key.",
+  "outputs": [
+    "Uploaded recording",
+    "Cloned voice",
+    "Generated fallback greeting audio",
+    "A Timeline Editor project with the recording, personalized greeting and booking button"
+  ],
+  "limitations": [
+    "Contacts, Generate and Campaigns steps are not built yet.",
+    "Cloning and speech need your own MuAPI key and use its credit.",
+    "The draft is stored in this browser only.",
+    "On the public watch page a live name in a cloned voice may not play; the saved fallback greeting plays instead."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Steps 4 to 6 not built",
+      "impact": "No contact import or campaign table in this studio yet.",
+      "workaround": "Use the Timeline Editor's Personalization and Share panels."
+    },
+    {
+      "limitation": "Browser-only draft",
+      "impact": "Switching browsers loses the draft.",
+      "workaround": "Finish and open it in the Timeline Editor, then save the project."
+    }
+  ],
+  "troubleshooting": [
+    "Clone from my recording is greyed out: record or upload in step 1 during this visit, or use Record a voice sample.",
+    "'The voice sample needs at least 10 seconds of speech': record a longer sample.",
+    "'The recording is silent': check the microphone and record again.",
+    "A message about the MuAPI key: add your key in Settings > API keys."
+  ],
+  "troubleshootingSteps": [
+    "Check the message at the bottom of the step.",
+    "Add your MuAPI key in Settings.",
+    "Sign in and try again."
+  ],
+  "commonProblems": [
+    "No sound in the recording",
+    "Missing MuAPI key",
+    "Booking link without https://"
+  ],
+  "exampleWorkflows": [
+    "Find prospects in Lead Finder, record one video in Video Outreach, open it in the Timeline Editor and copy each contact's personal link."
+  ],
+  "useCases": [
+    "Cold outreach",
+    "Follow-ups after a demo",
+    "Event follow-up"
+  ],
+  "faqs": [
+    {
+      "question": "Can I clone someone else's voice?",
+      "answer": "No. You must tick 'This is my own voice'; only clone your own."
+    },
+    {
+      "question": "What does a contact without a name hear?",
+      "answer": "The fallback greeting, for example 'Hi there!'."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "Fallback",
+      "definition": "What is said or shown when a contact's detail is missing."
+    }
+  ],
+  "tips": [
+    "Leave a two-second pause at the start of your recording.",
+    "Keep the greeting short."
+  ],
+  "bestPractices": [
+    "Use your real voice sample in a quiet room.",
+    "Test the booking link before sharing."
+  ],
+  "relatedStudios": [
+    "leadfinder",
+    "timeline",
+    "personalizer"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "leadfinder",
+      "relationship": "Finds the contacts to send to",
+      "whenToMove": "Before recording, to build your list."
+    },
+    {
+      "studio": "timeline",
+      "relationship": "Where the outreach video opens for personal links and sharing",
+      "whenToMove": "After Customize."
+    }
+  ],
+  "notConfirmed": [
+    "Exact MuAPI pricing and sample-length limits for voice cloning."
+  ],
+  "sourceFiles": [
+    "src/components/OutreachStudio.js",
+    "src/lib/outreach/draft.js",
+    "src/lib/outreach/voiceSample.js",
+    "netlify/functions/agent-audio.js"
+  ],
+  "verification": {
+    "status": "verified-in-code",
+    "notes": "Written from the studio's source code; a real voice clone call has not been run."
+  }
+}
