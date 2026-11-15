@@ -1,0 +1,124 @@
+{
+ "frames": 131,
+ "container_duration": 4.373333,
+ "timeline_duration": 4.364251082245024,
+ "duration_error": 0.009081917754976132,
+ "max_abs_src_time_error": 0.1730222635035057,
+ "mean_abs_src_time_error": 0.029899142641566703,
+ "p95_abs_src_time_error": 0.09277125966579802,
+ "frames_compared": 111,
+ "src_time_first": 0.55,
+ "src_time_last": 9.85,
+ "streams": [
+  "h264",
+  "aac"
+ ],
+ "slowest_local_speed": -3.382352941176472,
+ "local_speed": [
+  {
+   "t": 0.08333333333333333,
+   "measured_speed": 0,
+   "predicted_speed": 1.0146
+  },
+  {
+   "t": 0.2833333333333333,
+   "measured_speed": 0,
+   "predicted_speed": 1.0146
+  },
+  {
+   "t": 0.48333333333333334,
+   "measured_speed": 0.8333333333333331,
+   "predicted_speed": 1.0478595505617976
+  },
+  {
+   "t": 0.6833333333333333,
+   "measured_speed": 1.1666666666666667,
+   "predicted_speed": 1.1134000000000002
+  },
+  {
+   "t": 0.8833333333333333,
+   "measured_speed": 1,
+   "predicted_speed": 1.113399999999999
+  },
+  {
+   "t": 1.0833333333333333,
+   "measured_speed": 1.499999999999999,
+   "predicted_speed": 1.2408980221530164
+  },
+  {
+   "t": 1.2833333333333334,
+   "measured_speed": 1.1666666666666672,
+   "predicted_speed": 1.3539999999999999
+  },
+  {
+   "t": 1.4833333333333334,
+   "measured_speed": 1.5000000000000007,
+   "predicted_speed": 1.4591998445102086
+  },
+  {
+   "t": 1.6833333333333333,
+   "measured_speed": 1.102941176470589,
+   "predicted_speed": 1.828
+  },
+  {
+   "t": 1.8833333333333333,
+   "measured_speed": 2.8970588235294077,
+   "predicted_speed": 2.311213946631945
+  },
+  {
+   "t": 2.0833333333333335,
+   "measured_speed": 3.5000000000000058,
+   "predicted_speed": 3.560612697072965
+  },
+  {
+   "t": 2.283333333333333,
+   "measured_speed": 5.8333333333333295,
+   "predicted_speed": 6.563227256587588
+  },
+  {
+   "t": 2.4833333333333334,
+   "measured_speed": 8.166666666666675,
+   "predicted_speed": 7.380217020539891
+  },
+  {
+   "t": 2.683333333333333,
+   "measured_speed": 5.499999999999998,
+   "predicted_speed": 5.657490551170853
+  },
+  {
+   "t": 2.8833333333333333,
+   "measured_speed": 3.8333333333333295,
+   "predicted_speed": 3.6120694565653424
+  },
+  {
+   "t": 3.0833333333333335,
+   "measured_speed": 2.166666666666671,
+   "predicted_speed": 2.281499999999997
+  },
+  {
+   "t": 3.283333333333333,
+   "measured_speed": 1.6666666666666592,
+   "predicted_speed": 1.7422101174623512
+  },
+  {
+   "t": 3.4833333333333334,
+   "measured_speed": 1.6666666666666718,
+   "predicted_speed": 1.4648000000000059
+  },
+  {
+   "t": 3.683333333333333,
+   "measured_speed": 1.1666666666666614,
+   "predicted_speed": 1.254659935044734
+  },
+  {
+   "t": 3.8833333333333333,
+   "measured_speed": 1.166666666666673,
+   "predicted_speed": 1.065999999999995
+  },
+  {
+   "t": 4.083333333333333,
+   "measured_speed": 0.6666666666666637,
+   "predicted_speed": 1.0660000000000016
+  }
+ ]
+}

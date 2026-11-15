@@ -5,6 +5,7 @@
 // dotLottie archive / theme / WASM parts are not used. Removed: the render-spec resolver. Added at the end: `applyLottieEdits`, a non-mutating
 // wrapper used by the preview (lottie-web) and the Remotion export (@remotion/lottie) so both render the same patched animation.
 /* eslint-disable */
+import { applyLottieValueOverrides, applyLottieLayerVisibility } from '../stage11/lottie-extra';
 
 /** A single editable color discovered in a Lottie animation. */
 export interface LottieColorLayer {
@@ -506,9 +507,13 @@ export interface LottieEdits {
   colors?: Record<string, string>;
   /** text layer key (layer index, `s:<slot>`) -> replacement text */
   texts?: Record<string, string>;
+  /** [remix] Stage 11: value slot id -> number or [x, y] (lib/editor/stage11/lottie-extra.ts) */
+  values?: Record<string, number | [number, number]>;
+  /** [remix] Stage 11: top-level layer keys (index) to hide */
+  hidden?: string[];
 }
 
-export const hasLottieEdits = (e: LottieEdits | undefined | null): boolean => !!e && (Object.keys(e.colors ?? {}).length > 0 || Object.keys(e.texts ?? {}).length > 0);
+export const hasLottieEdits = (e: LottieEdits | undefined | null): boolean => !!e && (Object.keys(e.colors ?? {}).length > 0 || Object.keys(e.texts ?? {}).length > 0 || Object.keys(e.values ?? {}).length > 0 || (e.hidden?.length ?? 0) > 0);
 
 /** Patched copy of an animation (the input is never mutated). Returns the input itself when there is nothing to change. */
 export function applyLottieEdits<T = unknown>(animation: T, edits: LottieEdits | undefined | null): T {
@@ -516,5 +521,5 @@ export function applyLottieEdits<T = unknown>(animation: T, edits: LottieEdits |
   const copy = JSON.parse(JSON.stringify(animation)) as T;
   if (Object.keys(edits!.texts ?? {}).length) applyLottieTextOverrides(copy, edits!.texts!);
   if (Object.keys(edits!.colors ?? {}).length) applyLottieColorOverrides(copy, edits!.colors!);
-  return copy;
+  return applyLottieLayerVisibility(applyLottieValueOverrides(copy, edits!.values), edits!.hidden); // [remix] Stage 11 (both return the input when there is nothing to do)
 }

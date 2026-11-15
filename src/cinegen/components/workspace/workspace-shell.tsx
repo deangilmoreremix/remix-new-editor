@@ -76,6 +76,7 @@ import {
 } from '@cinegen/lib/utils/api-key';
 import { markWorkspaceSavePending } from './workspace-persistence';
 import { useMcpBridge } from './use-mcp-bridge';
+import { useCrashRecovery } from './use-crash-recovery'; // [remix] Stage 11
 import { HelpTooltipLayer } from '@cinegen/components/ui/help-tooltip-layer'; // [remix] hover help for every control
 
 /* ------------------------------------------------------------------
@@ -389,6 +390,8 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
     savePendingRef.current = markWorkspaceSavePending(savePendingRef.current, action.type);
     historyDispatch(action);
   }, []);
+  // [remix] Stage 11: crash recovery (snapshot while a save is pending, prompt on the next open)
+  const crashRecovery = useCrashRecovery({ projectId, slice: { timelines: state.timelines, activeTimelineId: state.activeTimelineId, assets: state.assets as never }, hydrated: hydrationComplete && !hydrationError, savePendingRef, dispatch: wrappedDispatch as never });
 
   const directorMounted = useRef(false);
   if (state.activeTab === 'director') directorMounted.current = true;
@@ -1424,7 +1427,8 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
       // before this timer fires; keeping the flag set lets that render reschedule
       // the same save instead of cancelling the completed generation result.
       savePendingRef.current = false;
-      void persistWorkspace().catch((error) => {
+      const savedSlice = { timelines: state.timelines, activeTimelineId: state.activeTimelineId, assets: state.assets as never }; // [remix] Stage 11
+      void persistWorkspace().then(() => crashRecovery.markSaved(savedSlice)).catch((error) => {
         savePendingRef.current = true;
         console.error('[workspace] Failed to save project:', error);
       });
@@ -1551,6 +1555,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
           </>
         )}
       </main>
+      {crashRecovery.banner}
       <AppToastHost
         toast={appToast}
         onDismiss={dismissCopilotToast}

@@ -14,6 +14,7 @@ import { CAPTION_STYLE_BY_ID } from '../../openchatcut/captions/styles';
 import { userFontsFor } from '@cinegen/lib/occ/user-fonts';
 import { exportItem, type ExportTrackInfo } from '@cinegen/lib/editor/export-mapping';
 import { buildExportStateWithAudio } from '@cinegen/lib/audio/export-prepare'; // [remix] Stage 4: EQ bake + master volume
+import { containerInfo } from '@cinegen/lib/export/containers'; // [remix] Stage 11
 import { buildGlTransitionLayers, attachGlSideLooks } from '@cinegen/lib/editor/gl-transition-export'; // [remix] Stage 6
 import { glSideLayerFrom } from '../../lib/editor/remotion/glSideLook.js'; // [remix] Fix A
 type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
@@ -111,7 +112,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; tracks?: ExportTrackInfo[]; clips: Array<{ id?: string; name?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; glType?: string; glDef?: unknown; glParams?: Record<string, number | boolean | number[]>; clipAId: string; clipBId?: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
+      const a = p as { container?: string; preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; tracks?: ExportTrackInfo[]; clips: Array<{ id?: string; name?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; glType?: string; glDef?: unknown; glParams?: Record<string, number | boolean | number[]>; clipAId: string; clipBId?: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -146,13 +147,14 @@ export function registerWebApi() {
           (model as { userFonts?: unknown[] }).userFonts = userFontsFor(a.clips.map((c) => (c.captions as { styleOverride?: { fontFamily?: string } } | undefined)?.styleOverride?.fontFamily));
           // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
           (model as { glTransitions?: unknown[] }).glTransitions = attachGlSideLooks(buildGlTransitionLayers(a.transitions, a.clips as never, a.fps), a.clips as never, (model as { layers: never[] }).layers, glSideLayerFrom as never); // [remix] Fix A: each side keeps its clip's own transform / keys / effects / opacity
-          const blob = await exportModel(model, { container: 'mp4', quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
+          const ctn = containerInfo(a.container); // [remix] Stage 11: mkv / mov / webm video and wav / mp3 / aac / flac / ogg audio-only
+          const blob = await exportModel(model, { container: ctn.id, quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
           job.outputUrl = URL.createObjectURL(blob);
           job.fileSize = blob.size;
           job.progress = 100;
-          downloadBlob(blob, 'cinegen-export.mp4');
+          downloadBlob(blob, `cinegen-export.${ctn.ext}`);
           // [remix] OpenChatCut export QA, run on the rendered blob in the browser (their server FFmpeg step replaced)
-          if (a.qa !== false) {
+          if (a.qa !== false && !ctn.audioOnly) {
             job.qaStatus = 'Checking the render…';
             try {
               const { runExportQaInBrowser } = await import('@cinegen/lib/occ/export-qa');

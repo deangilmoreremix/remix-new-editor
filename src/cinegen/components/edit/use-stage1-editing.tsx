@@ -11,6 +11,9 @@ import type { SourceMarksUi } from './source-marks';
 import { marksFromAsset, marksMetadataPatch } from '@cinegen/lib/editor/range/source-marks-persist'; // [remix] Fix B2
 import { setRangeIn, setRangeOut, resolveTimelineRange, withRange, loopTarget } from '@cinegen/lib/editor/range/timeline-range'; // [remix] Fix B2
 import { formatTimecode } from './time-ruler';
+import { SpeedCurveEditor } from './speed-curve-editor'; // [remix] Stage 11
+import { applySpeedCurve, type SpeedCurve } from '@cinegen/lib/editor/stage11/speed-curve';
+import { liftRange, extractRange } from '@cinegen/lib/editor/stage11/range-edit';
 
 // [remix] Fix B2: also dispatches UPDATE_ASSET (source marks are saved in the asset's metadata)
 type SetTimeline = (a: { type: 'SET_TIMELINE'; timelineId: string; timeline: Timeline } | { type: 'UPDATE_ASSET'; asset: Partial<Asset> & { id: string } }) => void;
@@ -143,6 +146,26 @@ export function useStage1Editing(p: Stage1Params) {
     commit(r.timeline); setSelectedClipIds(new Set(r.clipIds)); say(`Speed ramp: ${preset.label}`);
   }, [commit, setSelectedClipIds, say]);
 
+  // [remix] Stage 11: speed-ramp curve editor (bezier / spring / preset easing per segment)
+  const [curveOpen, setCurveOpen] = useState(false);
+  const rampTarget = () => selClips().find((x) => !x.compound && live.current.timeline.tracks.find((t) => t.id === x.trackId)?.kind === 'video') ?? selClips().find((x) => !x.compound);
+  const applyCurve = useCallback((curve: SpeedCurve, steps: number) => {
+    const c = rampTarget();
+    if (!c) { say('Select a clip to ramp.'); return; }
+    const r = applySpeedCurve(live.current.timeline, c.id, curve, { steps });
+    commit(r.timeline); setSelectedClipIds(new Set(r.clipIds)); setCurveOpen(false); say(`Speed curve applied (${r.clipIds.length} pieces)`);
+  }, [commit, setSelectedClipIds, say]);
+
+  // [remix] Stage 11: lift / extract the timeline in-out range
+  const removeRange = useCallback((ripple: boolean) => {
+    const rng = resolveTimelineRange(live.current.timeline.range, live.current.timeline.duration);
+    if (!rng) { say('Set In and Out points on the timeline first.'); return; }
+    const r = ripple ? extractRange(live.current.timeline, rng) : liftRange(live.current.timeline, rng);
+    if (!r.changed) { say('Nothing to remove.'); return; }
+    commit(ripple ? withRange(r.timeline, null) : r.timeline); setSelectedClipIds(new Set());
+    say(`${ripple ? 'Extracted' : 'Lifted'} ${(rng.end - rng.start).toFixed(2)} s${r.droppedTransitions ? ` (${r.droppedTransitions} transition${r.droppedTransitions === 1 ? '' : 's'} removed)` : ''}`);
+  }, [commit, setSelectedClipIds, say]);
+
   // ---- J K L shuttle
   const stopDriver = useCallback(() => { if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; } }, []);
   const applyRate = useCallback((r: number) => {
@@ -221,11 +244,15 @@ export function useStage1Editing(p: Stage1Params) {
         <option value="">Speed ramp…</option>
         {Object.entries(RAMP_PRESETS).map(([id, r]) => <option key={id} value={id}>{r.label}</option>)}
       </select>
+      <button type="button" data-testid="speed-curve-btn" disabled={!hasSel} onClick={() => setCurveOpen((o) => !o)} title="Edit a speed curve for the selected clip (bezier easing per segment)">Speed curve…</button>
+      {curveOpen && hasSel && (() => { const c = rampTarget(); return c ? <SpeedCurveEditor sourceSeconds={c.duration - c.trimStart - c.trimEnd} onApply={applyCurve} onClose={() => setCurveOpen(false)} /> : null; })()}
       <span data-testid="shuttle-readout" title="J K L shuttle" style={{ minWidth: 34, textAlign: 'center', opacity: rate ? 1 : 0.6 }}>{rate === 0 ? 'JKL' : `${rate < 0 ? '◀' : '▶'} ${Math.abs(rate)}x`}</span>
       <span data-testid="range-controls" style={{ display: 'flex', gap: 4, alignItems: 'center', borderLeft: '1px solid rgba(255,255,255,0.18)', paddingLeft: 6 }} title={RANGE_HINT}>
         <button type="button" data-testid="range-in" onClick={() => rangeIn()}>In</button>
         <button type="button" data-testid="range-out" onClick={() => rangeOut()}>Out</button>
         <button type="button" data-testid="range-clear" disabled={!timeline.range} onClick={rangeClear}>Clear</button>
+        <button type="button" data-testid="range-lift" disabled={!activeRange} onClick={() => removeRange(false)} title="Lift the in-out range (delete it and leave a gap)">Lift</button>
+        <button type="button" data-testid="range-extract" disabled={!activeRange} onClick={() => removeRange(true)} title="Extract the in-out range (delete it and close the gap)">Extract</button>
         <label style={{ display: 'flex', gap: 2, alignItems: 'center' }}><input type="checkbox" data-testid="range-loop" checked={loop} onChange={(e) => setLoop(e.target.checked)} />Loop</label>
         <span data-testid="range-readout" style={{ opacity: activeRange ? 1 : 0.6 }}>{activeRange ? `${formatTimecode(activeRange.start)} - ${formatTimecode(activeRange.end)}` : 'no range'}</span>
         {activeRange && timeline.duration > 0 && <span data-testid="range-strip" aria-hidden style={{ position: 'relative', width: 90, height: 6, background: 'rgba(255,255,255,0.15)', borderRadius: 3 }}><span style={{ position: 'absolute', top: 0, bottom: 0, left: `${(activeRange.start / timeline.duration) * 100}%`, width: `${((activeRange.end - activeRange.start) / timeline.duration) * 100}%`, background: '#0fd7f1', borderRadius: 3 }} /></span>}

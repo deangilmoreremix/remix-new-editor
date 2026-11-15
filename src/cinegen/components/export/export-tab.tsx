@@ -43,7 +43,7 @@ export function ExportTab() {
         masterVolume: exportTimeline.masterVolume ?? 1, // [remix] Stage 4
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
-        videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
+        videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect, container: extras?.container, // [remix] Stage 11
         // [remix] OpenChatCut motion-graphics templates on the overlay lane are rendered into the export
         // [remix] visual overlays (text, stickers, call buttons, End Screens, Connect Forms…) are drawn into the render; interactive forms stay player-only
         overlays: applyRangeToOverlays(state.overlays ?? [], exportRange).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
