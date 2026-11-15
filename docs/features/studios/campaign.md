@@ -2,7 +2,7 @@
 name: Campaign Studio
 area: studios
 status: live
-added: TBD
+added: 2026-08-30
 pr: TBD
 route: #/campaign; saved campaign detail at #/campaign-page
 code:

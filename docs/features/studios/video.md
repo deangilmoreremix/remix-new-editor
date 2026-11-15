@@ -2,7 +2,7 @@
 name: Video Studio
 area: studios
 status: live
-added: TBD
+added: 2026-02-17
 pr: TBD
 route: #/video
 code:

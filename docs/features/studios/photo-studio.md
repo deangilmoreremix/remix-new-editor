@@ -2,7 +2,7 @@
 name: Photo Studio
 area: studios
 status: live
-added: TBD
+added: 2026-08-30
 pr: TBD
 route: #/photo-studio (alias #/brand-photo-studio)
 code:

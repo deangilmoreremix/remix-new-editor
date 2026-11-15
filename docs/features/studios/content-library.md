@@ -2,7 +2,7 @@
 name: Content Library
 area: studios
 status: live
-added: TBD
+added: 2026-08-07
 pr: TBD
 route: #/content-library
 code:

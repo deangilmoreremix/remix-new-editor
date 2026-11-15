@@ -2,7 +2,7 @@
 name: Render
 area: studios
 status: live
-added: TBD
+added: 2026-03-18
 pr: TBD
 route: #/render
 code:

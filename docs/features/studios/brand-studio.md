@@ -2,7 +2,7 @@
 name: Brand Studio
 area: studios
 status: live
-added: TBD
+added: 2026-08-29
 pr: TBD
 route: #/brand
 code:

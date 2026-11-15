@@ -2,7 +2,7 @@
 name: Image Studio
 area: studios
 status: live
-added: TBD
+added: 2026-02-12
 pr: TBD
 route: #/image
 code:

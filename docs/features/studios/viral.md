@@ -2,7 +2,7 @@
 name: SmartVideo Viral
 area: studios
 status: live
-added: TBD
+added: 2026-08-20
 pr: TBD
 route: #/viral
 code:

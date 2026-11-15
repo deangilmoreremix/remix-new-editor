@@ -2,7 +2,7 @@
 name: Focused Generation Pages
 area: studios
 status: live
-added: TBD
+added: 2026-03-15
 pr: TBD
 route: #/text-to-image, #/image-to-image, #/text-to-video, #/image-to-video, #/video-to-video, #/video-watermark
 code:

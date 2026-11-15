@@ -2,7 +2,7 @@
 name: Zack D Studio
 area: studios
 status: live
-added: TBD
+added: 2026-11-05
 pr: TBD
 route: #/zackd (alias #/zackd-studio)
 code:

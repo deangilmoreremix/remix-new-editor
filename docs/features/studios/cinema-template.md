@@ -2,7 +2,7 @@
 name: Cinema Template Studio
 area: studios
 status: live
-added: TBD
+added: 2026-04-02
 pr: TBD
 route: #/cinema-template
 code:

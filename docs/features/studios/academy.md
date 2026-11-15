@@ -2,7 +2,7 @@
 name: Academy
 area: studios
 status: live
-added: TBD
+added: 2026-08-14
 pr: TBD
 route: #/academy
 code:

@@ -2,7 +2,7 @@
 name: Smart Video Scheduler
 area: studios
 status: live
-added: TBD
+added: 2026-08-30
 pr: TBD
 route: #/smart-video-scheduler (alias #/brightbean)
 code:

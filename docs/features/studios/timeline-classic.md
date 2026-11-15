@@ -2,7 +2,7 @@
 name: Timeline Editor (classic)
 area: studios
 status: live
-added: TBD
+added: 2026-07-05
 pr: TBD
 route: #/timeline-classic
 code:

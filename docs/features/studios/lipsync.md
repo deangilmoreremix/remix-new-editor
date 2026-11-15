@@ -2,7 +2,7 @@
 name: Lip Sync Studio
 area: studios
 status: live
-added: TBD
+added: 2026-03-24
 pr: TBD
 route: #/lipsync
 code:

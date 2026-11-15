@@ -2,7 +2,7 @@
 name: Asset Canvas Editor
 area: studios
 status: live
-added: TBD
+added: 2026-08-30
 pr: TBD
 route: #/asset-edit
 code:

@@ -2,7 +2,7 @@
 name: Website Builder (OpenThorn)
 area: studios
 status: live
-added: TBD
+added: 2026-08-23
 pr: TBD
 route: #/website-builder
 code:

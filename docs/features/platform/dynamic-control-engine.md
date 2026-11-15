@@ -2,7 +2,7 @@
 name: Dynamic Control Engine
 area: platform
 status: live
-added: TBD   # confirm from git log
+added: 2026-08-11
 pr: TBD
 route: Every studio > Advanced controls panel
 code:

@@ -2,7 +2,7 @@
 name: Influencer Studio
 area: studios
 status: live
-added: TBD
+added: 2026-03-10
 pr: TBD
 route: #/influencer; overview at #/influencer-page
 code:

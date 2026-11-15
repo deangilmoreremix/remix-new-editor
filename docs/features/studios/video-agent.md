@@ -2,7 +2,7 @@
 name: Video Agent
 area: studios
 status: live
-added: TBD
+added: 2026-11-02
 pr: TBD
 route: #/video-agent (alias #/video-agent-studio)
 code:

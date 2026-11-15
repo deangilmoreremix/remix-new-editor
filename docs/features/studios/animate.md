@@ -2,7 +2,7 @@
 name: Animate
 area: studios
 status: live
-added: TBD
+added: 2026-08-30
 pr: TBD
 route: #/animate
 code:

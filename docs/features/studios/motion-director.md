@@ -2,7 +2,7 @@
 name: Motion Director
 area: studios
 status: live
-added: TBD
+added: 2026-11-05
 pr: TBD
 route: #/motion-director (and #/motion-director/workbench)
 code:

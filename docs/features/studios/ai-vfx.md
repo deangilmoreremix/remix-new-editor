@@ -2,7 +2,7 @@
 name: AI VFX Studio
 area: studios
 status: live
-added: TBD
+added: 2026-07-04
 pr: TBD
 route: #/ai-vfx
 code:

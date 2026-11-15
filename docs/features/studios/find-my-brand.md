@@ -2,7 +2,7 @@
 name: Find My Brand
 area: studios
 status: live
-added: TBD
+added: 2026-11-02
 pr: TBD
 route: #/find-my-brand
 code:

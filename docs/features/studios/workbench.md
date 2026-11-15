@@ -2,7 +2,7 @@
 name: Motion Workbench
 area: studios
 status: live
-added: TBD
+added: 2026-11-02
 pr: TBD
 route: #/workbench (old #/cinegen redirects here)
 code:

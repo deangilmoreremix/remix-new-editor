@@ -2,7 +2,7 @@
 name: SmartVideo Studio
 area: studios
 status: live
-added: TBD
+added: 2026-09-02
 pr: TBD
 route: #/smart-video-studio
 code:

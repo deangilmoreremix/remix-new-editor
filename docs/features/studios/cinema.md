@@ -2,7 +2,7 @@
 name: Cinema Studio
 area: studios
 status: live
-added: TBD
+added: 2026-02-14
 pr: TBD
 route: #/cinema; overview at #/cinema-page
 code:
