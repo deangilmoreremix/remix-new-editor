@@ -1587,7 +1587,9 @@ export function TemplateStudio(templateId) {
           if (errEl) errEl.remove();
           // A failed Regenerate retries that same stored run, not the current form.
           if (exact) runGeneration({ ...exactParams }, { exact: true, route: exactRoute, inputs: inputsSnapshot });
-          else runGeneration(lastGenerationParams, { inputs: inputsSnapshot });
+          // An ordinary retry rebuilds the whole request from the form as it is
+          // now, so it records the form as it is now (no stale snapshot).
+          else runGeneration(lastGenerationParams);
         };
       }
     } finally {

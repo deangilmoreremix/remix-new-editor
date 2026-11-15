@@ -197,6 +197,14 @@ describe('Cinema required-field validation', () => {
     expect(builder.validateInputs({ premise: 'A story', tone: '  ' })).toEqual([]);
   });
 
+  it('flags a number below its minimum or above its maximum', () => {
+    const numeric = new TemplateInputBuilder({ quickInputs: [{ name: 'shots', type: 'number', label: 'Shots', min: 3, max: 30 }] }, 'quick');
+    expect(numeric.validateInputs({ shots: '2' }).map((e: any) => e.field)).toEqual(['shots']);
+    expect(numeric.validateInputs({ shots: '1' }).map((e: any) => e.field)).toEqual(['shots']);
+    expect(numeric.validateInputs({ shots: '31' }).map((e: any) => e.field)).toEqual(['shots']);
+    expect(numeric.validateInputs({ shots: '5' })).toEqual([]);
+  });
+
   it('still flags empty and missing values', () => {
     expect(builder.validateInputs({ premise: '' })).toHaveLength(1);
     expect(builder.validateInputs({})).toHaveLength(1);

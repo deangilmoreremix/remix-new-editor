@@ -214,8 +214,16 @@ export function TemplatesPage() {
 
   // Un-starring inside the Favorites view redraws it (fresh count and the
   // "No favorites yet" message), keeping the current search.
-  container.addEventListener('template-favorite-changed', () => {
-    if (activeFilter === FAVORITES_FILTER) renderCategories();
+  container.addEventListener('template-favorite-changed', (e) => {
+    if (activeFilter !== FAVORITES_FILTER) return;
+    const visibleHearts = () => Array.from(sectionsContainer.querySelectorAll('[data-favorite]'))
+      .filter((h) => h.closest('[data-searchable]')?.style.display !== 'none');
+    const index = visibleHearts().indexOf(e.target.querySelector ? e.target.querySelector('[data-favorite]') : null);
+    renderCategories();
+    // The redraw removes the focused star; keep keyboard users in the list.
+    const remaining = visibleHearts();
+    const next = remaining[Math.min(Math.max(index, 0), remaining.length - 1)];
+    (next || filterRow.querySelector(`[data-filter="${FAVORITES_FILTER}"]`))?.focus();
   });
 
   renderCategories();

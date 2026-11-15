@@ -783,8 +783,14 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       // Correcting a field clears its invalid state; the message goes once none is left.
       ['input', 'change'].forEach((evt) => formEl.addEventListener(evt, (e) => {
         const t = e.target;
-        // Only a non-blank value clears the mark (a lone space is still empty).
-        if (t && t.hasAttribute && t.hasAttribute('aria-invalid') && String(t.value ?? '').trim()) setFieldInvalid(t, false);
+        // A field stays invalid until its value passes the same rules Generate
+        // applies (required, not just whitespace, number min / max).
+        if (t && t.hasAttribute && t.hasAttribute('aria-invalid')) {
+          const stillInvalid = new TemplateInputBuilder(currentTemplate, currentMode)
+            .validateInputs(currentInputs)
+            .some((err) => err.field === t.name);
+          if (!stillInvalid) setFieldInvalid(t, false);
+        }
         if (!formEl.querySelector('[aria-invalid]')) container.querySelector('#cin-required-error')?.remove();
       }));
       formEl.addEventListener('input', () => {
