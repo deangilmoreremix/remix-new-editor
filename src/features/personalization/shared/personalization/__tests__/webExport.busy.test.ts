@@ -5,7 +5,7 @@
  * overwrite the controller.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { exportPersonalizedVideo, isExportActive, cancelActiveExport } from '../webExport'
+import { CANCEL_SETTLE_GRACE_MS, cancelActiveExport, exportPersonalizedVideo, isExportActive, resetActiveExport } from '../webExport'
 import { audioCodecPresets, makeInputProps, makeStubBlob, videoCodecPresets } from './_webRendererHarness'
 
 const mocks = vi.hoisted(() => ({
@@ -22,6 +22,7 @@ vi.mock('@remotion/web-renderer', () => ({
 }))
 
 beforeEach(() => {
+  resetActiveExport()
   vi.clearAllMocks()
   mocks.getEncodableVideoCodecs.mockImplementation(videoCodecPresets.full)
   mocks.getEncodableAudioCodecs.mockImplementation(audioCodecPresets.full)
@@ -74,5 +75,23 @@ describe('one render at a time', () => {
     await first
     mocks.renderMediaOnWeb.mockImplementation(async () => ({ getBlob: async () => makeStubBlob() }))
     expect((await exportPersonalizedVideo({ inputProps: makeInputProps() })).ok).toBe(true)
+  })
+})
+
+describe('a renderer that never settles after a cancel', () => {
+  it('does not block later renders forever: they are refused only for the grace period', async () => {
+    // a renderer that ignores the abort signal entirely
+    mocks.renderMediaOnWeb.mockImplementationOnce(() => new Promise(() => {}))
+    void exportPersonalizedVideo({ inputProps: makeInputProps() })
+    await flush()
+    const now = Date.now()
+    const spy = vi.spyOn(Date, 'now').mockReturnValue(now)
+    expect(cancelActiveExport()).toBe(true)
+    expect(await exportPersonalizedVideo({ inputProps: makeInputProps() })).toMatchObject({ ok: false, reason: 'busy' })
+    // ...but once the grace period has passed, a new render is allowed to start
+    spy.mockReturnValue(now + CANCEL_SETTLE_GRACE_MS + 1)
+    mocks.renderMediaOnWeb.mockImplementation(async () => ({ getBlob: async () => makeStubBlob() }))
+    expect((await exportPersonalizedVideo({ inputProps: makeInputProps() })).ok).toBe(true)
+    spy.mockRestore()
   })
 })
