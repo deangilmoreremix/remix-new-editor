@@ -147,3 +147,6 @@ Branch: `claude/jolly-cannon-ofqf7h`
 ### RLS fix for exposed tables
 - Authorization: "apply the RLS fix to the branch first". Branch only; production untouched.
 - Added: migration `20261120000000`, `supabase/tests/84_enable_rls_assertions.sql`, `run-enable-rls-assertions.sh`. The branch lacks the real 117 tables, so two stand-ins proved the behaviour and were dropped.
+
+### RLS fix corrected
+- Read-only production pre-checks found 54 dormant policies and an owner-run view returning decrypted API keys; the first version of the migration would have broken the policies, so it was rewritten and re-tested (local, mutations, branch stand-ins). Production untouched.
