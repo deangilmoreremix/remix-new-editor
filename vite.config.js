@@ -497,9 +497,10 @@ function securityHeaders() {
                 
                 // Permissions Policy
                 // [remix] microphone=(self): the timeline's voice-over recorder and Voice Director use the mic (same origin only)
+                // camera=(self): the Video Outreach studio and the recorders record the webcam (same origin only)
                 res.setHeader(
                     'Permissions-Policy',
-                    'camera=(), microphone=(self)'
+                    'camera=(self), microphone=(self)'
                 );
                 
                 next();
