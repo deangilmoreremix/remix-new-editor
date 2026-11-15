@@ -140,7 +140,7 @@ export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) 
               style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' }}>
               <div style={{ position: 'relative' }}>
                 <CardVideo src={i.videoSrc} poster={i.posterSrc} title={i.title} ratio={ratioNumber(i.aspectRatio)} />
-                <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{i.subcategory}</span>
+                <span style={{ position: 'absolute', left: 8, top: 8, maxWidth: 'calc(100% - 90px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{i.subcategory}</span>
                 <span data-branding={i.branding} title={i.marks ?? (i.branding === 'none' ? 'Reviewed: no visible logo, watermark or credit' : 'Has a visible logo, watermark or credit')} style={{ position: 'absolute', right: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: i.branding === 'none' ? 'rgba(16,120,70,.85)' : 'rgba(150,95,10,.9)', color: '#fff' }}>{i.branding === 'none' ? 'No logo' : 'Has logo'}</span>
               </div>
               <div style={{ fontSize: 14, fontWeight: 700, marginTop: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.title}</div>
