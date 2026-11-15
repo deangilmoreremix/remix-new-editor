@@ -76,6 +76,9 @@ export function AudioPanel({ timeline, selectedClipIds, engine, isPlaying, commi
   // [remix] Stage 11: pitch shift of the same target clip
   const pitch: ClipPitch = normalizeClipPitch(clip?.pitch) ?? defaultClipPitch();
   const setPitch = (patch: Partial<ClipPitch>) => clip && commit({ ...timeline, clips: timeline.clips.map((c) => { if (c.id !== clip.id) return c; const next = normalizeClipPitch({ ...pitch, ...patch }); const { pitch: _old, ...rest } = c; return next ? { ...rest, pitch: next } : rest; }) });
+  // a speed ramp cuts a clip into pieces: copy this clip's pitch to every other clip of the same audio file on the same track (the pieces)
+  const samePieces = clip ? timeline.clips.filter((c) => c.id !== clip.id && c.assetId === clip.assetId && c.trackId === clip.trackId) : [];
+  const applyToPieces = () => clip && commit({ ...timeline, clips: timeline.clips.map((c) => { if (!samePieces.some((x) => x.id === c.id)) return c; const { pitch: _old, ...rest } = c; return clip.pitch ? { ...rest, pitch: clip.pitch } : rest; }) });
   const [pitchWarn, setPitchWarn] = useState<string | null>(null);
   useEffect(() => {
     const fx = engine.getAudioFx();
@@ -111,10 +114,11 @@ export function AudioPanel({ timeline, selectedClipIds, engine, isPlaying, commi
           <div style={S.row}>
             <label style={{ fontSize: 11 }}><input data-testid="pitch-preserve" type="checkbox" checked={pitch.preservePitch} onChange={(e) => setPitch({ preservePitch: e.target.checked })} /> Preserve pitch when speed changes</label>
             <button data-testid="pitch-reset" style={S.btn} disabled={!clip.pitch} onClick={() => setPitch(defaultClipPitch())}>Reset pitch</button>
+            {samePieces.length > 0 && <button data-testid="pitch-apply-pieces" style={S.btn} onClick={applyToPieces}>Apply to {samePieces.length} other piece{samePieces.length > 1 ? 's' : ''}</button>}
           </div>
           <div data-testid="pitch-heard" style={S.small}>Heard pitch: {heard > 0 ? '+' : ''}{heard.toFixed(2)} semitones{clip.speed !== 1 ? ` (clip speed ${clip.speed}x, ${pitch.preservePitch ? 'pitch kept' : 'pitch follows speed'})` : ''}.</div>
           {(noWorklet || pitchWarn) && <div data-testid="pitch-warning" role="alert" style={{ ...S.small, color: '#f59e0b' }}>{pitchWarn ?? 'This browser has no AudioWorklet: the shift is not heard in the preview (the exported file still has it).'}</div>}
-          <div style={S.small}>Heard live through an AudioWorklet (about 0.1 s of latency). In the export the shift and any speed change are baked into this clip&apos;s sound before the EQ (sources up to 20 minutes).</div>
+          <div style={S.small}>Apply copies this pitch to the other clips cut from the same audio on the track (the pieces of a speed ramp). Heard live through an AudioWorklet (about 0.1 s of latency). In the export the shift and any speed change are baked into this clip&apos;s sound before the EQ (sources up to 20 minutes).</div>
         </div>
       )}
       <div style={S.h}>Equalizer {clip ? `for “${clip.name}”` : ''}</div>

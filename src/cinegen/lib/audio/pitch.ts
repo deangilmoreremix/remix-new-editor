@@ -67,10 +67,12 @@ export function audiblePitchSemitones(p: Partial<ClipPitch> | null | undefined, 
 }
 
 /**
- * Whether the export must bake this clip's sound: always for a shift; for tape mode (preserve off) when the speed is not 1 (the pitch must follow
- * the speed exactly). A plain speed change with the pitch preserved and no shift is left to the composition's own playbackRate (unchanged export).
+ * Whether the export must bake this clip's sound. A shift always needs it. A speed change with the pitch preserved (the default, and what the
+ * preview does through the element's preservesPitch) needs it too: the Remotion web renderer plays `playbackRate` as a plain resample, so the
+ * pitch would follow the speed (measured in the real export, see docs/stage-11). Tape mode (preserve off) with no shift is left to the
+ * composition's own playbackRate, which is exactly that resample.
  */
 export function needsPitchBake(p: Partial<ClipPitch> | null | undefined, speed: number): boolean {
   if (isPitchShiftActive(p)) return true;
-  return !!p && p.preservePitch === false && Math.abs((speed || 1) - 1) > 1e-3;
+  return p?.preservePitch !== false && Math.abs((speed || 1) - 1) > 1e-3;
 }

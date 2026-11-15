@@ -41,8 +41,10 @@ describe('pitch model', () => {
   it('which clips are baked', () => {
     expect(needsPitchBake({ semitones: 1, cents: 0, preservePitch: true }, 1)).toBe(true);
     expect(needsPitchBake({ semitones: 0, cents: 0, preservePitch: false }, 1)).toBe(false); // nothing to do at speed 1
-    expect(needsPitchBake({ semitones: 0, cents: 0, preservePitch: false }, 2)).toBe(true);
-    expect(needsPitchBake(undefined, 2)).toBe(false);
+    expect(needsPitchBake({ semitones: 0, cents: 0, preservePitch: false }, 2)).toBe(false); // tape mode: the composition's playbackRate resample is exactly that
+    expect(needsPitchBake({ semitones: 3, cents: 0, preservePitch: false }, 2)).toBe(true);
+    expect(needsPitchBake(undefined, 2)).toBe(true); // default = pitch preserved: the renderer would resample, so the stretch is baked
+    expect(needsPitchBake(undefined, 1)).toBe(false);
   });
 });
 
@@ -101,30 +103,38 @@ describe('export mapping (real mapping + real SoundTouch render)', () => {
     expect(Math.abs(pcm.length / SR - dur)).toBeLessThan(0.01);
     expect(Math.abs(peakFrequency(pcm, SR, SR) - 880) / 880).toBeLessThan(0.01);
   });
-  it('speed 2x with pitch preserved + 0 shift: untouched (default behaviour); speed 2x + 7 semitones: baked at half length, 659 Hz', async () => {
+  it('speed 2x, pitch preserved, no pitch setting at all: baked as a time-stretch (440 Hz, half length) because the renderer alone would resample to 880 Hz', async () => {
     let tl = createDefaultTimeline('t');
     tl = addClipToTrack(tl, A1(tl), ASSETS[1], 0);
     tl = withPitch(tl, { speed: 2 });
-    const calls: any[] = [];
-    const untouched = await compose(tl, fakeBake(new Map(), calls));
-    expect(calls).toHaveLength(0);
-    expect(untouched.model.audio[0].src).toBe('https://x.test/S.wav');
-    expect(untouched.model.audio[0].playbackRate).toBe(2);
-    const store = new Map<string, Float32Array>();
-    const { model } = await compose(withPitch(tl, { pitch: { semitones: 7, cents: 0, preservePitch: true } }), fakeBake(store, calls));
+    const calls: any[] = []; const store = new Map<string, Float32Array>();
+    const { model } = await compose(tl, fakeBake(store, calls));
+    expect(calls).toHaveLength(1);
     const pcm = store.get(model.audio[0].src)!;
     const expectedDur = (tl.clips[0].duration - tl.clips[0].trimStart - tl.clips[0].trimEnd) / 2;
     expect(Math.abs(pcm.length / SR - expectedDur)).toBeLessThan(0.01);
+    expect(Math.abs(peakFrequency(pcm, SR, SR) - 440) / 440).toBeLessThan(0.01);
+    expect(model.audio[0].playbackRate ?? 1).toBe(1);
+  });
+  it('speed 2x + 7 semitones: baked at half length, 659 Hz', async () => {
+    let tl = createDefaultTimeline('t');
+    tl = addClipToTrack(tl, A1(tl), ASSETS[1], 0);
+    const store = new Map<string, Float32Array>();
+    const { model } = await compose(withPitch(tl, { speed: 2, pitch: { semitones: 7, cents: 0, preservePitch: true } }), fakeBake(store));
+    const pcm = store.get(model.audio[0].src)!;
     expect(Math.abs(peakFrequency(pcm, SR, SR) - 440 * Math.pow(2, 7 / 12)) / 659.26).toBeLessThan(0.01);
     expect(model.audio[0].playbackRate ?? 1).toBe(1);
   });
-  it('tape mode (preserve off) at 2x: baked as a resample, 880 Hz', async () => {
+  it('tape mode (preserve off) at 2x, no shift: not baked, the composition resamples with playbackRate 2; with +12: baked, 440*2*2 Hz', async () => {
     let tl = createDefaultTimeline('t');
     tl = addClipToTrack(tl, A1(tl), ASSETS[1], 0);
-    tl = withPitch(tl, { speed: 2, pitch: { semitones: 0, cents: 0, preservePitch: false } });
+    const calls: any[] = [];
+    const plain = await compose(withPitch(tl, { speed: 2, pitch: { semitones: 0, cents: 0, preservePitch: false } }), fakeBake(new Map(), calls));
+    expect(calls).toHaveLength(0);
+    expect(plain.model.audio[0].playbackRate).toBe(2);
     const store = new Map<string, Float32Array>();
-    const { model } = await compose(tl, fakeBake(store));
-    expect(Math.abs(peakFrequency(store.get(model.audio[0].src)!, SR, SR / 2) - 880) / 880).toBeLessThan(0.01);
+    const { model } = await compose(withPitch(tl, { speed: 2, pitch: { semitones: 12, cents: 0, preservePitch: false } }), fakeBake(store, calls));
+    expect(Math.abs(peakFrequency(store.get(model.audio[0].src)!, SR, SR / 2) - 1760) / 1760).toBeLessThan(0.01);
   });
   it('speed-ramp preset pieces each get their own bake with their own speed (pitch preserved)', async () => {
     let tl = createDefaultTimeline('t');
@@ -164,6 +174,15 @@ describe('export mapping (real mapping + real SoundTouch render)', () => {
     const lone = { ...tl, clips: tl.clips.filter((c) => !tl.tracks.find((t) => t.id === c.trackId && t.kind === 'audio')).map((c) => ({ ...c, linkedClipIds: undefined })) };
     expect((await compose(lone, fakeBake(new Map(), []))).warnings.join(' ')).toMatch(/Pitch on .* is preview-only/);
   });
+  it('an unlinked video clip that only has a speed change (no pitch setting) is left alone, with no new warning', async () => {
+    let tl = createDefaultTimeline('t');
+    tl = addClipToTrack(tl, V1(tl), ASSETS[0], 0);
+    const lone = { ...tl, clips: tl.clips.filter((c) => !tl.tracks.find((t) => t.id === c.trackId && t.kind === 'audio')).map((c) => ({ ...c, linkedClipIds: undefined, speed: 2 })) };
+    const calls: any[] = [];
+    const r = await compose(lone, fakeBake(new Map(), calls));
+    expect(calls).toHaveLength(0);
+    expect(r.warnings.join(' ')).not.toMatch(/Pitch/);
+  });
   it('a failing bake keeps the clip unshifted and says so; abort propagates; clips without pitch never call the bake', async () => {
     let tl = createDefaultTimeline('t');
     tl = addClipToTrack(tl, A1(tl), ASSETS[1], 0);
@@ -175,7 +194,7 @@ describe('export mapping (real mapping + real SoundTouch render)', () => {
     await expect(bakePitchForExport(clips, exportTracksFromTimeline(shifted), async () => { throw new DOMException('x', 'AbortError'); })).rejects.toMatchObject({ name: 'AbortError' });
     const calls: any[] = [];
     await compose(tl, fakeBake(new Map(), calls));
-    expect(calls).toHaveLength(0);
+    expect(calls).toHaveLength(0); // speed 1, no pitch
   });
   it('a muted audio track is not baked', async () => {
     let tl = createDefaultTimeline('t');

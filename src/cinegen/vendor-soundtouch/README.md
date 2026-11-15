@@ -15,7 +15,7 @@ The SoundTouch code is kept in this one file and used only through its public ex
 (`TimeStretchProcessor`, `TimeStretchFilter`), imported from exactly two places:
 
 - `src/cinegen/lib/audio/pitch-dsp.ts` (offline render for the export bake and the tests),
-- `src/cinegen/lib/audio/pitch-worklet.processor.ts` (the preview AudioWorklet; Vite bundles it as a separate same-origin asset).
+- `src/cinegen/lib/audio/pitch-worklet.processor.js` (the preview AudioWorklet; Vite bundles it as a separate same-origin asset).
 
 To use a modified or different build of SoundTouch, replace `time-stretch.ts` with a file exporting the same two names and rebuild.
 No other file contains SoundTouch code. If you distribute a build, keep this folder (notice + licence text) with it and make the

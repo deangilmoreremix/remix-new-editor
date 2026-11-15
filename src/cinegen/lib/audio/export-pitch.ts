@@ -5,7 +5,7 @@
 import type { ExportClipInput, ExportTrackInfo } from '../editor/export-mapping';
 import { silencedTrackIds } from '../editor/export-mapping';
 import { exportsAsAudio } from './export-audio';
-import { needsPitchBake, normalizeClipPitch, type ClipPitch } from './pitch';
+import { defaultClipPitch, needsPitchBake, normalizeClipPitch, type ClipPitch } from './pitch';
 
 export type PitchClip = ExportClipInput & { pitch?: ClipPitch };
 export interface PitchBakeResult { clips: PitchClip[]; warnings: string[]; baked: number }
@@ -19,13 +19,14 @@ export async function bakePitchForExport(clips: PitchClip[], tracks: ExportTrack
   let baked = 0;
   const out: PitchClip[] = [];
   for (const c of clips) {
-    const pitch = normalizeClipPitch(c.pitch);
+    const explicit = normalizeClipPitch(c.pitch);
+    const pitch = explicit ?? defaultClipPitch(); // no setting = pitch preserved, no shift
     const track = c.trackId ? trackById.get(c.trackId) : undefined;
-    if (!pitch || !needsPitchBake(pitch, c.speed) || (track && silenced.has(track.id))) { out.push(c); continue; }
+    if (!needsPitchBake(pitch, c.speed) || (track && silenced.has(track.id))) { out.push(c); continue; }
     const label = `"${c.name || c.id || 'clip'}"`;
     if (!exportsAsAudio(c, track)) {
       if ((c.linkedClipIds ?? []).some((id) => { const o = byId.get(id); return !!o && ((o.trackId ? trackById.get(o.trackId)?.kind : undefined) ?? o.trackKind) === 'audio'; })) { out.push(c); continue; }
-      warnings.push(`Pitch on ${label} is preview-only: its sound plays inside the video. Unlink the audio (it then sits on an audio track) to export the pitch.`);
+      if (explicit) warnings.push(`Pitch on ${label} is preview-only: its sound plays inside the video. Unlink the audio (it then sits on an audio track) to export the pitch.`);
       out.push(c);
       continue;
     }

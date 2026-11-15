@@ -1,7 +1,7 @@
-// [remix] Stage 11 (port H): loads the pitch AudioWorklet module and creates its nodes. Vite bundles pitch-worklet.processor.ts (with the vendored
+// [remix] Stage 11 (port H): loads the pitch AudioWorklet module and creates its nodes. Vite bundles pitch-worklet.processor.js (with the vendored
 // SoundTouch) as a separate same-origin asset in dev and in `vite build`; `?worker&url` gives its URL. When AudioWorklet is missing or the module
 // fails to load, `loadPitchWorklet` resolves false and the preview plays the clip without the shift (the Audio tab says so).
-import workletModuleUrl from './pitch-worklet.processor.ts?worker&url';
+import workletModuleUrl from './pitch-worklet.processor.js?worker&url';
 import { PITCH_PROCESSOR_NAME, type PitchWorkletMessage } from './pitch-worklet-shared';
 
 const loads = new WeakMap<BaseAudioContext, Promise<boolean>>();
