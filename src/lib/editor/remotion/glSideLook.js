@@ -15,6 +15,7 @@ export function glSideLayerFrom(layer) {
     ...(layer.clipAnim ? { clipAnim: layer.clipAnim } : {}), ...(layer.clipZoom ? { clipZoom: layer.clipZoom } : {}),
     ...(layer.keyframes ? { keyframes: layer.keyframes } : {}), ...(layer.fadeIn ? { fadeIn: layer.fadeIn } : {}), ...(layer.fadeOut ? { fadeOut: layer.fadeOut } : {}),
     ...(layer.flip ? { flip: layer.flip } : {}),
+    ...(layer.clipBlend ? { clipBlend: layer.clipBlend } : {}), // [remix] Fix E: blend mode of the clip, applied to the whole transition window
   };
 }
 
@@ -31,7 +32,10 @@ export function resolveSideLook(side, frame, fps) {
   const effects = (side.occFx || []).map((e) => (e.keys
     ? { ...e, overrides: { ...(e.overrides || {}), ...Object.fromEntries(Object.entries(e.keys).filter(([, l]) => l?.length).map(([k, l]) => [k, sampleFxKey(l, t * 30)])) } }
     : e));
+  // [remix] Fix E: background fill (transform.fill = strength): moved only by the key transform / key opacity, not by the pose, crop, zoom or fade
+  const fill = side.clipTransform?.fill !== undefined ? { strength: side.clipTransform.fill, transform: kw?.transform || undefined, opacity: kw?.opacity ?? 1 } : null;
   return {
+    fill,
     look: { cssTransform, clipPath: pose.clipPath, opacity, ...(side.flip ? { flip: side.flip } : {}), ...(z ? { zoom: { magnification: z.magnification, focalX: z.focalX, focalY: z.focalY } } : {}) },
     effects, localFrame: local,
   };

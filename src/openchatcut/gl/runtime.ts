@@ -79,10 +79,11 @@ function makeTexture(gl: WebGL2RenderingContext): WebGLTexture {
 }
 
 /** create a runtime bound to (and sized like) the given canvas */
-export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
+export function createGlRuntime(canvas: HTMLCanvasElement, opts?: { /** [remix] Fix E: texture sources are uploaded premultiplied and the canvas is presented premultiplied, so a transition between translucent pictures keeps a correct alpha */ premultiplied?: boolean }): GlRuntime {
+  const premultiplied = !!opts?.premultiplied;
   // preserveDrawingBuffer: thumb previews copy via drawImage right after draw;
   // without it some GPUs present+clear before the 2D readback lands.
-  const gl = canvas.getContext('webgl2', { premultipliedAlpha: false, alpha: true, preserveDrawingBuffer: true });
+  const gl = canvas.getContext('webgl2', { premultipliedAlpha: premultiplied, alpha: true, preserveDrawingBuffer: true });
   if (!gl) throw new Error('WebGL2 not available');
   const colorManagedGl = gl as WebGL2RenderingContext & {
     drawingBufferColorSpace?: PredefinedColorSpace;
@@ -146,6 +147,7 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); // DOM sources are top-down
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
   };
 

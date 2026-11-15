@@ -1176,6 +1176,8 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           nativeVideoEnabled={timelineNativeVideoEnabled}
           activeAsset={activeAsset}
           glTransition={activeGlTransition(timeline, currentTime)}
+          compoundGroups={playTimeline.groups}
+          playClips={playTimeline.clips}
           activeClip={activeClip ? (timeline.clips.find((c) => c.id === activeClip.id) ?? activeClip) : null}
           currentTime={currentTime}
           onSeek={seek}

@@ -16,6 +16,7 @@ import { directorFromSnapshot, directorFromWorkflow } from '@cinegen/lib/directo
 import { DirectorTab } from '@cinegen/components/director/director-tab';
 import { createDefaultTimeline } from '@cinegen/lib/editor/timeline-operations';
 import { migrateSequenceToTimelines } from '@cinegen/lib/editor/timeline-migration';
+import { migrateLoadedTimelines, PROJECT_SCHEMA_VERSION } from '@cinegen/lib/editor/project-migrations'; // [remix] Fix E: versioned load migrations
 import { TopTabs, type LlmCopilotNavStatus } from './top-tabs';
 import { WorkspaceLoadingState } from './workspace-loading-state';
 import { useCloudAuthRecovery } from './use-cloud-auth-recovery';
@@ -1180,9 +1181,9 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
               transitions: Record<string, unknown>[];
             }
           >;
-          const timelines = rawTimelines.length > 0
+          const timelines = migrateLoadedTimelines(rawTimelines.length > 0
             ? rawTimelines.map((tl) => timelineFromRows(tl, tl.tracks, tl.clips, tl.transitions))
-            : [createDefaultTimeline('Timeline 1')];
+            : [createDefaultTimeline('Timeline 1')], workflowState.projectSchemaVersion).timelines; // [remix] Fix E
 
           const activeTimelineId = (dbState.activeTimelineId as string) ?? timelines[0]?.id ?? '';
           const exports = (dbState.exports as Record<string, unknown>[]).map(exportFromRow);
@@ -1234,7 +1235,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
             a.type === 'image' && AUDIO_EXTS.test(a.url) ? { ...a, type: 'audio' as const } : a,
           ), projectId); // [remix] Fix B1
           const migrated = migrateSequenceToTimelines(snapshot);
-          const timelines = (migrated.timelines ?? [createDefaultTimeline('Timeline 1')]) as Timeline[];
+          const timelines = migrateLoadedTimelines((migrated.timelines ?? [createDefaultTimeline('Timeline 1')]) as Timeline[], (snapshot as { projectSchemaVersion?: unknown }).projectSchemaVersion).timelines; // [remix] Fix E
           const activeTimelineId = migrated.activeTimelineId ?? timelines[0]?.id ?? '';
           const exports = (snapshot.exports ?? []) as ExportJob[];
           const mediaFolders = (snapshot.mediaFolders ?? []) as MediaFolder[];
@@ -1273,9 +1274,10 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         const spaces = ((useSqlite ? workflow.spaces : raw.spaces) ?? []) as WorkflowSpace[];
         const activeSpaceId = spaces.some(space => space.id === current.activeSpaceId)
           ? current.activeSpaceId : String((useSqlite ? workflow.activeSpaceId : raw.activeSpaceId) ?? '');
-        const timelines = useSqlite
+        const timelines0 = useSqlite
           ? (raw.timelines as Array<Record<string, unknown> & { tracks: Record<string, unknown>[]; clips: Array<Record<string, unknown> & { keyframes?: Record<string, unknown>[] }>; transitions: Record<string, unknown>[] }>).map(tl => timelineFromRows(tl, tl.tracks, tl.clips, tl.transitions))
           : (migrateSequenceToTimelines(raw as unknown as ProjectSnapshot).timelines ?? []) as Timeline[];
+        const timelines = migrateLoadedTimelines(timelines0, useSqlite ? workflow.projectSchemaVersion : raw.projectSchemaVersion).timelines; // [remix] Fix E
         return {
           nodes: (workflow.nodes ?? []) as Node<WorkflowNodeData>[],
           edges: (workflow.edges ?? []) as Edge[],
@@ -1356,6 +1358,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         timelines: dbTimelines,
         activeTimelineId: state.activeTimelineId,
         workflow: {
+          projectSchemaVersion: PROJECT_SCHEMA_VERSION, // [remix] Fix E
           nodes: serializableNodes,
           edges: state.edges,
           spaces: serializableSpaces,
@@ -1386,6 +1389,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
     } else {
       // ---------- JSON file save path ----------
       await saveAvailableProject(projectId, {
+        projectSchemaVersion: PROJECT_SCHEMA_VERSION, // [remix] Fix E: legacy-layout migrations never re-apply
         workflow: { nodes: serializableNodes, edges: state.edges },
         spaces: serializableSpaces,
         activeSpaceId: state.activeSpaceId,

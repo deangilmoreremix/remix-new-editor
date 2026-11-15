@@ -12,6 +12,15 @@ export interface StyledLook {
   flip?: { h?: boolean; v?: boolean };
   /** scale about a focal point, 0..1 */
   zoom?: { magnification: number; focalX: number; focalY: number };
+  /**
+   * [remix] Fix E: the clip's background fill (a blurred, darkened, over-scaled copy of the picture behind a contained picture). It is drawn first and
+   * is NOT moved by the pose / crop / zoom / fade, only by `transform` (the keyframe transform) and `opacity` (the keyframe opacity), as in the clip layer.
+   */
+  /** [remix] Fix E: composite onto what is already in the canvas (group render) instead of clearing it first */
+  keep?: boolean;
+  /** [remix] Fix E: canvas composite operation for this picture (CSS mix-blend-mode names: multiply, screen, overlay, ...) */
+  blend?: string;
+  fill?: { source: CanvasImageSource; filter: string; scale: number; transform?: string; opacity?: number };
 }
 
 const num = (s: string | undefined, fallback = 0) => { const n = parseFloat(s ?? ''); return Number.isFinite(n) ? n : fallback; };
@@ -58,10 +67,21 @@ export function drawStyledFrame(ctx: CanvasRenderingContext2D, picture: CanvasIm
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
-  ctx.clearRect(0, 0, W, H);
+  if (!look.keep) ctx.clearRect(0, 0, W, H);
   if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H); }
+  if (look.fill) {
+    const f = look.fill;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, f.opacity ?? 1));
+    applyCssTransform(ctx, f.transform, W, H);
+    ctx.translate(W / 2, H / 2); ctx.scale(f.scale, f.scale); ctx.translate(-W / 2, -H / 2);
+    try { (ctx as CanvasRenderingContext2D & { filter: string }).filter = f.filter; } catch { /* no canvas filter support: unblurred fill */ }
+    ctx.drawImage(f.source, 0, 0, W, H);
+    ctx.restore();
+  }
   ctx.save();
   ctx.globalAlpha = Math.max(0, Math.min(1, look.opacity ?? 1));
+  if (look.blend && look.blend !== 'normal') ctx.globalCompositeOperation = look.blend as GlobalCompositeOperation;
   applyCssTransform(ctx, look.cssTransform, W, H);
   const inset = parseInset(look.clipPath);
   if (inset) { ctx.beginPath(); ctx.rect(inset.l * W, inset.t * H, Math.max(0, W * (1 - inset.l - inset.r)), Math.max(0, H * (1 - inset.t - inset.b))); ctx.clip(); }

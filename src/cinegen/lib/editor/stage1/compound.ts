@@ -6,6 +6,10 @@
 // [remix] Fix A: so are its own look - Clip.anim (x/y/scale/rotation/opacity keys + motion modifiers), static transform, opacity keyframes, fx (with
 // fx param keys), LUT and blend mode. They are DISTRIBUTED onto every picture child with the right time offset (see applyGroupLook), so the
 // preview, the export and expandCompound all see the same result. Not applied: crop, fades, zoom, captions of the compound (documented).
+// [remix] Fix E: flattenCompounds now keeps that look OFF the children by default and returns the compound as a GROUP (Timeline.groups, children carry
+// compoundGroup): the preview (gl-clip-layer) and the export (GroupLayer) render the children into one offscreen layer and apply the compound's own
+// fx / LUT / opacity / blend / transform / crop / fades / zoom / flip ONCE. The per-child distribution (applyGroupLook) remains for expandCompound (the
+// compound object is gone afterwards), for `{ bake: true }` (export range), and for compounds that contain compounds or GL transitions.
 import type { Clip, ClipFx, CompoundContent, Timeline, Transition } from '@cinegen/types/timeline';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 import { generateId } from '@cinegen/lib/utils/ids';
@@ -134,8 +138,19 @@ function applyGroupLook(container: Clip, next: Clip, offset: number, base: { opa
 interface Windowed { clips: Clip[]; transitions: Transition[] }
 
 /** The compound's content as clips on the parent timeline: honours the compound's trim window, speed and static opacity / volume / flip. */
-function content(container: Clip, trackIds: Set<string>, idFor: (childId: string) => string, audioTrackIds: Set<string> = new Set()): Windowed {
-  const look = hasGroupLook(container);
+/** Does the compound have anything of its own to apply to its content as a whole (look, static opacity, flip, fades, zoom, crop)? */
+export function needsGroupRender(c: Clip): boolean {
+  return hasGroupLook(c) || (c.opacity ?? 1) !== 1 || !!c.flipH || !!c.flipV || !!c.fadeIn || !!c.fadeOut || !!c.zoom || !!c.transform?.crop;
+}
+
+/** Can this compound render as one group? (not when it contains compounds or GL transitions: those keep the per-child look) */
+export function groupable(container: Clip): boolean {
+  const inner = container.compound;
+  return !!inner && !inner.clips.some((c) => c.compound) && !inner.transitions.some((t) => t.glType || t.glDef);
+}
+
+function content(container: Clip, trackIds: Set<string>, idFor: (childId: string) => string, audioTrackIds: Set<string> = new Set(), asGroup = false): Windowed {
+  const look = hasGroupLook(container) && !asGroup;
   const inner = container.compound as CompoundContent;
   const w0 = container.trimStart; const w1 = container.duration - container.trimEnd;
   const sp = container.speed || 1;
@@ -152,9 +167,10 @@ function content(container: Clip, trackIds: Set<string>, idFor: (childId: string
       trackId: trackIds.has(child.trackId) ? child.trackId : container.trackId,
       startTime: container.startTime + (s - w0) / sp,
       trimStart: child.trimStart + cutL * child.speed, trimEnd: child.trimEnd + cutR * child.speed,
-      speed: child.speed * sp, opacity: child.opacity * container.opacity, volume: child.volume * container.volume,
-      flipH: child.flipH !== container.flipH, flipV: child.flipV !== container.flipV, keyframes: kf,
+      speed: child.speed * sp, opacity: asGroup ? child.opacity : child.opacity * container.opacity, volume: child.volume * container.volume,
+      flipH: asGroup ? child.flipH : child.flipH !== container.flipH, flipV: asGroup ? child.flipV : child.flipV !== container.flipV, keyframes: kf,
     };
+    if (asGroup && !audioTrackIds.has(next.trackId)) next.compoundGroup = container.id; // [remix] Fix E: rendered inside the compound's group
     if (child.anim) next.anim = sliceAnim(child.anim, cutL, e - cs, 1 / sp); // [remix] Stage 2 keys follow the same window
     // [remix] Fix A: the compound's own fx / anim / transform apply to every picture child (a child on an audio track has no picture)
     if (look && !audioTrackIds.has(next.trackId)) Object.assign(next, applyGroupLook(container, next, next.startTime - container.startTime, { opacity: child.opacity }));
@@ -174,23 +190,26 @@ function content(container: Clip, trackIds: Set<string>, idFor: (childId: string
 }
 
 /** Expand every compound clip into ordinary clips (recursively). Returns the same object when there is none, so it memoises well. */
-export function flattenCompounds(timeline: Timeline, depth = 0): Timeline {
+export function flattenCompounds(timeline: Timeline, opts: { bake?: boolean } = {}, depth = 0): Timeline {
   if (depth >= MAX_DEPTH || !timeline.clips.some((c) => c.compound)) return timeline;
   const trackIds = new Set(timeline.tracks.map((t) => t.id));
   const clips: Clip[] = [];
   const transitions: Transition[] = [];
   const compoundIds = new Set<string>();
   const audioIds = new Set(timeline.tracks.filter((t) => t.kind === 'audio').map((t) => t.id));
+  const groups: Clip[] = [...(timeline.groups ?? [])];
   for (const c of timeline.clips) {
     if (!c.compound) { clips.push(c); continue; }
     compoundIds.add(c.id);
-    const w = content(c, trackIds, (id) => `${c.id}::${id}`, audioIds);
+    const asGroup = !opts.bake && needsGroupRender(c) && groupable(c) && !audioIds.has(c.trackId);
+    const w = content(c, trackIds, (id) => `${c.id}::${id}`, audioIds, asGroup);
     clips.push(...w.clips);
     transitions.push(...w.transitions);
+    if (asGroup && w.clips.some((k) => k.compoundGroup === c.id)) { const { compound: _drop, ...g } = c; groups.push(g as Clip); }
   }
   // a transition that referred to the compound itself has no single clip to act on: dropped in the flattened view
   const rest = (timeline.transitions ?? []).filter((t) => !compoundIds.has(t.clipAId) && !(t.clipBId && compoundIds.has(t.clipBId)));
-  return flattenCompounds(finish({ ...timeline, clips, transitions: [...rest, ...transitions] }), depth + 1);
+  return flattenCompounds(finish({ ...timeline, clips, transitions: [...rest, ...transitions], ...(groups.length ? { groups } : {}) }), opts, depth + 1);
 }
 
 /** Put one compound clip's content back on the timeline as ordinary clips (original ids when free, new ones otherwise). */
