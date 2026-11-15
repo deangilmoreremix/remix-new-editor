@@ -121,6 +121,8 @@ debug_signin.cjs
 *.jpg
 # the pre-made Animations / Library thumbnails (public/hyperframes/thumbs) are tracked so cards are never blank
 !public/hyperframes/thumbs/*.jpg
+# backdrop of the retired Motion Director StreamResponse card (placeholder; the original image was never committed)
+!public/motion-studio/legacy-textures/agent-stream.jpg
 
 # Logs
 logs
