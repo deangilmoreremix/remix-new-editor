@@ -19,12 +19,14 @@
 //      the lead is stored for the video's OWNER (preview = false) and
 //      forwarded to the webhooks saved in the published project — webhook
 //      URLs and notification emails in the request body are ignored.
+//   -> answers { ok, stored } as soon as the lead is saved; webhooks (with retries),
+//      emails, Kit/MailerLite and the delivery log finish in the background.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   isForwardableWebhook, isPrivateAddress, sanitizeData, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
-  isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook,
-  savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, type HttpCall, type Json,
+  isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, hostOf, deriveSigningSecret,
+  savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, deliverWebhook, type Delivery, type DeliverDeps, type HttpCall, type Json,
 } from "./logic.ts";
 export { isForwardableWebhook, savedWebhooks, isCallClip, leadConfigFor };
 
@@ -48,8 +50,6 @@ const INTEGRATIONS_KEY = Deno.env.get("INTEGRATIONS_ENCRYPTION_KEY") ?? "";
 
 const KINDS = new Set(["lead-form", "list-builder", "personalizer", "call-attempt"]);
 const WEBHOOK_TIMEOUT_MS = 8000; // email requests
-const ATTEMPT_TIMEOUT_MS = 5000; // one webhook attempt
-const DELIVERY_BUDGET_MS = 12_000; // all attempts for one webhook
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
@@ -85,6 +85,16 @@ function rateLimited(key: string): boolean {
   return rec.count > RATE_LIMIT_MAX;
 }
 
+/**
+ * Keep the worker alive for work that finishes after the response is sent (Supabase's EdgeRuntime.waitUntil).
+ * Where that isn't available it simply waits, which is the old behavior.
+ */
+async function afterResponse(work: Promise<unknown>): Promise<void> {
+  const rt = (globalThis as unknown as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime;
+  if (rt?.waitUntil) rt.waitUntil(work);
+  else await work;
+}
+
 function clientKey(req: Request): string {
   return req.headers.get("cf-connecting-ip") ?? req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     req.headers.get("authorization")?.slice(-24) ?? "anonymous";
@@ -103,47 +113,16 @@ async function resolvesPublic(url: string): Promise<boolean> {
   } catch { return false; } // deny on resolver errors: only forward when every resolved address is public
 }
 
-type Delivery = { deliveryId: string; host: string; ok: boolean; status: number | null; attempts: number; error: string | null };
 type Db = ReturnType<typeof createClient>;
 
-/** One webhook: signed, retried with backoff on network errors / 429 / 5xx, stopped by a total time budget. */
-async function deliver(url: string, body: string, event: string, secret: string, maxAttempts: number): Promise<Delivery> {
-  const deliveryId = crypto.randomUUID();
-  const host = hostOf(url);
-  if (!(await resolvesPublic(url))) return { deliveryId, host, ok: false, status: null, attempts: 0, error: "blocked address" };
-  const started = Date.now();
-  let status: number | null = null;
-  let error: string | null = null;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), ATTEMPT_TIMEOUT_MS);
-    try {
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        "User-Agent": "remix-lead-capture/1.0",
-        "X-Remix-Event": event,
-        "X-Remix-Delivery": deliveryId, // same id on every retry, so receivers can de-duplicate
-      };
-      if (secret) headers["X-Remix-Signature"] = await signWebhook(secret, body, Math.floor(Date.now() / 1000));
-      const res = await fetch(url, { method: "POST", headers, body, signal: ctrl.signal, redirect: "manual" });
-      status = res.status;
-      await res.body?.cancel();
-      if (res.ok) return { deliveryId, host, ok: true, status, attempts: attempt, error: null };
-      error = `HTTP ${res.status}`;
-    } catch (err) {
-      status = null;
-      error = (err as Error)?.name === "AbortError" ? "timeout" : "network error";
-    } finally {
-      clearTimeout(timer);
-    }
-    const wait = backoffMs(attempt);
-    if (attempt >= maxAttempts || !isRetryable(status) || Date.now() - started + wait + ATTEMPT_TIMEOUT_MS > DELIVERY_BUDGET_MS) {
-      return { deliveryId, host, ok: false, status, attempts: attempt, error };
-    }
-    await new Promise((r) => setTimeout(r, wait));
-  }
-  return { deliveryId, host, ok: false, status, attempts: maxAttempts, error };
-}
+/** The real network, clock and DNS guard behind deliverWebhook (tests inject fakes instead). */
+const realDeliverDeps: DeliverDeps = {
+  fetchFn: (url, init) => fetch(url, init),
+  sleepFn: (ms) => new Promise((r) => setTimeout(r, ms)),
+  nowFn: () => Date.now(),
+  resolvesPublic,
+  newId: () => crypto.randomUUID(),
+};
 
 async function forward(
   urls: string[],
@@ -152,7 +131,7 @@ async function forward(
 ): Promise<{ forwarded: number; failed: number; deliveries: Delivery[] }> {
   const body = JSON.stringify(payload);
   const event = typeof payload.event === "string" ? payload.event : "video_opted_in";
-  const deliveries = await Promise.all(urls.map((url) => deliver(url, body, event, secret, maxAttempts)));
+  const deliveries = await Promise.all(urls.map((url) => deliverWebhook({ url, body, event, secret, maxAttempts }, realDeliverDeps)));
   const failed = deliveries.filter((d) => !d.ok).length;
   return { forwarded: urls.length - failed, failed, deliveries };
 }
@@ -305,15 +284,21 @@ Deno.serve(async (req: Request) => {
     // The recipients always come from the saved project, never from the request.
     const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? [callNotify] : []) : savedNotifyEmails(config, listBuilder);
     const ownerId = String(video.clerk_user_id ?? "");
-    const [sent, { email, emailCount }, esp] = await Promise.all([
-      hooks.length
-        ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
-        : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
-      notify(notifyTo, leadKind, leadData, attribution),
-      leadKind === "call-attempt" ? Promise.resolve(null) : pushToEsp(admin, ownerId, savedEsp(config), leadData),
-    ]);
-    await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);
-    return json(req, { ok: true, stored: !insertError, forwarded: sent.forwarded, failed: sent.failed, email, emailCount, esp });
+    // Everything after the lead is saved (webhooks with retries, notification emails, Kit/MailerLite, the delivery
+    // log) runs after the viewer has their answer, so a slow or down receiver can never keep their form waiting.
+    // The viewer only needs `stored`.
+    const afterSave = (async () => {
+      const [sent] = await Promise.all([
+        hooks.length
+          ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
+          : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
+        notify(notifyTo, leadKind, leadData, attribution),
+        leadKind === "call-attempt" ? Promise.resolve(null) : pushToEsp(admin, ownerId, savedEsp(config), leadData),
+      ]);
+      await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);
+    })().catch((err) => console.warn("[lead-capture] after-save work failed:", (err as Error)?.name));
+    await afterResponse(afterSave);
+    return json(req, { ok: true, stored: !insertError });
   }
 
   if (body.action === "list") {

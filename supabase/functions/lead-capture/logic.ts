@@ -158,6 +158,68 @@ export async function signWebhook(secret: string, body: string, timestampSec: nu
   return `t=${timestampSec},v1=${await hmacHex(secret, `${timestampSec}.${body}`)}`;
 }
 
+export const ATTEMPT_TIMEOUT_MS = 5000; // one webhook attempt
+export const DELIVERY_BUDGET_MS = 12_000; // all attempts for one webhook
+
+export type Delivery = { deliveryId: string; host: string; ok: boolean; status: number | null; attempts: number; error: string | null };
+
+/** What deliverWebhook needs from the outside world (real fetch/clock in production, fakes in tests). */
+export type DeliverDeps = {
+  fetchFn: (url: string, init: { method: string; headers: Record<string, string>; body: string; signal: AbortSignal; redirect: "manual" }) =>
+    Promise<{ ok: boolean; status: number; body?: { cancel?: () => Promise<unknown> } | null }>;
+  sleepFn: (ms: number) => Promise<void>;
+  nowFn: () => number;
+  /** false when the host resolves to a private address (SSRF guard); checked once, before the first attempt. */
+  resolvesPublic: (url: string) => Promise<boolean>;
+  newId: () => string;
+};
+
+/**
+ * Deliver one webhook: signed (when a secret is set), retried with backoff on network errors / timeouts / 408 /
+ * 429 / 5xx, never on other 4xx or redirects, and stopped by a total time budget. Every attempt carries the same
+ * X-Remix-Delivery id (so receivers can de-duplicate) and a fresh signature timestamp.
+ */
+export async function deliverWebhook(
+  a: { url: string; body: string; event: string; secret: string; maxAttempts: number },
+  d: DeliverDeps,
+): Promise<Delivery> {
+  const deliveryId = d.newId();
+  const host = hostOf(a.url);
+  if (!(await d.resolvesPublic(a.url))) return { deliveryId, host, ok: false, status: null, attempts: 0, error: "blocked address" };
+  const started = d.nowFn();
+  let status: number | null = null;
+  let error: string | null = null;
+  for (let attempt = 1; attempt <= a.maxAttempts; attempt++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ATTEMPT_TIMEOUT_MS);
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "User-Agent": "remix-lead-capture/1.0",
+        "X-Remix-Event": a.event,
+        "X-Remix-Delivery": deliveryId,
+      };
+      if (a.secret) headers["X-Remix-Signature"] = await signWebhook(a.secret, a.body, Math.floor(d.nowFn() / 1000));
+      const res = await d.fetchFn(a.url, { method: "POST", headers, body: a.body, signal: ctrl.signal, redirect: "manual" });
+      status = res.status;
+      await res.body?.cancel?.();
+      if (res.ok) return { deliveryId, host, ok: true, status, attempts: attempt, error: null };
+      error = `HTTP ${res.status}`;
+    } catch (err) {
+      status = null;
+      error = (err as Error)?.name === "AbortError" ? "timeout" : "network error";
+    } finally {
+      clearTimeout(timer);
+    }
+    const wait = backoffMs(attempt);
+    if (attempt >= a.maxAttempts || !isRetryable(status) || d.nowFn() - started + wait + ATTEMPT_TIMEOUT_MS > DELIVERY_BUDGET_MS) {
+      return { deliveryId, host, ok: false, status, attempts: attempt, error };
+    }
+    await d.sleepFn(wait);
+  }
+  return { deliveryId, host, ok: false, status, attempts: a.maxAttempts, error };
+}
+
 // ------------------------------------------------ email-list delivery (Kit / MailerLite)
 
 export type EspProvider = "kit" | "mailerlite";
