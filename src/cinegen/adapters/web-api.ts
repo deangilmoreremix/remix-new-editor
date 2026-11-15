@@ -189,15 +189,13 @@ export function registerWebApi() {
       void (async () => {
         try {
           emitTranscription({ ...base, type: 'status', message: 'Loading speech model…' });
-          // The editor's existing in-browser Whisper (Transformers.js) — one implementation, not two.
-          const { transcribeInBrowser, WHISPER_MODELS } = await import('../../lib/editor/remotion/transcribe.js');
-          const model = (navigator as Navigator & { gpu?: unknown }).gpu ? WHISPER_MODELS[0][0] : WHISPER_MODELS[1][0];
-          const out = await transcribeInBrowser(a.filePath, {
-            model,
-            onProgress: (pr: { stage?: string; progress?: number }) => emitTranscription({ ...base, type: 'progress', message: `Transcribing ${Math.round((pr?.progress ?? 0) * 100)}%` }),
+          // [remix] Port I1: the Local AI pipeline (installed Whisper model, chunked, word timings, cancellable); no implicit download.
+          const { transcribeAsset } = await import('../lib/local-ai/clip-transcribe');
+          const out = await transcribeAsset(a.filePath, {
+            onProgress: (pr) => emitTranscription({ ...base, type: 'progress', message: `Transcribing ${Math.round(pr.progress * 100)}%` }),
           });
-          const words = (out.captions as Array<{ text: string; startMs: number; endMs: number }>).map((c) => ({ text: c.text, start: c.startMs / 1000, end: c.endMs / 1000 }));
-          emitTranscription({ ...base, type: 'done', text: out.text, segments: toSegments(words), language: 'en' });
+          const words = out.captions.map((c) => ({ text: c.text, start: c.startMs / 1000, end: c.endMs / 1000 }));
+          emitTranscription({ ...base, type: 'done', text: out.text, segments: toSegments(words), language: out.language ?? 'auto' });
         } catch (err) {
           emitTranscription({ ...base, type: 'error', error: err instanceof Error ? err.message : String(err) });
         }
