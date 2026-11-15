@@ -127,6 +127,8 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
   const id = `${idPrefix}-${field.key.replace(/\./g, '-')}`;
   const label = `<label for="${id}">${esc(field.label)}</label>`;
   switch (field.type) {
+    case 'note':
+      return `<p class="addon-field__hint">${esc(field.text)}</p>`;
     case 'toggle':
       return `<div class="clip-editor__field addon-field addon-field--toggle"><label><input id="${id}" type="checkbox" data-key="${field.key}" data-kind="toggle" ${value ? 'checked' : ''}/> ${esc(field.label)}</label></div>`;
     case 'range':

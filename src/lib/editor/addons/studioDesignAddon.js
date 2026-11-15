@@ -61,27 +61,44 @@ export const STUDIO_DESIGN = registerAddon({
     { key: 'designId', label: 'Design', type: 'text' },
     { key: 'opacity', label: 'Opacity', type: 'range', min: 1, max: 100 },
   ],
-  fieldsFor: (o) => studioDesignFields(o),
-  summary: (o) => (o.designId ? `Design: ${o.designId}` : 'Studio design'),
+  fieldsFor: (o, ctx) => studioDesignFields(o, ctx),
+  summary: (o) => (o.designName || o.designId ? `Design: ${o.designName || o.designId}` : 'Studio design'),
 });
 
 const pretty = (key) => String(key).replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
 
 /**
- * The settings form for a design clip: one input per text slot, per image and per color the clip holds, so a
- * design's wording, logo and colors can be edited (or pointed at a {{token}}) after it is added.
+ * The settings form for a design clip: a design picker (when the catalog is loaded), one input per text slot,
+ * image and color the clip holds, so a design's wording, logo and colors can be edited (or pointed at a
+ * {{token}}) after it is added.
+ * @param {object} o     the clip's options
+ * @param {{designs?: Array<{id,name,category,description}>}} [ctx]
  */
-export function studioDesignFields(o) {
+export function studioDesignFields(o, ctx = {}) {
+  const designs = Array.isArray(ctx.designs) ? ctx.designs : [];
+  const current = designs.find((d) => d.id === o?.designId);
   const slots = Object.keys(o?.slots || {}).map((k) => ({ key: `slots.${k}`, label: `${pretty(k)} (text)`, type: 'text', placeholder: 'Text or a {{token}}' }));
   const media = Object.keys(o?.media || {}).map((k) => ({ key: `media.${k}`, label: `${pretty(k)} image`, type: 'text', placeholder: 'https://… or {{logoUrl}}' }));
   const colors = ['primary', 'accent', 'text'].map((k) => ({ key: `colors.${k}`, label: `${pretty(k)} color`, type: 'text', placeholder: '#d9ff00 or {{brandColor}}' }));
+  const pick = designs.length
+    ? [
+      { key: 'designId', label: 'Design', type: 'select', options: designs.map((d) => [d.id, `${d.name} — ${d.category}`]) },
+      ...(current?.description ? [{ key: 'designNote', type: 'note', label: '', text: current.description }] : []),
+    ]
+    : [{ key: 'designId', label: 'Design', type: 'text' }];
   return [
-    { key: 'designId', label: 'Design', type: 'text' },
+    ...pick,
     ...slots,
     ...media,
     ...colors,
     { key: 'opacity', label: 'Opacity', type: 'range', min: 1, max: 100 },
   ];
+}
+
+/** Options for switching a clip to another design: its slots, name and (unless the user moved it) size reset; its place, opacity and colors stay. */
+export function switchDesignOptions(prev, design) {
+  const fresh = defaultStudioDesignOptions(design);
+  return { ...prev, designId: design.id, designName: fresh.designName, primarySlot: fresh.primarySlot, slots: fresh.slots, media: { ...fresh.media, ...Object.fromEntries(Object.entries(prev.media || {}).filter(([k]) => k in fresh.media)) } };
 }
 
 /** Box (percent of the frame) for a design's own default placement: centre x/y and size as fractions of the frame. */
@@ -131,6 +148,8 @@ export function defaultStudioDesignOptions(design, { overrides, primaryText, bra
   return {
     ...base,
     designId: design.id,
+    designName: design.name || '',
+    primarySlot: ((Array.isArray(design.textSlots) ? design.textSlots : []).find((x) => x && x.primary) ?? (design.textSlots || [])[0])?.key || '',
     slots: slotsForDesign(design, { overrides, primaryText, brand }),
     // The size and place the Studio gives this design (an overlay is a small box, a full scene fills the frame).
     ...((geometry || geometryFromPlacement(design.placement)) ? { geometry: geometry || geometryFromPlacement(design.placement) } : {}),

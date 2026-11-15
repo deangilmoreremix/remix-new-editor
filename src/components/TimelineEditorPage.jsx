@@ -39,7 +39,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import * as contactStore from '../lib/contactStore.js';
 import { PERSONALIZED_LAYOUTS, assetForImageToken, buildLayoutPlan, imageTokenChoices, imageTokenOf, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
 import { studioLayersToPlan } from '../lib/editor/personalize/studioLayers.js';
-import { defaultStudioDesignOptions } from '../lib/editor/addons/studioDesignAddon.js';
+import { defaultStudioDesignOptions, switchDesignOptions } from '../lib/editor/addons/studioDesignAddon.js';
 import { measureImageLuminance } from '../lib/personalization/imageStyle.js';
 import { AI_FILLABLE, describeUnreviewed, markAiGenerated, planAiImages, unreviewedAiImages } from '../lib/personalization/aiContactImages.js';
 import { AI_CLIP_MODELS, CLIP_IMAGE_SLOTS, aiClipConfig, clipSrcFor, describeClipGaps, planClipJobs } from '../lib/personalization/aiContactClips.js';
@@ -5252,6 +5252,13 @@ export function TimelineEditorPage() {
     function renderSchemaAddonEditor(clip) {
       const addon = getAddon(clip.type);
       clip.addon = addonOptions(clip);
+      // A design clip's settings offer a picker of designs: load the catalog once, then redraw with it.
+      if (clip.type === 'overlay-studio-design' && studioDesignChoices === null) {
+        studioDesignChoices = []; // placeholder while loading (and if it fails): the form falls back to a plain id field
+        listStudioDesigns().catch(() => { studioDesignChoices = []; }).then(() => {
+          if (state.selectedClipId === clip.id) renderSchemaAddonEditor(clip);
+        });
+      }
       const T = state.timelineSeconds || 60;
       const { start, end } = clipTimeRange(clip, T);
       const timing = addon.timing || ['start', 'end'];
@@ -5299,11 +5306,14 @@ export function TimelineEditorPage() {
       activeAddonEditor?.destroy();
       activeAddonEditor = renderAddonEditor(els.clipEditorContainer.querySelector('#addonOptionsForm'), {
         fields: addon.fields,
-        fieldsFor: addon.fieldsFor ? (o) => addon.fieldsFor(o) : undefined,
+        fieldsFor: addon.fieldsFor ? (o) => addon.fieldsFor(o, { designs: studioDesignChoices || [] }) : undefined,
         options: addonOptions(clip),
         idPrefix: `addon-${clip.id}`,
         services: addonEditorServices,
-        onFieldChange: addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined,
+        onFieldChange: clip.type === 'overlay-studio-design'
+          // Choosing another design resets its text slots to that design's own (the place, size and opacity stay).
+          ? (key, next) => (key === 'designId' && studioDesignMap.get(next.designId) ? switchDesignOptions(next, studioDesignMap.get(next.designId)) : next)
+          : (addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined),
         onChange: (next) => {
           const prevDuration = clip.addon?.durationSec;
           clip.addon = next;
@@ -8866,11 +8876,15 @@ export function TimelineEditorPage() {
     // playhead. Only a branded render carries layers; AI runs hand back media.
     const studioTemplates = () => import('../features/personalization/shared/personalization/templates/index');
     // Studio designs the timeline can draw (they must preview and export in the browser).
+    // Loaded once: the picker list, and the templates themselves (to reset a clip's slots when its design changes).
+    let studioDesignChoices = null;
+    let studioDesignMap = new Map();
     async function listStudioDesigns() {
       const { listRemotionDesignTemplates } = await studioTemplates();
-      return listRemotionDesignTemplates()
-        .filter((d) => d.previewCompatible !== false && d.capabilities?.browserExport)
-        .map((d) => ({ id: d.id, name: d.name, category: d.category, description: d.description || '' }));
+      const usable = listRemotionDesignTemplates().filter((d) => d.previewCompatible !== false && d.capabilities?.browserExport);
+      studioDesignMap = new Map(usable.map((d) => [d.id, d]));
+      studioDesignChoices = usable.map((d) => ({ id: d.id, name: d.name, category: d.category, description: d.description || '' }));
+      return studioDesignChoices;
     }
     async function addStudioDesign(designId) {
       const { getRemotionDesignTemplate } = await studioTemplates();

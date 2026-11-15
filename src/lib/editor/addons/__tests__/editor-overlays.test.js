@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import '../index.js';
 import {
   activeOverlays, buildOverlayElement, isEditorOverlay, getAddon, createAddonClip, renderAddonEditor,
-  studioDesignFields, geometryFromPlacement, defaultStudioDesignOptions, addonOptions,
+  studioDesignFields, switchDesignOptions, geometryFromPlacement, defaultStudioDesignOptions, addonOptions,
 } from '../index.js';
 
 const T = 20;
@@ -37,11 +37,26 @@ describe('Hotspot and Studio design clips in the editor', () => {
     expect(el.style.height).toBe('25%');
     const jump = createAddonClip('addon-hotspot', { startSec: 0, timelineSeconds: T });
     jump.addon = { ...jump.addon, action: 'seek', seekTime: 12 };
-    expect(buildOverlayElement(jump).textContent).toContain('Jump to 12s');
+    expect(el.textContent).toContain('not visible in the video'); // says what it is and that viewers see nothing
+    expect(el.textContent).toContain('opens');
+    expect(buildOverlayElement(jump).textContent).toContain('jumps to 0:12');
+    const tel = createAddonClip('addon-hotspot', { startSec: 0, timelineSeconds: T });
+    tel.addon = { ...tel.addon, linkMode: 'phone', phoneNumber: '555 0100' };
+    expect(buildOverlayElement(tel).textContent).toContain('calls 555 0100');
+  });
+
+  it('a design box names the design and shows the text it will say for the selected contact', () => {
     const ds = createAddonClip('overlay-studio-design', { startSec: 0, timelineSeconds: T });
     ds.addon = defaultStudioDesignOptions(design);
-    const box = buildOverlayElement(ds);
-    expect(box.textContent).toContain('promo-cta');
+    const ann = { id: 'c-ann', contact: { name: 'Ann' }, variables: {}, personalization: { business: { ctaHeadline: 'Spring roof check', callToAction: 'Book now' } } };
+    const box = buildOverlayElement(ds, { profile: ann });
+    expect(box.querySelector('.addon-placeholder__tag strong').textContent).toBe('🎨 Promo CTA · Spring roof check');
+    expect(box.querySelector('.addon-placeholder__preview').textContent).toBe('Spring roof check · Book now'); // text preview for when the player is off
+    const none = buildOverlayElement(ds, {});
+    expect(none.textContent).toContain('Pick a contact to preview their details');
+    // an older clip without a stored name falls back to the id, tidied
+    const old = { ...ds, addon: { ...ds.addon, designName: undefined } };
+    expect(buildOverlayElement(old, {}).querySelector('strong').textContent).toContain('Promo cta');
   });
 
   it('a new design clip takes the size and place the Studio gives that design', () => {
@@ -57,6 +72,23 @@ describe('Studio design settings form', () => {
   it('has an input for every text slot, image and color the clip holds', () => {
     const keys = studioDesignFields(defaultStudioDesignOptions(design)).map((f) => f.key);
     expect(keys).toEqual(expect.arrayContaining(['slots.title', 'slots.buttonText', 'media.logo', 'media.product', 'colors.primary', 'colors.accent', 'colors.text', 'opacity']));
+  });
+
+  it('offers a named design picker once the catalog is loaded, with the design\'s description', () => {
+    const designs = [{ id: 'promo-cta', name: 'Promo CTA', category: 'promo-cta', description: 'A bold call to action.' }, { id: 'logo-reveal', name: 'Logo Reveal', category: 'logo-reveal', description: '' }];
+    const fields = studioDesignFields(defaultStudioDesignOptions(design), { designs });
+    const pick = fields.find((f) => f.key === 'designId');
+    expect(pick.type).toBe('select');
+    expect(pick.options).toEqual([['promo-cta', 'Promo CTA — promo-cta'], ['logo-reveal', 'Logo Reveal — logo-reveal']]);
+    expect(fields.find((f) => f.type === 'note').text).toBe('A bold call to action.');
+    expect(studioDesignFields(defaultStudioDesignOptions(design)).find((f) => f.key === 'designId').type).toBe('text'); // catalog not loaded yet
+  });
+
+  it('switching design resets the text but keeps the place, size and opacity', () => {
+    const prev = { ...defaultStudioDesignOptions(design), geometry: { left: 5, top: 6, width: 40, height: 30 }, opacity: 70, slots: { title: 'My own words' }, media: { logo: 'https://cdn.test/l.png', product: '{{productImageUrl}}', service: '{{productImageUrl}}' } };
+    const next = switchDesignOptions(prev, { id: 'logo-reveal', name: 'Logo Reveal', textSlots: [{ key: 'name', field: 'businessName', primary: true }] });
+    expect(next).toMatchObject({ designId: 'logo-reveal', designName: 'Logo Reveal', primarySlot: 'name', slots: { name: '{{businessName}}' }, geometry: prev.geometry, opacity: 70 });
+    expect(next.media.logo).toBe('https://cdn.test/l.png'); // an image the user chose stays
   });
 
   it('editing a field changes that slot, color or image on the clip', () => {

@@ -392,22 +392,58 @@ function buildVideoTransition(opts) {
 /**
  * Editor-only stand-in for clips the Remotion player (or the published page) draws itself: a labelled dashed box
  * at the clip's geometry. It is what gets selected, dragged and resized in the editor; it is never exported.
+ * `title` says what the clip is, `sub` says what it does or shows, and `preview` (shown only when the Remotion
+ * player is off, since the player draws the real thing) lists the text it will show.
  */
-function buildPlaceholder(kind, text) {
+function buildPlaceholder(kind, { title, sub = '', preview = '' }) {
   const el = document.createElement('div');
   el.className = `addon-placeholder addon-placeholder--${kind}`;
   const tag = document.createElement('span');
   tag.className = 'addon-placeholder__tag';
-  tag.textContent = text;
+  const t = document.createElement('strong');
+  t.textContent = title;
+  tag.appendChild(t);
+  if (sub) {
+    const d = document.createElement('small');
+    d.textContent = sub;
+    tag.appendChild(d);
+  }
   el.appendChild(tag);
+  if (preview) {
+    const p = document.createElement('div');
+    p.className = 'addon-placeholder__preview';
+    p.textContent = preview;
+    el.appendChild(p);
+  }
   return el;
+}
+
+const clock = (sec) => `${Math.floor((Number(sec) || 0) / 60)}:${String(Math.floor((Number(sec) || 0) % 60)).padStart(2, '0')}`;
+const prettyId = (id) => String(id || '').replace(/[-_]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
+
+function hotspotPlaceholder(o) {
+  const what = o.action === 'seek'
+    ? `jumps to ${clock(o.seekTime)}`
+    : (o.linkMode === 'phone' ? `calls ${o.phoneNumber || 'a number'}` : `opens ${String(o.linkUrl || 'a link').replace(/^https?:\/\//, '').slice(0, 28)}`);
+  return buildPlaceholder('hotspot', { title: `🎯 ${o.label || 'Hotspot'}`, sub: `Viewers click here · ${what} · not visible in the video` });
+}
+
+function designPlaceholder(o, ctx) {
+  const texts = Object.values(o.slots || {})
+    .map((v) => resolveOverlayText(String(v ?? ''), ctx.profile).replace(/\{\{[^}]*\}\}/g, '').trim())
+    .filter(Boolean);
+  const first = o.primarySlot && o.slots?.[o.primarySlot] != null
+    ? resolveOverlayText(String(o.slots[o.primarySlot]), ctx.profile).replace(/\{\{[^}]*\}\}/g, '').trim()
+    : texts[0] || '';
+  const name = o.designName || prettyId(o.designId) || 'Studio design';
+  return buildPlaceholder('design', { title: `🎨 ${name}${first ? ` · ${first.slice(0, 40)}` : ''}`, sub: ctx.profile ? '' : 'Pick a contact to preview their details', preview: texts.join(' · ').slice(0, 140) });
 }
 
 const BUILDERS = {
   // Hotspot: clickable only on the published page, so in the editor it is a box you can place.
-  'addon-hotspot': (o) => buildPlaceholder('hotspot', `🎯 ${o.label || (o.action === 'seek' ? `Jump to ${Number(o.seekTime) || 0}s` : 'Hotspot')}`),
+  'addon-hotspot': (o) => hotspotPlaceholder(o),
   // Studio design: the player draws the design; this box lets you move and resize it.
-  'overlay-studio-design': (o) => buildPlaceholder('design', `🎨 ${o.designId || 'Studio design'}`),
+  'overlay-studio-design': (o, ctx) => designPlaceholder(o, ctx || {}),
   'overlay-transition': (o) => buildOverlayTransition(o),
   'overlay-video-transition': (o) => buildVideoTransition(o),
   'overlay-lower-third': (o, ctx) => buildLowerThird(o, ctx),
