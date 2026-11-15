@@ -27,7 +27,7 @@ import { removeClipBackground, canCutOut } from './template-generator/cutout.js'
 import { makeVoiceover, narrationText, VOICE_ENGINES, OPENAI_VOICE_CHOICES, FREE_VOICE_CHOICES } from './template-generator/voiceover.js';
 import { MUSIC_TRACKS } from './template-generator/music.js';
 import { audioPlan } from './template-generator/audioPlan.js';
-import { CAPTION_ENGINES, CAPTION_MODELS, CAPTION_LANGUAGES, DEFAULT_CAPTION_ENGINE, defaultModelFor, transcribeCaptions } from './template-generator/captions.js';
+import { CAPTION_ENGINES, LOCAL_ENGINE, CAPTION_MODELS, CAPTION_LANGUAGES, DEFAULT_CAPTION_ENGINE, defaultModelFor, transcribeCaptions, localServerStatus } from './template-generator/captions.js';
 import { captionTextCss, captionSampleHTML, captionPages, pagesToSrt } from './template-generator/captionPreview.js';
 import { CAPITE_STYLES, CAPITE_CATEGORY_LABEL } from '../../openchatcut/captions/capiteStyles';
 import { CAPTION_STYLES, captionStyleFor } from '../../openchatcut/captions/styles';
@@ -107,6 +107,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this.bgRemover = options.bgRemover || null;     // tests replace the cut-out service
     this.voiceMaker = options.voiceMaker || null;   // tests replace the voiceover service
     this.captionMaker = options.captionMaker || null;   // tests replace the caption transcription
+    this.localCaptionProbe = options.localCaptionProbe || null;   // tests replace the check for the local Whisper.cpp server
     this.templateCatalog = options.templateCatalog || (() => loadTemplateCatalog());
     this.stock = options.stockSearch || createStockClient({ pexels: pexelsApi, pixabay: pixabayApi });
 
@@ -153,7 +154,7 @@ export class TemplateGeneratorModal extends BaseModal {
       exp: { busy: false, progress: 0, error: '', done: '' },
       bg: { busy: false, id: null, progress: 0, eta: null, error: '', note: '' },
       voiceBusy: false, voiceError: '', voiceNote: '',
-      capBusy: false, capProgress: 0, capNote: '', capError: '',
+      capBusy: false, capProgress: 0, capNote: '', capError: '', capLocal: false,
       textRole: null,        // the text being styled in the Preview step ('caption' | 'title' | 'lowerThird' | 'cta')
       popup: null,       // { kind: 'video'|'script', id }
       openPanels: {},    // 'voice' | 'personalization'
@@ -1111,6 +1112,15 @@ export class TemplateGeneratorModal extends BaseModal {
 
   // ----------------------------------------------------------- styled, word-timed captions
 
+  /** Is the native Whisper.cpp server running on this computer? Adds it to the engine list while it answers. */
+  async _probeLocalCaptions() {
+    const ok = (await (this.localCaptionProbe || localServerStatus)()).ok;
+    if (this.ui.capLocal === ok) return;
+    this.ui.capLocal = ok;
+    if (!ok && this.s.captions.engine === LOCAL_ENGINE.id) this.s.captions.engine = DEFAULT_CAPTION_ENGINE;
+    this._refreshCaptions();
+  }
+
   _refreshCaptions() { this._setHTML('#tg-captions', this.renderCaptionFields()); }
 
   /** What the captions can listen to: the made voiceover, else each video clip's own sound (offset to where it sits in the cut). */
@@ -1145,7 +1155,8 @@ export class TemplateGeneratorModal extends BaseModal {
     const u = this.ui;
     const tile = (st) => `<button type="button" class="tg-capstyle${c.style === st.id ? ' is-active' : ''}" data-act="cap-style" data-id="${esc(st.id)}" title="${esc(st.label)}${st.bestFor ? ` — ${esc(st.bestFor)}` : ''}"><span class="tg-capstyle__demo" style="${esc(captionTextCss(st, 300))}">${captionSampleHTML(st)}</span><span class="tg-capstyle__name">${esc(st.label)}</span></button>`;
     const groups = Object.keys(CAPITE_CATEGORY_LABEL).map((cat) => [CAPITE_CATEGORY_LABEL[cat], CAPITE_STYLES.filter((x) => x.category === cat)]).concat([['Editor looks', CAPTION_STYLES]]);
-    const engine = CAPTION_ENGINES.find((e) => e.id === c.engine) || CAPTION_ENGINES[0];
+    const engines = u.capLocal || c.engine === LOCAL_ENGINE.id ? [...CAPTION_ENGINES, LOCAL_ENGINE] : CAPTION_ENGINES;
+    const engine = engines.find((e) => e.id === c.engine) || CAPTION_ENGINES[0];
     const models = CAPTION_MODELS[engine.id];
     const sources = this._captionSources();
     const heard = Array.isArray(c.words) && c.words.length;
@@ -1155,11 +1166,12 @@ export class TemplateGeneratorModal extends BaseModal {
       <div class="tg-capstyle-row"><button type="button" class="tg-capstyle tg-capstyle--plain${c.style ? '' : ' is-active'}" data-act="cap-style" data-id=""><span class="tg-capstyle__demo">Plain script lines</span><span class="tg-capstyle__name">No styled captions</span></button></div>
       ${groups.map(([label, list]) => `<h5 class="tg-capgroup">${esc(label)}</h5><div class="tg-capstyles">${list.map(tile).join('')}</div>`).join('')}
       <div class="tg-form-row tg-voice-row">
-        <label>Listen with <select data-cap="engine">${CAPTION_ENGINES.map((e) => `<option value="${e.id}"${c.engine === e.id ? ' selected' : ''}>${esc(e.label)}</option>`).join('')}</select></label>
+        <label>Listen with <select data-cap="engine">${engines.map((e) => `<option value="${e.id}"${c.engine === e.id ? ' selected' : ''}>${esc(e.label)}</option>`).join('')}</select></label>
         <label>Model <select data-cap="model">${models.map(([id, l]) => `<option value="${esc(id)}"${(c.model || defaultModelFor(engine.id)) === id ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
         <label>Language <select data-cap="language">${CAPTION_LANGUAGES.map(([id, l]) => `<option value="${id}"${c.language === id ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
       </div>
-      <p class="tg-hint">${esc(engine.note)} The first time it downloads the model, then it works offline.</p>
+      <p class="tg-hint">${esc(engine.note)}${engine.id === LOCAL_ENGINE.id ? '' : ' The first time it downloads the model, then it works offline.'}${u.capLocal ? '' : ` Have Whisper.cpp on your own computer? Run <code>node scripts/captions-server.mjs</code> and <button type="button" class="tg-link" data-act="cap-probe">check again</button>.`}</p>
+      <label class="tg-toggle"><input type="checkbox" data-cap-auto="1" ${c.auto ? 'checked' : ''}><span>Make the captions automatically when the voiceover is made</span></label>
       <div class="tg-voice-actions">
         <button type="button" class="tg-chip is-active" data-act="cap-generate" ${u.capBusy || !sources.length ? 'disabled' : ''}>${u.capBusy ? 'Listening…' : (heard ? '↻ Listen again' : '💬 Make word-timed captions')}</button>
         ${u.capBusy ? '<button type="button" class="tg-chip" data-act="cap-cancel">Cancel</button>' : ''}
@@ -1260,6 +1272,7 @@ export class TemplateGeneratorModal extends BaseModal {
     } finally {
       u.voiceBusy = false; this._voiceAbort = null;
       this._refreshVoice(); this._pushAudio();
+      if (v.generatedAsset?.url && !u.voiceError && this.s.captions.auto && this.s.captions.style && !u.capBusy) this.generateCaptions();
     }
   }
 
@@ -1551,6 +1564,7 @@ export class TemplateGeneratorModal extends BaseModal {
     const t = e.target;
     if (t.dataset?.tstyle) { this._onTextEdit(t); return; }
     if (t.dataset?.call) { this._onCallEdit(t); return; }
+    if (t.dataset?.capAuto) { this.s.captions.auto = t.checked; return; }
     if (t.dataset?.cap) {
       const k = t.dataset.cap; const c = this.s.captions;
       c[k] = t.value;
@@ -1625,6 +1639,7 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'bg-cancel': this._bgAbort?.abort(); break;
       case 'bg-restore': this.restoreBackground(id); break;
       case 'cap-style': this.s.captions.style = id || ''; if (id) this.s.elements.captions = true; this._redrawCaptions(); break;
+      case 'cap-probe': this._probeLocalCaptions(); break;
       case 'cap-generate': this.generateCaptions(); break;
       case 'cap-cancel': this._capAbort?.abort(); break;
       case 'cap-srt': this.downloadCaptionsSrt(); break;
@@ -1638,7 +1653,7 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'lt-style': this.s.elements.lowerThirdStyle = id; this.paint(); break;
       case 'transition-cat': this.ui.overlayCategory = id; this.paint(); break;
       case 'transition-pick': this.pickTransition(id); break;
-      case 'panel-toggle': this.ui.openPanels[id] = !this.ui.openPanels[id]; this.paint(); break;
+      case 'panel-toggle': this.ui.openPanels[id] = !this.ui.openPanels[id]; this.paint(); if (id === 'captions' && this.ui.openPanels[id]) this._probeLocalCaptions(); break;
       default: break;
     }
   }

@@ -128,7 +128,7 @@ export function createWizardState() {
     // Text elements the timeline can create today (applyTemplate makes media + text/caption clips).
     elements: { captions: true, title: '', lowerThird: '', lowerThirdStyle: '', cta: '', styles: {} },   // styles: the user's changes to each text's look (see textStyles.js)
     // word-timed captions (captions.js): `style` = a caption look id from the editor's list (Capite's 27 among them); '' = the plain script text above
-    captions: { style: '', motion: '', engine: 'whisper-webgpu', model: '', language: 'auto', words: null, wordsFor: '', source: '' },   // words: [{text,start,end}] ms once transcribed
+    captions: { style: '', motion: '', engine: 'whisper-webgpu', model: '', language: 'auto', words: null, wordsFor: '', source: '', auto: false },   // words: [{text,start,end}] ms once transcribed
     voice: { enabled: false, provider: 'openai', engine: 'openai', voice: 'marin', speed: 1, text: '', instructions: '', generatedAsset: null },   // generatedAsset: { url, duration, name } once the voiceover has been made
     music: { id: '', duck: true },                      // a bundled track (music.js); trimmed to the cut
     mix: { footage: 1, voice: 1, music: 0.3 },          // volumes 0..1

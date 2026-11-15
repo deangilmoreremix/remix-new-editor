@@ -54,7 +54,7 @@ export function snapshotTemplate(s, { name = '', description = '' } = {}) {
       generatedAsset: durableAsset(s.voice.generatedAsset),
     },
     // the caption look and, when the audio was transcribed, its word timings (small: text + two numbers per word)
-    captions: { style: s.captions?.style || '', motion: s.captions?.motion || '', engine: s.captions?.engine, model: s.captions?.model || '', language: s.captions?.language || 'auto', words: s.captions?.words || null, wordsFor: s.captions?.wordsFor || '' },
+    captions: { style: s.captions?.style || '', motion: s.captions?.motion || '', engine: s.captions?.engine, model: s.captions?.model || '', language: s.captions?.language || 'auto', words: s.captions?.words || null, wordsFor: s.captions?.wordsFor || '', auto: !!s.captions?.auto },
     music: { ...s.music },
     mix: { ...s.mix },
     personalization: { enabled: !!s.personalization.enabled },

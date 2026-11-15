@@ -41,14 +41,29 @@ The published `catalog.json` in the `demo-template-videos` bucket still has the 
 Nothing in the Template Generator depends on this wording.
 
 ## 6. Styled captions (Preview step → "💬 Styled captions")
-Pick a look (Capite's 27, grouped by category, plus the editor's own) and the words light up as they are spoken. "Make word-timed captions" listens to the voiceover (or, with none, to each clip's own sound) on the device: free, no key, nothing uploaded.
-- **Whisper WebGPU** (default): Whisper through Transformers.js, the engine behind `@remotion/whisper-webgpu`. Uses the GPU when the browser has WebGPU, otherwise WASM. Measured in a CPU-only headless browser: a 5 s clip with the tiny model takes about 8 s after the model download.
-- **Whisper.cpp (WASM)**: `@remotion/whisper-web`, the browser build of Whisper.cpp. (`@remotion/install-whisper-cpp` installs a native binary on a server and cannot run in a browser or on Netlify.) It needs a cross-origin-isolated page (`Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: credentialless`). This site is not isolated today, so choosing it shows "Whisper.cpp needs a cross-origin-isolated page" and the work runs on Whisper WebGPU instead. To turn it on, serve the page with those two headers (this can break third-party embeds and sign-in popups, so test the whole app first).
-- **Not verified in a real browser:** with the page isolated, the Whisper.cpp run did not finish in the sandbox (the model downloaded fine; the WASM run hung and was stopped after about 20 minutes). Its code path is covered by tests with the package mocked only. Check it on a machine with the two headers on before relying on it; Cancel stops a listen that hangs.
-- With no audio to listen to, the words follow the written script over the cut. Listening is capped at the first 3 minutes.
-- On the timeline the captions are the editor's own (the first clip's Captions section), so they can be edited there. `.srt` can be downloaded from the panel.
-- Capite's looks are ported from <https://github.com/muneebkhan08/Capite> (MIT, © 2026 Capite Contributors): fonts, colours, outline, glow and highlight style, drawn with the editor's caption renderer. Capite's server and its ASS/VTT/MP4 export are not used.
-- User check: WebGPU speed on a machine with a GPU, and a real spoken clip in another language.
+Pick a look (Capite's 27, grouped by category, plus the editor's own) and the words light up as they are spoken. "Make word-timed captions" listens to the voiceover (or, with none, to each clip's own sound). "Make the captions automatically when the voiceover is made" does it for you. Free, no key; the browser engines upload nothing.
+
+| Engine | Package | Where it runs | Needs |
+|---|---|---|---|
+| **Whisper WebGPU** (default) | `@remotion/whisper-webgpu`, in a worker | your GPU, in the tab | WebGPU. Without it the editor's built-in Whisper (same Transformers.js underneath, CPU path) listens instead and the panel says so. Model from `remotion.media`, cached, then works offline. Sizes: base, tiny, small, large-v3-turbo. |
+| **Whisper.cpp (WASM)** | `@remotion/whisper-web` | the tab | a cross-origin-isolated page (`Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: credentialless`). This site is not isolated, so choosing it shows why and uses Whisper WebGPU. |
+| **Whisper.cpp (local server)** | `@remotion/install-whisper-cpp` | a small server on your computer | `node scripts/captions-server.mjs`, Node, git, a C compiler (`make`) and `ffmpeg`. Listed in the panel only while the server answers on `127.0.0.1:8787`. A native program cannot run in a tab or on Netlify. |
+
+The native engine also works from the command line: `node scripts/transcribe-whisper-cpp.mjs clip.mp4 --model=base --language=auto --out=captions.json` (first run installs Whisper.cpp and the model into `./.whisper`, git-ignored). The server only answers pages on localhost, `smartvid.app` and this site's Netlify previews, one listen at a time.
+
+**Verified (real runs, 5 s spoken clip made with the free on-device voice):**
+- Whisper WebGPU package, in a browser with a (software) WebGPU adapter: 12 timed words, "Harbor Dental" kept as two words. The software adapter took about 2 minutes; a real GPU is far faster (not measured).
+- Same request in a browser without WebGPU: falls back by itself to the built-in Whisper, with the note; 11 timed words in about 17 s.
+- Native Whisper.cpp 1.5.5 through `@remotion/install-whisper-cpp` (installed, built and run on Linux, `tiny` model): 12 whole words with timings, from the command line and through the local server (health, CORS preflight, blocked origin, a real POST).
+
+**Not verified:**
+- Whisper.cpp WASM (`@remotion/whisper-web`) in a real browser: the run did not finish in the sandbox. Its code is tested with the package mocked only.
+- Real-GPU speed of Whisper WebGPU, and a spoken clip in another language.
+- The browser calling the local server from the deployed https page (Chrome allows https → `127.0.0.1`; headers for Private Network Access are sent, but this was only checked with curl).
+- With the page isolated (headers above), a model download and a listen through the WASM build.
+
+Captions land on the timeline as the editor's own captions (first clip's Captions section), editable there; `.srt` can be downloaded from the panel. With no audio to listen to, the words follow the written script over the cut; listening covers the first 3 minutes.
+Capite's looks are ported from <https://github.com/muneebkhan08/Capite> (MIT, © 2026 Capite Contributors): fonts, colours, outline, glow and highlight style, drawn with the editor's caption renderer. Capite's server and its ASS/VTT/MP4 export are not used.
 
 ## 7. Other notes
 - `public/motion-studio/legacy-textures/agent-stream.jpg` is a generated placeholder (the original artwork was never committed in this repo or in `develop`). Replace it with the real image when you have it.

@@ -183,3 +183,4 @@ public/motion-agent/
 
 # output of scripts/verify-template-generator-keys.mjs (a real mp3 from your key)
 verify-out/
+.whisper/

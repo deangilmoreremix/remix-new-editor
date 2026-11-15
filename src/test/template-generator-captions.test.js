@@ -17,7 +17,7 @@ vi.mock('../lib/editor/remotion/transcribe.js', () => tx);
 import { TemplateGeneratorModal } from '../components/modals/TemplateGeneratorModal.jsx';
 import { STEPS, createWizardState, toBuilderState, captionTrackFor, previewTexts } from '../components/modals/template-generator/rules.js';
 import { createTemplateStore, snapshotTemplate, restoreTemplate } from '../components/modals/template-generator/templates.js';
-import { captionsToWords, evenWords, transcribeCaptions, engineStatus, CAPTION_MODELS, MAX_CAPTION_AUDIO_SEC } from '../components/modals/template-generator/captions.js';
+import { captionsToWords, evenWords, transcribeCaptions, engineStatus, localServerStatus, encodeWav, CAPTION_MODELS, MAX_CAPTION_AUDIO_SEC } from '../components/modals/template-generator/captions.js';
 import { captionPages, captionPageHTML, captionTextCss, pagesToSrt } from '../components/modals/template-generator/captionPreview.js';
 import { CAPITE_STYLES } from '../openchatcut/captions/capiteStyles';
 import { CAPTION_STYLES, CAPTION_STYLE_BY_ID, captionStyleFor } from '../openchatcut/captions/styles';
@@ -68,23 +68,62 @@ describe('captions.js', () => {
     expect(evenWords('', 5)).toEqual([]);
   });
 
-  it('Whisper WebGPU: uses the on-device engine and returns word timings', async () => {
-    const out = await transcribeCaptions('https://x.test/a.mp3', { engine: 'whisper-webgpu', language: 'auto' });
-    expect(out.engine).toBe('whisper-webgpu');
-    expect(out.words).toEqual([{ text: 'Hi', start: 100, end: 500 }, { text: 'there', start: 520, end: 900 }]);
-    expect(tx.transcribeInBrowser.mock.calls.at(-1)[1].language).toBeUndefined();   // "Detect" means no forced language
+  /** A stand-in for captions.worker.js: answers the way the real one does (the @remotion/whisper-webgpu package runs inside it). */
+  const fakeWorker = (reply) => () => {
+    const listeners = { message: [], error: [] };
+    return {
+      addEventListener: (t, f) => listeners[t].push(f), removeEventListener: (t, f) => { listeners[t] = listeners[t].filter((x) => x !== f); },
+      postMessage: (msg) => { Promise.resolve().then(() => { for (const m of reply(msg)) listeners.message.forEach((f) => f({ data: { id: msg.id, ...m } })); }); },
+      terminate: vi.fn(),
+    };
+  };
+  const heard = (words) => (msg) => [{ type: 'progress', stage: 'download', progress: 0.5 }, { type: 'done', words }];
+  const secWords = [{ text: ' Hi', startInSeconds: 0.1, endInSeconds: 0.5 }, { text: ' there', startInSeconds: 0.52, endInSeconds: 0.9 }];
+
+  it('Whisper WebGPU: the @remotion/whisper-webgpu package (in its worker) returns word timings, with the chosen model and language', async () => {
+    const sent = [];
+    const workerFactory = fakeWorker((msg) => { sent.push(msg); return heard(secWords)(msg); });
+    const progress = [];
+    const out = await transcribeCaptions('https://x.test/a.mp3', { engine: 'whisper-webgpu', model: 'tiny', language: 'es', workerFactory, onProgress: (p) => progress.push(p.stage) });
+    expect(out).toMatchObject({ engine: 'whisper-webgpu', model: 'tiny', words: [{ text: 'Hi', start: 100, end: 500 }, { text: 'there', start: 520, end: 900 }] });
+    expect(out.note).toBeUndefined();
+    expect(sent[0]).toMatchObject({ type: 'transcribe', model: 'tiny', language: 'es' });
+    expect(sent[0].audio).toBeInstanceOf(Float32Array);
+    expect(progress).toEqual(expect.arrayContaining(['decode', 'download']));
+    expect(tx.transcribeInBrowser).not.toHaveBeenCalled();     // the older engine is not used when the package works
   });
 
-  it('Whisper.cpp: downloads the model, listens through the WASM build, and returns the same shape', async () => {
+  it('Whisper WebGPU: offers several model sizes, and an old saved model id falls back to the default', async () => {
+    expect(CAPTION_MODELS['whisper-webgpu'].map(([id]) => id)).toEqual(['base', 'tiny', 'small', 'large-v3-turbo']);
+    const out = await transcribeCaptions('https://x.test/a.mp3', { model: 'onnx-community/whisper-base_timestamped', workerFactory: fakeWorker(heard(secWords)) });
+    expect(out.model).toBe('base');
+  });
+
+  it('Whisper WebGPU: when the package cannot run here, the editor\'s built-in Whisper listens instead, and says so', async () => {
+    const workerFactory = fakeWorker(() => [{ type: 'error', message: 'WebGPU is not available', fallback: true }]);
+    const out = await transcribeCaptions('https://x.test/a.mp3', { engine: 'whisper-webgpu', model: 'tiny', workerFactory });
+    expect(out.words).toEqual([{ text: 'Hi', start: 100, end: 500 }, { text: 'there', start: 520, end: 900 }]);
+    expect(out.note).toContain('built-in Whisper');
+    expect(tx.transcribeInBrowser.mock.calls.at(-1)[1].model).toBe('onnx-community/whisper-tiny_timestamped');
+  });
+
+  it('Whisper WebGPU: a real failure (not a "cannot run here") is reported, and Cancel stops a listen', async () => {
+    await expect(transcribeCaptions('https://x.test/a.mp3', { workerFactory: fakeWorker(() => [{ type: 'error', message: 'out of memory' }]) })).rejects.toThrow(/out of memory/);
+    const ctl = new AbortController();
+    const hang = () => ({ addEventListener() {}, removeEventListener() {}, postMessage() { ctl.abort(); }, terminate: vi.fn() });
+    await expect(transcribeCaptions('https://x.test/a.mp3', { workerFactory: hang, signal: ctl.signal })).rejects.toMatchObject({ name: 'AbortError' });
+  });
+
+  it('Whisper.cpp (WASM): downloads the model, listens through the WASM build, and returns the same shape', async () => {
     const out = await transcribeCaptions('https://x.test/a.mp3', { engine: 'whisper-cpp', model: 'tiny', language: 'en' });
     expect(out).toMatchObject({ engine: 'whisper-cpp', model: 'tiny', words: [{ text: 'Hello', start: 0, end: 400 }, { text: 'world', start: 450, end: 900 }] });
     expect(wasm.downloadWhisperModel).toHaveBeenCalledWith(expect.objectContaining({ model: 'tiny' }));
     expect(wasm.transcribe.mock.calls.at(-1)[0]).toMatchObject({ model: 'tiny', language: 'en' });
   });
 
-  it('Whisper.cpp on a page that is not cross-origin isolated says so and uses Whisper WebGPU', async () => {
+  it('Whisper.cpp (WASM) on a page that is not cross-origin isolated says so and uses Whisper WebGPU', async () => {
     wasm.canUseWhisperWeb.mockResolvedValueOnce({ supported: false, reason: 'not-cross-origin-isolated' });
-    const out = await transcribeCaptions('https://x.test/a.mp3', { engine: 'whisper-cpp' });
+    const out = await transcribeCaptions('https://x.test/a.mp3', { engine: 'whisper-cpp', workerFactory: fakeWorker(heard(secWords)) });
     expect(out.engine).toBe('whisper-webgpu');
     expect(out.note).toContain('cross-origin-isolated');
     expect(CAPTION_MODELS['whisper-webgpu'].some(([id]) => id === out.model)).toBe(true);   // a model of the engine that ran
@@ -93,11 +132,54 @@ describe('captions.js', () => {
     expect((await engineStatus('whisper-webgpu')).ok).toBe(true);
   });
 
+  describe('Whisper.cpp (local server, @remotion/install-whisper-cpp)', () => {
+    const server = (handlers) => vi.fn(async (url, init) => {
+      const path = new URL(url).pathname;
+      const h = handlers[path];
+      if (!h) throw new Error('connection refused');
+      return h(url, init);
+    });
+    const json = (body, ok = true, status = 200) => ({ ok, status, json: async () => body });
+
+    it('is offered only while the server answers /health', async () => {
+      expect(await localServerStatus({ fetchImpl: server({ '/health': () => json({ ok: true, models: ['base'] }) }) })).toEqual({ ok: true, models: ['base'] });
+      expect(await localServerStatus({ fetchImpl: server({}) })).toEqual({ ok: false });
+      expect(await localServerStatus({ fetchImpl: server({ '/health': () => json({}, false, 500) }) })).toEqual({ ok: false });
+    });
+
+    it('sends the 16 kHz audio as a WAV, with the model and language, and returns the same word timings', async () => {
+      const calls = [];
+      const fetchImpl = server({
+        '/health': () => json({ ok: true }),
+        '/transcribe': (url, init) => { calls.push({ url, init }); return json({ ok: true, captions: [{ text: ' Hola', startMs: 0, endMs: 300 }, { text: ' mundo', startMs: 320, endMs: 800 }] }); },
+      });
+      const out = await transcribeCaptions('https://x.test/a.mp3', { engine: 'whisper-cpp-local', model: 'medium', language: 'es', fetchImpl });
+      expect(out).toMatchObject({ engine: 'whisper-cpp-local', model: 'medium', words: [{ text: 'Hola', start: 0, end: 300 }, { text: 'mundo', start: 320, end: 800 }] });
+      expect(calls[0].url).toContain('model=medium'); expect(calls[0].url).toContain('language=es');
+      expect(calls[0].init.method).toBe('POST');
+      expect(String.fromCharCode(...calls[0].init.body.slice(0, 4))).toBe('RIFF');
+    });
+
+    it('with the server not running, says so and uses Whisper WebGPU; a server error is reported', async () => {
+      const out = await transcribeCaptions('https://x.test/a.mp3', { engine: 'whisper-cpp-local', fetchImpl: server({}), workerFactory: fakeWorker(heard(secWords)) });
+      expect(out.engine).toBe('whisper-webgpu'); expect(out.note).toContain('captions-server');
+      const bad = server({ '/health': () => json({ ok: true }), '/transcribe': () => json({ ok: false, error: 'Whisper.cpp failed.' }, false, 500) });
+      await expect(transcribeCaptions('https://x.test/a.mp3', { engine: 'whisper-cpp-local', fetchImpl: bad })).rejects.toThrow('Whisper.cpp failed.');
+    });
+
+    it('encodes a real WAV header (16-bit mono, 16 kHz)', () => {
+      const wav = encodeWav(new Float32Array([0, 0.5, -0.5, 1]), 16000);
+      const v = new DataView(wav.buffer);
+      expect(String.fromCharCode(...wav.slice(0, 4))).toBe('RIFF'); expect(String.fromCharCode(...wav.slice(8, 12))).toBe('WAVE');
+      expect(v.getUint16(22, true)).toBe(1); expect(v.getUint32(24, true)).toBe(16000); expect(v.getUint16(34, true)).toBe(16);
+      expect(v.getUint32(40, true)).toBe(8); expect(v.getInt16(46, true)).toBeGreaterThan(16000);
+    });
+  });
+
   it('listens to at most the first few minutes, and refuses audio with no speech', async () => {
-    await transcribeCaptions('https://x.test/long.mp3', {});
-    expect(tx.transcribeInBrowser.mock.calls.at(-1)[1].toSec).toBe(MAX_CAPTION_AUDIO_SEC);
-    tx.transcribeInBrowser.mockResolvedValueOnce({ text: '', captions: [] });
-    await expect(transcribeCaptions('https://x.test/silence.mp3', {})).rejects.toThrow(/No speech/);
+    await transcribeCaptions('https://x.test/long.mp3', { workerFactory: fakeWorker(heard(secWords)) });
+    expect(tx.decodeAudio.mock.calls.at(-1)[1].toSec).toBe(MAX_CAPTION_AUDIO_SEC);
+    await expect(transcribeCaptions('https://x.test/silence.mp3', { workerFactory: fakeWorker(heard([])) })).rejects.toThrow(/No speech/);
   });
 });
 
@@ -237,5 +319,51 @@ describe('Preview step — styled captions panel', () => {
     const lang = document.querySelector('select[data-cap="language"]'); lang.value = 'es'; lang.dispatchEvent(new Event('change', { bubbles: true }));
     expect(m.s.captions.language).toBe('es');
     m.destroy();
+  });
+});
+
+describe('Preview step — engines and automatic captions', () => {
+  afterEach(() => { vi.clearAllMocks(); document.body.innerHTML = ''; });
+  const open = (extra = {}) => {
+    const m = new TemplateGeneratorModal({ defaultProvider: 'pixabay', templateCatalog: async () => { throw new Error('offline'); }, stockSearch: async () => ({ items: [], hasMore: false }), templateStore: createTemplateStore(memory()), ...extra });
+    m.open(); Object.assign(m.s, wizard()); m.s.started = true; m.s.step = STEPS.PREVIEW; m.ui.openPanels = { captions: true }; m.paint();
+    return m;
+  };
+
+  it('the local Whisper.cpp engine appears only while its server answers, and goes away (back to Whisper WebGPU) when it stops', async () => {
+    let up = true;
+    const m = open({ localCaptionProbe: async () => ({ ok: up }) });
+    const options = () => [...document.querySelector('select[data-cap="engine"]').options].map((o) => o.value);
+    expect(options()).toEqual(['whisper-webgpu', 'whisper-cpp']);
+    expect(document.querySelector('#tg-captions').textContent).toContain('node scripts/captions-server.mjs');
+    await m._probeLocalCaptions();
+    expect(options()).toEqual(['whisper-webgpu', 'whisper-cpp', 'whisper-cpp-local']);
+    const sel = document.querySelector('select[data-cap="engine"]'); sel.value = 'whisper-cpp-local'; sel.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(m.s.captions.engine).toBe('whisper-cpp-local');
+    expect([...document.querySelector('select[data-cap="model"]').options].map((o) => o.value)).toContain('medium');
+    up = false; document.querySelector('[data-act="cap-probe"]')?.click(); await m._probeLocalCaptions();
+    expect(m.s.captions.engine).toBe('whisper-webgpu'); expect(options()).toEqual(['whisper-webgpu', 'whisper-cpp']);
+    m.destroy();
+  });
+
+  it('with "make captions automatically" on, making the voiceover also times the captions', async () => {
+    const captionMaker = vi.fn(async () => ({ words: [{ text: 'Hi', start: 0, end: 300 }], engine: 'whisper-webgpu', model: 'base' }));
+    const m = open({ captionMaker, voiceMaker: async () => ({ url: 'https://cdn.test/v.mp3', duration: 6, name: 'AI voiceover', durable: true }), localCaptionProbe: async () => ({ ok: false }) });
+    const box = document.querySelector('input[data-cap-auto]'); box.checked = true; box.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(m.s.captions.auto).toBe(true);
+    m.s.captions.style = 'capite-hormozi';
+    await m.generateVoice();
+    await vi.waitFor(() => expect(captionMaker).toHaveBeenCalledTimes(1));
+    expect(captionMaker.mock.calls[0][0]).toBe('https://cdn.test/v.mp3');
+    // off (the default): no listening without a click
+    captionMaker.mockClear(); m.s.captions.auto = false; await m.generateVoice();
+    expect(captionMaker).not.toHaveBeenCalled();
+    m.destroy();
+  });
+
+  it('the engine, model, language and the automatic choice are saved with a template', () => {
+    const s = wizard(); s.captions = { ...s.captions, style: 'capite-vox', engine: 'whisper-cpp-local', model: 'medium', language: 'fr', auto: true };
+    const back = restoreTemplate(snapshotTemplate(s, { name: 'T' }));
+    expect(back.captions).toMatchObject({ engine: 'whisper-cpp-local', model: 'medium', language: 'fr', auto: true });
   });
 });
