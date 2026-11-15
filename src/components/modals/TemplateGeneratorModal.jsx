@@ -1064,11 +1064,11 @@ export class TemplateGeneratorModal extends BaseModal {
     const b = this.ui.bg;
     if (b.busy) {
       const pct = Math.round((b.progress || 0) * 100);
-      return `<div class="tg-bgprogress"><span>${b.stage === 'download' ? 'Downloading the cut-out model (first time only, about 25 MB)…' : `Removing the background… ${pct}%${b.eta ? ` · about ${Math.max(1, Math.round(b.eta))} s left` : ''}`}</span><i style="width:${pct}%"></i></div>`;
+      return `<div class="tg-bgprogress"><span>${b.stage === 'download' ? 'Downloading the cut-out model (first time only, up to about 200 MB)…' : `Removing the background… ${pct}%${b.eta ? ` · about ${Math.max(1, Math.round(b.eta))} s left` : ''}`}</span><i style="width:${pct}%"></i></div>`;
     }
     if (b.error) return `<p class="tg-status tg-status--error">${esc(b.error)}</p>`;
     if (b.note) return `<p class="tg-status tg-status--warn">${esc(b.note)}</p>`;
-    return this.s.selectedVideos.some((v) => canCutOut(v)) ? '<p class="tg-hint">✂ Cut out removes a person\'s background on this device (no upload, no key). It works best on someone close to the camera, in good light. The first time it downloads a ~25 MB model.</p>' : '';
+    return this.s.selectedVideos.some((v) => canCutOut(v)) ? '<p class="tg-hint">✂ Cut out removes a person\'s background on this device (no upload, no key). It works best on a person who is clearly in frame. The first time it downloads a model (up to about 200 MB); photos are quick, video can take a few minutes without a graphics card.</p>' : '';
   }
 
   _refreshCutout() { this._setHTML('#tg-bgstatus', this.renderCutoutStatus()); }

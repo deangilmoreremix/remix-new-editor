@@ -1,12 +1,13 @@
 /**
  * Template Generator — remove the background from a picked clip (presenter cut-out).
  *
- * Uses the editor's own on-device model (MODNet, `lib/editor/remotion/bgRemoval.js`): nothing is uploaded for processing, no key is needed.
- * The first use downloads the ~25 MB model. The result (a transparent WebM, or a PNG for photos) is stored in the customer's storage so it
+ * Runs on this device (BG0 when the browser can run it, otherwise the older MODNet): nothing is uploaded for processing, no key is needed.
+ * The first use downloads a model (about 190 MB for BG0, 25 MB for MODNet). The result (a transparent WebM, or a PNG for photos) is stored in the customer's storage so it
  * survives saving and exporting; the original link is kept on the clip so it can be restored.
  */
 import { clipDuration } from './rules.js';
 import { uploadFileToStorage } from '../../../lib/uploadService.js';
+import { loadBg0 } from './bg0Engine.js';
 
 /** Photos can always be cut out; video needs WebCodecs (Chrome / Edge). */
 export const canCutOut = (item, env = globalThis) => !!item && (item.kind === 'image' || typeof env.VideoEncoder === 'function');
@@ -44,18 +45,49 @@ export const MIN_KEPT = 0.06;
 
 const isDurable = (url) => typeof url === 'string' && !!url && !/^(blob|data):/.test(url);
 
-/** @returns {Promise<{ url: string, durable: boolean }>} */
+/** The picture's own file (the catalog, your uploads and most stock hosts allow the browser to read it). */
+async function fetchBlob(url, signal) {
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`Couldn't load the picture (${res.status})`);
+  return res.blob();
+}
+const isCancel = (e) => e?.name === 'AbortError' || e?.code === 'cancelled';
+const abortError = () => Object.assign(new Error('Cancelled'), { name: 'AbortError' });
+
+/**
+ * @returns {Promise<{ url: string, durable: boolean, engine: string }>}
+ * Engine: BG0 (BiRefNet) when this browser can run it, otherwise (or if it fails) the older on-device MODNet.
+ * `deps` lets tests replace the services: { lib (bgRemoval.js), bg0 (an engine, or null for none), upload, localUrl, opaqueShare }.
+ */
 export async function removeClipBackground(item, { onProgress, signal, deps = {} } = {}) {
   const lib = deps.lib || (await import('../../../lib/editor/remotion/bgRemoval.js'));
+  const bg0 = deps.bg0 !== undefined ? deps.bg0 : await loadBg0();
   const upload = deps.upload || uploadFileToStorage;
   const isVideo = item.kind !== 'image';
-  let blob;
+  const fallback = async () => (isVideo
+    ? lib.removeVideoBackground(item.url, { fromSec: 0, toSec: clipDuration(item), maskEvery: 2, edge: 0, maxSize: 1280, onProgress, signal })
+    : lib.removeImageBackground(item.url, { edge: 0, onProgress, signal }));
+
+  let blob; let engine = 'modnet';
   try {
-    blob = isVideo
-      ? await lib.removeVideoBackground(item.url, { fromSec: 0, toSec: clipDuration(item), maskEvery: 2, edge: 0, maxSize: 1280, onProgress, signal })
-      : await lib.removeImageBackground(item.url, { edge: 0, onProgress, signal });
+    if (bg0) {
+      try {
+        if (isVideo) {
+          // a big model is slow on a CPU, so it is used on sampled frames (about 90 s of masks), and every frame on a fast GPU
+          blob = await lib.removeVideoBackground(item.url, { fromSec: 0, toSec: clipDuration(item), edge: 0, maxSize: 720, maskFn: bg0.maskFn, prepare: bg0.prepare, maskBudgetSec: 90, onProgress, signal });
+        } else {
+          blob = await bg0.removeImage(await fetchBlob(item.url, signal), { onProgress, signal });
+        }
+        engine = 'bg0';
+      } catch (err) {
+        if (isCancel(err) || signal?.aborted) throw abortError();
+        if (err instanceof TypeError || /fetch|network|cors/i.test(String(err?.message))) throw err;   // an unreadable host: the older model would hit the same wall
+        blob = null;                                                                                    // the model could not run here: use the older one
+      }
+    }
+    if (!blob) blob = await fallback();
   } catch (err) {
-    if (err?.name === 'AbortError') throw err;
+    if (isCancel(err)) throw abortError();
     // a cross-origin host that does not allow reading its files shows up as a failed fetch
     if (err instanceof TypeError || /fetch|network|cors/i.test(String(err?.message))) {
       throw new Error('This clip\'s host does not let the browser read the file, so it can\'t be cut out here. Upload the clip, or use a Video template or My media clip.');
@@ -72,5 +104,5 @@ export async function removeClipBackground(item, { onProgress, signal, deps = {}
   try { const out = await upload(file); url = typeof out === 'string' ? out : out?.url || ''; } catch { url = ''; }
   const durable = isDurable(url);
   if (!durable) url = (deps.localUrl || ((b) => URL.createObjectURL(b)))(blob);
-  return { url, durable };
+  return { url, durable, engine };
 }
