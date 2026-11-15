@@ -10,11 +10,12 @@
 // fills the landing text. The logic lives in src/lib/outreach/draft.js.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { emailFor, mailtoUrl, mailMergeCsv } from '../lib/outreach/email.js';
 import {
   STEPS, SETUP_STEPS, STOCK_VOICES, FIRST_NAME_FALLBACKS, CONTACT_FIELDS, CSV_TEMPLATE, MAX_CONTACTS,
   loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, tokensIn,
-  parseCsv, guessMapping, contactsFromRows, makeContact, mergeContacts, contactProfile, contactValues,
-  buildCampaignProject, campaignLinks, siteKey, sitesToCapture,
+  parseCsv, guessMapping, contactsFromRows, contactsFromLeads, makeContact, mergeContacts, contactProfile, contactValues,
+  buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -90,6 +91,7 @@ export function OutreachStudio() {
   for (let s = 1; s <= SETUP_STEPS + 1; s++) { step = s; if (stepErrors(draft, s).length) break; }
   // CSV waiting for its columns to be matched, the running generation, and the campaigns list.
   let pendingCsv = null;
+  let pendingLeads = null; // { loading, error, leads, picked:Set }
   let abort = null;
   const campaigns = { loaded: false, loading: false, rows: [], error: '', openId: null, stats: {} };
 
@@ -308,16 +310,19 @@ export function OutreachStudio() {
     const ctaOn = el('input'); ctaOn.type = 'checkbox'; ctaOn.checked = !!draft.cta.enabled;
     const ctaLabel = textInput(draft.cta.label, 'Schedule a demo');
     const ctaUrl = textInput(draft.cta.url, 'https://cal.com/you/intro');
+    const calOn = el('input'); calOn.type = 'checkbox'; calOn.checked = !!draft.cta.embed; calOn.setAttribute('data-outreach-calendar', '');
     const sync = () => {
       draft.header = header.value; draft.message = message.value; draft.fallbacks.company = company.value;
-      draft.cta = { enabled: ctaOn.checked, label: ctaLabel.value, url: ctaUrl.value.trim() };
+      draft.cta = { enabled: ctaOn.checked, label: ctaLabel.value, url: ctaUrl.value.trim(), embed: calOn.checked };
       persist(); updatePreview();
     };
     [header, message, company, ctaLabel, ctaUrl].forEach((i) => i.addEventListener('input', sync));
     ctaOn.addEventListener('change', sync);
+    calOn.addEventListener('change', sync);
     const ctaRow = el('label', 'flex items-center gap-3 text-sm font-bold'); ctaRow.append(ctaOn, el('span', '', 'Call-to-action button'));
+    const calRow = el('label', 'flex items-center gap-3 text-sm'); calRow.append(calOn, el('span', '', 'Show the calendar under the video so contacts can book without leaving the page'));
     main.append(field('Header', header), field('Message', message), field('If the company is missing, say', company), ctaRow,
-      field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'));
+      field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow);
 
     // Background: the recording as it is, or each contact's own website behind a round camera bubble.
     const bg = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
@@ -362,6 +367,10 @@ export function OutreachStudio() {
       preview.appendChild(media);
       if (draft.message.trim()) preview.appendChild(el('p', 'text-sm text-black/70', fillTemplate(draft.message, sample, draft.fallbacks)));
       if (draft.cta.enabled && draft.cta.label.trim()) preview.appendChild(el('span', 'mx-auto rounded-full bg-[#4f46e5] px-6 py-2.5 text-sm font-bold text-white', draft.cta.label));
+      if (draft.cta.enabled && draft.cta.embed) {
+        const cal = el('div', 'grid h-28 place-items-center rounded-xl border border-dashed border-black/20 text-xs text-black/50', calendarEmbedUrl(draft.cta.url) ? 'Your booking calendar shows here' : 'Use a Calendly, Cal.com, Google, HubSpot, SavvyCal or TidyCal link to show the calendar');
+        preview.appendChild(cal);
+      }
       if (draft.voice.mode === 'clone') preview.appendChild(el('p', 'text-[11px] text-black/45', 'AI-personalized voice'));
     };
     updatePreview();
@@ -388,6 +397,68 @@ export function OutreachStudio() {
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  // Prospects saved in Lead Finder (#/leadfinder), picked and added as contacts.
+  async function loadLeads() {
+    pendingLeads = { loading: true, error: '', leads: [], picked: new Set() };
+    render();
+    try {
+      const { installPersonalizationApiAuth } = await import('../features/personalization/lib/apiAuth.ts');
+      installPersonalizationApiAuth();
+      const res = await fetch('/api/personalization/leads', { headers: { Accept: 'application/json' } });
+      const body = await res.json().catch(() => ({}));
+      if (res.status === 401) throw new Error('Sign in to use your saved leads.');
+      if (!res.ok) throw new Error(body?.error || 'Saved leads are not available right now.');
+      const leads = Array.isArray(body?.leads) ? body.leads : [];
+      pendingLeads = { loading: false, error: '', leads, picked: new Set(leads.filter((l) => l?.business?.email).map((l) => l.id)) };
+    } catch (err) {
+      pendingLeads = { loading: false, error: err.message || String(err), leads: [], picked: new Set() };
+    }
+    render();
+  }
+
+  function renderLeadPicker() {
+    const box = el('div', 'rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col gap-3');
+    box.setAttribute('data-outreach-lead-picker', '');
+    const close = () => { pendingLeads = null; render(); };
+    if (pendingLeads.loading) { box.appendChild(el('p', 'text-sm text-secondary', 'Loading your saved leads…')); return box; }
+    if (pendingLeads.error || !pendingLeads.leads.length) {
+      box.appendChild(el('p', 'text-sm text-secondary', pendingLeads.error || 'No saved leads yet. Find businesses in Lead Finder and save them first.'));
+      const row = el('div', 'flex gap-2');
+      const go = button('Open Lead Finder', { small: true });
+      go.addEventListener('click', () => { window.location.hash = '#/leadfinder'; });
+      const cancel = button('Close', { small: true });
+      cancel.addEventListener('click', close);
+      row.append(go, cancel); box.appendChild(row);
+      return box;
+    }
+    box.appendChild(el('p', 'text-sm font-bold', `Your saved leads (${pendingLeads.leads.length}). Leads without an email can't be added.`));
+    const list = el('div', 'flex max-h-64 flex-col divide-y divide-white/5 overflow-y-auto');
+    for (const lead of pendingLeads.leads) {
+      const b = lead?.business || {};
+      const row = el('label', 'flex items-center gap-3 py-1.5 text-sm');
+      const cb = el('input'); cb.type = 'checkbox'; cb.disabled = !b.email; cb.checked = pendingLeads.picked.has(lead.id);
+      cb.addEventListener('change', () => { if (cb.checked) pendingLeads.picked.add(lead.id); else pendingLeads.picked.delete(lead.id); render(); });
+      const who = el('div', 'min-w-0 flex-1');
+      who.append(el('div', 'truncate font-semibold', b.name || 'Unnamed business'), el('div', 'truncate text-xs text-white/50', [b.email || 'no email', b.website].filter(Boolean).join(' · ')));
+      row.append(cb, who);
+      list.appendChild(row);
+    }
+    const actions = el('div', 'flex gap-2');
+    const add = button(`Add ${pendingLeads.picked.size}`, { primary: true, small: true });
+    add.disabled = !pendingLeads.picked.size;
+    add.addEventListener('click', () => {
+      const picked = pendingLeads.leads.filter((l) => pendingLeads.picked.has(l.id));
+      const { contacts, skipped } = contactsFromLeads(picked);
+      pendingLeads = null;
+      addContacts(contacts, skipped);
+    });
+    const cancel = button('Cancel', { small: true });
+    cancel.addEventListener('click', close);
+    actions.append(add, cancel);
+    box.append(list, actions);
+    return box;
+  }
+
   function renderContacts() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_380px]');
     const main = card('Add contacts', 'Upload a CSV, or add people one at a time. Each contact gets their own link.');
@@ -409,8 +480,13 @@ export function OutreachStudio() {
     upload.addEventListener('click', () => file.click());
     const template = button('Download template');
     template.addEventListener('click', () => downloadText('contacts-template.csv', CSV_TEMPLATE));
-    csvRow.append(upload, template, file);
+    const fromLeads = button('Add from Lead Finder');
+    fromLeads.setAttribute('data-outreach-leads', '');
+    fromLeads.addEventListener('click', loadLeads);
+    csvRow.append(upload, template, fromLeads, file);
     main.appendChild(csvRow);
+
+    if (pendingLeads) main.appendChild(renderLeadPicker());
 
     if (pendingCsv) {
       const box = el('div', 'rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col gap-3');
@@ -619,13 +695,144 @@ export function OutreachStudio() {
         copy.addEventListener('click', async () => {
           try { await navigator.clipboard.writeText(l.link); copy.textContent = 'Copied'; } catch { window.prompt('Copy this link:', l.link); }
         });
-        row.append(who, state, ...(siteState ? [siteState] : []), copy);
+        const mailBtn = button('Copy email', { small: true });
+        mailBtn.setAttribute('data-outreach-copy-email', '');
+        mailBtn.addEventListener('click', () => copyEmail(l, mailBtn));
+        const mailto = el('a', 'text-xs font-bold text-white/70 hover:text-white', 'Email');
+        if (l.email) { mailto.href = mailtoUrl(emailOf(l)); } else { mailto.classList.add('hidden'); }
+        row.append(who, state, ...(siteState ? [siteState] : []), ...(l.thumbnailUrl ? [el('span', 'text-xs text-emerald-300', '● Thumbnail')] : []), copy, mailBtn, mailto);
         rows.appendChild(row);
       });
       list.appendChild(rows);
       wrap.appendChild(list);
+      wrap.appendChild(renderEmailCard());
     }
     return wrap;
+  }
+
+  // ---- Email and thumbnails ------------------------------------------------
+  const contactOf = (l) => draft.contacts.find((c) => c.id === l.contactId) || { email: l.email, company: l.company };
+  const emailOf = (l) => emailFor({ email: draft.email, fallbacks: draft.fallbacks, contact: contactOf(l), link: l.link, thumbnailUrl: l.thumbnailUrl });
+
+  async function copyEmail(l, btn) {
+    const e = emailOf(l);
+    try {
+      if (globalThis.ClipboardItem && navigator.clipboard?.write) {
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/html': new Blob([e.html], { type: 'text/html' }),
+          'text/plain': new Blob([e.text], { type: 'text/plain' }),
+        })]);
+      } else {
+        await navigator.clipboard.writeText(e.text);
+      }
+      btn.textContent = 'Copied: paste into your email';
+    } catch {
+      window.prompt('Copy this email:', e.text);
+    }
+  }
+
+  // The picture behind the bubble for a contact (website backgrounds), else none.
+  const siteShotFor = (c) => {
+    if (draft.background?.mode !== 'website') return '';
+    return draft.siteShots?.[siteKey(c.website)] || draft.siteShots?.[siteKey(draft.background.fallbackSite)] || '';
+  };
+
+  async function makeThumbnails() {
+    const { renderThumbnail, videoFrame, thumbnailText, thumbnailKey } = await import('../lib/outreach/thumbnail.js');
+    abort = new AbortController();
+    const signal = abort.signal;
+    try {
+      setBusy('Reading your video…');
+      const frame = await videoFrame(draft.video.url, Math.min(2, (draft.video.duration || 2) / 2));
+      const made = new Map();
+      const links = draft.campaign.links;
+      for (let i = 0; i < links.length; i += 1) {
+        if (signal.aborted) throw Object.assign(new Error('stopped'), { name: 'AbortError' });
+        const c = contactOf(links[i]);
+        const text = thumbnailText(draft.email.thumbText, c, draft.fallbacks);
+        const site = siteShotFor(c);
+        const key = thumbnailKey(text, site);
+        if (!made.has(key)) {
+          setBusy(`Making thumbnails ${i + 1} of ${links.length}…`);
+          const blob = await renderThumbnail({ frame, siteUrl: site, text });
+          made.set(key, await uploadToStorage(new File([blob], `thumb-${Date.now()}-${made.size}.jpg`, { type: 'image/jpeg' })));
+        }
+        links[i] = { ...links[i], thumbnailUrl: made.get(key) };
+      }
+      persist();
+      busy = ''; abort = null;
+      notice = `Thumbnails ready: ${made.size} image${made.size === 1 ? '' : 's'} for ${links.length} contact${links.length === 1 ? '' : 's'}.`;
+      render();
+    } catch (err) {
+      abort = null;
+      if (err?.name === 'AbortError') { busy = ''; persist(); notice = 'Stopped. Contacts done so far keep their thumbnails.'; render(); return; }
+      fail(/tainted|SecurityError/i.test(String(err?.message || err?.name)) ? new Error('The browser could not read your video to make thumbnails. Upload the video again and retry.') : err);
+    }
+  }
+
+  function renderEmailCard() {
+    const box = card('Email', 'Write the email once. Each contact gets their name, company and personal link, with a video thumbnail that opens their page.');
+    box.setAttribute('data-outreach-email', '');
+    const thumb = textInput(draft.email.thumbText, 'Hi {{firstname}}, this is for you');
+    const subject = textInput(draft.email.subject, 'A quick video for {{firstname}}');
+    const body = el('textarea', 'w-full min-h-[150px] rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60');
+    body.value = draft.email.body;
+    const canvas = el('canvas', 'w-full rounded-xl border border-white/10 bg-black');
+    canvas.width = 960; canvas.height = 540;
+    canvas.setAttribute('data-outreach-thumb-preview', '');
+    const sample = draft.contacts[0] || {};
+    const sampleOut = el('pre', 'whitespace-pre-wrap rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-white/80 font-sans');
+    let frameEl = null;
+    let siteImg = null;
+    const draw = async () => {
+      const { drawThumbnail, thumbnailText } = await import('../lib/outreach/thumbnail.js');
+      drawThumbnail(canvas.getContext('2d'), { frame: frameEl, site: siteImg, text: thumbnailText(draft.email.thumbText, sample, draft.fallbacks) });
+      const l = draft.campaign.links.find((x) => x.contactId === sample.id) || draft.campaign.links[0];
+      const e = l ? emailOf(l) : null;
+      sampleOut.textContent = e ? `To: ${e.to}\nSubject: ${e.subject}\n\n${e.text}` : '';
+    };
+    const sync = () => {
+      draft.email = { ...draft.email, thumbText: thumb.value, subject: subject.value, body: body.value };
+      persist(); draw();
+    };
+    [thumb, subject, body].forEach((i) => i.addEventListener('input', sync));
+    if (draft.video?.url) {
+      const v = el('video'); v.muted = true; v.playsInline = true; v.preload = 'auto';
+      v.addEventListener('loadeddata', () => { v.currentTime = Math.min(2, (v.duration || 2) / 2); });
+      v.addEventListener('seeked', () => { frameEl = v; draw(); });
+      v.src = draft.video.url;
+    }
+    const shot = siteShotFor(sample);
+    if (shot) { const img = new Image(); img.onload = () => { siteImg = img; draw(); }; img.src = shot; }
+    draw();
+    const grid = el('div', 'grid gap-4 lg:grid-cols-2');
+    const left = el('div', 'flex flex-col gap-3');
+    left.append(field('Thumbnail text', thumb, 'Shown on the picture. {{firstname}} and {{company}} work here.'),
+      field('Subject', subject), field('Message', body, 'Put {{link}} on its own line: the thumbnail goes there in the copied email.'));
+    const right = el('div', 'flex flex-col gap-3');
+    right.append(canvas, el('div', 'text-xs text-secondary', `Preview for ${[sample.firstName, sample.lastName].filter(Boolean).join(' ') || 'your first contact'}`), sampleOut);
+    grid.append(left, right);
+    box.appendChild(grid);
+    const actions = el('div', 'flex flex-wrap gap-2');
+    if (busy && abort) {
+      const stop = button('Stop');
+      stop.addEventListener('click', () => abort?.abort());
+      actions.appendChild(stop);
+    } else {
+      const make = button(draft.campaign.links.some((l) => l.thumbnailUrl) ? 'Remake thumbnails' : 'Make thumbnails', { primary: !draft.campaign.links.some((l) => l.thumbnailUrl) });
+      make.setAttribute('data-outreach-make-thumbs', '');
+      make.disabled = !!busy || !draft.video?.url;
+      make.addEventListener('click', makeThumbnails);
+      actions.appendChild(make);
+    }
+    const merge = button('Download mail-merge .csv');
+    merge.addEventListener('click', () => {
+      const rows = draft.campaign.links.map((l) => ({ ...emailOf(l), contact: contactOf(l), link: l.link, thumbnailUrl: l.thumbnailUrl || '' }));
+      downloadText(`${(draft.name || 'campaign').replace(/[^\w-]+/g, '_')}-emails.csv`, mailMergeCsv(rows));
+    });
+    actions.appendChild(merge);
+    box.append(actions, el('p', 'text-[11px] text-white/45', 'Copy email puts the finished email (with the thumbnail) on your clipboard to paste into Gmail or Outlook. Email opens it in your mail app as plain text. The .csv works with mail-merge tools.'));
+    return box;
   }
 
   // ---- Step 6: Campaigns -------------------------------------------------

@@ -37,6 +37,13 @@ export const FIRST_NAME_FALLBACKS = ['there', 'friend'];
 
 const TOKEN_RE = /\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g;
 
+// The email sent with each link (src/lib/outreach/email.js): {{link}} is the contact's page.
+export const DEFAULT_EMAIL = {
+  subject: 'A quick video for {{firstname}}',
+  body: 'Hi {{firstname}},\n\nI recorded a short video for {{company}}. It takes two minutes:\n\n{{link}}\n\nThanks!',
+  thumbText: 'Hi {{firstname}}, this is for you',
+};
+
 export function defaultDraft() {
   return {
     version: 1,
@@ -54,6 +61,7 @@ export function defaultDraft() {
     background: { mode: 'recording', fallbackSite: '' },
     // Screenshots captured during Generate: { [site home page]: image URL }.
     siteShots: {},
+    email: { ...DEFAULT_EMAIL },
   };
 }
 
@@ -72,6 +80,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       contacts: Array.isArray(saved.contacts) ? saved.contacts : [],
       background: { ...base.background, ...(saved.background || {}) },
       siteShots: saved.siteShots && typeof saved.siteShots === 'object' ? saved.siteShots : {},
+      email: { ...base.email, ...(saved.email || {}) },
     };
   } catch {
     return base;
@@ -102,6 +111,26 @@ export function fillTemplate(template, contact = {}, fallbacks = {}) {
     const value = String(values[k] ?? '').trim();
     return value || String(fb[k] ?? '').trim();
   }).replace(/\s{2,}/g, ' ').trim();
+}
+
+// Booking pages that allow being shown inside another page, and how to ask for the embed view.
+const CALENDAR_HOSTS = [
+  { re: /^(www\.)?calendly\.com$/, params: { embed_type: 'Inline', hide_gdpr_banner: '1' } },
+  { re: /^(app\.)?cal\.com$/, params: { embed: 'true' } },
+  { re: /^calendar\.google\.com$/, path: /^\/calendar\/appointments\//, params: { gv: 'true' } },
+  { re: /^meetings(-[a-z0-9]+)?\.hubspot\.com$/, params: { embed: 'true' } },
+  { re: /^savvycal\.com$/, params: {} },
+  { re: /^tidycal\.com$/, params: {} },
+];
+
+/** The embeddable address of a booking link, or null when it can't be shown in the page. */
+export function calendarEmbedUrl(value) {
+  if (!isHttpsUrl(value)) return null;
+  const u = new URL(String(value));
+  const host = CALENDAR_HOSTS.find((h) => h.re.test(u.hostname) && (!h.path || h.path.test(u.pathname)));
+  if (!host || u.pathname === '/' || u.username || u.password) return null;
+  Object.entries(host.params).forEach(([k, v]) => u.searchParams.set(k, v));
+  return u.toString();
 }
 
 export function isHttpsUrl(value) {
@@ -144,6 +173,7 @@ export function stepErrors(draft, step) {
       if (!label) errors.push('Give the button a label.');
       else if (label.length > CTA_LIMIT) errors.push(`The button label can be up to ${CTA_LIMIT} characters.`);
       if (!isHttpsUrl(draft.cta.url)) errors.push('The booking link must be an https:// address.');
+      else if (draft.cta.embed && !calendarEmbedUrl(draft.cta.url)) errors.push('Only Calendly, Cal.com, Google Calendar appointment, HubSpot, SavvyCal and TidyCal booking pages can be shown on the page. Turn off "Show the calendar" or use one of those links.');
     }
   }
   if (step === 3 && draft.background?.mode === 'website') {
@@ -266,6 +296,24 @@ export function contactsFromRows(rows, mapping, opts) {
 }
 
 /** Merge new contacts into a list, skipping repeated emails (case-insensitive). */
+/**
+ * Leads saved in Lead Finder → contacts. A lead is a business, so the contact gets the
+ * business email, name (as company) and website; leads without an email can't be sent to
+ * and are counted as skipped.
+ */
+export function contactsFromLeads(leads = [], opts) {
+  const contacts = [];
+  let skipped = 0;
+  for (const lead of leads) {
+    const b = lead?.business || {};
+    const email = String(b.email || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { skipped += 1; continue; }
+    const c = makeContact({ email, company: b.name, website: b.website }, opts);
+    if (c) contacts.push(c); else skipped += 1;
+  }
+  return { contacts, skipped };
+}
+
 export function mergeContacts(existing, incoming) {
   const seen = new Set(existing.map((c) => c.email.toLowerCase()).filter(Boolean));
   const out = [...existing];
@@ -318,7 +366,7 @@ export function contactProfile(c, siteShots = {}) {
 }
 
 /** Values for the studio's {{tokens}} (keys lower-cased, as fillTemplate reads them). */
-export const contactValues = (c) => ({ firstname: c.firstName, lastname: c.lastName, email: c.email, company: c.company, website: c.website });
+export const contactValues = (c = {}) => ({ firstname: c.firstName || '', lastname: c.lastName || '', email: c.email || '', company: c.company || '', website: c.website || '' });
 
 // ---------------------------------------------------------------- campaign
 
@@ -390,7 +438,9 @@ export function buildCampaignProject(draft, { variants = {}, now = Date.now() } 
       header: String(draft.header || '').trim(),
       message: String(draft.message || '').trim(),
       fallbacks: { ...draft.fallbacks },
-      cta: draft.cta?.enabled ? { label: String(draft.cta.label).trim(), url: draft.cta.url } : null,
+      cta: draft.cta?.enabled
+        ? { label: String(draft.cta.label).trim(), url: draft.cta.url, ...(draft.cta.embed && calendarEmbedUrl(draft.cta.url) ? { embed: true } : {}) }
+        : null,
     },
   };
 }

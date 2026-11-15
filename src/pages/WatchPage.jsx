@@ -13,7 +13,7 @@ import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
-import { fillTemplate } from '../lib/outreach/draft.js';
+import { fillTemplate, calendarEmbedUrl } from '../lib/outreach/draft.js';
 
 const FPS = 30;
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -80,10 +80,13 @@ export async function mountWatchPage(container, ref, deps = {}) {
   const fill = (text) => fillTemplate(text, linkValues, landing?.fallbacks || {});
   const heading = landing?.header ? fill(landing.header) || title : title;
   const ctaHref = (() => { try { const u = new URL(String(landing?.cta?.url || '')); return u.protocol === 'https:' ? u.toString() : null; } catch { return null; } })();
+  // The booking page itself, shown under the button, for known calendar hosts only.
+  const calendarSrc = landing?.cta?.embed && ctaHref ? calendarEmbedUrl(ctaHref) : null;
   const landingBody = landing && !embed && (landing.message || (ctaHref && landing.cta?.label))
     ? `<section class="watch-landing">
         ${landing.message ? `<p class="watch-landing-msg">${esc(fill(landing.message))}</p>` : ''}
         ${ctaHref && landing.cta?.label ? `<a class="watch-landing-cta" data-landing-cta href="${esc(ctaHref)}" target="_blank" rel="noopener noreferrer">${esc(landing.cta.label)}</a>` : ''}
+        ${calendarSrc ? `<iframe class="watch-landing-calendar" data-landing-calendar src="${esc(calendarSrc)}" title="${esc(landing.cta.label || 'Book a time')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>` : ''}
       </section>`
     : '';
 

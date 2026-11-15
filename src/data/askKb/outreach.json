@@ -28,7 +28,10 @@
     "Contacts from a CSV (column matching, template download, repeated emails skipped) or added one at a time, up to 500",
     "Generate campaign: one voiced greeting per contact, a published video page and a personal link per contact, with Stop",
     "Copy link, Download .csv of links and Open landing page",
-    "Campaigns table with videos, watched and button clicks, and per-contact views, plays and clicks"
+    "Campaigns table with videos, watched and button clicks, and per-contact views, plays and clicks",
+    "Show the calendar: Calendly, Cal.com, Google Calendar appointment, HubSpot, SavvyCal or TidyCal booking pages embedded under the video",
+    "Add from Lead Finder: pick saved leads with an email as contacts",
+    "Email card: thumbnail text, subject and message with {{firstname}}, {{company}} and {{link}}; Make thumbnails; Copy email (with the thumbnail) and Email per contact; mail-merge .csv"
   ],
   "featureExplanations": [
     {
@@ -86,6 +89,27 @@
       "whyToUse": "See who watched and who clicked.",
       "inputRequired": "Sign in.",
       "restrictions": "Shows up to 50 recent campaigns. Contact names show for the campaign in this browser; others show contact ids."
+    },
+    {
+      "feature": "Show the calendar",
+      "explanation": "In Customize, tick 'Show the calendar under the video'. The landing page shows your booking page itself under the button, so contacts book without leaving.",
+      "whyToUse": "Fewer clicks to a booked meeting.",
+      "inputRequired": "A Calendly, Cal.com, Google Calendar appointment, HubSpot, SavvyCal or TidyCal https link.",
+      "restrictions": "Other booking sites only get the button."
+    },
+    {
+      "feature": "Add from Lead Finder",
+      "explanation": "In Contacts, click Add from Lead Finder, tick the saved leads and click Add. Each becomes a contact with the business email, name (as company) and website.",
+      "whyToUse": "Send videos to prospects you found in Lead Finder.",
+      "inputRequired": "Leads saved in Lead Finder; signed in.",
+      "restrictions": "Leads without an email can't be added; they have no first name, so they hear the fallback greeting."
+    },
+    {
+      "feature": "Email and thumbnails",
+      "explanation": "After generating, the Email card sets the thumbnail text, subject and message. Make thumbnails draws a picture per contact (a still of your video, or their website with your camera bubble, a play button and their name) and saves it. Copy email puts the finished email with the linked thumbnail on your clipboard; Email opens your mail app; Download mail-merge .csv has every finished email.",
+      "whyToUse": "Video emails get more clicks with a personalized thumbnail.",
+      "inputRequired": "A generated campaign.",
+      "restrictions": "The app doesn't send email itself: paste into Gmail or Outlook, or use a mail-merge tool. Thumbnails are still images, not GIFs."
     }
   ],
   "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",

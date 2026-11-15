@@ -79,6 +79,8 @@ describe('publish client', () => {
     expect(p.landing.cta).toEqual({ label: 'Book', url: 'https://cal.com/x' });
     expect(cleanLanding({ cta: { label: 'Go', url: 'http://cal.com/x' } }).cta).toBeNull();
     expect(cleanLanding({ cta: { label: 'Go', url: 'javascript:alert(1)' } }).cta).toBeNull();
+    expect(cleanLanding({ cta: { label: 'Go', url: 'https://cal.com/x', embed: true } }).cta).toEqual({ label: 'Go', url: 'https://cal.com/x', embed: true });
+    expect(cleanLanding({ cta: { label: 'Go', url: 'https://cal.com/x', embed: 'yes' } }).cta).toEqual({ label: 'Go', url: 'https://cal.com/x' });
     // Ordinary videos are unchanged.
     const plain = preparePublishProject({ tracks: [], kind: 'something' });
     expect(plain).not.toHaveProperty('kind');

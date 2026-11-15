@@ -201,3 +201,39 @@ describe('website background', () => {
     expect(new URL(campaignLinks(readyDraft(), 'https://app.test/watch/x', personalLink)[0].link).searchParams.has('websiteShotUrl')).toBe(false);
   });
 });
+
+describe('embedded booking calendar', () => {
+  it('known booking hosts get their embed view; others are not embedded', async () => {
+    const { calendarEmbedUrl } = await import('../draft.js');
+    expect(calendarEmbedUrl('https://calendly.com/ann/30min')).toBe('https://calendly.com/ann/30min?embed_type=Inline&hide_gdpr_banner=1');
+    expect(calendarEmbedUrl('https://cal.com/ann/intro')).toBe('https://cal.com/ann/intro?embed=true');
+    expect(calendarEmbedUrl('https://calendar.google.com/calendar/appointments/schedules/AcZ')).toContain('gv=true');
+    expect(calendarEmbedUrl('https://calendar.google.com/calendar/u/0/r')).toBeNull();
+    expect(calendarEmbedUrl('https://evil.example/calendly.com/x')).toBeNull();
+    expect(calendarEmbedUrl('http://calendly.com/ann')).toBeNull();
+    expect(calendarEmbedUrl('https://calendly.com/')).toBeNull();
+  });
+
+  it('the campaign carries embed only for an embeddable link, and Customize explains a bad one', async () => {
+    const ok = readyDraft({ cta: { enabled: true, label: 'Book', url: 'https://cal.com/ann', embed: true } });
+    expect(buildCampaignProject(ok).landing.cta).toEqual({ label: 'Book', url: 'https://cal.com/ann', embed: true });
+    const bad = readyDraft({ cta: { enabled: true, label: 'Book', url: 'https://example.com/book', embed: true } });
+    expect(stepErrors(bad, 3).join(' ')).toMatch(/can be shown on the page/);
+    const off = readyDraft({ cta: { enabled: true, label: 'Book', url: 'https://example.com/book' } });
+    expect(buildCampaignProject(off).landing.cta.embed).toBeUndefined();
+  });
+});
+
+describe('contacts from Lead Finder', () => {
+  it('turns saved leads with an email into contacts and skips the rest', async () => {
+    const { contactsFromLeads } = await import('../draft.js');
+    const { contacts, skipped } = contactsFromLeads([
+      { id: 'l1', business: { name: 'Acme Plumbing', email: 'hi@acme.test', website: 'acme.test' } },
+      { id: 'l2', business: { name: 'No Mail Co' } },
+      { id: 'l3', business: { name: 'Bad', email: 'not-an-email' } },
+    ]);
+    expect(skipped).toBe(2);
+    expect(contacts).toHaveLength(1);
+    expect(contacts[0]).toMatchObject({ email: 'hi@acme.test', company: 'Acme Plumbing', website: 'https://acme.test', firstName: '' });
+  });
+});

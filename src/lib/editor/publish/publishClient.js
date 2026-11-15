@@ -151,7 +151,7 @@ export function cleanLanding(landing = {}) {
     let url = null;
     try { const u = new URL(String(landing.cta.url)); if (u.protocol === 'https:') url = u.toString(); } catch { url = null; }
     const label = str(landing.cta.label, 60);
-    if (url && label) cta = { label, url };
+    if (url && label) cta = { label, url, ...(landing.cta.embed === true ? { embed: true } : {}) };
   }
   return { header: str(landing.header, 200), message: String(landing.message ?? '').trim().slice(0, 1000), fallbacks, cta };
 }
