@@ -5,7 +5,7 @@ html.watch-embed, html.watch-embed body { background: #000; }
 .watch-embed .watch { padding: 0; min-height: 100vh; justify-content: center; }
 .watch-head { width: min(1100px, 100%); }
 .watch-head h1 { margin: 0; font-size: clamp(18px, 2.4vw, 26px); font-weight: 700; }
-.watch-player { width: min(1100px, 100%); background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+.watch-player { flex-shrink: 0; width: min(1100px, 100%); background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
 .watch-embed .watch-player { width: 100%; border-radius: 0; box-shadow: none; }
 /* Embedded: fit picture + controls inside the iframe's height. */
 .watch-embed .watch-frame { height: calc(100vh - 52px); width: auto; max-width: 100%; margin: 0 auto; }
