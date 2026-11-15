@@ -13,7 +13,7 @@ Deliverable 1 is `docs/stage-11/FREECUT_PARITY_LEFTOVERS.md` (every FreeCut feat
 | a | Crash recovery | `52d212158` | Automatic. Reopen a project after an unclean exit with unsaved edits: "Recover unsaved changes?" with Recover / Discard. |
 | b | Speed-ramp curve editor | `eb7178002` | Clip tools bar, **Speed curve...** (select a clip). |
 | c | Audio-only export, MOV / MKV / WebM | `6ce5dd286` | Export tab, **Format** picker. |
-| d | Lottie value slots + layer visibility | see `git log` (Stage 11 Lottie commit) | Lottie sticker panel, "Lottie customise". |
+| d | Lottie value slots + layer visibility | `9a6db0b0d` | Lottie sticker panel, "Lottie customise". |
 | e | Lift / Extract the timeline in-out range | `eb7178002` | Clip tools bar, next to In / Out / Clear. |
 
 ### a) Crash recovery (original code; FreeCut has none)
