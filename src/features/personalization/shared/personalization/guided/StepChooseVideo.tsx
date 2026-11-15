@@ -692,7 +692,7 @@ export function StepChooseVideo(): React.JSX.Element {
                             </span>
                           )}
                           {active && (
-                            <span data-branding={demo.branding} style={{ ...badgeStyle(demo.branding === 'none' ? 'green' : 'muted'), position: 'absolute', top: 34, right: 6 }}>
+                            <span data-branding={demo.branding} role="img" aria-label={demo.branding === 'none' ? 'No logo' : 'Has logo'} style={{ ...badgeStyle(demo.branding === 'none' ? 'green' : 'muted'), position: 'absolute', top: 34, right: 6 }}>
                               {demo.branding === 'none' ? 'No logo' : 'Has logo'}
                             </span>
                           )}
@@ -704,6 +704,8 @@ export function StepChooseVideo(): React.JSX.Element {
                             <span
                               data-testid={`demo-branding-${demo.legacyId}-${demo.slug}`}
                               data-branding={demo.branding}
+                              role="img"
+                              aria-label={demo.branding === 'none' ? 'No logo' : 'Has logo'}
                               title={demo.marks ?? (demo.branding === 'none' ? 'Reviewed: no visible logo, watermark or credit' : 'Has a visible logo, watermark or credit')}
                               style={{ position: 'absolute', top: 6, right: 6, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#fff', background: demo.branding === 'none' ? 'rgba(16,120,70,.88)' : 'rgba(150,95,10,.92)', padding: '2px 6px', borderRadius: 4 }}
                             >
