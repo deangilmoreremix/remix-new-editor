@@ -35,7 +35,9 @@ export type CaptionPacing = 'word' | 'phrase';
 /** Deterministic burn-in animation shared by Player preview and Remotion export. */
 export type CaptionMotionPreset = 'none' | 'fade-up' | 'pop' | 'word-pop' | 'karaoke-pulse'
   // [remix] Stage 2: per-character / per-word text animation (cinegen/lib/editor/stage2/text-motion.ts)
-  | 'char-rise' | 'char-pop' | 'char-wave' | 'word-rise';
+  | 'char-rise' | 'char-pop' | 'char-wave' | 'word-rise'
+  // [remix] Fix B4: per-line motion (openchatcut/captions/captionLines.ts)
+  | 'line-rise' | 'line-fade';
 
 /** One translated caption phrase, timed on the (edited) timeline in ms. */
 export interface TranslatedCue {

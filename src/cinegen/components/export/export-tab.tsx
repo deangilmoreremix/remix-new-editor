@@ -10,6 +10,7 @@ import type { ExportPreset, ExportJob } from '@cinegen/types/export';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 import { flattenCompounds } from '@cinegen/lib/editor/stage1'; // [remix] Stage 1: compound clips export as their content
 import { exportClipsFromTimeline, exportTracksFromTimeline, exportTransitionsFromTimeline } from '@cinegen/lib/editor/export-mapping';
+import { applyExportRange, applyRangeToOverlays, resolveTimelineRange } from '@cinegen/lib/editor/range/timeline-range'; // [remix] Fix B2: export range
 import { exportBlockers, describeBlockers } from '@cinegen/lib/export-blockers';
 
 export function ExportTab() {
@@ -17,14 +18,15 @@ export function ExportTab() {
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
   const activeTimeline = getActiveTimeline(state);
-  const exportTimeline = useMemo(() => flattenCompounds(activeTimeline), [activeTimeline]);
+  const exportRange = useMemo(() => resolveTimelineRange(activeTimeline.range, activeTimeline.duration), [activeTimeline.range, activeTimeline.duration]); // [remix] Fix B2
+  const exportTimeline = useMemo(() => applyExportRange(flattenCompounds(activeTimeline), exportRange), [activeTimeline, exportRange]);
   const exportClips = useMemo(() => exportClipsFromTimeline(exportTimeline, state.assets), [exportTimeline, state.assets]);
   const hasClips = exportClips.length > 0;
   // Clips that were dropped from the render, and why (so a disabled Render button can explain itself).
   const blockedReason = useMemo(() => describeBlockers(exportBlockers(activeTimeline.clips, state.assets)), [activeTimeline.clips, state.assets]);
   const totalDuration = Math.max(
-    activeTimeline.duration,
-    ...activeTimeline.clips.map(clipEndTime),
+    exportTimeline.duration,
+    ...exportTimeline.clips.map(clipEndTime),
   );
   const activeJob = state.exports.find(
     (e) => e.status === 'queued' || e.status === 'rendering'
@@ -44,10 +46,10 @@ export function ExportTab() {
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
         // [remix] OpenChatCut motion-graphics templates on the overlay lane are rendered into the export
         // [remix] visual overlays (text, stickers, call buttons, End Screens, Connect Forms…) are drawn into the render; interactive forms stay player-only
-        overlays: (state.overlays ?? []).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
-        mgOverlays: (state.overlays ?? []).filter((o) => o.type === 'mg-template').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, code: o.code, props: o.props })),
+        overlays: applyRangeToOverlays(state.overlays ?? [], exportRange).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
+        mgOverlays: applyRangeToOverlays(state.overlays ?? [], exportRange).filter((o) => o.type === 'mg-template').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, code: o.code, props: o.props })),
         // [hyperframes] verified HyperFrames animations on the overlay lane (rendered by the sandboxed export runner)
-        hfOverlays: (state.overlays ?? []).filter((o) => o.type === 'hyperframes').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, blockId: o.blockId, props: o.props, blockWidth: o.blockWidth, blockHeight: o.blockHeight })),
+        hfOverlays: applyRangeToOverlays(state.overlays ?? [], exportRange).filter((o) => o.type === 'hyperframes').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, blockId: o.blockId, props: o.props, blockWidth: o.blockWidth, blockHeight: o.blockHeight })),
         // [remix] OpenChatCut GL transitions on dissolve cuts
         transitions: exportTransitionsFromTimeline(exportTimeline),
       });
@@ -55,7 +57,7 @@ export function ExportTab() {
     } catch (error) {
       console.error('Failed to start render:', error);
     }
-  }, [dispatch, exportClips, totalDuration, exportTimeline, state.overlays]);
+  }, [dispatch, exportClips, totalDuration, exportTimeline, state.overlays, exportRange]);
 
   useEffect(() => {
     if (!activeJob) {

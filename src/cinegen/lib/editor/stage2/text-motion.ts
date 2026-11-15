@@ -77,6 +77,9 @@ export const TEXT_MOTION_PRESETS = {
   'char-pop': { unit: 'char', effect: 'pop', durationMs: 260, staggerMs: 35, order: 'forward' },
   'char-wave': { unit: 'char', effect: 'wave', durationMs: 900, staggerMs: 60, order: 'forward' },
   'word-rise': { unit: 'word', effect: 'rise', durationMs: 260, staggerMs: 0, order: 'forward' },
+  // [remix] Fix B4: per line (lines are grouped by openchatcut/captions/captionLines.ts; every word of a line shares the line's start time)
+  'line-rise': { unit: 'line', effect: 'rise', durationMs: 320, staggerMs: 0, order: 'forward' },
+  'line-fade': { unit: 'line', effect: 'fade', durationMs: 280, staggerMs: 0, order: 'forward' },
 } as const satisfies Record<string, TextMotionSpec>;
 export type TextMotionPresetId = keyof typeof TEXT_MOTION_PRESETS;
 export const isTextMotionPreset = (id: unknown): id is TextMotionPresetId => typeof id === 'string' && id in TEXT_MOTION_PRESETS;

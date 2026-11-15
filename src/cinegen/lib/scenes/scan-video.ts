@@ -1,12 +1,12 @@
 // [remix] Stage 4: browser side of scene detection: sample a video's frames on a canvas (seek + drawImage, small frames), build histograms,
-// find cuts (histogram-cuts.ts), refine each to about one frame, cut thumbnails. Cancellable with an AbortSignal; runs on the main thread
-// with a yield between frames so the UI stays responsive (a worker would need OffscreenCanvas + video decode, which is WebCodecs-only).
-import { detectCuts, refineCut, rgbHistogram, type CutOptions, type FrameSample } from './histogram-cuts';
-import { scenesFromCuts, type SceneInfo } from './scenes';
-
-const abortError = () => new DOMException('Scene scan cancelled', 'AbortError');
-
-export interface VideoSampler { duration: number; width: number; height: number; histAt(t: number): Promise<Float32Array>; thumbAt(t: number, maxW?: number): Promise<string>; dispose(): void }
+// find cuts (histogram-cuts.ts), refine each to about one frame, cut thumbnails. Cancellable with an AbortSignal. [remix] Fix B3: runs in a Web Worker
+// (WebCodecs through mediabunny, OffscreenCanvas; scan-worker.ts) when the browser has them, otherwise on the main thread with a yield between frames.
+import { rgbHistogram } from './histogram-cuts';
+import type { SceneInfo } from './scenes';
+import { abortError, scanWithSampler, type ScanOptions, type VideoSampler } from './scan-core';
+import { canScanInWorker, scanScenesInWorker } from './scan-worker-client';
+export type { ScanOptions, VideoSampler };
+export { scanWithSampler };
 
 export async function openSampler(src: string, signal?: AbortSignal, sampleWidth = 64): Promise<VideoSampler> {
   if (signal?.aborted) throw abortError();
@@ -42,39 +42,16 @@ export async function openSampler(src: string, signal?: AbortSignal, sampleWidth
   };
 }
 
-export interface ScanOptions extends CutOptions { stepSec?: number; precisionSec?: number; signal?: AbortSignal; onProgress?: (fraction: number, phase: 'scan' | 'refine' | 'thumbs') => void; thumbnails?: boolean; thumbWidth?: number; assetName?: string }
-
-/** Detect scenes of one video. Throws AbortError when cancelled. */
+/** Detect scenes of one video. Throws AbortError when cancelled. Uses the worker when available (and falls back to the main thread if it cannot run). */
 export async function scanScenes(assetId: string, src: string, opts: ScanOptions = {}): Promise<SceneInfo[]> {
+  if (opts.useWorker !== false && canScanInWorker()) {
+    try { return await scanScenesInWorker(assetId, src, opts); } catch (e) {
+      if ((e as { name?: string } | null)?.name === 'AbortError' || opts.signal?.aborted) throw e;
+      console.info('[scenes] worker scan unavailable, scanning on the main thread:', (e as Error)?.message);
+    }
+  }
   const sampler = await openSampler(src, opts.signal);
-  try {
-    const dur = sampler.duration || 0;
-    const step = opts.stepSec ?? Math.min(0.25, Math.max(0.05, dur / 600));
-    const samples: FrameSample[] = [];
-    for (let t = 0; t < dur; t += step) {
-      if (opts.signal?.aborted) throw abortError();
-      samples.push({ timeSec: t, hist: await sampler.histAt(t) });
-      opts.onProgress?.(Math.min(1, t / Math.max(dur, 1e-6)) * 0.6, 'scan');
-      if (samples.length % 8 === 0) await new Promise((r) => setTimeout(r, 0));
-    }
-    const coarse = detectCuts(samples, dur, opts);
-    const cuts: number[] = [];
-    for (let i = 0; i < coarse.length; i++) {
-      const after = samples.find((s) => Math.abs(s.timeSec - coarse[i].timeSec) < step / 2 + 1e-6);
-      const before = after ? samples[samples.indexOf(after) - 1] : undefined;
-      cuts.push(after && before ? await refineCut((t) => sampler.histAt(t), before, after, opts.precisionSec ?? 1 / 30, opts.signal) : coarse[i].timeSec);
-      opts.onProgress?.(0.6 + 0.2 * ((i + 1) / coarse.length), 'refine');
-    }
-    const scenes = scenesFromCuts(assetId, opts.assetName ?? assetId, cuts, dur);
-    if (opts.thumbnails !== false) {
-      for (let i = 0; i < scenes.length; i++) {
-        if (opts.signal?.aborted) throw abortError();
-        scenes[i].thumb = await sampler.thumbAt((scenes[i].startSec + scenes[i].endSec) / 2, opts.thumbWidth ?? 160);
-        opts.onProgress?.(0.8 + 0.2 * ((i + 1) / scenes.length), 'thumbs');
-      }
-    }
-    return scenes;
-  } finally { sampler.dispose(); }
+  try { return await scanWithSampler(sampler, assetId, opts); } finally { sampler.dispose(); }
 }
 
 /** The clip's real average frame rate (the web import records a fixed 30). Null when it cannot be read. */

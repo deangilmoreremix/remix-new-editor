@@ -48,6 +48,7 @@ import {
   clipToRow,
   transitionToRow,
 } from '@cinegen/lib/db-converters';
+import { restoreLocalMedia } from '@cinegen/adapters/local-media-restore'; // [remix] Fix B1
 import { mediaDebug, mediaDebugError } from '@cinegen/lib/debug/media-debug';
 import { generateId, timestamp } from '@cinegen/lib/utils/ids';
 import { loadAvailableProject, saveAvailableProject, watchCloudProject } from '@cinegen/lib/cloud/projects';
@@ -1169,7 +1170,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
           const providerUsage = normalizeProjectProviderUsage(workflowState.providerUsage);
           const sets = normalizeProjectSets(workflowState.sets);
           const overlays = normalizeOverlays(workflowState.overlays);
-          const assets = (dbState.assets as Record<string, unknown>[]).map(assetFromRow);
+          const assets = await restoreLocalMedia((dbState.assets as Record<string, unknown>[]).map(assetFromRow), projectId); // [remix] Fix B1
           const mediaFolders = (dbState.mediaFolders as Record<string, unknown>[]).map(folderFromRow);
 
           const rawTimelines = dbState.timelines as Array<
@@ -1229,9 +1230,9 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
           const AUDIO_EXTS = /\.(mp3|wav|ogg|aac|m4a|flac|webm)(\?|$)/i;
           const rawAssets = (snapshot.assets ?? []) as Asset[];
           // Migrate: fix audio assets that were saved as 'image' before audio type support
-          const assets = rawAssets.map((a) =>
+          const assets = await restoreLocalMedia(rawAssets.map((a) =>
             a.type === 'image' && AUDIO_EXTS.test(a.url) ? { ...a, type: 'audio' as const } : a,
-          );
+          ), projectId); // [remix] Fix B1
           const migrated = migrateSequenceToTimelines(snapshot);
           const timelines = (migrated.timelines ?? [createDefaultTimeline('Timeline 1')]) as Timeline[];
           const activeTimelineId = migrated.activeTimelineId ?? timelines[0]?.id ?? '';
@@ -1339,6 +1340,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         transitions: tl.transitions.map((tr) => transitionToRow(tr, tl.id)),
         markers: JSON.stringify(tl.markers ?? []),
         master_volume: tl.masterVolume ?? null, // [remix] Stage 4
+        range_in: tl.range?.in ?? null, range_out: tl.range?.out ?? null, // [remix] Fix B2
       }));
 
       const dbState = {

@@ -13,6 +13,8 @@ export const CAPTION_MOTION_OPTIONS = [
   { id: 'char-pop', label: '逐字弹出' },
   { id: 'char-wave', label: '逐字波浪' },
   { id: 'word-rise', label: '逐词上浮' },
+  { id: 'line-rise', label: '逐行上浮' },
+  { id: 'line-fade', label: '逐行淡入' },
 ] as const satisfies ReadonlyArray<{ id: CaptionMotionPreset; label: string }>;
 
 const PRESETS = new Set<CaptionMotionPreset>(CAPTION_MOTION_OPTIONS.map((option) => option.id));
@@ -69,8 +71,14 @@ export function captionWordMotionStyle(
   preset: CaptionMotionPreset | undefined,
   word: Pick<CaptionPage['words'][number], 'start' | 'end'>,
   timelineMs: number,
+  /** [remix] Fix B4: start (ms) of the line this word is on (captionLineStarts); the per-line presets animate from it */
+  lineStartMs?: number,
 ): CSSProperties {
   if (!preset || preset === 'none' || preset === 'fade-up' || preset === 'pop') return EMPTY_STYLE;
+  if (isTextMotionPreset(preset) && TEXT_MOTION_PRESETS[preset].unit === 'line') {
+    const s = unitStyle(TEXT_MOTION_PRESETS[preset], 0, 1, timelineMs - (lineStartMs ?? word.start));
+    return { display: 'inline-block', opacity: s.opacity, ...(s.transform ? { transform: s.transform } : {}) };
+  }
   if (preset === 'word-rise') {
     const s = unitStyle(TEXT_MOTION_PRESETS['word-rise'], 0, 1, timelineMs - word.start);
     return { display: 'inline-block', opacity: s.opacity, ...(s.transform ? { transform: s.transform } : {}) };

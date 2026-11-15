@@ -9,6 +9,7 @@ import { laneGroupsFromPages, type LanePage } from './lanes';
 import { activeCaptionPages, buildCaptionPages } from './captionPages';
 import { captionFlowStyle, captionTextStyle, containerStyle, effectivePreset } from './renderStyles';
 import { buildCaptionWordRuns } from './captionWordRuns';
+import { captionLineStarts } from './captionLines'; // [remix] Fix B4
 import { captionPageMotionStyle, captionWordMotionStyle, captionWordContent } from './captionMotion';
 
 const CAPTION_OVERLAY_STYLE = { pointerEvents: 'none', zIndex: 1 } as const;
@@ -81,13 +82,14 @@ function WholeLineCaption({
   motionPreset: CaptionMotionPreset | undefined;
   ms: number;
 }) {
+  const lineStarts = captionLineStarts(page.words); // [remix] Fix B4
   return (
     <div style={{ ...captionTextStyle(preset, height, false, true), whiteSpace: 'pre-wrap' }}>
       {page.words.map((word, index) => {
         const previous = page.words[index - 1];
         const text = previous ? joinCaptionWords([previous, word]).slice(previous.text.length) : word.text;
         return (
-          <span key={word.id ?? index} style={captionWordMotionStyle(motionPreset, word, ms)}>
+          <span key={word.id ?? index} style={captionWordMotionStyle(motionPreset, word, ms, lineStarts[index])}>
             {captionWordContent(motionPreset, word, text, ms)}
           </span>
         );
@@ -112,6 +114,7 @@ function CaptionWordFlow({
   ms: number;
 }) {
   const runs = buildCaptionWordRuns(page.words, preset.displayMode === 'stacked');
+  const lineStarts = captionLineStarts(page.words); // [remix] Fix B4
   return (
     <div style={captionFlowStyle(preset)}>
       {runs.map((run) => (
@@ -124,7 +127,7 @@ function CaptionWordFlow({
                 style={{
                   position: 'relative',
                   ...captionTextStyle(preset, height, index === currentIndex),
-                  ...captionWordMotionStyle(motionPreset, word, ms),
+                  ...captionWordMotionStyle(motionPreset, word, ms, lineStarts[index]),
                 }}
               >
                 {captionWordContent(motionPreset, word, word.text, ms)}
