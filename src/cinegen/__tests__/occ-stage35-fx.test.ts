@@ -27,7 +27,7 @@ describe('Stage 3/5 effect registry', () => {
     expect(Object.keys(S35_META).sort()).toEqual([...IDS].sort());
     expect(new Set(FX_IDS).size).toBe(FX_IDS.length);
     for (const id of IDS) { expect(ALL_FX[id]).toBe(S35_EFFECTS[id]); expect(FX_IDS).toContain(id); expect(id).toMatch(/^builtin:fx-[a-z0-9-]+$/); }
-    expect(FX_IDS.length).toBe(54);
+    expect(FX_IDS.length).toBe(56); // 54 + Fix C path mask and corner pin
   });
   it.each(IDS)('%s: schema (name/desc, GLSL 300 es pass reading u_input, every prop wired to a declared uniform, defaults in range, number props only)', (id) => {
     const def = S35_EFFECTS[id];
@@ -37,21 +37,23 @@ describe('Stage 3/5 effect registry', () => {
     expect(def.props.length).toBeGreaterThan(0);
     const keys = new Set<string>();
     for (const p of def.props) {
+      if (p.kind === 'color') { // Fix C: night-vision tint is a colour prop, edited by the inspector colour picker
+        expect(p.default).toHaveLength(3); expect(passes.some((f) => new RegExp(`uniform\\s+vec3\\s+[^;]*\\b${p.uniform}\\b`).test(f))).toBe(true); continue;
+      }
       expect(p.kind ?? 'number').toBe('number'); // keyframeable from the inspector
-      if (p.kind === 'color') throw new Error('unreachable');
       expect(keys.has(p.key)).toBe(false); keys.add(p.key);
       expect(Number.isFinite(p.default) && Number.isFinite(p.min) && Number.isFinite(p.max)).toBe(true);
       expect(p.min).toBeLessThan(p.max);
       expect(p.default).toBeGreaterThanOrEqual(p.min); expect(p.default).toBeLessThanOrEqual(p.max);
       const u = p.uniform ?? `u_${p.key}`;
-      expect(passes.some((f) => new RegExp(`uniform\\s+[^;]*\\b${u}\\b`).test(f))).toBe(true);
+      if (!def.derive) expect(passes.some((f) => new RegExp(`uniform\\s+[^;]*\\b${u}\\b`).test(f))).toBe(true); // derive-based (Fix C curves): props feed a CPU LUT
     }
     // every uniform the shader declares (besides the runtime-supplied ones) is a prop
     const runtime = new Set(['u_input', 'u_resolution', 'u_time', 'u_width', 'u_aspect']);
     const declared = new Set<string>();
-    for (const f of passes) for (const m of f.matchAll(/uniform\s+\w+\s+([^;]+);/g)) m[1].split(/\s*,\s*/).forEach((n) => declared.add(n.trim()));
+    for (const f of passes) for (const m of f.matchAll(/uniform\s+\w+\s+([^;]+);/g)) m[1].split(/\s*,\s*/).forEach((n) => declared.add(n.trim().replace(/\[.*\]$/, '')));
     // "uniform float a; uniform float b;" on one line is matched statement by statement above
-    for (const d of declared) if (!runtime.has(d)) expect(def.props.some((p) => (p.uniform ?? `u_${p.key}`) === d), `${id}: uniform ${d} has no prop`).toBe(true);
+    for (const d of declared) if (!runtime.has(d) && !(def.derive && d === 'u_lut')) expect(def.props.some((p) => (p.uniform ?? `u_${p.key}`) === d), `${id}: uniform ${d} has no prop`).toBe(true);
   });
   it.each(IDS)('%s: uniforms clamp out-of-range / NaN overrides and map u_<key>', (id) => {
     const def = S35_EFFECTS[id];

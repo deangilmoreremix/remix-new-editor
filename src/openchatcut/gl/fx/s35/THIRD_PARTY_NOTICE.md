@@ -47,3 +47,34 @@ versions here are independent implementations that do not use the upstream code.
 
 FreeCut (MIT, commit 5ceeeb388eef5423640b7db157706274bf1b8165) was used only as an algorithm reference for curves, gradient map,
 vibrance and similar colour tools. Its effects are WGSL/WebGPU; no WGSL source was copied. All Stage 3 shaders are original GLSL.
+
+### Fix C: code adapted from FreeCut (MIT)
+
+`src/openchatcut/gl/fx/s9/curveSpline.ts` adapts `src/shared/utils/curve-spline.ts` (Fritsch-Carlson monotone tangents and point
+normalisation) from FreeCut, commit 5ceeeb388eef5423640b7db157706274bf1b8165 (changes: tangents computed once per curve, separate
+evaluator / sampler, TypeScript types). `s9/pathMask.ts` reuses only the vertex data model of FreeCut's `src/types/masks.ts`
+(`MaskVertex`: anchor + in / out handles, normalised coordinates); its code is original. The GLSL (path mask, corner pin, curves LUT) is original.
+
+```
+MIT License
+
+Copyright (c) 2025 FreeCut
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

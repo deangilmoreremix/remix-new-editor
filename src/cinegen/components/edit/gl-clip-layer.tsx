@@ -12,6 +12,7 @@ import { interpolateProperty } from '@cinegen/lib/editor/timeline-operations';
 import { warnGlFxSkipped } from '../../../openchatcut/gl/fx/glSupport';
 import { GLSL_TRANSITIONS } from '../../../openchatcut/gl/transitions';
 import type { GlslTransitionType } from '../../../openchatcut/types';
+import { FxEditOverlay } from './fx-edit-overlay'; // [remix] Fix C: path mask / corner pin handles
 
 export interface GlTransitionState { glType: string; glDef?: import('../../../openchatcut/gl/customTransitions').CustomTransitionDef; glParams?: Record<string, number | boolean | number[]>; outClipId: string; inClipId: string; progress: number;
   /** [remix] Fix A: timeline time and the two clips, so each side is drawn with its own transform / keys / effects / opacity */
@@ -122,10 +123,13 @@ export function GlClipLayer({ container, clip, assetId, transition = null }: Pro
 
   if (!active && !hasTransition) return null;
   return (
-    <canvas
-      ref={canvasRef}
-      data-testid="gl-clip-layer"
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none', visibility: 'hidden' }}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        data-testid="gl-clip-layer"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none', visibility: 'hidden' }}
+      />
+      <FxEditOverlay canvasRef={canvasRef} clipId={clip?.id} />
+    </>
   );
 }
