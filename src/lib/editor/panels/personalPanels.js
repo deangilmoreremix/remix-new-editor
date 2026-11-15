@@ -172,27 +172,86 @@ export function renderTokenEditor(el, s) {
  * @param {object} s { contacts(), tokensUsed(), exportEach(), openShare() }
  */
 export function renderBatchHub(el, s) {
+  // Personalized output: pick contacts, see who is ready, then download their MP4s and/or create their links.
+  const off = new Set(); // contacts the owner unticked (new contacts default to ticked)
+  let result = null; // { busy?, message?, rows?, needsPublish? }
+  const picked = (contacts) => contacts.filter((p) => !off.has(String(p.id)));
+  const readiness = (p, used) => [
+    ...used.filter((k) => resolveToken(p, k) == null).map((k) => `missing ${k}`),
+    ...(s.issues?.(p) || []),
+  ];
   const draw = () => {
     const contacts = s.contacts();
     const used = s.tokensUsed();
-    const rows = contacts.map((p) => ({ p, missing: used.filter((k) => resolveToken(p, k) == null) }));
-    const ready = rows.filter((r) => !r.missing.length).length;
+    const rows = contacts.map((p) => ({ p, problems: readiness(p, used) }));
+    const ready = rows.filter((r) => !r.problems.length).length;
+    const chosen = picked(contacts);
+    const n = chosen.length;
+    const busy = !!result?.busy;
+    const off1 = busy || n === 0 ? 'disabled' : '';
     el.innerHTML = wrap(`
-      <p class="pz-hint">One video per contact: their details fill the text and images, and their own voice line plays. ${used.length ? `This video uses ${used.map((k) => `<code>{{${esc(k)}}}</code>`).join(', ')}.` : 'Add {{tokens}} to the video first, or every contact gets the same video.'}</p>
+      <p class="pz-hint">Personalized output: choose who gets a video, then download their MP4s, create their links, or both. Each person's details fill the text and images, and their own voice line plays. ${used.length ? `This video uses ${used.map((k) => `<code>{{${esc(k)}}}</code>`).join(', ')}.` : 'Add {{tokens}} to the video first, or every contact gets the same video.'}</p>
       ${contacts.length ? `
         <div class="pz-card"><span class="pz-label">${ready} of ${contacts.length} contacts ready</span>
-          <ul class="rp-list">${rows.map(({ p, missing }) => `<li class="rp-var rp-var--2"><div><strong>${esc(contactName(p))}</strong>${p.source === 'lead-finder' ? '<span class="pz-chip">Lead</span>' : ''}</div>
-            ${missing.length ? `<span class="pz-chip pz-chip-warn" title="Missing: ${esc(missing.join(', '))}">missing ${esc(missing.slice(0, 2).join(', '))}${missing.length > 2 ? '…' : ''}</span>` : '<span class="pz-chip">ready</span>'}</li>`).join('')}</ul></div>
+          <div class="rp-row"><button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="all">All</button>
+            <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="readyonly">Ready only</button>
+            <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="none">None</button>
+            <span class="pz-hint" data-rp="count">${n} selected</span></div>
+          <ul class="rp-list">${rows.map(({ p, problems }) => `<li class="rp-var rp-var--2"><div><label><input type="checkbox" data-pick="${esc(String(p.id))}" ${off.has(String(p.id)) ? '' : 'checked'} /> <strong>${esc(contactName(p))}</strong></label>${p.source === 'lead-finder' ? '<span class="pz-chip">Lead</span>' : ''}</div>
+            ${problems.length ? `<span class="pz-chip pz-chip-warn" title="${esc(problems.join('; '))}">${esc(problems.slice(0, 2).join(', '))}${problems.length > 2 ? '…' : ''}</span>` : '<span class="pz-chip">ready</span>'}</li>`).join('')}</ul></div>
         <div class="pz-actions">
-          <button type="button" class="pz-btn pz-btn-primary" data-rp="export">Export one video per contact</button>
-          <button type="button" class="pz-btn pz-btn-secondary" data-rp="share">Personal links</button>
-        </div>`
+          <button type="button" class="pz-btn pz-btn-primary" data-rp="export" ${off1}>${s.exportSelected ? `Download MP4s (${n})` : 'Export one video per contact'}</button>
+          ${s.createLinks ? `<button type="button" class="pz-btn pz-btn-primary" data-rp="links" ${off1}>Create links (${n})</button>
+          <button type="button" class="pz-btn pz-btn-secondary" data-rp="both" ${off1}>Links + MP4s</button>` : ''}
+          <button type="button" class="pz-btn pz-btn-secondary" data-rp="share">${s.createLinks ? 'Manage links' : 'Personal links'}</button>
+        </div>
+        ${result?.message ? `<p class="${result.error ? 'pz-warning' : 'pz-hint'}" role="status">${esc(result.message)}${result.needsPublish ? ' <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="share">Open Share</button>' : ''}</p>` : ''}
+        ${(result?.rows || []).length ? `<div class="pz-card"><span class="pz-label">Links</span>
+          <ul class="rp-list">${result.rows.map((r, i) => `<li class="rp-var rp-var--2"><div><strong>${esc(r.name)}</strong>${r.note ? ` <span class="pz-chip pz-chip-warn">${esc(r.note)}</span>` : ''}</div>
+            ${r.link ? `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="copy" data-i="${i}">${result.copied === i ? 'Copied ✓' : 'Copy link'}</button>` : ''}</li>`).join('')}</ul>
+          ${s.downloadCsv ? '<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-rp="csv">Download CSV</button>' : ''}</div>` : ''}`
         : '<p class="pz-hint">No contacts yet. Add them in the Personalize window (Personalization Studio), then come back.</p>'}`);
   };
-  el.onclick = (e) => {
-    const k = e.target.closest('button')?.dataset.rp;
-    if (k === 'export') s.exportEach();
+  const ids = () => picked(s.contacts()).map((p) => String(p.id));
+  const makeLinks = async () => {
+    result = { busy: true, message: 'Creating links…' }; draw();
+    try {
+      const r = await s.createLinks(ids());
+      result = { rows: r.rows || [], message: [`${(r.rows || []).filter((x) => x.link).length} link${(r.rows || []).filter((x) => x.link).length === 1 ? '' : 's'} ready.`, r.notice].filter(Boolean).join(' ') };
+      return true;
+    } catch (err) {
+      result = { error: true, message: err?.message || 'Could not create links', needsPublish: err?.code === 'not_published' };
+      return false;
+    } finally { draw(); }
+  };
+  el.onchange = (e) => {
+    const id = e.target.dataset?.pick;
+    if (id === undefined) return;
+    if (e.target.checked) off.delete(id); else off.add(id);
+    draw();
+  };
+  el.onclick = async (e) => {
+    const b = e.target.closest('button');
+    const k = b?.dataset.rp;
+    if (!k) return;
+    if (k === 'export') { if (s.exportSelected) s.exportSelected(ids()); else s.exportEach(); }
     else if (k === 'share') s.openShare();
+    else if (k === 'links') await makeLinks();
+    else if (k === 'both') { if (await makeLinks()) s.exportSelected?.(ids()); }
+    else if (k === 'all') { off.clear(); draw(); }
+    else if (k === 'none') { s.contacts().forEach((p) => off.add(String(p.id))); draw(); }
+    else if (k === 'readyonly') {
+      const used = s.tokensUsed();
+      off.clear();
+      s.contacts().forEach((p) => { if (readiness(p, used).length) off.add(String(p.id)); });
+      draw();
+    } else if (k === 'copy') {
+      const row = result?.rows?.[Number(b.dataset.i)];
+      if (!row?.link) return;
+      try { await s.copy?.(row.link); result = { ...result, copied: Number(b.dataset.i) }; } catch { /* clipboard blocked */ }
+      draw();
+      setTimeout(() => { if (result) { result = { ...result, copied: undefined }; draw(); } }, 1800);
+    } else if (k === 'csv') s.downloadCsv?.(result?.rows || []);
   };
   window.addEventListener('remix:contact-changed', draw);
   draw();

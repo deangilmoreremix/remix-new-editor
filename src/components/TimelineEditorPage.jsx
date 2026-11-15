@@ -665,7 +665,7 @@ export function TimelineEditorPage() {
         <div class="card-title">📊 Color Scopes</div><div id="colorScopesContainer"></div>
       </aside>
       <aside class="side-card" id="tokenEditorPanel" hidden data-tooltip="Token editor"><div class="card-title">🏷️ Token Editor</div><div id="tokenEditorContainer"></div></aside>
-      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Batch generator"><div class="card-title">📦 Batch Generator</div><div id="batchGeneratorContainer"></div></aside>
+      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Personalized output"><div class="card-title">📦 Personalized output</div><div id="batchGeneratorContainer"></div></aside>
       <aside class="side-card" id="personalizationPanel" hidden data-tooltip="Personalization"><div class="card-title">👤 Personalization</div><div id="personalizationContainer"></div></aside>
       <aside class="side-card" id="personalizationEditorPanel" hidden data-tooltip="Personalization editor"><div class="card-title">✏️ Personalization Editor</div><div id="personalizationEditorContainer"></div></aside>
     </div>
@@ -6116,6 +6116,11 @@ export function TimelineEditorPage() {
       sharePanel = await createSharePanel(host);
     }
     // Builds the Share panel in any host: the rail panel, or the open project's "Publish & Share" tab.
+    // What each contact's stored personal link holds (see lib/editor/publish/personalLinksClient.js).
+    function personalLinkItems(contacts) {
+      const tokens = projectTokens(state.tracks);
+      return contacts.map((p) => ({ contactId: String(p.id), name: contactName(p), variables: personalVariables(p, tokens, { maxLength: 500 }) }));
+    }
     async function createSharePanel(host) {
       const pub = await import('../lib/editor/publish/publishClient.js');
       const pl = await import('../lib/editor/publish/personalLinksClient.js');
@@ -6195,11 +6200,7 @@ export function TimelineEditorPage() {
         // Stored personal links (?p=<id>): one per contact; the owner can edit, renew, turn off or remove each.
         links: {
           list: async () => pl.listPersonalLinks(await publishOwnerClient(), videoId()),
-          sync: async () => {
-            const tokens = projectTokens(state.tracks);
-            const items = listContactProfiles(contactStore).map((p) => ({ contactId: String(p.id), name: contactName(p), variables: personalVariables(p, tokens, { maxLength: 500 }) }));
-            return pl.syncPersonalLinks(await publishOwnerClient(), videoId(), items);
-          },
+          sync: async () => pl.syncPersonalLinks(await publishOwnerClient(), videoId(), personalLinkItems(listContactProfiles(contactStore))),
           update: async (id, patch) => pl.updatePersonalLink(await publishOwnerClient(), id, patch),
           regenerate: async (id) => pl.regeneratePersonalLink(await publishOwnerClient(), id),
           remove: async (id) => pl.deletePersonalLink(await publishOwnerClient(), id),
@@ -8144,7 +8145,7 @@ export function TimelineEditorPage() {
         'Media': 'Media - Your media library: upload or drag clips onto the timeline',
         'AI Animation': 'AI Animation - Ask the AI Agent to build an animation, with starter ideas',
         'Token Editor': 'Token editor - Create and manage personalization tokens',
-        'Batch Generator': 'Batch generation - Generate multiple videos at once',
+        'Batch Generator': 'Personalized output - MP4s and links for each contact',
         'Personalization': 'Personalization - Add dynamic content for different viewers',
         'Personalization Editor': 'Personalization editor - Advanced personalization settings',
         'Personalization Suite': 'Personalization suite - Complete video personalization workflow',
@@ -8398,7 +8399,7 @@ export function TimelineEditorPage() {
       cleanup.addDocumentListener('keydown', handleModalKeydown);
     }
 
-    function openExportModal(state, showToast) {
+    function openExportModal(state, showToast, { contactIds = null } = {}) {
       // Remotion web renderer (in-browser, sandboxed runner). The previous
       // ExportPipeline stays available as "Basic export".
       const content = `
@@ -8514,6 +8515,13 @@ export function TimelineEditorPage() {
       };
       q('#exportQuality')?.addEventListener('change', refreshWarnings);
       q('#exportFor')?.addEventListener('change', () => { syncContactsBox(); refreshWarnings(); });
+      // Opened from Personalized output with a chosen set of contacts: render exactly those.
+      if (contactIds) {
+        const chosen = new Set(contactIds.map(String));
+        const sel = q('#exportFor');
+        if (sel && !sel.disabled) sel.value = 'each';
+        els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = chosen.has(i.value); });
+      }
       syncContactsBox();
       refreshWarnings();
 
@@ -8929,10 +8937,62 @@ export function TimelineEditorPage() {
       mountRailPanel('batch', els.batchGeneratorContainer, (el) => renderBatchHub(el, {
         contacts: () => listContactProfiles(contactStore),
         tokensUsed: () => projectTokens(state.tracks),
+        // Things that would leave a contact's video or link with a blank: no image in a slot, a clip with no
+        // video for them yet, or an image that exists only in this browser (a link cannot carry it).
+        issues: (p) => {
+          const tokens = projectTokens(state.tracks);
+          return [
+            ...(contactImageGaps(state, [p])[0]?.missing || []).map((m) => `no ${m}`),
+            ...(personalLinkIssues(p, tokens).length ? ['image only in this browser (links)'] : []),
+          ];
+        },
         exportEach: () => {
           openExportModal(state, showToast);
           const sel = els.modalBody.querySelector('#exportFor');
           if (sel && !sel.disabled) sel.value = 'each';
+        },
+        exportSelected: (ids) => openExportModal(state, showToast, { contactIds: ids }),
+        // Links for the chosen contacts, for the published video. Stored links when the database has them,
+        // otherwise the older links that carry the details in the address.
+        createLinks: async (ids) => {
+          if (!window.Clerk?.user) throw Object.assign(new Error('Sign in to create links.'), { code: 'sign_in' });
+          const pub = await import('../lib/editor/publish/publishClient.js');
+          const pl = await import('../lib/editor/publish/personalLinksClient.js');
+          const client = await publishOwnerClient();
+          const id = (state.publishedVideos || {})[publishedKey()] || null;
+          const info = id ? await pub.getMyVideo(client, id).catch(() => null) : null;
+          if (!info?.published) throw Object.assign(new Error('Publish the video first: personal links open the published version.'), { code: 'not_published' });
+          const picked = new Set((ids || []).map(String));
+          const contacts = listContactProfiles(contactStore).filter((p) => picked.has(String(p.id)));
+          const describe = (p) => ({ name: contactName(p), email: contactEmail(p), company: p?.contact?.company || p?.personalization?.business?.businessName || '' });
+          try {
+            const r = await pl.syncPersonalLinks(client, id, personalLinkItems(contacts));
+            const byContact = new Map(r.links.map((l) => [l.contactId, l]));
+            return {
+              rows: contacts.map((p) => {
+                const l = byContact.get(String(p.id));
+                return { ...describe(p), link: l && !l.revoked ? pub.personalizedUrl(info, l.id) : '', note: l?.revoked ? 'link is turned off' : '' };
+              }),
+              notice: r.created || r.updated ? `${r.created} new, ${r.updated} refreshed.` : '',
+            };
+          } catch (err) {
+            if (err?.code !== 'links_unavailable') throw err;
+            const tokens = projectTokens(state.tracks);
+            const base = pub.canonicalUrl(info);
+            return {
+              rows: contacts.map((p) => ({ ...describe(p), link: personalLink(base, p, tokens), note: '' })),
+              notice: 'Saved links turn on once the database update is installed; these links carry the details in the address.',
+            };
+          }
+        },
+        copy: (text) => navigator.clipboard.writeText(text),
+        downloadCsv: (rows) => {
+          const blob = new Blob([linksCsv(rows)], { type: 'text/csv' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${String(state.projectTitle || 'video').replace(/[^\w-]+/g, '_')}-personal-links.csv`;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 2000);
         },
         openShare: () => openPanel('sharePanel'),
       }));
