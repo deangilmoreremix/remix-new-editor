@@ -18,8 +18,11 @@ const REPAIRED = 'repaired';
 
 /** Wrap an upstream template so it runs as the sandbox's `Animation({ props })`. */
 export function mgCode(code: string): string {
+  // The component is the declaration that takes `{ item ... }`. Some templates declare helpers first (e.g. `withAlphaRG`), so "the first
+  // declaration" would wrap a helper and render a blank frame; it is only the fallback when no declaration takes `item`.
+  const comp = code.match(/(?:^|\n)\s*(?:(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?\(?\s*\{\s*item\b|function\s+([A-Za-z_$][\w$]*)\s*\(\s*\{\s*item\b)/);
   const m = code.match(/(?:^|\n)\s*(?:const|let|var|function)\s+([A-Za-z_$][\w$]*)/);
-  const name = m?.[1] ?? 'Template';
+  const name = comp?.[1] ?? comp?.[2] ?? m?.[1] ?? 'Template';
   code = code.replace(/第 \{chapter\} 点/g, 'Point {chapter}'); // the one on-screen string that lives in code rather than in props
   return `${code}\nfunction Animation({ props }) { const { width, height } = useVideoConfig(); return <${name} item={{ props, width, height }} />; }`;
 }
@@ -40,7 +43,9 @@ export function loadMgTemplates(base = '/occ-templates'): Promise<MgTemplate[]> 
     const en = (v: unknown) => (typeof v === 'string' ? mgEn(t_(v)) : v);
     const schema = ((t.propSchema as MgPropField[]) ?? []).map((f) => ({ ...f, label: en(f.label) as string, defaultValue: en(f.defaultValue), options: f.options?.map((o) => (typeof o === 'string' ? mgEn(t_(o)) : { ...o, label: en(o.label) as string })) }));
     const props = Object.fromEntries(Object.entries((t.props as Record<string, unknown>) ?? {}).map(([k, v]) => [k, en(v)]));
-    return { ...(t as object), name: en(t.name) as string, description: en(t.description) as string, category: en(t.category) as string, width: Number(t.width) || 1920, height: Number(t.height) || 1080, fps: Number(t.fps) || 30, durationInFrames: Number(t.durationInFrames) || 90,
+    // `code` MUST be the code that was gated (the repaired copy when there is one): the sandbox gates again at render time, so handing
+    // it the original (which `{ ...t }` carries) made every repaired template pass here and then be rejected when added to the timeline.
+    return { ...(t as object), code, name: en(t.name) as string, description: en(t.description) as string, category: en(t.category) as string, width: Number(t.width) || 1920, height: Number(t.height) || 1080, fps: Number(t.fps) || 30, durationInFrames: Number(t.durationInFrames) || 90,
       props, propSchema: schema, usable: g.ok, why: g.why } as MgTemplate;
   }));
   return cache;
