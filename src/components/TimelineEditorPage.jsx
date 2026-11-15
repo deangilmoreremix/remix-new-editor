@@ -109,7 +109,6 @@ import { UrlVideoModal } from './modals/UrlVideoModal.jsx';
 import { PageShotModal } from './modals/PageShotModal.jsx';
 import { ContactImporterModal } from './modals/ContactImporterModal.jsx';
 import { AIVideoCreator } from './modals/AIVideoCreator.jsx';
-import { VideoPersonalizationHub } from './modals/VideoPersonalizationHub.jsx';
 import { LandingPageBuilder } from './modals/LandingPageBuilder.jsx';
 import { LeadGeneratorModal } from './modals/LeadGeneratorModal.jsx';
 import { RetakePanel } from './RetakePanel.jsx';
@@ -7885,28 +7884,13 @@ export function TimelineEditorPage() {
       }
     }
 
+    // The Personalization chip, the 'Personalization Suite' rail item and the global
+    // function all open the real Personalize window (the old hub simulated generation).
     function openVideoPersonalizationHubModal(state, showToast) {
-      try {
-        const modal = new VideoPersonalizationHub({
-          preloadedVideo: state.lastGeneratedVideo, // Pass any recently generated video
-          onComplete: (result) => {
-            // After personalization, offer landing page builder
-            if (result && result.generations && result.generations.length > 0) {
-              setTimeout(() => {
-                setTimeout(() => {
-                  openLandingPageBuilderModal(state, showToast);
-                }, 1500);
-              }, 1000);
-            } else {
-            }
-          },
-          onError: (error) => console.log(`Personalization Suite error: ${error}`, 'error')
-        });
-        modal.open();
-      } catch (error) {
-        console.error('Personalization Suite error:', error);
-        showToast(`Personalization Suite error: ${error.message || error}`, 'error');
-      }
+      openPersonalizeWindow(() => { try { renderContactSwitcher(); } catch { /* not mounted */ } }).catch((error) => {
+        console.error('Personalize window error:', error);
+        showToast(`Could not open the Personalize window: ${error?.message || error}`, 'error');
+      });
     }
 
     // Make personalization modal accessible globally for toast integration

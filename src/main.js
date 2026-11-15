@@ -390,30 +390,11 @@ async function renderParentTimelineModal(modal, props = {}) {
     activeTimelineModal.container = container;
 
     if (modal === 'personalization') {
-      content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Personalizer</h2><p style="color:rgba(255,255,255,0.55);margin:0;">The Personalization modal is not available in this build.</p></div>';
-      return;
-    }
-
-    if (modal === 'token-editor') {
-      const { default: TokenEditor } = await import('../components/TokenEditor.jsx');
-      content.innerHTML = '';
-      const { createRoot } = await import('react-dom/client').catch(() => ({}));
-      const root = createRoot?.(content);
-      if (root) {
-        activeTimelineModal.instance = { root };
-        try {
-          const mod = await import('react');
-          root.render(mod.createElement(TokenEditor, {
-            onTokensChange: (tokens) => console.log('[TokenEditor]', tokens),
-            initialTokens: props.tokens || {}
-          }));
-        } catch (err) {
-          content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Tokens</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Token editor requires React runtime.</p></div>';
-          console.warn('[TimelineModalBridge] React unavailable for TokenEditor modal', err);
-        }
-      } else {
-        content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Tokens</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Token editor will load once React is mounted.</p></div>';
-      }
+      // The real Personalize window (clients, business assets, background removal, overlays,
+      // export); it brings its own window, so the empty bridge container is not needed.
+      activeTimelineModal.unmount();
+      const { openPersonalization } = await import('./features/personalization/mount.jsx');
+      openPersonalization({ studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent' });
       return;
     }
 
