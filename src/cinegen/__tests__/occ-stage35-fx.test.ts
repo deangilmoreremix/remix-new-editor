@@ -27,7 +27,7 @@ describe('Stage 3/5 effect registry', () => {
     expect(Object.keys(S35_META).sort()).toEqual([...IDS].sort());
     expect(new Set(FX_IDS).size).toBe(FX_IDS.length);
     for (const id of IDS) { expect(ALL_FX[id]).toBe(S35_EFFECTS[id]); expect(FX_IDS).toContain(id); expect(id).toMatch(/^builtin:fx-[a-z0-9-]+$/); }
-    expect(FX_IDS.length).toBe(56); // 54 + Fix C path mask and corner pin
+    expect(FX_IDS.length).toBe(57); // 54 + Fix C path mask and corner pin + Fix G pixel sort
   });
   it.each(IDS)('%s: schema (name/desc, GLSL 300 es pass reading u_input, every prop wired to a declared uniform, defaults in range, number props only)', (id) => {
     const def = S35_EFFECTS[id];

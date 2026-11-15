@@ -275,17 +275,19 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
     offset: number,
   ): WebGLTexture => {
     if (passes.length === 0) return source;
-    const targets = ensureFbos(offset + passes.length);
+    // [remix] Fix G: FxPass.slot lets multi-pass effects (pixel sort) ping-pong between a few FBOs instead of keeping one per pass.
+    const slotOf = (i: number) => offset + (passes[i]?.slot ?? i);
+    const targets = ensureFbos(passes.reduce((m, _p, i) => Math.max(m, slotOf(i) + 1), offset));
     for (let index = 0; index < passes.length; index++) {
       const pass = passes[index];
-      gl.bindFramebuffer(gl.FRAMEBUFFER, targets[offset + index].fb);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, targets[slotOf(index)].fb);
       gl.viewport(0, 0, canvas.width, canvas.height);
       const prog = getProgram(pass.frag);
       gl.useProgram(prog);
       bindQuad(prog);
 
       const inputFrom = pass.inputFrom ?? index - 1;
-      const inputTexture = index === 0 ? source : targets[offset + inputFrom]?.tex;
+      const inputTexture = index === 0 ? source : targets[slotOf(inputFrom)]?.tex;
       if (!inputTexture) throw new Error(`invalid FX input pass ${inputFrom} at ${index}`);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, inputTexture);
@@ -294,7 +296,7 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
 
       let unit = 1;
       for (const [name, passIndex] of Object.entries(pass.samplers ?? {})) {
-        const texture = targets[offset + passIndex]?.tex;
+        const texture = targets[slotOf(passIndex)]?.tex;
         if (!texture || passIndex >= index) {
           throw new Error(`invalid FX sampler ${name}=${passIndex} at ${index}`);
         }
@@ -316,7 +318,7 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
-    return targets[offset + passes.length - 1].tex;
+    return targets[slotOf(passes.length - 1)].tex;
   };
 
   const applySourceOpacity = (
@@ -420,7 +422,9 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
     renderFxChain(passes, input) {
       assertContextAvailable();
       if (passes.length === 0) return;
-      const rt = ensureFbos(Math.max(0, passes.length - 1));
+      // [remix] Fix G: pass.slot (default = its index) picks the FBO an intermediate pass writes to / is read from.
+      const slotOf = (i: number) => passes[i]?.slot ?? i;
+      const rt = ensureFbos(passes.reduce((m, _p, i) => (i < passes.length - 1 ? Math.max(m, slotOf(i) + 1) : m), 0));
       // upload the source once (flip: DOM sources are top-down)
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texFx);
@@ -429,14 +433,14 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, input);
       for (let i = 0; i < passes.length; i++) {
         const last = i === passes.length - 1;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, last ? null : rt[i].fb);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, last ? null : rt[slotOf(i)].fb);
         gl.viewport(0, 0, canvas.width, canvas.height);
         const prog = getProgram(passes[i].frag);
         gl.useProgram(prog);
         bindQuad(prog);
         // Intermediate FBO textures are already GL-oriented — bind without re-upload/flip.
         const inputFrom = passes[i].inputFrom ?? i - 1;
-        const inputTex = i === 0 ? texFx : rt[inputFrom]?.tex;
+        const inputTex = i === 0 ? texFx : rt[slotOf(inputFrom)]?.tex;
         if (!inputTex) throw new Error(`invalid FX input pass ${inputFrom} at ${i}`);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, inputTex);
@@ -444,7 +448,7 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
         if (locIn) gl.uniform1i(locIn, 0);
         let unit = 1;
         for (const [name, passIndex] of Object.entries(passes[i].samplers ?? {})) {
-          const tex = rt[passIndex]?.tex;
+          const tex = rt[slotOf(passIndex)]?.tex;
           if (!tex || passIndex >= i) throw new Error(`invalid FX sampler ${name}=${passIndex} at ${i}`);
           gl.activeTexture(gl.TEXTURE0 + unit);
           gl.bindTexture(gl.TEXTURE_2D, tex);
