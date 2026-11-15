@@ -1,3 +1,4 @@
+/* global Request, Headers, FormData, Blob */
 // @vitest-environment node
 /**
  * Dispatcher + auth shim for netlify/functions/personalization-api.mts, the
