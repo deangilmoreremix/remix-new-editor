@@ -187,7 +187,8 @@ describe('ZackDStudio (built like the other video studios)', () => {
     typeTopic(root, 'Gum'); await step(root, 'Write script'); generate(root).click();
     await step(root, 'Approve script');
     runJob.mockRejectedValueOnce(new Error('The generation failed. Try again.'));
-    const scrollIntoView = vi.fn(); Element.prototype.scrollIntoView = scrollIntoView;
+    // the global test setup polyfills scrollIntoView on HTMLElement.prototype, which shadows one set on Element.prototype
+    const scrollIntoView = vi.fn(); HTMLElement.prototype.scrollIntoView = scrollIntoView;
     generate(root).click();
     await until(() => root.querySelector('[role=alert]:not(.hidden)'), 'error');
     const alert = root.querySelector('[role=alert]');
