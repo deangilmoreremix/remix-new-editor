@@ -25,7 +25,7 @@ export function BrandAndTemplates(): React.JSX.Element | null {
   const [name, setName] = useState('')
   const [note, setNote] = useState<string | null>(null)
 
-  const applied = kit ? isBrandKitApplied(kit, settings.brandColors) : false
+  const applied = kit ? isBrandKitApplied(kit, settings) : false
   const onApplyKit = () => {
     if (!kit) return
     const plan = applyBrandKit(kit, settings)

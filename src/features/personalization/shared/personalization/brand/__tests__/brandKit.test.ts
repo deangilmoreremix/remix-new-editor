@@ -58,9 +58,22 @@ describe('applyBrandKit', () => {
 })
 
 describe('isBrandKitApplied', () => {
+  const kit = buildBrandKit({ primary: '#112233', accent: '#ff0066' }, 0.7)!
+  const withColors = (colors: object, layers = createDefaultPreviewSettings().layers) => ({
+    brandColors: { primary: '#112233', accent: '#FF0066', text: kit.text, backgroundDim: 0.7, ...colors }, layers,
+  })
   it('compares colours ignoring case and shorthand', () => {
-    const kit = buildBrandKit({ primary: '#112233', accent: '#ff0066' }, 0.7)!
-    expect(isBrandKitApplied(kit, { primary: '#112233', accent: '#FF0066', text: kit.text, backgroundDim: 0.7 })).toBe(true)
-    expect(isBrandKitApplied(kit, { primary: '#000', accent: '#ff0066', text: kit.text, backgroundDim: 0.7 })).toBe(false)
+    expect(isBrandKitApplied(kit, withColors({}, []))).toBe(true)
+    expect(isBrandKitApplied(kit, withColors({ primary: '#000' }, []))).toBe(false)
+  })
+  it('stays available while a layer with an explicit colour differs from the kit', () => {
+    const recoloured = [createLayer('headline', { color: '#123456' })]
+    expect(isBrandKitApplied(kit, withColors({}, recoloured))).toBe(false)
+    const inSync = [createLayer('headline', { color: kit.text })]
+    expect(isBrandKitApplied(kit, withColors({}, inSync))).toBe(true)
+  })
+  it('ignores layers without an explicit colour and locked layers', () => {
+    expect(isBrandKitApplied(kit, withColors({}, [createLayer('headline')]))).toBe(true)
+    expect(isBrandKitApplied(kit, withColors({}, [createLayer('headline', { color: '#123456', locked: true })]))).toBe(true)
   })
 })

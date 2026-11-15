@@ -71,7 +71,16 @@ export function applyBrandKit(kit: BrandKit, settings: PersonalizationPreviewSet
   return { brandColors: { primary: kit.primary, accent: kit.accent, text: kit.text }, layerPatches }
 }
 
-/** True when the settings already use exactly this kit (so the button can say so instead of doing nothing). */
-export function isBrandKitApplied(kit: BrandKit, colors: PreviewBrandColors): boolean {
-  return parseHex(colors.primary) === kit.primary && parseHex(colors.accent) === kit.accent && parseHex(colors.text) === kit.text
+/**
+ * True when applying the kit would change nothing: the brand colours already match AND no layer with an explicit
+ * colour differs from the colour the kit would give it. A layer the customer recoloured afterwards keeps the
+ * button available, so the kit can be re-applied to bring it back in line.
+ */
+export function isBrandKitApplied(kit: BrandKit, settings: Pick<PersonalizationPreviewSettings, 'brandColors' | 'layers'>): boolean {
+  const c = settings.brandColors
+  if (!(parseHex(c.primary) === kit.primary && parseHex(c.accent) === kit.accent && parseHex(c.text) === kit.text)) return false
+  return applyBrandKit(kit, settings as PersonalizationPreviewSettings).layerPatches.every(({ layerId, patch }) => {
+    const layer = settings.layers.find((l) => l.id === layerId)
+    return parseHex(layer?.color) === parseHex(patch.color)
+  })
 }
