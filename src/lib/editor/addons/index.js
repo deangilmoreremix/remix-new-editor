@@ -10,6 +10,7 @@ export {
   submitLead, fetchLeads, fetchLeadRows, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
 } from './leadClient.js';
 export { OVERLAY_ADDONS, SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD, OVERLAY_TRANSITION, VIDEO_TRANSITION, applyPositionPreset } from './overlayAddons.js';
+export { STUDIO_DESIGN, FIELD_TOKEN, ROLE_TOKEN, DEFAULT_DESIGN_COLORS, slotsForDesign, defaultStudioDesignOptions, resolveStudioDesignOptions } from './studioDesignAddon.js';
 export { buildLowerThirdLottie, lowerThirdFrame, LOWER_THIRD_TEMPLATES, LOWER_THIRD_DEFAULTS } from './lowerThirds.js';
 export {
   buildOverlayElement, finishOverlayElement, destroyOverlayElement, setOverlayPlaying, playInAnimation, playOutAndRemove,

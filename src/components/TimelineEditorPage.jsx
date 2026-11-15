@@ -39,6 +39,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import * as contactStore from '../lib/contactStore.js';
 import { PERSONALIZED_LAYOUTS, assetForImageToken, buildLayoutPlan, imageTokenChoices, imageTokenOf, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
 import { studioLayersToPlan } from '../lib/editor/personalize/studioLayers.js';
+import { defaultStudioDesignOptions } from '../lib/editor/addons/studioDesignAddon.js';
 import { measureImageLuminance } from '../lib/personalization/imageStyle.js';
 import { AI_FILLABLE, describeUnreviewed, markAiGenerated, planAiImages, unreviewedAiImages } from '../lib/personalization/aiContactImages.js';
 import { AI_CLIP_MODELS, CLIP_IMAGE_SLOTS, aiClipConfig, clipSrcFor, describeClipGaps, planClipJobs } from '../lib/personalization/aiContactClips.js';
@@ -8777,6 +8778,8 @@ export function TimelineEditorPage() {
           active: activeContact,
           select: (id) => contactStore.selectContact(id),
           addText: addSmartText,
+          loadDesigns: listStudioDesigns,
+          addDesign: addStudioDesign,
           openPersonalize: () => import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
             studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
             onComplete: (completion) => {
@@ -8795,12 +8798,38 @@ export function TimelineEditorPage() {
     // The Personalization Studio's approved layers as token-based overlay
     // clips (logo, business name, CTA ... resolve per contact), placed at the
     // playhead. Only a branded render carries layers; AI runs hand back media.
-    function addStudioLayers(overlay) {
+    const studioTemplates = () => import('../features/personalization/shared/personalization/templates/index');
+    // Studio designs the timeline can draw (they must preview and export in the browser).
+    async function listStudioDesigns() {
+      const { listRemotionDesignTemplates } = await studioTemplates();
+      return listRemotionDesignTemplates()
+        .filter((d) => d.previewCompatible !== false && d.capabilities?.browserExport)
+        .map((d) => ({ id: d.id, name: d.name, category: d.category, description: d.description || '' }));
+    }
+    async function addStudioDesign(designId) {
+      const { getRemotionDesignTemplate } = await studioTemplates();
+      const design = getRemotionDesignTemplate(designId);
+      if (!design) { showToast('That design is not available', 'info'); return; }
+      const T = state.timelineSeconds || 60;
+      saveStateSnapshot(state);
+      const clip = createAddonClip('overlay-studio-design', { startSec: (state.playheadPercent / 100) * T, timelineSeconds: T });
+      clip.addon = { ...clip.addon, ...defaultStudioDesignOptions(design) };
+      clip.name = design.name;
+      insertClipIntoTrack(clip, getAddon('overlay-studio-design')?.track || 'Text');
+      showClipEditor(clip.id);
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added ${design.name}`, 'success');
+    }
+
+    async function addStudioLayers(overlay) {
       if (!overlay?.layers?.length) return;
       const T = state.timelineSeconds || 60;
+      let designFor;
+      try { const { getRemotionDesignTemplate } = await studioTemplates(); designFor = getRemotionDesignTemplate; } catch { /* designs unavailable: layers keep their overrides only */ }
       const plan = studioLayersToPlan(overlay.layers, {
         fps: overlay.fps, durationInFrames: overlay.durationInFrames, timelineSeconds: T,
-        startSec: (state.playheadPercent / 100) * T, brand: overlay.brand,
+        startSec: (state.playheadPercent / 100) * T, brand: overlay.brand, designFor,
       });
       if (!plan.length) return;
       saveStateSnapshot(state);

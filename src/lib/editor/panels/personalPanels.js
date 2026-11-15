@@ -28,9 +28,28 @@ const contactSelect = (contacts, activeId) => `
 
 /**
  * @param {HTMLElement} el
- * @param {object} s  { contacts(), active(), select(id), addText(text), openPersonalize() }
+ * @param {object} s  { contacts(), active(), select(id), addText(text), openPersonalize(),
+ *                      loadDesigns?() -> Promise<[{id,name,category,description}]>, addDesign?(id) }
  */
 export function renderPersonalizationPanel(el, s) {
+  // Personalization Studio designs (loaded on demand: the catalog is large).
+  let designs = null;
+  let category = '';
+  const designList = () => {
+    if (!s.loadDesigns) return '';
+    if (!designs) return '<p class="pz-hint">Loading designs…</p>';
+    if (!designs.length) return '<p class="pz-hint">No designs available.</p>';
+    const cats = [...new Set(designs.map((d) => d.category))].sort();
+    const shown = designs.filter((d) => !category || d.category === category);
+    return `
+      <div class="rp-row"><select class="pz-select" data-rp="dcat" aria-label="Design category">
+        <option value="">All designs (${designs.length})</option>
+        ${cats.map((c) => `<option value="${esc(c)}"${c === category ? ' selected' : ''}>${esc(c)}</option>`).join('')}
+      </select></div>
+      <ul class="rp-list">${shown.map((d) => `
+        <li class="rp-var"><div><strong>${esc(d.name)}</strong><code>${esc(d.category)}</code></div><span title="${esc(d.description)}">${esc(d.description)}</span>
+          <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-design="${esc(d.id)}">Add to video</button></li>`).join('')}</ul>`;
+  };
   const draw = () => {
     const contacts = s.contacts();
     const active = s.active();
@@ -42,16 +61,25 @@ export function renderPersonalizationPanel(el, s) {
         <li class="rp-var"><div><strong>${esc(v.label)}</strong><code>{{${esc(v.key)}}}</code></div><span title="${esc(v.value)}">${esc(v.value)}</span>
           <button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-add="${esc(v.key)}">Add as text</button></li>`).join('')}</ul>`
         : '<p class="pz-hint">This contact has no details yet. Add them in the Personalize window (including Find a Business).</p>')
-        : '<p class="pz-hint">Pick a contact, or add contacts in the Personalize window.</p>'}`);
+        : '<p class="pz-hint">Pick a contact, or add contacts in the Personalize window.</p>'}
+      ${s.loadDesigns ? `<h4 class="pz-hint" style="margin:14px 0 6px">Studio designs</h4>
+        <p class="pz-hint">Animated designs from the Personalization Studio. Each one fills in with the contact’s details, in the preview, the published link and the MP4.</p>${designList()}` : ''}`);
   };
-  el.onchange = (e) => { if (e.target.dataset?.rp === 'contact') { s.select(e.target.value || null); } };
+  el.onchange = (e) => {
+    if (e.target.dataset?.rp === 'contact') s.select(e.target.value || null);
+    else if (e.target.dataset?.rp === 'dcat') { category = e.target.value; draw(); }
+  };
   el.onclick = (e) => {
     const b = e.target.closest('button');
     if (!b) return;
     if (b.dataset.rp === 'open') s.openPersonalize();
     else if (b.dataset.add) s.addText(`{{${b.dataset.add}}}`);
+    else if (b.dataset.design) s.addDesign?.(b.dataset.design);
   };
   draw();
+  if (s.loadDesigns) {
+    Promise.resolve(s.loadDesigns()).then((list) => { designs = Array.isArray(list) ? list : []; draw(); }).catch(() => { designs = []; draw(); });
+  }
   return { redraw: draw };
 }
 

@@ -22,6 +22,7 @@ import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
 import { defaultCaptionStyle } from './captions.js';
 import { buildCtaLottie } from '../addons/ctaLottie.js';
+import { resolveStudioDesignOptions } from '../addons/studioDesignAddon.js';
 
 function ctaOptions(clip, profile) {
   const style = clip.style || {};
@@ -89,6 +90,9 @@ function overlayLayer(clip, opts, profile, base) {
     case 'overlay-sticker':
     case 'overlay-transition':
       o.resolvedSrc = safeImageUrl(o.src);
+      break;
+    case 'overlay-studio-design':
+      Object.assign(o, resolveStudioDesignOptions(o, profile));
       break;
     case 'overlay-background':
       o.resolvedStyles = sanitizeWrapperStyles(o.styles);
