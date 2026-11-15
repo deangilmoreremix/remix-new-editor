@@ -101,7 +101,10 @@ export function identityKeys(r: BusinessDiscoveryRecord): string[] {
   const keys: string[] = []
   if (r.osmType && r.osmId) keys.push(`osm:${r.osmType}/${r.osmId}`)
   const site = websiteIdentity(r.website)
-  if (site) keys.push(`domain:${site}`)
+  // A site alone is not identity: the branches of one chain share a corporate domain. It identifies a business only
+  // together with where it is (postal code, else city), so distinct locations stay distinct.
+  const place = (r.postalCode || r.city || '').toLowerCase().trim()
+  if (site && place) keys.push(`domain:${site}|${place}`)
   const phone = phoneDigits(r.phone)
   if (phone) keys.push(`phone:${phone}`)
   const name = normalizeBusinessName(r.name)

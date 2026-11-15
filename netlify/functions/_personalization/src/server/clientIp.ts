@@ -8,10 +8,13 @@
  *     the first entries are whatever the client sent and must never be trusted.
  * Returns undefined when none exist, so the caller falls back to its shared (higher-limit) anonymous bucket.
  */
+import { isIP } from 'node:net'
+
 export function clientIpFromHeaders(headers: { get(name: string): string | null }): string | undefined {
   const valid = (v: string | null | undefined): string | undefined => {
     const t = v?.trim()
-    return t && t.length <= 64 && /^[0-9a-fA-F:.]+$/.test(t) ? t : undefined
+    // A real address only: hex-looking junk, `ip:port` and other made-up values would each mint a fresh rate-limit bucket.
+    return t && t.length <= 64 && isIP(t) !== 0 ? t : undefined
   }
   const nf = valid(headers.get('x-nf-client-connection-ip'))
   if (nf) return nf

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from '../../../../shims/next-server'
 import { downloadImageAsDataUrl, BlockedTargetError } from '../../../../src/server/downloadImage'
 import { assertSafeUrlString } from '../../../../src/lib/networkSafety'
 import { resolveRateLimitKey } from '../../../../lib/rateLimit'
+import { clientIpFromHeaders } from '../../../../src/server/clientIp'
 import { logPersonalization, createCorrelationId } from '../../../../src/server/personalizationLog'
 import { consumeDemoQuota, DemoQuotaStoreError } from '../../../../src/server/demoRateLimit'
 
@@ -24,20 +25,12 @@ export const runtime = 'nodejs'
 const ROUTE = '/api/demo/download-image'
 const MAX_URLS_PER_REQUEST = 5
 const MAX_URL_LENGTH = 2048
+/** Longest the whole request may wait for downloads before answering with what it has. */
+export const DOWNLOAD_DEADLINE_MS = 20_000
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 /** Image calls per client per window (a business has ~10-30 images, one call each). */
 export const DEMO_IMAGE_QUOTA_MAX = 120
 export const DEMO_IMAGE_QUOTA_WINDOW_MS = 10 * 60 * 1000
-
-function clientIpOf(req: NextRequest): string | undefined {
-  const forwarded = req.headers.get('x-forwarded-for')
-  if (forwarded) {
-    const first = forwarded.split(',')[0].trim()
-    if (first) return first
-  }
-  const realIp = req.headers.get('x-real-ip')
-  return realIp ? realIp.trim() || undefined : undefined
-}
 
 /** Browsers always send Sec-Fetch-Site; refuse an explicit cross-site caller. */
 function isCrossSite(req: NextRequest): boolean {
@@ -55,7 +48,10 @@ function isCrossSite(req: NextRequest): boolean {
 }
 
 function sanitizeUrl(url: string): string {
-  const parsed = new URL(url.trim().slice(0, MAX_URL_LENGTH))
+  const trimmed = url.trim()
+  // Refuse, never truncate: fetching a shortened URL would quietly download something the caller did not ask for.
+  if (trimmed.length > MAX_URL_LENGTH) throw new Error('URL too long')
+  const parsed = new URL(trimmed)
   if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') throw new Error('Invalid protocol')
   return parsed.toString()
 }
@@ -120,7 +116,7 @@ export async function POST(req: NextRequest) {
     // Quota last among the cheap checks, before any outbound request is made.
     let quota: { allowed: boolean; remaining: number; retryAfterMs: number }
     try {
-      quota = await consumeDemoQuota(`img:${resolveRateLimitKey(null, clientIpOf(req))}`, {
+      quota = await consumeDemoQuota(`img:${resolveRateLimitKey(null, clientIpFromHeaders(req.headers))}`, {
         max: DEMO_IMAGE_QUOTA_MAX,
         windowMs: DEMO_IMAGE_QUOTA_WINDOW_MS,
       })
@@ -139,18 +135,34 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const results = await Promise.all(
-      sanitized.map(async (url) => {
-        try {
-          const dataUrl = await downloadImageAsDataUrl(url, MAX_IMAGE_BYTES)
-          return { url, dataUrl, ok: true }
-        } catch (err) {
-          // A blocked redirect hop rejects the whole request, like the signed-in route.
-          if (err instanceof BlockedTargetError) throw err
-          return { url, error: err instanceof Error ? err.message : 'Download failed', ok: false }
-        }
-      }),
-    )
+    // One deadline for the whole request: a slow upstream (15 s per hop, several hops) must not pin the function
+    // until the platform answers with its own error page. Images still pending when it passes are reported as failed.
+    let deadlineTimer: ReturnType<typeof setTimeout> | undefined
+    const pastDeadline = new Promise<'deadline'>((resolve) => {
+      deadlineTimer = setTimeout(() => resolve('deadline'), DOWNLOAD_DEADLINE_MS)
+    })
+    let results: Array<{ url: string; dataUrl?: string; error?: string; ok: boolean }>
+    try {
+      results = await Promise.all(
+        sanitized.map(async (url) => {
+          const attempt = (async () => {
+            try {
+              const dataUrl = await downloadImageAsDataUrl(url, MAX_IMAGE_BYTES)
+              return { url, dataUrl, ok: true }
+            } catch (err) {
+              // A blocked redirect hop rejects the whole request, like the signed-in route.
+              if (err instanceof BlockedTargetError) throw err
+              return { url, error: err instanceof Error ? err.message : 'Download failed', ok: false }
+            }
+          })()
+          attempt.catch(() => undefined) // a download that loses the race must not become an unhandled rejection
+          const outcome = await Promise.race([attempt, pastDeadline])
+          return outcome === 'deadline' ? { url, error: 'Download timed out', ok: false } : outcome
+        }),
+      )
+    } finally {
+      if (deadlineTimer) clearTimeout(deadlineTimer)
+    }
 
     logPersonalization({
       route: ROUTE,

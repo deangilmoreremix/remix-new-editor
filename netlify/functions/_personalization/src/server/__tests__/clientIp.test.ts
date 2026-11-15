@@ -20,5 +20,12 @@ describe('clientIpFromHeaders', () => {
     expect(clientIpFromHeaders(h({ 'x-real-ip': 'x'.repeat(200) }))).toBeUndefined()
     expect(clientIpFromHeaders(h({}))).toBeUndefined()
   })
+  it('rejects values that only look like addresses, so they cannot mint a fresh bucket per request', () => {
+    for (const bogus of ['deadbeef', '1.2.3.4:5678', '::::', 'a'.repeat(64), '999.1.1.1', '1.2.3']) {
+      expect(clientIpFromHeaders(h({ 'x-nf-client-connection-ip': bogus }))).toBeUndefined()
+      expect(clientIpFromHeaders(h({ 'x-real-ip': bogus }))).toBeUndefined()
+      expect(clientIpFromHeaders(h({ 'x-forwarded-for': `1.1.1.1, ${bogus}` }))).toBeUndefined()
+    }
+  })
   it('accepts IPv6', () => { expect(clientIpFromHeaders(h({ 'x-nf-client-connection-ip': '2001:db8::1' }))).toBe('2001:db8::1') })
 })

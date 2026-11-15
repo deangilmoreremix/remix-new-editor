@@ -37,6 +37,12 @@ describe('POST /enrich-business', () => {
     const body = await (await post({ websiteUrl: 'https://a.com' })).json()
     expect(body.results).toHaveLength(1); expect(body.results[0]).toMatchObject({ ok: true, website: 'https://a.com' })
   })
+  it('refuses an oversized list outright instead of mapping it first', async () => {
+    const businesses = Array.from({ length: 201 }, (_, i) => ({ id: `b${i}`, website: `https://s${i}.com` }))
+    const res = await post({ businesses })
+    expect(res.status).toBe(400)
+    expect(vi.mocked(enrichBusinessWebsite)).not.toHaveBeenCalled()
+  })
   it('caps a batch at 5 and reports the deferred ones', async () => {
     const businesses = Array.from({ length: 8 }, (_, i) => ({ id: `b${i}`, website: `https://s${i}.com` }))
     const body = await (await post({ businesses })).json()

@@ -30,7 +30,7 @@ vi.mock('../../../src/server/businessDiscovery', async () => {
 })
 
 import { POST } from '../../../app/api/personalization/find-businesses/route'
-import { geocodeLocation, discoverBusinesses, searchBusinessesViaNominatim } from '../../../src/server/businessDiscovery'
+import { geocodeLocation, discoverBusinesses, searchBusinessesViaNominatim, businessDiscoveryCache } from '../../../src/server/businessDiscovery'
 
 const W = ['Anchor', 'Birch', 'Cedar', 'Delta', 'Ember', 'Falcon', 'Garnet', 'Harbor', 'Ivory', 'Juniper']
 const rec = (i: number, name?: string) => ({
@@ -48,6 +48,46 @@ beforeEach(() => {
   vi.mocked(geocodeLocation).mockReset().mockResolvedValue({ latitude: 27.9, longitude: -82.4, displayName: 'Tampa' } as any)
   vi.mocked(discoverBusinesses).mockReset()
   vi.mocked(searchBusinessesViaNominatim).mockReset().mockResolvedValue([] as any)
+})
+
+describe('find-businesses resume', () => {
+  const resumeRecord = {
+    id: 'seed-1', name: 'Resumed Cafe', category: 'cafe', city: 'Tampa',
+    brand: 'Acme Brand', operator: 'Acme Ops', network: 'Acme Network',
+    youtube: 'https://youtube.com/@resumed', linkedin: 'https://linkedin.com/company/resumed', tiktok: 'https://tiktok.com/@resumed', whatsapp: '+18135550100',
+  }
+
+  it('never reads or writes the shared cache, so a continuation runs and its caller-supplied records are not served to others', async () => {
+    vi.mocked(businessDiscoveryCache.get).mockReset().mockReturnValue([rec(777)] as any)
+    vi.mocked(businessDiscoveryCache.set).mockReset()
+    vi.mocked(discoverBusinesses).mockResolvedValue(batch(0, 40) as any)
+    const res = await post({ resume: { startStage: 2, records: [resumeRecord] } })
+    const body = await res.json()
+    expect(res.status).toBe(200)
+    expect(body.cached).toBeUndefined()
+    expect(vi.mocked(businessDiscoveryCache.get)).not.toHaveBeenCalled()
+    expect(vi.mocked(businessDiscoveryCache.set)).not.toHaveBeenCalled()
+  })
+
+  it('keeps the classification and social fields of the records it was handed', async () => {
+    vi.mocked(businessDiscoveryCache.get).mockReset()
+    vi.mocked(discoverBusinesses).mockResolvedValue(batch(0, 40) as any)
+    const body = await (await post({ resume: { startStage: 2, records: [resumeRecord] } })).json()
+    const kept = body.businesses.find((b: any) => b.name === 'Resumed Cafe')
+    expect(kept).toMatchObject({
+      brand: 'Acme Brand', operator: 'Acme Ops', network: 'Acme Network',
+      youtube: 'https://youtube.com/@resumed', linkedin: 'https://linkedin.com/company/resumed', tiktok: 'https://tiktok.com/@resumed', whatsapp: '+18135550100',
+    })
+  })
+
+  it('a fresh search still uses and fills the cache', async () => {
+    vi.mocked(businessDiscoveryCache.get).mockReset().mockReturnValue(undefined as any)
+    vi.mocked(businessDiscoveryCache.set).mockReset()
+    vi.mocked(discoverBusinesses).mockResolvedValue(batch(0, 40) as any)
+    await post()
+    expect(vi.mocked(businessDiscoveryCache.get)).toHaveBeenCalled()
+    expect(vi.mocked(businessDiscoveryCache.set)).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('find-businesses backfill', () => {

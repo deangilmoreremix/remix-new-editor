@@ -22,6 +22,8 @@ export const runtime = 'nodejs'
  * Netlify budget — the client enriches the rest with follow-up calls, no extra backend.
  */
 const MAX_BATCH = 5
+/** Hard cap on how many entries a request may list at all; only the first MAX_BATCH are fetched, the rest are echoed back as deferred. */
+const MAX_LISTED = 200
 const BATCH_CONCURRENCY = 3
 const MAX_URL_LENGTH = 2048
 const RATE_LIMIT_WINDOW_MS = 60_000
@@ -39,6 +41,7 @@ export async function POST(req: NextRequest) {
   const raw: Array<{ id?: string; website?: string }> = Array.isArray(body?.businesses)
     ? body.businesses
     : typeof body?.websiteUrl === 'string' ? [{ website: body.websiteUrl }] : []
+  if (raw.length > MAX_LISTED) return NextResponse.json({ error: `at most ${MAX_LISTED} businesses may be listed per request` }, { status: 400 })
   const items = raw
     .map((b) => ({ id: typeof b?.id === 'string' ? b.id.slice(0, 120) : undefined, website: typeof b?.website === 'string' ? b.website.trim() : '' }))
     .filter((b) => b.website)

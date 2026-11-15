@@ -57,6 +57,36 @@ describe('POST /api/demo/download-image', () => {
     expect(quota.consume).toHaveBeenCalledWith('img:203.0.113.9', expect.any(Object))
   })
 
+  it('keys the quota on the trusted hop, never a client-supplied first hop', async () => {
+    await call({ urls: ['https://shop.example/a.png'] }, { 'x-forwarded-for': '9.9.9.9, 203.0.113.9' })
+    await call({ urls: ['https://shop.example/a.png'] }, { 'x-forwarded-for': '8.8.8.8, 203.0.113.9' })
+    expect(quota.consume.mock.calls.map((c) => c[0])).toEqual(['img:203.0.113.9', 'img:203.0.113.9'])
+  })
+
+  it('refuses a URL that is too long instead of fetching a shortened one', async () => {
+    const res = await call({ urls: [`https://shop.example/${'a'.repeat(2100)}.png`] })
+    expect(res.status).toBe(400)
+    expect(download.fn).not.toHaveBeenCalled()
+  })
+
+  it('answers within its deadline, reporting a stalled download as failed', async () => {
+    vi.useFakeTimers()
+    try {
+      download.fn.mockImplementation((url: string) => (url.includes('slow') ? new Promise(() => {}) : Promise.resolve('data:image/png;base64,AAAA')))
+      const pending = call({ urls: ['https://shop.example/fast.png', 'https://shop.example/slow.png'] })
+      await vi.advanceTimersByTimeAsync(20_001)
+      const res = await pending
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.results).toEqual([
+        { url: 'https://shop.example/fast.png', dataUrl: 'data:image/png;base64,AAAA', ok: true },
+        { url: 'https://shop.example/slow.png', error: 'Download timed out', ok: false },
+      ])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('rejects a cross-site caller before doing anything', async () => {
     const res = await call({ urls: ['https://shop.example/a.png'] }, { 'sec-fetch-site': 'cross-site' })
     expect(res.status).toBe(403)

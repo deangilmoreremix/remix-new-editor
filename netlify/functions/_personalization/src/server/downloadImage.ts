@@ -175,9 +175,12 @@ export async function downloadImageAsDataUrl(url: string, maxBytes = 5 * 1024 * 
   const buffer = Buffer.from(response.data)
   if (buffer.length > maxBytes) throw tooLarge()
 
-  const contentType = String(response.headers['content-type'] || 'application/octet-stream')
-  if (!contentType.startsWith('image/')) {
-    throw new Error(`Invalid content type: ${contentType}`)
+  // Only the bare `type/subtype` goes into the data URL: the raw header is upstream-controlled, and parameters
+  // (or a comma) in it could change what the data URL means.
+  const rawContentType = String(response.headers['content-type'] || 'application/octet-stream')
+  const contentType = rawContentType.split(';')[0].trim().toLowerCase()
+  if (!/^image\/[a-z0-9][a-z0-9.+-]*$/.test(contentType)) {
+    throw new Error(`Invalid content type: ${rawContentType.slice(0, 100)}`)
   }
 
   const base64 = buffer.toString('base64')

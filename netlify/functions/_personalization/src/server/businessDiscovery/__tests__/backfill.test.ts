@@ -128,6 +128,30 @@ describe('chain + format descriptor classification', () => {
   })
 })
 
+describe('a shared corporate domain does not merge distinct locations', () => {
+  const branch = (id: string, over: Record<string, unknown>) =>
+    ({ id, source: 'OPENSTREETMAP', name: 'Riverside Dental', category: 'dentist', website: 'https://www.riversidedental.example', websiteStatus: 'unknown', verificationStatus: 'unverified', ...over }) as never
+
+  it('keeps branches in different cities separate', async () => {
+    const { mergeDuplicates } = await import('../backfill')
+    const out = mergeDuplicates([
+      branch('a', { osmType: 'node', osmId: '1', city: 'Tampa', region: 'FL', postalCode: '33602', address: '1 Bay St' }),
+      branch('b', { osmType: 'node', osmId: '2', city: 'Orlando', region: 'FL', postalCode: '32801', address: '9 Lake Ave' }),
+      branch('c', { osmType: 'node', osmId: '3', city: 'Miami', region: 'FL', postalCode: '33101', address: '40 Brickell Ave' }),
+    ])
+    expect(out).toHaveLength(3)
+  })
+
+  it('still merges the same business found twice in one place', async () => {
+    const { mergeDuplicates } = await import('../backfill')
+    const out = mergeDuplicates([
+      branch('a', { osmType: 'node', osmId: '1', city: 'Tampa', postalCode: '33602', name: 'Riverside Dental' }),
+      branch('b', { osmType: 'way', osmId: '2', city: 'Tampa', postalCode: '33602', name: 'Riverside Dental Group' }),
+    ])
+    expect(out).toHaveLength(1)
+  })
+})
+
 describe('shared-host websites are not identity', () => {
   it('keeps two businesses on sites.google.com apart but still merges the same page', async () => {
     const { mergeDuplicates, websiteIdentity } = await import('../backfill')

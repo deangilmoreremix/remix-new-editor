@@ -66,7 +66,11 @@ const ERROR_CODES = {
 const RESUME_MAX_RECORDS = 150
 const RESUME_STRING_FIELDS = [
   'id', 'source', 'osmType', 'osmId', 'name', 'category', 'address', 'city', 'region', 'postalCode', 'country',
-  'phone', 'email', 'website', 'facebook', 'instagram', 'openingHours', 'websiteStatus', 'verificationStatus',
+  'phone', 'email', 'website', 'facebook', 'instagram', 'whatsapp', 'youtube', 'linkedin', 'tiktok', 'openingHours',
+  // Read by ownership classification / chain exclusion: dropping them would let a chain location pass as independent
+  // on a continuation, and would lose the social icons the first pass showed.
+  'operator', 'brand', 'network',
+  'websiteStatus', 'verificationStatus',
 ] as const
 
 /**
@@ -441,7 +445,8 @@ export async function POST(req: NextRequest) {
 
     // Check cache
     const cacheKey = createCacheKey(niche, location, boundedRadius)
-    const cached = businessDiscoveryCache.get(cacheKey)
+    // A resume request carries on a search the cache only holds the short first pass of, so it never reads the cache.
+    const cached = resume ? undefined : businessDiscoveryCache.get(cacheKey)
     if (cached) {
       logPersonalization({
         route: '/api/personalization/find-businesses',
@@ -786,8 +791,9 @@ export async function POST(req: NextRequest) {
 
     const durationMs = Date.now() - startTime
 
-    // Cache results
-    businessDiscoveryCache.set(cacheKey, limited, CACHE_TTL_MS)
+    // Cache results. Not a resume (its records come from the caller, so they must not be served to anyone else) and
+    // not a time-boxed partial list (a later search should run in full, or continue, rather than get the short one).
+    if (!resume && !backfillMeta?.resume) businessDiscoveryCache.set(cacheKey, limited, CACHE_TTL_MS)
 
     logPersonalization({
       route: '/api/personalization/find-businesses',
