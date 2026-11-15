@@ -612,3 +612,6 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 
 ### Production go-live (2026-11-15)
 - All 6 SmartVideo migrations applied to production and verified; default privileges on new public tables hardened. Advisors: nothing new from us. Not done: real storage and push tests, Netlify settings, Kit test.
+
+### Function-access hardening prepared (2026-11-15)
+- `20261121000000_restrict_public_function_access.sql` + 25 assertions + 8 mutations. Preview on production read-only; NOT applied.

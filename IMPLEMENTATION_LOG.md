@@ -160,3 +160,6 @@ Branch: `claude/jolly-cannon-ofqf7h`
 ### Production go-live
 - Authorization: "Apply all 6 now, in order" and "Yes, do it" (default privileges). Applied each migration with apply_migration, verified RLS/grants/bucket, ran the production security advisors, then applied the default-privileges change and proved it with a rolled-back probe.
 - Left alone: pre-existing advisor findings (callable SECURITY DEFINER functions, one SECURITY DEFINER view, mutable search_path).
+
+### Security review of callable functions
+- Read-only review of production (function list, 24h rpc traffic, function bodies, view row counts). Wrote and tested the fix locally; nothing changed on production.
