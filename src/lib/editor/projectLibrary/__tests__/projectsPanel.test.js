@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderProjectsPanel, fmtDuration, DETAIL_TABS } from '../projectsPanel.js';
+import { renderProjectsPanel, fmtDuration, DETAIL_TABS, heatStripHtml } from '../projectsPanel.js';
 
 const rows = [
   { id: 'a', name: 'Roofing promo', created_at: '2026-01-01T00:00:00Z', updated_at: '2026-02-01T00:00:00Z', duration_s: 65, aspect_ratio: '16:9', render: { status: 'complete' }, tags: [] },
@@ -176,5 +176,104 @@ describe('projects panel', () => {
     await tick(); await tick();
     expect(host.querySelectorAll('.pz-chip').length).toBe(0);
     expect(host.querySelector('[data-id="a"] .prj-status').classList.contains('is-published')).toBe(true);
+  });
+
+  describe('heatmap strip on cards', () => {
+    const curve = [0, 25, 50, 75, 100].map((p, i) => ({ positionPercent: p, retentionPercent: [100, 80, 60, 40, 20][i] }));
+    const withPlays = (extra = {}) => ({
+      ...deps,
+      getStats: async () => ({ a: { plays: 12 } }),
+      getRetention: vi.fn(async () => curve),
+      ...extra,
+    });
+
+    it('draws 34 bars with an accessible summary under a played, published card', async () => {
+      const d = withPlays();
+      renderProjectsPanel(host, d);
+      await tick(); await tick(); await tick();
+      const strip = host.querySelector('[data-id="a"] .prj-heat');
+      expect(strip).toBeTruthy();
+      expect(strip.querySelectorAll('span')).toHaveLength(34);
+      expect(strip.getAttribute('role')).toBe('img');
+      expect(strip.getAttribute('aria-label')).toBe('Audience retention across the video: starts at 100%, ends at 20%');
+      expect(d.getRetention).toHaveBeenCalledWith('abc12345');
+    });
+
+    it('shows no strip for unpublished or unplayed videos, and asks for nothing', async () => {
+      const d = withPlays({ getStats: async () => ({ a: { plays: 0 }, b: { plays: 9 } }) });
+      renderProjectsPanel(host, d);
+      await tick(); await tick(); await tick();
+      expect(host.querySelector('.prj-heat')).toBeNull();           // a: 0 plays; b: not published
+      expect(d.getRetention).not.toHaveBeenCalled();                // nothing worth asking for
+    });
+
+    it('by default asks the database for the video\'s curve (30-day range) through the injected client', async () => {
+      const rpc = vi.fn(async () => ({ data: [{ bucket: 0, viewers: 10, base: 10 }, { bucket: 50, viewers: 6, base: 10 }, { bucket: 99, viewers: 4, base: 10 }], error: null }));
+      renderProjectsPanel(host, { ...deps, getStats: async () => ({ a: { plays: 12 } }), getClient: async () => ({ ...clientFor(rows), rpc }) });
+      await tick(); await tick(); await tick();
+      expect(rpc).toHaveBeenCalledTimes(1);
+      const [name, args] = rpc.mock.calls[0];
+      expect(name).toBe('video_retention_curve');
+      expect(args.p_video_id).toBe('abc12345');
+      expect(args.p_from).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(args.p_to).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(host.querySelector('[data-id="a"] .prj-heat')).toBeTruthy();
+    });
+
+    it('a failing database call (or a client without rpc) leaves cards untouched', async () => {
+      const rpc = vi.fn(async () => ({ data: null, error: { message: 'denied' } }));
+      renderProjectsPanel(host, { ...deps, getStats: async () => ({ a: { plays: 12 } }), getClient: async () => ({ ...clientFor(rows), rpc }) });
+      await tick(); await tick(); await tick();
+      expect(host.querySelector('.prj-heat')).toBeNull();
+      const other = document.createElement('div'); document.body.appendChild(other);
+      renderProjectsPanel(other, { ...deps, getStats: async () => ({ a: { plays: 12 } }) });   // test client has no rpc
+      await tick(); await tick(); await tick();
+      expect(other.querySelector('.prj-heat')).toBeNull();
+      expect(other.querySelectorAll('.prj-card')).toHaveLength(2);
+    });
+
+    it('leaves the card exactly as before when the request fails or returns nothing', async () => {
+      for (const getRetention of [vi.fn(async () => { throw new Error('boom'); }), vi.fn(async () => []), vi.fn(async () => null)]) {
+        const h = document.createElement('div'); document.body.appendChild(h);
+        renderProjectsPanel(h, withPlays({ getRetention }));
+        await tick(); await tick(); await tick();
+        expect(h.querySelector('.prj-heat')).toBeNull();
+        expect(h.querySelector('[data-id="a"] .prj-heat-slot').innerHTML).toBe('');
+        expect(h.querySelector('[data-id="a"] .prj-line').textContent).toContain('12 plays');
+        expect(h.querySelectorAll('.prj-card')).toHaveLength(2);
+      }
+    });
+
+    it('asks for at most four curves at a time', async () => {
+      const many = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}`, name: `P${i}`, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-02T00:00:00Z', render: {}, tags: [] }));
+      let running = 0; let peak = 0;
+      const getRetention = vi.fn(async () => { running++; peak = Math.max(peak, running); await tick(); running--; return curve; });
+      renderProjectsPanel(host, {
+        ...deps,
+        getClient: async () => clientFor(many),
+        getPublished: async (ids) => Object.fromEntries(ids.map((id) => [id, { id: `v-${id}`, published: true }])),
+        getStats: async (ids) => Object.fromEntries(ids.map((id) => [id, { plays: 3 }])),
+        getRetention,
+      });
+      for (let i = 0; i < 12; i++) await tick();
+      expect(getRetention).toHaveBeenCalledTimes(9);
+      expect(peak).toBeLessThanOrEqual(4);
+      expect(host.querySelectorAll('.prj-heat')).toHaveLength(9);
+    });
+
+    it('keeps strips when the view or search changes', async () => {
+      renderProjectsPanel(host, withPlays());
+      await tick(); await tick(); await tick();
+      host.querySelector('[data-view="list"]').click();
+      expect(host.querySelector('[data-id="a"] .prj-heat')).toBeTruthy();
+    });
+
+    it('builds nothing from an empty curve and escapes nothing unsafe', () => {
+      expect(heatStripHtml([])).toBe('');
+      expect(heatStripHtml(null)).toBe('');
+      const html = heatStripHtml([{ positionPercent: 0, retentionPercent: '<b>' }, { positionPercent: 100, retentionPercent: 50 }]);
+      expect(html).not.toContain('<b>');
+      expect(html).toContain('height:7%');
+    });
   });
 });
