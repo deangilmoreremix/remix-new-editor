@@ -794,6 +794,7 @@ export class PlaybackEngine {
       this.syncFill(entry.clip.id, el, entry.clip.transform, opacity);
 
       el.style.opacity = String(opacity);
+      el.style.mixBlendMode = entry.clip.blendMode && entry.clip.blendMode !== 'normal' ? entry.clip.blendMode : ''; // [remix] Fix E: a clip's blend mode shows in the preview even without effects (as in the export)
       el.style.zIndex = String(z++);
       if (!isVideoAsset) {
         el.pause();
