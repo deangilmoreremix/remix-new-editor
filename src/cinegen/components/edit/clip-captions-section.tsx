@@ -37,16 +37,18 @@ export function ClipCaptionsSection({ clip, asset, onUpdate, onSeek }: { clip: C
   const [, bumpFonts] = useState(0);
   const srtRef = useRef<HTMLInputElement>(null);
   const fontRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
   useEffect(() => { void listCaptionPresets().then(setPresets); void loadUserFonts().then((f) => f.length && bumpFonts((n) => n + 1)); }, []);
   const download = (name: string, text: string, type: string) => { const u = URL.createObjectURL(new Blob([text], { type })); const a = document.createElement('a'); a.href = u; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(u), 4000); };
   const patch = (p: Partial<CaptionsData>) => c && onUpdate({ captions: { ...c, ...p } });
   const generate = async () => {
     if (!asset) return;
-    setBusy(true); setMsg('Transcribing (the first run downloads the speech model)…');
+    setBusy(true); setMsg('Transcribing on this device…');
     try {
-      const { transcribeInBrowser, WHISPER_MODELS } = await import('../../../lib/editor/remotion/transcribe.js');
-      const model = (navigator as Navigator & { gpu?: unknown }).gpu ? WHISPER_MODELS[0][0] : WHISPER_MODELS[1][0];
-      const out = await transcribeInBrowser(toFileUrl(asset.fileRef || asset.url), { model, onProgress: () => {} });
+      // [remix] Port I1: on-device Whisper from the Local AI model manager (Media tools > Local AI); cancellable, with real progress
+      const { transcribeAsset } = await import('@cinegen/lib/local-ai/clip-transcribe');
+      abortRef.current = new AbortController();
+      const out = await transcribeAsset(toFileUrl(asset.fileRef || asset.url), { signal: abortRef.current.signal, onProgress: (p) => setMsg(p.stage === 'decode' ? 'Reading audio…' : `Transcribing… ${Math.round(p.progress * 100)}%`) });
       const sp = clip.speed || 1;
       const words = (out.captions as Array<{ text: string; startMs: number; endMs: number }>)
         .map((w) => ({ text: w.text, start: Math.round(clip.startTime * 1000 + (w.startMs - clip.trimStart * 1000) / sp), end: Math.round(clip.startTime * 1000 + (w.endMs - clip.trimStart * 1000) / sp) }))
@@ -70,7 +72,7 @@ export function ClipCaptionsSection({ clip, asset, onUpdate, onSeek }: { clip: C
       <div className="clip-properties-panel__section-title">Captions</div>
       <input ref={srtRef} type="file" accept=".srt,text/plain" hidden data-testid="caption-srt-file" onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; const words = parseSrt(await f.text()); if (!words.length) { setMsg('No cues found in that .srt file.'); return; } const off = Math.round(clip.startTime * 1000); onUpdate({ captions: { ...(c ?? { enabled: true, template: 'tiktok', pacing: 'phrase', motionPreset: 'pop', offsetFrames: 0 }), words: backfillCueIdentities(words.map((w) => ({ ...w, start: w.start + off, end: w.end + off })), clip.id), wordOverrides: undefined, translation: undefined, bilingual: undefined } as CaptionsData }); setMsg(`${words.length} cue${words.length === 1 ? '' : 's'} imported from ${f.name}.`); }} />
       {!c ? (
-        <div className="clip-properties-panel__row"><button className="clip-properties-panel__toggle-btn" disabled={busy || !asset} onClick={generate}>{busy ? 'Working…' : 'Generate captions'}</button><button className="clip-properties-panel__toggle-btn" onClick={() => srtRef.current?.click()}>Import .srt</button></div>
+        <div className="clip-properties-panel__row"><button className="clip-properties-panel__toggle-btn" disabled={busy || !asset} onClick={generate}>{busy ? 'Working…' : 'Generate captions'}</button>{busy && <button className="clip-properties-panel__toggle-btn" aria-label="Cancel transcription" onClick={() => abortRef.current?.abort()}>Cancel</button>}<button className="clip-properties-panel__toggle-btn" onClick={() => srtRef.current?.click()}>Import .srt</button></div>
       ) : (
         <>
           <div className="clip-properties-panel__row">

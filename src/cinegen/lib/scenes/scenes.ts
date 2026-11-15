@@ -7,6 +7,8 @@ export interface SceneInfo {
   startSec: number;
   endSec: number;
   tags: string[];
+  /** [remix] Port I1: optional one-sentence description written by the local captioning model (searchable) */
+  caption?: string;
   /** small JPEG data URL of the scene's middle frame (cached in IndexedDB, see lib/perf/thumb-cache.ts) */
   thumb?: string;
 }
@@ -47,14 +49,14 @@ export function searchScenes(scenes: readonly SceneInfo[], query: string): Scene
   const scored: Array<{ s: SceneInfo; rank: number }> = [];
   for (const s of scenes) {
     let rank = 0; let ok = true;
-    const name = s.name.toLowerCase(); const tags = s.tags.map((t) => t.toLowerCase());
+    const name = s.name.toLowerCase(); const tags = s.tags.map((t) => t.toLowerCase()); const cap = (s.caption ?? '').toLowerCase();
     for (const tok of toks) {
       const len = s.endSec - s.startSec;
       if (tok.startsWith('tag:')) { const q = tok.slice(4); if (q && tags.some((t) => t.includes(q))) rank += 2; else ok = false; continue; }
       if ((tok.startsWith('>') || tok.startsWith('<')) && Number.isFinite(Number(tok.slice(1)))) { if (tok[0] === '>' ? len > Number(tok.slice(1)) : len < Number(tok.slice(1))) rank += 1; else ok = false; continue; }
       const t = parseTimeToken(tok);
       if (t !== null && /[:.]/.test(tok) && !name.includes(tok)) { if (t >= s.startSec && t < s.endSec) rank += 3; else ok = false; continue; }
-      if (name.includes(tok)) rank += 2; else if (tags.some((x) => x.includes(tok))) rank += 1; else { ok = false; }
+      if (name.includes(tok)) rank += 2; else if (tags.some((x) => x.includes(tok)) || (cap && cap.includes(tok))) rank += 1; else { ok = false; }
     }
     if (ok) scored.push({ s, rank });
   }
