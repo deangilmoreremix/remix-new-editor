@@ -24,16 +24,31 @@ export class RecorderModal extends BaseModal {
     this.selectedQuality = '1080p';
     this.micOptions = DEFAULT_MIC_OPTIONS;
     this.selectedMic = 'default';
-    this.includeWebcam = false;
+    this.micEnabled = true;
+    // 'circle' is the face bubble used by video-outreach tools; 'rounded' is a
+    // plain picture-in-picture rectangle. Only used by the Both (screen + cam) mode.
+    this.camShape = 'circle';
     this.isRecording = false;
     this.isPaused = false;
     this.recordingTime = 0;
     this.recordedBlob = null;
+    this.previewUrl = null;
+    // Raw per-source recordings from a Both take, kept so a later editor can
+    // re-layout screen and camera independently. { screen?: Blob, camera?: Blob }
+    this.trackBlobs = {};
+    this.trackRecorders = [];
+    this.hasAudio = false;
+    this.notice = '';
     this.webcamStream = null;
     this.screenStream = null;
+    this.micStream = null;
+    // Streams built for MediaRecorder hold cloned tracks; those must be stopped too
+    // or the browser keeps the camera and mic indicators on.
+    this.recordingStreams = [];
     this.recordingInterval = null;
     this.compositeFrame = null;
     this.compositeVideos = null;
+    this.compositing = false;
 
     // Fire-and-forget: populates real input devices once permission/labels
     // are available, then re-renders the Microphone dropdown.
@@ -71,13 +86,13 @@ export class RecorderModal extends BaseModal {
             <span class="type-icon">🖥</span>
             <span class="type-label">Screen</span>
           </button>
-          <button class="type-btn ${this.recordingType === 'camera' ? 'active' : ''}" data-type="camera" data-tooltip="Record from webcam">
+          <button class="type-btn ${this.recordingType === 'camera' ? 'active' : ''}" data-type="camera" data-tooltip="Record from your camera">
             <span class="type-icon">📷</span>
-            <span class="type-label">Webcam</span>
+            <span class="type-label">Camera</span>
           </button>
-          <button class="type-btn ${this.recordingType === 'both' ? 'active' : ''}" data-type="both" data-tooltip="Record screen and webcam together, composited into one video">
+          <button class="type-btn ${this.recordingType === 'both' ? 'active' : ''}" data-type="both" data-tooltip="Record screen and camera together, with a face bubble over the screen. Each source is also kept as its own file.">
             <span class="type-icon">⊕</span>
-            <span class="type-label">Screen + Cam</span>
+            <span class="type-label">Both</span>
           </button>
           <button class="type-btn ${this.recordingType === 'audio' ? 'active' : ''}" data-type="audio" data-tooltip="Record audio only">
             <span class="type-icon">🎤</span>
@@ -96,27 +111,18 @@ export class RecorderModal extends BaseModal {
               </div>
             ` : this.recordingType === 'camera' ? `
               <div class="camera-preview">
-                ${this.includeWebcam ? `
-                  <video class="webcam-feed" autoplay muted playsinline></video>
-                ` : `
-                  <div class="preview-placeholder">
-                    <span class="placeholder-icon">📷</span>
-                    <span class="placeholder-text">Camera preview</span>
-                  </div>
-                `}
+                <video class="webcam-feed" autoplay muted playsinline></video>
               </div>
             ` : this.recordingType === 'both' ? `
-              <div class="combined-preview">
+              <div class="combined-preview" style="position:relative;">
                 <div class="screen-area">
                   <div class="preview-placeholder">
-                    <span>Screen + webcam will be composited into one video when you start recording</span>
+                    <span>Your screen is chosen when you start. The camera bubble shows where your face will appear.</span>
                   </div>
                 </div>
-                ${this.includeWebcam ? `
-                  <div class="webcam-overlay">
-                    <video class="webcam-feed" autoplay muted playsinline></video>
-                  </div>
-                ` : ''}
+                <div class="webcam-overlay" style="position:absolute;left:4%;bottom:6%;width:22%;aspect-ratio:1/1;overflow:hidden;border:3px solid #fff;border-radius:${this.camShape === 'circle' ? '50%' : '10px'};">
+                  <video class="webcam-feed" autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+                </div>
               </div>
             ` : `
               <div class="audio-preview">
@@ -137,10 +143,17 @@ export class RecorderModal extends BaseModal {
           </div>
 
           <div class="preview-controls">
-            <button class="preview-toggle ${this.includeWebcam ? 'active' : ''}" data-action="toggle-webcam" data-tooltip="${this.includeWebcam ? 'Disable webcam overlay' : 'Enable webcam overlay'}">
-              <span>📷</span> Webcam
-            </button>
+            ${this.recordingType !== 'audio' ? `
+              <button class="preview-toggle ${this.micEnabled ? 'active' : ''}" data-action="toggle-mic" data-tooltip="${this.micEnabled ? 'Mute microphone' : 'Record microphone'}">
+                <span>🎤</span> Mic ${this.micEnabled ? 'on' : 'off'}
+              </button>
+            ` : ''}
+            ${this.recordingType === 'both' ? `
+              <button class="preview-toggle ${this.camShape === 'circle' ? 'active' : ''}" data-shape="circle" data-tooltip="Round face bubble">● Circle</button>
+              <button class="preview-toggle ${this.camShape === 'rounded' ? 'active' : ''}" data-shape="rounded" data-tooltip="Rounded rectangle camera">▢ Rectangle</button>
+            ` : ''}
           </div>
+          ${this.notice ? `<div class="recorder-notice" style="font-size:12px;opacity:.8;margin-top:6px;">${this.notice}</div>` : ''}
         </div>
 
         <div class="recorder-options">
@@ -169,7 +182,7 @@ export class RecorderModal extends BaseModal {
         ${this.recordedBlob ? `
           <div class="recording-preview">
             <h4>Recording Preview</h4>
-            <video class="recorded-playback" src="${URL.createObjectURL(this.recordedBlob)}" controls></video>
+            <video class="recorded-playback" src="${this.getPreviewUrl()}" controls></video>
             <div class="recording-actions">
               <button class="action-btn" data-action="discard" data-tooltip="Discard this recording">
                 <span>🗑</span> Discard
@@ -221,9 +234,16 @@ export class RecorderModal extends BaseModal {
 
     this.overlay.querySelectorAll('.type-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (this.isRecording) return;
         this.recordingType = btn.dataset.type;
-        this.updateBody(this.renderBody());
-        this.setupEventListeners();
+        this.rerender();
+      });
+    });
+
+    this.overlay.querySelectorAll('[data-shape]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.camShape = btn.dataset.shape;
+        this.rerender();
       });
     });
 
@@ -242,11 +262,10 @@ export class RecorderModal extends BaseModal {
       });
     }
 
-    this.overlay.querySelector('[data-action="toggle-webcam"]')?.addEventListener('click', () => {
-      this.includeWebcam = !this.includeWebcam;
-      this.updateBody(this.renderBody());
-      this.setupEventListeners();
-      if (this.includeWebcam) this.setupWebcam();
+    this.overlay.querySelector('[data-action="toggle-mic"]')?.addEventListener('click', () => {
+      if (this.isRecording) return;
+      this.micEnabled = !this.micEnabled;
+      this.rerender();
     });
 
     this.overlay.querySelector('[data-action="start"]')?.addEventListener('click', () => this.startRecording());
@@ -258,16 +277,47 @@ export class RecorderModal extends BaseModal {
     this.overlay.querySelector('[data-action="use-recording"]')?.addEventListener('click', () => this.useRecording());
   }
 
-  async setupWebcam() {
-    try {
-      this.webcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      const webcamEl = this.overlay.querySelector('.webcam-feed');
-      if (webcamEl) webcamEl.srcObject = this.webcamStream;
-    } catch (err) {
-      console.error('Webcam access denied:', err);
-      this.includeWebcam = false;
-      this.updateBody(this.renderBody());
-      this.setupEventListeners();
+  rerender() {
+    this.updateBody(this.renderBody());
+    this.setupEventListeners();
+    this.syncCameraPreview();
+  }
+
+  getPreviewUrl() {
+    if (!this.previewUrl && this.recordedBlob) this.previewUrl = URL.createObjectURL(this.recordedBlob);
+    return this.previewUrl;
+  }
+
+  // Keeps a live camera preview running in Camera and Both modes, and stops it in
+  // the others so the camera light is not left on.
+  async syncCameraPreview() {
+    if (this.isRecording || this.recordedBlob) return;
+    const wantsCam = this.recordingType === 'camera' || this.recordingType === 'both';
+    if (!wantsCam) {
+      this.stopPreviewCamera();
+      return;
+    }
+    if (!this.webcamStream) {
+      try {
+        this.webcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        this.previewCameraOnly = true;
+      } catch (err) {
+        console.error('Camera access denied:', err);
+        this.notice = 'Camera access was blocked. Allow it in your browser settings to record with your camera.';
+        this.previewCameraOnly = false;
+        this.updateBody(this.renderBody());
+        this.setupEventListeners();
+        return;
+      }
+    }
+    const el = this.overlay?.querySelector('.webcam-feed');
+    if (el && el.srcObject !== this.webcamStream) el.srcObject = this.webcamStream;
+  }
+
+  stopPreviewCamera() {
+    if (this.webcamStream && this.previewCameraOnly) {
+      this.webcamStream.getTracks().forEach(t => t.stop());
+      this.webcamStream = null;
     }
   }
 
@@ -289,10 +339,15 @@ export class RecorderModal extends BaseModal {
     return true;
   }
 
-  // Draws the screen stream full-frame with the webcam stream composited as
-  // a picture-in-picture overlay, and returns a MediaStream of the result.
-  // This is what actually makes "Screen + Cam" produce one combined video
-  // instead of two tracks MediaRecorder would otherwise pick between.
+  open() {
+    super.open();
+    this.syncCameraPreview();
+  }
+
+  // Draws the screen stream full-frame with the camera composited on top (a face
+  // bubble or a rounded rectangle, bottom-left), and returns a MediaStream of the
+  // result. MediaRecorder can only record one video track, so the composite is
+  // what makes "Both" produce one combined video.
   composeScreenAndCam(screenStream, camStream, qualityConstraints) {
     const width = qualityConstraints.width?.ideal || 1920;
     const height = qualityConstraints.height?.ideal || 1080;
@@ -303,37 +358,53 @@ export class RecorderModal extends BaseModal {
     canvas.height = height;
     const ctx = canvas.getContext('2d');
 
-    const screenVideo = document.createElement('video');
-    screenVideo.srcObject = screenStream;
-    screenVideo.muted = true;
-    screenVideo.playsInline = true;
-    screenVideo.play().catch(() => {});
-
-    const camVideo = document.createElement('video');
-    camVideo.srcObject = camStream;
-    camVideo.muted = true;
-    camVideo.playsInline = true;
-    camVideo.play().catch(() => {});
-
+    const makeVideo = (stream) => {
+      const v = document.createElement('video');
+      v.srcObject = stream;
+      v.muted = true;
+      v.playsInline = true;
+      v.play().catch(() => {});
+      return v;
+    };
+    const screenVideo = makeVideo(screenStream);
+    const camVideo = makeVideo(camStream);
     this.compositeVideos = { screenVideo, camVideo };
 
-    const pipWidth = Math.round(width * 0.22);
-    const margin = Math.round(width * 0.0125);
+    const size = Math.round(width * 0.2);
+    const margin = Math.round(width * 0.03);
+    const x = margin;
+    const y = height - size - margin;
+    const circle = this.camShape === 'circle';
 
+    this.compositing = true;
     const draw = () => {
-      if (!this.isRecording) return;
+      if (!this.compositing) return;
       ctx.drawImage(screenVideo, 0, 0, width, height);
-      const camAspect = (camVideo.videoHeight && camVideo.videoWidth)
-        ? camVideo.videoHeight / camVideo.videoWidth
-        : 9 / 16;
-      const pipHeight = Math.round(pipWidth * camAspect);
-      ctx.drawImage(
-        camVideo,
-        width - pipWidth - margin,
-        height - pipHeight - margin,
-        pipWidth,
-        pipHeight
-      );
+      // Centre-crop the camera to a square so the face is not squashed.
+      const vw = camVideo.videoWidth || 16;
+      const vh = camVideo.videoHeight || 9;
+      const side = Math.min(vw, vh);
+      const sx = (vw - side) / 2;
+      const sy = (vh - side) / 2;
+      ctx.save();
+      ctx.beginPath();
+      if (circle) {
+        ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+      } else {
+        const r = Math.round(size * 0.1);
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + size, y, x + size, y + size, r);
+        ctx.arcTo(x + size, y + size, x, y + size, r);
+        ctx.arcTo(x, y + size, x, y, r);
+        ctx.arcTo(x, y, x + size, y, r);
+        ctx.closePath();
+      }
+      ctx.clip();
+      ctx.drawImage(camVideo, sx, sy, side, side, x, y, size, size);
+      ctx.restore();
+      ctx.lineWidth = Math.max(3, Math.round(size * 0.02));
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
       this.compositeFrame = requestAnimationFrame(draw);
     };
     this.compositeFrame = requestAnimationFrame(draw);
@@ -341,97 +412,136 @@ export class RecorderModal extends BaseModal {
     return canvas.captureStream(fps);
   }
 
-  async startRecording() {
+  // Microphone is recorded in every mode. If access is refused the take still
+  // goes ahead without audio and the user is told why.
+  async getMicTracks() {
+    if (!this.micEnabled) return [];
     try {
+      this.micStream = await navigator.mediaDevices.getUserMedia({ audio: this.getAudioConstraints(), video: false });
+      return this.micStream.getAudioTracks();
+    } catch (err) {
+      console.error('Microphone unavailable:', err);
+      this.notice = 'Microphone was unavailable, so this take has no sound.';
+      return [];
+    }
+  }
+
+  createRecorder(stream, onData) {
+    const mimeType = this.getMimeType();
+    this.recordingStreams.push(stream);
+    const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    const chunks = [];
+    recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+    recorder.chunks = chunks;
+    recorder.finish = () => new Blob(chunks, { type: mimeType || 'video/webm' });
+    if (onData) onData(recorder);
+    return recorder;
+  }
+
+  async startRecording() {
+    this.notice = '';
+    try {
+      const q = this.getQualityConstraints();
+      const micTracks = this.recordingType === 'audio' ? [] : await this.getMicTracks();
+      const withMic = (videoStream) => new MediaStream([...videoStream.getVideoTracks(), ...micTracks.map(t => t.clone())]);
+      const type = this.recordingType;
       let stream = null;
-      const qualityConstraints = this.getQualityConstraints();
+      this.trackBlobs = {};
+      this.trackRecorders = [];
 
-      if (this.recordingType === 'screen') {
-        const displayStream = await navigator.mediaDevices.getDisplayMedia({
-          video: { displaySurface: 'monitor', ...qualityConstraints },
+      this.stopPreviewCamera();
+
+      if (type === 'screen' || type === 'both') {
+        this.screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: { displaySurface: 'monitor', ...q },
           audio: false
         });
-        stream = displayStream;
-        this.screenStream = displayStream;
-        displayStream.getVideoTracks()[0].onended = () => {
+        this.screenStream.getVideoTracks()[0].onended = () => {
           if (this.isRecording) this.stopRecording();
         };
-      } else if (this.recordingType === 'camera') {
-        const camStream = await navigator.mediaDevices.getUserMedia({
-          video: qualityConstraints,
-          audio: false
-        });
-        stream = camStream;
-        this.webcamStream = camStream;
-      } else if (this.recordingType === 'both') {
-        const displayStream = await navigator.mediaDevices.getDisplayMedia({
-          video: { displaySurface: 'monitor', ...qualityConstraints },
-          audio: false
-        });
-        this.screenStream = displayStream;
-        displayStream.getVideoTracks()[0].onended = () => {
-          if (this.isRecording) this.stopRecording();
-        };
-
-        const camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        this.webcamStream = camStream;
-
-        // isRecording must be true before the composite draw loop starts,
-        // since its own first frame check depends on it.
-        this.isRecording = true;
-        stream = this.composeScreenAndCam(displayStream, camStream, qualityConstraints);
-      } else if (this.recordingType === 'audio') {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: this.getAudioConstraints() });
+      }
+      if (type === 'camera' || type === 'both') {
+        this.webcamStream = await navigator.mediaDevices.getUserMedia({ video: type === 'camera' ? q : true, audio: false });
+        this.previewCameraOnly = false;
       }
 
-      if (stream) {
-        this.recordedChunks = [];
-        this.mediaRecorder = new MediaRecorder(stream, {
-          mimeType: this.getMimeType()
-        });
+      if (type === 'screen') {
+        stream = withMic(this.screenStream);
+      } else if (type === 'camera') {
+        stream = withMic(this.webcamStream);
+      } else if (type === 'both') {
+        stream = new MediaStream([
+          ...this.composeScreenAndCam(this.screenStream, this.webcamStream, q).getVideoTracks(),
+          ...micTracks.map(t => t.clone())
+        ]);
+        // Keep each source as its own file too, so it can be re-laid-out later.
+        this.trackRecorders.push(
+          this.createRecorder(withMic(this.screenStream), (r) => { r.trackName = 'screen'; }),
+          this.createRecorder(withMic(this.webcamStream), (r) => { r.trackName = 'camera'; })
+        );
+      } else if (type === 'audio') {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: this.getAudioConstraints() });
+        this.micStream = stream;
+      }
 
-        this.mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) this.recordedChunks.push(e.data);
-        };
+      this.hasAudio = stream.getAudioTracks().length > 0;
+      this.trackRecorders.forEach((r) => {
+        r.onstop = () => { this.trackBlobs[r.trackName] = r.finish(); };
+      });
 
-        this.mediaRecorder.onstop = () => {
-          this.recordedBlob = new Blob(this.recordedChunks, { type: this.getMimeType() });
-          this.isRecording = false;
-          clearInterval(this.recordingInterval);
-          this.updateBody(this.renderBody());
-          this.setupEventListeners();
-        };
-
-        this.mediaRecorder.start(1000);
-        this.isRecording = true;
-        this.isPaused = false;
-        this.recordingTime = 0;
-        this.recordingInterval = setInterval(() => {
-          if (!this.isPaused) {
-            this.recordingTime++;
-            const recTimeEl = this.overlay?.querySelector('.rec-time');
-            if (recTimeEl) recTimeEl.textContent = this.formatTime(this.recordingTime);
-          }
-        }, 1000);
-
+      this.mediaRecorder = this.createRecorder(stream);
+      this.mediaRecorder.onstop = () => {
+        this.recordedBlob = this.mediaRecorder.finish();
+        this.previewUrl = null;
+        this.isRecording = false;
+        clearInterval(this.recordingInterval);
         this.updateBody(this.renderBody());
         this.setupEventListeners();
-      }
+      };
+
+      this.mediaRecorder.start(1000);
+      this.trackRecorders.forEach(r => r.start(1000));
+      this.isRecording = true;
+      this.isPaused = false;
+      this.recordingTime = 0;
+      this.recordingInterval = setInterval(() => {
+        if (!this.isPaused) {
+          this.recordingTime++;
+          const recTimeEl = this.overlay?.querySelector('.rec-time');
+          if (recTimeEl) recTimeEl.textContent = this.formatTime(this.recordingTime);
+        }
+      }, 1000);
+
+      this.updateBody(this.renderBody());
+      this.setupEventListeners();
+      // The preview <video> is re-created by the re-render; reattach the camera.
+      const el = this.overlay?.querySelector('.webcam-feed');
+      if (el && this.webcamStream) el.srcObject = this.webcamStream;
     } catch (err) {
       console.error('Recording failed:', err);
+      this.stopAllStreams();
       this.isRecording = false;
+      this.notice = err?.name === 'NotAllowedError'
+        ? 'Permission was denied. Allow screen, camera and microphone access to record.'
+        : `Recording could not start: ${err?.message || err}`;
+      this.rerender();
     }
   }
 
   getMimeType() {
     if (this.recordingType === 'audio') return 'audio/webm';
-    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) return 'video/webm;codecs=vp9';
-    return 'video/webm';
+    const candidates = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+    return candidates.find(c => MediaRecorder.isTypeSupported?.(c)) || '';
+  }
+
+  allRecorders() {
+    return [this.mediaRecorder, ...this.trackRecorders].filter(Boolean);
   }
 
   pauseRecording() {
-    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-      this.mediaRecorder.pause();
+    const active = this.allRecorders().filter(r => r.state === 'recording');
+    if (active.length) {
+      active.forEach(r => r.pause());
       this.isPaused = true;
       this.updateBody(this.renderBody());
       this.setupEventListeners();
@@ -439,8 +549,9 @@ export class RecorderModal extends BaseModal {
   }
 
   resumeRecording() {
-    if (this.mediaRecorder && this.mediaRecorder.state === 'paused') {
-      this.mediaRecorder.resume();
+    const paused = this.allRecorders().filter(r => r.state === 'paused');
+    if (paused.length) {
+      paused.forEach(r => r.resume());
       this.isPaused = false;
       this.updateBody(this.renderBody());
       this.setupEventListeners();
@@ -449,12 +560,13 @@ export class RecorderModal extends BaseModal {
 
   stopRecording() {
     if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-      this.mediaRecorder.stop();
+      this.allRecorders().forEach(r => { if (r.state !== 'inactive') r.stop(); });
       this.stopAllStreams();
     }
   }
 
   stopAllStreams() {
+    this.compositing = false;
     if (this.compositeFrame) {
       cancelAnimationFrame(this.compositeFrame);
       this.compositeFrame = null;
@@ -464,27 +576,45 @@ export class RecorderModal extends BaseModal {
       this.compositeVideos.camVideo.pause();
       this.compositeVideos = null;
     }
-    if (this.screenStream) {
-      this.screenStream.getTracks().forEach(track => track.stop());
+    [this.screenStream, this.webcamStream, this.micStream, ...this.recordingStreams].forEach((s) => {
+      if (s) s.getTracks().forEach(track => track.stop());
+    });
+    this.recordingStreams = [];
+    this.screenStream = null;
+    this.webcamStream = null;
+    this.micStream = null;
+  }
+
+  // Closing the modal mid-take (or after a preview) must release camera, mic and
+  // screen capture, otherwise the browser's recording indicators stay on.
+  destroy() {
+    clearInterval(this.recordingInterval);
+    this.allRecorders().forEach(r => { try { if (r.state !== 'inactive') r.stop(); } catch { /* already stopped */ } });
+    this.stopAllStreams();
+    if (this.previewUrl) {
+      URL.revokeObjectURL(this.previewUrl);
+      this.previewUrl = null;
     }
-    if (this.webcamStream) {
-      this.webcamStream.getTracks().forEach(track => track.stop());
-    }
+    super.destroy();
   }
 
   discardRecording() {
     this.recordedBlob = null;
     this.recordedChunks = [];
+    this.trackBlobs = {};
+    this.trackRecorders = [];
+    if (this.previewUrl) {
+      URL.revokeObjectURL(this.previewUrl);
+      this.previewUrl = null;
+    }
     this.recordingTime = 0;
-    this.updateBody(this.renderBody());
-    this.setupEventListeners();
+    this.rerender();
   }
 
   saveRecording() {
     if (this.recordedBlob) {
-      const url = URL.createObjectURL(this.recordedBlob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = this.getPreviewUrl();
       a.download = `recording-${Date.now()}.webm`;
       a.click();
     }
@@ -492,12 +622,17 @@ export class RecorderModal extends BaseModal {
 
   useRecording() {
     if (this.recordedBlob) {
+      const labels = { screen: 'Screen recording', camera: 'Camera recording', both: 'Screen + camera recording', audio: 'Audio recording' };
       this.onConfirm({
         action: 'recordingComplete',
+        name: labels[this.recordingType] || 'Recording',
         blob: this.recordedBlob,
         duration: this.recordingTime,
         type: this.recordingType,
-        quality: this.selectedQuality
+        quality: this.selectedQuality,
+        hasAudio: this.hasAudio,
+        // Present only for Both: the untouched screen and camera files.
+        tracks: { ...this.trackBlobs }
       });
       this.close();
     }
