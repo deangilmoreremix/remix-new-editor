@@ -50,4 +50,20 @@ select t.ok('...an expired link gets nothing', recipient_video_resolve('vidAAAAA
 delete from recipient_links where id = current_setting('t.l2')::uuid;
 select t.ok('...cascade removed the record', (select count(*) from recipient_videos) = 0);
 select t.ok('anon and authenticated cannot run any of the functions or read the table', not (has_function_privilege('anon', 'public.recipient_video_resolve(text,text)', 'execute') or has_function_privilege('authenticated', 'public.recipient_video_resolve(text,text)', 'execute') or has_function_privilege('authenticated', 'public.recipient_video_register(text,text,uuid,text,text,bigint)', 'execute') or has_function_privilege('authenticated', 'public.recipient_video_prepare(text,text,uuid)', 'execute') or has_table_privilege('anon', 'public.recipient_videos', 'select') or has_table_privilege('authenticated', 'public.recipient_videos', 'select')) and has_function_privilege('service_role', 'public.recipient_video_resolve(text,text)', 'execute'));
+-- Retention (20261119000000): 90 days
+select recipient_links_issue('userA', 'vidAAAAAAAA', array['Old', 'Fresh'], array[encode(sha256('tokenOLD'::bytea), 'hex'), encode(sha256('tokenFRESH'::bytea), 'hex')], null);
+select set_config('t.lo', (select id::text from recipient_links where label = 'Old'), false);
+select set_config('t.lf', (select id::text from recipient_links where label = 'Fresh'), false);
+select recipient_video_register('userA', 'vidAAAAAAAA', current_setting('t.lo')::uuid, 'vidAAAAAAAA/' || current_setting('t.lo') || '/' || repeat('d', 32) || '.mp4', 'video/mp4', 10);
+select recipient_video_register('userA', 'vidAAAAAAAA', current_setting('t.lf')::uuid, 'vidAAAAAAAA/' || current_setting('t.lf') || '/' || repeat('e', 32) || '.mp4', 'video/mp4', 10);
+select t.ok('both are served while young', recipient_video_resolve('vidAAAAAAAA', encode(sha256('tokenOLD'::bytea), 'hex')) is not null and recipient_video_resolve('vidAAAAAAAA', encode(sha256('tokenFRESH'::bytea), 'hex')) is not null);
+update recipient_videos set created_at = now() - interval '91 days' where recipient_link_id = current_setting('t.lo')::uuid;
+update recipient_videos set created_at = now() - interval '45 days' where recipient_link_id = current_setting('t.lf')::uuid;
+select t.ok('a video older than 90 days is no longer served (before any purge), a fresh one still is', recipient_video_resolve('vidAAAAAAAA', encode(sha256('tokenOLD'::bytea), 'hex')) is null and recipient_video_resolve('vidAAAAAAAA', encode(sha256('tokenFRESH'::bytea), 'hex')) is not null);
+select t.fails_with('purge limit is bounded', '22023', $$select * from recipient_videos_purge_expired(0)$$);
+select set_config('t.purged', (select string_agg(object_path, ',') from recipient_videos_purge_expired(200)), false);
+select t.ok('purge returns exactly the expired row''s object path', current_setting('t.purged') like '%' || repeat('d', 32) || '.mp4' and current_setting('t.purged') not like '%,%');
+select t.ok('...and the 45-day-old row is left (retention is 90 days, not 30)', (select count(*) from recipient_videos) = 1 and recipient_video_resolve('vidAAAAAAAA', encode(sha256('tokenFRESH'::bytea), 'hex')) is not null);
+select t.ok('a second purge finds nothing', (select count(*) from recipient_videos_purge_expired(200)) = 0);
+select t.ok('anon/authenticated cannot purge', not (has_function_privilege('anon', 'public.recipient_videos_purge_expired(integer)', 'execute') or has_function_privilege('authenticated', 'public.recipient_videos_purge_expired(integer)', 'execute')) and has_function_privilege('service_role', 'public.recipient_videos_purge_expired(integer)', 'execute'));
 do $$ begin raise notice 'ALL ASSERTIONS PASSED'; end $$;

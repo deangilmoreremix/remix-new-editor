@@ -593,3 +593,7 @@ Operator host list accepted IP-looking names; PDF title shown as "Š" (wrong str
 - Kit hand-off (`kitExport.ts`, `kit-import.csv`); VAPID keys generated (public key in the final report); private per-recipient video storage built (SQL, function, route, client, panel, watch page).
 - Verified: 20 SQL assertions, route/function/client/panel/watch tests, 13 mutations caught, full vitest 11,710 passed, lint, typecheck gate, build.
 - NOT verified: real Storage REST upload/download, Kit Liquid tags in Kit, real push delivery.
+
+### Remaining items (2026-11-15)
+- 90-day retention for private recipient videos (migration, daily purge function, tests; branch only). Kit custom fields created. Production untouched; branch kept.
+- Read-only finding: 117 production tables have RLS off with anon write grants (not SmartVideo tables); decision pending.

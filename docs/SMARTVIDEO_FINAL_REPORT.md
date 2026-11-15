@@ -43,10 +43,15 @@ Production was not touched. Nothing was sent. No secret is in the repository or 
 
 **Gates on the final tree:** full vitest 11,710 passed (61 skipped), eslint clean on changed files, `typecheck:personalization` 0 errors in scope (98 pre-existing out of scope), `vite build` passes (needs `--max-old-space-size=7168`), all SQL assertion runners pass.
 
+## Remaining items (2026-11-15)
+* **Retention (your choice: 90 days).** `20261119000000_recipient_videos_retention.sql`: a private video stops being served 90 days after upload, and `recipient_videos_purge_expired` deletes expired rows. The daily scheduled function `netlify/functions/recipient-video-purge.js` then deletes the stored files (a file that cannot be deleted is logged and left; it is private and nothing can sign it). Re-uploading starts a new 90 days. Applied to the validation branch only. Tests: SQL assertions (including a 45-day-old row that must survive), 6 purge tests, 5 mutations caught. It runs on Netlify's schedule (not an always-on server) and only once deployed with `SUPABASE_URL` and the service-role key set.
+* **Kit fields created** in your Kit account: `smartvideo_link` (id 1432595) and `smartvideo_gif` (id 1432596). Nothing else in Kit was touched; nothing was sent. The Liquid tags still need a test import in Kit.
+* **Validation branch kept**, as you chose, until production is done. Production migrations are **not applied**, as you chose.
+* **Security finding on production (read-only check, nothing changed).** 117 of 314 tables in `public` have row-level security OFF, and `anon` and `authenticated` hold SELECT and INSERT/UPDATE/DELETE on all of them, including `api_keys`, `user_api_keys`, `subscriptions`, `user_credits`, `credit_transactions`, `payouts`, `partners`, `access_tokens`, `sessions`, `user`, `audit_log`. None are SmartVideo tables. Recommended: check which live apps use them with the anon key, then try an RLS-enabling migration on a branch. Not done: it could break running apps and needs your decision.
+* **Still yours to do:** set the three VAPID variables in Netlify and test push on a real device; sending-domain DNS; the real Storage upload test needs a service-role key for the branch.
+
 ## Decisions still waiting for you
-1. Delete the validation branch (it may cost money while it exists), or keep it? Apply the migrations to production when you are ready.
-2. Your sending domain's DNS and the Kit steps above.
-3. A real push test after you set the VAPID variables; rotate the key if desired.
-4. Real Storage verification of private videos, and a retention rule for them.
-5. Recorder status, the private capture bucket, and the 117 RLS-disabled tables (unchanged, still open).
-6. The queued "Personalization Studio" prompt remains unstarted.
+1. Fix the 117 open tables: approve a branch trial?
+2. Apply the SmartVideo migrations (now 6, with retention) to production when ready; delete the branch afterwards.
+3. Recorder status and the private capture bucket (unchanged).
+4. The queued "Personalization Studio" prompt remains unstarted.

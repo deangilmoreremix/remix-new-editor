@@ -138,3 +138,8 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Added: `20261118000000_recipient_videos.sql`, `_storage/signedUrls.js`, `recipient-video.js`, route `recipient-videos`, `recipientVideosClient.ts`, `kitExport.ts`, Bulk panel upload, watch-page personal video; policies in earlier migrations scoped `to authenticated`.
 - Applied to the branch `gahymlskmvhfeprcwgaw` only (see the final report for the subset caveat and advisor findings).
 - Verified: SQL assertions (all runners), 13 mutations, full vitest, lint, typecheck gate, build. Not verified: real Storage REST, Kit tags, real push.
+
+### Remaining items: retention, Kit fields, RLS finding
+- Authorization: your answers (keep branch, no production migration yet, create Kit fields, 90-day retention).
+- Added: `20261119000000_recipient_videos_retention.sql`, `recipient-video-purge.js` (daily), tests, extended SQL assertions. Applied to the branch only.
+- Verified: SQL assertions, 6 purge tests, 5 mutations, lint. Production check found 117 tables without RLS (reported, not changed).
