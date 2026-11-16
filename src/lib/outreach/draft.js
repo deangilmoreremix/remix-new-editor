@@ -57,6 +57,8 @@ export function defaultDraft() {
     message: 'Excited to show how we can help {{company}}.',
     fallbacks: { firstname: 'there', company: 'your company' },
     cta: { enabled: true, label: 'Schedule a demo', url: '' },
+    // Who sent it (Customize step): shown on the landing page and in the page's menu bar.
+    sender: { name: '', title: '', company: '', logo: '', photo: '' },
     contacts: [],
     campaign: null,
     name: '',
@@ -92,6 +94,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       voice: { ...base.voice, ...(saved.voice || {}) },
       fallbacks: { ...base.fallbacks, ...(saved.fallbacks || {}) },
       cta: { ...base.cta, ...(saved.cta || {}) },
+      sender: { ...base.sender, ...(saved.sender || {}) },
       contacts: Array.isArray(saved.contacts) ? saved.contacts : [],
       background: { ...base.background, ...(saved.background || {}) },
       siteShots: saved.siteShots && typeof saved.siteShots === 'object' ? saved.siteShots : {},

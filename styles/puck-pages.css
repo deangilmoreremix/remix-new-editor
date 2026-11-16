@@ -167,3 +167,21 @@
 /* Editor font choices (Page panel → Heading font / Body font). Only set when the page picks a font, so designs keep their own fonts by default. */
 .pk-page[data-fb] :is(p, li, a, button, input, textarea, select, label, small, blockquote, figcaption, td, th, dt, dd, summary) { font-family: var(--pk-fb) !important; }
 .pk-page[data-fh] :is(h1, h2, h3, h4, .pk-headline, .pk-h2, .pk-card-title, .pk-form-title, .pk-eyebrow-plain), .pk-page[data-fh] :is(h1, h2, h3, h4, .pk-headline, .pk-h2, .pk-card-title, .pk-form-title) * { font-family: var(--pk-fh) !important; }
+
+/* Video Outreach block (OutreachActions): sender, Like, booking button and embedded calendar. */
+.pk-outreach { max-width: 1100px; margin: 0 auto; padding: 8px clamp(16px, 4vw, 48px) 40px; display: grid; gap: 24px; }
+.pk-outreach-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.pk-outreach-sender { display: flex; align-items: center; gap: 12px; }
+.pk-outreach-sender img, .pk-outreach-initial { width: 48px; height: 48px; border-radius: 999px; object-fit: cover; flex: none; }
+.pk-outreach-initial { display: grid; place-items: center; background: var(--pk-accent); color: var(--pk-on-accent, #fff); font-weight: 800; font-size: 20px; }
+.pk-outreach-sender div { display: grid; line-height: 1.25; }
+.pk-outreach-sender span { color: var(--pk-muted); font-size: 14px; }
+.pk-outreach-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.pk-like.is-liked { background: color-mix(in srgb, var(--pk-accent) 16%, transparent); }
+.pk-outreach-calendar { display: grid; gap: 12px; padding: 16px; border-radius: var(--pk-radius); border: 1px solid var(--pk-line); background: var(--pk-card); }
+.pk-outreach-calendar .pk-h2 { margin: 0; font-size: 22px; }
+.pk-outreach-calendar iframe { width: 100%; height: 680px; border: 0; border-radius: calc(var(--pk-radius) - 4px); background: #fff; }
+/* A hero with its lead form hidden: copy and video share the row. */
+@media (min-width: 1100px) { .pk-hero.pk-hero--noform { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); } }
+@media (min-width: 1100px) { .pk-hero.pk-hero--noform.pk-hero--video-copy-form { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); } }
+.pk-like { display: inline-flex; align-items: center; gap: 6px; }

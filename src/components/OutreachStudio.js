@@ -632,6 +632,41 @@ export function OutreachStudio() {
     main.append(field('Header', header), field('Message', message), field('If the company is missing, say', company), ctaRow,
       field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow);
 
+    // Who sent it: the landing page's menu bar (company, logo), the sender line and "Sent by".
+    const me = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
+    me.setAttribute('data-outreach-sender', '');
+    me.appendChild(el('div', 'text-sm font-bold', 'Your details'));
+    me.appendChild(el('p', 'text-xs text-secondary', 'Shown on every contact\u2019s page: your company and logo at the top, your name and photo beside the booking button.'));
+    const sName = textInput(draft.sender.name, 'Your name');
+    const sTitle = textInput(draft.sender.title, 'Your job title');
+    const sCompany = textInput(draft.sender.company, 'Your company');
+    [sName, sTitle, sCompany].forEach((i, n) => {
+      i.setAttribute('data-sender-field', ['name', 'title', 'company'][n]);
+      i.addEventListener('input', () => { draft.sender = { ...draft.sender, name: sName.value, title: sTitle.value, company: sCompany.value }; persist(); updatePreview(); });
+    });
+    const pics = el('div', 'flex flex-wrap items-center gap-3');
+    for (const [key, label] of [['logo', 'Company logo'], ['photo', 'Your photo']]) {
+      const f = el('input'); f.type = 'file'; f.accept = 'image/*'; f.hidden = true;
+      f.addEventListener('change', async () => {
+        const file = f.files?.[0]; f.value = '';
+        if (!file) return;
+        try {
+          setBusy(`Uploading your ${label.toLowerCase()}\u2026`);
+          const url = await uploadToStorage(file);
+          draft.sender = { ...draft.sender, [key]: url }; persist(); busy = ''; render();
+        } catch (err) { fail(err); }
+      });
+      if (draft.sender[key]) { const th = el('img', `h-10 w-10 border border-white/10 object-cover ${key === 'photo' ? 'rounded-full' : 'rounded-lg bg-white'}`); th.src = draft.sender[key]; pics.appendChild(th); }
+      const b = button(draft.sender[key] ? `Change ${label.toLowerCase()}` : `Upload ${label.toLowerCase()}`, { small: true });
+      b.setAttribute(`data-sender-${key}`, '');
+      b.addEventListener('click', () => f.click());
+      pics.append(b, f);
+    }
+    const two = el('div', 'grid gap-3 sm:grid-cols-3');
+    two.append(field('Name', sName), field('Job title', sTitle), field('Company', sCompany));
+    me.append(two, pics);
+    main.appendChild(me);
+
     // Background: the recording as it is, or each contact's own website behind a round camera bubble.
     const bg = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
     bg.appendChild(el('div', 'text-sm font-bold', 'Video background'));
@@ -706,6 +741,7 @@ export function OutreachStudio() {
         const cal = el('div', 'grid h-28 place-items-center rounded-xl border border-dashed border-black/20 text-xs text-black/50', calendarEmbedUrl(draft.cta.url) ? 'Your booking calendar shows here' : 'Use a Calendly, Cal.com, Google, HubSpot, SavvyCal or TidyCal link to show the calendar');
         preview.appendChild(cal);
       }
+      if (draft.sender.name || draft.sender.company) preview.appendChild(el('p', 'text-xs text-black/55', `Sent by ${[draft.sender.name, draft.sender.company].filter(Boolean).join(' \u00b7 ')}`));
       if (draft.voice.mode === 'clone') preview.appendChild(el('p', 'text-[11px] text-black/45', 'AI-personalized voice'));
     };
     updatePreview();
