@@ -201,3 +201,38 @@ describe('openLandingPagePicker', () => {
     expect(onClose).toHaveBeenCalled();
   });
 });
+
+describe('openLandingPagePicker: edit only (Video Outreach, the page belongs to the video)', () => {
+  beforeEach(() => { document.body.innerHTML = ''; document.body.style.overflow = ''; });
+  const btn = (text) => [...document.querySelectorAll('button')].find((b) => b.textContent === text);
+
+  it('opens in the editor with your page; Save page hands back the edits and saves nothing in Video Pages', async () => {
+    const id = TEMPLATES.find((t) => t.puck).id;
+    const start = { content: [{ type: 'Hero', props: { id: 'h', headline: 'Before' } }], root: { props: {} } };
+    const mountPuckEditor = vi.fn(() => ({ destroy() {} }));
+    const createPageFromVideo = vi.fn();
+    const onEdit = vi.fn();
+    openLandingPagePicker({ video: VIDEO, template: id, data: start, onEdit, deps: { mountPuckEditor, createPageFromVideo } });
+    await tick();
+    expect(document.querySelector('[data-design-grid]')).toBeNull();
+    expect(mountPuckEditor.mock.calls[0][1].data.content[0].props.headline).toBe('Before');
+    expect(mountPuckEditor.mock.calls[0][1].page.video_url).toBe(VIDEO.url);
+    expect(btn('Change video')).toBeUndefined();
+    expect(btn('← All pages')).toBeUndefined();
+    mountPuckEditor.mock.calls[0][1].onChange({ content: [{ type: 'Hero', props: { id: 'h', headline: 'After' } }], root: { props: {} } });
+    btn('Save page').click();
+    expect(onEdit).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(onEdit.mock.calls[0][0])).toContain('After');
+    expect(createPageFromVideo).not.toHaveBeenCalled();
+    expect(document.querySelector('[data-landing-picker]')).toBeNull();
+    expect(start.content[0].props.headline).toBe('Before');
+  });
+
+  it('works before there is a recording', async () => {
+    const id = TEMPLATES.find((t) => t.puck).id;
+    openLandingPagePicker({ template: id, onEdit: vi.fn(), deps: { mountPuckEditor: () => ({ destroy() {} }), loadVideoSources: async () => [] } });
+    await tick();
+    expect(document.querySelector('[data-video-chooser]')).toBeNull();
+    expect(btn('Save page').disabled).toBe(false);
+  });
+});

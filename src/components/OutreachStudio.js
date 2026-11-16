@@ -21,7 +21,7 @@ import {
   parseCsv, guessMapping, contactsFromRows, contactsFromLeads, makeContact, mergeContacts, contactProfile, contactValues,
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
   usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
-  saveToLibrary, listLibrary, libraryDraft, newDynamicVideo,
+  saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -643,10 +643,10 @@ export function OutreachStudio() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_440px]');
     const main = card('Your prospect page', 'Each prospect gets their own page with their video. Use {{firstname}} and {{company}}; fallbacks fill in when a value is missing.');
     main.style.minWidth = '0'; // long page names truncate instead of widening the column
-    // Which page prospects land on: the plain video page, or one of your own Video Pages pages,
-    // used exactly as you made it (only its video becomes each prospect's personal video).
-    main.appendChild(field('Landing page', pagePicker(draft.pageId || '', (id) => { draft.pageId = id; persist(); render(); }, { plainOption: true }),
-      'Generate publishes every prospect\u2019s link onto this landing page, with its full design exactly as it is. Nothing is added or changed; only the video becomes each prospect\u2019s own. Pages you edit and save in Video Pages are listed too.'));
+    // Which page prospects land on (like Sendspark, it belongs to this video): the plain video page, or one of
+    // your landing page designs, edited here with your recording in it.
+    main.appendChild(field('Landing page', pagePicker(),
+      'Your page belongs to this video. Choose one of your landing pages, then Edit page to change its words, pictures and sections. Each prospect sees it with their own personal video, and changes reach every link.'));
     const header = textInput(draft.header);
     const message = el('textarea', 'w-full min-h-[90px] rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60');
     message.value = draft.message;
@@ -665,7 +665,7 @@ export function OutreachStudio() {
     calOn.addEventListener('change', sync);
     const ctaRow = el('label', 'flex items-center gap-3 text-sm font-bold'); ctaRow.append(ctaOn, el('span', '', 'Call-to-action button'));
     const calRow = el('label', 'flex items-center gap-3 text-sm'); calRow.append(calOn, el('span', '', 'Plain video page only: show the calendar under the video so contacts can book without leaving the page'));
-    main.append(field('Header', header, draft.pageId ? 'For the plain video page. Your landing page keeps its own words.' : ''), variableChips(header), field('Message', message), variableChips(message), field('If the company is missing, say', company), ctaRow,
+    main.append(field('Header', header, draft.page ? 'For the plain video page. Your landing page keeps its own words; change them with Edit page.' : ''), variableChips(header), field('Message', message), variableChips(message), field('If the company is missing, say', company), ctaRow,
       field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow);
 
 
@@ -719,13 +719,16 @@ export function OutreachStudio() {
     const sample = { firstname: 'Mike', company: 'Acme' };
     const updatePreview = () => {
       preview.replaceChildren();
-      if (draft.pageId) {
-        // Your own page is shown as it is; open it to see it.
-        const mine = allPages().find((r) => r.id === draft.pageId);
+      if (draft.page) {
+        // Your page as it stands, live; each prospect sees it with their own video.
         preview.appendChild(el('div', 'text-[11px] uppercase tracking-wider text-black/50', 'Prospects land on your page'));
-        preview.appendChild(el('h3', 'text-xl font-extrabold', mine?.title || 'Your landing page'));
-        preview.appendChild(el('p', 'text-sm text-black/70', 'Its full design, exactly as it is, with each prospect\u2019s personal video in place of its video.'));
-        if (mine?.url) { const a = el('a', 'mx-auto rounded-full bg-[#4f46e5] px-6 py-2.5 text-sm font-bold text-white', 'Open my page'); a.href = mine.url; a.target = '_blank'; a.rel = 'noopener'; preview.appendChild(a); }
+        preview.appendChild(el('h3', 'text-xl font-extrabold', pageName()));
+        const pic = el('div', 'w-full');
+        pic.setAttribute('data-outreach-page-preview', '');
+        preview.appendChild(pic);
+        pagePreview(pic);
+        preview.appendChild(el('p', 'text-sm text-black/70', 'Each prospect sees this page with their own personal video in it.'));
+        if (draft.page) { const b = el('button', 'mx-auto rounded-full bg-[#4f46e5] px-6 py-2.5 text-sm font-bold text-white', 'Edit page'); b.type = 'button'; b.addEventListener('click', openPageEditor); preview.appendChild(b); }
         return;
       }
       preview.appendChild(el('div', 'text-[11px] uppercase tracking-wider text-black/50', 'Preview · Mike at Acme'));
@@ -1056,10 +1059,7 @@ export function OutreachStudio() {
       const done = `${draft.campaign.links.length} personal video${draft.campaign.links.length === 1 ? '' : 's'} ready.${lipsync?.failed?.length ? ` Lip-sync failed for ${lipsync.failed.length} contact${lipsync.failed.length === 1 ? '' : 's'}; they hear their greeting without it.` : ''}`;
       // Like Sendspark, one Generate also makes the page and every prospect's thumbnail.
       notice = '';
-      if (draft.pageId && draft.campaign.page?.sourceId !== draft.pageId) {
-        await publishLandingPage(draft.pageId);
-        if (notice && !/^Landing page published/.test(notice)) return; // the page failed: its message stays
-      }
+      if (!(await publishCampaignPage({ quiet: true }))) return; // the page failed: its message stays
       progress = null;
       await makeThumbnails();
       const thumbs = /^Thumbnails ready/.test(notice) ? ' Thumbnails made.' : notice ? ` Thumbnails: ${notice}` : '';
@@ -1247,191 +1247,194 @@ export function OutreachStudio() {
     }
   }
 
-  // ---- Landing page designs (Video Pages, src/lib/landingPages) -----------------------------
-  // The campaign is published onto one of your own Video Pages pages, as you made it: the
-  // campaign gets a copy whose video is its personal player, and each contact's link opens it
-  // (src/lib/outreach/landingPage.js). Your original page is never changed.
-  const myPages = { loaded: false, loading: false, designs: [], rows: [], error: '' };
-  // Your pages, fresh from Video Pages (a page you made a minute ago is included).
-  async function fetchMyPages() {
-    const [{ listPages, pageUrl }, { ownPages, pageOption }, tpl] = await Promise.all([import('../lib/landingPages/client.js'), import('../lib/outreach/landingPage.js'), import('../lib/landingPages/templates.js')]);
-    // Your landing page designs (the 33 in the app), each used as its full design...
-    myPages.designs = tpl.TEMPLATES.filter((t) => t.puck).map((t) => ({ id: `design:${t.id}`, title: t.name, templateId: t.id, card: { ...t, id: `design:${t.id}` }, config: tpl.defaultConfig(t.id, { title: t.name }) }));
-    // ...and any page you saved in Video Pages, as you edited it.
-    let rows = [];
-    try { rows = ownPages(await listPages(await ownerClient())); } catch (err) { myPages.error = err?.message || ''; }
-    myPages.rows = rows.map((r) => {
-      const o = { ...pageOption(r), url: pageUrl(r.id), config: r.config };
-      const t = tpl.getTemplate(r.config?.template);
-      return { ...o, card: { id: o.id, name: o.title, description: `${t.name}${o.updatedAt ? ` \u00b7 edited ${new Date(o.updatedAt).toLocaleDateString()}` : ''}`, theme: t.theme, layout: t.layout, puckData: r.config?.puck || t.puckData } };
-    });
-    myPages.loaded = true;
-    return [...myPages.designs, ...myPages.rows];
-  }
-  async function loadMyPages() {
-    if (myPages.loading) return;
-    myPages.loading = true;
-    try { await fetchMyPages(); } catch (err) { myPages.error = err?.message || 'Could not load your landing pages.'; myPages.loaded = true; }
-    myPages.loading = false;
+  // ---- Landing page (like Sendspark, the page belongs to this dynamic video) -----------------------
+  // draft.page = { template, puck } is one of your 33 landing page designs, edited right here (Edit page).
+  // Generate publishes it once as the campaign's page, whose video is the campaign's personal player, so each
+  // prospect sees their own video in it. Every later change updates that page, so every prospect's link shows it
+  // straight away. Nothing is saved in Video Pages (src/lib/outreach/landingPage.js builds the links).
+  const designs = { loaded: false, loading: false, list: [], error: '' };
+  let tpl = null; // src/lib/landingPages/templates.js, loaded with the designs
+  async function loadDesigns() {
+    if (designs.loading || designs.loaded) return;
+    designs.loading = true;
+    try {
+      tpl = await import('../lib/landingPages/templates.js');
+      designs.list = tpl.TEMPLATES.filter((t) => t.puck);
+      await adoptOldPage();
+    } catch (err) { designs.error = err?.message || 'Could not load the landing pages.'; }
+    designs.loaded = true;
+    designs.loading = false;
     render();
   }
+  // A draft from before the page belonged to the video pointed at a page saved in Video Pages: take its content.
+  async function adoptOldPage() {
+    const id = draft.pageId;
+    if (!id) return;
+    try {
+      const { listPages } = await import('../lib/landingPages/client.js');
+      const row = (await listPages(await ownerClient())).find((r) => r.id === id);
+      if (row?.config?.puck) draft.page = cleanPage({ template: row.config.template, puck: row.config.puck });
+    } catch { /* signed out or offline: the plain video page until a design is chosen */ }
+    delete draft.pageId;
+    persist();
+  }
+  const designOf = (id) => designs.list.find((t) => t.id === id) || null;
+  // The page as it stands: your edits, else the design as it comes.
+  const pagePuck = (page = draft.page) => (page ? page.puck || designOf(page.template)?.puckData || null : null);
+  const pageName = () => designOf(draft.page?.template)?.name || 'Your landing page';
+  const livePage = () => (draft.campaign?.page?.url ? draft.campaign.page : null);
 
-  // Live page previews in the Page step; dropped whenever the step is drawn again.
+  // Live page previews; dropped whenever the step is drawn again.
   const previewHandles = [];
   const dropPreviewHandles = () => previewHandles.splice(0).forEach((h) => h.destroy());
+  const pagePreview = (host, width) => {
+    const data = pagePuck();
+    if (!data) return;
+    import('../lib/landingPages/designPreview.js').then((m) => { previewHandles.push(m.attachDesignPreview(host, data)); if (width) host.style.width = width; });
+  };
   const PLAIN_CARD = { id: '', name: 'Plain video page', description: 'Just the personal video, header, message and your booking button.', theme: { bg: '#111318', accent: '#d9ff00' }, layout: 'minimal' };
-  const allPages = () => [...myPages.designs, ...myPages.rows];
+
+  // Every change to the page lands on the video; once the campaign is out, its page is updated too.
+  async function setPage(page) {
+    draft.page = page ? cleanPage(page) : null;
+    persist();
+    if (draft.campaign?.url && (draft.page || draft.campaign.page)) await publishCampaignPage();
+    else render();
+  }
+
+  function openPageEditor() {
+    if (!draft.page) return;
+    const template = draft.page.template;
+    import('../lib/landingPages/pickerModal.js').then(({ openLandingPagePicker }) => openLandingPagePicker({
+      video: draft.video?.url ? { url: draft.video.url, title: draft.name || 'My outreach video', duration: draft.video.duration, studio: 'outreach' } : null,
+      template,
+      data: pagePuck(),
+      saveLabel: livePage() ? 'Save and update every link' : 'Save page',
+      onEdit: (puck) => setPage({ template, puck }),
+    }));
+  }
 
   /**
-   * The landing page in use, and "Choose landing page", which opens the Video Pages chooser
-   * (src/components/landing/TemplateChooser.js) as a modal: your 33 landing pages as cards, plus
-   * pages you saved in Video Pages. onPick(id): 'design:<template>', a saved page id, or ''.
+   * The landing page of this video: its live picture, "Choose landing page" (the Video Pages chooser,
+   * src/components/landing/TemplateChooser.js, with your 33 designs) and "Edit page" (the visual editor
+   * with your recording in it).
    */
-  function pagePicker(value, onPick, { plainOption = false } = {}) {
+  function pagePicker() {
     const wrap = el('div', 'flex min-w-0 flex-col gap-2');
     wrap.setAttribute('data-outreach-my-pages', '');
-    if (!myPages.loaded) { loadMyPages(); wrap.appendChild(el('p', 'text-xs text-secondary', 'Loading your landing pages\u2026')); return wrap; }
-    const chosen = allPages().find((r) => r.id === value);
+    if (!designs.loaded) { loadDesigns(); wrap.appendChild(el('p', 'text-xs text-secondary', 'Loading your landing pages…')); return wrap; }
+    const page = draft.page;
+    const design = designOf(page?.template);
     const row = el('div', 'flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-2.5');
     const sw = el('div', 'h-12 w-20 shrink-0 overflow-hidden rounded-lg p-1.5 flex items-center justify-center');
-    const shown = chosen?.card || PLAIN_CARD;
-    sw.style.background = shown.theme?.bg || '#111'; sw.style.color = shown.theme?.accent || '#d9ff00';
-    if (shown.puckData) {
-      // The same live picture of the real page as the chooser cards.
-      sw.className = 'shrink-0';
-      import('../lib/landingPages/designPreview.js').then((m) => { previewHandles.push(m.attachDesignPreview(sw, shown.puckData)); sw.style.width = '128px'; });
-    } else if (wireframe) sw.innerHTML = wireframe(shown.layout); else import('../lib/landingPages/wireframes.js').then((m) => { wireframe = m.wireframeSvg; sw.innerHTML = wireframe(shown.layout); });
+    if (page && design) { sw.className = 'shrink-0'; pagePreview(sw, '128px'); }
+    else {
+      sw.style.background = PLAIN_CARD.theme.bg; sw.style.color = PLAIN_CARD.theme.accent;
+      if (wireframe) sw.innerHTML = wireframe(PLAIN_CARD.layout); else import('../lib/landingPages/wireframes.js').then((m) => { wireframe = m.wireframeSvg; sw.innerHTML = wireframe(PLAIN_CARD.layout); });
+    }
     const name = el('div', 'min-w-0 flex-1');
-    name.append(el('div', 'truncate text-sm font-bold', chosen?.title || (plainOption || !value ? 'Plain video page' : 'Choose a landing page')), el('div', 'truncate text-[11px] text-secondary', chosen ? (chosen.card?.description || '') : 'No landing page: prospects open the personal video page.'));
-    const choose = button('Choose landing page', { small: true, primary: true });
+    name.append(
+      el('div', 'truncate text-sm font-bold', design ? design.name : 'Plain video page'),
+      el('div', 'truncate text-[11px] text-secondary', design ? (page.puck ? 'Your edited page' : design.description) : 'No landing page: prospects open the personal video page.'),
+    );
+    const choose = button('Choose landing page', { small: true, primary: !page });
     choose.setAttribute('data-outreach-choose-page', '');
     choose.disabled = !!busy;
     choose.addEventListener('click', async () => {
       const { openTemplateChooser } = await import('./landing/TemplateChooser.js');
       openTemplateChooser({
         title: 'Choose a landing page',
-        subtitle: 'Each prospect\u2019s link opens this page with its full design, exactly as it is. Only its video becomes their personal video.',
-        groups: [
-          ...(plainOption ? [['No landing page', [PLAIN_CARD]]] : []),
-          ['Editable landing pages', myPages.designs.map((d) => d.card)],
-          ['Pages I saved in Video Pages', myPages.rows.map((r) => r.card)],
-        ],
-        selected: value || '',
-        onPick,
-      });
-    });
-    // "Save as my page": your recording on a design, edited in the visual editor and saved as your own page.
-    const mine = button('Put my video on a page', { small: true });
-    mine.setAttribute('data-outreach-own-page', '');
-    mine.title = 'Pick a design, see your recording in it, edit every word and save it as your own page';
-    mine.disabled = !!busy;
-    mine.addEventListener('click', async () => {
-      const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
-      let saved = '';
-      openLandingPagePicker({
-        video: draft.video?.url ? { url: draft.video.url, title: draft.name || 'My outreach video', duration: draft.video.duration, studio: 'outreach' } : null,
-        template: String(value).startsWith('design:') ? String(value).slice(7) : null,
-        doneLabel: 'Use this page',
-        onPick: (pg) => { saved = pg?.id || saved; },
-        onClose: async () => {
-          if (!saved) return;
-          myPages.loaded = false;
-          try { await fetchMyPages(); } catch { /* the list shows its own error */ }
-          onPick(saved);
+        subtitle: 'The page belongs to this video. After choosing, click Edit page to change its words, pictures and sections; your recording plays in it, and each prospect sees their own video.',
+        groups: [['No landing page', [PLAIN_CARD]], ['Your landing pages', designs.list]],
+        selected: page?.template || '',
+        onPick: (id) => {
+          if (id === (page?.template || '')) return;
+          if (page?.puck && !window.confirm('Replace your edited page? Your changes to it will be lost.')) return;
+          setPage(id ? { template: id, puck: null } : null);
         },
       });
     });
-    row.append(sw, name, choose, mine);
+    row.append(sw, name, choose);
+    if (page && design) {
+      const edit = button('Edit page', { small: true, primary: true });
+      edit.setAttribute('data-outreach-edit-page', '');
+      edit.title = 'Change the words, pictures and sections; your recording plays in the video';
+      edit.disabled = !!busy;
+      edit.addEventListener('click', openPageEditor);
+      row.appendChild(edit);
+    }
     wrap.appendChild(row);
-    const links = el('div', 'flex flex-wrap items-center gap-3 px-1');
-    if (chosen?.url) { const a = el('a', 'text-xs font-bold text-primary underline', 'Preview'); a.href = chosen.url; a.target = '_blank'; a.rel = 'noopener'; links.appendChild(a); }
-    const again = el('button', 'text-xs font-bold text-secondary underline', 'Refresh');
-    again.type = 'button'; again.title = 'Load your pages again (after making or editing one in Video Pages)';
-    again.addEventListener('click', () => { myPages.loaded = false; render(); });
-    links.appendChild(again);
-    wrap.appendChild(links);
-    if (!myPages.designs.length && myPages.error) wrap.appendChild(el('p', 'text-xs text-amber-300', myPages.error));
+    const live = livePage();
+    if (live && page) {
+      const links = el('div', 'flex flex-wrap items-center gap-3 px-1');
+      const a = el('a', 'text-xs font-bold text-primary underline', 'Open the live page'); a.href = live.url; a.target = '_blank'; a.rel = 'noopener';
+      links.append(a, el('span', 'text-[11px] text-secondary', 'Changes update every prospect’s link straight away.'));
+      wrap.appendChild(links);
+    }
+    if (designs.error) wrap.appendChild(el('p', 'text-xs text-amber-300', designs.error));
     return wrap;
   }
   let wireframe = null;
 
-  let landingPick = null;
   function renderLandingCard() {
-    const box = card('Landing page', 'Send contacts to one of your landing pages instead of the plain video page. The page is used with its full design, exactly as it is; only its video becomes each contact\u2019s personal video.');
+    const box = card('Landing page', 'Every prospect’s link opens this page with their own personal video. Change it here and every link shows the change straight away.');
     box.setAttribute('data-outreach-landing', '');
-    const page = draft.campaign.page;
-    const current = landingPick || page?.sourceId || draft.pageId || '';
-    box.appendChild(pagePicker(current, (id) => { landingPick = id; render(); }));
-    if (!myPages.loaded || !(myPages.designs.length + myPages.rows.length)) return box;
-    const pick = allPages().some((r) => r.id === current) ? current : '';
-    const row = el('div', 'flex flex-wrap items-center gap-2');
-    const go = button(page ? 'Use this page instead' : 'Publish on this page', { primary: !page, small: true });
-    go.setAttribute('data-landing-publish', '');
-    go.disabled = !!busy || !pick || (page?.sourceId === pick);
-    go.addEventListener('click', () => publishLandingPage(pick));
-    row.appendChild(go);
-    if (page) {
-      const editBtn = button('Edit my page', { small: true });
-      editBtn.addEventListener('click', () => { window.location.hash = '#/video-pages'; });
-      const off = button('Use the plain video page', { small: true });
-      off.addEventListener('click', () => {
-        draft.campaign = { ...draft.campaign, page: null, links: draft.campaign.links.map(({ pageLink, ...l }) => l) };
-        draft.pageId = '';
-        persist(); render();
-      });
-      row.append(editBtn, off);
-    }
-    box.appendChild(row);
-    if (page) {
-      const name = allPages().find((r) => r.id === page.sourceId)?.title || 'landing';
-      box.appendChild(el('p', 'text-xs text-emerald-300', `Links now open your \u201c${name}\u201d page with each contact\u2019s video. After editing your page in Video Pages, click \u201cUse this page instead\u201d to update the campaign\u2019s copy.`));
-    }
+    box.appendChild(pagePicker());
     return box;
   }
 
-  async function publishLandingPage(sourceId) {
+  // Publish (or update) the campaign's page: your page, with the campaign's personal player as its video.
+  // With the plain video page chosen, the links go back to the player page. Returns false when it failed.
+  async function publishCampaignPage({ quiet = false } = {}) {
+    if (!draft.campaign?.url) return true;
     abort = null;
     try {
-      setBusy('Publishing your landing page…');
-      const [{ createPage, updatePage, setPagePublished, pageUrl }, { landingLink, campaignPageConfig }] = await Promise.all([
+      const [{ createPage, updatePage, setPagePublished, pageUrl }, { landingLink }] = await Promise.all([
         import('../lib/landingPages/client.js'),
         import('../lib/outreach/landingPage.js'),
       ]);
-      const mine = (await fetchMyPages()).find((r) => r.id === sourceId);
-      if (!mine) throw new Error('That landing page was not found. Choose one of your pages again.');
-      const client = await ownerClient();
-      const title = String(draft.name || '').trim() || mine.title;
-      const poster = draft.campaign.links.find((l) => l.thumbnailUrl && !/\.gif(\?|$)/i.test(l.thumbnailUrl))?.thumbnailUrl || null;
-      // Your page exactly as it is: its whole config, unchanged. The copy's video is the campaign's
-      // player, which shows each contact their own video.
-      const config = campaignPageConfig(mine.config);
       const existing = draft.campaign.page;
+      if (!draft.page) {
+        if (!existing) return true;
+        if (!quiet) setBusy('Switching to the plain video page…');
+        if (existing.id) { try { await setPagePublished(await ownerClient(), existing.id, false); } catch { /* the links no longer point at it */ } }
+        draft.campaign = { ...draft.campaign, page: null, links: draft.campaign.links.map(({ pageLink, ...l }) => l) };
+        persist();
+        if (!quiet) { busy = ''; notice = 'Every prospect’s link now opens the plain video page.'; render(); }
+        return true;
+      }
+      if (!quiet) setBusy('Updating your landing page…');
+      if (!tpl) tpl = await import('../lib/landingPages/templates.js');
+      const data = pagePuck();
+      if (!data) throw new Error('That landing page design was not found. Choose your landing page again.');
+      const client = await ownerClient();
+      const title = String(draft.name || '').trim() || pageName();
+      const config = { ...tpl.defaultConfig(draft.page.template, { title }), puck: JSON.parse(JSON.stringify(data)) };
       let row;
       if (existing?.id) {
-        row = await updatePage(client, existing.id, { config });
+        row = await updatePage(client, existing.id, { config, published: true });
       } else {
+        const poster = draft.campaign.links.find((l) => l.thumbnailUrl && !/\.gif(\?|$)/i.test(l.thumbnailUrl))?.thumbnailUrl || null;
         row = await createPage(client, {
           title,
           videoUrl: draft.campaign.url,
           posterUrl: poster,
           duration: draft.video?.duration || null,
-          source: { kind: 'outreach', studio: 'outreach', id: draft.campaign.id, page: sourceId },
+          source: { kind: 'outreach', studio: 'outreach', id: draft.campaign.id },
           config,
         });
         await setPagePublished(client, row.id, true);
       }
       const url = pageUrl(row.id);
-      draft.pageId = sourceId;
-      landingPick = null;
       draft.campaign = {
         ...draft.campaign,
-        page: { id: row.id, sourceId, url },
+        page: { id: row.id, url },
         links: draft.campaign.links.map((l) => ({ ...l, pageLink: landingLink(url, l.link, contactOf(l)) })),
       };
       persist();
-      busy = ''; notice = 'Landing page published. Every contact link now opens it.';
-      render();
-    } catch (err) { fail(err); }
+      if (!quiet) { busy = ''; notice = 'Updated: every prospect’s link shows the new page.'; render(); }
+      return true;
+    } catch (err) { fail(err); return false; }
   }
 
   // ---- Email and thumbnails ------------------------------------------------

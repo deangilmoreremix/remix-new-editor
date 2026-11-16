@@ -6,7 +6,9 @@
 // 1) grid of the editable designs (search + category chips)  2) click one: the full page with the video in it and the
 // visual editor  3) "Save as my page": a draft page is created from that design with the video attached (copied to
 // permanent storage when it is a temporary link), then the link is handed to `onPick({ id, url, published, page })`.
-// `doneLabel` adds a button on the "Page saved" screen that just closes (e.g. Video Outreach's "Use this page").
+// `doneLabel` adds a button on the "Page saved" screen that just closes.
+// Edit only (Video Outreach, where the page belongs to the video): `onEdit(data)` with `template` and `data` opens
+// straight in the editor; "Save page" hands back the edited page and closes. Nothing is saved in Video Pages.
 import { supabase, primeSupabaseIdentity, getClerkUserId } from '../supabase.js';
 import { uploadFileToSupabase } from '../uploadService.js';
 import { listBrands } from '../brandStore.js';
@@ -88,7 +90,7 @@ const brandDefaults = () => {
 
 let openCount = 0;
 
-export function openLandingPagePicker({ video = null, template = null, onPick, onClose, doneLabel = '', deps = {} } = {}) {
+export function openLandingPagePicker({ video = null, template = null, data: startData = null, onEdit = null, saveLabel = 'Save page', onPick, onClose, doneLabel = '', deps = {} } = {}) {
   let src = toPickerVideo(video);
   const prevOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
@@ -113,7 +115,7 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
   let view = 'grid';
   let busy = false;
   let editor = null;
-  let data = null;
+  let data = startData && typeof startData === 'object' ? JSON.parse(JSON.stringify(startData)) : null;
   let saved = null;
   let chosen = null;
   const state = { q: '', chip: 'all' };
@@ -137,7 +139,7 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
   function onKey(e) {
     if (e.key === 'Escape') {
       e.stopPropagation();
-      if (view === 'edit' && !busy) showGrid();
+      if (view === 'edit' && !busy && !onEdit) showGrid();
       else if (view === 'video' && src && back) back();
       else close();
       return;
@@ -155,7 +157,7 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
 
   const setHead = (title, extras = []) => {
     head.replaceChildren();
-    if (view === 'edit' || (view === 'video' && src && back)) {
+    if ((view === 'edit' && !onEdit) || (view === 'video' && src && back)) {
       const b = el('button', BTN, view === 'edit' ? '← All pages' : '← Back');
       b.type = 'button';
       b.disabled = busy;
@@ -340,19 +342,19 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
   async function showEdit(templateId, { keep = false } = {}) {
     destroyEditor();
     clearPreviews();
-    if (!src) { back = () => showEdit(templateId); showVideos(); return; }
-    const same = keep && chosen?.id === templateId && data;
+    if (!src && !onEdit) { back = () => showEdit(templateId); showVideos(); return; }
+    const same = (keep && chosen?.id === templateId && data) || (!chosen && data);
     chosen = getTemplate(templateId);
     if (!same) data = defaultConfig(chosen.id, { title: src?.title || '', brand: brandDefaults() }).puck;
     view = 'edit';
     msg.textContent = '';
-    const saveBtn = el('button', BTN_PRIMARY, 'Save as my page');
+    const saveBtn = el('button', BTN_PRIMARY, onEdit ? saveLabel : 'Save as my page');
     saveBtn.type = 'button';
-    saveBtn.disabled = !src;
+    saveBtn.disabled = !src && !onEdit;
     const change = el('button', BTN, 'Change video');
     change.type = 'button';
     change.addEventListener('click', () => { if (busy) return; back = () => showEdit(chosen.id, { keep: true }); showVideos(); });
-    setHead(chosen.name, [change, saveBtn]);
+    setHead(chosen.name, onEdit ? [saveBtn] : [change, saveBtn]);
     const hint = el('p', 'px-4 md:px-6 pt-2 text-xs text-secondary', 'Click any text to edit it. Use the left panel to add, remove or reorder sections.');
     const host = el('div', 'flex-1 min-h-0 m-3 md:m-4 rounded-2xl border border-white/10 overflow-hidden bg-white');
     host.dataset.editorHost = '';
@@ -371,6 +373,13 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
       msg.textContent = err?.message || 'Could not load the editor';
     }
     saveBtn.addEventListener('click', async () => {
+      if (onEdit) {
+        if (busy) return;
+        const page = sanitizePuck(data) || data;
+        close();
+        try { onEdit(page); } catch { /* caller bug */ }
+        return;
+      }
       if (!src || busy) return;
       busy = true; saveBtn.disabled = true; change.disabled = true; msg.textContent = '';
       saveBtn.textContent = 'Saving…';

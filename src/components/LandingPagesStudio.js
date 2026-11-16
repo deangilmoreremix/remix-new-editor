@@ -18,6 +18,7 @@ import { templateCards } from './landing/TemplateChooser.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
 import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
+import { ownPages } from '../lib/outreach/landingPage.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
 import {
   listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts,
@@ -90,7 +91,8 @@ export function LandingPagesStudio() {
     if (!guard()) return;
     inner.replaceChildren(el('p', 'text-sm text-secondary', 'Loading your pages…'));
     try {
-      state.pages = await listPages(await ownerClient());
+      // A Video Outreach campaign's page belongs to that video (edited in Video Outreach), so it is not listed here.
+      state.pages = ownPages(await listPages(await ownerClient()));
     } catch (err) {
       inner.replaceChildren(el('p', 'text-sm text-red-300', err.message || 'Could not load your pages.'));
       return;

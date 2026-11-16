@@ -61,8 +61,9 @@ export function defaultDraft() {
     cta: { enabled: true, label: 'Schedule a demo', url: '' },
     // Who sent it (Customize step): shown on the landing page and in the page's menu bar.
     sender: { name: '', title: '', company: '', logo: '', photo: '' },
-    // Your own Video Pages page Generate publishes the campaign onto, as it is ('' = the plain video page).
-    pageId: '',
+    // The landing page of this dynamic video (like Sendspark, the page belongs to the video): null = the plain
+    // video page, else { template: <design id>, puck: <your edited page> | null (the design as it comes) }.
+    page: null,
     contacts: [],
     campaign: null,
     name: '',
@@ -105,10 +106,26 @@ export function loadDraft(storage = globalThis.localStorage) {
       mapShots: saved.mapShots && typeof saved.mapShots === 'object' ? saved.mapShots : {},
       siteLogos: saved.siteLogos && typeof saved.siteLogos === 'object' ? saved.siteLogos : {},
       email: { ...base.email, ...(saved.email || {}), thumb: { ...base.email.thumb, ...(saved.email?.thumb || {}) } },
+      ...pageOf(saved),
     };
   } catch {
     return base;
   }
+}
+
+/** A valid { template, puck } page, or null. */
+export function cleanPage(page) {
+  if (!page || typeof page !== 'object' || typeof page.template !== 'string' || !/^puck-[a-z0-9-]+$/.test(page.template)) return null;
+  return { template: page.template, puck: page.puck && typeof page.puck === 'object' ? page.puck : null };
+}
+
+// Drafts from before the page belonged to the video chose it by id: 'design:<id>' is that design as it comes;
+// an id of a page saved in Video Pages is kept in `pageId` until the studio loads that page's content.
+function pageOf(saved) {
+  if (saved.page !== undefined) return { page: cleanPage(saved.page), pageId: undefined };
+  const id = typeof saved.pageId === 'string' ? saved.pageId : '';
+  if (id.startsWith('design:')) return { page: cleanPage({ template: id.slice(7), puck: null }), pageId: undefined };
+  return { page: null, pageId: id || undefined };
 }
 
 export function saveDraft(draft, storage = globalThis.localStorage) {
@@ -613,7 +630,7 @@ export function newDynamicVideo(from = {}, { keepVideo = false } = {}) {
   if (from.cta) d.cta = { ...d.cta, ...from.cta };
   if (from.email) d.email = { ...d.email, ...from.email };
   if (from.language) d.language = from.language;
-  if (typeof from.pageId === 'string') d.pageId = from.pageId;
+  if (from.page) d.page = cleanPage(JSON.parse(JSON.stringify(from.page)));
   if (keepVideo && from.video) {
     Object.assign(d, { video: from.video, captions: from.captions || null, script: from.script || '', greeting: from.greeting || d.greeting, header: from.header || d.header, message: from.message || d.message, background: { ...d.background, ...(from.background || {}) }, fallbacks: { ...d.fallbacks, ...(from.fallbacks || {}) } });
     d.voice = { ...d.voice, fallbackUrl: from.voice?.fallbackUrl || '', fallbackDuration: from.voice?.fallbackDuration || 0, lipsync: !!from.voice?.lipsync };
