@@ -1,0 +1,561 @@
+{
+ "tpl:free:brush-stroke-reveal": {
+  "enabled": true,
+  "fps": 41.5
+ },
+ "tpl:free:logo-blur-reveal": {
+  "enabled": true,
+  "fps": 30.8
+ },
+ "tpl:free:logo-bounce-drop": {
+  "enabled": true,
+  "fps": 52.6
+ },
+ "tpl:free:logo-mask-wipe": {
+  "enabled": true,
+  "fps": 38.2
+ },
+ "tpl:free:logo-split-reveal": {
+  "enabled": true,
+  "fps": 48.7
+ },
+ "tpl:free:logo-stroke-draw": {
+  "enabled": true,
+  "fps": 30.1
+ },
+ "tpl:free:neon-sign": {
+  "enabled": true,
+  "fps": 31.9
+ },
+ "tpl:free:shatter-reveal": {
+  "enabled": true,
+  "fps": 11.2
+ },
+ "tpl:free:bounce-in-headline": {
+  "enabled": true,
+  "fps": 71.6
+ },
+ "tpl:free:chapter-title": {
+  "enabled": true,
+  "fps": 51.3
+ },
+ "tpl:free:four-tone-mono-titler": {
+  "enabled": true,
+  "fps": 18.9
+ },
+ "tpl:free:glitch-text": {
+  "enabled": true,
+  "fps": 22.7
+ },
+ "tpl:free:gradient-text-sweep": {
+  "enabled": true,
+  "fps": 46.7
+ },
+ "tpl:free:kinetic-word-stack": {
+  "enabled": true,
+  "fps": 25.4
+ },
+ "tpl:free:pixel-typewriter-quote": {
+  "enabled": true,
+  "fps": 8.3
+ },
+ "tpl:free:scramble-text": {
+  "enabled": true,
+  "fps": 42.3
+ },
+ "tpl:free:text-mask-reveal": {
+  "enabled": true,
+  "fps": 50.7
+ },
+ "tpl:free:typewriter": {
+  "enabled": true,
+  "fps": 50.2
+ },
+ "tpl:free:wave-text": {
+  "enabled": true,
+  "fps": 55
+ },
+ "tpl:free:camera-shake": {
+  "enabled": true,
+  "fps": 43.3
+ },
+ "tpl:free:card-flip-transition": {
+  "enabled": true,
+  "fps": 11.5
+ },
+ "tpl:free:transition-circle-wipe": {
+  "enabled": true,
+  "fps": 39.6
+ },
+ "tpl:free:ink-spread-transition": {
+  "enabled": true,
+  "fps": 4.4,
+  "slow": true
+ },
+ "tpl:free:flip-page-transition": {
+  "enabled": true,
+  "fps": 13.8
+ },
+ "tpl:free:pixel-mosaic-transition": {
+  "enabled": true,
+  "fps": 3.2,
+  "slow": true
+ },
+ "tpl:free:slide-wipe": {
+  "enabled": true,
+  "fps": 53.8
+ },
+ "tpl:free:whip-pan": {
+  "enabled": true,
+  "fps": 9.8
+ },
+ "tpl:free:bar-chart-anim": {
+  "enabled": true,
+  "fps": 45.6
+ },
+ "tpl:free:line-chart-anim": {
+  "enabled": true,
+  "fps": 43.9
+ },
+ "tpl:free:pourover-drip-fill-gauge": {
+  "enabled": true,
+  "fps": 7.7,
+  "slow": true
+ },
+ "tpl:free:kpi-counter": {
+  "enabled": true,
+  "fps": 10.1
+ },
+ "tpl:free:pixel-candlestick-ohlc": {
+  "enabled": true,
+  "fps": 7.2,
+  "slow": true
+ },
+ "tpl:free:racing-chart": {
+  "enabled": true,
+  "fps": 39.4
+ },
+ "tpl:free:community-chat": {
+  "enabled": true,
+  "fps": 6,
+  "slow": true
+ },
+ "tpl:free:end-card": {
+  "enabled": true,
+  "fps": 48.6
+ },
+ "tpl:free:eye-reveal": {
+  "enabled": true,
+  "fps": 48.7
+ },
+ "tpl:free:lower-third-glass-card": {
+  "enabled": true,
+  "fps": 41.1
+ },
+ "tpl:free:character-jumping": {
+  "enabled": true,
+  "fps": 42.5
+ },
+ "tpl:free:social-reel": {
+  "enabled": true,
+  "fps": 18.4
+ },
+ "tpl:free:split-screen": {
+  "enabled": true,
+  "fps": 25.7
+ },
+ "tpl:free:thinking-bubble": {
+  "enabled": true,
+  "fps": 44.5
+ },
+ "tpl:free:wave-hello": {
+  "enabled": true,
+  "fps": 39.3
+ },
+ "tpl:free:bokeh-circles": {
+  "enabled": false,
+  "reason": "export too slow (1.2 fps at 1080p)"
+ },
+ "tpl:free:fireworks-burst": {
+  "enabled": true,
+  "fps": 41.5
+ },
+ "tpl:free:loop-grid-wave": {
+  "enabled": true,
+  "fps": 34.4
+ },
+ "tpl:free:parallax-pan": {
+  "enabled": true,
+  "fps": 42.5
+ },
+ "tpl:free:pencil-draw": {
+  "enabled": true,
+  "fps": 53.7
+ },
+ "tpl:free:pixel-waterfall-cycle": {
+  "enabled": true,
+  "fps": 7,
+  "slow": true
+ },
+ "tpl:free:particle-snow": {
+  "enabled": true,
+  "fps": 35.5
+ },
+ "tpl:free:starfield": {
+  "enabled": true,
+  "fps": 7.8,
+  "slow": true
+ },
+ "tpl:video:LogoIntro": {
+  "enabled": true,
+  "fps": 15.7
+ },
+ "tpl:video:LowerThirds": {
+  "enabled": true,
+  "fps": 52
+ },
+ "tpl:video:KineticText": {
+  "enabled": true,
+  "fps": 70.6
+ },
+ "tpl:video:BarChartRace": {
+  "enabled": true,
+  "fps": 35.9
+ },
+ "tpl:video:LineChartDraw": {
+  "enabled": true,
+  "fps": 33.7
+ },
+ "tpl:video:CaptionedShort": {
+  "enabled": true,
+  "fps": 53.8
+ },
+ "tpl:video:PromoTemplate": {
+  "enabled": true,
+  "fps": 27.3
+ },
+ "tpl:rve:animated-list": {
+  "enabled": true,
+  "fps": 52.4
+ },
+ "tpl:rve:animated-text": {
+  "enabled": true,
+  "fps": 44.9
+ },
+ "tpl:rve:area-chart": {
+  "enabled": true,
+  "fps": 33
+ },
+ "tpl:rve:blinds-transition": {
+  "enabled": false,
+  "reason": "MP4 export failed: Failed to set the 'width' property on 'OffscreenCanvas': Value is not of type 'unsigned long'."
+ },
+ "tpl:rve:bokeh-circles": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:bokeh-circles (the version with typed props)"
+ },
+ "tpl:rve:bounce-text": {
+  "enabled": true,
+  "fps": 68
+ },
+ "tpl:rve:bubble-pop-text": {
+  "enabled": true,
+  "fps": 51.4
+ },
+ "tpl:rve:camera-shake": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:camera-shake (the version with typed props)"
+ },
+ "tpl:rve:card-flip": {
+  "enabled": true,
+  "fps": 53.4
+ },
+ "tpl:rve:chapter-title": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:chapter-title (the version with typed props)"
+ },
+ "tpl:rve:chart-animation": {
+  "enabled": true,
+  "fps": 26.9
+ },
+ "tpl:rve:cinematic-title-intro": {
+  "enabled": true,
+  "fps": 56.2
+ },
+ "tpl:rve:circular-progress": {
+  "enabled": true,
+  "fps": 45.6
+ },
+ "tpl:rve:clock-wipe": {
+  "enabled": true,
+  "fps": 49.6
+ },
+ "tpl:rve:comparison-chart": {
+  "enabled": true,
+  "fps": 34.7
+ },
+ "tpl:rve:countdown-intro": {
+  "enabled": true,
+  "fps": 58.9
+ },
+ "tpl:rve:countdown-timer": {
+  "enabled": true,
+  "fps": 67.2
+ },
+ "tpl:rve:credits-roll": {
+  "enabled": true,
+  "fps": 30.1
+ },
+ "tpl:rve:cross-dissolve": {
+  "enabled": true,
+  "fps": 67.3
+ },
+ "tpl:rve:donut-chart": {
+  "enabled": true,
+  "fps": 33.1
+ },
+ "tpl:rve:end-card": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:end-card (the version with typed props)"
+ },
+ "tpl:rve:fade-through-black": {
+  "enabled": true,
+  "fps": 55
+ },
+ "tpl:rve:film-burn": {
+  "enabled": true,
+  "fps": 57.7
+ },
+ "tpl:rve:floating-bubble-text": {
+  "enabled": true,
+  "fps": 61.7
+ },
+ "tpl:rve:gallery-grid": {
+  "enabled": true,
+  "fps": 55.1
+ },
+ "tpl:rve:geometric-patterns": {
+  "enabled": true,
+  "fps": 39.4
+ },
+ "tpl:rve:glitch-text": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:glitch-text (the version with typed props)"
+ },
+ "tpl:rve:gradient-shift": {
+  "enabled": true,
+  "fps": 57.4
+ },
+ "tpl:rve:grid-pulse": {
+  "enabled": true,
+  "fps": 29.6
+ },
+ "tpl:rve:image-carousel": {
+  "enabled": true,
+  "fps": 53
+ },
+ "tpl:rve:image-comparison-slider": {
+  "enabled": true,
+  "fps": 43.8
+ },
+ "tpl:rve:image-zoom-reveal": {
+  "enabled": true,
+  "fps": 37.2
+ },
+ "tpl:rve:iris-transition": {
+  "enabled": true,
+  "fps": 47.1
+ },
+ "tpl:rve:ken-burns": {
+  "enabled": false,
+  "reason": "MP4 export failed: Failed to construct 'VideoFrame': VideoFrames can't be created from tainted sources."
+ },
+ "tpl:rve:letterbox-reveal": {
+  "enabled": true,
+  "fps": 62.6
+ },
+ "tpl:rve:line-chart": {
+  "enabled": true,
+  "fps": 34.4
+ },
+ "tpl:rve:liquid-wave": {
+  "enabled": true,
+  "fps": 28.7
+ },
+ "tpl:rve:logo-blur-reveal": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:logo-blur-reveal (the version with typed props)"
+ },
+ "tpl:rve:logo-bounce-drop": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:logo-bounce-drop (the version with typed props)"
+ },
+ "tpl:rve:logo-fade-reveal": {
+  "enabled": true,
+  "fps": 55.8
+ },
+ "tpl:rve:logo-glitch-reveal": {
+  "enabled": true,
+  "fps": 40.5
+ },
+ "tpl:rve:logo-scale-rotate": {
+  "enabled": true,
+  "fps": 64.8
+ },
+ "tpl:rve:logo-spin-reveal": {
+  "enabled": true,
+  "fps": 44.5
+ },
+ "tpl:rve:logo-split-reveal": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:logo-split-reveal (the version with typed props)"
+ },
+ "tpl:rve:logo-stroke-draw": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:logo-stroke-draw (the version with typed props)"
+ },
+ "tpl:rve:logo-typewriter": {
+  "enabled": true,
+  "fps": 61.5
+ },
+ "tpl:rve:lower-third": {
+  "enabled": true,
+  "fps": 50.5
+ },
+ "tpl:rve:masonry-gallery": {
+  "enabled": true,
+  "fps": 57.4
+ },
+ "tpl:rve:matrix-rain": {
+  "enabled": true,
+  "fps": 10.7
+ },
+ "tpl:rve:morph-transition": {
+  "enabled": true,
+  "fps": 69.1
+ },
+ "tpl:rve:noise-grain": {
+  "enabled": false,
+  "reason": "export too slow (1.3 fps at 1080p)"
+ },
+ "tpl:rve:notification-pop": {
+  "enabled": true,
+  "fps": 40.1
+ },
+ "tpl:rve:parallax-pan": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:parallax-pan (the version with typed props)"
+ },
+ "tpl:rve:particle-explosion": {
+  "enabled": true,
+  "fps": 15.3
+ },
+ "tpl:rve:photo-stack": {
+  "enabled": true,
+  "fps": 48
+ },
+ "tpl:rve:picture-in-picture": {
+  "enabled": true,
+  "fps": 63.1
+ },
+ "tpl:rve:pie-chart": {
+  "enabled": true,
+  "fps": 28.4
+ },
+ "tpl:rve:pixel-transition": {
+  "enabled": false,
+  "reason": "export too slow (0.6 fps at 1080p)"
+ },
+ "tpl:rve:polaroid-frame": {
+  "enabled": true,
+  "fps": 56.3
+ },
+ "tpl:rve:popping-text": {
+  "enabled": true,
+  "fps": 60.8
+ },
+ "tpl:rve:progress-bars": {
+  "enabled": true,
+  "fps": 26.3
+ },
+ "tpl:rve:progress-steps": {
+  "enabled": true,
+  "fps": 39.8
+ },
+ "tpl:rve:pulsing-text": {
+  "enabled": true,
+  "fps": 50
+ },
+ "tpl:rve:push-transition": {
+  "enabled": true,
+  "fps": 48
+ },
+ "tpl:rve:quote-card": {
+  "enabled": true,
+  "fps": 64.8
+ },
+ "tpl:rve:rotating-carousel": {
+  "enabled": true,
+  "fps": 46.3
+ },
+ "tpl:rve:slide-text": {
+  "enabled": true,
+  "fps": 79.5
+ },
+ "tpl:rve:slide-wipe": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:slide-wipe (the version with typed props)"
+ },
+ "tpl:rve:sound-wave": {
+  "enabled": true,
+  "fps": 28.5
+ },
+ "tpl:rve:split-screen": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:split-screen (the version with typed props)"
+ },
+ "tpl:rve:spotlight-reveal": {
+  "enabled": true,
+  "fps": 28.4
+ },
+ "tpl:rve:starfield": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:starfield (the version with typed props)"
+ },
+ "tpl:rve:stat-counter": {
+  "enabled": true,
+  "fps": 47.5
+ },
+ "tpl:rve:subscribe-reminder": {
+  "enabled": true,
+  "fps": 56.9
+ },
+ "tpl:rve:text-highlight": {
+  "enabled": true,
+  "fps": 47.9
+ },
+ "tpl:rve:title-split": {
+  "enabled": true,
+  "fps": 75.9
+ },
+ "tpl:rve:typewriter-subtitle": {
+  "enabled": true,
+  "fps": 47.7
+ },
+ "tpl:rve:vignette-pulse": {
+  "enabled": true,
+  "fps": 30.8
+ },
+ "tpl:rve:whip-pan": {
+  "enabled": false,
+  "reason": "duplicate of tpl:free:whip-pan (the version with typed props)"
+ },
+ "tpl:rve:zoom-pulse": {
+  "enabled": false,
+  "reason": "MP4 export failed: Failed to construct 'VideoFrame': VideoFrames can't be created from tainted sources."
+ },
+ "tpl:rve:zoom-through": {
+  "enabled": true,
+  "fps": 67.2
+ }
+}

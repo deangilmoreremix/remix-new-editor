@@ -18,8 +18,11 @@ const REPAIRED = 'repaired';
 
 /** Wrap an upstream template so it runs as the sandbox's `Animation({ props })`. */
 export function mgCode(code: string): string {
+  // The component is the declaration that takes `{ item ... }`. Some templates declare helpers first (e.g. `withAlphaRG`), so "the first
+  // declaration" would wrap a helper and render a blank frame; it is only the fallback when no declaration takes `item`.
+  const comp = code.match(/(?:^|\n)\s*(?:(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?\(?\s*\{\s*item\b|function\s+([A-Za-z_$][\w$]*)\s*\(\s*\{\s*item\b)/);
   const m = code.match(/(?:^|\n)\s*(?:const|let|var|function)\s+([A-Za-z_$][\w$]*)/);
-  const name = m?.[1] ?? 'Template';
+  const name = comp?.[1] ?? comp?.[2] ?? m?.[1] ?? 'Template';
   code = code.replace(/第 \{chapter\} 点/g, 'Point {chapter}'); // the one on-screen string that lives in code rather than in props
   return `${code}\nfunction Animation({ props }) { const { width, height } = useVideoConfig(); return <${name} item={{ props, width, height }} />; }`;
 }
@@ -30,9 +33,14 @@ export function gateTemplate(code: string): { ok: boolean; why?: string } {
 }
 
 export function loadMgTemplates(base = '/occ-templates'): Promise<MgTemplate[]> {
+  let failed = 0; // template packs that could not be downloaded
   cache ??= Promise.all([Promise.all(PACKS.map(async (p) => {
-    try { const r = await fetch(`${base}/${p}.json`); return r.ok ? ((await r.json()) as Array<Record<string, unknown>>) : []; } catch { return []; }
-  })), (async () => { try { const r = await fetch(`${base}/${REPAIRED}.json`); return r.ok ? ((await r.json()) as Record<string, string>) : {}; } catch { return {}; } })()]).then(([packs, fixed]) => packs.flat().map((tpl) => {
+    try { const r = await fetch(`${base}/${p}.json`); if (r.ok) return (await r.json()) as Array<Record<string, unknown>>; failed++; return []; } catch { failed++; return []; }
+  })), (async () => { try { const r = await fetch(`${base}/${REPAIRED}.json`); return r.ok ? ((await r.json()) as Record<string, string>) : {}; } catch { return {}; } })()]).then(([packs, fixed]) => {
+    // every pack failed: an error (the window offers Retry); only some failed: a partial list that is NOT remembered, so the next open asks again
+    if (failed === PACKS.length) throw new Error('the motion graphics could not be downloaded');
+    if (failed > 0) cache = null;
+    return packs.flat().map((tpl) => {
     const t = tpl;
     const code = fixed[String(t.id)] ?? String(t.code ?? '');
     const g = gateTemplate(code);
@@ -40,9 +48,12 @@ export function loadMgTemplates(base = '/occ-templates'): Promise<MgTemplate[]> 
     const en = (v: unknown) => (typeof v === 'string' ? mgEn(t_(v)) : v);
     const schema = ((t.propSchema as MgPropField[]) ?? []).map((f) => ({ ...f, label: en(f.label) as string, defaultValue: en(f.defaultValue), options: f.options?.map((o) => (typeof o === 'string' ? mgEn(t_(o)) : { ...o, label: en(o.label) as string })) }));
     const props = Object.fromEntries(Object.entries((t.props as Record<string, unknown>) ?? {}).map(([k, v]) => [k, en(v)]));
-    return { ...(t as object), name: en(t.name) as string, description: en(t.description) as string, category: en(t.category) as string, width: Number(t.width) || 1920, height: Number(t.height) || 1080, fps: Number(t.fps) || 30, durationInFrames: Number(t.durationInFrames) || 90,
+    // `code` MUST be the code that was gated (the repaired copy when there is one): the sandbox gates again at render time, so handing
+    // it the original (which `{ ...t }` carries) made every repaired template pass here and then be rejected when added to the timeline.
+    return { ...(t as object), code, name: en(t.name) as string, description: en(t.description) as string, category: en(t.category) as string, width: Number(t.width) || 1920, height: Number(t.height) || 1080, fps: Number(t.fps) || 30, durationInFrames: Number(t.durationInFrames) || 90,
       props, propSchema: schema, usable: g.ok, why: g.why } as MgTemplate;
-  }));
+    });
+  }).catch((e) => { cache = null; throw e; }); // a failed load is not remembered, so Retry can try again
   return cache;
 }
 

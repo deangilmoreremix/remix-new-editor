@@ -23,6 +23,8 @@
  *    list of a public website — never a caller IP, user id or token.
  */
 
+import { SITE_PAGE_HEADERS } from '../lib/siteRequestHeaders'
+import { extractEmbeddedImageUrls } from './pageSignals'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
 import {
@@ -30,9 +32,9 @@ import {
   checkDestination,
   NetworkSafetyError,
   safeRequestConfig,
-} from '../lib/networkSafety'
-import { researchBusiness } from './businessDiscovery/researchProvider'
-import { createServerClient } from '../lib/supabase'
+} from '../../src/lib/networkSafety'
+import { researchBusiness } from '../../src/server/businessDiscovery/researchProvider'
+import { createServerClient } from '../../src/lib/supabase'
 
 // ---------------------------------------------------------------------------
 // Hard limits
@@ -87,12 +89,20 @@ export interface DemoAsset {
   source: DemoAssetSource
 }
 
+/** Brand colours as `#rrggbb`; either may be absent. */
+export interface DemoBrandColors {
+  primary?: string
+  accent?: string
+}
+
 export interface DemoDiscoveryPayload {
   url: string
   title: string | null
   description: string | null
   logo: string | null
   assets: DemoAsset[]
+  /** The site's brand colours, when the landing page declared any. */
+  brandColors?: DemoBrandColors
 }
 
 export interface DemoDiscoveryResult extends DemoDiscoveryPayload {
@@ -130,6 +140,7 @@ interface DemoResearchInput {
   logoUrl?: string
   jsonLd: Record<string, unknown>[]
   openGraph: Record<string, string>
+  brandColors?: { primary?: string; accent?: string }
 }
 
 interface RawCandidate {
@@ -287,10 +298,7 @@ async function fetchPinnedText(
     response = await axios.get(url, {
       timeout: DEMO_REQUEST_TIMEOUT_MS,
       maxContentLength: DEMO_MAX_BODY_BYTES,
-      headers: {
-        'User-Agent': 'SmartVideoGO-AI/1.0 (https://go.smartvid.app)',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      },
+      headers: { ...SITE_PAGE_HEADERS },
       validateStatus: (status: number) => status === 200,
       // The pin carries the validated-address lookup and the agents; it also
       // disables axios' redirect following, restated below so a future change
@@ -540,6 +548,14 @@ function collectRawCandidates(input: {
   if (landingHtml) {
     for (const url of imgCandidates(landingHtml)) candidates.push({ kind: 'photo', source: 'img', url })
   }
+  // 5b. Images a site builder embeds as page data (Next.js, Wix, Squarespace,
+  //     Shopify…). A JS-rendered landing page has few or no <img> tags; its
+  //     photos live in this data instead. No extra request is made.
+  if (landingHtml) {
+    for (const embedded of extractEmbeddedImageUrls(landingHtml, research.finalUrl || research.canonicalUrl || '')) {
+      candidates.push({ kind: 'photo', source: 'img', url: embedded.url })
+    }
+  }
   // 6. Other head-declared images (Twitter cards, microdata).
   if (landingHtml) {
     for (const url of metaImageCandidates(landingHtml)) candidates.push({ kind: 'brand', source: 'meta', url })
@@ -635,7 +651,22 @@ export async function runDemoDiscovery(websiteUrl: string): Promise<DemoDiscover
         : null,
     logo: logoFromAssets ?? safeAssetUrl(research.logoUrl, baseUrl),
     assets,
+    ...brandColorsField(research.brandColors),
   }
+}
+
+const HEX_COLOR = /^#[0-9a-f]{6}$/
+
+/** `{ brandColors }` with only well-formed `#rrggbb` values, or nothing. */
+function brandColorsField(value: unknown): { brandColors?: DemoBrandColors } {
+  if (!value || typeof value !== 'object') return {}
+  const record = value as Record<string, unknown>
+  const colors: DemoBrandColors = {}
+  for (const key of ['primary', 'accent'] as const) {
+    const color = record[key]
+    if (typeof color === 'string' && HEX_COLOR.test(color.toLowerCase())) colors[key] = color.toLowerCase()
+  }
+  return colors.primary || colors.accent ? { brandColors: colors } : {}
 }
 
 // ---------------------------------------------------------------------------
@@ -684,7 +715,7 @@ export function sanitizeDemoDiscoveryPayload(value: unknown): DemoDiscoveryPaylo
   const url = typeof record.url === 'string' ? safeAssetUrl(record.url, 'https://demo.invalid/') : null
   if (!url) return null
 
-  return { url, title, description, logo, assets }
+  return { url, title, description, logo, assets, ...brandColorsField(record.brandColors) }
 }
 
 /** Reads a fresh cached entry for `cacheKey`, or null. */

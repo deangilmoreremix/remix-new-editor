@@ -19,9 +19,9 @@ export function CineGenEditorPage(): HTMLElement {
   registerWebApi(); // real implementations must be in place before the workspace subscribes to media events
   const el = document.createElement('div');
   el.id = 'cinegen-editor-page';
-  // [remix] host frame: the workspace fills the page above the app's rail, as CineGen's own window does.
+  // [remix] host frame: the workspace fills the app's content area, so the app header and left menu stay visible and usable.
   el.className = 'cinegen-root';
-  Object.assign(el.style, { position: 'fixed', inset: '0', zIndex: '60', background: 'var(--bg-void)', color: 'var(--text-primary)', fontFamily: 'var(--font-display)', display: 'flex', flexDirection: 'column' });
+  Object.assign(el.style, { position: 'absolute', inset: '0', zIndex: '0', minHeight: '0', overflow: 'hidden', contain: 'layout', background: 'var(--bg-void)', color: 'var(--text-primary)', fontFamily: 'var(--font-display)', display: 'flex', flexDirection: 'column' });
   const root = createRoot(el);
   // Bring over projects saved by the earlier build (once), then show the project manager.
   void importLegacyProjects().finally(() => root.render(<ErrorBoundary><WebApp /></ErrorBoundary>));

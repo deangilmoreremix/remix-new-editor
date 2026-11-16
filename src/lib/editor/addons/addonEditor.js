@@ -268,6 +268,9 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
       const tiles = (field.themes || []).map((t) => `<button type="button" class="addon-theme" data-theme-pick="${esc(t.id)}" data-theme-key="${esc(field.key)}" title="${esc(t.label)}"><span class="addon-theme__swatch" style="background:${esc(t.hintBackground)};border-color:${esc(t.hintBorderColor)}"><i style="background:${esc(t.pointerColor)}"></i></span><span>${esc(t.label)}</span></button>`).join('');
       return `<div class="clip-editor__field addon-field addon-field--themes"><label>${esc(field.label)}</label><div class="addon-themes" role="group" aria-label="${esc(field.label)}">${tiles}</div></div>`;
     }
+    case 'action':
+      // A button that runs services.fieldAction(field.action, options, { setResult }).
+      return `<div class="clip-editor__field addon-field addon-field--action"><button type="button" class="mini-btn" style="width:100%" data-field-action="${esc(field.action)}">${esc(field.label)}</button><span class="addon-field__hint addon-action-result" role="status" style="font-size:11px;color:var(--text-dim)"></span></div>`;
     case 'color':
       return `<div class="clip-editor__field addon-field">${label}<input id="${id}" type="color" data-key="${field.key}" data-kind="text" value="${esc(value || '#000000')}"/></div>`;
     case 'url':
@@ -390,6 +393,16 @@ export function renderAddonEditor(container, {
     // ---- richer field types
     if (e.type === 'click') {
       const btn = el.closest('button');
+      if (btn?.dataset.fieldAction) {
+        const out = btn.parentElement.querySelector('.addon-action-result');
+        const setResult = (text) => { if (out) out.textContent = text; };
+        if (!services.fieldAction) return;
+        btn.disabled = true;
+        Promise.resolve(services.fieldAction(btn.dataset.fieldAction, JSON.parse(JSON.stringify(current)), { setResult }))
+          .catch((err) => setResult(err?.message || 'Failed'))
+          .finally(() => { btn.disabled = false; });
+        return;
+      }
       if (btn?.dataset.imgSource) {
         ui.imgSource = btn.dataset.imgSource;
         draw();

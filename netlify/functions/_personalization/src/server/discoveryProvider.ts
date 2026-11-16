@@ -44,6 +44,13 @@ export interface ImageCandidate {
    * page with — i.e. the site's own logo, whatever the file is called.
    */
   isSiteLogo?: boolean
+  /** Words around the image (caption, heading, section names, data keys). */
+  contextText?: string
+  /**
+   * Page + structure signature shared by the images of one repeated list
+   * (a product grid, a team list, a gallery). See pageSignals.ts.
+   */
+  similarGroup?: string
   /**
    * A classification the provider has already made (the static path runs
    * OpenAI Vision). It is carried here so the shared asset builder does not

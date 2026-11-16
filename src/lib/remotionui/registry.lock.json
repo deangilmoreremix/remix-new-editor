@@ -1,0 +1,7113 @@
+{
+ "source": "https://remotionui.com/r/presets/default",
+ "license": "MIT (remotion-ui)",
+ "items": [
+  {
+   "name": "ae-import",
+   "type": "registry:lib",
+   "description": "Runtime for `remotion-ui import-ae`: After Effects shape, solid, null and precomp layers with parenting, time remap and lottie-web's stacking rules, drawn as SVG from ae-motion data",
+   "dependencies": [
+    "remotion",
+    "@remotion/paths"
+   ],
+   "registryDependencies": [
+    "ae-motion",
+    "bezier-path",
+    "shape-ops"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/lottie-geometry.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/lottie-geometry.ts",
+     "sha256": "82732f7e26af25a7c44f2413a6eaae92affc6c2a6b8c124aae48efe3f2ff9190",
+     "size": 5816
+    },
+    {
+     "target": "src/remotion/lib/lottie-offset.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/lottie-offset.ts",
+     "sha256": "59f410155fe256e723c68687b8ec6ee41cda0d434c0389e6854efe4921248f15",
+     "size": 11752
+    },
+    {
+     "target": "src/remotion/lib/lottie-paint.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/lottie-paint.ts",
+     "sha256": "e478197792905b318f1452374a7a5e83b6fb23a84c2b6a3b952da08be444b62f",
+     "size": 5435
+    },
+    {
+     "target": "src/remotion/lib/lottie-shapes.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/lottie-shapes.ts",
+     "sha256": "d69c6601fa89e332fa905f9147acdd7bf6d338f9ee5b1f2c1ab5e3643b2c5f53",
+     "size": 25275
+    },
+    {
+     "target": "src/remotion/lib/ae-import.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/ae-import.tsx",
+     "sha256": "d66a4462d80a19ce51ba05ef00148b01a39115f33a94ab0aa36dab65ea0a06a1",
+     "size": 14137
+    }
+   ]
+  },
+  {
+   "name": "ae-motion",
+   "type": "registry:lib",
+   "description": "After Effects mechanics as pure functions: graph-editor keyframe easing, loopIn/loopOut, deterministic wiggle and noise, repeater powers and parented transforms",
+   "dependencies": [],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/ae-motion.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/ae-motion.ts",
+     "sha256": "efe62d6d60a89c70c41ea4dd646cc4fb65060a3df20f4582406270a62370db6c",
+     "size": 30647
+    }
+   ]
+  },
+  {
+   "name": "ai-composer-showcase",
+   "type": "registry:block",
+   "description": "Showcase reel cutting through five AI composer interfaces with title and end cards",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "layout",
+    "transition-fade",
+    "chat-gpt",
+    "claude-chat",
+    "v0",
+    "claude-code",
+    "opencode"
+   ],
+   "composition": {
+    "id": "AiComposerShowcase",
+    "component": "AiComposerShowcase",
+    "durationInFrames": 533,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/ai-composer-showcase/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "ai"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/compositions/ai-composer-showcase/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/ai-composer-showcase/index.tsx",
+     "sha256": "aaf97c180af540088d25ab46b67227d2766e71899f583db7081395b62a3bc4ad",
+     "size": 9822
+    }
+   ]
+  },
+  {
+   "name": "ai-composer-utils",
+   "type": "registry:lib",
+   "description": "Shared typewriter, caret, morph, and intro helpers for AI composer scenes",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/ai-composer-utils.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/ai-composer-utils.tsx",
+     "sha256": "d44c79c682b292ef1063fef2f9a36f19fd201c5b36b850de2e4eb34817fa9adc",
+     "size": 6372
+    }
+   ]
+  },
+  {
+   "name": "ai-generation-canvas",
+   "type": "registry:block",
+   "description": "Prompt-to-dashboard generation with morphing input, skeleton shimmer, and card flips",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": {
+    "id": "AiGenerationCanvas",
+    "component": "AiGenerationCanvas",
+    "durationInFrames": 180,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/ai-generation-canvas/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/ai-generation-canvas/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/ai-generation-canvas/index.tsx",
+     "sha256": "785886458e62f63ddd39cb215a17095ae2f77d5b615da2bfbcf5aba105c7e2b1",
+     "size": 20936
+    }
+   ]
+  },
+  {
+   "name": "animated-bar-chart",
+   "type": "registry:block",
+   "description": "Ranked bar chart scene with a value axis",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/animated-bar-chart/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/animated-bar-chart/index.tsx",
+     "sha256": "029426a384d1b11032c15bb5c52dac13ce0bdb4f1e712478b503583a86ee9ebc",
+     "size": 13509
+    }
+   ]
+  },
+  {
+   "name": "animated-noise-grain",
+   "type": "registry:ui",
+   "description": "Film grain overlay",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/animated-noise-grain.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/animated-noise-grain.tsx",
+     "sha256": "5bfb822f80d5cca88047a4972067ebf8a617c1d5b7e5da0cbe2d48db23f18dee",
+     "size": 4978
+    }
+   ]
+  },
+  {
+   "name": "arrow-annotate",
+   "type": "registry:ui",
+   "description": "Hand-drawn arrow pointing at a target",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/arrow-annotate.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/arrow-annotate.tsx",
+     "sha256": "e37e170375b4c53f5358ccbdc15871b68943e026a56e2563c39d68dd2f3ca742",
+     "size": 6297
+    }
+   ]
+  },
+  {
+   "name": "audio-pulse",
+   "type": "registry:ui",
+   "description": "Audio-reactive pulse rings",
+   "dependencies": [
+    "remotion",
+    "@remotion/media-utils"
+   ],
+   "registryDependencies": [
+    "audio-viz-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "media",
+    "tier": "advanced",
+    "tags": [
+     "audio"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/audio-pulse.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/audio-pulse.tsx",
+     "sha256": "44a177fd90ff9a4d2c542d48551e88e5bfc53d8a1d6387624cc636baacc68f97",
+     "size": 3939
+    }
+   ]
+  },
+  {
+   "name": "audio-reactive-scale",
+   "type": "registry:ui",
+   "description": "Scales any child by per-frame audio amplitude",
+   "dependencies": [
+    "remotion",
+    "@remotion/media-utils"
+   ],
+   "registryDependencies": [
+    "audio-viz-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "media",
+    "tier": "core",
+    "tags": [
+     "audio"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/audio-reactive-scale.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/audio-reactive-scale.tsx",
+     "sha256": "804b81bbb7f69697c8760d83bdaae71aeec29f2e5cbcade53fd5366e0ab9a893",
+     "size": 3120
+    }
+   ]
+  },
+  {
+   "name": "audio-scrubber",
+   "type": "registry:ui",
+   "description": "Waveform with traveling playhead and time labels",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "audio"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/audio-scrubber.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/audio-scrubber.tsx",
+     "sha256": "d8aecd6227700a78ceeded03fa28b1c874a2177c4f5f6515f4e1c2a33f7e7d20",
+     "size": 7373
+    }
+   ]
+  },
+  {
+   "name": "audio-viz-utils",
+   "type": "registry:lib",
+   "description": "Windowed audio spectrum helpers",
+   "dependencies": [
+    "@remotion/media-utils",
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/audio-viz-utils.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/audio-viz-utils.ts",
+     "sha256": "82cef42b6b8a9d0d5f575125a5458c9ec9e6347fbbe590711f80c7accd77f9a4",
+     "size": 15857
+    }
+   ]
+  },
+  {
+   "name": "audiogram-bars",
+   "type": "registry:ui",
+   "description": "Audio-reactive spectrum bar visualization",
+   "dependencies": [
+    "remotion",
+    "@remotion/media-utils"
+   ],
+   "registryDependencies": [
+    "audio-viz-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "media",
+    "tier": "advanced",
+    "tags": [
+     "audio"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/audiogram-bars.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/audiogram-bars.tsx",
+     "sha256": "6cec59d89666da1a51ca5fcf92f14730b13194632db5707d694534ea46f31abc",
+     "size": 5622
+    }
+   ]
+  },
+  {
+   "name": "audiogram-scene",
+   "type": "registry:block",
+   "description": "Podcast audiogram layout with spectrum bars",
+   "dependencies": [
+    "remotion",
+    "@remotion/media-utils"
+   ],
+   "registryDependencies": [
+    "audiogram-bars",
+    "fade-in",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "media",
+    "tier": "advanced",
+    "tags": [
+     "audio"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/audiogram-scene/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/audiogram-scene/index.tsx",
+     "sha256": "505dd7b7ed890aa0996abb791b88b6bcedfd5d13032c8ad5f845ce6ce52d90e9",
+     "size": 3959
+    }
+   ]
+  },
+  {
+   "name": "aurora-bg",
+   "type": "registry:ui",
+   "description": "Drifting light ribbons",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/aurora-bg.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/aurora-bg.tsx",
+     "sha256": "68660cb62605437778c5a5298bd8ad49bec4214181e77441e615e6a99ed4d5aa",
+     "size": 9782
+    }
+   ]
+  },
+  {
+   "name": "auto-fit-title",
+   "type": "registry:block",
+   "description": "Headline sized to the frame it is given, then assembled word by word so any length lands the same way",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens",
+    "text-fit-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "data",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/auto-fit-title/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/auto-fit-title/index.tsx",
+     "sha256": "a7da36683042156836a77ebc2255eaff01fe3f56d2cb31cf6a3f8e50080aac77",
+     "size": 6335
+    }
+   ]
+  },
+  {
+   "name": "b-roll-stack",
+   "type": "registry:block",
+   "description": "Deck of supporting shots dealt one at a time: each rides to the front with its label while the last slides back into the stack",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts",
+    "@remotion/media"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "media-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "media",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/b-roll-stack/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/b-roll-stack/index.tsx",
+     "sha256": "c1d0cb361d6bc5e187bd75c0f1ece3ed6335dff0e9ed736892af9a91658846cd",
+     "size": 11776
+    }
+   ]
+  },
+  {
+   "name": "badge-stamp",
+   "type": "registry:ui",
+   "description": "Stamp/seal impact with rotation settle",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/badge-stamp.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/badge-stamp.tsx",
+     "sha256": "11844753121712b297f31bbbda22fd65222b6111f8bd6442a9643ae84936979e",
+     "size": 7484
+    }
+   ]
+  },
+  {
+   "name": "bar-chart-race",
+   "type": "registry:ui",
+   "description": "Ranked bars reorder over time",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/bar-chart-race.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/bar-chart-race.tsx",
+     "sha256": "bfee066a69952ae9908aeaf92935e59bb2711e522dce6cb801a488f560534710",
+     "size": 6892
+    }
+   ]
+  },
+  {
+   "name": "beat-pulse-grid",
+   "type": "registry:ui",
+   "description": "Grid cells pulsing on detected beats",
+   "dependencies": [
+    "remotion",
+    "@remotion/media-utils"
+   ],
+   "registryDependencies": [
+    "audio-viz-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "audio"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/beat-pulse-grid.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/beat-pulse-grid.tsx",
+     "sha256": "90927b86196be2ef5c7041f2b29fabbe1da8716fdd4d23133034bff7d21a2029",
+     "size": 4241
+    }
+   ]
+  },
+  {
+   "name": "bento-pan",
+   "type": "registry:block",
+   "description": "Camera pan across a bento grid of metric cards",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "timing"
+   ],
+   "composition": {
+    "id": "BentoPan",
+    "component": "BentoPan",
+    "durationInFrames": 180,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/bento-pan/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/bento-pan/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/bento-pan/index.tsx",
+     "sha256": "0ad08c129c6f7300b5cfd02c2b9d06d616c0e808190193fb8e09fa6a39db506f",
+     "size": 8372
+    }
+   ]
+  },
+  {
+   "name": "bezier-path",
+   "type": "registry:lib",
+   "description": "Paths as cubic segments: parse any SVG d, measure, slice by arc length, resample and rebuild",
+   "dependencies": [
+    "@remotion/paths"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/bezier-path.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/bezier-path.ts",
+     "sha256": "98456f4fc431f083a7104f98706f851fa6e4ec8fd80e198eac3aef68b0e201b9",
+     "size": 10417
+    }
+   ]
+  },
+  {
+   "name": "blob-morph",
+   "type": "registry:ui",
+   "description": "Organic blob continuously morphing",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "path-morph"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/blob-morph.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/blob-morph.tsx",
+     "sha256": "f2f379dd3574484d616ae7051d02519ecab83249a14b8f158a6d083d9f22c87c",
+     "size": 5557
+    }
+   ]
+  },
+  {
+   "name": "blur-focus-in",
+   "type": "registry:ui",
+   "description": "Text fades from heavy blur into sharp focus",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/blur-focus-in.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/blur-focus-in.tsx",
+     "sha256": "ab65f461eced3b3ab93a621097b5990ce93bedf1ec7e8355042ac9286765945d",
+     "size": 1352
+    }
+   ]
+  },
+  {
+   "name": "blur-in",
+   "type": "registry:ui",
+   "description": "Resolve out of a defocus — blur clears before the move lands",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "motion-wrapper"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "enter"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/blur-in.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/blur-in.tsx",
+     "sha256": "fb45f920aa3b6b73f82681a0df3b406a500b735c2cba6421931b628beb7da49c",
+     "size": 1573
+    }
+   ]
+  },
+  {
+   "name": "blur-reveal",
+   "type": "registry:ui",
+   "description": "Cut where the outgoing scene softens away and the incoming one resolves out of blur",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/blur-reveal.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/blur-reveal.tsx",
+     "sha256": "1c33c9a733d1f046b61a2eae7fde7d6ec8ea856dde7415e28b8849e1714de6b5",
+     "size": 2790
+    }
+   ]
+  },
+  {
+   "name": "browser-flow",
+   "type": "registry:block",
+   "description": "URL to browser preview flow",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "title-card",
+    "chat-to-preview",
+    "transition-fade",
+    "motion-tokens"
+   ],
+   "composition": {
+    "id": "BrowserFlow",
+    "component": "BrowserFlow",
+    "durationInFrames": 168,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/browser-flow/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/browser-flow/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/browser-flow/index.tsx",
+     "sha256": "c8e69840220d2f85143e13e99c9ac44f414f850588bbdd8206ca8c5bf5926f77",
+     "size": 2198
+    }
+   ]
+  },
+  {
+   "name": "bubble-chart-pack",
+   "type": "registry:ui",
+   "description": "Circle-packed values settling into place",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/bubble-chart-pack.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/bubble-chart-pack.tsx",
+     "sha256": "9f91a528a37fed9ba85768cc9ecd3cdf999324f752ff06733dba6c96535534ae",
+     "size": 9443
+    }
+   ]
+  },
+  {
+   "name": "calendar-month-fill",
+   "type": "registry:block",
+   "description": "Month grid populating with events",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/calendar-month-fill/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/calendar-month-fill/index.tsx",
+     "sha256": "fe9d34840a8f728f1907196917e70fe71efb30ffa6b3547dc428976cf1d684d6",
+     "size": 11064
+    }
+   ]
+  },
+  {
+   "name": "callout-spotlight",
+   "type": "registry:block",
+   "description": "Spotlight that is aimed: the mask closes from the whole frame onto the target, a ring pings it, then a connector draws out to the callout",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/callout-spotlight/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/callout-spotlight/index.tsx",
+     "sha256": "2a59c1f59d315c2ecd92efb9a8f4ffd37382e251330a8e54dc6e2a7eb278fc7b",
+     "size": 9905
+    }
+   ]
+  },
+  {
+   "name": "candlestick-chart",
+   "type": "registry:ui",
+   "description": "OHLC financial series",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/candlestick-chart.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/candlestick-chart.tsx",
+     "sha256": "11f74d433478362ed791cf742d89ab6b9681584ea46f6f0dff6ed9727f916d7a",
+     "size": 10457
+    }
+   ]
+  },
+  {
+   "name": "caption-bumper",
+   "type": "registry:block",
+   "description": "Between-beats card that punches its line in word by word, draws a rule under it, and wipes out when its hold is over",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens",
+    "text-fit-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "data",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/caption-bumper/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/caption-bumper/index.tsx",
+     "sha256": "0530669ddfca0fb316d4345791c1371b41b29f8779e3da60d668d25ac4e0f409",
+     "size": 6933
+    }
+   ]
+  },
+  {
+   "name": "caption-emoji-beat",
+   "type": "registry:ui",
+   "description": "Emoji punctuation landing on beats",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "captions",
+     "social"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/caption-emoji-beat.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/caption-emoji-beat.tsx",
+     "sha256": "a515015e43c1b7055cf7213d56ce7c1cee5add1f8e38cb0b6dd1dd55b8005c26",
+     "size": 4689
+    }
+   ]
+  },
+  {
+   "name": "caption-highlight",
+   "type": "registry:ui",
+   "description": "TikTok-style word-by-word caption highlight",
+   "dependencies": [
+    "remotion",
+    "@remotion/captions"
+   ],
+   "registryDependencies": [
+    "caption-utils",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "captions"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/caption-highlight.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/caption-highlight.tsx",
+     "sha256": "51b0f819152fb6584f94e173750be2e2b3d24a9ce7d6e2317e03c3baef4283a4",
+     "size": 4229
+    }
+   ]
+  },
+  {
+   "name": "caption-scene",
+   "type": "registry:block",
+   "description": "Lower-third TikTok-style captions synced to audio",
+   "dependencies": [
+    "remotion",
+    "@remotion/captions"
+   ],
+   "registryDependencies": [
+    "caption-highlight",
+    "caption-utils",
+    "layout",
+    "karaoke-captions",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "captions"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/caption-scene/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/caption-scene/index.tsx",
+     "sha256": "a81384de0f0dc70a9966bb1058519f964e6bdb6cb7a83bf337057d658880b685",
+     "size": 9480
+    }
+   ]
+  },
+  {
+   "name": "caption-utils",
+   "type": "registry:lib",
+   "description": "Caption page grouping and word-active helpers",
+   "dependencies": [
+    "@remotion/captions"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/caption-utils.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/caption-utils.ts",
+     "sha256": "fb6a4223f5d5b8edfeeccdccf6ff423d125d446ff8e976546f24ceac9f0edc8a",
+     "size": 8724
+    }
+   ]
+  },
+  {
+   "name": "card-stack-3d",
+   "type": "registry:block",
+   "description": "A stack of physical cards fanning out in depth, each with real thickness and an edge highlight, turning to face the camera",
+   "dependencies": [
+    "remotion",
+    "@remotion/three",
+    "three",
+    "@react-three/fiber",
+    "@react-three/drei"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "3d",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "new"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/card-stack-3d/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/card-stack-3d/index.tsx",
+     "sha256": "f3d6dee7d7e6d2b0f811d371e83f95dddd0f85ba4626b3b40c3811c4da71b516",
+     "size": 12987
+    }
+   ]
+  },
+  {
+   "name": "caustics-bg",
+   "type": "registry:ui",
+   "description": "Underwater light caustics",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/caustics-bg.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/caustics-bg.tsx",
+     "sha256": "54f5e8b2c8fc916d6f67330f4949e254bf7e96ecd0b3048ae85fd3df677d9440",
+     "size": 6546
+    }
+   ]
+  },
+  {
+   "name": "changelog-entry",
+   "type": "registry:block",
+   "description": "Version header with categorized change rows",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/changelog-entry/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/changelog-entry/index.tsx",
+     "sha256": "1a21088efc0c9d374e12d57840452d6a030445590f5a552442c7653217b7cad8",
+     "size": 9013
+    }
+   ]
+  },
+  {
+   "name": "chart-utils",
+   "type": "registry:lib",
+   "description": "Chart scaling and SVG path helpers",
+   "dependencies": [],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/chart-utils.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/chart-utils.ts",
+     "sha256": "8fac98981aeb6f27570acd15b627f90e0b2f2fbe69086d0339b553353b306e1f",
+     "size": 8044
+    }
+   ]
+  },
+  {
+   "name": "chat-gpt",
+   "type": "registry:block",
+   "description": "ChatGPT composer pill with greeting, suggestion chips, and voice-to-send morph",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "ai-composer-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ai"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/chat-gpt/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/chat-gpt/index.tsx",
+     "sha256": "5c6a9f377cb1b11b874aa337af9b1e36ab8032dace87fc2869240eb84194aa13",
+     "size": 14171
+    }
+   ]
+  },
+  {
+   "name": "chat-to-preview",
+   "type": "registry:block",
+   "description": "Prompt-to-render loop: the ask types into the composer and sends into the thread, the answer streams back, and the preview assembles from wireframe to rendered scene",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "ui"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/chat-to-preview/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/chat-to-preview/index.tsx",
+     "sha256": "7bfe95dc965cacc8953b01c9456d4f132a896025be65da65f031025aa933c98f",
+     "size": 26082
+    }
+   ]
+  },
+  {
+   "name": "chromatic-aberration-wipe",
+   "type": "registry:ui",
+   "description": "Slide that pulls the colour channels apart at its fastest point and recombines them on landing",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/chromatic-aberration-wipe.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/chromatic-aberration-wipe.tsx",
+     "sha256": "6a103bfe61a6ab42613c63df381aba025bbddae176ce4071389705ee759e42cb",
+     "size": 5080
+    }
+   ]
+  },
+  {
+   "name": "claude-chat",
+   "type": "registry:block",
+   "description": "Claude composer card with typed prompt and waveform-to-send morph",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "ai-composer-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ai"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/claude-chat/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/claude-chat/index.tsx",
+     "sha256": "283ccf4b341358659aab86cc06883f5d5a8f2787ebc6981dfc4673a81e94d6aa",
+     "size": 11519
+    }
+   ]
+  },
+  {
+   "name": "claude-code",
+   "type": "registry:block",
+   "description": "Claude Code terminal welcome screen with CLI prompt typing",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "ai-composer-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ai"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/claude-code/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/claude-code/index.tsx",
+     "sha256": "a422f80619a975d508c8e7ac84a2f29a316db774b11789ca1e17b2f5e378234f",
+     "size": 10152
+    }
+   ]
+  },
+  {
+   "name": "code-accordion",
+   "type": "registry:block",
+   "description": "Stepped walkthrough where each section opens, writes its code, is checked off, and closes behind the next",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "ai-composer-utils",
+    "code-syntax",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "code"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/code-accordion/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/code-accordion/index.tsx",
+     "sha256": "385eca97c5e6b02e39ded3a439fb4f7f9d3bf49190069110f8214c673f465242",
+     "size": 14459
+    }
+   ]
+  },
+  {
+   "name": "code-diff-wipe",
+   "type": "registry:block",
+   "description": "Diff patch landing line by line: an apply front travels the file, removals collapse, additions open and write in",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "ai-composer-utils",
+    "code-syntax",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "code"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/code-diff-wipe/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/code-diff-wipe/index.tsx",
+     "sha256": "3ecce6c4721754feee76217ced5621bb4566687061898b68d20e7bebf80da709",
+     "size": 14925
+    }
+   ]
+  },
+  {
+   "name": "code-reveal",
+   "type": "registry:block",
+   "description": "Editor window that writes a syntax-highlighted file character by character, then focuses the lines that matter",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "ai-composer-utils",
+    "code-syntax",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "code"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/code-reveal/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/code-reveal/index.tsx",
+     "sha256": "7bdae8fa9dcca30db357f980790efb4443db7657730694ee532362f66f1763ea",
+     "size": 16247
+    }
+   ]
+  },
+  {
+   "name": "code-syntax",
+   "type": "registry:lib",
+   "description": "Syntax tokenizer, editor palettes, and revealable code line renderer for the code scenes",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/code-syntax.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/code-syntax.tsx",
+     "sha256": "78b8e973d606d0c147d13ac432c66fddb73720c029f101eab6210923c2c52ca8",
+     "size": 7487
+    }
+   ]
+  },
+  {
+   "name": "comment-callout",
+   "type": "registry:block",
+   "description": "Viewer comment answered on screen: it lands from the feed, the ask is marked up, the creator hearts it, and the reply is typed and sent",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "ai-composer-utils",
+    "code-syntax",
+    "motion-tokens",
+    "text-emphasis"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "creator",
+     "social"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/comment-callout/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/comment-callout/index.tsx",
+     "sha256": "7daa9702302bfabd2750fe98db6ccac0537c59347c5697f30c0f8c991317e9dc",
+     "size": 16142
+    }
+   ]
+  },
+  {
+   "name": "commit-graph",
+   "type": "registry:block",
+   "description": "Branch/merge graph drawing itself",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "code"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/commit-graph/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/commit-graph/index.tsx",
+     "sha256": "bec57c21f5dacefd9f46a6c0c506c31c52bcfe35d9c9ab215cba5c91e5719d59",
+     "size": 12658
+    }
+   ]
+  },
+  {
+   "name": "comparison-bars",
+   "type": "registry:ui",
+   "description": "Two-series before/after with delta callout",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/comparison-bars.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/comparison-bars.tsx",
+     "sha256": "b260aa850ed7cff911305fe7e075ee542e47a003353d823576ef9d03293f1ba6",
+     "size": 8122
+    }
+   ]
+  },
+  {
+   "name": "comparison-table",
+   "type": "registry:block",
+   "description": "Multi-column feature matrix",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/comparison-table/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/comparison-table/index.tsx",
+     "sha256": "2bd3129172e98e3a45f04632871860b180e84f13b54d97c3b72f38c29b3aaad8",
+     "size": 11689
+    }
+   ]
+  },
+  {
+   "name": "confetti-burst",
+   "type": "registry:ui",
+   "description": "Frame-driven confetti burst overlay",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/confetti-burst.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/confetti-burst.tsx",
+     "sha256": "3214a49cf17645aca767ee4a44f9446174cbc49f920a85abae29b209434a22c4",
+     "size": 4869
+    }
+   ]
+  },
+  {
+   "name": "connector-lines",
+   "type": "registry:ui",
+   "description": "Narrowed: primitive that draws edges between anchored elements",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/connector-lines.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/connector-lines.tsx",
+     "sha256": "6d6d300dbbde4aa2f3c00937487bb9e2593eb0f30078f17a2b28cd14cd740a5e",
+     "size": 7315
+    }
+   ]
+  },
+  {
+   "name": "countdown-timer",
+   "type": "registry:block",
+   "description": "Numeric or ring countdown to zero",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "creator"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/countdown-timer/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/countdown-timer/index.tsx",
+     "sha256": "fd506abe5e636e023868acb92ea2fa23a1b9f395defa1d0c24606e22fb39cab2",
+     "size": 6474
+    }
+   ]
+  },
+  {
+   "name": "counter",
+   "type": "registry:ui",
+   "description": "Animated number with grouping, decimals, odometer digit roll and a reserved width",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "timing",
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/counter.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/counter.tsx",
+     "sha256": "75a61b8ad5d0594fcda6901e703518aea3d24a90568043bd9f66bfaf8cd21b46",
+     "size": 12865
+    }
+   ]
+  },
+  {
+   "name": "creator-reel",
+   "type": "registry:block",
+   "description": "Vertical creator media composition template",
+   "dependencies": [
+    "remotion",
+    "@remotion/captions",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "auto-fit-title",
+    "talking-head-layout",
+    "comment-callout",
+    "caption-scene",
+    "b-roll-stack",
+    "end-card",
+    "transition-fade",
+    "motion-tokens",
+    "sample-media"
+   ],
+   "composition": {
+    "id": "CreatorReel",
+    "component": "CreatorReel",
+    "durationInFrames": 390,
+    "fps": 30,
+    "width": 1080,
+    "height": 1920,
+    "importPath": "@/compositions/creator-reel/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "media",
+    "tier": "advanced",
+    "tags": [
+     "creator",
+     "social"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/compositions/creator-reel/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/creator-reel/index.tsx",
+     "sha256": "778268b1badc6d837dc4a7f4c34e83574e47c686da810b30da03734881c7aae7",
+     "size": 5382
+    }
+   ]
+  },
+  {
+   "name": "cursor-path",
+   "type": "registry:ui",
+   "description": "Cursor travelling a path with drawn trail and click ripples",
+   "dependencies": [
+    "remotion",
+    "@remotion/paths"
+   ],
+   "registryDependencies": [
+    "path-utils",
+    "motion-tokens",
+    "springs"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/cursor-path.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/cursor-path.tsx",
+     "sha256": "78783c00618c4d491aa29878683ade320d076904cb37984e3173f0354d2c5f4a",
+     "size": 4412
+    }
+   ]
+  },
+  {
+   "name": "curve-fit",
+   "type": "registry:lib",
+   "description": "Fit cubic béziers through a polyline (Schneider) with corner detection, so dense-point operators emit real curves",
+   "dependencies": [],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/curve-fit.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/curve-fit.ts",
+     "sha256": "34ce176af19927e56b3cdb0b0d09885fcad963b98b7d973c5bb8d4c75280d5e7",
+     "size": 7260
+    }
+   ]
+  },
+  {
+   "name": "dashboard-populate",
+   "type": "registry:block",
+   "description": "Dashboard metrics populate",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "metric-ticker",
+    "animated-bar-chart",
+    "chart-utils",
+    "motion-tokens",
+    "directional-wipe"
+   ],
+   "composition": {
+    "id": "DashboardPopulate",
+    "component": "DashboardPopulate",
+    "durationInFrames": 168,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/dashboard-populate/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "data",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/dashboard-populate/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/dashboard-populate/index.tsx",
+     "sha256": "38307593f105b87ed6c1cf5b92d59a371edc32fe7f5ab316f58ad128bf1f1ce7",
+     "size": 2711
+    }
+   ]
+  },
+  {
+   "name": "dashed-path-travel",
+   "type": "registry:ui",
+   "description": "Narrowed: any element traveling any path with a dashed trail",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens",
+    "path-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/dashed-path-travel.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/dashed-path-travel.tsx",
+     "sha256": "32d34702aab177e65ec19194ed8172c6b50bab2560d95cadc39dbe9f258d59c2",
+     "size": 5373
+    }
+   ]
+  },
+  {
+   "name": "data-flow-pipes",
+   "type": "registry:block",
+   "description": "Pipeline running end to end: stages come up in order, pipes draw between them, and a stream of payloads hops through, lighting each stage and ticking its tally",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens",
+    "path-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "data"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/data-flow-pipes/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/data-flow-pipes/index.tsx",
+     "sha256": "f4ecec49440a8a2d748abd22b060d9f2e1f78ee5b5885e9f4ec5b005b9afa2ad",
+     "size": 14729
+    }
+   ]
+  },
+  {
+   "name": "data-story",
+   "type": "registry:block",
+   "description": "Data storytelling composition template",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions",
+    "@remotion/layout-utils"
+   ],
+   "registryDependencies": [
+    "auto-fit-title",
+    "animated-bar-chart",
+    "metric-ticker",
+    "timeline-steps",
+    "caption-bumper",
+    "end-card",
+    "transition-fade",
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": {
+    "id": "DataStory",
+    "component": "DataStory",
+    "durationInFrames": 420,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/data-story/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "data",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/data-story/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/data-story/index.tsx",
+     "sha256": "225695a6f25878081b8a415acd8df5a6b6fe120f397cfc934c69cbef2830e070",
+     "size": 4897
+    }
+   ]
+  },
+  {
+   "name": "deploy-reveal",
+   "type": "registry:block",
+   "description": "Terminal deploy to browser",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "terminal-simulator",
+    "device-mockup-zoom",
+    "transition-fade",
+    "motion-tokens",
+    "layout"
+   ],
+   "composition": {
+    "id": "DeployReveal",
+    "component": "DeployReveal",
+    "durationInFrames": 168,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/deploy-reveal/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/deploy-reveal/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/deploy-reveal/index.tsx",
+     "sha256": "2ba3308c38b07d232b1a240aeddd76ec9e4e8d6ab139ee2400a1fc0031b82612",
+     "size": 7790
+    }
+   ]
+  },
+  {
+   "name": "depth-of-field-blur",
+   "type": "registry:ui",
+   "description": "Rack focus between layers",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/depth-of-field-blur.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/depth-of-field-blur.tsx",
+     "sha256": "78b091c96250d8785e09af427aedaa81bd9ecaf8d5f1ba4c87875fb263731a41",
+     "size": 3726
+    }
+   ]
+  },
+  {
+   "name": "device-mockup-3d",
+   "type": "registry:block",
+   "description": "Laptop product shot in real 3D: lid opens, then a turn and push-in over a lit floor",
+   "dependencies": [
+    "remotion",
+    "@remotion/three",
+    "three",
+    "@react-three/fiber",
+    "@react-three/drei"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "3d",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "device",
+     "new"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/device-mockup-3d/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/device-mockup-3d/index.tsx",
+     "sha256": "31b2d66e0c46ae21a8e7ac3ed271b2dc28b31ed0fc8cc001e4f60fefd3dd0696",
+     "size": 18256
+    }
+   ]
+  },
+  {
+   "name": "device-mockup-zoom",
+   "type": "registry:block",
+   "description": "Cinematic laptop, phone, or browser mockup with staged UI and slow camera pullback",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "layout",
+    "motion-tokens",
+    "springs"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "spatial",
+    "drive": "spatial",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/device-mockup-zoom/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/device-mockup-zoom/index.tsx",
+     "sha256": "608c4dbbe28839c8a793e0e7ff0e20409b28fe70aca85989669e011d2bae9537",
+     "size": 26934
+    }
+   ]
+  },
+  {
+   "name": "directional-wipe",
+   "type": "registry:ui",
+   "description": "Soft-edged wipe that uncovers the next scene without exposing the background",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/directional-wipe.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/directional-wipe.tsx",
+     "sha256": "bbfe4dc1c33597f0a41a75f3f1cb2c1a01b33516f13697e8b0d2da2abad5548b",
+     "size": 4036
+    }
+   ]
+  },
+  {
+   "name": "displacement-presentation",
+   "type": "registry:lib",
+   "description": "Shared TransitionSeries presentation for warp and shape-mask cuts",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "displacement-transition",
+    "path-morph",
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/displacement-presentation.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/displacement-presentation.tsx",
+     "sha256": "755e8f46549acff0d47a914c6347577d2a9506163df8dcca90ec096eb1bf7528",
+     "size": 7744
+    }
+   ]
+  },
+  {
+   "name": "displacement-transition",
+   "type": "registry:lib",
+   "description": "Frame maths for displacement-map and shape-mask transitions",
+   "dependencies": [],
+   "registryDependencies": [
+    "path-morph"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/displacement-transition.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/displacement-transition.ts",
+     "sha256": "333c5a6f224f046c1a292b0f1f39860537ef8d8e7da151643a4ac123fe65e768",
+     "size": 9918
+    }
+   ]
+  },
+  {
+   "name": "dither-field-bg",
+   "type": "registry:ui",
+   "description": "Two-colour ordered-dither field quantised to a pixel grid",
+   "dependencies": [
+    "remotion",
+    "@paper-design/shaders-react"
+   ],
+   "registryDependencies": [
+    "paper-shader"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "shaders",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/dither-field-bg.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/dither-field-bg.tsx",
+     "sha256": "8b7525e5020a1eefa426a0751af41f02a28f483150f57ef8937bb63fb3298d25",
+     "size": 2682
+    }
+   ]
+  },
+  {
+   "name": "donut-chart",
+   "type": "registry:ui",
+   "description": "Multi-segment donut with labels",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/donut-chart.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/donut-chart.tsx",
+     "sha256": "5d6dbe3d1cbede89f7c10072e6edbbaaa472b304fc46c19d73f40bded06fc081",
+     "size": 8239
+    }
+   ]
+  },
+  {
+   "name": "drag-drop-flow",
+   "type": "registry:block",
+   "description": "Cursor drags a file out of a media library into a drop zone that arms, catches it, and uploads it to completion",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens",
+    "path-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ui"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/drag-drop-flow/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/drag-drop-flow/index.tsx",
+     "sha256": "bb9e41032552768e87d876a88c515f54144199814d977f5f35d818b4ff404193",
+     "size": 20465
+    }
+   ]
+  },
+  {
+   "name": "dynamic-grid",
+   "type": "registry:ui",
+   "description": "Subtle drifting dot and line grid background",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/dynamic-grid.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/dynamic-grid.tsx",
+     "sha256": "acaf382a1d76090d82be0ce702e32cccefcde80501004ef501e778cbe88702af",
+     "size": 2575
+    }
+   ]
+  },
+  {
+   "name": "ecosystem-orbit",
+   "type": "registry:block",
+   "description": "Logo with orbiting satellites",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "timing",
+    "motion-tokens"
+   ],
+   "composition": {
+    "id": "EcosystemOrbit",
+    "component": "EcosystemOrbit",
+    "durationInFrames": 180,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/ecosystem-orbit/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/ecosystem-orbit/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/ecosystem-orbit/index.tsx",
+     "sha256": "a5d11bf0a36ce5c4daa61b0c975759fd140639052bf2038ceb85ba9cf69d7d93",
+     "size": 9304
+    }
+   ]
+  },
+  {
+   "name": "effector-field",
+   "type": "registry:ui",
+   "description": "Cinema 4D MoGraph cloner and effectors: clone any element into a grid, radial or linear arrangement and let animatable spherical, linear or noise falloff fields drive each clone",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "ae-motion",
+    "mograph"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "motion",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "mograph"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/effector-field.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/effector-field.tsx",
+     "sha256": "07ce2dad36dc7d8edd905ef21b0b2ecafa1d36fa48a01e20eede62e74df98d5e",
+     "size": 9040
+    }
+   ]
+  },
+  {
+   "name": "end-card",
+   "type": "registry:block",
+   "description": "Outro built in the order a viewer acts on it: title, button assembling under its label, address typing, channels, one pulse",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/end-card/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/end-card/index.tsx",
+     "sha256": "24bc403ac4b019d3267fbe5a7135e247200d112dc9779ecd0cbd41b1467dfd55",
+     "size": 10994
+    }
+   ]
+  },
+  {
+   "name": "fade-in",
+   "type": "registry:ui",
+   "description": "Opacity-only entrance, with an exit that lands on the end of its sequence",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "motion-wrapper"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "enter"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/fade-in.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/fade-in.tsx",
+     "sha256": "2054c9e85af61b58e993e3a1fd864e6512aacad46387338e889c5d6dd8dc6e38",
+     "size": 1110
+    }
+   ]
+  },
+  {
+   "name": "fade-out",
+   "type": "registry:ui",
+   "description": "Held exit that accelerates away, timed to the last frame of its sequence by default",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-wrapper",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "exit"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/fade-out.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/fade-out.tsx",
+     "sha256": "05bc43c9e8c662b1d363684858665442e4e95ceae3504ff739abfa4a0f6b9412",
+     "size": 1642
+    }
+   ]
+  },
+  {
+   "name": "faq-accordion",
+   "type": "registry:block",
+   "description": "Narrowed: Q/A text rows expanding",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ui"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/faq-accordion/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/faq-accordion/index.tsx",
+     "sha256": "8194e1e08648d6c5710aa3c25ca8194fbaf4c4ecf6d4f7e7e9922a838f61d17f",
+     "size": 10331
+    }
+   ]
+  },
+  {
+   "name": "feature-list",
+   "type": "registry:block",
+   "description": "List being ticked off: each row arrives in turn, its rule draws across, and its check strokes in behind it",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/feature-list/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/feature-list/index.tsx",
+     "sha256": "2e7f2284013893a70225988d8c57b0afae19695c2b61015e80bca1010ed2d518",
+     "size": 8871
+    }
+   ]
+  },
+  {
+   "name": "file-tree-reveal",
+   "type": "registry:block",
+   "description": "Directory tree expanding node by node",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "code"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/file-tree-reveal/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/file-tree-reveal/index.tsx",
+     "sha256": "ba96759a159af15aaa0bedf8cfcec7ced5a85192bec53168bf16886eb51bb0be",
+     "size": 13426
+    }
+   ]
+  },
+  {
+   "name": "follow-through",
+   "type": "registry:ui",
+   "description": "Overlapping action along a chain: every element follows one leader track with its own delay, drag, overshoot and settle",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "ae-motion",
+    "bezier-path",
+    "follow"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "motion",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "secondary-motion"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/follow-through.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/follow-through.tsx",
+     "sha256": "4f87db3e0bfd39b236013b996b99d9253ff3f31dd56b7ce4b989f5bd0fc3859b",
+     "size": 4204
+    }
+   ]
+  },
+  {
+   "name": "follow",
+   "type": "registry:lib",
+   "description": "Overlapping action: a chain of damped springs following a leader track, simulated deterministically from frame 0 and memoised",
+   "dependencies": [],
+   "registryDependencies": [
+    "ae-motion"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/follow.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/follow.ts",
+     "sha256": "3563f6b6b24b84188244986d48471c99d22aa50661b5872ce4ff87c7b39b4d88",
+     "size": 6571
+    }
+   ]
+  },
+  {
+   "name": "form-fill-sequence",
+   "type": "registry:block",
+   "description": "Fields typing and validating in order",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ui"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/form-fill-sequence/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/form-fill-sequence/index.tsx",
+     "sha256": "f34d53c90155c28839eda4e7d13937aa0b17221edb0a42090a93dc6861d85c27",
+     "size": 13356
+    }
+   ]
+  },
+  {
+   "name": "frosted-glass-wipe",
+   "type": "registry:ui",
+   "description": "A pane of frosted glass crosses the frame and leaves the next scene behind it",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/frosted-glass-wipe.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/frosted-glass-wipe.tsx",
+     "sha256": "69fe204239c75c0ba6b3871ff062b82b345aee64778b0f061b13c52d9c4f6b42",
+     "size": 5165
+    }
+   ]
+  },
+  {
+   "name": "funnel-chart",
+   "type": "registry:ui",
+   "description": "Stage bars narrowing with drop-off percentages",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/funnel-chart.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/funnel-chart.tsx",
+     "sha256": "247cc8edfce889fd898bf57b713759198f98f06ae9ec1b6911e07d08f871c71c",
+     "size": 8232
+    }
+   ]
+  },
+  {
+   "name": "gantt-timeline",
+   "type": "registry:ui",
+   "description": "Date-scaled schedule bars",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/gantt-timeline.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/gantt-timeline.tsx",
+     "sha256": "6918653acb343b0ba108068626ebad5835aae374b610a3a31a7259472c45c2c9",
+     "size": 8485
+    }
+   ]
+  },
+  {
+   "name": "gauge-dial",
+   "type": "registry:ui",
+   "description": "Needle sweeps to target",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "charts",
+     "metrics"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/gauge-dial.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/gauge-dial.tsx",
+     "sha256": "e6201e3263cf7f05d55ce90df6ea17a3301a8c49d3f09915ba40e33aae5a32eb",
+     "size": 7317
+    }
+   ]
+  },
+  {
+   "name": "globe-arc",
+   "type": "registry:ui",
+   "description": "Arcs between points on a globe",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "spatial",
+    "drive": "spatial",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/globe-arc.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/globe-arc.tsx",
+     "sha256": "15c40d83a7b52b92e942856977f311f545681b1614af3812a8bd639527fe981a",
+     "size": 9592
+    }
+   ]
+  },
+  {
+   "name": "globe-points-3d",
+   "type": "registry:block",
+   "description": "Lit sphere with instanced city markers and arcs rising between them, turning slowly under a rim light",
+   "dependencies": [
+    "remotion",
+    "@remotion/three",
+    "three",
+    "@react-three/fiber",
+    "@react-three/drei"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "3d",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "new"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/globe-points-3d/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/globe-points-3d/index.tsx",
+     "sha256": "15324653c4c03ae90374f97985014b8bf9a210c4c4c6e3dd3740c49d60ea6c70",
+     "size": 31966
+    }
+   ]
+  },
+  {
+   "name": "glow-pulse",
+   "type": "registry:ui",
+   "description": "Rhythmic glow for CTAs and live indicators",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/glow-pulse.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/glow-pulse.tsx",
+     "sha256": "3b9b598b1ffef36328f18d25a9330f705e49132acec6e04a332e139995713aec",
+     "size": 3847
+    }
+   ]
+  },
+  {
+   "name": "glyph-layout",
+   "type": "registry:lib",
+   "description": "Measured per-glyph layout with kerning-preserving prefixes, word-safe wrapping and fit-to-width",
+   "dependencies": [],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/glyph-layout.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/glyph-layout.ts",
+     "sha256": "63ace4d898e55c0bb4cfd23960e681f47e1f8c9fe467e5f35d02a43a971d403a",
+     "size": 7433
+    }
+   ]
+  },
+  {
+   "name": "gpu",
+   "type": "registry:lib",
+   "description": "WebGL2 fragment-shader effect factory for GPU primitives",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/gpu.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/gpu.ts",
+     "sha256": "f91f234e540953d33daaabeee3196ec805c44362bfae99ea45200ac33a79eb9d",
+     "size": 7345
+    }
+   ]
+  },
+  {
+   "name": "grain-gradient-bg",
+   "type": "registry:ui",
+   "description": "Multi-colour gradient with grain worked through it",
+   "dependencies": [
+    "remotion",
+    "@paper-design/shaders-react"
+   ],
+   "registryDependencies": [
+    "paper-shader"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "shaders",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/grain-gradient-bg.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/grain-gradient-bg.tsx",
+     "sha256": "505f53a89f2c95ed999f6330c320689bd2f31675e414b2e254179fe81f5b227c",
+     "size": 2303
+    }
+   ]
+  },
+  {
+   "name": "grid-pixelate-wipe",
+   "type": "registry:ui",
+   "description": "Reveal where the next scene arrives one grid cell at a time",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/grid-pixelate-wipe.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/grid-pixelate-wipe.tsx",
+     "sha256": "4ed9ae28474b7bad05de425446bc197e9546c7aa2da5943426bab75b3fc45d3c",
+     "size": 5863
+    }
+   ]
+  },
+  {
+   "name": "handwriting-text",
+   "type": "registry:ui",
+   "description": "Takes a string and strokes it on",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "split-text-chars",
+    "text-split"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/handwriting-text.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/handwriting-text.tsx",
+     "sha256": "e3083b63f764daf0aba3f47504faa68113e74a6277d75ede461ae5cf681189c1",
+     "size": 4344
+    }
+   ]
+  },
+  {
+   "name": "heatmap-grid",
+   "type": "registry:ui",
+   "description": "Cell grid filling by intensity, contribution-graph style",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/heatmap-grid.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/heatmap-grid.tsx",
+     "sha256": "695b0e66c3ef69bb14954c5692c7fc383a30f4828ef27cc1e9cde86ded4cbc9e",
+     "size": 6867
+    }
+   ]
+  },
+  {
+   "name": "hero-device-assemble",
+   "type": "registry:block",
+   "description": "Device layers assemble hero",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "title-card",
+    "device-mockup-zoom",
+    "multi-device-lineup",
+    "transition-fade",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": {
+    "id": "HeroDeviceAssemble",
+    "component": "HeroDeviceAssemble",
+    "durationInFrames": 180,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/hero-device-assemble/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/hero-device-assemble/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/hero-device-assemble/index.tsx",
+     "sha256": "45c279d0d7003ac90d25a03a82550155b160bcbdbd13642bd9e476930531f392",
+     "size": 13358
+    }
+   ]
+  },
+  {
+   "name": "hero-loop",
+   "type": "registry:block",
+   "description": "12-second seamless brand ident: the RemotionUI logo animated from its own parts over the site's phosphor light, with a transparent variant",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "gpu"
+   ],
+   "composition": {
+    "id": "HeroLoop",
+    "component": "HeroLoop",
+    "durationInFrames": 360,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/hero-loop/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "hero",
+     "website"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/compositions/hero-loop/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/hero-loop/index.tsx",
+     "sha256": "daa90309d9c3cd768a0a512ffaa1522b8785b6f7c657332f9c85dbe34d3f0556",
+     "size": 20877
+    }
+   ]
+  },
+  {
+   "name": "hook-card",
+   "type": "registry:block",
+   "description": "Short-form opener where the hook rises line by line out of its mask and an underline draws under the promise",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens",
+    "text-emphasis"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "creator"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/hook-card/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/hook-card/index.tsx",
+     "sha256": "0b92d8485b2d02d44e11b22ac8ae2bf6d9a02dd2e8f855682c5e72e96652249b",
+     "size": 13057
+    }
+   ]
+  },
+  {
+   "name": "ik-rig",
+   "type": "registry:ui",
+   "description": "A lit, shadowed two-bone IK arm that reaches for any target or plots SVG strokes with a pen, laying ink exactly where the solved hand is; soft IK, fixed bend, animatable base",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "ae-motion",
+    "rig",
+    "pen-plot"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "motion",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "rigging",
+     "plotter"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/ik-rig.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/ik-rig.tsx",
+     "sha256": "8ef762f792adf86e17eeabe59cba584287734967e9d4b34abb5e7aed25d8a028",
+     "size": 16990
+    }
+   ]
+  },
+  {
+   "name": "image-expand",
+   "type": "registry:block",
+   "description": "A still opens from a card to full frame, then takes its caption",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "timing"
+   ],
+   "composition": {
+    "id": "ImageExpand",
+    "component": "ImageExpand",
+    "durationInFrames": 120,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/image-expand/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "media",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/image-expand/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/image-expand/index.tsx",
+     "sha256": "5b0408b9dbc1f5760be5d0dfbca1b57a3b7e1718277c31659a3f4c611d2243ca",
+     "size": 6849
+    }
+   ]
+  },
+  {
+   "name": "infinite-marquee",
+   "type": "registry:ui",
+   "description": "Endlessly scrolling horizontal text band",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/infinite-marquee.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/infinite-marquee.tsx",
+     "sha256": "471a248e1541da0510e15365db8faf0a7deab83ecb5fa0d064484a34f05de508",
+     "size": 4902
+    }
+   ]
+  },
+  {
+   "name": "intro",
+   "type": "registry:block",
+   "description": "5-second branded intro: chapter marker, headline, topic rail",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "title-card",
+    "fade-out",
+    "motion-tokens"
+   ],
+   "composition": {
+    "id": "Intro",
+    "component": "Intro",
+    "durationInFrames": 150,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/intro/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/compositions/intro/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/intro/index.tsx",
+     "sha256": "25b76cc7e9c1bd1f42c261a3ea07dfead784e8f4c83c2b4e9626e62851906df0",
+     "size": 4650
+    }
+   ]
+  },
+  {
+   "name": "kanban-move",
+   "type": "registry:block",
+   "description": "Cards moving across columns",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ui"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/kanban-move/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/kanban-move/index.tsx",
+     "sha256": "618cd7dc205c3e8eb445f5b02e9de985426b965698054b0930f47704297ba044",
+     "size": 14423
+    }
+   ]
+  },
+  {
+   "name": "karaoke-captions",
+   "type": "registry:ui",
+   "description": "Active-word karaoke caption styling",
+   "dependencies": [
+    "remotion",
+    "@remotion/captions"
+   ],
+   "registryDependencies": [
+    "caption-utils",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "captions"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/karaoke-captions.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/karaoke-captions.tsx",
+     "sha256": "8ab465f81c007dad8e5eaf6fdc19cfe8b16cd522c55fb0e5b52281668550af06",
+     "size": 5620
+    }
+   ]
+  },
+  {
+   "name": "landing-code-showcase",
+   "type": "registry:block",
+   "description": "Landing with install commands",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "title-card",
+    "code-reveal",
+    "motion-tokens",
+    "transition-fade"
+   ],
+   "composition": {
+    "id": "LandingCodeShowcase",
+    "component": "LandingCodeShowcase",
+    "durationInFrames": 180,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/landing-code-showcase/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/landing-code-showcase/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/landing-code-showcase/index.tsx",
+     "sha256": "1eb834ea15f8010c9301ed8fb25e2ff70ccc0caefa0a049a80d16f9b1afcdc7f",
+     "size": 1217
+    }
+   ]
+  },
+  {
+   "name": "layout",
+   "type": "registry:lib",
+   "description": "Format-agnostic layout helpers",
+   "dependencies": [],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/layout.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/layout.ts",
+     "sha256": "344c03c20506938f69d914e76e177e439066f73c6342c35d0b844c5b4406baae",
+     "size": 2598
+    }
+   ]
+  },
+  {
+   "name": "light-rays",
+   "type": "registry:ui",
+   "description": "Volumetric god rays drifting across the stage",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "gpu"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/light-rays.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/light-rays.tsx",
+     "sha256": "d09878264cc0dc63a519b38d02edce54d575f5fe024e9649fb2a75a93b3e3444",
+     "size": 11642
+    }
+   ]
+  },
+  {
+   "name": "light-sweep-text",
+   "type": "registry:ui",
+   "description": "Light gradient sweeps across dim text",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/light-sweep-text.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/light-sweep-text.tsx",
+     "sha256": "6277358e71ff627df2936785850b305a74f03a078ca9f6a0ad493327c21ef663",
+     "size": 2244
+    }
+   ]
+  },
+  {
+   "name": "light-tunnel-bg",
+   "type": "registry:ui",
+   "description": "Flight down a twisting barrel of light with a defocused vanishing point",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "gpu"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "shaders",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/light-tunnel-bg.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/light-tunnel-bg.tsx",
+     "sha256": "1a9fd5dee87515dba23d3977e10dcade1165ad3af0859563e5c812d4d3c8cc92",
+     "size": 10485
+    }
+   ]
+  },
+  {
+   "name": "line-chart-draw",
+   "type": "registry:ui",
+   "description": "SVG line chart that draws itself on",
+   "dependencies": [
+    "remotion",
+    "@remotion/paths"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "path-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/line-chart-draw.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/line-chart-draw.tsx",
+     "sha256": "038ec7e797309ac40bb22bf4d11762071db80fb5a0156f6c2588463a269af945",
+     "size": 9927
+    }
+   ]
+  },
+  {
+   "name": "liquid-text-morph",
+   "type": "registry:ui",
+   "description": "Letterforms morphing between two words",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "split-text-chars",
+    "text-split",
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/liquid-text-morph.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/liquid-text-morph.tsx",
+     "sha256": "4e7342a0b54e2b682e918059eeb25af853fec3a92f2000da38005a40947cb77d",
+     "size": 6346
+    }
+   ]
+  },
+  {
+   "name": "live-code-split",
+   "type": "registry:block",
+   "description": "Editor on the left, its rendered output live on the right",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-reveal",
+    "title-card",
+    "motion-tokens"
+   ],
+   "composition": {
+    "id": "LiveCodeSplit",
+    "component": "LiveCodeSplit",
+    "durationInFrames": 168,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/live-code-split/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/live-code-split/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/live-code-split/index.tsx",
+     "sha256": "076df2d7f57c5ea4b0a2d4c9923dce1564f0f2d1343d30ba6eaa8d8fe036fc79",
+     "size": 10147
+    }
+   ]
+  },
+  {
+   "name": "logo-reveal",
+   "type": "registry:block",
+   "description": "Logo mark draw-on with wordmark and tagline beats",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "path-draw",
+    "layout",
+    "motion-tokens",
+    "springs"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/logo-reveal/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/logo-reveal/index.tsx",
+     "sha256": "e5fed7938ea7ee856557c1c3d2400d1efe7c275dd7c1cdad39fdc0c744264862",
+     "size": 6266
+    }
+   ]
+  },
+  {
+   "name": "logo-wall",
+   "type": "registry:block",
+   "description": "Client logo grid, grayscale to color",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/logo-wall/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/logo-wall/index.tsx",
+     "sha256": "daebef6a1f52d41a769c288b288ec94ad0e40ad9c9b4bbb1eb1503be8b9f5bbb",
+     "size": 8896
+    }
+   ]
+  },
+  {
+   "name": "lower-third",
+   "type": "registry:block",
+   "description": "Name plate that plays its whole life: wipes out from the frame edge, settles, holds, then retreats the way it came",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/lower-third/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/lower-third/index.tsx",
+     "sha256": "892f0d4445de2b59a66bcc0d93d8bbb3005815ad73f07d179091f8aef25344ce",
+     "size": 6940
+    }
+   ]
+  },
+  {
+   "name": "map-canvas",
+   "type": "registry:ui",
+   "description": "Deterministic MapLibre map mount",
+   "dependencies": [
+    "remotion",
+    "maplibre-gl"
+   ],
+   "registryDependencies": [
+    "map-utils",
+    "motion-tokens",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "spatial",
+    "drive": "spatial",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/map-canvas.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/map-canvas.tsx",
+     "sha256": "904983637c9106a87ffdebbd88b32b61b69483a68817b47764b65ec1505b2d67",
+     "size": 4127
+    }
+   ]
+  },
+  {
+   "name": "map-flight",
+   "type": "registry:block",
+   "description": "Animated map flyover with route reveal and markers",
+   "dependencies": [
+    "remotion",
+    "maplibre-gl",
+    "@turf/turf"
+   ],
+   "registryDependencies": [
+    "map-route",
+    "map-markers",
+    "map-utils",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "spatial",
+    "drive": "spatial",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/map-flight/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/map-flight/index.tsx",
+     "sha256": "c7fb9b4f78ab33dd0210186428dfd6c902a0d6cb86306e2f0ccb005748c1cfa4",
+     "size": 6484
+    }
+   ]
+  },
+  {
+   "name": "map-heat-overlay",
+   "type": "registry:ui",
+   "description": "Density overlay fading in over the basemap",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "map-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "spatial",
+    "drive": "spatial",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/map-heat-overlay.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/map-heat-overlay.tsx",
+     "sha256": "3bed0fc19e3d2de8026375615db77a1177cf2ed8aef348f3eda4e92a60b64f72",
+     "size": 5847
+    }
+   ]
+  },
+  {
+   "name": "map-markers",
+   "type": "registry:ui",
+   "description": "GeoJSON circle and label markers on a map",
+   "dependencies": [
+    "remotion",
+    "maplibre-gl"
+   ],
+   "registryDependencies": [
+    "map-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "spatial",
+    "drive": "spatial",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/map-markers.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/map-markers.tsx",
+     "sha256": "e7e2df7c5bf85b41b6682263b1c7c354202308eed34000f3b23ce75e4a68cd6b",
+     "size": 5245
+    }
+   ]
+  },
+  {
+   "name": "map-route",
+   "type": "registry:ui",
+   "description": "Animated GeoJSON route line on a map",
+   "dependencies": [
+    "remotion",
+    "maplibre-gl",
+    "@turf/turf"
+   ],
+   "registryDependencies": [
+    "map-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "spatial",
+    "drive": "spatial",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/map-route.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/map-route.tsx",
+     "sha256": "1002b8a8e843255fcd2a626c98bea6bdef16a373499d73a06fd76663e675cc8a",
+     "size": 5897
+    }
+   ]
+  },
+  {
+   "name": "map-utils",
+   "type": "registry:lib",
+   "description": "MapLibre and Turf geospatial helpers",
+   "dependencies": [
+    "maplibre-gl",
+    "@turf/turf"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/map-utils.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/map-utils.ts",
+     "sha256": "7cec40e6e668e5af21db7263067eb897e85ed2635dd2f9c3ce78dd7c15a2daa5",
+     "size": 4780
+    }
+   ]
+  },
+  {
+   "name": "marker-highlight",
+   "type": "registry:ui",
+   "description": "Highlighter stroke swept word by word across a phrase, with marker, knockout, underline and box variants",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "motion-tokens",
+    "text-emphasis"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/marker-highlight.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/marker-highlight.tsx",
+     "sha256": "19c0da44e465e31b50bf51f632456592e24ff423973a3c19b0cbe64951a1d6c4",
+     "size": 11982
+    }
+   ]
+  },
+  {
+   "name": "masked-slide-reveal",
+   "type": "registry:ui",
+   "description": "Words slide up through a horizontal mask",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/masked-slide-reveal.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/masked-slide-reveal.tsx",
+     "sha256": "9530059e12a8dddd5d1877d95be0f19401d0a805684cc2424a9caa7539506ab6",
+     "size": 3909
+    }
+   ]
+  },
+  {
+   "name": "matrix-decode",
+   "type": "registry:ui",
+   "description": "Scramble resolves left-to-right into target text",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/matrix-decode.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/matrix-decode.tsx",
+     "sha256": "b1b7e3210965896befaea777d81e9dd17f0e7b5cf068431403d8be32979311d4",
+     "size": 4045
+    }
+   ]
+  },
+  {
+   "name": "media-frame",
+   "type": "registry:block",
+   "description": "One piece of media presented: the frame opens like a shutter under a slow push, then the title masks up and the caption settles",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts",
+    "@remotion/media"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "media-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "media",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/media-frame/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/media-frame/index.tsx",
+     "sha256": "ff51e034a5a29466cf5f3519b02bde6f2f6dfffda7272c99d9671f8b6bdf866c",
+     "size": 8636
+    }
+   ]
+  },
+  {
+   "name": "media-sequence",
+   "type": "registry:block",
+   "description": "Edited run of shots pushed on one after another, with a chapter strip that fills through the item playing",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "media-utils",
+    "motion-tokens",
+    "media-frame",
+    "transition-fade",
+    "transition-slide"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "media",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/media-sequence/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/media-sequence/index.tsx",
+     "sha256": "e465c7b5a632003218656b901ab49b94c055a0bbe648d24c208fdc15c17188b1",
+     "size": 5691
+    }
+   ]
+  },
+  {
+   "name": "media-utils",
+   "type": "registry:lib",
+   "description": "Media item timing and fit helpers",
+   "dependencies": [],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/media-utils.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/media-utils.ts",
+     "sha256": "c325d7541a5f83fc7a91cd9cfd3af977df64dfbbabcad79d4931a0dd0b3a6056",
+     "size": 1300
+    }
+   ]
+  },
+  {
+   "name": "mesh-gradient-bg",
+   "type": "registry:ui",
+   "description": "Living mesh gradient blob background",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens",
+    "gpu"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/mesh-gradient-bg.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/mesh-gradient-bg.tsx",
+     "sha256": "107e3a8abdaf7404869505f014a162838e02f29493b7915804cfe97ea8dcacd0",
+     "size": 6163
+    }
+   ]
+  },
+  {
+   "name": "metric-ticker",
+   "type": "registry:block",
+   "description": "KPI cards that count themselves in",
+   "dependencies": [
+    "remotion",
+    "@remotion/paths",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "line-chart-draw",
+    "chart-utils",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts",
+     "metrics"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/metric-ticker/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/metric-ticker/index.tsx",
+     "sha256": "02052714a6f706edeba06e54d00b7ffcbd5ff8cd6d7a8635fa830309d5d871b1",
+     "size": 10138
+    }
+   ]
+  },
+  {
+   "name": "mograph",
+   "type": "registry:lib",
+   "description": "Cinema 4D MoGraph maths: cloner layouts, spherical/linear/noise falloff fields and stacked effectors",
+   "dependencies": [],
+   "registryDependencies": [
+    "ae-motion"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/mograph.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/mograph.ts",
+     "sha256": "1adca661ded9a55cc9d3daa9b3a520318b3582dada4e62b44e6dbdcbb1b3282a",
+     "size": 14889
+    }
+   ]
+  },
+  {
+   "name": "motion-primitive",
+   "type": "registry:lib",
+   "description": "Enter/exit motion contract shared by the animation primitives — opacity leads, exits are shorter, and a bounded Sequence times the exit itself",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "springs",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/motion-primitive.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/motion-primitive.ts",
+     "sha256": "3fe78a20aab67028db42d256c8713c8f3d25b322404876461e37002154233bff",
+     "size": 7701
+    }
+   ]
+  },
+  {
+   "name": "motion-tokens",
+   "type": "registry:lib",
+   "description": "Named motion duration and stagger tokens",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "timing",
+    "layout"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/motion-tokens.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/motion-tokens.ts",
+     "sha256": "3d7f6f57a50006183aebdb62b923f5e4411a2327a60dcc653eb6c0f1047cb6af",
+     "size": 1577
+    }
+   ]
+  },
+  {
+   "name": "motion-trail",
+   "type": "registry:ui",
+   "description": "Echo trails behind a moving element",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/motion-trail.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/motion-trail.tsx",
+     "sha256": "2a652ee83f148f933b5d27bce9c319ee7acc1f3766ea53c1f6a28ceeae935cb8",
+     "size": 3710
+    }
+   ]
+  },
+  {
+   "name": "motion-wrapper",
+   "type": "registry:lib",
+   "description": "Inline wrapper for enter/exit animations (avoids AbsoluteFill overlap)",
+   "dependencies": [],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/motion-wrapper.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/motion-wrapper.tsx",
+     "sha256": "59e5ce054d682214c25696e7b66c4615073c9e53a345353d45de51e4a9760cc6",
+     "size": 947
+    }
+   ]
+  },
+  {
+   "name": "multi-device-lineup",
+   "type": "registry:ui",
+   "description": "Phone + tablet + laptop showing one responsive design",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "spatial",
+    "drive": "spatial",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/multi-device-lineup.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/multi-device-lineup.tsx",
+     "sha256": "73c58d5c4de814364584466b0826fe5eeb57b89855522433c4c7c21644027e2c",
+     "size": 8744
+    }
+   ]
+  },
+  {
+   "name": "neon-flicker-text",
+   "type": "registry:ui",
+   "description": "Neon sign flicker and settle",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "split-text-chars",
+    "text-split"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/neon-flicker-text.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/neon-flicker-text.tsx",
+     "sha256": "7bac643cad2c8c2755d3034bfe858e6afec39e394b4191a642e946d14139fcbc",
+     "size": 3736
+    }
+   ]
+  },
+  {
+   "name": "news-ticker-bar",
+   "type": "registry:block",
+   "description": "Broadcast lower ticker with headlines",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/news-ticker-bar/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/news-ticker-bar/index.tsx",
+     "sha256": "da489dd8d19d301d3fc8f0a9da7225298fe38077bfa2a0e1162f4023c7a28c1a",
+     "size": 7759
+    }
+   ]
+  },
+  {
+   "name": "notification-stack",
+   "type": "registry:block",
+   "description": "Toasts stacking and dismissing",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ui"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/notification-stack/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/notification-stack/index.tsx",
+     "sha256": "57e8096d823ef00fa2f1e4c473f41e364d53452f6f36588214bd434e4e439754",
+     "size": 12344
+    }
+   ]
+  },
+  {
+   "name": "opencode",
+   "type": "registry:block",
+   "description": "OpenCode TUI composer with agent and model status",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "ai-composer-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ai"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/opencode/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/opencode/index.tsx",
+     "sha256": "6eace54e1a2f6b24a952f3fcaa029a357d4f0678e3604618fb3c3a5b3b6a83f2",
+     "size": 6659
+    }
+   ]
+  },
+  {
+   "name": "orbit-motion",
+   "type": "registry:ui",
+   "description": "Element orbiting a center point",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/orbit-motion.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/orbit-motion.tsx",
+     "sha256": "4f1c65d37431326036e6f08cdeea3edd82218d191f70e21290d23036878a4367",
+     "size": 4422
+    }
+   ]
+  },
+  {
+   "name": "org-chart-build",
+   "type": "registry:block",
+   "description": "Hierarchy assembling top-down",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/org-chart-build/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/org-chart-build/index.tsx",
+     "sha256": "3064b95c3c3ab6b2c56e0ee64f0916fd67041d7ee074c58b3aca52b5a0c3878d",
+     "size": 13261
+    }
+   ]
+  },
+  {
+   "name": "paper-shader",
+   "type": "registry:lib",
+   "description": "Deterministic frame driver and first-draw gate for Paper shader fields",
+   "dependencies": [
+    "remotion",
+    "@paper-design/shaders-react"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/paper-shader.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/paper-shader.tsx",
+     "sha256": "12032f90de06763ebb9cdd9bd415bc3f5b952baed0f1feab10a2e6f5f94899eb",
+     "size": 4227
+    }
+   ]
+  },
+  {
+   "name": "parallax-layers",
+   "type": "registry:ui",
+   "description": "Depth-offset layers on one driver",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/parallax-layers.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/parallax-layers.tsx",
+     "sha256": "b52388ce1617568b86c4a032871daedcb2d05b141945eef5c0f94f11eb81d6eb",
+     "size": 4193
+    }
+   ]
+  },
+  {
+   "name": "particle-field",
+   "type": "registry:ui",
+   "description": "Ambient drifting particles with depth",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/particle-field.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/particle-field.tsx",
+     "sha256": "8ae4156651b811f02ad2e37dfa73410da640c709afcc10d8b0e3a9bce4f56f5f",
+     "size": 5868
+    }
+   ]
+  },
+  {
+   "name": "path-draw",
+   "type": "registry:ui",
+   "description": "SVG stroke reveal with auto-fit framing, multi-path stagger and a drawing head",
+   "dependencies": [
+    "remotion",
+    "@remotion/paths"
+   ],
+   "registryDependencies": [
+    "path-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/path-draw.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/path-draw.tsx",
+     "sha256": "153886f3fb0bdd89292dbbd49fec44891ebd48101241eca2f23a38518333b163",
+     "size": 4601
+    }
+   ]
+  },
+  {
+   "name": "path-morph",
+   "type": "registry:lib",
+   "description": "Cached SVG path morphing with winding alignment and box fitting",
+   "dependencies": [
+    "@remotion/paths"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/path-morph.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/path-morph.ts",
+     "sha256": "f01c85f73eb9fe61f8825a191e0f3d600258c7495a533a00f2d5d754838fc907",
+     "size": 8764
+    }
+   ]
+  },
+  {
+   "name": "path-utils",
+   "type": "registry:lib",
+   "description": "SVG path measuring, sampling, auto-fit and waypoint helpers",
+   "dependencies": [
+    "@remotion/paths"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/path-utils.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/path-utils.ts",
+     "sha256": "1b55a04cca8244d7307b4afba73f5da923ecd5bfa23bf90eed9ea141a569d773",
+     "size": 5302
+    }
+   ]
+  },
+  {
+   "name": "pen-plot",
+   "type": "registry:lib",
+   "description": "Pen-plotter motion planning: SVG strokes to a pen position per frame, with cosine-ramped speed, full stops in cusps, lifts, and anticipating pen-up moves",
+   "dependencies": [],
+   "registryDependencies": [
+    "ae-motion",
+    "bezier-path"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/pen-plot.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/pen-plot.ts",
+     "sha256": "4b85e8499803eb144eb0b63a73e311a400b9d49f3cdacd32fc421fda6dfd3b4b",
+     "size": 11258
+    }
+   ]
+  },
+  {
+   "name": "perspective-marquee",
+   "type": "registry:ui",
+   "description": "Marquee tilted in 3D with depth fade",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/perspective-marquee.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/perspective-marquee.tsx",
+     "sha256": "3dec8f35470bfcb9ba1081a19f554f9c4349f0ea2cdc33b25f31d1ae8a0f7f2f",
+     "size": 9546
+    }
+   ]
+  },
+  {
+   "name": "pie-slice-reveal",
+   "type": "registry:ui",
+   "description": "Slices sweep in sequentially",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/pie-slice-reveal.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/pie-slice-reveal.tsx",
+     "sha256": "8ab818388188bef9b993c1214d173fae6b4709fa9040fb8b525e9d2251c2edfb",
+     "size": 6017
+    }
+   ]
+  },
+  {
+   "name": "podcast-clip",
+   "type": "registry:block",
+   "description": "Podcast clip composition with audio visuals and captions",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions",
+    "@remotion/media-utils",
+    "@remotion/captions"
+   ],
+   "registryDependencies": [
+    "audio-pulse",
+    "waveform-line",
+    "audiogram-scene",
+    "auto-fit-title",
+    "caption-scene",
+    "end-card",
+    "transition-fade",
+    "fade-in",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": {
+    "id": "PodcastClip",
+    "component": "PodcastClip",
+    "durationInFrames": 294,
+    "fps": 30,
+    "width": 1080,
+    "height": 1920,
+    "importPath": "@/compositions/podcast-clip/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "media",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/podcast-clip/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/podcast-clip/index.tsx",
+     "sha256": "e8ab785c57cf4a2c9319565ebecc38f14aff3e83539893759dd965d429abe71e",
+     "size": 9239
+    }
+   ]
+  },
+  {
+   "name": "poll-overlay",
+   "type": "registry:block",
+   "description": "Question with bars filling to results",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "creator",
+     "social"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/poll-overlay/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/poll-overlay/index.tsx",
+     "sha256": "59938b76e65898761f32e5ffd75f6b495cdcf7dc891de6e9b129d0c7fb1ceb75",
+     "size": 10963
+    }
+   ]
+  },
+  {
+   "name": "pricing-card",
+   "type": "registry:block",
+   "description": "Tier card with price roll and features",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/pricing-card/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/pricing-card/index.tsx",
+     "sha256": "f021cedbf90765416ad52e7ec8bd7bddb47f662c7c407838d66aae0220d81f01",
+     "size": 12523
+    }
+   ]
+  },
+  {
+   "name": "pricing-focus",
+   "type": "registry:block",
+   "description": "Pricing tier focus animation",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "timing"
+   ],
+   "composition": {
+    "id": "PricingFocus",
+    "component": "PricingFocus",
+    "durationInFrames": 180,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/pricing-focus/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/pricing-focus/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/pricing-focus/index.tsx",
+     "sha256": "570f3ae77ed1e22699b0cd03e823f701602ef8c73b428c50a80e52eafa36dc06",
+     "size": 9813
+    }
+   ]
+  },
+  {
+   "name": "product-turntable-3d",
+   "type": "registry:block",
+   "description": "A product on a studio turntable: the model turns a full revolution under a soft key and rim while the camera holds, with a contact shadow anchoring it to the floor",
+   "dependencies": [
+    "remotion",
+    "@remotion/three",
+    "three",
+    "@react-three/fiber",
+    "@react-three/drei"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "3d",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "new"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/product-turntable-3d/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/product-turntable-3d/index.tsx",
+     "sha256": "88181a84b6303231949b560f73872ed724eb72056cb4acd093ffc05aadf2528b",
+     "size": 20396
+    }
+   ]
+  },
+  {
+   "name": "progress-bar",
+   "type": "registry:ui",
+   "description": "Inline progress bar with determinate and indeterminate modes, segments and a value readout",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "motion-tokens",
+    "timing",
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/progress-bar.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/progress-bar.tsx",
+     "sha256": "239918168d486ca1b6d863ae461087cd4e1c4d8063ba9465de6ca4566d09c0ee",
+     "size": 7169
+    }
+   ]
+  },
+  {
+   "name": "quiz-question",
+   "type": "registry:block",
+   "description": "Question, options, correct-answer reveal",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "social"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/quiz-question/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/quiz-question/index.tsx",
+     "sha256": "464096f5448ace12d77f651a95c0d395c25d69c63e226bd60ec9dc816e491530",
+     "size": 10234
+    }
+   ]
+  },
+  {
+   "name": "quote-card",
+   "type": "registry:block",
+   "description": "Pull quote read aloud: the mark draws, the quote rises line by line, a marker sweeps the phrase, the attribution lands last",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens",
+    "text-emphasis"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/quote-card/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/quote-card/index.tsx",
+     "sha256": "0210f374d60e66788f295d4fc39d4c1d1277e87c4b54c4cda38e29518829deb3",
+     "size": 11435
+    }
+   ]
+  },
+  {
+   "name": "radar-chart",
+   "type": "registry:ui",
+   "description": "Multi-axis spider chart drawing its polygon",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/radar-chart.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/radar-chart.tsx",
+     "sha256": "2d08ee38e9ef19228690df7338ba76199d7a51de3d3e6f6601c96b1c1450e73f",
+     "size": 8148
+    }
+   ]
+  },
+  {
+   "name": "reaction-burst",
+   "type": "registry:block",
+   "description": "Narrowed: hearts/likes rising continuously",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "creator",
+     "social"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/reaction-burst/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/reaction-burst/index.tsx",
+     "sha256": "b10ab83d1727eb45a6128fd332a6fd5ef6228539b70836096686edbe238ccf6b",
+     "size": 6422
+    }
+   ]
+  },
+  {
+   "name": "rgb-glitch-text",
+   "type": "registry:ui",
+   "description": "Signal-lock RGB glitch text with channel splits, slices, and scanlines",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/rgb-glitch-text.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/rgb-glitch-text.tsx",
+     "sha256": "4dc1e4e92df3789f3065f86e02c9d2d3733cc3f797af09e50f0375ba3dbb74bc",
+     "size": 6563
+    }
+   ]
+  },
+  {
+   "name": "rig",
+   "type": "registry:lib",
+   "description": "Rig maths: law-of-cosines two-bone IK with bend, stretch and soft IK (no knee pop at full reach), and constant-length rubber-hose arcs",
+   "dependencies": [],
+   "registryDependencies": [
+    "ae-motion"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/rig.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/rig.ts",
+     "sha256": "501a2f7a16ce7166d6c2a2fe902d90c5f89ecac2a4add7bb94573d3ce3cb23cb",
+     "size": 7089
+    }
+   ]
+  },
+  {
+   "name": "roadmap-lanes",
+   "type": "registry:block",
+   "description": "Swimlanes of shipped/building/planned",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/roadmap-lanes/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/roadmap-lanes/index.tsx",
+     "sha256": "16ff8999ab906f0de8d97ed9b052aedef728484bbe3f6cadf55745791452aff0",
+     "size": 11807
+    }
+   ]
+  },
+  {
+   "name": "rotate-in",
+   "type": "registry:ui",
+   "description": "Swing into place in plane or hinged in depth on the x/y axis",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "motion-wrapper"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "enter"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/rotate-in.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/rotate-in.tsx",
+     "sha256": "d26b7357e225f739dbfb3e98669aca43bf3662b99f5dc3293a4145fee542051e",
+     "size": 1863
+    }
+   ]
+  },
+  {
+   "name": "sample-media",
+   "type": "registry:lib",
+   "description": "Placeholder stills, captions, and audio for composition defaults",
+   "dependencies": [
+    "@remotion/captions"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/sample-media.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/sample-media.ts",
+     "sha256": "adae17993654943f309c2b6e91f4daf0312f3ea7e5c08ed26f1e41bcf842dbc5",
+     "size": 4150
+    }
+   ]
+  },
+  {
+   "name": "scale-in",
+   "type": "registry:ui",
+   "description": "Grow into place from just under full size, with an optional spring and exit",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "motion-wrapper"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "enter"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/scale-in.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/scale-in.tsx",
+     "sha256": "ab3537031f77987cd675a0382b9c2884c81fca5946f00da99199c531335f3e4e",
+     "size": 1408
+    }
+   ]
+  },
+  {
+   "name": "scanline-crt",
+   "type": "registry:ui",
+   "description": "CRT scanlines and curvature overlay",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/scanline-crt.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/scanline-crt.tsx",
+     "sha256": "48fb631d96c783a37770eca7370f29a5e8167b208c9db5d4fdebffb81604dba3",
+     "size": 6077
+    }
+   ]
+  },
+  {
+   "name": "scatter-plot-pop",
+   "type": "registry:ui",
+   "description": "Points pop in on stagger, optional trend line",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/scatter-plot-pop.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/scatter-plot-pop.tsx",
+     "sha256": "10c8ec6d2b46185f4aa229b80f345e82a33687cb70191882a2446686a6493074",
+     "size": 8945
+    }
+   ]
+  },
+  {
+   "name": "scramble-text",
+   "type": "registry:ui",
+   "description": "Random-glyph scramble resolving per character",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "split-text-chars",
+    "text-split"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/scramble-text.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/scramble-text.tsx",
+     "sha256": "3c1fa4764b7dd1ce5da565570d1f50f0e8f151bce3096560756e34b43c0ad5fb",
+     "size": 3956
+    }
+   ]
+  },
+  {
+   "name": "search-results-populate",
+   "type": "registry:block",
+   "description": "Query typed, results streaming in and ranking",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ui"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/search-results-populate/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/search-results-populate/index.tsx",
+     "sha256": "2bf1446b056b9b4c483e76a6da29f9b83cebaccf0478e8464a859018aab527f6",
+     "size": 14567
+    }
+   ]
+  },
+  {
+   "name": "shake-emphasis",
+   "type": "registry:ui",
+   "description": "Short impact shake",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-wrapper"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/shake-emphasis.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/shake-emphasis.tsx",
+     "sha256": "7a44fb0ffb058878df858546259ccb5aa0f5a68ac5feffeae76f2749123e4491",
+     "size": 4473
+    }
+   ]
+  },
+  {
+   "name": "shape-layer",
+   "type": "registry:ui",
+   "description": "After Effects shape layer with an ordered operator stack — trim paths, repeater, offset paths, wiggle paths, zig-zag and pucker & bloat — evaluated per frame as pure geometry",
+   "dependencies": [
+    "remotion",
+    "@remotion/paths"
+   ],
+   "registryDependencies": [
+    "ae-motion",
+    "bezier-path",
+    "shape-ops"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "motion",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "shapes",
+     "paths"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/shape-layer.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/shape-layer.tsx",
+     "sha256": "350b3bcf9674fccfacd24f3955dc762cca0a1655c320aa5f1e544f4ffed3a7d0",
+     "size": 4717
+    }
+   ]
+  },
+  {
+   "name": "shape-morph",
+   "type": "registry:ui",
+   "description": "Path interpolation between two shapes",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens",
+    "path-morph"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/shape-morph.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/shape-morph.tsx",
+     "sha256": "2588e575ce866fd3542fc213e01cc031f2f79ee6c1c752eaf975a8abf7cab314",
+     "size": 3711
+    }
+   ]
+  },
+  {
+   "name": "shape-ops",
+   "type": "registry:lib",
+   "description": "AE shape-layer operators — trim, repeater, offset, wiggle, zig-zag, pucker & bloat — run as an ordered stack",
+   "dependencies": [],
+   "registryDependencies": [
+    "ae-motion",
+    "bezier-path",
+    "curve-fit"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/shape-ops.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/shape-ops.ts",
+     "sha256": "901c6b5afde11bb7860a052401eb0735d87cfd1ed01e352757bc9a5180713c08",
+     "size": 31445
+    }
+   ]
+  },
+  {
+   "name": "showcase",
+   "type": "registry:block",
+   "description": "Full demo reel with TransitionSeries",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-fade",
+    "title-card",
+    "feature-list",
+    "stat-card",
+    "end-card",
+    "motion-tokens"
+   ],
+   "composition": {
+    "id": "Showcase",
+    "component": "Showcase",
+    "durationInFrames": 240,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/showcase/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/compositions/showcase/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/showcase/index.tsx",
+     "sha256": "56c5d6e03fc7951a4f9fa9f1ee6952fb9a7077abb11141cbca54425ff8026d0c",
+     "size": 3257
+    }
+   ]
+  },
+  {
+   "name": "simulated-cursor",
+   "type": "registry:ui",
+   "description": "Frame-timed cursor with press, click ripples, hit targets and labels",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "springs"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/simulated-cursor.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/simulated-cursor.tsx",
+     "sha256": "bde397251f972cd70fbbc2c7347743824812c7a8ab517dd45674c853173f9c5e",
+     "size": 5316
+    }
+   ]
+  },
+  {
+   "name": "skew-in",
+   "type": "registry:ui",
+   "description": "Skew + translate, editorial feel",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "motion-wrapper"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "enter"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/skew-in.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/skew-in.tsx",
+     "sha256": "03b0d79291ae1147847d05f5e032a86200f510df0a1015634c8f17853ea4637b",
+     "size": 2378
+    }
+   ]
+  },
+  {
+   "name": "slide-left",
+   "type": "registry:ui",
+   "description": "Slide in from either side, with an optional mask reveal and automatic exit",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "motion-wrapper",
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "enter"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/slide-left.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/slide-left.tsx",
+     "sha256": "e9b232fbbfeaf3ec945ed365253c0976055ce24de9ad27c3bbc46477b81e212d",
+     "size": 2013
+    }
+   ]
+  },
+  {
+   "name": "slide-up",
+   "type": "registry:ui",
+   "description": "Rise into place, with an optional mask reveal and automatic exit",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "motion-wrapper",
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "enter"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/slide-up.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/slide-up.tsx",
+     "sha256": "c098c2c9f326cb88aebc05bae4f90a74913326fe070c2cbccd62d5b1e1e95f27",
+     "size": 2243
+    }
+   ]
+  },
+  {
+   "name": "slit-geometry",
+   "type": "registry:lib",
+   "description": "Slit-scan strips (bands at any angle or radial rings) with per-strip delays grouped into a bounded number of child renders",
+   "dependencies": [],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/slit-geometry.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/slit-geometry.ts",
+     "sha256": "736c70091748d18ef382110c6d2259e902ff164690edaa7ece0abe90c9a2d9bf",
+     "size": 4796
+    }
+   ]
+  },
+  {
+   "name": "slit-scan",
+   "type": "registry:ui",
+   "description": "Slit-scan time displacement: each strip of any child — rows, columns, rings or a gradient map — shows that child at a different moment, deterministically",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "slit-geometry"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "motion",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "time"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/slit-scan.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/slit-scan.tsx",
+     "sha256": "571ed6d3c0764ebe48625f814b8520216bf2cb1cfd7c872c39683fef3604f69d",
+     "size": 3395
+    }
+   ]
+  },
+  {
+   "name": "slot-roll",
+   "type": "registry:ui",
+   "description": "Characters roll like a slot reel into place",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/slot-roll.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/slot-roll.tsx",
+     "sha256": "3bce597c6b19fde6fe4df4dd7c303652e4fe69c9cf866cc91321c50d6bdaa7bf",
+     "size": 4120
+    }
+   ]
+  },
+  {
+   "name": "social-clip",
+   "type": "registry:block",
+   "description": "9:16 social clip with hook, captions, and CTA",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions",
+    "@remotion/captions",
+    "@remotion/media-utils"
+   ],
+   "registryDependencies": [
+    "transition-fade",
+    "auto-fit-title",
+    "audiogram-scene",
+    "caption-scene",
+    "end-card",
+    "motion-tokens",
+    "sample-media"
+   ],
+   "composition": {
+    "id": "SocialClip",
+    "component": "SocialClip",
+    "durationInFrames": 216,
+    "fps": 30,
+    "width": 1080,
+    "height": 1920,
+    "importPath": "@/compositions/social-clip/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "media",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/social-clip/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/social-clip/index.tsx",
+     "sha256": "bc498137cda1c3097d9db676b8018a9c330c1c2fcf3b76f814d5f061e7e9b62f",
+     "size": 3160
+    }
+   ]
+  },
+  {
+   "name": "sparkline-row",
+   "type": "registry:ui",
+   "description": "Compact trend lines that read at small sizes",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens",
+    "path-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "charts",
+     "metrics"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/sparkline-row.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/sparkline-row.tsx",
+     "sha256": "a9ce892b3f6fa09540b0ee81f0396f7d5884b9f5a0314185b2640e5b818c3133",
+     "size": 8341
+    }
+   ]
+  },
+  {
+   "name": "spatial-push",
+   "type": "registry:ui",
+   "description": "Push where both scenes travel locked edge to edge across the frame",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/spatial-push.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/spatial-push.tsx",
+     "sha256": "9ca1f0bcee1b6a5f42ad8fec2b3f0d3d2fa360733fedcdf1d92ead20961e48b4",
+     "size": 3864
+    }
+   ]
+  },
+  {
+   "name": "speaker-label-captions",
+   "type": "registry:ui",
+   "description": "Narrowed: multi-speaker caption track with name tags and color coding",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "caption-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "captions"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/speaker-label-captions.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/speaker-label-captions.tsx",
+     "sha256": "5147a2b83ea859eca541d5d8ab9597944dbe8050974eb75f973af624544eb684",
+     "size": 6107
+    }
+   ]
+  },
+  {
+   "name": "split-screen",
+   "type": "registry:block",
+   "description": "Before/after that is actually made: panels meet at the divider, labels land, and the divider can travel across to leave one side whole",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts",
+    "@remotion/media"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "media-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "media",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/split-screen/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/split-screen/index.tsx",
+     "sha256": "dcf1cd10489ea53990a4d903d59fed4429995ee9b9b4b2c717065245b0a914bd",
+     "size": 9743
+    }
+   ]
+  },
+  {
+   "name": "split-text-chars",
+   "type": "registry:ui",
+   "description": "Split text into chars, words or lines and stagger them in",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "text-split",
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/split-text-chars.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/split-text-chars.tsx",
+     "sha256": "936aba01c5bcb3606a10c9ab5662ac14bcfa8b1491727fda342bcd4bbd2cbe33",
+     "size": 4785
+    }
+   ]
+  },
+  {
+   "name": "sports-scorebug",
+   "type": "registry:block",
+   "description": "Broadcast score furniture with clock",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/sports-scorebug/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/sports-scorebug/index.tsx",
+     "sha256": "07cf5ac8422eb18c7e4c72e1f94a6cd8f1ff905ddbe7a4c94510815dc3fd2046",
+     "size": 9300
+    }
+   ]
+  },
+  {
+   "name": "spring-in",
+   "type": "registry:ui",
+   "description": "Spring-driven scale and rise, with snappy, smooth and bouncy presets",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "motion-wrapper",
+    "layout"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "enter"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/spring-in.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/spring-in.tsx",
+     "sha256": "4121d15b5559f0d6d26f8f3a04492f2f82927162c5b5d1b677970594e30e4921",
+     "size": 1787
+    }
+   ]
+  },
+  {
+   "name": "springs",
+   "type": "registry:lib",
+   "description": "Default spring configurations",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/springs.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/springs.ts",
+     "sha256": "1649db23e929abdf505b98d90c09d862bb3be82d401401ee586351bf82ae38bc",
+     "size": 409
+    }
+   ]
+  },
+  {
+   "name": "squash-stretch",
+   "type": "registry:ui",
+   "description": "The animation principle as a primitive",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-wrapper"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/squash-stretch.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/squash-stretch.tsx",
+     "sha256": "761a3a75b7574aade9cae2fb11d883ef85f3b78338be6756d2021cf9811ec804",
+     "size": 4350
+    }
+   ]
+  },
+  {
+   "name": "srt-caption-track",
+   "type": "registry:ui",
+   "description": "Renders a caption track straight from an SRT or WebVTT file",
+   "dependencies": [
+    "remotion",
+    "@remotion/captions"
+   ],
+   "registryDependencies": [
+    "caption-utils",
+    "caption-highlight"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "captions"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/srt-caption-track.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/srt-caption-track.tsx",
+     "sha256": "8d94e241562428151c8a244774a974663e5e8281d7bd2e8fad18b5166773d263",
+     "size": 6057
+    }
+   ]
+  },
+  {
+   "name": "stacked-area-chart",
+   "type": "registry:ui",
+   "description": "Multiple series stacking as they draw on",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/stacked-area-chart.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/stacked-area-chart.tsx",
+     "sha256": "c0c39797432de8d5b4b630974fec6943e89234f4db488918c0a69751e6ee2688",
+     "size": 9349
+    }
+   ]
+  },
+  {
+   "name": "stagger-children",
+   "type": "registry:ui",
+   "description": "Offset children onto their own sequences, in forward, reverse, centre or edge order, in and out",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "sequence"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/stagger-children.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/stagger-children.tsx",
+     "sha256": "fb99cf1f217ac40e2b7360427dc249456038ce4ccad9847837aa38af903c9767",
+     "size": 3899
+    }
+   ]
+  },
+  {
+   "name": "staggered-fade-up",
+   "type": "registry:ui",
+   "description": "Words rise with cascading fade-up stagger",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/staggered-fade-up.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/staggered-fade-up.tsx",
+     "sha256": "8722f8cb4388b94bb2fced6dbb63a00167e9981be239ece30442a077b287fd53",
+     "size": 1831
+    }
+   ]
+  },
+  {
+   "name": "stat-card",
+   "type": "registry:block",
+   "description": "A number landing: the ring fills while the counter rolls, then the label and the change against the last period settle",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/stat-card/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/stat-card/index.tsx",
+     "sha256": "9a94ede9a1ca6feddea8bb28060ebfb558b2074553c05b7fa30e913e78757f30",
+     "size": 9502
+    }
+   ]
+  },
+  {
+   "name": "strikethrough-replace",
+   "type": "registry:ui",
+   "description": "Strikes out one phrase and puts another in its place, on a three-beat correction timeline",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/strikethrough-replace.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/strikethrough-replace.tsx",
+     "sha256": "c164d831fd75ea44555b6af24eced08836ca019ff32da3c22eeb95882392cfad",
+     "size": 8944
+    }
+   ]
+  },
+  {
+   "name": "stroke-to-fill-text",
+   "type": "registry:ui",
+   "description": "Outline text filling solid",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "split-text-chars",
+    "text-split",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/stroke-to-fill-text.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/stroke-to-fill-text.tsx",
+     "sha256": "fc8751669c777defdddd0e19f450fdf2ee3bb831e435bb731e673d8ccc2eb53a",
+     "size": 4472
+    }
+   ]
+  },
+  {
+   "name": "subtitle-translate",
+   "type": "registry:ui",
+   "description": "Dual-language stacked subtitles",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "caption-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "captions"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/subtitle-translate.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/subtitle-translate.tsx",
+     "sha256": "df87b096fb2f2d5290728cf56c7fbc8a119bd70b88aa1358c1a44d8f539a5284",
+     "size": 5503
+    }
+   ]
+  },
+  {
+   "name": "svg-mask-reveal",
+   "type": "registry:ui",
+   "description": "Arbitrary SVG shape as a reveal mask",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-tokens",
+    "path-morph"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "vectors",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/svg-mask-reveal.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/svg-mask-reveal.tsx",
+     "sha256": "1d8744fbfcc1ddfb138422908f759c946d5896b13f320da890b0d5f3b722ebef",
+     "size": 4212
+    }
+   ]
+  },
+  {
+   "name": "tab-switch-panel",
+   "type": "registry:block",
+   "description": "Tab bar with cross-fading panels",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ui"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/tab-switch-panel/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/tab-switch-panel/index.tsx",
+     "sha256": "934db3616b41b7d4a838b8372cb20e3cb82db515c95ed08b1c7ebb90a1d0d697",
+     "size": 14650
+    }
+   ]
+  },
+  {
+   "name": "talking-head-layout",
+   "type": "registry:block",
+   "description": "Talking-head clip frame that opens on the speaker, slides a name plate out from behind it, and plays the spoken lines in a reserved caption zone with the waveform reacting",
+   "dependencies": [
+    "remotion",
+    "@remotion/media",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "media-utils",
+    "motion-tokens",
+    "waveform-line"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "media",
+    "tier": "advanced",
+    "tags": [
+     "creator",
+     "captions"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/talking-head-layout/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/talking-head-layout/index.tsx",
+     "sha256": "dec24c3c77ddd630c04d67842a21077c74ca96be95fce5a7fad423d257eea74e",
+     "size": 17397
+    }
+   ]
+  },
+  {
+   "name": "team-grid",
+   "type": "registry:block",
+   "description": "Avatar grid with role labels on stagger",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/team-grid/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/team-grid/index.tsx",
+     "sha256": "a4ca9500a24eca2f05f6f2f2312ecf34a88337baad1f002cf23ec1038c066d99",
+     "size": 8873
+    }
+   ]
+  },
+  {
+   "name": "terminal-simulator",
+   "type": "registry:block",
+   "description": "Terminal window that types a command, streams spinner-to-check build steps with timings, then returns the prompt",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "ai-composer-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "code"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/terminal-simulator/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/terminal-simulator/index.tsx",
+     "sha256": "3c0fe9a28b3c3d81decb36e43ae4fe4827829cff7c5cb5e8b924b0fd3dab42f1",
+     "size": 21083
+    }
+   ]
+  },
+  {
+   "name": "text-animator",
+   "type": "registry:ui",
+   "description": "After Effects text animator: range and wiggly selectors drive per-character, per-word or per-line position, scale, rotation, opacity, blur, tracking and fill over measured layout",
+   "dependencies": [
+    "remotion",
+    "@remotion/layout-utils"
+   ],
+   "registryDependencies": [
+    "ae-motion",
+    "glyph-layout",
+    "text-selectors"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "motion",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/text-animator.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/text-animator.tsx",
+     "sha256": "9a1d65e2e59af265d828b9cc2de186035789f0e8218d9def7e7cede0863b4d84",
+     "size": 13122
+    }
+   ]
+  },
+  {
+   "name": "text-emphasis",
+   "type": "registry:lib",
+   "description": "Word-level phrase matching and marker geometry for scenes that sweep emphasis across text",
+   "dependencies": [],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/text-emphasis.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/text-emphasis.ts",
+     "sha256": "25bb162e85d1af969b6180b44086b27d7d9b9ada065a97ea364305fae364e633",
+     "size": 2354
+    }
+   ]
+  },
+  {
+   "name": "text-extrude-3d",
+   "type": "registry:block",
+   "description": "Extruded 3D headline with a lit bevel: the letters rise and settle as the camera pulls back across them",
+   "dependencies": [
+    "remotion",
+    "@remotion/three",
+    "three",
+    "@react-three/fiber",
+    "@react-three/drei"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "3d",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "new"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/text-extrude-3d/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/text-extrude-3d/index.tsx",
+     "sha256": "57adc7d3b7aae5b1bf1dd4122a8262cb66ec974d121bcd8ddb082ad0283a4018",
+     "size": 17005
+    }
+   ]
+  },
+  {
+   "name": "text-fit-utils",
+   "type": "registry:lib",
+   "description": "Safe headline fitting helpers",
+   "dependencies": [],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/text-fit-utils.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/text-fit-utils.ts",
+     "sha256": "6a3a94566ed28278e3a099d128bc6415c1e7355db326c34ecfde72527cf75a43",
+     "size": 667
+    }
+   ]
+  },
+  {
+   "name": "text-mask-video",
+   "type": "registry:ui",
+   "description": "Video or gradient showing through letterforms",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "motion-primitive"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/text-mask-video.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/text-mask-video.tsx",
+     "sha256": "4c432b1395137fe0e29b97afa92b292b2bd72b6c19468d9310bfc9e600a23819",
+     "size": 7025
+    }
+   ]
+  },
+  {
+   "name": "text-reveal-shader",
+   "type": "registry:ui",
+   "description": "Words condensing out of light into liquid chrome",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "gpu"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "shaders",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/text-reveal-shader.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/text-reveal-shader.tsx",
+     "sha256": "40aa256b5ade16a4f81ff52904783e1bb625ca1ede2761c035aad2af21e4edd1",
+     "size": 17814
+    }
+   ]
+  },
+  {
+   "name": "text-selectors",
+   "type": "registry:lib",
+   "description": "AE text range and wiggly selectors: per-unit selection with shapes, ease high/low, random order and combine modes",
+   "dependencies": [],
+   "registryDependencies": [
+    "ae-motion",
+    "text-split"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/text-selectors.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/text-selectors.ts",
+     "sha256": "1878b15db23520abbad3ed66b81677224f5dbbabb0d341c1dc83a5e3d1cee874",
+     "size": 13489
+    }
+   ]
+  },
+  {
+   "name": "text-split",
+   "type": "registry:lib",
+   "description": "Split a string into chars, words or lines with staggered per-unit timing",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "motion-primitive",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/text-split.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/text-split.ts",
+     "sha256": "6a8ed4ff5428ae3083964a5fe0e6a5574cb9bce870047d77901aa7847bcb9bde",
+     "size": 13897
+    }
+   ]
+  },
+  {
+   "name": "timeline-steps",
+   "type": "registry:block",
+   "description": "Process walked step by step: the rail draws ahead of a travelling head that lands on each step, works it through a closing ring, then checks it off",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/timeline-steps/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/timeline-steps/index.tsx",
+     "sha256": "89f8e25e264f071fe621f1a3709452a565e7e1cda372765e65374888f17a7342",
+     "size": 13915
+    }
+   ]
+  },
+  {
+   "name": "timing",
+   "type": "registry:lib",
+   "description": "Frame timing helpers and enter easing",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/timing.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/timing.ts",
+     "sha256": "54b974faf4eafe45cd9195e362e602c81044286791815e0554b50bf15f2c6ae2",
+     "size": 1500
+    }
+   ]
+  },
+  {
+   "name": "title-card",
+   "type": "registry:block",
+   "description": "Opening card where each headline line rises out of its own mask and one sweep of light crosses it as it stands",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/title-card/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/title-card/index.tsx",
+     "sha256": "ba063c927290492e4c0dcb4d877147c8bae1fb0c94b638696c783ffba7e5b3b5",
+     "size": 9609
+    }
+   ]
+  },
+  {
+   "name": "tool-menu-slide",
+   "type": "registry:block",
+   "description": "Tool menu slide-in",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "timing"
+   ],
+   "composition": {
+    "id": "ToolMenuSlide",
+    "component": "ToolMenuSlide",
+    "durationInFrames": 120,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "importPath": "@/compositions/tool-menu-slide/index"
+   },
+   "atlas": {
+    "lane": "reels",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/tool-menu-slide/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/tool-menu-slide/index.tsx",
+     "sha256": "76d426d635d3b5dbd5432e02654760fabad3cb7cf7e59b5f57954e0539923045",
+     "size": 10638
+    }
+   ]
+  },
+  {
+   "name": "topographic-lines-bg",
+   "type": "registry:ui",
+   "description": "Contour lines drifting",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/topographic-lines-bg.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/topographic-lines-bg.tsx",
+     "sha256": "f9e9dbc9ba2ca48faf45714e06e9ed3bfad0a5ad5bc1a0292e8948e06a255786",
+     "size": 6873
+    }
+   ]
+  },
+  {
+   "name": "track-matte",
+   "type": "registry:ui",
+   "description": "After Effects track mattes: reveal any child through any other with alpha, inverted alpha, luma or inverted luma",
+   "dependencies": [
+    "remotion",
+    "react-dom"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "motion",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "matte",
+     "masking"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/track-matte.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/track-matte.tsx",
+     "sha256": "ae37f6b7920bb1ef47c20c447db006663bd6cbb55605259b8c19ffdfc8a601de",
+     "size": 8125
+    }
+   ]
+  },
+  {
+   "name": "tracking-in",
+   "type": "registry:ui",
+   "description": "Letter-spacing collapses with spring snap",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "springs"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/tracking-in.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/tracking-in.tsx",
+     "sha256": "73821721ebbf4c0b5350748478ffd4c881b7f3d63a276c7e8b8dc11db63a9997",
+     "size": 1661
+    }
+   ]
+  },
+  {
+   "name": "transcript-scroll",
+   "type": "registry:ui",
+   "description": "Full readable transcript scrolling with the active line marked",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "caption-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "captions"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transcript-scroll.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transcript-scroll.tsx",
+     "sha256": "96c9732aaf8c614fa11a905ed9b35ccd026a283ba0743cbcae9a441847c833a3",
+     "size": 6734
+    }
+   ]
+  },
+  {
+   "name": "transition-blinds",
+   "type": "registry:ui",
+   "description": "Staggered slats sweeping open to reveal the next scene",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-blinds.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-blinds.tsx",
+     "sha256": "41752f040f06273e6755a097c2535c7ab4c9a4a669e63ecb434a174fd4629549",
+     "size": 5954
+    }
+   ]
+  },
+  {
+   "name": "transition-card-flip",
+   "type": "registry:ui",
+   "description": "Whole-frame 3D flip that hands off on backface culling",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-card-flip.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-card-flip.tsx",
+     "sha256": "168308dc3c25971ae2688dfa4e09c65760ae2b44d1de5e72b3b34863a6b3b24a",
+     "size": 4723
+    }
+   ]
+  },
+  {
+   "name": "transition-circle-reveal",
+   "type": "registry:ui",
+   "description": "Circular mask that opens from any point onto the next scene",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-circle-reveal.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-circle-reveal.tsx",
+     "sha256": "90188a540f4e34bde756507e8ed3b2c90699972f66011baedfde9c3728ba7aed",
+     "size": 4567
+    }
+   ]
+  },
+  {
+   "name": "transition-clock-wipe",
+   "type": "registry:ui",
+   "description": "Clock sweep that reads the composition size itself",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-clock-wipe.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-clock-wipe.tsx",
+     "sha256": "14c347668da272cf272d0e909809acfb29d71e3cacb343cff0e2cf780f9b2687",
+     "size": 2061
+    }
+   ]
+  },
+  {
+   "name": "transition-fade",
+   "type": "registry:ui",
+   "description": "Crossfade between scenes, or dip the cut through a colour",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-fade.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-fade.tsx",
+     "sha256": "e082c0c848c8e55c202b73a73d807b06c8bd4d908bc762c3243520900ce4c3fa",
+     "size": 2654
+    }
+   ]
+  },
+  {
+   "name": "transition-light-leak",
+   "type": "registry:ui",
+   "description": "Film flare overlay that peaks on the cut and hides the seam under it",
+   "dependencies": [
+    "remotion",
+    "@remotion/light-leaks"
+   ],
+   "registryDependencies": [
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-light-leak.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-light-leak.tsx",
+     "sha256": "37f5ecc0924e083ed480c8e41e414350f684ca61bd9edc17364b544e96240673",
+     "size": 2408
+    }
+   ]
+  },
+  {
+   "name": "transition-liquid-warp",
+   "type": "registry:ui",
+   "description": "Liquid displacement warp that stirs one scene into the next",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "displacement-presentation",
+    "displacement-transition",
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-liquid-warp.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-liquid-warp.tsx",
+     "sha256": "f8bea5a05e1a4e48174504aa63dc4d9a030d2e4bf46ccb147a6b127b55daa990",
+     "size": 3910
+    }
+   ]
+  },
+  {
+   "name": "transition-morph-shape",
+   "type": "registry:ui",
+   "description": "Reveal through a shape that morphs as it grows across the frame",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "displacement-presentation",
+    "displacement-transition",
+    "path-morph",
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-morph-shape.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-morph-shape.tsx",
+     "sha256": "0031006ee9203b46c497d406ef9a2244f99ac165fd9d41a50acce5d2c51fa29e",
+     "size": 5100
+    }
+   ]
+  },
+  {
+   "name": "transition-slide",
+   "type": "registry:ui",
+   "description": "Slide transition helper for TransitionSeries",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-slide.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-slide.tsx",
+     "sha256": "4da43a0451bf0e1db39a0d60497155642a68f12808ca0ea1d188e5f4e570b77f",
+     "size": 971
+    }
+   ]
+  },
+  {
+   "name": "transition-timing",
+   "type": "registry:lib",
+   "description": "Shared TransitionSeries timing helpers and layered progress curves",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "springs"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/lib/transition-timing.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/lib/transition-timing.ts",
+     "sha256": "313e31740e3298b54ded29ca8808b428daadba5492cf9f9a8ea73ca557247110",
+     "size": 4983
+    }
+   ]
+  },
+  {
+   "name": "transition-whip-pan",
+   "type": "registry:ui",
+   "description": "Fast pan with directional motion blur along the travel axis",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-whip-pan.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-whip-pan.tsx",
+     "sha256": "5020396577575a4782f436b201b4b1811db1cb89f45d3af6ce65fcef53cb3701",
+     "size": 6027
+    }
+   ]
+  },
+  {
+   "name": "transition-wipe",
+   "type": "registry:ui",
+   "description": "Wipe transition helper for TransitionSeries",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/transition-wipe.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/transition-wipe.tsx",
+     "sha256": "9bc0e0968d7ea79ebaafe8de30e588a9a0cb23b580c822ed404e4cb701d8c571",
+     "size": 900
+    }
+   ]
+  },
+  {
+   "name": "treemap-blocks",
+   "type": "registry:ui",
+   "description": "Nested rectangles sized by value",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/treemap-blocks.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/treemap-blocks.tsx",
+     "sha256": "f91c5adcc5aaefbec29c25cab9929ff6dd08ba4559286c61d487925f953af125",
+     "size": 8341
+    }
+   ]
+  },
+  {
+   "name": "tutorial-clip",
+   "type": "registry:block",
+   "description": "Tutorial clip composition for demos and explainers",
+   "dependencies": [
+    "remotion",
+    "@remotion/media",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "auto-fit-title",
+    "media-frame",
+    "callout-spotlight",
+    "code-reveal",
+    "end-card",
+    "transition-fade",
+    "motion-tokens",
+    "sample-media"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "reels",
+    "drive": "media",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/compositions/tutorial-clip/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/compositions/tutorial-clip/index.tsx",
+     "sha256": "76b594516ce61cbb2650b6f07e275143a9519235558adf442e6ce9d7bbf34ff5",
+     "size": 5344
+    }
+   ]
+  },
+  {
+   "name": "typewriter",
+   "type": "registry:ui",
+   "description": "Typewriter reveal with rhythm, pauses, looping, and a caret that only blinks at rest",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "layout",
+    "timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/typewriter.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/typewriter.tsx",
+     "sha256": "f7525410db7e85ea4d0911fd795c3d902d926d573403c974fadc16bfffa44780",
+     "size": 10829
+    }
+   ]
+  },
+  {
+   "name": "use-stagger",
+   "type": "registry:hook",
+   "description": "Hook for staggered child delays",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "timing"
+   ],
+   "composition": null,
+   "atlas": null,
+   "files": [
+    {
+     "target": "src/remotion/hooks/use-stagger.ts",
+     "path": "src/lib/editor/remotion/remotionui/vendored/hooks/use-stagger.ts",
+     "sha256": "15ce321e2a5d6cc667949aaa2ee368e26c65ec775d4242c805a3ae9e9526b85b",
+     "size": 354
+    }
+   ]
+  },
+  {
+   "name": "v0",
+   "type": "registry:block",
+   "description": "v0 composer with greeting, model chip, project selector, and mic-to-send morph",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts"
+   ],
+   "registryDependencies": [
+    "ai-composer-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "ai"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/v0/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/v0/index.tsx",
+     "sha256": "79d5b3c9777f1c84ee48fb45989e4e2b6a642f760ccf09a137e68cb005f4bbd0",
+     "size": 12137
+    }
+   ]
+  },
+  {
+   "name": "variable-font-morph",
+   "type": "registry:ui",
+   "description": "Animates weight/width axes of a variable font",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "split-text-chars",
+    "text-split"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "advanced",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/variable-font-morph.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/variable-font-morph.tsx",
+     "sha256": "167dec96dbd70ac651e74de615fa4a16a61897b461350ddab3d3cb7438aed2c0",
+     "size": 5038
+    }
+   ]
+  },
+  {
+   "name": "voice-note-bubble",
+   "type": "registry:ui",
+   "description": "Chat-style audio message with waveform and playhead",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "audio",
+     "social"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/voice-note-bubble.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/voice-note-bubble.tsx",
+     "sha256": "2986727add7f4f1046418910b2e0a23011ab97c0d5fd8b83b3d84770a7237f44",
+     "size": 7710
+    }
+   ]
+  },
+  {
+   "name": "vu-meter",
+   "type": "registry:ui",
+   "description": "Segmented level meter with peak hold",
+   "dependencies": [
+    "remotion",
+    "@remotion/media-utils"
+   ],
+   "registryDependencies": [
+    "audio-viz-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "audio"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/vu-meter.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/vu-meter.tsx",
+     "sha256": "14dbc9f6ab62b940050424e88e74756e4d8dc40d0aa79a92277f56c3e798e773",
+     "size": 6059
+    }
+   ]
+  },
+  {
+   "name": "warp-bands-bg",
+   "type": "registry:ui",
+   "description": "Colour bands folded through noise and a swirl",
+   "dependencies": [
+    "remotion",
+    "@paper-design/shaders-react"
+   ],
+   "registryDependencies": [
+    "paper-shader"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "shaders",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "background"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/warp-bands-bg.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/warp-bands-bg.tsx",
+     "sha256": "6e1ff65b7034410c1090099cd27d14c4b71039242416cac3ae531a7ef450135b",
+     "size": 2661
+    }
+   ]
+  },
+  {
+   "name": "waterfall-chart",
+   "type": "registry:ui",
+   "description": "Cumulative bridge with positive/negative steps",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "chart-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "advanced",
+    "tags": [
+     "charts"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/waterfall-chart.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/waterfall-chart.tsx",
+     "sha256": "90ab3275359526a6b01981500961b40f16c645a1117ac8febed6f925f96a7f1b",
+     "size": 8543
+    }
+   ]
+  },
+  {
+   "name": "wave-text",
+   "type": "registry:ui",
+   "description": "Per-character sine displacement",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "split-text-chars",
+    "text-split"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "atoms",
+    "drive": "time",
+    "tier": "core",
+    "tags": [
+     "text"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/wave-text.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/wave-text.tsx",
+     "sha256": "5c0c46af5feaa273d987583f5fb194c48b2457b48d0bc4801c0312ea5e6aaf77",
+     "size": 2740
+    }
+   ]
+  },
+  {
+   "name": "waveform-bars-radial",
+   "type": "registry:ui",
+   "description": "Circular bars around a center element",
+   "dependencies": [
+    "remotion",
+    "@remotion/media-utils"
+   ],
+   "registryDependencies": [
+    "audio-viz-utils"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "audio"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/waveform-bars-radial.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/waveform-bars-radial.tsx",
+     "sha256": "e23cf85abe0fc8b800458c2b69f7adbd0a88ed56bdc14a26444fcea25d6afe8c",
+     "size": 4984
+    }
+   ]
+  },
+  {
+   "name": "waveform-line",
+   "type": "registry:ui",
+   "description": "Audio waveform line visualization",
+   "dependencies": [
+    "remotion",
+    "@remotion/media-utils"
+   ],
+   "registryDependencies": [],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "media",
+    "tier": "advanced",
+    "tags": [
+     "audio"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/waveform-line.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/waveform-line.tsx",
+     "sha256": "e48c28877cc4aec0ee37e030434c80fe4fe4d80f6927e79e33c1a37d863c86ac",
+     "size": 8689
+    }
+   ]
+  },
+  {
+   "name": "weather-card",
+   "type": "registry:block",
+   "description": "Conditions with animated iconography",
+   "dependencies": [
+    "remotion"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "time",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/weather-card/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/weather-card/index.tsx",
+     "sha256": "9b6c2c053bc82b048823ac852cc65641f4a3757c71a57bc26fe61b088bd381e4",
+     "size": 14037
+    }
+   ]
+  },
+  {
+   "name": "word-pop-captions",
+   "type": "registry:ui",
+   "description": "Narrowed: one word at a time, alone on frame",
+   "dependencies": [
+    "remotion",
+    "@remotion/captions"
+   ],
+   "registryDependencies": [
+    "caption-utils",
+    "layout",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "signals",
+    "drive": "data",
+    "tier": "core",
+    "tags": [
+     "captions"
+    ]
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/word-pop-captions.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/word-pop-captions.tsx",
+     "sha256": "018fba8372933f4bc857e0c79b9ae80f6849266b2527785560d6aa969a8e5147",
+     "size": 4306
+    }
+   ]
+  },
+  {
+   "name": "zoom-pan-frame",
+   "type": "registry:block",
+   "description": "Camera move on a still driven by focal points, settling before the cut, with an optional label chip",
+   "dependencies": [
+    "remotion",
+    "@remotion/google-fonts",
+    "@remotion/media"
+   ],
+   "registryDependencies": [
+    "code-syntax",
+    "layout",
+    "media-utils",
+    "motion-tokens"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "blocks",
+    "drive": "media",
+    "tier": "core"
+   },
+   "files": [
+    {
+     "target": "src/remotion/scenes/zoom-pan-frame/index.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/scenes/zoom-pan-frame/index.tsx",
+     "sha256": "9a3e007b9f81e90004c0233d2b9f7c1660f8ca9f16ee759362b583ea448b6057",
+     "size": 5715
+    }
+   ]
+  },
+  {
+   "name": "zoom-through",
+   "type": "registry:ui",
+   "description": "Camera push-through: one scene drives past the lens, the next lands out of the same move",
+   "dependencies": [
+    "remotion",
+    "@remotion/transitions"
+   ],
+   "registryDependencies": [
+    "transition-timing"
+   ],
+   "composition": null,
+   "atlas": {
+    "lane": "cuts",
+    "drive": "time",
+    "tier": "advanced"
+   },
+   "files": [
+    {
+     "target": "src/remotion/primitives/zoom-through.tsx",
+     "path": "src/lib/editor/remotion/remotionui/vendored/primitives/zoom-through.tsx",
+     "sha256": "49fe0fa89e685b33c01547f3fd2ac8746d363a7493f617c9e8cde260f35b9a9d",
+     "size": 4757
+    }
+   ]
+  }
+ ]
+}

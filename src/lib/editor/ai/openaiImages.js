@@ -41,6 +41,60 @@ async function post(body, { fetchImpl = fetch, signal, headers = openaiKeyHeader
   return data;
 }
 
+// [remix] References can be hosted https URLs, or data:/blob: images (a previous panel's result comes back as a data: URL, and an
+// upload kept in the project without cloud storage is a data: URL). Those are shrunk and sent inline so the consistency chain
+// (panel 1 -> every later panel) and uploaded references work without any storage service.
+const MAX_REFS = 8;
+const MAX_INLINE_CHARS = 4_000_000; // Netlify functions accept ~6 MB per request
+const REF_MAX_SIDE = 1024;
+
+/** data:/blob: image -> compact JPEG data URL (falls back to the original when it is already small or no canvas exists). */
+export async function toCompactDataUrl(src) {
+  try {
+    const noCanvas = typeof Image === 'undefined' || typeof document === 'undefined' || (typeof navigator !== 'undefined' && /jsdom/i.test(navigator.userAgent || ''));
+    if (noCanvas) return /^data:image\//i.test(src) && src.length <= 1_200_000 ? src : null;
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      const t = setTimeout(() => reject(new Error('image load timed out')), 8000); // a broken image must not hang the generation
+      i.onload = () => { clearTimeout(t); resolve(i); };
+      i.onerror = (e) => { clearTimeout(t); reject(e); };
+      i.src = src;
+    });
+    const k = Math.min(1, REF_MAX_SIDE / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round((img.naturalWidth || 1) * k));
+    c.height = Math.max(1, Math.round((img.naturalHeight || 1) * k));
+    const ctx = c.getContext('2d');
+    if (!ctx) return /^data:image\//i.test(src) && src.length <= 1_200_000 ? src : null;
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.88);
+  } catch {
+    return /^data:image\//i.test(src) && src.length <= 1_200_000 ? src : null;
+  }
+}
+
+/** Reference list for the server: https URLs first, then compact inline images, within the request-size budget. */
+export async function prepareReferences(refs = [], { toInline = toCompactDataUrl } = {}) {
+  const out = [];
+  let budget = MAX_INLINE_CHARS;
+  const seen = new Set();
+  const https = [];
+  const inline = [];
+  for (const u of refs) {
+    if (typeof u !== 'string' || seen.has(u)) continue;
+    seen.add(u);
+    if (/^https:\/\//i.test(u)) https.push(u);
+    else if (/^(data:image\/|blob:)/i.test(u)) inline.push(u);
+  }
+  out.push(...https);
+  for (const u of inline) {
+    if (out.length >= MAX_REFS) break;
+    const d = await toInline(u);
+    if (d && d.length <= budget) { out.push(d); budget -= d.length; }
+  }
+  return out.slice(0, MAX_REFS);
+}
+
 /**
  * Generate (or, with refs, edit) images.
  * @param {string} prompt
@@ -50,13 +104,14 @@ async function post(body, { fetchImpl = fetch, signal, headers = openaiKeyHeader
 export async function generateImages(prompt, { aspectRatio = '16:9', quality = 'auto', model = DEFAULT_IMAGE_MODEL, refs = [], n = 1, ...net } = {}) {
   const text = String(prompt || '').trim();
   if (!text) throw new Error('Describe the image first');
+  const refList = refs.length ? await prepareReferences(refs) : [];
   const body = {
     prompt: text.slice(0, 4000),
     aspectRatio,
     quality,
     n: Math.max(1, Math.min(4, n)),
     model,
-    ...(refs.length ? { referenceImageUrls: refs.filter((u) => /^https:\/\//i.test(u)).slice(0, 8) } : {}),
+    ...(refList.length ? { referenceImageUrls: refList } : {}),
   };
   try {
     const data = await post(body, net);

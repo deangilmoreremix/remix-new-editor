@@ -510,10 +510,13 @@ function TemplateCard({
           type="button"
           data-testid="motion-template-use"
           onClick={() => onSelect(template)}
-          style={{ ...primaryButtonStyle, flex: 1, minHeight: 36, fontSize: 11, padding: '0 12px' }}
+          // Without a clip there is nothing to put in the preview.
+          disabled={!template.preview || !template.componentName}
+          title={!template.preview || !template.componentName ? 'Preview clip not available yet' : undefined}
+          style={{ ...primaryButtonStyle, flex: 1, minHeight: 36, fontSize: 11, padding: '0 12px', opacity: !template.preview || !template.componentName ? 0.5 : 1 }}
         >
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            Use this template <ChevronRight size={12} />
+            {!template.preview || !template.componentName ? 'Clip coming soon' : <>Use this template <ChevronRight size={12} /></>}
           </span>
         </button>
         {onLaunch && (

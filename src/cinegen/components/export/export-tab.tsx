@@ -8,6 +8,7 @@ import { RenderProgress } from './render-progress';
 import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
 import type { ExportPreset, ExportJob } from '@cinegen/types/export';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
+import { exportBlockers, describeBlockers } from '@cinegen/lib/export-blockers';
 
 export function ExportTab() {
   const { state, dispatch } = useWorkspace();
@@ -38,6 +39,8 @@ export function ExportTab() {
     });
   }, [activeTimeline.clips, activeTimeline.tracks, state.assets]);
   const hasClips = exportClips.length > 0;
+  // Clips that were dropped from the render, and why (so a disabled Render button can explain itself).
+  const blockedReason = useMemo(() => describeBlockers(exportBlockers(activeTimeline.clips, state.assets)), [activeTimeline.clips, state.assets]);
   const totalDuration = Math.max(
     activeTimeline.duration,
     ...activeTimeline.clips.map(clipEndTime),
@@ -58,8 +61,10 @@ export function ExportTab() {
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
         // [remix] OpenChatCut motion-graphics templates on the overlay lane are rendered into the export
         // [remix] visual overlays (text, stickers, call buttons, End Screens, Connect Forms…) are drawn into the render; interactive forms stay player-only
-        overlays: (state.overlays ?? []).filter((o) => o.type !== 'mg-template'),
+        overlays: (state.overlays ?? []).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
         mgOverlays: (state.overlays ?? []).filter((o) => o.type === 'mg-template').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, code: o.code, props: o.props })),
+        // [hyperframes] verified HyperFrames animations on the overlay lane (rendered by the sandboxed export runner)
+        hfOverlays: (state.overlays ?? []).filter((o) => o.type === 'hyperframes').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, blockId: o.blockId, props: o.props, blockWidth: o.blockWidth, blockHeight: o.blockHeight })),
         // [remix] OpenChatCut GL transitions on dissolve cuts
         transitions: (activeTimeline.transitions ?? []).filter((t) => t.glType && t.type === 'dissolve' && t.clipBId).map((t) => ({ glType: t.glType, glDef: t.glDef, clipAId: t.clipAId, clipBId: t.clipBId })),
       });
@@ -110,7 +115,7 @@ export function ExportTab() {
           Render your timeline as an MP4 video
         </p>
 
-        <ExportSettings hasClips={hasClips} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
+        <ExportSettings hasClips={hasClips} blockedReason={blockedReason} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
         {/* [remix] OpenChatCut FCPXML export (Final Cut Pro / Premiere / DaVinci Resolve) */}
         <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
           <button type="button" disabled={!hasClips} data-testid="export-fcpxml" onClick={() => {
@@ -134,8 +139,13 @@ export function ExportTab() {
         )}
 
         {!hasClips && (
-          <p className="export-tab__hint">
-            Add clips to the timeline in the Edit tab before exporting.
+          <p className="export-tab__hint" data-testid="export-blocked-hint">
+            {blockedReason || 'Add clips to the timeline in the Edit tab before exporting.'}
+          </p>
+        )}
+        {hasClips && blockedReason && (
+          <p className="export-tab__hint" data-testid="export-skipped-hint">
+            Some clips will be left out: {blockedReason}
           </p>
         )}
       </div>

@@ -25,10 +25,12 @@ interface ExportSettingsProps {
   fit?: 'contain' | 'cover';
   onFit?: (fit: 'contain' | 'cover') => void;
   hasClips: boolean;
+  /** [remix] why Render is unavailable even though the timeline has clips */
+  blockedReason?: string;
   onRender: (preset: ExportPreset, fps: 24 | 30 | 60, extras: ExportExtras) => void;
 }
 
-export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect, fit = 'cover', onFit }: ExportSettingsProps) {
+export function ExportSettings({ hasClips, blockedReason, onRender, aspect = '16:9', onAspect, fit = 'cover', onFit }: ExportSettingsProps) {
   const [preset, setPreset] = useState<ExportPreset>('standard');
   const [fps, setFps] = useState<24 | 30 | 60>(30);
   const setAspect = (a: string) => onAspect?.(a);
@@ -119,7 +121,7 @@ export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect, 
         className="export-settings__render-btn"
         disabled={!hasClips}
         onClick={() => onRender(preset, fps, { videoBitrate: requested, qa, aspect })}
-        title={hasClips ? undefined : 'Add clips to the timeline first'}
+        title={hasClips ? undefined : (blockedReason || 'Add clips to the timeline first')}
       >
         Render
       </button>

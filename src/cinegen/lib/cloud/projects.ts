@@ -124,8 +124,10 @@ function createDefaultCloudProject(name: string) {
       id: timelineId, project_id: id, name: 'Timeline 1', duration: 0,
       created_at: now, markers: '[]', fit: 'contain',
       tracks: [
-        { id: generateId(), timeline_id: timelineId, name: 'Video 1', kind: 'video', color: '#4A90D9', muted: 0, solo: 0, locked: 0, visible: 1, volume: 1, sort_order: 0 },
-        { id: generateId(), timeline_id: timelineId, name: 'Audio 1', kind: 'audio', color: '#7ED321', muted: 0, solo: 0, locked: 0, visible: 1, volume: 1, sort_order: 1 },
+        { id: generateId(), timeline_id: timelineId, name: 'V1', kind: 'video', color: '#4A90D9', muted: 0, solo: 0, locked: 0, visible: 1, volume: 1, sort_order: 0 },
+        { id: generateId(), timeline_id: timelineId, name: 'A1', kind: 'audio', color: '#7ED321', muted: 0, solo: 0, locked: 0, visible: 1, volume: 1, sort_order: 1 },
+        { id: generateId(), timeline_id: timelineId, name: 'V2', kind: 'video', color: '#4A90D9', muted: 0, solo: 0, locked: 0, visible: 1, volume: 1, sort_order: 2 }, // [remix] four default tracks
+        { id: generateId(), timeline_id: timelineId, name: 'A2', kind: 'audio', color: '#7ED321', muted: 0, solo: 0, locked: 0, visible: 1, volume: 1, sort_order: 3 },
       ],
       clips: [], transitions: [],
     }],

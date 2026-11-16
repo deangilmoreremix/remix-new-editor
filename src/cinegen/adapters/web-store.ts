@@ -95,7 +95,7 @@ function createDefaultProjectState(name) {
         {
           id: videoTrackId,
           timeline_id: timelineId,
-          name: 'Video 1',
+          name: 'V1', // [remix] new projects start with four tracks (V1 V2 / A1 A2), as CineGen's own default timeline
           kind: 'video',
           color: '#4A90D9',
           muted: 0,
@@ -108,7 +108,7 @@ function createDefaultProjectState(name) {
         {
           id: audioTrackId,
           timeline_id: timelineId,
-          name: 'Audio 1',
+          name: 'A1',
           kind: 'audio',
           color: '#7ED321',
           muted: 0,
@@ -118,6 +118,8 @@ function createDefaultProjectState(name) {
           volume: 1,
           sort_order: 1,
         },
+        { id: crypto.randomUUID(), timeline_id: timelineId, name: 'V2', kind: 'video', color: '#4A90D9', muted: 0, solo: 0, locked: 0, visible: 1, volume: 1, sort_order: 2 },
+        { id: crypto.randomUUID(), timeline_id: timelineId, name: 'A2', kind: 'audio', color: '#7ED321', muted: 0, solo: 0, locked: 0, visible: 1, volume: 1, sort_order: 3 },
       ],
       clips: [],
       transitions: [],

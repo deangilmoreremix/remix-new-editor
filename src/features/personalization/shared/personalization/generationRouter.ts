@@ -10,25 +10,28 @@ import {
   generateI2I,
   generateVideo,
   generateI2V,
-  processRecast,
+  processMotionControl,
   processV2V,
   processLipSync,
   uploadFile,
 } from '@ohb/packages/studio/src/muapi'
-import { createPersonalizationOpenAIClient } from './openaiPersonalizationClient'
 import { getOpenAiKey } from '@ohb/lib/authConfig'
+import { createPersonalizationOpenAIClient } from './openaiPersonalizationClient'
+import { clampRecastDuration } from './recast/recastJob'
 import {
   getV2VModelById,
   getRecastModelById,
   getVideoModelById,
-  getI2VModelById,
   getI2IModelById,
+  getI2VModelById,
 } from '@ohb/packages/studio/src/models.js'
 import {
   FACE_SWAP_MODEL,
   FULL_BODY_MODEL,
   DEFAULT_T2V_MODEL,
   DEFAULT_I2I_MODEL,
+  pickImageModel,
+  pickVideoModel,
 } from './modelCapabilityResolver'
 import type {
   PersonalizationSource,
@@ -52,30 +55,16 @@ export interface GenerationInput {
   options: GenerationOptions
   apiKey: string
   onProgress?: (percent: number, message: string) => void
+  /**
+   * True when the caller puts the source video's audio back on afterwards
+   * (the final-video render). Only then may a full presenter clip be made
+   * silent for "Keep the original video's sound"; otherwise the model makes
+   * the sound, so the result is never silent.
+   */
+  restoresSourceAudio?: boolean
 }
 
 // ── Logging ──────────────────────────────────────────────────────────────────
-
-function resolveModelId(
-  source: PersonalizationSource,
-  options: GenerationOptions,
-  fallback: string,
-): string {
-  if (options.advancedModel) return options.advancedModel
-  if (options.model) return options.model
-  if (source.model) return source.model
-  return fallback
-}
-
-function pickVideoModel(source: PersonalizationSource, options: GenerationOptions, mode: VideoPersonalizationMode): string {
-  if (mode === 'face_only') return FACE_SWAP_MODEL
-  if (mode === 'full_body') return FULL_BODY_MODEL
-  return resolveModelId(source, options, DEFAULT_T2V_MODEL)
-}
-
-function pickImageModel(source: PersonalizationSource, options: GenerationOptions, mode: ImagePersonalizationMode): string {
-  return resolveModelId(source, options, DEFAULT_I2I_MODEL)
-}
 
 // ── Error Handling ───────────────────────────────────────────────────────────
 
@@ -150,8 +139,16 @@ function getFallbackModel(source: PersonalizationSource, mode: VideoPersonalizat
 
 // ── Main Entry ───────────────────────────────────────────────────────────────
 
+/** Frame shapes Seedance motion control accepts besides 'adaptive' (packages/studio/src/models.js). */
+const MOTION_CONTROL_ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', '9:21']
+
+/** The approved aspect ratio for a Full Presenter run, or 'adaptive' when the model doesn't offer it. */
+export function motionControlAspectRatio(aspectRatio: string | null | undefined): string {
+  return aspectRatio && MOTION_CONTROL_ASPECT_RATIOS.includes(aspectRatio) ? aspectRatio : 'adaptive'
+}
+
 export async function runGeneration(input: GenerationInput): Promise<GenerationResult> {
-  const { source, resolved, prompt, mode, options, apiKey, onProgress } = input
+  const { source, resolved, prompt, mode, options, apiKey, onProgress, restoresSourceAudio } = input
 
   onProgress?.(5, 'Preparing assets...')
 
@@ -179,6 +176,7 @@ export async function runGeneration(input: GenerationInput): Promise<GenerationR
     options,
     apiKey,
     onProgress,
+    restoresSourceAudio: Boolean(restoresSourceAudio),
   })
 }
 
@@ -265,9 +263,14 @@ async function handleImageGeneration({
       if (!imageUrl) throw new Error('No source image available for image personalization.')
 
       const imageBlob = await toImageBlob(imageUrl)
+      const referenceUrl = resolved.directInputs.reference_image_url as string | undefined
+      const referenceImages = referenceUrl ? [await toImageBlob(referenceUrl)] : undefined
       const results = await openaiClient.editImage({
-        prompt,
+        prompt: referenceImages
+          ? `${prompt}\n\nPut the person from the second image into the first image${mode === 'replace_face' ? ' (replace only the face)' : ''}, keeping the first image's design, layout and text.`
+          : prompt,
         image: imageBlob,
+        referenceImages,
         model: imageModel,
         size,
         quality: options.quality,
@@ -312,6 +315,7 @@ async function handleVideoGeneration({
   options,
   apiKey,
   onProgress,
+  restoresSourceAudio,
 }: {
   source: PersonalizationSource
   resolved: ResolvedAssets
@@ -320,6 +324,7 @@ async function handleVideoGeneration({
   options: GenerationOptions
   apiKey: string
   onProgress?: (percent: number, message: string) => void
+  restoresSourceAudio?: boolean
 }): Promise<GenerationResult> {
   const videoModel = pickVideoModel(source, options, mode || 'recreate')
 
@@ -357,12 +362,21 @@ async function handleVideoGeneration({
       const identityUrl = resolved.directInputs.image_url as string | undefined
       if (!identityUrl) throw new Error('No identity image provided for full presenter replacement.')
 
-      const result = await processRecast(apiKey, {
+      // Seedance motion control (open-genjutsu): keeps the clip's motion,
+      // camera and location and swaps in the person.
+      const result = await processMotionControl(apiKey, {
         model: videoModel,
         video_url: videoUrl,
-        image_url: identityUrl,
-        prompt: options.preserveAudio ? undefined : prompt,
-        aspect_ratio: options.aspectRatio || source.aspectRatio,
+        images_list: [identityUrl],
+        // The approved frame shape when the model offers it; otherwise the
+        // clip keeps its own shape (the layers are fitted to it afterwards).
+        aspect_ratio: motionControlAspectRatio(options.aspectRatio),
+        duration: clampRecastDuration(options.duration || source.duration || 5),
+        // "Keep the original video's sound" puts the source audio back on in
+        // the final render. Any other run (plain Generate, the assistant)
+        // has nothing to restore it, so the model makes the sound.
+        generate_audio: !(options.preserveAudio && restoresSourceAudio),
+        prompt,
       })
 
       onProgress?.(85, 'Processing...')

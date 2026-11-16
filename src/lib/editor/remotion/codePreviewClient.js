@@ -44,7 +44,7 @@ export function createCodePreview(host, { onError } = {}) {
   return {
     /** Show the model's animation clips (hides the frame when there are none). */
     async update(model) {
-      const layers = (model?.layers || []).filter((l) => l.kind === 'code');
+      const layers = (model?.layers || []).filter((l) => l.kind === 'code' || l.kind === 'hyperframes');
       if (!layers.length) {
         if (iframe) iframe.style.display = 'none';
         lastModel = null;

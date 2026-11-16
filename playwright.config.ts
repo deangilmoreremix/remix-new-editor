@@ -14,10 +14,12 @@ export default defineConfig({
     '**/timeline-editing.spec.js',
     '**/timeline-sam3.spec.js',
     '**/timeline-addons.spec.js',
+    '**/timeline-add-modal.spec.js',
     '**/public-audit-report.spec.js',
     '**/video-agent-studio.spec.js',
     '**/template-generator.spec.js',
     '**/website-builder-navigation.spec.js',
+    '**/projects-analytics.spec.js',
   ],
   testIgnore: '**/node_modules/**',
 

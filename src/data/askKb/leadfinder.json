@@ -1,0 +1,194 @@
+{
+  "id": "leadfinder",
+  "name": "Lead Finder",
+  "route": "#/leadfinder",
+  "description": "Find local businesses that may need video: search a niche and location, review scored prospects, pull their logos and photos from their website, and save leads with a pipeline stage.",
+  "shortDescription": "Search local businesses by niche and location and save them as leads.",
+  "fullDescription": "Lead Finder (#/leadfinder, not listed in the side menu) is an entry page for the Personalization and Lead Finder modal. Its hero reads 'Find local businesses that need video' and has two buttons: Find businesses (opens the modal at the Find business step) and Find My Brand (free, pastes a website to pull its branding). Below is a Saved leads list showing each lead's name, category and location, address, website, phone, a star if starred, and a pipeline stage badge. The search uses OpenStreetMap by business type and location, and saving leads needs you to be signed in.",
+  "bestFor": "Agencies and freelancers prospecting local businesses (roofers, salons, restaurants, and so on) who want a list of leads and a quick way to make a personalized demo for each.",
+  "whenToUse": [
+    "You need a list of local businesses in a niche and area.",
+    "You want to save prospects and track them through a sales pipeline.",
+    "You want to pull a prospect's real logo and photos from their website before making a demo video.",
+    "You want to review saved leads in one place."
+  ],
+  "whenToUseAnother": [
+    "Use Find My Brand (#/find-my-brand) when you already know the website and only want its branding, free and without signing in.",
+    "Use Personalizer (#/personalizer) to build a personalized page for a lead.",
+    "Use Video (#/video) or Viral (#/viral) to generate the demo video itself.",
+    "Use Timeline Editor (#/timeline) to edit a demo video."
+  ],
+  "keyFeatures": [
+    "Find businesses button that opens the search modal",
+    "Business Type / Niche dropdown with 18 niches",
+    "Location field and Search Radius buttons of 5, 10, 15, 25 or 50 mi",
+    "Scored search results, with a note when a business is Not listed in OpenStreetMap",
+    "Find My Brand button for website discovery",
+    "Saved leads list with a Refresh button and a count",
+    "Eight pipeline stages: New, Qualified, Shortlisted, Demo Created, Contacted, Responded, Converted, Not Interested",
+    "Lead stage selector and a Notes field in the modal",
+    "Saved Clients and client profile (Save Client / Update Client)"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Find businesses",
+      "explanation": "Opens the modal. Under Find Local Business choose a Business Type / Niche (Select a niche...), type a Location (placeholder example: Hollywood, Florida), choose a Search Radius and click Find Businesses. Results appear under Search Results.",
+      "whyToUse": "Builds a prospect list quickly.",
+      "inputRequired": "Niche and location.",
+      "restrictions": "The niche must be one of the supported options or the server rejects it. If the search fails you see Business Search Failed with the reason."
+    },
+    {
+      "feature": "Niches",
+      "explanation": "The niche dropdown offers E-Commerce / Retail, Real Estate, Restaurants / Food, Beauty / Salon, Wellness / Fitness, Education, Technology / SaaS, Finance, Entertainment / Media, Automotive, Travel / Hospitality, Sports / Outdoors, General Business, Healthcare / Medical, Home Contractors, Auto Detailing, Pet Services and Professional Services.",
+      "whyToUse": "Narrows results to the right kind of business.",
+      "inputRequired": "One niche.",
+      "restrictions": "Only these listed niches."
+    },
+    {
+      "feature": "Search Radius",
+      "explanation": "Buttons labeled 5 mi, 10 mi, 15 mi, 25 mi and 50 mi; clicking one runs the search with that radius.",
+      "whyToUse": "Widen or narrow the area.",
+      "inputRequired": "A location.",
+      "restrictions": "Radius is in miles."
+    },
+    {
+      "feature": "Search data source",
+      "explanation": "Businesses come from OpenStreetMap. Some businesses may show 'Not listed in OpenStreetMap' when they were found another way.",
+      "whyToUse": "Understand why a business may have little detail.",
+      "inputRequired": "None.",
+      "restrictions": "OpenStreetMap coverage varies by area, so addresses, phones or websites can be missing."
+    },
+    {
+      "feature": "Find My Brand button",
+      "explanation": "Opens the free discovery flow so you can paste a business website and see its logo, photos, products and branding. The tooltip says 'Paste a business website to pull its logo, photos and branding (free)'.",
+      "whyToUse": "Gather real assets for a demo.",
+      "inputRequired": "A website URL.",
+      "restrictions": "If a search result has no website you are told to paste one in the Website field and use Find My Brand."
+    },
+    {
+      "feature": "Saved leads",
+      "explanation": "The Saved leads section loads your saved leads from the server. Each row shows name (with a star if starred), category or niche and location, address, website link, phone and a stage badge. Click Refresh to reload. The heading shows the count, for example Saved leads (3).",
+      "whyToUse": "Track your pipeline.",
+      "inputRequired": "Being signed in.",
+      "restrictions": "Messages: 'Loading saved leads...', 'Sign in to see your saved leads.', 'Saved leads are not available right now. Please try again later.', 'Could not load saved leads.', and 'No saved leads yet. Use \"Find businesses\" and save the prospects you like.'"
+    },
+    {
+      "feature": "Pipeline stages",
+      "explanation": "Every lead has a stage: New (default), Qualified, Shortlisted, Demo Created, Contacted, Responded, Converted or Not Interested. Update the stage with the Lead stage selector in the modal.",
+      "whyToUse": "Know who to follow up with.",
+      "inputRequired": "A saved lead.",
+      "restrictions": "Updating, saving or deleting leads requires sign in ('Sign in to update saved leads.', 'Sign in to save leads.', 'Sign in to delete saved leads.')."
+    },
+    {
+      "feature": "Selected business and website research",
+      "explanation": "After you pick a business, a summary shows the details found, and a research step can report a logo as Found. You can then save it as a client and continue to personalize a prompt, image or video.",
+      "whyToUse": "Go from prospect to demo.",
+      "inputRequired": "A selected business.",
+      "restrictions": "What is found depends on the business website."
+    }
+  ],
+  "howToUse": "1. Open Lead Finder at #/leadfinder. 2. Click Find businesses. 3. Under Find Local Business, pick a Business Type / Niche. 4. Type a Location, for example Tampa, Florida. 5. Pick a Search Radius (5 mi, 10 mi, 15 mi, 25 mi or 50 mi). 6. Click Find Businesses and review the Search Results. 7. Select a business to see its summary and use Find My Brand to pull its logo and photos from its website. 8. Save the lead (sign in if asked) and set the Lead stage. 9. Close the modal and click Refresh in Saved leads to see it listed.",
+  "howToSteps": [
+    "Click Find businesses.",
+    "Choose niche, location and radius.",
+    "Click Find Businesses and review results.",
+    "Select a business and run Find My Brand on its website.",
+    "Save the lead and set its stage.",
+    "Click Refresh on the Saved leads list."
+  ],
+  "gettingStarted": [
+    "Sign in first so you can save leads.",
+    "Start with a 10 mi radius in a city you know and the General Business niche if unsure.",
+    "Use the Notes field to remember why a lead is interesting."
+  ],
+  "inputs": ["Business Type / Niche", "Location", "Search Radius", "Website", "Lead stage", "Notes"],
+  "requiredInputs": ["Business Type / Niche", "Location"],
+  "optionalInputs": ["Search Radius", "Website", "Lead stage", "Notes"],
+  "inputDetails": [
+    {"name": "Business Type / Niche", "description": "Kind of business to look for.", "required": true, "whenToUse": "Every search.", "restrictions": "Must be one of the 18 listed niches."},
+    {"name": "Location", "description": "City or area text, e.g. Tampa, Florida.", "required": true, "whenToUse": "Every search.", "restrictions": "Free text; unrecognized places may return nothing."},
+    {"name": "Search Radius", "description": "5, 10, 15, 25 or 50 miles.", "required": false, "whenToUse": "To widen or narrow results.", "restrictions": "Those five choices only."},
+    {"name": "Website", "description": "A business website to discover branding from.", "required": false, "whenToUse": "When the business was found without a site.", "restrictions": "Discovery needs sign in."}
+  ],
+  "generationModes": [],
+  "modeExplanations": [],
+  "modelCapabilities": "",
+  "outputs": ["List of scored business prospects", "Saved leads with pipeline stage", "Discovered logos, photos and branding", "Personalized prompts, images or videos via the modal"],
+  "limitations": [
+    "Business data comes from OpenStreetMap and can be incomplete.",
+    "Saving and viewing leads requires sign in.",
+    "Only 18 niches and 5 radius choices."
+  ],
+  "limitationDetails": [
+    {"limitation": "Incomplete business data", "impact": "Missing phone, address or website.", "workaround": "Paste the website manually and use Find My Brand."},
+    {"limitation": "Sign in needed for leads", "impact": "Saved leads list shows a sign-in message.", "workaround": "Sign in and click Refresh."}
+  ],
+  "troubleshooting": [
+    "Sign in to see your saved leads: sign in, then click Refresh.",
+    "Saved leads are not available right now: a server problem; try again later.",
+    "Business Search Failed: check the niche and location, then try a larger radius.",
+    "No website is listed for this business: paste the website in the Website field and use Find My Brand.",
+    "Discovery timed out: the site may be slow; try again.",
+    "The discovery service is busy: wait a moment and retry."
+  ],
+  "troubleshootingSteps": [
+    {"issue": "No results found", "steps": ["Pick a different or broader niche such as General Business.", "Try a bigger Search Radius, up to 50 mi.", "Check the spelling of the Location."]},
+    {"issue": "Lead not appearing in Saved leads", "steps": ["Make sure you are signed in.", "Click Refresh.", "Confirm the save did not show an error."]}
+  ],
+  "commonProblems": [
+    {"problem": "Results lack contact details", "whyItHappens": "OpenStreetMap does not hold every business detail.", "howToFix": "Open the business website and enter missing details by hand."},
+    {"problem": "Stage did not change", "whyItHappens": "Not signed in, or the update failed.", "howToFix": "Sign in and set the Lead stage again."}
+  ],
+  "exampleWorkflows": [
+    {"title": "Roofing prospects in Tampa", "steps": ["Click Find businesses.", "Choose Home Contractors.", "Enter Tampa, Florida and pick 25 mi.", "Click Find Businesses.", "Select a roofer, run Find My Brand, save the lead and set the stage to Qualified."]}
+  ],
+  "useCases": [
+    {"title": "Local video agency outreach", "description": "Find salons in your city and send each a personalized demo.", "steps": ["Search Beauty / Salon.", "Save promising leads.", "Create a personalized demo for each.", "Move stages to Demo Created then Contacted."], "expectedOutput": "A tracked list of leads with demos."}
+  ],
+  "faqs": [
+    {"question": "Where does the business data come from?", "answer": "From OpenStreetMap, searched by niche and location."},
+    {"question": "What are the lead stages?", "answer": "New, Qualified, Shortlisted, Demo Created, Contacted, Responded, Converted and Not Interested. New is the default."},
+    {"question": "Do I need to sign in?", "answer": "To save, update, delete or view saved leads, yes. Messages tell you when sign in is needed."},
+    {"question": "Is Lead Finder in the side menu?", "answer": "No, open it from #/leadfinder or a link."}
+  ],
+  "glossary": {
+    "Lead": "A business you may want to sell to.",
+    "Niche": "The type of business, like Restaurants / Food.",
+    "Pipeline stage": "Where a lead is in your sales process.",
+    "Prospect score": "A score the search gives each result to help you sort them."
+  },
+  "tips": [
+    "Search a few niches rather than one broad one.",
+    "Star leads you want to return to.",
+    "Update stages as you go so the list stays useful."
+  ],
+  "bestPractices": [
+    "Review each business website before pitching.",
+    "Record context in Notes.",
+    "Keep stage values current."
+  ],
+  "relatedStudios": ["find-my-brand", "personalizer", "video", "viral", "timeline"],
+  "relatedStudioGuidance": [
+    {"studio": "find-my-brand", "relationship": "Brand discovery used inside Lead Finder", "whenToMove": "You already have the website.", "why": "It is free and quick."},
+    {"studio": "personalizer", "relationship": "Make personalized pages", "whenToMove": "You have a lead and want a page for them.", "why": "Tokens fill in their details."}
+  ],
+  "notConfirmed": [
+    "How the prospect score is calculated.",
+    "Maximum number of results per search or saved leads.",
+    "Credit costs of generating demo videos from a lead.",
+    "Exact wording of the save lead button."
+  ],
+  "sourceFiles": [
+    "src/components/LeadFinderStudio.js",
+    "src/features/personalization/mount.jsx",
+    "src/features/personalization/shared/personalization/PersonalizationModal.tsx",
+    "src/features/personalization/shared/personalization/businessNiches.ts",
+    "src/features/personalization/shared/personalization/leadStages.ts"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read LeadFinderStudio.js fully, plus niche and stage lists and search UI strings in the modal.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

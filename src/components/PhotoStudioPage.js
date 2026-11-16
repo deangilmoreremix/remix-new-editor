@@ -3,7 +3,8 @@
 // Follows the exact pattern of existing studios (vanilla DOM + mountStudioChrome).
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { listBrands, savePhotoshoot } from '../lib/brandStore.js';
+import { listBrands, savePhotoshoot, resolveBrandId } from '../lib/brandStore.js';
+import { navigate } from '../lib/brandNavigation.js';
 import { PHOTO_CATEGORIES, PHOTO_STYLES, generateProductPhoto } from '../lib/photoStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createSafeImage } from '../lib/security.js';
@@ -21,7 +22,8 @@ export function PhotoStudioPage() {
   mountStudioChrome(container, { currentRoute: 'photo-studio', title: 'Photo Studio' });
 
   const brands = listBrands();
-  const selectedBrand = brands[0] || null;
+  // ?brandId= (from Brand DNA) or the last-used brand picks the initial brand; the dropdown can change it.
+  let selectedBrand = brands.find((b) => b.id === resolveBrandId()) || brands[0] || null;
 
   // ---- State ----
   const state = {
@@ -88,6 +90,7 @@ export function PhotoStudioPage() {
     `;
     brandSelect.onchange = () => {
       const b = brands.find(x => x.id === brandSelect.value);
+      selectedBrand = b || null; // generation and saved photoshoots follow the dropdown
       state.logoUrl = b?.logoUrl || null;
     };
     uploadRow.appendChild(brandSelect);
@@ -380,7 +383,7 @@ export function PhotoStudioPage() {
             // Open-Pomelli's photo studio (nano-banana-2-edit), client-side.
             const result = await generateProductPhoto({
               productImageUrl: state.productImageUrl,
-              logoUrl: selectedBrand?.logoUrl || null,
+              logoUrl: state.logoUrl || null,
               category,
               style,
               direction: state.direction || '',
@@ -483,9 +486,19 @@ export function PhotoStudioPage() {
         <div class="flex gap-2">
           <a href="${result.imageUrl}" download class="btn-secondary-modern text-xs">Download</a>
           <button type="button" data-photo-personalize class="btn-secondary-modern text-xs" aria-haspopup="dialog">Personalize</button>
-          <a href="/animate?sourceType=photoshoot&sourceId=${result.id}" class="btn-primary-modern text-xs">Animate →</a>
+          <button type="button" data-photo-animate class="btn-primary-modern text-xs">Animate →</button>
         </div>
       `;
+      // Animate: hand the photo to Animate Studio (it reads this key on load and clears it).
+      // A plain /animate href would reload the SPA at the root and never reach #/animate.
+      const animateBtn = meta.querySelector('[data-photo-animate]');
+      if (animateBtn) {
+        animateBtn.addEventListener('click', () => {
+          if (!result.imageUrl) return;
+          try { sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: result.imageUrl })); } catch { /* storage unavailable */ }
+          navigate('animate');
+        });
+      }
       // Personalize (OpenHiggsBolt photo-studio page): this photo, 1:1.
       const personalizeBtn = meta.querySelector('[data-photo-personalize]');
       if (personalizeBtn && result.imageUrl) {

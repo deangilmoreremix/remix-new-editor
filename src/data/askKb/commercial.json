@@ -1,0 +1,471 @@
+{
+  "id": "commercial",
+  "name": "Product Shot Studio",
+  "route": "#/commercial",
+  "description": "Product Shot Studio turns one product photo into a studio-quality product image in a scene you choose, and also has an Ad video mode that makes a short UGC-style ad from a product image and a script.",
+  "shortDescription": "Studio-quality product photos from a single image",
+  "fullDescription": "Product Shot Studio (route #/commercial, Image group of the side menu; the internal studio id is 'commercial') has two modes switched by a toggle at the top of the form: 'Product shot' and 'Ad video'. In Product shot mode you upload a product image or video, pick a Model (Product Shot or Product Photography), choose one of nine Scene Presets and one of four Output Formats, and click Generate Product Shot. In Ad video mode you upload a product image, write an ad script, optionally add an avatar and reference images, pick a video format preset, aspect ratio, resolution and duration, and click Generate Ad Video. Results show Download, Generate Again and Publish to Social. The studio is deliberately focused: it has no template rails or example galleries.",
+  "bestFor": "Online sellers, small brands, agencies and marketers who have a plain product photo and want catalog, social or ad-ready imagery or a short UGC-style ad video without a photo shoot.",
+  "whenToUse": [
+    "You have a clean photo of a product and want it placed in a studio, marble, outdoor, kitchen, neon, wooden, gradient, beach or office scene.",
+    "You need the same product in different output shapes (banner 16:9, square 1:1, story 9:16, billboard 21:9).",
+    "You want a short UGC, tutorial, unboxing, product review or TV-spot style ad video from a product image and a script.",
+    "You want quick variations for A/B testing."
+  ],
+  "whenToUseAnother": [
+    "Use Brand Studio (#/brand) when you want a whole set of branded product photos by category and style (Photo Studio inside Brand Studio) or full campaign creatives with copy.",
+    "Use Image Studio (#/image) when you want to create an image from text without a product photo.",
+    "Use Edit Studio (#/edit) when you need to remove a background, erase an object or retouch an existing photo.",
+    "Use Video Studio (#/video) or Animate Studio (#/animate) when you want to turn a finished product shot into motion with full control.",
+    "Use Upscale Suite (#/upscale) when a finished shot needs more resolution.",
+    "Use Avatar Studio (#/avatar) when you need a talking presenter rather than a product ad."
+  ],
+  "keyFeatures": [
+    "Two modes: 'Product shot' and 'Ad video'.",
+    "Two product models: Product Shot (default) and Product Photography, both from MuAPI.",
+    "Nine Scene Presets and four Output Formats with aspect ratios.",
+    "Upload an image or video, or browse Pexels stock photos for a test image.",
+    "Ad video: script with @image1 / @image2 references, avatar presets, extra reference images, six video format presets, five aspect ratios, 720p/1080p, durations 4-15 seconds.",
+    "Result card with Download, Generate Again and Publish to Social.",
+    "Saved to generation history under the commercial studio.",
+    "Three-dot tools menu with Recipes, Monetize and Prompts."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Mode toggle: Product shot / Ad video",
+      "explanation": "A two-button toggle at the top of the form. Product shot hides the ad controls; Ad video hides Model, Scene Preset and Output Format and shows the script box and ad controls. The main button changes between 'Generate Product Shot' and 'Generate Ad Video'.",
+      "whyToUse": "Pick Product shot for still images and Ad video for a short promo clip.",
+      "inputRequired": "None.",
+      "restrictions": "Ad video needs an image, not a video, as the product."
+    },
+    {
+      "feature": "Model (Product Shot / Product Photography)",
+      "explanation": "A dropdown labelled Model with two MuAPI models. 'Product Shot' (id ai-product-shot) is described as 'Quick AI product shot generation for e-commerce catalogs.' 'Product Photography' (id ai-product-photography) is described as 'AI product photography generation with professional lighting.'",
+      "whyToUse": "Product Shot for fast catalog images; Product Photography when you want the format/aspect ratio applied and a lighting-focused result.",
+      "inputRequired": "Defaults to Product Shot.",
+      "restrictions": "Only these two models."
+    },
+    {
+      "feature": "Product Media upload",
+      "explanation": "Upload button plus hint 'Upload product image or video' (changes to 'Upload a product image' in Ad video mode). A Pexels button (tooltip 'Browse stock photos from Pexels') lets you pick a stock photo.",
+      "whyToUse": "The product is the star of every result.",
+      "inputRequired": "Required. Toast 'Upload a product image or video first' in Product shot mode.",
+      "restrictions": "Shared upload limits: images 10MB, videos 50MB."
+    },
+    {
+      "feature": "Scene Preset",
+      "explanation": "Nine chips: Studio white background, Luxury marble surface, Outdoor natural light, Lifestyle kitchen counter, Neon tech showroom, Wooden table cozy, Minimalist gradient, Beach sand and waves, Office desk setup. The chosen text becomes: '<scene>, professional product photography, commercial quality'.",
+      "whyToUse": "One click to set the backdrop and mood.",
+      "inputRequired": "Defaults to 'Studio white background'.",
+      "restrictions": "Preset-only: there is no free-text scene box in this studio (a prompt chosen from the Prompts gallery is appended as extra text)."
+    },
+    {
+      "feature": "Output Format",
+      "explanation": "Four buttons: Ad Banner (16:9), Social Post (1:1), Story (9:16), Billboard (21:9).",
+      "whyToUse": "Match the shape to where the image will be used.",
+      "inputRequired": "Defaults to Ad Banner (16:9).",
+      "restrictions": "In the code the aspect ratio is only sent when the Product Photography model is selected; with Product Shot only the scene text is sent."
+    },
+    {
+      "feature": "Advanced panel",
+      "explanation": "Reveals any extra model options (image, prompt and aspect ratio fields are hidden).",
+      "whyToUse": "Fine-tuning when the model exposes extras.",
+      "inputRequired": "Optional.",
+      "restrictions": "May be empty for these models."
+    },
+    {
+      "feature": "Ad video: script and @image references",
+      "explanation": "A text box with placeholder 'Describe your ad script... Use @image1 for product, @image2 for avatar.' The product image is @image1; an optional avatar is @image2.",
+      "whyToUse": "Tells the video model what to say and show.",
+      "inputRequired": "Script required.",
+      "restrictions": "Validation: 'Please enter an ad script.'"
+    },
+    {
+      "feature": "Ad video: avatar and references",
+      "explanation": "Two small upload slots: 'Avatar (optional) - shows up as @image2' and 'References (optional)' (multiple images). A 'Select Avatar' button opens Avatar Presets (Priya, Elena, Kai, Sora, Minji, Margot, Niko, Jin) with a preview carousel and a 'Select Avatar' confirm button.",
+      "whyToUse": "Add a presenter or style references to the ad.",
+      "inputRequired": "Optional.",
+      "restrictions": "Upload failures show 'Upload failed: <reason>'."
+    },
+    {
+      "feature": "Ad video: format, ratio, resolution, duration",
+      "explanation": "Pills for Video Format Presets (UGC default, Tutorial, Unboxing, Hyper Motion, Product Review, TV Spot), Aspect Ratio (9:16 default, 3:4, 4:3, 16:9, 1:1), Resolution (720p, 1080p; default 1080p) and Duration (4s to 15s in 1-second steps; default 5s).",
+      "whyToUse": "Choose the ad style and delivery size.",
+      "inputRequired": "All have defaults.",
+      "restrictions": "Requests go to a Seedance 2 omni-reference route (a 1080p variant when 1080p is chosen)."
+    },
+    {
+      "feature": "Three-dot tools menu",
+      "explanation": "Recipes, Monetize and Prompts. Choosing a prompt from the gallery silently stores it and adds it to the end of your scene text on the next product shot.",
+      "whyToUse": "Extra prompt ideas and business ideas.",
+      "inputRequired": "None.",
+      "restrictions": "The chosen prompt is not shown anywhere on screen after you pick it."
+    }
+  ],
+  "howToUse": "1. Open Product Shot Studio from the side menu or go to #/commercial. 2. Make sure the toggle at the top says Product shot. 3. Under Model choose Product Shot (default) or Product Photography. 4. Under Product Media upload your product image or video (or use the Pexels button). 5. Under Scene Preset click the backdrop you want, for example 'Luxury marble surface'. 6. Under Output Format click Ad Banner (16:9), Social Post (1:1), Story (9:16) or Billboard (21:9). 7. Click Generate Product Shot. The button shows 'Generating...'. 8. When the image appears use Download, Generate Again or Publish to Social. For an ad video: switch the toggle to Ad video, upload a product image, type your script (use @image1 for the product and @image2 for an avatar), optionally pick an avatar and references, choose format, aspect ratio, resolution and duration, then click Generate Ad Video (button shows 'Making your ad...').",
+  "howToSteps": [
+    "Open #/commercial.",
+    "Choose Product shot or Ad video with the toggle.",
+    "Upload the product image (or video in Product shot mode).",
+    "Pick Model, Scene Preset and Output Format (Product shot mode) or write a script and pick ad settings (Ad video mode).",
+    "Click Generate Product Shot or Generate Ad Video.",
+    "Download, regenerate or publish the result."
+  ],
+  "gettingStarted": [
+    "Take a sharp photo of the product on a plain background, with the whole product visible.",
+    "Sign in with an active plan and connect your API key (an upgrade prompt or key dialog appears otherwise).",
+    "Start with Product Shot + Studio white background, then try other scenes."
+  ],
+  "inputs": [
+    "Mode toggle",
+    "Model",
+    "Product Media",
+    "Scene Preset",
+    "Output Format",
+    "Ad script",
+    "Avatar",
+    "References",
+    "Video format",
+    "Aspect ratio",
+    "Resolution",
+    "Duration"
+  ],
+  "requiredInputs": [
+    "Product Media (product image; video allowed only in Product shot mode)",
+    "Ad script (Ad video mode only)"
+  ],
+  "optionalInputs": [
+    "Model",
+    "Scene Preset",
+    "Output Format",
+    "Advanced options",
+    "Avatar",
+    "References",
+    "Video format",
+    "Aspect ratio",
+    "Resolution",
+    "Duration"
+  ],
+  "inputDetails": [
+    {
+      "name": "Product Media",
+      "description": "Photo (or video in Product shot mode) of the product.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "Images up to 10MB, videos up to 50MB. Ad video rejects videos with 'Ad video needs a product image, not a video.'"
+    },
+    {
+      "name": "Scene Preset",
+      "description": "One of nine backdrop chips.",
+      "required": false,
+      "whenToUse": "Product shot mode.",
+      "restrictions": "Default 'Studio white background'."
+    },
+    {
+      "name": "Output Format",
+      "description": "Four shapes with aspect ratios.",
+      "required": false,
+      "whenToUse": "Product shot mode, mainly with Product Photography.",
+      "restrictions": "Default Ad Banner (16:9)."
+    },
+    {
+      "name": "Ad script",
+      "description": "What the ad should say/show.",
+      "required": true,
+      "whenToUse": "Ad video mode.",
+      "restrictions": "Empty script gives 'Please enter an ad script.'"
+    },
+    {
+      "name": "Avatar",
+      "description": "Optional presenter image (custom upload or one of eight presets).",
+      "required": false,
+      "whenToUse": "When you want a person in the ad.",
+      "restrictions": "Referred to as @image2 in the script."
+    },
+    {
+      "name": "References",
+      "description": "Optional extra images for style or context.",
+      "required": false,
+      "whenToUse": "To steer the look of the ad.",
+      "restrictions": "Multiple images allowed."
+    }
+  ],
+  "generationModes": [
+    "Product shot (still image)",
+    "Ad video (short video)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Product shot",
+      "description": "Image-to-image generation of your product in a preset scene using Product Shot or Product Photography.",
+      "useCase": "Catalog, listing and social images."
+    },
+    {
+      "mode": "Ad video",
+      "description": "Sends the product image, optional avatar and references, a format preset and your script to a Seedance 2 omni-reference video route.",
+      "useCase": "UGC-style, tutorial, unboxing, review or TV-spot ads (4-15 seconds)."
+    }
+  ],
+  "modelCapabilities": "Product shot mode offers two MuAPI models: 'Product Shot' (id ai-product-shot, 'Quick AI product shot generation for e-commerce catalogs'; takes an image and a scene description, English only without special characters per its input definition) and 'Product Photography' (id ai-product-photography, 'AI product photography generation with professional lighting'; takes an image, a prompt and an aspect ratio). Ad video mode uses the Seedance 2 omni-reference route (catalog ids seedance-2-vip-omni-reference and 1080p variants); in the code 1080p selects a 1080p route and 720p the base route. The files read give no prices, speeds or quality rankings for these models, so none are stated.",
+  "outputs": [
+    "One product image per click (Product shot)",
+    "One short video (Ad video)",
+    "Download link",
+    "Generation history entry (studio: commercial)",
+    "Optional social publish"
+  ],
+  "limitations": [
+    "Scenes are presets; there is no free-text scene box or multi-product composition.",
+    "No lighting, angle, brand-colour or text-overlay controls.",
+    "Output Format affects Product Photography only (Product Shot sends the scene text only, per the code).",
+    "Ad video needs an image product, not a video.",
+    "One result per click; no batch.",
+    "Needs sign-in/plan access and an API key.",
+    "Ad videos can take several minutes (the tracker waits up to 900 polls)."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Output Format may not change a Product Shot result",
+      "impact": "Your chosen 16:9 or 9:16 may be ignored with the Product Shot model.",
+      "workaround": "Switch the Model to Product Photography when you need a specific aspect ratio, or crop afterwards."
+    },
+    {
+      "limitation": "Preset scenes only",
+      "impact": "Cannot describe a custom backdrop directly.",
+      "workaround": "Pick the nearest preset, or use Prompts in the three-dot menu to add extra wording, or use Image Studio/Edit Studio for custom scenes."
+    },
+    {
+      "limitation": "Ad video cannot use a video as the product",
+      "impact": "Error 'Ad video needs a product image, not a video.'",
+      "workaround": "Upload a still image of the product."
+    }
+  ],
+  "troubleshooting": [
+    "Toast 'Upload a product image or video first': add a file under Product Media before clicking Generate Product Shot.",
+    "Toast 'Please enter an ad script.': type a script in the Ad video box.",
+    "Toast 'Please upload a product image.': Ad video mode needs the product image uploaded.",
+    "Toast 'Ad video needs a product image, not a video.': replace the video with a still image.",
+    "Toast 'Upload failed: ...' when adding an avatar or references: check size/type and try again.",
+    "Toast 'No video URL returned by API' or 'Marketing generation failed': the ad service returned nothing; try again, shorten the script or lower the resolution/duration.",
+    "Toast 'Error: ...' on a product shot: read the message, then retry or switch the Model.",
+    "Output shape is not what I chose: use the Product Photography model, which receives the aspect ratio.",
+    "An upgrade prompt or key dialog appears: finish sign-in/upgrade or connect your key, then click Generate again."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "My product looks distorted or cropped",
+      "steps": [
+        "Use a photo where the whole product is visible on a simple background.",
+        "Try the other Model.",
+        "Pick a simpler scene such as Studio white background.",
+        "Click Generate Again."
+      ]
+    },
+    {
+      "issue": "The ad video does not include my avatar",
+      "steps": [
+        "Make sure you added an avatar (upload or Select Avatar).",
+        "Mention @image2 in the script.",
+        "Regenerate."
+      ]
+    },
+    {
+      "issue": "Ad takes a long time",
+      "steps": [
+        "Wait; ad videos poll the service for a long time.",
+        "Try 720p and a shorter duration next time."
+      ]
+    },
+    {
+      "issue": "I cannot pick a scene or format",
+      "steps": [
+        "Check the toggle: those controls are hidden in Ad video mode.",
+        "Switch back to Product shot."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Scene looks generic",
+      "whyItHappens": "Only preset wording is sent.",
+      "howToFix": "Use a more specific preset or add a prompt from the Prompts gallery."
+    },
+    {
+      "problem": "Wrong image shape",
+      "whyItHappens": "Aspect ratio is sent only for Product Photography.",
+      "howToFix": "Select Product Photography."
+    },
+    {
+      "problem": "Ad does not follow the script",
+      "whyItHappens": "Script is vague or does not use @image1/@image2.",
+      "howToFix": "Write short, concrete sentences and reference @image1 for the product."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Marble catalog shot",
+      "steps": [
+        "Upload a clean product photo.",
+        "Keep Product Shot.",
+        "Click Luxury marble surface and Social Post (1:1).",
+        "Click Generate Product Shot and Download."
+      ]
+    },
+    {
+      "title": "Vertical banner with Product Photography",
+      "steps": [
+        "Choose Product Photography under Model.",
+        "Upload the photo.",
+        "Pick Neon tech showroom and Story (9:16).",
+        "Generate and compare with a Studio white version."
+      ]
+    },
+    {
+      "title": "15-second unboxing ad",
+      "steps": [
+        "Switch the toggle to Ad video.",
+        "Upload the product image.",
+        "Write a script using @image1.",
+        "Choose Unboxing, 9:16, 1080p and 15s.",
+        "Click Generate Ad Video, then Download."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "E-commerce listing images",
+      "description": "Create clean, consistent listing photos.",
+      "steps": [
+        "Upload each product.",
+        "Use Studio white background.",
+        "Download."
+      ],
+      "expectedOutput": "White-background product images."
+    },
+    {
+      "title": "Seasonal social posts",
+      "description": "Place products in lifestyle scenes.",
+      "steps": [
+        "Choose Lifestyle kitchen counter or Beach sand and waves.",
+        "Pick Social Post or Story.",
+        "Publish to Social."
+      ],
+      "expectedOutput": "Lifestyle product posts."
+    },
+    {
+      "title": "Quick UGC-style ad",
+      "description": "Make a presenter-led promo.",
+      "steps": [
+        "Ad video mode.",
+        "Add avatar and script.",
+        "Generate."
+      ],
+      "expectedOutput": "A 4-15 second ad video."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What is the difference between Product Shot and Product Photography?",
+      "answer": "Both are MuAPI models. Product Shot is described as quick e-commerce shot generation; Product Photography as product photography with professional lighting. In the code only Product Photography receives your Output Format aspect ratio."
+    },
+    {
+      "question": "Can I upload a video?",
+      "answer": "In Product shot mode the upload accepts image or video (hint text says so). In Ad video mode only an image works."
+    },
+    {
+      "question": "How long can the ad be?",
+      "answer": "Between 4 and 15 seconds; default 5s."
+    },
+    {
+      "question": "What resolutions are available for ads?",
+      "answer": "720p and 1080p, default 1080p."
+    },
+    {
+      "question": "Can I type my own scene?",
+      "answer": "Not directly. Scenes are nine presets; the Prompts gallery can append extra wording."
+    },
+    {
+      "question": "Where do my results go?",
+      "answer": "They appear under the form and are saved to your generation history."
+    },
+    {
+      "question": "Is there a Product Shot Studio vs Commercial Studio difference?",
+      "answer": "No. The side menu calls it Product Shot Studio; the route and internal id are 'commercial'."
+    }
+  ],
+  "glossary": {
+    "Scene Preset": "A ready-made backdrop description added to your request.",
+    "Output Format": "A named aspect ratio such as Social Post (1:1).",
+    "UGC": "User-generated-content style, a casual presenter-led ad look.",
+    "@image1 / @image2": "Placeholders in the ad script for the product image and the avatar image.",
+    "Omni-reference": "A video route that takes several reference images plus a script.",
+    "Aspect ratio": "Width-to-height shape of the output, like 16:9."
+  },
+  "tips": [
+    "Use a plain, well-lit product photo.",
+    "Try several scenes and compare.",
+    "For ads, keep the script short and name @image1.",
+    "Use 720p while testing, 1080p for the final."
+  ],
+  "bestPractices": [
+    "Keep product photos consistent in angle and lighting.",
+    "Check the product's label and logo in every result before publishing.",
+    "Upscale finals in Upscale Suite if needed."
+  ],
+  "relatedStudios": [
+    "brand",
+    "image",
+    "edit",
+    "upscale",
+    "video",
+    "animate",
+    "avatar"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "brand",
+      "relationship": "Bigger branded workflow",
+      "whenToMove": "You want many category-and-style product photos or campaign creatives with copy.",
+      "why": "Brand Studio's Photo Studio and Campaigns generate batches."
+    },
+    {
+      "studio": "edit",
+      "relationship": "Touch-up",
+      "whenToMove": "You need to remove or change parts of an image.",
+      "why": "Edit Studio has editing tools."
+    },
+    {
+      "studio": "animate",
+      "relationship": "Motion",
+      "whenToMove": "You want to animate a finished shot.",
+      "why": "Animate Studio turns images into video."
+    }
+  ],
+  "notConfirmed": [
+    "Prices, credits and speed for Product Shot, Product Photography and the ad route are not in the files read.",
+    "Whether Output Format is honoured by Product Shot on the service side is unknown; the code only sends scene_description for it.",
+    "The in-app Instructions say 'Create multiple shots in different settings' and mention custom scenes; the studio code has presets only.",
+    "The older audit file describes a different layout; code was trusted.",
+    "Exact avatar and format preset media are hosted on an external CDN and were not inspected.",
+    "Whether the 720p ad route works identically to 1080p beyond the endpoint name was not verified.",
+    "Upgrade/plan rules are decided by a separate entitlement check not detailed here."
+  ],
+  "sourceFiles": [
+    "src/components/CommercialStudio.js",
+    "src/components/studios/MarketingAdMode.js",
+    "src/lib/instructions.js",
+    "UPSCALE_CHARACTER_COMMERCIAL_AUDIT.md",
+    "public/api/model-catalog.json",
+    "src/lib/modelDescriptions.js",
+    "src/lib/models.js",
+    "src/lib/muapi.js",
+    "src/lib/imageInputContracts.js",
+    "src/lib/studioRoutes.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read CommercialStudio.js, MarketingAdMode.js, instructions.js, model-catalog.json, modelDescriptions.js, models.js entries, imageInputContracts.js and muapi.js (generateI2I, generateMarketingStudioAd); no commercial entry exists in studioLandingPages.js.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

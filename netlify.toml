@@ -91,6 +91,14 @@
   status = 200
   force = true
 
+# Local demo / template clips and posters (public/media/**). The Remotion export runner is a sandboxed frame with an opaque origin,
+# so reading these (decoding frames into a canvas) is a cross-origin request and needs CORS (same reason as /assets/* and /hyperframes/*).
+# The Template videos library itself is hosted in the Supabase bucket demo-template-videos (public, CORS *), not here.
+[[headers]]
+  for = "/media/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+
 # Template Generator AI (script writing + image generation). These /api paths had no
 # rewrite, so production served index.html (404) and the AI buttons failed.
 [[redirects]]
@@ -113,6 +121,13 @@
   status = 200
   force = true
 
+# Zack D studio (curiosity-loop 3D shorts): script/trends (OpenAI) + media jobs (MuAPI), BYOK.
+[[redirects]]
+  from = "/api/zackd"
+  to = "/.netlify/functions/zackd"
+  status = 200
+  force = true
+
 # AI Agent voiceover + music (MuAPI, MUAPI_API_KEY).
 [[redirects]]
   from = "/api/agent-audio"
@@ -125,6 +140,21 @@
 [[redirects]]
   from = "/api/timeline-ai"
   to = "/.netlify/functions/timeline-ai"
+  status = 200
+  force = true
+
+# Video Pages -> MailerLite sync (user's own MailerLite token, sent per request
+# as X-MailerLite-Key; never stored or logged).
+[[redirects]]
+  from = "/api/landing-sync"
+  to = "/.netlify/functions/landing-sync"
+  status = 200
+  force = true
+
+# Landing page copy rewrite (OpenAI Responses API, user's own key).
+[[redirects]]
+  from = "/api/landing-rewrite"
+  to = "/.netlify/functions/landing-rewrite"
   status = 200
   force = true
 
@@ -155,6 +185,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/video-events"
+  to = "/.netlify/functions/video-events"
+  status = 200
+  force = true
+
 # Restored thumbnails are WebP-encoded but keep their historical `.webp.png`
 # filenames so every existing reference resolves; declare the real type.
 [[headers]]
@@ -175,9 +211,19 @@
   [headers.values]
     Access-Control-Allow-Origin = "*"
 
+# [hyperframes] Vendored, pinned HyperFrames blocks (public/hyperframes/blocks). The sandboxed export-runner / code-preview
+# frames have an opaque origin, so fetching these (and decoding their images into the canvas) needs CORS. Static, immutable per commit.
+[[headers]]
+  for = "/hyperframes/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
+
 # The public video player (/watch/<id>) can be embedded anywhere: its
 # framing headers are rewritten by netlify/edge-functions/watch-embed.js
 # (header rules below are merged, not overridden, so a rule can't do it).
+# Video landing pages (/p/<slug>) work the same way via
+# netlify/edge-functions/page-meta.js (link-preview tags; framing only for ?embed=1).
 
 # Security headers
 [[headers]]

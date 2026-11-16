@@ -559,7 +559,8 @@ export const ClipCard = memo(function ClipCard({
             e.stopPropagation();
             onRemove?.(clip.id);
           }}
-          title="Remove"
+          title="Remove clip"
+          aria-label="Remove clip"
         >
           &times;
         </button>

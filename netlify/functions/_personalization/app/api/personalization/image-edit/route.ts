@@ -9,7 +9,8 @@ export const dynamic = "force-dynamic";
 export const runtime = 'nodejs'
 
 const OPENAI_EDIT_URL = 'https://api.openai.com/v1/images/edits'
-const ALLOWED_MODELS = new Set(['gpt-image-2.5-flare', 'gpt-image-2.5-sunburst'])
+const ALLOWED_MODELS = new Set(['gpt-image-2.6-flare', 'gpt-image-2.6-sunburst', 'gpt-image-2.5-flare', 'gpt-image-2.5-sunburst'])
+const ALLOWED_COMPLEXITY = new Set(['low', 'medium', 'high'])
 const ALLOWED_QUALITIES = new Set(['low', 'medium', 'high', 'xhigh', 'max', 'auto'])
 const ALLOWED_FORMATS = new Set(['png', 'jpeg', 'webp'])
 const ALLOWED_BACKGROUNDS = new Set(['transparent', 'opaque', 'auto'])
@@ -139,6 +140,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const complexity = cleanString(incoming.get('complexity'))
+    if (complexity && !ALLOWED_COMPLEXITY.has(complexity)) {
+      return NextResponse.json({ error: 'Complexity must be low, medium or high.' }, { status: 400 })
+    }
+
     const upstream = new FormData()
     upstream.append('model', model)
     upstream.append('prompt', prompt)
@@ -151,6 +157,8 @@ export async function POST(req: NextRequest) {
       upstream.append('output_compression', String(Math.round(outputCompression)))
     }
     upstream.append('background', background)
+    // Composition planning exists only on Images 2.6; older models would reject it.
+    if (complexity && model.startsWith('gpt-image-2.6-')) upstream.append('complexity', complexity)
     // input_fidelity is validated for compatibility but never forwarded: the
     // only allowed models (gpt-image-2.5) reject it.
 

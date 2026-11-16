@@ -1,0 +1,2516 @@
+{
+ "animated-bar-chart": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.2309,
+   0.2309
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "agent-cursor": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0042,
+   0.005,
+   0.0051
+  ],
+  "motion": 0.0101,
+  "cat": "renders-and-animates"
+ },
+ "arc-motion-path": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1588,
+   0.1588
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "ascii-render-pass": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "blank"
+ },
+ "ascii-trail-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.6734,
+   0.6734
+  ],
+  "motion": 0.6362,
+  "cat": "renders-and-animates"
+ },
+ "aurora-drift": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.8111,
+   0.8128
+  ],
+  "motion": 0.0226,
+  "cat": "renders-and-animates"
+ },
+ "avatar-cloud": {
+  "logs": [
+   "[hyperframes] script avatar-cloud#inline: Cannot read properties of null (reading 'closest')"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.3594,
+   0.3594
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "avatar-group-hover": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0041,
+   0.0041
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "badge-pop": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0029,
+   0.0029
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "beat-accent": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "beat-pulse-background": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.8558,
+   0.8201
+  ],
+  "motion": 0.0693,
+  "cat": "renders-and-animates"
+ },
+ "beat-timeline": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9992,
+   0.9984,
+   0.9984
+  ],
+  "motion": 0.033,
+  "cat": "renders-and-animates"
+ },
+ "before-after-wipe": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.1873,
+  "cat": "renders-and-animates"
+ },
+ "blur-in": {
+  "logs": [
+   "[hyperframes] timeline blur-in: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0078,
+   0.0078
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "blur-out-up": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0018,
+   0.0018
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "bottom-up-letters": {
+  "logs": [
+   "[hyperframes] timeline bottom-up-letters: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "browser-device-stage": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.4991,
+   0.4936
+  ],
+  "motion": 0.0268,
+  "cat": "renders-and-animates"
+ },
+ "camera-rig-depth-stack": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.158,
+   0.158
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "camera-scan-gate": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0315,
+  "cat": "renders-and-animates"
+ },
+ "camera-shake": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.8405,
+   0.85
+  ],
+  "motion": 0.2492,
+  "cat": "renders-and-animates"
+ },
+ "caption-blend-difference": {
+  "logs": [
+   "[hyperframes] timeline caption-blend-difference: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "caption-camera-follow": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1144,
+   0.1245,
+   0.2421
+  ],
+  "motion": 0.2941,
+  "cat": "renders-and-animates"
+ },
+ "caption-clip-wipe": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0137,
+   0.0
+  ],
+  "motion": 0.0137,
+  "cat": "renders-and-animates"
+ },
+ "caption-editorial-emphasis": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0047,
+   0.0
+  ],
+  "motion": 0.0047,
+  "cat": "renders-and-animates"
+ },
+ "caption-emoji-pop": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0128,
+   0.0129
+  ],
+  "motion": 0.0145,
+  "cat": "renders-and-animates"
+ },
+ "caption-glitch-rgb": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0183,
+   0.0216
+  ],
+  "motion": 0.0256,
+  "cat": "renders-and-animates"
+ },
+ "caption-gradient-fill": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0247,
+   0.0277
+  ],
+  "motion": 0.0287,
+  "cat": "renders-and-animates"
+ },
+ "caption-highlight": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0305,
+   0.0
+  ],
+  "motion": 0.0305,
+  "cat": "renders-and-animates"
+ },
+ "caption-kinetic-slam": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0384,
+   0.0291
+  ],
+  "motion": 0.0488,
+  "cat": "renders-and-animates"
+ },
+ "caption-matrix-decode": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0099,
+   0.0074
+  ],
+  "motion": 0.0137,
+  "cat": "renders-and-animates"
+ },
+ "caption-neon-accent": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0462,
+   0.0596
+  ],
+  "motion": 0.0796,
+  "cat": "renders-and-animates"
+ },
+ "caption-neon-glow": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.045,
+   0.0
+  ],
+  "motion": 0.045,
+  "cat": "renders-and-animates"
+ },
+ "caption-parallax-layers": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1783,
+   0.1596
+  ],
+  "motion": 0.1975,
+  "cat": "renders-and-animates"
+ },
+ "caption-particle-burst": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0218,
+   0.0005
+  ],
+  "motion": 0.0223,
+  "cat": "renders-and-animates"
+ },
+ "caption-pill-karaoke": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.049,
+   0.0553
+  ],
+  "motion": 0.0209,
+  "cat": "renders-and-animates"
+ },
+ "caption-texture": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "blank"
+ },
+ "caption-weight-shift": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0095,
+   0.0101
+  ],
+  "motion": 0.0141,
+  "cat": "renders-and-animates"
+ },
+ "card-resize": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0215,
+   0.0215
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "caret-swap": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0031,
+   0.0031,
+   0.0058
+  ],
+  "motion": 0.0068,
+  "cat": "renders-and-animates"
+ },
+ "char-slam-explode": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.022,
+   0.0353,
+   0.0357
+  ],
+  "motion": 0.0442,
+  "cat": "renders-and-animates"
+ },
+ "chat-message": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0267,
+   0.0267,
+   0.0267
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "chart-story": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1514,
+   0.1517
+  ],
+  "motion": 0.0208,
+  "cat": "renders-and-animates"
+ },
+ "chat-thread": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0634,
+   0.2895
+  ],
+  "motion": 0.2949,
+  "cat": "renders-and-animates"
+ },
+ "code-terminal-run": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.8379,
+   0.8371
+  ],
+  "motion": 0.0128,
+  "cat": "renders-and-animates"
+ },
+ "chromatic-aberration-wipe": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1565,
+   0.1565
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "colorama-wipe": {
+  "logs": [
+   "[hyperframes] timeline colorama-wipe: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "comparison-split": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.1209,
+  "cat": "renders-and-animates"
+ },
+ "confetti": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.157,
+   0.157
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "conic-progress-ring": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0595,
+   0.0635
+  ],
+  "motion": 0.0189,
+  "cat": "renders-and-animates"
+ },
+ "constellation-hub": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1012,
+   0.1373,
+   0.139
+  ],
+  "motion": 0.0692,
+  "cat": "renders-and-animates"
+ },
+ "count-up": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0281,
+   0.0371,
+   0.0458
+  ],
+  "motion": 0.0564,
+  "cat": "renders-and-animates"
+ },
+ "cta-close": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0617,
+   0.0903,
+   0.0903
+  ],
+  "motion": 0.0331,
+  "cat": "renders-and-animates"
+ },
+ "cta-lockup": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1151,
+   0.1176
+  ],
+  "motion": 0.0286,
+  "cat": "renders-and-animates"
+ },
+ "cursor-context-menu": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.4363,
+   0.4365,
+   0.4366
+  ],
+  "motion": 0.0708,
+  "cat": "renders-and-animates"
+ },
+ "cursor-annotate": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0008,
+   0.0051,
+   0.0063
+  ],
+  "motion": 0.0065,
+  "cat": "renders-and-animates"
+ },
+ "cursor-drag-drop": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.4619,
+   0.4619,
+   0.4619
+  ],
+  "motion": 0.0987,
+  "cat": "renders-and-animates"
+ },
+ "cursor-glyph-trail": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.3089,
+   0.3085,
+   0.3084
+  ],
+  "motion": 0.0086,
+  "cat": "renders-and-animates"
+ },
+ "cursor-marquee-select": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.4582,
+   0.4596,
+   0.4586
+  ],
+  "motion": 0.0978,
+  "cat": "renders-and-animates"
+ },
+ "cursor-text-select": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.3685,
+   0.3684,
+   0.3688
+  ],
+  "motion": 0.0363,
+  "cat": "renders-and-animates"
+ },
+ "cursor-zoom-follow": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9995,
+   0.9994,
+   0.9995
+  ],
+  "motion": 0.1262,
+  "cat": "renders-and-animates"
+ },
+ "curtain-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9585,
+   0.8067,
+   0.8067
+  ],
+  "motion": 0.6319,
+  "cat": "renders-and-animates"
+ },
+ "dart-cursor": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0013,
+   0.001,
+   0.0011
+  ],
+  "motion": 0.0024,
+  "cat": "renders-and-animates"
+ },
+ "cut-the-curve": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9996,
+   1.0,
+   0.999
+  ],
+  "motion": 0.0221,
+  "cat": "renders-and-animates"
+ },
+ "decline-chart": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9994,
+   0.293
+  ],
+  "motion": 0.4915,
+  "cat": "renders-and-animates"
+ },
+ "device-frame-stage": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.2106,
+   0.2116
+  ],
+  "motion": 0.0046,
+  "cat": "renders-and-animates"
+ },
+ "directional-wipe": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1566,
+   0.1566
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "drift-hold": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.304,
+   0.3067
+  ],
+  "motion": 0.0139,
+  "cat": "renders-and-animates"
+ },
+ "dynamic-grid": {
+  "logs": [
+   "[hyperframes] timeline dynamic-grid: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0031,
+   0.0
+  ],
+  "motion": 0.0028,
+  "cat": "adapter-errors"
+ },
+ "echo-smear": {
+  "logs": [
+   "[hyperframes] timeline echo-smear: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "echo-trail": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0381,
+   0.0343,
+   0.0284
+  ],
+  "motion": 0.0723,
+  "cat": "renders-and-animates"
+ },
+ "extended-keyframe": {
+  "logs": [
+   "[hyperframes] timeline extended-keyframe: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "facet-morph": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.7862,
+   0.7862
+  ],
+  "motion": 0.0573,
+  "cat": "renders-and-animates"
+ },
+ "fade-through": {
+  "logs": [
+   "[hyperframes] timeline fade-through: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "filmed-screen": {
+  "logs": [
+   "[hyperframes] timeline filmed-screen: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "focus-blur-resolve": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0034,
+   0.0034
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "focus-rack": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.8279,
+   0.8282,
+   0.8284
+  ],
+  "motion": 0.5018,
+  "cat": "renders-and-animates"
+ },
+ "focus-swap": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.5695,
+   0.57,
+   0.569
+  ],
+  "motion": 0.1061,
+  "cat": "renders-and-animates"
+ },
+ "gesture-tap": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9974,
+   0.9989,
+   0.997
+  ],
+  "motion": 0.0478,
+  "cat": "renders-and-animates"
+ },
+ "gloss-sweep": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.165,
+   0.165,
+   0.165
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "grade-split-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.7488,
+   0.7959
+  ],
+  "motion": 0.1102,
+  "cat": "renders-and-animates"
+ },
+ "grain-field": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.7451,
+   0.7431
+  ],
+  "motion": 0.2831,
+  "cat": "renders-and-animates"
+ },
+ "grain-overlay": {
+  "logs": [
+   "[hyperframes] timeline grain-overlay: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.67,
+   0.6697
+  ],
+  "motion": 0.005,
+  "cat": "adapter-errors"
+ },
+ "grid-card-assemble": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.5227,
+   0.5218
+  ],
+  "motion": 0.5227,
+  "cat": "renders-and-animates"
+ },
+ "grid-pixelate-wipe": {
+  "logs": [
+   "[hyperframes] timeline grid-pixelate-wipe: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "halftone-dissolve": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1183,
+   0.6932,
+   0.1183
+  ],
+  "motion": 0.6174,
+  "cat": "renders-and-animates"
+ },
+ "headline-slam": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0252,
+   0.0249,
+   0.0252
+  ],
+  "motion": 0.0117,
+  "cat": "renders-and-animates"
+ },
+ "hw-arrow": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0022,
+  "cat": "renders-and-animates"
+ },
+ "hw-boil": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   0.9998
+  ],
+  "motion": 0.0107,
+  "cat": "renders-and-animates"
+ },
+ "hw-box-label": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0066,
+  "cat": "renders-and-animates"
+ },
+ "hw-callout-circle": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0118,
+  "cat": "renders-and-animates"
+ },
+ "hw-underline": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9991,
+   0.9993
+  ],
+  "motion": 0.0072,
+  "cat": "renders-and-animates"
+ },
+ "icon-morph-beat": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0936,
+   0.0936,
+   0.0936
+  ],
+  "motion": 0.0041,
+  "cat": "renders-and-animates"
+ },
+ "icon-swap": {
+  "logs": [
+   "[hyperframes] timeline icon-swap: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0016,
+   0.0016
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "ink-bleed-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0954,
+   0.0127
+  ],
+  "motion": 0.1008,
+  "cat": "renders-and-animates"
+ },
+ "inline-highlight": {
+  "logs": [
+   "[hyperframes] timeline inline-highlight: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "input-feedback": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0139,
+   0.0139
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "iris-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "motion": 0.8275,
+  "cat": "renders-and-animates"
+ },
+ "keyframe-scrub-stack": {
+  "logs": [
+   "[hyperframes] timeline keyframe-scrub-stack: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.1476,
+   0.1476
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "kinetic-center-build": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0024,
+   0.0047
+  ],
+  "motion": 0.0048,
+  "cat": "renders-and-animates"
+ },
+ "kinetic-type-swap": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0415,
+   0.0466
+  ],
+  "motion": 0.0248,
+  "cat": "renders-and-animates"
+ },
+ "light-sweep-pass": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.5275,
+   0.6477
+  ],
+  "motion": 0.1382,
+  "cat": "renders-and-animates"
+ },
+ "line-by-line-slide": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0094,
+   0.0094
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "locked-nucleus-orbit": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0603,
+   0.0608
+  ],
+  "motion": 0.028,
+  "cat": "renders-and-animates"
+ },
+ "line-swap": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0212,
+   0.014,
+   0.0313
+  ],
+  "motion": 0.0418,
+  "cat": "renders-and-animates"
+ },
+ "logo-brand-close": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0561,
+   0.0709
+  ],
+  "motion": 0.0627,
+  "cat": "renders-and-animates"
+ },
+ "logo-wall": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.5307,
+   0.5307
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "logo-sting": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0737,
+   0.0737,
+   0.0737
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "magnetic-cursor": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0632,
+   0.0632,
+   0.0632
+  ],
+  "motion": 0.0128,
+  "cat": "renders-and-animates"
+ },
+ "marker-checklist-card": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.2638,
+   0.2638,
+   0.2638
+  ],
+  "motion": 0.024,
+  "cat": "renders-and-animates"
+ },
+ "marker-highlight": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0459,
+   0.0663,
+   0.0663
+  ],
+  "motion": 0.0289,
+  "cat": "renders-and-animates"
+ },
+ "match-cut": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9999,
+   0.9997
+  ],
+  "motion": 0.029,
+  "cat": "renders-and-animates"
+ },
+ "menu-morph": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.005,
+   0.005
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "matrix-decode": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0079,
+   0.0079
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "mesh-gradient-bg": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.157,
+   0.157
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "micro-transitions": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0012,
+   0.0012
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "mk-emphasis-type": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "blank"
+ },
+ "mk-usage-arc": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0007,
+   0.0023
+  ],
+  "motion": 0.0021,
+  "cat": "renders-and-animates"
+ },
+ "morph-swap": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   0.9975,
+   0.9975
+  ],
+  "motion": 0.2929,
+  "cat": "renders-and-animates"
+ },
+ "modal-morph": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0283,
+   0.5337
+  ],
+  "motion": 0.5118,
+  "cat": "renders-and-animates"
+ },
+ "morph-text": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9652,
+   0.9701
+  ],
+  "motion": 0.0773,
+  "cat": "renders-and-animates"
+ },
+ "motion-blur": {
+  "logs": [
+   "[hyperframes] timeline motion-blur: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "multi-device-splay": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.4687,
+   0.4564,
+   0.4551
+  ],
+  "motion": 0.1134,
+  "cat": "renders-and-animates"
+ },
+ "multiplayer-cursors": {
+  "logs": [
+   "[hyperframes] script multiplayer-cursors#inline: Cannot read properties of null (reading 'closest')"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0212,
+   0.0212
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "native-notification-pop": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "motion": 0.0112,
+  "cat": "renders-and-animates"
+ },
+ "notes-typing": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9991
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "notification-pileup": {
+  "logs": [
+   "[hyperframes] script notification-pileup#inline: Cannot read properties of null (reading 'closest')"
+  ],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "notification-stack": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0863,
+   0.2481
+  ],
+  "motion": 0.1874,
+  "cat": "renders-and-animates"
+ },
+ "number-pop-in": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0017,
+   0.0017
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "number-wheel": {
+  "logs": [
+   "[hyperframes] timeline number-wheel: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "offset-path-traveler": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0189,
+   0.019
+  ],
+  "motion": 0.0062,
+  "cat": "renders-and-animates"
+ },
+ "onboarding-stepper-flow": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0666,
+   0.0666
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "ordered-dither-pass": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   0.4764,
+   0.2205
+  ],
+  "motion": 0.9988,
+  "cat": "renders-and-animates"
+ },
+ "outline-draw": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0403,
+   0.0403
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "oversized-cursor": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0091,
+   0.0093,
+   0.0091
+  ],
+  "motion": 0.0102,
+  "cat": "renders-and-animates"
+ },
+ "overwhelm-surround": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9996,
+   0.9996,
+   0.9996
+  ],
+  "motion": 0.1329,
+  "cat": "renders-and-animates"
+ },
+ "page-slide": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0862,
+   0.0862
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "panel-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.021,
+   0.021
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "pan-stations": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9999,
+   0.9999
+  ],
+  "motion": 0.0733,
+  "cat": "renders-and-animates"
+ },
+ "paper-collage-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9985,
+   0.9989,
+   0.9989
+  ],
+  "motion": 0.6872,
+  "cat": "renders-and-animates"
+ },
+ "parallax-unzoom": {
+  "logs": [
+   "[hyperframes] timeline parallax-unzoom: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "parallax-device-dive": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1763,
+   0.1754,
+   0.3009
+  ],
+  "motion": 0.1887,
+  "cat": "renders-and-animates"
+ },
+ "parallax-zoom": {
+  "logs": [
+   "[hyperframes] timeline parallax-zoom: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "particle-image-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0294,
+   0.1549
+  ],
+  "motion": 0.1821,
+  "cat": "renders-and-animates"
+ },
+ "particle-text-dissolve": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0363,
+   0.0657
+  ],
+  "motion": 0.0857,
+  "cat": "renders-and-animates"
+ },
+ "pendulum-swing": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0219,
+   0.0219
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "per-word-crossfade": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0079,
+   0.0079
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "per-word-rise": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0796,
+   0.0566,
+   0.0566
+  ],
+  "motion": 0.0567,
+  "cat": "renders-and-animates"
+ },
+ "perspective-marquee": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0166,
+   0.0166
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "press-ripple": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.02,
+   0.0204,
+   0.0196
+  ],
+  "motion": 0.0061,
+  "cat": "renders-and-animates"
+ },
+ "physical-exit": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1853,
+   0.1845,
+   0.1257
+  ],
+  "motion": 0.311,
+  "cat": "renders-and-animates"
+ },
+ "pull-back-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9083,
+   0.8921,
+   0.899
+  ],
+  "motion": 0.4096,
+  "cat": "renders-and-animates"
+ },
+ "pull-to-refresh": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9998,
+   0.9999
+  ],
+  "motion": 0.2792,
+  "cat": "renders-and-animates"
+ },
+ "push-in": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9996,
+   0.9999
+  ],
+  "motion": 0.0104,
+  "cat": "renders-and-animates"
+ },
+ "radial-surround": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0818,
+   0.0841
+  ],
+  "motion": 0.0404,
+  "cat": "renders-and-animates"
+ },
+ "rgb-glitch-text": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0043,
+   0.0043
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "rubber-band-bumper": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9989,
+   0.9985,
+   0.9958
+  ],
+  "motion": 0.2611,
+  "cat": "renders-and-animates"
+ },
+ "scan-band": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0478,
+   0.0442,
+   0.0442
+  ],
+  "motion": 0.0071,
+  "cat": "renders-and-animates"
+ },
+ "scramble-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.3038,
+   0.3038,
+   0.3039
+  ],
+  "motion": 0.0343,
+  "cat": "renders-and-animates"
+ },
+ "screen-flow-carousel": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.4167,
+   0.355
+  ],
+  "motion": 0.292,
+  "cat": "renders-and-animates"
+ },
+ "scroll-camera-story": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.5532,
+   0.6136,
+   0.6011
+  ],
+  "motion": 0.129,
+  "cat": "renders-and-animates"
+ },
+ "scroll-feed": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.3622,
+  "cat": "renders-and-animates"
+ },
+ "segmentation-flood": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "motion": 0.3695,
+  "cat": "renders-and-animates"
+ },
+ "separator": {
+  "logs": [
+   "[hyperframes] timeline separator: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0007,
+   0.0007
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "settings-toggle-flow": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0704,
+   0.0704
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "shared-axis-y": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0045,
+   0.0045
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "shared-axis-z": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0036,
+   0.0036
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "sheet-spring-up": {
+  "logs": [
+   "[hyperframes] timeline sheet-spring-up: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.063,
+   0.063
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "shimmer-sweep": {
+  "logs": [
+   "[hyperframes] timeline shimmer-sweep: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "shutter-slam": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0606,
+   0.0606
+  ],
+  "motion": 0.0042,
+  "cat": "renders-and-animates"
+ },
+ "skeleton-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0131,
+   0.0131
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "signup-flow": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0806,
+   0.0806
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "slit-scan-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0441,
+   0.0452
+  ],
+  "motion": 0.0893,
+  "cat": "renders-and-animates"
+ },
+ "slot-machine-roll": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0019,
+   0.0019
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "social-proof-card": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0585,
+  "cat": "renders-and-animates"
+ },
+ "soft-blob-touch": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1494,
+   0.1461
+  ],
+  "motion": 0.0959,
+  "cat": "renders-and-animates"
+ },
+ "soft-blur-in": {
+  "logs": [
+   "[hyperframes] timeline soft-blur-in: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "split-tilt-cards": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9989,
+   0.9989,
+   0.9989
+  ],
+  "motion": 0.0316,
+  "cat": "renders-and-animates"
+ },
+ "spotlight-card": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1564,
+   0.1564
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "spring-pop": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1583,
+   0.1568
+  ],
+  "motion": 0.0066,
+  "cat": "renders-and-animates"
+ },
+ "spring-stack-shuffle": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.298,
+   0.2515
+  ],
+  "motion": 0.0226,
+  "cat": "renders-and-animates"
+ },
+ "stagger-cascade": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.984,
+   0.9815
+  ],
+  "motion": 0.0184,
+  "cat": "renders-and-animates"
+ },
+ "stagger-lattice": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1476,
+   0.1476
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "staggered-fade-up": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0054,
+   0.0054
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "star-rating-fill": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "blank"
+ },
+ "state-chip-rail": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0252,
+   0.0193
+  ],
+  "motion": 0.0328,
+  "cat": "renders-and-animates"
+ },
+ "sticky-mock-swap": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.3435,
+   0.3424
+  ],
+  "motion": 0.0164,
+  "cat": "renders-and-animates"
+ },
+ "stitched-text-draw": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0043,
+   0.0161
+  ],
+  "motion": 0.0124,
+  "cat": "renders-and-animates"
+ },
+ "stop-motion-cadence": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0143,
+   0.0351
+  ],
+  "motion": 0.0409,
+  "cat": "renders-and-animates"
+ },
+ "store-badge-lockup": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1781,
+   0.1782
+  ],
+  "motion": 0.0051,
+  "cat": "renders-and-animates"
+ },
+ "streaming-text": {
+  "logs": [
+   "[hyperframes] timeline streaming-text: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "strikethrough-replace": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.003,
+   0.003
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "success-check": {
+  "logs": [
+   "[hyperframes] timeline success-check: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0028,
+   0.0028
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "svg-line-draw-loader": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1476,
+   0.1476
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "svg-mask-reveal": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "svg-stroke-trace": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.015,
+   0.036,
+   0.0355
+  ],
+  "motion": 0.0266,
+  "cat": "renders-and-animates"
+ },
+ "swipe-rail": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9997,
+   0.9992
+  ],
+  "motion": 0.2854,
+  "cat": "renders-and-animates"
+ },
+ "tabs-slide-indicator": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0061,
+   0.0061
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "terminal-simulator": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1712,
+   0.1712
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "telemetry-hud": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9985,
+   0.9983,
+   0.9983
+  ],
+  "motion": 0.0034,
+  "cat": "renders-and-animates"
+ },
+ "testimonial-card": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.2878,
+   0.2878
+  ],
+  "motion": 0.006,
+  "cat": "renders-and-animates"
+ },
+ "testimonial-proof-card": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.4033,
+   0.4032,
+   0.4032
+  ],
+  "motion": 0.01,
+  "cat": "renders-and-animates"
+ },
+ "text-match-cut": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0453,
+   0.0274,
+   0.0261
+  ],
+  "motion": 0.0466,
+  "cat": "renders-and-animates"
+ },
+ "text-shimmer": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0299,
+   0.0298,
+   0.0299
+  ],
+  "motion": 0.008,
+  "cat": "renders-and-animates"
+ },
+ "text-stagger": {
+  "logs": [
+   "[hyperframes] timeline text-stagger: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0131,
+   0.0131
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "text-state-swap": {
+  "logs": [
+   "[hyperframes] timeline text-state-swap: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0009,
+   0.0009
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "texture-mask-text": {
+  "logs": [
+   "[hyperframes] timeline texture-mask-text: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "three-orbiting-cards": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0081,
+   0.0081
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "ticker-takeover": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1379,
+   0.1379,
+   0.0249
+  ],
+  "motion": 0.1628,
+  "cat": "renders-and-animates"
+ },
+ "tilt-card": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0543,
+   0.0543
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "titlecard-calm": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.044,
+   0.0439
+  ],
+  "motion": 0.027,
+  "cat": "renders-and-animates"
+ },
+ "titlecard-lockup": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.054,
+   0.0608
+  ],
+  "motion": 0.0068,
+  "cat": "renders-and-animates"
+ },
+ "toggle-flip": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "torn-paper-rip": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9992,
+   0.9999,
+   0.9999
+  ],
+  "motion": 0.3228,
+  "cat": "renders-and-animates"
+ },
+ "top-down-letters": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0053,
+   0.0053
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "touch-indicator": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "blank"
+ },
+ "tracking-in": {
+  "logs": [
+   "[hyperframes] timeline tracking-in: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "tracing-beam": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1697,
+   0.1626,
+   0.1728
+  ],
+  "motion": 0.1267,
+  "cat": "renders-and-animates"
+ },
+ "trust-strip": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0054,
+   0.007,
+   0.007
+  ],
+  "motion": 0.003,
+  "cat": "renders-and-animates"
+ },
+ "type-match-cut": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0714,
+   0.9541
+  ],
+  "motion": 0.8482,
+  "cat": "renders-and-animates"
+ },
+ "typed-prompt": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.1515,
+   0.1483
+  ],
+  "motion": 0.0217,
+  "cat": "renders-and-animates"
+ },
+ "typewriter": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0033,
+   0.0033
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ },
+ "ui-focus-zoom": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.9202,
+   0.8931,
+   0.8932
+  ],
+  "motion": 0.5389,
+  "cat": "renders-and-animates"
+ },
+ "typing-indicator": {
+  "logs": [
+   "[hyperframes] timeline typing-indicator: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0037,
+   0.0037
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "variable-axis-type": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.994,
+   0.9929,
+   0.9925
+  ],
+  "motion": 0.0413,
+  "cat": "renders-and-animates"
+ },
+ "variable-font-flex": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.022,
+   0.0205,
+   0.0205
+  ],
+  "motion": 0.0074,
+  "cat": "renders-and-animates"
+ },
+ "vector-editor-rig": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "motion": 0.0017,
+  "cat": "renders-and-animates"
+ },
+ "velocity-throw-snap": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.8597,
+   0.8684
+  ],
+  "motion": 0.6377,
+  "cat": "renders-and-animates"
+ },
+ "vox-annotate": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.0334,
+   0.046
+  ],
+  "motion": 0.0142,
+  "cat": "renders-and-animates"
+ },
+ "vignette": {
+  "logs": [
+   "[hyperframes] timeline vignette: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.0,
+   0.0
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "wordmark-tiles": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.4152,
+   0.4152,
+   0.4152
+  ],
+  "motion": 0.2565,
+  "cat": "renders-and-animates"
+ },
+ "whip-pan-cut": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "motion": 0.6612,
+  "cat": "renders-and-animates"
+ },
+ "whiteboard-ink": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.007,
+  "cat": "renders-and-animates"
+ },
+ "x-follow-card": {
+  "logs": [
+   "[hyperframes] timeline x-follow-card: no __timelines entry"
+  ],
+  "fatal": null,
+  "nonblank": [
+   0.1115,
+   0.1115
+  ],
+  "motion": 0.0,
+  "cat": "adapter-errors"
+ },
+ "yt-circle-pointer": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0002,
+  "cat": "static"
+ },
+ "yt-camera-move": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.0596,
+  "cat": "renders-and-animates"
+ },
+ "yt-feather-highlight": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0
+  ],
+  "motion": 0.1668,
+  "cat": "renders-and-animates"
+ },
+ "zoom-through-transition": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "motion": 0.9458,
+  "cat": "renders-and-animates"
+ },
+ "yt-screen-warp": {
+  "logs": [],
+  "fatal": null,
+  "nonblank": [
+   0.4073,
+   0.407
+  ],
+  "motion": 0.0,
+  "cat": "static"
+ }
+}

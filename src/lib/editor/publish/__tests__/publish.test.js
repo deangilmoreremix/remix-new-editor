@@ -85,11 +85,18 @@ describe('publish client', () => {
     expect(client.from).toHaveBeenCalledWith('published_videos');
     expect(upsert.mock.calls[0][0]).toMatchObject({ id: 'abcdefgh12', title: 'T', published: true });
 
-    const fetchImpl = vi.fn(async () => ({ ok: true, json: async () => [{ id: 'abcdefgh12', project: { tracks: [] } }] }));
+    const fetchImpl = vi.fn(async () => ({ ok: true, json: async () => ({ id: 'abcdefgh12', project: { tracks: [] } }) }));
     const v = await fetchPublishedVideo('abcdefgh12', { url: 'https://sb', key: 'anon', fetchImpl });
     expect(v.id).toBe('abcdefgh12');
-    expect(fetchImpl.mock.calls[0][0]).toBe('https://sb/rest/v1/published_videos?id=eq.abcdefgh12&published=eq.true&select=id,title,project,updated_at');
+    // Public read goes through the sanitizing RPC, never the table.
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://sb/rest/v1/rpc/get_published_video');
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toEqual({ p_id: 'abcdefgh12' });
     expect(await fetchPublishedVideo('../etc', { url: 'https://sb', key: 'k', fetchImpl })).toBeNull();
+    // Readable links resolve by business + slug; invalid ones never hit the network.
+    await fetchPublishedVideo({ business: 'acme-roofing', slug: 'spring-promo' }, { url: 'https://sb', key: 'anon', fetchImpl });
+    expect(JSON.parse(fetchImpl.mock.calls[1][1].body)).toEqual({ p_business: 'acme-roofing', p_slug: 'spring-promo' });
+    expect(await fetchPublishedVideo({ business: 'admin', slug: 'x' }, { url: 'https://sb', key: 'k', fetchImpl })).toBeNull();
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
 
     const post = vi.fn(async () => ({ ok: true, json: async () => ({ ok: true, stored: true }) }));
     expect(await submitViewerLead({ publishedId: 'abcdefgh12', clipId: 5, kind: 'lead-form', data: { EMAIL: 'a@b.c' } }, { url: 'https://sb', key: 'anon', fetchImpl: post })).toEqual({ stored: true, error: null });
@@ -213,6 +220,50 @@ describe('form answers go into the video', () => {
     expect(e.playing).toBe(true);
   });
 
+  it('List Builder: a lead that was not saved keeps the form open for a retry (no redirect, not remembered)', async () => {
+    const store = new Map();
+    vi.stubGlobal('localStorage', { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) });
+    try {
+      const { e, create } = fakeEngine();
+      const p = project();
+      p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'email', type: 'email', label: 'Email' }], afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+      let ok = false;
+      const onLead = vi.fn(async () => (ok ? { stored: true, error: null } : { stored: false, error: 'offline' }));
+      createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, rememberKey: 'vid9', onLead });
+      await submit('a@b.co');
+      expect(frame.querySelector('.addon-overlay--optin')).not.toBeNull(); // still there
+      expect(frame.querySelector('.addon-optin__status').textContent).toMatch(/try again/i);
+      expect(frame.querySelector('[data-overlay="thanks"]')).toBeNull();
+      expect(store.size).toBe(0); // not marked as done, so it asks again on return
+      expect(e.model).toBeNull(); // the video is still behind the wall
+      ok = true;
+      await submit('a@b.co'); // retry succeeds
+      expect(frame.querySelector('.addon-overlay--optin')).toBeNull();
+      expect(store.size).toBe(1);
+      expect(e.model).not.toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('a submission that finishes after the player was destroyed shows no thank-you card or redirect', async () => {
+    const { create } = fakeEngine();
+    const p = project();
+    p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'email', type: 'email', label: 'Email' }], afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+    let finish;
+    const onLead = vi.fn(() => new Promise((resolve) => { finish = () => resolve({ stored: true, error: null }); }));
+    const player = createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, onLead });
+    const layer = frame.querySelector('.addon-overlay-layer');
+    const form = frame.querySelector('form');
+    form.querySelector('input').value = 'a@b.co';
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+    await new Promise((r) => setTimeout(r, 0)); // submit is now in flight
+    player.destroy(); // the viewer left the page
+    finish();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(layer.querySelector('[data-overlay="thanks"]')).toBeNull();
+  });
+
   it('a viewer who already filled the List Builder in is not asked again (unless askEveryVisit)', () => {
     const store = new Map();
     const ls = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };
@@ -308,14 +359,13 @@ describe('share panel and watch page', () => {
     expect(box.textContent).toContain('2 leads');
   });
 
-  it('watch page loads a video, plays it and counts a view', async () => {
+  it('watch page loads a video and plays it', async () => {
     const box = document.createElement('div');
     document.body.appendChild(box);
     const { e, create } = fakeEngine();
-    const countView = vi.fn();
-    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, countView, onLead: vi.fn() });
+    const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, analytics, onLead: vi.fn() });
     expect(box.querySelector('h1').textContent).toBe('Demo');
-    expect(countView).toHaveBeenCalledWith('abcdefgh12');
     box.querySelector('[data-bigplay]').click();
     expect(e.playing).toBe(true);
     e.advance(1);

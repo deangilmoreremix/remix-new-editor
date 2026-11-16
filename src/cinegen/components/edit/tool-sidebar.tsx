@@ -53,12 +53,13 @@ interface ToolSidebarProps {
   onToolChange: (tool: ToolType) => void;
   /** [remix] opens the OpenChatCut sound-effects library */
   onOpenSounds?: () => void;
+  onOpenStock?: () => void;
   /** [remix] OpenChatCut voice-over recorder (audio/recorder.ts) */
   recording?: boolean;
   onToggleRecording?: () => void;
 }
 
-export function ToolSidebar({ activeTool, onToolChange, onOpenSounds, recording, onToggleRecording }: ToolSidebarProps) {
+export function ToolSidebar({ activeTool, onToolChange, onOpenSounds, onOpenStock, recording, onToggleRecording }: ToolSidebarProps) {
   const primaryTools = TOOLS.filter((t) => t.group === 'primary');
   const trimTools = TOOLS.filter((t) => t.group === 'trim');
   const generateTools = TOOLS.filter((t) => t.group === 'generate');
@@ -100,6 +101,11 @@ export function ToolSidebar({ activeTool, onToolChange, onOpenSounds, recording,
       {onOpenSounds && (
         <button className="tool-sidebar__btn" onClick={onOpenSounds} title="Sound effects library" aria-label="Sound effects library" data-testid="open-sound-library">
           <Icon><path d="M11 5 6 9H2v6h4l5 4V5Z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18.5 5.5a9 9 0 0 1 0 13" /></Icon>
+        </button>
+      )}
+      {onOpenStock && (
+        <button className="tool-sidebar__btn" onClick={onOpenStock} title="AI & stock media (Pexels, Pixabay)" aria-label="AI and stock media" data-testid="open-stock-media">
+          <Icon><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.5" /><path d="m21 16-5-5-8 8" /></Icon>
         </button>
       )}
       {onToggleRecording && (

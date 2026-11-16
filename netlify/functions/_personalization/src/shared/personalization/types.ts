@@ -174,6 +174,8 @@ export type AssetRole =
   | 'background_reference'
   | 'audio_reference'
   | 'saved_reference'
+  /** A Full Body Recast result: the client's person performing in a source clip. */
+  | 'presenter_video'
 
 export interface PersonalizationAsset {
   id: string
@@ -205,6 +207,8 @@ export interface PersonalizationAsset {
     outputFormat?: 'png' | 'jpeg' | 'webp'
     outputCompression?: number | null
     inputFidelity?: 'high' | 'low'
+    /** Full Body Recast: the performance clip it was made from (its sound). */
+    sourceUrl?: string
   }
   visionAnalysis?: PersonalizationVisionAnalysis
   visionValidation?: PersonalizationVisionValidation
@@ -225,6 +229,8 @@ export interface AssetLibrary {
   ctaGraphic: PersonalizationAsset | null
   audio: PersonalizationAsset[]
   savedReferences: PersonalizationAsset[]
+  /** Full Body Recast videos made in Advanced Editing (newest last). */
+  presenterVideos?: PersonalizationAsset[]
 }
 
 export const EMPTY_ASSET_LIBRARY: AssetLibrary = {
@@ -415,6 +421,9 @@ export interface SharedMediaEntry {
   outputUrls: string[]
   outputType: string
   clientId?: string
+  /** The saved video is the generated clip without the on-video layers
+   *  (the layered version could not be stored). */
+  layersMissing?: boolean
   createdAt: string
 }
 
@@ -524,6 +533,14 @@ export interface BusinessResearchResult {
     logoUrl?: string
     imageUrls: string[]
   }
+  /** The site's brand palette (`#rrggbb`), mirrors researchProvider.ts. */
+  brandColors?: {
+    primary?: string
+    accent?: string
+    palette?: string[]
+  }
+  /** The homepage's readable content as Markdown (≤ 8,000 chars). */
+  pageMarkdown?: string
 }
 
 export interface DiscoveredAsset {
@@ -642,3 +659,9 @@ export type {
 export type GuidedStep = 1 | 2 | 3 | 4
 
 export type PersonalizationViewMode = 'simple' | 'advanced'
+
+/** The four tabs of the modal's Advanced Editing workspace. */
+export type AdvancedEditingTab = 'client' | 'assets' | 'recast' | 'create'
+
+/** The section (pill) shown inside each Advanced Editing tab. */
+export type AdvancedEditingSections = Record<AdvancedEditingTab, string>

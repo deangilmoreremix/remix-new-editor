@@ -1,0 +1,44 @@
+{
+ "base": {
+  "name": "b1-base",
+  "downloaded": true,
+  "exportErrorShown": "",
+  "toast": ""
+ },
+ "kill": {
+  "name": "b2-kill",
+  "downloaded": false,
+  "exportErrorShown": "Export stopped: \"Lower Third — Clean Bar\" was not rendered: HyperFrames animations are temporarily switched off. Your project data is unchanged. \"Neon Border\" was not rendered: HyperFrames animations are temporarily swit",
+  "toast": "EXPORT STOPPED | Export stopped: \"Lower Third — Clean Bar\" was not rendered: HyperFrames animations are temporarily switched off. Your project data is unchanged. \"Neon Border\" was not rendered: HyperF"
+ },
+ "afterKill": {
+  "name": "b3-after-kill",
+  "downloaded": true,
+  "exportErrorShown": "",
+  "toast": ""
+ },
+ "tampered": {
+  "name": "b4-tampered",
+  "downloaded": false,
+  "exportErrorShown": "Export stopped: \"Neon Border\" could not be rendered correctly (refused: source does not match the pinned sha256).",
+  "toast": "EXPORT STOPPED | Export stopped: \"Neon Border\" could not be rendered correctly (refused: source does not match the pinned sha256)."
+ },
+ "afterTamper": {
+  "name": "b5-restored",
+  "downloaded": true,
+  "exportErrorShown": "",
+  "toast": ""
+ },
+ "repeat1": {
+  "name": "b6-repeat",
+  "downloaded": true,
+  "exportErrorShown": "",
+  "toast": ""
+ },
+ "repeat2": {
+  "name": "b7-repeat",
+  "downloaded": true,
+  "exportErrorShown": "",
+  "toast": ""
+ }
+}

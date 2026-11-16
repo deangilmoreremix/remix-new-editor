@@ -1,0 +1,482 @@
+{
+  "id": "cinema",
+  "name": "Cinema Studio",
+  "route": "#/cinema",
+  "description": "Cinema Studio makes cinematic video shots (or still images) by combining your scene description with real camera, lens, focal length, aperture, camera movement and film look settings.",
+  "shortDescription": "Cinematic shots with real camera, lens and movement controls.",
+  "fullDescription": "Cinema Studio is a prompt bar plus a set of cinematography controls. You describe your scene, choose a camera body, lens, focal length and aperture (from the summary card or the camera overlay), then choose a camera movement and film look (in the Quick camera builder). When you press the generate button the studio writes all of those choices into one long cinematic prompt and sends it to the video model you picked. You can start from text only (text-to-video), from a start-frame image (image-to-video), or from a start and end frame (first/last-frame video). A Video / Image switch lets you render a cinematic still instead of a video. Results appear on a result screen with Regenerate, Download, Copy Prompt, Copy Link/Image, + New Shot and Publish to Social, plus a History rail.",
+  "bestFor": "Creators who want film-style shots with a specific camera and lens look, and who prefer picking cinematography options from lists rather than writing technical prompt wording by hand.",
+  "whenToUse": [
+    "You want a single cinematic shot with a chosen camera body and lens look (for example Grand Format 70mm Film with Classic Anamorphic).",
+    "You want to control focal length (8, 14, 24, 35, 50, 85 mm) and aperture (f/1.4, f/4, f/11) through simple choices.",
+    "You want a camera movement such as Dolly In, Crane Up, Orbit, FPV Drone or Handheld, and a film look such as Anamorphic, Teal & Orange or Moody Noir.",
+    "You have a still image (a scene, a location, a character) that should become the first frame of a cinematic shot, optionally with an end frame.",
+    "You want a cinematic still image rather than a video (switch to Image)."
+  ],
+  "whenToUseAnother": [
+    "Use Video Studio (#/video) when you want the full set of video workflows (Edit video, Extend uploaded video, Motion transfer, watermark removal) or the Extend / Upscale to 4K buttons.",
+    "Use Cinema Templates (#/cinema-template) when you want a ready-made format such as a trailer, brand film or ad film that asks you a few questions and builds the prompt.",
+    "Use Storyboard Studio (#/storyboard) when you want to plan several shots as frames before generating.",
+    "Use Image Studio (#/image) when you only want pictures and need more image-specific controls."
+  ],
+  "keyFeatures": [
+    "Cinema Prompt Builder: a collapsible card with a 'Base scene description...' box, Camera and Lens lists and a live prompt preview; the 'Use in Prompt' button copies the built prompt into the main prompt box.",
+    "Camera settings overlay opened from the summary card (tooltip 'Open camera settings') with four columns: Camera, Lens, Focal Length, Aperture.",
+    "Quick camera builder (tooltip 'Quick camera builder'): Camera, Lens, Focal, Aperture, Movement and Film Look lists with a Preview and a 'Use This Setup' button.",
+    "Video / Image output switch (your choice is remembered in the browser).",
+    "Model button with a split-pane catalog picker for 'Text to Video' and 'Image to Video' models and a search box ('Search models...').",
+    "Aspect ratio choices 16:9, 21:9, 9:16, 1:1, 4:5 and resolution choices 1K, 2K, 4K.",
+    "Attachment toolbar for Start frame, End frame, Image, Video and Audio references; a stock-photo button ('Select Reference Scene') for a reference scene.",
+    "Character Lock toggle, GTM Boost in the three-dot menu, Personalize and Thumbnail buttons, and an Advanced panel.",
+    "Result actions: ↻ Regenerate, ↓ Download, ⧉ Copy Prompt, ⧉ Copy Link / Copy Image, + New Shot, Add AI Captions, Publish to Social, and a History rail.",
+    "Reload recovery: a generation that finished while you were away is restored with the toast 'Recovered a generation that finished while you were away'."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Camera and lens controls",
+      "explanation": "Click the summary card to open the camera overlay. Choose a Camera (Modular 8K Digital, Full-Frame Cine Digital, Grand Format 70mm Film, Studio Digital S35, Classic 16mm Film, Premium Large Format Digital), a Lens (Creative Tilt Lens, Compact Anamorphic, Extreme Macro, 70s Cinema Prime, Classic Anamorphic, Premium Modern Prime, Warm Cinema Prime, Swirl Bokeh Portrait, Vintage Prime, Halation Diffusion, Clinical Sharp Prime), a Focal Length (8, 14, 24, 35, 50, 85) and an Aperture (f/1.4, f/4, f/11). Defaults are the first camera, the first lens, 35mm and f/1.4.",
+      "whyToUse": "Each choice is turned into plain-English camera wording in the prompt (for example 'shot on a grand format 70mm film camera', 'using a classic anamorphic lens at 35mm (natural cinematic perspective)', 'aperture f/1.4, shallow depth of field, creamy bokeh').",
+      "inputRequired": "None. Defaults are filled in.",
+      "restrictions": "These work by adding words to the prompt; they do not change the model's real optics, and results vary by model."
+    },
+    {
+      "feature": "Camera movement",
+      "explanation": "Set in the Quick camera builder under 'Movement'. Options as shown on screen: Static, Dolly In, Dolly Out, Crane Up, Orbit, FPV Drone, Handheld, Pan, Tilt, Dolly Zoom. Dolly Zoom adds the wording 'Hitchcock dolly zoom (vertigo effect)'. Default is Static.",
+      "whyToUse": "Adds a movement phrase such as 'slow dolly in toward the subject' or 'smooth 360 orbit around the subject' to the prompt.",
+      "inputRequired": "Open the Quick camera builder and press 'Use This Setup'.",
+      "restrictions": "Movement is only a prompt hint; the video model may follow it loosely."
+    },
+    {
+      "feature": "Film look",
+      "explanation": "Set in the Quick camera builder under 'Film Look'. Options: Natural, Anamorphic, Teal & Orange, Moody Noir, Vintage, Neon Nights, Documentary, Golden Hour. Default is Natural.",
+      "whyToUse": "One choice sets the colour and mood wording, for example 'teal and orange blockbuster grade' or 'warm golden-hour glow'.",
+      "inputRequired": "Open the Quick camera builder and press 'Use This Setup'.",
+      "restrictions": "Prompt wording only."
+    },
+    {
+      "feature": "Cinema Prompt Builder",
+      "explanation": "A collapsed card titled 'Cinema Prompt Builder' ('Build cinematic prompts with camera & lens metadata'). Type a base scene, choose a Camera and Lens and read the compiled prompt, then press 'Use in Prompt' to place it into the main prompt box.",
+      "whyToUse": "Lets you see and edit the full cinematic wording before generating.",
+      "inputRequired": "A base scene description. Until you type one it shows 'Cinematic prompt will appear here...'.",
+      "restrictions": "This builder uses a fixed 35mm and f/1.4 and does not include Movement or Film Look; those are added on generate from your saved settings."
+    },
+    {
+      "feature": "Video / Image switch",
+      "explanation": "A two-button switch at the start of the toolbar. 'Video' renders a clip with the model you picked. 'Image' renders a cinematic still using the nano-banana-pro model (or nano-banana-pro-edit when you attached a start frame), at 1K, 2K or 4K.",
+      "whyToUse": "Test a look cheaply as a still before spending on video.",
+      "inputRequired": "Optional start frame.",
+      "restrictions": "In Image mode your selected video model is not used."
+    },
+    {
+      "feature": "Start frame and End frame",
+      "explanation": "Attach a Start frame to make the studio switch to an image-to-video model. Attach both Start frame and End frame and the studio uses the 'seedance-2.5-first-last-frame' model to pin both ends of the clip.",
+      "whyToUse": "Control exactly how the shot begins and ends.",
+      "inputRequired": "One or two images.",
+      "restrictions": "If you drop a non-image file on the start-frame area you see 'Drop an image to use as the start frame.'"
+    },
+    {
+      "feature": "Reference attachments (Image, Video, Audio)",
+      "explanation": "The attachment toolbar also lets you add extra reference images, videos and audio, which are sent to the model when the model accepts them.",
+      "whyToUse": "Guide the look, motion or sound.",
+      "inputRequired": "Files.",
+      "restrictions": "Whether a given model uses references is model dependent. Upload errors appear as a toast with the reason."
+    },
+    {
+      "feature": "Character Lock",
+      "explanation": "A toggle labelled 'Character Lock'. When on, the studio reuses a stored character reference and after a successful result saves the new result as the stored reference.",
+      "whyToUse": "Keep the same character across shots.",
+      "inputRequired": "A first successful generation to store the reference.",
+      "restrictions": "Effect depends on the model."
+    },
+    {
+      "feature": "Result screen",
+      "explanation": "↻ Regenerate runs again, ↓ Download saves the file, ⧉ Copy Prompt copies your prompt text, ⧉ Copy Link (videos) or ⧉ Copy Image (stills) copies the media link or image, + New Shot returns to the prompt bar, Add AI Captions captions a video, Publish to Social opens publishing.",
+      "whyToUse": "Finish and share your shot.",
+      "inputRequired": "A finished result.",
+      "restrictions": "Copy buttons can fail with 'Could not copy the prompt' or 'Could not copy' if the browser blocks the clipboard."
+    }
+  ],
+  "howToUse": "1. Open Cinema Studio from the side menu (#/cinema). 2. Decide Video or Image with the switch at the left of the toolbar. 3. Type your scene in the prompt box ('Describe your scene - use @ to add characters & props'). 4. Optional: attach a Start frame (and End frame) to start from pictures. 5. Click the summary card (tooltip 'Open camera settings') and choose Camera, Lens, Focal Length and Aperture. 6. Click the camera builder button (tooltip 'Quick camera builder'), choose Movement and Film Look, then press 'Use This Setup'. 7. Choose the model button, aspect ratio and resolution. 8. Optional: Advanced, Character Lock, Personalize, Thumbnail. 9. Click the generate button (tooltip 'Generate cinema shot'; the button reads 'SHOOTING...' while it works). 10. On the result screen use Regenerate, Download, Copy Prompt, Copy Link / Copy Image, + New Shot or Publish to Social.",
+  "howToSteps": [
+    "Open Cinema Studio (#/cinema).",
+    "Write the scene in the prompt box.",
+    "Open camera settings and choose camera, lens, focal length and aperture.",
+    "Open the Quick camera builder, choose Movement and Film Look, press 'Use This Setup'.",
+    "Pick a model, aspect ratio and resolution.",
+    "Press the generate button and wait for 'SHOOTING...' to finish.",
+    "Download, copy, regenerate or publish the result."
+  ],
+  "gettingStarted": [
+    "Type a short scene such as 'A lone rider crossing a salt flat at dusk' and press generate with all defaults.",
+    "Then open camera settings and change only the lens, so you can see the difference.",
+    "Try the Image switch first to preview the look as a still."
+  ],
+  "inputs": [
+    "Prompt",
+    "Camera",
+    "Lens",
+    "Focal Length",
+    "Aperture",
+    "Movement",
+    "Film Look",
+    "Model",
+    "Aspect ratio",
+    "Resolution",
+    "Start frame",
+    "End frame",
+    "Reference image / video / audio",
+    "Character Lock",
+    "Video or Image mode",
+    "Negative prompt and other Advanced options"
+  ],
+  "requiredInputs": [
+    "Prompt"
+  ],
+  "optionalInputs": [
+    "Start frame",
+    "End frame",
+    "Reference attachments",
+    "Camera / Lens / Focal / Aperture changes",
+    "Movement",
+    "Film Look",
+    "Character Lock",
+    "Advanced options"
+  ],
+  "inputDetails": [
+    {
+      "name": "Prompt",
+      "description": "Your scene description. The studio appends the cinematography wording.",
+      "required": true,
+      "whenToUse": "Always. If the prompt is empty the generate button does nothing.",
+      "restrictions": "No empty-prompt message is shown in the code."
+    },
+    {
+      "name": "Camera",
+      "description": "Six camera bodies, first one is the default.",
+      "required": false,
+      "whenToUse": "To change the overall image character.",
+      "restrictions": "Wording only."
+    },
+    {
+      "name": "Lens",
+      "description": "Eleven lens looks, first one (Creative Tilt Lens) is the default.",
+      "required": false,
+      "whenToUse": "To change bokeh, distortion, flare and sharpness feel.",
+      "restrictions": "Wording only."
+    },
+    {
+      "name": "Focal Length",
+      "description": "8, 14, 24, 35, 50 or 85 mm. Default 35.",
+      "required": false,
+      "whenToUse": "Wide for landscapes, longer for portraits.",
+      "restrictions": "Wording only."
+    },
+    {
+      "name": "Aperture",
+      "description": "f/1.4 (shallow depth of field), f/4 (balanced), f/11 (deep focus). Default f/1.4.",
+      "required": false,
+      "whenToUse": "Control how much of the frame is sharp.",
+      "restrictions": "Wording only."
+    },
+    {
+      "name": "Aspect ratio",
+      "description": "16:9, 21:9, 9:16, 1:1 or 4:5. Default 16:9.",
+      "required": false,
+      "whenToUse": "Match your destination.",
+      "restrictions": "Some models may not support every ratio."
+    },
+    {
+      "name": "Resolution",
+      "description": "1K, 2K, 4K in the picker; default label 2K. For video, if the model lists its own resolutions the first one is used unless you changed the resolution yourself.",
+      "required": false,
+      "whenToUse": "Higher for final output.",
+      "restrictions": "Model dependent."
+    },
+    {
+      "name": "Start / End frame",
+      "description": "Images used as first and last frame.",
+      "required": false,
+      "whenToUse": "Image-to-video or first/last-frame video.",
+      "restrictions": "Shared upload limits are 10MB for images."
+    }
+  ],
+  "generationModes": [
+    "Text-to-video",
+    "Image-to-video (start frame)",
+    "First/last-frame video (start + end frame)",
+    "Image (still) mode"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Text-to-video",
+      "description": "No images attached, Video selected. Uses the text-to-video model you picked (default is the first in the list, Seedance Lite).",
+      "useCase": "Create a shot from words."
+    },
+    {
+      "mode": "Image-to-video",
+      "description": "A start frame is attached. Uses the image-to-video model you picked (or the first one).",
+      "useCase": "Turn a scene or location picture into a moving shot."
+    },
+    {
+      "mode": "First/last-frame video",
+      "description": "Both frames attached. Uses seedance-2.5-first-last-frame.",
+      "useCase": "Controlled start and end."
+    },
+    {
+      "mode": "Image mode",
+      "description": "Still render with nano-banana-pro or nano-banana-pro-edit (when a start frame is attached).",
+      "useCase": "Preview a look or make a cinematic still."
+    }
+  ],
+  "modelCapabilities": "Cinema Studio uses the same catalog as Video Studio. The model picker has two tabs, 'Text to Video' (115 catalog entries) and 'Image to Video' (188 entries), covering families such as Seedance (Lite, Pro, v1.5, v2.0, 2.5), Kling (v2.1 to v3.0 and O1), Google Veo (3, 3.1, 4), OpenAI Sora 2, Wan, Hunyuan, Runway, Pixverse, MiniMax Hailuo, Vidu, LTX, OVI, Grok Imagine and Flux 3 video. App descriptions are one-liners (for example Kling V3.0 Pro 'cinematic text-to-video', Seedance 2.0 'latest', Wan 2.2 Fast 'fast'). The comparison table gives only relative scores (price, speed, quality) not real prices. Special models used by the code: seedance-2.5-first-last-frame (start + end frame), nano-banana-pro and nano-banana-pro-edit (Image mode). If the chosen id is missing from the catalog the code falls back to kling-v2.6-pro-t2v or kling-v2.6-pro-i2v.",
+  "outputs": [
+    "A cinematic video clip or a cinematic still image",
+    "Downloadable file",
+    "History rail entries",
+    "Copyable prompt and link"
+  ],
+  "limitations": [
+    "Camera, lens, focal length, aperture, movement and look are added as words to the prompt; they are not physical settings.",
+    "Clip duration is taken from the selected model's first listed duration unless the Advanced options set it; there is no dedicated duration button on the main toolbar.",
+    "Cinema Studio only runs text-to-video, image-to-video, first/last-frame video and stills; it has no extend, edit or motion-transfer tools (use Video Studio).",
+    "Empty prompt: nothing happens and no message is displayed.",
+    "You need an API key and credits."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Prompt-based camera controls",
+      "impact": "Two models can render the same camera wording differently.",
+      "workaround": "Try another model or add detail to your scene description."
+    },
+    {
+      "limitation": "Fixed clip length",
+      "impact": "You cannot pick a duration on the toolbar.",
+      "workaround": "Open Advanced to see whether the model offers a duration control, or use Video Studio where Duration is a button."
+    },
+    {
+      "limitation": "No extend or edit tools",
+      "impact": "You cannot continue or edit a finished clip here.",
+      "workaround": "Download the clip and use Video Studio."
+    }
+  ],
+  "troubleshooting": [
+    "Nothing happens when I press generate: the prompt box is empty. Type a scene description.",
+    "A sign-in window appears: you are not signed in or have no API key. Sign in and add credits, then press generate again.",
+    "Toast 'Generation Failed: ...': the text after the colon is the reason from the service (for example 'No Data' when no video came back). Try again or pick another model.",
+    "Toast 'Upload failed: ...': the start frame did not upload; check file type and size and try again.",
+    "'Drop an image to use as the start frame.': you dropped something that is not an image.",
+    "The camera or movement did not change the shot: movement and look are only prompt words; also make sure you pressed 'Use This Setup' in the Quick camera builder.",
+    "'Could not copy the prompt' or 'Could not copy': your browser blocked clipboard access; allow clipboard permission or copy by hand.",
+    "I only got an image: the Image switch is selected (it is remembered). Switch back to Video.",
+    "Movement list shows 'Dolly Zoom': that is the dolly zoom (vertigo effect) option. Older saved projects that stored it under its previous spelling still load with the same camera move."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Generation fails with a toast",
+      "steps": [
+        "Read the text after 'Generation Failed:'.",
+        "Click generate again.",
+        "If it repeats, choose a different model in the model picker.",
+        "Try a smaller or simpler prompt."
+      ]
+    },
+    {
+      "issue": "My start frame is ignored",
+      "steps": [
+        "Check the camera builder shows 'Reference Scene - Loaded'.",
+        "Make sure Video mode is selected.",
+        "If you also attached an end frame, the studio uses the first/last-frame model."
+      ]
+    },
+    {
+      "issue": "Wrong output type (image instead of video)",
+      "steps": [
+        "Look at the Video / Image switch at the left of the toolbar.",
+        "Select Video.",
+        "Generate again."
+      ]
+    },
+    {
+      "issue": "Interrupted by page reload",
+      "steps": [
+        "Return to Cinema Studio.",
+        "A finished job is recovered automatically with a toast.",
+        "Check the History rail."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Result does not look like the chosen lens",
+      "whyItHappens": "The lens is a text hint only.",
+      "howToFix": "Repeat the look in your scene description and try another model."
+    },
+    {
+      "problem": "Model switched after attaching a frame",
+      "whyItHappens": "Attaching a start frame switches to the first image-to-video model.",
+      "howToFix": "Re-pick the model afterwards."
+    },
+    {
+      "problem": "Resolution changed by itself",
+      "whyItHappens": "On model change the resolution takes the model's first listed value unless you set it yourself.",
+      "howToFix": "Pick the resolution after choosing the model."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Moody noir street shot",
+      "steps": [
+        "Prompt: 'A detective lights a cigarette under a flickering streetlamp in the rain'.",
+        "Camera settings: Studio Digital S35, Vintage Prime, 35mm, f/1.4.",
+        "Quick camera builder: Movement Dolly In, Film Look Moody Noir, press 'Use This Setup'.",
+        "Aspect ratio 21:9, generate."
+      ]
+    },
+    {
+      "title": "Image first, then video",
+      "steps": [
+        "Switch to Image and generate a still with your look.",
+        "Switch to Video, attach the still as Start frame.",
+        "Generate to animate the same look."
+      ]
+    },
+    {
+      "title": "Controlled start and end",
+      "steps": [
+        "Attach a Start frame and an End frame.",
+        "Describe the transition in the prompt.",
+        "Generate (uses first/last-frame model)."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Film-look b-roll",
+      "description": "Quick atmospheric shots for a project.",
+      "steps": [
+        "Pick a film look and movement.",
+        "Generate several takes with Regenerate."
+      ],
+      "expectedOutput": "Short cinematic clips."
+    },
+    {
+      "title": "Product hero shot",
+      "description": "A product with macro lens and shallow depth of field.",
+      "steps": [
+        "Attach product photo as Start frame.",
+        "Lens Extreme Macro, aperture f/1.4, Movement Orbit."
+      ],
+      "expectedOutput": "An orbiting close-up clip."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Does Cinema Studio make video or images?",
+      "answer": "Both. The Video / Image switch decides. Video uses the model you pick; Image uses nano-banana-pro."
+    },
+    {
+      "question": "What is the Dolly Zoom movement?",
+      "answer": "It is the Hitchcock dolly zoom (vertigo effect) option in the movement list: the camera moves while the framing zoom changes the opposite way, so the background seems to stretch."
+    },
+    {
+      "question": "Where do I set movement and film look?",
+      "answer": "In the Quick camera builder (camera icon button). Choose Movement and Film Look, then press 'Use This Setup'. The summary card then shows your movement and look."
+    },
+    {
+      "question": "Can I set the video length?",
+      "answer": "There is no duration button on the main toolbar. The studio uses the model's first listed duration; check the Advanced panel for extra controls."
+    },
+    {
+      "question": "Can I use my own picture?",
+      "answer": "Yes. Attach a Start frame (and optionally an End frame), or use the stock-photo button for a reference scene."
+    },
+    {
+      "question": "How do I keep the same character?",
+      "answer": "Switch on Character Lock. After a successful result the studio stores it as the character reference."
+    },
+    {
+      "question": "What is the difference from Video Studio?",
+      "answer": "Cinema Studio adds camera, lens, movement and film-look controls. Video Studio has more video workflows (edit, extend, motion transfer, watermark removal) and a per-model duration button."
+    },
+    {
+      "question": "Does it remember my work?",
+      "answer": "A History rail lists results from this session, and a job that finished while you were away is recovered on return."
+    }
+  ],
+  "glossary": {
+    "Focal length": "How wide or tight the view is. Small numbers are wide, large numbers are zoomed in.",
+    "Aperture": "How open the lens is. f/1.4 blurs the background, f/11 keeps everything sharp.",
+    "Anamorphic": "A widescreen lens style with stretched flares.",
+    "Dolly": "The camera moves toward or away from the subject on a track.",
+    "Crane": "The camera rises or lowers.",
+    "Orbit": "The camera circles the subject.",
+    "FPV Drone": "A fast, immersive drone-style fly-through.",
+    "Dolly zoom": "The vertigo effect: the camera moves one way while the zoom goes the other.",
+    "Film look": "A colour and mood style like Teal & Orange or Moody Noir.",
+    "Start / End frame": "The first and last picture of a clip."
+  },
+  "tips": [
+    "Change one cinematography setting at a time so you can see what it does.",
+    "Pair a wide focal length (14-24mm) with FPV Drone or Dolly In for immersive shots; use 85mm with f/1.4 for portraits.",
+    "Anamorphic lenses and the Anamorphic film look give the classic widescreen movie feel (built-in help tip).",
+    "Use the Image switch to test a look cheaply before making a video.",
+    "Use @ in the prompt box to refer to characters and props where supported."
+  ],
+  "bestPractices": [
+    "Describe the subject, action and place first; let the controls handle camera language.",
+    "Use 21:9 or 16:9 for a cinematic frame and 9:16 for social.",
+    "Keep the prompt focused on one shot."
+  ],
+  "relatedStudios": [
+    "video",
+    "cinema-template",
+    "storyboard",
+    "image",
+    "animate",
+    "render"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "video",
+      "relationship": "Video Studio is the general video generator.",
+      "whenToMove": "When you need edit, extend, motion transfer or a duration button.",
+      "why": "It has more workflows."
+    },
+    {
+      "studio": "cinema-template",
+      "relationship": "Guided cinematic formats.",
+      "whenToMove": "When you want a ready structure like trailer or brand film.",
+      "why": "Forms replace prompt writing."
+    },
+    {
+      "studio": "storyboard",
+      "relationship": "Plan shots as frames.",
+      "whenToMove": "For multi-shot stories.",
+      "why": "Plan before you generate."
+    }
+  ],
+  "notConfirmed": [
+    "Exact clip duration used in Cinema Studio (code takes the first duration listed for the model; the Advanced panel may offer a duration control, not verified).",
+    "Exact prices, credits and render times per model.",
+    "Which Advanced options appear for each model (they are generated from the model's inputs).",
+    "Whether the root audit CINEMA_STORYBOARD_EFFECTS_AUDIT.md statement that Cinema only routes to Video Studio is still true; the code shows Cinema generates directly, so the audit was treated as outdated.",
+    "Whether a payment or entitlement check is applied before generating in Cinema Studio."
+  ],
+  "sourceFiles": [
+    "src/components/CinemaStudio.js",
+    "src/components/CameraControls.js",
+    "src/lib/promptUtils.js",
+    "src/lib/instructions.js",
+    "src/lib/models.js",
+    "src/lib/modelDescriptions.js",
+    "src/lib/modelComparisonData.js",
+    "public/api/model-catalog.json",
+    "CINEMA_STORYBOARD_EFFECTS_AUDIT.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read CinemaStudio.js (builder, toolbar, generate handler, result actions), CameraControls.js, promptUtils.js option maps, instructions entry and model data files.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

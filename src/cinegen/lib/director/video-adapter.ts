@@ -246,7 +246,7 @@ export const runpodLtx25Adapter: DirectorVideoAdapter = {
   },
 };
 
-// [remix] Video generation on MuAPI (the user's own key): image-to-video when the clip has reference stills, text-to-video otherwise.
+// [remix] Video generation on MuAPI (the user's own key), Seedance 2.5: text-to-video (4-30 s), or omni-reference when the clip has Element stills.
 export const muapiVideoAdapter: DirectorVideoAdapter = {
   id: 'muapi-video',
   label: 'MuAPI · Video',
@@ -254,7 +254,7 @@ export const muapiVideoAdapter: DirectorVideoAdapter = {
   modelId: 'auto',
   capabilities: {
     multiPrompt: true,
-    maxDurationSec: 10,
+    maxDurationSec: 30, // seedance-2.5-text-to-video / -omni-reference: 4-30 s in MuAPI's live catalog
     resolutions: ['480p', '720p', '1080p'],
     aspectRatios: ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9'],
     referenceInputs: true,
@@ -271,7 +271,7 @@ export const muapiVideoAdapter: DirectorVideoAdapter = {
       modelId: this.modelId,
       outputType: 'video',
       prompt: compiled.prompt,
-      durationSec: Math.min(compiled.durationSec, 10),
+      durationSec: Math.min(Math.max(compiled.durationSec, 4), 30),
       params: { aspect_ratio: show.aspectRatio, duration: compiled.durationSec, resolution: show.resolution },
       ...(medias.length > 0 ? { medias } : {}),
     };
