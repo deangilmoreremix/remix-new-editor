@@ -1320,7 +1320,28 @@ export function OutreachStudio() {
         onPick,
       });
     });
-    row.append(sw, name, choose);
+    // "Save as my page": your recording on a design, edited in the visual editor and saved as your own page.
+    const mine = button('Put my video on a page', { small: true });
+    mine.setAttribute('data-outreach-own-page', '');
+    mine.title = 'Pick a design, see your recording in it, edit every word and save it as your own page';
+    mine.disabled = !!busy;
+    mine.addEventListener('click', async () => {
+      const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
+      let saved = '';
+      openLandingPagePicker({
+        video: draft.video?.url ? { url: draft.video.url, title: draft.name || 'My outreach video', duration: draft.video.duration, studio: 'outreach' } : null,
+        template: String(value).startsWith('design:') ? String(value).slice(7) : null,
+        doneLabel: 'Use this page',
+        onPick: (pg) => { saved = pg?.id || saved; },
+        onClose: async () => {
+          if (!saved) return;
+          myPages.loaded = false;
+          try { await fetchMyPages(); } catch { /* the list shows its own error */ }
+          onPick(saved);
+        },
+      });
+    });
+    row.append(sw, name, choose, mine);
     wrap.appendChild(row);
     const links = el('div', 'flex flex-wrap items-center gap-3 px-1');
     if (chosen?.url) { const a = el('a', 'text-xs font-bold text-primary underline', 'Preview'); a.href = chosen.url; a.target = '_blank'; a.rel = 'noopener'; links.appendChild(a); }

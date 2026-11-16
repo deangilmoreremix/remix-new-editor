@@ -40,7 +40,10 @@ export function VideoPlayer({ poster = '' }) {
     fired.current.add(kind);
     fn?.(kind);
   };
-  const src = /^https:\/\//i.test(page?.video_url || '') ? page.video_url : '';
+  // Published pages play https videos only; the editor and previews also play a just-picked local file (blob:),
+  // which "Save as my page" uploads before the page is stored.
+  const url = String(page?.video_url || '');
+  const src = /^https:\/\//i.test(url) || (preview && /^blob:/i.test(url)) ? url : '';
   const posterUrl = safeImageUrl(page?.poster_url) || safeImageUrl(poster) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(poster) ? poster : '');
   // A Video Outreach campaign plays its personal player (each contact's greeting) here.
   const outreachSrc = preview ? null : outreachPlayerSrc(page?.video_url);
