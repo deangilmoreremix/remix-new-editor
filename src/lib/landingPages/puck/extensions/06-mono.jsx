@@ -1,5 +1,6 @@
 /** Mono editorial extras: logo + results strip, intro with icon features, and the three info panels. Sample copy only. */
 import { useTokens, AccentText, VideoPlayer, LeadForm, SafeLink, Icon } from '../components.jsx';
+import { slotFields, SLOT_DEFAULTS } from '../slotFields.js';
 import { safeImageUrl, splitAccent } from '../../templates.js';
 
 const T = (label) => ({ type: 'text', label });
@@ -43,7 +44,7 @@ function Hero(p) {
         {list(p.buttons).length ? <div className="pk-actions">{list(p.buttons).map((b, i) => <SafeLink key={i} className={`pk-btn pk-btn--${b.style === 'primary' ? 'primary' : 'secondary'}`} href={b.url || '#lead'}>{t(b.label)}</SafeLink>)}</div> : null}
       </div>
       <div className="pk-hero-video" id="video">
-        <VideoPlayer poster={p.photo} />
+        <VideoPlayer poster={p.photo} slotImage={p.slotImage} slotVideo={p.slotVideo} bakedPlay={p.bakedPlay} />
         <div className="mn-greet">
           {p.greeting1 ? <AccentText as="span" className="mn-bubble" text={p.greeting1} /> : null}
           {p.greeting2 ? <span className="mn-bubble">{t(p.greeting2)}</span> : null}
@@ -126,11 +127,12 @@ export const components = {
       buttons: arr('Buttons', { label: T('Text'), url: T('Link (https, #lead, #video)'), style: { type: 'radio', label: 'Style', options: [{ label: 'Filled', value: 'primary' }, { label: 'Outline', value: 'secondary' }] } }, { label: 'Button', url: '#lead', style: 'primary' }, 'label'),
       greeting1: T('Greeting bubble 1 (wrap the name in [[ ]] to colour it)'), greeting2: T('Greeting bubble 2'),
       photo: T('Placeholder image before the video plays'),
+      ...slotFields(),
       formTitle: T('Form title'), formSubtitle: T('Form subtitle'),
       formFields: arr('Form fields', { key: T('Key (name, email, company...)'), label: T('Label'), type: { type: 'select', label: 'Type', options: [{ label: 'Text', value: 'text' }, { label: 'Email', value: 'email' }, { label: 'Phone', value: 'tel' }] }, required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, { key: 'name', label: 'Name', type: 'text', required: true }, 'label'),
       submitLabel: T('Form button text'), privacy: T('Line under the form button'),
     },
-    defaultProps: { eyebrow: 'Personalized Video Lead Generation', headline: 'A Video That Speaks to You, [[Personally.]]', subhead: 'Say what you do.', bullets: [], buttons: [{ label: 'Get My Video', url: '#lead', style: 'primary' }], greeting1: 'Hi [[Alex]],', greeting2: 'I made this just for you.', photo: '', formTitle: 'Get Your Video', formSubtitle: '', formFields: [{ key: 'name', label: 'First name', type: 'text', required: true }, { key: 'email', label: 'Work email', type: 'email', required: true }], submitLabel: 'Get My Video', privacy: '' },
+    defaultProps: { eyebrow: 'Personalized Video Lead Generation', headline: 'A Video That Speaks to You, [[Personally.]]', subhead: 'Say what you do.', bullets: [], buttons: [{ label: 'Get My Video', url: '#lead', style: 'primary' }], greeting1: 'Hi [[Alex]],', greeting2: 'I made this just for you.', ...SLOT_DEFAULTS, photo: '', formTitle: 'Get Your Video', formSubtitle: '', formFields: [{ key: 'name', label: 'First name', type: 'text', required: true }, { key: 'email', label: 'Work email', type: 'email', required: true }], submitLabel: 'Get My Video', privacy: '' },
     render: (p) => <Hero {...p} />,
   },
   MonoProof: {

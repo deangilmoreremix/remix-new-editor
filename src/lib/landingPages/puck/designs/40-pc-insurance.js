@@ -87,7 +87,10 @@ export default {
           "formSubtitle": "",
           "formFields": [],
           "submitLabel": "",
-          "privacy": ""
+          "privacy": "",
+          "slotImage": "",
+          "slotVideo": "",
+          "bakedPlay": "yes"
         }
       },
       {

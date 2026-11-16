@@ -4,6 +4,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { AccentText, VideoPlayer, LeadForm, EmailSignup, Icon, SafeLink, useTokens } from '../components.jsx';
+import { slotFields, SLOT_DEFAULTS } from '../slotFields.js';
 
 const T = (label) => ({ type: 'text', label });
 const A = (label) => ({ type: 'textarea', label });
@@ -40,7 +41,7 @@ function NeonHero(p) {
         {asList(p.bullets).length ? <ul className="pk-bullets">{asList(p.bullets).map((b, i) => <li key={i}>{t(b.text)}</li>)}</ul> : null}
       </div>
       <div className="pk-hero-video">
-        <VideoPlayer poster={p.photo} />
+        <VideoPlayer poster={p.photo} slotImage={p.slotImage} slotVideo={p.slotVideo} bakedPlay={p.bakedPlay} />
         {p.chip ? <div className="pk-chip">{t(p.chip)}</div> : null}
       </div>
       <div className="pk-hero-form" id="lead" ref={formRef}>
@@ -87,6 +88,7 @@ export const components = {
       bullets: { type: 'array', label: 'Tick list', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Item', defaultItemProps: { text: 'New point' } },
       chip: T('Label on the video'),
       photo: T('Placeholder image before the video plays'),
+      ...slotFields(),
       formTitle: T('Form title'),
       formFields: { type: 'array', label: 'Form fields', arrayFields: { key: T('Field name (a-z)'), label: T('Label / placeholder'), type: { type: 'select', label: 'Type', options: ['text', 'email', 'tel'].map((v) => ({ label: v, value: v })) }, required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, getItemSummary: (i) => i.label || 'Field', defaultItemProps: { key: 'field', label: 'Field', type: 'text', required: false } },
       submitLabel: T('Form button text'),
@@ -106,7 +108,7 @@ export const components = {
       headline: 'Turn Every Prospect Into a Warm Lead With [[Personalized Video]]',
       subhead: 'Create, send, and track AI-personalized videos at scale. Build your email list, capture more leads, and grow revenue, all in one platform.',
       bullets: [{ text: 'AI-powered video personalization' }, { text: 'Built-in lead capture & list building' }, { text: 'Automated follow-ups & nurturing' }],
-      chip: '\u{1F44B} Hi {{firstname|there}}, this video is just for you!', photo: '/landing-art/10/presenter.webp',
+      chip: '\u{1F44B} Hi {{firstname|there}}, this video is just for you!', ...SLOT_DEFAULTS, photo: '/landing-art/10/presenter.webp',
       formTitle: 'Get Your Personalized Video & Grow Your Lead List', formFields: FORM_FIELDS, submitLabel: 'Create My Personalized Video', privacy: '',
       orLabel: 'or', buttons: [{ label: 'Book a Live Walkthrough', url: '#lead' }],
       kpiTitle: 'Leads Captured (All Time)', kpiValue: '128,349', kpiBadge: '+37% (Last 30 days)',
