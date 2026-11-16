@@ -17,6 +17,9 @@
  *   GET|POST|DELETE /api/personalization/project
  *   POST          /api/personalization/record
  *   POST          /api/personalization/persist-edited-asset
+ *   GET|POST|DELETE /api/personalization/saved-searches  (Lead Finder: remembered searches; needs the finder_continuity migration)
+ *   GET|POST|DELETE /api/personalization/lead-feedback   (Lead Finder: "not a fit" feedback that keeps leads out of later results)
+ *   GET           /api/personalization/provider-status   (which discovery providers are configured)
  *   POST          /api/personalization/enrich-business (contact details from a business's own website)
  *   POST          /api/personalization/resolve-website  (find a business's own site from its OSM listing)
  *   GET           /api/media/remote            (same-origin proxy for remote preview videos)
@@ -50,7 +53,10 @@ import * as project from './_personalization/app/api/personalization/project/rou
 import * as record from './_personalization/app/api/personalization/record/route'
 import * as demoDiscover from './_personalization/app/api/demo/discover/route'
 import * as demoDownloadImage from './_personalization/app/api/demo/download-image/route'
-import * as persistEditedAsset from './_personalization/extra/persistEditedAsset'
+import * as persistEditedAsset from './_personalization/app/api/personalization/persist-edited-asset/route'
+import * as leadFeedback from './_personalization/app/api/personalization/lead-feedback/route'
+import * as savedSearches from './_personalization/app/api/personalization/saved-searches/route'
+import * as providerStatus from './_personalization/app/api/personalization/provider-status/route'
 import * as openaiEnhance from './_personalization/extra/openaiEnhance'
 import * as muapiProxy from './_personalization/app/api/api/v1/[[...path]]/route.js'
 import * as muapiUploadFile from './_personalization/app/api/v1/upload_file/route'
@@ -80,6 +86,9 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/personalization/project': project as RouteModule,
   '/api/personalization/record': record as RouteModule,
   '/api/personalization/persist-edited-asset': persistEditedAsset as unknown as RouteModule,
+  '/api/personalization/lead-feedback': leadFeedback as unknown as RouteModule,
+  '/api/personalization/saved-searches': savedSearches as unknown as RouteModule,
+  '/api/personalization/provider-status': providerStatus as unknown as RouteModule,
   '/api/personalization/resolve-website': resolveWebsite as RouteModule,
   '/api/personalization/enrich-business': enrichBusiness as RouteModule,
   '/api/media/remote': remoteMedia as RouteModule,

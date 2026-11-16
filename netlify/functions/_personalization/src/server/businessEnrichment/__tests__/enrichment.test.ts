@@ -267,4 +267,18 @@ describe('enrichBusinessWebsite (offline orchestration)', () => {
     expect((await enrichBusinessWebsite('ftp://x.com')).notes[0]).toMatch(/scheme/)
     expect((await enrichBusinessWebsite('http://')).notes[0]).toMatch(/invalid/)
   })
+
+  it('reports site signals (form, booking, video, homepage quality) with sources, and a freshness timestamp', async () => {
+    const s = site({
+      'https://sig.com/robots.txt': { status: 404, body: '' },
+      'https://sig.com/': { body: '<html><head><title>T</title><meta name="viewport" content="x"></head><body><a href="/contact">Contact</a><iframe src="https://www.youtube.com/embed/x"></iframe><footer>© 2019</footer></body></html>' },
+      'https://sig.com/contact': { body: '<body><form action="/send"><input type="email" name="email"><input type="text" name="n"><textarea></textarea></form><a href="https://calendly.com/a">Book</a></body>' },
+    })
+    const r = await enrichBusinessWebsite('https://sig.com/', { fetchPage: s.fetchPage, sleep: noSleep, fetchBytes: async () => null })
+    expect(r.siteSignals?.contactForm?.sourceUrl).toBe('https://sig.com/contact')
+    expect(r.siteSignals?.booking?.provider).toBe('Calendly')
+    expect(r.siteSignals?.video?.kinds).toEqual(['youtube'])
+    expect(r.siteSignals?.quality).toMatchObject({ sourceUrl: 'https://sig.com/', https: true, mobileViewport: true, copyrightYear: 2019 })
+    expect(Number.isNaN(Date.parse(r.enrichedAt ?? ''))).toBe(false)
+  })
 })
