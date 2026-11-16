@@ -12,6 +12,7 @@ import {
   sectionHeading,
   createStyleLink,
   createViewPromptButton,
+  createPersonalizeButton,
   createStudioIcon,
   categoryBadge,
   metaPill,
@@ -87,6 +88,7 @@ function createReelCard(demo) {
     : loadDemoPromptMinimax;
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt));
+  primaryActions.appendChild(createPersonalizeButton(demo, { loadPrompt }));
   primaryActions.appendChild(createStyleLink(demo, {
     label: 'Create This Type of Video',
     getTarget,
