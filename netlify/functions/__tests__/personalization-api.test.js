@@ -5,6 +5,13 @@
  */
 import { describe, it, expect, vi } from 'vitest'
 
+// The Lead Finder continuity routes validate the server configuration before they authenticate, and that check is cached
+// on first use, so a complete (fake) configuration has to be in place before the handler is imported.
+process.env.NEXT_PUBLIC_SUPABASE_URL ||= 'https://example.supabase.co'
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= 'anon-key'
+process.env.SUPABASE_SERVICE_ROLE_KEY ||= 'service-role-key'
+process.env.INTERNAL_FUNCTION_SECRET ||= 'internal-secret'
+
 vi.mock('../_shared/clerkAuth.js', () => ({
   verifyClerkToken: vi.fn(async (token) => (token === 'good-token' ? { userId: 'user_123', claims: { sid: 'sess_1' } } : null)),
 }))
@@ -38,6 +45,10 @@ describe('personalization-api dispatcher', () => {
     for (const [method, path] of [
       ['POST', '/api/personalization/enrich-business'],
       ['POST', '/api/personalization/resolve-website'],
+      ['GET', '/api/personalization/saved-searches'],
+      ['POST', '/api/personalization/lead-feedback'],
+      ['GET', '/api/personalization/provider-status'],
+      ['POST', '/api/personalization/persist-edited-asset'],
       ['POST', '/api/demo/download-image'],
       ['GET', '/api/media/remote'],
     ]) {
@@ -138,6 +149,28 @@ describe('client IP normalisation', () => {
     const { withTrustedClientIp } = await import('../personalization-api.mts')
     const original = new Request('http://localhost/x', { headers: { 'x-forwarded-for': '1.2.3.4' } })
     expect(withTrustedClientIp(original)).toBe(original)
+  })
+})
+
+describe('Lead Finder continuity routes', () => {
+  it.each([
+    ['GET', '/api/personalization/saved-searches'],
+    ['POST', '/api/personalization/saved-searches'],
+    ['DELETE', '/api/personalization/saved-searches'],
+    ['GET', '/api/personalization/lead-feedback'],
+    ['POST', '/api/personalization/lead-feedback'],
+    ['DELETE', '/api/personalization/lead-feedback'],
+    ['POST', '/api/personalization/persist-edited-asset'],
+  ])('requires a signed-in user for %s %s', async (method, path) => {
+    const res = await call(method, path, method === 'GET' ? {} : { body: '{}' })
+    expect(res.status, await res.clone().text()).toBe(401)
+  })
+
+  it('reports which discovery providers are configured without needing a user', async () => {
+    const res = await call('GET', '/api/personalization/provider-status')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(typeof body).toBe('object')
   })
 })
 

@@ -6,6 +6,7 @@ import { rateLimit, rateLimit429, resolveRateLimitKey } from '../../../../lib/ra
 import { createStageDeadline, withDeadline, ROUTE_DEADLINE_MS } from '../../../../src/server/businessDiscovery/deadline'
 import { enrichBusinessWebsite } from '../../../../src/server/businessEnrichment/enrich'
 import { enrichmentCache } from '../../../../src/server/businessEnrichment/cache'
+import { durableGet, durablePut } from '../../../../src/server/businessEnrichment/durableCache'
 import { DomainThrottle } from '../../../../src/server/businessEnrichment/throttle'
 import { CircuitBreaker } from '../../../../src/server/businessEnrichment/retry'
 
@@ -65,10 +66,14 @@ export async function POST(req: NextRequest) {
     try {
       const cached = enrichmentCache.get(b.website)
       if (cached) { slots[i] = { id: b.id, website: b.website, ok: true, enrichment: cached }; return }
+      // Second layer: the durable cache survives cold starts and is shared across instances (public data, 7-day TTL).
+      // Best-effort and time-bounded: a miss, an error or a slow database simply means "crawl as before".
+      const stored = await durableGet(b.website)
+      if (stored) { enrichmentCache.set(b.website, stored); slots[i] = { id: b.id, website: b.website, ok: true, enrichment: stored }; return }
       const enrichment = await enrichBusinessWebsite(b.website, { throttle, breaker, signal: deadline.signal, maxPages: 4 })
       // Only a crawl that actually completed is worth keeping: a deadline abort or an unreachable site would
       // otherwise pin an empty result for a day.
-      if (!deadline.signal.aborted && (enrichment.pagesVisited.length > 0 || enrichment.robots.status === 'disallow-all')) enrichmentCache.set(b.website, enrichment)
+      if (!deadline.signal.aborted && (enrichment.pagesVisited.length > 0 || enrichment.robots.status === 'disallow-all')) { enrichmentCache.set(b.website, enrichment); await durablePut(b.website, enrichment) }
       slots[i] = { id: b.id, website: b.website, ok: true, enrichment }
     } catch (err) {
       // SSRF rejections and other failures are reported per business, without internals.

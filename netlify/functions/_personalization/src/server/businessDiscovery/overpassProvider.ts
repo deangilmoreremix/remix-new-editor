@@ -158,6 +158,16 @@ export class AllOverpassProvidersFailed extends Error {
 }
 
 /**
+ * Public, internals-free health summary of the Overpass mirrors seen by THIS server instance: how many have
+ * been tried and how many are cooling down after repeated failures. No endpoint names or error text.
+ */
+export function overpassHealth(now: number = Date.now()): { tracked: number; coolingDown: number } {
+  let coolingDown = 0
+  for (const c of circuitByEndpoint.values()) if (c.openUntil !== 0 && now < c.openUntil) coolingDown++
+  return { tracked: circuitByEndpoint.size, coolingDown }
+}
+
+/**
  * Test-only helper. Resets the per-mirror circuit breaker state so a fresh
  * test starts with all mirrors available. Not part of the public API.
  */
