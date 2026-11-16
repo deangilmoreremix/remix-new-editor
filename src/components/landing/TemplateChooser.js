@@ -1,0 +1,108 @@
+// src/components/landing/TemplateChooser.js
+//
+// The landing page chooser from Video Pages ("New video page"): picture cards of the landing page
+// designs, grouped, each with a wireframe of the page's shape tinted in its colours. Used inline by
+// Video Pages and as a modal by Video Outreach (the page each prospect lands on).
+
+import { wireframeSvg } from '../../lib/landingPages/wireframes.js';
+
+const el = (tag, cls = '', text = '') => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text) n.textContent = text;
+  return n;
+};
+
+/**
+ * Grouped template cards. `groups` is [[label, items]], an item a template (or any
+ * { id, name, description, theme?, layout? }). Clicking a card selects it and calls onPick(id).
+ * Returns { node, select(id) }.
+ */
+export function templateCards({ groups = [], selected = '', onPick = () => {} } = {}) {
+  const node = el('div', 'flex flex-col gap-4');
+  const cards = new Map();
+  let current = selected;
+  const paint = () => cards.forEach((c, id) => {
+    const on = id === current;
+    c.classList.toggle('border-primary', on);
+    c.classList.toggle('ring-2', on);
+    c.classList.toggle('ring-primary', on);
+    c.setAttribute('aria-pressed', String(on));
+  });
+  for (const [label, list] of groups) {
+    if (!list?.length) continue;
+    const grp = el('div', 'flex flex-col gap-2');
+    grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
+    const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
+    for (const t of list) {
+      const b = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
+      b.type = 'button';
+      b.title = t.description || '';
+      b.setAttribute('data-template-card', t.id);
+      // The thumbnail is the page's SHAPE (a wireframe) tinted with its colours, so layouts are told apart by structure.
+      const sw = el('div', 'h-20 p-2 flex items-center justify-center');
+      sw.style.background = t.theme?.bg || '#111';
+      sw.style.color = t.theme?.accent || '#d9ff00';
+      sw.innerHTML = wireframeSvg(t.layout);
+      const cap = el('div', 'p-2');
+      cap.append(el('div', 'text-xs font-bold truncate', t.name), el('div', 'text-[11px] text-secondary line-clamp-2', t.description || ''));
+      b.append(sw, cap);
+      b.addEventListener('click', () => { current = t.id; paint(); onPick(t.id); });
+      cards.set(t.id, b);
+      row.appendChild(b);
+    }
+    grp.appendChild(row);
+    node.appendChild(grp);
+  }
+  paint();
+  return { node, select(id) { current = id; paint(); } };
+}
+
+/**
+ * The chooser as a modal: pick a card, then "Use this page" calls onPick(id). Esc, the close
+ * button or a click outside closes it without picking. Returns { close }.
+ */
+export function openTemplateChooser({ title = 'Choose a landing page', subtitle = '', groups = [], selected = '', onPick = () => {}, confirmLabel = 'Use this page' } = {}) {
+  const opener = document.activeElement;
+  let pick = selected;
+  const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
+  overlay.setAttribute('data-template-chooser', '');
+  const box = el('div', 'flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0c10] text-white shadow-2xl');
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-modal', 'true');
+  box.setAttribute('aria-label', title);
+  const head = el('div', 'flex items-start justify-between gap-3 border-b border-white/10 p-4');
+  const words = el('div', 'flex flex-col gap-1');
+  words.appendChild(el('h2', 'text-lg font-extrabold', title));
+  if (subtitle) words.appendChild(el('p', 'text-xs text-secondary', subtitle));
+  const x = el('button', 'rounded-lg px-2 py-1 text-xl leading-none text-white/70 hover:text-white', '×');
+  x.type = 'button'; x.setAttribute('aria-label', 'Close');
+  head.append(words, x);
+  const body = el('div', 'overflow-y-auto p-4');
+  const foot = el('div', 'flex items-center justify-end gap-2 border-t border-white/10 p-3');
+  const cancel = el('button', 'rounded-full border border-white/15 px-4 py-2 text-sm font-bold', 'Cancel');
+  cancel.type = 'button';
+  const ok = el('button', 'rounded-full bg-primary px-5 py-2 text-sm font-bold text-black disabled:opacity-40', confirmLabel);
+  ok.type = 'button'; ok.setAttribute('data-template-confirm', '');
+  ok.disabled = !groups.some(([, l]) => l?.some((t) => t.id === pick));
+  const cards = templateCards({ groups, selected, onPick: (id) => { pick = id; ok.disabled = false; } });
+  body.appendChild(cards.node);
+  foot.append(cancel, ok);
+  box.append(head, body, foot);
+  overlay.appendChild(box);
+
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  function close() {
+    document.removeEventListener('keydown', onKey, true);
+    overlay.remove();
+    if (opener && typeof opener.focus === 'function' && document.contains(opener)) opener.focus();
+  }
+  x.addEventListener('click', close);
+  cancel.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  ok.addEventListener('click', () => { const id = pick; close(); onPick(id); });
+  document.addEventListener('keydown', onKey, true);
+  document.body.appendChild(overlay);
+  (body.querySelector('[aria-pressed="true"]') || body.querySelector('[data-template-card]'))?.focus?.();
+  return { close };
+}
