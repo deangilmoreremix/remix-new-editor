@@ -127,9 +127,9 @@ export function ExportTab() {
           <span style={{ fontSize: 11, opacity: 0.65 }}>For Final Cut Pro, Premiere and DaVinci Resolve. Relink the media after import.</span>
         </div>
 
-        {/* [remix] interactive sharing moved to the Leads tab */}
+        {/* [remix] sharing, social posting and leads live in the Publish tab (tab id `leads`) */}
         <p className="export-tab__hint" style={{ marginTop: 16 }}>
-          Publish an interactive version (forms, buttons) and collect leads in the <button type="button" className="mini-btn" data-testid="export-to-leads" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Leads</button> tab.
+          Publish an interactive version (forms, buttons), post to social networks and collect leads in the <button type="button" className="mini-btn" data-testid="export-to-leads" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Publish</button> tab.
         </p>
 
         {latestJob && (

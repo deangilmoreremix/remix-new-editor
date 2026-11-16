@@ -32,7 +32,7 @@ import {
   resolveExistingLocalPath,
 } from '@cinegen/lib/media/asset-local-storage';
 import { ExportTab } from '@cinegen/components/export/export-tab';
-import { LeadsTab } from '@cinegen/components/leads/leads-tab';
+import { PublishTab } from '@cinegen/components/publish/publish-tab'; // [remix] the Leads tab, now with Social (and later Contacts and Email) next to Share & Leads
 import { AnalyticsTab } from '@cinegen/components/analytics/analytics-tab'; // [remix]
 import { SettingsPage } from '@cinegen/components/settings/settings-page';
 import { AppToastHost, type AppToast } from '@cinegen/components/ui/app-toast';
@@ -1444,7 +1444,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
               />
             </div>
             {state.activeTab === 'export' && <ExportTab />}
-            {state.activeTab === 'leads' && <LeadsTab />}
+            {state.activeTab === 'leads' && <PublishTab />}
             {state.activeTab === 'analytics' && <AnalyticsTab />} {/* [remix] */}
             {state.activeTab === 'settings' && (
               <SettingsPage

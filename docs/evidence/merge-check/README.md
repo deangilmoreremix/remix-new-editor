@@ -30,6 +30,7 @@ Test media: two generated 8s VP9 clips. No Supabase / Clerk / provider keys were
 | 83, 84, 85 | New blank project: the Start your video screen; Pick a template video opens the Add window on that tab; Make a video for me opens the Template Generator |
 | 87, 88 | Library Favorites (★) and Recent strips; the same after a page reload |
 | 89, 90 | Inspector in groups (Basics / Look / Position and motion / Captions / Analyze), full height, with Find a setting |
+| 91, 92, 93 | New Publish tab: Share & Leads (unchanged) and Social with picture cards; clicking a card opens the existing Publish to Social window with the video's public link |
 
 ## Not captured / not verified
 - "Open full timeline" button: click timed out, no screenshot (30/43 missing).
