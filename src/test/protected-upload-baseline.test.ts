@@ -631,7 +631,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // shortcut appeared to do nothing. Fixed by resolving the stored token
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', '49093db1fc3b605f1afdf3c485df3918193249ed1054f7bee3a54330a694c39d'],
+    ['src/components/TimelineEditorPage.jsx', '40b28f04239ef7e0f199b69cea38f31bd380d7c4503a7dda4efb061d07f6b28a'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],

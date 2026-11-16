@@ -392,7 +392,7 @@ describe('CinemaTemplateStudio feature tests', () => {
     await new Promise(r => setTimeout(r, 50));
 
     const newFavBtn = container.querySelector('#favorites-btn');
-    expect(newFavBtn.classList.contains('bg-primary')).toBe(true);
+    expect(newFavBtn.classList.contains('bg-primary/10')).toBe(true);
   });
 
   it('switches to recent filter', async () => {
@@ -404,7 +404,7 @@ describe('CinemaTemplateStudio feature tests', () => {
     await new Promise(r => setTimeout(r, 50));
 
     const newRecentBtn = container.querySelector('#recent-btn');
-    expect(newRecentBtn.classList.contains('bg-primary')).toBe(true);
+    expect(newRecentBtn.classList.contains('bg-primary/10')).toBe(true);
   });
 
   it('switches to custom filter', async () => {
@@ -416,7 +416,7 @@ describe('CinemaTemplateStudio feature tests', () => {
     await new Promise(r => setTimeout(r, 50));
 
     const newCustomBtn = container.querySelector('#custom-btn');
-    expect(newCustomBtn.classList.contains('bg-primary')).toBe(true);
+    expect(newCustomBtn.classList.contains('bg-primary/10')).toBe(true);
   });
 
   it('renders back button', async () => {
@@ -578,8 +578,8 @@ describe('CinemaTemplateStudio feature tests', () => {
     await new Promise(r => setTimeout(r, 50));
 
     const newFavBtn = container.querySelector('#favorites-btn');
-    expect(newFavBtn.classList.contains('bg-primary')).toBe(true);
-    expect(newFavBtn.classList.contains('text-black')).toBe(true);
+    expect(newFavBtn.classList.contains('bg-primary/10')).toBe(true);
+    expect(newFavBtn.classList.contains('border-primary/30')).toBe(true);
   });
 
   it('renders grid layout for template cards', async () => {

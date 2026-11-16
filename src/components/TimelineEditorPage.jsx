@@ -418,30 +418,6 @@ export function TimelineEditorPage() {
     </div>
   </header>
 
-  <!-- Feature index bar (prototype parity) -->
-  <nav class="feature-index" aria-label="All editor features">
-    <span class="fi-label">All features:</span>
-    <button class="fi-chip" data-modal="previewMedia">Media Preview</button>
-    <button class="fi-chip" data-modal="videoPlayer">Video Player</button>
-    <button class="fi-chip" data-modal="recorder">Recorder</button>
-    <button class="fi-chip" data-modal="urlVideo">URL Video</button>
-    <button class="fi-chip" data-modal="templates">Templates</button>
-    <button class="fi-chip" data-modal="aiVideo">AI Video</button>
-    <button class="fi-chip" data-modal="personalization">Personalization</button>
-    <button class="fi-chip" data-modal="landing">Landing Builder</button>
-    <button class="fi-chip" data-modal="social">Social Publish</button>
-    <button class="fi-chip" data-modal="email">Email Campaign</button>
-    <button class="fi-chip" data-modal="leads">Lead Gen</button>
-    <button class="fi-chip" data-modal="contacts">Contacts</button>
-    <button class="fi-chip" data-modal="endScreen">End Screen</button>
-    <button class="fi-chip" data-modal="import">Import Timeline</button>
-    <button class="fi-chip" data-modal="storyboard">CutAI Storyboard</button>
-    <button class="fi-chip" data-modal="subtitleEditor">Subtitle Editor</button>
-    <button class="fi-chip" data-modal="imageCrop">Image Cropper</button>
-    <button class="fi-chip" data-modal="imageEdit">Image Editor</button>
-    <button class="fi-chip" data-modal="voice">Voice</button>
-  </nav>
-
   <div class="main-grid">
     <div class="left-col">
       <section class="preview-card preview-large">
@@ -534,7 +510,6 @@ export function TimelineEditorPage() {
             <div class="playhead-layer"><div class="playhead-line" id="playheadLine"></div><div class="playhead-knob" id="playheadKnob" role="slider" tabindex="0" aria-label="Playhead position" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="00:00.0"></div></div>
             <div id="trackRows"></div>
           </div>
-        </div>
       </section>
     </div>
     <div class="side-col">
@@ -565,10 +540,8 @@ export function TimelineEditorPage() {
       <aside class="side-card">
         <h3 class="card-title">Generate</h3>
         <div class="media-grid">
-          <button class="media-item" data-modal="templates"><span class="media-icon">✂️</span><span class="media-copy"><span class="media-label">Auto Cut</span><span class="media-desc">Silence detect</span></span></button>
           <button class="media-item" data-modal="subtitleEditor"><span class="media-icon">🌐</span><span class="media-copy"><span class="media-label">Subtitles</span><span class="media-desc">Transcribe</span></span></button>
           <button class="media-item" data-modal="aiVideo"><span class="media-icon">🤖</span><span class="media-copy"><span class="media-label">AI Video</span><span class="media-desc">Generate</span></span></button>
-          <button class="media-item" data-modal="storyboard"><span class="media-icon">🎞️</span><span class="media-copy"><span class="media-label">CutAI Board</span><span class="media-desc">Storyboard</span></span></button>
         </div>
       </aside>
 

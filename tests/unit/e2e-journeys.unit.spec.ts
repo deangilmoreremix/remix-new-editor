@@ -959,19 +959,19 @@ describe('E2E User Journey Tests', () => {
       favBtn.click();
       await wait(50);
       let newFavBtn = container.querySelector('#favorites-btn');
-      expect(newFavBtn.classList.contains('bg-primary')).toBe(true);
+      expect(newFavBtn.classList.contains('bg-primary/10')).toBe(true);
 
       // Click recent - must re-query after re-render
       recentBtn.click();
       await wait(50);
       let newRecentBtn = container.querySelector('#recent-btn');
-      expect(newRecentBtn.classList.contains('bg-primary')).toBe(true);
+      expect(newRecentBtn.classList.contains('bg-primary/10')).toBe(true);
 
       // Click custom - must re-query after re-render
       customBtn.click();
       await wait(50);
       let newCustomBtn = container.querySelector('#custom-btn');
-      expect(newCustomBtn.classList.contains('bg-primary')).toBe(true);
+      expect(newCustomBtn.classList.contains('bg-primary/10')).toBe(true);
     });
 
     it('TemplateStudio shows generation spinner on successful muapi call', async () => {
@@ -1095,7 +1095,7 @@ describe('E2E User Journey Tests', () => {
 
       // After clearing, favorites button should not have active styling
       const newFavBtn = container.querySelector('#favorites-btn');
-      expect(newFavBtn.classList.contains('bg-primary')).toBe(false);
+      expect(newFavBtn.classList.contains('bg-primary/10')).toBe(false);
     });
 
     it('AI Captions button exists for video templates in TemplateStudio', async () => {
