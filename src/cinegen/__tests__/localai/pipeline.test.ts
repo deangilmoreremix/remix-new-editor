@@ -1,4 +1,5 @@
 // [remix] Port I1: transcription orchestration, worker client and semantic scene search with MOCKED workers/pipelines (the real ones are exercised in docs/stage-11/smoke).
+import type { SceneVectorStore, StoredVector } from '../../lib/local-ai/scene-vector-store';
 import { describe, it, expect, vi } from 'vitest';
 import { ConsentStore } from '../../lib/local-ai/consent';
 import { ConsentRequiredError } from '../../lib/local-ai/consent';
@@ -129,6 +130,25 @@ describe('semantic scene search', () => {
     const hits = await idx.search(scenes, 'a person');
     expect(hits.map((h) => h.scene.id)).toEqual(['a:1']);
     expect((worker.seen.find((x) => x.type === 'embed-text') as { texts: string[] }).texts).toEqual(['a photo of a person']);
+    vi.unstubAllGlobals();
+  });
+
+  it('saves scene vectors and reuses them in a new session, but re-embeds a scene whose thumbnail changed', async () => {
+    const m = await installed(['clip-vit-b32']);
+    vi.stubGlobal('fetch', vi.fn(async (u: string) => ({ blob: async () => ({ u }) })));
+    const mem = new Map<string, StoredVector>();
+    const store: SceneVectorStore = { load: async (ids) => ids.flatMap((i) => (mem.has(i) ? [mem.get(i)!] : [])), save: async (rows) => { rows.forEach((r) => mem.set(r.id, r)); } };
+    const mk = () => new FakeWorker((r, reply) => { if (r.type === 'embed-images') reply({ type: 'vectors', id: r.id, dim: 2, vectors: r.blobs.map(() => unit(1, 0)) }); });
+    const w1 = mk();
+    expect(await new SceneSearchIndex(m, new LocalAiClient(() => w1), store).index([scene(0), scene(1)])).toBe(2);
+    expect(mem.size).toBe(2);
+    const w2 = mk();
+    const second = new SceneSearchIndex(m, new LocalAiClient(() => w2), store);
+    expect(await second.index([scene(0), scene(1)])).toBe(0);
+    expect(second.size).toBe(2);
+    expect(w2.seen.filter((x) => x.type === 'embed-images')).toHaveLength(0);
+    const w3 = mk();
+    expect(await new SceneSearchIndex(m, new LocalAiClient(() => w3), store).index([scene(0), scene(1, 'data:image/jpeg;base64,changed')])).toBe(1);
     vi.unstubAllGlobals();
   });
 

@@ -1,5 +1,6 @@
 // [remix] Stage 4: scene browser. Detect scenes of a media-pool video (histogram cuts, cancellable), browse thumbnails, search name / tags / time,
 // edit name and tags, step frames in a scene, and put a scene on the timeline. Scenes and thumbnails are cached in IndexedDB per media fingerprint.
+import { indexedDbSceneVectorStore } from '@cinegen/lib/local-ai/scene-vector-store';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { Asset } from '@cinegen/types/project';
 import type { Timeline } from '@cinegen/types/timeline';
@@ -32,7 +33,7 @@ export function ScenesPanel({ assets, timeline, currentTime, commit }: Props) {
   const vref = useRef<HTMLVideoElement>(null);
   // [remix] Port I1: semantic (CLIP) search + optional captions, both from locally downloaded models (Media tools > Local AI)
   const ai = useMemo(() => localAi(), []);
-  const index = useMemo(() => new SceneSearchIndex(ai.manager, ai.client), [ai]);
+  const index = useMemo(() => new SceneSearchIndex(ai.manager, ai.client, indexedDbSceneVectorStore()), [ai]);
   const aiStates = useSyncExternalStore(ai.manager.subscribe.bind(ai.manager), ai.manager.getSnapshot);
   const clipReady = aiStates.find((x) => x.id === CLIP_ID)?.status === 'installed';
   const capReady = aiStates.find((x) => x.id === CAPTION_ID)?.status === 'installed';

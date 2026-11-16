@@ -7,6 +7,7 @@ import { modelById } from './catalog';
 import type { ModelManager } from './manager';
 import { abortError, refOf, type LocalAiClient } from './worker-client';
 import type { WorkerResponse } from './worker-protocol';
+import { thumbSig, type SceneVectorStore } from './scene-vector-store';
 
 export const CLIP_ID = 'clip-vit-b32';
 export const CAPTION_ID = 'smolvlm-256m';
@@ -27,7 +28,7 @@ export const clipPrompt = (q: string): string => `a photo of ${q.trim()}`;
 export class SceneSearchIndex {
   private vecs = new Map<string, Float32Array>();
   private sig = new Map<string, string>();
-  constructor(private manager: ModelManager, private client: LocalAiClient) {}
+  constructor(private manager: ModelManager, private client: LocalAiClient, private store: SceneVectorStore | null = null) {}
   get size(): number { return this.vecs.size; }
   ready(): boolean { return this.manager.isInstalled(CLIP_ID); }
   vectors(): ReadonlyMap<string, Float32Array> { return this.vecs; }
@@ -36,6 +37,12 @@ export class SceneSearchIndex {
   async index(scenes: readonly SceneInfo[], opts: { signal?: AbortSignal; onProgress?: (done: number, total: number) => void; batch?: number } = {}): Promise<number> {
     this.manager.requireInstalled(CLIP_ID);
     const m = modelById(CLIP_ID)!;
+    // [remix] Stage 11: reuse vectors saved by an earlier session when the thumbnail is unchanged
+    if (this.store) {
+      const fresh = scenes.filter((s) => s.thumb && this.sig.get(s.id) !== s.thumb);
+      const saved = await this.store.load(fresh.map((s) => s.id));
+      for (const r of saved) { const sc = fresh.find((s) => s.id === r.id); if (sc?.thumb && thumbSig(sc.thumb) === r.sig) { this.vecs.set(r.id, r.vec); this.sig.set(r.id, sc.thumb); } }
+    }
     const todo = scenes.filter((s) => s.thumb && this.sig.get(s.id) !== s.thumb);
     const batch = opts.batch ?? 8; let done = 0;
     for (let i = 0; i < todo.length; i += batch) {
@@ -44,6 +51,7 @@ export class SceneSearchIndex {
       const blobs = await Promise.all(part.map(async (s) => (await fetch(s.thumb!)).blob()));
       const res = await this.client.request<Extract<WorkerResponse, { type: 'vectors' }>>({ type: 'embed-images', model: refOf(m, 'wasm'), blobs }, { signal: opts.signal });
       part.forEach((s, k) => { this.vecs.set(s.id, res.vectors[k]); this.sig.set(s.id, s.thumb!); });
+      void this.store?.save(part.map((s, k) => ({ id: s.id, sig: thumbSig(s.thumb!), vec: res.vectors[k] })));
       done += part.length; opts.onProgress?.(done, todo.length);
     }
     return done;

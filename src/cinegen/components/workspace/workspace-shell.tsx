@@ -410,8 +410,8 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
   }, [wrappedDispatch]);
 
   const undoVoiceDirector = useCallback(() => {
-    historyDispatch({ type: 'UNDO' });
-  }, []);
+    wrappedDispatch({ type: 'UNDO' }); // [remix] Stage 11: through wrappedDispatch so the undo is saved (a bare historyDispatch never marks a save pending)
+  }, [wrappedDispatch]);
 
   const handleTabChange = useCallback((tab: ProjectTab) => {
     if (tab === 'llm') {
@@ -647,11 +647,11 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
       const tag = (e.target as HTMLElement).tagName.toLowerCase();
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
       e.preventDefault();
-      historyDispatch({ type: e.shiftKey ? 'REDO' : 'UNDO' });
+      wrappedDispatch({ type: e.shiftKey ? 'REDO' : 'UNDO' }); // [remix] Stage 11: undo / redo must mark a save pending or the old state stays on disk
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [wrappedDispatch]);
 
   // Voice Director — available from every project tab while CineGen is focused.
   useEffect(() => {

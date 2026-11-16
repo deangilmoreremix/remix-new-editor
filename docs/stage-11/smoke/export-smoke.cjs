@@ -66,6 +66,7 @@ const decodedDuration = (f) => { const r = cp.spawnSync('ffmpeg', ['-v', 'error'
   await pg.locator('[data-testid=speed-steps]').fill(process.env.STEPS || '16'); await pg.waitForTimeout(300);
   const resultText = await pg.locator('[data-testid=speed-curve-result]').innerText();
   info('editor says: ' + resultText);
+  if (process.env.STEPS) { await pg.locator('[data-testid=speed-steps]').fill(process.env.STEPS); await pg.waitForTimeout(300); }
   await pg.locator('[data-testid=speed-curve-apply]').click(); await pg.waitForTimeout(2500);
   const cards = await pg.locator('.clip-card').count();
   assert(cards >= 2 * 12, 'curve applied: ' + cards + ' clip cards');

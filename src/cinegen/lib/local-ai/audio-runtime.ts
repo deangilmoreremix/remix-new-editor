@@ -2,7 +2,7 @@
 // the real pipelines (kokoro-js for speech, @huggingface/transformers MusicGen for music). Everything is imported lazily so the app
 // bundle does not pay for it until the user opens the feature. Weights are fetched from huggingface.co by the library, never bundled.
 import { AudioModelManager, ManagerError, type GenerateRequest, type ModelRuntime, type RawAudio } from './audio-manager';
-import type { AudioModel } from './models-audio';
+import { AUDIO_MODELS, type AudioModel } from './models-audio';
 import { chunkText, concatSamples } from './wav';
 
 const CACHE_NAME = 'transformers-cache'; // transformers.js default env.cacheKey
@@ -36,6 +36,13 @@ export async function deleteModelCache(m: AudioModel): Promise<void> {
   const c = await cacheKeys();
   if (!c) return;
   for (const r of c.keys) if (m.loader.cacheFragments.some((f) => r.url.toLowerCase().includes(f))) await c.cache.delete(r);
+  // also the repo's small shared files (tokenizer, config, voices) — unless another installed model of the same repo still needs them
+  const repo = m.loader.repo?.toLowerCase();
+  if (!repo) return;
+  const left = await c.cache.keys();
+  const needed = AUDIO_MODELS.some((o) => o.id !== m.id && o.loader.repo?.toLowerCase() === repo && left.some((r) => o.loader.cacheFragments.some((f) => r.url.toLowerCase().includes(f))));
+  if (needed) return;
+  for (const r of left) if (r.url.toLowerCase().includes(`/${repo}/`)) await c.cache.delete(r);
 }
 
 export async function storageQuota(): Promise<{ usage: number; quota: number } | null> {
@@ -79,7 +86,14 @@ function withAbortableFetch<T>(signal: AbortSignal, fn: () => Promise<T>): Promi
   const run = loadChain.then(async () => {
     if (signal.aborted) throw aborted();
     patchFetchOnce(); activeSignal = signal;
-    try { return await fn(); } finally { activeSignal = null; }
+    // kokoro-js leaves an internal promise rejected ("Could not locate file ...") when its download is aborted: swallow only that, only for an aborted load
+    const quiet = (ev: PromiseRejectionEvent) => { if (signal.aborted) ev.preventDefault(); };
+    globalThis.addEventListener?.('unhandledrejection', quiet as EventListener);
+    try { return await fn(); } finally {
+      activeSignal = null;
+      // the stray rejection is reported a tick after the load settles
+      setTimeout(() => globalThis.removeEventListener?.('unhandledrejection', quiet as EventListener), 1000);
+    }
   });
   loadChain = run.catch(() => undefined);
   return run;
