@@ -58,7 +58,7 @@ export default function DestinationsSummaryCard({ destinations }: DestinationsSu
           const hasSettings = d.settings && Object.keys(d.settings).length > 0
           return (
             <div
-              key={d.platform}
+              key={d.id}
               className="flex items-center justify-between gap-2 p-2 rounded-lg"
               style={{
                 background: d.enabled ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.01)',
