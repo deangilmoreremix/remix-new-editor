@@ -1437,10 +1437,15 @@ export function OutreachStudio() {
           const gifBtn = button(/\.gif(\?|$)/i.test(l.thumbnailUrl) ? 'Copy GIF' : 'Copy thumbnail', { small: true });
           gifBtn.setAttribute('data-outreach-copy-gif', '');
           gifBtn.addEventListener('click', () => copyGif(l, gifBtn));
+          // Download it (Sendspark's Share -> Download GIF), to attach or upload in any email tool.
+          const isGif = /\.gif(\?|$)/i.test(l.thumbnailUrl);
+          const dl = button(isGif ? 'Download GIF' : 'Download image', { small: true });
+          dl.setAttribute('data-outreach-download-gif', '');
+          dl.addEventListener('click', () => downloadThumbnail(l, dl, isGif));
           const embed = button('Embed', { small: true });
           embed.setAttribute('data-outreach-embed', '');
           embed.addEventListener('click', () => copyEmbed(l, embed));
-          extra.push(gifBtn, embed);
+          extra.push(gifBtn, dl, embed);
         }
         const st = linkStats.byContact ? (linkStats.byContact[l.contactId] || { views: 0, plays: 0, ctaClicks: 0 }) : null;
         const watch = st ? el('span', `text-xs ${st.ctaClicks ? 'text-primary' : st.plays ? 'text-emerald-300' : 'text-white/40'}`, st.ctaClicks ? '● Clicked' : st.plays ? '● Watched' : st.views ? '● Opened' : '● Not opened') : null;
@@ -1715,7 +1720,8 @@ export function OutreachStudio() {
   // The picture behind the bubble for a contact (website backgrounds), else none.
   const siteShotFor = (c) => (usesBackground(draft) ? backgroundShotFor(draft, c) || fallbackShotFor(draft) : '');
 
-  const logoFor = (c) => (draft.email.thumb?.logo === false ? '' : draft.siteLogos?.[siteKey(c.website)] || '');
+  // The prospect's own logo, found on their website (the thumbnail's logo setting decides whether it is used).
+  const logoFor = (c) => draft.siteLogos?.[siteKey(c.website)] || '';
 
   async function makeThumbnails({ onProgress = () => {} } = {}) {
     const T = await import('../lib/outreach/thumbnail.js');
@@ -1724,7 +1730,7 @@ export function OutreachStudio() {
     const signal = abort.signal;
     try {
       // Logos come from capturing each contact's website (the same capture as website backgrounds).
-      if (settings.logo && sitesToCapture(draft).some((site) => !draft.siteShots[site])) await captureSites({ requireFallback: false });
+      if (settings.logoMode === 'prospect' && sitesToCapture(draft).some((site) => !draft.siteShots[site])) await captureSites({ requireFallback: false });
       setBusy('Reading your video…');
       onProgress(0.05);
       const duration = draft.video.duration || 0;
@@ -1738,14 +1744,18 @@ export function OutreachStudio() {
         const c = contactOf(links[i]);
         const text = T.thumbnailText(draft.email.thumbText, c, draft.fallbacks);
         const site = T.thumbBackground(settings, siteShotFor(c));
-        const logo = settings.logo ? logoFor(c) : '';
+        const logo = T.thumbLogo(settings, logoFor(c));
         const key = T.thumbnailKey(text, site, logo);
         if (!made.has(key)) {
           setBusy(`Making ${still ? 'thumbnails' : 'GIF thumbnails'} ${i + 1} of ${links.length}…`);
-          const blob = await T.renderThumbnail({ frames, siteUrl: site, logoUrl: logo, text, settings });
-          made.set(key, await uploadToStorage(new File([blob], `thumb-${Date.now()}-${made.size}.${still ? 'jpg' : 'gif'}`, { type: blob.type })));
+          // A GIF also gets its first frame as a still, for Outlook on Windows (which shows only that frame).
+          const set = await T.renderThumbnailSet({ frames, siteUrl: site, logoUrl: logo, text, settings, seconds: duration });
+          const stamp = `${Date.now()}-${made.size}`;
+          const mainUrl = await uploadToStorage(new File([set.main], `thumb-${stamp}.${still ? 'jpg' : 'gif'}`, { type: set.main.type }));
+          const stillUrl = set.still ? await uploadToStorage(new File([set.still], `thumb-${stamp}-still.jpg`, { type: 'image/jpeg' })) : mainUrl;
+          made.set(key, { mainUrl, stillUrl });
         }
-        links[i] = { ...links[i], thumbnailUrl: made.get(key) };
+        links[i] = { ...links[i], thumbnailUrl: made.get(key).mainUrl, stillUrl: made.get(key).stillUrl };
       }
       persist();
       busy = ''; abort = null;
@@ -1756,6 +1766,20 @@ export function OutreachStudio() {
       if (err?.name === 'AbortError') { busy = ''; persist(); notice = 'Stopped. Contacts done so far keep their thumbnails.'; render(); return; }
       fail(/tainted|SecurityError/i.test(String(err?.message || err?.name)) ? new Error('The browser could not read your video to make thumbnails. Upload the video again and retry.') : err);
     }
+  }
+
+  async function downloadThumbnail(l, btn, isGif) {
+    const label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Downloading\u2026';
+    try {
+      const res = await fetch(l.thumbnailUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const name = `${String(l.name || 'prospect').replace(/[^\w-]+/g, '_')}-thumbnail.${isGif ? 'gif' : 'jpg'}`;
+      const { downloadBlob } = await import('../lib/editor/remotion/exportClient.js');
+      downloadBlob(await res.blob(), name);
+      btn.textContent = label;
+    } catch { window.open(l.thumbnailUrl, '_blank', 'noopener'); btn.textContent = label; }
+    btn.disabled = false;
   }
 
   async function copyGif(l, btn) {
@@ -1786,6 +1810,16 @@ export function OutreachStudio() {
       save: persist,
       websiteFor: (c) => siteShotFor(c),
       logoFor: (c) => draft.siteLogos?.[siteKey(c.website)] || '',
+      // One logo for everyone: the logo found on a website you name (the same capture as website backgrounds).
+      findLogo: async (site) => {
+        const url = /^https?:\/\//i.test(site) ? site : `https://${site}`;
+        const { installPersonalizationApiAuth } = await import('../features/personalization/lib/apiAuth.ts');
+        installPersonalizationApiAuth();
+        const res = await fetch('/api/outreach/site-shot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'That website could not be checked.');
+        return body.logoUrl || '';
+      },
       upload: uploadToStorage,
       onMake: links.length ? async () => { if (await gate('personalized thumbnails')) makeThumbnails(); } : null,
       makeLabel: links.some((l) => l.thumbnailUrl) ? 'Remake thumbnails' : `Make thumbnails for ${links.length} prospect${links.length === 1 ? '' : 's'}`,
@@ -1812,7 +1846,7 @@ export function OutreachStudio() {
       const settings = T.thumbSettings(t());
       // A GIF previews its 3 seconds as they'll loop.
       const progress = settings.type === 'gif' && video ? Math.max(0, Math.min(1, (video.currentTime - loopStart) / T.GIF_SECONDS)) : 0;
-      T.drawThumbnail(canvas.getContext('2d'), { frame: video, site: siteImg, logo: settings.logo ? logoImg : null, text: T.thumbnailText(draft.email.thumbText, sample, draft.fallbacks), play: settings.play, progress });
+      T.drawThumbnail(canvas.getContext('2d'), { frame: video, site: siteImg, logo: settings.logo ? logoImg : null, text: T.thumbnailText(draft.email.thumbText, sample, draft.fallbacks), play: settings.play, progress, textColor: settings.textColor, bannerColor: settings.bannerColor, duration: settings.duration, seconds: draft.video?.duration || 0 });
     };
     const updateEmail = () => {
       const l = draft.campaign.links.find((x) => x.contactId === sample.id) || draft.campaign.links[0];
@@ -1823,7 +1857,7 @@ export function OutreachStudio() {
       siteImg = null; logoImg = null;
       const shot = T ? T.thumbBackground(T.thumbSettings(t()), siteShotFor(sample)) : siteShotFor(sample);
       if (shot) { const img = new Image(); img.crossOrigin = 'anonymous'; img.onload = () => { siteImg = img; draw(); }; img.src = shot; }
-      const logo = draft.siteLogos?.[siteKey(sample.website)];
+      const logo = T ? T.thumbLogo(T.thumbSettings(t()), logoFor(sample)) : logoFor(sample);
       if (logo) { const img = new Image(); img.crossOrigin = 'anonymous'; img.onload = () => { logoImg = img; draw(); }; img.src = logo; }
     };
     // Preview: a still seeks to the chosen second; a GIF plays its 3 seconds in a loop.
@@ -1898,11 +1932,11 @@ export function OutreachStudio() {
     }
     const merge = button('Download mail-merge .csv');
     merge.addEventListener('click', () => {
-      const rows = draft.campaign.links.map((l) => ({ ...emailOf(l), contact: contactOf(l), link: linkOf(l), thumbnailUrl: l.thumbnailUrl || '' }));
+      const rows = draft.campaign.links.map((l) => ({ ...emailOf(l), contact: contactOf(l), link: linkOf(l), thumbnailUrl: l.thumbnailUrl || '', stillUrl: l.stillUrl || l.thumbnailUrl || '' }));
       downloadText(`${(draft.name || 'campaign').replace(/[^\w-]+/g, '_')}-emails.csv`, mailMergeCsv(rows));
     });
     actions.appendChild(merge);
-    box.append(actions, el('p', 'text-[11px] text-white/45', 'Copy email puts the finished email (with the thumbnail) on your clipboard to paste into Gmail or Outlook. Copy GIF copies just the clickable thumbnail; Embed gives HTML for email tools. Email opens it in your mail app as plain text. The .csv works with mail-merge tools.'));
+    box.append(actions, el('p', 'text-[11px] text-white/45', 'Copy email puts the finished email (with the thumbnail) on your clipboard to paste into Gmail or Outlook. Copy GIF copies just the clickable thumbnail; Download GIF saves it; Embed gives HTML for email tools. GIFs play in Gmail, Apple Mail and Outlook on the web and Mac; Outlook on Windows shows the first frame, so for Outlook-heavy lists use Still image or the .csv\u2019s Outlook still URL. The .csv works with mail-merge tools.'));
     return box;
   }
 

@@ -7,13 +7,30 @@ import { fillTemplate, contactValues } from './draft.js';
 
 export const THUMB_W = 960;
 export const THUMB_H = 540;
-// Animated GIF: 3 seconds at 12 fps, 480×270 (small enough for email).
-export const GIF_W = 480;
-export const GIF_H = 270;
+// Animated GIF: 3 seconds at 12 fps, 600×338: shown 480 wide in email, so it stays sharp on high-resolution screens.
+export const GIF_W = 600;
+export const GIF_H = 338;
+// Email apps struggle with big GIFs: above this the GIF is made again with fewer frames, then fewer colours.
+export const GIF_MAX_BYTES = 1.5 * 1024 * 1024;
 export const GIF_SECONDS = 3;
 export const GIF_FPS = 12;
 
 export const PLAY_STYLES = ['solid', 'outline', 'glass'];
+
+const hex = (v, fallback) => (/^#[0-9a-f]{6}$/i.test(v || '') ? v : fallback);
+
+/** The logo on a prospect's thumbnail: theirs (found on their website), the one logo you chose, or none. */
+export function thumbLogo(settings, prospectLogo = '') {
+  if (settings.logoMode === 'none') return '';
+  if (settings.logoMode === 'one') return settings.logoUrl;
+  return prospectLogo || '';
+}
+
+/** "0:27" for the duration badge. */
+export function durationLabel(seconds) {
+  const s = Math.max(0, Math.round(Number(seconds) || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
 
 /** Thumbnail settings with defaults (stored in draft.email.thumb). */
 export function thumbSettings(t = {}) {
@@ -25,7 +42,21 @@ export function thumbSettings(t = {}) {
     // (just your recording, full frame) or 'image' (your own picture, `image`, behind the bubble).
     background: ['auto', 'video', 'image'].includes(t.background) ? (t.background === 'image' && !/^https:\/\/\S+$/i.test(t.image || '') ? 'auto' : t.background) : 'auto',
     image: /^https:\/\/\S+$/i.test(t.image || '') ? t.image : '',
-    logo: t.logo !== false,
+    // Logo overlay (like Sendspark): each prospect's logo from their website, one logo for everyone, or none.
+    ...(() => {
+      const url = /^https:\/\/\S+$/i.test(t.logoUrl || '') ? t.logoUrl : '';
+      let mode = ['prospect', 'one', 'none'].includes(t.logoMode) ? t.logoMode : t.logo === false ? 'none' : 'prospect';
+      if (mode === 'one' && !url) mode = 'prospect';
+      return { logoMode: mode, logoUrl: url, logo: mode !== 'none' };
+    })(),
+    // Edit Styles: the words' colour, the banner behind them, and the duration badge (bottom-right).
+    textColor: hex(t.textColor, '#ffffff'),
+    bannerColor: hex(t.bannerColor, '#000000'),
+    duration: {
+      show: t.duration?.show !== false,
+      color: hex(t.duration?.color, '#000000'),
+      opacity: Math.max(0.2, Math.min(1, Number(t.duration?.opacity ?? 0.75) || 0.75)),
+    },
     play: {
       show: play.show !== false,
       style: PLAY_STYLES.includes(play.style) ? play.style : 'solid',
@@ -96,7 +127,7 @@ const cover = (ctx, img, x, y, w, h, alignTop = false) => {
  * optional company logo for the top-right corner. Pure canvas drawing, so it can be tested with
  * a fake context. `progress` (0..1) scrolls the website a little in animated thumbnails.
  */
-export function drawThumbnail(ctx, { frame, site = null, logo = null, text = '', width = THUMB_W, height = THUMB_H, play = thumbSettings().play, progress = 0 }) {
+export function drawThumbnail(ctx, { frame, site = null, logo = null, text = '', width = THUMB_W, height = THUMB_H, play = thumbSettings().play, progress = 0, textColor = '#ffffff', bannerColor = '#000000', duration = null, seconds = 0 }) {
   ctx.fillStyle = '#0b0b0f';
   ctx.fillRect(0, 0, width, height);
   if (site) {
@@ -127,7 +158,7 @@ export function drawThumbnail(ctx, { frame, site = null, logo = null, text = '',
   if (text) {
     const size = Math.round(height * 0.085);
     ctx.font = `800 ${size}px Inter, system-ui, -apple-system, sans-serif`;
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = textColor;
     ctx.textBaseline = 'top';
     const lines = wrapLines((t) => ctx.measureText(t).width, text, width * 0.84 - logoBox, 2);
     // A dark plate under the words, so they stay readable over a busy website or recording.
@@ -135,12 +166,28 @@ export function drawThumbnail(ctx, { frame, site = null, logo = null, text = '',
     const padX = size * 0.55; const padY = size * 0.4;
     const textW = Math.max(...lines.map((l) => ctx.measureText(l).width));
     const plateW = textW + padX * 2; const plateH = lines.length * lh - (lh - size) + padY * 2;
-    ctx.fillStyle = 'rgba(0,0,0,0.86)';
+    ctx.save(); ctx.globalAlpha = 0.86; ctx.fillStyle = bannerColor;
     if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x - padX, y - padY, plateW, plateH, size * 0.35); ctx.fill(); } else ctx.fillRect(x - padX, y - padY, plateW, plateH);
-    ctx.fillStyle = '#fff';
+    ctx.restore();
+    ctx.fillStyle = textColor;
     lines.forEach((l, i) => ctx.fillText(l, x, y + i * lh));
   }
   if (play?.show !== false) drawPlay(ctx, width / 2, height / 2, Math.round(height * 0.11), play || {});
+  if (duration?.show && seconds > 0) drawDuration(ctx, durationLabel(seconds), width, height, duration);
+}
+
+/** The duration badge, bottom-right (Sendspark's "0:27"). */
+function drawDuration(ctx, label, width, height, { color = '#000000', opacity = 0.75 }) {
+  const size = Math.round(height * 0.055);
+  ctx.save();
+  ctx.font = `700 ${size}px Inter, system-ui, -apple-system, sans-serif`;
+  const w = ctx.measureText(label).width + size * 0.9; const h = size * 1.6;
+  const x = width - w - width * 0.03; const y = height - h - height * 0.04;
+  ctx.globalAlpha = opacity; ctx.fillStyle = color;
+  if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, w, h, h * 0.3); ctx.fill(); } else ctx.fillRect(x, y, w, h);
+  ctx.globalAlpha = 1; ctx.fillStyle = '#ffffff'; ctx.textBaseline = 'middle';
+  ctx.fillText(label, x + size * 0.45, y + h / 2 + 1);
+  ctx.restore();
 }
 
 /** The prospect's logo on a white plate, top-right. Returns the width it takes. */
@@ -235,23 +282,49 @@ export async function videoFrame(src, at = 1) {
 }
 
 /** Encode RGBA frames as an animated GIF (gifenc, a palette per frame). */
-export async function encodeGif(frames, width, height, fps = GIF_FPS) {
+/**
+ * Encode RGBA frames as an animated GIF that loops forever (gifenc, a palette per frame). If it is bigger than
+ * `maxBytes` it is made again at 8 frames a second, then with 128 colours, so email apps can show it.
+ */
+export async function encodeGif(frames, width, height, fps = GIF_FPS, { maxBytes = GIF_MAX_BYTES } = {}) {
   const { GIFEncoder, quantize, applyPalette } = await import('gifenc');
-  const gif = GIFEncoder();
-  const delay = Math.round(1000 / fps);
-  for (const rgba of frames) {
-    const palette = quantize(rgba, 256);
-    gif.writeFrame(applyPalette(rgba, palette), width, height, { palette, delay });
+  const encode = (list, rate, colors) => {
+    const gif = GIFEncoder();
+    const delay = Math.round(1000 / rate);
+    list.forEach((rgba, i) => {
+      const palette = quantize(rgba, colors);
+      gif.writeFrame(applyPalette(rgba, palette), width, height, { palette, delay, ...(i === 0 ? { repeat: 0 } : {}) });
+    });
+    gif.finish();
+    return gif.bytes();
+  };
+  let bytes = encode(frames, fps, 256);
+  if (bytes.length > maxBytes && frames.length > 2) {
+    // 12 -> 8 frames a second: keep two frames in every three (the first frame always stays).
+    const fewer = frames.filter((_, i) => i % 3 !== 2);
+    const rate = fps * (2 / 3);
+    bytes = encode(fewer, rate, 256);
+    if (bytes.length > maxBytes) bytes = encode(fewer, rate, 128);
   }
-  gif.finish();
-  return new Blob([gif.bytes()], { type: 'image/gif' });
+  return new Blob([bytes], { type: 'image/gif' });
 }
 
 /**
  * One contact's thumbnail. `frames` are canvases from grabFrames (one for a still, many for a
  * GIF). Returns a JPEG (still) or GIF Blob.
  */
-export async function renderThumbnail({ frames, siteUrl, logoUrl, text, settings = thumbSettings() }) {
+/**
+ * One contact's thumbnail(s). For a GIF also the first frame as a JPEG (`still`), for Outlook on Windows, which
+ * shows only a GIF's first frame. Returns { main, still } (still is null for a still thumbnail).
+ */
+export async function renderThumbnailSet({ frames, siteUrl, logoUrl, text, settings = thumbSettings(), seconds = 0 }) {
+  const main = await renderThumbnail({ frames, siteUrl, logoUrl, text, settings, seconds });
+  if (settings.type === 'static') return { main, still: null };
+  const still = await renderThumbnail({ frames: frames.slice(0, 1), siteUrl, logoUrl, text, settings: { ...settings, type: 'static' }, seconds });
+  return { main, still };
+}
+
+export async function renderThumbnail({ frames, siteUrl, logoUrl, text, settings = thumbSettings(), seconds = 0 }) {
   const [site, logo] = await Promise.all([
     siteUrl ? loadImage(siteUrl).catch(() => null) : null,
     settings.logo && logoUrl ? loadImage(logoUrl).catch(() => null) : null,
@@ -262,7 +335,7 @@ export async function renderThumbnail({ frames, siteUrl, logoUrl, text, settings
   const canvas = document.createElement('canvas');
   canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d', { willReadFrequently: !still });
-  const draw = (frame, progress) => drawThumbnail(ctx, { frame, site, logo, text, width, height, play: settings.play, progress });
+  const draw = (frame, progress) => drawThumbnail(ctx, { frame, site, logo, text, width, height, play: settings.play, progress, textColor: settings.textColor, bannerColor: settings.bannerColor, duration: settings.duration, seconds });
   if (still) {
     draw(frames[0], 0);
     return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not make the thumbnail.'))), 'image/jpeg', 0.86));

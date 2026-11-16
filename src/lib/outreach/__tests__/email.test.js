@@ -38,7 +38,7 @@ describe('outreach email', () => {
     const m = mailtoUrl(e);
     expect(m.startsWith('mailto:mike%40acme.com?subject=A%20quick%20video%20for%20Mike&body=Hi%20Mike')).toBe(true);
     const csv = mailMergeCsv([{ ...e, contact: { ...mike, company: '=HYPERLINK("x")' }, link, thumbnailUrl: '' }]);
-    expect(csv.split('\r\n')[0]).toBe('Email,First Name,Last Name,Company,Subject,Body,HTML,Link,Thumbnail');
+    expect(csv.split('\r\n')[0]).toBe('Email,First Name,Last Name,Company,Subject,Body,HTML,Link,Thumbnail,GIF URL,Outlook still URL');
     expect(csv).toContain(`"'=HYPERLINK(""x"")"`);
   });
 
@@ -59,9 +59,9 @@ describe('email thumbnails', () => {
   });
 
   it('settings default to an animated GIF with a solid play button, and clean bad values', () => {
-    expect(thumbSettings()).toEqual({ type: 'gif', start: 0, background: 'auto', image: '', logo: true, play: { show: true, style: 'solid', color: '#4f46e5', opacity: 1 } });
+    expect(thumbSettings()).toMatchObject({ type: 'gif', start: 0, background: 'auto', image: '', logo: true, logoMode: 'prospect', play: { show: true, style: 'solid', color: '#4f46e5', opacity: 1 } });
     expect(thumbSettings({ type: 'static', start: -2, logo: false, play: { show: false, style: 'neon', color: 'red', opacity: 5 } }))
-      .toEqual({ type: 'static', start: 0, background: 'auto', image: '', logo: false, play: { show: false, style: 'solid', color: '#4f46e5', opacity: 1 } });
+      .toMatchObject({ type: 'static', start: 0, background: 'auto', image: '', logo: false, logoMode: 'none', play: { show: false, style: 'solid', color: '#4f46e5', opacity: 1 } });
   });
 
   it('a GIF is 3 seconds of frames from the chosen start, kept inside the video; a still is one frame', () => {

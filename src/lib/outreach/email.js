@@ -63,10 +63,13 @@ const csvCell = (v) => {
 
 /** Mail-merge CSV: one row per contact with the finished subject, body, link and thumbnail. */
 export function mailMergeCsv(rows) {
-  const head = ['Email', 'First Name', 'Last Name', 'Company', 'Subject', 'Body', 'HTML', 'Link', 'Thumbnail'];
+  // Thumbnail stays for existing setups; GIF URL and Outlook still URL like Sendspark's exports.
+  const head = ['Email', 'First Name', 'Last Name', 'Company', 'Subject', 'Body', 'HTML', 'Link', 'Thumbnail', 'GIF URL', 'Outlook still URL'];
   const lines = [head.join(',')];
   for (const r of rows) {
-    lines.push([r.to, r.contact?.firstName, r.contact?.lastName, r.contact?.company, r.subject, r.text, r.html, r.link, r.thumbnailUrl].map(csvCell).join(','));
+    const thumb = r.thumbnailUrl || '';
+    const gif = /\.gif(\?|$)/i.test(thumb) ? thumb : '';
+    lines.push([r.to, r.contact?.firstName, r.contact?.lastName, r.contact?.company, r.subject, r.text, r.html, r.link, thumb, gif, r.stillUrl || (gif ? '' : thumb)].map(csvCell).join(','));
   }
   return `${lines.join('\r\n')}\r\n`;
 }

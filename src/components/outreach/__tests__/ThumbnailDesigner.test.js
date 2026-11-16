@@ -32,8 +32,8 @@ describe('thumbnail designer', () => {
     const text = $('[data-thumb-text]'); text.value = 'For {{company}}'; text.dispatchEvent(new Event('input'));
     expect(draft.email.thumbText).toBe('For {{company}}');
     expect(T.drawThumbnail.mock.calls.at(-1)[1].text).toBe('For Notion');
-    const logo = $('[data-thumb-logo]'); logo.checked = false; logo.dispatchEvent(new Event('change'));
-    expect(draft.email.thumb.logo).toBe(false);
+    $('[data-thumb-logo-mode="none"]').click();
+    expect(draft.email.thumb.logoMode).toBe('none');
     expect(save).toHaveBeenCalled();
   });
 
@@ -68,5 +68,41 @@ describe('thumbnail designer', () => {
     expect(T.thumbBackground(s({ background: 'video' }), 'site.jpg')).toBe('');
     expect(T.thumbBackground(s({ background: 'image', image: 'https://x.test/a.jpg' }), 'site.jpg')).toBe('https://x.test/a.jpg');
     expect(s({ background: 'image' }).background).toBe('auto'); // no image yet
+  });
+
+  it('Sendspark\u2019s three tabs; fallbacks, one logo (found or uploaded), colours and the duration badge', async () => {
+    const draft = draftOf(); draft.video.duration = 26.5;
+    const findLogo = vi.fn(async () => 'https://cdn.test/acme-logo.png');
+    const upload = vi.fn(async () => 'https://cdn.test/my-logo.png');
+    openThumbnailDesigner({ draft, findLogo, upload });
+    const tab = (k) => $(`[data-thumb-tab="${k}"]`);
+    expect(tab('main').getAttribute('aria-selected')).toBe('true');
+    tab('styles').click();
+    expect(tab('styles').getAttribute('aria-selected')).toBe('true');
+    expect($('[data-thumb-text]').closest('[hidden]')).not.toBeNull();
+    // Fallback: "Hi there" when a prospect has no first name.
+    tab('main').click();
+    const fb = $('[data-thumb-fallback="firstname"]'); fb.value = 'friend'; fb.dispatchEvent(new Event('input'));
+    expect(draft.fallbacks.firstname).toBe('friend');
+    // One logo: find it by website.
+    $('[data-thumb-logo-mode="one"]').click();
+    expect($('[data-thumb-one-logo]').hidden).toBe(false);
+    $('[data-thumb-logo-domain]').value = 'acme.com';
+    $('[data-thumb-logo-find]').click();
+    await vi.waitFor(() => expect(draft.email.thumb).toMatchObject({ logoMode: 'one', logoUrl: 'https://cdn.test/acme-logo.png' }));
+    expect(findLogo).toHaveBeenCalledWith('acme.com');
+    // ...or upload one.
+    const f = $('[data-thumb-logo-file]');
+    Object.defineProperty(f, 'files', { value: [new File(['x'], 'l.png', { type: 'image/png' })] });
+    f.dispatchEvent(new Event('change'));
+    await vi.waitFor(() => expect(draft.email.thumb.logoUrl).toBe('https://cdn.test/my-logo.png'));
+    // Edit Styles.
+    tab('styles').click();
+    const tc = $('[data-thumb-color="textColor"]'); tc.value = '#ffcc00'; tc.dispatchEvent(new Event('input'));
+    const bc = $('[data-thumb-color="bannerColor"]'); bc.value = '#112233'; bc.dispatchEvent(new Event('input'));
+    const dur = $('[data-thumb-duration]'); dur.checked = false; dur.dispatchEvent(new Event('change'));
+    expect(draft.email.thumb).toMatchObject({ textColor: '#ffcc00', bannerColor: '#112233', duration: { show: false } });
+    const last = T.drawThumbnail.mock.calls.at(-1)[1];
+    expect(last).toMatchObject({ textColor: '#ffcc00', bannerColor: '#112233', seconds: 26.5 });
   });
 });
