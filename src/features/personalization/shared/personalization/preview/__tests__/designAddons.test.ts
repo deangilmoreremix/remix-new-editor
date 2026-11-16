@@ -76,3 +76,13 @@ describe('design add-on rules', () => {
     expect(JSON.stringify(b)).toBe(snap)
   })
 })
+
+describe('design layer ids', () => {
+  it('gives every added design its own id so one can be removed or edited alone', () => {
+    const b = base()
+    const ok = all.filter((x) => x.category !== 'full-scene' && x.category !== 'transition' && canAddDesign(b, x, { logo: true, product: true, service: true }).ok)
+    const s = addDesignWithRules(addDesignWithRules(b, ok[0].id, ctx).settings, ok[1].id, ctx).settings
+    const ids = s.layers.map((l) => l.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+})
