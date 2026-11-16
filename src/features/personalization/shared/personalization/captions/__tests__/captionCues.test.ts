@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { MAX_WORDS_PER_CUE, MIN_CUE_MS, clockLabel, cuesToSrt, cuesToText, cuesToVtt, formatTimestamp, groupCaptionCues } from '../captionCues'
+import { MAX_WORDS_PER_CUE, MIN_CUE_MS, clockLabel, cuesToSrt, cuesToText, cuesToVtt, formatTimestamp, groupCaptionCues, parseCaptionFile } from '../captionCues'
 
 const w = (text: string, startMs: number, endMs: number) => ({ text, startMs, endMs })
 
@@ -55,4 +55,31 @@ describe('file formats', () => {
     expect(cuesToVtt(cues)).toBe('WEBVTT\n\n00:00:00.000 --> 00:00:01.500\nHello\n\n00:00:02.000 --> 00:00:03.000\nWorld\n')
   })
   it('writes plain text', () => { expect(cuesToText(cues)).toBe('Hello\nWorld') })
+})
+
+describe('parseCaptionFile', () => {
+  const srt = '﻿1\r\n00:00:01,000 --> 00:00:02,500\r\nCall us <i>today</i>\r\n\r\n2\r\n00:00:03,000 --> 00:00:04,000\r\nfor a\r\nfree quote\r\n'
+  it('reads SRT (BOM, CRLF, markup, multi-line text)', () => {
+    expect(parseCaptionFile(srt)).toEqual([
+      { startMs: 1000, endMs: 2500, text: 'Call us today' },
+      { startMs: 3000, endMs: 4000, text: 'for a free quote' },
+    ])
+  })
+  it('reads WebVTT (header, notes, ids, short times, cue settings)', () => {
+    const vtt = 'WEBVTT\n\nNOTE a comment --> not a cue\n\nintro\n00:05.000 --> 00:06.200 align:start position:0%\nHello\n\nSTYLE\n::cue {}\n'
+    expect(parseCaptionFile(vtt)).toEqual([{ startMs: 5000, endMs: 6200, text: 'Hello' }])
+  })
+  it('skips junk, orders cues, and survives non-text input', () => {
+    expect(parseCaptionFile('2\n00:00:09,000 --> 00:00:10,000\nB\n\nx\nnot a time --> 00:00:01,000\nA\n\n1\n00:00:01,000 --> 00:00:02,000\nA').map((c) => c.text)).toEqual(['A', 'B'])
+    expect(parseCaptionFile(undefined as unknown as string)).toEqual([])
+    expect(parseCaptionFile('')).toEqual([])
+  })
+  it('round-trips through the SRT writer', () => {
+    const cues = [{ startMs: 1234, endMs: 5678, text: 'Round trip' }]
+    expect(parseCaptionFile(cuesToSrt(cues))).toEqual(cues)
+    expect(parseCaptionFile(cuesToVtt(cues))).toEqual(cues)
+  })
+  it('gives an end before the start at least 1 ms', () => {
+    expect(parseCaptionFile('00:00:02,000 --> 00:00:01,000\nX')[0].endMs).toBe(2001)
+  })
 })

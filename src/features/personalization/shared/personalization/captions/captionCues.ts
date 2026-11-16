@@ -73,3 +73,35 @@ export function clockLabel(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000))
   return `${Math.floor(s / 60)}:${pad(s % 60)}`
 }
+
+/** `1:02.345`, `00:01:02,345` or `00:01:02.345` to milliseconds, or null when it is not a time. */
+export function parseTimestamp(raw: string): number | null {
+  const m = /^(?:(\d{1,3}):)?(\d{1,2}):(\d{1,2})[,.](\d{1,3})$/.exec(raw.trim())
+  if (!m) return null
+  const ms = Number(m[4].padEnd(3, '0'))
+  return (Number(m[1] ?? 0) * 3600 + Number(m[2]) * 60 + Number(m[3])) * 1000 + ms
+}
+
+/** Largest caption file read, so a wrong file cannot freeze the page. */
+export const MAX_CAPTION_FILE_CHARS = 400_000
+
+/**
+ * Cues from the text of an .srt or .vtt file. Tolerant: ignores the WEBVTT header, NOTE/STYLE blocks, cue ids and
+ * positioning settings, strips markup tags, and skips any block that has no readable time or text. Cues come back in
+ * time order with no per-word times (so a look cannot pick out the spoken word on imported captions).
+ */
+export function parseCaptionFile(raw: string): CaptionCue[] {
+  const text = String(raw ?? '').slice(0, MAX_CAPTION_FILE_CHARS).replace(/^﻿/, '').replace(/\r\n?/g, '\n')
+  const cues: CaptionCue[] = []
+  for (const block of text.split(/\n{2,}/)) {
+    const lines = block.split('\n').map((l) => l.trim()).filter(Boolean)
+    const at = lines.findIndex((l) => l.includes('-->'))
+    if (at < 0 || /^(NOTE|STYLE|REGION)\b/.test(lines[0])) continue
+    const [from, rest] = lines[at].split('-->')
+    const startMs = parseTimestamp(from), endMs = parseTimestamp((rest ?? '').trim().split(/\s+/)[0] ?? '')
+    const body = clean(lines.slice(at + 1).join(' ').replace(/<[^>]*>/g, ''))
+    if (startMs === null || endMs === null || !body) continue
+    cues.push({ startMs, endMs: Math.max(endMs, startMs + 1), text: body })
+  }
+  return cues.sort((a, b) => a.startMs - b.startMs)
+}
