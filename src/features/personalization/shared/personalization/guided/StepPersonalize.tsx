@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { LayoutTemplate, Palette } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
+import { layoutOnVideo } from '../preview/designAddons'
 import { designPrimarySlotUpdates } from '../preview/designSlots'
 import { C, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens'
 import { ColorField } from './editor/ColorField'
@@ -70,7 +71,6 @@ export function StepPersonalize({
     assets,
     previewSettings,
     setPreviewLayout,
-    activeRemotionDesignId = null,
     remotionDesignTemplates = [],
     updatePreviewLayer,
     updatePreviewBrandColors,
@@ -89,13 +89,14 @@ export function StepPersonalize({
   const productAvailable = (assets?.products?.length || 0) > 0
   const taglineLayer = layers.find((item) => item.kind === 'tagline')
   const activeLayout = PREVIEW_LAYOUTS.find((layout) => layout.id === previewSettings.layout) || PREVIEW_LAYOUTS[0]
-  const activeDesign = activeRemotionDesignId
-    ? remotionDesignTemplates.find((design) => design.id === activeRemotionDesignId) ?? null
+  // Read what is actually on the video, not the "main design" id. A design ADDED on top keeps the layout's own
+  // layers; only Replace leaves nothing but design layers.
+  const showingLayout = layoutOnVideo(previewSettings)
+  const designLayer = layers.find((item) => item.kind === 'design' && item.designId)
+  const designOnVideo = designLayer?.designId
+    ? remotionDesignTemplates.find((design) => design.id === designLayer.designId) ?? null
     : null
-  // A design ADDED on top keeps the layout's own layers; only Replace leaves nothing but design layers.
-  const layoutOnVideo = layers.some((item) => item.kind !== 'design')
-  const showingLayout = layoutOnVideo || !activeDesign
-  const activeTemplate = showingLayout ? activeLayout : (activeDesign ?? activeLayout)
+  const activeTemplate = showingLayout ? activeLayout : (designOnVideo ?? activeLayout)
 
   // Auto-apply a compatible layout on mount, and again while nothing was chosen
   // explicitly (e.g. a product photo imported later). The ref guard keeps it to

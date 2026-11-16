@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { applyLayoutPreset, createDefaultPreviewSettings, removeDesignLayer } from '../presets'
-import { addDesignWithRules, canAddDesign, listAddedDesigns, moveDesignLayer } from '../designAddons'
+import { addDesignWithRules, canAddDesign, latestIntroStart, layoutOnVideo, listAddedDesigns, moveDesignLayer } from '../designAddons'
 import { listRemotionDesignTemplates } from '../../templates'
 
 const base = () => applyLayoutPreset(createDefaultPreviewSettings(), 'business-introduction')
@@ -88,15 +88,46 @@ describe('design layer ids', () => {
 })
 
 describe('intro designs on a short clip', () => {
-  it('never starts an intro before the previous one ends, and says so when there is no room', () => {
+  const av = { logo: true, product: true, service: true }
+  const intro = (cat: string, s: ReturnType<typeof base>) =>
+    all.find((d) => d.category === cat && typeof d.placement?.endFrame === 'number' && canAddDesign(s, d, av).ok)
+
+  it('adds the first intro, then either places the second after it or refuses it with the room message', () => {
     const short = { ...base(), durationInFrames: 45 }
-    const scene = all.find((d) => d.category === 'full-scene' && typeof d.placement?.endFrame === 'number' && canAddDesign(short, d, { logo: true, product: true, service: true }).ok)
-    const transition = all.find((d) => d.category === 'transition' && typeof d.placement?.endFrame === 'number' && canAddDesign(short, d, { logo: true, product: true, service: true }).ok)
-    if (!scene || !transition) return
-    const first = addDesignWithRules(short, scene.id, ctx)
-    const second = addDesignWithRules(first.settings, transition.id, ctx)
-    const intros = listAddedDesigns(second.settings).filter((l) => typeof l.endFrame === 'number')
-    for (let i = 1; i < intros.length; i++) expect(intros[i].startFrame).toBeGreaterThan(intros[i - 1].endFrame as number)
-    if (intros.length === 1) expect(second.error).toMatch(/no room/)
+    const scene = intro('full-scene', short)
+    const transition = intro('transition', short)
+    expect(scene).toBeDefined()
+    expect(transition).toBeDefined()
+    const first = addDesignWithRules(short, scene!.id, ctx)
+    expect(first.error).toBeUndefined()
+    const firstIntro = listAddedDesigns(first.settings).find((l) => l.designId === scene!.id)!
+    expect(typeof firstIntro.endFrame).toBe('number')
+
+    const second = addDesignWithRules(first.settings, transition!.id, ctx)
+    if (second.error) {
+      expect(second.error).toMatch(/no room/)
+      expect(second.settings).toBe(first.settings)
+    } else {
+      const added = listAddedDesigns(second.settings).find((l) => l.designId === transition!.id)!
+      expect(added.startFrame).toBeGreaterThan(firstIntro.endFrame as number)
+    }
+  })
+
+  it('needs room for the intro itself, but never more than one second', () => {
+    const settings = { ...base(), durationInFrames: 100, fps: 30 }
+    const designWith = (endFrame: number) => ({ placement: { endFrame } }) as unknown as (typeof all)[number]
+    expect(latestIntroStart(settings, designWith(10))).toBe(90) // a short intro only needs its own 10 frames
+    expect(latestIntroStart(settings, designWith(90))).toBe(70) // a long one needs one second
+  })
+})
+
+describe('layoutOnVideo', () => {
+  it('is true while the layout layers are there, also with designs added on top, and false for design layers only', () => {
+    const b = base()
+    const withDesign = addDesignWithRules(b, all.find((d) => canAddDesign(b, d, { logo: true, product: true, service: true }).ok)!.id, ctx).settings
+    expect(layoutOnVideo(b)).toBe(true)
+    expect(layoutOnVideo(withDesign)).toBe(true)
+    expect(layoutOnVideo({ ...withDesign, layers: listAddedDesigns(withDesign) })).toBe(false)
+    expect(layoutOnVideo({ ...b, layers: [] })).toBe(false)
   })
 })
