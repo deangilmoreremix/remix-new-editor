@@ -404,7 +404,7 @@ function UploadZone({
                 minHeight: 32,
                 padding: '0 12px',
                 border: `1px solid ${C.cyanBorder}`,
-                background: C.cyanSoft,
+                background: 'transparent',
                 color: C.cyan,
               }}
             >
@@ -565,7 +565,7 @@ function ThumbUploaded({
           type="button"
           onClick={(e) => { e.stopPropagation(); onEdit() }}
           className="absolute left-1 top-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-          style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
+          style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
           aria-label="Edit image"
         >
           {EDIT_WITH_AI}
@@ -1797,8 +1797,8 @@ export default function PersonalizationModal() {
                 minHeight: 42,
                 padding: '0 19px',
                 border: `1px solid ${C.cyan}`,
-                background: C.cyan,
-                color: '#000000',
+                background: 'transparent',
+                color: C.cyan,
                 boxShadow: '0 8px 26px rgba(217,255,0,.18)',
               }}
             >
@@ -1848,7 +1848,7 @@ function ErrorView({ errorMessage, retry, generate, stage }: { errorMessage: str
         <button
           onClick={retry}
           className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-          style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}
+          style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
         >
           <RefreshCw size={14} /> {retryLabel}
         </button>
@@ -1856,7 +1856,7 @@ function ErrorView({ errorMessage, retry, generate, stage }: { errorMessage: str
           <button
             onClick={generate}
             className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-            style={{ background: C.cyan, color: '#000000' }}
+            style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
           >
             Try Again
           </button>
@@ -1915,7 +1915,7 @@ function ResultView(props: any) {
             </pre>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
+            <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}>
               <RefreshCw size={14} /> Generate Again
             </button>
           </div>
@@ -1943,7 +1943,7 @@ function ResultView(props: any) {
             </button>
             {/* Only offered where publishing is available on this page. */}
             {canPublish && (
-              <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
+              <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}>
                 <Share2 size={14} /> Publish
               </button>
             )}
@@ -1982,7 +1982,7 @@ function ResultView(props: any) {
             )}
             {/* Only offered where publishing is available on this page. */}
             {canPublish && (
-              <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
+              <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}>
                 <Share2 size={14} /> Publish
               </button>
             )}
@@ -2025,7 +2025,7 @@ function ResultView(props: any) {
             <button
               onClick={retryBranding}
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold"
-              style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}
+              style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
             >
               <RefreshCw size={14} /> Retry Branding
             </button>
@@ -2773,7 +2773,7 @@ function ConfigurationView(props: any) {
           className="order-first xl:hidden"
           onClick={() => setMobilePreviewOpen((open) => !open)}
           aria-expanded={mobilePreviewOpen}
-          style={{ marginTop: 12, minHeight: 34, borderRadius: 10, border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan, fontSize: 11, fontWeight: 800 }}
+          style={{ marginTop: 12, minHeight: 34, borderRadius: 10, border: `1px solid ${C.cyanBorder}`, background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 800 }}
         >
           {mobilePreviewOpen ? 'Hide preview' : 'Show preview'}
         </button>
@@ -2793,7 +2793,7 @@ function ConfigurationView(props: any) {
             <button
               type="button"
               onClick={() => goToSection('assets', 'found')}
-              style={{ minHeight: 32, padding: '0 14px', borderRadius: 10, border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000', fontSize: 11, fontWeight: 900 }}
+              style={{ minHeight: 32, padding: '0 14px', borderRadius: 10, border: `1px solid ${C.cyan}`, background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 900 }}
             >
               Review in Assets →
             </button>
@@ -2861,8 +2861,8 @@ function ConfigurationView(props: any) {
                   padding: '0 18px',
                   whiteSpace: 'nowrap',
                   border: `1px solid ${C.cyan}`,
-                  background: C.cyan,
-                  color: '#000000',
+                  background: 'transparent',
+                  color: C.cyan,
                 }}
               >
                 {brandRunInFlight ? 'Finding…' : '✦ Find My Brand'}
@@ -2914,8 +2914,8 @@ function ConfigurationView(props: any) {
                 style={{
                   minHeight: 38,
                   border: `1px solid ${clientForm.audience === key ? C.cyan : C.border}`,
-                  background: clientForm.audience === key ? C.cyan : '#121212',
-                  color: clientForm.audience === key ? '#000000' : C.text,
+                  background: 'transparent',
+                  color: clientForm.audience === key ? C.cyan : C.text,
                 }}
               >
                 {label}
@@ -2936,7 +2936,7 @@ function ConfigurationView(props: any) {
                     minHeight: 38,
                     padding: '0 16px',
                     border: `1px solid ${C.cyan}`,
-                    background: C.cyanSoft,
+                    background: 'transparent',
                     color: C.cyan,
                   }}
                 >
@@ -3061,8 +3061,8 @@ function ConfigurationView(props: any) {
                   minHeight: 42,
                   padding: '0 19px',
                   border: `1px solid ${C.cyan}`,
-                  background: C.cyan,
-                  color: '#000000',
+                  background: 'transparent',
+                  color: C.cyan,
                 }}
               >
                 Find Businesses
@@ -3127,7 +3127,7 @@ function ConfigurationView(props: any) {
                         minHeight: 32,
                         padding: '0 12px',
                         border: `1px solid ${savedLeadsOpen ? C.cyanBorder : C.border}`,
-                        background: savedLeadsOpen ? C.cyanSoft : C.panel,
+                        background: savedLeadsOpen ? 'transparent' : C.panel,
                         color: savedLeadsOpen ? C.cyan : 'white',
                       }}
                     >
@@ -3278,8 +3278,8 @@ function ConfigurationView(props: any) {
                             minHeight: 32,
                             padding: '0 12px',
                             border: `1px solid ${C.cyan}`,
-                            background: C.cyan,
-                            color: '#000000',
+                            background: 'transparent',
+                            color: C.cyan,
                           }}
                         >
                           {websiteLookup?.status === 'searching' && websiteLookup.businessId === business.id
@@ -3430,8 +3430,8 @@ function ConfigurationView(props: any) {
                                 minHeight: 32,
                                 padding: '0 12px',
                                 border: `1px solid ${C.cyan}`,
-                                background: C.cyan,
-                                color: '#000000',
+                                background: 'transparent',
+                                color: C.cyan,
                               }}
                             >
                               Open in Personalization
@@ -3522,7 +3522,7 @@ function ConfigurationView(props: any) {
                         if (website) void runDiscoveryWorkflow(website, { business: { ...selectedBusiness, website } })
                       }}
                       className="rounded-[8px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-40"
-                      style={{ minHeight: 28, padding: '0 10px', border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan }}
+                      style={{ minHeight: 28, padding: '0 10px', border: `1px solid ${C.cyanBorder}`, background: 'transparent', color: C.cyan }}
                     >
                       Load from website
                     </button>
@@ -3540,8 +3540,8 @@ function ConfigurationView(props: any) {
                       minHeight: 38,
                       padding: '0 16px',
                       border: `1px solid ${C.cyan}`,
-                      background: businessResearch.status === 'done' ? '#000000' : C.cyan,
-                      color: businessResearch.status === 'done' ? C.cyan : '#000000',
+                      background: 'transparent',
+                      color: C.cyan,
                     }}
                   >
                     {businessResearch.status === 'researching' ? 'Researching...' : businessResearch.status === 'done' ? 'Research Complete' : 'Research Business'}
@@ -3728,8 +3728,8 @@ function ConfigurationView(props: any) {
                   minHeight: 42,
                   padding: '0 19px',
                   border: `1px solid ${C.cyan}`,
-                  background: C.cyan,
-                  color: '#000000',
+                  background: 'transparent',
+                  color: C.cyan,
                 }}
               >
                 {discoveryStatus === 'discovering' ? 'Discovering...' : 'Find Business Assets'}
@@ -3809,7 +3809,7 @@ function ConfigurationView(props: any) {
                     window.setTimeout(() => setClientSaveStatus(null), 2500)
                   }}
                   className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold"
-                  style={{ background: 'rgba(217,255,0,.12)', border: `1px solid ${C.cyanBorder}`, color: C.cyan }}
+                  style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
                 >
                   <Save size={14} /> {selectedClientId ? 'Update Client' : 'Save Client'}
                 </button>
@@ -3926,7 +3926,7 @@ function ConfigurationView(props: any) {
               <ThumbPlaceholder label="+" add onClick={handleIdentityAddClick} />
             </div>
             {assets.primaryIdentity && (
-              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
+              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: 'transparent', color: C.cyan, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
             )}
             <div style={{ marginTop: 9, color: C.muted2, fontSize: 10 }}>Recommended: Face + Full Body + 3/4</div>
           </article>
@@ -3996,7 +3996,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => onEditLibrary(assets.primaryLogo)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
+                  style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
                 >
                   {EDIT_WITH_AI}
                 </button>
@@ -4071,8 +4071,8 @@ function ConfigurationView(props: any) {
             </div>
             {assets.primaryLogo && (
               <>
-                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
-                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Final Overlay</span>
+                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: 'transparent', color: C.cyan, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
+                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: 'transparent', color: C.cyan, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Final Overlay</span>
               </>
             )}
           </article>
@@ -4258,7 +4258,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => onEditLibrary(assets.firstFrame)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
+                  style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
                 >
                   {EDIT_WITH_AI}
                 </button>
@@ -4285,7 +4285,7 @@ function ConfigurationView(props: any) {
               )}
             </div>
             <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>First Frame</span>
+              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: 'transparent', color: C.cyan, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>First Frame</span>
               {assets.firstFrame && (
                 <button
                   type="button"
@@ -4362,7 +4362,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => onEditLibrary(assets.lastFrame)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
+                  style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
                 >
                   {EDIT_WITH_AI}
                 </button>
@@ -4389,7 +4389,7 @@ function ConfigurationView(props: any) {
               )}
             </div>
             <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Last Frame</span>
+              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: 'transparent', color: C.cyan, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Last Frame</span>
               {assets.lastFrame && (
                 <button
                   type="button"
@@ -4433,8 +4433,8 @@ function ConfigurationView(props: any) {
                   minHeight: 34,
                   padding: '0 14px',
                   border: `1px solid ${savedAssetLibraryTab === key ? C.cyan : C.border}`,
-                  background: savedAssetLibraryTab === key ? C.cyan : '#121212',
-                  color: savedAssetLibraryTab === key ? '#000000' : C.text,
+                  background: 'transparent',
+                  color: savedAssetLibraryTab === key ? C.cyan : C.text,
                 }}
               >
                 {label}
@@ -4599,7 +4599,7 @@ function ConfigurationView(props: any) {
                       discoveredAssets.filter((a) => a.selected && !a.rejected && a.category !== 'irrelevant' && !a.videoReady).length === 0
                     }
                     className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan }}
+                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyanBorder}`, background: 'transparent', color: C.cyan }}
                   >
                     {batchVideoReady.running
                       ? `Preparing ${batchVideoReady.current}/${batchVideoReady.total}…`
@@ -4624,7 +4624,7 @@ function ConfigurationView(props: any) {
                     onClick={importDiscoveredAssets}
                     disabled={batchVideoReady.running || discoveredAssets.filter((a) => a.selected && !a.rejected).length === 0}
                     className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000' }}
+                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyan}`, background: 'transparent', color: C.cyan }}
                   >
                     Use Selected Assets
                   </button>
@@ -4869,7 +4869,7 @@ function ConfigurationView(props: any) {
               onClick={handlePersonalize}
               disabled={!canPersonalize || isPersonalizing}
               className="rounded-[9px] text-[11px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-              style={{ minHeight: 38, padding: '0 15px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000' }}
+              style={{ minHeight: 38, padding: '0 15px', border: `1px solid ${C.cyan}`, background: 'transparent', color: C.cyan }}
             >
               {isPersonalizing ? <Loader2 size={12} className="animate-spin inline" /> : '✦'} Personalize Prompt
             </button>
@@ -4931,7 +4931,7 @@ function ConfigurationView(props: any) {
                   }}
                 >
                   {active && (
-                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: C.cyan, color: '#000000', fontSize: 11, fontWeight: 900 }}>✓</div>
+                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 900 }}>✓</div>
                   )}
                   <h4 style={{ margin: '0 0 6px', fontSize: 12, textTransform: 'uppercase' }}>{label}</h4>
                   <p style={{ margin: 0, color: C.muted, fontSize: 10, lineHeight: 1.45 }}>{description}</p>
@@ -4994,7 +4994,7 @@ function ConfigurationView(props: any) {
                   }}
                 >
                   {active && (
-                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: C.cyan, color: '#000000', fontSize: 11, fontWeight: 900 }}>✓</div>
+                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 900 }}>✓</div>
                   )}
                   <h4 style={{ margin: '0 0 6px', fontSize: 12, textTransform: 'uppercase' }}>{m.label}</h4>
                   <p style={{ margin: 0, color: C.muted, fontSize: 10, lineHeight: 1.45 }}>{m.description}</p>

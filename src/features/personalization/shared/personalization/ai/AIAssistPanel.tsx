@@ -128,8 +128,8 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
               minHeight: 40,
               padding: '0 14px',
               border: `1px solid ${C.cyan}`,
-              background: C.cyan,
-              color: '#000000',
+              background: 'transparent',
+              color: C.cyan,
             }}
           >
             <Send size={12} />
@@ -290,8 +290,8 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
                           minHeight: 32,
                           padding: '0 12px',
                           border: `1px solid ${C.cyan}`,
-                          background: C.cyan,
-                          color: '#000000',
+                          background: 'transparent',
+                          color: C.cyan,
                         }}
                       >
                         {confirmingAction === action.id + (action.targetAssetId || '') ? <Loader2 size={10} className="animate-spin inline mr-1" /> : null}
@@ -392,8 +392,8 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
             minHeight: 40,
             padding: '0 14px',
             border: `1px solid ${C.cyan}`,
-            background: C.cyan,
-            color: '#000000',
+            background: 'transparent',
+            color: C.cyan,
           }}
         >
           <Send size={12} />

@@ -94,7 +94,7 @@ export function DesignRecommendations({
               disabled={!refusal.ok}
               title={refusal.ok ? design.description : refusal.reason}
               onClick={() => choose(design.id, active)}
-              style={{ ...softPanelStyle, textAlign: 'left', cursor: refusal.ok ? 'pointer' : 'not-allowed', opacity: refusal.ok ? 1 : 0.55, border: `1px solid ${active ? C.cyanBorder : C.border}`, background: active ? C.cyanSoft : undefined }}
+              style={{ ...softPanelStyle, textAlign: 'left', cursor: refusal.ok ? 'pointer' : 'not-allowed', opacity: refusal.ok ? 1 : 0.55, border: `1px solid ${active ? C.cyanBorder : C.border}`, background: active ? 'transparent' : undefined }}
             >
               <div style={{ color: C.text, fontSize: 12, fontWeight: 700 }}>{design.name}</div>
               <div style={{ ...hintStyle, margin: '2px 0 0' }}>{refusal.ok ? design.description : refusal.reason}</div>
