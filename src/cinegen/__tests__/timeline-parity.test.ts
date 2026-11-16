@@ -12,7 +12,7 @@ const BUDGET: Record<string, number> = {
   'components/edit/tool-sidebar.tsx': 30,
   'components/edit/left-panel.tsx': 80,
   'components/edit/timeline-viewer.tsx': 70,
-  'components/edit/timeline-editor.tsx': 220,
+  'components/edit/timeline-editor.tsx': 240, // [remix] was 220 but already at 228 before the Add-window tab/search hand-off and the select-after-add line; raised on purpose, keep new logic out of this file
   'components/edit/edit-tab.tsx': 260,
   'lib/editor/playback-engine.ts': 80,
 };

@@ -928,8 +928,11 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
       tl = { ...tl, tracks: [...tl.tracks, track] };
     }
-    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, ctx?.time ?? currentTime)) });
-  }, [dispatch, timeline, currentTime]);
+    const withSound = addClipToTrack(tl, track.id, asset, Math.max(0, ctx?.time ?? currentTime));
+    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: withSound });
+    const added = withSound.clips.find((c) => c.assetId === asset.id); // [remix] select it so its properties show and it is clear where it went
+    if (added) setSelectedClipIds(new Set([added.id]));
+  }, [dispatch, timeline, currentTime, setSelectedClipIds]);
 
   // [remix] AI & stock media browser (see use-media-browser.ts)
   const mediaBrowser = useMediaBrowser({ timeline, currentTime, projectId, dispatch });

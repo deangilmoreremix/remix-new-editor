@@ -954,7 +954,7 @@ export function TimelineEditor({
     });
   }, [dispatch, setTimeline, currentTime]);
 
-  const handlePickTemplateVideo = usePickTemplateVideo({ dispatch, setTimeline, timelineRef, currentTime }); // Template videos tab of the Add modal
+  const handlePickTemplateVideo = usePickTemplateVideo({ dispatch, setTimeline, timelineRef, currentTime, onPlaced: (id) => onSelectClips(new Set([id])) }); // [remix] the new clip is selected // Template videos tab of the Add modal
 
   // [remix] Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
   const handleOpenGenerator = useCallback(async () => {
