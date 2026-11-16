@@ -11,7 +11,7 @@ import { DemoPersonalizeProvider, useDemoPersonalize } from '../DemoPersonalizeP
 import { validateProjectRequirements } from '../ai/toolExecutor';
 import { blockingByTab, requirementLocation } from '../advanced/ReadinessChecklist';
 
-vi.mock('next/navigation', () => ({
+vi.mock('@ohb/lib/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),

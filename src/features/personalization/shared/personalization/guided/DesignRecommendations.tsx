@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import { isRemotionDesignTemplateSupported } from '../templates'
-import { DESIGN_GOALS, recommendDesigns, type DesignGoalId, type RecommendContext } from '../templates/recommendations'
+import { DESIGN_GOALS, recommendDesigns, type DesignGoalId, type GoalSuggestion, type RecommendContext } from '../templates/recommendations'
 import type { RemotionDesignTemplate } from '../templates/types'
-import type { PreviewAspectRatio, PreviewLayoutId } from '../preview/types'
+import type { PreviewAspectRatio } from '../preview/types'
 import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser'
 import { C, chipStyle, hintStyle, labelStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
 
@@ -23,6 +23,7 @@ export function DesignRecommendations({
   onAddDesign,
   onSelectLayout,
   addCheck,
+  suggestion,
 }: {
   designs: readonly RemotionDesignTemplate[]
   aspectRatio: PreviewAspectRatio
@@ -36,8 +37,13 @@ export function DesignRecommendations({
   onSelectLayout: (layoutId: PreviewLayoutId) => void
   /** Says whether a design may be added on top right now; refused designs are disabled with the reason. */
   addCheck?: (design: RemotionDesignTemplate) => { ok: boolean; reason?: string }
+  /** Preselects the goal and says why (only from facts we actually have). */
+  suggestion?: GoalSuggestion
 }): React.JSX.Element {
-  const [goal, setGoal] = useState<DesignGoalId>('introduce')
+  // Follows the suggestion until the customer picks a goal themselves.
+  const [pickedGoal, setPickedGoal] = useState<DesignGoalId | null>(null)
+  const goal: DesignGoalId = pickedGoal ?? suggestion?.goal ?? 'introduce'
+  const setGoal = (id: DesignGoalId) => setPickedGoal(id)
   const [browseAll, setBrowseAll] = useState(false)
   // Replace swaps the whole layout for the design; Add keeps the layout and puts the design on top.
   const [how, setHow] = useState<'replace' | 'add'>('add')
@@ -64,6 +70,9 @@ export function DesignRecommendations({
           </button>
         ))}
       </div>
+      {suggestion && pickedGoal === null && (
+        <p data-testid="design-goal-reason" style={{ ...hintStyle, margin: '0 0 8px' }}>Suggested: {suggestion.reason}</p>
+      )}
       {onAddDesign && (
         <div role="group" aria-label="When I pick a design" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
           <span style={{ ...hintStyle, margin: 0 }}>When I pick a design:</span>

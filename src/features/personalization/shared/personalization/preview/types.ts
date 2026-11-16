@@ -54,6 +54,13 @@ export interface PreviewLayer {
    * Only text, CTA and image layers rotate (see `userRotatable` in mediaRoles).
    */
   rotation?: number
+  /**
+   * Values the layer takes at chosen moments (move, size, fade, tilt). Changes to the layer's own values, not
+   * absolutes, so a layout change still applies. Optional so saved projects restore unchanged.
+   */
+  keyframes?: import('./keyframes').LayerKeyframe[]
+  /** Brightness, contrast, saturation, blur, glow and shadow for this layer. Optional so saved projects restore unchanged. */
+  effects?: import('./effects').LayerEffects
   /** Text content for text-bearing layers. */
   text?: string
   /** Accent/text color (hex). Falls back to brandColors.text. */
@@ -193,6 +200,13 @@ export interface PersonalizationPreviewSettings {
    * editor, preview and export — style the same image the same way.
    */
   imageHints?: Record<string, ImageHints>
+  /** A color and film look for the footage (not the brand overlays). Optional so saved projects restore unchanged. */
+  look?: import('./effects').LookSettings
+  /**
+   * Presenter background removal. Optional so projects saved before it existed restore unchanged.
+   * Settings only: the measured masks live in memory (preview/cutout/maskStore.ts), never in the project.
+   */
+  cutout?: import('./cutout/cutoutSettings').CutoutSettings
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */
@@ -209,6 +223,8 @@ export interface PreviewInputProps {
     cta: string
     phone: string
     website: string
+    /** Optional extra end-card line (email / @handle) built from found contact details. */
+    contactExtra?: string
     logoUrl: string | null
     productUrl: string | null
     serviceUrl: string | null

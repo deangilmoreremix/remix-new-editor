@@ -6,6 +6,7 @@ import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { canAddDesign, listAddedDesigns } from '../preview/designAddons'
 import { getRemotionDesignTemplate } from '../templates/registry'
 import { getRemotionDesignFixedSvgIdWarning } from '../templates/catalog'
+import { suggestGoal } from '../templates/recommendations'
 import { DesignRecommendations } from './DesignRecommendations'
 import { C, hintStyle, labelStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
 
@@ -28,6 +29,7 @@ export function AddDesignsPanel(): React.JSX.Element | null {
     moveAddedDesign,
     remotionDesignError = null,
     updatePreviewLayer,
+    clientForm = {},
   } = ctx
 
   const available = useMemo(
@@ -86,6 +88,7 @@ export function AddDesignsPanel(): React.JSX.Element | null {
         onAddDesign={addRemotionDesign}
         onSelectLayout={setPreviewLayout}
         addCheck={(design) => canAddDesign(previewSettings, design, available)}
+        suggestion={suggestGoal({ hasOffer: Boolean(clientForm.offer?.trim()), hasProductImages: available.product, booking: ctx.foundSignals?.booking })}
       />
       {fixedSvgIdWarning ? <p role="note" style={{ ...hintStyle, marginTop: 8 }}>{fixedSvgIdWarning}</p> : null}
       {remotionDesignError ? <p role="alert" style={{ ...hintStyle, color: C.danger, marginTop: 8 }}>{remotionDesignError}</p> : null}

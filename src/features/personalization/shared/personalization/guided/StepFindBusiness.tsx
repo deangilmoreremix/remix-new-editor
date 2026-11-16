@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { cutoutAssetIds } from '../backgroundRemoval/useAutoCutout'
 import { Building2, Globe, MapPin, Search, Star } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { BUSINESS_NICHES } from '../businessNiches'
@@ -108,6 +109,7 @@ export function StepFindBusiness({
     (asset) => !asset.rejected && asset.category === 'logo'
   )
   const logoCount = discoveredLogos.length
+  const cutoutIds = cutoutAssetIds(discoveredAssets)
   const selectedDiscoveredCount = discoveredAssets.filter(
     (asset) => asset.selected && !asset.rejected
   ).length
@@ -554,6 +556,25 @@ export function StepFindBusiness({
                 >
                   {discoveryStatus === 'importing' ? 'Importing…' : `Use ${selectedDiscoveredCount || 'selected'} asset${selectedDiscoveredCount === 1 ? '' : 's'}`}
                 </button>
+                {!isAnonymous && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idSet = new Set(cutoutIds)
+                      setDiscoveredAssets((prev) => prev.map((a) => (idSet.has(a.id) ? { ...a, selected: true } : a)))
+                      void importDiscoveredAssets({ ids: cutoutIds })
+                    }}
+                    disabled={cutoutIds.length === 0 || discoveryStatus === 'importing'}
+                    title={cutoutIds.length === 0 ? 'No cutouts are ready yet' : 'Adds every cutout to your assets. The video uses your logo and first 2 products.'}
+                    style={{
+                      ...secondaryButtonStyle,
+                      minHeight: 34,
+                      opacity: cutoutIds.length === 0 || discoveryStatus === 'importing' ? 0.5 : 1,
+                    }}
+                  >
+                    {`Add all cutouts to assets (${cutoutIds.length})`}
+                  </button>
+                )}
               </div>
             </div>
           )}
