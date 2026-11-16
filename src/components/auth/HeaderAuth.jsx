@@ -8,15 +8,18 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 function EntitlementBridge() {
   const { has, isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
+  const legacy = user?.publicMetadata?.legacy_access === true;
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) {
       setEntitlement({ hasFullAccess: false });
       return;
     }
-    const value = { hasFullAccess: has?.({ feature: 'smartvideo_full_access' }) ?? false };
+    // The paid plan, or legacy access (the same rule as useEntitlement in src/lib/clerkEntitlements.js).
+    const value = { hasFullAccess: legacy || (has?.({ feature: 'smartvideo_full_access' }) ?? false) };
     setEntitlement(value);
-  }, [isLoaded, isSignedIn, has]);
+  }, [isLoaded, isSignedIn, has, legacy]);
 
   return null;
 }

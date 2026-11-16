@@ -12,6 +12,7 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, linkedinMessage } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
+import { hasPaidAccess } from '../lib/clerkEntitlements.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
 const TRANSLATE_LANGS = [['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['it', 'Italian'], ['pt', 'Portuguese'], ['nl', 'Dutch'], ['pl', 'Polish'], ['ru', 'Russian'], ['tr', 'Turkish'], ['ar', 'Arabic'], ['hi', 'Hindi'], ['ja', 'Japanese'], ['ko', 'Korean'], ['zh', 'Chinese'], ['vi', 'Vietnamese'], ['id', 'Indonesian'], ['sv', 'Swedish'], ['en', 'English']];
@@ -151,9 +152,20 @@ export function OutreachStudio() {
   const replaceDraft = (next) => { for (const k of Object.keys(draft)) delete draft[k]; Object.assign(draft, next); edit = { trimStart: 0, trimEnd: null, cuts: [], before: null, after: null }; linkStats = { id: null, loading: false, byContact: null }; pendingCsv = null; pendingLeads = null; persist(); };
   const setBusy = (label) => { busy = label; render(); };
   const fail = (err) => { busy = ''; notice = err?.message || String(err); render(); };
+  // Everyone can look around Video Outreach; recording, generating and sharing need SmartVideo full access.
+  // Without it the upgrade screen (Clerk's pricing table) opens; a purchase there carries on with the action.
+  const paid = () => hasPaidAccess();
+  async function gate(what) {
+    if (paid()) return true;
+    const { default: UpgradePrompt } = await import('./UpgradePrompt.js');
+    const ok = await UpgradePrompt({ feature: what });
+    render();
+    return ok;
+  }
 
   // ---- Step 1: Record ----------------------------------------------------
   async function addVideo(blob, { duration, hasAudio = true, type = 'upload', name = 'outreach.webm' } = {}) {
+    if (!(await gate('Video Outreach'))) return;
     notice = '';
     setBusy('Uploading your video…');
     try {
@@ -173,6 +185,7 @@ export function OutreachStudio() {
   }
 
   async function openRecorder(type = 'both') {
+    if (!(await gate('Video Outreach'))) return;
     const { RecorderModal } = await import('./modals/RecorderModal.jsx');
     const modal = new RecorderModal({
       // The Script card's script shows in the recorder's teleprompter; edits there come back.
@@ -190,6 +203,7 @@ export function OutreachStudio() {
   // The full Remotion Recorder (multi-camera, captions, scenes, B-roll, end card), exported in
   // the browser and brought back as this campaign's video.
   async function openFullRecorder() {
+    if (!(await gate('Video Outreach'))) return;
     const { openRecorderStudio } = await import('../features/recorder/mount.tsx');
     openRecorderStudio({
       onUseVideo: (v) => addVideo(v.blob, { duration: v.durationInFrames / v.fps, hasAudio: true, type: 'recorder', name: v.name }),
@@ -456,6 +470,7 @@ export function OutreachStudio() {
   }
 
   async function runWriter() {
+    if (!(await gate('AI writing in Video Outreach'))) return;
     writer.busy = true; notice = ''; render();
     try {
       const { writeWithAI, muapiGenerate } = await import('../lib/outreach/aiWriter.js');
@@ -668,6 +683,7 @@ export function OutreachStudio() {
 
   // A video you already made in any studio (src/lib/landingPages/sourceRegistry.js).
   async function selectMadeVideo() {
+    if (!(await gate('Video Outreach'))) return;
     const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
     overlay.setAttribute('data-editor-videos', '');
     const box = el('div', 'flex max-h-[85vh] w-full max-w-4xl flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-[#0b0c10] p-5 text-white');
@@ -707,6 +723,7 @@ export function OutreachStudio() {
 
   // ---- Step 2: Voice -----------------------------------------------------
   async function voiceSampleFrom(blob) {
+    if (!(await gate('voice cloning'))) return;
     if (!draft.voice.consentChecked) { notice = 'Tick “this is my own voice” first.'; render(); return; }
     notice = '';
     try {
@@ -733,6 +750,7 @@ export function OutreachStudio() {
   }
 
   async function generateGreeting() {
+    if (!(await gate('AI greetings'))) return;
     notice = '';
     try {
       setBusy('Generating the greeting…');
@@ -1205,6 +1223,7 @@ export function OutreachStudio() {
   // (greetings), 'render' (publishing the personal videos and rendering their thumbnails), 'page' (the landing
   // page), 'done'. On failure the reason is in `notice`.
   async function generateCampaign({ confirmed = false, onStage = () => {} } = {}) {
+    if (!(await gate('Video Outreach campaigns'))) return false;
     const personal = draft.kind !== 'same' && tokensIn(draft.greeting).length > 0;
     const n = draft.contacts.length;
     const wantSync = personal && !!draft.voice.lipsync;
@@ -1615,6 +1634,7 @@ export function OutreachStudio() {
   // With the plain video page chosen, the links go back to the player page. Returns false when it failed.
   async function publishCampaignPage({ quiet = false } = {}) {
     if (!draft.campaign?.url) return true;
+    if (!(await gate('landing pages'))) return false;
     abort = null;
     try {
       const [{ createPage, updatePage, setPagePublished, pageUrl }, { landingLink }] = await Promise.all([
@@ -2109,6 +2129,16 @@ export function OutreachStudio() {
     dropPreviewHandles();
     renderStepper();
     inner.replaceChildren();
+    if (!paid()) {
+      // Preview: everything can be seen; recording, generating and sharing ask for the upgrade.
+      const bar = el('div', 'flex flex-wrap items-center gap-3 rounded-xl border border-primary/25 bg-primary/[0.06] px-4 py-3 text-sm');
+      bar.setAttribute('data-outreach-preview', '');
+      const up = button('Upgrade', { primary: true, small: true });
+      up.setAttribute('data-outreach-upgrade', '');
+      up.addEventListener('click', () => gate('Video Outreach'));
+      bar.append(el('span', 'flex-1 text-white/85', 'You\u2019re previewing Video Outreach. Upgrade to SmartVideo full access to record, generate and share.'), up);
+      inner.appendChild(bar);
+    }
     inner.appendChild(VIEWS[step]());
 
     const footer = el('div', 'flex flex-wrap items-center gap-3');
@@ -2187,6 +2217,7 @@ export function OutreachStudio() {
       company: a.company,
       website: a.website,
       make: async (d, onStage) => {
+        if (!(await gate('your personalized video'))) return { ok: false, error: 'Making your video needs SmartVideo full access. Upgrade, then click Make my video again.' };
         const res = await makeSample(d, SAMPLE_PRESENTER, onStage);
         if (res.ok) mark('made');
         return res;
@@ -2254,7 +2285,8 @@ export function OutreachStudio() {
       onLanguage: (v) => { lang = v; },
       onRecord: (mode) => { begin(); openRecorder(mode); },
       onUpload: (f) => { begin(); addVideo(f, { type: 'upload', name: f.name }); },
-      onSample: () => {
+      onSample: async () => {
+        if (!(await gate('the sample video'))) return;
         begin();
         // The SmartVideo sample presenter, with her own voice and "Hi there!" so it can be tried end to end.
         const origin = globalThis.location.origin;
@@ -2319,6 +2351,7 @@ export function OutreachStudio() {
       const k = DYNAMIC_KINDS.find((d) => d.id === kind);
       if (!k || !name.value.trim()) return;
       close();
+      if (!paid()) { gate('dynamic videos').then((ok) => { if (ok) openRecordingGuidelines({ name: name.value.trim().slice(0, 120), kind: k.id, language: prefill.language }); }); return; }
       openRecordingGuidelines({ name: name.value.trim().slice(0, 120), kind: k.id, language: prefill.language });
     });
     document.body.appendChild(overlay);
@@ -2327,6 +2360,9 @@ export function OutreachStudio() {
   }
 
   render();
+  // Draw again when sign-in or the plan changes (the preview banner and locks follow it).
+  let wasPaid = paid();
+  try { globalThis.window?.Clerk?.addListener?.(() => { if (paid() !== wasPaid && container.isConnected) { wasPaid = paid(); render(); } }); } catch { /* Clerk not ready */ }
   startWelcome().catch(() => { /* the studio works without the welcome */ });
   return container;
 }
