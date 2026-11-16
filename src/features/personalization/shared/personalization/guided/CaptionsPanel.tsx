@@ -88,7 +88,7 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
               ))}
             </select>
           </label>
-          {capiteStyleById(c.captions!.style) && <p data-testid="captions-capite-hint" style={{ ...hintStyle, margin: 0 }}>{capiteStyleById(c.captions!.style)!.description}. Looks from Capite (MIT). Fonts that are not on this device fall back to the studio font.</p>}
+          {capiteStyleById(c.captions!.style) && <p data-testid="captions-capite-hint" style={{ ...hintStyle, margin: 0 }}>{capiteStyleById(c.captions!.style)!.description}. Fonts that are not on this device fall back to the studio font.</p>}
 
           <p data-testid="captions-look-hint" style={{ ...hintStyle, margin: 0 }}>Bold stands out most; Bar is the safest on very busy footage; Clean is the plainest.</p>
 

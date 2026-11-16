@@ -18,7 +18,7 @@ export const CAPTION_PRESETS = {
 };
 
 /**
- * The 27 Capite looks (MIT, https://github.com/muneebkhan08/Capite) as presets for this editor: font, colours, outline,
+ * The 27 Capite looks as presets for this editor: font, colours, outline,
  * and how the spoken word is picked out (highlight / box / karaoke wipe). The editor draws a plain outline, so the finer
  * Capite effects (scale, pop, bounce, glow) become a word highlight here; the personalization studio draws them fully.
  */

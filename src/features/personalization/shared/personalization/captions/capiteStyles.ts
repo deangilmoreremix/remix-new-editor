@@ -1,6 +1,5 @@
 /**
- * Caption looks from Capite (https://github.com/muneebkhan08/Capite, MIT License, Copyright (c) 2026 Capite Contributors).
- * 27 styles: colours, outline, shadow, font and how the spoken word is picked out. Pure data and pure functions: no
+ * Caption looks: 27 styles with colours, outline, shadow, font and how the spoken word is picked out. Pure data and pure functions: no
  * React, no Remotion, no network, no repo imports, so the same file is used by remix-new-editor and OpenHiggsBolt.
  * Fonts are only NAMED here. A host that can load them does; any other host falls back to its own font stack.
  */

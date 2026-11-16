@@ -193,7 +193,7 @@ describe('CaptionsPanel', () => {
     expect(q(el, 'captions-capite-hint')).toBeNull()
     await act(async () => { select.value = 'hormozi'; select.dispatchEvent(new Event('change', { bubbles: true })) })
     expect(stored()?.style).toBe('hormozi')
-    expect(q(el, 'captions-capite-hint')?.textContent).toMatch(/Capite/)
+    expect(q(el, 'captions-capite-hint')?.textContent).toMatch(/Bold cyan highlights/)
     await click(q(el, 'captions-style-bar'))
     expect(stored()?.style).toBe('bar')
     expect((q(el, 'captions-capite-select') as HTMLSelectElement).value).toBe('')
