@@ -1041,7 +1041,7 @@ export function LandingPagesStudio() {
     inner.replaceChildren(top, shareRow, tabs, body);
   }
 
-  // Arrived from "Edit in Puck" (the Template Generator's Add to Video Pages window): open that page's editor straight away.
+  // Arrived from "Open in Editor" (the Template Generator's Add to Video Pages window): open that page's editor straight away.
   async function showEditorFor(id) {
     if (!guard()) return;
     inner.replaceChildren(el('p', 'text-sm text-secondary', 'Opening your page…'));

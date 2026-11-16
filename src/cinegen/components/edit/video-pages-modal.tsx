@@ -21,7 +21,7 @@ export interface VideoPagesDeps {
   create: (video: VideoPageSource, opts: { template: string; title: string; onStep: (label: string) => void }) => Promise<CreatedPage>;
   /** Where the studio lives, for "Open in Video Pages". */
   studioUrl: () => string;
-  /** "Edit in Puck": open the studio on that page's editor. Returns false when it could not be opened. */
+  /** "Open in Editor": open the studio on that page's editor. Returns false when it could not be opened. */
   edit: (pageId: string) => boolean;
 }
 
@@ -226,7 +226,7 @@ export function VideoPagesModal({ video, onClose, deps }: { video: VideoPageSour
             {made ? (
               <>
                 {editNote && <span role="alert" style={{ fontSize: 12.5, color: '#fbbf24' }}>{editNote}</span>}
-                <button type="button" data-testid="edit-in-puck" onClick={() => { if (!d.edit(made.id)) setEditNote(`Could not open the editor. Open Video Pages and choose “${made.title}”.`); }} style={{ padding: '10px 16px', borderRadius: 10, border: 0, background: 'var(--accent)', color: '#04121a', fontWeight: 700, cursor: 'pointer' }}>Edit in Puck</button>
+                <button type="button" data-testid="open-in-editor" onClick={() => { if (!d.edit(made.id)) setEditNote(`Could not open the editor. Open Video Pages and choose “${made.title}”.`); }} style={{ padding: '10px 16px', borderRadius: 10, border: 0, background: 'var(--accent)', color: '#04121a', fontWeight: 700, cursor: 'pointer' }}>Open in Editor</button>
                 <button type="button" onClick={() => window.open(d.studioUrl(), '_blank', 'noopener')} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border-medium)', background: 'transparent', color: 'inherit', cursor: 'pointer' }}>Open in Video Pages</button>
                 <button type="button" onClick={onClose} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border-medium)', background: 'transparent', color: 'inherit', cursor: 'pointer' }}>Close</button>
               </>

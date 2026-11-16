@@ -15,7 +15,7 @@ import { mountPuckEditor } from '../puck/mount.jsx';
 const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v), removeItem: (k) => m.delete(k) }; };
 const page = (id, template = 'puck-leadiq') => ({ id, title: 'Launch video', video_url: 'https://x.test/v.mp4', poster_url: null, duration: 31, published: false, view_count: 0, source: {}, config: defaultConfig(template, { title: 'Launch video' }) });
 
-describe('"Edit in Puck" hand-off', () => {
+describe('"Open in Editor" hand-off', () => {
   it('queues a page id once, and only a real one', () => {
     const storage = memory();
     expect(queuePageForEditor('abc12345xy', { storage })).toBe(true);
@@ -42,7 +42,7 @@ describe('Video Pages studio', () => {
   afterEach(() => { vi.unstubAllGlobals(); });
   beforeEach(() => { vi.stubGlobal('localStorage', memory()); vi.stubGlobal('sessionStorage', memory()); document.body.innerHTML = ''; vi.clearAllMocks(); pages.list = [page('abc12345xy'), page('zzz98765qq', 'clean')]; });
 
-  it('starts in the Puck editor of a queued page (the "Edit in Puck" button of the Add to Video Pages window)', async () => {
+  it('starts in the editor of a queued page (the "Open in Editor" button of the Add to Video Pages window)', async () => {
     queuePageForEditor('abc12345xy');
     const root = LandingPagesStudio(); document.body.appendChild(root);
     await vi.waitFor(() => expect(root.querySelector('input[aria-label="Page title"]')?.value).toBe('Launch video'));

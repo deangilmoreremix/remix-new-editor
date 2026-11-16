@@ -81,7 +81,7 @@ describe('Add to Video Pages window', () => {
     expect(d.create).toHaveBeenCalledWith(video, expect.objectContaining({ template: 'puck-leadiq', title: 'Spring offer' }));
     fireEvent.click(screen.getByText('Open in Video Pages'));
     expect(open).toHaveBeenCalledWith('https://app.test/#/video-pages', '_blank', 'noopener');
-    fireEvent.click(screen.getByTestId('edit-in-puck'));              // the page opens in the Puck editor
+    fireEvent.click(screen.getByTestId('open-in-editor'));              // the page opens in the editor
     expect(d.edit).toHaveBeenCalledWith('abc123');
     open.mockRestore();
   });
@@ -110,14 +110,14 @@ describe('Add to Video Pages window', () => {
     await waitFor(() => expect(screen.getByText(/created/)).toBeTruthy());
   });
 
-  it('Edit in Puck says so when the editor cannot be opened, and the page is still named so nothing is lost', async () => {
+  it('Open in Editor says so when the editor cannot be opened, and the page is still named so nothing is lost', async () => {
     render(<VideoPagesModal video={video} onClose={() => {}} deps={deps({ edit: () => false })} />);
     await waitFor(() => expect(screen.getByTestId('create-draft')).toBeTruthy());
     fireEvent.click(screen.getByTestId('design-clean'));
     await waitFor(() => expect((screen.getByTestId('create-draft') as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(screen.getByTestId('create-draft'));
-    await waitFor(() => expect(screen.getByTestId('edit-in-puck')).toBeTruthy());
-    fireEvent.click(screen.getByTestId('edit-in-puck'));
+    await waitFor(() => expect(screen.getByTestId('open-in-editor')).toBeTruthy());
+    fireEvent.click(screen.getByTestId('open-in-editor'));
     expect(screen.getByRole('alert').textContent).toContain('Could not open the editor');
     expect(screen.getByRole('alert').textContent).toContain('Harbor Dental');
   });
@@ -153,7 +153,7 @@ describe('Add to Video Pages window', () => {
     expect(a.reason).toMatch(/Supabase|Sign in/);
   });
 
-  it('the real "Edit in Puck" hands the page to the studio and opens it in a new tab', async () => {
+  it('the real "Open in Editor" hands the page to the studio and opens it in a new tab', async () => {
     const store = new Map<string, string>();
     vi.stubGlobal('localStorage', { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => store.set(k, v), removeItem: (k: string) => store.delete(k) });
     const open = vi.spyOn(window, 'open').mockReturnValue(null);

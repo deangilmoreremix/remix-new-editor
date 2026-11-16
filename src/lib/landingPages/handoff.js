@@ -47,7 +47,7 @@ export async function openVideoPageFor(item, opts = {}) {
 }
 
 /**
- * "Edit in Puck": ask the Video Pages studio to open a page's editor as soon as it starts. Meant for a tab opened a moment later
+ * "Open in Editor": ask the Video Pages studio to open a page's editor as soon as it starts. Meant for a tab opened a moment later
  * (a tab opened with `noopener` does not share sessionStorage), so it goes through localStorage and expires after two minutes.
  */
 export function queuePageForEditor(id, { storage = globalThis.localStorage, now = Date.now } = {}) {
