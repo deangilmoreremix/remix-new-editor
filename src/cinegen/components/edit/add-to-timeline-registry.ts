@@ -89,15 +89,18 @@ export function buildCatalog(a: Pick<AddToTimelineActions, 'onAddKind' | 'onAddT
 export const OPEN_ADD_MODAL_EVENT = 'cinegen:open-add-to-timeline';
 /** Tabs of the Add to timeline window ('videos' = Template videos). */
 export type AddModalTab = 'all' | CatalogTab | 'videos';
-/** The tab the next-opened window should start on. Kept here (not in timeline-editor.tsx) so that file stays close to upstream CineGen. */
+/** What the next-opened window should show: the tab and a search to pre-fill (so a clicked Library card appears in it). Kept here (not in
+ *  timeline-editor.tsx) so that file stays close to upstream CineGen. */
 let pendingTab: AddModalTab | undefined;
+let pendingQuery: string | undefined;
 export const peekPendingAddTab = (): AddModalTab | undefined => pendingTab;
-export const clearPendingAddTab = (): void => { pendingTab = undefined; };
+export const peekPendingAddQuery = (): string | undefined => pendingQuery;
+export const clearPendingAddTab = (): void => { pendingTab = undefined; pendingQuery = undefined; };
 /** True when the editor took the event (it calls preventDefault); false when no timeline editor is mounted to open the window.
- *  `tab` opens the window on that tab (for example the Library's "Template videos" category). */
-export const openAddToTimeline = (tab?: AddModalTab): boolean => {
-  pendingTab = tab;
+ *  `tab` opens the window on that tab; `query` pre-fills its search (for example the title of the Library card that was clicked). */
+export const openAddToTimeline = (tab?: AddModalTab, query?: string): boolean => {
+  pendingTab = tab; pendingQuery = query;
   const taken = !window.dispatchEvent(new CustomEvent(OPEN_ADD_MODAL_EVENT, { cancelable: true }));
-  if (!taken) pendingTab = undefined;
+  if (!taken) clearPendingAddTab();
   return taken;
 };

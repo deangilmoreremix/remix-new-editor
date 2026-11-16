@@ -78,8 +78,8 @@ function CardVideo({ src, poster, title, ratio }: { src: string; poster: string 
 
 /** The browsable content: category chips, subcategory chips, filters and the grid. The window around it is TemplateVideosModal; the
  *  same panel can also be a tab inside a larger "Add to timeline" window (same Panel/Modal split as HyperframesPanel / MgTemplatesPanel). */
-export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) => void }) {
-  const [q, setQ] = useState('');
+export function TemplateVideosPanel({ onPick, initialQuery }: { onPick: (item: TemplateVideo) => void; initialQuery?: string }) {
+  const [q, setQ] = useState(initialQuery ?? '');
   const [group, setGroup] = useState('all');
   const [type, setType] = useState('all');
   const [ratio, setRatio] = useState('all');

@@ -12,7 +12,7 @@ import { TemplateVideosPanel } from './template-videos-modal';
 // @ts-expect-error plain JS data module
 import { templateVideos } from '../../../data/templateVideoLibrary.js';
 import { PreviewCard, CARD_CSS } from './preview-card';
-import { buildCatalog, clearPendingAddTab, hfEntries, mgEntries, peekPendingAddTab, type AddModalTab, type AddToTimelineActions, type CatalogEntry, type CatalogTab } from './add-to-timeline-registry';
+import { buildCatalog, clearPendingAddTab, hfEntries, mgEntries, peekPendingAddQuery, peekPendingAddTab, type AddModalTab, type AddToTimelineActions, type CatalogEntry, type CatalogTab } from './add-to-timeline-registry';
 
 export type { AddToTimelineActions } from './add-to-timeline-registry';
 
@@ -39,10 +39,11 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const hasVideos = !!actions.onPickTemplateVideo;
   // [remix] the Library can open this window on a given tab (ignored when that tab is not available); read without clearing so a double render keeps it
   const [requested] = useState(peekPendingAddTab);
+  const [requestedQuery] = useState(peekPendingAddQuery);
   useEffect(() => { clearPendingAddTab(); }, []);
   const startTab: Tab = requested && (requested !== 'videos' || hasVideos) && (requested !== 'animations' || hasAnimations) ? requested : hasAnimations ? 'animations' : 'motion';
   const [tab, setTab] = useState<Tab>(startTab);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(requestedQuery ?? '');
   const [connect, setConnect] = useState<string | null>(null); // Connect Form template waiting for its phone number
   const [phone, setPhone] = useState('');
   // The motion graphics are loaded once here and shared by the Motion graphics tab and the All tab (null while loading)
@@ -143,7 +144,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
         </div>
         <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
           {tab === 'animations' && hasAnimations && <HyperframesPanel onPick={(i) => { actions.onPickAnimation?.(i); onClose(); }} />}
-          {tab === 'videos' && hasVideos && <TemplateVideosPanel onPick={(v) => { actions.onPickTemplateVideo?.(v); onClose(); }} />}
+          {tab === 'videos' && hasVideos && <TemplateVideosPanel initialQuery={requestedQuery} onPick={(v) => { actions.onPickTemplateVideo?.(v); onClose(); }} />}
           {tab === 'motion' && <MgTemplatesPanel templates={mg} error={mgError} onRetry={loadMg} onPick={(t) => { actions.onPickMotion(t); onClose(); }} />}
           {!isPanel && (
             <>

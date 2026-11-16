@@ -25,12 +25,12 @@ export const CARD_CSS = [
 export const ADD_TIP = 'Add to the timeline';
 
 const noop = () => undefined;
-const STAGE_BG = 'radial-gradient(120% 120% at 20% 10%, #243247 0%, #111827 55%, #0b1220 100%)';
+export const STAGE_BG = 'radial-gradient(120% 120% at 20% 10%, #243247 0%, #111827 55%, #0b1220 100%)';
 
 /** Live renders are heavy (some run in a sandboxed iframe), so only a handful exist at once; the rest wait for a free slot. */
 const MAX_LIVE = 20;
 const live = new Set<symbol>();
-function useLiveSlot(wanted: boolean): boolean {
+export function useLiveSlot(wanted: boolean): boolean {
   const [has, setHas] = useState(false);
   useEffect(() => {
     if (!wanted) return undefined;
@@ -59,7 +59,7 @@ function useAutoSlot(wanted: boolean): boolean {
   return has;
 }
 
-function useInView(ref: React.RefObject<Element | null>): boolean {
+export function useInView(ref: React.RefObject<Element | null>): boolean {
   const [seen, setSeen] = useState(false);
   useEffect(() => {
     const el = ref.current;
@@ -73,7 +73,7 @@ function useInView(ref: React.RefObject<Element | null>): boolean {
 }
 
 /** Steps `currentTime` through the overlay's duration while `playing`, otherwise holds the representative frame. */
-function LiveStage({ preview, playing }: { preview: Extract<CardPreview, { kind: 'overlay' }>; playing: boolean }) {
+export function LiveStage({ preview, playing }: { preview: Extract<CardPreview, { kind: 'overlay' }>; playing: boolean }) {
   const overlays = useMemo(() => preview.build(), [preview]);
   const frame = preview.frame ?? { width: 1280, height: 720 };
   const dur = Math.max(0.5, preview.duration);

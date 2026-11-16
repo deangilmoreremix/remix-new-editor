@@ -20,6 +20,10 @@ Test media: two generated 8s VP9 clips. No Supabase / Clerk / provider keys were
 | 42-follow-subject-dialog | Follow subject (motion tracking) dialog |
 | 44-dual-viewer, 45-blade-tool-active | Dual viewer; Blade tool |
 | 46, 47, 48 | Add to timeline > Overlays & forms / End screens & connect forms / Template videos |
+| 60, 61, 62 | After step 1: no stray `=======`; Library "Template videos"; Add window opens on Template videos |
+| 70-library-animations-pictures .. 73-library-effects | Library side panel with pictures: animations, overlays/forms/end screens, template video posters, effects |
+| 74-library-search-all-categories | One search showing grouped picture results from several categories, each with "See all" |
+| 75-click-card-opens-modal-on-item | Clicking a card opens the big Add window with that item found |
 
 ## Not captured / not verified
 - "Open full timeline" button: click timed out, no screenshot (30/43 missing).
