@@ -21,6 +21,7 @@ import pixabayProxyService from './services/pixabayProxyService.js';
 import giphyProxyService from './services/giphyProxyService.js';
 import templateService from './services/templateService.js';
 import openmontageProxy from './services/openmontageProxy.js';
+import { createMediaHubRouter } from './services/mediaHubService.js';
 import { auth, optionalAuth } from './middleware/auth.js';
 import chatRouter from './routes/chat.js';
 import setupChatWebSocket from './websocket/chat.js';
@@ -71,6 +72,8 @@ app.use('/api/gtm-boost', optionalAuth, gtmBoostService);
 app.use('/api/storyboard', storyboardService);
 app.use('/videoagent', videoAgentLimiter, optionalAuth, videoAgentService);
 app.use('/openmontage', optionalAuth, openmontageProxy);
+// Media Hub: yt-dlp downloads, transcription (speaker labels) and AI summaries. Needs yt-dlp + ffmpeg on the server.
+app.use('/api/media-hub', createMediaHubRouter({ auth }));
 
 // Health check
 app.get('/health', (req, res) => {
