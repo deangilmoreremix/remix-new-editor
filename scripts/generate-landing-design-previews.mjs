@@ -7,7 +7,7 @@
  *
  * Each design is drawn by the same code the public page uses (mountPuckPage for the editable Puck designs, renderLandingPage for the
  * others) with the design's own sample content, in headless Chrome. The script waits until every image on the page (the landing-art
- * pictures, fonts) has loaded, and refuses to keep a picture whose page has a broken image or is one flat tone. Needs Playwright
+ * pictures, fonts, each video's own poster) has loaded, and refuses to keep a picture whose page has a broken image or is one flat tone. Needs Playwright
  * (preinstalled in the cloud sessions). A temporary Vite page is created in the repo root and removed at the end.
  */
 import { spawn } from 'node:child_process';
@@ -37,7 +37,7 @@ window.draw = (id) => {
   current?.destroy?.();
   const root = document.getElementById('root'); root.replaceChildren();
   const config = defaultConfig(id, { title: 'Launch video' });
-  const page = { id: 'preview', title: 'Launch video', video_url: 'https://preview.test/video.mp4', poster_url: 'https://preview.test/poster.jpg', duration: 31, published: false, view_count: 0, config };
+  const page = { id: 'preview', title: 'Launch video', video_url: 'https://preview.test/video.mp4', poster_url: null, duration: 31, published: false, view_count: 0, config };
   const tokens = { firstname: 'Ann', company: 'Acme' };
   if (config.puck) { const host = document.createElement('div'); root.appendChild(host); current = mountPuckPage(host, { page, data: config.puck, tokens, handlers: {}, preview: true }); }
   else { const view = renderLandingPage({ page, tokens, preview: true }); root.appendChild(view.root); current = view; }
@@ -73,7 +73,7 @@ async function main() {
     const exe = process.env.CHROMIUM_PATH || ((await exists('/opt/pw-browsers/chromium')) ? '/opt/pw-browsers/chromium' : undefined);
     browser = await chromium.launch(exe ? { executablePath: exe, args: ['--no-sandbox'] } : {});
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 0.5 });
-    // the sample poster stands in for the user's video frame; the video itself never loads
+    // each design draws its OWN placeholder picture until a video frame exists; only a design with none gets this sample frame (and is reported)
     await ctx.route('https://preview.test/poster.jpg', (r) => r.fulfill({ body: sample, contentType: 'image/jpeg' }));
     await ctx.route('https://preview.test/video.mp4', (r) => r.abort());
     const page = await ctx.newPage();
@@ -96,16 +96,25 @@ async function main() {
           await page.waitForFunction(() => [...document.images].every((i) => i.complete), null, { timeout: 20000 }).catch(() => {});
           await page.evaluate(() => document.fonts?.ready);
           await page.waitForTimeout(700);
-          info = await page.evaluate(() => ({ images: document.images.length, broken: [...document.images].filter((i) => i.complete && i.naturalWidth === 0).map((i) => i.currentSrc || i.src) }));
+          // a <video poster> is not in document.images: give a video that has no poster of its own the sample frame, and wait for every poster to load
+          info = await page.evaluate(async () => {
+            let stand = 0;
+            document.querySelectorAll('video').forEach((v) => { if (!v.getAttribute('poster')) { v.setAttribute('poster', 'https://preview.test/poster.jpg'); stand += 1; } });
+            const urls = [...document.querySelectorAll('video')].map((v) => v.getAttribute('poster')).filter(Boolean);
+            const failed = [];
+            await Promise.all(urls.map((u) => new Promise((r) => { const i = new Image(); i.onload = () => r(); i.onerror = () => { failed.push(u); r(); }; i.src = u; })));
+            await new Promise((r) => setTimeout(r, 300));
+            return { images: document.images.length, stand, failedPosters: failed, broken: [...document.images].filter((i) => i.complete && i.naturalWidth === 0).map((i) => i.currentSrc || i.src) };
+          });
         } catch { await new Promise((r) => setTimeout(r, 3000)); await go(); }
       }
       if (!info) { bad.push(`${id}: could not draw`); continue; }
-      const broken = info.broken.filter((s) => !/preview\.test\/video\.mp4/.test(s));
+      const broken = [...info.broken, ...info.failedPosters].filter((s) => !/preview\.test\/video\.mp4/.test(s));
       if (broken.length) { bad.push(`${id}: broken image ${broken[0]}`); continue; }
       await page.screenshot({ path: file, type: 'jpeg', quality: 82, clip: { x: 0, y: 0, width: 1280, height: 800 } });
       if ((await contentShare(file)) < 0.01) { bad.push(`${id}: the picture is one flat tone`); await rm(file, { force: true }); continue; }
       made += 1;
-      console.log(`${id}  (${info.images} images)`);
+      console.log(`${id}  (${info.images} images${info.stand ? `, sample frame in ${info.stand} video(s): no poster of its own` : ''})`);
     }
     console.log(`\n${made} made, ${kept} already there, ${bad.length} problems`);
     if (bad.length) { console.log(bad.join('\n')); process.exitCode = 1; }
