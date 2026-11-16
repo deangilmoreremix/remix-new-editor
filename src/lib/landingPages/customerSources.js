@@ -9,7 +9,7 @@
 import * as defaultStore from '../contactStore.js';
 import { listBrands as defaultBrands } from '../brandStore.js';
 import { fetchSavedLeads } from '../editor/personalize/clientSync.js';
-import { normalizeCustomer, dedupeCustomers } from './customerProfile.js';
+import { normalizeCustomer, dedupeCustomers, attachPersonalImages } from './customerProfile.js';
 
 const CLIENTS_KEY = 'smartvideo_clients';
 const CURRENT_KEY = 'smartvideo_current_client_id';
@@ -41,10 +41,23 @@ export function loadLocalCustomers({ store = defaultStore, storage = globalThis.
   return { customers: dedupeCustomers([...people, ...fromBrands]), activeId };
 }
 
-/** Local customers plus the signed-in user's saved Lead Finder leads. */
+/** The signed-in user's saved Personalization projects (their generated pictures); [] when signed out or offline. */
+export async function fetchSavedProjects(fetchImpl = globalThis.fetch) {
+  try {
+    const res = await fetchImpl('/api/personalization/project', { credentials: 'same-origin' });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data?.projects) ? data.projects : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Local customers plus the signed-in user's saved Lead Finder leads (and their personalized pictures). */
 export async function loadCustomers({ includeLeads = true, fetchImpl, ...local } = {}) {
   const base = loadLocalCustomers(local);
   if (!includeLeads) return base;
-  const leads = (await fetchSavedLeads(fetchImpl)).map((l) => normalizeCustomer(l, 'lead')).filter(Boolean);
-  return { customers: dedupeCustomers([...base.customers, ...leads]), activeId: base.activeId };
+  const [leadRows, projects] = await Promise.all([fetchSavedLeads(fetchImpl), fetchSavedProjects(fetchImpl)]);
+  const leads = leadRows.map((l) => normalizeCustomer(l, 'lead')).filter(Boolean);
+  return { customers: attachPersonalImages(dedupeCustomers([...base.customers, ...leads]), projects), activeId: base.activeId };
 }

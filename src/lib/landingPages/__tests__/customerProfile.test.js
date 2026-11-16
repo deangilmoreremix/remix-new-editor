@@ -102,3 +102,35 @@ describe('contacts imported in the Personalize hub', () => {
     expect(normalizeCustomer({ phone: '123' }, 'contact')).toBeNull();
   });
 });
+
+import { personalImagesFromProjects, attachPersonalImages } from '../customerProfile.js';
+
+describe('the customer\'s personalized picture', () => {
+  const PROJECTS = [
+    { updated_at: '2026-11-10T00:00:00Z', client: { id: 'c1', businessName: 'Riverside Plumbing' }, output_type: 'image', generation: { outputUrls: ['https://cdn.test/old.png'] } },
+    { updated_at: '2026-11-15T00:00:00Z', client: { id: 'c1', businessName: 'Riverside Plumbing' }, output_type: 'video', generation: { outputUrls: ['https://cdn.test/clip.mp4', 'blob:xyz', 'https://cdn.test/new.webp'] } },
+    { updated_at: '2026-11-12T00:00:00Z', client: { businessName: 'Acme Roofing' }, output_type: 'image', generation: { outputUrls: ['https://cdn.test/acme-image'] } },
+    { updated_at: '2026-11-12T00:00:00Z', client: { id: 'c9' }, generation: { outputUrls: ['http://insecure/x.png'] } },
+  ];
+  it('takes the newest https picture per customer (id first, then business name), never videos, blob: or http', () => {
+    const { byId, byName } = personalImagesFromProjects(PROJECTS);
+    expect(byId.c1).toBe('https://cdn.test/new.webp');
+    expect(byName.acmeroofing).toBe('https://cdn.test/acme-image');
+    expect(byId.c9).toBeUndefined();
+  });
+  it('attaches it to the customers and keeps one they already have', () => {
+    const list = attachPersonalImages([normalizeCustomer({ id: 'c1', businessName: 'Riverside Plumbing' }, 'client'), normalizeCustomer({ id: 'x', businessName: 'Acme Roofing' }, 'client'), { ...normalizeCustomer({ id: 'y', businessName: 'Mine' }, 'client'), image: 'https://cdn.test/mine.png' }], PROJECTS);
+    expect(list.map((c) => c.image)).toEqual(['https://cdn.test/new.webp', 'https://cdn.test/acme-image', 'https://cdn.test/mine.png']);
+  });
+  it('applyCustomerToPuck puts it in every design\'s video slot when asked, and not when switched off', () => {
+    const c = { ...normalizeCustomer(CLIENT, 'client'), image: 'https://cdn.test/personal.png' };
+    PUCK_TEMPLATES.forEach((t) => {
+      const hasSlot = t.puckData.content.some((x) => /Hero|VideoSection/.test(x.type));
+      const on = applyCustomerToPuck(t.puckData, c);
+      const off = applyCustomerToPuck(t.puckData, c, { useImage: false });
+      const slots = (d) => JSON.stringify(d).match(/"slotImage":"https:\/\/cdn\.test\/personal\.png"/g) || [];
+      expect(off.data && slots(off.data).length).toBe(0);
+      if (hasSlot) { expect(slots(on.data).length).toBeGreaterThan(0); expect(on.applied).toContain('personalized image'); } else expect(slots(on.data).length).toBe(0);
+    });
+  });
+});

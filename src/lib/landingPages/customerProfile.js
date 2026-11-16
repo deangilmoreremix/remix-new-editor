@@ -41,6 +41,7 @@ const empty = () => ({
   id: '', label: '', source: '',
   tokens: { firstname: '', lastname: '', company: '', companylogo: '', role: '', city: '' },
   email: '',
+  image: '', // the customer's personalized picture (from their saved Personalization projects), https only
   business: { name: '', industry: '', phone: '', website: '', offer: '', cta: '', ctaHeadline: '', description: '', location: '', tagline: '' },
   brand: { accent: '', logoUrl: '' },
 });
@@ -134,6 +135,7 @@ export function mergeCustomer(a, b) {
   const out = JSON.parse(JSON.stringify(a));
   ['tokens', 'business', 'brand'].forEach((k) => Object.keys(out[k]).forEach((f) => { if (!out[k][f] && b[k]?.[f]) out[k][f] = b[k][f]; }));
   if (!out.email && b.email) out.email = b.email;
+  if (!out.image && b.image) out.image = b.image;
   out.label = out.business.name || `${out.tokens.firstname} ${out.tokens.lastname}`.trim() || out.email || out.label;
   return out;
 }
@@ -167,21 +169,64 @@ export function toContactFields(c) {
 /** The brand object defaultConfig() understands. */
 export const brandForConfig = (c) => (c ? { accent: c.brand.accent || '', logoUrl: c.brand.logoUrl || '', name: c.business.name || '' } : {});
 
+const IMAGE_PATH = /\.(png|jpe?g|webp|gif|avif)$/i;
+const isImageOutput = (url, outputType) => {
+  const u = httpsUrl(url);
+  if (!u) return false;
+  const path = u.split(/[?#]/)[0];
+  if (/\.(mp4|webm|mov|m4v)$/i.test(path)) return false;
+  return IMAGE_PATH.test(path) || String(outputType || '').toLowerCase() === 'image';
+};
+
+/**
+ * The newest personalized picture per customer, taken from saved Personalization projects (rows as
+ * /api/personalization/project returns them: { client, generation: { outputUrls }, output_type, updated_at }).
+ * Matched by client id first, then by business name. Only https pictures; videos and blob: urls are ignored.
+ */
+export function personalImagesFromProjects(projects) {
+  const rows = (Array.isArray(projects) ? projects : []).filter((r) => r && typeof r === 'object')
+    .sort((a, b) => String(b.updated_at || b.updatedAt || '').localeCompare(String(a.updated_at || a.updatedAt || '')));
+  const byId = {}; const byName = {};
+  rows.forEach((r) => {
+    const gen = r.generation && typeof r.generation === 'object' ? r.generation : {};
+    const urls = [...(Array.isArray(gen.outputUrls) ? gen.outputUrls : []), ...(Array.isArray(r.outputUrls) ? r.outputUrls : [])];
+    const img = urls.find((u) => isImageOutput(u, r.output_type || r.outputType));
+    if (!img) return;
+    const id = clip(r.client?.id, 80); const name = clip(r.client?.businessName || r.client?.name, 120).toLowerCase().replace(/[^a-z0-9]+/g, '');
+    if (id && !byId[id]) byId[id] = httpsUrl(img);
+    if (name && !byName[name]) byName[name] = httpsUrl(img);
+  });
+  return { byId, byName };
+}
+
+/** Customers with `image` filled in from saved projects (never replaces a picture they already have). */
+export function attachPersonalImages(customers, projects) {
+  const { byId, byName } = personalImagesFromProjects(projects);
+  return (customers || []).map((c) => {
+    if (!c || c.image) return c;
+    const nm = (c.business.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    const image = byId[c.id] || (nm && byName[nm]) || '';
+    return image ? { ...c, image } : c;
+  });
+}
+
 const DEFAULT_FOOTER = /^Sent by \{\{sender\|us\}\}/;
 
 /**
  * Write one customer's brand into a page's Puck data. Pure: returns { data, applied }.
  * Only brand slots change (page colour, menu-bar name and logo, the default footer line, empty links); no other copy.
  */
-export function applyCustomerToPuck(puckData, customer) {
+export function applyCustomerToPuck(puckData, customer, { useImage = true } = {}) {
   const data = JSON.parse(JSON.stringify(puckData || {}));
   const applied = [];
   if (!customer || !Array.isArray(data.content)) return { data, applied };
   const { business, brand } = customer;
   const accent = hexColor(brand.accent);
   if (accent && data.root?.props) { data.root.props.accent = accent; applied.push('page colour'); }
+  const image = useImage ? httpsUrl(customer.image) : '';
   data.content.forEach((item) => {
     const p = item.props || {};
+    if (image && /Hero|VideoSection/.test(item.type) && ('slotImage' in p || 'photo' in p || 'poster' in p || item.type === 'Hero')) { p.slotImage = image; applied.push('personalized image'); }
     if (item.type === 'NavBar') {
       if (business.name) { p.brand = business.name; applied.push('business name'); }
       if (httpsUrl(brand.logoUrl)) { p.logo = brand.logoUrl; applied.push('logo'); }

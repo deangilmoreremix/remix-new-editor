@@ -275,7 +275,7 @@ export function openLandingPagePicker({ video = null, template = null, customers
     let applied = [];
     if (withBrand) {
       const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: brandForConfig(one) });
-      const r = applyCustomerToPuck(cfg.puck, one);
+      const r = applyCustomerToPuck(cfg.puck, one, { useImage: cp.useImage() });
       data = r.data; applied = r.applied;
     } else {
       data = defaultConfig(chosen.id, { title: src?.title || '', brand: brandDefaults() }).puck;
