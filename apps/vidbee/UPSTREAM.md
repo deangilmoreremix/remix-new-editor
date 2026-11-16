@@ -6,6 +6,7 @@ Included: `apps/api`, `apps/web`, `resources/drizzle` (from `apps/desktop/resour
 ## Host patches (search for `[host patch]`)
 - `apps/web/vite.config.ts`, `src/router.tsx`, `src/lib/orpc-client.ts`, `src/components/{layout/app-shell,pages/about-page}.tsx`, `server.mjs`: optional sub-path (`VIDBEE_BASE_PATH`, e.g. `/vidbee`) so the web app can be mounted behind the host app's login.
 - `apps/web/src/host-theme.css` (new) + one import line in `src/styles.css`: color tokens re-themed to the host app's palette (dark theme).
+- `packages/ui/src/components/ui/button.tsx` (+ `sonner.tsx` action button): variants restyled to the host studios' outlined, transparent button language (no solid fills).
 - `pnpm-workspace.yaml` / `package.json` / `pnpm-lock.yaml`: trimmed to the vendored projects.
 
 ## Updating
