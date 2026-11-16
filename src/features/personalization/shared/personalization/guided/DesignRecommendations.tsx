@@ -34,7 +34,7 @@ export function DesignRecommendations({
   const [goal, setGoal] = useState<DesignGoalId>('introduce')
   const [browseAll, setBrowseAll] = useState(false)
   // Replace swaps the whole layout for the design; Add keeps the layout and puts the design on top.
-  const [how, setHow] = useState<'replace' | 'add'>('replace')
+  const [how, setHow] = useState<'replace' | 'add'>('add')
   const choose = (id: string, active: boolean) => (how === 'add' && onAddDesign && !active ? onAddDesign(id) : onSelectDesign(active ? null : id))
   const recommended = useMemo(
     () => recommendDesigns({
@@ -45,6 +45,7 @@ export function DesignRecommendations({
   )
   return (
     <div data-testid="design-recommendations" style={{ marginBottom: 12 }}>
+      <p style={{ ...hintStyle, marginTop: 0 }}>Designs add animation to your video; your layout stays.</p>
       <div style={{ ...labelStyle, marginBottom: 6 }}>What is this video for?</div>
       <div role="group" aria-label="Goal" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
         {DESIGN_GOALS.map((g) => (
@@ -56,8 +57,8 @@ export function DesignRecommendations({
       {onAddDesign && (
         <div role="group" aria-label="When I pick a design" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
           <span style={{ ...hintStyle, margin: 0 }}>When I pick a design:</span>
-          <button type="button" data-testid="design-how-replace" aria-pressed={how === 'replace'} onClick={() => setHow('replace')} style={chipStyle(how === 'replace')}>Replace my layout</button>
-          <button type="button" data-testid="design-how-add" aria-pressed={how === 'add'} onClick={() => setHow('add')} style={chipStyle(how === 'add')}>Add on top (keep my edits)</button>
+          <button type="button" data-testid="design-how-replace" aria-pressed={how === 'replace'} onClick={() => setHow('replace')} style={chipStyle(how === 'replace')}>Replace my layout (starts over)</button>
+          <button type="button" data-testid="design-how-add" aria-pressed={how === 'add'} onClick={() => setHow('add')} style={chipStyle(how === 'add')}>Add on top (keeps my layout and edits)</button>
         </div>
       )}
       <div style={{ ...labelStyle, marginBottom: 6 }}>Recommended designs</div>
@@ -86,7 +87,7 @@ export function DesignRecommendations({
       </button>
       {browseAll && (
         <div style={{ marginTop: 10 }}>
-          <PersonalizationTemplateBrowser onSelect={onSelectLayout} onSelectDesign={(id) => choose(id, activeDesignId === id)} />
+          <PersonalizationTemplateBrowser designsOnly onSelect={onSelectLayout} onSelectDesign={(id) => choose(id, activeDesignId === id)} />
         </div>
       )}
     </div>

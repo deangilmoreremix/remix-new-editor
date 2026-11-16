@@ -6,9 +6,8 @@ import { LayoutTemplate, Palette } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
 import { designPrimarySlotUpdates } from '../preview/designSlots'
-import { C, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens'
+import { C, chipStyle, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens'
 import { ColorField } from './editor/ColorField'
-import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser'
 import type { ClientProfile } from '../types'
 import type { PreviewLayerKind, PreviewLayoutId } from '../preview/types'
 
@@ -70,7 +69,6 @@ export function StepPersonalize({
     assets,
     previewSettings,
     setPreviewLayout,
-    setRemotionDesign,
     activeRemotionDesignId = null,
     remotionDesignTemplates = [],
     updatePreviewLayer,
@@ -146,37 +144,6 @@ export function StepPersonalize({
         <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 12, lineHeight: 1.55 }}>
           SmartVideo GO AI places your real logo, photos and details on your video — edit anything you see.
         </p>
-      </div>
-
-      {/* ── Auto-applied layout (optional, never a step gate) ───────────── */}
-      <div style={softPanelStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <LayoutTemplate size={15} color={C.cyan} />
-          <span style={{ margin: 0, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
-            Template (optional)
-          </span>
-          <span style={{ marginLeft: 'auto', color: C.muted2, fontSize: 10 }}>
-            {layoutChosenByUser ? 'Your choice' : 'Chosen for you'}
-          </span>
-        </div>
-        <p style={{ ...hintStyle, marginTop: 6 }}>
-          {layoutChosenByUser ? 'You picked' : 'We applied'}{' '}
-          <strong style={{ color: C.text }}>{activeTemplate.name}</strong>
-          {layoutChosenByUser ? '' : ' for you'} — {activeTemplate.description} You can switch to any other template at any
-          time; nothing is required to continue.
-        </p>
-        <PersonalizationTemplateBrowser
-          onSelect={(layoutId) => {
-            setLocalChosenByUser(true)
-            onChooseLayout?.()
-            setPreviewLayout(layoutId)
-          }}
-          onSelectDesign={(designId) => {
-            setLocalChosenByUser(true)
-            onChooseLayout?.()
-            setRemotionDesign(designId)
-          }}
-        />
       </div>
 
       <AssetUsagePanel />
@@ -296,13 +263,54 @@ export function StepPersonalize({
         </div>
       </div>
 
+      {/* ── Layout (optional, never a step gate): where your branding sits ─ */}
+      <div style={softPanelStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <LayoutTemplate size={15} color={C.cyan} />
+          <span style={{ margin: 0, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
+            Layout (optional)
+          </span>
+          <span style={{ marginLeft: 'auto', color: C.muted2, fontSize: 10 }}>
+            {layoutChosenByUser ? 'Your choice' : 'Chosen for you'}
+          </span>
+        </div>
+        <p style={{ ...hintStyle, marginTop: 6 }}>
+          This decides where your logo, headline and call to action appear on the video.{' '}
+          {layoutChosenByUser ? 'You picked' : 'We applied'}{' '}
+          <strong style={{ color: C.text }}>{activeTemplate.name}</strong>
+          {layoutChosenByUser ? '' : ' for you'} — {activeTemplate.description} Nothing is required to continue. Animated
+          designs can be added in the next step.
+        </p>
+        <div role="group" aria-label="Layout" data-testid="layout-picker" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {PREVIEW_LAYOUTS.map((layout) => {
+            const active = !activeDesign && previewSettings.layout === layout.id
+            return (
+              <button
+                key={layout.id}
+                type="button"
+                aria-pressed={active}
+                title={layout.description}
+                onClick={() => {
+                  setLocalChosenByUser(true)
+                  onChooseLayout?.()
+                  setPreviewLayout(layout.id)
+                }}
+                style={chipStyle(active)}
+              >
+                {layout.name}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* ── What will be placed ─────────────────────────────────────────── */}
       <div style={panelStyle}>
         <h3 style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
           What will be placed on your video
         </h3>
         <p style={{ ...hintStyle, marginTop: 0, marginBottom: 10 }}>
-          Based on the {activeTemplate.name} {activeDesign ? 'template' : 'layout'} — the preview updates as you edit.
+          Based on the {activeTemplate.name} {activeDesign ? 'design' : 'layout'} — the preview updates as you edit.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 8 }}>
           {layers.map((layer) => {

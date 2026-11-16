@@ -115,8 +115,8 @@ type GalleryItem =
       design: RemotionDesignTemplate
     }
 
-function buildItems(designs: RemotionDesignTemplate[]): GalleryItem[] {
-  const layouts: GalleryItem[] = PREVIEW_LAYOUTS.map((layout) => ({
+function buildItems(designs: RemotionDesignTemplate[], designsOnly = false): GalleryItem[] {
+  const layouts: GalleryItem[] = designsOnly ? [] : PREVIEW_LAYOUTS.map((layout) => ({
     kind: 'layout' as const,
     id: layout.id,
     name: layout.name,
@@ -202,12 +202,15 @@ export interface PersonalizationTemplateBrowserProps {
   onSelect?: (layoutId: PreviewLayoutId) => void
   /** When a Remotion design is selected. Defaults to the provider's `setRemotionDesign`. */
   onSelectDesign?: (designId: string) => void
+  /** Hide the built-in layouts: only the animated designs (add-ons) are listed. */
+  designsOnly?: boolean
 }
 
 /** Categorized gallery of every layout and Remotion design template. */
 export function PersonalizationTemplateBrowser({
   onSelect,
   onSelectDesign,
+  designsOnly = false,
 }: PersonalizationTemplateBrowserProps): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const {
@@ -249,7 +252,7 @@ export function PersonalizationTemplateBrowser({
     [onSelect, onSelectDesign, setPreviewLayout, setRemotionDesign],
   )
 
-  const items = useMemo(() => buildItems(remotionDesignTemplates), [remotionDesignTemplates])
+  const items = useMemo(() => buildItems(remotionDesignTemplates, designsOnly), [remotionDesignTemplates, designsOnly])
 
   const counts = useMemo(() => {
     const map = new Map<PersonalizationCategoryKey, number>()
@@ -295,7 +298,7 @@ export function PersonalizationTemplateBrowser({
               color: C.text,
             }}
           >
-            Video templates
+            {designsOnly ? 'Animated designs' : 'Video templates'}
           </h3>
           <span style={badgeStyle('muted')}>{totalCount} templates</span>
           <span style={badgeStyle('cyan')}>{counts.size} categories</span>
