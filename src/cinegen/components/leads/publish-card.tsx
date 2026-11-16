@@ -2,12 +2,15 @@
 import { useEffect, useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { publishIncludes } from '@cinegen/lib/leads/leads';
+import { createQrEndCard, mp4WatchLink } from '@cinegen/lib/leads/qr-end-card';
 // @ts-expect-error plain JS
 import { watchUrl, embedCode } from '../../../lib/editor/publish/publishClient.js';
 import type { usePublished } from './use-publish';
 
 export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePublished>; leadCount: number }) {
-  const { state } = useWorkspace();
+  const { state, dispatch } = useWorkspace();
+  const [qrBusy, setQrBusy] = useState(false);
+  const [qrDone, setQrDone] = useState(false);
   const [title, setTitle] = useState(pub.title);
   const [copied, setCopied] = useState('');
   const [preview, setPreview] = useState(false);
@@ -15,6 +18,16 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
   useEffect(() => setTitle(pub.title), [pub.title]);
   const includes = publishIncludes(state.overlays ?? []);
   const live = !!pub.info?.published;
+  const addQrCard = async () => {
+    if (!pub.id) return;
+    setQrBusy(true);
+    try {
+      const tl = state.timelines.find((t) => t.id === state.activeTimelineId) ?? state.timelines[0];
+      const secs = Math.max(2, tl?.duration ?? 10);
+      for (const overlay of await createQrEndCard(mp4WatchLink(pub.id, window.location.origin), secs)) dispatch({ type: 'ADD_OVERLAY', overlay });
+      setQrDone(true);
+    } finally { setQrBusy(false); }
+  };
   const copy = (what: string, text: string) => { void navigator.clipboard?.writeText(text); setCopied(what); setTimeout(() => setCopied(''), 1500); };
   return (
     <section className="leads-card" data-testid="publish-card">
@@ -46,6 +59,10 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
               </div>
             </div>
           )}
+          <div className="leads-row">
+            <button type="button" className="leads-btn" data-testid="add-qr-card" disabled={!live || qrBusy} onClick={() => void addQrCard()}>{qrBusy ? 'Adding…' : 'Add QR end card'}</button>
+            <span className="leads-note">{qrDone ? 'Added to the overlay lane. Edit it in the Edit tab; it shows in the exported MP4.' : 'For MP4 viewers: a QR + link to this page in the last seconds.'}</span>
+          </div>
           {!live && <p className="leads-note">Republish to preview and share the link.</p>}
           <p className="leads-stats">{pub.info.view_count ?? 0} views · {leadCount} leads</p>
         </div>
