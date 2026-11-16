@@ -25,7 +25,7 @@ import {
   INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
-  submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
+  submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, AFTER_SUBMIT_ACTIONS, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
@@ -1894,12 +1894,12 @@ export function TimelineEditorPage() {
             kind: 'lead-form',
             data,
             config: selected,
-            notificationEmail: selected.emailNotificationEnabled ? selected.notificationEmail : '',
+            notificationEmails: leadNotifyEmails(selected.emailNotificationEnabled, [selected.notificationEmail, selected.notificationEmail2, selected.notificationEmail3]),
           });
           const lastLead = selected._submittedLeads[selected._submittedLeads.length - 1];
           if (lastLead) lastLead._stored = !!res.stored;
           showToast(
-            leadResultMessage(res, selected.emailNotificationEnabled && selected.notificationEmail),
+            leadResultMessage(res, leadNotifyEmails(selected.emailNotificationEnabled, [selected.notificationEmail, selected.notificationEmail2, selected.notificationEmail3]).length > 0),
             res.failed ? 'error' : 'success',
           );
 
@@ -3210,7 +3210,18 @@ export function TimelineEditorPage() {
             webhookUrl3: clip.webhookUrl3,
             emailNotificationEnabled: clip.emailNotificationEnabled,
             notificationEmail: clip.notificationEmail,
+            notificationEmail2: clip.notificationEmail2,
+            notificationEmail3: clip.notificationEmail3,
             fbPixelId: clip.fbPixelId,
+            gaMeasurementId: clip.gaMeasurementId,
+            tiktokPixelId: clip.tiktokPixelId,
+            gtmId: clip.gtmId,
+            espProvider: clip.espProvider,
+            espListId: clip.espListId,
+            successMessage: clip.successMessage,
+            afterSubmitAction: clip.afterSubmitAction,
+            afterSubmitUrl: clip.afterSubmitUrl,
+            afterSubmitButtonText: clip.afterSubmitButtonText,
             _submittedLeads: clip._submittedLeads,
             style: clip.style,
             phoneNumber: clip.phoneNumber,
@@ -3661,6 +3672,22 @@ export function TimelineEditorPage() {
             <div class="clip-editor__field">
               <label for="lf-skip-enabled"><input id="lf-skip-enabled" type="checkbox" ${clip.skipButtonEnabled ? 'checked' : ''} /> Show Skip button (dismiss form, resume video)</label>
             </div>
+            <div class="clip-editor__field">
+              <label for="lf-success-msg">Message after the form is sent</label>
+              <input id="lf-success-msg" type="text" value="${escapeHtml(clip.successMessage || '')}" placeholder="Thanks!" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-after-action">After the form is sent</label>
+              <select id="lf-after-action">${AFTER_SUBMIT_ACTIONS.map(([v, l]) => `<option value="${v}" ${(clip.afterSubmitAction || 'continue') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+            </div>
+            <div class="clip-editor__field" id="lf-after-extra" ${clip.afterSubmitAction === 'button' || clip.afterSubmitAction === 'redirect' ? '' : 'hidden'}>
+              <label for="lf-after-url">Thank-you button / redirect link</label>
+              <input id="lf-after-url" type="url" value="${escapeHtml(clip.afterSubmitUrl || '')}" placeholder="https://example.com/thanks" />
+              <div id="lf-after-btn-wrap" ${clip.afterSubmitAction === 'button' ? '' : 'hidden'}>
+                <label for="lf-after-btn">Thank-you button text</label>
+                <input id="lf-after-btn" type="text" value="${escapeHtml(clip.afterSubmitButtonText || '')}" placeholder="Book a call" />
+              </div>
+            </div>
           </div>
           <div class="clip-editor__section">
             <h3>Fields</h3>
@@ -3798,15 +3825,54 @@ export function TimelineEditorPage() {
               <span id="lf-webhook-test-result" style="font-size:11px;color:var(--text-dim)"></span>
             </div>
             <div class="clip-editor__field">
+              <button id="lf-webhook-log" type="button" class="mini-btn" style="width:100%">Recent webhook deliveries</button>
+              <span id="lf-webhook-log-result" role="status" style="font-size:11px;color:var(--text-dim)"></span>
+            </div>
+            <div class="clip-editor__field">
+              <button id="lf-webhook-secret" type="button" class="mini-btn" style="width:100%">Show webhook signing secret</button>
+              <span id="lf-webhook-secret-result" role="status" style="font-size:11px;color:var(--text-dim);word-break:break-all"></span>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-esp-provider">Add leads to an email list (published videos)</label>
+              <select id="lf-esp-provider">${ESP_PROVIDERS.map(([v, l]) => `<option value="${v}" ${(clip.espProvider || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+            </div>
+            <div class="clip-editor__field" id="lf-esp-extra" ${clip.espProvider ? '' : 'hidden'}>
+              <label for="lf-esp-list" id="lf-esp-list-label">${espListLabel(clip.espProvider)}</label>
+              <input id="lf-esp-list" type="text" value="${escapeHtml(clip.espListId || '')}" placeholder="1234567" />
+              <button id="lf-esp-connect" type="button" class="mini-btn" style="width:100%;margin-top:6px">Connect ${espName(clip.espProvider) || 'account'}</button>
+              <span id="lf-esp-status" role="status" style="font-size:11px;color:var(--text-dim)"></span>
+            </div>
+            <div class="clip-editor__field">
               <label for="lf-email-enabled"><input id="lf-email-enabled" type="checkbox" ${clip.emailNotificationEnabled ? 'checked' : ''} /> Email notification on submit</label>
             </div>
             <div class="clip-editor__field">
-              <label for="lf-email-address">Notification Address</label>
-              <input id="lf-email-address" type="email" value="${clip.notificationEmail || ''}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+              <label for="lf-email-address">Notification Address (person 1)</label>
+              <input id="lf-email-address" type="email" value="${escapeHtml(clip.notificationEmail || '')}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-address2">Notification Address (person 2, optional)</label>
+              <input id="lf-email-address2" type="email" value="${escapeHtml(clip.notificationEmail2 || '')}" placeholder="teammate@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-address3">Notification Address (person 3, optional)</label>
+              <input id="lf-email-address3" type="email" value="${escapeHtml(clip.notificationEmail3 || '')}" placeholder="partner@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
             </div>
             <div class="clip-editor__field">
               <label for="lf-fb-pixel">Facebook Pixel ID</label>
               <input id="lf-fb-pixel" type="text" value="${clip.fbPixelId || ''}" placeholder="1234567890" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-ga-id">Google Analytics 4 Measurement ID</label>
+              <input id="lf-ga-id" type="text" value="${escapeHtml(clip.gaMeasurementId || '')}" placeholder="G-XXXXXXXXXX" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-tiktok-pixel">TikTok Pixel ID</label>
+              <input id="lf-tiktok-pixel" type="text" value="${escapeHtml(clip.tiktokPixelId || '')}" placeholder="C1A2B3C4D5E6F7G8H9" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-gtm-id">Google Tag Manager ID</label>
+              <input id="lf-gtm-id" type="text" value="${escapeHtml(clip.gtmId || '')}" placeholder="GTM-XXXXXXX" />
+              <span style="font-size:11px;color:var(--text-dim)">These fire a lead event on published videos only (not in the editor preview). If your Tag Manager already sends leads to Google Analytics, use one or the other so leads aren't counted twice.</span>
             </div>
             <div class="clip-editor__field">
               <button id="lf-download-leads" class="mini-btn" style="width:100%" >Download leads${(clip._submittedLeads || []).length ? ` (${(clip._submittedLeads || []).length} this session)` : ''}</button>
@@ -3852,6 +3918,14 @@ export function TimelineEditorPage() {
         clip.privacyPolicyLink = e.target.value;
         updatePreview(clip);
       });
+      els.clipEditorContainer.querySelector('#lf-success-msg').addEventListener('input', (e) => { clip.successMessage = e.target.value; });
+      els.clipEditorContainer.querySelector('#lf-after-action').addEventListener('change', (e) => {
+        clip.afterSubmitAction = e.target.value;
+        els.clipEditorContainer.querySelector('#lf-after-extra').hidden = clip.afterSubmitAction !== 'button' && clip.afterSubmitAction !== 'redirect';
+        els.clipEditorContainer.querySelector('#lf-after-btn-wrap').hidden = clip.afterSubmitAction !== 'button';
+      });
+      els.clipEditorContainer.querySelector('#lf-after-url').addEventListener('input', (e) => { clip.afterSubmitUrl = e.target.value.trim(); });
+      els.clipEditorContainer.querySelector('#lf-after-btn').addEventListener('input', (e) => { clip.afterSubmitButtonText = e.target.value; });
       els.clipEditorContainer.querySelector('#lf-skip-enabled').addEventListener('change', (e) => {
         clip.skipButtonEnabled = e.target.checked;
         updatePreview(clip);
@@ -4024,36 +4098,71 @@ export function TimelineEditorPage() {
         });
       });
       els.clipEditorContainer.querySelector('#lf-webhook-test').addEventListener('click', async () => {
-        const urls = [clip.webhookUrl, clip.webhookUrl2, clip.webhookUrl3].filter(Boolean);
+        const urls = webhookUrlsFor({ webhookEnabled: true, webhookUrl: clip.webhookUrl, webhookUrl2: clip.webhookUrl2, webhookUrl3: clip.webhookUrl3 });
         const resultEl = els.clipEditorContainer.querySelector('#lf-webhook-test-result');
         if (!urls.length) {
-          resultEl.textContent = 'No webhook URL configured';
+          resultEl.textContent = 'No valid https webhook URL configured';
           return;
         }
         resultEl.textContent = 'Testing...';
-        const results = await Promise.allSettled(urls.map((url) => fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ test: true, source: 'lead-form-test', clipId: clip.id }),
-        })));
-        const failures = results.filter((r) => r.status === 'rejected' || (r.value && !r.value.ok));
-        if (failures.length) {
-          resultEl.textContent = `${failures.length}/${urls.length} failed`;
-          showToast('Webhook test failed for one or more URLs', 'error');
-        } else {
-          resultEl.textContent = `${urls.length}/${urls.length} succeeded`;
-          showToast('Webhook test succeeded', 'success');
-        }
+        const sample = Object.fromEntries(leadFieldTokens(clip.fields || []).map((t) => [t, /MAIL/.test(t) ? 'test@example.com' : 'Test']));
+        const res = await runWebhookTest(supabase, urls, {
+          kind: 'lead-form', projectId: state.projectId || null, clipId: clip.id, data: sample, submittedAt: new Date().toISOString(),
+        });
+        resultEl.textContent = webhookTestMessage(res);
+        showToast(res.failed ? 'Webhook test failed for one or more URLs' : 'Webhook test succeeded', res.failed ? 'error' : 'success');
       });
+      els.clipEditorContainer.querySelector('#lf-webhook-log').addEventListener('click', async () => {
+        const out = els.clipEditorContainer.querySelector('#lf-webhook-log-result');
+        out.textContent = 'Loading...';
+        const r = await fetchDeliveries(supabase);
+        out.textContent = r.ok ? deliveriesSummary(r.rows) : `${r.error} (sign in to see deliveries)`;
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-secret').addEventListener('click', async () => {
+        const out = els.clipEditorContainer.querySelector('#lf-webhook-secret-result');
+        out.textContent = 'Loading...';
+        const r = await fetchSigningSecret(supabase);
+        if (!r.ok) out.textContent = r.error;
+        else if (!r.secret) out.textContent = 'Signing is not set up on the server yet';
+        else out.textContent = `${r.secret} — verify X-Remix-Signature (t=…,v1=HMAC-SHA256 of "t.body")`;
+      });
+      {
+        const espStatus = els.clipEditorContainer.querySelector('#lf-esp-status');
+        const showEsp = async () => { espStatus.textContent = integrationStatusText(clip.espProvider, await fetchIntegrations(supabase)); };
+        els.clipEditorContainer.querySelector('#lf-esp-provider').addEventListener('change', (e) => {
+          clip.espProvider = e.target.value;
+          els.clipEditorContainer.querySelector('#lf-esp-extra').hidden = !clip.espProvider;
+          els.clipEditorContainer.querySelector('#lf-esp-list-label').textContent = espListLabel(clip.espProvider);
+          els.clipEditorContainer.querySelector('#lf-esp-connect').textContent = `Connect ${espName(clip.espProvider) || 'account'}`;
+          if (clip.espProvider) showEsp(); else espStatus.textContent = '';
+        });
+        els.clipEditorContainer.querySelector('#lf-esp-list').addEventListener('input', (e) => { clip.espListId = e.target.value.trim(); });
+        els.clipEditorContainer.querySelector('#lf-esp-connect').addEventListener('click', async () => {
+          const provider = clip.espProvider;
+          if (!provider) return;
+          const key = window.prompt(`Paste your ${espName(provider)} API key (it is verified, then stored encrypted and never shown again)`);
+          if (!key) { showEsp(); return; }
+          espStatus.textContent = 'Checking...';
+          const r = await saveIntegration(supabase, provider, key);
+          if (r.ok) await showEsp(); else espStatus.textContent = r.error;
+          showToast(r.ok ? `${espName(provider)} connected` : r.error, r.ok ? 'success' : 'error');
+        });
+        if (clip.espProvider) showEsp();
+      }
       els.clipEditorContainer.querySelector('#lf-email-enabled').addEventListener('change', (e) => {
         clip.emailNotificationEnabled = e.target.checked;
-        els.clipEditorContainer.querySelector('#lf-email-address').disabled = !e.target.checked;
+        ['', '2', '3'].forEach((n) => { els.clipEditorContainer.querySelector(`#lf-email-address${n}`).disabled = !e.target.checked; });
       });
-      els.clipEditorContainer.querySelector('#lf-email-address').addEventListener('input', (e) => {
-        clip.notificationEmail = e.target.value;
+      [['', 'notificationEmail'], ['2', 'notificationEmail2'], ['3', 'notificationEmail3']].forEach(([n, key]) => {
+        els.clipEditorContainer.querySelector(`#lf-email-address${n}`).addEventListener('input', (e) => {
+          clip[key] = e.target.value;
+        });
       });
       els.clipEditorContainer.querySelector('#lf-fb-pixel').addEventListener('input', (e) => {
         clip.fbPixelId = e.target.value;
+      });
+      [['#lf-ga-id', 'gaMeasurementId'], ['#lf-tiktok-pixel', 'tiktokPixelId'], ['#lf-gtm-id', 'gtmId']].forEach(([sel, key]) => {
+        els.clipEditorContainer.querySelector(sel).addEventListener('input', (e) => { clip[key] = e.target.value.trim(); });
       });
       els.clipEditorContainer.querySelector('#lf-download-leads').addEventListener('click', () => {
         // Stored leads (lead-capture backend) merged with this session's.
@@ -5370,6 +5479,47 @@ export function TimelineEditorPage() {
         options: lb,
         fieldsFor: (o) => listBuilderFields(o),
         idPrefix: 'listbuilder',
+        services: {
+          fieldAction: async (action, config, { setResult }) => {
+            if (action === 'webhookLog') {
+              setResult('Loading...');
+              const r = await fetchDeliveries(supabase);
+              setResult(r.ok ? deliveriesSummary(r.rows) : `${r.error} (sign in to see deliveries)`);
+              return;
+            }
+            if (action === 'signingSecret') {
+              setResult('Loading...');
+              const r = await fetchSigningSecret(supabase);
+              if (!r.ok) setResult(r.error);
+              else if (!r.secret) setResult('Signing is not set up on the server yet');
+              else setResult(`${r.secret} — verify X-Remix-Signature (t=…,v1=HMAC-SHA256 of "t.body")`);
+              return;
+            }
+            if (action === 'connectEsp') {
+              const provider = config.espProvider;
+              if (!provider) return;
+              const key = window.prompt(`Paste your ${espName(provider)} API key (it is verified, then stored encrypted and never shown again)`);
+              if (!key) { setResult(integrationStatusText(provider, await fetchIntegrations(supabase))); return; }
+              setResult('Checking...');
+              const r = await saveIntegration(supabase, provider, key);
+              setResult(r.ok ? integrationStatusText(provider, await fetchIntegrations(supabase)) : r.error);
+              showToast(r.ok ? `${espName(provider)} connected` : r.error, r.ok ? 'success' : 'error');
+              return;
+            }
+            if (action !== 'testWebhooks') return;
+            const urls = webhookUrlsFor(listBuilderWebhookConfig(config));
+            if (!urls.length) { setResult('No valid https webhook URL configured'); return; }
+            setResult('Testing...');
+            const tokens = leadFieldTokens(config.elements);
+            const sample = Object.fromEntries(tokens.map((t) => [t, /MAIL/.test(t) ? 'test@example.com' : 'Test']));
+            const res = await runWebhookTest(supabase, urls, {
+              kind: config.kind || 'list-builder', projectId: state.projectId || null, clipId: 'list-builder', data: sample,
+              submittedAt: new Date().toISOString(),
+            });
+            setResult(webhookTestMessage(res));
+            showToast(res.failed ? 'Webhook test failed for one or more URLs' : 'Webhook test succeeded', res.failed ? 'error' : 'success');
+          },
+        },
         onChange: (next) => {
           const kindChanged = next.kind !== state.listBuilder.kind;
           state.listBuilder = kindChanged ? switchListBuilderKind(next, next.kind) : next;
@@ -5446,7 +5596,7 @@ export function TimelineEditorPage() {
     // Shared lead capture: stores via the lead-capture edge function, which
     // also forwards webhooks server-side; falls back to posting webhooks from
     // the browser if the backend is unreachable.
-    async function captureLead({ clipId, kind, data, config, notificationEmail }) {
+    async function captureLead({ clipId, kind, data, config, notificationEmails = [] }) {
       const webhooks = webhookUrlsFor(config);
       const result = await submitLead(supabase, {
         projectId: state.projectId || currentTimelineId(state) || null,
@@ -5454,7 +5604,7 @@ export function TimelineEditorPage() {
         kind,
         data,
         webhooks,
-        notificationEmail,
+        notificationEmails,
         preview: true,
       });
       if (result.error) {
@@ -5469,7 +5619,10 @@ export function TimelineEditorPage() {
       if (res.forwarded || res.failed) {
         parts.push(res.failed ? `${res.failed} webhook(s) failed` : `sent to ${res.forwarded} webhook(s)`);
       }
-      if (emailConfigured) parts.push('email notifications need an email provider (not connected yet)');
+      if (res.email === 'sent') parts.push(res.emailCount > 1 ? `notification email sent to ${res.emailCount} people` : 'notification email sent');
+      else if (res.email === 'failed') parts.push('notification email failed');
+      else if (res.email === 'not_configured') parts.push('notification email not set up on the server yet');
+      else if (emailConfigured) parts.push('notification email not sent — check the address');
       return parts.join(' · ');
     }
 
@@ -5517,7 +5670,7 @@ export function TimelineEditorPage() {
             kind: lb.kind,
             data,
             config: lb.kind === 'personalizer' ? null : listBuilderWebhookConfig(lb),
-            notificationEmail: lb.emailEnabled ? lb.emailAddress : '',
+            notificationEmails: leadNotifyEmails(lb.emailEnabled, [lb.emailAddress, lb.emailAddress2, lb.emailAddress3]),
           });
           lb._localLeads = [...(lb._localLeads || []), { ...data, submittedAt: new Date().toISOString(), _stored: !!res.stored }];
           if (lb.kind === 'personalizer') {
@@ -5529,7 +5682,7 @@ export function TimelineEditorPage() {
             window.fbq('trackSingle', lb.fbPixelId, 'Lead', data);
           }
           if (!preview) lb._submitted = true;
-          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : `${leadResultMessage(res, lb.emailEnabled && lb.emailAddress)} — {{tokens}} in the video now use these answers`, res.failed ? 'error' : 'success');
+          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : `${leadResultMessage(res, leadNotifyEmails(lb.emailEnabled, [lb.emailAddress, lb.emailAddress2, lb.emailAddress3]).length > 0)} — {{tokens}} in the video now use these answers`, res.failed ? 'error' : 'success');
           resume();
           return '';
         },

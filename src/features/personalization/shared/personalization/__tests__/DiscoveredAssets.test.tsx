@@ -1226,6 +1226,29 @@ describe('Discovered Assets Integration', () => {
     expect(ctx().businessSearchResults).toHaveLength(0)
   })
 
+  it('continues a time-limited business search from the resume cursor and keeps results on a failed continuation', async () => {
+    await renderProvider()
+    await openSource()
+    const bodies: any[] = []
+    const baseFetch = (globalThis as any).fetch
+    ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
+      if (typeof url === 'string' && url.includes('/api/personalization/find-businesses')) {
+        const body = JSON.parse(options.body); bodies.push(body)
+        if (!body.resume) return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'a', name: 'A' }], backfill: { resume: { startStage: 2 } } }) } as any
+        if (body.resume.startStage === 2) return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }], backfill: { resume: { startStage: 3 } } }) } as any
+        throw new Error('network down') // the second continuation fails
+      }
+      return baseFetch(url, options)
+    })
+    const ctx = () => (window as any).__personalizationCtx
+    await act(async () => { await ctx().findBusinesses('plumber', 'Tampa', 10) })
+    expect(bodies[1].resume.startStage).toBe(2)
+    expect(bodies[1].resume.records.map((r: any) => r.id)).toEqual(['a'])
+    expect(bodies[2].resume.startStage).toBe(3)
+    expect(ctx().businessSearchResults.map((r: any) => r.id)).toEqual(['a', 'b']) // grown by the first continuation, kept after the second failed
+    expect(ctx().businessSearchMode).toBe('results')
+  })
+
   it('closing the project clears the business selection and search for the next one', async () => {
     await renderProvider()
     await openSource()

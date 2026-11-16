@@ -30,6 +30,7 @@ import type {
 // deterministic typeface. `templates/typography` imports nothing from
 // `preview/`, so this import cannot form a cycle.
 import { DESIGN_FONT_STACK } from '../templates/typography'
+import { normalizeAngle } from './rotation'
 
 const LAYER_KINDS: PreviewLayerKind[] = [
   'logo',
@@ -361,6 +362,9 @@ export function clampLayer(layer: PreviewLayer): PreviewLayer {
   } else {
     delete clamped.endFrame
   }
+  const rotation = normalizeAngle(layer.rotation)
+  if (rotation !== 0) clamped.rotation = rotation
+  else delete clamped.rotation
   return clamped
 }
 
@@ -384,7 +388,7 @@ export function createDefaultPreviewSettings(
   const { width, height } = getCompositionDimensions('16:9')
   const base: PersonalizationPreviewSettings = {
     layout: 'business-introduction',
-    layers: LAYER_IDS_BY_LAYOUT['business-introduction'].map((kind) => createLayer(kind)),
+    layers: createLayoutLayers('business-introduction', '16:9'),
     brandColors: { ...DEFAULT_PREVIEW_BRAND_COLORS },
     aspectRatio: '16:9',
     fps: DEFAULT_PREVIEW_FPS,
@@ -440,7 +444,7 @@ type LayerGeometry = Pick<PreviewLayer, 'x' | 'y' | 'scale'>
  * not listed here keep `LAYER_DEFAULTS`.
  */
 const IMAGE_LAYOUT_GEOMETRY: Record<
-  'product-showcase' | 'service-promotion',
+  'business-introduction' | 'product-showcase' | 'service-promotion',
   Record<PreviewAspectRatio, Partial<Record<PreviewLayerKind, LayerGeometry>>>
 > = (() => {
   const landscape = (image: PreviewLayerKind) => ({
@@ -463,7 +467,22 @@ const IMAGE_LAYOUT_GEOMETRY: Record<
     '4:5': stacked(image, 0.2, 0.34, 0.64, 0.42),
     '1:1': stacked(image, 0.18, 0.31, 0.66, 0.4),
   })
+  // Business Introduction sits as a lower-third (name over headline, bottom-left) so the
+  // subject of the footage stays clear. Only the two text layers move; the logo keeps its
+  // corner. Text is left-aligned against the safe-area margin (see `textAlignFor`).
+  const lowerThird = (name: number, head: number) => ({
+    businessName: { x: 0.08, y: name, scale: 0.055 },
+    headline: { x: 0.08, y: head, scale: 0.045 },
+  })
   return {
+    'business-introduction': {
+      // One position for every shape: it sits in the bottom third and clear of the 9:16
+      // social-UI strip, and "untouched" detection stays stable across aspect changes.
+      '16:9': lowerThird(0.68, 0.76),
+      '9:16': lowerThird(0.68, 0.76),
+      '4:5': lowerThird(0.68, 0.76),
+      '1:1': lowerThird(0.68, 0.76),
+    },
     'product-showcase': build('productImage'),
     'service-promotion': build('serviceImage'),
   }
@@ -475,8 +494,21 @@ export function layoutLayerGeometry(
   kind: PreviewLayerKind,
   aspect: PreviewAspectRatio | undefined,
 ): LayerGeometry | undefined {
-  if (layoutId !== 'product-showcase' && layoutId !== 'service-promotion') return undefined
+  if (layoutId !== 'business-introduction' && layoutId !== 'product-showcase' && layoutId !== 'service-promotion') return undefined
   return IMAGE_LAYOUT_GEOMETRY[layoutId][aspect ?? '16:9']?.[kind]
+}
+
+/**
+ * The layers a layout starts with, each at the layout's own default geometry
+ * (not the generic one), so a brand-new project and `applyLayoutPreset` agree on
+ * what "untouched" means.
+ */
+export function createLayoutLayers(
+  layoutId: PreviewLayoutId,
+  aspect: PreviewAspectRatio | undefined,
+): PreviewLayer[] {
+  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? LAYER_IDS_BY_LAYOUT['business-introduction']
+  return kinds.map((kind) => createLayer(kind, { ...layoutLayerGeometry(layoutId, kind, aspect) }))
 }
 
 /** A layer's untouched geometry: the layout's own default, else the generic one. */
@@ -919,6 +951,8 @@ function normalizeLayer(raw: unknown): PreviewLayer | null {
   const textSlotOverrides = normalizeTextSlotOverrides(raw.textSlotOverrides)
   if (textSlotOverrides) normalized.textSlotOverrides = textSlotOverrides
   if (raw.locked === true) normalized.locked = true
+  const rotation = normalizeAngle(raw.rotation)
+  if (rotation !== 0) normalized.rotation = rotation
   const imageStyle = normalizeImageStyle(raw.imageStyle)
   if (imageStyle) normalized.imageStyle = imageStyle
   if (typeof raw.imageRole === 'string' && (IMAGE_ROLES as readonly string[]).includes(raw.imageRole)) normalized.imageRole = raw.imageRole as ImageRole
@@ -1098,7 +1132,7 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
        out.layers =
          layers.length > 0
            ? layers
-           : LAYER_IDS_BY_LAYOUT[out.layout].map((kind) => createLayer(kind))
+           : createLayoutLayers(out.layout, out.aspectRatio)
    }
 
    out.audio = normalizePreviewAudio(raw.audio) ?? null

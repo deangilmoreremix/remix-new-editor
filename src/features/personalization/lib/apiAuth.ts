@@ -16,6 +16,7 @@ import { apiKeyManager } from '../../../lib/apiKeyManager.js'
 const PREFIXES = [
   '/api/personalization/',
   '/api/demo/discover',
+  '/api/demo/download-image',
   '/api/video/record',
   '/api/proxy/openai-enhance',
   // OpenHiggsBolt's MuAPI proxy and upload route (generation + uploads).

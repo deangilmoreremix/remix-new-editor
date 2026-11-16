@@ -169,6 +169,25 @@ describe('Layer placement state (manual / locked / recommended)', () => {
     expect(layer('headline').x).toBe(0.9)
   })
 
+  it('a rotation edit is the customer\'s own: marks the layer manual, is normalized, and is stored only when not zero', async () => {
+    renderProvider(); await openSource()
+    expect(layer('headline').rotation).toBeUndefined()
+    await act(async () => { ctx().updatePreviewLayer('headline', { rotation: 190 }) })
+    expect(layer('headline').rotation).toBe(-170)
+    expect(layer('headline').placementSource).toBe('manual')
+    await act(async () => { ctx().updatePreviewLayer('headline', { rotation: 0 }) })
+    expect('rotation' in layer('headline')).toBe(false)
+    await act(async () => { ctx().updatePreviewLayer('headline', { rotation: Number.NaN as unknown as number }) })
+    expect('rotation' in layer('headline')).toBe(false)
+  })
+
+  it('a locked layer ignores a rotation edit too', async () => {
+    renderProvider(); await openSource()
+    await act(async () => { ctx().setPreviewLayerLocked('headline', true) })
+    await act(async () => { ctx().updatePreviewLayer('headline', { rotation: 30 }) })
+    expect(layer('headline').rotation).toBeUndefined()
+  })
+
   it('applying placements never moves locked or hand-placed layers unless overriding manual', async () => {
     renderProvider(); await openSource()
     await act(async () => {

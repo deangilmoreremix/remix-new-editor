@@ -161,3 +161,29 @@ Pre-existing failure: `apps/motion-director/__tests__/legacyCards.test.ts` (reti
 - Verification: personalization suite 2128 tests (2117 pass, 10 skipped, 1 pre-existing `legacyCards` failure); server suite
   572/572; `vite build` succeeds; scoped `tsc` at baseline (+3 `.js` declaration warnings).
 - Skipped tests (documented in-file): jsdom 27 limits (image load, Blob/Response, computed CSS) - re-enable after a jsdom upgrade.
+
+## Sync 2: OpenHiggsBolt `main` @ `cc01e08d` (14 Nov)
+
+The first port (PR #120) was made from an OpenHiggsBolt checkout dated 11 Nov. `main` was then 101 commits ahead; this sync ports the
+changes since, by three-way merging each file (base = the 11 Nov file, theirs = `main`, ours = remix `develop`) after the same remix
+rewrites (`@ohb/` aliases, remix palette, server shims). Remix `develop` had meanwhile ported part of Asset Finder background removal
+itself; those hunks merged without conflict.
+
+**Ported**
+- Overlay editor: eight resize handles, rotation handle and field, layer rotation in the composition, timeline, undo/redo and shortcuts,
+  inspector tabs, first-run tour, edit on the live animated video (`guided/editor/*`, `preview/rotation.ts`, `layerOrder.ts`, `motion.ts`,
+  `scrim.ts`, `textStyle.ts`, shared luma-sample cache).
+- Asset Finder background removal for signed-out visitors (public image route `POST /api/demo/download-image`, `BeforeAfterSlider`).
+- "Remove branding (AI)" (`guided/RemoveBrandingControl.tsx`, `useBrandingRemoval.ts`, `brandingRemoval.ts`) - a paid, confirm-first action.
+- Business Finder: enrichment (`POST /api/personalization/enrich-business`, `useBusinessEnrichment`, `SocialIcons`), backfill with per-stage
+  timeouts and resume, client-IP rate-limit key, chain registry additions, streaming byte limit for `download-image`, with their tests.
+
+**Not ported on purpose**
+- Academy (course player, progress API, `academy_progress` migrations) - excluded by request.
+- Social publishing / thumbnail designer (`components/social-publishing`, `thumbnail-generate`, `socialPayloads`, `src/lib/thumbnailUpload`,
+  `openaiImage*`) and the social-connect change in `src/lib/muapi.js` - OpenHiggsBolt's own publish dialog; remix publishes through
+  `src/lib/socialPublishHelpers.js`.
+
+**Remix-specific adjustments kept**: still-image sources stay out of `videoUrl`; footage is measured on the cover crop of the frame shape
+(`sampleCacheKey`); `enrich-business` and `demo/download-image` are registered in `personalization-api.mts`, the Vite proxy and the auth prefix
+list; the enrichment integration test reads its local fixture with `node:http` because remix's test setup mocks global `fetch`.

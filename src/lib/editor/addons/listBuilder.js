@@ -29,8 +29,8 @@
 import {
   POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, isTargetDesign,
 } from './pointerDesigns.js';
-import { leadFieldTokens } from './leadClient.js';
-import { FIELD_LAYOUTS } from './addonOverlay.js';
+import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
+import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS } from './addonOverlay.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -159,6 +159,9 @@ export function defaultOptin(kind = 'list-builder') {
     btnText: 'Play',
     skipText: 'Skip',
     successMessage: 'Thanks!',
+    afterSubmitAction: 'continue',
+    afterSubmitUrl: '',
+    afterSubmitButtonText: '',
     // text styling
     captionColor: '', // '' = the form font colour
     captionBold: true,
@@ -182,7 +185,14 @@ export function defaultOptin(kind = 'list-builder') {
     webhook3: '',
     emailEnabled: false,
     emailAddress: '',
+    emailAddress2: '',
+    emailAddress3: '',
     fbPixelId: '',
+    gaMeasurementId: '',
+    tiktokPixelId: '',
+    gtmId: '',
+    espProvider: '',
+    espListId: '',
     transition: 'popcorn-none',
     ...POINTER_DEFAULTS,
     pointerEnabled: !lead, // upstream only showed the arrow on the List Builder
@@ -254,6 +264,9 @@ const TEXT_FIELDS = (personalizer) => [
   { key: 'btnText', label: 'Play button text', type: 'text' },
   { key: 'skipText', label: 'Skip button text', type: 'text', showIf: (o) => o.enableSkipButton },
   { key: 'successMessage', label: 'Message after the form is sent', type: 'text' },
+  { key: 'afterSubmitAction', label: 'After the form is sent', type: 'select', options: AFTER_SUBMIT_ACTIONS },
+  { key: 'afterSubmitUrl', label: 'Thank-you button / redirect link (https://…)', type: 'url', showIf: (o) => o.afterSubmitAction === 'button' || o.afterSubmitAction === 'redirect' },
+  { key: 'afterSubmitButtonText', label: 'Thank-you button text', type: 'text', showIf: (o) => o.afterSubmitAction === 'button' },
   { key: 'privacyDisclaimer', label: 'Privacy text', type: 'textarea', showIf: () => !personalizer },
   { key: 'privacyPolicyCaption', label: 'Privacy policy link text', type: 'text' },
   { key: 'privacyPolicyLink', label: 'Privacy policy link (URL)', type: 'url' },
@@ -306,9 +319,20 @@ export function listBuilderFields(config) {
       { key: 'webhook', label: 'Webhook Address', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'webhook2', label: 'Webhook Address 2', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'webhook3', label: 'Webhook Address 3', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookTest', label: 'Test Webhook', type: 'action', action: 'testWebhooks', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookLog', label: 'Recent webhook deliveries', type: 'action', action: 'webhookLog', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookSecret', label: 'Show webhook signing secret', type: 'action', action: 'signingSecret', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'emailEnabled', label: 'Email Notification', type: 'toggle', tab: 'Integrations' },
-      { key: 'emailAddress', label: 'Notification Address', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
+      { key: 'emailAddress', label: 'Notification Address (person 1)', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
+      { key: 'emailAddress2', label: 'Notification Address (person 2, optional)', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
+      { key: 'emailAddress3', label: 'Notification Address (person 3, optional)', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
       { key: 'fbPixelId', label: 'Facebook Pixel ID', type: 'text', tab: 'Integrations' },
+      { key: 'gaMeasurementId', label: 'Google Analytics 4 Measurement ID (G-XXXXXXXXXX)', type: 'text', tab: 'Integrations' },
+      { key: 'tiktokPixelId', label: 'TikTok Pixel ID', type: 'text', tab: 'Integrations' },
+      { key: 'gtmId', label: 'Google Tag Manager ID (GTM-XXXXXXX)', type: 'text', tab: 'Integrations' },
+      { key: 'espProvider', label: 'Add leads to an email list (published videos)', type: 'select', options: ESP_PROVIDERS, tab: 'Integrations' },
+      { key: 'espListId', label: espListLabel(config?.espProvider), type: 'text', tab: 'Integrations', showIf: (o) => !!o.espProvider },
+      { key: '_espConnect', label: `Connect ${espName(config?.espProvider) || 'account'}`, type: 'action', action: 'connectEsp', tab: 'Integrations', showIf: (o) => !!o.espProvider },
     );
   }
   return fields;
@@ -341,6 +365,10 @@ const CLIP_KEYS = {
   privacyDisclaimer: 'privacyText',
   privacyPolicyCaption: 'privacyPolicyCaption',
   privacyPolicyLink: 'privacyPolicyLink',
+  successMessage: 'successMessage',
+  afterSubmitAction: 'afterSubmitAction',
+  afterSubmitUrl: 'afterSubmitUrl',
+  afterSubmitButtonText: 'afterSubmitButtonText',
   brandLogoSrc: 'brandLogoUrl',
   enableSkipButton: 'skipButtonEnabled',
   webhookEnabled: 'webhookEnabled',
@@ -349,7 +377,14 @@ const CLIP_KEYS = {
   webhook3: 'webhookUrl3',
   emailEnabled: 'emailNotificationEnabled',
   emailAddress: 'notificationEmail',
+  emailAddress2: 'notificationEmail2',
+  emailAddress3: 'notificationEmail3',
   fbPixelId: 'fbPixelId',
+  gaMeasurementId: 'gaMeasurementId',
+  tiktokPixelId: 'tiktokPixelId',
+  gtmId: 'gtmId',
+  espProvider: 'espProvider',
+  espListId: 'espListId',
 };
 
 // opt-in option → clip.style key.
@@ -417,7 +452,7 @@ export function applyOptinToLeadForm(clip, next) {
   clip.design = clip.design || {};
   for (const [key, value] of Object.entries(next)) {
     if (OWN_KEYS.has(key)) continue;
-    if (CLIP_KEYS[key]) clip[CLIP_KEYS[key]] = value;
+    if (CLIP_KEYS[key]) { clip[CLIP_KEYS[key]] = value; delete clip.design[key]; } // an older design.<key> would win on read
     else if (STYLE_KEYS[key]) clip.style[STYLE_KEYS[key]] = value;
     else clip.design[key] = value;
   }

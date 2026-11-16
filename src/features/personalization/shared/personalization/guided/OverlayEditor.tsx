@@ -1,21 +1,36 @@
 'use client'
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
-import { Eye, EyeOff, Move, RotateCcw } from 'lucide-react'
+import { Fragment, useCallback, useEffect, useId, useRef, useState } from 'react'
+import { ArrowDown, ArrowUp, Eye, EyeOff, Lock, Move, Pause, Play, RotateCcw, Unlock } from 'lucide-react'
 import { ImageCollage, SplitPanel, StyledBusinessImage } from '../preview/StyledBusinessImage'
 import type { ImageStyle } from '../preview/imageStyle'
 import { imageRoleForLayerKind, presetStyle, resolveImageLook } from '../preview/imagePresets'
 import { MEDIA_ROLE_CONTRACTS, roleForLayer } from '../preview/mediaRoles'
 import { ImageStyleControls } from './ImageStyleControls'
+import { ColorField } from './editor/ColorField'
+import { SortableRow } from './editor/SortableRow'
+import { Tip } from './editor/Tip'
+import { PersonalizationPlayer } from '../preview/PersonalizationPlayer'
+import type { PlayerRef } from '@remotion/player'
+import { Timeline } from './editor/Timeline'
+import { EditorTour } from './editor/EditorTour'
+import { HANDLES, cursorForHandle, resizeFromHandle, rotationFromPointer, type HandleId, type TransformBox } from './editor/transform'
+import { isRotated, normalizeAngle, rotateCss, rotatedExtent } from '../preview/rotation'
+import type { EditorTipId } from './editor/editorTips'
+import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { canMoveLayer, moveLayer, type LayerMove } from '../preview/layerOrder'
+import { layerSnapBox, snapMove, snapTargets } from './editor/snap'
 import { DesignLayerPlayer } from './DesignLayerPlayer'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import {
   PREVIEW_ANIMATIONS,
   PREVIEW_FONTS,
   PREVIEW_POSITIONS,
-  fontStackById,
   isImageLayerKind,
 } from '../preview/presets'
+import { accentRuleStyle, ctaPillStyle, isSingleLineBox, isTextStyleKind, layerTextStyle, textAlignFor } from '../preview/textStyle'
+import { hasTextScrim, scrimForBox, scrimStyle } from '../preview/scrim'
 import { getRemotionDesignTemplate } from '../templates'
 import type {
   RemotionDesignTextSlot,
@@ -33,6 +48,7 @@ import {
   clampLayerToBounds,
   imageAssetDefaultLabel,
   imageAssetOptions,
+  layerBoxMetrics,
   nudgeDeltaForKey,
   offsetLayer,
   resolveCompositionSize,
@@ -195,11 +211,22 @@ interface DragState {
   startY: number
   /** Safe-area-clamped snapshot taken when the drag started (no jump). */
   origin: PreviewLayer
-  mode: 'move' | 'resize'
+  mode: 'move' | 'resize' | 'rotate'
+  /** For resize: which of the eight handles is being dragged. */
+  handle?: HandleId
+  /** The drawn box (composition pixels) when the drag started: resize and rotate are measured against it. */
+  box0?: TransformBox
 }
 
 export interface OverlayEditorProps {
   inputProps: PreviewInputProps
+  /** Rendered directly under the video stage (sticky with it), e.g. the layout quality bar. */
+  belowStage?: React.ReactNode
+  /**
+   * Edit on the real animated video: the Remotion Player draws the composition and the layer boxes become a
+   * transparent interaction layer above it. Off by default; the stage then shows the poster image.
+   */
+  liveStage?: boolean
 }
 
 /**
@@ -222,11 +249,19 @@ export interface OverlayEditorProps {
 export const framesToSeconds = (frames: number, fps: number) => Math.round((frames / Math.max(1, fps)) * 100) / 100
 export const secondsToFrames = (seconds: number, fps: number) => Math.max(0, Math.round((Number.isFinite(seconds) ? seconds : 0) * Math.max(1, fps)))
 
-export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Element {
+type InspectorTab = 'content' | 'layout' | 'timing'
+const INSPECTOR_TABS: { id: InspectorTab; label: string }[] = [
+  { id: 'content', label: 'Content' },
+  { id: 'layout', label: 'Layout' },
+  { id: 'timing', label: 'Timing' },
+]
+
+export function OverlayEditor({ inputProps, belowStage, liveStage = false }: OverlayEditorProps): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const {
     previewSettings,
     updatePreviewLayer,
+    reorderPreviewLayers,
     setPreviewLayerLocked,
     setRemotionDesign,
     undoPreview,
@@ -244,6 +279,36 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
   const [selectedId, setSelectedId] = useState<string>(() => settings.layers[0]?.id || '')
   const dragRef = useRef<DragState | null>(null)
   const [confirmRemoveDesign, setConfirmRemoveDesign] = useState(false)
+  // Snap guides: on by default, switched off from the toolbar or by holding Alt while dragging.
+  const [snapOn, setSnapOn] = useState(true)
+  const [inspectorTab, setInspectorTab] = useState<InspectorTab>('content')
+  // Live stage: the person can still switch back to the still poster (lighter, and a fallback if the video cannot play).
+  const [liveWanted, setLiveWanted] = useState(true)
+  const liveOn = liveStage && liveWanted
+  const playerRef = useRef<PlayerRef | null>(null)
+  const [playFrame, setPlayFrame] = useState(0)
+  const [playing, setPlaying] = useState(false)
+  const [guides, setGuides] = useState<{ x: number[]; y: number[] }>({ x: [], y: [] })
+  // Layers list reorder: top of the list = frontmost, so the list is the layer array reversed.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+  const onReorderEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const frontToBack = [...settings.layers].reverse().map((l) => l.id)
+    const from = frontToBack.indexOf(String(active.id))
+    const to = frontToBack.indexOf(String(over.id))
+    if (from < 0 || to < 0) return
+    const next = [...frontToBack]
+    next.splice(to, 0, next.splice(from, 1)[0])
+    reorderPreviewLayers?.(next.reverse())
+  }
+  const restack = (id: string, move: LayerMove) => {
+    if (!canMoveLayer(settings.layers, id, move)) return
+    reorderPreviewLayers?.(moveLayer(settings.layers, id, move).map((l) => l.id))
+  }
 
   // The Layout Quality Check's "Show" selects the affected layer here.
   useEffect(() => {
@@ -313,6 +378,16 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
     [updatePreviewLayer],
   )
 
+  /** Sets a layer's rotation and keeps it inside the safe area (a rotated box is bigger). */
+  const commitRotation = useCallback(
+    (layer: PreviewLayer, degrees: number) => {
+      const rotation = normalizeAngle(degrees)
+      const bounded = clampLayerToBounds({ ...layer, rotation }, compW, compH)
+      updatePreviewLayer(layer.id, { rotation, x: round(bounded.x), y: round(bounded.y) })
+    },
+    [updatePreviewLayer, compW, compH],
+  )
+
   const onPointerMove = useCallback(
     (event: PointerEvent) => {
       const drag = dragRef.current
@@ -323,17 +398,41 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
       const dx = (event.clientX - drag.startX) / rect.width
       const dy = (event.clientY - drag.startY) / rect.height
       if (drag.mode === 'move') {
-        commitPosition(drag.layerId, offsetLayer(drag.origin, dx, dy, compW, compH))
+        const moved = offsetLayer(drag.origin, dx, dy, compW, compH)
+        if (snapOn && !event.altKey) {
+          const self = settings.layers.find((l) => l.id === drag.layerId)
+          const others = settings.layers
+            .filter((l) => l.id !== drag.layerId && l.visible && l.kind !== 'endCard' && l.kind !== 'design' && (!isImageLayerKind(l.kind) || Boolean(layerImageUrl(l, brand))))
+            .map((l) => layerSnapBox(l, isImageLayerKind(l.kind) ? undefined : layerText(l, brand), compW, compH))
+          const text = self && !isImageLayerKind(self.kind) ? layerText(self, brand) : undefined
+          const res = snapMove(layerSnapBox(moved, text, compW, compH), snapTargets(others, SAFE_AREA_MARGIN))
+          setGuides({ x: res.guidesX, y: res.guidesY })
+          commitPosition(drag.layerId, clampLayerToBounds({ ...moved, x: moved.x + res.dx, y: moved.y + res.dy }, compW, compH))
+        } else {
+          setGuides((g) => (g.x.length || g.y.length ? { x: [], y: [] } : g))
+          commitPosition(drag.layerId, moved)
+        }
+      } else if (drag.mode === 'rotate' && drag.box0) {
+        const pointer = { x: ((event.clientX - rect.left) / rect.width) * compW, y: ((event.clientY - rect.top) / rect.height) * compH }
+        commitRotation(drag.origin, rotationFromPointer({ x: drag.box0.cx, y: drag.box0.cy }, pointer, { snap: event.shiftKey, current: drag.origin.rotation }))
+      } else if (drag.mode === 'resize' && drag.handle && drag.box0) {
+        // Resizing from any handle keeps the opposite corner (or edge) where it is and the proportions the same.
+        const pointer = { x: ((event.clientX - rect.left) / rect.width) * compW, y: ((event.clientY - rect.top) / rect.height) * compH }
+        const o = drag.origin
+        const r = resizeFromHandle(drag.box0, drag.handle, pointer, { minFactor: MIN_LAYER_SCALE / o.scale, maxFactor: MAX_LAYER_SCALE / o.scale })
+        const moved = { ...o, x: o.x + (r.cx - drag.box0.cx) / compW, y: o.y + (r.cy - drag.box0.cy) / compH }
+        commitScale(drag.layerId, scaleLayerTo(moved, o.scale * r.factor, compW, compH))
       } else {
         const nextScale = drag.origin.scale * (1 + dx * 2)
         commitScale(drag.layerId, scaleLayerTo(drag.origin, nextScale, compW, compH))
       }
     },
-    [commitPosition, commitScale, compW, compH],
+    [commitPosition, commitScale, commitRotation, compW, compH, snapOn, settings.layers, brand],
   )
 
   const endDrag = useCallback(() => {
     dragRef.current = null
+    setGuides((g) => (g.x.length || g.y.length ? { x: [], y: [] } : g))
   }, [])
 
   // Window-level listeners: a drag that leaves the stage (or the window)
@@ -363,13 +462,17 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
     return MEDIA_ROLE_CONTRACTS[roleForLayer(layer, d ? { id: d.id, category: d.category } : null)]
   }
 
-  const startDrag = (event: React.PointerEvent, layer: PreviewLayer, mode: 'move' | 'resize') => {
+  const startDrag = (event: React.PointerEvent, layer: PreviewLayer, mode: 'move' | 'resize' | 'rotate', handle?: HandleId) => {
     event.preventDefault()
     event.stopPropagation()
     setSelectedId(layer.id)
+    // Editing a moving picture is hard: stop playback while a layer is grabbed.
+    try { playerRef.current?.pause() } catch { /* no player */ }
     const allowed = contractOf(layer)
-    if (mode === 'move' ? !allowed.userMovable : !allowed.userResizable) return
+    if (mode === 'move' ? !allowed.userMovable : mode === 'rotate' ? !allowed.userRotatable : !allowed.userResizable) return
     if (layer.locked) return // locked: selectable, but not draggable until unlocked
+    const origin = clampLayerToBounds(layer, compW, compH)
+    const m = layerBoxMetrics(origin, compW, compH, isImageLayerKind(layer.kind) || layer.kind === 'design' ? undefined : layerText(layer, brand))
     dragRef.current = {
       layerId: layer.id,
       pointerId: typeof event.pointerId === 'number' ? event.pointerId : null,
@@ -378,8 +481,10 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
       // Snapshot the bounded geometry so the layer follows the pointer from
       // exactly where the customer sees it, even if the saved values were
       // out of the safe area.
-      origin: clampLayerToBounds(layer, compW, compH),
+      origin,
       mode,
+      handle,
+      box0: { cx: m.leftPx + m.widthPx / 2, cy: m.topPx + m.heightPx / 2, w: m.widthPx, h: m.heightPx, rotation: origin.rotation ?? 0 },
     }
     if (mode === 'move') {
       // Keep focus on the dragged box so arrow keys nudge straight after a drag.
@@ -425,16 +530,48 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
   const imageOptions = (layer: PreviewLayer) => imageAssetOptions(layer, assets)
 
   return (
-    <div style={panelStyle}>
+    <div
+      style={panelStyle}
+      onKeyDown={(event) => {
+        // ⌘Z / Ctrl+Z undo, ⇧⌘Z / Ctrl+Shift+Z / Ctrl+Y redo, only while focus is in the editor and not in a field that
+        // has its own undo (text boxes, number inputs, selects).
+        if (!(event.metaKey || event.ctrlKey) || event.altKey) return
+        const t = event.target as HTMLElement | null
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) {
+          if (!(t.tagName === 'INPUT' && ['range', 'checkbox', 'radio', 'color'].includes((t as HTMLInputElement).type))) return
+        }
+        const k = event.key.toLowerCase()
+        if (k === 'z' && !event.shiftKey) {
+          event.preventDefault()
+          if (canUndoPreview) undoPreview?.()
+        } else if ((k === 'z' && event.shiftKey) || k === 'y') {
+          event.preventDefault()
+          if (canRedoPreview) redoPreview?.()
+        }
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
         <Move size={15} color={C.cyan} />
         <h3 style={{ margin: 0, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
           Edit on the video
         </h3>
         <span style={{ marginLeft: 'auto', display: 'inline-flex', gap: 6 }}>
-          <button type="button" data-testid="editor-undo" aria-label="Undo" disabled={!canUndoPreview} onClick={() => undoPreview?.()} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', opacity: canUndoPreview ? 1 : 0.5 }}>Undo</button>
-          <button type="button" data-testid="editor-redo" aria-label="Redo" disabled={!canRedoPreview} onClick={() => redoPreview?.()} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', opacity: canRedoPreview ? 1 : 0.5 }}>Redo</button>
+          <Tip id="undo"><button type="button" data-testid="editor-undo" aria-label="Undo" disabled={!canUndoPreview} onClick={() => undoPreview?.()} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', opacity: canUndoPreview ? 1 : 0.5 }}>Undo</button></Tip>
+          <Tip id="redo"><button type="button" data-testid="editor-redo" aria-label="Redo" disabled={!canRedoPreview} onClick={() => redoPreview?.()} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', opacity: canRedoPreview ? 1 : 0.5 }}>Redo</button></Tip>
+          <Tip id="snap">
+          <button
+            type="button"
+            data-testid="editor-snap"
+            aria-label="Snap to guides"
+            aria-pressed={snapOn}
+            onClick={() => setSnapOn((v) => !v)}
+            style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', borderColor: snapOn ? C.cyan : undefined, color: snapOn ? C.cyan : undefined }}
+          >
+            Snap: {snapOn ? 'On' : 'Off'}
+          </button>
+          </Tip>
         </span>
+        <Tip id="restoreLayout">
         <button
           type="button"
           onClick={() => resetPreviewLayout()}
@@ -443,15 +580,18 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
         >
           <RotateCcw size={11} /> Restore default layout
         </button>
+        </Tip>
       </div>
       <p style={hintStyle}>
         Drag any layer on the video to move it, or use its corner handle to resize. Arrow keys nudge the
         selected layer by 1% (Shift for 5%), Delete hides it. Layers stay inside the 2% safe area of the
         frame, and positions are saved with your project.
       </p>
+      <EditorTour />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 14, marginTop: 12 }} className="guided-overlay-grid">
-        {/* ── Stage ─────────────────────────────────────────────────────── */}
+        {/* ── Stage column: stage + anything pinned directly under it ───── */}
+        <div style={{ minWidth: 0, position: 'sticky', top: 8, alignSelf: 'start', display: 'flex', flexDirection: 'column', gap: 10 }} data-testid="overlay-stage-column">
         <div
           ref={stageRef}
           role="group"
@@ -467,6 +607,24 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
             touchAction: 'none',
           }}
         >
+          {liveOn ? (
+            <>
+              <div data-testid="editor-live-player" style={{ position: 'absolute', inset: 0 }}>
+                <PersonalizationPlayer
+                  inputProps={inputProps}
+                  hideTransport
+                  loop
+                  playerRefOverride={playerRef}
+                  onFrameChange={setPlayFrame}
+                  onPlayingChange={setPlaying}
+                  ariaLabel="Live preview of your video"
+                />
+              </div>
+              {/* Shield: clicks on empty stage must not reach the Player (it would toggle play). Layers sit above it. */}
+              <div aria-hidden data-testid="editor-live-shield" style={{ position: 'absolute', inset: 0 }} />
+            </>
+          ) : (
+            <>
           {inputProps.posterUrl ? (
             <img
               src={inputProps.posterUrl}
@@ -479,6 +637,8 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
             </div>
           )}
           <div style={{ position: 'absolute', inset: 0, background: '#000', opacity: settings.brandColors.backgroundDim, pointerEvents: 'none' }} />
+            </>
+          )}
           {/* Safe-area guide: the same 2% inset the clamp enforces. */}
           <div
             aria-hidden
@@ -490,6 +650,13 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
               pointerEvents: 'none',
             }}
           />
+
+          {guides.x.map((x) => (
+            <div key={`gx-${x}`} aria-hidden data-testid="snap-guide-x" style={{ position: 'absolute', top: 0, bottom: 0, left: `${x * 100}%`, width: 1, background: '#ff4fd8', opacity: 0.85, pointerEvents: 'none', zIndex: 50 }} />
+          ))}
+          {guides.y.map((y) => (
+            <div key={`gy-${y}`} aria-hidden data-testid="snap-guide-y" style={{ position: 'absolute', left: 0, right: 0, top: `${y * 100}%`, height: 1, background: '#ff4fd8', opacity: 0.85, pointerEvents: 'none', zIndex: 50 }} />
+          ))}
 
           {factor > 0 &&
             editableLayers.filter((layer) => layer.visible).map((layer) => {
@@ -515,6 +682,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
               if (look?.style?.presetId === 'multi-image-collage' && imgUrls.length < 2) look = { ...look, style: presetStyle('rounded-floating-card', settings.aspectRatio) }
               const isSplit = look?.style?.presetId === 'split-screen'
 
+              if (isSplit && look?.style && liveOn) return null // the Player draws the split panel
               if (isSplit && look?.style) {
                 // A half-frame panel is placed in composition space (not a draggable box).
                 return (
@@ -526,28 +694,27 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                 )
               }
 
-              return (
-                <div
-                  key={layer.id}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Move ${LAYER_LABELS[layer.kind]}`}
-                  aria-pressed={isSelected}
-                  onPointerDown={(event) => startDrag(event, layer, 'move')}
-                  onKeyDown={(event) => onLayerKeyDown(event, layer)}
-                  style={{
-                    position: 'absolute',
-                    left: box.left,
-                    top: box.top,
-                    width: box.width,
-                    height: box.height,
-                    cursor: contractOf(layer).userMovable ? 'move' : 'default',
-                    outline: isSelected ? `2px dashed ${C.cyan}` : 'none',
-                    outlineOffset: 2,
-                    opacity: layer.opacity,
-                    userSelect: 'none',
-                  }}
-                >
+              // Same local scrim the render draws behind this text (stage pixels).
+              const scrimMetrics = !liveOn && hasTextScrim(layer.kind) && !repeatsName ? layerBoxMetrics(layer, compW, compH, text) : null
+              const stageScrim = scrimMetrics
+                ? scrimForBox(
+                    { left: scrimMetrics.leftPx * factor, top: scrimMetrics.topPx * factor, width: scrimMetrics.widthPx * factor, height: scrimMetrics.heightPx * factor },
+                    compW * factor,
+                    compH * factor,
+                  )
+                : null
+              const textMetrics = isTextStyleKind(layer.kind) && layer.kind !== 'cta' ? layerBoxMetrics(layer, compW, compH, text) : null
+              const stageAlign = textMetrics ? textAlignFor(layer, textMetrics, compW) : 'center'
+              const stageRule = scrimMetrics
+                ? accentRuleStyle(
+                    layer.kind, layer.animation,
+                    { leftPx: scrimMetrics.leftPx * factor, topPx: scrimMetrics.topPx * factor, widthPx: scrimMetrics.widthPx * factor, heightPx: scrimMetrics.heightPx * factor },
+                    compW * factor, compH * factor, settings.brandColors.accent, stageAlign,
+                  )
+                : null
+
+              const layerContent = (
+                <>
                   {isImageLayerKind(layer.kind) ? (
                     look?.style ? (
                       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
@@ -574,17 +741,15 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                     // The REAL design, drawn by the same composition the video uses (not a name label).
                     <DesignLayerPlayer layer={layer} inputProps={inputProps} fallbackLabel={design ? design.name : 'Design'} />
                   ) : layer.kind === 'cta' ? (
-                    <div style={{ width: '100%', textAlign: 'center' }}>
+                    <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
                       <span
                         style={{
-                          background: layer.color ?? settings.brandColors.accent,
-                          color: '#000000',
-                          padding: '0.4em 1.1em',
-                          borderRadius: 999,
-                          display: 'inline-block',
-                          fontFamily: fontStackById(layer.fontFamily),
-                          fontSize: box.fontSize,
-                          fontWeight: 800,
+                          ...ctaPillStyle({
+                            background: layer.color ?? settings.brandColors.accent,
+                            color: '#000000',
+                            fontSizePx: box.fontSize,
+                            fontFamily: layer.fontFamily,
+                          }),
                           pointerEvents: 'none',
                         }}
                       >
@@ -594,14 +759,13 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                   ) : (
                     <div
                       style={{
-                        fontFamily: fontStackById(layer.fontFamily),
-                        color,
-                        fontSize: box.fontSize,
-                        fontWeight: layer.kind === 'businessName' ? 800 : 600,
-                        lineHeight: 1.15,
-                        textAlign: 'center',
-                        width: '100%',
-                        wordBreak: 'break-word',
+                        ...layerTextStyle(isTextStyleKind(layer.kind) ? layer.kind : 'headline', {
+                          fontSizePx: box.fontSize,
+                          color,
+                          fontFamily: layer.fontFamily,
+                          align: stageAlign,
+                          singleLine: isSingleLineBox(box.width, compW * factor),
+                        }),
                         pointerEvents: 'none',
                         ...(repeatsName ? { opacity: 0.45, fontStyle: 'italic', fontSize: Math.max(10, box.fontSize * 0.55) } : {}),
                       }}
@@ -610,42 +774,237 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                       {text}
                     </div>
                   )}
-                  {isSelected && contractOf(layer).userResizable && (
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Resize ${LAYER_LABELS[layer.kind]}`}
-                      onPointerDown={(event) => startDrag(event, layer, 'resize')}
-                      onKeyDown={(event) => onHandleKeyDown(event, layer)}
-                      style={{
-                        position: 'absolute',
-                        right: -7,
-                        bottom: -7,
-                        width: 14,
-                        height: 14,
-                        borderRadius: 4,
-                        background: C.cyan,
-                        border: '2px solid #000000',
-                        cursor: 'nwse-resize',
-                      }}
-                    />
+                </>
+              )
+
+              let toolbarTop = 0
+              let rotateInside = false
+              if (isSelected) {
+                const drawn = layerBoxMetrics(layer, compW, compH, isImageLayerKind(layer.kind) ? undefined : text)
+                const h = drawn.heightPx * factor
+                const ext = rotatedExtent(box.width, h, layer.rotation ?? 0)
+                const mid = box.top + h / 2
+                rotateInside = mid - ext.h / 2 < 40
+                const below = mid + ext.h / 2 + 8
+                toolbarTop = below + 38 > compH * factor ? mid - ext.h / 2 - 8 - 52 : below
+              }
+
+              return (
+                <Fragment key={layer.id}>
+                {stageScrim ? (
+                  <div aria-hidden data-testid="stage-text-scrim" style={{ position: 'absolute', inset: 0, opacity: layer.opacity, pointerEvents: 'none' }}>
+                    <div style={scrimStyle(stageScrim)} />
+                  </div>
+                ) : null}
+                {stageRule ? <div aria-hidden data-testid="stage-headline-rule" style={{ ...stageRule, opacity: layer.opacity }} /> : null}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Move ${LAYER_LABELS[layer.kind]}`}
+                  aria-pressed={isSelected}
+                  onPointerDown={(event) => startDrag(event, layer, 'move')}
+                  onKeyDown={(event) => onLayerKeyDown(event, layer)}
+                  style={{
+                    position: 'absolute',
+                    left: box.left,
+                    top: box.top,
+                    width: box.width,
+                    height: box.height,
+                    cursor: contractOf(layer).userMovable ? 'move' : 'default',
+                    outline: isSelected ? `2px dashed ${C.cyan}` : 'none',
+                    outlineOffset: 2,
+                    // The selected layer's handles must stay grabbable even where another layer's box overlaps them.
+                    ...(isSelected ? { zIndex: 3 } : {}),
+                    opacity: layer.opacity,
+                    userSelect: 'none',
+                    // The box turns with the layer (about its own center), and so do its handles.
+                    ...(isDesign || !rotateCss(layer.rotation) ? {} : { transform: rotateCss(layer.rotation), transformOrigin: 'center center' }),
+                  }}
+                >
+                  {liveOn ? (
+                    // The real Player draws this layer; here it is only a transparent hit area. Text keeps its size
+                    // (hidden, not removed) so the box fits it; images and designs mount nothing.
+                    isImageLayerKind(layer.kind) || isDesign ? null : <div aria-hidden style={{ visibility: 'hidden' }}>{layerContent}</div>
+                  ) : layerContent}
+                  {isSelected && contractOf(layer).userResizable && HANDLES.map((h) => (
+                    <span key={h.id} style={{ position: 'absolute', left: `${h.left}%`, top: `${h.top}%`, transform: 'translate(-50%, -50%)', zIndex: 4 }}>
+                      <Tip id="resizeHandle" side="top">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          // The bottom-right handle keeps the plain name the app has always used; the others say where they are.
+                          aria-label={h.id === 'se' ? `Resize ${LAYER_LABELS[layer.kind]}` : `Resize ${LAYER_LABELS[layer.kind]} (${h.label})`}
+                          data-testid={`resize-handle-${h.id}`}
+                          onPointerDown={(event) => startDrag(event, layer, 'resize', h.id)}
+                          onKeyDown={(event) => onHandleKeyDown(event, layer)}
+                          style={{
+                            width: 12,
+                            height: 12,
+                            borderRadius: 3,
+                            background: C.cyan,
+                            border: '2px solid #000000',
+                            cursor: cursorForHandle(h.id, layer.rotation ?? 0),
+                            touchAction: 'none',
+                          }}
+                        />
+                      </Tip>
+                    </span>
+                  ))}
+                  {isSelected && contractOf(layer).userRotatable && !layer.locked && layer.kind !== 'design' && (
+                    <span style={{ position: 'absolute', left: '50%', // Normally above the top edge; a layer at the very top of the frame would put it outside the (clipped) stage, so it sits just inside instead.
+                      top: rotateInside ? 8 : -34, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 4 }}>
+                      <Tip id="rotateHandle" side="top">
+                        <div
+                          role="slider"
+                          tabIndex={0}
+                          aria-label={`Rotate ${LAYER_LABELS[layer.kind]}`}
+                          aria-valuemin={-180}
+                          aria-valuemax={180}
+                          aria-valuenow={layer.rotation ?? 0}
+                          aria-valuetext={`${layer.rotation ?? 0} degrees`}
+                          data-testid="rotate-handle"
+                          onPointerDown={(event) => startDrag(event, layer, 'rotate')}
+                          onDoubleClick={(event) => { event.stopPropagation(); commitRotation(layer, 0) }}
+                          onKeyDown={(event) => {
+                            const step = event.shiftKey ? 15 : 1
+                            const next = event.key === 'ArrowLeft' || event.key === 'ArrowDown' ? (layer.rotation ?? 0) - step
+                              : event.key === 'ArrowRight' || event.key === 'ArrowUp' ? (layer.rotation ?? 0) + step
+                              : event.key === 'Home' ? 0 : null
+                            if (next === null) return
+                            event.preventDefault()
+                            event.stopPropagation()
+                            commitRotation(layer, next)
+                          }}
+                          style={{ width: 14, height: 14, borderRadius: '50%', background: C.cyan, border: '2px solid #000000', cursor: 'grab', touchAction: 'none' }}
+                        />
+                      </Tip>
+                      <span aria-hidden style={{ width: 1, height: 16, background: C.cyan }} />
+                    </span>
                   )}
                 </div>
+                  {isSelected && layer.kind !== 'design' && (
+                    <div
+                      role="toolbar"
+                      aria-label={`${LAYER_LABELS[layer.kind]} actions`}
+                      data-testid="layer-toolbar"
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onClick={(event) => event.stopPropagation()}
+                      style={{
+                        position: 'absolute',
+                        left: box.left,
+                        // Below the layer's (rotated) bounding box, or above it when there is no room below.
+                        top: toolbarTop,
+                        display: 'flex',
+                        gap: 2,
+                        padding: 3,
+                        background: 'rgba(8,11,15,.92)',
+                        border: `1px solid ${C.borderStrong}`,
+                        borderRadius: 10,
+                        boxShadow: '0 6px 20px rgba(0,0,0,.5)',
+                        zIndex: 60,
+                        cursor: 'default',
+                      }}
+                    >
+                      {([
+                        { id: 'forward', tip: 'layerForward', label: 'Bring forward', icon: <ArrowUp size={13} />, disabled: !canMoveLayer(settings.layers, layer.id, 'forward'), run: () => restack(layer.id, 'forward') },
+                        { id: 'backward', tip: 'layerBackward', label: 'Send backward', icon: <ArrowDown size={13} />, disabled: !canMoveLayer(settings.layers, layer.id, 'backward'), run: () => restack(layer.id, 'backward') },
+                        { id: 'lock', tip: 'layerLock', label: layer.locked ? 'Unlock position' : 'Lock position', icon: layer.locked ? <Unlock size={13} /> : <Lock size={13} />, disabled: false, pressed: !!layer.locked, run: () => setPreviewLayerLocked(layer.id, !layer.locked) },
+                        { id: 'hide', tip: 'layerHide', label: `Hide ${LAYER_LABELS[layer.kind]}`, icon: <EyeOff size={13} />, disabled: false, run: () => updatePreviewLayer(layer.id, { visible: false }) },
+                      ] as { id: string; tip: EditorTipId; label: string; icon: React.ReactNode; disabled: boolean; pressed?: boolean; run: () => void }[]).map((a) => (
+                        <Tip key={a.id} id={a.tip} side="top">
+                        <button
+                          type="button"
+                          data-testid={`layer-toolbar-${a.id}`}
+                          aria-label={a.label}
+                          aria-pressed={a.pressed}
+                          disabled={a.disabled}
+                          onClick={a.run}
+                          style={{
+                            width: 26, height: 24, display: 'grid', placeItems: 'center', borderRadius: 6, border: 'none', cursor: a.disabled ? 'default' : 'pointer',
+                            background: a.pressed ? C.cyanSoft : 'transparent', color: a.disabled ? C.muted2 : a.pressed ? C.cyan : C.text, opacity: a.disabled ? 0.5 : 1,
+                          }}
+                        >
+                          {a.icon}
+                        </button>
+                        </Tip>
+                      ))}
+                    </div>
+                  )}
+                </Fragment>
               )
             })}
+        </div>
+        {liveStage && (
+          <div data-testid="editor-transport" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: -2 }}>
+            {liveOn && (
+              <>
+                <Tip id="livePlay" side="top">
+                  <button
+                    type="button"
+                    data-testid="editor-play"
+                    aria-label={playing ? 'Pause preview' : 'Play preview'}
+                    onClick={() => { const pl = playerRef.current; if (!pl) return; if (pl.isPlaying()) pl.pause(); else pl.play() }}
+                    style={{ ...secondaryButtonStyle, minHeight: 28, width: 34, padding: 0, display: 'grid', placeItems: 'center' }}
+                  >
+                    {playing ? <Pause size={13} /> : <Play size={13} />}
+                  </button>
+                </Tip>
+                <input
+                  type="range"
+                  data-testid="editor-scrubber"
+                  aria-label="Preview position"
+                  min={0}
+                  max={Math.max(1, Math.round(settings.durationInFrames) - 1)}
+                  value={Math.min(playFrame, Math.max(1, Math.round(settings.durationInFrames) - 1))}
+                  onChange={(event) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(Number(event.target.value)) } catch { /* no player */ } }}
+                  style={{ flex: 1, accentColor: C.cyan }}
+                />
+                <span data-testid="editor-timecode" style={{ ...hintStyle, margin: 0, fontVariantNumeric: 'tabular-nums', minWidth: 74, textAlign: 'right' }}>
+                  {(playFrame / Math.max(1, settings.fps)).toFixed(1)} / {(settings.durationInFrames / Math.max(1, settings.fps)).toFixed(1)} s
+                </span>
+              </>
+            )}
+            <span style={{ flex: liveOn ? undefined : 1 }} />
+            <Tip id="liveToggle" side="top">
+              <button
+                type="button"
+                data-testid="editor-live-toggle"
+                aria-pressed={liveOn}
+                onClick={() => setLiveWanted((v) => !v)}
+                style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', borderColor: liveOn ? C.cyan : undefined, color: liveOn ? C.cyan : undefined }}
+              >
+                Live: {liveOn ? 'On' : 'Off'}
+              </button>
+            </Tip>
+          </div>
+        )}
+        {belowStage}
+        <Timeline
+          layers={editableLayers}
+          labels={Object.fromEntries(editableLayers.map((l) => [l.id, LAYER_LABELS[l.kind]]))}
+          durationInFrames={settings.durationInFrames}
+          fps={settings.fps}
+          selectedId={selected?.id ?? ''}
+          onSelect={setSelectedId}
+          onChange={(id, patch) => updatePreviewLayer(id, patch)}
+          playheadFrame={liveOn ? playFrame : undefined}
+          onSeek={liveOn ? (f) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(f) } catch { /* no player */ } } : undefined}
+        />
         </div>
 
         {/* ── Layer list + controls ─────────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
           <div style={labelStyle}>Layers</div>
-          {settings.layers.map((layer) => {
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onReorderEnd}>
+          <SortableContext items={[...settings.layers].reverse().map((l) => l.id)} strategy={verticalListSortingStrategy}>
+          {[...settings.layers].reverse().map((layer) => {
             const layerDesign =
               layer.kind === 'design' && layer.designId
                 ? getRemotionDesignTemplate(layer.designId)
                 : undefined
             return (
+              <SortableRow key={layer.id} id={layer.id} label={LAYER_LABELS[layer.kind]}>
               <div
-                key={layer.id}
                 role="button"
                 tabIndex={0}
                 aria-label={`Select ${LAYER_LABELS[layer.kind]}`}
@@ -675,6 +1034,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                 {layer.kind === 'endCard' ? (
                   <span style={{ color: C.muted, fontSize: 10 }}>{settings.showEndCard ? 'On' : 'Off'}</span>
                 ) : (
+                  <Tip id="layerVisibility">
                   <button
                     type="button"
                     aria-label={`${layer.visible ? 'Hide' : 'Show'} ${LAYER_LABELS[layer.kind]}`}
@@ -687,15 +1047,37 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                   >
                     {layer.visible ? <Eye size={14} /> : <EyeOff size={14} />}
                   </button>
+                  </Tip>
                 )}
               </div>
+              </SortableRow>
             )
           })}
+          </SortableContext>
+          </DndContext>
 
           {selected && selected.kind !== 'endCard' && (
             <div style={{ ...softPanelStyle, display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
               <div style={{ color: C.text, fontSize: 12, fontWeight: 800 }}>{LAYER_LABELS[selected.kind]}</div>
 
+              <Tip id="inspectorTabs" side="top">
+                <div role="group" aria-label="Layer settings" data-testid="inspector-tabs" style={{ display: 'flex', gap: 4 }}>
+                  {INSPECTOR_TABS.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      aria-pressed={inspectorTab === t.id}
+                      data-testid={`inspector-tab-${t.id}`}
+                      onClick={() => setInspectorTab(t.id)}
+                      style={{ ...chipStyle(inspectorTab === t.id), minHeight: 28, fontSize: 11, flex: 1 }}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </Tip>
+
+              <div id={controlId('panel-content')} hidden={inspectorTab !== 'content'} style={{ display: inspectorTab === 'content' ? 'flex' : 'none', flexDirection: 'column', gap: 10 }}>
               {selected.kind === 'design' && (
                 <div style={{ color: C.muted, fontSize: 10 }}>
                   {selectedDesign
@@ -773,17 +1155,16 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                   {/* A design with no text has no text colour or font: those controls would do nothing. */}
                   {!(selected.kind === 'design' && selectedSlots.length === 0) && (
                   <div className="grid grid-cols-2" style={{ gap: 8 }}>
-                    <div>
-                      <label style={labelStyle} htmlFor={controlId('color')}>{selected.kind === 'cta' ? 'Button color' : 'Color'}</label>
-                      <input
-                        id={controlId('color')}
-                        type="color"
-                        aria-label={selected.kind === 'cta' ? 'Button color' : 'Text color'}
-                        value={selected.color || (selected.kind === 'cta' ? settings.brandColors.accent : settings.brandColors.text)}
-                        onChange={(event) => updatePreviewLayer(selected.id, { color: event.target.value })}
-                        style={{ width: '100%', height: 34, borderRadius: 8, border: `1px solid ${C.border}`, background: C.field }}
-                      />
-                    </div>
+                    <ColorField
+                      id={controlId('color')}
+                      label={selected.kind === 'cta' ? 'Button color' : 'Color'}
+                      ariaLabel={selected.kind === 'cta' ? 'Button color' : 'Text color'}
+                      tipId={selected.kind === 'cta' ? 'buttonColor' : 'textColor'}
+                      value={selected.color || (selected.kind === 'cta' ? settings.brandColors.accent : settings.brandColors.text)}
+                      onChange={(hex) => updatePreviewLayer(selected.id, { color: hex })}
+                      brand={settings.brandColors}
+                      posterUrl={inputProps.posterUrl}
+                    />
                     {/* Only shown when there's a real choice: with one bundled
                         font every option renders the same in the video. */}
                     {SELECTABLE_FONT_COUNT > 1 && (
@@ -867,6 +1248,9 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                 )
               })()}
 
+              </div>
+
+              <div id={controlId('panel-layout')} hidden={inspectorTab !== 'layout'} style={{ display: inspectorTab === 'layout' ? 'flex' : 'none', flexDirection: 'column', gap: 10 }}>
               <div>
                 <label style={labelStyle} htmlFor={controlId('scale')}>Size</label>
                 <input
@@ -900,6 +1284,46 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                 />
               </div>
 
+              {contractOf(selected).userRotatable && selected.kind !== 'design' && (
+                <div>
+                  <label style={labelStyle} htmlFor={controlId('rotation')}>Rotation</label>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <Tip id="rotationField" side="top">
+                      <input
+                        id={controlId('rotation')}
+                        type="number"
+                        aria-label="Layer rotation in degrees"
+                        data-testid="rotation-field"
+                        min={-180}
+                        max={180}
+                        step={1}
+                        value={selected.rotation ?? 0}
+                        disabled={Boolean(selected.locked)}
+                        onChange={(event) => {
+                          if (event.target.value.trim() === '') return
+                          const n = Number(event.target.value)
+                          if (Number.isFinite(n)) commitRotation(selected, n)
+                        }}
+                        style={{ ...inputStyle, width: 90 }}
+                      />
+                    </Tip>
+                    <span style={{ ...hintStyle, margin: 0 }}>degrees</span>
+                    <button
+                      type="button"
+                      data-testid="rotation-reset"
+                      disabled={!isRotated(selected.rotation) || Boolean(selected.locked)}
+                      onClick={() => commitRotation(selected, 0)}
+                      style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 11, padding: '0 10px', opacity: isRotated(selected.rotation) ? 1 : 0.5 }}
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              </div>
+
+              <div id={controlId('panel-timing')} hidden={inspectorTab !== 'timing'} style={{ display: inspectorTab === 'timing' ? 'flex' : 'none', flexDirection: 'column', gap: 10 }}>
               <div>
                 <label style={labelStyle} htmlFor={controlId('animation')}>Animation</label>
                 <select
@@ -948,6 +1372,9 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                 </div>
               </div>
 
+              </div>
+
+              <div hidden={inspectorTab !== 'layout'} style={{ display: inspectorTab === 'layout' ? 'flex' : 'none', flexDirection: 'column', gap: 10 }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: C.text, cursor: 'pointer' }}>
                 <input
                   type="checkbox"
@@ -982,6 +1409,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
               <div style={{ color: C.muted, fontSize: 10 }}>
                 Position {Math.round(selected.x * 100)}% / {Math.round(selected.y * 100)}% · Size{' '}
                 {Math.round(selected.scale * 100)}% · kept inside the {Math.round(SAFE_AREA_MARGIN * 100)}% safe area
+              </div>
               </div>
             </div>
           )}

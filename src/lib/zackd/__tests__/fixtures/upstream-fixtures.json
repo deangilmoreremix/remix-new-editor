@@ -1,0 +1,411 @@
+{
+  "source": "Transcribed from Anil-matcha/zack-d-films-ai-video-generator (scripts/*.py); see verify_against_source.py",
+  "beats": {
+    "project_name": "swallow_gum",
+    "topic": "What Happens When You Swallow Gum?",
+    "aspect_ratio": "9:16",
+    "style_preset": "zackd_3d_stylized",
+    "narrator_voice": "cloned_user_voice",
+    "character_sheets_required": [
+      "boy_turnaround",
+      "gut_cross_section_turnaround"
+    ],
+    "beats": [
+      {
+        "beat_id": "beat_1",
+        "narration": "You've probably been told that swallowing gum stays in your stomach for 7 years... but is that actually true?",
+        "title_cn": "吞口香糖的传说",
+        "title_en": "Swallowing Gum Myth",
+        "hook": true,
+        "shots": [
+          {
+            "shot_id": "beat_1_a",
+            "type": "wide",
+            "duration_sec": 3.0,
+            "scene_description": "Stylized 3D boy swallowing a large pink bubble gum, wide shot in bright studio lighting.",
+            "camera_move": "push_in",
+            "character_refs": [
+              "boy_turnaround"
+            ],
+            "zoom_impact": false
+          },
+          {
+            "shot_id": "beat_1_b",
+            "type": "macro_cross_section",
+            "duration_sec": 3.0,
+            "scene_description": "Detailed anatomical 3D cutaway cross-section of pink gum sliding down the throat.",
+            "camera_move": "tilt_down",
+            "character_refs": [
+              "gut_cross_section_turnaround"
+            ],
+            "zoom_impact": true
+          }
+        ]
+      },
+      {
+        "beat_id": "beat_2",
+        "narration": "Saliva enzymes try to break it down, but the gum base completely resists. So your stomach acid steps in.",
+        "title_cn": "胃酸消解",
+        "title_en": "Stomach Acid Battle",
+        "hook": false,
+        "shots": [
+          {
+            "shot_id": "beat_2_a",
+            "type": "macro",
+            "duration_sec": 3.0,
+            "scene_description": "Microscopic 3D view of stomach acid churning around the pink gum mass.",
+            "camera_move": "pan_right",
+            "character_refs": [
+              "gut_cross_section_turnaround"
+            ],
+            "zoom_impact": false
+          },
+          {
+            "shot_id": "beat_2_b",
+            "type": "detail",
+            "duration_sec": 3.0,
+            "scene_description": "Close up of intestinal muscles squeezing the gum intact.",
+            "camera_move": "static",
+            "character_refs": [
+              "gut_cross_section_turnaround"
+            ],
+            "zoom_impact": true
+          }
+        ]
+      },
+      {
+        "beat_id": "beat_3",
+        "narration": "Your digestive system treats it like insoluble fiber, passing it safely out of your body in just a few days!",
+        "title_cn": "安全排出",
+        "title_en": "Safe Passage",
+        "hook": false,
+        "shots": [
+          {
+            "shot_id": "beat_3_a",
+            "type": "wide",
+            "duration_sec": 3.0,
+            "scene_description": "Stylized 3D boy smiling happily in relief, bright studio lighting.",
+            "camera_move": "pull_out",
+            "character_refs": [
+              "boy_turnaround"
+            ],
+            "zoom_impact": false
+          }
+        ]
+      }
+    ]
+  },
+  "character_sheets": [
+    {
+      "sheet": "boy_turnaround",
+      "endpoint": "nano-banana-2",
+      "fallback_endpoint": "flux-dev",
+      "payload": {
+        "prompt": "Stylized 3D render, Zack D Films visual aesthetic, plasticine clay subsurface scattering: Orthographic 3D character turnaround sheet, front view, side profile view, and 3/4 angle view of boy turnaround, stylized 3D digital art style, smooth plasticine shader, clean light grey background, octane render, studio lighting, zero shadows.",
+        "aspect_ratio": "16:9"
+      }
+    },
+    {
+      "sheet": "gut_cross_section_turnaround",
+      "endpoint": "nano-banana-2",
+      "fallback_endpoint": "flux-dev",
+      "payload": {
+        "prompt": "Stylized 3D render, Zack D Films visual aesthetic, plasticine clay subsurface scattering: Orthographic 3D character turnaround sheet, front view, side profile view, and 3/4 angle view of gut cross section turnaround, stylized 3D digital art style, smooth plasticine shader, clean light grey background, octane render, studio lighting, zero shadows.",
+        "aspect_ratio": "16:9"
+      }
+    }
+  ],
+  "keyframes": [
+    {
+      "shot_id": "beat_1_a",
+      "endpoint": "nano-banana-2",
+      "fallback_endpoint": "flux-dev",
+      "payload": {
+        "prompt": "Stylized 3D render, Zack D Films visual aesthetic, plasticine clay subsurface scattering: Stylized 3D boy swallowing a large pink bubble gum, wide shot in bright studio lighting., in Zack D 3D stylized animation render style, smooth plasticine shader, dramatic studio key light, vibrant rim lighting, subsurface scattering, macro depth of field. Anchored on character sheet refs: boy_turnaround.",
+        "aspect_ratio": "9:16"
+      }
+    },
+    {
+      "shot_id": "beat_1_b",
+      "endpoint": "nano-banana-2",
+      "fallback_endpoint": "flux-dev",
+      "payload": {
+        "prompt": "Stylized 3D render, Zack D Films visual aesthetic, plasticine clay subsurface scattering: Detailed anatomical 3D cutaway cross-section of pink gum sliding down the throat., in Zack D 3D stylized animation render style, smooth plasticine shader, dramatic studio key light, vibrant rim lighting, subsurface scattering, macro depth of field. Anchored on character sheet refs: gut_cross_section_turnaround.",
+        "aspect_ratio": "9:16"
+      }
+    },
+    {
+      "shot_id": "beat_2_a",
+      "endpoint": "nano-banana-2",
+      "fallback_endpoint": "flux-dev",
+      "payload": {
+        "prompt": "Stylized 3D render, Zack D Films visual aesthetic, plasticine clay subsurface scattering: Microscopic 3D view of stomach acid churning around the pink gum mass., in Zack D 3D stylized animation render style, smooth plasticine shader, dramatic studio key light, vibrant rim lighting, subsurface scattering, macro depth of field. Anchored on character sheet refs: gut_cross_section_turnaround.",
+        "aspect_ratio": "9:16"
+      }
+    },
+    {
+      "shot_id": "beat_2_b",
+      "endpoint": "nano-banana-2",
+      "fallback_endpoint": "flux-dev",
+      "payload": {
+        "prompt": "Stylized 3D render, Zack D Films visual aesthetic, plasticine clay subsurface scattering: Close up of intestinal muscles squeezing the gum intact., in Zack D 3D stylized animation render style, smooth plasticine shader, dramatic studio key light, vibrant rim lighting, subsurface scattering, macro depth of field. Anchored on character sheet refs: gut_cross_section_turnaround.",
+        "aspect_ratio": "9:16"
+      }
+    },
+    {
+      "shot_id": "beat_3_a",
+      "endpoint": "nano-banana-2",
+      "fallback_endpoint": "flux-dev",
+      "payload": {
+        "prompt": "Stylized 3D render, Zack D Films visual aesthetic, plasticine clay subsurface scattering: Stylized 3D boy smiling happily in relief, bright studio lighting., in Zack D 3D stylized animation render style, smooth plasticine shader, dramatic studio key light, vibrant rim lighting, subsurface scattering, macro depth of field. Anchored on character sheet refs: boy_turnaround.",
+        "aspect_ratio": "9:16"
+      }
+    }
+  ],
+  "clips": [
+    {
+      "shot_id": "beat_1_a",
+      "endpoint": "veo3.1-fast-image-to-video",
+      "fallback_endpoint": "veo3.1-image-to-video",
+      "payload": {
+        "image_url": "<keyframe-url>",
+        "prompt": "Smooth 3D animation, camera movement push_in. Smooth 3D motion, Stylized 3D boy swallowing a large pink bubble gum, wide shot in bright studio lighting.",
+        "aspect_ratio": "9:16",
+        "resolution": "720p"
+      }
+    },
+    {
+      "shot_id": "beat_1_b",
+      "endpoint": "veo3.1-fast-image-to-video",
+      "fallback_endpoint": "veo3.1-image-to-video",
+      "payload": {
+        "image_url": "<keyframe-url>",
+        "prompt": "Smooth 3D animation, camera movement tilt_down. Smooth 3D motion, Detailed anatomical 3D cutaway cross-section of pink gum sliding down the throat.",
+        "aspect_ratio": "9:16",
+        "resolution": "720p"
+      }
+    },
+    {
+      "shot_id": "beat_2_a",
+      "endpoint": "veo3.1-fast-image-to-video",
+      "fallback_endpoint": "veo3.1-image-to-video",
+      "payload": {
+        "image_url": "<keyframe-url>",
+        "prompt": "Smooth 3D animation, camera movement pan_right. Smooth 3D motion, Microscopic 3D view of stomach acid churning around the pink gum mass.",
+        "aspect_ratio": "9:16",
+        "resolution": "720p"
+      }
+    },
+    {
+      "shot_id": "beat_2_b",
+      "endpoint": "veo3.1-fast-image-to-video",
+      "fallback_endpoint": "veo3.1-image-to-video",
+      "payload": {
+        "image_url": "<keyframe-url>",
+        "prompt": "Smooth 3D animation, camera movement static. Smooth 3D motion, Close up of intestinal muscles squeezing the gum intact.",
+        "aspect_ratio": "9:16",
+        "resolution": "720p"
+      }
+    },
+    {
+      "shot_id": "beat_3_a",
+      "endpoint": "veo3.1-fast-image-to-video",
+      "fallback_endpoint": "veo3.1-image-to-video",
+      "payload": {
+        "image_url": "<keyframe-url>",
+        "prompt": "Smooth 3D animation, camera movement pull_out. Smooth 3D motion, Stylized 3D boy smiling happily in relief, bright studio lighting.",
+        "aspect_ratio": "9:16",
+        "resolution": "720p"
+      }
+    }
+  ],
+  "audio": [
+    {
+      "endpoint": "minimax-speech-2.6-turbo",
+      "payload": {
+        "text": "You've probably been told that swallowing gum stays in your stomach for 7 years... but is that actually true? Saliva enzymes try to break it down, but the gum base completely resists. So your stomach acid steps in. Your digestive system treats it like insoluble fiber, passing it safely out of your body in just a few days!",
+        "voice_id": "male_doc_fast",
+        "speed": 1.1
+      }
+    }
+  ],
+  "filter_graphs": {
+    "five_clips_all_audio_td035": {
+      "clip_info": [
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": false,
+          "video_index": 0,
+          "audio_index": 0
+        },
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": true,
+          "video_index": 1,
+          "audio_index": 1
+        },
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": false,
+          "video_index": 2,
+          "audio_index": 2
+        },
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": true,
+          "video_index": 3,
+          "audio_index": 3
+        },
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": false,
+          "video_index": 4,
+          "audio_index": 4
+        }
+      ],
+      "transition_duration": 0.35,
+      "graph": "[0:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v0];[0:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a0];[1:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,scale=756:1344:flags=lanczos,crop=720:1280:(iw-720)/2:(ih-1280)/2,format=yuv420p[v1];[1:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a1];[2:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v2];[2:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a2];[3:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,scale=756:1344:flags=lanczos,crop=720:1280:(iw-720)/2:(ih-1280)/2,format=yuv420p[v3];[3:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a3];[4:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v4];[4:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a4];[v0][v1]xfade=transition=fade:duration=0.35:offset=7.65[vx1];[vx1][v2]xfade=transition=wipeleft:duration=0.35:offset=15.3[vx2];[vx2][v3]xfade=transition=slideleft:duration=0.35:offset=22.95[vx3];[vx3][v4]xfade=transition=circleopen:duration=0.35:offset=30.6[vx4];[vx4]null[vout];[a0][a1]acrossfade=d=0.35:c1=tri:c2=tri[ax1];[ax1][a2]acrossfade=d=0.35:c1=tri:c2=tri[ax2];[ax2][a3]acrossfade=d=0.35:c1=tri:c2=tri[ax3];[ax3][a4]acrossfade=d=0.35:c1=tri:c2=tri[ax4];[ax4]anull[aout]"
+    },
+    "five_clips_one_without_audio_td035": {
+      "clip_info": [
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": false,
+          "video_index": 0,
+          "audio_index": 0
+        },
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": true,
+          "video_index": 1,
+          "audio_index": 1
+        },
+        {
+          "duration": 8.0,
+          "has_audio": false,
+          "zoom_impact": false,
+          "video_index": 2,
+          "audio_index": 3
+        },
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": true,
+          "video_index": 4,
+          "audio_index": 4
+        },
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": false,
+          "video_index": 5,
+          "audio_index": 5
+        }
+      ],
+      "transition_duration": 0.35,
+      "graph": "[0:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v0];[0:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a0];[1:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,scale=756:1344:flags=lanczos,crop=720:1280:(iw-720)/2:(ih-1280)/2,format=yuv420p[v1];[1:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a1];[2:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v2];[3:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a2];[4:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,scale=756:1344:flags=lanczos,crop=720:1280:(iw-720)/2:(ih-1280)/2,format=yuv420p[v3];[4:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a3];[5:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v4];[5:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a4];[v0][v1]xfade=transition=fade:duration=0.35:offset=7.65[vx1];[vx1][v2]xfade=transition=wipeleft:duration=0.35:offset=15.3[vx2];[vx2][v3]xfade=transition=slideleft:duration=0.35:offset=22.95[vx3];[vx3][v4]xfade=transition=circleopen:duration=0.35:offset=30.6[vx4];[vx4]null[vout];[a0][a1]acrossfade=d=0.35:c1=tri:c2=tri[ax1];[ax1][a2]acrossfade=d=0.35:c1=tri:c2=tri[ax2];[ax2][a3]acrossfade=d=0.35:c1=tri:c2=tri[ax3];[ax3][a4]acrossfade=d=0.35:c1=tri:c2=tri[ax4];[ax4]anull[aout]"
+    },
+    "five_clips_uneven_durations_td035": {
+      "clip_info": [
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": false,
+          "video_index": 0,
+          "audio_index": 0
+        },
+        {
+          "duration": 5.0,
+          "has_audio": true,
+          "zoom_impact": true,
+          "video_index": 1,
+          "audio_index": 1
+        },
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": false,
+          "video_index": 2,
+          "audio_index": 2
+        },
+        {
+          "duration": 4.04,
+          "has_audio": true,
+          "zoom_impact": true,
+          "video_index": 3,
+          "audio_index": 3
+        },
+        {
+          "duration": 7.5,
+          "has_audio": true,
+          "zoom_impact": false,
+          "video_index": 4,
+          "audio_index": 4
+        }
+      ],
+      "transition_duration": 0.35,
+      "graph": "[0:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v0];[0:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a0];[1:v]trim=duration=5,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,scale=756:1344:flags=lanczos,crop=720:1280:(iw-720)/2:(ih-1280)/2,format=yuv420p[v1];[1:a]atrim=duration=5,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a1];[2:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v2];[2:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a2];[3:v]trim=duration=4.04,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,scale=756:1344:flags=lanczos,crop=720:1280:(iw-720)/2:(ih-1280)/2,format=yuv420p[v3];[3:a]atrim=duration=4.04,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a3];[4:v]trim=duration=7.5,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v4];[4:a]atrim=duration=7.5,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a4];[v0][v1]xfade=transition=fade:duration=0.35:offset=7.65[vx1];[vx1][v2]xfade=transition=wipeleft:duration=0.35:offset=12.3[vx2];[vx2][v3]xfade=transition=slideleft:duration=0.35:offset=19.95[vx3];[vx3][v4]xfade=transition=circleopen:duration=0.35:offset=23.64[vx4];[vx4]null[vout];[a0][a1]acrossfade=d=0.35:c1=tri:c2=tri[ax1];[ax1][a2]acrossfade=d=0.35:c1=tri:c2=tri[ax2];[ax2][a3]acrossfade=d=0.35:c1=tri:c2=tri[ax3];[ax3][a4]acrossfade=d=0.35:c1=tri:c2=tri[ax4];[ax4]anull[aout]"
+    },
+    "three_clips_hard_cuts": {
+      "clip_info": [
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": false,
+          "video_index": 0,
+          "audio_index": 0
+        },
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": true,
+          "video_index": 1,
+          "audio_index": 1
+        },
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": false,
+          "video_index": 2,
+          "audio_index": 2
+        }
+      ],
+      "transition_duration": 0,
+      "graph": "[0:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v0];[0:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a0];[1:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,scale=756:1344:flags=lanczos,crop=720:1280:(iw-720)/2:(ih-1280)/2,format=yuv420p[v1];[1:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a1];[2:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,format=yuv420p[v2];[2:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a2];[v0][v1][v2]concat=n=3:v=1:a=0[vout];[a0][a1][a2]concat=n=3:v=0:a=1[aout]"
+    },
+    "single_clip": {
+      "clip_info": [
+        {
+          "duration": 8.0,
+          "has_audio": true,
+          "zoom_impact": true,
+          "video_index": 0,
+          "audio_index": 0
+        }
+      ],
+      "transition_duration": 0.35,
+      "graph": "[0:v]trim=duration=8,setpts=PTS-STARTPTS,fps=30,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,settb=AVTB,scale=756:1344:flags=lanczos,crop=720:1280:(iw-720)/2:(ih-1280)/2,format=yuv420p[v0];[0:a]atrim=duration=8,asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a0];[v0]null[vout];[a0]anull[aout]"
+    }
+  },
+  "assemble_constants": {
+    "CANVAS_WIDTH": 720,
+    "CANVAS_HEIGHT": 1280,
+    "FRAME_RATE": 30,
+    "DEFAULT_TRANSITION_DURATION": 0.35,
+    "VIDEO_CRF": 23,
+    "AUDIO_BITRATE": "96k",
+    "TRANSITIONS": [
+      "fade",
+      "wipeleft",
+      "slideleft",
+      "circleopen"
+    ]
+  }
+}

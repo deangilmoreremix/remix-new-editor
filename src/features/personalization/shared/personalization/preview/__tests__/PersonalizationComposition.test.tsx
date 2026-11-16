@@ -13,8 +13,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { PersonalizationComposition } from '../PersonalizationComposition'
-import { createDefaultPreviewSettings } from '../presets'
-import type { PreviewInputProps } from '../types'
+import { createDefaultPreviewSettings, createLayer } from '../presets'
+import type { PreviewInputProps, PreviewLayer } from '../types'
 
 /** Deterministic frame: every startFrame-0 layer is visible, end card faded in. */
 const FRAME = 30
@@ -204,5 +204,47 @@ describe('PersonalizationComposition media failure', () => {
     // on the fallback.
     expect(view.container.querySelector('[data-testid="media-video"]')).not.toBeNull()
     expect(view.container.querySelector(`img[src="${POSTER_URL}"]`)).toBeNull()
+  })
+})
+
+describe('layer rotation in the composition', () => {
+  const withLayers = (layers: PreviewLayer[], brand: Partial<PreviewInputProps['brand']> = {}) => {
+    const settings = { ...createDefaultPreviewSettings({ showEndCard: false }), layers }
+    const base = makeInputProps()
+    return makeInputProps({ settings, videoUrl: null, isImageSource: true, brand: { ...base.brand, ...brand } })
+  }
+
+  it('rotates a text layer on its own text element, about its center', () => {
+    const { container } = mountComposition(withLayers([{ ...createLayer('headline'), text: 'Hello rotated', rotation: 20 }]))
+    const rotated = [...container.querySelectorAll('[style*="rotate(20deg)"]')] as HTMLElement[]
+    const text = rotated.find((e) => e.textContent?.includes('Hello'))!
+    expect(text).toBeTruthy()
+    expect(text.style.transformOrigin).toBe('center center')
+    // its accent rule is carried along (and is the only other rotated element)
+    const rule = rotated.find((e) => !e.textContent)!
+    expect(rule).toBeTruthy()
+    expect(rule.style.transform).toBe('rotate(20deg)')
+    expect(rotated).toHaveLength(2)
+  })
+
+  it('keeps the centering translate and the rotation in one transform, translate first', () => {
+    const { container } = mountComposition(withLayers([{ ...createLayer('tagline'), text: 'Short', rotation: -12 }]))
+    const el = container.querySelector('[style*="rotate(-12deg)"]') as HTMLElement
+    expect(el).toBeTruthy()
+    expect(el.style.transform).toBe('translateX(-50%) rotate(-12deg)')
+  })
+
+  it('rotates the CTA pill', () => {
+    const { container } = mountComposition(withLayers([{ ...createLayer('cta'), text: 'Book now', rotation: -10 }]))
+    const pill = container.querySelector('[style*="rotate(-10deg)"]') as HTMLElement
+    expect(pill).toBeTruthy()
+    expect(pill.textContent).toBe('Book now')
+  })
+
+  // Image wrappers and design layers are covered by the real web-renderer stills (this file's AbsoluteFill mock drops `style`).
+
+  it('draws nothing rotated when no layer is rotated', () => {
+    const { container } = mountComposition(withLayers([{ ...createLayer('headline'), text: 'Plain' }, createLayer('cta', { text: 'Go' })]))
+    expect(container.innerHTML).not.toContain('rotate(')
   })
 })

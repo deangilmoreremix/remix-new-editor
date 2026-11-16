@@ -15,7 +15,14 @@
 export const REMOTE_MEDIA_PROXY_PATH = '/api/media/remote'
 
 /** Hosts the proxy is allowed to fetch from. Exact hostnames only. */
-export const REMOTE_MEDIA_ALLOWED_HOSTS: readonly string[] = ['cdn.seedance2prompt.com']
+export const REMOTE_MEDIA_ALLOWED_HOSTS: readonly string[] = [
+  'cdn.seedance2prompt.com',
+  // MuAPI's output hosts. The Zack D final cut renders generated clips/narration/music in the browser, and the
+  // renderer reads them with fetch(): the CSP `connect-src` does not allow the CloudFront host (and neither host
+  // sends CORS headers we can rely on), so they must come through the same-origin proxy.
+  'cdn.muapi.ai',
+  'd3adwkbyhxyrtq.cloudfront.net',
+]
 
 export function isProxiableRemoteMediaHost(hostname: string): boolean {
   return REMOTE_MEDIA_ALLOWED_HOSTS.includes(hostname.toLowerCase())
