@@ -119,9 +119,9 @@ export function ClipPropertiesPanel({
         </button>
       </div>
 
-      {/* Transform */}
+      {/* Flip ([remix] renamed from "Transform" so it no longer clashes with the position/scale/rotation Transform section below) */}
       <div className="clip-properties-panel__section">
-        <div className="clip-properties-panel__section-title">Transform</div>
+        <div className="clip-properties-panel__section-title">Flip</div>
         <div className="clip-properties-panel__toggle-row">
           <button
             className={`clip-properties-panel__toggle-btn${clip.flipH ? ' clip-properties-panel__toggle-btn--active' : ''}`}

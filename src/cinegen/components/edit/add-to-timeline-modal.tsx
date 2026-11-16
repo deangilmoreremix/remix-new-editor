@@ -12,12 +12,12 @@ import { TemplateVideosPanel } from './template-videos-modal';
 // @ts-expect-error plain JS data module
 import { templateVideos } from '../../../data/templateVideoLibrary.js';
 import { PreviewCard, CARD_CSS } from './preview-card';
-import { buildCatalog, hfEntries, mgEntries, type AddToTimelineActions, type CatalogEntry, type CatalogTab } from './add-to-timeline-registry';
+import { buildCatalog, clearPendingAddTab, hfEntries, mgEntries, peekPendingAddTab, type AddModalTab, type AddToTimelineActions, type CatalogEntry, type CatalogTab } from './add-to-timeline-registry';
 
 export type { AddToTimelineActions } from './add-to-timeline-registry';
 
 // 'videos' is a panel tab like Animations / Motion graphics, but its 184 live clips are not mixed into the All tab
-type Tab = 'all' | CatalogTab | 'videos';
+type Tab = AddModalTab;
 
 // The hover-help layer also opens a card when a field gets keyboard focus. These two fields are focused automatically, so a help card would pop up
 // over the cards every time a tab opens; their labels are constants (not literals) so no help entry is looked up for them.
@@ -37,7 +37,11 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const titleId = useId();
   const hasAnimations = !!actions.onPickAnimation;
   const hasVideos = !!actions.onPickTemplateVideo;
-  const [tab, setTab] = useState<Tab>(hasAnimations ? 'animations' : 'motion');
+  // [remix] the Library can open this window on a given tab (ignored when that tab is not available); read without clearing so a double render keeps it
+  const [requested] = useState(peekPendingAddTab);
+  useEffect(() => { clearPendingAddTab(); }, []);
+  const startTab: Tab = requested && (requested !== 'videos' || hasVideos) && (requested !== 'animations' || hasAnimations) ? requested : hasAnimations ? 'animations' : 'motion';
+  const [tab, setTab] = useState<Tab>(startTab);
   const [q, setQ] = useState('');
   const [connect, setConnect] = useState<string | null>(null); // Connect Form template waiting for its phone number
   const [phone, setPhone] = useState('');

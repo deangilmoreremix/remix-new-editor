@@ -87,5 +87,17 @@ export function buildCatalog(a: Pick<AddToTimelineActions, 'onAddKind' | 'onAddT
 
 /** The Library sidebar (a sibling of the timeline) opens the modal through this window event; TimelineEditor listens for it. */
 export const OPEN_ADD_MODAL_EVENT = 'cinegen:open-add-to-timeline';
-/** True when the editor took the event (it calls preventDefault); false when no timeline editor is mounted to open the window. */
-export const openAddToTimeline = (): boolean => !window.dispatchEvent(new CustomEvent(OPEN_ADD_MODAL_EVENT, { cancelable: true }));
+/** Tabs of the Add to timeline window ('videos' = Template videos). */
+export type AddModalTab = 'all' | CatalogTab | 'videos';
+/** The tab the next-opened window should start on. Kept here (not in timeline-editor.tsx) so that file stays close to upstream CineGen. */
+let pendingTab: AddModalTab | undefined;
+export const peekPendingAddTab = (): AddModalTab | undefined => pendingTab;
+export const clearPendingAddTab = (): void => { pendingTab = undefined; };
+/** True when the editor took the event (it calls preventDefault); false when no timeline editor is mounted to open the window.
+ *  `tab` opens the window on that tab (for example the Library's "Template videos" category). */
+export const openAddToTimeline = (tab?: AddModalTab): boolean => {
+  pendingTab = tab;
+  const taken = !window.dispatchEvent(new CustomEvent(OPEN_ADD_MODAL_EVENT, { cancelable: true }));
+  if (!taken) pendingTab = undefined;
+  return taken;
+};

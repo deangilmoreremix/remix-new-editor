@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react';
 import { LibraryPanel, LIBRARY_CATEGORIES, type LibraryActions } from '../components/edit/library-panel';
+import { OPEN_ADD_MODAL_EVENT, peekPendingAddTab, clearPendingAddTab } from '../components/edit/add-to-timeline-registry';
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -26,9 +27,32 @@ const click = (el: Element | null) => { act(() => { (el as HTMLElement).click();
 const flush = () => act(async () => { await Promise.resolve(); });
 
 describe('LibraryPanel', () => {
-  it('has the six categories', () => {
+  it('template videos: the category opens the Add to timeline window on its Template videos tab', () => {
     const { host, cleanup } = mount();
-    expect(LIBRARY_CATEGORIES.map((c) => c.id)).toEqual(['animations', 'effects', 'transitions', 'looks', 'overlays', 'sounds']);
+    const seen: Array<string | undefined> = [];
+    const onOpen = (e: Event) => { e.preventDefault(); seen.push(peekPendingAddTab()); };
+    window.addEventListener(OPEN_ADD_MODAL_EVENT, onOpen);
+    click(host.querySelector('[data-testid="library-cat-videos"]'));
+    click(host.querySelector('[data-testid="library-open-template-videos"]'));
+    window.removeEventListener(OPEN_ADD_MODAL_EVENT, onOpen);
+    expect(seen).toEqual(['videos']);
+    clearPendingAddTab();
+    cleanup();
+  });
+
+  it('template videos: says so when no timeline editor is mounted to open the window', async () => {
+    const { host, cleanup } = mount();
+    click(host.querySelector('[data-testid="library-cat-videos"]'));
+    click(host.querySelector('[data-testid="library-open-template-videos"]'));
+    await flush();
+    expect(host.querySelector('.library-panel__note')?.textContent).toBe('Open the timeline first.');
+    expect(peekPendingAddTab()).toBeUndefined(); // nothing is left waiting when no editor opened the window
+    cleanup();
+  });
+
+  it('has the seven categories', () => {
+    const { host, cleanup } = mount();
+    expect(LIBRARY_CATEGORIES.map((c) => c.id)).toEqual(['animations', 'effects', 'transitions', 'looks', 'overlays', 'videos', 'sounds']);
     for (const c of LIBRARY_CATEGORIES) expect(host.querySelector(`[data-testid="library-cat-${c.id}"]`)).not.toBeNull();
     cleanup();
   });

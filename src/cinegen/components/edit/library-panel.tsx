@@ -10,6 +10,8 @@ import { buildAnimationCatalog, animationGroups, filterAnimations } from '@cineg
 import { hyperframesItems, type HfItem } from '@cinegen/lib/hyperframes/overlay';
 import { groupOf, thumbOf } from './hyperframes-modal';
 import { openAddToTimeline } from './add-to-timeline-registry';
+// @ts-expect-error plain JS data module (same import as add-to-timeline-modal.tsx)
+import { templateVideos } from '../../../data/templateVideoLibrary.js';
 // @ts-expect-error plain JS flag module
 import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 import { GL_TRANSITION_ORDER, glTransitionLabel } from '@cinegen/lib/occ/transitions';
@@ -32,7 +34,7 @@ const dragProps = (kind: LibraryKind, id: string) => ({
   onDragStart: (e: React.DragEvent) => { e.dataTransfer.setData(LIBRARY_DND, encodeLibraryDrag({ kind, id })); e.dataTransfer.effectAllowed = 'copy'; },
 });
 
-export type LibraryCategory = 'animations' | 'effects' | 'transitions' | 'looks' | 'overlays' | 'sounds';
+export type LibraryCategory = 'animations' | 'effects' | 'transitions' | 'looks' | 'overlays' | 'videos' | 'sounds';
 
 export const LIBRARY_CATEGORIES: Array<{ id: LibraryCategory; label: string; hint: string }> = [
   { id: 'animations', label: 'Animations', hint: 'Animated titles, lower thirds and call-outs' },
@@ -40,6 +42,7 @@ export const LIBRARY_CATEGORIES: Array<{ id: LibraryCategory; label: string; hin
   { id: 'transitions', label: 'Transitions', hint: 'How the selected clip changes into the next one' },
   { id: 'looks', label: 'Looks', hint: 'Colour grades (LUTs) for the selected clip' },
   { id: 'overlays', label: 'Overlays & forms', hint: 'Lead forms, buttons, text, stickers and end screens' },
+  { id: 'videos', label: 'Template videos', hint: 'Ready-made AI video clips to drop on a video track' },
   { id: 'sounds', label: 'Sounds', hint: 'Sound effects placed at the playhead' },
 ];
 
@@ -169,6 +172,15 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
             ))}
           </div>
           {!kinds.length && !tpls.length && <span className="library-panel__empty">No overlays match.</span>}
+        </div>
+      );
+    }
+    if (cat === 'videos') {
+      // [remix] template videos need the wide grid (live previews, type / length / logo / aspect filters), so this opens that window on its Template videos tab
+      return (
+        <div className="library-panel__stack">
+          <span style={{ fontSize: 12, opacity: 0.75, lineHeight: 1.4 }}>{(templateVideos as unknown[]).length} ready-made AI video templates in categories like Sci-Fi, Food &amp; Drink and Product reveals. Previews play as you scroll; click one to add it at the playhead.</span>
+          <button type="button" className="library-panel__chip library-panel__chip--on" data-testid="library-open-template-videos" onClick={() => { if (!openAddToTimeline('videos')) say('Open the timeline first.'); }} style={{ alignSelf: 'flex-start' }}>Browse template videos</button>
         </div>
       );
     }
