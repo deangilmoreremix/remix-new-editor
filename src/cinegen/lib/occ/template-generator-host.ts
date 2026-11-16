@@ -27,7 +27,12 @@ export function generatorHostOptions(assets: Asset[]) {
         onProgress?.((job.progress ?? 0) / 100);
       }
       if (job.status === 'failed') throw new Error(job.error || 'The export failed');
-      return { filename: 'cinegen-export.mp4', fileSize: job.fileSize ?? 0 };
+      return { filename: 'cinegen-export.mp4', fileSize: job.fileSize ?? 0, url: job.outputUrl };
+    },
+    // Upload the rendered video and make a draft Video Pages page from it (own window, own React root; loaded only when used)
+    addToVideoPages: async (video: { url: string; title: string; fileSize?: number; duration?: number | null }) => {
+      const { openVideoPagesModal } = await import('../../components/edit/video-pages-modal');
+      openVideoPagesModal(video);
     },
   };
 }

@@ -65,6 +65,12 @@ The native engine also works from the command line: `node scripts/transcribe-whi
 Captions land on the timeline as the editor's own captions (first clip's Captions section), editable there; `.srt` can be downloaded from the panel. With no audio to listen to, the words follow the written script over the cut; listening covers the first 3 minutes.
 Capite's looks are ported from <https://github.com/muneebkhan08/Capite> (MIT, © 2026 Capite Contributors): fonts, colours, outline, glow and highlight style, drawn with the editor's caption renderer. Capite's server and its ASS/VTT/MP4 export are not used.
 
-## 7. Other notes
+## 8. Add to Video Pages (Preview step → "🏠 Add to Video Pages")
+Next to "Export video" on the Preview step. It renders the video in the browser if it has not been rendered yet (the file also goes to your downloads, as with Export), then opens a window built like the editor's "Add to timeline": pills with counts for the Video Pages design groups (Editable landing pages 34, Page structures, Layouts, Personal intro, Pitch page, Older website pages), a "Choose a design" card with search, look and page-title fields, and a card grid. Pick a design and press "Create draft page": the video is uploaded to storage, a poster is made, and a **draft** page is created with that design (same code as the studio's "Create page", `src/lib/landingPages/ingest.js`). "Open in Video Pages" opens the studio in a new tab, where you edit and publish. Only available in the Timeline Studio Editor (it needs the browser export).
+
+Verified: the window in a real browser at the editor's theme (all 75 designs, the pills, search and look filters, selecting, the created state), and the whole flow with tests (the upload and page creation are faked there).
+**Not verified (needs a real sign-in and the shared project, so I did not create test pages there):** the actual upload to storage and the draft row for a real rendered video, and "Open in Video Pages" showing it in the list. Check: render, press the button, pick a design, create, open the studio, confirm the draft is there with the video playing. Limits: 100 MB per video; you must be signed in.
+
+## 9. Other notes
 - `public/motion-studio/legacy-textures/agent-stream.jpg` is a generated placeholder (the original artwork was never committed in this repo or in `develop`). Replace it with the real image when you have it.
 - Merging the pull request is done in GitHub.

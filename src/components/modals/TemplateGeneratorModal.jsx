@@ -104,6 +104,7 @@ export class TemplateGeneratorModal extends BaseModal {
     // The project's own videos / images ("My media"); an array, or a function returning one.
     this.projectMedia = options.projectMedia || null;
     this.exportHost = options.exportVideo || null;   // the host editor renders a composition to a video file
+    this.videoPagesHost = options.addToVideoPages || null;   // the host editor's "Add to Video Pages" window (uploads the rendered video, makes a draft page)
     this.bgRemover = options.bgRemover || null;     // tests replace the cut-out service
     this.voiceMaker = options.voiceMaker || null;   // tests replace the voiceover service
     this.captionMaker = options.captionMaker || null;   // tests replace the caption transcription
@@ -152,6 +153,7 @@ export class TemplateGeneratorModal extends BaseModal {
       overlayCategory: 'all',
       ltCategory: 'all',
       exp: { busy: false, progress: 0, error: '', done: '' },
+      expLast: null,     // the last finished export: { url, filename, fileSize, duration, title } (what "Add to Video Pages" uploads)
       bg: { busy: false, id: null, progress: 0, eta: null, error: '', note: '' },
       voiceBusy: false, voiceError: '', voiceNote: '',
       capBusy: false, capProgress: 0, capNote: '', capError: '', capLocal: false,
@@ -428,6 +430,7 @@ export class TemplateGeneratorModal extends BaseModal {
           <div class="tg-summary" id="tg-summary">${this.renderSummary()}</div>
           <span class="tg-stepcount" id="tg-stepcount">Step ${step + 1} of ${STEP_LABELS.length}</span>
  ${last ? this.renderExportButton() : ''}
+          ${last ? this.renderVideoPagesButton() : ''}
           ${last ? `<button type="button" class="tg-btn" id="tg-save" data-act="save-open" ${nextDisabled(this.s, step, this.ui.busy) ? 'disabled' : ''}>💾 ${this.s.templateId ? 'Save changes' : 'Save as template'}</button>` : ''}
           <button type="button" class="btn-add next-button tg-btn tg-btn--primary${disabled ? ' disabled' : ''}" id="tg-next" data-act="next" ${disabled ? 'disabled' : ''}>${this.ui.busy ? 'Adding…' : nextLabel(step)}${last ? '' : ' →'}</button>
         </footer>
@@ -1635,6 +1638,7 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'use-template-script': this._applyTemplateScript(true); this.paint(); break;
       case 'overlay-tab': this.ui.overlayTab = id; this.paint(); break;
       case 'export-video': this.exportNow(); break;
+      case 'add-to-video-pages': this.addToVideoPages(); break;
       case 'bg-remove': this.removeBackground(id); break;
       case 'bg-cancel': this._bgAbort?.abort(); break;
       case 'bg-restore': this.restoreBackground(id); break;
@@ -2209,6 +2213,26 @@ export class TemplateGeneratorModal extends BaseModal {
     return `<button type="button" class="tg-btn" id="tg-export" data-act="export-video" ${ok ? '' : 'disabled'} title="${canExportInBrowser() ? 'Render this video in your browser and download it' : 'Exporting needs Chrome or Edge'}">⬇ ${this.ui.exp.busy ? 'Exporting…' : 'Export video'}</button>`;
   }
 
+  renderVideoPagesButton() {
+    if (!this.videoPagesHost || !this.exportHost) return '';
+    const ok = canExportInBrowser() && !this.ui.exp.busy && this.s.selectedVideos.length > 0;
+    return `<button type="button" class="tg-btn" id="tg-videopages" data-act="add-to-video-pages" ${ok ? '' : 'disabled'} title="${this.ui.expLast ? 'Upload the rendered video and make a Video Pages landing page from it' : 'Render the video, then upload it and make a Video Pages landing page'}">🏠 Add to Video Pages</button>`;
+  }
+
+  /** Render the video if it has not been (or changed), then open the host's window that uploads it and makes the draft page. */
+  async addToVideoPages() {
+    if (!this.videoPagesHost || this.ui.exp.busy) return;
+    if (!this.ui.expLast?.url) await this.exportNow();
+    const last = this.ui.expLast;
+    if (!last?.url) return;   // the export said why (shown under the buttons)
+    try {
+      await this.videoPagesHost({ url: last.url, title: last.title, fileSize: last.fileSize, duration: last.duration });
+    } catch (err) {
+      this.ui.exp = { ...this.ui.exp, error: err?.message || 'Could not open Video Pages.', done: '' };
+      this._refreshExport();
+    }
+  }
+
   renderExportStatus() {
     const e = this.ui.exp;
     if (e.busy) { const pct = Math.round((e.progress || 0) * 100); return `<div class="tg-bgprogress"><span>Rendering your video in this browser… ${pct}%. Keep this tab open and visible.</span><i style="width:${pct}%"></i></div>`; }
@@ -2221,6 +2245,8 @@ export class TemplateGeneratorModal extends BaseModal {
     this._setHTML('#tg-exportstatus', this.renderExportStatus());
     const btn = this.overlay?.querySelector('#tg-export');
     if (btn) { btn.disabled = this.ui.exp.busy || !canExportInBrowser() || !this.s.selectedVideos.length; btn.textContent = `⬇ ${this.ui.exp.busy ? 'Exporting…' : 'Export video'}`; }
+    const vp = this.overlay?.querySelector('#tg-videopages');
+    if (vp) vp.disabled = this.ui.exp.busy || !canExportInBrowser() || !this.s.selectedVideos.length;
   }
 
   async exportNow() {
@@ -2235,6 +2261,7 @@ export class TemplateGeneratorModal extends BaseModal {
     }
     const left = placeholdersLeft(this.s.script.text);
     if (left.length) { u.exp = { busy: false, progress: 0, error: `Your script still says ${left.join(', ')}. Fill in your details on the Script step so the video says your real business, city and offer.`, done: '' }; this._refreshExport(); return; }
+    u.expLast = null;   // a new render replaces the last one
     u.exp = { busy: true, progress: 0, error: '', done: '', ackQuote: u.exp.ackQuote };
     this._refreshExport();
     try {
@@ -2242,6 +2269,7 @@ export class TemplateGeneratorModal extends BaseModal {
       for (const it of this.s.selectedVideos) durable.push(await this._ensureDurable(it));
       const { composition } = await this._buildComposition(durable);
       const out = await this.exportHost({ composition, onProgress: (p) => { u.exp.progress = p; this._setHTML('#tg-exportstatus', this.renderExportStatus()); } });
+      u.expLast = out?.url ? { url: out.url, filename: out.filename, fileSize: out.fileSize || 0, duration: this.s.selectedVideos.reduce((n, v) => n + clipDuration(v), 0), title: this.s.selectedScript?.name || this.s.templateName || 'Template video' } : null;
       u.exp = { busy: false, progress: 1, error: '', done: `Exported ${out?.filename || 'your video'}${out?.fileSize ? ` (${(out.fileSize / 1048576).toFixed(1)} MB)` : ''}. Check your downloads.` };
     } catch (err) {
       u.exp = { busy: false, progress: 0, error: err?.message || 'The export failed. Please try again.', done: '' };
