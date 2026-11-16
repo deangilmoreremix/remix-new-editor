@@ -34,7 +34,8 @@
     "Email card: thumbnail text, subject and message with {{firstname}}, {{company}} and {{link}}; Make thumbnails; Copy email (with the thumbnail) and Email per contact; mail-merge .csv",
     "MP4 per contact: download that contact's finished video as a file",
     "Lip-sync the greeting (optional, paid): your mouth says each contact's name",
-    "Thumbnails: animated GIF (3 seconds, choose where it starts) or still image; play button show/hide, style, colour and opacity; each prospect's company logo; text with {{firstname}}, {{company}}, {{jobtitle}}; Copy GIF and Embed per contact; Opened/Watched/Clicked per contact"
+    "Thumbnails: animated GIF (3 seconds, choose where it starts) or still image; play button show/hide, style, colour and opacity; each prospect's company logo; text with {{firstname}}, {{company}}, {{jobtitle}}; Copy GIF and Embed per contact; Opened/Watched/Clicked per contact",
+    "Camera effects in the recorder: background blur, virtual backgrounds (Office, Studio, Gradient or your own image), touch-up and mirror, recorded into the video"
   ],
   "featureExplanations": [
     {
@@ -127,6 +128,13 @@
       "whyToUse": "A more natural personal greeting.",
       "inputRequired": "A personalized greeting and a recording that starts with you facing the camera.",
       "restrictions": "Paid: one MuAPI lip-sync video request per distinct greeting, on top of the voice, about a minute each. If one fails, that contact still hears their greeting without lip-sync."
+    },
+    {
+      "feature": "Camera effects",
+      "explanation": "In the recorder's Camera or Both mode, click Effects. Background: None, Blur (with Blur amount), Office, Studio, Gradient or Upload image. Touch-up softens your skin; Mirror flips the camera. The preview shows the effect and it is recorded into the video, so AI intros made from it keep it.",
+      "whyToUse": "Hide a messy room or look more polished.",
+      "inputRequired": "A camera.",
+      "restrictions": "Runs on your device; slower computers may lower the frame rate. The person cut-out is automatic and can miss fine edges."
     }
   ],
   "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",

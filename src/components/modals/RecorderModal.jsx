@@ -1,3 +1,4 @@
+import { BUILTIN_BACKGROUNDS, effectsActive, loadEffects, saveEffects, applyCameraEffects } from '../../lib/recorder/effects.js';
 import { BaseModal } from './BaseModal.jsx';
 
 const QUALITY_OPTIONS = [
@@ -63,6 +64,10 @@ export class RecorderModal extends BaseModal {
     // 'circle' is the face bubble used by video-outreach tools; 'rounded' is a
     // plain picture-in-picture rectangle. Only used by the Both (screen + cam) mode.
     this.camShape = 'circle';
+    // Camera effects (src/lib/recorder/effects.js): blur, virtual background, touch-up, mirror.
+    this.effects = loadEffects();
+    this.showEffects = false;
+    this.previewFx = null;
     this.isRecording = false;
     this.isPaused = false;
     this.recordingTime = 0;
@@ -178,11 +183,15 @@ export class RecorderModal extends BaseModal {
                 <span>🎤</span> Mic ${this.micEnabled ? 'on' : 'off'}
               </button>
             ` : ''}
+            ${(this.recordingType === 'camera' || this.recordingType === 'both') && !this.isRecording ? `
+              <button class="preview-toggle ${effectsActive(this.effects) || this.showEffects ? 'active' : ''}" data-action="toggle-effects" data-tooltip="Background blur, virtual background, touch-up and mirror">✨ Effects</button>
+            ` : ''}
             ${this.recordingType === 'both' ? `
               <button class="preview-toggle ${this.camShape === 'circle' ? 'active' : ''}" data-shape="circle" data-tooltip="Round face bubble">● Circle</button>
               <button class="preview-toggle ${this.camShape === 'rounded' ? 'active' : ''}" data-shape="rounded" data-tooltip="Rounded rectangle camera">▢ Rectangle</button>
             ` : ''}
           </div>
+          ${this.showEffects && (this.recordingType === 'camera' || this.recordingType === 'both') && !this.isRecording ? this.renderEffectsPanel() : ''}
           ${this.notice ? `<div class="recorder-notice" style="font-size:12px;opacity:.8;margin-top:6px;">${this.notice}</div>` : ''}
         </div>
 
@@ -261,8 +270,60 @@ export class RecorderModal extends BaseModal {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
+  renderEffectsPanel() {
+    const fx = this.effects;
+    const chip = (id, label, on) => `<button class="preview-toggle ${on ? 'active' : ''}" data-fx-bg="${id}">${label}</button>`;
+    const bgOn = (id) => fx.mode === 'background' && fx.background === id;
+    const custom = fx.mode === 'background' && !BUILTIN_BACKGROUNDS.some((b) => b.id === fx.background);
+    return `
+      <div class="recorder-effects" data-recorder-effects style="display:flex;flex-direction:column;gap:8px;margin-top:8px;padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+          <span style="font-size:12px;opacity:.7;width:84px;">Background</span>
+          ${chip('none', 'None', fx.mode === 'none')}
+          ${chip('blur', 'Blur', fx.mode === 'blur')}
+          ${BUILTIN_BACKGROUNDS.map((b) => chip(b.id, b.label, bgOn(b.id))).join('')}
+          ${chip('upload', custom ? 'Your image ✓' : 'Upload image…', custom)}
+          <input type="file" accept="image/*" data-fx-upload hidden>
+        </div>
+        ${fx.mode === 'blur' ? `<label style="display:flex;gap:8px;align-items:center;font-size:12px;"><span style="opacity:.7;width:84px;">Blur amount</span><input type="range" min="0" max="1" step="0.05" value="${fx.blur}" data-fx-blur style="flex:1;"></label>` : ''}
+        <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><span style="opacity:.7;width:84px;">Touch-up</span><input type="range" min="0" max="1" step="0.05" value="${fx.touchUp}" data-fx-touchup style="flex:1;"></label>
+        <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><span style="opacity:.7;width:84px;">Mirror</span><input type="checkbox" ${fx.mirror ? 'checked' : ''} data-fx-mirror></label>
+        <span style="font-size:11px;opacity:.5;">Effects run on your device and are recorded into the video.</span>
+      </div>`;
+  }
+
+  async setEffects(patch, { rerender = true } = {}) {
+    this.effects = { ...this.effects, ...patch };
+    saveEffects(this.effects);
+    if (rerender) this.rerender();
+    await this.refreshPreviewEffects();
+  }
+
   setupEventListeners() {
     super.setupEventListeners();
+
+    this.overlay.querySelector('[data-action="toggle-effects"]')?.addEventListener('click', () => {
+      this.showEffects = !this.showEffects;
+      this.rerender();
+    });
+    this.overlay.querySelectorAll('[data-fx-bg]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.fxBg;
+        if (id === 'upload') { this.overlay.querySelector('[data-fx-upload]')?.click(); return; }
+        if (id === 'none' || id === 'blur') this.setEffects({ mode: id });
+        else this.setEffects({ mode: 'background', background: id });
+      });
+    });
+    this.overlay.querySelector('[data-fx-upload]')?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => this.setEffects({ mode: 'background', background: String(reader.result) });
+      reader.readAsDataURL(file);
+    });
+    this.overlay.querySelector('[data-fx-blur]')?.addEventListener('input', (e) => this.setEffects({ blur: Number(e.target.value) }, { rerender: false }));
+    this.overlay.querySelector('[data-fx-touchup]')?.addEventListener('input', (e) => this.setEffects({ touchUp: Number(e.target.value) }, { rerender: false }));
+    this.overlay.querySelector('[data-fx-mirror]')?.addEventListener('change', (e) => this.setEffects({ mirror: e.target.checked }));
 
     this.overlay.querySelectorAll('.type-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -341,11 +402,32 @@ export class RecorderModal extends BaseModal {
         return;
       }
     }
+    await this.refreshPreviewEffects();
+  }
+
+  // The preview shows the camera through the same effects the take will be recorded with.
+  async refreshPreviewEffects() {
+    if (!this.webcamStream) return;
+    // Switching between "no effect" (camera as is) and "effects" rebuilds the preview; otherwise the
+    // running preview just takes the new settings.
+    if (this.previewFx && this.previewFx.passthrough !== !effectsActive(this.effects)) { this.previewFx.stop(); this.previewFx = null; }
+    if (this.previewFx) await this.previewFx.update(this.effects);
+    if (!this.previewFx) {
+      try {
+        this.previewFx = await applyCameraEffects(this.webcamStream, this.effects, { keepSource: true });
+      } catch (err) {
+        console.error('Camera effects failed:', err);
+        this.notice = 'Camera effects are not available in this browser, so the camera is shown as it is.';
+        this.previewFx = { stream: this.webcamStream, update: () => {}, stop: () => {}, passthrough: true };
+      }
+    }
     const el = this.overlay?.querySelector('.webcam-feed');
-    if (el && el.srcObject !== this.webcamStream) el.srcObject = this.webcamStream;
+    if (el && el.srcObject !== this.previewFx.stream) el.srcObject = this.previewFx.stream;
   }
 
   stopPreviewCamera() {
+    this.previewFx?.stop();
+    this.previewFx = null;
     if (this.webcamStream && this.previewCameraOnly) {
       this.webcamStream.getTracks().forEach(t => t.stop());
       this.webcamStream = null;
@@ -377,13 +459,21 @@ export class RecorderModal extends BaseModal {
     if (type === 'screen') {
       return [{ prefix: 'display', stream: await streams.getDisplayStreamWithMic(audio) }];
     }
+    // The recorded camera goes through the chosen effects (the original stream passes through when none).
+    const withEffects = async (cam) => {
+      try { return (await applyCameraEffects(cam, this.effects)).stream; } catch (err) {
+        console.error('Camera effects failed:', err);
+        this.notice = 'Camera effects could not start, so this take is recorded without them.';
+        return cam;
+      }
+    };
     if (type === 'camera') {
-      return [{ prefix: 'webcam', stream: await streams.getCameraStream({ camera: this.cameraOptions(), ...audio }) }];
+      return [{ prefix: 'webcam', stream: await withEffects(await streams.getCameraStream({ camera: this.cameraOptions(), ...audio })) }];
     }
     // Both: ask for the screen first (it is the dialog the user may cancel), then the camera.
     const display = await streams.getDisplayStream({});
     try {
-      const webcam = await streams.getCameraStream({ camera: this.cameraOptions(), ...audio });
+      const webcam = await withEffects(await streams.getCameraStream({ camera: this.cameraOptions(), ...audio }));
       return [{ prefix: 'webcam', stream: webcam }, { prefix: 'display', stream: display }];
     } catch (err) {
       display.getTracks().forEach(t => t.stop());

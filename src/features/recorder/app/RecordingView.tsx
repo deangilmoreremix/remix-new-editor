@@ -9,6 +9,7 @@ import { ToggleRotate } from "./Rotate";
 import { ResolutionAndFps, Stream } from "./Stream";
 import { ToggleCrop } from "./ToggleCrop";
 import { ToggleMirror } from "./ToggleMirror";
+import { CameraEffects } from "./CameraEffects";
 import { useDevices } from "./WaitingForDevices";
 import { ClearCurrentVideo } from "./components/ClearCurrentVideo";
 import { CurrentAudio } from "./components/CurrentAudio";
@@ -314,6 +315,12 @@ const InnerRecordingView: React.FC<{
             onPressedChange={onToggleMirror}
             disabled={recordingStatus.type === "recording"}
           />
+        ) : null}
+        {prefix === WEBCAM_PREFIX &&
+        mediaStream.videoDevice !== "display-without-audio" &&
+        mediaStream.videoDevice !== "display-with-audio" &&
+        activeVideoDevice ? (
+          <CameraEffects disabled={recordingStatus.type === "recording"} />
         ) : null}
         {cameraRotateable ? (
           <ToggleRotate

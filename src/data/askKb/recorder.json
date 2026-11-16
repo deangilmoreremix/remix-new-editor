@@ -28,7 +28,8 @@
     "Landscape (1920×1080) or square (1080×1080) layouts, light or dark theme",
     "Chapters, B-roll images and videos, music with fades, transitions",
     "End card with your own avatar, social handles and links",
-    "Export to MP4 or WebM in the browser"
+    "Export to MP4 or WebM in the browser",
+    "Camera effects on the webcam view: blur, virtual backgrounds, your own background image, touch-up"
   ],
   "featureExplanations": [
     {
@@ -58,6 +59,13 @@
       "whyToUse": "Get a finished video to download or use in Video Outreach.",
       "inputRequired": "A project with scenes.",
       "restrictions": "MP4 needs Chrome or Edge; other browsers export WebM."
+    },
+    {
+      "feature": "Camera effects",
+      "explanation": "On the Webcam view, click ✨ and pick None, Blur, Office, Studio, Gradient or Upload, and set Touch-up. The camera restarts with the effect, and it is recorded into the take. The Mirror button stays a preview-only mirror, as in Remotion Recorder.",
+      "whyToUse": "Hide your room or look more polished.",
+      "inputRequired": "A camera source on the Webcam view.",
+      "restrictions": "Runs on your device."
     }
   ],
   "howToUse": "Open Recorder, pick your camera and microphone, add your screen in Display, press Start recording, then Save. Switch to Edit to arrange scenes and fix captions, then Export.",
