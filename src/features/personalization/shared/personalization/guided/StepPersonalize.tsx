@@ -6,8 +6,9 @@ import { LayoutTemplate, Palette } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
 import { designPrimarySlotUpdates } from '../preview/designSlots'
-import { C, chipStyle, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens'
+import { C, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens'
 import { ColorField } from './editor/ColorField'
+import { LayoutThumbnails } from './LayoutThumbnails'
 import type { ClientProfile } from '../types'
 import type { PreviewLayerKind, PreviewLayoutId } from '../preview/types'
 
@@ -281,27 +282,14 @@ export function StepPersonalize({
           {layoutChosenByUser ? '' : ' for you'} — {activeTemplate.description} Nothing is required to continue. Animated
           designs can be added in the next step.
         </p>
-        <div role="group" aria-label="Layout" data-testid="layout-picker" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {PREVIEW_LAYOUTS.map((layout) => {
-            const active = !activeDesign && previewSettings.layout === layout.id
-            return (
-              <button
-                key={layout.id}
-                type="button"
-                aria-pressed={active}
-                title={layout.description}
-                onClick={() => {
-                  setLocalChosenByUser(true)
-                  onChooseLayout?.()
-                  setPreviewLayout(layout.id)
-                }}
-                style={chipStyle(active)}
-              >
-                {layout.name}
-              </button>
-            )
-          })}
-        </div>
+        <LayoutThumbnails
+          activeLayoutId={activeDesign ? null : previewSettings.layout}
+          onChoose={(layoutId) => {
+            setLocalChosenByUser(true)
+            onChooseLayout?.()
+            setPreviewLayout(layoutId)
+          }}
+        />
       </div>
 
       {/* ── What will be placed ─────────────────────────────────────────── */}

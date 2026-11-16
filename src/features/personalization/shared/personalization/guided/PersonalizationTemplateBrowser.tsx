@@ -104,7 +104,7 @@ function categoryLabel(key: PersonalizationCategoryKey): string {
 }
 
 /** One card in the gallery. */
-type GalleryItem =
+export type GalleryItem =
   | { kind: 'layout'; id: PreviewLayoutId; name: string; description: string; category: 'layouts' }
   | {
       kind: 'design'
@@ -135,7 +135,7 @@ function buildItems(designs: RemotionDesignTemplate[], designsOnly = false): Gal
 }
 
 /** Brand context for previews; sample copy keeps empty cards readable. */
-function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
+export function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
   const { brand } = baseInput
   return {
     businessName: brand.businessName || 'Your Business',
@@ -152,7 +152,7 @@ function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
 }
 
 /** The frame a paused card rests on: after the template has animated in. */
-function restFrameFor(item: GalleryItem, durationInFrames: number, fps: number): number {
+export function restFrameFor(item: GalleryItem, durationInFrames: number, fps: number): number {
   let frame = Math.round(fps * 1.5)
   if (item.kind === 'design') {
     const end = item.design.placement?.endFrame
@@ -613,7 +613,7 @@ function TemplateCard({
  * holds dozens of decoders), and it only plays while the card is selected or
  * hovered.
  */
-function TemplateLivePreview({
+export function TemplateLivePreview({
   item,
   inputProps,
   playing,
