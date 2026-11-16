@@ -234,7 +234,7 @@ export default function EmailLinkPanel({ tokens, noDefaults = [] }: { tokens: st
         <div data-testid="pz-email-preflight" className="space-y-1 rounded-xl border border-white/10 bg-black/30 p-4 text-xs">
           <span className="text-xs font-semibold uppercase tracking-wider text-white/40">Before you send</span>
           <p className={recipientId.trim() ? 'text-emerald-300' : 'text-amber-300'}>
-            {recipientId.trim() ? '✓ Views will show per recipient.' : '! No recipient id: every view will look the same. Add your provider\'s unique id tag above.'}
+            {recipientId.trim() ? `✓ Views will show per recipient.${provider.recipientUnverified && recipientId === recipientIdTagFor(provider) ? ` ${provider.label} doesn't list this tag in its own docs: send yourself a test to confirm it fills in.` : ''}` : '! No recipient id: every view will look the same. Add your provider\'s unique id tag above.'}
           </p>
           <p className={result.unmapped.length ? 'text-amber-300' : 'text-emerald-300'}>
             {result.unmapped.length ? `! Create a field in ${builtIn.key === 'custom' ? 'your provider' : provider.label} for: ${result.unmapped.join(', ')}.` : '✓ Every token has a field in your provider.'}

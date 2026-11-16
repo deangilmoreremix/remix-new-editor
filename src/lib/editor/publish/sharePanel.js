@@ -138,7 +138,7 @@ export function renderSharePanel(container, opts) {
       <label class="cap-row"><span>Put email/phone in the link</span><input type="checkbox" data-share-private ${ui.includePrivate ? 'checked' : ''}/></label>
       <span class="share-copy"><textarea readonly rows="3" data-share-mergelink aria-label="Merge-tag link">${esc(mlink)}</textarea><button type="button" class="mini-btn" data-share-mergecopy>${ui.copied === 'merge' ? 'Copied ✓' : 'Copy'}</button></span>
       <p class="addon-field__hint">Paste this link into your ${esc(prov.label)} campaign; each recipient gets a video with their own details.</p>
-      ${idTag ? '<p class="addon-field__hint">Views will show per recipient (by that id).</p>' : '<p class="addon-field__hint">Add your provider\'s unique recipient-id tag above to see views per recipient.</p>'}
+      ${idTag ? `<p class="addon-field__hint">Views will show per recipient (by that id).${prov.recipientUnverified && idTag === recipientIdTagFor(prov) ? ` ${esc(prov.label)} doesn't list this tag in its own docs: send yourself a test to confirm.` : ''}</p>` : '<p class="addon-field__hint">Add your provider\'s unique recipient-id tag above to see views per recipient.</p>'}
       ${excluded.length ? `<p class="addon-field__hint">Left out of the link so they don't show in the URL: ${excluded.map((k) => esc(k)).join(', ')}.</p>` : ''}
       <p class="addon-field__hint"><a href="${esc(previewLink(link, tokens))}" target="_blank" rel="noopener">Preview as a recipient ↗</a> (sample details)</p>
       <label class="addon-field"><span>Email snippet (poster image URL optional)</span>

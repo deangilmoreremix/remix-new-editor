@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import EmailLinkPanel from '../EmailLinkPanel'
-import { mergeTagLink, mergeTagFor, leadLinks, leadLinksCsv, tokensInText, isUnreplacedMergeTag, EMAIL_PROVIDERS } from '../emailMergeLink'
+import { mergeTagLink, mergeTagFor, leadLinks, leadLinksCsv, recipientIdTagFor, tokensInText, isUnreplacedMergeTag, EMAIL_PROVIDERS } from '../emailMergeLink'
 
 const BASE = 'https://watch.example/v/abc'
 
@@ -62,12 +62,15 @@ describe('per-provider tags (snapshot of the verified catalogue)', () => {
   const expected: Record<string, [string, string]> = {
     mailchimp: ['*|FNAME|*', '*|COMPANY|*'],            // company is not a default Mailchimp field -> custom
     activecampaign: ['%FIRSTNAME%', '%ORGNAME%'],
-    klaviyo: ['{{ first_name }}', '{{ organization }}'],
+    klaviyo: ['{{ first_name }}', '{{ person.organization }}'],
     hubspot: ['{{contact.firstname}}', '{{contact.company}}'],
-    constantcontact: ['[[FirstName]]', '[[company]]'],
+    constantcontact: ['[[FirstName]]', '[[CompanyName]]'],
     brevo: ['{{ contact.FIRSTNAME }}', '{{ contact.COMPANY }}'],
     mailerlite: ['{$name}', '{$company}'],
     kit: ['{{ subscriber.first_name }}', '{{ subscriber.company }}'],
+    aweber: ['{{ subscriber.first_name }}', "{{ subscriber.custom_field['company'] }}"],
+    drip: ['{{ subscriber.first_name }}', '{{ subscriber.company }}'],
+    zoho: ['$[FNAME]$', '$[UD:COMPANY]$'],
     getresponse: ['[[firstname]]', '[[company]]'],
     campaignmonitor: ['[firstname,fallback=]', '[company,fallback=]'],
     salesforcemc: ['%%FirstName%%', '%%company%%'],
@@ -141,12 +144,15 @@ describe('golden provider tags (cross-repo drift guard)', () => {
     activecampaign: '%FIRSTNAME%|%LASTNAME%|%EMAIL%',
     klaviyo: '{{ first_name }}|{{ last_name }}|{{ email }}',
     hubspot: '{{contact.firstname}}|{{contact.lastname}}|{{contact.email}}',
-    constantcontact: '[[FirstName]]|[[lastName]]|[[email]]',
+    constantcontact: '[[FirstName]]|[[LastName]]|[[EmailAddress]]',
     brevo: '{{ contact.FIRSTNAME }}|{{ contact.LASTNAME }}|{{ contact.EMAIL }}',
     mailerlite: '{$name}|{$last_name}|{$email}',
-    kit: '{{ subscriber.first_name }}|{{ subscriber.lastName }}|{{ subscriber.email_address }}',
+    kit: '{{ subscriber.first_name }}|{{ subscriber.last_name }}|{{ subscriber.email_address }}',
+    aweber: '{{ subscriber.first_name }}|{{ subscriber.last_name }}|{{ subscriber.email }}',
+    drip: '{{ subscriber.first_name }}|{{ subscriber.last_name }}|{{ subscriber.email }}',
+    zoho: '$[FNAME]$|$[LNAME]$|$[UD:CONTACT_EMAIL]$',
     getresponse: '[[firstname]]|[[lastname]]|[[email]]',
-    campaignmonitor: '[firstname,fallback=]|[lastname,fallback=]|[email,fallback=]',
+    campaignmonitor: '[firstname,fallback=]|[lastname,fallback=]|[email]',
     salesforcemc: '%%FirstName%%|%%LastName%%|%%emailaddr%%',
     custom: '{{firstName}}|{{lastName}}|{{email}}',
   }
@@ -252,3 +258,30 @@ describe('campaign options, preflight, preview and email snippet', () => {
     expect(leadLinks(BASE, ['email'], [{ business: { name: 'Acme', email: 'hi@acme.test' } }], { includePrivate: true })[0].link).toBe(`${BASE}?email=hi%40acme.test`)
   })
 })
+
+describe('verified-from-docs details (provider research)', () => {
+  const tag = (key: string, token: string) => mergeTagFor(EMAIL_PROVIDERS.find((p) => p.key === key)!, token)
+  it('Kit custom fields are snake_case; Drip too; AWeber uses custom_field[...]', () => {
+    expect(tag('kit', 'painPoint').tag).toBe('{{ subscriber.pain_point }}')
+    expect(tag('drip', 'painPoint').tag).toBe('{{ subscriber.pain_point }}')
+    expect(tag('aweber', 'painPoint').tag).toBe("{{ subscriber.custom_field['painPoint'] }}")
+  })
+  it('Constant Contact has the documented standard tags and Custom.<field> for the rest', () => {
+    expect(tag('constantcontact', 'title').tag).toBe('[[JobTitle]]')
+    expect(tag('constantcontact', 'location').tag).toBe('[[City]]')
+    expect(tag('constantcontact', 'painPoint').tag).toBe('[[Custom.painPoint]]')
+  })
+  it('Klaviyo person.* fields, Campaign Monitor [email], Zoho custom tags', () => {
+    expect(tag('klaviyo', 'title').tag).toBe('{{ person.title }}')
+    expect(tag('campaignmonitor', 'email')).toEqual({ tag: '[email]', mapped: true })
+    expect(tag('zoho', 'painPoint')).toEqual({ tag: '$[UD:PAINPOINT]$', mapped: false })
+  })
+  it('recipient ids: AWeber subscriber.id, Salesforce subscriber key, Mailchimp flagged unverified', () => {
+    const by = (k: string) => EMAIL_PROVIDERS.find((p) => p.key === k)!
+    expect(recipientIdTagFor(by('aweber'))).toBe('{{ subscriber.id }}')
+    expect(recipientIdTagFor(by('salesforcemc'))).toBe('%%_subscriberkey%%')
+    expect(recipientIdTagFor(by('klaviyo'))).toBe('')
+    expect(by('mailchimp').recipientUnverified).toBe(true)
+  })
+})
+

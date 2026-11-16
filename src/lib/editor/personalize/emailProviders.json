@@ -8,13 +8,15 @@
       "firstName": "FNAME",
       "lastName": "LNAME",
       "email": "EMAIL",
-      "phone": "PHONE"
+      "phone": "PHONE",
+      "businessPhone": "PHONE"
     },
     "custom": {
       "case": "upper",
       "prefix": ""
     },
-    "recipientId": "UNIQID"
+    "recipientId": "UNIQID",
+    "recipientUnverified": true
   },
   {
     "key": "activecampaign",
@@ -42,8 +44,10 @@
       "firstName": "first_name",
       "lastName": "last_name",
       "email": "email",
-      "company": "organization",
-      "title": "title"
+      "company": "person.organization",
+      "title": "person.title",
+      "phone": "person.phone_number",
+      "businessPhone": "person.phone_number"
     },
     "custom": {
       "case": "as-is",
@@ -73,11 +77,18 @@
     "open": "[[",
     "close": "]]",
     "fields": {
-      "firstName": "FirstName"
+      "firstName": "FirstName",
+      "lastName": "LastName",
+      "email": "EmailAddress",
+      "company": "CompanyName",
+      "title": "JobTitle",
+      "location": "City",
+      "phone": "CellPhone",
+      "businessPhone": "CellPhone"
     },
     "custom": {
       "case": "as-is",
-      "prefix": ""
+      "prefix": "Custom."
     }
   },
   {
@@ -105,7 +116,8 @@
       "lastName": "last_name",
       "email": "email",
       "company": "company",
-      "phone": "phone"
+      "phone": "phone",
+      "businessPhone": "phone"
     },
     "custom": {
       "case": "lower",
@@ -122,7 +134,7 @@
       "email": "email_address"
     },
     "custom": {
-      "case": "as-is",
+      "case": "snake",
       "prefix": ""
     }
   },
@@ -150,12 +162,14 @@
     "fields": {
       "firstName": "firstname",
       "lastName": "lastname",
-      "email": "email",
       "fullName": "fullname"
     },
     "custom": {
       "case": "lower",
       "prefix": ""
+    },
+    "tags": {
+      "email": "[email]"
     }
   },
   {
@@ -171,6 +185,55 @@
     "custom": {
       "case": "as-is",
       "prefix": ""
+    },
+    "recipientId": "_subscriberkey"
+  },
+  {
+    "key": "aweber",
+    "label": "AWeber",
+    "open": "{{ subscriber.",
+    "close": " }}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email",
+      "fullName": "name"
+    },
+    "recipientId": "id",
+    "custom": {
+      "case": "as-is",
+      "prefix": "custom_field['",
+      "suffix": "']"
+    }
+  },
+  {
+    "key": "drip",
+    "label": "Drip",
+    "open": "{{ subscriber.",
+    "close": " }}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email"
+    },
+    "custom": {
+      "case": "snake",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "zoho",
+    "label": "Zoho Campaigns",
+    "open": "$[",
+    "close": "]$",
+    "fields": {
+      "firstName": "FNAME",
+      "lastName": "LNAME",
+      "email": "UD:CONTACT_EMAIL"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": "UD:"
     }
   },
   {
