@@ -21,7 +21,8 @@ import { bootDashboard, requireDashboardToken } from "./lib/boot";
 import { queryClient } from "./lib/queryClient";
 import { parseSearch, stringifySearch, type SearchParams } from "./lib/routerSearch";
 import { acquisitionSearch } from "./lib/acquisition";
-import { currentPortal, mainSignInURL, resolvePortal, signsInOnMain } from "./lib/portal";
+import { resolvePortal } from "./lib/portal";
+import { HOST_SIGN_IN_URL } from "./lib/hostSession";
 import { API_BASE_URL, APP_URL } from "./lib/information";
 import * as loaders from "./routeLoaders";
 import type { PageLoader } from "./routeLoaders";
@@ -167,79 +168,30 @@ const indexRoute = createRoute({
     },
 });
 
-// Auth
+// Auth: Warmbly has no sign-in of its own here. The host app's Clerk session signs the person in
+// (lib/hostSession.ts), so every /auth/* address, and anything that still links to one, goes to the
+// host app's sign-in page.
 const authRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "auth",
     pendingComponent: BlankPending,
-    component: lazyRouteComponent(() => import("./app/auth/layout")),
 });
-// A portal whose agency signs clients in on the main address sends its sign-in there.
-async function signInOnMain() {
-    const portal = currentPortal();
-    if (typeof window === "undefined" || !signsInOnMain(portal)) return;
-    window.location.replace(mainSignInURL(portal, window.location.host));
+async function toHostSignIn() {
+    if (typeof window === "undefined") return;
+    window.location.replace(HOST_SIGN_IN_URL);
     await new Promise<never>(() => {});
 }
-const loginLayout = lazyRouteComponent(() => import("./app/auth/login/layout"));
-const loginPage = lazyRouteComponent(() => import("./app/auth/login/page"));
-// There, an invited person sets up their account on the main address too, and is then handed to the portal.
-async function registerOnMain({ location }: { location: { searchStr: string } }) {
-    const portal = currentPortal();
-    if (typeof window === "undefined" || !portal.portal || !signsInOnMain(portal)) return;
-    const params = new URLSearchParams(location.searchStr);
-    params.set("portal", window.location.host);
-    window.location.replace(`${portal.main_url}/auth/register?${params}`);
-    await new Promise<never>(() => {});
-}
-const registerRoute = createRoute({ getParentRoute: () => authRoute, path: "register", component: loginLayout, beforeLoad: registerOnMain });
-const registerIndex = createRoute({
-    getParentRoute: () => registerRoute,
-    path: "/",
-    component: loginPage,
-    staticData: { title: "Create your account" },
-});
-// The code step is part of the sign-in and sign-up pages; these paths only forward there.
-const registerConfirm = forward(registerRoute, "confirm", "/auth/register");
-const loginRoute = createRoute({ getParentRoute: () => authRoute, path: "login", component: loginLayout, beforeLoad: signInOnMain });
-const loginIndex = createRoute({
-    getParentRoute: () => loginRoute,
-    path: "/",
-    component: loginPage,
-    staticData: { title: "Sign in" },
-});
-const loginConfirm = forward(loginRoute, "confirm", "/auth/login");
-// Landing for the single-use code an SSO redirect carries.
-const ssoRoute = createRoute({
-    getParentRoute: () => authRoute,
-    path: "sso",
-    component: lazyRouteComponent(() => import("./app/auth/sso/page")),
-    staticData: { title: "Signing you in" },
-});
-const resetRoute = createRoute({
-    getParentRoute: () => authRoute,
-    path: "reset-password",
-    component: lazyRouteComponent(() => import("./app/auth/reset-password/layout")),
-    // Such a portal never takes a password, a new one included.
-    beforeLoad: async ({ location }) => {
-        const portal = currentPortal();
-        if (typeof window === "undefined" || !portal.portal || !signsInOnMain(portal)) return;
-        window.location.replace(portal.main_url + location.pathname + location.searchStr);
-        await new Promise<never>(() => {});
-    },
-});
-const resetIndex = createRoute({
-    getParentRoute: () => resetRoute,
-    path: "/",
-    component: lazyRouteComponent(() => import("./app/auth/reset-password/page")),
-    staticData: { title: "Reset your password" },
-});
-const resetConfirm = createRoute({
-    getParentRoute: () => resetRoute,
-    path: "confirm",
-    component: lazyRouteComponent(() => import("./app/auth/reset-password/confirm/page")),
-    staticData: { title: "Set a new password" },
-});
+const toHost = <TPath extends string>(path: TPath) =>
+    createRoute({
+        getParentRoute: () => authRoute,
+        path,
+        beforeLoad: toHostSignIn,
+        validateSearch: (search: Record<string, unknown>): SearchParams => search as SearchParams,
+    });
+const authIndex = toHost("/");
+const authLogin = toHost("login");
+const authRegister = toHost("register");
+const authSplat = toHost("$");
 
 const onboardingRoute = createRoute({
     getParentRoute: () => rootRoute,
@@ -475,12 +427,7 @@ const teamLegacy = forward(appRoute, "team", "/app/settings/members");
 
 const routeTree = rootRoute.addChildren([
     indexRoute,
-    authRoute.addChildren([
-        registerRoute.addChildren([registerIndex, registerConfirm]),
-        loginRoute.addChildren([loginIndex, loginConfirm]),
-        ssoRoute,
-        resetRoute.addChildren([resetIndex, resetConfirm]),
-    ]),
+    authRoute.addChildren([authIndex, authLogin, authRegister, authSplat]),
     onboardingRoute.addChildren([onboardingIndex]),
     selectOrgRoute,
     inviteRoute,
