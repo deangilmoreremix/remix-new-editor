@@ -80,6 +80,13 @@ const concepts = { concepts: [1, 2, 3, 4, 5].map((i) => ({ title: `Concept ${i}`
   const swatchesBefore = await page.locator('[data-palette="primary"] input[type=color]').count();
   await page.click('[data-add-color="primary"]');
   ok('2. palette add swatch', (await page.locator('[data-palette="primary"] input[type=color]').count()) === swatchesBefore + 1);
+  // tone / personality / messages / fonts chips: add one, remove one
+  const toneBox = page.locator('div.mb-4', { has: page.locator('label:text-is("Tone of Voice")') });
+  const toneBefore = await toneBox.locator('span:has(button)').count();
+  await toneBox.locator('input[type=text]').fill('witty'); await toneBox.locator('button:text-is("Add")').click();
+  ok('2. chip add (tone of voice)', (await toneBox.locator('span:has(button)').count()) === toneBefore + 1 && (await toneBox.innerText()).includes('witty'));
+  await toneBox.locator('span:has(button) button').first().click();
+  ok('2. chip remove', (await toneBox.locator('span:has(button)').count()) === toneBefore);
   await page.locator('input[type=text]').nth(2).fill('Orbit for everyone');
   await page.click('button[data-action="save"]');
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('brand_dna_list'))[0]);
@@ -88,10 +95,14 @@ const concepts = { concepts: [1, 2, 3, 4, 5].map((i) => ({ title: `Concept ${i}`
   // ===== 3. Campaign wizard =====
   await page.click('button[data-action="campaigns"]');
   await page.waitForSelector('div.cursor-pointer:has-text("Product Launch")');
+  // the direction box is on the goal step, so it is filled before a goal is picked
+  await page.fill('input[placeholder="Optional direction or theme..."]', 'playful, about moon landings');
   await page.locator('div.cursor-pointer', { hasText: 'Product Launch' }).first().click();
   await page.click('button[data-action="generate-concepts"]');
   await page.waitForTimeout(2500); console.log('  3s later body tail:', (await page.innerText('body')).slice(-300).replace(/\n+/g,' | '));
   await page.waitForSelector('button[data-action="select-concept"]', { timeout: 60000 });
+  const conceptCall = calls.muapi.filter((c) => c.endpoint === 'gpt-5-nano' && /senior brand strategist/.test(c.params.prompt || '')).pop();
+  ok('3. goal + direction + brand DNA reach the concept prompt', conceptCall && /Product Launch/.test(conceptCall.params.prompt) && /USER DIRECTION: playful, about moon landings/.test(conceptCall.params.prompt) && /Orbit for everyone/.test(conceptCall.params.prompt));
   ok('3. exactly 4 concepts shown (model returned 5)', (await page.locator('button[data-action="select-concept"]').count()) === 4);
   const campaign = await page.evaluate(() => JSON.parse(localStorage.getItem('brand_campaigns') || '[]'));
   ok('3. campaign persisted with concepts', campaign.length === 1 && campaign[0].concepts.length === 4 && campaign[0].brandId === saved.id);
@@ -220,6 +231,30 @@ const concepts = { concepts: [1, 2, 3, 4, 5].map((i) => ({ title: `Concept ${i}`
   ok('9. photoshoot source picks the shot + photoshoot motion prompt', /Slow rotational camera move/.test(await page.locator('aside textarea, textarea').first().inputValue()));
   await page.click('button:has-text("From campaign asset")');
   ok('9. campaign-asset source lists this brand\'s assets', (await page.locator('select[data-asset-source] option').count()) === 9);
+
+  // ===== 10. Photo Studio shot → Animate → video, and the brand list =====
+  await page.goto(BASE + '/?brandId=' + saved.id + '#/photo-studio', { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('[data-photo-preset]', { timeout: 60000 });
+  await page.locator('button:has-text("Upload"), button:has-text("Add image"), button:has-text("Product")').first().click();
+  await page.locator('input[type=file]').first().setInputFiles({ name: 'product2.png', mimeType: 'image/png', buffer: PNG });
+  await page.waitForTimeout(1500);
+  await page.click('[data-photo-preset="tech/dark_techy"]');
+  await page.click('button:has-text("Generate Product Photos")');
+  await page.waitForSelector('[data-photo-animate]', { timeout: 60000 });
+  const shotUrl = (await page.evaluate(() => JSON.parse(localStorage.getItem('brand_photoshoots'))[0])).imageUrl; // newest first
+  await page.locator('[data-photo-animate]').first().click();
+  await page.waitForSelector('img[alt="Source image"], textarea', { timeout: 30000 });
+  await page.waitForTimeout(600);
+  await page.click('button.btn-primary-modern:text-is("Animate")');
+  await page.waitForSelector('video', { timeout: 60000 });
+  const lastSeed = calls.muapi.filter((c) => /seedance/.test(c.endpoint)).pop();
+  ok('10. Photo Studio "Animate →" hands the shot to Animate and makes a video', lastSeed && lastSeed.params.image_url === shotUrl, lastSeed && lastSeed.params.image_url);
+  await page.goto(BASE + '/#/brand', { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('text=Recent Brands', { timeout: 60000 });
+  ok('10. Brand Studio home lists the brand', (await page.locator('text=Acme Rockets').count()) >= 1);
+  await page.locator('div.cursor-pointer', { hasText: 'Acme Rockets' }).first().click();
+  await page.waitForSelector('[data-brand-title]', { timeout: 30000 });
+  ok('10. clicking it reopens the Brand DNA editor + past campaigns', (await page.textContent('[data-brand-title]')) === 'Acme Rockets' && (await page.locator('[data-campaign-id]').count()) === 1);
   await browser.close();
   fs.writeFileSync(shot('partial.json'), JSON.stringify({ results, calls: { ...calls, muapi: calls.muapi.length }, pageErrors }, null, 1));
   const failed = results.filter((r) => !r.pass);
