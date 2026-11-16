@@ -25,6 +25,7 @@ const ROUTE_MAP = {
   'Video Agent': 'video-agent',
   'Video Agent Studio': 'video-agent-studio',
   'Zack D Studio': 'zackd',
+  'Warmbly Studio': 'warmbly',
   'AI VFX': 'ai-vfx',
   'Brand Studio': 'brand',
   'Brand DNA': 'brand-dna',
@@ -114,6 +115,12 @@ const pageLoaders = {
   'zackd-studio': () => import('../components/studios/ZackDStudio/ZackDStudio.js').then(m => m.ZackDStudio()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   workbench: () => import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio()),
+  // Warmbly Studio: cold email, warmup, inbox, CRM and automations (apps/warmbly-studio).
+  warmbly: () => import('../components/studios/WarmblyStudio/WarmblyStudio.js').then(m => m.WarmblyStudio()),
+  'warmbly-studio': () => import('../components/studios/WarmblyStudio/WarmblyStudio.js').then(m => m.WarmblyStudio()),
+  // Deep links into the studio's own views (#/warmbly/campaigns, …).
+  ...Object.fromEntries(['dashboard', 'campaigns', 'inbox', 'contacts', 'pipeline', 'mailboxes', 'deliverability', 'automations', 'integrations', 'settings']
+    .map(v => [`warmbly/${v}`, () => import('../components/studios/WarmblyStudio/WarmblyStudio.js').then(m => m.WarmblyStudio())])),
   // CineGen Studio was replaced by the Workbench; keep old links working.
   cinegen: () => {
     try { window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/workbench`); } catch { /* ignore */ }
