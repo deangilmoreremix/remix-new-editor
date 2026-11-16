@@ -3,6 +3,7 @@
  * (escaped), links/images go through safeUrl/safeImageUrl, and the video / lead form keep the same tracking
  * events and token rules as the classic renderer.
  */
+import { outreachPlayerSrc } from '../../outreach/landingPage.js';
 import { useRef, useState } from 'react';
 import { fillTokens, splitAccent, prefillFor, safeUrl, safeImageUrl } from '../templates.js';
 import { usePage } from './context.js';
@@ -41,6 +42,15 @@ export function VideoPlayer({ poster = '' }) {
   };
   const src = /^https:\/\//i.test(page?.video_url || '') ? page.video_url : '';
   const posterUrl = safeImageUrl(page?.poster_url) || safeImageUrl(poster) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(poster) ? poster : '');
+  // A Video Outreach campaign plays its personal player (each contact's greeting) here.
+  const outreachSrc = preview ? null : outreachPlayerSrc(page?.video_url);
+  if (outreachSrc) {
+    return (
+      <div className="pk-video">
+        <iframe className="pk-video-frame" src={outreachSrc} title={page?.title || 'Video'} allow="autoplay; fullscreen; clipboard-write" allowFullScreen />
+      </div>
+    );
+  }
   return (
     <div className="pk-video">
       <video

@@ -39,7 +39,8 @@
     "Script card with an AI writer (Script, Email and Page tabs, language picker) and a teleprompter in the recorder",
     "Edit in the Record step: trim the start and end, cut sections out, add a clip before or after",
     "Captions and transcript made in your browser, with translations into other languages",
-    "Recorder tools: draw on the screen (pen, arrow, box), camera Spotlight, Restart and Delete"
+    "Recorder tools: draw on the screen (pen, arrow, box), camera Spotlight, Restart and Delete",
+    "Landing page: publish the campaign onto any of your Video Pages designs; each contact's link opens their personalized page with their personal video"
   ],
   "featureExplanations": [
     {
@@ -167,6 +168,13 @@
       "whyToUse": "Point things out and keep attention on you.",
       "inputRequired": "Screen or Both mode.",
       "restrictions": "Draw on the preview in the recorder, not on the shared screen itself."
+    },
+    {
+      "feature": "Landing page design",
+      "explanation": "After generating, the Landing page card lists your Video Pages designs. Pick one and click Publish on this design. The page shows each contact's personal video (their spoken greeting and website background), fills their name, company and role into the text, and gets your header, message, booking button, calendar, Like button and transcript where the design has them. Every contact link, email and thumbnail then opens that page. Edit the page opens Video Pages; Use the plain video page switches back.",
+      "whyToUse": "Use your branded landing page designs for outreach.",
+      "inputRequired": "A generated campaign.",
+      "restrictions": "Designs built from blocks keep their own words; change them in Video Pages. Video events from the personal player are counted on the campaign."
     }
   ],
   "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",
@@ -321,7 +329,8 @@
     "leadfinder",
     "personalizer",
     "avatar",
-    "recorder"
+    "recorder",
+    "video-pages"
   ],
   "relatedStudioGuidance": [
     {

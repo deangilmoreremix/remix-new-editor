@@ -907,7 +907,17 @@ export function OutreachStudio() {
       const id = draft.campaign?.id || makeSlug();
       await publishVideo(await ownerClient(), { id, project });
       const url = watchUrl(id);
-      draft.campaign = { id, url, publishedAt: new Date().toISOString(), links: campaignLinks(draft, url, personalLink, variants).map((l) => (lipsync?.clips?.[l.contactId] ? { ...l, lipsynced: true } : l)) };
+      // A landing page chosen earlier keeps showing the campaign; its contact links are rebuilt.
+      const page = draft.campaign?.id === id ? draft.campaign.page : null;
+      const { landingLink } = await import('../lib/outreach/landingPage.js');
+      draft.campaign = {
+        id, url, publishedAt: new Date().toISOString(), ...(page ? { page } : {}),
+        links: campaignLinks(draft, url, personalLink, variants).map((l) => ({
+          ...l,
+          ...(lipsync?.clips?.[l.contactId] ? { lipsynced: true } : {}),
+          ...(page ? { pageLink: landingLink(page.url, l.link, draft.contacts.find((c) => c.id === l.contactId) || {}) } : {}),
+        })),
+      };
       persist();
       campaigns.loaded = false; // refresh the Campaigns list next time it opens
       busy = '';
@@ -966,10 +976,10 @@ export function OutreachStudio() {
       const csv = button('Download .csv of links');
       csv.addEventListener('click', async () => {
         const { linksCsv } = await import('../lib/editor/personalize/perContact.js');
-        downloadText(`${(draft.name || 'campaign').replace(/[^\w-]+/g, '_')}-links.csv`, linksCsv(draft.campaign.links));
+        downloadText(`${(draft.name || 'campaign').replace(/[^\w-]+/g, '_')}-links.csv`, linksCsv(draft.campaign.links.map((l) => ({ ...l, link: linkOf(l) }))));
       });
       const open = button('Open landing page');
-      open.addEventListener('click', () => window.open(draft.campaign.links[0]?.link || draft.campaign.url, '_blank', 'noopener'));
+      open.addEventListener('click', () => window.open(draft.campaign.links[0] ? linkOf(draft.campaign.links[0]) : draft.campaign.url, '_blank', 'noopener'));
       actions.append(csv, open);
     }
     top.appendChild(actions);
@@ -988,7 +998,7 @@ export function OutreachStudio() {
         const siteState = l.site ? el('span', `text-xs ${l.site === 'own' ? 'text-emerald-300' : 'text-white/50'}`, l.site === 'own' ? '● Their website' : '● Fallback website') : null;
         const copy = button('Copy link', { small: true });
         copy.addEventListener('click', async () => {
-          try { await navigator.clipboard.writeText(l.link); copy.textContent = 'Copied'; } catch { window.prompt('Copy this link:', l.link); }
+          try { await navigator.clipboard.writeText(linkOf(l)); copy.textContent = 'Copied'; } catch { window.prompt('Copy this link:', linkOf(l)); }
         });
         const mailBtn = button('Copy email', { small: true });
         mailBtn.setAttribute('data-outreach-copy-email', '');
@@ -1017,6 +1027,7 @@ export function OutreachStudio() {
       });
       list.appendChild(rows);
       wrap.appendChild(list);
+      wrap.appendChild(renderLandingCard());
       wrap.appendChild(renderEmailCard());
     }
     return wrap;
@@ -1058,9 +1069,95 @@ export function OutreachStudio() {
     }
   }
 
+  // ---- Landing page designs (Video Pages, src/lib/landingPages) -----------------------------
+  // The campaign is published onto one of the landing page designs; the page's video is the
+  // campaign's personal player, and each contact's link opens their page
+  // (src/lib/outreach/landingPage.js).
+  let landingPick = null;
+  let landingTemplates = null;
+  function renderLandingCard() {
+    const box = card('Landing page', 'Send contacts to one of your landing page designs instead of the plain video page. The design shows each contact\u2019s personal video, their name and company in the text, and your buttons and forms.');
+    box.setAttribute('data-outreach-landing', '');
+    if (!landingTemplates) {
+      import('../lib/landingPages/templates.js').then((m) => { landingTemplates = m; if (step === 5) render(); });
+      box.appendChild(el('p', 'text-xs text-secondary', 'Loading designs…'));
+      return box;
+    }
+    const page = draft.campaign.page;
+    const row = el('div', 'flex flex-wrap items-center gap-2');
+    const sel = el('select', 'min-w-[260px] rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-2 text-sm text-white');
+    sel.setAttribute('data-landing-design', '');
+    landingTemplates.TEMPLATES.filter((t) => !t.site || t.puck).forEach((t) => {
+      const o = el('option', 'bg-neutral-900', t.name); o.value = t.id; o.title = t.description || '';
+      o.selected = (landingPick || page?.templateId || 'puck-starter') === t.id;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', () => { landingPick = sel.value; render(); });
+    const chosen = landingTemplates.getTemplate(sel.value);
+    const go = button(page ? 'Move to this design' : 'Publish on this design', { primary: !page, small: true });
+    go.setAttribute('data-landing-publish', '');
+    go.disabled = !!busy;
+    go.addEventListener('click', () => publishLandingPage(sel.value));
+    row.append(sel, go);
+    if (page) {
+      const editBtn = button('Edit the page', { small: true });
+      editBtn.addEventListener('click', () => { window.location.hash = '#/video-pages'; });
+      const off = button('Use the plain video page', { small: true });
+      off.addEventListener('click', () => {
+        draft.campaign = { ...draft.campaign, page: null, links: draft.campaign.links.map(({ pageLink, ...l }) => l) };
+        persist(); render();
+      });
+      row.append(editBtn, off);
+    }
+    box.append(row, el('p', 'text-xs text-white/50', chosen?.description || ''));
+    if (page) box.appendChild(el('p', 'text-xs text-emerald-300', `Links now open your ${landingTemplates.getTemplate(page.templateId)?.name || ''} page. Change its words, images and buttons in Video Pages.`));
+    return box;
+  }
+
+  async function publishLandingPage(templateId) {
+    abort = null;
+    try {
+      setBusy('Publishing the landing page…');
+      const [{ createPage, updatePage, setPagePublished, pageUrl }, { defaultConfig, applyTemplate }, { landingLink, pageConfigFromDraft }] = await Promise.all([
+        import('../lib/landingPages/client.js'),
+        import('../lib/landingPages/templates.js'),
+        import('../lib/outreach/landingPage.js'),
+      ]);
+      const client = await ownerClient();
+      const title = String(draft.name || '').trim() || 'Personal video';
+      const poster = draft.campaign.links.find((l) => l.thumbnailUrl && !/\.gif(\?|$)/i.test(l.thumbnailUrl))?.thumbnailUrl || null;
+      const existing = draft.campaign.page;
+      let row;
+      if (existing?.id) {
+        row = await updatePage(client, existing.id, { config: pageConfigFromDraft(applyTemplate({}, templateId, { title }), draft) });
+      } else {
+        row = await createPage(client, {
+          title,
+          videoUrl: draft.campaign.url, // the campaign's player: the page shows it per contact
+          posterUrl: poster,
+          duration: draft.video?.duration || null,
+          source: { kind: 'outreach', studio: 'outreach', id: draft.campaign.id },
+          config: pageConfigFromDraft(defaultConfig(templateId, { title }), draft),
+        });
+        await setPagePublished(client, row.id, true);
+      }
+      const url = pageUrl(row.id);
+      draft.campaign = {
+        ...draft.campaign,
+        page: { id: row.id, templateId, url },
+        links: draft.campaign.links.map((l) => ({ ...l, pageLink: landingLink(url, l.link, contactOf(l)) })),
+      };
+      persist();
+      busy = ''; notice = 'Landing page published. Every contact link now opens it.';
+      render();
+    } catch (err) { fail(err); }
+  }
+
   // ---- Email and thumbnails ------------------------------------------------
+  // The link a contact is sent: their page on the chosen landing page design, else the player page.
+  const linkOf = (l) => l.pageLink || l.link;
   const contactOf = (l) => draft.contacts.find((c) => c.id === l.contactId) || { email: l.email, company: l.company };
-  const emailOf = (l) => emailFor({ email: draft.email, fallbacks: draft.fallbacks, contact: contactOf(l), link: l.link, thumbnailUrl: l.thumbnailUrl });
+  const emailOf = (l) => emailFor({ email: draft.email, fallbacks: draft.fallbacks, contact: contactOf(l), link: linkOf(l), thumbnailUrl: l.thumbnailUrl });
 
   async function copyEmail(l, btn) {
     const e = emailOf(l);
@@ -1130,7 +1227,7 @@ export function OutreachStudio() {
     const { thumbnailHtml } = await import('../lib/outreach/email.js');
     try {
       await navigator.clipboard.write([new ClipboardItem({
-        'text/html': new Blob([thumbnailHtml({ link: l.link, thumbnailUrl: l.thumbnailUrl })], { type: 'text/html' }),
+        'text/html': new Blob([thumbnailHtml({ link: linkOf(l), thumbnailUrl: l.thumbnailUrl })], { type: 'text/html' }),
         'text/plain': new Blob([l.thumbnailUrl], { type: 'text/plain' }),
       })]);
       btn.textContent = 'Copied: paste into your email';
@@ -1141,7 +1238,7 @@ export function OutreachStudio() {
 
   async function copyEmbed(l, btn) {
     const { embedSnippet } = await import('../lib/outreach/email.js');
-    const code = embedSnippet({ link: l.link, thumbnailUrl: l.thumbnailUrl, name: l.name });
+    const code = embedSnippet({ link: linkOf(l), thumbnailUrl: l.thumbnailUrl, name: l.name });
     try { await navigator.clipboard.writeText(code); btn.textContent = 'Copied'; } catch { window.prompt('Copy this embed code:', code); }
   }
 
@@ -1280,7 +1377,7 @@ export function OutreachStudio() {
     }
     const merge = button('Download mail-merge .csv');
     merge.addEventListener('click', () => {
-      const rows = draft.campaign.links.map((l) => ({ ...emailOf(l), contact: contactOf(l), link: l.link, thumbnailUrl: l.thumbnailUrl || '' }));
+      const rows = draft.campaign.links.map((l) => ({ ...emailOf(l), contact: contactOf(l), link: linkOf(l), thumbnailUrl: l.thumbnailUrl || '' }));
       downloadText(`${(draft.name || 'campaign').replace(/[^\w-]+/g, '_')}-emails.csv`, mailMergeCsv(rows));
     });
     actions.appendChild(merge);
