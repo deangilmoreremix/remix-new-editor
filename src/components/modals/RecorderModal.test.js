@@ -150,4 +150,34 @@ describe('RecorderModal on the Remotion Recorder engine', () => {
     expect(FakeRecorder.all).toHaveLength(1);
     modal.destroy();
   });
+
+  test('Delete throws the take away; Restart records again', async () => {
+    const { modal, onComplete } = makeModal('camera');
+    await modal.startRecording();
+    await modal.discardTake();
+    expect(modal.isRecording).toBe(false);
+    expect(modal.recordedBlob).toBe(null);
+    // The recorded camera and mic are released (the live preview comes back on its own).
+    expect(FakeRecorder.all[0].stream.getTracks().every((t) => t.stopped)).toBe(true);
+    await modal.startRecording();
+    const before = FakeRecorder.all.length;
+    await modal.discardTake({ restart: true });
+    expect(modal.isRecording).toBe(true);
+    expect(FakeRecorder.all.length).toBe(before + 1);
+    expect(onComplete).not.toHaveBeenCalled();
+  });
+
+  test('Spotlight times are passed to the Both combine', async () => {
+    const { modal } = makeModal('both');
+    await modal.startRecording();
+    modal.toggleSpotlight();
+    modal.toggleSpotlight();
+    expect(modal.spotlights).toHaveLength(1);
+    expect(modal.spotlights[0].end).toBeGreaterThanOrEqual(modal.spotlights[0].start);
+    modal.toggleSpotlight(); // left on: closed at stop
+    await modal.stopRecording();
+    const args = composeBoth.mock.calls[0][0];
+    expect(args.spotlights).toHaveLength(2);
+    expect(args.spotlights[1].end).not.toBeNull();
+  });
 });

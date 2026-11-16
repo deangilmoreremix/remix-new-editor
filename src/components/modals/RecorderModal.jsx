@@ -1,5 +1,6 @@
 import { BUILTIN_BACKGROUNDS, effectsActive, loadEffects, saveEffects, applyCameraEffects } from '../../lib/recorder/effects.js';
 import { BaseModal } from './BaseModal.jsx';
+import { COLORS as DRAW_COLORS, pointOnPicture } from '../../lib/recorder/annotate.js';
 import { createTeleprompterClock, loadTeleprompter, readingPosition, saveTeleprompter, scriptLines, teleprompterSettings } from '../../lib/recorder/teleprompter.js';
 
 const QUALITY_OPTIONS = [
@@ -75,6 +76,13 @@ export class RecorderModal extends BaseModal {
     this.showPrompterPanel = false;
     this.prompterClock = createTeleprompterClock();
     this.prompterClock.onFrame((ms) => this.paintPrompter(ms));
+    // Drawing on screen (src/lib/recorder/annotate.js) and camera spotlight (Both), while recording.
+    this.annotator = null;
+    this.drawTool = 'pen';
+    this.drawColor = DRAW_COLORS[0];
+    this.spotlights = [];   // [{ start, end }] in seconds of the take
+    this.activeMs = 0;      // recorded time, without pauses
+    this.activeSince = null;
     this.previewFx = null;
     this.isRecording = false;
     this.isPaused = false;
@@ -174,6 +182,7 @@ export class RecorderModal extends BaseModal {
               </div>
             `}
 
+            ${this.isRecording && this.annotator ? this.renderDrawLayer() : ''}
             ${this.prompter.on && this.prompter.script.trim() && this.recordingType !== 'screen' && !this.recordedBlob ? this.renderPrompterOverlay() : ''}
             ${this.isRecording ? `
               <div class="recording-status">
@@ -203,6 +212,7 @@ export class RecorderModal extends BaseModal {
               <button class="preview-toggle ${this.camShape === 'rounded' ? 'active' : ''}" data-shape="rounded" data-tooltip="Rounded rectangle camera">▢ Rectangle</button>
             ` : ''}
           </div>
+          ${this.isRecording && this.annotator ? this.renderDrawTools() : ''}
           ${this.showPrompterPanel && this.recordingType !== 'screen' && !this.recordedBlob ? this.renderPrompterPanel() : ''}
           ${this.showEffects && (this.recordingType === 'camera' || this.recordingType === 'both') && !this.isRecording ? this.renderEffectsPanel() : ''}
           ${this.notice ? `<div class="recorder-notice" style="font-size:12px;opacity:.8;margin-top:6px;">${this.notice}</div>` : ''}
@@ -256,6 +266,9 @@ export class RecorderModal extends BaseModal {
             <button class="modal-btn ${this.isPaused ? 'modal-btn-primary' : 'modal-btn-secondary'}" data-action="${this.isPaused ? 'resume' : 'pause'}" data-tooltip="${this.isPaused ? 'Resume recording' : 'Pause recording'}">
               ${this.isPaused ? '▶ Resume' : '⏸ Pause'}
             </button>
+            <button class="modal-btn modal-btn-secondary" data-action="delete-take" data-tooltip="Stop and throw this take away">🗑 Delete</button>
+            <button class="modal-btn modal-btn-secondary" data-action="restart-take" data-tooltip="Throw this take away and start again">↺ Restart</button>
+            ${this.recordingType === 'both' ? `<button class="modal-btn ${this.spotlightOn() ? 'modal-btn-primary' : 'modal-btn-secondary'}" data-action="spotlight" data-tooltip="Make your camera big in the middle; click again to shrink it">🔦 Spotlight</button>` : ''}
             <button class="modal-btn modal-btn-danger" data-action="stop" data-tooltip="Stop recording">
               ⏹ Stop
             </button>
@@ -303,6 +316,83 @@ export class RecorderModal extends BaseModal {
         <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><span style="opacity:.7;width:84px;">Mirror</span><input type="checkbox" ${fx.mirror ? 'checked' : ''} data-fx-mirror></label>
         <span style="font-size:11px;opacity:.5;">Effects run on your device and are recorded into the video.</span>
       </div>`;
+  }
+
+  renderDrawLayer() {
+    return `
+      <div class="draw-stage" style="background:#000;z-index:2;">
+        <video class="screen-feed" autoplay muted playsinline style="width:100%;height:100%;object-fit:contain;"></video>
+        <div class="draw-layer" data-draw-layer style="position:absolute;inset:0;cursor:crosshair;touch-action:none;"></div>
+      </div>`;
+  }
+
+  renderDrawTools() {
+    const tool = (id, label) => `<button class="preview-toggle ${this.drawTool === id ? 'active' : ''}" data-draw-tool="${id}">${label}</button>`;
+    return `
+      <div data-draw-tools style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;">
+        <span style="font-size:12px;opacity:.7;">Draw on the screen:</span>
+        ${tool('pen', '✎ Pen')}${tool('arrow', '➜ Arrow')}${tool('box', '▭ Box')}
+        ${DRAW_COLORS.map((c) => `<button data-draw-color="${c}" aria-label="Colour ${c}" style="width:20px;height:20px;border-radius:50%;background:${c};border:2px solid ${this.drawColor === c ? '#fff' : 'transparent'};cursor:pointer;"></button>`).join('')}
+        <button class="preview-toggle" data-draw-clear>Clear</button>
+        <span style="font-size:11px;opacity:.5;">Marks fade after a few seconds and are recorded.</span>
+      </div>`;
+  }
+
+  // Seconds of the take so far (pauses excluded): the time a spotlight starts or ends at.
+  takeSeconds() {
+    return (this.activeMs + (this.activeSince == null ? 0 : performance.now() - this.activeSince)) / 1000;
+  }
+
+  spotlightOn() {
+    const last = this.spotlights[this.spotlights.length - 1];
+    return !!last && last.end == null;
+  }
+
+  toggleSpotlight() {
+    if (this.spotlightOn()) this.spotlights[this.spotlights.length - 1].end = this.takeSeconds();
+    else this.spotlights.push({ start: this.takeSeconds(), end: null });
+    this.rerender();
+  }
+
+  // The live screen (with marks) shown while recording, and pointer drawing on it.
+  attachDrawing() {
+    // The live camera preview follows re-renders while recording (pause, spotlight, tools).
+    const cam = this.overlay?.querySelector('.webcam-feed');
+    if (this.isRecording && cam && this.liveCam && cam.srcObject !== this.liveCam) cam.srcObject = this.liveCam;
+    const a = this.annotator;
+    const video = this.overlay?.querySelector('.screen-feed');
+    const layer = this.overlay?.querySelector('[data-draw-layer]');
+    if (!a || !video || !layer) return;
+    if (video.srcObject !== a.stream) video.srcObject = a.stream;
+    const at = (e) => pointOnPicture(e.clientX, e.clientY, layer.getBoundingClientRect(), a.width, a.height);
+    layer.onpointerdown = (e) => { const pt = at(e); if (!pt) return; layer.setPointerCapture?.(e.pointerId); a.begin(this.drawTool, this.drawColor, pt); };
+    layer.onpointermove = (e) => { const pt = at(e); if (pt) a.move(pt); };
+    layer.onpointerup = () => a.end();
+    layer.onpointercancel = () => a.end();
+  }
+
+  // Delete: stop and throw the take away. Restart: the same, then record again.
+  async discardTake({ restart = false } = {}) {
+    if (!this.session) return;
+    clearInterval(this.recordingInterval);
+    const session = this.session;
+    this.session = null;
+    this.isRecording = false;
+    this.isPaused = false;
+    this.prompterClock.reset();
+    this.prompterRunning = false;
+    try {
+      const result = await session.stop();
+      const { releaseTakes } = await import('../../lib/recorder/session.js');
+      await releaseTakes(result);
+    } catch { /* the take is being thrown away */ }
+    this.stopAllStreams();
+    this.annotator = null;
+    this.spotlights = [];
+    this.recordingTime = 0;
+    this.notice = restart ? '' : 'Take deleted.';
+    this.rerender();
+    if (restart) await this.startRecording();
   }
 
   renderPrompterOverlay() {
@@ -361,6 +451,13 @@ export class RecorderModal extends BaseModal {
 
   setupEventListeners() {
     super.setupEventListeners();
+
+    this.overlay.querySelector('[data-action="delete-take"]')?.addEventListener('click', () => this.discardTake());
+    this.overlay.querySelector('[data-action="restart-take"]')?.addEventListener('click', () => this.discardTake({ restart: true }));
+    this.overlay.querySelector('[data-action="spotlight"]')?.addEventListener('click', () => this.toggleSpotlight());
+    this.overlay.querySelectorAll('[data-draw-tool]').forEach((b) => b.addEventListener('click', () => { this.drawTool = b.dataset.drawTool; this.rerender(); }));
+    this.overlay.querySelectorAll('[data-draw-color]').forEach((b) => b.addEventListener('click', () => { this.drawColor = b.dataset.drawColor; this.rerender(); }));
+    this.overlay.querySelector('[data-draw-clear]')?.addEventListener('click', () => this.annotator?.clear());
 
     this.overlay.querySelector('[data-action="toggle-prompter"]')?.addEventListener('click', () => {
       // First click opens the script panel; with a script, the button shows or hides the prompter.
@@ -454,6 +551,7 @@ export class RecorderModal extends BaseModal {
     this.updateBody(this.renderBody());
     this.syncCameraPreview();
     this.paintPrompter(this.prompterClock.elapsed());
+    this.attachDrawing();
   }
 
   getPreviewUrl() {
@@ -536,8 +634,20 @@ export class RecorderModal extends BaseModal {
     if (type === 'audio') {
       return [{ prefix: 'audio', stream: await streams.getMicStream({ selectedAudioSource: this.selectedMic }), audioOnly: true }];
     }
+    // The screen goes through the drawing layer, so marks you draw are in the recording.
+    const withDrawing = async (display) => {
+      try {
+        const { createAnnotator } = await import('../../lib/recorder/annotate.js');
+        this.annotator = await createAnnotator(display);
+        return this.annotator.stream;
+      } catch (err) {
+        console.error('Drawing layer failed:', err);
+        this.annotator = null;
+        return display;
+      }
+    };
     if (type === 'screen') {
-      return [{ prefix: 'display', stream: await streams.getDisplayStreamWithMic(audio) }];
+      return [{ prefix: 'display', stream: await withDrawing(await streams.getDisplayStreamWithMic(audio)) }];
     }
     // The recorded camera goes through the chosen effects (the original stream passes through when none).
     const withEffects = async (cam) => {
@@ -554,7 +664,7 @@ export class RecorderModal extends BaseModal {
     const display = await streams.getDisplayStream({});
     try {
       const webcam = await withEffects(await streams.getCameraStream({ camera: this.cameraOptions(), ...audio }));
-      return [{ prefix: 'webcam', stream: webcam }, { prefix: 'display', stream: display }];
+      return [{ prefix: 'webcam', stream: webcam }, { prefix: 'display', stream: await withDrawing(display) }];
     } catch (err) {
       display.getTracks().forEach(t => t.stop());
       throw err;
@@ -580,6 +690,9 @@ export class RecorderModal extends BaseModal {
 
       this.isRecording = true;
       this.isPaused = false;
+      this.spotlights = [];
+      this.activeMs = 0;
+      this.activeSince = performance.now();
       this.prompterClock.reset();
       this.prompterClock.start();
       this.prompterRunning = true;
@@ -591,10 +704,9 @@ export class RecorderModal extends BaseModal {
           if (recTimeEl) recTimeEl.textContent = this.formatTime(this.recordingTime);
         }
       }, 1000);
+      this.liveCam = sources.find(s => s.prefix === 'webcam')?.stream || null;
       this.updateBody(this.renderBody());
-      const el = this.overlay?.querySelector('.webcam-feed');
-      const cam = sources.find(s => s.prefix === 'webcam');
-      if (el && cam) el.srcObject = cam.stream;
+      this.attachDrawing();
     } catch (err) {
       console.error('Recording failed:', err);
       this.stopAllStreams();
@@ -612,6 +724,8 @@ export class RecorderModal extends BaseModal {
     if (!this.session || this.isPaused) return;
     this.session.pause();
     this.isPaused = true;
+    this.activeMs += performance.now() - (this.activeSince ?? performance.now());
+    this.activeSince = null;
     this.prompterClock.pause();
     this.prompterRunning = false;
     this.rerender();
@@ -621,6 +735,7 @@ export class RecorderModal extends BaseModal {
     if (!this.session || !this.isPaused) return;
     this.session.resume();
     this.isPaused = false;
+    this.activeSince = performance.now();
     this.prompterClock.start();
     this.prompterRunning = true;
     this.rerender();
@@ -629,6 +744,7 @@ export class RecorderModal extends BaseModal {
   async stopRecording() {
     if (!this.session || this.stopping) return;
     this.stopping = true;
+    if (this.spotlightOn()) this.spotlights[this.spotlights.length - 1].end = this.takeSeconds();
     this.prompterClock.pause();
     this.prompterRunning = false;
     clearInterval(this.recordingInterval);
@@ -673,6 +789,7 @@ export class RecorderModal extends BaseModal {
         screen,
         camera,
         shape: this.camShape,
+        spotlights: this.spotlights,
         seconds,
         onProgress: (p) => {
           const el = this.overlay?.querySelector('.recorder-notice');
@@ -692,6 +809,9 @@ export class RecorderModal extends BaseModal {
   }
 
   stopAllStreams() {
+    this.liveCam = null;
+    this.annotator?.stop();
+    this.annotator = null;
     [...(this.liveStreams || []), this.webcamStream].forEach((s) => {
       if (s) s.getTracks().forEach(track => track.stop());
     });

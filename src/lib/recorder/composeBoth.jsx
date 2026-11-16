@@ -3,7 +3,7 @@
 // Rendered locally with @remotion/web-renderer (same approach as
 // src/features/personalization/shared/personalization/webExport.ts); nothing is sent to a server.
 import React from 'react';
-import { AbsoluteFill } from 'remotion';
+import { AbsoluteFill, useCurrentFrame } from 'remotion';
 import { Video } from '@remotion/media';
 
 const REMOTION_LICENSE_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_REMOTION_LICENSE_KEY) || 'free-license';
@@ -14,16 +14,48 @@ export const FPS = 30;
 const BUBBLE = Math.round(WIDTH * 0.2);
 const MARGIN = Math.round(WIDTH * 0.03);
 
-export function ScreenWithBubble({ screenSrc, cameraSrc, shape = 'circle' }) {
+const SPOTLIGHT_SIZE = Math.round(HEIGHT * 0.72);
+const RAMP = 0.35; // seconds to grow or shrink
+
+/**
+ * Camera spotlight (Sendspark "Record Videos"): how far the bubble has grown at second `t`, 0..1,
+ * given the times you held Spotlight while recording ([{ start, end }] in seconds).
+ */
+export function spotlightAmount(t, spotlights = []) {
+  let a = 0;
+  for (const { start, end } of spotlights) {
+    const e = Number.isFinite(end) ? end : Infinity;
+    if (t < start - RAMP || t > e + RAMP) continue;
+    const grow = Math.min(1, (t - (start - RAMP)) / RAMP);
+    const shrink = Math.min(1, (e + RAMP - t) / RAMP);
+    a = Math.max(a, Math.max(0, Math.min(grow, shrink)));
+  }
+  return a * a * (3 - 2 * a); // smoothstep
+}
+
+/** Where the camera bubble is: bottom-left normally, large and centred in a spotlight. */
+export function bubbleBox(amount) {
+  const size = BUBBLE + (SPOTLIGHT_SIZE - BUBBLE) * amount;
+  return {
+    size: Math.round(size),
+    left: Math.round(MARGIN + ((WIDTH - size) / 2 - MARGIN) * amount),
+    bottom: Math.round(MARGIN + ((HEIGHT - size) / 2 - MARGIN) * amount),
+  };
+}
+
+export function ScreenWithBubble({ screenSrc, cameraSrc, shape = 'circle', spotlights = [] }) {
+  const frame = useCurrentFrame();
+  const amount = spotlightAmount(frame / FPS, spotlights);
+  const { size, left, bottom } = bubbleBox(amount);
   return (
     <AbsoluteFill style={{ backgroundColor: '#000' }}>
       {/* The screen take has no sound of its own; the microphone is on the camera take. */}
       <Video src={screenSrc} muted objectFit="contain" style={{ width: '100%', height: '100%' }} />
       <div
         style={{
-          position: 'absolute', left: MARGIN, bottom: MARGIN, width: BUBBLE, height: BUBBLE,
-          borderRadius: shape === 'circle' ? '50%' : Math.round(BUBBLE * 0.1), overflow: 'hidden',
-          border: `${Math.max(3, Math.round(BUBBLE * 0.02))}px solid #fff`, boxShadow: '0 8px 30px rgba(0,0,0,.45)',
+          position: 'absolute', left, bottom, width: size, height: size,
+          borderRadius: shape === 'circle' ? '50%' : Math.round(size * 0.1), overflow: 'hidden',
+          border: `${Math.max(3, Math.round(size * 0.02))}px solid #fff`, boxShadow: '0 8px 30px rgba(0,0,0,.45)',
         }}
       >
         <Video src={cameraSrc} objectFit="cover" style={{ width: '100%', height: '100%' }} />
@@ -60,7 +92,7 @@ const PROFILES = [
  * screen, camera: Blobs. Resolves to { blob, mimeType } or throws with a readable message.
  * `renderer` is injectable for tests.
  */
-export async function composeBoth({ screen, camera, shape, seconds, onProgress, signal, renderer }) {
+export async function composeBoth({ screen, camera, shape, spotlights = [], seconds, onProgress, signal, renderer }) {
   const r = renderer || await import('@remotion/web-renderer');
   let profile = null;
   for (const p of PROFILES) {
@@ -73,7 +105,7 @@ export async function composeBoth({ screen, camera, shape, seconds, onProgress, 
   const screenSrc = URL.createObjectURL(screen);
   const cameraSrc = URL.createObjectURL(camera);
   try {
-    const inputProps = { screenSrc, cameraSrc, shape };
+    const inputProps = { screenSrc, cameraSrc, shape, spotlights };
     const result = await r.renderMediaOnWeb({
       composition: { id: 'outreach-both', component: ScreenWithBubble, width: WIDTH, height: HEIGHT, fps: FPS, durationInFrames: Math.max(1, Math.round(duration * FPS)), defaultProps: inputProps },
       inputProps,
