@@ -49,6 +49,11 @@ export interface PreviewLayer {
   endFrame?: number
   /** 0..1 layer opacity. */
   opacity: number
+  /**
+   * Rotation in degrees, clockwise, about the center of the drawn box, normalized to (-180, 180]. Absent = not rotated.
+   * Only text, CTA and image layers rotate (see `userRotatable` in mediaRoles).
+   */
+  rotation?: number
   /** Text content for text-bearing layers. */
   text?: string
   /** Accent/text color (hex). Falls back to brandColors.text. */
@@ -210,6 +215,11 @@ export interface PreviewInputProps {
   }
   /** Durable audio track to mix into the composition, or null. */
   audioUrl: string | null
+  /**
+   * Measured luminance grids of the source footage (from the Layout Quality sampler), when known.
+   * Lets text scrims scale with how bright the footage is behind the text. Absent = default strength.
+   */
+  lumaSamples?: import('./placement/types').LumaSample[]
 }
 
 export const DEFAULT_PREVIEW_FPS = 30

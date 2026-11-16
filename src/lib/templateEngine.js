@@ -78,6 +78,24 @@ export const NICHE_TYPES = {
   GENERAL: 'general-business'
 };
 
+// Whole-word match so "car" does not fire inside "character". Stems that are
+// deliberately partial match at the start of a word; a few terms also list the
+// longer words people really type ("dentistry", "technology"). Terms are fixed
+// strings from detectNiche below, never user input.
+const NICHE_STEMS = new Set(['chiro', 'barber', 'auto']);
+const NICHE_ALIASES = { dentist: ['dentistry'], tech: ['technology', 'technologies'], launch: ['launching'] };
+const nicheMatchers = new Map();
+function nicheTermMatcher(term) {
+  let re = nicheMatchers.get(term);
+  if (!re) {
+    const words = [term, ...(NICHE_ALIASES[term] || [])].map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const body = words.map((w, i) => (NICHE_STEMS.has(term) && i === 0 ? w : `${w}(?:s|es)?\\b`)).join('|');
+    re = new RegExp(`\\b(?:${body})`);
+    nicheMatchers.set(term, re);
+  }
+  return re;
+}
+
 /**
  * Detect niche from user input
  */
@@ -88,50 +106,51 @@ export function detectNiche(input) {
     input.productService,
     input.rawIdea
   ].join(' ').toLowerCase();
+  const has = (term) => nicheTermMatcher(term).test(text);
 
-  if (text.includes('restaurant') || text.includes('cafe') || text.includes('food') || text.includes('chef') || text.includes('steakhouse')) {
+  if (has('restaurant') || has('cafe') || has('food') || has('chef') || has('steakhouse')) {
     return NICHE_TYPES.RESTAURANT;
   }
-  if (text.includes('med spa') || text.includes('skincare') || text.includes('beauty clinic') || text.includes('aesthetic')) {
+  if (has('med spa') || has('skincare') || has('beauty clinic') || has('aesthetic')) {
     return NICHE_TYPES.MED_SPA;
   }
-  if (text.includes('salon') || text.includes('hair salon') || text.includes('stylist')) {
+  if (has('salon') || has('hair salon') || has('stylist')) {
     return NICHE_TYPES.SALON;
   }
-  if (text.includes('barber') || text.includes('barbershop')) {
+  if (has('barber') || has('barbershop')) {
     return NICHE_TYPES.BARBERSHOP;
   }
-  if (text.includes('gym') || text.includes('fitness') || text.includes('trainer') || text.includes('workout')) {
+  if (has('gym') || has('fitness') || has('trainer') || has('workout')) {
     return NICHE_TYPES.FITNESS;
   }
-  if (text.includes('property') || text.includes('listing') || text.includes('realtor') || text.includes('real estate') || text.includes('home')) {
+  if (has('property') || has('listing') || has('realtor') || has('real estate') || has('home')) {
     return NICHE_TYPES.REAL_ESTATE;
   }
-  if (text.includes('dental') || text.includes('dentist') || text.includes('smile')) {
+  if (has('dental') || has('dentist') || has('smile')) {
     return NICHE_TYPES.DENTAL;
   }
-  if (text.includes('chiro') || text.includes('wellness clinic') || text.includes('adjustment')) {
+  if (has('chiro') || has('wellness clinic') || has('adjustment')) {
     return NICHE_TYPES.CHIROPRACTIC;
   }
-  if (text.includes('law') || text.includes('attorney') || text.includes('lawyer') || text.includes('legal')) {
+  if (has('law') || has('attorney') || has('lawyer') || has('legal')) {
     return NICHE_TYPES.LEGAL;
   }
-  if (text.includes('auto') || text.includes('car') || text.includes('vehicle') || text.includes('dealership')) {
+  if (has('auto') || has('car') || has('vehicle') || has('dealership')) {
     return NICHE_TYPES.AUTOMOTIVE;
   }
-  if (text.includes('fashion') || text.includes('clothing') || text.includes('apparel') || text.includes('designer')) {
+  if (has('fashion') || has('clothing') || has('apparel') || has('designer')) {
     return NICHE_TYPES.FASHION;
   }
-  if (text.includes('event') || text.includes('conference') || text.includes('launch')) {
+  if (has('event') || has('conference') || has('launch')) {
     return NICHE_TYPES.EVENT;
   }
-  if (text.includes('luxury') || text.includes('premium') || text.includes('heritage')) {
+  if (has('luxury') || has('premium') || has('heritage')) {
     return NICHE_TYPES.LUXURY_BRAND;
   }
-  if (text.includes('saas') || text.includes('software') || text.includes('tech')) {
+  if (has('saas') || has('software') || has('tech')) {
     return NICHE_TYPES.SAAS;
   }
-  if (text.includes('agency') || text.includes('marketing')) {
+  if (has('agency') || has('marketing')) {
     return NICHE_TYPES.AGENCY;
   }
   return NICHE_TYPES.GENERAL;

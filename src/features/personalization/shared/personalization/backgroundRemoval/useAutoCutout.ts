@@ -142,10 +142,11 @@ async function withSniffedType(blob: Blob): Promise<Blob> {
 export function useAutoCutout(
   assets: DiscoveredAsset[],
   setAssets: Dispatch<SetStateAction<DiscoveredAsset[]>>,
-  options: { paused?: boolean; disabled?: boolean } = {},
+  options: { paused?: boolean; disabled?: boolean; anonymous?: boolean } = {},
 ): AutoCutoutControls {
   const paused = Boolean(options.paused)
   const disabled = Boolean(options.disabled)
+  const anonymous = Boolean(options.anonymous)
   const constrained = useMemo(() => isConstrainedDevice(), [])
   // BG0 decodes images with createImageBitmap; without it (old browsers, jsdom) nothing can run, so stay idle.
   // `disabled`: the caller cannot offer it here (e.g. signed-out visitors cannot reach the image download proxy).
@@ -214,7 +215,7 @@ export function useAutoCutout(
 
       try {
         const source = manual && asset.editedDataUrl ? asset.editedDataUrl : asset.originalPreviewUrl || asset.previewUrl
-        const raw = await loadImageBlob(source, { signal: controller.signal })
+        const raw = await loadImageBlob(source, { signal: controller.signal, anonymous })
         if (controller.signal.aborted) throw new BackgroundRemovalFailure('cancelled', 'Cancelled')
         const blob = await withSniffedType(raw)
         if (!isRemovableImageType(blob.type)) {
@@ -307,7 +308,7 @@ export function useAutoCutout(
         if (mountedRef.current) setTick((n) => n + 1)
       }
     },
-    [patch, setAssets, setBg],
+    [patch, setAssets, setBg, anonymous],
   )
 
   // Drive the queue: one job at a time, whenever there is work and consent.

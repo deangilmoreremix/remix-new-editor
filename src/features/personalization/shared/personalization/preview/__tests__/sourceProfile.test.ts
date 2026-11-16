@@ -115,3 +115,13 @@ describe('source profile', () => {
     expect(mapZoneToComposition({ id: 'a', label: 'a', source: 'user', x: 0.2, y: 0.2, w: 0.2, h: 0.2 }, fitSourceToComposition(null, 1, 1), null, 1).x).toBeCloseTo(0.2, 6)
   })
 })
+
+describe('template-library family', () => {
+  it('only trusts our own bucket and repo paths, never a look-alike host', () => {
+    const own = 'https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/x.webm'
+    expect(familyFromSrc(own)).toBe('template-library')
+    expect(familyFromSrc('/media/awesome-seedance/videos/x.mp4')).toBe('template-library')
+    expect(familyFromSrc('https://evil.example.com/?u=https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/x.webm')).toBe('unknown')
+    expect(familyFromSrc('https://evil.example.com/storage/v1/object/public/demo-template-videos/clips/x.webm')).toBe('unknown')
+  })
+})

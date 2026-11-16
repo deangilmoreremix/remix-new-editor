@@ -2,12 +2,12 @@ export { registerAddon, getAddon, isAddonType, listAddons, createAddonClip, clip
 export { INTERACTIVE_ADDONS, PROJECT_FORMS, PAUSE, LOOP, SKIP, LEAD_FORM, CTA_BUTTON } from './interactiveAddons.js';
 export { AddonRuntime } from './runtime.js';
 export { renderAddonEditor, getPath, setPath } from './addonEditor.js';
-export { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, showOptinOverlay, backdropStyle, buildOptinForm, buildArrowHint, startPointer, formBackground } from './addonOverlay.js';
+export { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, showOptinOverlay, showThanks, safeWebUrl, AFTER_SUBMIT_ACTIONS, backdropStyle, buildOptinForm, buildArrowHint, startPointer, formBackground } from './addonOverlay.js';
 export {
   defaultOptin, defaultListBuilder, normalizeListBuilder, listBuilderFields, leadFormToOptin, applyOptinToLeadForm, LEAD_FIELD_TYPES, OPTIN_KINDS, POINTER_DEFAULTS, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile, LIST_BUILDER_KINDS, FORM_FIELD_TYPES, FORM_TRANSITIONS, fieldToken,
 } from './listBuilder.js';
 export {
-  submitLead, fetchLeads, fetchLeadRows, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
+  submitLead, leadNotifyEmails, MAX_NOTIFY_EMAILS, fetchLeads, fetchLeadRows, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, removeIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
 } from './leadClient.js';
 export { OVERLAY_ADDONS, SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD, OVERLAY_TRANSITION, VIDEO_TRANSITION, applyPositionPreset } from './overlayAddons.js';
 export { buildLowerThirdLottie, lowerThirdFrame, LOWER_THIRD_TEMPLATES, LOWER_THIRD_DEFAULTS } from './lowerThirds.js';

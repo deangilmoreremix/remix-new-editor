@@ -665,8 +665,8 @@ describe('image layout geometry (product showcase / service promotion)', () => {
   }
 
   it('other layouts keep the generic defaults', () => {
-    expect(layoutLayerGeometry('business-introduction', 'headline', '16:9')).toBeUndefined()
     expect(layoutLayerGeometry('special-offer', 'offer', '9:16')).toBeUndefined()
+    expect(layoutLayerGeometry('branded-ending', 'cta', '16:9')).toBeUndefined()
   })
 
   it('reflow moves only untouched layers when the aspect ratio changes', () => {
@@ -683,9 +683,60 @@ describe('image layout geometry (product showcase / service promotion)', () => {
   })
 
   it('reflow never touches a layout without per-aspect geometry or an applied design', () => {
-    const intro = applyLayoutPreset(createDefaultPreviewSettings(), 'business-introduction')
-    expect(reflowLayersForAspect(intro, '16:9', '9:16')).toBe(intro)
+    const offer = applyLayoutPreset(createDefaultPreviewSettings(), 'special-offer')
+    expect(reflowLayersForAspect(offer, '16:9', '9:16')).toBe(offer)
     const withDesign = { ...applyLayoutPreset(createDefaultPreviewSettings(), 'product-showcase'), remotionDesignId: 'starfield-warp' }
     expect(reflowLayersForAspect(withDesign, '16:9', '9:16')).toBe(withDesign)
+  })
+})
+
+describe('business introduction lower-third', () => {
+  it('starts as a bottom-left lower third at every aspect ratio, name above headline', () => {
+    for (const aspect of ['16:9', '9:16', '4:5', '1:1'] as const) {
+      const name = layoutLayerGeometry('business-introduction', 'businessName', aspect)!
+      const head = layoutLayerGeometry('business-introduction', 'headline', aspect)!
+      expect(name.x).toBe(0.08)
+      expect(head.x).toBe(0.08)
+      expect(name.y).toBeGreaterThan(0.6)
+      expect(head.y).toBeGreaterThan(name.y)
+      expect(head.y).toBeLessThan(0.82)
+    }
+  })
+
+  it('new projects and applyLayoutPreset agree on the layout geometry', () => {
+    const fresh = createDefaultPreviewSettings()
+    const applied = applyLayoutPreset(fresh, 'business-introduction')
+    for (const kind of ['businessName', 'headline', 'logo'] as const) {
+      const a = fresh.layers.find((l) => l.kind === kind)!
+      const b = applied.layers.find((l) => l.kind === kind)!
+      expect([a.x, a.y, a.scale]).toEqual([b.x, b.y, b.scale])
+    }
+  })
+
+  it('keeps the logo in its corner', () => {
+    const fresh = createDefaultPreviewSettings()
+    const logo = fresh.layers.find((l) => l.kind === 'logo')!
+    expect([logo.x, logo.y]).toEqual([0.08, 0.08])
+  })
+})
+
+describe('layer rotation in saved settings', () => {
+  const withRotation = (rotation: unknown) => {
+    const base = createDefaultPreviewSettings()
+    return normalizePreviewSettings({ ...base, layers: base.layers.map((l) => (l.kind === 'headline' ? { ...l, rotation } : l)) })
+  }
+  const headline = (s: ReturnType<typeof normalizePreviewSettings>) => s.layers.find((l) => l.kind === 'headline')!
+
+  it('restores a saved rotation, normalized', () => {
+    expect(headline(withRotation(30)).rotation).toBe(30)
+    expect(headline(withRotation(370)).rotation).toBe(10)
+    expect(headline(withRotation(-200)).rotation).toBe(160)
+  })
+  it('drops a zero or invalid rotation so unrotated layers serialize as before', () => {
+    for (const v of [0, 360, NaN, 'x', null, undefined]) expect('rotation' in headline(withRotation(v))).toBe(false)
+  })
+  it('clampLayer keeps a rotation normalized and removes a zero one', () => {
+    expect(clampLayer({ ...createLayer('logo'), rotation: 400 }).rotation).toBe(40)
+    expect('rotation' in clampLayer({ ...createLayer('logo'), rotation: 0 })).toBe(false)
   })
 })

@@ -13,6 +13,10 @@ import {
   recommendPlacement,
   recommendRestoredPlacement,
   sampleFrames,
+  getCachedSamples,
+  hasCachedSamples,
+  setCachedSamples,
+  sampleCacheKey,
   type LumaSample,
   type PlacementInput,
   type ProtectedZone,
@@ -26,8 +30,6 @@ import {
   type SourceProfile,
 } from '../preview/sourceProfile'
 
-/** Frame measurements are expensive (they seek the video), so they are cached per URL and crop geometry. */
-const SAMPLE_CACHE = new Map<string, LumaSample[] | null>()
 
 /** Event the overlay editor listens to, to select a layer from outside (Layout Quality "Show"). */
 export const SELECT_LAYER_EVENT = 'personalization:select-layer'
@@ -76,15 +78,15 @@ export function useLayoutQuality(inputProps: PreviewInputProps): LayoutQualitySt
     let live = true
     if (!videoUrl || isImageSource) { setSamples([]); setSampling('idle'); return }
     // The footage is shown with objectFit: 'cover', so it is measured on that crop; the same clip in a
-    // different frame shape is a different measurement.
-    const cacheKey = `${videoUrl}|${settings.width}x${settings.height}`
-    if (SAMPLE_CACHE.has(cacheKey)) {
-      const cached = SAMPLE_CACHE.get(cacheKey) ?? null
+    // different frame shape is a different measurement (shared cache keyed by URL + frame shape).
+    const cacheKey = sampleCacheKey(videoUrl, settings.width, settings.height) as string
+    if (hasCachedSamples(cacheKey)) {
+      const cached = getCachedSamples(cacheKey)
       setSamples(cached ?? []); setSampling(cached ? 'done' : 'unavailable'); return
     }
     setSampling('measuring')
     void sampleFrames(videoUrl, { composition: { width: settings.width, height: settings.height } }).then((res) => {
-      SAMPLE_CACHE.set(cacheKey, res?.samples ?? null)
+      setCachedSamples(cacheKey, res?.samples ?? null)
       if (!live) return
       setSamples(res?.samples ?? []); setSampling(res ? 'done' : 'unavailable')
     })

@@ -12,8 +12,6 @@
  *
  * Registry entries only ever point at files under `public/media/**`:
  *   public/media/minimax-h3/videos/<slug>.webm  + previews/<slug>.svg
- *   public/media/promptfeed/videos/<file>.mp4    + previews/<file>.jpg
- *   public/media/seedance-1/videos/<slug>.mp4    + previews/<slug>.svg
  *   public/media/seedance-25/videos/<file>.webm  + previews/<slug>.jpg
  *
  * The registry keeps `sourceRepo` + `slug` from the original catalogs, so

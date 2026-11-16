@@ -1,8 +1,9 @@
 // AUTO-GENERATED FILE — do not edit by hand.
 // Regenerate with: node scripts/generate-template-video-library.mjs
-// 184 clips reviewed as free of logos / watermarks / captions; see scripts/template-video-allowlist.json.
+// 539 clips. Each carries a `branding` verdict: "none" = reviewed, no visible logo / watermark / credit; "logo" = has one
+// (see scripts/template-video-branding.json). `autoLabeled` clips use a generated title/subcategory until curated in the labels file.
 
-/** @typedef {{ id: string, slug: string, title: string, sourceTitle: string, category: string, subcategory: string, duration: number | null, aspectRatio: string, videoSrc: string, posterSrc: string | null, tags: string[], source: string }} TemplateVideo */
+/** @typedef {{ id: string, slug: string, title: string, sourceTitle: string, category: string, subcategory: string, duration: number | null, aspectRatio: string, videoSrc: string, posterSrc: string | null, tags: string[], source: string, topics: string[], orientation: 'landscape' | 'portrait' | 'square', group: string, branding: 'none' | 'logo', marks?: string, autoLabeled?: boolean }} TemplateVideo */
 
 /** @type {TemplateVideo[]} */
 export const templateVideos = [
@@ -22,7 +23,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Aerial & FPV",
+  "topics": [
+   "action",
+   "aerial",
+   "fpv",
+   "stealth",
+   "jet",
+   "cloak",
+   "flyby"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:16-9-luxury-fashion-commercial-using-as-exact-vi-969702",
@@ -40,7 +53,18 @@ export const templateVideos = [
    "reference-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "luxury",
+   "goods",
+   "handbag",
+   "campaign",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:an-other-great-use-for-product-showcase-096175",
@@ -58,7 +82,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "product",
+   "reveals",
+   "ceramic",
+   "diffuser",
+   "reveal",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:been-testing-the-new-flux3-and-hailuo-minimax-h3-models-282651",
@@ -76,7 +112,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "highway",
+   "trike",
+   "rider",
+   "pov",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:bond-style-spy-thriller-op-art-anime-title-seque-295024",
@@ -94,7 +143,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Titles & Typography",
+  "topics": [
+   "animation",
+   "title",
+   "sequences",
+   "spy",
+   "thriller",
+   "sequence",
+   "anime"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:cinematic-sci-fi-suspense-video-a-realistic-spaceship-crew-in-024495",
@@ -112,7 +173,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "derelict",
+   "spaceship",
+   "boarding",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:create-a-15-second-ultra-photorealistic-live-action-war-sequence-714552",
@@ -130,7 +202,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "1940s",
+   "battlefield",
+   "advance",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:create-a-breathtaking-15-second-cinematic-flower-morph-sequence-using-622337",
@@ -148,7 +232,21 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "orchid",
+   "bloom",
+   "light",
+   "morph",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:created-in-675674",
@@ -166,7 +264,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "red",
+   "tape",
+   "maze",
+   "fashion"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:created-this-with-minimax-h3-on-185447",
@@ -184,7 +294,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "neon",
+   "street",
+   "promo",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:created-with-minimax-h3-243802",
@@ -202,7 +324,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "fights",
+   "martial",
+   "arts",
+   "warehouse",
+   "showdown",
+   "fight",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:created-with-minimax-h3-540945",
@@ -220,7 +355,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "tech",
+   "gadgets",
+   "wireless",
+   "earbuds",
+   "launch",
+   "fashion"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:created-with-minimax-h3-708458",
@@ -238,7 +385,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "warrior",
+   "t-rex",
+   "clash",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:created-with-minimax-h3-823597",
@@ -256,7 +415,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "golden",
+   "smoke",
+   "perfume",
+   "reveal",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:dark-pop-cyber-grunge-rap-music-video-style-998615",
@@ -277,7 +449,23 @@ export const templateVideos = [
    "halftone-scan-texture",
    "hard-cut-edit-pace"
   ],
-  "source": "MiniMax H3"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "cyber-grunge",
+   "rap",
+   "video",
+   "music-video",
+   "style-reference-images",
+   "film-magazine-grain",
+   "halftone-scan-texture",
+   "hard-cut-edit-pace"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:drowning-deep-down-the-ocean-created-with-minimax-h3-773704",
@@ -295,7 +483,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "underwater",
+   "kelp",
+   "descent",
+   "cinematic-travel"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-105162",
@@ -313,7 +513,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "moon",
+   "quest",
+   "dragon",
+   "chase",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-517354",
@@ -331,7 +543,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "snack",
+   "aisle",
+   "mascots",
+   "part",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:fourthi-storyboard-image-to-video-using-minimax-h3-on-470161",
@@ -349,7 +574,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "moon",
+   "quest",
+   "castle",
+   "ride",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:generated-with-minimax-h3-on-116099",
@@ -367,7 +604,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "viking",
+   "shield",
+   "wall",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:h3-local-i-like-vague-105742",
@@ -385,7 +634,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "tiny",
+   "village",
+   "meadow",
+   "zoom",
+   "cinematic-story"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:hailuo-minimax-h3-is-super-good-for-product-videos-129035",
@@ -403,7 +665,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "whisky",
+   "smoke",
+   "product",
+   "film",
+   "product-commercial"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:i-created-this-kids-counting-video-with-on-446929",
@@ -421,7 +696,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "counting",
+   "birds",
+   "explainer",
+   "motion-graphics"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:ice-cave-exploration-902327",
@@ -439,7 +727,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "glacier",
+   "ice",
+   "cave",
+   "expedition",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:is-redefining-ai-with-open-weight-multimodal-int-960837",
@@ -457,7 +758,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Titles & Typography",
+  "topics": [
+   "vfx",
+   "title",
+   "sequences",
+   "space",
+   "fleet",
+   "teaser",
+   "motion-graphics"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:it-came-out-pretty-good-253323",
@@ -475,7 +788,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "executive",
+   "boardroom",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:jazz-noir-anime-title-sequence-652641",
@@ -495,7 +819,19 @@ export const templateVideos = [
    "reference-image",
    "native-audio"
   ],
-  "source": "MiniMax H3"
+  "group": "Titles & Typography",
+  "topics": [
+   "animation",
+   "title",
+   "sequences",
+   "jazz",
+   "noir",
+   "sequence",
+   "anime"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:local-ai-000274",
@@ -513,7 +849,19 @@ export const templateVideos = [
    "reference-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "diner",
+   "breakfast",
+   "splash",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:mind-blown-one-shot-376793",
@@ -531,7 +879,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "chrome",
+   "type",
+   "film",
+   "fashion"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:minimax-3-prompt-create-a-premium-16-9-landscape-fashion-108362",
@@ -549,7 +909,17 @@ export const templateVideos = [
    "reference-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "desert",
+   "couture",
+   "duo"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:minimax-h3-282512",
@@ -567,7 +937,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "orange",
+   "cat",
+   "pom-pom",
+   "play",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:minimax-h3-keeps-delivering-beautiful-vfx-sequences-725200",
@@ -585,7 +968,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Titles & Typography",
+  "topics": [
+   "vfx",
+   "title",
+   "sequences",
+   "mountain",
+   "mist",
+   "reveal",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:minimax-h3-on-229978",
@@ -603,7 +998,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "strongman",
+   "arena",
+   "challenge",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:minimax-h3x-423684",
@@ -621,7 +1028,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "runway",
+   "lookbook",
+   "sculptural",
+   "couture",
+   "film",
+   "product-commercial"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:no-moon-restoration-yet-834347",
@@ -639,7 +1058,19 @@ export const templateVideos = [
    "reference-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "moon",
+   "quest",
+   "skeleton",
+   "army",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:no-way-this-is-golden-595436",
@@ -657,7 +1088,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Comedy & Pets",
+  "topics": [
+   "cinema",
+   "comedy",
+   "office",
+   "crossword",
+   "break",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:omnittovkling3-0minimax-h3-630895",
@@ -675,7 +1117,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "cloud",
+   "spirit",
+   "swing",
+   "cinematic-travel"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:premium-9-16-fashion-eyewear-commercial-match-the-refer-665060",
@@ -695,7 +1149,19 @@ export const templateVideos = [
    "reference-video",
    "camera-direction"
   ],
-  "source": "MiniMax H3"
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "luxury",
+   "goods",
+   "chrome",
+   "eyewear",
+   "campaign",
+   "product-commercial"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:seamless-warrior-sword-reflection-loop-874724",
@@ -716,7 +1182,20 @@ export const templateVideos = [
    "native-audio",
    "timed-beats"
   ],
-  "source": "MiniMax H3"
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "shattered",
+   "glass",
+   "swordswoman",
+   "fashion",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:second-storyboard-image-to-video-using-minimax-h3-on-665414",
@@ -734,7 +1213,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "snack",
+   "aisle",
+   "mascots",
+   "part",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:spaghetti-western-pulp-anime-title-sequence-wher-935100",
@@ -752,7 +1244,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Titles & Typography",
+  "topics": [
+   "animation",
+   "title",
+   "sequences",
+   "western",
+   "pulp",
+   "card",
+   "anime"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:storyboard-2-to-video-using-minimax-h3-on-852170",
@@ -770,7 +1274,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "getaway",
+   "car",
+   "heist",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:storyboard-image-to-video-using-s-minimax-h3-on-693556",
@@ -788,7 +1304,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "corner",
+   "store",
+   "heist",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:t2v-hailuo-minimaxh3-prompt-format-create-a-15-second-16-099381",
@@ -806,7 +1334,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Titles & Typography",
+  "topics": [
+   "animation",
+   "title",
+   "sequences",
+   "ink",
+   "after",
+   "dark",
+   "titles",
+   "fashion"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:the-viewer-should-immediately-want-to-see-how-3-200-630916",
@@ -824,7 +1365,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "paper",
+   "moon",
+   "lantern",
+   "story",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:this-video-was-made-with-h3-in-krea-797558",
@@ -842,7 +1396,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "muscle",
+   "car",
+   "desert",
+   "promo",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:time-for-some-munchies-uh-h3-local-looks-like-th-170082",
@@ -860,7 +1427,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "midnight",
+   "fridge",
+   "surprise",
+   "cinematic-story"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:total-gen-time-29-minuets-on-a-rtx-3060-976597",
@@ -878,7 +1457,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "fights",
+   "martial",
+   "arts",
+   "moving",
+   "train",
+   "fight"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:ultra-cinematic-macro-shot-a-calm-mountain-lake-039920",
@@ -896,7 +1487,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "MiniMax H3"
+  "group": "Titles & Typography",
+  "topics": [
+   "vfx",
+   "title",
+   "sequences",
+   "liquid",
+   "glass",
+   "reveal",
+   "cinematic-travel"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmx25:wake-up-we-hunt-mechanical-bull-mount-700581",
@@ -917,7 +1520,22 @@ export const templateVideos = [
    "foggy-industrial-street",
    "power-on-roar"
   ],
-  "source": "MiniMax H3"
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "mechanical",
+   "bull",
+   "workshop",
+   "cinematic-story",
+   "mechanical-bull",
+   "rider-character",
+   "foggy-industrial-street",
+   "power-on-roar"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-312407",
@@ -936,7 +1554,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "molten",
+   "armor",
+   "transformation",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:prompt-character-reference-mapping-image-1-is-character-name-use-486583",
@@ -955,7 +1585,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "light",
+   "stripe",
+   "portrait",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:try-it-now-on-336575",
@@ -973,7 +1615,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "painted",
+   "lakeside",
+   "flyover"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-is-live-on-toapis-api-232790",
@@ -991,7 +1644,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "fights",
+   "martial",
+   "arts",
+   "street",
+   "brawl",
+   "explosion",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:catch-it-clean-it-grill-it-eat-it-all-100-657649",
@@ -1010,7 +1676,20 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "fresh",
+   "catch",
+   "campfire",
+   "pov",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:made-with-seedance-2-5-490561",
@@ -1028,7 +1707,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "armored",
+   "truck",
+   "roof",
+   "stunt",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:let-yourself-be-hypnotized-by-the-magical-sound-of-the-904230",
@@ -1046,7 +1738,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "classical",
+   "sitar",
+   "close-up",
+   "documentary"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-in-451524",
@@ -1064,7 +1768,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "desert",
+   "train-top",
+   "dancer",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:created-with-seedance-2-5-721493",
@@ -1082,7 +1798,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "snowbound",
+   "castle",
+   "fortress",
+   "cinematic-action"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-used-616691",
@@ -1101,7 +1829,20 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "garage",
+   "race",
+   "car",
+   "reveal",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-420849",
@@ -1120,7 +1861,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "seaside",
+   "alley",
+   "travel",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:who-else-is-cooking-superhero-cats-with-seedance-2-5-562528",
@@ -1138,7 +1891,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "superhero",
+   "cat",
+   "city",
+   "swing",
+   "animation"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:made-with-seedance-2-5-on-576337",
@@ -1156,7 +1922,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "miniature",
+   "build",
+   "time-lapse",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:i-just-made-this-video-with-seedance-2-5-it-918460",
@@ -1174,7 +1952,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "mediterranean",
+   "coffee",
+   "run",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:reply-seedance-and-i-ll-send-it-must-be-following-463805",
@@ -1192,7 +1982,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "apartment",
+   "hallway",
+   "tour",
+   "cinematic-story"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:fpv-to-pov-action-sequence-280439",
@@ -1210,7 +2012,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Aerial & FPV",
+  "topics": [
+   "action",
+   "aerial",
+   "fpv",
+   "old",
+   "town",
+   "fly-through",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:ultra-realistic-spontaneous-vertical-handheld-footage-recorded-during-fi-459303",
@@ -1228,7 +2042,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "resistance",
+   "fighter",
+   "handheld",
+   "music-video"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:use-code-umesh25-for-25-off-any-runway-plan-affiliate-906242",
@@ -1246,7 +2072,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "cat",
+   "chase",
+   "kitchen",
+   "mayhem",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:kolejny-test-seedance-2-5-wesoe-miasteczko-rok-1410-polska-893338",
@@ -1264,7 +2103,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "medieval",
+   "fairground",
+   "coaster",
+   "vlog"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:created-with-seedance-2-5-on-822971",
@@ -1282,7 +2133,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "puppy",
+   "kitten",
+   "garden"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:use-the-uploaded-reference-image-as-the-exact-character-reference-396603",
@@ -1301,7 +2163,20 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "live",
+   "stage",
+   "pop",
+   "performance",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:19-0-20-6-crash-zoom-into-her-eyes-one-305933",
@@ -1319,7 +2194,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "golden",
+   "dessert",
+   "cups",
+   "macro",
+   "animation"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:i-went-for-my-tennis-practice-and-seedance-2-5-586531",
@@ -1337,7 +2225,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "product",
+   "reveals",
+   "tennis",
+   "kit",
+   "flat",
+   "lay",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:created-this-with-seedance-2-5-on-587451",
@@ -1355,7 +2256,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "rooftop",
+   "hero",
+   "rescue",
+   "music-video"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-on-423855",
@@ -1373,7 +2286,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "lava",
+   "dragon",
+   "rider",
+   "pov",
+   "music-video"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:im-genuinely-impressed-by-how-well-seedance-2-5-keeps-635022",
@@ -1392,7 +2318,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "ruined",
+   "courtyard",
+   "banner",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:i-honestly-didn-t-expect-seedance-2-5-to-hold-557485",
@@ -1411,7 +2349,18 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "moonlight",
+   "ribbon",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:made-with-seedance-2-5-in-668920",
@@ -1429,7 +2378,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "train",
+   "carriage",
+   "farewell",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:photorealistic-cinematic-3d-character-render-physically-based-rendering-825338",
@@ -1448,7 +2409,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "neon",
+   "noir",
+   "heroine",
+   "portrait",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:video-created-with-seedance-2-5-on-489739",
@@ -1466,7 +2439,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "tech",
+   "gadgets",
+   "pop",
+   "silhouette",
+   "earbuds",
+   "promo",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:made-with-seedance-2-5-native-30-second-video-no-571790",
@@ -1484,7 +2470,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "late-night",
+   "gym",
+   "workout",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-280310",
@@ -1503,7 +2501,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "ramen",
+   "bar",
+   "night",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:made-with-seedance-2-5-on-636796",
@@ -1522,7 +2532,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "canyon",
+   "motorcycle",
+   "escape",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-in-696981",
@@ -1540,7 +2562,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "pastel",
+   "carnival",
+   "run",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:video-created-with-seedance-2-5-on-784738",
@@ -1558,7 +2592,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "car",
+   "window",
+   "night",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:a-15-seconds-time-warp-disaster-created-using-seedance-2-195538",
@@ -1577,7 +2623,18 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "muddy",
+   "knight",
+   "time-warp",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:30-seconds-of-pure-cinematic-martial-arts-with-insane-camera-250284",
@@ -1595,7 +2652,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "fights",
+   "martial",
+   "arts",
+   "monk",
+   "stone",
+   "giant",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-on-832715",
@@ -1613,7 +2683,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "breaching",
+   "whale",
+   "leap",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-551218",
@@ -1631,7 +2713,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "clothesline",
+   "morning",
+   "routine",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:i-just-nailed-this-video-with-seedance-2-5-model-859522",
@@ -1650,7 +2744,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "supercar",
+   "dance",
+   "showcase",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:created-on-with-seedance-2-5-606682",
@@ -1668,7 +2774,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "cyberpunk",
+   "noodle",
+   "stall",
+   "hacker",
+   "horror"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:film-empresses-in-the-palace-segment-the-jinghong-dance-967532",
@@ -1686,7 +2804,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "imperial",
+   "palace",
+   "dance",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:made-with-seedance-2-5-on-110436",
@@ -1705,7 +2835,18 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "city",
+   "hologram",
+   "conductor",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:i-ve-spent-a-lot-of-time-with-over-the-past-428749",
@@ -1723,7 +2864,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "frost",
+   "hero",
+   "battle",
+   "cry",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:a-structured-15-second-high-intensity-action-due-398669",
@@ -1741,7 +2894,21 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "fights",
+   "martial",
+   "arts",
+   "lantern",
+   "market",
+   "sword",
+   "duel",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:35-kling-974383",
@@ -1759,7 +2926,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "palace",
+   "rooftop",
+   "sword",
+   "slide",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:crazy-right-413578",
@@ -1778,7 +2958,20 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "giant",
+   "mech",
+   "city",
+   "standoff",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:use-image-only-for-the-womans-face-identity-hair-433265",
@@ -1796,7 +2989,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "convenience",
+   "store",
+   "night",
+   "shift",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:mpt-create-a-15-second-cinematic-street-culture-381511",
@@ -1814,7 +3020,17 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "streetwear",
+   "roadster",
+   "lookbook",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:ugc-on-is-just-crazy-066501",
@@ -1833,7 +3049,18 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "luxury",
+   "goods",
+   "sunglasses",
+   "review",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:video-prompt-case-388128",
@@ -1851,7 +3078,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "skyline",
+   "sword",
+   "flight",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:mpt-create-a-15-second-cinematic-underground-fas-855712",
@@ -1869,7 +3108,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "streetwear",
+   "fisheye",
+   "garage",
+   "film",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:this-video-was-100-351093",
@@ -1887,7 +3137,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "painterly",
+   "living",
+   "room",
+   "portrait",
+   "cinematic-story"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:30-second-photorealistic-live-action-comedy-16-9-040994",
@@ -1905,7 +3167,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "quiet",
+   "reading",
+   "afternoon",
+   "animation"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:product-commercial-study-191208",
@@ -1923,7 +3197,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "streetwear",
+   "fisheye",
+   "street",
+   "sit",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-gpt-image-2-using-253535",
@@ -1942,7 +3227,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "street",
+   "court",
+   "tennis",
+   "match",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:using-seedance-2-5-topaz-upscaler-inside-786932",
@@ -1960,7 +3257,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "fallen",
+   "knight",
+   "dusk",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-didn-t-blink-559715",
@@ -1978,7 +3287,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "mirror",
+   "studio",
+   "practice",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:year-plan-15sec-654814",
@@ -1996,7 +3317,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "misty",
+   "peak",
+   "swordmaster",
+   "cinematic-action"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:mpt-create-a-10-second-16-9-avant-garde-fashion-261494",
@@ -2014,7 +3347,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "cathedral",
+   "dome",
+   "spin",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:parking-lot-energy-hits-different-after-midnight-868579",
@@ -2032,7 +3376,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "streetwear",
+   "hooded",
+   "night",
+   "portrait",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:shot-1-ecu-85mm-push-in-on-the-phone-screen-734483",
@@ -2050,7 +3405,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "morning",
+   "rush",
+   "breakfast",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:a-30-second-3d-animated-action-emotional-story-b-685821",
@@ -2068,7 +3435,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "chain",
+   "blade",
+   "hero",
+   "duel",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:4-character-refs-short-435656",
@@ -2086,7 +3465,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "daisy",
+   "garden",
+   "watering",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:supermodel-woman-wrestling-432306",
@@ -2105,7 +3496,20 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "fights",
+   "martial",
+   "arts",
+   "wrestling",
+   "ring",
+   "showdown",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:expression-motion-light-different-class-from-2-0-937224",
@@ -2124,7 +3528,18 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "candlelit",
+   "gown",
+   "detail",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:camera-handheld-dv-16mm-vertical-9-16-daily-vlog-178710",
@@ -2142,7 +3557,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "gym",
+   "floor",
+   "vlog",
+   "brand-film"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:fantasy-film-study-565204",
@@ -2160,7 +3587,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "sunburst",
+   "warrior",
+   "dragon"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:pov-back-in-high-school-for-30-seconds-and-none-634586",
@@ -2178,7 +3616,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "school",
+   "hallway",
+   "pov",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:i-tested-inside-and-the-upgrade-is-immediately-n-105315",
@@ -2196,7 +3646,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "gym",
+   "intro",
+   "camera",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:product-commercial-study-662980",
@@ -2215,7 +3677,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "hallway",
+   "walk-away",
+   "shot",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:seedance-2-5-581571",
@@ -2233,7 +3707,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "desert",
+   "monolith",
+   "arrival",
+   "cinematic-story"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:n-exactly-15-second-photorealistic-shopping-vlog-990763",
@@ -2251,7 +3736,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "boutique",
+   "try-on",
+   "haul",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:an-everyday-drive-made-special-by-the-glow-of-th-007654",
@@ -2269,7 +3766,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "classic",
+   "coupe",
+   "sunset",
+   "drive",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:action-film-study-279563",
@@ -2287,7 +3797,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "studio",
+   "flashback",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:they-said-is-here-to-cook-and-i-agree-with-140421",
@@ -2306,7 +3827,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "overhead",
+   "drum",
+   "performance",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:sports-film-study-255212",
@@ -2325,7 +3858,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "table",
+   "tennis",
+   "rally",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:the-moon-took-a-night-off-everything-went-wrong-546768",
@@ -2343,7 +3888,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "nervous",
+   "lighthouse",
+   "night",
+   "comedy"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:non-stop-forward-momentum-attempt-870222",
@@ -2361,7 +3918,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "lava",
+   "crack",
+   "ignition",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:the-umbrella-escape-488195",
@@ -2379,7 +3949,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "runaway",
+   "umbrella",
+   "comedy"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:cinematic-story-study-765916",
@@ -2398,7 +3979,18 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "window-light",
+   "dressing",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:five-beautiful-women-in-five-countries-greet-the-915882",
@@ -2416,7 +4008,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "five",
+   "countries",
+   "morning",
+   "hello",
+   "cinematic-story"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:every-destination-becomes-magical-when-you-slow-615320",
@@ -2434,7 +4039,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "tropical",
+   "sunset",
+   "cocktail",
+   "vlog",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:she-herds-clouds-651566",
@@ -2452,7 +4070,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "cloud",
+   "shepherd",
+   "flock"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:text-to-video-3d-animation-246455",
@@ -2470,7 +4099,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "hopscotch",
+   "shadow",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:i-just-figured-out-the-best-way-to-use-487592",
@@ -2489,7 +4129,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "skincare",
+   "sample",
+   "unboxing",
+   "brand-film"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:video-prompt-case-003695-003695",
@@ -2508,7 +4160,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "street",
+   "taste",
+   "test",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:dv-16mm-tape-camcorder-handheld-feel-pov-of-chas-664481",
@@ -2526,7 +4190,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "morning",
+   "yoga",
+   "stretch",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:is-extra-realistic-on-019109",
@@ -2545,7 +4221,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "window",
+   "curtain",
+   "morning",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:text-to-video-30s-552259",
@@ -2563,7 +4251,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "tortoise",
+   "hare",
+   "fable"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:korean-city-day-vlog-993075",
@@ -2581,7 +4280,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "neighborhood",
+   "walk",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:underground-rap-performance-studio-129750",
@@ -2602,7 +4312,20 @@ export const templateVideos = [
    "video-or-motion-reference",
    "audio-or-sound-direction"
   ],
-  "source": "Seedance 2.5"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "underground",
+   "rap",
+   "stage",
+   "walk",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:fighter-jet-battleship-strike-814869",
@@ -2620,7 +4343,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Aerial & FPV",
+  "topics": [
+   "action",
+   "aerial",
+   "fpv",
+   "fighter",
+   "jet",
+   "missile",
+   "strike",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:cartoon-bulldog-versus-live-boxer-029228",
@@ -2639,7 +4375,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "bulldog",
+   "boxer",
+   "match",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:1970s-mediterranean-woman-documentary-685471",
@@ -2657,7 +4405,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "piazza",
+   "memory",
+   "film"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:devastated-city-continuous-escape-880148",
@@ -2675,7 +4434,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "snowstorm",
+   "city",
+   "escape",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:handmade-doll-boxer-swarm-594949",
@@ -2694,7 +4465,18 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "handmade",
+   "doll",
+   "close-up"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:planetarium-gravity-distortion-288542",
@@ -2712,7 +4494,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "planetarium",
+   "moon",
+   "rising",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:cybernetic-freefall-armor-624470",
@@ -2731,7 +4525,21 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "cyber",
+   "armor",
+   "hero",
+   "rear",
+   "view",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:trainee-days-camcorder-montage-251247",
@@ -2749,7 +4557,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "vocal",
+   "booth",
+   "session",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:painterly-tsunami-destruction-sequence-047131",
@@ -2768,7 +4588,20 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "flooded",
+   "city",
+   "tsunami",
+   "surge",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:obsidian-giant-transformation-531249",
@@ -2786,7 +4619,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "molten",
+   "circuit",
+   "heroine",
+   "fantasy"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:children-and-dragons-picnic-chaos-175096",
@@ -2804,7 +4648,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "dragon",
+   "picnic",
+   "chaos"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:continuous-body-control-dance-test-900903",
@@ -2822,7 +4677,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "runway",
+   "lookbook",
+   "red",
+   "gown",
+   "beat",
+   "dance"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:three-a-m-french-nightlife-pov-399523",
@@ -2840,7 +4707,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "paris",
+   "night",
+   "street",
+   "pov",
+   "documentary"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:duration-20s-16-9-24fps-445413",
@@ -2859,7 +4739,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "three-way",
+   "cavalry",
+   "duel",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:duration-20s-16-9-24fps-duel-from-romance-of-203080",
@@ -2878,7 +4770,20 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "fortress",
+   "gate",
+   "spear",
+   "duel",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:illustrated-creature-flood-escape-172377",
@@ -2896,7 +4801,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "flood",
+   "escape",
+   "fable"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:alpine-roller-coaster-ride",
@@ -2914,7 +4830,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "alpine",
+   "coaster",
+   "thrill",
+   "ride",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:bazaar-chase-cinematic",
@@ -2932,7 +4861,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "bazaar",
+   "chase",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:handcrafted-illustrated-animation",
@@ -2950,7 +4890,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "handcrafted",
+   "landscape",
+   "reveal"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:casual-apartment-tour",
@@ -2969,7 +4920,20 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "modern",
+   "living",
+   "room",
+   "tour",
+   "vlog"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:corridor-video-continuation",
@@ -2988,7 +4952,18 @@ export const templateVideos = [
    "text-prompt",
    "video-or-motion-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "cryo",
+   "pod",
+   "awakening",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:underground-london-techno-club",
@@ -3006,7 +4981,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "underground",
+   "club",
+   "crowd",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:grand-bazaar-stunt-chase",
@@ -3024,7 +5011,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "old",
+   "courtyard",
+   "stunt",
+   "run",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:mecha-motorcycle-high-speed-dash",
@@ -3042,7 +5042,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "cyber",
+   "highway",
+   "mecha",
+   "chase",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:wizard-of-oz-scarecrow-plan",
@@ -3060,7 +5073,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "cornfield",
+   "tin",
+   "knight"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:rainy-neon-thriller",
@@ -3078,7 +5102,18 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "rain",
+   "market",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:stylized-family-animation",
@@ -3096,7 +5131,17 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "furious",
+   "dad",
+   "reaction"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:japanese-mobile-carrier-family-ad",
@@ -3115,7 +5160,19 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "brand",
+   "films",
+   "family",
+   "breakfast",
+   "phone",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:parisian-city-girl-vlog",
@@ -3133,7 +5190,19 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "parisian",
+   "rooftop",
+   "smile",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:fictional-stadium-sports-commercial",
@@ -3152,7 +5221,20 @@ export const templateVideos = [
    "text-prompt",
    "image-reference"
   ],
-  "source": "Seedance 2.5"
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "brand",
+   "films",
+   "rainy",
+   "stadium",
+   "kickoff",
+   "film",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:rainy-night-market-family-animation-775828",
@@ -3170,7 +5252,17 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "lantern",
+   "night",
+   "market"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:the-suit-was-still-listening",
@@ -3188,7 +5280,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "radio",
+   "room",
+   "storm",
+   "watch",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:tokyo-samurai-versus-stone-titan",
@@ -3206,7 +5311,20 @@ export const templateVideos = [
    "text-to-video",
    "text-prompt"
   ],
-  "source": "Seedance 2.5"
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "burning",
+   "city",
+   "rider",
+   "escape",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:white-dragon-camp-rampage",
@@ -3226,7 +5344,19 @@ export const templateVideos = [
    "image-reference",
    "audio-or-sound-direction"
   ],
-  "source": "Seedance 2.5"
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "dragon",
+   "fire",
+   "siege",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:cloud-world-first-person-freefall",
@@ -3245,7 +5375,19 @@ export const templateVideos = [
    "text-prompt",
    "audio-or-sound-direction"
   ],
-  "source": "Seedance 2.5"
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "cloud",
+   "world",
+   "freefall",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "sd25:1977-boston-zombie-outbreak",
@@ -3265,7 +5407,19 @@ export const templateVideos = [
    "image-reference",
    "audio-or-sound-direction"
   ],
-  "source": "Seedance 2.5"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "zombie",
+   "street",
+   "outbreak",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
  },
  {
   "id": "zerolu:guizang",
@@ -3283,7 +5437,21 @@ export const templateVideos = [
    "seedance-2.0",
    "guizang"
   ],
-  "source": "Seedance 2.0"
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "product",
+   "reveals",
+   "minimal",
+   "oak",
+   "chair",
+   "film",
+   "seedance-2.0",
+   "guizang"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "none"
  },
  {
   "id": "zerolu:john3",
@@ -3301,7 +5469,20 @@ export const templateVideos = [
    "seedance-2.0",
    "john3"
   ],
-  "source": "Seedance 2.0"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "rainy",
+   "street",
+   "confession",
+   "seedance-2.0",
+   "john3"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "none"
  },
  {
   "id": "zerolu:john5",
@@ -3319,7 +5500,21 @@ export const templateVideos = [
    "seedance-2.0",
    "john5"
   ],
-  "source": "Seedance 2.0"
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "phone",
+   "booth",
+   "night",
+   "call",
+   "seedance-2.0",
+   "john5"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "none"
  },
  {
   "id": "zerolu:john6",
@@ -3337,7 +5532,20 @@ export const templateVideos = [
    "seedance-2.0",
    "john6"
   ],
-  "source": "Seedance 2.0"
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "racing",
+   "driver",
+   "close-up",
+   "seedance-2.0",
+   "john6"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "none"
  },
  {
   "id": "mmxLegacy:kintsugi-sword-seamless-loop",
@@ -3356,7 +5564,22 @@ export const templateVideos = [
    "macro",
    "fashion"
   ],
-  "source": "MiniMax H3"
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "loops",
+   "hero",
+   "backgrounds",
+   "cloud",
+   "swordswoman",
+   "loop",
+   "kintsugi",
+   "macro",
+   "fashion"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
  },
  {
   "id": "mmxLegacy:ice-gunslinger-interactive-web-loop",
@@ -3376,55 +5599,11451 @@ export const templateVideos = [
    "interactive",
    "fashion"
   ],
-  "source": "MiniMax H3"
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "loops",
+   "hero",
+   "backgrounds",
+   "ice",
+   "gunslinger",
+   "loop",
+   "web",
+   "ui",
+   "interactive",
+   "fashion"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:15-second-16-9-photoreal-cinematic-action-sequence-with-743096",
+  "slug": "15-second-16-9-photoreal-cinematic-action-sequence-with-743096",
+  "title": "Desert Buggy Combat Chase",
+  "sourceTitle": "Desert Buggy Combat Chase",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 21.39,
+  "aspectRatio": "637:270",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/15-second-16-9-photoreal-cinematic-action-sequence-with-743096.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/15-second-16-9-photoreal-cinematic-action-sequence-with-743096.webp",
+  "tags": [
+   "horror",
+   "reference-to-video",
+   "reference-image",
+   "dialogue",
+   "native-audio",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "desert",
+   "buggy",
+   "combat",
+   "chase",
+   "horror",
+   "dialogue",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:15-second-cinematic-burst-cut-video-showcasing-t-241802",
+  "slug": "15-second-cinematic-burst-cut-video-showcasing-t-241802",
+  "title": "Masked Cyber Samurai Sheet",
+  "sourceTitle": "Cinematic Story Study",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.17,
+  "aspectRatio": "8:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/15-second-cinematic-burst-cut-video-showcasing-t-241802.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/15-second-cinematic-burst-cut-video-showcasing-t-241802.webp",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "masked",
+   "cyber",
+   "samurai",
+   "sheet",
+   "cinematic-story"
+  ],
+  "orientation": "square",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:15-second-cinematic-showdown-between-the-most-technolog-354071",
+  "slug": "15-second-cinematic-showdown-between-the-most-technolog-354071",
+  "title": "Axe Warrior Showdown",
+  "sourceTitle": "Cyber Warrior vs. Primordial Fighter",
+  "category": "Action",
+  "subcategory": "Creatures & Heroes",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/15-second-cinematic-showdown-between-the-most-technolog-354071.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/15-second-cinematic-showdown-between-the-most-technolog-354071.webp",
+  "tags": [
+   "action",
+   "text-to-video",
+   "dialogue",
+   "native-audio",
+   "camera-direction"
+  ],
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "axe",
+   "warrior",
+   "showdown",
+   "dialogue"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:15-second-ultra-premium-luxury-perfume-commercial-in-ci-520833",
+  "slug": "15-second-ultra-premium-luxury-perfume-commercial-in-ci-520833",
+  "title": "Black-and-Gold Perfume Spot",
+  "sourceTitle": "Black-and-Gold Perfume Commercial",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/15-second-ultra-premium-luxury-perfume-commercial-in-ci-520833.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/15-second-ultra-premium-luxury-perfume-commercial-in-ci-520833.webp",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction",
+   "typography"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "black-and-gold",
+   "perfume",
+   "spot",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:15-seconds-16-9-landscape-blend-live-action-footage-of-867462",
+  "slug": "15-seconds-16-9-landscape-blend-live-action-footage-of-867462",
+  "title": "Luminous Creature in a Dusk Kitchen",
+  "sourceTitle": "Luminous Creature in a Dusk Kitchen",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/15-seconds-16-9-landscape-blend-live-action-footage-of-867462.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/15-seconds-16-9-landscape-blend-live-action-footage-of-867462.webp",
+  "tags": [
+   "horror",
+   "text-to-video",
+   "camera-direction",
+   "timed-beats"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "luminous",
+   "creature",
+   "dusk",
+   "kitchen",
+   "horror",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:16-9-15s-hyper-realistic-korean-noir-crime-teaser-a-447606",
+  "slug": "16-9-15s-hyper-realistic-korean-noir-crime-teaser-a-447606",
+  "title": "Rain-Soaked Korean Noir Reunion",
+  "sourceTitle": "Rain-Soaked Korean Noir Reunion",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 19.26,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/16-9-15s-hyper-realistic-korean-noir-crime-teaser-a-447606.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/16-9-15s-hyper-realistic-korean-noir-crime-teaser-a-447606.webp",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "dialogue",
+   "native-audio",
+   "camera-direction"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "rain-soaked",
+   "korean",
+   "noir",
+   "reunion",
+   "cinematic-story",
+   "dialogue"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:16-9-cinematic-wuxia-mystery-set-in-a-bamboo-571041",
+  "slug": "16-9-cinematic-wuxia-mystery-set-in-a-bamboo-571041",
+  "title": "Wuxia Heroine Close-Up",
+  "sourceTitle": "Bamboo Forest Wuxia Mystery",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/16-9-cinematic-wuxia-mystery-set-in-a-bamboo-571041.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/16-9-cinematic-wuxia-mystery-set-in-a-bamboo-571041.webp",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction",
+   "typography"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "wuxia",
+   "heroine",
+   "close-up",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:1980s-open-source-family-comedy",
+  "slug": "1980s-open-source-family-comedy",
+  "title": "Retro Family Robot Cheer",
+  "sourceTitle": "1980s open-source family comedy",
+  "category": "Cinema",
+  "subcategory": "Comedy",
+  "duration": 11.62,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/1980s-open-source-family-comedy.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/1980s-open-source-family-comedy.webp",
+  "tags": [
+   "comedy",
+   "image-to-video",
+   "opening-frame-reference"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "cinema",
+   "comedy",
+   "retro",
+   "family",
+   "robot",
+   "cheer",
+   "opening-frame-reference"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:1998-seoul-rainy-bus-stop-archival-home-video-300930",
+  "slug": "1998-seoul-rainy-bus-stop-archival-home-video-300930",
+  "title": "Rainy Bus Stop Street",
+  "sourceTitle": "1998 Seoul rainy bus stop archival home video",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/1998-seoul-rainy-bus-stop-archival-home-video-300930.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/1998-seoul-rainy-bus-stop-archival-home-video-300930.webp",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "1998-seoul-street",
+   "young-korean-woman",
+   "plastic-umbrella",
+   "orange-tabby-cat"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "rainy",
+   "bus",
+   "stop",
+   "street",
+   "cinematic-story",
+   "1998-seoul-street",
+   "young-korean-woman",
+   "plastic-umbrella",
+   "orange-tabby-cat"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:3-references-one-model-894024",
+  "slug": "3-references-one-model-894024",
+  "title": "Red Dress Typography Reveal",
+  "sourceTitle": "3 references. One model",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 10.22,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/3-references-one-model-894024.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/3-references-one-model-894024.webp",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "red",
+   "dress",
+   "typography",
+   "reveal",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:3d-pixar-style-animated-comedy-short-film-ultra-premium-057697",
+  "slug": "3d-pixar-style-animated-comedy-short-film-ultra-premium-057697",
+  "title": "Startled Animated Girl",
+  "sourceTitle": "Giant Kitchen Spider Comedy Short",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 15.18,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/3d-pixar-style-animated-comedy-short-film-ultra-premium-057697.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/3d-pixar-style-animated-comedy-short-film-ultra-premium-057697.webp",
+  "tags": [
+   "anime",
+   "text-to-video",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "startled",
+   "girl",
+   "anime",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:3x3-contact-sheet-female-rapper-grid-performance-672833",
+  "slug": "3x3-contact-sheet-female-rapper-grid-performance-672833",
+  "title": "Music Video Collage",
+  "sourceTitle": "Use @Image 1 as the exact opening frame",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 12.33,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/3x3-contact-sheet-female-rapper-grid-performance-672833.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/3x3-contact-sheet-female-rapper-grid-performance-672833.webp",
+  "tags": [
+   "music-video",
+   "image-to-video",
+   "3x3-contact-sheet",
+   "female-rapper-identity",
+   "nine-location-panels",
+   "hip-hop-call-and-response"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "video",
+   "collage",
+   "music-video",
+   "3x3-contact-sheet",
+   "female-rapper-identity",
+   "nine-location-panels",
+   "hip-hop-call-and-response"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:7-grok-imagine-1-5-649179",
+  "slug": "7-grok-imagine-1-5-649179",
+  "title": "Prehistoric Crowd Gathering",
+  "sourceTitle": "7- GROK IMAGINE 1.5",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 110.51,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/7-grok-imagine-1-5-649179.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/7-grok-imagine-1-5-649179.webp",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "prehistoric",
+   "crowd",
+   "gathering",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:7-second-video-the-office-us-mockumentary-style-inside-the-709123",
+  "slug": "7-second-video-the-office-us-mockumentary-style-inside-the-709123",
+  "title": "Boardroom Meeting Comedy",
+  "sourceTitle": "7-second video. The Office (US) mockumentary style, inside the Dunder Mifflin",
+  "category": "Cinema",
+  "subcategory": "Comedy",
+  "duration": 7.37,
+  "aspectRatio": "43:24",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/7-second-video-the-office-us-mockumentary-style-inside-the-709123.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/7-second-video-the-office-us-mockumentary-style-inside-the-709123.webp",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "cinema",
+   "comedy",
+   "boardroom",
+   "meeting",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:a-handheld-found-footage-shot-from-behind-a-person-playing-800047",
+  "slug": "a-handheld-found-footage-shot-from-behind-a-person-playing-800047",
+  "title": "Retro Arcade Color Orbs",
+  "sourceTitle": "A handheld found-footage shot from behind a person playing an authentic Street",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 14.47,
+  "aspectRatio": "26:15",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/a-handheld-found-footage-shot-from-behind-a-person-playing-800047.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/a-handheld-found-footage-shot-from-behind-a-person-playing-800047.webp",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "retro",
+   "arcade",
+   "color",
+   "orbs",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:a-hyper-realistic-handheld-phone-video-of-a-quiet-suburban-495564",
+  "slug": "a-hyper-realistic-handheld-phone-video-of-a-quiet-suburban-495564",
+  "title": "Suburban Street Handheld",
+  "sourceTitle": "\"A hyper-realistic handheld phone video of a quiet suburban backyard on a bright",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 14.47,
+  "aspectRatio": "26:15",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/a-hyper-realistic-handheld-phone-video-of-a-quiet-suburban-495564.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/a-hyper-realistic-handheld-phone-video-of-a-quiet-suburban-495564.webp",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "suburban",
+   "street",
+   "handheld",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:afternoon-nap-in-a-hammock-190553",
+  "slug": "afternoon-nap-in-a-hammock-190553",
+  "title": "Hammock Afternoon Rest",
+  "sourceTitle": "Ultra-realistic documentary realism",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/afternoon-nap-in-a-hammock-190553.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/afternoon-nap-in-a-hammock-190553.webp",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "hammock",
+   "afternoon",
+   "rest",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:ai-cant-replace-you-joey-113820",
+  "slug": "ai-cant-replace-you-joey-113820",
+  "title": "Cafe Couch Conversation",
+  "sourceTitle": "AI can’t replace you Joey",
+  "category": "Cinema",
+  "subcategory": "Comedy",
+  "duration": 14.5,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/ai-cant-replace-you-joey-113820.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/ai-cant-replace-you-joey-113820.webp",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "cinema",
+   "comedy",
+   "cafe",
+   "couch",
+   "conversation",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:also-has-an-impressive-understanding-of-differen-911311",
+  "slug": "also-has-an-impressive-understanding-of-differen-911311",
+  "title": "Night Market Walk",
+  "sourceTitle": "also has an impressive understanding of different cultures",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/also-has-an-impressive-understanding-of-differen-911311.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/also-has-an-impressive-understanding-of-differen-911311.webp",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "night",
+   "market",
+   "walk",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:an-1890s-field-guide-plate-drawing-itself-963371",
+  "slug": "an-1890s-field-guide-plate-drawing-itself-963371",
+  "title": "Antique Bird Field Guide",
+  "sourceTitle": "An 1890s field guide plate, drawing itself",
+  "category": "Cinema",
+  "subcategory": "Period & Historical",
+  "duration": 15.18,
+  "aspectRatio": "4:3",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/an-1890s-field-guide-plate-drawing-itself-963371.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/an-1890s-field-guide-plate-drawing-itself-963371.webp",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "antique",
+   "bird",
+   "field",
+   "guide",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:an-other-example-of-poster-animation-and-honestl-483220",
+  "slug": "an-other-example-of-poster-animation-and-honestl-483220",
+  "title": "Anime Movie Poster Animation",
+  "sourceTitle": "An other example of poster animation and honestly I can't",
+  "category": "Animation",
+  "subcategory": "Title Sequences",
+  "duration": 15.18,
+  "aspectRatio": "3:4",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/an-other-example-of-poster-animation-and-honestl-483220.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/an-other-example-of-poster-animation-and-honestl-483220.webp",
+  "tags": [
+   "anime",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Titles & Typography",
+  "topics": [
+   "animation",
+   "title",
+   "sequences",
+   "anime",
+   "movie",
+   "poster"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:and-reference-preserve-the-rider-s-face-short-curly-375367",
+  "slug": "and-reference-preserve-the-rider-s-face-short-curly-375367",
+  "title": "Night City Motorcycle Chase",
+  "sourceTitle": "Nighttime Motorcycle Chase Synced to Music",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/and-reference-preserve-the-rider-s-face-short-curly-375367.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/and-reference-preserve-the-rider-s-face-short-curly-375367.webp",
+  "tags": [
+   "cinematic-story",
+   "reference-to-video",
+   "dialogue",
+   "native-audio",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "night",
+   "city",
+   "motorcycle",
+   "chase",
+   "cinematic-story",
+   "dialogue",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:beat-synced-k-pop-multimodal-mv-043716",
+  "slug": "beat-synced-k-pop-multimodal-mv-043716",
+  "title": "K-Pop Beat Collage",
+  "sourceTitle": "Beat-Synced K-Pop Multimodal MV",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 15.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/beat-synced-k-pop-multimodal-mv-043716.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/beat-synced-k-pop-multimodal-mv-043716.webp",
+  "tags": [
+   "music-video",
+   "reference-to-video",
+   "camera-direction",
+   "native-audio",
+   "timed-beats"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "k-pop",
+   "beat",
+   "collage",
+   "music-video",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:blackberry-vanilla-soda-ugc-vlog-998714",
+  "slug": "blackberry-vanilla-soda-ugc-vlog-998714",
+  "title": "Probiotic Soda UGC",
+  "sourceTitle": "authentic smartphone UGC vlog",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/blackberry-vanilla-soda-ugc-vlog-998714.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/blackberry-vanilla-soda-ugc-vlog-998714.webp",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction",
+   "native-audio"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "probiotic",
+   "soda",
+   "ugc",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:blue-haired-hero-and-spirit-fox-escape-209379",
+  "slug": "blue-haired-hero-and-spirit-fox-escape-209379",
+  "title": "Blue-Haired Hero and Dragon",
+  "sourceTitle": "Blue-Haired Hero and Spirit Fox Escape",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/blue-haired-hero-and-spirit-fox-escape-209379.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/blue-haired-hero-and-spirit-fox-escape-209379.webp",
+  "tags": [
+   "cinematic-story",
+   "reference-to-video",
+   "camera-direction",
+   "reference-image",
+   "native-audio",
+   "timed-beats"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "blue-haired",
+   "hero",
+   "dragon",
+   "cinematic-story",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:buddhist-monastery-courtyard-at-dawn-mist-drifting-betw-411584",
+  "slug": "buddhist-monastery-courtyard-at-dawn-mist-drifting-betw-411584",
+  "title": "Lightning God at a Monastery",
+  "sourceTitle": "Lightning God at a Shaolin Monastery",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 5.26,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/buddhist-monastery-courtyard-at-dawn-mist-drifting-betw-411584.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/buddhist-monastery-courtyard-at-dawn-mist-drifting-betw-411584.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "lightning",
+   "god",
+   "monastery",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:can-reason-i-wanted-to-see-if-reasoning-could-167396",
+  "slug": "can-reason-i-wanted-to-see-if-reasoning-could-167396",
+  "title": "Mannequin Office Mystery",
+  "sourceTitle": "Can reason? -- I wanted to see if reasoning could",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 14.47,
+  "aspectRatio": "26:15",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/can-reason-i-wanted-to-see-if-reasoning-could-167396.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/can-reason-i-wanted-to-see-if-reasoning-could-167396.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "mannequin",
+   "office",
+   "mystery",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:canyon-wingsuit-thread-world-build-a-wingsuit-pilot-thr-927857",
+  "slug": "canyon-wingsuit-thread-world-build-a-wingsuit-pilot-thr-927857",
+  "title": "Sunrise Wingsuit Canyon Run",
+  "sourceTitle": "Sunrise Wingsuit Canyon Run",
+  "category": "Action",
+  "subcategory": "Aerial & FPV",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/canyon-wingsuit-thread-world-build-a-wingsuit-pilot-thr-927857.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/canyon-wingsuit-thread-world-build-a-wingsuit-pilot-thr-927857.jpg",
+  "tags": [
+   "action",
+   "text-to-video",
+   "native-audio",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Aerial & FPV",
+  "topics": [
+   "action",
+   "aerial",
+   "fpv",
+   "sunrise",
+   "wingsuit",
+   "canyon",
+   "run",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:cinematic-15-second-commercial-shot-fast-paced-editing-160587",
+  "slug": "cinematic-15-second-commercial-shot-fast-paced-editing-160587",
+  "title": "Red Cup Close-Up Spot",
+  "sourceTitle": "Neon Nightmare Burger Commercial",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/cinematic-15-second-commercial-shot-fast-paced-editing-160587.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/cinematic-15-second-commercial-shot-fast-paced-editing-160587.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "red",
+   "cup",
+   "close-up",
+   "spot",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:cinematic-character-introduction-focused-on-pres-135392",
+  "slug": "cinematic-character-introduction-focused-on-pres-135392",
+  "title": "Anime Samurai Character Sheet",
+  "sourceTitle": "Anime Film Study",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.15,
+  "aspectRatio": "241:256",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/cinematic-character-introduction-focused-on-pres-135392.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/cinematic-character-introduction-focused-on-pres-135392.jpg",
+  "tags": [
+   "anime",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "anime",
+   "samurai",
+   "character",
+   "sheet"
+  ],
+  "orientation": "square",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:cinematic-editorial-film-not-a-traditional-adver-555943",
+  "slug": "cinematic-editorial-film-not-a-traditional-adver-555943",
+  "title": "Coffee Cup Title Reveal",
+  "sourceTitle": "cinematic editorial film, not a traditional advertisement",
+  "category": "VFX",
+  "subcategory": "Title Sequences",
+  "duration": 15.18,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/cinematic-editorial-film-not-a-traditional-adver-555943.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/cinematic-editorial-film-not-a-traditional-adver-555943.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Titles & Typography",
+  "topics": [
+   "vfx",
+   "title",
+   "sequences",
+   "coffee",
+   "cup",
+   "reveal",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:cinematic-luxury-skincare-product-commercial-vertical-9-591469",
+  "slug": "cinematic-luxury-skincare-product-commercial-vertical-9-591469",
+  "title": "Emerald Bio-Serum Product Film",
+  "sourceTitle": "Emerald Bio-Serum Product Film",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/cinematic-luxury-skincare-product-commercial-vertical-9-591469.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/cinematic-luxury-skincare-product-commercial-vertical-9-591469.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "emerald",
+   "bio-serum",
+   "product",
+   "film",
+   "product-commercial",
+   "timed-beats"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:cinematic-wildlife-documentary-vertical-framing-subject-592938",
+  "slug": "cinematic-wildlife-documentary-vertical-framing-subject-592938",
+  "title": "Macaw Coffee Spill Slow-Mo",
+  "sourceTitle": "Macaw Scream in Extreme Slow Motion",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 15.18,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/cinematic-wildlife-documentary-vertical-framing-subject-592938.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/cinematic-wildlife-documentary-vertical-framing-subject-592938.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "native-audio",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "macaw",
+   "coffee",
+   "spill",
+   "slow-mo",
+   "cinematic-story",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:circle-square-triangle-and-star-317678",
+  "slug": "circle-square-triangle-and-star-317678",
+  "title": "Gift Box Mascot Spot",
+  "sourceTitle": "Circle, Square, Triangle, and Star",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/circle-square-triangle-and-star-317678.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/circle-square-triangle-and-star-317678.jpg",
+  "tags": [
+   "cinematic-travel",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "gift",
+   "box",
+   "mascot",
+   "spot",
+   "cinematic-travel"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:cloaked-avenger-identity-lock-and-wardrobe-reference-us-595100",
+  "slug": "cloaked-avenger-identity-lock-and-wardrobe-reference-us-595100",
+  "title": "Hooded Rogue Portrait",
+  "sourceTitle": "Cloaked Avenger vs. Cyborg Executioner",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/cloaked-avenger-identity-lock-and-wardrobe-reference-us-595100.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/cloaked-avenger-identity-lock-and-wardrobe-reference-us-595100.jpg",
+  "tags": [
+   "cinematic-story",
+   "reference-to-video",
+   "reference-image",
+   "dialogue",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "hooded",
+   "rogue",
+   "portrait",
+   "cinematic-story",
+   "dialogue",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:comfyui5t2v-197998",
+  "slug": "comfyui5t2v-197998",
+  "title": "Idol Anime Performance",
+  "sourceTitle": "Japanese anime style, high-end TV anime production quality, soft pastel lighting",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 5.26,
+  "aspectRatio": "9:5",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/comfyui5t2v-197998.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/comfyui5t2v-197998.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "idol",
+   "anime",
+   "performance",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:concrete-plaza-kickflip-drop-082714",
+  "slug": "concrete-plaza-kickflip-drop-082714",
+  "title": "Plaza Skater Stair Drop",
+  "sourceTitle": "Concrete-Plaza Kickflip Drop",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 10.22,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/concrete-plaza-kickflip-drop-082714.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/concrete-plaza-kickflip-drop-082714.jpg",
+  "tags": [
+   "action",
+   "reference-to-video",
+   "camera-direction",
+   "reference-image",
+   "native-audio"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "plaza",
+   "skater",
+   "stair",
+   "drop"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:created-using-minimax-h3-on-933942",
+  "slug": "created-using-minimax-h3-on-933942",
+  "title": "Rooftop Skater Fall",
+  "sourceTitle": "Created using MiniMax H3 on .",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 15.15,
+  "aspectRatio": "943:540",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-using-minimax-h3-on-933942.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-using-minimax-h3-on-933942.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "rooftop",
+   "skater",
+   "fall",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:created-with-minimax-h3-059973",
+  "slug": "created-with-minimax-h3-059973",
+  "title": "Seaside Selfie Greeting",
+  "sourceTitle": "Created with MiniMax H3",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 15.49,
+  "aspectRatio": "68:45",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-with-minimax-h3-059973.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-with-minimax-h3-059973.jpg",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "seaside",
+   "selfie",
+   "greeting",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:created-with-minimax-h3-522089",
+  "slug": "created-with-minimax-h3-522089",
+  "title": "Street Bench Moment",
+  "sourceTitle": "Created with MiniMax H3.",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-with-minimax-h3-522089.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-with-minimax-h3-522089.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "street",
+   "bench",
+   "moment",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:created-with-minimax-h3-879541",
+  "slug": "created-with-minimax-h3-879541",
+  "title": "Misty Stone Bridge Walk",
+  "sourceTitle": "Created with MiniMax H3",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-with-minimax-h3-879541.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-with-minimax-h3-879541.jpg",
+  "tags": [
+   "cinematic-travel",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "misty",
+   "stone",
+   "bridge",
+   "walk",
+   "cinematic-travel"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:created-with-minimax-h3-915217",
+  "slug": "created-with-minimax-h3-915217",
+  "title": "Wok Street Food Close-Up",
+  "sourceTitle": "Created with MiniMax H3",
+  "category": "Social",
+  "subcategory": "Lifestyle & Food",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-with-minimax-h3-915217.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-with-minimax-h3-915217.jpg",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "wok",
+   "street",
+   "close-up",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:created-with-minimax-h3-in-453795",
+  "slug": "created-with-minimax-h3-in-453795",
+  "title": "Martial Arts Movie Poster",
+  "sourceTitle": "Animate the uploaded CHUNG LEE movie poster as a 10-second cinematic martial-art",
+  "category": "Animation",
+  "subcategory": "Title Sequences",
+  "duration": 22.74,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/created-with-minimax-h3-in-453795.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/created-with-minimax-h3-in-453795.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Titles & Typography",
+  "topics": [
+   "animation",
+   "title",
+   "sequences",
+   "martial",
+   "arts",
+   "movie",
+   "poster",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:creating-a-sleek-professional-ad-for-using-itsel-709286",
+  "slug": "creating-a-sleek-professional-ad-for-using-itsel-709286",
+  "title": "Neon App Icon Intro",
+  "sourceTitle": "Creating a sleek, professional ad for using itself. ⚡",
+  "category": "VFX",
+  "subcategory": "Title Sequences",
+  "duration": 15.26,
+  "aspectRatio": "640:271",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/creating-a-sleek-professional-ad-for-using-itsel-709286.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/creating-a-sleek-professional-ad-for-using-itsel-709286.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Titles & Typography",
+  "topics": [
+   "vfx",
+   "title",
+   "sequences",
+   "neon",
+   "app",
+   "icon",
+   "intro",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:cyber-grunge-fashion-film-with-vhs-glitch-978345",
+  "slug": "cyber-grunge-fashion-film-with-vhs-glitch-978345",
+  "title": "Fire Walker Fashion Film",
+  "sourceTitle": "Cyber-grunge fashion film with VHS glitch",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 19.16,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/cyber-grunge-fashion-film-with-vhs-glitch-978345.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/cyber-grunge-fashion-film-with-vhs-glitch-978345.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "platinum-blonde-subject",
+   "patent-leather-trench",
+   "nighttime-firelight",
+   "vhs-glitch-texture"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "fire",
+   "walker",
+   "film",
+   "brand-film",
+   "platinum-blonde-subject",
+   "patent-leather-trench",
+   "nighttime-firelight",
+   "vhs-glitch-texture"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:dark-pop-trio-music-video-performance-with-on-screen-titles-931081",
+  "slug": "dark-pop-trio-music-video-performance-with-on-screen-titles-931081",
+  "title": "Street Fashion Poster Collage",
+  "sourceTitle": "Dark-pop trio music-video performance with on-screen titles",
+  "category": "Fashion",
+  "subcategory": "Streetwear",
+  "duration": 15.17,
+  "aspectRatio": "569:640",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/dark-pop-trio-music-video-performance-with-on-screen-titles-931081.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/dark-pop-trio-music-video-performance-with-on-screen-titles-931081.jpg",
+  "tags": [
+   "music-video",
+   "reference-to-video",
+   "trio-identity-image",
+   "title-typography-image",
+   "dark-pop-performance",
+   "lyric-lip-sync-lines"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "streetwear",
+   "street",
+   "poster",
+   "collage",
+   "music-video",
+   "trio-identity-image",
+   "title-typography-image",
+   "dark-pop-performance",
+   "lyric-lip-sync-lines"
+  ],
+  "orientation": "square",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:deck-builder-turn-ui-choreography-446745",
+  "slug": "deck-builder-turn-ui-choreography-446745",
+  "title": "Fantasy Card Game Screen",
+  "sourceTitle": "Fantasy Deck-Builder Battle UI",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/deck-builder-turn-ui-choreography-446745.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/deck-builder-turn-ui-choreography-446745.jpg",
+  "tags": [
+   "gameplay",
+   "reference-to-video",
+   "reference-image",
+   "camera-direction",
+   "timed-beats",
+   "native-audio",
+   "typography"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "fantasy",
+   "card",
+   "game",
+   "screen",
+   "gameplay",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:documentary-about-a-superhero-who-has-extremely-bad-luc-615837",
+  "slug": "documentary-about-a-superhero-who-has-extremely-bad-luc-615837",
+  "title": "Wall Crash Superhero Gag",
+  "sourceTitle": "The World's Unluckiest Superhero",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 30.24,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/documentary-about-a-superhero-who-has-extremely-bad-luc-615837.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/documentary-about-a-superhero-who-has-extremely-bad-luc-615837.jpg",
+  "tags": [
+   "comedy",
+   "text-to-video",
+   "dialogue",
+   "camera-direction",
+   "timed-beats"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "wall",
+   "crash",
+   "superhero",
+   "gag",
+   "dialogue",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:dramatic-performances-301360",
+  "slug": "dramatic-performances-301360",
+  "title": "Smoker at the Window",
+  "sourceTitle": "Dramatic performances ✅",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.19,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/dramatic-performances-301360.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/dramatic-performances-301360.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "smoker",
+   "window",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:duration-15-seconds-aspect-ratio-16-9-style-authentic-613617",
+  "slug": "duration-15-seconds-aspect-ratio-16-9-style-authentic-613617",
+  "title": "Sushi Platter Close-Up",
+  "sourceTitle": "Sushi Night Smartphone UGC Vlog",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/duration-15-seconds-aspect-ratio-16-9-style-authentic-613617.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/duration-15-seconds-aspect-ratio-16-9-style-authentic-613617.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "dialogue",
+   "native-audio",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "sushi",
+   "platter",
+   "close-up",
+   "product-commercial",
+   "dialogue",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:duration-15s-808615",
+  "slug": "duration-15s-808615",
+  "title": "Graffiti Wall Portrait",
+  "sourceTitle": "\"duration\": \"15s\"",
+  "category": "Fashion",
+  "subcategory": "Streetwear",
+  "duration": 15.18,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/duration-15s-808615.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/duration-15s-808615.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "streetwear",
+   "graffiti",
+   "wall",
+   "portrait",
+   "music-video"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:dv-16mm-camcorder-vlog-with-soft-vhs-tape-quality-209852",
+  "slug": "dv-16mm-camcorder-vlog-with-soft-vhs-tape-quality-209852",
+  "title": "Beauty Counter Shopping",
+  "sourceTitle": "Korean Idol VHS Beauty Vlog",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/dv-16mm-camcorder-vlog-with-soft-vhs-tape-quality-209852.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/dv-16mm-camcorder-vlog-with-soft-vhs-tape-quality-209852.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "dialogue",
+   "camera-direction"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "beauty",
+   "counter",
+   "shopping",
+   "cinematic-story",
+   "dialogue"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:dynamic-product-landing-page-ui-ux-demo-inspired-by-nik-789559",
+  "slug": "dynamic-product-landing-page-ui-ux-demo-inspired-by-nik-789559",
+  "title": "Sneaker Product Page Scroll",
+  "sourceTitle": "High-Speed Sports Product Landing Page",
+  "category": "Commercial",
+  "subcategory": "Product Reveals",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/dynamic-product-landing-page-ui-ux-demo-inspired-by-nik-789559.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/dynamic-product-landing-page-ui-ux-demo-inspired-by-nik-789559.jpg",
+  "tags": [
+   "product-commercial",
+   "reference-to-video",
+   "reference-image",
+   "typography"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "product",
+   "reveals",
+   "sneaker",
+   "page",
+   "scroll",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:emotional-performance-lip-sync-to-reference-audio-609528",
+  "slug": "emotional-performance-lip-sync-to-reference-audio-609528",
+  "title": "Retro Mic Crooner",
+  "sourceTitle": "Emotional performance lip-sync to reference audio",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 15.18,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/emotional-performance-lip-sync-to-reference-audio-609528.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/emotional-performance-lip-sync-to-reference-audio-609528.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "male-singer",
+   "lyric-lip-sync",
+   "handheld-performance",
+   "high-energy-gestures"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "retro",
+   "mic",
+   "crooner",
+   "music-video",
+   "male-singer",
+   "lyric-lip-sync",
+   "handheld-performance",
+   "high-energy-gestures"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:empty-suit-stop-motion-assembly-854152",
+  "slug": "empty-suit-stop-motion-assembly-854152",
+  "title": "Surreal Suit Cloud Sky",
+  "sourceTitle": "Empty Suit Stop-Motion Assembly",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 12.33,
+  "aspectRatio": "5:6",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/empty-suit-stop-motion-assembly-854152.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/empty-suit-stop-motion-assembly-854152.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "camera-direction",
+   "timed-beats"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "suit",
+   "cloud",
+   "sky",
+   "cinematic-story",
+   "timed-beats"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:enra-vael-forge-city-character-introduction-325876",
+  "slug": "enra-vael-forge-city-character-introduction-325876",
+  "title": "Flaming Crown Heroine",
+  "sourceTitle": "Enra Vael Forge-City Character Introduction",
+  "category": "Action",
+  "subcategory": "Creatures & Heroes",
+  "duration": 15.17,
+  "aspectRatio": "1889:1080",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/enra-vael-forge-city-character-introduction-325876.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/enra-vael-forge-city-character-introduction-325876.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "flaming",
+   "crown",
+   "heroine",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:fast-paced-15-second-16-9-anime-opening-title-se-734471",
+  "slug": "fast-paced-15-second-16-9-anime-opening-title-se-734471",
+  "title": "Crimson Moon Blade Duel",
+  "sourceTitle": "Anime Film Study",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/fast-paced-15-second-16-9-anime-opening-title-se-734471.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/fast-paced-15-second-16-9-anime-opening-title-se-734471.jpg",
+  "tags": [
+   "anime",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "crimson",
+   "moon",
+   "blade",
+   "duel",
+   "anime"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:fire-breathing-dragon-in-broken-palace-831106",
+  "slug": "fire-breathing-dragon-in-broken-palace-831106",
+  "title": "Dragon in the Ruins",
+  "sourceTitle": "Fire-breathing dragon in broken palace",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/fire-breathing-dragon-in-broken-palace-831106.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/fire-breathing-dragon-in-broken-palace-831106.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "fire-breathing-dragon",
+   "shattered-royal-palace",
+   "thunderstorm-rain",
+   "molten-scale-glow"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "dragon",
+   "ruins",
+   "cinematic-story",
+   "fire-breathing-dragon",
+   "shattered-royal-palace",
+   "thunderstorm-rain",
+   "molten-scale-glow"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:fire-dragon-and-rider-over-scorched-world-726278",
+  "slug": "fire-dragon-and-rider-over-scorched-world-726278",
+  "title": "Fire Dragon Rider",
+  "sourceTitle": "fire dragon and his rider of living flame,",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/fire-dragon-and-rider-over-scorched-world-726278.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/fire-dragon-and-rider-over-scorched-world-726278.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "fire-dragon",
+   "flame-rider",
+   "scorched-world",
+   "sunset-smoke"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "fire",
+   "dragon",
+   "rider",
+   "cinematic-story",
+   "fire-dragon",
+   "flame-rider",
+   "scorched-world",
+   "sunset-smoke"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-333283",
+  "slug": "first-storyboard-image-to-video-using-s-minimax-h3-on-333283",
+  "title": "Forest Fairy Tale Quest",
+  "sourceTitle": "ORIGINAL whimsical fantasy-comedy score",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-333283.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-333283.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "forest",
+   "fairy",
+   "tale",
+   "quest",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-440739",
+  "slug": "first-storyboard-image-to-video-using-s-minimax-h3-on-440739",
+  "title": "Detective Cat Park Bench",
+  "sourceTitle": "15 rapid one-second cuts",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-440739.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-440739.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "detective",
+   "cat",
+   "park",
+   "bench",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-951530",
+  "slug": "first-storyboard-image-to-video-using-s-minimax-h3-on-951530",
+  "title": "Greenhouse Garden Adventure",
+  "sourceTitle": "exactly: Duration: 15 seconds Aspect Ratio: 16:9 landscape Frame rate feeling: c",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-951530.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-951530.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "greenhouse",
+   "garden",
+   "adventure",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-954269",
+  "slug": "first-storyboard-image-to-video-using-s-minimax-h3-on-954269",
+  "title": "Fruit Market Fable",
+  "sourceTitle": "fifteen frantic one-second hard cuts",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-954269.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-954269.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "fruit",
+   "market",
+   "fable",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-995928",
+  "slug": "first-storyboard-image-to-video-using-s-minimax-h3-on-995928",
+  "title": "Bakery Apprentice Story",
+  "sourceTitle": "fifteen frantic one-second cuts",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-995928.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/first-storyboard-image-to-video-using-s-minimax-h3-on-995928.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "bakery",
+   "apprentice",
+   "story",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:first-try-with-minimax-h3-and-is-full-cinematic-276158",
+  "slug": "first-try-with-minimax-h3-and-is-full-cinematic-276158",
+  "title": "Flooded City Monster",
+  "sourceTitle": "First try with Minimax H3 and is full cinematic 📽️ 🤩",
+  "category": "Action",
+  "subcategory": "Battles & Disaster",
+  "duration": 10.22,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/first-try-with-minimax-h3-and-is-full-cinematic-276158.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/first-try-with-minimax-h3-and-is-full-cinematic-276158.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "flooded",
+   "city",
+   "monster",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:five-cinematic-dialogue-set-piece-scenes-875568",
+  "slug": "five-cinematic-dialogue-set-piece-scenes-875568",
+  "title": "Balcony Dinner Dialogue",
+  "sourceTitle": "Five cinematic dialogue set-piece scenes",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 160.74,
+  "aspectRatio": "184:103",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/five-cinematic-dialogue-set-piece-scenes-875568.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/five-cinematic-dialogue-set-piece-scenes-875568.jpg",
+  "tags": [
+   "cinematic-story",
+   "reference-to-video",
+   "desert-standoff-man",
+   "conservatory-letter-pair",
+   "timber-rail-noon-man",
+   "balcony-and-farmhouse-casts"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "balcony",
+   "dinner",
+   "dialogue",
+   "cinematic-story",
+   "desert-standoff-man",
+   "conservatory-letter-pair",
+   "timber-rail-noon-man",
+   "balcony-and-farmhouse-casts"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:found-footage-film-with-335284",
+  "slug": "found-footage-film-with-335284",
+  "title": "Lake Fisherman Close-Up",
+  "sourceTitle": "Horror Film Study",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 14.47,
+  "aspectRatio": "26:15",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/found-footage-film-with-335284.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/found-footage-film-with-335284.jpg",
+  "tags": [
+   "horror",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "lake",
+   "fisherman",
+   "close-up",
+   "horror"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:from-hailuio-can-easily-make-motivational-videos-599712",
+  "slug": "from-hailuio-can-easily-make-motivational-videos-599712",
+  "title": "Glowing Sneaker Launch",
+  "sourceTitle": "from Hailuio can easily make motivational videos like this",
+  "category": "Commercial",
+  "subcategory": "Product Reveals",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/from-hailuio-can-easily-make-motivational-videos-599712.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/from-hailuio-can-easily-make-motivational-videos-599712.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "product",
+   "reveals",
+   "glowing",
+   "sneaker",
+   "launch",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:generated-a-french-bulldog-with-minimax-h3-182507",
+  "slug": "generated-a-french-bulldog-with-minimax-h3-182507",
+  "title": "Agility Course Bulldog",
+  "sourceTitle": "Generated a french bulldog with MiniMax H3",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 14.47,
+  "aspectRatio": "26:15",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/generated-a-french-bulldog-with-minimax-h3-182507.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/generated-a-french-bulldog-with-minimax-h3-182507.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "agility",
+   "course",
+   "bulldog",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:generated-with-810731",
+  "slug": "generated-with-810731",
+  "title": "Neon Samurai Cyberpunk",
+  "sourceTitle": "Continuous 15-second cinematic shot, extreme slow-motion: a futuristic cyberpunk",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 12.33,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/generated-with-810731.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/generated-with-810731.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "neon",
+   "samurai",
+   "cyberpunk",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:giant-koi-park-incident",
+  "slug": "giant-koi-park-incident",
+  "title": "Koi Pond Business Gag",
+  "sourceTitle": "15-second, 16:9 vertical, continuous single-take video that looks like authentic",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/giant-koi-park-incident.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/giant-koi-park-incident.jpg",
+  "tags": [
+   "viral-short",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "koi",
+   "pond",
+   "business",
+   "gag",
+   "viral-short"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:going-open-source-could-mark-a-turning-point-for-006285",
+  "slug": "going-open-source-could-mark-a-turning-point-for-006285",
+  "title": "Parking Garage Dialogue",
+  "sourceTitle": "going open source could mark a turning point for AI",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/going-open-source-could-mark-a-turning-point-for-006285.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/going-open-source-could-mark-a-turning-point-for-006285.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "parking",
+   "garage",
+   "dialogue",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:gorgeous-latina-beauty-dancing-through-the-magic-428386",
+  "slug": "gorgeous-latina-beauty-dancing-through-the-magic-428386",
+  "title": "Courtyard Dance Performance",
+  "sourceTitle": "Music Video Study",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/gorgeous-latina-beauty-dancing-through-the-magic-428386.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/gorgeous-latina-beauty-dancing-through-the-magic-428386.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "courtyard",
+   "performance",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:gourmet-burger-ugc-taste-test-165289",
+  "slug": "gourmet-burger-ugc-taste-test-165289",
+  "title": "Burger Close-Up Spot",
+  "sourceTitle": "Authentic UGC / iPhone selfie-vlog",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/gourmet-burger-ugc-taste-test-165289.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/gourmet-burger-ugc-taste-test-165289.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction",
+   "reference-image",
+   "timed-beats"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "burger",
+   "close-up",
+   "spot",
+   "product-commercial",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:gpt-image-2-758841",
+  "slug": "gpt-image-2-758841",
+  "title": "Running Shoe Landing Page",
+  "sourceTitle": "16:9 premium ecommerce landing page UI/UX demo built around the product in Image",
+  "category": "Commercial",
+  "subcategory": "Tech & Gadgets",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/gpt-image-2-758841.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/gpt-image-2-758841.jpg",
+  "tags": [
+   "action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "tech",
+   "gadgets",
+   "running",
+   "shoe",
+   "landing",
+   "page",
+   "action"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:grokminimax-h3-715612",
+  "slug": "grokminimax-h3-715612",
+  "title": "Astronaut Moon Flower",
+  "sourceTitle": "A 15-second ultra-realistic cinematic space odyssey scene inspired by 2001: A Sp",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 30.19,
+  "aspectRatio": "3:4",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/grokminimax-h3-715612.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/grokminimax-h3-715612.jpg",
+  "tags": [
+   "action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "astronaut",
+   "moon",
+   "flower",
+   "action"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:hailuo-has-been-great-at-text-motion-graphics-for-a-330229",
+  "slug": "hailuo-has-been-great-at-text-motion-graphics-for-a-330229",
+  "title": "Katana Typography Hero",
+  "sourceTitle": "Hailuo has been great at text motion graphics for a long time, but it really shines with H3.",
+  "category": "Action",
+  "subcategory": "Fights & Martial Arts",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/hailuo-has-been-great-at-text-motion-graphics-for-a-330229.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/hailuo-has-been-great-at-text-motion-graphics-for-a-330229.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "fights",
+   "martial",
+   "arts",
+   "katana",
+   "typography",
+   "hero",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:hailuo-minimax-h3-vs-seedance-2-0-186452",
+  "slug": "hailuo-minimax-h3-vs-seedance-2-0-186452",
+  "title": "Dragon Cave Comparison",
+  "sourceTitle": "Hailuo MiniMax H3 vs. Seedance 2.0",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.19,
+  "aspectRatio": "1:1",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/hailuo-minimax-h3-vs-seedance-2-0-186452.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/hailuo-minimax-h3-vs-seedance-2-0-186452.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "dragon",
+   "cave",
+   "comparison",
+   "music-video"
+  ],
+  "orientation": "square",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:handcrafted-paper-cut-stop-motion-short-512241",
+  "slug": "handcrafted-paper-cut-stop-motion-short-512241",
+  "title": "Paper-Cut Ocean Reef",
+  "sourceTitle": "Handcrafted paper-cut stop-motion short",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.18,
+  "aspectRatio": "4:3",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/handcrafted-paper-cut-stop-motion-short-512241.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/handcrafted-paper-cut-stop-motion-short-512241.jpg",
+  "tags": [
+   "viral-short",
+   "text-to-video",
+   "paper-cut-underwater-cave",
+   "glowing-jellyfish",
+   "astronaut-child",
+   "helmeted-white-cat"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "paper-cut",
+   "ocean",
+   "reef",
+   "viral-short",
+   "paper-cut-underwater-cave",
+   "glowing-jellyfish",
+   "astronaut-child",
+   "helmeted-white-cat"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:hard-sci-fi-desert-3x3-grid-animation-sequence-845158",
+  "slug": "hard-sci-fi-desert-3x3-grid-animation-sequence-845158",
+  "title": "Desert Sci-Fi Storyboard Grid",
+  "sourceTitle": "Hard sci-fi desert 3x3 grid animation sequence",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 15.15,
+  "aspectRatio": "8:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/hard-sci-fi-desert-3x3-grid-animation-sequence-845158.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/hard-sci-fi-desert-3x3-grid-animation-sequence-845158.jpg",
+  "tags": [
+   "cinematic-story",
+   "reference-to-video",
+   "3x3-desert-grid",
+   "scarred-desert-warrior",
+   "twin-sun-dunes",
+   "rusted-multi-tool"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "desert",
+   "storyboard",
+   "grid",
+   "cinematic-story",
+   "3x3-desert-grid",
+   "scarred-desert-warrior",
+   "twin-sun-dunes",
+   "rusted-multi-tool"
+  ],
+  "orientation": "square",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:hip-hop-music-video-make-the-character-from-video1-107776",
+  "slug": "hip-hop-music-video-make-the-character-from-video1-107776",
+  "title": "Retro Robot MC",
+  "sourceTitle": "Hip-Hop Character Lip-Sync Performance",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 107.95,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/hip-hop-music-video-make-the-character-from-video1-107776.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/hip-hop-music-video-make-the-character-from-video1-107776.jpg",
+  "tags": [
+   "music-video",
+   "reference-to-video",
+   "reference-video",
+   "reference-audio",
+   "native-audio"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "retro",
+   "robot",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "name caption \"Ben Nash\" on the last frame"
+ },
+ {
+  "id": "mmx25:how-to-push-hailuo-minimax-h3-to-its-absolute-limit-576280",
+  "slug": "how-to-push-hailuo-minimax-h3-to-its-absolute-limit-576280",
+  "title": "Gear World Armored Hero",
+  "sourceTitle": "Zero post-production cuts",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/how-to-push-hailuo-minimax-h3-to-its-absolute-limit-576280.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/how-to-push-hailuo-minimax-h3-to-its-absolute-limit-576280.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "gear",
+   "world",
+   "armored",
+   "hero",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:human-cakes-minimax-h3-local-046088",
+  "slug": "human-cakes-minimax-h3-local-046088",
+  "title": "Supercar Popcorn Explosion",
+  "sourceTitle": "Shaky handheld smartphone footage, pure first-person view, bright clear Manhatta",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 15.14,
+  "aspectRatio": "43:24",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/human-cakes-minimax-h3-local-046088.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/human-cakes-minimax-h3-local-046088.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "supercar",
+   "popcorn",
+   "explosion",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:i-created-this-fun-days-of-the-week-lesson-for-k-723522",
+  "slug": "i-created-this-fun-days-of-the-week-lesson-for-k-723522",
+  "title": "Weekday Text Animation",
+  "sourceTitle": "Motion Graphics Study",
+  "category": "VFX",
+  "subcategory": "Title Sequences",
+  "duration": 15.18,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/i-created-this-fun-days-of-the-week-lesson-for-k-723522.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/i-created-this-fun-days-of-the-week-lesson-for-k-723522.jpg",
+  "tags": [
+   "motion-graphics",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Titles & Typography",
+  "topics": [
+   "vfx",
+   "title",
+   "sequences",
+   "weekday",
+   "text",
+   "animation",
+   "motion-graphics"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:i-made-a-comedy-special-with-hailuo-h3-and-the-076759",
+  "slug": "i-made-a-comedy-special-with-hailuo-h3-and-the-076759",
+  "title": "Stand-Up Comedy Spot",
+  "sourceTitle": "I made a comedy special with Hailuo H3 and the timing is spot on",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/i-made-a-comedy-special-with-hailuo-h3-and-the-076759.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/i-made-a-comedy-special-with-hailuo-h3-and-the-076759.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "stand-up",
+   "spot",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:image-1-for-the-character-image-2-for-the-619967",
+  "slug": "image-1-for-the-character-image-2-for-the-619967",
+  "title": "Paint Blaster Loadout Screen",
+  "sourceTitle": "Colorful Paint-Weapon Selection Screen",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 15.24,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/image-1-for-the-character-image-2-for-the-619967.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/image-1-for-the-character-image-2-for-the-619967.jpg",
+  "tags": [
+   "gameplay",
+   "reference-to-video",
+   "reference-image",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "paint",
+   "blaster",
+   "loadout",
+   "screen",
+   "gameplay",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:image-1-starting-frame-474111",
+  "slug": "image-1-starting-frame-474111",
+  "title": "News Desk Presenter",
+  "sourceTitle": "Cinematic Travel Study",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 20.14,
+  "aspectRatio": "43:24",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/image-1-starting-frame-474111.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/image-1-starting-frame-474111.jpg",
+  "tags": [
+   "cinematic-travel",
+   "reference-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "news",
+   "desk",
+   "presenter",
+   "cinematic-travel"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:image-as-the-exact-character-reference-preserve-her-fac-150697",
+  "slug": "image-as-the-exact-character-reference-preserve-her-fac-150697",
+  "title": "Rose Lounge Lip Gloss Ad",
+  "sourceTitle": "Marble Staircase Lip Gloss Commercial",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/image-as-the-exact-character-reference-preserve-her-fac-150697.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/image-as-the-exact-character-reference-preserve-her-fac-150697.jpg",
+  "tags": [
+   "product-commercial",
+   "reference-to-video",
+   "reference-image",
+   "camera-direction",
+   "typography"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "rose",
+   "lounge",
+   "lip",
+   "gloss",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:image-as-the-exact-character-reference-preserve-her-fac-256521",
+  "slug": "image-as-the-exact-character-reference-preserve-her-fac-256521",
+  "title": "Vanity Mirror Lip Oil Review",
+  "sourceTitle": "Morning Lip Oil UGC Testimonial",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/image-as-the-exact-character-reference-preserve-her-fac-256521.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/image-as-the-exact-character-reference-preserve-her-fac-256521.jpg",
+  "tags": [
+   "product-commercial",
+   "reference-to-video",
+   "reference-image",
+   "camera-direction",
+   "typography"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "vanity",
+   "mirror",
+   "lip",
+   "oil",
+   "review",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:image-as-the-exact-source-image-and-first-frame-221921",
+  "slug": "image-as-the-exact-source-image-and-first-frame-221921",
+  "title": "Cyber Serpent Hood Portrait",
+  "sourceTitle": "Cyberpunk Ice-Blue Character Awakening",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/image-as-the-exact-source-image-and-first-frame-221921.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/image-as-the-exact-source-image-and-first-frame-221921.jpg",
+  "tags": [
+   "horror",
+   "text-to-video",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "cyber",
+   "serpent",
+   "hood",
+   "portrait",
+   "horror",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:image-model-gpt-image-2-143224",
+  "slug": "image-model-gpt-image-2-143224",
+  "title": "Armament Customization Screen",
+  "sourceTitle": "AAA Unreal Engine 5 cinematic",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/image-model-gpt-image-2-143224.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/image-model-gpt-image-2-143224.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "armament",
+   "customization",
+   "screen",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:impressionante-fazer-isso-com-uma-ia-local-035362",
+  "slug": "impressionante-fazer-isso-com-uma-ia-local-035362",
+  "title": "Beach Cartoon Banter",
+  "sourceTitle": "Setting: A bright sunny beach",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.15,
+  "aspectRatio": "7:4",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/impressionante-fazer-isso-com-uma-ia-local-035362.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/impressionante-fazer-isso-com-uma-ia-local-035362.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "beach",
+   "cartoon",
+   "banter",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:inspired-by-the-odyssey-622590",
+  "slug": "inspired-by-the-odyssey-622590",
+  "title": "Roman Warrior Split Reveal",
+  "sourceTitle": "An ancient Greek warrior resembling Odysseus stands alone inside a colossal cave",
+  "category": "Cinema",
+  "subcategory": "Period & Historical",
+  "duration": 24.61,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/inspired-by-the-odyssey-622590.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/inspired-by-the-odyssey-622590.jpg",
+  "tags": [
+   "cinematic-travel",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "roman",
+   "warrior",
+   "split",
+   "reveal",
+   "cinematic-travel"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:is-a-huge-model-for-some-themes-157293",
+  "slug": "is-a-huge-model-for-some-themes-157293",
+  "title": "Arctic Sniper POV",
+  "sourceTitle": "@Hailuo_AI Prompt :",
+  "category": "Action",
+  "subcategory": "Battles & Disaster",
+  "duration": 15.21,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/is-a-huge-model-for-some-themes-157293.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/is-a-huge-model-for-some-themes-157293.jpg",
+  "tags": [
+   "gameplay",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "arctic",
+   "sniper",
+   "pov",
+   "gameplay"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:is-now-publicly-available-844521",
+  "slug": "is-now-publicly-available-844521",
+  "title": "Misty Road SUV Reveal",
+  "sourceTitle": "Cinematic Travel Study",
+  "category": "Commercial",
+  "subcategory": "Automotive & Mobility",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/is-now-publicly-available-844521.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/is-now-publicly-available-844521.jpg",
+  "tags": [
+   "cinematic-travel",
+   "reference-to-video",
+   "text-prompt"
+  ],
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "misty",
+   "road",
+   "suv",
+   "reveal",
+   "cinematic-travel"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:is-seriously-good-at-this-kind-of-k-pop-lyric-987242",
+  "slug": "is-seriously-good-at-this-kind-of-k-pop-lyric-987242",
+  "title": "Neon Pop Star Stage",
+  "sourceTitle": "🤯 is seriously good at this kind of K-pop lyric",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 15.17,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/is-seriously-good-at-this-kind-of-k-pop-lyric-987242.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/is-seriously-good-at-this-kind-of-k-pop-lyric-987242.jpg",
+  "tags": [
+   "music-video",
+   "reference-to-video",
+   "text-prompt"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "neon",
+   "pop",
+   "star",
+   "stage",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:is-this-real-i-honestly-cant-believe-it-988527",
+  "slug": "is-this-real-i-honestly-cant-believe-it-988527",
+  "title": "Desert Highway Stroll",
+  "sourceTitle": "Is this real? I honestly can’t believe it 😱😮",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/is-this-real-i-honestly-cant-believe-it-988527.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/is-this-real-i-honestly-cant-believe-it-988527.jpg",
+  "tags": [
+   "horror",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "desert",
+   "highway",
+   "stroll",
+   "horror"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:ist-jetzt-in-edimakor-verfugbar-394936",
+  "slug": "ist-jetzt-in-edimakor-verfugbar-394936",
+  "title": "Moonlit Bridge Trio",
+  "sourceTitle": "ist jetzt in Edimakor verfügbar 🥳",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 10.14,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/ist-jetzt-in-edimakor-verfugbar-394936.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/ist-jetzt-in-edimakor-verfugbar-394936.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "moonlit",
+   "bridge",
+   "trio",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:kaldr-cold-perfume-commercial-multi-reference-943073",
+  "slug": "kaldr-cold-perfume-commercial-multi-reference-943073",
+  "title": "Cold Perfume Ocean Spot",
+  "sourceTitle": "KALDR cold perfume commercial multi-reference",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.17,
+  "aspectRatio": "640:271",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/kaldr-cold-perfume-commercial-multi-reference-943073.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/kaldr-cold-perfume-commercial-multi-reference-943073.jpg",
+  "tags": [
+   "product-commercial",
+   "multimodal",
+   "kaldr-bottle-image",
+   "brand-lockup-image",
+   "volcanic-beach-location",
+   "spoken-voice-audio"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "cold",
+   "perfume",
+   "ocean",
+   "spot",
+   "product-commercial",
+   "kaldr-bottle-image",
+   "brand-lockup-image",
+   "volcanic-beach-location",
+   "spoken-voice-audio"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:krea-2-turbo-minimax-h3-in-comfyui-742459",
+  "slug": "krea-2-turbo-minimax-h3-in-comfyui-742459",
+  "title": "Gallery Wine Glamour",
+  "sourceTitle": "Krea 2 Turbo + Minimax H3 in Comfyui = ...",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 8.07,
+  "aspectRatio": "40:23",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/krea-2-turbo-minimax-h3-in-comfyui-742459.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/krea-2-turbo-minimax-h3-in-comfyui-742459.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "gallery",
+   "wine",
+   "glamour",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:live-action-relationship-confession-drama-scene-224793",
+  "slug": "live-action-relationship-confession-drama-scene-224793",
+  "title": "Window Light Confession",
+  "sourceTitle": "Live-action relationship confession drama scene",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/live-action-relationship-confession-drama-scene-224793.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/live-action-relationship-confession-drama-scene-224793.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "husband-and-wife",
+   "night-living-room",
+   "unlocked-phone-evidence",
+   "confession-dialogue"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "window",
+   "light",
+   "confession",
+   "cinematic-story",
+   "husband-and-wife",
+   "night-living-room",
+   "unlocked-phone-evidence",
+   "confession-dialogue"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:low-angle-fashion-tracking-film-062019",
+  "slug": "low-angle-fashion-tracking-film-062019",
+  "title": "Low-Angle Fashion Walk",
+  "sourceTitle": "Low-Angle Fashion Tracking Film",
+  "category": "Fashion",
+  "subcategory": "Runway & Lookbook",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/low-angle-fashion-tracking-film-062019.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/low-angle-fashion-tracking-film-062019.jpg",
+  "tags": [
+   "fashion",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "runway",
+   "lookbook",
+   "low-angle",
+   "walk"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:luna-is-back-now-that-i-can-render-text-beautifu-328598",
+  "slug": "luna-is-back-now-that-i-can-render-text-beautifu-328598",
+  "title": "Livestream Studio Setup",
+  "sourceTitle": "Luna is back! now that I can render text beautifully",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 15.21,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/luna-is-back-now-that-i-can-render-text-beautifu-328598.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/luna-is-back-now-that-i-can-render-text-beautifu-328598.jpg",
+  "tags": [
+   "anime",
+   "reference-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "livestream",
+   "studio",
+   "setup",
+   "anime"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:luxury-checkered-sports-coupe-night-to-dawn-commercial-451623",
+  "slug": "luxury-checkered-sports-coupe-night-to-dawn-commercial-451623",
+  "title": "Checkered Coat Car Promo",
+  "sourceTitle": "Luxury checkered sports-coupe night-to-dawn commercial",
+  "category": "Commercial",
+  "subcategory": "Automotive & Mobility",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/luxury-checkered-sports-coupe-night-to-dawn-commercial-451623.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/luxury-checkered-sports-coupe-night-to-dawn-commercial-451623.jpg",
+  "tags": [
+   "product-commercial",
+   "multimodal",
+   "4x4-panel-grid",
+   "checkered-sports-coupe",
+   "stern-blonde-driver",
+   "background-music-audio"
+  ],
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "checkered",
+   "coat",
+   "car",
+   "promo",
+   "product-commercial",
+   "4x4-panel-grid",
+   "checkered-sports-coupe",
+   "stern-blonde-driver",
+   "background-music-audio"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:luxury-metallic-gown-desert-runway-fashion-ad-907132",
+  "slug": "luxury-metallic-gown-desert-runway-fashion-ad-907132",
+  "title": "Desert Couture Walk",
+  "sourceTitle": "12s cinematic luxury fashion ad, 4K, 24fps, ultra-photorealistic",
+  "category": "Fashion",
+  "subcategory": "Runway & Lookbook",
+  "duration": 12.33,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/luxury-metallic-gown-desert-runway-fashion-ad-907132.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/luxury-metallic-gown-desert-runway-fashion-ad-907132.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "high-fashion-model",
+   "iridescent-metallic-gown",
+   "desert-runway",
+   "golden-hour-sun-flare"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "runway",
+   "lookbook",
+   "desert",
+   "couture",
+   "walk",
+   "product-commercial",
+   "high-fashion-model",
+   "iridescent-metallic-gown",
+   "desert-runway",
+   "golden-hour-sun-flare"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:luxury-perfume-commercial",
+  "slug": "luxury-perfume-commercial",
+  "title": "Luxury Reveal Sequence",
+  "sourceTitle": "Scene 1 (0–3s) – Luxury Reveal",
+  "category": "Commercial",
+  "subcategory": "Luxury Goods",
+  "duration": 15.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/luxury-perfume-commercial.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/luxury-perfume-commercial.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "luxury",
+   "goods",
+   "reveal",
+   "sequence",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:luxury-skincare-storyboard-commercial-805571",
+  "slug": "luxury-skincare-storyboard-commercial-805571",
+  "title": "Hydrating Serum Close-Up",
+  "sourceTitle": "Use the uploaded storyboard as the camera guide",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/luxury-skincare-storyboard-commercial-805571.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/luxury-skincare-storyboard-commercial-805571.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction",
+   "reference-image",
+   "timed-beats"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "hydrating",
+   "serum",
+   "close-up",
+   "product-commercial",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:luxury-watch-storyboard-campaign-903017",
+  "slug": "luxury-watch-storyboard-campaign-903017",
+  "title": "Luxury Watch Macro",
+  "sourceTitle": "premium single-page storyboard for a luxury watch commercial",
+  "category": "Commercial",
+  "subcategory": "Luxury Goods",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/luxury-watch-storyboard-campaign-903017.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/luxury-watch-storyboard-campaign-903017.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "luxury",
+   "goods",
+   "watch",
+   "macro",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:luxury-wireless-headphones-product-showcase-291312",
+  "slug": "luxury-wireless-headphones-product-showcase-291312",
+  "title": "Studio Headphones Spot",
+  "sourceTitle": "15-second luxury cinematic product showcase for premium wireless over-ear headph",
+  "category": "Commercial",
+  "subcategory": "Tech & Gadgets",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/luxury-wireless-headphones-product-showcase-291312.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/luxury-wireless-headphones-product-showcase-291312.jpg",
+  "tags": [
+   "product-demo",
+   "text-to-video",
+   "over-ear-headphones",
+   "memory-foam-cushion",
+   "exploded-driver-view",
+   "glossy-black-pedestal"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "tech",
+   "gadgets",
+   "studio",
+   "headphones",
+   "spot",
+   "product-demo",
+   "over-ear-headphones",
+   "memory-foam-cushion",
+   "exploded-driver-view",
+   "glossy-black-pedestal"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:made-it-on-225758",
+  "slug": "made-it-on-225758",
+  "title": "Dragon Battlefield Comparison",
+  "sourceTitle": "15-second photorealistic cinematic dark-fantasy battlefield sequence in 16:9 wid",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.19,
+  "aspectRatio": "1:1",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/made-it-on-225758.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/made-it-on-225758.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "dragon",
+   "battlefield",
+   "comparison",
+   "music-video"
+  ],
+  "orientation": "square",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:main-subject-603469",
+  "slug": "main-subject-603469",
+  "title": "Toast and Jam Morning",
+  "sourceTitle": "Documentary Study",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/main-subject-603469.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/main-subject-603469.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "toast",
+   "jam",
+   "morning",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:main-subject-757074",
+  "slug": "main-subject-757074",
+  "title": "Garden Harvest Portrait",
+  "sourceTitle": "Documentary Study",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/main-subject-757074.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/main-subject-757074.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "garden",
+   "harvest",
+   "portrait",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:main-subject-young-korean-woman-early-20s-oversi-162229",
+  "slug": "main-subject-young-korean-woman-early-20s-oversi-162229",
+  "title": "Forest Archery Practice",
+  "sourceTitle": "Documentary Study",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/main-subject-young-korean-woman-early-20s-oversi-162229.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/main-subject-young-korean-woman-early-20s-oversi-162229.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "forest",
+   "archery",
+   "practice",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:mechanical-bull-charge-the-beasts-are-coming-720815",
+  "slug": "mechanical-bull-charge-the-beasts-are-coming-720815",
+  "title": "Steel Bull Standoff",
+  "sourceTitle": "15-second ultra-realistic cinematic fantasy-sci-fi sequence set in The Harvester",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/mechanical-bull-charge-the-beasts-are-coming-720815.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/mechanical-bull-charge-the-beasts-are-coming-720815.jpg",
+  "tags": [
+   "cinematic-story",
+   "reference-to-video",
+   "mechanical-bull",
+   "rider-character",
+   "ruined-industrial-lane",
+   "furnace-charge"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "steel",
+   "bull",
+   "standoff",
+   "cinematic-story",
+   "mechanical-bull",
+   "rider-character",
+   "ruined-industrial-lane",
+   "furnace-charge"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:midjourney-v8-2-suno-835622",
+  "slug": "midjourney-v8-2-suno-835622",
+  "title": "Red Glasses Pop Portrait",
+  "sourceTitle": "Midjourney v8.2 + Suno",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 15.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/midjourney-v8-2-suno-835622.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/midjourney-v8-2-suno-835622.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "red",
+   "glasses",
+   "pop",
+   "portrait",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:minimax-h3-268047",
+  "slug": "minimax-h3-268047",
+  "title": "Stained Glass Saint Portrait",
+  "sourceTitle": "Core Creative Concept]",
+  "category": "Cinema",
+  "subcategory": "Period & Historical",
+  "duration": 15.18,
+  "aspectRatio": "489:272",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-h3-268047.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-h3-268047.jpg",
+  "tags": [
+   "animation",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "stained",
+   "glass",
+   "saint",
+   "portrait",
+   "animation"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:minimax-h3-feels-like-a-really-good-fit-for-interactive-417323",
+  "slug": "minimax-h3-feels-like-a-really-good-fit-for-interactive-417323",
+  "title": "Arcade Ride Selection Screen",
+  "sourceTitle": "MiniMax H3 feels like a really good fit for interactive game concepts.",
+  "category": "Action",
+  "subcategory": "Creatures & Heroes",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-h3-feels-like-a-really-good-fit-for-interactive-417323.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-h3-feels-like-a-really-good-fit-for-interactive-417323.jpg",
+  "tags": [
+   "gameplay",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "arcade",
+   "ride",
+   "selection",
+   "screen",
+   "gameplay"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:minimax-h3-in-173149",
+  "slug": "minimax-h3-in-173149",
+  "title": "Space Librarian Story",
+  "sourceTitle": "\"title\": \"Wake the Wonder\",",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.15,
+  "aspectRatio": "4:7",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-h3-in-173149.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-h3-in-173149.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "space",
+   "librarian",
+   "story",
+   "product-commercial"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:minimax-h3-is-incredible-at-text-rendering-644291",
+  "slug": "minimax-h3-is-incredible-at-text-rendering-644291",
+  "title": "Orange Planet Title Card",
+  "sourceTitle": "MiniMax H3 is incredible at text rendering!",
+  "category": "VFX",
+  "subcategory": "Title Sequences",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-h3-is-incredible-at-text-rendering-644291.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-h3-is-incredible-at-text-rendering-644291.jpg",
+  "tags": [
+   "fashion",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Titles & Typography",
+  "topics": [
+   "vfx",
+   "title",
+   "sequences",
+   "orange",
+   "planet",
+   "card",
+   "fashion"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:minimax-h3-on-v-s-seedance-2-5-783077",
+  "slug": "minimax-h3-on-v-s-seedance-2-5-783077",
+  "title": "Armored Hero Comparison",
+  "sourceTitle": "A young heroic warrior wearing beautifully crafted silver armor, a dark blue cap",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-h3-on-v-s-seedance-2-5-783077.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-h3-on-v-s-seedance-2-5-783077.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "armored",
+   "hero",
+   "comparison",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:minimax-h3-one-shotted-this-complete-scene-726491",
+  "slug": "minimax-h3-one-shotted-this-complete-scene-726491",
+  "title": "Workplace Laugh Scene",
+  "sourceTitle": "Minimax H3 one-shotted this complete scene",
+  "category": "Cinema",
+  "subcategory": "Comedy",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/minimax-h3-one-shotted-this-complete-scene-726491.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/minimax-h3-one-shotted-this-complete-scene-726491.jpg",
+  "tags": [
+   "action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "cinema",
+   "comedy",
+   "workplace",
+   "laugh",
+   "action"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:model-on-generative-ai-is-getting-really-good-i-238799",
+  "slug": "model-on-generative-ai-is-getting-really-good-i-238799",
+  "title": "Retro Command Deck",
+  "sourceTitle": "Model on Generative AI is getting really good .. I",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/model-on-generative-ai-is-getting-really-good-i-238799.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/model-on-generative-ai-is-getting-really-good-i-238799.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "retro",
+   "command",
+   "deck",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:modern-warfare-fps-gameplay",
+  "slug": "modern-warfare-fps-gameplay",
+  "title": "Sniper Scope Warzone",
+  "sourceTitle": "Gameplay Concept",
+  "category": "Action",
+  "subcategory": "Battles & Disaster",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/modern-warfare-fps-gameplay.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/modern-warfare-fps-gameplay.jpg",
+  "tags": [
+   "gameplay",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "sniper",
+   "scope",
+   "warzone",
+   "gameplay"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:most-cinematic-scenes-challenge-742779",
+  "slug": "most-cinematic-scenes-challenge-742779",
+  "title": "Golden Horizon Monolith",
+  "sourceTitle": "The most cinematic scenes you can make",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.18,
+  "aspectRatio": "960:407",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/most-cinematic-scenes-challenge-742779.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/most-cinematic-scenes-challenge-742779.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "cinematic-scene",
+   "dramatic-framing"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "golden",
+   "horizon",
+   "monolith",
+   "cinematic-story",
+   "cinematic-scene",
+   "dramatic-framing"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:mumbai-monsoon-fpv-drone-flight-942674",
+  "slug": "mumbai-monsoon-fpv-drone-flight-942674",
+  "title": "Flooded Skyline Aerial",
+  "sourceTitle": "15-second hyper-real cinematic FPV drone video over Mumbai in heavy monsoon weat",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 15.18,
+  "aspectRatio": "3:4",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/mumbai-monsoon-fpv-drone-flight-942674.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/mumbai-monsoon-fpv-drone-flight-942674.jpg",
+  "tags": [
+   "cinematic-travel",
+   "image-to-video",
+   "first-frame-cityscape",
+   "fpv-flight-path",
+   "monsoon-rain",
+   "mumbai-interchange"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "flooded",
+   "skyline",
+   "aerial",
+   "cinematic-travel",
+   "fpv-flight-path",
+   "monsoon-rain",
+   "mumbai-interchange"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:nightclub-breakdance-orbit-717186",
+  "slug": "nightclub-breakdance-orbit-717186",
+  "title": "Nightclub Breakdance Orbit",
+  "sourceTitle": "Nightclub Breakdance Camera Orbit",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/nightclub-breakdance-orbit-717186.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/nightclub-breakdance-orbit-717186.jpg",
+  "tags": [
+   "music-video",
+   "reference-to-video",
+   "reference-image",
+   "camera-direction",
+   "timed-beats",
+   "native-audio"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "nightclub",
+   "breakdance",
+   "orbit",
+   "music-video",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:no-painful-reactions-707867",
+  "slug": "no-painful-reactions-707867",
+  "title": "Moonlit Castle Adventure",
+  "sourceTitle": "No painful reactions.",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/no-painful-reactions-707867.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/no-painful-reactions-707867.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "moonlit",
+   "castle",
+   "adventure",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:nostalgic-montage-of-different-clips-graphic-motion-lay-586917",
+  "slug": "nostalgic-montage-of-different-clips-graphic-motion-lay-586917",
+  "title": "Theme Park Memory Montage",
+  "sourceTitle": "Theme Park Memory Montage",
+  "category": "Social",
+  "subcategory": "Lifestyle & Food",
+  "duration": 5.14,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/nostalgic-montage-of-different-clips-graphic-motion-lay-586917.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/nostalgic-montage-of-different-clips-graphic-motion-lay-586917.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "theme",
+   "park",
+   "memory",
+   "montage",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:nova-x-smartphone-tvc",
+  "slug": "nova-x-smartphone-tvc",
+  "title": "Foldable Phone Reveal",
+  "sourceTitle": "15-second premium cinematic branding TVC for a futuristic smartphone brand calle",
+  "category": "Commercial",
+  "subcategory": "Tech & Gadgets",
+  "duration": 15.24,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/nova-x-smartphone-tvc.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/nova-x-smartphone-tvc.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "tech",
+   "gadgets",
+   "foldable",
+   "phone",
+   "reveal",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:okay-one-more-i-couldn-t-stop-837115",
+  "slug": "okay-one-more-i-couldn-t-stop-837115",
+  "title": "Vending Machine Argument",
+  "sourceTitle": "Okay one more, I couldn't stop 😂",
+  "category": "Cinema",
+  "subcategory": "Comedy",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/okay-one-more-i-couldn-t-stop-837115.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/okay-one-more-i-couldn-t-stop-837115.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "cinema",
+   "comedy",
+   "vending",
+   "machine",
+   "argument",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:one-gripe-with-unless-i-specify-exactly-what-eac-460476",
+  "slug": "one-gripe-with-unless-i-specify-exactly-what-eac-460476",
+  "title": "Cartoon Detectives Crime Scene",
+  "sourceTitle": "One gripe with : unless I specify exactly what each",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 14.47,
+  "aspectRatio": "26:15",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/one-gripe-with-unless-i-specify-exactly-what-eac-460476.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/one-gripe-with-unless-i-specify-exactly-what-eac-460476.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "cartoon",
+   "detectives",
+   "crime",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:photorealistic-cinematic-1950s-american-diner-chrome-stools-red-vinyl-ne-227011",
+  "slug": "photorealistic-cinematic-1950s-american-diner-chrome-stools-red-vinyl-ne-227011",
+  "title": "Diner Waitress Spill",
+  "sourceTitle": "Photorealistic cinematic 1950s American diner, chrome stools, red vinyl, neon",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/photorealistic-cinematic-1950s-american-diner-chrome-stools-red-vinyl-ne-227011.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/photorealistic-cinematic-1950s-american-diner-chrome-stools-red-vinyl-ne-227011.jpg",
+  "tags": [
+   "action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "diner",
+   "waitress",
+   "spill",
+   "action"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:pixar-style-mouse-adventure-3d-animation-582726",
+  "slug": "pixar-style-mouse-adventure-3d-animation-582726",
+  "title": "Mushroom Garden Mouse Tale",
+  "sourceTitle": "Pixar-style mouse adventure 3D animation",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/pixar-style-mouse-adventure-3d-animation-582726.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/pixar-style-mouse-adventure-3d-animation-582726.jpg",
+  "tags": [
+   "anime",
+   "text-to-video",
+   "aviator-mouse",
+   "giant-mushroom-forest",
+   "dandelion-parachute",
+   "moonlit-lily-pad"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "mushroom",
+   "garden",
+   "mouse",
+   "tale",
+   "anime",
+   "aviator-mouse",
+   "giant-mushroom-forest",
+   "dandelion-parachute",
+   "moonlit-lily-pad"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:pixversev6-795780",
+  "slug": "pixversev6-795780",
+  "title": "Neon Alley Walk",
+  "sourceTitle": "integrated_multimodal_description: [Shot 1] Live-action, cinematic, photorealist",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/pixversev6-795780.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/pixversev6-795780.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "neon",
+   "alley",
+   "walk",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:pizza-night-ugc-domino-s-vlog-197798",
+  "slug": "pizza-night-ugc-domino-s-vlog-197798",
+  "title": "Pepperoni Pizza Close-Up",
+  "sourceTitle": "Pizza night UGC Domino’s vlog",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/pizza-night-ugc-domino-s-vlog-197798.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/pizza-night-ugc-domino-s-vlog-197798.jpg",
+  "tags": [
+   "vlog",
+   "reference-to-video",
+   "domino's-pizza-product",
+   "lifestyle-vlogger",
+   "pizza-box-open",
+   "cheese-pull-bite"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "pepperoni",
+   "pizza",
+   "close-up",
+   "vlog",
+   "domino's-pizza-product",
+   "lifestyle-vlogger",
+   "pizza-box-open",
+   "cheese-pull-bite"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:player-stats-ui-animation-with-gpt-image-2-and-575169",
+  "slug": "player-stats-ui-animation-with-gpt-image-2-and-575169",
+  "title": "Fighter Stats HUD Screen",
+  "sourceTitle": "Anime Film Study",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 15.18,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/player-stats-ui-animation-with-gpt-image-2-and-575169.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/player-stats-ui-animation-with-gpt-image-2-and-575169.jpg",
+  "tags": [
+   "anime",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "fighter",
+   "stats",
+   "hud",
+   "screen",
+   "anime"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:porto-francesinha-comedy-recipe-282615",
+  "slug": "porto-francesinha-comedy-recipe-282615",
+  "title": "Sandwich Prep Close-Up",
+  "sourceTitle": "<image_1> (don't reproduce the image",
+  "category": "Social",
+  "subcategory": "Lifestyle & Food",
+  "duration": 15.24,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/porto-francesinha-comedy-recipe-282615.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/porto-francesinha-comedy-recipe-282615.jpg",
+  "tags": [
+   "comedy",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "sandwich",
+   "prep",
+   "close-up",
+   "comedy"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:post-workout-gym-vlog",
+  "slug": "post-workout-gym-vlog",
+  "title": "Post-Workout Stretch",
+  "sourceTitle": "Post-workout gym vlog",
+  "category": "Social",
+  "subcategory": "Fitness & Sports",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/post-workout-gym-vlog.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/post-workout-gym-vlog.jpg",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "post-workout",
+   "stretch",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:premium-cinematic-fashion-campaign-outfit-reveal-103224",
+  "slug": "premium-cinematic-fashion-campaign-outfit-reveal-103224",
+  "title": "Monochrome Menswear Lookbook",
+  "sourceTitle": "luxury fashion commercial",
+  "category": "Fashion",
+  "subcategory": "Runway & Lookbook",
+  "duration": 15.18,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/premium-cinematic-fashion-campaign-outfit-reveal-103224.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/premium-cinematic-fashion-campaign-outfit-reveal-103224.jpg",
+  "tags": [
+   "brand-film",
+   "reference-to-video",
+   "five-apparel-images",
+   "fashion-model",
+   "minimal-studio-set",
+   "editorial-outfit-reveals"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "runway",
+   "lookbook",
+   "monochrome",
+   "menswear",
+   "brand-film",
+   "five-apparel-images",
+   "fashion-model",
+   "minimal-studio-set",
+   "editorial-outfit-reveals"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:radiantglo-skincare-commercial",
+  "slug": "radiantglo-skincare-commercial",
+  "title": "LED Face Mask Ad",
+  "sourceTitle": "The Brief: \"Jessy x RadiantGlo\"",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/radiantglo-skincare-commercial.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/radiantglo-skincare-commercial.jpg",
+  "tags": [
+   "brand-film",
+   "multimodal",
+   "creative-brief"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "led",
+   "face",
+   "mask",
+   "brand-film",
+   "creative-brief"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:radio-operator-evacuation-bridge",
+  "slug": "radio-operator-evacuation-bridge",
+  "title": "Blue-Hour Alley Run",
+  "sourceTitle": "Fictional Sahelian city at blue-hour dawn",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/radio-operator-evacuation-bridge.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/radio-operator-evacuation-bridge.jpg",
+  "tags": [
+   "cinematic-story",
+   "reference-to-video",
+   "character-reference",
+   "environment-reference"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "blue-hour",
+   "alley",
+   "run",
+   "cinematic-story",
+   "character-reference",
+   "environment-reference"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:ramen-bowl-ugc-taste-test-612348",
+  "slug": "ramen-bowl-ugc-taste-test-612348",
+  "title": "Ramen Bowl Close-Up",
+  "sourceTitle": "Authentic UGC / iPhone selfie-vlog",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "40:17",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/ramen-bowl-ugc-taste-test-612348.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/ramen-bowl-ugc-taste-test-612348.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction",
+   "reference-image",
+   "timed-beats"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "ramen",
+   "bowl",
+   "close-up",
+   "product-commercial",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:reference-control-use-the-uploaded-part-2-storyboard-image-for-477564",
+  "slug": "reference-control-use-the-uploaded-part-2-storyboard-image-for-477564",
+  "title": "Giant Sleeper Garden Tale",
+  "sourceTitle": "[REFERENCE CONTROL] Use the uploaded PART 2 storyboard image for “The Tiny",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/reference-control-use-the-uploaded-part-2-storyboard-image-for-477564.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/reference-control-use-the-uploaded-part-2-storyboard-image-for-477564.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "giant",
+   "sleeper",
+   "garden",
+   "tale",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:romantic-montage-of-two-people-exploring-a-beaut-106839",
+  "slug": "romantic-montage-of-two-people-exploring-a-beaut-106839",
+  "title": "Cobblestone Couple Stroll",
+  "sourceTitle": "Motion Graphics Study",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 8.07,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/romantic-montage-of-two-people-exploring-a-beaut-106839.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/romantic-montage-of-two-people-exploring-a-beaut-106839.jpg",
+  "tags": [
+   "motion-graphics",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "cobblestone",
+   "couple",
+   "stroll",
+   "motion-graphics"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:s-expressive-imagination-is-also-top-notch-052621",
+  "slug": "s-expressive-imagination-is-also-top-notch-052621",
+  "title": "Laundromat Lighthouse Dream",
+  "sourceTitle": "'s expressive imagination is also top-notch",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/s-expressive-imagination-is-also-top-notch-052621.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/s-expressive-imagination-is-also-top-notch-052621.jpg",
+  "tags": [
+   "cinematic-travel",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "laundromat",
+   "lighthouse",
+   "dream",
+   "cinematic-travel"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:sagrada-familia-fpv-flight",
+  "slug": "sagrada-familia-fpv-flight",
+  "title": "Cathedral City FPV Flight",
+  "sourceTitle": "Sagrada Família FPV flight",
+  "category": "Action",
+  "subcategory": "Aerial & FPV",
+  "duration": 15.17,
+  "aspectRatio": "77:92",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/sagrada-familia-fpv-flight.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/sagrada-familia-fpv-flight.jpg",
+  "tags": [
+   "cinematic-travel",
+   "image-to-video",
+   "flight-path-image-reference"
+  ],
+  "group": "Aerial & FPV",
+  "topics": [
+   "action",
+   "aerial",
+   "fpv",
+   "cathedral",
+   "city",
+   "flight",
+   "cinematic-travel",
+   "flight-path-image-reference"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:sci-fi-explorer-approaches-dark-gateway-mystery-410508",
+  "slug": "sci-fi-explorer-approaches-dark-gateway-mystery-410508",
+  "title": "Portal Explorer Approach",
+  "sourceTitle": "Sci-fi explorer approaches dark gateway mystery",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/sci-fi-explorer-approaches-dark-gateway-mystery-410508.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/sci-fi-explorer-approaches-dark-gateway-mystery-410508.jpg",
+  "tags": [
+   "cinematic-story",
+   "reference-to-video",
+   "explorer-identity",
+   "gateway-keyframes",
+   "wet-obsidian-landscape",
+   "cold-blue-crimson-palette"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "portal",
+   "explorer",
+   "approach",
+   "cinematic-story",
+   "explorer-identity",
+   "gateway-keyframes",
+   "wet-obsidian-landscape",
+   "cold-blue-crimson-palette"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:seamless-loop-cinematic-warrior-blade-reconstruction-513162",
+  "slug": "seamless-loop-cinematic-warrior-blade-reconstruction-513162",
+  "title": "Anime Samurai Blade Glint",
+  "sourceTitle": "Seamless-loop cinematic warrior blade reconstruction",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.17,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/seamless-loop-cinematic-warrior-blade-reconstruction-513162.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/seamless-loop-cinematic-warrior-blade-reconstruction-513162.jpg",
+  "tags": [
+   "cinematic-story",
+   "image-to-video",
+   "warrior-character-image",
+   "held-sword",
+   "glass-shard-reconstruction",
+   "cyan-teal-gradient-backdrop"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "anime",
+   "samurai",
+   "blade",
+   "glint",
+   "cinematic-story",
+   "warrior-character-image",
+   "held-sword",
+   "glass-shard-reconstruction",
+   "cyan-teal-gradient-backdrop"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:second-storyboard-image-to-video-using-minimax-h3-on-215889",
+  "slug": "second-storyboard-image-to-video-using-minimax-h3-on-215889",
+  "title": "Park Bench Cat and Mouse",
+  "sourceTitle": "\"[REFERENCE CONTROL]",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/second-storyboard-image-to-video-using-minimax-h3-on-215889.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/second-storyboard-image-to-video-using-minimax-h3-on-215889.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "park",
+   "bench",
+   "cat",
+   "mouse",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:second-storyboard-image-to-video-using-minimax-h3-on-451093",
+  "slug": "second-storyboard-image-to-video-using-minimax-h3-on-451093",
+  "title": "Pineapple King Market",
+  "sourceTitle": "fifteen frantic cuts",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/second-storyboard-image-to-video-using-minimax-h3-on-451093.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/second-storyboard-image-to-video-using-minimax-h3-on-451093.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "pineapple",
+   "king",
+   "market",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:second-storyboard-image-to-video-using-s-minimax-h3-on-495506",
+  "slug": "second-storyboard-image-to-video-using-s-minimax-h3-on-495506",
+  "title": "Starlit Lantern Balloon",
+  "sourceTitle": "fifteen frantic one-second cuts",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/second-storyboard-image-to-video-using-s-minimax-h3-on-495506.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/second-storyboard-image-to-video-using-s-minimax-h3-on-495506.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "starlit",
+   "lantern",
+   "balloon",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:second-storyboard-image-to-video-using-s-minimax-h3-on-647644",
+  "slug": "second-storyboard-image-to-video-using-s-minimax-h3-on-647644",
+  "title": "Cloud Rain Greenhouse",
+  "sourceTitle": "soft musical breeze",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/second-storyboard-image-to-video-using-s-minimax-h3-on-647644.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/second-storyboard-image-to-video-using-s-minimax-h3-on-647644.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "cloud",
+   "rain",
+   "greenhouse",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:seedance2-854556",
+  "slug": "seedance2-854556",
+  "title": "Pop Singer Split Screen",
+  "sourceTitle": "​ — A young Caucasian woman, 177 cm tall, with long, straight, silky light-blond",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 26.78,
+  "aspectRatio": "3:4",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/seedance2-854556.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/seedance2-854556.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "pop",
+   "singer",
+   "split",
+   "screen",
+   "music-video"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:seocnd-storyboard-image-to-video-using-s-minimax-h3-on-442041",
+  "slug": "seocnd-storyboard-image-to-video-using-s-minimax-h3-on-442041",
+  "title": "Bakery Croissant Worry",
+  "sourceTitle": "new location",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/seocnd-storyboard-image-to-video-using-s-minimax-h3-on-442041.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/seocnd-storyboard-image-to-video-using-s-minimax-h3-on-442041.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "bakery",
+   "croissant",
+   "worry",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:shot-opens-tight-on-a-beautiful-woman-face-wind-452380",
+  "slug": "shot-opens-tight-on-a-beautiful-woman-face-wind-452380",
+  "title": "Cliff Descent to the Ocean",
+  "sourceTitle": "Cliffside Descent to the Ocean",
+  "category": "Action",
+  "subcategory": "Aerial & FPV",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/shot-opens-tight-on-a-beautiful-woman-face-wind-452380.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/shot-opens-tight-on-a-beautiful-woman-face-wind-452380.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "Aerial & FPV",
+  "topics": [
+   "action",
+   "aerial",
+   "fpv",
+   "cliff",
+   "descent",
+   "ocean",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:shots-shot-id-1-start-time-00-00-end-878083",
+  "slug": "shots-shot-id-1-start-time-00-00-end-878083",
+  "title": "Strawberry Drink Transformation",
+  "sourceTitle": "Strawberry Drink Transformation Commercial",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 7.37,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/shots-shot-id-1-start-time-00-00-end-878083.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/shots-shot-id-1-start-time-00-00-end-878083.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "native-audio",
+   "camera-direction",
+   "typography"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "strawberry",
+   "drink",
+   "transformation",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:skyship-flight-across-a-floating-kingdom-single-continu-344891",
+  "slug": "skyship-flight-across-a-floating-kingdom-single-continu-344891",
+  "title": "Skyship Over Floating Islands",
+  "sourceTitle": "Skyship Through a Floating Kingdom",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/skyship-flight-across-a-floating-kingdom-single-continu-344891.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/skyship-flight-across-a-floating-kingdom-single-continu-344891.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "skyship",
+   "over",
+   "floating",
+   "islands",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:slow-motion-handheld-close-up-16-9-shaky-organic-handhe-994748",
+  "slug": "slow-motion-handheld-close-up-16-9-shaky-organic-handhe-994748",
+  "title": "Containment Breach Lab",
+  "sourceTitle": "Containment Breach in a Sterile Lab",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 15.15,
+  "aspectRatio": "839:360",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/slow-motion-handheld-close-up-16-9-shaky-organic-handhe-994748.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/slow-motion-handheld-close-up-16-9-shaky-organic-handhe-994748.jpg",
+  "tags": [
+   "horror",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "containment",
+   "breach",
+   "lab",
+   "horror"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:soft-cute-y2k-crush-k-pop-girl-group-rap-mv-748313",
+  "slug": "soft-cute-y2k-crush-k-pop-girl-group-rap-mv-748313",
+  "title": "Candy Pop Typography Star",
+  "sourceTitle": "Y2K K-Pop Candy Typography Music Video",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/soft-cute-y2k-crush-k-pop-girl-group-rap-mv-748313.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/soft-cute-y2k-crush-k-pop-girl-group-rap-mv-748313.jpg",
+  "tags": [
+   "gameplay",
+   "reference-to-video",
+   "reference-image",
+   "camera-direction",
+   "typography"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "candy",
+   "pop",
+   "typography",
+   "star",
+   "gameplay"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:sola2-445763",
+  "slug": "sola2-445763",
+  "title": "Schoolyard Morning Run",
+  "sourceTitle": "A scene showing a male student wearing a green tracksuit and a female student in",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 8.07,
+  "aspectRatio": "9:5",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/sola2-445763.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/sola2-445763.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "schoolyard",
+   "morning",
+   "run",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:someone-got-up-at-four-so-you-didn-t-have-to-455917",
+  "slug": "someone-got-up-at-four-so-you-didn-t-have-to-455917",
+  "title": "Sourdough Proofing Timer",
+  "sourceTitle": "Music Video Study",
+  "category": "Social",
+  "subcategory": "Lifestyle & Food",
+  "duration": 15.18,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/someone-got-up-at-four-so-you-didn-t-have-to-455917.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/someone-got-up-at-four-so-you-didn-t-have-to-455917.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "sourdough",
+   "proofing",
+   "timer",
+   "music-video"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:source-artwork-as-a-10-second-premium-sci-fi-mot-672988",
+  "slug": "source-artwork-as-a-10-second-premium-sci-fi-mot-672988",
+  "title": "Retro Sci-Fi Poster Reveal",
+  "sourceTitle": "Cinematic Travel Study",
+  "category": "Animation",
+  "subcategory": "Title Sequences",
+  "duration": 10.22,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/source-artwork-as-a-10-second-premium-sci-fi-mot-672988.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/source-artwork-as-a-10-second-premium-sci-fi-mot-672988.jpg",
+  "tags": [
+   "cinematic-travel",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Titles & Typography",
+  "topics": [
+   "animation",
+   "title",
+   "sequences",
+   "retro",
+   "sci-fi",
+   "poster",
+   "reveal",
+   "cinematic-travel"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:storm-cliff-golf-physics-challenge-037151",
+  "slug": "storm-cliff-golf-physics-challenge-037151",
+  "title": "Storm-Cliff Golf Challenge",
+  "sourceTitle": "Storm-Cliff Golf Physics Challenge",
+  "category": "Social",
+  "subcategory": "Fitness & Sports",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/storm-cliff-golf-physics-challenge-037151.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/storm-cliff-golf-physics-challenge-037151.jpg",
+  "tags": [
+   "action",
+   "text-to-video",
+   "camera-direction",
+   "native-audio"
+  ],
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "storm-cliff",
+   "golf",
+   "challenge",
+   "action"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:storm-lit-pirate-galleon-battle-561048",
+  "slug": "storm-lit-pirate-galleon-battle-561048",
+  "title": "Pirate Galleon Broadside",
+  "sourceTitle": "Storm-Lit Pirate Galleon Battle",
+  "category": "Action",
+  "subcategory": "Battles & Disaster",
+  "duration": 10.22,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/storm-lit-pirate-galleon-battle-561048.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/storm-lit-pirate-galleon-battle-561048.jpg",
+  "tags": [
+   "action",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "pirate",
+   "galleon",
+   "broadside"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:stormy-claymation-whale-breach-729607",
+  "slug": "stormy-claymation-whale-breach-729607",
+  "title": "Breaching Whale Storm",
+  "sourceTitle": "Animation Concept",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 10.22,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/stormy-claymation-whale-breach-729607.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/stormy-claymation-whale-breach-729607.jpg",
+  "tags": [
+   "animation",
+   "reference-to-video",
+   "camera-direction",
+   "native-audio"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "breaching",
+   "whale",
+   "storm",
+   "animation"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:strawberry-seasonal-match-cut-food-commercial-117943",
+  "slug": "strawberry-seasonal-match-cut-food-commercial-117943",
+  "title": "Strawberry Spring Match Cut",
+  "sourceTitle": "Strawberry seasonal match-cut food commercial",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/strawberry-seasonal-match-cut-food-commercial-117943.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/strawberry-seasonal-match-cut-food-commercial-117943.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "ripe-strawberry",
+   "white-ceramic-bowl",
+   "four-seasonal-sets",
+   "cream-splash-landing"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "strawberry",
+   "spring",
+   "match",
+   "cut",
+   "product-commercial",
+   "ripe-strawberry",
+   "white-ceramic-bowl",
+   "four-seasonal-sets",
+   "cream-splash-landing"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:stunning-action-packed-scene-following-a-little-robot-r-288619",
+  "slug": "stunning-action-packed-scene-following-a-little-robot-r-288619",
+  "title": "Little Robot Alley Escape",
+  "sourceTitle": "Little Robot Cyberpunk Escape",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/stunning-action-packed-scene-following-a-little-robot-r-288619.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/stunning-action-packed-scene-following-a-little-robot-r-288619.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "little",
+   "robot",
+   "alley",
+   "escape",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:style-dark-rap-rap-music-video-with-photoreal-high-fash-066367",
+  "slug": "style-dark-rap-rap-music-video-with-photoreal-high-fash-066367",
+  "title": "Dark Rap Zine Portrait",
+  "sourceTitle": "Dark Rap Fashion Zine Music Video",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/style-dark-rap-rap-music-video-with-photoreal-high-fash-066367.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/style-dark-rap-rap-music-video-with-photoreal-high-fash-066367.jpg",
+  "tags": [
+   "product-commercial",
+   "reference-to-video",
+   "reference-image",
+   "typography"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "dark",
+   "rap",
+   "zine",
+   "portrait",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:style-hyper-realistic-dark-fantasy-tavern-cinematic-gro-137433",
+  "slug": "style-hyper-realistic-dark-fantasy-tavern-cinematic-gro-137433",
+  "title": "Tavern Brawl Scene",
+  "sourceTitle": "Dark-Fantasy Tavern Fight",
+  "category": "Action",
+  "subcategory": "Fights & Martial Arts",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/style-hyper-realistic-dark-fantasy-tavern-cinematic-gro-137433.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/style-hyper-realistic-dark-fantasy-tavern-cinematic-gro-137433.jpg",
+  "tags": [
+   "anime",
+   "text-to-video",
+   "native-audio",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "fights",
+   "martial",
+   "arts",
+   "tavern",
+   "brawl",
+   "anime",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:subject-person-from-image1-face-and-hairstyle-mu-249079",
+  "slug": "subject-person-from-image1-face-and-hairstyle-mu-249079",
+  "title": "Capsule Toy Shop Find",
+  "sourceTitle": "Cinematic Story Study",
+  "category": "Social",
+  "subcategory": "Lifestyle & Food",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/subject-person-from-image1-face-and-hairstyle-mu-249079.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/subject-person-from-image1-face-and-hairstyle-mu-249079.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "capsule",
+   "toy",
+   "shop",
+   "find",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:surreal-blue-studio-dance-with-horse-588086",
+  "slug": "surreal-blue-studio-dance-with-horse-588086",
+  "title": "Garden Duo Poster Reveal",
+  "sourceTitle": "Surreal Blue Studio Dance with a Horse",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/surreal-blue-studio-dance-with-horse-588086.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/surreal-blue-studio-dance-with-horse-588086.jpg",
+  "tags": [
+   "fashion",
+   "reference-to-video",
+   "reference-image",
+   "camera-direction",
+   "dialogue",
+   "native-audio",
+   "typography"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "garden",
+   "duo",
+   "poster",
+   "reveal",
+   "dialogue"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:t2v2k-197897",
+  "slug": "t2v2k-197897",
+  "title": "Neon Window Portrait",
+  "sourceTitle": "integrated_multimodal_description: [Shot 1] Live-action, cinematic, photorealist",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.18,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/t2v2k-197897.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/t2v2k-197897.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "neon",
+   "window",
+   "portrait",
+   "music-video"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:tested-minimax-h3-for-the-first-time-with-a-scene-784843",
+  "slug": "tested-minimax-h3-for-the-first-time-with-a-scene-784843",
+  "title": "Storm Cloud Fly-Through",
+  "sourceTitle": "Tested MiniMax H3 for the first time with a scene like this",
+  "category": "Action",
+  "subcategory": "Aerial & FPV",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/tested-minimax-h3-for-the-first-time-with-a-scene-784843.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/tested-minimax-h3-for-the-first-time-with-a-scene-784843.jpg",
+  "tags": [
+   "action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Aerial & FPV",
+  "topics": [
+   "action",
+   "aerial",
+   "fpv",
+   "storm",
+   "cloud",
+   "fly-through"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:the-brief-jessica-x-the-bag-804089",
+  "slug": "the-brief-jessica-x-the-bag-804089",
+  "title": "Hand-Painted Handbag Ad",
+  "sourceTitle": "The Brief: \"Jessica x The Bag\"",
+  "category": "Commercial",
+  "subcategory": "Luxury Goods",
+  "duration": 15.17,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/the-brief-jessica-x-the-bag-804089.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/the-brief-jessica-x-the-bag-804089.jpg",
+  "tags": [
+   "fashion",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "luxury",
+   "goods",
+   "hand-painted",
+   "handbag",
+   "fashion"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:the-downhill-slingshot-698388",
+  "slug": "the-downhill-slingshot-698388",
+  "title": "Hover Racer Slingshot",
+  "sourceTitle": "The Downhill Slingshot 🏎️💨",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/the-downhill-slingshot-698388.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/the-downhill-slingshot-698388.jpg",
+  "tags": [
+   "anime",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "hover",
+   "racer",
+   "slingshot",
+   "anime"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:the-last-thing-you-see-in-your-first-and-last-290296",
+  "slug": "the-last-thing-you-see-in-your-first-and-last-290296",
+  "title": "Black Hole Window Vlog",
+  "sourceTitle": "amateur handheld pov footage of a tourist in their plush and comfortable room of",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 10.22,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/the-last-thing-you-see-in-your-first-and-last-290296.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/the-last-thing-you-see-in-your-first-and-last-290296.jpg",
+  "tags": [
+   "cinematic-travel",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "black",
+   "hole",
+   "window",
+   "vlog",
+   "cinematic-travel"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:the-necromancer-walks-along-raising-skeletons-wi-614835",
+  "slug": "the-necromancer-walks-along-raising-skeletons-wi-614835",
+  "title": "Green Magic Forest Spell",
+  "sourceTitle": "Fantasy Film Study",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 5.26,
+  "aspectRatio": "9:5",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/the-necromancer-walks-along-raising-skeletons-wi-614835.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/the-necromancer-walks-along-raising-skeletons-wi-614835.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "green",
+   "magic",
+   "forest",
+   "spell",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:third-storyboard-image-to-video-using-minimax-h3-on-135909",
+  "slug": "third-storyboard-image-to-video-using-minimax-h3-on-135909",
+  "title": "Cloud Friend Garden Story",
+  "sourceTitle": "15 frantic hard cuts",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/third-storyboard-image-to-video-using-minimax-h3-on-135909.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/third-storyboard-image-to-video-using-minimax-h3-on-135909.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "cloud",
+   "friend",
+   "garden",
+   "story",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:this-model-shines-at-generating-mixedmedia-motion-graphics-combining-vis-961590",
+  "slug": "this-model-shines-at-generating-mixedmedia-motion-graphics-combining-vis-961590",
+  "title": "Courtyard Housing Presentation",
+  "sourceTitle": "This model shines at generating mixed‑media motion graphics combining visuals and text information.",
+  "category": "Commercial",
+  "subcategory": "Brand Films",
+  "duration": 15.18,
+  "aspectRatio": "3:4",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/this-model-shines-at-generating-mixedmedia-motion-graphics-combining-vis-961590.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/this-model-shines-at-generating-mixedmedia-motion-graphics-combining-vis-961590.jpg",
+  "tags": [
+   "fashion",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "brand",
+   "films",
+   "courtyard",
+   "housing",
+   "presentation",
+   "fashion"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:title-luxury-emerald-necklace-commercial-storyboard-for-872509",
+  "slug": "title-luxury-emerald-necklace-commercial-storyboard-for-872509",
+  "title": "Emerald Necklace Showcase",
+  "sourceTitle": "Luxury Emerald Necklace Storyboard",
+  "category": "Commercial",
+  "subcategory": "Luxury Goods",
+  "duration": 15.18,
+  "aspectRatio": "3:4",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/title-luxury-emerald-necklace-commercial-storyboard-for-872509.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/title-luxury-emerald-necklace-commercial-storyboard-for-872509.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction",
+   "typography"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "luxury",
+   "goods",
+   "emerald",
+   "necklace",
+   "showcase",
+   "product-commercial"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:top-down-stop-motion-style-video-of-four-hands-assembli-679353",
+  "slug": "top-down-stop-motion-style-video-of-four-hands-assembli-679353",
+  "title": "Wooden Dragon Stop Motion",
+  "sourceTitle": "Natural-Material Dragon Stop Motion",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 12.33,
+  "aspectRatio": "4:3",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/top-down-stop-motion-style-video-of-four-hands-assembli-679353.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/top-down-stop-motion-style-video-of-four-hands-assembli-679353.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "camera-direction",
+   "typography"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "wooden",
+   "dragon",
+   "stop",
+   "motion",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:tried-a-simple-slice-of-life-scene-with-on-281571",
+  "slug": "tried-a-simple-slice-of-life-scene-with-on-281571",
+  "title": "Folding Laundry Morning",
+  "sourceTitle": "Documentary Study",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/tried-a-simple-slice-of-life-scene-with-on-281571.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/tried-a-simple-slice-of-life-scene-with-on-281571.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "folding",
+   "laundry",
+   "morning",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:two-characters-arguing-in-english-make-the-emotion-feel-377881",
+  "slug": "two-characters-arguing-in-english-make-the-emotion-feel-377881",
+  "title": "Doorstep Argument Scene",
+  "sourceTitle": "Handheld Two-Person Argument",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.17,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/two-characters-arguing-in-english-make-the-emotion-feel-377881.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/two-characters-arguing-in-english-make-the-emotion-feel-377881.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "camera-direction"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "doorstep",
+   "argument",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:ugc-style-skincare-video-featuring-a-realistic-young-wo-242986",
+  "slug": "ugc-style-skincare-video-featuring-a-realistic-young-wo-242986",
+  "title": "Mirror Skincare Testimonial",
+  "sourceTitle": "Bathroom Mirror Skincare UGC Ad",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/ugc-style-skincare-video-featuring-a-realistic-young-wo-242986.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/ugc-style-skincare-video-featuring-a-realistic-young-wo-242986.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "camera-direction",
+   "typography"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "mirror",
+   "skincare",
+   "testimonial",
+   "product-commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:ui-ux-motion-showcase-video-for-a-high-performance-luxu-229386",
+  "slug": "ui-ux-motion-showcase-video-for-a-high-performance-luxu-229386",
+  "title": "Supercar Speed Landing Page",
+  "sourceTitle": "Luxury Sports Car Landing Page Motion",
+  "category": "Commercial",
+  "subcategory": "Automotive & Mobility",
+  "duration": 13.77,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/ui-ux-motion-showcase-video-for-a-high-performance-luxu-229386.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/ui-ux-motion-showcase-video-for-a-high-performance-luxu-229386.jpg",
+  "tags": [
+   "product-commercial",
+   "reference-to-video",
+   "reference-image",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "supercar",
+   "speed",
+   "landing",
+   "page",
+   "product-commercial",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:ultra-cinematic-aaa-adventure-game-trailer-one-continuo-722460",
+  "slug": "ultra-cinematic-aaa-adventure-game-trailer-one-continuo-722460",
+  "title": "Floating City Explorer and Cat",
+  "sourceTitle": "Explorer and Cat in a Floating Eco-City",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 43.4,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/ultra-cinematic-aaa-adventure-game-trailer-one-continuo-722460.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/ultra-cinematic-aaa-adventure-game-trailer-one-continuo-722460.jpg",
+  "tags": [
+   "gameplay",
+   "text-to-video",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "floating",
+   "city",
+   "explorer",
+   "cat",
+   "gameplay",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:ultra-fast-paced-cinematic-action-sequence-a-man-in-a-078815",
+  "slug": "ultra-fast-paced-cinematic-action-sequence-a-man-in-a-078815",
+  "title": "Jetpack Canyon Dive",
+  "sourceTitle": "Jetpack Dive Through a Mountain Gorge",
+  "category": "Action",
+  "subcategory": "Aerial & FPV",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/ultra-fast-paced-cinematic-action-sequence-a-man-in-a-078815.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/ultra-fast-paced-cinematic-action-sequence-a-man-in-a-078815.jpg",
+  "tags": [
+   "action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Aerial & FPV",
+  "topics": [
+   "action",
+   "aerial",
+   "fpv",
+   "jetpack",
+   "canyon",
+   "dive"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:ultra-premium-cinematic-luxury-perfume-commercial-783085",
+  "slug": "ultra-premium-cinematic-luxury-perfume-commercial-783085",
+  "title": "Perfume Gallery Glamour",
+  "sourceTitle": "Ultra-premium cinematic luxury perfume commercial",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.11,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/ultra-premium-cinematic-luxury-perfume-commercial-783085.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/ultra-premium-cinematic-luxury-perfume-commercial-783085.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "crystal-perfume-bottle",
+   "fashion-model",
+   "golden-mist-particles",
+   "black-marble-pedestal"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "perfume",
+   "gallery",
+   "glamour",
+   "product-commercial",
+   "crystal-perfume-bottle",
+   "fashion-model",
+   "golden-mist-particles",
+   "black-marble-pedestal"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:upload-use-la-ragazza-in-reference-as-a-strict-265763",
+  "slug": "upload-use-la-ragazza-in-reference-as-a-strict-265763",
+  "title": "Yellow Typography Fashion Spot",
+  "sourceTitle": "Yellow Sunglasses in a Black Studio",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/upload-use-la-ragazza-in-reference-as-a-strict-265763.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/upload-use-la-ragazza-in-reference-as-a-strict-265763.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "native-audio",
+   "camera-direction",
+   "timed-beats",
+   "typography"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "yellow",
+   "typography",
+   "spot",
+   "product-commercial",
+   "timed-beats"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:urban-street-superpowered-punch-action-sequence-712509",
+  "slug": "urban-street-superpowered-punch-action-sequence-712509",
+  "title": "Boxing Ring Clash",
+  "sourceTitle": "PART 1 (0–15 SECONDS)",
+  "category": "Action",
+  "subcategory": "Fights & Martial Arts",
+  "duration": 28.11,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/urban-street-superpowered-punch-action-sequence-712509.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/urban-street-superpowered-punch-action-sequence-712509.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "beaten-fighter",
+   "golden-blue-energy",
+   "urban-street-goons",
+   "shockwave-punches"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "fights",
+   "martial",
+   "arts",
+   "boxing",
+   "ring",
+   "clash",
+   "cinematic-story",
+   "beaten-fighter",
+   "golden-blue-energy",
+   "urban-street-goons",
+   "shockwave-punches"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:vertical-car-transformation-street-culture-film-378938",
+  "slug": "vertical-car-transformation-street-culture-film-378938",
+  "title": "Tuner Car Wheel Close-Up",
+  "sourceTitle": "Vertical car transformation street-culture film",
+  "category": "Commercial",
+  "subcategory": "Automotive & Mobility",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/vertical-car-transformation-street-culture-film-378938.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/vertical-car-transformation-street-culture-film-378938.jpg",
+  "tags": [
+   "product-commercial",
+   "text-to-video",
+   "stock-swift-hatchback",
+   "garage-modification",
+   "midnight-black-respray",
+   "night-city-streets"
+  ],
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "tuner",
+   "car",
+   "wheel",
+   "close-up",
+   "product-commercial",
+   "stock-swift-hatchback",
+   "garage-modification",
+   "midnight-black-respray",
+   "night-city-streets"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:via-mlx-serve-by-561487",
+  "slug": "via-mlx-serve-by-561487",
+  "title": "Little Dino Friends",
+  "sourceTitle": "\"A cute little girl walks through a sunny forest when a small, friendly dinosaur",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 5.26,
+  "aspectRatio": "1:1",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/via-mlx-serve-by-561487.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/via-mlx-serve-by-561487.jpg",
+  "tags": [
+   "animation",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "little",
+   "dino",
+   "friends"
+  ],
+  "orientation": "square",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:video-models-are-going-to-revolutionize-educatio-411987",
+  "slug": "video-models-are-going-to-revolutionize-educatio-411987",
+  "title": "Apple Alphabet Title",
+  "sourceTitle": "Video models are going to revolutionize education!",
+  "category": "VFX",
+  "subcategory": "Title Sequences",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/video-models-are-going-to-revolutionize-educatio-411987.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/video-models-are-going-to-revolutionize-educatio-411987.jpg",
+  "tags": [
+   "motion-graphics",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Titles & Typography",
+  "topics": [
+   "vfx",
+   "title",
+   "sequences",
+   "apple",
+   "alphabet",
+   "motion-graphics"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:video-prompt-case-311602-311602",
+  "slug": "video-prompt-case-311602-311602",
+  "title": "Smiling Portrait With Caption",
+  "sourceTitle": "She jokingly brings her face close to the camera and laughs",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 10.21,
+  "aspectRatio": "421:237",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/video-prompt-case-311602-311602.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/video-prompt-case-311602-311602.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "smiling",
+   "portrait",
+   "with",
+   "caption",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:video-prompt-case-710776-710776",
+  "slug": "video-prompt-case-710776-710776",
+  "title": "Deer and Tabby Meadow",
+  "sourceTitle": "No live-action photo style, no 3D CGI rendering, no text, no subtitles, no logos",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 8.07,
+  "aspectRatio": "33:19",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/video-prompt-case-710776-710776.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/video-prompt-case-710776-710776.jpg",
+  "tags": [
+   "action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "deer",
+   "tabby",
+   "meadow",
+   "action"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmx25:video-prompt-case-917120-917120",
+  "slug": "video-prompt-case-917120-917120",
+  "title": "Pink Hair Illustration",
+  "sourceTitle": "heavy colored-pencil and crayon grain visible on every surface",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/video-prompt-case-917120-917120.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/video-prompt-case-917120-917120.jpg",
+  "tags": [
+   "animation",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "pink",
+   "hair",
+   "illustration"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:video-seedance-2-5-and-minimax-h3-on-161893",
+  "slug": "video-seedance-2-5-and-minimax-h3-on-161893",
+  "title": "Muddy Boots Close-Up",
+  "sourceTitle": "PROSE & IN-LINE SPATIAL & GLOBAL LOCK]: At 0",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 5.14,
+  "aspectRatio": "8:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/video-seedance-2-5-and-minimax-h3-on-161893.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/video-seedance-2-5-and-minimax-h3-on-161893.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "muddy",
+   "boots",
+   "close-up",
+   "music-video"
+  ],
+  "orientation": "square",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:watercolor-anime-fetish-montage-rapid-cuts-335119",
+  "slug": "watercolor-anime-fetish-montage-rapid-cuts-335119",
+  "title": "School Uniform Anime Detail",
+  "sourceTitle": "id: \"fetish_montage_v3_with_broll\"",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.18,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/watercolor-anime-fetish-montage-rapid-cuts-335119.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/watercolor-anime-fetish-montage-rapid-cuts-335119.jpg",
+  "tags": [
+   "anime",
+   "text-to-video",
+   "watercolor-anime-style",
+   "macro-body-details",
+   "symbolic-b-roll-inserts",
+   "half-second-hard-cuts"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "school",
+   "uniform",
+   "anime",
+   "detail",
+   "watercolor-anime-style",
+   "macro-body-details",
+   "symbolic-b-roll-inserts",
+   "half-second-hard-cuts"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:what-if-cleopatra-ordered-pizza-892346",
+  "slug": "what-if-cleopatra-ordered-pizza-892346",
+  "title": "Pharaoh Queen Moment",
+  "sourceTitle": "What if Cleopatra ordered pizza? 😂",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/what-if-cleopatra-ordered-pizza-892346.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/what-if-cleopatra-ordered-pizza-892346.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "pharaoh",
+   "queen",
+   "moment",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:what-if-superman-had-to-do-his-own-laundry-986556",
+  "slug": "what-if-superman-had-to-do-his-own-laundry-986556",
+  "title": "Caped Hero Laundry Day",
+  "sourceTitle": "What if Superman had to do his own laundry? 😂",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/what-if-superman-had-to-do-his-own-laundry-986556.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/what-if-superman-had-to-do-his-own-laundry-986556.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "caped",
+   "hero",
+   "laundry",
+   "day",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:which-one-looks-better-to-you-565341",
+  "slug": "which-one-looks-better-to-you-565341",
+  "title": "Railway Spark Comparison",
+  "sourceTitle": "Which one looks better to you?",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.03,
+  "aspectRatio": "4:5",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/which-one-looks-better-to-you-565341.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/which-one-looks-better-to-you-565341.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "railway",
+   "spark",
+   "comparison",
+   "music-video"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmx25:would-you-like-to-dance-986858",
+  "slug": "would-you-like-to-dance-986858",
+  "title": "Robot Dance Floor Duet",
+  "sourceTitle": "Would you like to dance?",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/would-you-like-to-dance-986858.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/would-you-like-to-dance-986858.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "dance-invitation",
+   "partnered-motion"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "robot",
+   "floor",
+   "duet",
+   "music-video",
+   "dance-invitation",
+   "partnered-motion"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmx25:x-midjourney-v8-2-on-624724",
+  "slug": "x-midjourney-v8-2-on-624724",
+  "title": "Ancient Nile Sunset",
+  "sourceTitle": "Documentary Study",
+  "category": "Cinema",
+  "subcategory": "Period & Historical",
+  "duration": 15.15,
+  "aspectRatio": "4:5",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmx25/x-midjourney-v8-2-on-624724.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmx25/x-midjourney-v8-2-on-624724.jpg",
+  "tags": [
+   "cinematic-story",
+   "reference-to-video",
+   "text-prompt"
+  ],
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "ancient",
+   "nile",
+   "sunset",
+   "cinematic-story"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmxLegacy:bamboo-forest-wuxia-mystery",
+  "slug": "bamboo-forest-wuxia-mystery",
+  "title": "Wuxia Heroine Portrait",
+  "sourceTitle": "Bamboo Forest Wuxia Mystery",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/bamboo-forest-wuxia-mystery.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/bamboo-forest-wuxia-mystery.webp",
+  "tags": [
+   "wuxia",
+   "atmosphere",
+   "mystery",
+   "product",
+   "commercial"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "wuxia",
+   "heroine",
+   "portrait",
+   "atmosphere",
+   "mystery",
+   "product",
+   "commercial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:black-and-gold-perfume-commercial",
+  "slug": "black-and-gold-perfume-commercial",
+  "title": "Noir Perfume Smoke Reveal",
+  "sourceTitle": "Black-and-Gold Perfume Commercial",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/black-and-gold-perfume-commercial.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/black-and-gold-perfume-commercial.webp",
+  "tags": [
+   "product",
+   "luxury",
+   "perfume",
+   "commercial"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "noir",
+   "perfume",
+   "smoke",
+   "reveal",
+   "product",
+   "luxury"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:blackberry-vanilla-soda-ugc-vlog",
+  "slug": "blackberry-vanilla-soda-ugc-vlog",
+  "title": "Berry Soda Can Close-Up",
+  "sourceTitle": "Blackberry Vanilla Soda UGC Vlog",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/blackberry-vanilla-soda-ugc-vlog.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/blackberry-vanilla-soda-ugc-vlog.webp",
+  "tags": [
+   "ugc",
+   "beverage",
+   "vlog",
+   "product",
+   "commercial"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "berry",
+   "soda",
+   "can",
+   "close-up",
+   "ugc",
+   "vlog",
+   "product"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:blue-haired-hero-and-spirit-fox-escape",
+  "slug": "blue-haired-hero-and-spirit-fox-escape",
+  "title": "Spirit Fox Hero Escape",
+  "sourceTitle": "Blue-Haired Hero and Spirit Fox Escape",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/blue-haired-hero-and-spirit-fox-escape.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/blue-haired-hero-and-spirit-fox-escape.webp",
+  "tags": [
+   "character",
+   "fantasy",
+   "duo",
+   "cinematic",
+   "story"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "spirit",
+   "fox",
+   "hero",
+   "escape",
+   "character",
+   "fantasy",
+   "duo",
+   "cinematic",
+   "story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmxLegacy:cyber-warrior-vs-primordial-fighter",
+  "slug": "cyber-warrior-vs-primordial-fighter",
+  "title": "Axe Warrior Close-Up",
+  "sourceTitle": "Cyber Warrior vs. Primordial Fighter",
+  "category": "Action",
+  "subcategory": "Creatures & Heroes",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/cyber-warrior-vs-primordial-fighter.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/cyber-warrior-vs-primordial-fighter.webp",
+  "tags": [
+   "character",
+   "fight",
+   "cyber",
+   "action"
+  ],
+  "group": "Creatures & Heroes",
+  "topics": [
+   "action",
+   "creatures",
+   "heroes",
+   "axe",
+   "warrior",
+   "close-up",
+   "character",
+   "fight",
+   "cyber"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmxLegacy:emerald-bio-serum-product-film",
+  "slug": "emerald-bio-serum-product-film",
+  "title": "Glass Serum Dropper Macro",
+  "sourceTitle": "Emerald Bio-Serum Product Film",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/emerald-bio-serum-product-film.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/emerald-bio-serum-product-film.webp",
+  "tags": [
+   "beauty",
+   "serum",
+   "vertical",
+   "product",
+   "commercial"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "glass",
+   "serum",
+   "dropper",
+   "macro",
+   "vertical",
+   "product"
+  ],
+  "orientation": "portrait",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmxLegacy:giant-koi-park-incident",
+  "slug": "giant-koi-park-incident",
+  "title": "Giant Koi Park Incident",
+  "sourceTitle": "Giant koi park incident",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/giant-koi-park-incident.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/giant-koi-park-incident.webp",
+  "tags": [
+   "viral",
+   "creature",
+   "scale",
+   "short"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "giant",
+   "koi",
+   "park",
+   "incident",
+   "viral",
+   "creature",
+   "scale",
+   "short"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:golden-guardian-web-hero-loop",
+  "slug": "golden-guardian-web-hero-loop",
+  "title": "Rainbow Portal Hero Loop",
+  "sourceTitle": "Golden Guardian Web Hero Loop",
+  "category": "VFX",
+  "subcategory": "Loops & Hero Backgrounds",
+  "duration": 30.24,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/golden-guardian-web-hero-loop.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/golden-guardian-web-hero-loop.webp",
+  "tags": [
+   "web",
+   "hero",
+   "loop",
+   "cinematic",
+   "fashion"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "loops",
+   "hero",
+   "backgrounds",
+   "rainbow",
+   "portal",
+   "loop",
+   "web",
+   "cinematic",
+   "fashion"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmxLegacy:gourmet-burger-ugc-taste-test",
+  "slug": "gourmet-burger-ugc-taste-test",
+  "title": "Cheeseburger Taste Test",
+  "sourceTitle": "Gourmet Burger UGC Taste Test",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/gourmet-burger-ugc-taste-test.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/gourmet-burger-ugc-taste-test.webp",
+  "tags": [
+   "ugc",
+   "food",
+   "local-business",
+   "taste-test",
+   "product",
+   "commercial"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "cheeseburger",
+   "taste",
+   "test",
+   "ugc",
+   "local-business",
+   "taste-test",
+   "product"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:greenhouse-tea-isekai-anime",
+  "slug": "greenhouse-tea-isekai-anime",
+  "title": "Teacup Whirlpool Fantasy",
+  "sourceTitle": "Greenhouse tea isekai anime",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 15.24,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/greenhouse-tea-isekai-anime.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/greenhouse-tea-isekai-anime.webp",
+  "tags": [
+   "anime",
+   "isekai",
+   "stylized"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "teacup",
+   "whirlpool",
+   "fantasy",
+   "anime",
+   "isekai",
+   "stylized"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:low-angle-fashion-tracking-film",
+  "slug": "low-angle-fashion-tracking-film",
+  "title": "Low-Angle Dress Walk",
+  "sourceTitle": "Low-Angle Fashion Tracking Film",
+  "category": "Fashion",
+  "subcategory": "Runway & Lookbook",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/low-angle-fashion-tracking-film.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/low-angle-fashion-tracking-film.webp",
+  "tags": [
+   "fashion",
+   "tracking",
+   "editorial"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "runway",
+   "lookbook",
+   "low-angle",
+   "dress",
+   "walk",
+   "tracking",
+   "editorial"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:luxury-perfume-commercial",
+  "slug": "luxury-perfume-commercial",
+  "title": "Crystal Perfume Close-Up",
+  "sourceTitle": "Luxury perfume commercial",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/luxury-perfume-commercial.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/luxury-perfume-commercial.webp",
+  "tags": [
+   "product",
+   "luxury",
+   "perfume",
+   "commercial"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "crystal",
+   "perfume",
+   "close-up",
+   "product",
+   "luxury"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:luxury-skincare-storyboard-commercial",
+  "slug": "luxury-skincare-storyboard-commercial",
+  "title": "Hydrating Serum Hand Shot",
+  "sourceTitle": "Luxury Skincare Storyboard Commercial",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/luxury-skincare-storyboard-commercial.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/luxury-skincare-storyboard-commercial.webp",
+  "tags": [
+   "beauty",
+   "skincare",
+   "storyboard",
+   "product",
+   "commercial"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "hydrating",
+   "serum",
+   "hand",
+   "shot",
+   "skincare",
+   "storyboard",
+   "product"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:macaw-scream-in-extreme-slow-motion",
+  "slug": "macaw-scream-in-extreme-slow-motion",
+  "title": "Macaw Slow-Motion Scream",
+  "sourceTitle": "Macaw Scream in Extreme Slow Motion",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 15.18,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/macaw-scream-in-extreme-slow-motion.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/macaw-scream-in-extreme-slow-motion.webp",
+  "tags": [
+   "slow-motion",
+   "nature",
+   "macro",
+   "cinematic",
+   "story"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "macaw",
+   "slow-motion",
+   "scream",
+   "nature",
+   "macro",
+   "cinematic",
+   "story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmxLegacy:modern-warfare-fps-gameplay",
+  "slug": "modern-warfare-fps-gameplay",
+  "title": "Rifle Scope Warzone POV",
+  "sourceTitle": "Modern warfare FPS gameplay",
+  "category": "Action",
+  "subcategory": "Battles & Disaster",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/modern-warfare-fps-gameplay.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/modern-warfare-fps-gameplay.webp",
+  "tags": [
+   "gameplay",
+   "fps",
+   "trailer"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "rifle",
+   "scope",
+   "warzone",
+   "pov",
+   "gameplay",
+   "fps",
+   "trailer"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:morning-lip-oil-ugc-testimonial",
+  "slug": "morning-lip-oil-ugc-testimonial",
+  "title": "Vanity Lip Oil Testimonial",
+  "sourceTitle": "Morning Lip Oil UGC Testimonial",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/morning-lip-oil-ugc-testimonial.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/morning-lip-oil-ugc-testimonial.webp",
+  "tags": [
+   "ugc",
+   "beauty",
+   "testimonial",
+   "product",
+   "commercial"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "vanity",
+   "lip",
+   "oil",
+   "testimonial",
+   "ugc",
+   "product"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:nighttime-motorcycle-chase-synced-to-music",
+  "slug": "nighttime-motorcycle-chase-synced-to-music",
+  "title": "Night Rider City Chase",
+  "sourceTitle": "Nighttime Motorcycle Chase Synced to Music",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/nighttime-motorcycle-chase-synced-to-music.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/nighttime-motorcycle-chase-synced-to-music.webp",
+  "tags": [
+   "chase",
+   "music-sync",
+   "night",
+   "cinematic",
+   "story"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "night",
+   "rider",
+   "city",
+   "chase",
+   "music-sync",
+   "cinematic",
+   "story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:porto-francesinha-comedy-recipe",
+  "slug": "porto-francesinha-comedy-recipe",
+  "title": "Chef Ham Slicing Close-Up",
+  "sourceTitle": "Porto Francesinha Comedy Recipe",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.24,
+  "aspectRatio": "92:39",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/porto-francesinha-comedy-recipe.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/porto-francesinha-comedy-recipe.webp",
+  "tags": [
+   "food",
+   "recipe",
+   "comedy"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "chef",
+   "ham",
+   "slicing",
+   "close-up",
+   "recipe",
+   "comedy"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:radio-operator-evacuation-bridge",
+  "slug": "radio-operator-evacuation-bridge",
+  "title": "Evacuation Corridor Run",
+  "sourceTitle": "Radio operator evacuation bridge",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/radio-operator-evacuation-bridge.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/radio-operator-evacuation-bridge.webp",
+  "tags": [
+   "story",
+   "drama",
+   "period",
+   "cinematic"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "evacuation",
+   "corridor",
+   "run",
+   "story",
+   "period",
+   "cinematic"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:ramen-bowl-ugc-taste-test",
+  "slug": "ramen-bowl-ugc-taste-test",
+  "title": "Ramen Noodle Taste Test",
+  "sourceTitle": "Ramen Bowl UGC Taste Test",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.18,
+  "aspectRatio": "40:17",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/ramen-bowl-ugc-taste-test.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/ramen-bowl-ugc-taste-test.webp",
+  "tags": [
+   "ugc",
+   "food",
+   "restaurant",
+   "taste-test",
+   "product",
+   "commercial"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "ramen",
+   "noodle",
+   "taste",
+   "test",
+   "ugc",
+   "restaurant",
+   "taste-test",
+   "product"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:storm-lit-pirate-galleon-battle",
+  "slug": "storm-lit-pirate-galleon-battle",
+  "title": "Galleon Cannon Fire Duel",
+  "sourceTitle": "Storm-Lit Pirate Galleon Battle",
+  "category": "Action",
+  "subcategory": "Battles & Disaster",
+  "duration": 10.22,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/storm-lit-pirate-galleon-battle.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/storm-lit-pirate-galleon-battle.webp",
+  "tags": [
+   "action",
+   "battle",
+   "storm"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "galleon",
+   "cannon",
+   "fire",
+   "duel",
+   "battle",
+   "storm"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:stormy-claymation-whale-breach",
+  "slug": "stormy-claymation-whale-breach",
+  "title": "Claymation Whale Breach",
+  "sourceTitle": "Stormy Claymation Whale Breach",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 10.22,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/stormy-claymation-whale-breach.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/stormy-claymation-whale-breach.webp",
+  "tags": [
+   "claymation",
+   "stop-motion",
+   "texture",
+   "animation"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "claymation",
+   "whale",
+   "breach",
+   "stop-motion",
+   "texture"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmxLegacy:strawberry-drink-transformation-commercial",
+  "slug": "strawberry-drink-transformation-commercial",
+  "title": "Strawberry Pink Studio Spot",
+  "sourceTitle": "Strawberry Drink Transformation Commercial",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 7.37,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/strawberry-drink-transformation-commercial.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/strawberry-drink-transformation-commercial.webp",
+  "tags": [
+   "product",
+   "beverage",
+   "transformation",
+   "commercial"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "strawberry",
+   "pink",
+   "studio",
+   "spot",
+   "product",
+   "transformation"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "none"
+ },
+ {
+  "id": "mmxLegacy:surreal-blue-studio-dance-with-a-horse",
+  "slug": "surreal-blue-studio-dance-with-a-horse",
+  "title": "Blue Studio Fashion Duo",
+  "sourceTitle": "Surreal Blue Studio Dance with a Horse",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/surreal-blue-studio-dance-with-a-horse.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/surreal-blue-studio-dance-with-a-horse.webp",
+  "tags": [
+   "fashion",
+   "surreal",
+   "dance"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "blue",
+   "studio",
+   "duo",
+   "surreal",
+   "dance"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "mmxLegacy:theme-park-memory-montage",
+  "slug": "theme-park-memory-montage",
+  "title": "Roller Coaster Memory Montage",
+  "sourceTitle": "Theme Park Memory Montage",
+  "category": "Social",
+  "subcategory": "Lifestyle & Food",
+  "duration": 5.14,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/theme-park-memory-montage.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/theme-park-memory-montage.webp",
+  "tags": [
+   "montage",
+   "nostalgia",
+   "lifestyle",
+   "cinematic",
+   "story"
+  ],
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "roller",
+   "coaster",
+   "memory",
+   "montage",
+   "nostalgia",
+   "cinematic",
+   "story"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "mmxLegacy:y2k-k-pop-candy-typography-music-video",
+  "slug": "y2k-k-pop-candy-typography-music-video",
+  "title": "Candy Pop Lettering Doll",
+  "sourceTitle": "Y2K K-Pop Candy Typography Music Video",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 15.18,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/mmxLegacy/y2k-k-pop-candy-typography-music-video.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/mmxLegacy/y2k-k-pop-candy-typography-music-video.webp",
+  "tags": [
+   "music-video",
+   "y2k",
+   "typography",
+   "gameplay"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "candy",
+   "pop",
+   "lettering",
+   "doll",
+   "music-video",
+   "y2k",
+   "gameplay"
+  ],
+  "orientation": "landscape",
+  "source": "MiniMax H3",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:2-generated-the-video-with-seedance-2-5-which-is-821090",
+  "slug": "2-generated-the-video-with-seedance-2-5-which-is-821090",
+  "title": "Blank Interface Recording",
+  "sourceTitle": "A strong and disciplined young woman stands inside an ancient Chinese martial ar",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 24.9,
+  "aspectRatio": "719:360",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/2-generated-the-video-with-seedance-2-5-which-is-821090.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/2-generated-the-video-with-seedance-2-5-which-is-821090.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "blank",
+   "interface",
+   "recording",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:30-second-ultra-realistic-multi-shot-candid-obse-683460",
+  "slug": "30-second-ultra-realistic-multi-shot-candid-obse-683460",
+  "title": "Bedroom Cat Cuddle",
+  "sourceTitle": "Product Commercial Study",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 30.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/30-second-ultra-realistic-multi-shot-candid-obse-683460.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/30-second-ultra-realistic-multi-shot-candid-obse-683460.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "bedroom",
+   "cat",
+   "cuddle",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:5-minutes-a-day-just-for-you-019376",
+  "slug": "5-minutes-a-day-just-for-you-019376",
+  "title": "Night Skincare Routine",
+  "sourceTitle": "5 minutes a day. Just for you.",
+  "category": "Commercial",
+  "subcategory": "Beauty & Fragrance",
+  "duration": 33.49,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/5-minutes-a-day-just-for-you-019376.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/5-minutes-a-day-just-for-you-019376.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Beauty & Fragrance",
+  "topics": [
+   "commercial",
+   "beauty",
+   "fragrance",
+   "night",
+   "skincare",
+   "routine",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"AI\" corner badge"
+ },
+ {
+  "id": "sd25:a-30-second-cinematic-parkour-commercial-about-focus-movement-and-513060",
+  "slug": "a-30-second-cinematic-parkour-commercial-about-focus-movement-and-513060",
+  "title": "Rooftop Parkour Leap",
+  "sourceTitle": "A 30-second cinematic parkour commercial about focus, movement, and pushing beyond the edge.",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 30.12,
+  "aspectRatio": "4:3",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/a-30-second-cinematic-parkour-commercial-about-focus-movement-and-513060.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/a-30-second-cinematic-parkour-commercial-about-focus-movement-and-513060.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "rooftop",
+   "parkour",
+   "leap",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:a-morning-walk-woman-golden-retriever-quiet-suburban-park-nothing-540574",
+  "slug": "a-morning-walk-woman-golden-retriever-quiet-suburban-park-nothing-540574",
+  "title": "Morning Walk Handheld",
+  "sourceTitle": "A morning walk. Woman, golden retriever, quiet suburban park. Nothing happens",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 15.21,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/a-morning-walk-woman-golden-retriever-quiet-suburban-park-nothing-540574.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/a-morning-walk-woman-golden-retriever-quiet-suburban-park-nothing-540574.jpg",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "morning",
+   "walk",
+   "handheld",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:a-pixar-style-short-dave-checks-the-sky-before-leaving-551127",
+  "slug": "a-pixar-style-short-dave-checks-the-sky-before-leaving-551127",
+  "title": "Animated Character Comparison",
+  "sourceTitle": "\"A Pixar style short. Dave checks the sky before leaving home, gets ambushed by",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 20.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/a-pixar-style-short-dave-checks-the-sky-before-leaving-551127.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/a-pixar-style-short-dave-checks-the-sky-before-leaving-551127.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "character",
+   "comparison",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:action-film-study-229811",
+  "slug": "action-film-study-229811",
+  "title": "Police Chase Fire POV",
+  "sourceTitle": "OPERATION: Officer responds first to a small roadside brush fire before firefigh",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 30.08,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/action-film-study-229811.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/action-film-study-229811.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "police",
+   "chase",
+   "fire",
+   "pov",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"AI\" corner badge"
+ },
+ {
+  "id": "sd25:action-film-study-720086",
+  "slug": "action-film-study-720086",
+  "title": "Night Street Police Scene",
+  "sourceTitle": "ON-AIR REPORTER: Male journalist, late 20s",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/action-film-study-720086.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/action-film-study-720086.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "night",
+   "street",
+   "police",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:ai-video-generation-just-got-terrifyingly-good-945734",
+  "slug": "ai-video-generation-just-got-terrifyingly-good-945734",
+  "title": "Light-Trail Heart Drawing",
+  "sourceTitle": "Horror Film Study",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 30.17,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/ai-video-generation-just-got-terrifyingly-good-945734.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/ai-video-generation-just-got-terrifyingly-good-945734.jpg",
+  "tags": [
+   "horror",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "light-trail",
+   "heart",
+   "drawing",
+   "horror"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:amazonian-warrior-animal-transformation",
+  "slug": "amazonian-warrior-animal-transformation",
+  "title": "Underwater Hero Mist",
+  "sourceTitle": "epic final hero shot before a slow fade to black",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 30.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/amazonian-warrior-animal-transformation.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/amazonian-warrior-animal-transformation.jpg",
+  "tags": [
+   "fantasy",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "underwater",
+   "hero",
+   "mist"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:another-experiment-with-a-30-second-cinematic-in-256736",
+  "slug": "another-experiment-with-a-30-second-cinematic-in-256736",
+  "title": "Epic Archer Chariot",
+  "sourceTitle": "Animation Study",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/another-experiment-with-a-30-second-cinematic-in-256736.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/another-experiment-with-a-30-second-cinematic-in-256736.jpg",
+  "tags": [
+   "animation",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "epic",
+   "archer",
+   "chariot"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:blonde-warrior-battlefield",
+  "slug": "blonde-warrior-battlefield",
+  "title": "Warrior Heroine Split Screen",
+  "sourceTitle": "20-second impossible high-fashion warrior photoshoot",
+  "category": "Action",
+  "subcategory": "Battles & Disaster",
+  "duration": 20.07,
+  "aspectRatio": "8:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/blonde-warrior-battlefield.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/blonde-warrior-battlefield.jpg",
+  "tags": [
+   "cinematic-action",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "warrior",
+   "heroine",
+   "split",
+   "screen",
+   "cinematic-action"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:blue-disc-anime-hero-battle",
+  "slug": "blue-disc-anime-hero-battle",
+  "title": "Anime Hero Sprite Sheet",
+  "sourceTitle": "Blue-Disc Anime Hero Battle",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 24.22,
+  "aspectRatio": "1:1",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/blue-disc-anime-hero-battle.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/blue-disc-anime-hero-battle.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "anime",
+   "hero",
+   "sprite",
+   "sheet",
+   "cinematic-action"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:camera-handheld-dv-16mm-daily-vlog-footage-the-v-110168",
+  "slug": "camera-handheld-dv-16mm-daily-vlog-footage-the-v-110168",
+  "title": "Daily Vlog Handheld Walk",
+  "sourceTitle": "CAMERA: Handheld DV 16mm daily vlog footage. The video MUST",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 15.14,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/camera-handheld-dv-16mm-daily-vlog-footage-the-v-110168.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/camera-handheld-dv-16mm-daily-vlog-footage-the-v-110168.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "daily",
+   "vlog",
+   "handheld",
+   "walk",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:camera-look-handheld-mini-dv-camcorder-footage-f-761919",
+  "slug": "camera-look-handheld-mini-dv-camcorder-footage-f-761919",
+  "title": "Pressed Flower Craft Video",
+  "sourceTitle": "Product Commercial Study",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 31.4,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/camera-look-handheld-mini-dv-camcorder-footage-f-761919.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/camera-look-handheld-mini-dv-camcorder-footage-f-761919.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "pressed",
+   "flower",
+   "craft",
+   "video",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:camera-look-handheld-mini-dv-camcorder-footage-f-981913",
+  "slug": "camera-look-handheld-mini-dv-camcorder-footage-f-981913",
+  "title": "Meadow Selfie Smile",
+  "sourceTitle": "Product Commercial Study",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 31.24,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/camera-look-handheld-mini-dv-camcorder-footage-f-981913.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/camera-look-handheld-mini-dv-camcorder-footage-f-981913.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "meadow",
+   "selfie",
+   "smile",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:cinematic-story-study-143211",
+  "slug": "cinematic-story-study-143211",
+  "title": "Rainy Carousel Boy",
+  "sourceTitle": "00:00–00:03 — Wide cinematic shot of an abandoned amusement park at dusk",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 30.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/cinematic-story-study-143211.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/cinematic-story-study-143211.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "rainy",
+   "carousel",
+   "boy",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"AI\" corner badge"
+ },
+ {
+  "id": "sd25:cinematic-story-study-501840",
+  "slug": "cinematic-story-study-501840",
+  "title": "Sky Islands Character Sheet",
+  "sourceTitle": "Use @[character ref] only for the Hunter’s referenced appearance; ignore its bac",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 30.1,
+  "aspectRatio": "180:191",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/cinematic-story-study-501840.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/cinematic-story-study-501840.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "sky",
+   "islands",
+   "character",
+   "sheet",
+   "cinematic-story"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:cinematic-story-study-866658",
+  "slug": "cinematic-story-study-866658",
+  "title": "Retro Desktop Pointer Gag",
+  "sourceTitle": "ten second cinematic live action illusion in a sixteen by nine frame at thirty f",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 20.09,
+  "aspectRatio": "427:240",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/cinematic-story-study-866658.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/cinematic-story-study-866658.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "retro",
+   "desktop",
+   "pointer",
+   "gag",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:cleopatra-by-540828",
+  "slug": "cleopatra-by-540828",
+  "title": "Roman and Queen Portrait",
+  "sourceTitle": "Cleopatra by .🪎",
+  "category": "Cinema",
+  "subcategory": "Period & Historical",
+  "duration": 30.1,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/cleopatra-by-540828.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/cleopatra-by-540828.jpg",
+  "tags": [
+   "fantasy",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "roman",
+   "queen",
+   "portrait",
+   "fantasy"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:create-a-30-second-ultra-realistic-documentary-home-video-of-620321",
+  "slug": "create-a-30-second-ultra-realistic-documentary-home-video-of-620321",
+  "title": "Alley Cat Feeding",
+  "sourceTitle": "Create a 30-second ultra-realistic documentary/home-video of the SAME young",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/create-a-30-second-ultra-realistic-documentary-home-video-of-620321.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/create-a-30-second-ultra-realistic-documentary-home-video-of-620321.webp",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "alley",
+   "cat",
+   "feeding",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:created-in-423842",
+  "slug": "created-in-423842",
+  "title": "Waterfall Meditation",
+  "sourceTitle": "Extremely photorealistic live-action cinematic footage",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 20.19,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/created-in-423842.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/created-in-423842.webp",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "waterfall",
+   "meditation",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:created-with-seedance-2-5-141060",
+  "slug": "created-with-seedance-2-5-141060",
+  "title": "Market Blur Vendor",
+  "sourceTitle": "character sheet prompt",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 31.1,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/created-with-seedance-2-5-141060.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/created-with-seedance-2-5-141060.webp",
+  "tags": [
+   "animation",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "market",
+   "blur",
+   "vendor",
+   "animation"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"Created With Seedance 2.5\" end card"
+ },
+ {
+  "id": "sd25:creation-on-828971",
+  "slug": "creation-on-828971",
+  "title": "Chibi Anime Faceoff",
+  "sourceTitle": "polished colorful chibi anime",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/creation-on-828971.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/creation-on-828971.jpg",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "chibi",
+   "anime",
+   "faceoff",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:desert-hoverboard-ruin-run",
+  "slug": "desert-hoverboard-ruin-run",
+  "title": "Visor Rider Close-Up",
+  "sourceTitle": "SOURCE AND CONTINUATION",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 58.87,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/desert-hoverboard-ruin-run.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/desert-hoverboard-ruin-run.jpg",
+  "tags": [
+   "cinematic-action",
+   "video-to-video",
+   "text-prompt",
+   "video-or-motion-reference"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "visor",
+   "rider",
+   "close-up",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"AI\" badge"
+ },
+ {
+  "id": "sd25:dola-ai-is-giving-free-ai-video-credits-823385",
+  "slug": "dola-ai-is-giving-free-ai-video-credits-823385",
+  "title": "Sunlit Meadow Twirl",
+  "sourceTitle": "🚨 Dola AI is giving FREE AI video credits",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 10.11,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/dola-ai-is-giving-free-ai-video-credits-823385.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/dola-ai-is-giving-free-ai-video-credits-823385.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "sunlit",
+   "meadow",
+   "twirl",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "sd25:eryan-griffin-canyon-flight",
+  "slug": "eryan-griffin-canyon-flight",
+  "title": "Waterfall Canyon Comparison",
+  "sourceTitle": "Eryan and Griffin Canyon Flight",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 30.1,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/eryan-griffin-canyon-flight.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/eryan-griffin-canyon-flight.jpg",
+  "tags": [
+   "fantasy",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference",
+   "audio-or-sound-direction"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "waterfall",
+   "canyon",
+   "comparison",
+   "fantasy"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:every-fingerprint-every-frame-stutter-227781",
+  "slug": "every-fingerprint-every-frame-stutter-227781",
+  "title": "Fire-Breathing Dragon Puppet",
+  "sourceTitle": "Every fingerprint, every frame stutter",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 18.68,
+  "aspectRatio": "4:5",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/every-fingerprint-every-frame-stutter-227781.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/every-fingerprint-every-frame-stutter-227781.jpg",
+  "tags": [
+   "animation",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "fire-breathing",
+   "dragon",
+   "puppet"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:faceless-riders-highway-chase",
+  "slug": "faceless-riders-highway-chase",
+  "title": "Motorcycle Fire Trail Chase",
+  "sourceTitle": "original premium dark-fantasy action cinema",
+  "category": "Action",
+  "subcategory": "Chases & Stunts",
+  "duration": 30.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/faceless-riders-highway-chase.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/faceless-riders-highway-chase.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Chases & Stunts",
+  "topics": [
+   "action",
+   "chases",
+   "stunts",
+   "motorcycle",
+   "fire",
+   "trail",
+   "chase",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:fantasy-palace-romance-drama",
+  "slug": "fantasy-palace-romance-drama",
+  "title": "Ruby Staff Reveal",
+  "sourceTitle": "A 30-second vertical 9:16 photorealistic fantasy palace romance drama about Prin",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 30.12,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/fantasy-palace-romance-drama.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/fantasy-palace-romance-drama.jpg",
+  "tags": [
+   "fantasy",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "ruby",
+   "staff",
+   "reveal"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:flooded-botanical-archive-climb",
+  "slug": "flooded-botanical-archive-climb",
+  "title": "Skyscraper Climb POV",
+  "sourceTitle": "Scene and Mood: A lone figure climbs upward through a flooding vertical botanica",
+  "category": "Action",
+  "subcategory": "Aerial & FPV",
+  "duration": 30.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/flooded-botanical-archive-climb.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/flooded-botanical-archive-climb.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Aerial & FPV",
+  "topics": [
+   "action",
+   "aerial",
+   "fpv",
+   "skyscraper",
+   "climb",
+   "pov",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:flooded-village-survival-thriller",
+  "slug": "flooded-village-survival-thriller",
+  "title": "Flood Rooftop Rescue",
+  "sourceTitle": "Ultra-realistic survival thriller set in a flooded Indian village under heavy ov",
+  "category": "Action",
+  "subcategory": "Battles & Disaster",
+  "duration": 37.48,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/flooded-village-survival-thriller.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/flooded-village-survival-thriller.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "flood",
+   "rooftop",
+   "rescue",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:free-seedream-on-renoise-is-such-a-nice-surprise-558738",
+  "slug": "free-seedream-on-renoise-is-such-a-nice-surprise-558738",
+  "title": "Strawberry Dessert Character Sheet",
+  "sourceTitle": "Free Seedream on Renoise is such a nice surprise. 🤯",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 30.1,
+  "aspectRatio": "60:67",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/free-seedream-on-renoise-is-such-a-nice-surprise-558738.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/free-seedream-on-renoise-is-such-a-nice-surprise-558738.webp",
+  "tags": [
+   "brand-film",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "strawberry",
+   "dessert",
+   "character",
+   "sheet",
+   "brand-film"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:frozen-time-rewind-effect-664385",
+  "slug": "frozen-time-rewind-effect-664385",
+  "title": "Diner Coffee Splash Freeze",
+  "sourceTitle": "frozen time + rewind effect",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 30.11,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/frozen-time-rewind-effect-664385.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/frozen-time-rewind-effect-664385.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "diner",
+   "coffee",
+   "splash",
+   "freeze",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:giant-and-dragon-lake-battle",
+  "slug": "giant-and-dragon-lake-battle",
+  "title": "Giant Monster Comparison",
+  "sourceTitle": "A colossal giant appears, striding through a lake; the ground shakes with every",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 39.94,
+  "aspectRatio": "7:6",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/giant-and-dragon-lake-battle.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/giant-and-dragon-lake-battle.jpg",
+  "tags": [
+   "fantasy",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "giant",
+   "monster",
+   "comparison"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:gpt-image-2-and-seedance-2-5-734939",
+  "slug": "gpt-image-2-and-seedance-2-5-734939",
+  "title": "Bedroom Hat Dance Selfie",
+  "sourceTitle": "Setting: A cozy indoor room with warm, ambient lighting, featuring posters on th",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 27.04,
+  "aspectRatio": "638:359",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/gpt-image-2-and-seedance-2-5-734939.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/gpt-image-2-and-seedance-2-5-734939.webp",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "bedroom",
+   "hat",
+   "dance",
+   "selfie",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:honestly-it-feels-like-a-random-clip-from-a-real-900148",
+  "slug": "honestly-it-feels-like-a-random-clip-from-a-real-900148",
+  "title": "Mural Street Meeting",
+  "sourceTitle": "Honestly, it feels like a random clip from a real trip… except none of it actually happened 😂✨",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 10.06,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/honestly-it-feels-like-a-random-clip-from-a-real-900148.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/honestly-it-feels-like-a-random-clip-from-a-real-900148.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "mural",
+   "street",
+   "meeting",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:hyper-realistic-30-second-miniature-philippines-drone-showcase-tilt-shif-210205",
+  "slug": "hyper-realistic-30-second-miniature-philippines-drone-showcase-tilt-shif-210205",
+  "title": "Old Town Street Flyover",
+  "sourceTitle": "Hyper-realistic 30-Second Miniature Philippines Drone Showcase (Tilt-Shift &",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 17.79,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/hyper-realistic-30-second-miniature-philippines-drone-showcase-tilt-shif-210205.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/hyper-realistic-30-second-miniature-philippines-drone-showcase-tilt-shif-210205.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "old",
+   "town",
+   "street",
+   "flyover",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:i-created-this-cinematic-advertisement-using-406311",
+  "slug": "i-created-this-cinematic-advertisement-using-406311",
+  "title": "Worried Little Slugger",
+  "sourceTitle": "🚨 I created this cinematic advertisement using . 🤯",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 10.11,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-created-this-cinematic-advertisement-using-406311.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-created-this-cinematic-advertisement-using-406311.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "worried",
+   "little",
+   "slugger",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "sd25:i-just-created-this-entire-animated-short-using-341887",
+  "slug": "i-just-created-this-entire-animated-short-using-341887",
+  "title": "Village Cloud Sprint",
+  "sourceTitle": "Animation Study",
+  "category": "Animation",
+  "subcategory": "Cute & Kids",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-just-created-this-entire-animated-short-using-341887.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-just-created-this-entire-animated-short-using-341887.jpg",
+  "tags": [
+   "animation",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cute & Kids",
+  "topics": [
+   "animation",
+   "cute",
+   "kids",
+   "village",
+   "cloud",
+   "sprint"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:i-made-this-full-video-in-5-minutes-100-automated-857085",
+  "slug": "i-made-this-full-video-in-5-minutes-100-automated-857085",
+  "title": "Sugar Pour Close-Up",
+  "sourceTitle": "if you're still waiting days for revisions this replaces that entire workflow",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 98.2,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-made-this-full-video-in-5-minutes-100-automated-857085.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-made-this-full-video-in-5-minutes-100-automated-857085.jpg",
+  "tags": [
+   "cinematic-story",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "sugar",
+   "pour",
+   "close-up",
+   "cinematic-story"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"Click the link to get 20% OFF\" promo end card"
+ },
+ {
+  "id": "sd25:i-remixed-the-243738",
+  "slug": "i-remixed-the-243738",
+  "title": "Fish Market Lightsaber",
+  "sourceTitle": "Documentary Study",
+  "category": "Cinema",
+  "subcategory": "Comedy",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/i-remixed-the-243738.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/i-remixed-the-243738.jpg",
+  "tags": [
+   "documentary",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "cinema",
+   "comedy",
+   "fish",
+   "market",
+   "lightsaber",
+   "documentary"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:img-gpt-image-2-033082",
+  "slug": "img-gpt-image-2-033082",
+  "title": "Neon Alley Portrait",
+  "sourceTitle": "Img -> GPT Image 2",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 30.15,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/img-gpt-image-2-033082.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/img-gpt-image-2-033082.jpg",
+  "tags": [
+   "documentary",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "neon",
+   "alley",
+   "portrait",
+   "documentary"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:is-an-official-platform-for-it-brings-cinema-gra-031982",
+  "slug": "is-an-official-platform-for-it-brings-cinema-gra-031982",
+  "title": "Pink Hair Duo Portrait",
+  "sourceTitle": "Music Video Study",
+  "category": "Fashion",
+  "subcategory": "Editorial",
+  "duration": 30.1,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/is-an-official-platform-for-it-brings-cinema-gra-031982.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/is-an-official-platform-for-it-brings-cinema-gra-031982.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fashion & Editorial",
+  "topics": [
+   "fashion",
+   "editorial",
+   "pink",
+   "hair",
+   "duo",
+   "portrait",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:is-too-spicy-905417",
+  "slug": "is-too-spicy-905417",
+  "title": "Ramen Bowl Fan Dancer",
+  "sourceTitle": "is too spicy 🥵",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 15.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/is-too-spicy-905417.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/is-too-spicy-905417.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "ramen",
+   "bowl",
+   "fan",
+   "dancer",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:it-s-insane-what-seedance-2-5-can-do-479241",
+  "slug": "it-s-insane-what-seedance-2-5-can-do-479241",
+  "title": "Winter Idol Character Sheet",
+  "sourceTitle": "official fantasy RPG character sheet",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 27.34,
+  "aspectRatio": "60:67",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/it-s-insane-what-seedance-2-5-can-do-479241.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/it-s-insane-what-seedance-2-5-can-do-479241.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "winter",
+   "idol",
+   "character",
+   "sheet",
+   "brand-film"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:it-s-insane-what-you-can-make-with-171692",
+  "slug": "it-s-insane-what-you-can-make-with-171692",
+  "title": "Stovetop Cooking Evening",
+  "sourceTitle": "Product Commercial Study",
+  "category": "Social",
+  "subcategory": "Lifestyle & Food",
+  "duration": 15.14,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/it-s-insane-what-you-can-make-with-171692.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/it-s-insane-what-you-can-make-with-171692.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "stovetop",
+   "cooking",
+   "evening",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:it-was-ridiculously-easy-588278",
+  "slug": "it-was-ridiculously-easy-588278",
+  "title": "Parking Lot Selfie Talk",
+  "sourceTitle": "It was ridiculously easy.",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 55.75,
+  "aspectRatio": "1:1",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/it-was-ridiculously-easy-588278.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/it-was-ridiculously-easy-588278.jpg",
+  "tags": [
+   "vlog",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "parking",
+   "lot",
+   "selfie",
+   "talk",
+   "vlog"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:italian-coast-wakeboarding-splash-433442",
+  "slug": "italian-coast-wakeboarding-splash-433442",
+  "title": "Beach Wakeboard Ride",
+  "sourceTitle": "People are out on the terrace during the summer when, suddenly, someone appears",
+  "category": "Social",
+  "subcategory": "Fitness & Sports",
+  "duration": 31.94,
+  "aspectRatio": "7:3",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/italian-coast-wakeboarding-splash-433442.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/italian-coast-wakeboarding-splash-433442.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "beach",
+   "wakeboard",
+   "ride",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:jan-thirty-second-delivery-run-271585",
+  "slug": "jan-thirty-second-delivery-run-271585",
+  "title": "Sunset Splash Dance",
+  "sourceTitle": "Jan Thirty-Second Delivery Run",
+  "category": "Social",
+  "subcategory": "Fitness & Sports",
+  "duration": 36.32,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/jan-thirty-second-delivery-run-271585.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/jan-thirty-second-delivery-run-271585.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "sunset",
+   "splash",
+   "dance",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:japanese-game-show-foam-roller",
+  "slug": "japanese-game-show-foam-roller",
+  "title": "Stadium Stair Sprint",
+  "sourceTitle": "2000s–2010s Japanese sports program",
+  "category": "Social",
+  "subcategory": "Fitness & Sports",
+  "duration": 14.89,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/japanese-game-show-foam-roller.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/japanese-game-show-foam-roller.jpg",
+  "tags": [
+   "comedy",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "stadium",
+   "stair",
+   "sprint",
+   "comedy"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:japanese-street-lip-sync-comparison",
+  "slug": "japanese-street-lip-sync-comparison",
+  "title": "Garden Fence Conversation",
+  "sourceTitle": "Japanese Street Lip-Sync Comparison",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 20.08,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/japanese-street-lip-sync-comparison.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/japanese-street-lip-sync-comparison.jpg",
+  "tags": [
+   "dialogue",
+   "text-to-video",
+   "text-prompt",
+   "audio-or-sound-direction"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "garden",
+   "fence",
+   "conversation",
+   "dialogue"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:justice-awakens-the-scales-of-truth-begin-to-move-887120",
+  "slug": "justice-awakens-the-scales-of-truth-begin-to-move-887120",
+  "title": "Scales of Justice Reveal",
+  "sourceTitle": "Justice awakens. The scales of truth begin to move.",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 18.95,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/justice-awakens-the-scales-of-truth-begin-to-move-887120.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/justice-awakens-the-scales-of-truth-begin-to-move-887120.jpg",
+  "tags": [
+   "music-video",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "scales",
+   "justice",
+   "reveal",
+   "music-video"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:k-pop-idol-day-camcorder-montage-345309",
+  "slug": "k-pop-idol-day-camcorder-montage-345309",
+  "title": "Idol Car Ride Montage",
+  "sourceTitle": "K-Pop Idol Day Camcorder Montage",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 15.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/k-pop-idol-day-camcorder-montage-345309.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/k-pop-idol-day-camcorder-montage-345309.jpg",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "idol",
+   "car",
+   "ride",
+   "montage",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:korean-mini-dv-street-vlog",
+  "slug": "korean-mini-dv-street-vlog",
+  "title": "Frosted Window Morning",
+  "sourceTitle": "Korean Mini-DV Street Vlog",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 30.08,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/korean-mini-dv-street-vlog.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/korean-mini-dv-street-vlog.jpg",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "frosted",
+   "window",
+   "morning",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:kung-fu-battle-long-take",
+  "slug": "kung-fu-battle-long-take",
+  "title": "Dual Character Scene",
+  "sourceTitle": "Use only the two attached character references",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 30.08,
+  "aspectRatio": "62:27",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/kung-fu-battle-long-take.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/kung-fu-battle-long-take.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "dual",
+   "character",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:listen-up-228251",
+  "slug": "listen-up-228251",
+  "title": "Space Marine Close-Up",
+  "sourceTitle": "LISTEN UP! 🔊",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 17.96,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/listen-up-228251.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/listen-up-228251.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "space",
+   "marine",
+   "close-up",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "monitor in the scene reads \"SEEDANCE 2.5 NO MUSIC PROMPT\""
+ },
+ {
+  "id": "sd25:lunar-cafe-dialogue",
+  "slug": "lunar-cafe-dialogue",
+  "title": "Black-and-White Drama Portrait",
+  "sourceTitle": "Black-and-white 35mm arthouse cinema, 1960s European café-film look",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/lunar-cafe-dialogue.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/lunar-cafe-dialogue.jpg",
+  "tags": [
+   "dialogue",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "black-and-white",
+   "portrait",
+   "dialogue"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:made-with-365832",
+  "slug": "made-with-365832",
+  "title": "Noir Heroine Character Sheet",
+  "sourceTitle": "Create a premium, modern high-fashion CHARACTER CONCEPT ART SHEET in a 16:9 wide",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.12,
+  "aspectRatio": "8:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/made-with-365832.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/made-with-365832.jpg",
+  "tags": [
+   "brand-film",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "noir",
+   "heroine",
+   "character",
+   "sheet",
+   "brand-film"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:made-with-seedance-2-5-cinematic-visuals-realistic-physics-and-254024",
+  "slug": "made-with-seedance-2-5-cinematic-visuals-realistic-physics-and-254024",
+  "title": "Diamond Jewelry Spark",
+  "sourceTitle": "cinematic luxury diamond advertisement with a dark premium aesthetic",
+  "category": "Commercial",
+  "subcategory": "Luxury Goods",
+  "duration": 10.06,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/made-with-seedance-2-5-cinematic-visuals-realistic-physics-and-254024.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/made-with-seedance-2-5-cinematic-visuals-realistic-physics-and-254024.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "luxury",
+   "goods",
+   "diamond",
+   "jewelry",
+   "spark",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "brand text and sparkle watermark"
+ },
+ {
+  "id": "sd25:made-with-seedance-2-5-on-352388",
+  "slug": "made-with-seedance-2-5-on-352388",
+  "title": "Superhero City Dive",
+  "sourceTitle": "A cinematic superhero-inspired short film",
+  "category": "Action",
+  "subcategory": "Aerial & FPV",
+  "duration": 30.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/made-with-seedance-2-5-on-352388.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/made-with-seedance-2-5-on-352388.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Aerial & FPV",
+  "topics": [
+   "action",
+   "aerial",
+   "fpv",
+   "superhero",
+   "city",
+   "dive",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "faint \"Created With Seedance 2.5\" text on the last frame"
+ },
+ {
+  "id": "sd25:making-of-movie-titanoboa-behind-the-scenes-515958",
+  "slug": "making-of-movie-titanoboa-behind-the-scenes-515958",
+  "title": "Jungle Python Encounter",
+  "sourceTitle": "Making of movie - Titanoboa - Behind the scenes!!",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 11.94,
+  "aspectRatio": "4:3",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/making-of-movie-titanoboa-behind-the-scenes-515958.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/making-of-movie-titanoboa-behind-the-scenes-515958.jpg",
+  "tags": [
+   "horror",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "jungle",
+   "python",
+   "encounter",
+   "horror"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:making-these-kinds-of-uniquely-styled-videos-has-gotten-so-113956",
+  "slug": "making-these-kinds-of-uniquely-styled-videos-has-gotten-so-113956",
+  "title": "Wine-Dark Sea Title",
+  "sourceTitle": "Making these kinds of uniquely styled videos has gotten so much fun lately.",
+  "category": "Animation",
+  "subcategory": "Title Sequences",
+  "duration": 14.87,
+  "aspectRatio": "4:5",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/making-these-kinds-of-uniquely-styled-videos-has-gotten-so-113956.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/making-these-kinds-of-uniquely-styled-videos-has-gotten-so-113956.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Titles & Typography",
+  "topics": [
+   "animation",
+   "title",
+   "sequences",
+   "wine-dark",
+   "sea",
+   "brand-film"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:mechanical-war-bull-battle",
+  "slug": "mechanical-war-bull-battle",
+  "title": "Bull Demon Battlefield",
+  "sourceTitle": "Use every named reference consistently across all shots",
+  "category": "Action",
+  "subcategory": "Battles & Disaster",
+  "duration": 27.89,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/mechanical-war-bull-battle.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/mechanical-war-bull-battle.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "bull",
+   "demon",
+   "battlefield",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:midjourney-v8-2-gpt-image-2-685091",
+  "slug": "midjourney-v8-2-gpt-image-2-685091",
+  "title": "Cyber Crew Character Sheet",
+  "sourceTitle": "Midjourney v8.2 + GPT Image 2",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 30.1,
+  "aspectRatio": "180:191",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/midjourney-v8-2-gpt-image-2-685091.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/midjourney-v8-2-gpt-image-2-685091.jpg",
+  "tags": [
+   "cinematic-story",
+   "image-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "cyber",
+   "crew",
+   "character",
+   "sheet",
+   "cinematic-story"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:minimax-h3-on-vs-seedance-2-5-967648",
+  "slug": "minimax-h3-on-vs-seedance-2-5-967648",
+  "title": "Off-Road SUV Mountain Run",
+  "sourceTitle": "A black off-road SUV speeds through a rugged mountain valley during a heavy rain",
+  "category": "Commercial",
+  "subcategory": "Automotive & Mobility",
+  "duration": 15.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/minimax-h3-on-vs-seedance-2-5-967648.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/minimax-h3-on-vs-seedance-2-5-967648.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "off-road",
+   "suv",
+   "mountain",
+   "run",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:morning-coffee-mini-dv-vlog",
+  "slug": "morning-coffee-mini-dv-vlog",
+  "title": "Espresso Pour Macro",
+  "sourceTitle": "Morning Coffee Mini-DV Vlog",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 30.1,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/morning-coffee-mini-dv-vlog.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/morning-coffee-mini-dv-vlog.jpg",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt",
+   "audio-or-sound-direction"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "espresso",
+   "pour",
+   "macro",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"AI\" corner badge"
+ },
+ {
+  "id": "sd25:mpter-and-comparison-057958",
+  "slug": "mpter-and-comparison-057958",
+  "title": "Tower Duel Comparison",
+  "sourceTitle": "Anne Boleyn’s final walk",
+  "category": "Cinema",
+  "subcategory": "Period & Historical",
+  "duration": 30.22,
+  "aspectRatio": "4:5",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/mpter-and-comparison-057958.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/mpter-and-comparison-057958.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "tower",
+   "duel",
+   "comparison",
+   "cinematic-story"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:my-first-test-of-526392",
+  "slug": "my-first-test-of-526392",
+  "title": "Storm Coast Creature",
+  "sourceTitle": "My first test of ! ❤️‍",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 60.85,
+  "aspectRatio": "7:3",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/my-first-test-of-526392.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/my-first-test-of-526392.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "storm",
+   "coast",
+   "creature",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"ICHE FILMS\" logo and handle"
+ },
+ {
+  "id": "sd25:never-mess-with-a-spider-girl-658741",
+  "slug": "never-mess-with-a-spider-girl-658741",
+  "title": "Prison Yard Showdown",
+  "sourceTitle": "IMG_1 = BLONDE FEMALE HERO CHARACTER SHEET**  Use as the exact hero identity and",
+  "category": "Action",
+  "subcategory": "Fights & Martial Arts",
+  "duration": 22.27,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/never-mess-with-a-spider-girl-658741.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/never-mess-with-a-spider-girl-658741.jpg",
+  "tags": [
+   "cinematic-action",
+   "image-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "fights",
+   "martial",
+   "arts",
+   "prison",
+   "yard",
+   "showdown",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:one-30-second-9-16-photorealistic-live-action-dr-771813",
+  "slug": "one-30-second-9-16-photorealistic-live-action-dr-771813",
+  "title": "Grandmother Close-Up Story",
+  "sourceTitle": "Cinematic Story Study",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 30.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/one-30-second-9-16-photorealistic-live-action-dr-771813.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/one-30-second-9-16-photorealistic-live-action-dr-771813.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "grandmother",
+   "close-up",
+   "story",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:one-30-second-fight-scene-252981",
+  "slug": "one-30-second-fight-scene-252981",
+  "title": "Swordfight Character Sheet",
+  "sourceTitle": "One 30-second fight scene",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 33.23,
+  "aspectRatio": "1:1",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/one-30-second-fight-scene-252981.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/one-30-second-fight-scene-252981.jpg",
+  "tags": [
+   "animation",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "swordfight",
+   "character",
+   "sheet"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:painterly-underwater-wreck-chase",
+  "slug": "painterly-underwater-wreck-chase",
+  "title": "Deep Sea Leviathan",
+  "sourceTitle": "Keep the reference medium, brushwork, texture, color grading, and painterly fini",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 30.1,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/painterly-underwater-wreck-chase.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/painterly-underwater-wreck-chase.jpg",
+  "tags": [
+   "fantasy",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "deep",
+   "sea",
+   "leviathan"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+ },
+ {
+  "id": "sd25:photorealistic-cinematic-modern-american-airport-643718",
+  "slug": "photorealistic-cinematic-modern-american-airport-643718",
+  "title": "Airport Croissant Surprise",
+  "sourceTitle": "Cinematic Travel Study",
+  "category": "Cinema",
+  "subcategory": "Comedy",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/photorealistic-cinematic-modern-american-airport-643718.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/photorealistic-cinematic-modern-american-airport-643718.jpg",
+  "tags": [
+   "cinematic-story",
+   "image-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "cinema",
+   "comedy",
+   "airport",
+   "croissant",
+   "surprise",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"AI\" corner badge"
+ },
+ {
+  "id": "sd25:product-commercial-study-045019",
+  "slug": "product-commercial-study-045019",
+  "title": "Green Juice Wellness Spot",
+  "sourceTitle": "A realistic UGC-style from  lifestyle grocery shopping vlog filmed vertically on",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 20.21,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/product-commercial-study-045019.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/product-commercial-study-045019.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "green",
+   "juice",
+   "wellness",
+   "spot",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:product-commercial-study-209333",
+  "slug": "product-commercial-study-209333",
+  "title": "Golden Hour Street Selfie",
+  "sourceTitle": "30 second vertical 9:16 photorealistic lifestyle vlog",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 30.12,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/product-commercial-study-209333.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/product-commercial-study-209333.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "golden",
+   "hour",
+   "street",
+   "selfie",
+   "brand-film"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:product-commercial-study-256505",
+  "slug": "product-commercial-study-256505",
+  "title": "Midnight Handstand",
+  "sourceTitle": "10 second cinematic live action video in 16:9",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 10.18,
+  "aspectRatio": "427:240",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/product-commercial-study-256505.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/product-commercial-study-256505.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "midnight",
+   "handstand",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:product-commercial-study-309837",
+  "slug": "product-commercial-study-309837",
+  "title": "Sneaker Step Close-Up",
+  "sourceTitle": "Premium cinematic commercial",
+  "category": "Commercial",
+  "subcategory": "Product Reveals",
+  "duration": 30.17,
+  "aspectRatio": "107:61",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/product-commercial-study-309837.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/product-commercial-study-309837.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "product",
+   "reveals",
+   "sneaker",
+   "step",
+   "close-up",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:quiet-city-bicycle-ride",
+  "slug": "quiet-city-bicycle-ride",
+  "title": "Temple Steps Journal",
+  "sourceTitle": "A young East Asian woman riding a bicycle through quiet city streets, casually e",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 15.19,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/quiet-city-bicycle-ride.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/quiet-city-bicycle-ride.jpg",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "temple",
+   "steps",
+   "journal",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:rapper-reference-performance",
+  "slug": "rapper-reference-performance",
+  "title": "Stage Performer Close-Up",
+  "sourceTitle": "@Image1 is the absolute reference for THE RAPPER and completely replaces every p",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 30.11,
+  "aspectRatio": "360:479",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/rapper-reference-performance.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/rapper-reference-performance.jpg",
+  "tags": [
+   "music-video",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "stage",
+   "performer",
+   "close-up",
+   "music-video"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:real-world-action-is-getting-easier-to-direct-304904",
+  "slug": "real-world-action-is-getting-easier-to-direct-304904",
+  "title": "Giant Ball Water Challenge",
+  "sourceTitle": "Real-world action is getting easier to direct.",
+  "category": "Social",
+  "subcategory": "Fitness & Sports",
+  "duration": 30.05,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/real-world-action-is-getting-easier-to-direct-304904.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/real-world-action-is-getting-easier-to-direct-304904.webp",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "giant",
+   "ball",
+   "water",
+   "challenge",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:reference-layer-based-on-image-the-rider-s-face-hair-824057",
+  "slug": "reference-layer-based-on-image-the-rider-s-face-hair-824057",
+  "title": "Dragon Rider Sunrise",
+  "sourceTitle": "Reference layer: Based on image, the rider's face, hair, build, and clothing stay",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/reference-layer-based-on-image-the-rider-s-face-hair-824057.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/reference-layer-based-on-image-the-rider-s-face-hair-824057.jpg",
+  "tags": [
+   "music-video",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "dragon",
+   "rider",
+   "sunrise",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:robots-text-hold-studio-comedy",
+  "slug": "robots-text-hold-studio-comedy",
+  "title": "Robot Newsroom Studio",
+  "sourceTitle": "Robots Text-Hold Studio Comedy",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 20.13,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/robots-text-hold-studio-comedy.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/robots-text-hold-studio-comedy.jpg",
+  "tags": [
+   "comedy",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "robot",
+   "newsroom",
+   "studio"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:seedance-2-5-did-well-077118",
+  "slug": "seedance-2-5-did-well-077118",
+  "title": "Jumbo Jet Airport Dawn",
+  "sourceTitle": "ultra-realistic cinematic aviation sequence featuring an Emirates Airbus A380 at",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-did-well-077118.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-did-well-077118.webp",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "jumbo",
+   "jet",
+   "airport",
+   "dawn",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:seedance-2-5-emotion-control-is-insane-made-with-828740",
+  "slug": "seedance-2-5-emotion-control-is-insane-made-with-828740",
+  "title": "Treadmill Studio Run",
+  "sourceTitle": "15-SECOND CINEMATIC EMOTIONAL GYM SCENE — 16:9",
+  "category": "Social",
+  "subcategory": "Fitness & Sports",
+  "duration": 15.14,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-emotion-control-is-insane-made-with-828740.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-emotion-control-is-insane-made-with-828740.webp",
+  "tags": [
+   "music-video",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "treadmill",
+   "studio",
+   "run",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:seedance-2-5-on-237518",
+  "slug": "seedance-2-5-on-237518",
+  "title": "Diner Character Sheet",
+  "sourceTitle": "Photorealistic cinematic 1990s American diner, red vinyl booths, neon signs, chr",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 30.15,
+  "aspectRatio": "8:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-on-237518.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-on-237518.webp",
+  "tags": [
+   "cinematic-action",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "diner",
+   "character",
+   "sheet",
+   "cinematic-action"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:seedance-2-5-on-384530",
+  "slug": "seedance-2-5-on-384530",
+  "title": "Golden Orb Room",
+  "sourceTitle": "Hyperrealistic, photorealistic cinematic video",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 8.14,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/seedance-2-5-on-384530.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/seedance-2-5-on-384530.webp",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "golden",
+   "orb",
+   "room",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:sports-film-study-274971",
+  "slug": "sports-film-study-274971",
+  "title": "Stadium Sprint Finish",
+  "sourceTitle": "the tallest man in the field — starts level with the pack, then unfolds and",
+  "category": "Social",
+  "subcategory": "Fitness & Sports",
+  "duration": 15.14,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/sports-film-study-274971.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/sports-film-study-274971.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fitness & Sports",
+  "topics": [
+   "social",
+   "fitness",
+   "sports",
+   "stadium",
+   "sprint",
+   "finish",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:stop-wasting-credits-on-random-705676",
+  "slug": "stop-wasting-credits-on-random-705676",
+  "title": "Workflow Planning Showcase",
+  "sourceTitle": "Stop wasting credits on random prompts",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 70.32,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/stop-wasting-credits-on-random-705676.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/stop-wasting-credits-on-random-705676.jpg",
+  "tags": [
+   "cinematic-story",
+   "image-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "workflow",
+   "planning",
+   "showcase",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:super-casual-real-smartphone-home-video-footage-896933",
+  "slug": "super-casual-real-smartphone-home-video-footage-896933",
+  "title": "Poolside Snack Party",
+  "sourceTitle": "Gameplay Study",
+  "category": "Social",
+  "subcategory": "Lifestyle & Food",
+  "duration": 30.1,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/super-casual-real-smartphone-home-video-footage-896933.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/super-casual-real-smartphone-home-video-footage-896933.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Lifestyle & Food",
+  "topics": [
+   "social",
+   "lifestyle",
+   "food",
+   "poolside",
+   "snack",
+   "party",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"AI\" corner badge"
+ },
+ {
+  "id": "sd25:tactical-one-take-action-demo",
+  "slug": "tactical-one-take-action-demo",
+  "title": "Tactical Warehouse Comparison",
+  "sourceTitle": "Tactical One-Take Action Demo",
+  "category": "Action",
+  "subcategory": "Battles & Disaster",
+  "duration": 33.14,
+  "aspectRatio": "9:16",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/tactical-one-take-action-demo.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/tactical-one-take-action-demo.jpg",
+  "tags": [
+   "cinematic-action",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Fights & Battles",
+  "topics": [
+   "action",
+   "battles",
+   "disaster",
+   "tactical",
+   "warehouse",
+   "comparison",
+   "cinematic-action"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:ten-member-idol-concert",
+  "slug": "ten-member-idol-concert",
+  "title": "Pink Idol Close-Up",
+  "sourceTitle": "Ten-Member Idol Concert",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 30.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/ten-member-idol-concert.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/ten-member-idol-concert.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "pink",
+   "idol",
+   "close-up",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"AI\" corner badge"
+ },
+ {
+  "id": "sd25:the-elven-princess-greets-the-orcs-635938",
+  "slug": "the-elven-princess-greets-the-orcs-635938",
+  "title": "Forest Ambush Chase",
+  "sourceTitle": "16:9, 30-second photoreal live-action fantasy battle in clear daylight, crisp hi",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/the-elven-princess-greets-the-orcs-635938.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/the-elven-princess-greets-the-orcs-635938.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "forest",
+   "ambush",
+   "chase",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:the-paper-boat-429699",
+  "slug": "the-paper-boat-429699",
+  "title": "Jungle Paper Boat",
+  "sourceTitle": "Photorealistic live-action cinematic realism",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 50.77,
+  "aspectRatio": "12:5",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/the-paper-boat-429699.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/the-paper-boat-429699.jpg",
+  "tags": [
+   "cinematic-story",
+   "image-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "jungle",
+   "paper",
+   "boat",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:the-tricky-part-was-forcing-alien-hands-on-the-dap-956391",
+  "slug": "the-tricky-part-was-forcing-alien-hands-on-the-dap-956391",
+  "title": "Smoky Stage Walk-Out",
+  "sourceTitle": "The tricky part was forcing alien hands on the dap and keeping the 'ElevenLabs' spelling stable.",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 15.14,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/the-tricky-part-was-forcing-alien-hands-on-the-dap-956391.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/the-tricky-part-was-forcing-alien-hands-on-the-dap-956391.jpg",
+  "tags": [
+   "music-video",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "smoky",
+   "stage",
+   "walk-out",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:thirty-character-family-dinner-307528",
+  "slug": "thirty-character-family-dinner-307528",
+  "title": "Gothic Dining Room Heroine",
+  "sourceTitle": "Thirty-Character Family Dinner",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 25.09,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/thirty-character-family-dinner-307528.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/thirty-character-family-dinner-307528.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "gothic",
+   "dining",
+   "room",
+   "heroine",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:thousand-year-static-landscape",
+  "slug": "thousand-year-static-landscape",
+  "title": "Misty Cabin Landscape",
+  "sourceTitle": "Thousand-Year Static Landscape",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 30.08,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/thousand-year-static-landscape.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/thousand-year-static-landscape.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "misty",
+   "cabin",
+   "landscape",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:tokyo-fisheye-streetwear-fashion-film-562052",
+  "slug": "tokyo-fisheye-streetwear-fashion-film-562052",
+  "title": "Candy Aisle Fisheye Dance",
+  "sourceTitle": "Cinematic 13-second raw handheld streetwear fashion video shot on 8mm vintage fi",
+  "category": "Social",
+  "subcategory": "Music & Dance",
+  "duration": 20.09,
+  "aspectRatio": "427:240",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/tokyo-fisheye-streetwear-fashion-film-562052.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/tokyo-fisheye-streetwear-fashion-film-562052.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Music & Dance",
+  "topics": [
+   "social",
+   "music",
+   "dance",
+   "candy",
+   "aisle",
+   "fisheye",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:tried-fitting-50-cuts-into-30-seconds-with-822773",
+  "slug": "tried-fitting-50-cuts-into-30-seconds-with-822773",
+  "title": "Rain Mirror Night Street",
+  "sourceTitle": "Action Film Study",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/tried-fitting-50-cuts-into-30-seconds-with-822773.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/tried-fitting-50-cuts-into-30-seconds-with-822773.jpg",
+  "tags": [
+   "cinematic-action",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "rain",
+   "mirror",
+   "night",
+   "street",
+   "cinematic-action"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:tried-making-a-post-minion-video-with-in-956768",
+  "slug": "tried-making-a-post-minion-video-with-in-956768",
+  "title": "Startup Laptop Landing",
+  "sourceTitle": "and it added some AI-slop text 😅 Not quite what I expected, but still a fun exp",
+  "category": "Commercial",
+  "subcategory": "Tech & Gadgets",
+  "duration": 20.14,
+  "aspectRatio": "3:2",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/tried-making-a-post-minion-video-with-in-956768.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/tried-making-a-post-minion-video-with-in-956768.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Products & Brands",
+  "topics": [
+   "commercial",
+   "tech",
+   "gadgets",
+   "startup",
+   "laptop",
+   "landing",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:trippy-music-video-052209",
+  "slug": "trippy-music-video-052209",
+  "title": "Flame Dancer Abstract",
+  "sourceTitle": "Create a fast, trippy 30-second dubstep music video using all the uploaded photo",
+  "category": "VFX",
+  "subcategory": "Effects & Motion Graphics",
+  "duration": 30.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/trippy-music-video-052209.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/trippy-music-video-052209.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Effects & Motion Graphics",
+  "topics": [
+   "vfx",
+   "effects",
+   "motion",
+   "graphics",
+   "flame",
+   "dancer",
+   "abstract",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:trojan-war-selfie-vlog",
+  "slug": "trojan-war-selfie-vlog",
+  "title": "Dusty Plaza Portrait",
+  "sourceTitle": "Scene and Mood: A modern, camera ready woman films a casual selfie style vlog up",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 30.08,
+  "aspectRatio": "427:240",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/trojan-war-selfie-vlog.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/trojan-war-selfie-vlog.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "dusty",
+   "plaza",
+   "portrait",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:try-it-now-on-088591",
+  "slug": "try-it-now-on-088591",
+  "title": "Neon Mushroom Forest Dive",
+  "sourceTitle": "Playful cinematic animation",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 32.63,
+  "aspectRatio": "853:360",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/try-it-now-on-088591.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/try-it-now-on-088591.jpg",
+  "tags": [
+   "brand-film",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "neon",
+   "mushroom",
+   "forest",
+   "dive",
+   "brand-film"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:try-it-now-on-656068",
+  "slug": "try-it-now-on-656068",
+  "title": "Chef Watercolor Splash",
+  "sourceTitle": "breathtaking 30-second continuous anime cooking sequence",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 32.63,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/try-it-now-on-656068.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/try-it-now-on-656068.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "chef",
+   "watercolor",
+   "splash",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:turkish-eggs-mini-dv-recipe-vlog-107610",
+  "slug": "turkish-eggs-mini-dv-recipe-vlog-107610",
+  "title": "Egg Cracking Close-Up",
+  "sourceTitle": "Turkish Eggs Mini-DV Recipe Vlog",
+  "category": "Commercial",
+  "subcategory": "Food & Beverage",
+  "duration": 30.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/turkish-eggs-mini-dv-recipe-vlog-107610.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/turkish-eggs-mini-dv-recipe-vlog-107610.jpg",
+  "tags": [
+   "vlog",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Food & Drink",
+  "topics": [
+   "commercial",
+   "food",
+   "beverage",
+   "egg",
+   "cracking",
+   "close-up",
+   "vlog"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:unveiling-pure-luxury-the-ultimate-red-ferrari-e-698838",
+  "slug": "unveiling-pure-luxury-the-ultimate-red-ferrari-e-698838",
+  "title": "Sports Car Gift Surprise",
+  "sourceTitle": "Unveiling Pure Luxury: The Ultimate Red Ferrari Experience",
+  "category": "Commercial",
+  "subcategory": "Automotive & Mobility",
+  "duration": 30.17,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/unveiling-pure-luxury-the-ultimate-red-ferrari-e-698838.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/unveiling-pure-luxury-the-ultimate-red-ferrari-e-698838.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Cars & Vehicles",
+  "topics": [
+   "commercial",
+   "automotive",
+   "mobility",
+   "sports",
+   "car",
+   "gift",
+   "surprise",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:victorian-greenhouse-mechanical-hummingbird",
+  "slug": "victorian-greenhouse-mechanical-hummingbird",
+  "title": "Rainforest Hiker",
+  "sourceTitle": "15-second photorealistic cinematic video, 16:9, with synchronized stereo audio",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 15.08,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/victorian-greenhouse-mechanical-hummingbird.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/victorian-greenhouse-mechanical-hummingbird.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt",
+   "audio-or-sound-direction"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "rainforest",
+   "hiker",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"AI\" corner badge"
+ },
+ {
+  "id": "sd25:video-created-with-seedance-2-5-on-cinematic-story-director-169553",
+  "slug": "video-created-with-seedance-2-5-on-cinematic-story-director-169553",
+  "title": "Neon Garage Selfie",
+  "sourceTitle": "exactly 12 second photorealistic nighttime social video in 16:9",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 12.24,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/video-created-with-seedance-2-5-on-cinematic-story-director-169553.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/video-created-with-seedance-2-5-on-cinematic-story-director-169553.jpg",
+  "tags": [
+   "music-video",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "neon",
+   "garage",
+   "selfie",
+   "music-video"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:vietnam-city-scooter-long-take-216517",
+  "slug": "vietnam-city-scooter-long-take-216517",
+  "title": "Street Scooter Morning",
+  "sourceTitle": "\"30-second cinematic photorealistic video, continuous long tracking shot with on",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 30.13,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/vietnam-city-scooter-long-take-216517.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/vietnam-city-scooter-long-take-216517.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "street",
+   "scooter",
+   "morning",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "none"
+ },
+ {
+  "id": "sd25:vietnamese-mythic-sea-battle",
+  "slug": "vietnamese-mythic-sea-battle",
+  "title": "Winged Beast Clash",
+  "sourceTitle": "Phần 1: Character]",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 30.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/vietnamese-mythic-sea-battle.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/vietnamese-mythic-sea-battle.jpg",
+  "tags": [
+   "fantasy",
+   "reference-to-video",
+   "text-prompt",
+   "image-reference",
+   "audio-or-sound-direction"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "winged",
+   "beast",
+   "clash"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:wow-the-metamorphosis-in-is-totally-cinematic-to-155054",
+  "slug": "wow-the-metamorphosis-in-is-totally-cinematic-to-155054",
+  "title": "Red Serpent Close-Up",
+  "sourceTitle": "Cinematic Story Study",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 17.35,
+  "aspectRatio": "7:3",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/wow-the-metamorphosis-in-is-totally-cinematic-to-155054.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/wow-the-metamorphosis-in-is-totally-cinematic-to-155054.jpg",
+  "tags": [
+   "cinematic-story",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "red",
+   "serpent",
+   "close-up",
+   "cinematic-story"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "\"ICHE FILMS\" logo and handle"
+ },
+ {
+  "id": "sd25:you-can-now-generate-dynamic-camera-movements-with-up-to-501168",
+  "slug": "you-can-now-generate-dynamic-camera-movements-with-up-to-501168",
+  "title": "Cliff House Drone Map",
+  "sourceTitle": "You can now generate dynamic camera movements with up to 30secs of a single generation!✨",
+  "category": "Cinema",
+  "subcategory": "Travel & Documentary",
+  "duration": 17.1,
+  "aspectRatio": "1:1",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/you-can-now-generate-dynamic-camera-movements-with-up-to-501168.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/you-can-now-generate-dynamic-camera-movements-with-up-to-501168.webp",
+  "tags": [
+   "documentary",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Travel & Documentary",
+  "topics": [
+   "cinema",
+   "travel",
+   "documentary",
+   "cliff",
+   "house",
+   "drone",
+   "map"
+  ],
+  "orientation": "square",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "sd25:zero-uncanny-valley-152696",
+  "slug": "zero-uncanny-valley-152696",
+  "title": "Card Game Close-Up",
+  "sourceTitle": "→ Zero uncanny valley",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 20.16,
+  "aspectRatio": "4:5",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/sd25/zero-uncanny-valley-152696.webm",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/sd25/zero-uncanny-valley-152696.jpg",
+  "tags": [
+   "animation",
+   "text-to-video",
+   "text-prompt"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "card",
+   "game",
+   "close-up",
+   "animation"
+  ],
+  "orientation": "portrait",
+  "source": "Seedance 2.5",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "zerolu:adam",
+  "slug": "adam",
+  "title": "Fire-Ice Animated Hero",
+  "sourceTitle": "Nezha and Ao Bing Ice-Fire Clash (Space-Time Folding)",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 5.11,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/adam.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/adam.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "adam"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "fire-ice",
+   "hero",
+   "seedance-2.0",
+   "adam"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "zerolu:bootoshi",
+  "slug": "bootoshi",
+  "title": "Pirate Hero Laptop Gag",
+  "sourceTitle": "Luffy Coding on MacBook (Comedy Scene)",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/bootoshi.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/bootoshi.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "bootoshi"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "pirate",
+   "hero",
+   "laptop",
+   "gag",
+   "seedance-2.0",
+   "bootoshi"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "zerolu:john1",
+  "slug": "john1",
+  "title": "Starry Night Painting Motion",
+  "sourceTitle": "Hollywood Professional Racing Movie Style",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john1.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john1.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "john1"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "starry",
+   "night",
+   "painting",
+   "motion",
+   "seedance-2.0",
+   "john1"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "none"
+ },
+ {
+  "id": "zerolu:john10",
+  "slug": "john10",
+  "title": "Endless Tower Desert",
+  "sourceTitle": "Surrealism and Megalophobia Style",
+  "category": "Cinema",
+  "subcategory": "Fantasy & Surreal",
+  "duration": 15.13,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john10.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john10.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "john10"
+  ],
+  "group": "Fantasy & Surreal",
+  "topics": [
+   "cinema",
+   "fantasy",
+   "surreal",
+   "endless",
+   "tower",
+   "desert",
+   "seedance-2.0",
+   "john10"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "none"
+ },
+ {
+  "id": "zerolu:john2",
+  "slug": "john2",
+  "title": "Imperial Court Tablet Scene",
+  "sourceTitle": "Denis Villeneuve Style Epic Desert Scene",
+  "category": "Cinema",
+  "subcategory": "Period & Historical",
+  "duration": 10.1,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john2.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john2.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "john2"
+  ],
+  "group": "Period & Historical",
+  "topics": [
+   "cinema",
+   "period",
+   "historical",
+   "imperial",
+   "court",
+   "tablet",
+   "seedance-2.0",
+   "john2"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "none"
+ },
+ {
+  "id": "zerolu:john4",
+  "slug": "john4",
+  "title": "Giant Cat Wedding Spot",
+  "sourceTitle": "Giant Orange Cat Meme Style",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 15.13,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john4.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john4.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "john4"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "giant",
+   "cat",
+   "wedding",
+   "spot",
+   "seedance-2.0",
+   "john4"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "logo",
+  "marks": "burned-in subtitles"
+ },
+ {
+  "id": "zerolu:john7",
+  "slug": "john7",
+  "title": "Pilot Cockpit Close-Up",
+  "sourceTitle": "Chinese New Year Gala Style: Zhen Huan & Hu Fei Show",
+  "category": "Cinema",
+  "subcategory": "Sci-Fi",
+  "duration": 15.13,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john7.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john7.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "john7"
+  ],
+  "group": "Sci-Fi",
+  "topics": [
+   "cinema",
+   "sci-fi",
+   "pilot",
+   "cockpit",
+   "close-up",
+   "seedance-2.0",
+   "john7"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "logo",
+  "marks": "burned-in caption"
+ },
+ {
+  "id": "zerolu:john8",
+  "slug": "john8",
+  "title": "Bathroom Mirror Routine",
+  "sourceTitle": "Chinese Mini-Drama Style (Rainy Night Emotional Scene)",
+  "category": "Social",
+  "subcategory": "Vlogs & UGC",
+  "duration": 15.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john8.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john8.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "john8"
+  ],
+  "group": "Vlogs & UGC",
+  "topics": [
+   "social",
+   "vlogs",
+   "ugc",
+   "bathroom",
+   "mirror",
+   "routine",
+   "seedance-2.0",
+   "john8"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "none"
+ },
+ {
+  "id": "zerolu:john9",
+  "slug": "john9",
+  "title": "Giant Cat City Gag",
+  "sourceTitle": "Chinese Viral CEO Drama Style (Vertical Format)",
+  "category": "Social",
+  "subcategory": "Comedy & Pets",
+  "duration": 15.13,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/john9.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/john9.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "john9"
+  ],
+  "group": "Comedy & Pets",
+  "topics": [
+   "social",
+   "comedy",
+   "pets",
+   "giant",
+   "cat",
+   "city",
+   "gag",
+   "seedance-2.0",
+   "john9"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "none"
+ },
+ {
+  "id": "zerolu:lucy-love-ai",
+  "slug": "lucy-love-ai",
+  "title": "Door to Space Animation",
+  "sourceTitle": "Figure 1 vs Figure 2 Martial Arts Tournament",
+  "category": "Animation",
+  "subcategory": "3D Animated",
+  "duration": 10.15,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/lucy-love-ai.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/lucy-love-ai.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "lucy_love_ai"
+  ],
+  "group": "3D Animated",
+  "topics": [
+   "animation",
+   "animated",
+   "door",
+   "space",
+   "seedance-2.0",
+   "lucy_love_ai"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "zerolu:mollick",
+  "slug": "mollick",
+  "title": "Otter Mecha Pilot",
+  "sourceTitle": "Otter Mecha Anime Battle (Mech vs. Octopus)",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/mollick.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/mollick.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "mollick"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "otter",
+   "mecha",
+   "pilot",
+   "seedance-2.0",
+   "mollick"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "logo",
+  "marks": "faint \"AI generated\" watermark"
+ },
+ {
+  "id": "zerolu:nachos2d",
+  "slug": "nachos2d",
+  "title": "Anime Tournament Crowd",
+  "sourceTitle": "Tournament of Power with Famous Anime Characters",
+  "category": "Animation",
+  "subcategory": "Illustrated & Craft",
+  "duration": 15.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/nachos2d.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/nachos2d.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "nachos2d"
+  ],
+  "group": "Illustrated & Anime",
+  "topics": [
+   "animation",
+   "illustrated",
+   "craft",
+   "anime",
+   "tournament",
+   "crowd",
+   "seedance-2.0",
+   "nachos2d"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "logo",
+  "marks": "visible logo, watermark, badge or on-screen credit"
+ },
+ {
+  "id": "zerolu:vicky",
+  "slug": "vicky",
+  "title": "Elder Portrait Close-Up",
+  "sourceTitle": "Perfume MG Animation Style",
+  "category": "Cinema",
+  "subcategory": "Drama & Thriller",
+  "duration": 15.12,
+  "aspectRatio": "16:9",
+  "videoSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/clips/zerolu/vicky.mp4",
+  "posterSrc": "https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/posters/zerolu/vicky.webp",
+  "tags": [
+   "reference",
+   "seedance-2.0",
+   "vicky"
+  ],
+  "group": "Drama & Thriller",
+  "topics": [
+   "cinema",
+   "drama",
+   "thriller",
+   "elder",
+   "portrait",
+   "close-up",
+   "seedance-2.0",
+   "vicky"
+  ],
+  "orientation": "landscape",
+  "source": "Seedance 2.0",
+  "branding": "logo",
+  "marks": "burned-in subtitle text on the last frame"
  }
 ];
 
 /** Category tabs in display order (only categories that actually hold clips). */
 export const TEMPLATE_VIDEO_CATEGORIES = ["Action","Animation","Cinema","Commercial","Fashion","Social","VFX"];
 
+/** Flat browse groups in display order (the chip row of the modal), More last. */
+export const TEMPLATE_VIDEO_GROUPS = ["Drama & Thriller","Fantasy & Surreal","Illustrated & Anime","Vlogs & UGC","Music & Dance","Fashion & Editorial","Food & Drink","Chases & Stunts","Comedy & Pets","Products & Brands","3D Animated","Cute & Kids","Fights & Battles","Travel & Documentary","Sci-Fi","Effects & Motion Graphics","Beauty & Fragrance","Titles & Typography","Fitness & Sports","Period & Historical","Cars & Vehicles","Creatures & Heroes","Lifestyle & Food","Aerial & FPV"];
+
 /** Subcategory chips per category, largest first. */
 export const TEMPLATE_VIDEO_SUBCATEGORIES = {
  "Action": [
   "Chases & Stunts",
+  "Battles & Disaster",
   "Creatures & Heroes",
-  "Fights & Martial Arts",
   "Aerial & FPV",
-  "Battles & Disaster"
+  "Fights & Martial Arts"
  ],
  "Animation": [
+  "Illustrated & Craft",
   "3D Animated",
   "Cute & Kids",
-  "Illustrated & Craft",
   "Title Sequences"
  ],
  "Cinema": [
   "Drama & Thriller",
   "Fantasy & Surreal",
+  "Travel & Documentary",
   "Sci-Fi",
   "Period & Historical",
-  "Travel & Documentary",
   "Comedy"
  ],
  "Commercial": [
-  "Automotive & Mobility",
   "Food & Beverage",
+  "Beauty & Fragrance",
+  "Automotive & Mobility",
   "Luxury Goods",
   "Product Reveals",
-  "Brand Films",
   "Tech & Gadgets",
-  "Beauty & Fragrance"
+  "Brand Films"
  ],
  "Fashion": [
-  "Streetwear",
   "Editorial",
-  "Runway & Lookbook"
+  "Runway & Lookbook",
+  "Streetwear"
  ],
  "Social": [
   "Vlogs & UGC",
   "Music & Dance",
-  "Fitness & Sports",
   "Comedy & Pets",
+  "Fitness & Sports",
   "Lifestyle & Food"
  ],
  "VFX": [
