@@ -8,6 +8,7 @@
  * Clerk `sub`); public reads go straight to the REST API with the anon key.
  */
 
+import { cleanTranscript } from '../../outreach/transcript.js';
 import { isImageTokenKey, shareableImageValue } from '../../personalization/imageReadiness.js';
 
 export const PROJECT_VERSION = 1;
@@ -135,6 +136,8 @@ export function preparePublishProject(state, { title } = {}) {
     ...(state?.kind === 'outreach' ? { kind: 'outreach' } : {}),
     ...(state?.campaign ? { campaign: { name: str(state.campaign.name, 120), contacts: Math.max(0, Math.min(100000, Number(state.campaign.contacts) || 0)) } } : {}),
     ...(state?.landing ? { landing: cleanLanding(state.landing) } : {}),
+    // Its transcript (src/lib/outreach/transcript.js), shown under the video on the watch page.
+    ...(cleanTranscript(state?.transcript) ? { transcript: cleanTranscript(state.transcript) } : {}),
   };
 }
 

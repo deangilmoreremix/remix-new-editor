@@ -36,7 +36,10 @@
     "Lip-sync the greeting (optional, paid): your mouth says each contact's name",
     "Thumbnails: animated GIF (3 seconds, choose where it starts) or still image; play button show/hide, style, colour and opacity; each prospect's company logo; text with {{firstname}}, {{company}}, {{jobtitle}}; Copy GIF and Embed per contact; Opened/Watched/Clicked per contact",
     "Camera effects in the recorder: background blur, virtual backgrounds (Office, Studio, Gradient or your own image), touch-up and mirror, recorded into the video",
-    "Script card with an AI writer (Script, Email and Page tabs, language picker) and a teleprompter in the recorder"
+    "Script card with an AI writer (Script, Email and Page tabs, language picker) and a teleprompter in the recorder",
+    "Edit in the Record step: trim the start and end, cut sections out, add a clip before or after",
+    "Captions and transcript made in your browser, with translations into other languages",
+    "Recorder tools: draw on the screen (pen, arrow, box), camera Spotlight, Restart and Delete"
   ],
   "featureExplanations": [
     {
@@ -143,6 +146,27 @@
       "whyToUse": "Keep eye contact and say it right the first time.",
       "inputRequired": "A script, typed or written with AI.",
       "restrictions": "Write with AI is one small text request on your MuAPI key. The script has no {{tokens}}: the same recording goes to everyone and only the greeting at [pause] is personalized."
+    },
+    {
+      "feature": "Edit the video",
+      "explanation": "Under your recording, Edit sets Start at and End at, cuts sections out (from and to seconds, Cut this part out, Undo), and Combine adds a clip before (an intro) or after (a demo). Apply edits makes the new video in your browser and replaces the recording.",
+      "whyToUse": "Remove mistakes and pauses, or join an intro to a demo.",
+      "inputRequired": "A recording.",
+      "restrictions": "Needs Chrome or Edge. Applying edits makes a new video, so the voice sample is taken from it again."
+    },
+    {
+      "feature": "Captions and transcript",
+      "explanation": "Make captions transcribes your recording in your browser (Whisper, downloaded once). Click any line to fix it. Add translation creates captions in another language, also in your browser. The transcript shows under the video on each contact's page.",
+      "whyToUse": "Viewers can read along, search and translate.",
+      "inputRequired": "A recording with speech.",
+      "restrictions": "The speech model is about 80 MB and the translation model is larger; both download once."
+    },
+    {
+      "feature": "Draw, spotlight, restart",
+      "explanation": "While recording Screen or Both, the preview shows your screen: draw with Pen, Arrow or Box in a colour; marks fade after a few seconds and are recorded. In Both, Spotlight makes your camera big in the middle until you click it again. Delete throws the take away; Restart throws it away and starts again.",
+      "whyToUse": "Point things out and keep attention on you.",
+      "inputRequired": "Screen or Both mode.",
+      "restrictions": "Draw on the preview in the recorder, not on the shared screen itself."
     }
   ],
   "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",

@@ -12,6 +12,9 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { emailFor, mailtoUrl, mailMergeCsv } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
+
+// Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
+const TRANSLATE_LANGS = [['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['it', 'Italian'], ['pt', 'Portuguese'], ['nl', 'Dutch'], ['pl', 'Polish'], ['ru', 'Russian'], ['tr', 'Turkish'], ['ar', 'Arabic'], ['hi', 'Hindi'], ['ja', 'Japanese'], ['ko', 'Korean'], ['zh', 'Chinese'], ['vi', 'Vietnamese'], ['id', 'Indonesian'], ['sv', 'Swedish'], ['en', 'English']];
 import {
   STEPS, SETUP_STEPS, STOCK_VOICES, FIRST_NAME_FALLBACKS, CONTACT_FIELDS, CSV_TEMPLATE, MAX_CONTACTS,
   loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, tokensIn,
@@ -119,7 +122,9 @@ export function OutreachStudio() {
       const url = await uploadToStorage(file);
       const seconds = duration || await videoDuration(url);
       draft.video = { url, duration: Math.round(seconds), hasAudio, type };
-      // A new recording means a new voice sample and greeting.
+      // A new recording means new captions, a new voice sample and greeting.
+      draft.captions = null;
+      edit = { trimStart: 0, trimEnd: null, cuts: [], before: null, after: null };
       draft.voice = { ...draft.voice, fallbackUrl: '', fallbackDuration: 0 };
       persist();
       busy = '';
@@ -149,6 +154,191 @@ export function OutreachStudio() {
     openRecorderStudio({
       onUseVideo: (v) => addVideo(v.blob, { duration: v.durationInFrames / v.fps, hasAudio: true, type: 'recorder', name: v.name }),
     });
+  }
+
+  // ---- Edit: trim, cut, add a clip before/after (src/lib/outreach/videoEdit.jsx) -------------
+  let edit = { trimStart: 0, trimEnd: null, cuts: [], before: null, after: null };
+  const fmtS = (n) => `${Math.floor(n / 60)}:${(n % 60).toFixed(1).padStart(4, '0')}`;
+
+  function renderEditPanel() {
+    const box = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
+    box.setAttribute('data-outreach-edit', '');
+    box.appendChild(el('div', 'text-sm font-bold', 'Edit'));
+    const dur = draft.video.duration || 0;
+    const end = edit.trimEnd ?? dur;
+    const slider = (label, value, onInput, attr) => {
+      const row = el('label', 'flex items-center gap-3 text-xs');
+      const r = el('input', 'flex-1 accent-[#d9ff00]'); r.type = 'range'; r.min = '0'; r.max = String(dur); r.step = '0.1'; r.value = String(value);
+      r.setAttribute(attr, '');
+      const v = el('span', 'w-14 text-right tabular-nums text-white/60', fmtS(value));
+      r.addEventListener('input', () => { v.textContent = fmtS(Number(r.value)); onInput(Number(r.value)); });
+      row.append(el('span', 'w-24 text-secondary', label), r, v);
+      return row;
+    };
+    const seekPreview = (t) => { const v = container.querySelector('[data-outreach-edit-preview] video, .aspect-video video'); if (v) v.currentTime = t; };
+    box.append(
+      slider('Start at', edit.trimStart, (t) => { edit.trimStart = Math.min(t, (edit.trimEnd ?? dur) - 0.5); seekPreview(t); }, 'data-edit-start'),
+      slider('End at', end, (t) => { edit.trimEnd = Math.max(t, edit.trimStart + 0.5); seekPreview(t); }, 'data-edit-end'),
+    );
+    // Cuts from the middle.
+    const cutRow = el('div', 'flex flex-wrap items-center gap-2 text-xs');
+    const from = el('input', 'w-20 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-white'); from.type = 'number'; from.step = '0.1'; from.min = '0'; from.placeholder = 'from (s)';
+    const to = el('input', 'w-20 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-white'); to.type = 'number'; to.step = '0.1'; to.min = '0'; to.placeholder = 'to (s)';
+    from.setAttribute('data-cut-from', ''); to.setAttribute('data-cut-to', '');
+    const addCut = button('Cut this part out', { small: true });
+    addCut.setAttribute('data-cut-add', '');
+    addCut.addEventListener('click', () => {
+      const a = Number(from.value); const b = Number(to.value);
+      if (!(b > a)) { notice = 'Set where the cut starts and ends (seconds).'; render(); return; }
+      edit.cuts = [...edit.cuts, [a, Math.min(b, dur)]]; render();
+    });
+    cutRow.append(el('span', 'w-24 text-secondary', 'Cut a section'), from, to, addCut);
+    box.appendChild(cutRow);
+    edit.cuts.forEach(([a, b], i) => {
+      const r = el('div', 'flex items-center gap-2 text-xs text-white/70');
+      const rm = button('Undo', { small: true });
+      rm.addEventListener('click', () => { edit.cuts = edit.cuts.filter((_, j) => j !== i); render(); });
+      r.append(el('span', '', `Cut ${fmtS(a)} – ${fmtS(b)}`), rm);
+      box.appendChild(r);
+    });
+    // Combine: a clip before (intro) or after (demo).
+    const clipRow = el('div', 'flex flex-wrap items-center gap-2 text-xs');
+    clipRow.appendChild(el('span', 'w-24 text-secondary', 'Combine'));
+    for (const where of ['before', 'after']) {
+      const f = el('input'); f.type = 'file'; f.accept = 'video/*'; f.hidden = true;
+      f.addEventListener('change', async () => {
+        const file = f.files?.[0]; f.value = '';
+        if (!file) return;
+        const src = URL.createObjectURL(file);
+        edit[where] = { src, duration: await videoDuration(src), name: file.name };
+        render();
+      });
+      const b = button(edit[where] ? `${where === 'before' ? 'Before' : 'After'}: ${edit[where].name.slice(0, 18)} ✕` : `Add a clip ${where}`, { small: true });
+      b.setAttribute(`data-edit-${where}`, '');
+      b.addEventListener('click', () => { if (edit[where]) { URL.revokeObjectURL(edit[where].src); edit[where] = null; render(); } else f.click(); });
+      clipRow.append(b, f);
+    }
+    box.appendChild(clipRow);
+    const total = editSegmentsInfo();
+    const applyRow = el('div', 'flex flex-wrap items-center gap-2');
+    const apply = button('Apply edits', { primary: !total.unchanged, small: true });
+    apply.setAttribute('data-edit-apply', '');
+    apply.disabled = total.unchanged || !!busy;
+    apply.addEventListener('click', applyEdits);
+    applyRow.append(apply, el('span', 'text-xs text-white/50', total.unchanged ? 'No changes yet.' : `New length ${fmtS(total.seconds)} (was ${fmtS(dur)}).`));
+    box.appendChild(applyRow);
+    return box;
+  }
+
+  let editModule = null;
+  function editSegmentsInfo() {
+    if (!editModule) { import('../lib/outreach/videoEdit.jsx').then((m) => { editModule = m; if (step === 1) render(); }); return { unchanged: true, seconds: 0 }; }
+    const main = { src: draft.video.url, duration: draft.video.duration };
+    const segs = editModule.buildSegments({ main, edits: edit, before: edit.before, after: edit.after });
+    return { segs, unchanged: editModule.isUnchanged(segs, main), seconds: editModule.segmentsDuration(segs) };
+  }
+
+  async function applyEdits() {
+    const { segs } = editSegmentsInfo();
+    abort = new AbortController();
+    try {
+      setBusy('Applying edits…');
+      const out = await editModule.renderSegments(segs, {
+        signal: abort.signal,
+        onProgress: (p) => { busy = `Applying edits… ${Math.round(p * 100)}%`; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; },
+      });
+      abort = null; busy = '';
+      await addVideo(out.blob, { duration: out.duration, hasAudio: draft.video.hasAudio, type: draft.video.type, name: `edited.${/webm/.test(out.mimeType) ? 'webm' : 'mp4'}` });
+      notice = 'Edits applied. Check the voice step: the voice sample comes from the new video.';
+      render();
+    } catch (err) {
+      abort = null;
+      if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped.'; render(); return; }
+      fail(err);
+    }
+  }
+
+  // ---- Captions: Whisper in the browser, free translations (src/lib/outreach/transcript.js) ----
+  let captionLang = 'es';
+  function renderCaptionsPanel() {
+    const box = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
+    box.setAttribute('data-outreach-captions', '');
+    box.appendChild(el('div', 'text-sm font-bold', 'Captions and transcript'));
+    const c = draft.captions;
+    if (!c?.lines?.length) {
+      box.appendChild(el('p', 'text-xs text-secondary', 'Make captions from your recording. They show as a transcript under the video on each contact\u2019s page. Made in your browser (the speech model downloads once, about 80 MB).'));
+      const make = button('Make captions', { small: true, primary: true });
+      make.setAttribute('data-captions-make', '');
+      make.disabled = !!busy;
+      make.addEventListener('click', makeCaptions);
+      box.appendChild(make);
+      return box;
+    }
+    const list = el('div', 'max-h-40 overflow-y-auto rounded-lg bg-white/[0.03] p-2 text-xs leading-relaxed text-white/80');
+    list.setAttribute('data-captions-list', '');
+    c.lines.forEach((l, i) => {
+      const row = el('div', 'flex gap-2');
+      const inp = el('input', 'flex-1 bg-transparent text-white/85 outline-none focus:text-white');
+      inp.value = l.text;
+      inp.addEventListener('change', () => { c.lines[i] = { ...l, text: inp.value.trim() || l.text }; persist(); });
+      row.append(el('span', 'w-10 shrink-0 tabular-nums text-white/40', `${Math.floor(l.startMs / 60000)}:${String(Math.floor(l.startMs / 1000) % 60).padStart(2, '0')}`), inp);
+      list.appendChild(row);
+    });
+    box.appendChild(list);
+    const trRow = el('div', 'flex flex-wrap items-center gap-2 text-xs');
+    const sel = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-white');
+    for (const [code, label] of TRANSLATE_LANGS) { if (code === c.lang) continue; const o = el('option', 'bg-neutral-900', label); o.value = code; o.selected = code === captionLang; sel.appendChild(o); }
+    sel.addEventListener('change', () => { captionLang = sel.value; });
+    const tr = button('Add translation', { small: true });
+    tr.setAttribute('data-captions-translate', '');
+    tr.disabled = !!busy;
+    tr.addEventListener('click', () => translateCaptionsTo(sel.value));
+    const langs = Object.keys(c.translations || {});
+    trRow.append(el('span', 'text-secondary', 'Captions in other languages:'), sel, tr, el('span', 'text-white/50', langs.length ? `Added: ${langs.map((l) => TRANSLATE_LANGS.find(([x]) => x === l)?.[1] || l).join(', ')}` : ''));
+    const redo = button('Make again', { small: true });
+    redo.addEventListener('click', makeCaptions);
+    box.append(trRow, redo);
+    return box;
+  }
+
+  async function makeCaptions() {
+    abort = new AbortController();
+    try {
+      setBusy('Making captions: reading the audio…');
+      const [{ transcribeInBrowser }, { transcriptLines }] = await Promise.all([
+        import('../lib/editor/remotion/transcribe.js'),
+        import('../lib/outreach/transcript.js'),
+      ]);
+      const { captions } = await transcribeInBrowser(draft.video.url, {
+        signal: abort.signal,
+        onProgress: (p) => { busy = p.stage === 'download' ? `Downloading the speech model… ${Math.round((p.progress || 0) * 100)}%` : 'Making captions…'; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; },
+      });
+      draft.captions = { lang: 'en', lines: transcriptLines(captions), translations: {} };
+      persist();
+      abort = null; busy = ''; notice = `Captions made: ${draft.captions.lines.length} lines. Fix any word by clicking it.`;
+      render();
+    } catch (err) {
+      abort = null;
+      if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped.'; render(); return; }
+      fail(err);
+    }
+  }
+
+  async function translateCaptionsTo(code) {
+    abort = new AbortController();
+    try {
+      setBusy('Translating captions (in your browser)…');
+      const { translateCaptions } = await import('../lib/editor/ml/localAI.js');
+      const lines = await translateCaptions(draft.captions.lines.map((l) => ({ text: l.text, startMs: l.startMs, endMs: l.endMs })), code, { src: draft.captions.lang, signal: abort.signal });
+      draft.captions = { ...draft.captions, translations: { ...(draft.captions.translations || {}), [code]: lines.map((l) => ({ startMs: l.startMs, endMs: l.endMs, text: l.text })) } };
+      persist();
+      abort = null; busy = ''; notice = 'Translation added. Viewers can switch language under the video.';
+      render();
+    } catch (err) {
+      abort = null;
+      if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped.'; render(); return; }
+      fail(err);
+    }
   }
 
   // Script + AI writer (Sendspark "Scripts & Teleprompter"). The script shows in the recorder's
@@ -244,6 +434,7 @@ export function OutreachStudio() {
     pro.addEventListener('click', openFullRecorder);
     actions.append(rec, upload, pro, file);
     main.append(preview, actions);
+    if (draft.video?.url) main.append(renderEditPanel(), renderCaptionsPanel());
 
     const side = el('div', 'flex flex-col gap-5');
     const info = card('Your recording');

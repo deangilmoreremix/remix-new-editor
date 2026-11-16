@@ -69,6 +69,8 @@ export function defaultDraft() {
     email: { ...DEFAULT_EMAIL },
     // The recording script (Script card, AI writer), shown in the recorder's teleprompter.
     script: '',
+    // Captions of the recording (src/lib/outreach/transcript.js): { lang, lines, translations }.
+    captions: null,
   };
 }
 
@@ -456,6 +458,9 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, now
     ...(website ? { multiCam: { mode: 'pip', mainTrackId: `track-bg-${id}`, secondTrackId: `track-cam-${id}`, pip: { corner: 'bottom-left', size: 26, shape: 'circle' } } } : {}),
     kind: 'outreach',
     campaign: { name: name.slice(0, 120), contacts: (draft.contacts || []).length },
+    // Captions made in the Record step: the landing page's transcript (times match the recording,
+    // which starts at 0 in every layout).
+    ...(draft.captions?.lines?.length ? { transcript: draft.captions } : {}),
     landing: {
       header: String(draft.header || '').trim(),
       message: String(draft.message || '').trim(),
