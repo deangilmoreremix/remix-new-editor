@@ -7,7 +7,6 @@ import { PREVIEW_LAYOUTS, createDefaultPreviewSettings } from '../../preview/pre
 vi.mock('../../DemoPersonalizeProvider', () => ({ useDemoPersonalize: vi.fn() }))
 // The real preview mounts a Remotion Player; the card behaviour is what is under test here.
 vi.mock('../PersonalizationTemplateBrowser', () => ({
-  previewBrandContext: () => ({}),
   TemplateLivePreview: ({ item, playing }: { item: { id: string }; playing: boolean }) => (
     <div data-testid={`preview-${item.id}`} data-playing={String(playing)} />
   ),
@@ -28,6 +27,21 @@ function setup(layout = 'business-introduction') {
 }
 
 describe('LayoutThumbnails', () => {
+  it('draws only what the customer has: no invented offer, phone or call to action', async () => {
+    const presets = await import('../../preview/presets')
+    const spy = vi.spyOn(presets, 'applyLayoutPreset')
+    vi.mocked(useDemoPersonalize).mockImplementation(() => ({
+      previewSettings: createDefaultPreviewSettings(), source: null, previewVideo: null,
+      clientForm: { businessName: 'Acme Bakery' }, assets: {},
+    }) as unknown as ReturnType<typeof useDemoPersonalize>)
+    render(<LayoutThumbnails onChoose={vi.fn()} activeLayoutId={null} />)
+    const ctx = spy.mock.calls[0][2] as Record<string, unknown>
+    expect(ctx.offer).toBe('')
+    expect(ctx.cta).toBe('')
+    expect(ctx.phone).toBe('')
+    expect(JSON.stringify(ctx)).not.toMatch(/20% off|Book now|555/)
+    spy.mockRestore()
+  })
   it('shows every layout as a button with a name and a preview, and no <video>', () => {
     setup()
     for (const layout of PREVIEW_LAYOUTS) {

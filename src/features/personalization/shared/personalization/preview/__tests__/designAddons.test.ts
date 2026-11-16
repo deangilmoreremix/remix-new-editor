@@ -86,3 +86,17 @@ describe('design layer ids', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 })
+
+describe('intro designs on a short clip', () => {
+  it('never starts an intro before the previous one ends, and says so when there is no room', () => {
+    const short = { ...base(), durationInFrames: 45 }
+    const scene = all.find((d) => d.category === 'full-scene' && typeof d.placement?.endFrame === 'number' && canAddDesign(short, d, { logo: true, product: true, service: true }).ok)
+    const transition = all.find((d) => d.category === 'transition' && typeof d.placement?.endFrame === 'number' && canAddDesign(short, d, { logo: true, product: true, service: true }).ok)
+    if (!scene || !transition) return
+    const first = addDesignWithRules(short, scene.id, ctx)
+    const second = addDesignWithRules(first.settings, transition.id, ctx)
+    const intros = listAddedDesigns(second.settings).filter((l) => typeof l.endFrame === 'number')
+    for (let i = 1; i < intros.length; i++) expect(intros[i].startFrame).toBeGreaterThan(intros[i - 1].endFrame as number)
+    if (intros.length === 1) expect(second.error).toMatch(/no room/)
+  })
+})

@@ -63,7 +63,7 @@ export function AddDesignsPanel(): React.JSX.Element | null {
                   <button type="button" data-testid={`remove-design-${layer.designId}`} onClick={() => removePreviewDesignLayer(layer.id)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Trash2 size={11} /> Remove
                   </button>
-                  <button type="button" onClick={() => updatePreviewLayer(layer.id, { textSlotOverrides: undefined, color: undefined, fontFamily: undefined, imageUrl: undefined })} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>
+                  <button type="button" onClick={() => updatePreviewLayer(layer.id, { text: undefined, textSlotOverrides: undefined, color: undefined, fontFamily: undefined, imageUrl: undefined })} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>
                     Restore defaults
                   </button>
                 </span>

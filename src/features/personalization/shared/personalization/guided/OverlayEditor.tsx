@@ -1106,7 +1106,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   <button
                     type="button"
                     data-testid="design-restore-defaults"
-                    onClick={() => updatePreviewLayer(selected.id, { textSlotOverrides: undefined, color: undefined, fontFamily: undefined, imageUrl: undefined })}
+                    onClick={() => updatePreviewLayer(selected.id, { text: undefined, textSlotOverrides: undefined, color: undefined, fontFamily: undefined, imageUrl: undefined })}
                     style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px' }}
                   >
                     Restore design defaults

@@ -79,7 +79,7 @@ export function canAddDesign(
 }
 
 /**
- * First frame a newly added design may start on. Designs that play as an intro
+ * First frame a newly added design may start on (never earlier than the previous intro's end). Designs that play as an intro
  * (they set `placement.endFrame`: full scenes, transitions) follow the previous
  * intro instead of all starting at frame 0; whole-clip overlays start at 0.
  */
@@ -89,9 +89,12 @@ export function nextStartFrame(settings: PersonalizationPreviewSettings, design:
   for (const layer of listAddedDesigns(settings)) {
     if (typeof layer.endFrame === 'number') start = Math.max(start, layer.endFrame + 1)
   }
-  // Leave at least one second of the clip for the design to show.
-  const latest = Math.max(0, settings.durationInFrames - Math.max(1, settings.fps || 30))
-  return Math.min(start, latest)
+  return start
+}
+
+/** The last frame an intro may start on: leave at least one second of the clip for it to show. */
+export function latestIntroStart(settings: PersonalizationPreviewSettings): number {
+  return Math.max(0, settings.durationInFrames - Math.max(1, settings.fps || 30))
 }
 
 export interface AddDesignResult {
@@ -112,6 +115,8 @@ export function addDesignWithRules(
   if (!check.ok) return { settings: prev, error: check.reason }
 
   const start = nextStartFrame(prev, design)
+  // Clamping the start would slide it in front of the previous intro; with no room left, say so instead.
+  if (start > latestIntroStart(prev)) return { settings: prev, error: 'There is no room left in the clip for another intro design.' }
   const next = addDesignTemplate(prev, designId, ctx)
   if (start === 0 || next === prev) return { settings: next }
   const layers = next.layers.map((layer, index) => {

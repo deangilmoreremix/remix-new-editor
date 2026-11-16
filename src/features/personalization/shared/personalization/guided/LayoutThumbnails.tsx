@@ -3,10 +3,30 @@
 import { useMemo, useState } from 'react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { PREVIEW_LAYOUTS, applyLayoutPreset } from '../preview/presets'
+import type { ApplyLayoutContext } from '../preview/presets'
 import type { PreviewInputProps, PreviewLayoutId } from '../preview/types'
 import { buildPreviewInput } from './buildPreviewInput'
-import { previewBrandContext, TemplateLivePreview } from './PersonalizationTemplateBrowser'
+import { TemplateLivePreview } from './PersonalizationTemplateBrowser'
 import { C, hintStyle, tileStyle } from './tokens'
+
+/**
+ * What the customer really has. The template gallery fills empty fields with sample copy so its cards stay
+ * readable; here that would show an offer or phone number they never entered, so empty stays empty.
+ */
+function customerContext(input: PreviewInputProps): ApplyLayoutContext {
+  const { brand } = input
+  return {
+    businessName: brand.businessName,
+    headline: brand.headline,
+    offer: brand.offer,
+    cta: brand.cta,
+    phone: brand.phone,
+    website: brand.website,
+    logoUrl: brand.logoUrl ?? undefined,
+    productUrl: brand.productUrl ?? undefined,
+    serviceUrl: brand.serviceUrl ?? undefined,
+  }
+}
 
 /**
  * The five layouts as picture buttons: each one is the customer's own video with THAT layout's logo, text and
@@ -39,7 +59,7 @@ export function LayoutThumbnails({
       {PREVIEW_LAYOUTS.map((layout) => {
         const active = activeLayoutId === layout.id
         const inputProps: PreviewInputProps | null = baseInput
-          ? { ...baseInput, settings: applyLayoutPreset(baseInput.settings, layout.id, previewBrandContext(baseInput)) }
+          ? { ...baseInput, settings: applyLayoutPreset(baseInput.settings, layout.id, customerContext(baseInput)) }
           : null
         const item = { kind: 'layout' as const, id: layout.id, name: layout.name, description: layout.description, category: 'layouts' as const }
         return (
