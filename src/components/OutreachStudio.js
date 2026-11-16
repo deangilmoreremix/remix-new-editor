@@ -2242,7 +2242,8 @@ export function OutreachStudio() {
     const begin = () => {
       const k = DYNAMIC_KINDS.find((d) => d.id === kind);
       const next = newDynamicVideo(draft);
-      Object.assign(next, { name, kind, language: lang, greeting: k?.greeting || next.greeting });
+      // Same audio has no greeting at all.
+      Object.assign(next, { name, kind, language: lang, greeting: k ? k.greeting : next.greeting });
       replaceDraft(next);
       step = 1; notice = ''; render();
     };

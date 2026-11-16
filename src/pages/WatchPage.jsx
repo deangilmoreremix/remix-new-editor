@@ -14,6 +14,7 @@ import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publis
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 import { fillTemplate, calendarEmbedUrl } from '../lib/outreach/draft.js';
+import { cleanTranscript, clock } from '../lib/outreach/transcript.js';
 import { trackersFor, fireLeadTrackers } from '../lib/editor/publish/pixel.js';
 import { captureAttribution } from '../lib/editor/publish/attribution.js';
 
@@ -92,6 +93,21 @@ export async function mountWatchPage(container, ref, deps = {}) {
       </section>`
     : '';
 
+  // The transcript (Video Outreach captions), under the video: each line jumps the video to its moment, the line
+  // being spoken is highlighted, and translations can be picked. Not in the embedded player.
+  const transcript = embed ? null : cleanTranscript(video.project.transcript);
+  const LANG_NAMES = { en: 'English', es: 'Spanish', fr: 'French', de: 'German', pt: 'Portuguese', it: 'Italian', nl: 'Dutch', ja: 'Japanese', ko: 'Korean', zh: 'Chinese', hi: 'Hindi', ar: 'Arabic' };
+  const transcriptLangs = transcript ? [transcript.lang, ...Object.keys(transcript.translations)] : [];
+  const transcriptBody = transcript
+    ? `<section class="watch-transcript" data-transcript>
+        <div class="watch-transcript-head">
+          <h2>Transcript</h2>
+          ${transcriptLangs.length > 1 ? `<select data-transcript-lang aria-label="Transcript language">${transcriptLangs.map((c) => `<option value="${esc(c)}">${esc(LANG_NAMES[c] || c)}</option>`).join('')}</select>` : ''}
+        </div>
+        <ol class="watch-transcript-lines" data-transcript-lines></ol>
+      </section>`
+    : '';
+
   container.innerHTML = `
     <main class="watch">
       ${embed ? '' : `<header class="watch-head"><h1>${esc(heading)}</h1></header>`}
@@ -110,6 +126,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
         </div>
       </section>
       ${landingBody}
+      ${transcriptBody}
     </main>`;
   const $ = (s) => container.querySelector(s);
   const frame = $('[data-frame]');
@@ -176,6 +193,37 @@ export async function mountWatchPage(container, ref, deps = {}) {
   }
 
   const start = () => { player.play(); };
+  if (transcript) {
+    const list = $('[data-transcript-lines]');
+    const draw = (code) => {
+      const lines = code === transcript.lang ? transcript.lines : transcript.translations[code] || transcript.lines;
+      list.replaceChildren(...lines.map((l) => {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'watch-transcript-line'; b.dataset.start = String(l.startMs); b.dataset.end = String(l.endMs);
+        const t = document.createElement('span'); t.className = 'watch-transcript-time'; t.textContent = clock(l.startMs);
+        const w = document.createElement('span'); w.textContent = l.text;
+        b.append(t, w);
+        b.addEventListener('click', () => { player.seek(l.startMs / 1000); player.play(); });
+        li.appendChild(b);
+        return li;
+      }));
+    };
+    draw(transcript.lang);
+    $('[data-transcript-lang]')?.addEventListener('change', (e) => draw(e.target.value));
+    let shown = -1;
+    const mark = () => {
+      if (!list.isConnected) { clearInterval(follow); return; }
+      const ms = player.time * 1000;
+      const rows = [...list.querySelectorAll('.watch-transcript-line')];
+      const i = rows.findIndex((r) => ms >= Number(r.dataset.start) && ms < Number(r.dataset.end));
+      if (i === shown) return;
+      rows[shown]?.removeAttribute('aria-current');
+      if (i >= 0) rows[i].setAttribute('aria-current', 'true');
+      shown = i;
+    };
+    const follow = setInterval(mark, 250);
+  }
   $('[data-bigplay]').addEventListener('click', start);
   $('[data-play]').addEventListener('click', () => player.toggle());
   const seekInput = $('[data-seek]');

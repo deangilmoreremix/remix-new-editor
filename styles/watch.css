@@ -1,11 +1,14 @@
 /* Public interactive video player (/watch/<id>) */
 html.watch-root, html.watch-root body { margin: 0; background: #0b0c10; color: #f4f4f5; font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif; }
 html.watch-embed, html.watch-embed body { background: #000; }
+/* The app shell caps #app at one screen; a long watch page (calendar, transcript) grows on one background. */
+html.watch-root #app { height: auto; min-height: 100vh; background: transparent; }
 .watch { min-height: 100vh; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 16px; box-sizing: border-box; }
 .watch-embed .watch { padding: 0; min-height: 100vh; justify-content: center; }
 .watch-head { width: min(1100px, 100%); }
 .watch-head h1 { margin: 0; font-size: clamp(18px, 2.4vw, 26px); font-weight: 700; }
-.watch-player { width: min(1100px, 100%); background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+/* flex: none: in a long page (calendar, transcript) the clipped player must never shrink to nothing. */
+.watch-player { flex: none; width: min(1100px, 100%); background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
 .watch-embed .watch-player { width: 100%; border-radius: 0; box-shadow: none; }
 /* Embedded: the picture fills the iframe and the controls float over its bottom edge (no black side
    bars). While playing they fade out, and come back on hover or keyboard focus. */
@@ -65,3 +68,15 @@ html.watch-embed, html.watch-embed body { background: #000; }
 .watch-landing-cta:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .watch-landing-calendar { display: block; width: 100%; height: 680px; margin-top: 20px; border: 0; border-radius: 16px; background: #fff; }
 @media (max-width: 640px) { .watch-landing { padding: 0 16px; } }
+/* Transcript (Video Outreach captions) under the video. */
+.watch-transcript { flex: none; width: min(1100px, 100%); margin-top: 28px; text-align: left; }
+.watch-transcript-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.watch-transcript-head h2 { margin: 0; font-size: 18px; }
+.watch-transcript-head select { border: 1px solid rgba(127,127,127,.35); border-radius: 8px; padding: 6px 10px; background: transparent; color: inherit; }
+.watch-transcript-lines { list-style: none; margin: 0; padding: 0; max-height: 360px; overflow-y: auto; border: 1px solid rgba(127,127,127,.25); border-radius: 14px; }
+.watch-transcript-line { display: flex; gap: 14px; width: 100%; padding: 10px 16px; border: 0; background: transparent; color: inherit; font: inherit; font-size: 15px; line-height: 1.45; text-align: left; cursor: pointer; }
+.watch-transcript-line:hover { background: rgba(127,127,127,.1); }
+.watch-transcript-line[aria-current="true"] { background: rgba(79,70,229,.14); }
+.watch-transcript-line:focus-visible { outline: 2px solid #4f46e5; outline-offset: -2px; }
+.watch-transcript-time { flex: none; min-width: 3.2em; opacity: .55; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .watch-transcript { padding: 0 16px; } }

@@ -437,3 +437,31 @@ describe('share panel and watch page', () => {
     window.history.replaceState(null, '', '/');
   });
 });
+
+describe('watch page transcript (Video Outreach captions)', () => {
+  const transcript = { lang: 'en', lines: [{ startMs: 0, endMs: 2000, text: 'Hi there.' }, { startMs: 2000, endMs: 5000, text: 'I made this for you.' }], translations: { es: [{ startMs: 0, endMs: 2000, text: 'Hola.' }, { startMs: 2000, endMs: 5000, text: 'Lo hice para ti.' }] } };
+  const mount = async (search, extra = {}) => {
+    window.history.replaceState(null, '', `/watch/abcdefgh12${search}`);
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const engine = fakeEngine();
+    const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Campaign', project: { ...project(), kind: 'outreach', ...extra } }), createEngine: engine.create, analytics, onLead: vi.fn() });
+    return { box, player };
+  };
+  it('lists every line with its time, switches language, and a line jumps the video there', async () => {
+    const { box, player } = await mount('', { transcript });
+    const rows = [...box.querySelectorAll('.watch-transcript-line')];
+    expect(rows.map((r) => r.textContent)).toEqual(['0:00Hi there.', '0:02I made this for you.']);
+    const sel = box.querySelector('[data-transcript-lang]');
+    sel.value = 'es'; sel.dispatchEvent(new Event('change'));
+    expect(box.querySelector('[data-transcript-lines]').textContent).toContain('Lo hice para ti.');
+    const seek = vi.spyOn(player, 'seek');
+    box.querySelectorAll('.watch-transcript-line')[1].click();
+    expect(seek).toHaveBeenCalledWith(2);
+  });
+  it('no transcript without captions, and none in the embedded player', async () => {
+    expect((await mount('')).box.querySelector('[data-transcript]')).toBeNull();
+    expect((await mount('?embed=1', { transcript })).box.querySelector('[data-transcript]')).toBeNull();
+  });
+});
