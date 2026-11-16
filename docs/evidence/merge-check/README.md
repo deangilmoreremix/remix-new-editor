@@ -28,6 +28,7 @@ Test media: two generated 8s VP9 clips. No Supabase / Clerk / provider keys were
 | 81-everything-added-in-timeline | Template video, sound, lead form, CTA and animation added: pictures in the Overlays lane, frames and waveforms in the tracks |
 | 82-sound-on-its-own-track | The + on a template video adds it directly; a sound added over its audio goes on a new audio track (A2) |
 | 83, 84, 85 | New blank project: the Start your video screen; Pick a template video opens the Add window on that tab; Make a video for me opens the Template Generator |
+| 87, 88 | Library Favorites (★) and Recent strips; the same after a page reload |
 
 ## Not captured / not verified
 - "Open full timeline" button: click timed out, no screenshot (30/43 missing).

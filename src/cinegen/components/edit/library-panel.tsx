@@ -13,6 +13,7 @@ import { hyperframesItems, type HfItem } from '@cinegen/lib/hyperframes/overlay'
 import { groupOf, thumbOf } from './hyperframes-modal';
 import { buildCatalog, hfPreview, mgPreview, openAddToTimeline, type AddModalTab, type CatalogEntry } from './add-to-timeline-registry';
 import { LibraryCard } from './library-card';
+import { useLibraryMemory } from '@cinegen/lib/occ/library-memory';
 import { CARD_CSS } from './preview-card';
 import { aspectBucket, searchTemplateVideos, type TemplateVideo } from './template-videos-modal';
 // @ts-expect-error plain JS data module (same import as add-to-timeline-modal.tsx)
@@ -86,6 +87,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
   const [pinned, setPinned] = useState(false); // true once a category was chosen: the search then filters that category instead of showing results from all of them
   const [videosShown, setVideosShown] = useState(PAGE);
   const fixedRef = useRef<Map<string, CatalogEntry> | null>(null);
+  const memory = useLibraryMemory(); // Recents + Favorites (this browser only)
   const audio = useRef<HTMLAudioElement | null>(null);
   const noteTimer = useRef<number | undefined>(undefined);
   const packs = usePluginPacks();
@@ -142,23 +144,26 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
   // ── picture cards ──────────────────────────────────────────────────────────
   const animCard = (x: AnimItem) => {
     const preview = x.kind === 'hf' && x.hf ? hfPreview(x.hf) : mgPreview(x.mg!);
-    return <LibraryCard key={x.id} testId={`library-mg-${x.id}`} title={x.name} sub={`${x.group} · ${x.seconds.toFixed(x.seconds < 10 ? 1 : 0)}s`} image={preview.image} preview={preview} drag={dragProps(x.kind === 'hf' ? 'hf' : 'mg', x.id)}
-      onOpen={() => openModal('all', x.name)} onAdd={() => void run(() => (x.kind === 'hf' && x.hf ? actions.onAddHf(x.hf) : actions.onAddMg(x.mg!)))} />;
+    const mid = `anim:${x.id}`;
+    return <LibraryCard key={x.id} testId={`library-mg-${x.id}`} favorite={memory.isFavorite(mid)} onToggleFavorite={() => memory.toggleFavorite(mid)} title={x.name} sub={`${x.group} · ${x.seconds.toFixed(x.seconds < 10 ? 1 : 0)}s`} image={preview.image} preview={preview} drag={dragProps(x.kind === 'hf' ? 'hf' : 'mg', x.id)}
+      onOpen={() => openModal('all', x.name)} onAdd={() => { memory.remember(mid); void run(() => (x.kind === 'hf' && x.hf ? actions.onAddHf(x.hf) : actions.onAddMg(x.mg!))); }} />;
   };
   const overlayCard = (k: (typeof OVERLAY_KINDS)[number]) => {
     const e = fixed().get(k.kind);
-    return <LibraryCard key={k.kind} testId={`library-overlay-${k.kind}`} title={k.label} sub={k.blurb} badge="Overlay" preview={e?.preview} drag={dragProps('overlay', k.kind)}
-      onOpen={() => openModal('overlays', k.label)} onAdd={() => void run(() => actions.onAddOverlay(k.kind))} />;
+    const mid = `overlay:${k.kind}`;
+    return <LibraryCard key={k.kind} testId={`library-overlay-${k.kind}`} favorite={memory.isFavorite(mid)} onToggleFavorite={() => memory.toggleFavorite(mid)} title={k.label} sub={k.blurb} badge="Overlay" preview={e?.preview} drag={dragProps('overlay', k.kind)}
+      onOpen={() => openModal('overlays', k.label)} onAdd={() => { memory.remember(mid); void run(() => actions.onAddOverlay(k.kind)); }} />;
   };
   const templateCard = (x: ReturnType<typeof overlayTemplates>[number]) => {
     const e = fixed().get(`tpl:${x.id}`);
-    return <LibraryCard key={x.id} testId={`library-template-${x.id}`} title={x.name} sub={x.description} badge={e?.badge} preview={e?.preview} drag={dragProps('template', x.id)}
-      onOpen={() => openModal('endscreens', x.name)} onAdd={() => void run(() => actions.onAddTemplate(x.id))} />;
+    const mid = `tpl:${x.id}`;
+    return <LibraryCard key={x.id} testId={`library-template-${x.id}`} favorite={memory.isFavorite(mid)} onToggleFavorite={() => memory.toggleFavorite(mid)} title={x.name} sub={x.description} badge={e?.badge} preview={e?.preview} drag={dragProps('template', x.id)}
+      onOpen={() => openModal('endscreens', x.name)} onAdd={() => { memory.remember(mid); void run(() => actions.onAddTemplate(x.id)); }} />;
   };
   // Template videos: the "+" puts the clip on a video track at the playhead; clicking the card opens the big window on that clip.
   const videoCard = (v: TemplateVideo) => (
-    <LibraryCard key={v.id} testId={`library-video-${v.id}`} title={v.title} sub={`${v.duration ? `${Math.round(v.duration)}s · ` : ''}${aspectBucket(v.aspectRatio)}`} image={v.posterSrc} video={v.videoSrc}
-      onOpen={() => openModal('videos', v.title)} onAdd={() => void run(() => actions.onAddTemplateVideo(v))} />
+    <LibraryCard key={v.id} testId={`library-video-${v.id}`} favorite={memory.isFavorite(`video:${v.id}`)} onToggleFavorite={() => memory.toggleFavorite(`video:${v.id}`)} title={v.title} sub={`${v.duration ? `${Math.round(v.duration)}s · ` : ''}${aspectBucket(v.aspectRatio)}`} image={v.posterSrc} video={v.videoSrc}
+      onOpen={() => openModal('videos', v.title)} onAdd={() => { memory.remember(`video:${v.id}`); void run(() => actions.onAddTemplateVideo(v)); }} />
   );
   const soundRow = (s: SoundEffect) => (
     <div key={s.id} {...dragProps('sound', s.id)} className="library-panel__sound" data-testid={`library-sound-${s.id}`}>
@@ -196,8 +201,28 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
     return sections.length ? <div className="library-panel__stack">{sections}</div> : <span className="library-panel__empty">Nothing matches “{q.trim()}”.</span>;
   };
 
+  // ── Recent and Favorites: the same cards, found again by id ────────────────
+  const cardFor = (id: string): React.ReactNode => {
+    const [type, ...rest] = id.split(':'); const key = rest.join(':');
+    if (type === 'anim') { const x = animItems.find((a) => a.id === key); return x ? animCard(x) : null; }
+    if (type === 'overlay') { const k = OVERLAY_KINDS.find((o) => o.kind === key); return k ? overlayCard(k) : null; }
+    if (type === 'tpl') { const x = overlayTemplates().find((t) => t.id === key); return x ? templateCard(x) : null; }
+    if (type === 'video') { const v = ALL_VIDEOS.find((c) => c.id === key); return v ? videoCard(v) : null; }
+    return null;
+  };
+  const strip = (label: string, ids: string[], testId: string) => {
+    const cards = ids.map((id) => ({ id, node: cardFor(id) })).filter((c) => c.node).slice(0, SEARCH_CAP);
+    if (!cards.length) return null;
+    return <div key={testId} data-testid={testId}><div className="library-panel__group-head"><span>{label}</span><span style={{ opacity: 0.6 }}>{cards.length}</span></div><div className="library-panel__cards">{cards.map((c) => <div key={c.id}>{c.node}</div>)}</div></div>;
+  };
+
   const body = () => {
     if (q.trim() && !pinned) return results();
+    const strips = [strip('★ Favorites', memory.favorites, 'library-favorites'), strip('Recent', memory.recent, 'library-recent')].filter(Boolean);
+    const main = bodyOf();
+    return strips.length ? <div className="library-panel__stack">{strips}{main}</div> : main;
+  };
+  const bodyOf = () => {
     if (cat === 'animations') {
       return (
         <div className="library-panel__stack">

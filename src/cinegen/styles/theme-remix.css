@@ -224,3 +224,8 @@
 .empty-start__card span:last-child { opacity: 0.7; }
 .empty-start__card:hover, .empty-start__card:focus-visible { border-color: #22d3ee; background: rgba(34, 211, 238, 0.08); outline: none; }
 .empty-start__icon { font-size: 22px; }
+
+/* [remix] favorite star on Library cards (components/edit/library-card.tsx) */
+.lib-card__star { position: absolute; top: 9px; right: 36px; z-index: 25; width: 22px; height: 22px; border-radius: 999px; border: 0; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 13px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
+.lib-card__star:hover, .lib-card__star:focus-visible { background: rgba(0, 0, 0, 0.85); outline: none; }
+.lib-card__star--on { color: #facc15; }

@@ -35,11 +35,14 @@ export interface LibraryCardProps {
   /** Click on the "+". */
   onAdd: () => void;
   addTip?: string;
+  /** Starred? When `onToggleFavorite` is given the card shows a star. */
+  favorite?: boolean;
+  onToggleFavorite?: () => void;
   /** Drag-to-timeline props (see library-dnd.ts). */
   drag?: Pick<HTMLAttributes<HTMLElement>, 'draggable' | 'onDragStart'>;
 }
 
-export function LibraryCard({ title, sub, badge, image, video, preview, testId, onOpen, onAdd, addTip = ADD_TIP, drag }: LibraryCardProps) {
+export function LibraryCard({ title, sub, badge, image, video, preview, testId, onOpen, onAdd, addTip = ADD_TIP, drag, favorite, onToggleFavorite }: LibraryCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const visible = useInView(ref);
   const [hover, setHover] = useState(false);
@@ -66,6 +69,9 @@ export function LibraryCard({ title, sub, badge, image, video, preview, testId, 
         <div className="lib-card__title">{title}</div>
         {sub && <div className="lib-card__sub">{sub}</div>}
       </div>
+      {onToggleFavorite && (
+        <button type="button" className={`lib-card__star${favorite ? ' lib-card__star--on' : ''}`} aria-pressed={!!favorite} aria-label={`${favorite ? 'Remove from favorites' : 'Add to favorites'}: ${title}`} title={favorite ? 'Remove from favorites' : 'Add to favorites'} data-testid={testId ? `${testId}-star` : undefined} onClick={onToggleFavorite}>{favorite ? '★' : '☆'}</button>
+      )}
       <button type="button" className="add-card-plus lib-card__plus" aria-label={`${addTip}: ${title}`} data-tip={addTip} data-testid={testId ? `${testId}-add` : undefined} onClick={onAdd}>+</button>
     </div>
   );

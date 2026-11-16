@@ -8,6 +8,7 @@ import { OPEN_ADD_MODAL_EVENT, peekPendingAddTab, peekPendingAddQuery, clearPend
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 beforeEach(() => {
+  window.localStorage.clear();
   vi.stubGlobal('fetch', vi.fn(async () => new Response('[]', { status: 200 })));
 });
 
@@ -27,6 +28,25 @@ const click = (el: Element | null) => { act(() => { (el as HTMLElement).click();
 const flush = () => act(async () => { await Promise.resolve(); });
 
 describe('LibraryPanel', () => {
+  it('Favorites and Recent: a star pins a card above the grid, an add shows it under Recent, and both come back after a reload', async () => {
+    const a = mount();
+    click(a.host.querySelector('[data-testid="library-cat-overlays"]'));
+    expect(a.host.querySelector('[data-testid="library-favorites"]')).toBeNull();
+    expect(a.host.querySelector('[data-testid="library-recent"]')).toBeNull();
+    click(a.host.querySelector('[data-testid="library-overlay-lead-form-star"]'));
+    click(a.host.querySelector('[data-testid="library-overlay-click-to-call-add"]'));
+    await flush();
+    expect(a.host.querySelector('[data-testid="library-favorites"] [data-testid="library-overlay-lead-form"]')).not.toBeNull();
+    expect(a.host.querySelector('[data-testid="library-recent"] [data-testid="library-overlay-click-to-call"]')).not.toBeNull();
+    a.cleanup();
+    const b = mount(); // "reload": a fresh panel reads the same storage
+    expect(b.host.querySelector('[data-testid="library-favorites"] [data-testid="library-overlay-lead-form"]')).not.toBeNull();
+    expect(b.host.querySelector('[data-testid="library-recent"] [data-testid="library-overlay-click-to-call"]')).not.toBeNull();
+    click(b.host.querySelector('[data-testid="library-favorites"] [data-testid="library-overlay-lead-form-star"]')); // un-star
+    expect(b.host.querySelector('[data-testid="library-favorites"]')).toBeNull();
+    b.cleanup();
+  });
+
   it('every card is a picture card, and one search shows results from several categories', () => {
     const { host, cleanup } = mount();
     const input = host.querySelector('input[aria-label="Search the library"]') as HTMLInputElement;
@@ -55,7 +75,7 @@ describe('LibraryPanel', () => {
     expect((actions.onAddTemplateVideo as ReturnType<typeof vi.fn>).mock.calls[0][0]).toMatchObject({ id: expect.any(String), videoSrc: expect.stringContaining('http') });
     expect(host.querySelector('.library-panel__note')?.textContent).toBe('Added video.');
     expect(seen).toEqual([]); // the + does not open the window
-    click(host.querySelector('[data-testid^="library-video-"]:not([data-testid$="-add"])'));
+    click(host.querySelector('[data-testid^="library-video-"]:not([data-testid$="-add"]):not([data-testid$="-star"])'));
     window.removeEventListener(OPEN_ADD_MODAL_EVENT, onOpen);
     expect(seen.length).toBe(1);
     expect(seen[0][0]).toBe('videos');
@@ -87,7 +107,7 @@ describe('LibraryPanel', () => {
     const onOpen = (e: Event) => { e.preventDefault(); seen.push(peekPendingAddTab()); };
     window.addEventListener(OPEN_ADD_MODAL_EVENT, onOpen);
     click(host.querySelector('[data-testid="library-cat-videos"]'));
-    expect(host.querySelectorAll('[data-testid^="library-video-"]:not([data-testid$="-add"])').length).toBeGreaterThan(5); // real cards with posters, not a button
+    expect(host.querySelectorAll('[data-testid^="library-video-"]:not([data-testid$="-add"]):not([data-testid$="-star"])').length).toBeGreaterThan(5); // real cards with posters, not a button
     click(host.querySelector('[data-testid="library-open-template-videos"]'));
     window.removeEventListener(OPEN_ADD_MODAL_EVENT, onOpen);
     expect(seen).toEqual(['videos']);
@@ -125,14 +145,14 @@ describe('LibraryPanel', () => {
   it('search filters the overlay cards', () => {
     const { host, cleanup } = mount();
     click(host.querySelector('[data-testid="library-cat-overlays"]'));
-    const before = host.querySelectorAll('[data-testid^="library-overlay-"]:not([data-testid$="-add"])').length;
+    const before = host.querySelectorAll('[data-testid^="library-overlay-"]:not([data-testid$="-add"]):not([data-testid$="-star"])').length;
     const input = host.querySelector('input[aria-label="Search the library"]') as HTMLInputElement;
     act(() => {
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!;
       setter.call(input, 'sticker');
       input.dispatchEvent(new Event('input', { bubbles: true }));
     });
-    const after = host.querySelectorAll('[data-testid^="library-overlay-"]:not([data-testid$="-add"])').length;
+    const after = host.querySelectorAll('[data-testid^="library-overlay-"]:not([data-testid$="-add"]):not([data-testid$="-star"])').length;
     expect(before).toBeGreaterThan(3);
     expect(after).toBe(1);
     cleanup();
