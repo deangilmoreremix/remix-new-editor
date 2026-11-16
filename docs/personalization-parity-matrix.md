@@ -188,7 +188,7 @@ itself; those hunks merged without conflict.
 (`sampleCacheKey`); `enrich-business` and `demo/download-image` are registered in `personalization-api.mts`, the Vite proxy and the auth prefix
 list; the enrichment integration test reads its local fixture with `node:http` because remix's test setup mocks global `fetch`.
 
-## Remix-only additions (not in OpenHiggsBolt)
+## Remix-only additions (captions layer also ported to OpenHiggsBolt, see below)
 
 Free, in-browser tools added on top of the port. They need no server and no paid API; the on-device AI ones download their model once, only
 after the person agrees, and reuse the Timeline Editor's local AI (`src/lib/editor/ml`, `src/lib/editor/remotion`).
@@ -200,3 +200,10 @@ after the person agrees, and reuse the Timeline Editor's local AI (`src/lib/edit
   (`captions/`, `guided/CaptionsPanel.tsx`): written from the video's speech, editable, drawn INTO the video (`preview/CaptionsLayer.tsx`,
   `settings.captions`, so they appear in the preview and in every export) and downloadable as SRT/VTT. Shared consent/progress control:
   `localAI/`.
+- Caption looks: 27 extra looks (`captions/capiteStyles.ts`, pure data + CSS builders) in the personalization captions layer and as presets in the
+  Timeline Editor (`src/lib/editor/remotion/captions.js`). Personalization draws every look fully; the Timeline Editor maps scale/pop/bounce/glow to a plain
+  word highlight. Personalization uses only its bundled font (no network), so a look's own font shows only if installed. SRT/VTT parser in
+  `captions/captionCues.ts` (`parseCaptionFile`).
+- **Also in OpenHiggsBolt (ported):** the burned-in captions layer, 27 looks, editable lines and SRT/VTT export. OpenHiggsBolt has no speech engine, so its
+  captions come from a loaded .srt/.vtt file or typed lines instead of "write captions from the video's sound". `capiteStyles.ts`, `captionStyle.ts` and
+  `CaptionsLayer.tsx` are byte-identical in both repos; keep them in sync.
