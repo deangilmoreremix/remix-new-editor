@@ -49,6 +49,7 @@ import { applyComposition, type Composition } from '@cinegen/lib/occ/template-co
 import { openSmartSpeech } from '@cinegen/lib/occ/smart-speech';
 import { AddToTimelineModal } from './add-to-timeline-modal';
 import { OPEN_ADD_MODAL_EVENT } from './add-to-timeline-registry';
+import { OPEN_GENERATOR_EVENT } from './start-events';
 // [hyperframes] flag-gated library for verified HyperFrames animations
 import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS flag from the main app's lib
@@ -974,6 +975,7 @@ export function TimelineEditor({
       .map((x) => ({ id: x.id, assetId: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height }));
     modal.open();
   }, [dispatch, setTimeline, state.assets]);
+  useEffect(() => { const go = () => { void handleOpenGenerator(); }; window.addEventListener(OPEN_GENERATOR_EVENT, go); return () => window.removeEventListener(OPEN_GENERATOR_EVENT, go); }, [handleOpenGenerator]); // [remix] "Make a video for me" on the start screen
 
   // [remix] Personalization hub (contacts, tokens, per-contact generation) — the classic editor's own window
   const handleOpenPersonalization = useCallback(async () => {

@@ -1,3 +1,4 @@
+import { IMPORT_MEDIA_EVENT } from './start-events';
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import type { Asset, MediaFolder } from '@cinegen/types/project';
 import type { Timeline } from '@cinegen/types/timeline';
@@ -450,6 +451,7 @@ export function LeftPanel({
     }
     return createdAssets;
   }, [projectId, currentFolderId, onAddAsset]);
+  useEffect(() => { const go = () => { if (projectId && onAddAsset) void handleImport(); }; window.addEventListener(IMPORT_MEDIA_EVENT, go); return () => window.removeEventListener(IMPORT_MEDIA_EVENT, go); }, [projectId, onAddAsset, handleImport]); // [remix] the empty-project start screen's "Add your video"
 
   useDesktopImport(handleImport); // [remix] timeline / media-pool drops of desktop files
 

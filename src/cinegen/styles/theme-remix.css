@@ -213,3 +213,14 @@
 /* label: no bar over the picture, just text with a soft shadow */
 .clip-card__overlay { background: linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)) !important; padding: 10px 8px 3px; }
 .clip-card__name, .clip-card__duration { color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.9); }
+
+/* [remix] empty-project start screen (components/edit/empty-start.tsx) */
+.empty-start { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; background: radial-gradient(120% 120% at 20% 10%, #16202e 0%, #0d131c 60%, #0a0e15 100%); overflow: auto; text-align: center; }
+.empty-start__title { font-size: 20px; font-weight: 700; }
+.empty-start__sub { font-size: 12px; opacity: 0.7; max-width: 520px; }
+.empty-start__row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
+.empty-start__card { width: 190px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 12px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.05); color: inherit; cursor: pointer; font-size: 11px; line-height: 1.35; }
+.empty-start__card strong { font-size: 13px; }
+.empty-start__card span:last-child { opacity: 0.7; }
+.empty-start__card:hover, .empty-start__card:focus-visible { border-color: #22d3ee; background: rgba(34, 211, 238, 0.08); outline: none; }
+.empty-start__icon { font-size: 22px; }

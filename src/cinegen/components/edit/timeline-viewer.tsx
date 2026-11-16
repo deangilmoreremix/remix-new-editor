@@ -1,3 +1,4 @@
+import { EmptyStart } from './empty-start';
 import { TimelineOverview } from './timeline-overview';
 import type { Timeline } from '@cinegen/types/timeline';
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -231,6 +232,7 @@ export function TimelineViewer({
         <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />
         <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onResume={onPlayPause} onEditText={onOverlayText} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)} />
         </div>
+        {timeline && timeline.clips.length === 0 && !overlays?.length && <EmptyStart />}{/* [remix] blank project: three ways to start */}
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}
       <div className="viewer-scrubber" ref={scrubRef} onMouseDown={handleScrubDown}>
