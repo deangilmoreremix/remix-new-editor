@@ -67,6 +67,8 @@ export function defaultDraft() {
     // Kind of dynamic video (Create Dynamic Videos): 'variables' (the greeting says several details, e.g. name and
     // company), 'greeting' (an AI "Hi {{firstname}}!"), 'same' (everyone hears the recording as is, no AI voice).
     kind: 'greeting',
+    // Show the transcript (captions) on the prospect's page (the editor's Transcript switch).
+    showTranscript: true,
     contacts: [],
     campaign: null,
     name: '',
@@ -551,7 +553,7 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, now
     campaign: { name: name.slice(0, 120), contacts: (draft.contacts || []).length },
     // Captions made in the Record step: the landing page's transcript (times match the recording,
     // which starts at 0 in every layout).
-    ...(draft.captions?.lines?.length ? { transcript: draft.captions } : {}),
+    ...(draft.captions?.lines?.length && draft.showTranscript !== false ? { transcript: draft.captions } : {}),
     landing: {
       header: String(draft.header || '').trim(),
       message: String(draft.message || '').trim(),

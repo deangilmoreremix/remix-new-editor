@@ -478,43 +478,231 @@ export function OutreachStudio() {
     }
   }
 
+  // ---- Step 1: the video editor (like Sendspark's): add the video on the left (camera, screen, both, upload or one
+  // you made), the landing page template and what the page says; the video on the right; tools along the top.
+  let editorTool = ''; // '' | 'captions' | 'script' | 'trim' | 'language'
+  const ICONS = {
+    cc: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M10.5 10.2a2.3 2.3 0 1 0 0 3.6M16.5 10.2a2.3 2.3 0 1 0 0 3.6"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3Z"/>',
+    doc: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+    cut: '<circle cx="6" cy="6.5" r="2.5"/><circle cx="6" cy="17.5" r="2.5"/><path d="M8 8.2 20 18M8 15.8 20 6"/>',
+    link: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>',
+    eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>',
+    user: '<circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/>',
+    screen: '<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/>',
+    both: '<rect x="3" y="4.5" width="18" height="12" rx="2"/><circle cx="8" cy="12.5" r="2.4"/>',
+    plus: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+    megaphone: '<path d="M4 10v4h3l7 4V6L7 10z"/><path d="M17.5 9.5a3.5 3.5 0 0 1 0 5"/>',
+    calendar: '<rect x="3.5" y="5" width="17" height="15" rx="2.2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+    lines: '<path d="M5 7h14M5 12h14M5 17h9"/>',
+  };
+  const icon = (k, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]}</svg>`;
+  // An on/off switch: outlined, the "on" side tinted lime (never filled).
+  function toggle(on, onChange, { label, disabled = false } = {}) {
+    const b = el('button', `relative h-6 w-11 shrink-0 rounded-full border transition-colors disabled:opacity-35 ${on ? 'border-primary/50 bg-primary/[0.18]' : 'border-white/15 bg-white/[0.04]'}`);
+    b.type = 'button'; b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', String(on)); b.disabled = disabled;
+    if (label) b.setAttribute('aria-label', label);
+    b.appendChild(el('span', `absolute top-0.5 h-[18px] w-[18px] rounded-full transition-all ${on ? 'left-[22px] bg-primary' : 'left-0.5 bg-white/50'}`));
+    b.addEventListener('click', () => onChange(!on));
+    return b;
+  }
+
   function renderRecord() {
-    const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_360px]');
-    const main = card('Record your video', 'Screen, camera, or both, with your microphone. Or upload a video you already have.');
-    const preview = el('div', 'aspect-video w-full overflow-hidden rounded-xl border border-white/10 bg-black grid place-items-center');
-    if (draft.video?.url) {
-      const v = el('video', 'h-full w-full');
-      v.src = draft.video.url; v.controls = true; v.playsInline = true;
-      preview.appendChild(v);
-    } else {
-      preview.appendChild(el('span', 'text-sm text-white/40', 'No video yet'));
-    }
-    const actions = el('div', 'flex flex-wrap gap-2');
-    const rec = button(draft.video ? 'Record again' : 'Record', { primary: !draft.video });
-    rec.addEventListener('click', () => openRecorder('both'));
-    const upload = button('Upload a video');
+    const wrap = el('div', 'flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-panel-bg');
+    wrap.setAttribute('data-outreach-editor', '');
+
+    // ---- Tools along the top.
+    const bar = el('div', 'flex flex-wrap items-center gap-1.5 border-b border-white/10 px-4 py-3');
+    const title = el('div', 'mr-auto min-w-0 truncate text-sm font-bold text-white/80', draft.name || 'Untitled dynamic video');
+    bar.appendChild(title);
+    const tool = (key, k, tip, onClick, { active = false, disabled = false } = {}) => {
+      const b = el('button', `grid h-9 w-9 place-items-center rounded-[10px] border transition-colors disabled:opacity-30 ${active ? 'border-primary/40 bg-primary/[0.1] text-white' : 'border-transparent text-white/65 hover:border-white/15 hover:text-white'}`);
+      b.type = 'button'; b.innerHTML = icon(k); b.title = tip; b.setAttribute('aria-label', tip); b.disabled = disabled;
+      b.setAttribute('data-editor-tool', key);
+      if (active) b.setAttribute('aria-pressed', 'true');
+      b.addEventListener('click', onClick);
+      bar.appendChild(b);
+      return b;
+    };
+    const flip = (t) => () => { editorTool = editorTool === t ? '' : t; render(); };
+    const has = !!draft.video?.url;
+    tool('captions', 'cc', 'Captions and transcript', flip('captions'), { active: editorTool === 'captions', disabled: !has });
+    tool('language', 'globe', `Language: ${draft.language || 'English'}`, flip('language'), { active: editorTool === 'language' });
+    tool('script', 'doc', 'Script and teleprompter', flip('script'), { active: editorTool === 'script' });
+    tool('trim', 'cut', 'Trim, cut and add clips', flip('trim'), { active: editorTool === 'trim', disabled: !has });
+    const live = draft.campaign?.links?.[0];
+    tool('link', 'link', live ? 'Copy a prospect link' : 'Links are made when you generate', async () => {
+      try { await navigator.clipboard.writeText(live.pageLink || live.link); notice = 'Link copied.'; } catch { notice = 'Copy failed.'; }
+      render();
+    }, { disabled: !live });
+    tool('preview', 'eye', 'Preview the prospect page', () => { step = 3; notice = ''; render(); });
+    const share = button('Share video', { primary: true, small: true });
+    share.setAttribute('data-editor-share', '');
+    share.disabled = !has || !!busy;
+    share.addEventListener('click', () => { step = draft.kind === 'same' ? 3 : 2; notice = ''; render(); });
+    const close = button('Close', { small: true });
+    close.setAttribute('data-editor-close', '');
+    close.addEventListener('click', () => { step = STEPS.length; notice = ''; render(); });
+    bar.append(share, close);
+
+    // ---- Left: the video, the template and what the page says.
+    const body = el('div', 'grid lg:grid-cols-[380px_1fr]');
+    const side = el('div', 'flex flex-col gap-6 border-b border-white/10 p-5 lg:border-b-0 lg:border-r');
+    const modes = el('div', 'grid grid-cols-3 gap-2');
+    [['camera', 'user', 'Camera'], ['screen', 'screen', 'Screen'], ['both', 'both', 'Both']].forEach(([mode, k, label]) => {
+      const b = el('button', 'flex flex-col items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] py-4 text-xs font-bold text-white/80 hover:border-primary/40 hover:text-white disabled:opacity-40');
+      b.type = 'button'; b.disabled = !!busy;
+      b.setAttribute('data-editor-record', mode);
+      b.innerHTML = `<span class="text-primary">${icon(k, 20)}</span><span>${label}</span>`;
+      b.addEventListener('click', () => openRecorder(mode));
+      modes.appendChild(b);
+    });
     const file = el('input'); file.type = 'file'; file.accept = 'video/*'; file.hidden = true;
     file.addEventListener('change', () => { const f = file.files?.[0]; if (f) addVideo(f, { type: 'upload', name: f.name }); file.value = ''; });
-    upload.addEventListener('click', () => file.click());
-    const pro = button('Full Recorder (captions, scenes, B-roll)');
-    pro.setAttribute('data-outreach-full-recorder', '');
-    pro.addEventListener('click', openFullRecorder);
-    actions.append(rec, upload, pro, file);
-    main.append(preview, actions);
-    if (draft.video?.url) main.append(renderEditPanel(), renderCaptionsPanel());
+    const drop = el('div', 'flex flex-wrap items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 px-3 py-3 text-sm text-white/70');
+    const up = el('button', 'font-semibold text-primary hover:underline', 'Upload');
+    up.type = 'button'; up.setAttribute('data-editor-upload', ''); up.addEventListener('click', () => file.click());
+    const pick = el('button', 'font-semibold text-primary hover:underline', 'select a video you made');
+    pick.type = 'button'; pick.setAttribute('data-editor-select', ''); pick.addEventListener('click', selectMadeVideo);
+    drop.append(up, el('span', '', 'or'), pick, file);
+    const pro = el('button', 'text-left text-xs text-white/50 hover:text-white', 'Or open the Full Recorder (captions, scenes, B-roll) →');
+    pro.type = 'button'; pro.setAttribute('data-outreach-full-recorder', ''); pro.addEventListener('click', openFullRecorder);
+    const addBlock = el('div', 'flex flex-col gap-3');
+    addBlock.append(modes, drop, pro);
 
-    const side = el('div', 'flex flex-col gap-5');
-    const info = card('Your recording');
-    info.appendChild(el('p', 'text-sm text-secondary', draft.video
-      ? `${fmtTime(draft.video.duration)} · ${draft.video.hasAudio ? 'with sound' : 'no sound'} · ${draft.video.type === 'both' ? 'screen + camera' : draft.video.type === 'recorder' ? 'made in the Recorder' : draft.video.type}`
-      : 'Nothing recorded yet.'));
-    if (draft.video && !draft.video.hasAudio) info.appendChild(el('p', 'text-xs text-amber-300', 'This video has no sound, so it cannot be used as your voice sample. You can still record a separate sample in the next step.'));
-    side.appendChild(renderScriptCard());
-    const tips = card('Tips');
-    tips.appendChild(el('p', 'text-sm text-secondary', 'Leave a two-second pause at the very start: each contact’s personalized greeting (“Hi Mike!”) plays there. Then speak naturally for at least 10 seconds so your voice can be cloned from it.'));
-    side.append(info, tips);
-    grid.append(main, side);
-    return grid;
+    // Template: the landing page prospects open.
+    const tpl = el('div', 'flex flex-col gap-2');
+    tpl.appendChild(el('div', 'text-[15px] font-bold', 'Template'));
+    const apply = el('button', 'flex items-center justify-between gap-2 rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-white/85 hover:border-primary/40');
+    apply.type = 'button'; apply.setAttribute('data-editor-template', '');
+    if (draft.page && !designs.loaded) loadDesigns();
+    const tplName = draft.page ? (designs.list.find((t) => t.id === draft.page.template)?.name || 'Your landing page') : '';
+    apply.innerHTML = `<span class="truncate">${draft.page ? '' : 'Apply template…'}</span><span class="text-primary">${icon('plus', 18)}</span>`;
+    if (draft.page) apply.firstChild.textContent = `Template: ${tplName}${draft.page.puck ? ' (edited)' : ''}`;
+    apply.addEventListener('click', chooseLandingPage);
+    tpl.appendChild(apply);
+    if (draft.page) { const ed = el('button', 'self-start text-xs font-semibold text-primary hover:underline', 'Edit page'); ed.type = 'button'; ed.addEventListener('click', openPageEditor); tpl.appendChild(ed); }
+
+    // Customize: what the page says, its button, calendar and transcript.
+    const cz = el('div', 'flex flex-col gap-4');
+    cz.appendChild(el('div', 'text-[15px] font-bold', 'Customize'));
+    const UNDER = 'w-full border-0 border-b border-white/15 bg-transparent px-0 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:border-primary/60';
+    const line = (label, value, onInput, { area = false, ph = '' } = {}) => {
+      const w = el('label', 'flex flex-col gap-1');
+      w.appendChild(el('span', 'text-xs text-white/50', label));
+      const i = el(area ? 'textarea' : 'input', `${UNDER} ${area ? 'min-h-[56px] resize-y' : ''}`);
+      i.value = value || ''; i.placeholder = ph;
+      i.addEventListener('input', () => { onInput(i.value); persist(); });
+      w.appendChild(i);
+      return w;
+    };
+    cz.append(
+      line('Header', draft.header, (v) => { draft.header = v; }, { ph: 'Hi {{firstname}}, I made this for you' }),
+      line('Message', draft.message, (v) => { draft.message = v; }, { area: true, ph: 'A short note under the video' }),
+    );
+    const row = (k, name, help, sw, extra = null) => {
+      const r = el('div', 'flex flex-col gap-3 border-t border-white/10 pt-4');
+      const top = el('div', 'flex items-start gap-3');
+      const ic = el('span', 'mt-0.5 text-white/50'); ic.innerHTML = icon(k);
+      const words = el('div', 'min-w-0 flex-1');
+      words.append(el('div', 'text-sm font-semibold', name), el('div', 'text-xs text-white/50', help));
+      top.append(ic, words, sw);
+      r.appendChild(top);
+      if (extra) r.appendChild(extra);
+      return r;
+    };
+    const setCta = (patch) => { draft.cta = { ...draft.cta, ...patch }; persist(); render(); };
+    const ctaFields = draft.cta.enabled ? el('div', 'flex flex-col gap-3 pl-8') : null;
+    if (ctaFields) ctaFields.append(line('Button label', draft.cta.label, (v) => { draft.cta.label = v; }, { ph: 'Book a call' }), line('Link (https)', draft.cta.url, (v) => { draft.cta.url = v.trim(); }, { ph: 'https://cal.com/you/intro' }));
+    const ctaSw = toggle(!!draft.cta.enabled, (on) => setCta({ enabled: on }), { label: 'Call-to-action' });
+    ctaSw.setAttribute('data-editor-cta', '');
+    const calSw = toggle(!!draft.cta.embed, (on) => setCta({ embed: on, enabled: on ? true : draft.cta.enabled }), { label: 'Calendar embed' });
+    calSw.setAttribute('data-editor-calendar', '');
+    const hasCaptions = !!draft.captions?.lines?.length;
+    const trSw = toggle(hasCaptions && draft.showTranscript !== false, (on) => { draft.showTranscript = on; persist(); render(); }, { label: 'Transcript', disabled: !hasCaptions });
+    trSw.setAttribute('data-editor-transcript', '');
+    const trNote = hasCaptions ? null : el('p', 'pl-8 text-[11px] italic text-white/40', 'Available once captions are made (the CC tool above).');
+    cz.append(
+      row('megaphone', 'Call-to-action', 'Give your prospects their next step.', ctaSw, ctaFields),
+      row('calendar', 'Calendar embed', 'Show your booking calendar with your video (plain video page).', calSw),
+      row('lines', 'Transcript', 'Show a transcript on the page.', trSw, trNote),
+    );
+    side.append(addBlock, tpl, cz);
+
+    // ---- Right: the video, and the open tool under it.
+    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 p-5 md:p-8');
+    const stage = el('div', 'grid aspect-video w-full max-w-3xl place-items-center overflow-hidden rounded-2xl border border-white/10 bg-black');
+    stage.setAttribute('data-editor-video', '');
+    if (has) { const v = el('video', 'h-full w-full'); v.src = draft.video.url; v.controls = true; v.playsInline = true; stage.appendChild(v); }
+    else {
+      const ph = el('div', 'flex flex-col items-center gap-2 text-white/35');
+      ph.innerHTML = '<svg width="56" height="56" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>';
+      ph.appendChild(el('span', 'text-sm', 'Record or upload your video'));
+      stage.appendChild(ph);
+    }
+    main.appendChild(stage);
+    if (has) main.appendChild(el('p', 'text-xs text-white/45', `${fmtTime(draft.video.duration)} · ${draft.video.hasAudio ? 'with sound' : 'no sound'}${draft.kind !== 'same' ? ' · the greeting plays over the first seconds' : ''}`));
+    const brand = el('p', 'flex items-center gap-1.5 text-xs text-white/40');
+    brand.innerHTML = '<span>Video message by</span><span class="font-extrabold text-white/70">SmartVideo</span>';
+    main.appendChild(brand);
+    const drawer = el('div', 'w-full max-w-3xl');
+    if (editorTool === 'captions' && has) drawer.appendChild(renderCaptionsPanel());
+    if (editorTool === 'trim' && has) drawer.appendChild(renderEditPanel());
+    if (editorTool === 'script') drawer.appendChild(renderScriptCard());
+    if (editorTool === 'language') {
+      const box = el('div', 'flex flex-wrap items-center gap-3 rounded-xl border border-white/10 p-4');
+      box.setAttribute('data-editor-language', '');
+      box.appendChild(el('span', 'text-sm font-bold', 'Language'));
+      const sel = el('select', 'rounded-lg border border-white/10 bg-white/[0.06] px-3 py-1.5 text-sm text-white');
+      import('../lib/outreach/aiWriter.js').then(({ WRITER_LANGUAGES: langs }) => langs.forEach(([n]) => { const o = el('option', '', n); o.value = n; o.selected = n === (draft.language || 'English'); sel.appendChild(o); }));
+      sel.addEventListener('change', () => { draft.language = sel.value; persist(); render(); });
+      box.append(sel, el('span', 'text-xs text-white/50', 'The greeting is spoken in this language; captions and AI writing use it too.'));
+      drawer.appendChild(box);
+    }
+    if (draft.video && !draft.video.hasAudio) drawer.appendChild(el('p', 'mt-3 text-xs text-amber-300', 'This video has no sound, so it cannot be used as your voice sample. You can still record a separate sample in the next step.'));
+    main.appendChild(drawer);
+    body.append(side, main);
+    wrap.append(bar, body);
+    return wrap;
+  }
+
+  // A video you already made in any studio (src/lib/landingPages/sourceRegistry.js).
+  async function selectMadeVideo() {
+    const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
+    overlay.setAttribute('data-editor-videos', '');
+    const box = el('div', 'flex max-h-[85vh] w-full max-w-4xl flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-[#0b0c10] p-5 text-white');
+    const head = el('div', 'flex items-center justify-between');
+    const x = el('button', 'px-2 text-xl text-white/60 hover:text-white', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Close');
+    head.append(el('h2', 'text-lg font-extrabold', 'Select a video you made'), x);
+    const grid = el('div', 'grid gap-3 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3');
+    grid.appendChild(el('p', 'text-sm text-white/50', 'Loading your videos…'));
+    box.append(head, grid);
+    overlay.appendChild(box);
+    const close = () => overlay.remove();
+    x.addEventListener('click', close);
+    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
+    document.body.appendChild(overlay);
+    try {
+      const { loadVideoSources } = await import('../lib/landingPages/sourceRegistry.js');
+      const list = (await loadVideoSources()).filter((v) => /^https:\/\//i.test(v.url));
+      grid.replaceChildren();
+      if (!list.length) grid.appendChild(el('p', 'text-sm text-white/50', 'No videos found yet. Record or upload one instead.'));
+      list.slice(0, 60).forEach((v) => {
+        const t = el('button', 'flex flex-col overflow-hidden rounded-xl border border-white/10 text-left hover:border-primary/40');
+        t.type = 'button';
+        const media = el('div', 'aspect-video bg-black');
+        if (v.posterUrl) { const i = el('img', 'h-full w-full object-cover'); i.src = v.posterUrl; i.alt = ''; media.appendChild(i); } else { const m = el('video', 'h-full w-full object-cover'); m.src = `${v.url}#t=0.5`; m.muted = true; m.preload = 'metadata'; media.appendChild(m); }
+        t.append(media, el('div', 'truncate p-2 text-xs font-bold', v.title));
+        t.addEventListener('click', async () => {
+          close();
+          // Its real length (the video's own metadata) when the library does not know it.
+          const seconds = v.duration || await new Promise((res) => { const m = document.createElement('video'); m.preload = 'metadata'; m.onloadedmetadata = () => res(Number.isFinite(m.duration) ? m.duration : 0); m.onerror = () => res(0); m.src = v.url; setTimeout(() => res(0), 8000); });
+          draft.video = { url: v.url, duration: seconds || 0, hasAudio: true, type: 'upload' };
+          draft.campaign = null; persist(); render();
+        });
+        grid.appendChild(t);
+      });
+    } catch (err) { grid.replaceChildren(el('p', 'text-sm text-amber-300', err?.message || 'Could not load your videos.')); }
   }
 
   // ---- Step 2: Voice -----------------------------------------------------
@@ -1337,6 +1525,24 @@ export function OutreachStudio() {
     else render();
   }
 
+  // The landing page chooser (src/components/landing/TemplateChooser.js): your designs, or the plain video page.
+  async function chooseLandingPage() {
+    if (!designs.loaded) await loadDesigns();
+    const page = draft.page;
+    const { openTemplateChooser } = await import('./landing/TemplateChooser.js');
+    openTemplateChooser({
+      title: 'Choose a landing page',
+      subtitle: 'The page belongs to this video. After choosing, click Edit page to change its words, pictures and sections; your recording plays in it, and each prospect sees their own video.',
+      groups: [['No landing page', [PLAIN_CARD]], ['Your landing pages', designs.list]],
+      selected: page?.template || '',
+      onPick: (id) => {
+        if (id === (page?.template || '')) return;
+        if (page?.puck && !window.confirm('Replace your edited page? Your changes to it will be lost.')) return;
+        setPage(id ? { template: id, puck: null } : null);
+      },
+    });
+  }
+
   function openPageEditor() {
     if (!draft.page) return;
     const template = draft.page.template;
@@ -1375,20 +1581,7 @@ export function OutreachStudio() {
     const choose = button('Choose landing page', { small: true, primary: !page });
     choose.setAttribute('data-outreach-choose-page', '');
     choose.disabled = !!busy;
-    choose.addEventListener('click', async () => {
-      const { openTemplateChooser } = await import('./landing/TemplateChooser.js');
-      openTemplateChooser({
-        title: 'Choose a landing page',
-        subtitle: 'The page belongs to this video. After choosing, click Edit page to change its words, pictures and sections; your recording plays in it, and each prospect sees their own video.',
-        groups: [['No landing page', [PLAIN_CARD]], ['Your landing pages', designs.list]],
-        selected: page?.template || '',
-        onPick: (id) => {
-          if (id === (page?.template || '')) return;
-          if (page?.puck && !window.confirm('Replace your edited page? Your changes to it will be lost.')) return;
-          setPage(id ? { template: id, puck: null } : null);
-        },
-      });
-    });
+    choose.addEventListener('click', chooseLandingPage);
     row.append(sw, name, choose);
     if (page && design) {
       const edit = button('Edit page', { small: true, primary: true });
@@ -2039,9 +2232,42 @@ export function OutreachStudio() {
     const l = draft.campaign.links[0];
     return { ok: true, link: l.link, pageLink: l.pageLink || '', embed: `${l.link}${l.link.includes('?') ? '&' : '?'}embed=1` };
   }
+  // How to record for the kind picked (src/components/outreach/DynamicGuidelines.js); the new dynamic video is
+  // made when you choose how to add the video: record (camera, screen, both), upload, or the sample presenter.
+  async function openRecordingGuidelines({ name, kind, language }) {
+    const [{ openGuidelines }, { WRITER_LANGUAGES: langs }, { SAMPLE_PRESENTER }] = await Promise.all([
+      import('./outreach/DynamicGuidelines.js'), import('../lib/outreach/aiWriter.js'), import('./outreach/OutreachFirstVideo.js'),
+    ]);
+    let lang = language || draft.language || 'English';
+    const begin = () => {
+      const k = DYNAMIC_KINDS.find((d) => d.id === kind);
+      const next = newDynamicVideo(draft);
+      Object.assign(next, { name, kind, language: lang, greeting: k?.greeting || next.greeting });
+      replaceDraft(next);
+      step = 1; notice = ''; render();
+    };
+    openGuidelines({
+      kind,
+      language: lang,
+      languages: langs,
+      onLanguage: (v) => { lang = v; },
+      onRecord: (mode) => { begin(); openRecorder(mode); },
+      onUpload: (f) => { begin(); addVideo(f, { type: 'upload', name: f.name }); },
+      onSample: () => {
+        begin();
+        // The SmartVideo sample presenter, with her own voice and "Hi there!" so it can be tried end to end.
+        const origin = globalThis.location.origin;
+        draft.video = { url: `${origin}${SAMPLE_PRESENTER.video}`, duration: SAMPLE_SECONDS, hasAudio: true, type: 'camera' };
+        draft.voice = { ...draft.voice, mode: 'stock', stockVoice: 'Wise_Woman', cloneVoiceId: '', fallbackUrl: kind === 'same' ? '' : `${origin}${SAMPLE_PRESENTER.hiThere}`, fallbackDuration: kind === 'same' ? 0 : 1.58 };
+        persist(); render();
+      },
+      onBack: () => openCreateDynamic({ name, kind, language: lang }),
+    });
+  }
+
   // Create Dynamic Videos: name the campaign and pick its kind (Multiple variables, AI greeting, Same audio),
   // then a new dynamic video starts on the Record step.
-  function openCreateDynamic() {
+  function openCreateDynamic(prefill = {}) {
     const inProgress = !draft.campaign && (draft.video || draft.contacts.length);
     const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
     overlay.setAttribute('data-outreach-create', '');
@@ -2053,7 +2279,8 @@ export function OutreachStudio() {
     head.append(el('h2', 'text-lg font-extrabold', 'Create Dynamic Videos'), x);
     const name = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-[15px] text-white placeholder:text-white/35 outline-none focus:border-primary/50');
     name.placeholder = 'Name your campaign'; name.setAttribute('aria-label', 'Campaign name'); name.maxLength = 120;
-    let kind = '';
+    name.value = prefill.name || '';
+    let kind = prefill.kind || '';
     const kinds = el('div', 'grid gap-3 sm:grid-cols-3');
     const cards = DYNAMIC_KINDS.map((k) => {
       const b = el('button', 'flex flex-col items-center gap-2 rounded-2xl border px-4 py-5 text-center transition-colors');
@@ -2091,12 +2318,7 @@ export function OutreachStudio() {
       const k = DYNAMIC_KINDS.find((d) => d.id === kind);
       if (!k || !name.value.trim()) return;
       close();
-      const next = newDynamicVideo(draft);
-      next.name = name.value.trim().slice(0, 120);
-      next.kind = k.id;
-      next.greeting = k.greeting || next.greeting;
-      replaceDraft(next);
-      step = 1; notice = ''; render();
+      openRecordingGuidelines({ name: name.value.trim().slice(0, 120), kind: k.id, language: prefill.language });
     });
     document.body.appendChild(overlay);
     paint();

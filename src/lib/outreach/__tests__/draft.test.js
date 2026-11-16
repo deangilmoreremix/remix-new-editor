@@ -313,3 +313,11 @@ describe('kinds of dynamic video (Create Dynamic Videos)', async () => {
     expect(fresh({ kind: 'nope' }).kind).toBe('greeting');
   });
 });
+
+describe('transcript switch', () => {
+  const captions = { lang: 'en', lines: [{ start: 0, end: 2, text: 'Hi' }] };
+  it('the page shows the transcript unless it is switched off', () => {
+    expect(buildCampaignProject(readyDraft({ captions })).transcript).toEqual(captions);
+    expect(buildCampaignProject(readyDraft({ captions, showTranscript: false })).transcript).toBeUndefined();
+  });
+});
