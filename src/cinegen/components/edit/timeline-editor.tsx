@@ -963,10 +963,13 @@ export function TimelineEditor({
     const modal = new TemplateGeneratorModal({
       onConfirm: (result: { composition?: Composition }) => {
         if (!result?.composition) return;
-        const applied = applyComposition(timelineRef.current, result.composition);
-        applied.assets.forEach((asset) => dispatch({ type: 'ADD_ASSET', asset }));
-        applied.overlays.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
-        setTimeline(applied.timeline);
+        // [remix] starts at the playhead and is ONE undo step (a BATCH), so a single Undo removes everything the generator added
+        const applied = applyComposition(timelineRef.current, result.composition, currentTime);
+        dispatch({ type: 'BATCH', actions: [
+          ...applied.assets.map((asset) => ({ type: 'ADD_ASSET' as const, asset })),
+          ...applied.overlays.map((overlay) => ({ type: 'ADD_OVERLAY' as const, overlay })),
+          { type: 'SET_TIMELINE' as const, timelineId: timelineRef.current.id, timeline: applied.timeline },
+        ] });
       },
     });
     // "My Media" in the wizard lists the project's own clips and images (as it listed the classic editor's media)
@@ -974,7 +977,7 @@ export function TimelineEditor({
       .filter((x) => x.type === 'video' || x.type === 'image')
       .map((x) => ({ id: x.id, assetId: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height }));
     modal.open();
-  }, [dispatch, setTimeline, state.assets]);
+  }, [dispatch, state.assets, currentTime]);
   useEffect(() => { const go = () => { void handleOpenGenerator(); }; window.addEventListener(OPEN_GENERATOR_EVENT, go); return () => window.removeEventListener(OPEN_GENERATOR_EVENT, go); }, [handleOpenGenerator]); // [remix] "Make a video for me" on the start screen
 
   // [remix] Personalization hub (contacts, tokens, per-contact generation) — the classic editor's own window
