@@ -1,0 +1,9 @@
+/* Brand tokens: remix-new-editor (lime on near-black). */
+:root {
+  --primary: #d9ff00; --primary-hover: #c4e600; --on-primary: #050505;
+  --bg-app: #050505; --bg-panel: #0a0a0a; --bg-card: #141414;
+  --text: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #52525b;
+  --border: #1f1f23; --danger: #ff5c5c; --ok: #4ade80;
+  --glow: 0 0 20px rgba(217, 255, 0, 0.4);
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+}
