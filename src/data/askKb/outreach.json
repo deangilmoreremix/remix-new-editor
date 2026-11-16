@@ -4,7 +4,7 @@
   "route": "#/outreach",
   "description": "A standalone studio for personalized video outreach: record one video, greet each contact by name in your own cloned voice (or a stock voice), write the landing page and booking button, add contacts by CSV, generate every contact's personal link, and see who watched and clicked.",
   "shortDescription": "Record once, greet every contact by name in your own voice, and add a booking button.",
-  "fullDescription": "Video Outreach (#/outreach, under Agents in the side menu) runs a whole outreach campaign in six steps, without opening any editor. Record opens the recorder (Screen, Camera, Both or Audio) or takes an uploaded video. Voice clones your own voice from the recording or a separate sample, after you tick 'This is my own voice', or uses a stock voice; you write the greeting (for example 'Hi {{firstname}}!'), choose a fallback (there or friend) and click Generate greeting. Customize sets the landing page header, message, company fallback and a booking button with an https link, with a live preview. Contacts takes a CSV (with a column-matching table and a downloadable template) or contacts added one at a time. Generate voices the greeting for each contact on your MuAPI key, publishes the campaign as one video page, and lists every contact's personal link with Copy link, Download .csv of links and Open landing page. Campaigns lists your outreach campaigns with videos, watched and button clicks, and per-contact views, plays and clicks. Each personal link opens the public video page (/watch/<id>) with that contact's greeting, the header and message filled with their details, and your booking button. Your details (Customize) holds your name, job title, company, company logo and photo. When you publish a campaign onto one of the Video Pages designs, the page keeps the design's colours and fonts but works like a Sendspark video page: your company and logo at the top, the contact's personalized headline and message beside their video, then your name and photo, Like, your booking button and the embedded calendar, and 'Sent by' you. The design's sample testimonials, numbers, logos and lead forms are left out.",
+  "fullDescription": "Video Outreach (#/outreach, under Agents in the side menu) runs a whole outreach campaign in six steps, without opening any editor. Record opens the recorder (Screen, Camera, Both or Audio) or takes an uploaded video. Voice clones your own voice from the recording or a separate sample, after you tick 'This is my own voice', or uses a stock voice; you write the greeting (for example 'Hi {{firstname}}!'), choose a fallback (there or friend) and click Generate greeting. Customize sets the landing page header, message, company fallback and a booking button with an https link, with a live preview. Contacts takes a CSV (with a column-matching table and a downloadable template) or contacts added one at a time. Generate voices the greeting for each contact on your MuAPI key, publishes the campaign as one video page, and lists every contact's personal link with Copy link, Download .csv of links and Open landing page. Campaigns lists your outreach campaigns with videos, watched and button clicks, and per-contact views, plays and clicks. Each personal link opens the public video page (/watch/<id>) with that contact's greeting, the header and message filled with their details, and your booking button. Your details (Customize) holds your name, job title, company, company logo and photo. When you publish a campaign onto one of the Video Pages designs, the page keeps the design's colours and fonts but works like a Sendspark video page: your company and logo at the top, the contact's personalized headline and message beside their video, then your name and photo, Like, your booking button and the embedded calendar, and 'Sent by' you. The design's sample testimonials, numbers, logos and lead forms are left out. The studio opens on Videos, your library of dynamic videos (like Sendspark): '+ New dynamic video' starts one (your voice, details and booking button carry over), each generated video is a card with its thumbnail, prospects, watched and clicks, Open brings it back with its links, and 'New prospects, same video' reuses the recording for a new list. The steps are Record, AI intro (voice and greeting), Page, Prospects and Generate & share. Variable chips (First name, Company, Job title, Last name) insert {{firstname}} and the others into the greeting, header and message. While generating, each prospect shows Waiting, Generating or Ready. Each prospect's row has Copy link, Copy email, Gmail (opens a ready Gmail draft), LinkedIn (copies a short message with their link and opens their profile from the LinkedIn URL column, or LinkedIn messages), Copy GIF, Embed, MP4 and Email. Page design (Page step) picks the plain video page or one of your Video Pages designs; one Generate click then voices every intro, publishes the campaign, publishes the prospect pages on that design and makes every prospect's thumbnail.",
   "bestFor": "Sales people, founders and agencies who send personalized video to prospects and want each person to hear their own name in the sender's voice.",
   "whenToUse": [
     "You want to record one video and send a personalized version to many contacts.",
@@ -43,7 +43,12 @@
     "Landing page: publish the campaign onto any of your Video Pages designs; each contact's link opens their personalized page with their personal video",
     "Backgrounds behind your camera bubble: each contact's website (with a moving pointer), an image (theirs or yours), or a map of their address",
     "Output language: the greeting spoken in another language, and one-click translation of greeting, page and email",
-    "Greeting variables: {{firstname}}, {{company}}, {{jobtitle}}"
+    "Greeting variables: {{firstname}}, {{company}}, {{jobtitle}}",
+    "Videos library: + New dynamic video, Open, New prospects same video",
+    "Variable chips for {{firstname}}, {{company}}, {{jobtitle}} and {{lastname}}",
+    "Per-prospect Waiting / Generating / Ready while generating",
+    "Gmail and LinkedIn share buttons per prospect",
+    "Sendspark-style landing page on any Video Pages design, with Your details"
   ],
   "featureExplanations": [
     {
@@ -97,7 +102,7 @@
     },
     {
       "feature": "Campaigns",
-      "explanation": "Lists your outreach campaigns with the date, number of videos (contacts), how many contacts watched, and booking button clicks. Click a campaign name to see each contact's views, plays and clicks and to open its video page. Refresh reloads; + New campaign keeps your recording, voice and page text and clears the contacts and links.",
+      "explanation": "Lists your outreach campaigns with the date, number of videos (contacts), how many contacts watched, and booking button clicks. Click a campaign name to see each contact's views, plays and clicks and to open its video page. Refresh reloads. It sits under the Videos cards; + New dynamic video and New prospects, same video replace the old + New campaign button.",
       "whyToUse": "See who watched and who clicked.",
       "inputRequired": "Sign in.",
       "restrictions": "Shows up to 50 recent campaigns. Contact names show for the campaign in this browser; others show contact ids."
@@ -196,12 +201,13 @@
   ],
   "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",
   "howToSteps": [
-    "Record or upload your video.",
-    "Clone your voice or choose a stock voice, and generate the greeting.",
-    "Write the landing page and booking button.",
-    "Add contacts by CSV or one at a time.",
-    "Generate the campaign and send the personal links.",
-    "Check Campaigns for views and clicks."
+    "On Videos, click + New dynamic video.",
+    "Record: record or upload your video.",
+    "AI intro: clone your voice or choose a stock voice, and write the greeting with the variable chips.",
+    "Page: write the header and message, your details and the booking button.",
+    "Prospects: add a CSV (LinkedIn URL column optional), Lead Finder leads, or one at a time.",
+    "Generate & share: generate, then send each prospect their link by email, Gmail or LinkedIn.",
+    "Back on Videos, open any dynamic video again and see who watched and clicked."
   ],
   "gettingStarted": [
     "Add your MuAPI key in Settings > API keys first: cloning and speech use it.",
@@ -279,7 +285,8 @@
     "Voice cloning and per-contact greetings need your own MuAPI key and use its credit.",
     "Contact details travel inside each personal link.",
     "The in-progress draft is stored in this browser.",
-    "Up to 500 contacts per campaign."
+    "Up to 500 contacts per campaign.",
+    "The Videos library of generated campaigns is kept in this browser (the last 30)."
   ],
   "limitationDetails": [
     {

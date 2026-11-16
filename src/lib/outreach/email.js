@@ -89,3 +89,21 @@ export function embedSnippet({ link, thumbnailUrl, name = '' }) {
   const label = name ? `Watch the video for ${name}` : 'Watch the video';
   return `<div class="video-embed">${thumbnailHtml({ link, thumbnailUrl })}<p style="margin:8px 0 0"><a href="${esc(href)}">${esc(label)} &#9654;</a></p></div>`;
 }
+
+/** Open Gmail with the email ready to send (to, subject and the plain-text body). */
+export function gmailUrl({ to = '', subject = '', text = '' }) {
+  const u = new URL('https://mail.google.com/mail/');
+  u.searchParams.set('view', 'cm');
+  u.searchParams.set('fs', '1');
+  if (to) u.searchParams.set('to', to);
+  u.searchParams.set('su', subject);
+  u.searchParams.set('body', text);
+  return u.toString();
+}
+
+/** A short LinkedIn message with the contact's link (LinkedIn shows the video page's preview). */
+export function linkedinMessage({ contact = {}, link = '', fallbacks = {} }) {
+  const name = String(contact.firstName || '').trim() || fallbacks.firstname || 'there';
+  const company = String(contact.company || '').trim();
+  return `Hi ${name}, I recorded a quick video${company ? ` for ${company}` : ' for you'}: ${link}`;
+}

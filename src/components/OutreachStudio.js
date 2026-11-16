@@ -10,7 +10,7 @@
 // fills the landing text. The logic lives in src/lib/outreach/draft.js.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { emailFor, mailtoUrl, mailMergeCsv } from '../lib/outreach/email.js';
+import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, linkedinMessage } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
@@ -21,6 +21,7 @@ import {
   parseCsv, guessMapping, contactsFromRows, contactsFromLeads, makeContact, mergeContacts, contactProfile, contactValues,
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
   usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
+  saveToLibrary, listLibrary, libraryDraft, newDynamicVideo,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -53,6 +54,31 @@ function textInput(value, placeholder = '') {
   i.value = value ?? '';
   i.placeholder = placeholder;
   return i;
+}
+
+// Variable chips (Sendspark's "dynamic variables"): click one to insert it where the cursor is.
+const VARIABLES = [['{{firstname}}', 'First name'], ['{{company}}', 'Company'], ['{{jobtitle}}', 'Job title'], ['{{lastname}}', 'Last name']];
+function variableChips(input, { onInsert, only } = {}) {
+  const row = el('div', 'flex flex-wrap items-center gap-1.5');
+  row.appendChild(el('span', 'text-[11px] text-white/45', 'Insert:'));
+  for (const [token, label] of VARIABLES.filter(([t]) => !only || only.includes(t))) {
+    const b = el('button', 'rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary hover:bg-primary/20', label);
+    b.type = 'button';
+    b.setAttribute('data-variable', token);
+    // mousedown keeps the input's cursor position.
+    b.addEventListener('mousedown', (e) => e.preventDefault());
+    b.addEventListener('click', () => {
+      const at = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? at;
+      input.value = `${input.value.slice(0, at)}${token}${input.value.slice(end)}`;
+      input.focus();
+      input.setSelectionRange?.(at + token.length, at + token.length);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      onInsert?.();
+    });
+    row.appendChild(b);
+  }
+  return row;
 }
 
 function card(title, sub) {
@@ -92,8 +118,11 @@ export function OutreachStudio() {
   let recordingBlob = null;
   let busy = '';
   let notice = '';
-  let step = 1;
-  for (let s = 1; s <= SETUP_STEPS + 1; s++) { step = s; if (stepErrors(draft, s).length) break; }
+  // Like Sendspark, the studio opens on the Videos library; a draft in progress is one click away.
+  let step = STEPS.length;
+  const resumeStep = () => { for (let s = 1; s <= SETUP_STEPS + 1; s++) if (stepErrors(draft, s).length) return s; return SETUP_STEPS + 1; };
+  // Generation progress per prospect: { total, done, phase }.
+  let progress = null;
   // CSV waiting for its columns to be matched, the running generation, and the campaigns list.
   let pendingCsv = null;
   let pendingLeads = null; // { loading, error, leads, picked:Set }
@@ -109,7 +138,9 @@ export function OutreachStudio() {
   scroll.appendChild(inner);
   container.append(stepper, scroll);
 
-  const persist = () => saveDraft(draft);
+  // A generated campaign is also kept in the Videos library, so it can be opened again later.
+  const persist = () => { saveDraft(draft); if (draft.campaign) saveToLibrary(draft); };
+  const replaceDraft = (next) => { for (const k of Object.keys(draft)) delete draft[k]; Object.assign(draft, next); edit = { trimStart: 0, trimEnd: null, cuts: [], before: null, after: null }; linkStats = { id: null, loading: false, byContact: null }; pendingCsv = null; pendingLeads = null; persist(); };
   const setBusy = (label) => { busy = label; render(); };
   const fail = (err) => { busy = ''; notice = err?.message || String(err); render(); };
 
@@ -562,7 +593,7 @@ export function OutreachStudio() {
     const greet = card('The greeting', 'Spoken at the start of the video. Use {{firstname}}, {{company}} or {{jobtitle}} (more than one is fine: "Hi {{firstname}}, a quick idea for {{company}}").');
     const g = textInput(draft.greeting, 'Hi {{firstname}}!');
     g.addEventListener('change', () => { draft.greeting = g.value; draft.voice.fallbackUrl = ''; persist(); render(); });
-    greet.appendChild(field('Greeting', g, 'Up to 70 characters.'));
+    greet.append(field('Greeting', g, 'Up to 70 characters.'), variableChips(g, { onInsert: () => g.dispatchEvent(new Event('change')), only: ['{{firstname}}', '{{company}}', '{{jobtitle}}'] }));
     // Output language: the greeting is spoken in it; Translate rewrites the campaign's texts into it.
     const langRow = el('div', 'flex flex-wrap items-center gap-2');
     const lang = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-sm text-white');
@@ -610,7 +641,19 @@ export function OutreachStudio() {
   // ---- Step 3: Customize -------------------------------------------------
   function renderCustomize() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_440px]');
-    const main = card('Customize the landing page', 'Use {{firstname}} and {{company}}. Fallbacks fill in when a value is missing.');
+    const main = card('Your prospect page', 'Each prospect gets their own page with their video. Use {{firstname}} and {{company}}; fallbacks fill in when a value is missing.');
+    // Page design: the plain video page, or one of your Video Pages designs (made when you generate).
+    const design = el('select', 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white');
+    design.setAttribute('data-outreach-page-design', '');
+    const plain = el('option', 'bg-neutral-900', 'Plain video page'); plain.value = ''; design.appendChild(plain);
+    if (landingTemplates) {
+      landingTemplates.TEMPLATES.filter((t) => !t.site || t.puck).forEach((t) => { const o = el('option', 'bg-neutral-900', t.name); o.value = t.id; design.appendChild(o); });
+    } else {
+      import('../lib/landingPages/templates.js').then((m) => { landingTemplates = m; if (step === 3) render(); });
+    }
+    design.value = draft.pageDesign || '';
+    design.addEventListener('change', () => { draft.pageDesign = design.value; persist(); });
+    main.appendChild(field('Page design', design, 'Generate publishes every prospect\u2019s page on this design: your brand, their video and text, your button and calendar. You can switch designs later.'));
     const header = textInput(draft.header);
     const message = el('textarea', 'w-full min-h-[90px] rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60');
     message.value = draft.message;
@@ -629,7 +672,7 @@ export function OutreachStudio() {
     calOn.addEventListener('change', sync);
     const ctaRow = el('label', 'flex items-center gap-3 text-sm font-bold'); ctaRow.append(ctaOn, el('span', '', 'Call-to-action button'));
     const calRow = el('label', 'flex items-center gap-3 text-sm'); calRow.append(calOn, el('span', '', 'Show the calendar under the video so contacts can book without leaving the page'));
-    main.append(field('Header', header), field('Message', message), field('If the company is missing, say', company), ctaRow,
+    main.append(field('Header', header), variableChips(header), field('Message', message), variableChips(message), field('If the company is missing, say', company), ctaRow,
       field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow);
 
     // Who sent it: the landing page's menu bar (company, logo), the sender line and "Sent by".
@@ -993,12 +1036,13 @@ export function OutreachStudio() {
           import('../lib/editor/personalize/perContact.js'),
           import('../lib/editor/agent/audioGen.js'),
         ]);
+        progress = { total: n, done: 0, phase: 'Voicing' };
         setBusy(`Voicing greetings: 0 of ${n}…`);
         ({ variants } = await voiceForContacts({
           text: draft.greeting,
           contacts: draft.contacts.map((c) => contactProfile(c)),
           signal: abort.signal,
-          onProgress: ({ done, total, name }) => setBusy(`Voicing greetings: ${done} of ${total} (${name})…`),
+          onProgress: ({ done, total, name }) => { progress = { total, done, phase: 'Voicing' }; setBusy(`Voicing greetings: ${done} of ${total} (${name})…`); },
           generate: async (line) => {
             const remote = await audio.generateAudio('tts', speakRequest(draft, line), { signal: abort.signal });
             const url = await audio.persistAudio(remote, { upload: uploadToStorage, name: 'greeting' });
@@ -1016,7 +1060,7 @@ export function OutreachStudio() {
         lipsync = await lipsyncContacts({
           draft, variants, upload: uploadToStorage, signal: abort.signal,
           lipSync: ({ video_url, audio_url, signal }) => muapi.processLipSync({ model: LIPSYNC_MODEL, video_url, audio_url }, signal),
-          onProgress: ({ done, total }) => setBusy(`Lip-syncing greetings: ${done} of ${total}…`),
+          onProgress: ({ done, total }) => { progress = { total, done, phase: 'Lip-syncing' }; setBusy(`Lip-syncing greetings: ${done} of ${total}…`); },
         });
       }
       setBusy('Publishing the campaign…');
@@ -1042,15 +1086,47 @@ export function OutreachStudio() {
       };
       persist();
       campaigns.loaded = false; // refresh the Campaigns list next time it opens
+      const done = `${draft.campaign.links.length} personal video${draft.campaign.links.length === 1 ? '' : 's'} ready.${lipsync?.failed?.length ? ` Lip-sync failed for ${lipsync.failed.length} contact${lipsync.failed.length === 1 ? '' : 's'}; they hear their greeting without it.` : ''}`;
+      // Like Sendspark, one Generate also makes the page and every prospect's thumbnail.
+      notice = '';
+      if (draft.pageDesign && draft.campaign.page?.templateId !== draft.pageDesign) {
+        await publishLandingPage(draft.pageDesign);
+        if (notice && !/^Landing page published/.test(notice)) return; // the page failed: its message stays
+      }
+      progress = null;
+      await makeThumbnails();
+      const thumbs = /^Thumbnails ready/.test(notice) ? ' Thumbnails made.' : notice ? ` Thumbnails: ${notice}` : '';
       busy = '';
-      notice = `Campaign published: ${draft.campaign.links.length} personal link${draft.campaign.links.length === 1 ? '' : 's'} ready.${lipsync?.failed?.length ? ` Lip-sync failed for ${lipsync.failed.length} contact${lipsync.failed.length === 1 ? '' : 's'}; they hear their greeting without it.` : ''}`;
+      notice = `Campaign published: ${done}${draft.campaign.page ? ' Their page is live.' : ''}${thumbs} Share each link below.`;
       render();
     } catch (err) {
       if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped. Nothing was published.'; render(); return; }
       fail(err);
     } finally {
       abort = null;
+      progress = null;
     }
+  }
+
+  // Each prospect's state while the campaign is generated (Sendspark-style list).
+  function renderProgress() {
+    const box = card('Generating your videos', 'Each prospect\u2019s intro is made in turn. Keep this tab open.');
+    box.setAttribute('data-outreach-progress', '');
+    const { total, done, phase } = progress;
+    const bar = el('div', 'h-2 w-full overflow-hidden rounded-full bg-white/10');
+    const fill = el('div', 'h-full rounded-full bg-primary transition-all');
+    fill.style.width = `${total ? Math.round((done / total) * 100) : 0}%`;
+    bar.appendChild(fill);
+    box.append(bar, el('p', 'text-xs text-secondary', `${phase}: ${done} of ${total}`));
+    const rows = el('div', 'flex flex-col divide-y divide-white/5 text-sm');
+    draft.contacts.slice(0, 200).forEach((c, i) => {
+      const row = el('div', 'flex items-center gap-3 py-2');
+      const state = i < done ? ['text-emerald-300', '\u2713 Ready'] : i === done ? ['text-primary', '\u25cf Generating\u2026'] : ['text-white/40', '\u25cb Waiting'];
+      row.append(el('span', 'flex-1 truncate', [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email), el('span', 'truncate text-xs text-white/50', c.company || ''), el('span', `w-32 text-right text-xs ${state[0]}`, state[1]));
+      rows.appendChild(row);
+    });
+    box.appendChild(rows);
+    return box;
   }
 
   function renderGenerate() {
@@ -1106,6 +1182,7 @@ export function OutreachStudio() {
     }
     top.appendChild(actions);
     wrap.appendChild(top);
+    if (busy && progress) wrap.appendChild(renderProgress());
 
     if (draft.campaign) {
       const list = card('Personal links');
@@ -1132,6 +1209,18 @@ export function OutreachStudio() {
         mp4.addEventListener('click', () => downloadContactVideo(l));
         const mailto = el('a', 'text-xs font-bold text-white/70 hover:text-white', 'Email');
         if (l.email) { mailto.href = mailtoUrl(emailOf(l)); } else { mailto.classList.add('hidden'); }
+        const gmail = el('a', 'text-xs font-bold text-white/70 hover:text-white', 'Gmail');
+        gmail.setAttribute('data-outreach-gmail', '');
+        gmail.href = gmailUrl(emailOf(l)); gmail.target = '_blank'; gmail.rel = 'noopener noreferrer';
+        const li = button('LinkedIn', { small: true });
+        li.setAttribute('data-outreach-linkedin', '');
+        li.title = 'Copies a short message with their link and opens LinkedIn so you can paste it';
+        li.addEventListener('click', async () => {
+          const c = contactOf(l);
+          const msg = linkedinMessage({ contact: c, link: linkOf(l), fallbacks: draft.fallbacks });
+          window.open(c.linkedin || 'https://www.linkedin.com/messaging/', '_blank', 'noopener');
+          try { await navigator.clipboard.writeText(msg); li.textContent = 'Message copied'; } catch { window.prompt('Copy this message:', msg); }
+        });
         const extra = [];
         if (l.thumbnailUrl) {
           const gifBtn = button(/\.gif(\?|$)/i.test(l.thumbnailUrl) ? 'Copy GIF' : 'Copy thumbnail', { small: true });
@@ -1144,7 +1233,7 @@ export function OutreachStudio() {
         }
         const st = linkStats.byContact ? (linkStats.byContact[l.contactId] || { views: 0, plays: 0, ctaClicks: 0 }) : null;
         const watch = st ? el('span', `text-xs ${st.ctaClicks ? 'text-primary' : st.plays ? 'text-emerald-300' : 'text-white/40'}`, st.ctaClicks ? '● Clicked' : st.plays ? '● Watched' : st.views ? '● Opened' : '● Not opened') : null;
-        row.append(who, state, ...(siteState ? [siteState] : []), ...(watch ? [watch] : []), copy, mailBtn, ...extra, mp4, mailto);
+        row.append(who, state, ...(siteState ? [siteState] : []), ...(watch ? [watch] : []), copy, mailBtn, li, ...extra, mp4, mailto, gmail);
         rows.appendChild(row);
       });
       list.appendChild(rows);
@@ -1211,7 +1300,7 @@ export function OutreachStudio() {
     sel.setAttribute('data-landing-design', '');
     landingTemplates.TEMPLATES.filter((t) => !t.site || t.puck).forEach((t) => {
       const o = el('option', 'bg-neutral-900', t.name); o.value = t.id; o.title = t.description || '';
-      o.selected = (landingPick || page?.templateId || 'puck-starter') === t.id;
+      o.selected = (landingPick || page?.templateId || draft.pageDesign || 'puck-starter') === t.id;
       sel.appendChild(o);
     });
     sel.addEventListener('change', () => { landingPick = sel.value; render(); });
@@ -1264,6 +1353,7 @@ export function OutreachStudio() {
         await setPagePublished(client, row.id, true);
       }
       const url = pageUrl(row.id);
+      draft.pageDesign = templateId;
       draft.campaign = {
         ...draft.campaign,
         page: { id: row.id, templateId, url },
@@ -1537,9 +1627,83 @@ export function OutreachStudio() {
     };
   };
 
+  // "+ New dynamic video": a fresh campaign that keeps your voice, details and button.
+  function startNew({ from = draft, keepVideo = false } = {}) {
+    const inProgress = !draft.campaign && (draft.video || draft.contacts.length);
+    if (inProgress && from === draft && !keepVideo && !window.confirm('Start a new dynamic video? The one you are setting up (not generated yet) will be replaced.')) return;
+    replaceDraft(newDynamicVideo(from, { keepVideo }));
+    step = keepVideo ? 4 : 1; notice = keepVideo ? 'Same video, new prospects: add them below.' : ''; render();
+  }
+
+  function openFromLibrary(id) {
+    const saved = libraryDraft(id);
+    if (!saved) return;
+    replaceDraft(saved);
+    step = SETUP_STEPS + 1; notice = ''; render();
+  }
+
+  // The Videos home: your dynamic videos as cards (like Sendspark's library), then the results table.
+  function renderLibrary() {
+    const lib = listLibrary();
+    const box = el('div', 'flex flex-col gap-4');
+    box.setAttribute('data-outreach-library', '');
+    const head = el('div', 'flex flex-wrap items-end gap-3');
+    const title = el('div', 'flex-1');
+    title.append(el('h2', 'text-2xl font-black', 'Your dynamic videos'), el('p', 'text-sm text-secondary', 'Record once. Each prospect gets their own intro, page, thumbnail and link.'));
+    const fresh = button('+ New dynamic video', { primary: true });
+    fresh.setAttribute('data-outreach-new', '');
+    fresh.disabled = !!busy;
+    fresh.addEventListener('click', () => startNew());
+    head.append(title, fresh);
+    box.appendChild(head);
+
+    const grid = el('div', 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3');
+    // The one being set up (not generated yet).
+    if (!draft.campaign && (draft.video || draft.contacts.length)) {
+      const c = el('div', 'flex flex-col gap-3 rounded-2xl border border-dashed border-primary/50 bg-primary/5 p-4');
+      c.setAttribute('data-outreach-continue', '');
+      c.append(el('div', 'text-xs font-bold uppercase tracking-wider text-primary', 'In progress'), el('div', 'text-lg font-extrabold truncate', draft.name || 'Untitled dynamic video'),
+        el('p', 'text-xs text-secondary', `${draft.video ? 'Video recorded' : 'No video yet'} \u00b7 ${draft.contacts.length} prospect${draft.contacts.length === 1 ? '' : 's'}`));
+      const go = button('Continue', { primary: true, small: true });
+      go.addEventListener('click', () => { step = resumeStep(); notice = ''; render(); });
+      c.appendChild(go);
+      grid.appendChild(c);
+    }
+    const statsOf = (id) => summarize(campaigns.stats[id]);
+    lib.forEach((e) => {
+      const c = el('div', 'flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-panel-bg');
+      c.setAttribute('data-library-item', e.id);
+      const media = el('div', 'relative aspect-video bg-black');
+      if (e.thumbnailUrl) { const im = el('img', 'h-full w-full object-cover'); im.src = e.thumbnailUrl; im.alt = ''; media.appendChild(im); } else if (e.video) { const v = el('video', 'h-full w-full object-cover'); v.src = `${e.video}#t=1`; v.muted = true; v.preload = 'metadata'; media.appendChild(v); }
+      if (draft.campaign?.id === e.id) media.appendChild(el('span', 'absolute bottom-2 right-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-black', 'Open now'));
+      const body = el('div', 'flex flex-1 flex-col gap-2 p-4');
+      const st = statsOf(e.id);
+      body.append(el('div', 'truncate font-extrabold', e.name), el('div', 'text-xs text-secondary', `${new Date(e.savedAt).toLocaleDateString()} \u00b7 ${e.contacts} prospect${e.contacts === 1 ? '' : 's'} \u00b7 ${st.watched} watched \u00b7 ${st.clicks} click${st.clicks === 1 ? '' : 's'}`));
+      const row = el('div', 'mt-auto flex flex-wrap gap-2 pt-1');
+      const open = button('Open', { small: true, primary: true });
+      open.disabled = !!busy;
+      open.addEventListener('click', () => openFromLibrary(e.id));
+      const again = button('New prospects, same video', { small: true });
+      again.disabled = !!busy;
+      again.addEventListener('click', () => { const saved = libraryDraft(e.id); if (saved) startNew({ from: saved, keepVideo: true }); });
+      row.append(open, again);
+      body.appendChild(row);
+      c.append(media, body);
+      grid.appendChild(c);
+    });
+    if (!grid.children.length) {
+      const empty = el('div', 'rounded-2xl border border-white/10 bg-panel-bg p-6 text-sm text-secondary sm:col-span-2 lg:col-span-3');
+      empty.textContent = 'No dynamic videos yet. Click "+ New dynamic video": record yourself once, add your prospects, and each one gets a personal intro and page.';
+      grid.appendChild(empty);
+    }
+    box.appendChild(grid);
+    return box;
+  }
+
   function renderCampaigns() {
     if (!campaigns.loaded && !campaigns.loading && !campaigns.error) setTimeout(loadCampaigns, 0);
     const wrap = el('div', 'flex flex-col gap-5');
+    wrap.appendChild(renderLibrary());
     const all = campaigns.rows.map((r) => ({ r, s: summarize(campaigns.stats[r.id]) }));
     const totals = el('div', 'grid grid-cols-2 md:grid-cols-4 gap-3');
     for (const [label, value] of [
@@ -1554,20 +1718,15 @@ export function OutreachStudio() {
     }
     wrap.appendChild(totals);
 
-    const table = card('Campaigns');
+    const table = card('Results');
     const head = el('div', 'flex flex-wrap gap-2 -mt-2');
     const refresh = button(campaigns.loading ? 'Loading…' : 'Refresh', { small: true });
     refresh.disabled = campaigns.loading;
     refresh.addEventListener('click', loadCampaigns);
-    const fresh = button('+ New campaign', { small: true, primary: true });
-    fresh.addEventListener('click', () => {
-      if (!window.confirm('Start a new campaign? Your recording, voice and page text stay; the contact list and links are cleared.')) return;
-      draft.contacts = []; draft.campaign = null; draft.name = ''; persist(); step = 4; notice = ''; render();
-    });
-    head.append(refresh, fresh);
+    head.append(refresh);
     table.appendChild(head);
     if (campaigns.error) table.appendChild(el('p', 'text-sm text-amber-300', campaigns.error));
-    else if (campaigns.loaded && !all.length) table.appendChild(el('p', 'text-sm text-secondary', 'No campaigns yet. Generate one in step 5.'));
+    else if (campaigns.loaded && !all.length) table.appendChild(el('p', 'text-sm text-secondary', 'No results yet. They show here once a dynamic video is generated and its links are opened.'));
     if (all.length) {
       const grid = el('div', 'grid grid-cols-[1fr_110px_90px_90px_90px] gap-x-3 text-sm');
       for (const h of ['Campaign', 'Date', 'Videos', 'Watched', 'Clicks']) grid.appendChild(el('div', 'pb-2 text-xs text-white/45', h));
@@ -1609,8 +1768,10 @@ export function OutreachStudio() {
 
   function renderStepper() {
     stepper.replaceChildren();
-    STEPS.forEach((name, i) => {
-      const n = i + 1;
+    const order = [STEPS.length, ...STEPS.slice(0, -1).map((_, i) => i + 1)];
+    order.forEach((n, k) => {
+      const name = STEPS[n - 1];
+      if (k === 1) stepper.appendChild(el('span', 'mx-1 self-center text-white/20', '|'));
       const open = reachable(n);
       const done = n !== step && n <= SETUP_STEPS + 1 && !stepErrors(draft, n).length;
       const pill = el('button', [
@@ -1621,7 +1782,7 @@ export function OutreachStudio() {
       pill.type = 'button';
       pill.disabled = !open || !!busy;
       pill.title = open ? name : `${name}: finish the earlier steps first.`;
-      pill.append(el('span', 'grid h-5 w-5 place-items-center rounded-full bg-black/20 text-[10px]', done ? '✓' : String(n)), el('span', '', name));
+      pill.append(el('span', 'grid h-5 w-5 place-items-center rounded-full bg-black/20 text-[10px]', n === STEPS.length ? '\u25a6' : done ? '✓' : String(n)), el('span', '', name));
       pill.addEventListener('click', () => { step = n; notice = ''; render(); });
       stepper.appendChild(pill);
     });
@@ -1640,13 +1801,13 @@ export function OutreachStudio() {
     const status = el('p', `flex-1 text-sm ${busy ? 'text-primary' : notice && !errors.length ? 'text-emerald-300' : 'text-amber-300'}`, msg);
     status.setAttribute('data-outreach-busy', '');
     // Buttons sit on the left so the floating Ask SmartVideo button (bottom right) never covers them.
-    if (step > 1) {
+    if (step > 1 && step < STEPS.length) {
       const back = button('Back'); back.disabled = !!busy;
       back.addEventListener('click', () => { step -= 1; notice = ''; render(); });
       footer.appendChild(back);
     }
     if (step < STEPS.length) {
-      const next = button(step === SETUP_STEPS + 1 ? 'See campaigns' : 'Next', { primary: true });
+      const next = button(step === SETUP_STEPS + 1 ? 'Back to my videos' : 'Next', { primary: true });
       next.disabled = !!busy || errors.length > 0;
       next.addEventListener('click', () => { step += 1; notice = ''; render(); });
       footer.appendChild(next);

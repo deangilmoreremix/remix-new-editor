@@ -20,7 +20,9 @@
  */
 
 export const DRAFT_KEY = 'outreach-draft-v1';
-export const STEPS = ['Record', 'Voice', 'Customize', 'Contacts', 'Generate', 'Campaigns'];
+// Sendspark-style: record, the AI intro (voice + greeting), the page, prospects, then generate and
+// share; Videos is the library of dynamic videos (campaigns).
+export const STEPS = ['Record', 'AI intro', 'Page', 'Prospects', 'Generate & share', 'Videos'];
 /** Steps that must be complete before a campaign can be generated. */
 export const SETUP_STEPS = 4;
 export const MAX_CONTACTS = 500;
@@ -59,6 +61,8 @@ export function defaultDraft() {
     cta: { enabled: true, label: 'Schedule a demo', url: '' },
     // Who sent it (Customize step): shown on the landing page and in the page's menu bar.
     sender: { name: '', title: '', company: '', logo: '', photo: '' },
+    // The landing page design Generate publishes onto ('' = the plain video page).
+    pageDesign: '',
     contacts: [],
     campaign: null,
     name: '',
@@ -241,6 +245,7 @@ export const CONTACT_FIELDS = [
   ['website', 'Website'],
   ['address', 'Address'],
   ['backgroundImage', 'Background image'],
+  ['linkedin', 'LinkedIn URL'],
 ];
 
 // Header spellings that map to each field (compared lower-case, without spaces, _ or -).
@@ -253,6 +258,7 @@ const HEADER_ALIASES = {
   website: ['website', 'url', 'site', 'domain', 'companywebsite', 'web'],
   address: ['address', 'streetaddress', 'location', 'fulladdress', 'officeaddress'],
   backgroundImage: ['backgroundimage', 'background', 'backgroundurl', 'bgimage', 'image', 'imageurl'],
+  linkedin: ['linkedin', 'linkedinurl', 'linkedinprofile', 'linkedinprofileurl', 'personlinkedinurl', 'profileurl'],
 };
 const norm = (h) => String(h || '').toLowerCase().replace(/[\s_\-.]+/g, '');
 
@@ -301,10 +307,11 @@ const shortId = (rand = Math.random) => `c${Math.floor(rand() * 2 ** 40).toStrin
 /** A contact from loose input: trims, caps lengths, adds an id; null when it has no name and no email. */
 export function makeContact(input = {}, { rand } = {}) {
   const c = {};
-  for (const [field] of CONTACT_FIELDS) c[field] = String(input[field] ?? '').trim().slice(0, field === 'website' || field === 'backgroundImage' ? 500 : field === 'address' ? 200 : 120);
+  for (const [field] of CONTACT_FIELDS) c[field] = String(input[field] ?? '').trim().slice(0, field === 'website' || field === 'backgroundImage' || field === 'linkedin' ? 500 : field === 'address' ? 200 : 120);
   if (c.website && !/^https?:\/\//i.test(c.website)) c.website = `https://${c.website}`;
   // A background image must be a public https picture.
   if (c.backgroundImage && !/^https:\/\/[^\s]+$/i.test(c.backgroundImage)) c.backgroundImage = '';
+  c.linkedin = linkedinProfile(c.linkedin);
   if (!c.firstName && !c.lastName && !c.email) return null;
   c.id = SAFE_ID.test(String(input.id || '')) ? String(input.id) : shortId(rand);
   return c;
@@ -360,7 +367,7 @@ export function mergeContacts(existing, incoming) {
   return out;
 }
 
-export const CSV_TEMPLATE = 'First Name,Last Name,Email,Company,Job Title,Website,Address,Background Image\r\nMike,Markovic,mike@example.com,Acme,Head of Sales,acme.com,"1 Market St, San Francisco, CA",\r\n';
+export const CSV_TEMPLATE = 'First Name,Last Name,Email,Company,Job Title,Website,Address,Background Image,LinkedIn URL\r\nMike,Markovic,mike@example.com,Acme,Head of Sales,acme.com,"1 Market St, San Francisco, CA",,https://www.linkedin.com/in/example\r\n';
 
 /** A website's home page, the key its screenshot is stored under (same rule as /api/outreach/site-shot). */
 export function siteKey(raw) {
@@ -541,4 +548,75 @@ export function campaignLinks(draft, watchUrl, personalLink, variants = {}) {
     ...(website ? { site: backgroundShotFor(draft, c) ? 'own' : 'fallback' } : {}),
     link: personalLink(watchUrl, website ? contactProfileFor(draft, c) : contactProfile(c), tokens),
   }));
+}
+
+/** A LinkedIn profile link (https://www.linkedin.com/in/<name>), else ''. */
+export function linkedinProfile(value) {
+  const v = String(value || '').trim();
+  const m = v.match(/^(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/(in|pub)\/([A-Za-z0-9_%-]{2,100})\/?(?:[?#].*)?$/i);
+  return m ? `https://www.linkedin.com/${m[1].toLowerCase()}/${m[2]}` : '';
+}
+
+// ---- Videos library: every generated campaign's draft is kept on this device, so a campaign can
+// be opened again (its prospects, links, thumbnails and page) or used to start a new one.
+export const LIBRARY_KEY = 'outreach-library-v1';
+export const LIBRARY_LIMIT = 30;
+
+const readLibrary = (storage) => {
+  try {
+    const v = JSON.parse(storage?.getItem(LIBRARY_KEY) || 'null');
+    return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+  } catch { return {}; }
+};
+
+/** Save a generated campaign's draft in the library (newest kept, at most LIBRARY_LIMIT). */
+export function saveToLibrary(draft, storage = globalThis.localStorage, now = Date.now()) {
+  const id = draft?.campaign?.id;
+  if (!id) return false;
+  const lib = readLibrary(storage);
+  lib[id] = { savedAt: now, draft };
+  const keep = Object.entries(lib).sort(([, a], [, b]) => b.savedAt - a.savedAt).slice(0, LIBRARY_LIMIT);
+  for (let n = keep.length; n > 0; n -= 1) {
+    try { storage?.setItem(LIBRARY_KEY, JSON.stringify(Object.fromEntries(keep.slice(0, n)))); return true; } catch { /* too big: drop the oldest */ }
+  }
+  return false;
+}
+
+/** The library, newest first: [{ id, savedAt, name, contacts, video, thumbnailUrl }]. */
+export function listLibrary(storage = globalThis.localStorage) {
+  return Object.entries(readLibrary(storage))
+    .filter(([, e]) => e?.draft?.campaign)
+    .sort(([, a], [, b]) => b.savedAt - a.savedAt)
+    .map(([id, e]) => ({
+      id,
+      savedAt: e.savedAt,
+      name: e.draft.name || 'Untitled campaign',
+      contacts: e.draft.contacts?.length || 0,
+      video: e.draft.video?.url || '',
+      thumbnailUrl: e.draft.campaign.links?.find((l) => l.thumbnailUrl)?.thumbnailUrl || '',
+    }));
+}
+
+/** A saved campaign's draft (merged over defaults like loadDraft), or null. */
+export function libraryDraft(id, storage = globalThis.localStorage) {
+  const e = readLibrary(storage)[id];
+  if (!e?.draft) return null;
+  const mem = { getItem: () => JSON.stringify(e.draft) };
+  return loadDraft(mem);
+}
+
+/** A new dynamic video: keeps your voice, sender details and page settings; the rest starts fresh. */
+export function newDynamicVideo(from = {}, { keepVideo = false } = {}) {
+  const d = defaultDraft();
+  if (from.voice?.mode) d.voice = { ...d.voice, mode: from.voice.mode, cloneVoiceId: from.voice.cloneVoiceId || '', stockVoice: from.voice.stockVoice || d.voice.stockVoice, consent: from.voice.consent || null, consentChecked: !!from.voice.consentChecked };
+  if (from.sender) d.sender = { ...d.sender, ...from.sender };
+  if (from.cta) d.cta = { ...d.cta, ...from.cta };
+  if (from.email) d.email = { ...d.email, ...from.email };
+  if (from.language) d.language = from.language;
+  if (typeof from.pageDesign === 'string') d.pageDesign = from.pageDesign;
+  if (keepVideo && from.video) {
+    Object.assign(d, { video: from.video, captions: from.captions || null, script: from.script || '', greeting: from.greeting || d.greeting, header: from.header || d.header, message: from.message || d.message, background: { ...d.background, ...(from.background || {}) }, fallbacks: { ...d.fallbacks, ...(from.fallbacks || {}) } });
+    d.voice = { ...d.voice, fallbackUrl: from.voice?.fallbackUrl || '', fallbackDuration: from.voice?.fallbackDuration || 0, lipsync: !!from.voice?.lipsync };
+  }
+  return d;
 }
