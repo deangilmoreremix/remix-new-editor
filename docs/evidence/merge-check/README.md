@@ -31,6 +31,7 @@ Test media: two generated 8s VP9 clips. No Supabase / Clerk / provider keys were
 | 87, 88 | Library Favorites (★) and Recent strips; the same after a page reload |
 | 89, 90 | Inspector in groups (Basics / Look / Position and motion / Captions / Analyze), full height, with Find a setting |
 | 91, 92, 93 | New Publish tab: Share & Leads (unchanged) and Social with picture cards; clicking a card opens the existing Publish to Social window with the video's public link |
+| 94 | Publish > Contacts: imported CSV (bad and duplicate rows skipped), chips with counts, search, download, remove; landing-page source reports it needs sign-in while the others still show |
 
 ## Not captured / not verified
 - "Open full timeline" button: click timed out, no screenshot (30/43 missing).

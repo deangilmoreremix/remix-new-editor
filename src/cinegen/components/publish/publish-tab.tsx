@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import { LeadsTab } from '../leads/leads-tab';
 import { SocialPanel } from './social-panel';
+import { ContactsPanel } from './contacts-panel';
 import { ChipRow } from './publish-ui';
 import '../../styles/publish.css';
 
-export type PublishSub = 'share' | 'social';
+export type PublishSub = 'share' | 'social' | 'contacts';
 export const PUBLISH_SUB_KEY = 'cinegen_publish_sub';
 const SUBS: Array<{ id: PublishSub; label: string; glyph: string }> = [
   { id: 'share', label: 'Share & Leads', glyph: '🔗' },
   { id: 'social', label: 'Social', glyph: '📣' },
+  { id: 'contacts', label: 'Contacts', glyph: '👥' },
 ];
 
 export function readSub(): PublishSub {
@@ -26,6 +28,7 @@ export function PublishTab() {
       <div className="publish-tab__body">
         {sub === 'share' && <LeadsTab />}
         {sub === 'social' && <SocialPanel />}
+        {sub === 'contacts' && <ContactsPanel />}
       </div>
     </div>
   );
