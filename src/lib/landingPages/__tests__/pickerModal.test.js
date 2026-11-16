@@ -135,3 +135,87 @@ describe('openLandingPagePicker', () => {
     expect(onClose).toHaveBeenCalled();
   });
 });
+
+describe('personalizing for a customer', () => {
+  beforeEach(() => { document.body.innerHTML = ''; document.body.style.overflow = ''; });
+  const CUSTOMERS = [
+    { id: 'c1', label: 'Riverside Plumbing', source: 'client', tokens: { firstname: 'Dana', lastname: 'Whitfield', company: 'Riverside Plumbing', city: 'Austin', companylogo: 'https://cdn.test/logo.png', role: '' }, email: 'dana@rp.test', business: { name: 'Riverside Plumbing', website: 'https://rp.test', phone: '512 555 0142' }, brand: { accent: '#ff8a1f', logoUrl: 'https://cdn.test/logo.png' } },
+    { id: 'c2', label: 'Acme Roofing', source: 'client', tokens: { firstname: 'Sam', lastname: 'Lee', company: 'Acme Roofing', city: 'Denver', companylogo: '', role: '' }, email: '', business: { name: 'Acme Roofing' }, brand: { accent: '', logoUrl: '' } },
+  ];
+  const loadCustomers = async () => ({ customers: CUSTOMERS, activeId: 'c1' });
+  const flushAll = async () => { for (let i = 0; i < 6; i += 1) await tick(); };
+  const open = (extra = {}) => {
+    const mountPuckEditor = vi.fn(() => ({ destroy() {} }));
+    const addContacts = vi.fn(async (_c, _id, rows) => rows.map((r, i) => ({ id: `ct${i}abcdef`, fields: r.fields })));
+    const createPageFromVideo = vi.fn(async (_c, v, o) => ({ id: 'pg12345678', config: { template: o.template, theme: o.brand }, video_url: v.url }));
+    const updatePage = vi.fn(async (_c, id) => ({ id, published: false, config: {} }));
+    const p = openLandingPagePicker({ video: VIDEO, deps: { loadCustomers, mountPuckEditor, addContacts, createPageFromVideo, updatePage, mountPuckPage: () => ({ destroy() {} }) }, ...extra });
+    return { p, mountPuckEditor, addContacts, createPageFromVideo, updatePage };
+  };
+  const pickDesign = () => document.querySelector('[data-design-grid] button').click();
+  const save = () => [...document.querySelectorAll('button')].find((b) => b.textContent === 'Save as my page').click();
+
+  it('lists the customers with the active one selected and the brand option on', async () => {
+    open(); await flushAll();
+    const boxes = [...document.querySelectorAll('[data-customer-id]')];
+    expect(boxes.map((b) => b.dataset.customerId)).toEqual(['c1', 'c2']);
+    expect(boxes.find((b) => b.dataset.customerId === 'c1').checked).toBe(true);
+    expect(document.querySelector('[data-customer-brand]').checked).toBe(true);
+  });
+
+  it('one customer: their brand is written into the page, the preview uses their tokens, and a personal link is made', async () => {
+    const { mountPuckEditor, addContacts, createPageFromVideo } = open(); await flushAll();
+    pickDesign(); await flushAll();
+    const args = mountPuckEditor.mock.calls[0][1];
+    expect(args.tokens).toMatchObject({ firstname: 'Dana', company: 'Riverside Plumbing' });
+    expect(args.data.root.props.accent).toBe('#ff8a1f');
+    expect(document.querySelector('[data-personalized-note]').textContent).toContain('Personalized for Riverside Plumbing');
+    save(); await flushAll();
+    expect(createPageFromVideo.mock.calls[0][2].brand).toMatchObject({ accent: '#ff8a1f', logoUrl: 'https://cdn.test/logo.png', name: 'Riverside Plumbing' });
+    expect(addContacts).toHaveBeenCalledTimes(1);
+    expect(addContacts.mock.calls[0][2]).toEqual([{ fields: expect.objectContaining({ firstname: 'Dana', company: 'Riverside Plumbing', email: 'dana@rp.test' }) }]);
+    expect(document.querySelector('[data-personal-links]').textContent).toContain('/p/pg12345678?c=ct0abcdef');
+  });
+
+  it('several customers: one generic page, one personal link each, no brand written', async () => {
+    const { mountPuckEditor, addContacts } = open(); await flushAll();
+    document.querySelector('[data-customer-id="c2"]').click(); await flushAll();
+    expect(document.querySelector('[data-customer-brand]').disabled).toBe(true);
+    pickDesign(); await flushAll();
+    expect(mountPuckEditor.mock.calls[0][1].data.root.props.accent).not.toBe('#ff8a1f');
+    save(); await flushAll();
+    expect(addContacts.mock.calls[0][2].length).toBe(2);
+    expect(document.querySelector('[data-personal-links]').textContent).toContain('2 personal links');
+  });
+
+  it('nobody selected: the plain design and no contacts', async () => {
+    const { addContacts, mountPuckEditor } = open(); await flushAll();
+    document.querySelector('[data-customer-none]').click(); await flushAll();
+    pickDesign(); await flushAll();
+    expect(mountPuckEditor.mock.calls[0][1].tokens).toEqual({ firstname: 'Ann', company: 'Acme' });
+    expect(document.querySelector('[data-personalized-note]')).toBeNull();
+    save(); await flushAll();
+    expect(addContacts).not.toHaveBeenCalled();
+  });
+
+  it('"Use the plain design" re-opens the editor without their brand', async () => {
+    const { mountPuckEditor } = open(); await flushAll();
+    pickDesign(); await flushAll();
+    [...document.querySelectorAll('button')].find((b) => b.textContent === 'Use the plain design').click(); await flushAll();
+    expect(mountPuckEditor).toHaveBeenCalledTimes(2);
+    expect(mountPuckEditor.mock.calls[1][1].data.root.props.accent).not.toBe('#ff8a1f');
+  });
+
+  it('keeps the page when the personal links fail, and says so', async () => {
+    const { addContacts } = open(); await flushAll();
+    addContacts.mockRejectedValue(new Error('RLS says no'));
+    pickDesign(); await flushAll(); save(); await flushAll();
+    expect(document.body.textContent).toContain('The page is saved, but the personal links were not made');
+    expect(document.body.textContent).toContain('Saved to Video Pages');
+  });
+
+  it('works when there are no customers at all', async () => {
+    open({ deps: { loadCustomers: async () => ({ customers: [], activeId: '' }), mountPuckPage: () => ({ destroy() {} }) } }); await flushAll();
+    expect(document.querySelector('[data-customer-panel]').textContent).toContain('No customer found yet');
+  });
+});
