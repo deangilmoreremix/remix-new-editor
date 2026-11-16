@@ -31,11 +31,19 @@ function el(tag, className, text) {
   return node;
 }
 
-function button(label, { primary = false, small = false } = {}) {
+// Buttons are never filled, like the prompt bar in the studios (src/styles/global.css .btn-action-secondary,
+// .btn-personalize, .btn-primary-modern): outlined; the main action has a lime left edge (like Generate) and a
+// selected option a light lime tint (like Personalize).
+const BTN_LOOK = {
+  plain: 'border border-white/[0.08] bg-transparent text-white/70 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.18]',
+  primary: 'border border-white/[0.12] border-l-2 border-l-primary bg-transparent text-white/90 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.2] hover:border-l-primary',
+  selected: 'border border-primary/25 bg-primary/[0.08] text-white/90 hover:text-white hover:bg-primary/[0.14] hover:border-primary/45',
+};
+function button(label, { primary = false, selected = false, small = false } = {}) {
   const b = el('button', [
-    'inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
+    'inline-flex items-center justify-center gap-2 rounded-[10px] font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
     small ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm',
-    primary ? 'bg-primary text-black hover:brightness-95' : 'border border-white/15 text-white hover:border-primary/60',
+    BTN_LOOK[selected ? 'selected' : primary ? 'primary' : 'plain'],
   ].join(' '), label);
   b.type = 'button';
   return b;
@@ -392,7 +400,7 @@ export function OutreachStudio() {
     const w = el('div', 'flex flex-col gap-2.5 rounded-xl border border-primary/30 bg-primary/5 p-3');
     const tabs = el('div', 'flex gap-1');
     for (const [k, label] of [['script', 'Script'], ['email', 'Email'], ['page', 'Page']]) {
-      const b = button(label, { small: true, primary: writer.kind === k });
+      const b = button(label, { small: true, selected: writer.kind === k });
       b.setAttribute('data-writer-kind', k);
       b.addEventListener('click', () => { writer.kind = k; render(); });
       tabs.appendChild(b);
@@ -556,7 +564,7 @@ export function OutreachStudio() {
     const main = card('Choose the voice', 'Each contact hears their own greeting. Clone your voice so it sounds like you, or use a stock voice.');
     const modes = el('div', 'flex gap-2');
     for (const [mode, label] of [['clone', 'My cloned voice'], ['stock', 'Stock voice']]) {
-      const b = button(label, { primary: draft.voice.mode === mode, small: true });
+      const b = button(label, { selected: draft.voice.mode === mode, small: true });
       b.addEventListener('click', () => { draft.voice = { ...draft.voice, mode, fallbackUrl: '', fallbackDuration: 0 }; persist(); render(); });
       modes.appendChild(b);
     }
@@ -608,7 +616,7 @@ export function OutreachStudio() {
     greet.appendChild(field('Output language', langRow, 'The greeting is spoken in this language, in your cloned or stock voice. Translate rewrites your greeting, landing page text and email into it (one small text request on your MuAPI key).'));
     const fb = el('div', 'flex flex-wrap gap-2');
     for (const word of FIRST_NAME_FALLBACKS) {
-      const b = button(word, { primary: draft.fallbacks.firstname === word, small: true });
+      const b = button(word, { selected: draft.fallbacks.firstname === word, small: true });
       b.addEventListener('click', () => { draft.fallbacks.firstname = word; draft.voice.fallbackUrl = ''; persist(); render(); });
       fb.appendChild(b);
     }
@@ -674,7 +682,7 @@ export function OutreachStudio() {
     bg.appendChild(el('div', 'text-sm font-bold', 'Video background'));
     const bgModes = el('div', 'flex flex-wrap gap-2');
     for (const [mode, label] of [['recording', 'My recording'], ['website', 'Each contact\u2019s website'], ['image', 'An image'], ['map', 'A map of their address']]) {
-      const b = button(label, { primary: draft.background.mode === mode, small: true });
+      const b = button(label, { selected: draft.background.mode === mode, small: true });
       b.setAttribute('data-bg-mode', mode);
       b.addEventListener('click', () => { draft.background = { ...draft.background, mode }; draft.campaign = null; persist(); render(); });
       bgModes.appendChild(b);
@@ -728,7 +736,7 @@ export function OutreachStudio() {
         preview.appendChild(pic);
         pagePreview(pic);
         preview.appendChild(el('p', 'text-sm text-black/70', 'Each prospect sees this page with their own personal video in it.'));
-        if (draft.page) { const b = el('button', 'mx-auto rounded-full bg-[#4f46e5] px-6 py-2.5 text-sm font-bold text-white', 'Edit page'); b.type = 'button'; b.addEventListener('click', openPageEditor); preview.appendChild(b); }
+        if (draft.page) { const b = el('button', 'mx-auto rounded-[10px] border border-black/15 border-l-2 border-l-[#4f46e5] bg-transparent px-5 py-2 text-sm font-bold text-black/80 hover:bg-black/5', 'Edit page'); b.type = 'button'; b.addEventListener('click', openPageEditor); preview.appendChild(b); }
         return;
       }
       preview.appendChild(el('div', 'text-[11px] uppercase tracking-wider text-black/50', 'Preview · Mike at Acme'));
@@ -1595,7 +1603,7 @@ export function OutreachStudio() {
     const typeRow = el('div', 'flex flex-wrap items-center gap-2');
     typeRow.appendChild(el('span', 'text-xs font-semibold text-secondary w-24', 'Thumbnail'));
     for (const [type, label] of [['gif', 'Animated GIF'], ['static', 'Still image']]) {
-      const b = button(label, { small: true, primary: (t().type || 'gif') === type });
+      const b = button(label, { small: true, selected: (t().type || 'gif') === type });
       b.setAttribute('data-thumb-type', type);
       b.addEventListener('click', () => { setThumb({ type }); render(); });
       typeRow.appendChild(b);
@@ -1747,7 +1755,7 @@ export function OutreachStudio() {
       c.setAttribute('data-library-item', e.id);
       const media = el('div', 'relative aspect-video bg-black');
       if (e.thumbnailUrl) { const im = el('img', 'h-full w-full object-cover'); im.src = e.thumbnailUrl; im.alt = ''; media.appendChild(im); } else if (e.video) { const v = el('video', 'h-full w-full object-cover'); v.src = `${e.video}#t=1`; v.muted = true; v.preload = 'metadata'; media.appendChild(v); }
-      if (draft.campaign?.id === e.id) media.appendChild(el('span', 'absolute bottom-2 right-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-black', 'Open now'));
+      if (draft.campaign?.id === e.id) media.appendChild(el('span', 'absolute bottom-2 right-2 rounded-full border border-primary/40 bg-black/70 px-2 py-0.5 text-[10px] font-bold text-primary', 'Open now'));
       const body = el('div', 'flex flex-1 flex-col gap-2 p-4');
       const st = statsOf(e.id);
       body.append(el('div', 'truncate font-extrabold', e.name), el('div', 'text-xs text-secondary', `${new Date(e.savedAt).toLocaleDateString()} \u00b7 ${e.contacts} prospect${e.contacts === 1 ? '' : 's'} \u00b7 ${st.watched} watched \u00b7 ${st.clicks} click${st.clicks === 1 ? '' : 's'}`));
@@ -1848,7 +1856,7 @@ export function OutreachStudio() {
       const done = n !== step && n <= SETUP_STEPS + 1 && !stepErrors(draft, n).length;
       const pill = el('button', [
         'flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold',
-        n === step ? 'border-primary bg-primary text-black' : 'border-white/10 text-white/60',
+        n === step ? 'border-primary/45 bg-primary/[0.08] text-white' : 'border-white/10 text-white/60',
         open ? '' : 'opacity-40 cursor-not-allowed',
       ].join(' '));
       pill.type = 'button';

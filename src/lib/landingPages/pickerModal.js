@@ -23,7 +23,7 @@ import { attachDesignPreview } from './designPreview.js';
 const SAMPLE_TOKENS = { firstname: 'Ann', company: 'Acme' };
 const INPUT = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50';
 const BTN = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:border-primary/60 hover:text-primary transition-colors disabled:opacity-50';
-const BTN_PRIMARY = 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-black hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50';
+const BTN_PRIMARY = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 border-l-2 border-l-primary px-4 py-2 text-sm font-bold text-white hover:bg-white/5 transition-colors disabled:opacity-50';
 
 export const CHIPS = Object.freeze([
   { id: 'all', label: 'All', match: () => true },
@@ -61,8 +61,9 @@ export function toPickerVideo(input) {
 // The picker is shown inside other screens (Timeline Studio loads its own Tailwind build where `bg-primary` etc. differ),
 // so the pieces that must always look right carry inline styles as well as classes.
 const CSS = {
-  [BTN]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
-  [BTN_PRIMARY]: 'background:#d9ff00;border:1px solid #d9ff00;color:#000;border-radius:12px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
+  // Never filled, like the studios' prompt bar: outlined; the main action has a lime left edge (like Generate).
+  [BTN]: 'background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
+  [BTN_PRIMARY]: 'background:transparent;border:1px solid rgba(255,255,255,.14);border-left:2px solid #d9ff00;color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
   [`${INPUT} max-w-sm`]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;min-width:220px',
   [INPUT]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;width:100%',
   card: 'background:#141414;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;text-align:left;color:#fff;cursor:pointer',
@@ -208,8 +209,10 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
         b.classList.toggle('border-primary', on);
         b.classList.toggle('text-primary', on);
         b.classList.toggle('border-white/15', !on);
-        b.style.borderColor = on ? '#d9ff00' : 'rgba(255,255,255,.18)';
-        b.style.color = on ? '#d9ff00' : '#fff';
+        // The chosen chip has a light lime tint, like Personalize in the prompt bar.
+        b.style.borderColor = on ? 'rgba(217,255,0,.35)' : 'rgba(255,255,255,.1)';
+        b.style.background = on ? 'rgba(217,255,0,.08)' : 'transparent';
+        b.style.color = on ? '#fff' : 'rgba(255,255,255,.7)';
       });
       clearPreviews();
       grid.replaceChildren();

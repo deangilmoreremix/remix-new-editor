@@ -91,9 +91,10 @@ export function openTemplateChooser({ title = 'Choose a landing page', subtitle 
   head.append(words, x);
   const body = el('div', 'overflow-y-auto p-4');
   const foot = el('div', 'flex items-center justify-end gap-2 border-t border-white/10 p-3');
-  const cancel = el('button', 'rounded-full border border-white/15 px-4 py-2 text-sm font-bold', 'Cancel');
+  const cancel = el('button', 'rounded-[10px] border border-white/[0.08] bg-transparent px-4 py-2 text-sm font-bold text-white/70 hover:bg-white/[0.06] hover:text-white', 'Cancel');
   cancel.type = 'button';
-  const ok = el('button', 'rounded-full bg-primary px-5 py-2 text-sm font-bold text-black disabled:opacity-40', confirmLabel);
+  // Outlined with a lime left edge, like Generate in the studios' prompt bar (never filled).
+  const ok = el('button', 'rounded-[10px] border border-white/[0.12] border-l-2 border-l-primary bg-transparent px-5 py-2 text-sm font-bold text-white/90 hover:bg-white/[0.06] hover:text-white disabled:opacity-40', confirmLabel);
   ok.type = 'button'; ok.setAttribute('data-template-confirm', '');
   ok.disabled = !groups.some(([, l]) => l?.some((t) => t.id === pick));
   const cards = templateCards({ groups, selected, deps, onPick: (id) => { pick = id; ok.disabled = false; } });
