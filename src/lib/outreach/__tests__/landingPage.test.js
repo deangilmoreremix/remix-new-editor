@@ -58,14 +58,18 @@ describe('designs as Sendspark-style personal video pages', () => {
     const leadiq = PUCK_TEMPLATES.find((t) => t.id === 'puck-leadiq').puckData;
     const out = outreachPuck(leadiq, draft);
     expect(out.root.props).toEqual(leadiq.root.props);
-    expect(out.content.map((c) => c.type)).toEqual(['NavBar', 'Hero', 'OutreachActions', 'Footer']);
-    const [nav, hero, actions, footer] = out.content.map((c) => c.props);
-    expect(nav).toMatchObject({ brand: 'Remix', logo: 'https://cdn.test/logo.png', links: [], loginLabel: '', ctaLabel: 'Book a call' });
-    expect(hero).toMatchObject({ variant: 'video-copy-form', headline: draft.header, subhead: draft.message, showForm: 'no', bullets: [], photo: '' });
+    // The whole design stays; the sender's row and calendar go right under the hero.
+    const types = leadiq.content.map((c) => c.type);
+    expect(out.content.map((c) => c.type)).toEqual([types[0], types[1], 'OutreachActions', ...types.slice(2)]);
+    out.content.filter((c) => c.type !== 'OutreachActions').forEach((c, i) => expect(c.props.id).toBe(leadiq.content[i].props.id));
+    const [nav, hero, actions] = out.content.map((c) => c.props);
+    expect(nav).toMatchObject({ brand: 'Remix', logo: 'https://cdn.test/logo.png', ctaLabel: 'Book a call' });
+    expect(nav.links).toEqual(leadiq.content[0].props.links);
+    expect(hero).toMatchObject({ variant: leadiq.content[1].props.variant, headline: draft.header, subhead: draft.message, photo: leadiq.content[1].props.photo });
+    expect(hero.buttons).toEqual([{ ...leadiq.content[1].props.buttons[0], label: 'Book a call', url: 'https://cal.com/me/15min' }]);
     expect(actions).toMatchObject({ senderName: 'Dana evil Lee', senderTitle: 'Founder, Remix', senderPhoto: '', ctaUrl: 'https://cal.com/me/15min', like: 'yes' });
     expect(actions.calendarUrl).toMatch(/^https:\/\/cal\.com\/me\/15min\?/);
-    expect(footer.text).toBe('Sent by Dana evil Lee · Remix');
-    expect(JSON.stringify(out)).not.toMatch(/Melissa|SmartVideo|VideoLeadIQ|\+317%/);
+    expect(leadiq.content[1].props.headline).not.toBe(draft.header); // the template itself is untouched
   });
 
   it('works for every design, and without sender details or a calendar', async () => {
@@ -73,10 +77,12 @@ describe('designs as Sendspark-style personal video pages', () => {
     const { PUCK_TEMPLATES } = await import('../../landingPages/puck/designs.js');
     const bare = { header: 'Hi', cta: { enabled: true, label: 'Go', url: 'https://example.com/x' } };
     for (const t of PUCK_TEMPLATES) {
-      const types = outreachPuck(t.puckData, bare).content.map((c) => c.type);
-      expect(types).toEqual(['Hero', 'OutreachActions']);
+      const out = outreachPuck(t.puckData, bare);
+      expect(out.content).toHaveLength(t.puckData.content.length + 1);
+      const at = out.content.findIndex((c) => c.type === 'OutreachActions');
+      expect(out.content[at - 1].props.headline).toBe('Hi');
     }
-    const a = outreachPuck(PUCK_TEMPLATES[0].puckData, bare).content[1].props;
+    const a = outreachPuck(PUCK_TEMPLATES[0].puckData, bare).content.find((c) => c.type === 'OutreachActions').props;
     expect(a).toMatchObject({ ctaLabel: 'Go', ctaUrl: 'https://example.com/x', calendarUrl: '' });
     const cfg = pageConfigFromDraft({ puck: PUCK_TEMPLATES[1].puckData }, draft);
     expect(cfg.puck.content[0].type).toBe('NavBar');

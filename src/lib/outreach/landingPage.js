@@ -82,41 +82,51 @@ export function senderOf(draft = {}) {
   return { name: plain(s.name, 80), title: plain(s.title, 80), company: plain(s.company, 80), logo: https(s.logo), photo: https(s.photo) };
 }
 
+const NAV = /Nav(Bar)?$/;
+
 /**
- * A design (Puck page) as a Sendspark-style personal video page: the design's colours, fonts and
- * hero arrangement stay; its sample words, numbers, testimonials, logos and lead forms go. What
- * is left is the sender's brand, the personalized headline and message beside the video, then
- * who sent it, Like, the booking button and the booking calendar, and "Sent by".
+ * A design (Puck page) as a personal video page. The design stays as it is (its hero art, layout,
+ * sections, colours and fonts, exactly as in Video Pages); only what belongs to this campaign
+ * changes: the sender's brand and logo in the top bar, the personalized headline and message
+ * in the hero (beside the contact's video), the hero's button going to the booking link, and,
+ * right under the hero, who sent it, Like, the booking button and the booking calendar.
  */
 export function outreachPuck(puck, draft = {}) {
   const sender = senderOf(draft);
-  const hero0 = (puck?.content || []).find((c) => c?.type === 'Hero');
-  const variant = ['copy-video-form', 'video-copy-form', 'duo'].includes(hero0?.props?.variant) ? hero0.props.variant : 'copy-video-form';
   const cta = draft.cta?.enabled && https(draft.cta.url) ? draft.cta : null;
+  const ctaLabel = cta ? plain(cta.label, 40) || 'Book a call' : '';
   const brand = sender.company || sender.name;
-  const content = [];
-  if (brand || sender.logo) {
-    content.push({ type: 'NavBar', props: { id: 'or-nav', brand, logo: sender.logo, links: [], loginLabel: '', loginUrl: '', ctaLabel: cta ? plain(cta.label, 40) : '' } });
-  }
-  content.push({
-    type: 'Hero',
-    props: {
-      id: 'or-hero', variant, background: '', eyebrow: '',
-      headline: String(draft.header || '').trim().slice(0, 200) || 'Hi {{firstname|there}}, I made this for you',
-      subhead: String(draft.message || '').trim().slice(0, 500),
-      bullets: [], buttons: [], chip: '', photo: '', showForm: 'no',
-      formTitle: '', formSubtitle: '', formFields: [], submitLabel: '', privacy: '',
-    },
+  const header = String(draft.header || '').trim().slice(0, 200);
+  const message = String(draft.message || '').trim().slice(0, 500);
+  let navDone = false;
+  let heroAt = -1;
+  const content = (puck?.content || []).map((block, i) => {
+    const props = { ...(block?.props || {}) };
+    if (!navDone && NAV.test(block?.type || '')) {
+      navDone = true;
+      if (brand) { props.brand = brand; props.logo = sender.logo || ''; }
+      if (cta && 'ctaLabel' in props) props.ctaLabel = ctaLabel;
+      return { ...block, props };
+    }
+    if (heroAt < 0 && 'headline' in props) {
+      heroAt = i;
+      if (header) props.headline = header;
+      if (message) props.subhead = message;
+      if (cta && Array.isArray(props.buttons) && props.buttons.length) {
+        props.buttons = [{ ...props.buttons[0], label: ctaLabel, url: cta.url }];
+      }
+      return { ...block, props };
+    }
+    return block;
   });
-  content.push({
+  const actions = {
     type: 'OutreachActions',
     props: {
       id: 'or-actions', senderName: sender.name, senderTitle: [sender.title, sender.company].filter(Boolean).join(', '), senderPhoto: sender.photo, like: 'yes',
-      ctaLabel: cta ? plain(cta.label, 40) || 'Book a call' : '', ctaUrl: cta?.url || '',
+      ctaLabel, ctaUrl: cta?.url || '',
       calendarUrl: cta?.embed ? calendarEmbedUrl(cta.url) || '' : '', calendarTitle: cta?.embed ? plain(cta.label, 80) : '',
     },
-  });
-  const by = sender.name || sender.company;
-  if (by) content.push({ type: 'Footer', props: { id: 'or-footer', text: `Sent by ${[sender.name, sender.company].filter(Boolean).join(' \u00b7 ')}`, links: [] } });
-  return { root: { props: { ...(puck?.root?.props || {}) } }, content, zones: {} };
+  };
+  content.splice(heroAt + 1, 0, actions);
+  return { ...puck, root: { ...(puck?.root || {}), props: { ...(puck?.root?.props || {}) } }, content };
 }
