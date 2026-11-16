@@ -379,4 +379,21 @@ describe('remembering the published link for the Email tab', () => {
     expect(localStorage.getItem(EMAIL_LINK_STORAGE_KEY)).toBe('https://x.test/v/acme/promo');
     localStorage.clear();
   });
+
+  it('groups providers and warns for one that was imported but not checked', async () => {
+    const box = document.createElement('div');
+    renderSharePanel(box, {
+      getInfo: async () => ({ id: 'abcdefgh12', title: 'Promo', published: true, view_count: 0 }),
+      countLeads: async () => 0, copy: vi.fn(async () => {}), setPublished: vi.fn(), defaultTitle: 'Promo', mergeTokens: () => ['firstName'],
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(Array.from(box.querySelectorAll('[data-share-provider] optgroup')).map((g) => g.getAttribute('label')))
+      .toEqual(['Checked against vendor docs', 'More providers (not checked)']);
+    expect(box.textContent).not.toContain('Not checked against');
+    const sel = box.querySelector('[data-share-provider]');
+    sel.value = 'mailjet';
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(box.textContent).toContain('Not checked against MailJet');
+  });
 });
+

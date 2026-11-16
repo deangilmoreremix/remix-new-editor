@@ -131,13 +131,14 @@ export function renderSharePanel(container, opts) {
     return `<div class="share-merge pz-ui">
       <div class="share-personal__head"><strong>Email merge-tag link</strong></div>
       <label class="addon-field"><span>Email provider</span>
-        <select data-share-provider aria-label="Email provider">${EMAIL_PROVIDERS.map((p) => `<option value="${esc(p.key)}"${p.key === prov.key ? ' selected' : ''}>${esc(p.label)}</option>`).join('')}</select></label>
+        <select data-share-provider aria-label="Email provider"><optgroup label="Checked against vendor docs">${EMAIL_PROVIDERS.filter((p) => !p.unverified).map((p) => `<option value="${esc(p.key)}"${p.key === prov.key ? ' selected' : ''}>${esc(p.label)}</option>`).join('')}</optgroup><optgroup label="More providers (not checked)">${EMAIL_PROVIDERS.filter((p) => p.unverified).map((p) => `<option value="${esc(p.key)}"${p.key === prov.key ? ' selected' : ''}>${esc(p.label)}</option>`).join('')}</optgroup></select></label>
       <label class="cap-row"><span>Preload video</span><input type="checkbox" data-share-preload ${ui.preload !== false ? 'checked' : ''}/></label>
       <label class="cap-row"><span>Recipient id tag</span><input type="text" data-share-recipientid value="${esc(idTag)}" placeholder="${esc(recipientIdTagFor(prov) || 'e.g. a unique-id tag from your provider')}"/></label>
       <label class="cap-row"><span>Campaign name (UTM)</span><input type="text" data-share-utm value="${esc(ui.utm || '')}" placeholder="optional"/></label>
       <label class="cap-row"><span>Put email/phone in the link</span><input type="checkbox" data-share-private ${ui.includePrivate ? 'checked' : ''}/></label>
       <span class="share-copy"><textarea readonly rows="3" data-share-mergelink aria-label="Merge-tag link">${esc(mlink)}</textarea><button type="button" class="mini-btn" data-share-mergecopy>${ui.copied === 'merge' ? 'Copied ✓' : 'Copy'}</button></span>
       <p class="addon-field__hint">Paste this link into your ${esc(prov.label)} campaign; each recipient gets a video with their own details.</p>
+      ${prov.unverified ? `<p class="pz-warning">Not checked against ${esc(prov.label)}'s own docs. Send yourself a test email and click the link to confirm the details fill in.</p>` : ''}
       ${idTag ? `<p class="addon-field__hint">Views will show per recipient (by that id).${prov.recipientUnverified && idTag === recipientIdTagFor(prov) ? ` ${esc(prov.label)} doesn't list this tag in its own docs: send yourself a test to confirm.` : ''}</p>` : '<p class="addon-field__hint">Add your provider\'s unique recipient-id tag above to see views per recipient.</p>'}
       ${excluded.length ? `<p class="addon-field__hint">Left out of the link so they don't show in the URL: ${excluded.map((k) => esc(k)).join(', ')}.</p>` : ''}
       <p class="addon-field__hint"><a href="${esc(previewLink(link, tokens))}" target="_blank" rel="noopener">Preview as a recipient ↗</a> (sample details)</p>

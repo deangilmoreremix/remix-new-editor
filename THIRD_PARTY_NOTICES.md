@@ -15,3 +15,14 @@ On-device background removal in the Personalization Modal's Asset Finder uses:
 BG0's own documentation lists additional third-party components (for example HEIC decoding under the LGPL) in
 other BG0 packages. Version 0.1.1 of `@bg0/browser` does not include them; if a later version is adopted,
 re-check its notices and keep any required attribution and distribution terms.
+
+## Email provider merge-tag list (Email tab / Share panel)
+
+Providers marked "More providers (not checked)" in the email picker were imported from the provider list in
+`lib/constants/campaigns/email-providers.js` of the upstream editor, <https://github.com/strategic-limited/remix-new-editor>
+(author "Digital Strategies"; its `package.json` declares the ISC license, and the repository has no LICENSE file).
+Only provider names and merge-tag syntax (opening/closing characters and the first name / last name / email fields) were
+used. These entries have not been checked against the vendors' own documentation. The providers marked as checked were
+written from vendor documentation instead.
+
+The ISC license requires this notice to be kept with copies of the covered material.

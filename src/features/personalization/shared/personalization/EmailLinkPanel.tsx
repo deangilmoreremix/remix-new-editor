@@ -162,7 +162,12 @@ export default function EmailLinkPanel({ tokens, noDefaults = [] }: { tokens: st
             onChange={(e) => setProviderKey(e.target.value)}
             className="ml-2 rounded-lg border border-white/10 bg-black/30 px-2 py-1.5 text-sm normal-case text-white"
           >
-            {EMAIL_PROVIDERS.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+            <optgroup label="Checked against vendor docs">
+              {EMAIL_PROVIDERS.filter((p) => !p.unverified).map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+            </optgroup>
+            <optgroup label="More providers (not checked)">
+              {EMAIL_PROVIDERS.filter((p) => p.unverified).map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+            </optgroup>
           </select>
         </label>
         <label className="flex items-center gap-2 text-xs text-white/60">
@@ -229,6 +234,11 @@ export default function EmailLinkPanel({ tokens, noDefaults = [] }: { tokens: st
             Put email and phone in the link (they will be visible in the URL)
           </label>
         </div>
+      )}
+      {result && builtIn.unverified && (
+        <p data-testid="pz-email-unverified" className="rounded-xl border border-amber-300/30 bg-amber-300/5 p-3 text-xs text-amber-200">
+          Not checked against {builtIn.label}'s own docs (these tags come from a shared provider list). Send yourself a test email and click the link to confirm the details fill in.
+        </p>
       )}
       {result && (
         <div data-testid="pz-email-preflight" className="space-y-1 rounded-xl border border-white/10 bg-black/30 p-4 text-xs">

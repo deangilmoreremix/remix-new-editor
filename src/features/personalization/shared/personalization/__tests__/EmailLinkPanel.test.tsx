@@ -77,7 +77,7 @@ describe('per-provider tags (snapshot of the verified catalogue)', () => {
     custom: ['{{firstName}}', '{{company}}'],
   }
   it('covers every provider', () => {
-    expect(Object.keys(expected).sort()).toEqual(EMAIL_PROVIDERS.map((p) => p.key).sort())
+    expect(Object.keys(expected).sort()).toEqual(EMAIL_PROVIDERS.filter((p) => !p.unverified).map((p) => p.key).sort())
   })
   Object.entries(expected).forEach(([key, [first, company]]) => {
     it(`${key}: first name and company tags`, () => {
@@ -157,7 +157,7 @@ describe('golden provider tags (cross-repo drift guard)', () => {
     custom: '{{firstName}}|{{lastName}}|{{email}}',
   }
   it('matches the shared table', () => {
-    const actual = Object.fromEntries(EMAIL_PROVIDERS.map((p) => [p.key, ['firstName', 'lastName', 'email'].map((t) => mergeTagFor(p, t).tag).join('|')]))
+    const actual = Object.fromEntries(EMAIL_PROVIDERS.filter((p) => !p.unverified).map((p) => [p.key, ['firstName', 'lastName', 'email'].map((t) => mergeTagFor(p, t).tag).join('|')]))
     expect(actual).toEqual(golden)
   })
 })
@@ -285,3 +285,50 @@ describe('verified-from-docs details (provider research)', () => {
   })
 })
 
+describe('imported (unverified) providers from the upstream list', () => {
+  const imported = EMAIL_PROVIDERS.filter((p) => p.unverified)
+  const verified = EMAIL_PROVIDERS.filter((p) => !p.unverified)
+  it('are many, have unique keys, and never collide with a verified key', () => {
+    expect(imported.length).toBeGreaterThan(60)
+    const keys = EMAIL_PROVIDERS.map((p) => p.key)
+    expect(new Set(keys).size).toBe(keys.length)
+    expect(imported.every((p) => p.source === 'upstream')).toBe(true)
+    expect(verified.length).toBe(15)
+  })
+  it('each has string wrappers and at least one field', () => {
+    for (const p of imported) {
+      expect(typeof p.open, p.key).toBe('string')
+      expect(typeof p.close, p.key).toBe('string')
+      expect(Object.keys(p.fields).length, p.key).toBeGreaterThan(0)
+      expect(mergeTagFor(p, 'firstName').tag.length, p.key).toBeGreaterThan(0)
+    }
+  })
+  it('spot-check against the upstream list (first/last/email)', () => {
+    const by = (k: string) => EMAIL_PROVIDERS.find((p) => p.key === k)!
+    expect(mergeTagFor(by('mailjet'), 'firstName').mapped).toBe(true)
+    expect(mergeTagFor(by('esputnik'), 'painPoint').tag).toBe('%PAINPOINT|%')
+    expect(mergeTagFor(by('sendlane'), 'firstName').tag).toBe('VAR_FIRST_NAME')
+  })
+  it('the unreplaced-tag check ignores short wrappers of unchecked providers (no false positives)', () => {
+    expect(isUnreplacedMergeTag('*|FNAME|*')).toBe(true)
+    expect(isUnreplacedMergeTag('%x%')).toBe(true) // ActiveCampaign (verified) uses % ... %
+    expect(isUnreplacedMergeTag('{x}')).toBe(false)
+    expect(isUnreplacedMergeTag('$5$')).toBe(false)
+  })
+})
+
+describe('picker groups and the unverified note', () => {
+  beforeEach(() => { cleanup(); try { window.localStorage.clear() } catch { /* ignore */ } window.localStorage.setItem('pz-email-link-base', BASE) })
+  it('lists verified providers first and the rest under a separate group', () => {
+    render(<EmailLinkPanel tokens={['firstName']} />)
+    const groups = Array.from(screen.getByTestId('pz-email-provider').querySelectorAll('optgroup')).map((g) => g.getAttribute('label'))
+    expect(groups).toEqual(['Checked against vendor docs', 'More providers (not checked)'])
+    expect(screen.queryByTestId('pz-email-unverified')).toBeNull()
+  })
+  it('shows a warning (and no recipient id) for an imported provider', () => {
+    render(<EmailLinkPanel tokens={['firstName']} />)
+    fireEvent.change(screen.getByTestId('pz-email-provider'), { target: { value: 'mailjet' } })
+    expect(screen.getByTestId('pz-email-unverified').textContent).toContain('Not checked against')
+    expect(screen.getByTestId('pz-email-link').textContent).not.toContain('c=')
+  })
+})

@@ -20,6 +20,9 @@ import { isImageTokenKey } from '../../personalization/imageReadiness.js';
 import PROVIDER_DATA from './emailProviders.json';
 
 /**
+ * Providers marked `unverified` were imported from the upstream editor's email-providers list (strategic-limited/remix-new-editor,
+ * package.json license: ISC; see THIRD_PARTY_NOTICES) and have not been checked against vendor docs. The rest were checked against vendor docs.
+ *
  * Provider catalogue: DATA lives in emailProviders.json, which is byte-identical in remix-new-editor
  * (src/lib/editor/personalize) and OpenHiggsBolt (src/shared/personalization). Edit it in one repo, copy it to
  * the other, and run `node scripts/check-email-providers-sync.mjs <path-to-other-repo>` to confirm they match.
@@ -60,6 +63,8 @@ export function isUnreplacedMergeTag(value) {
   return EMAIL_PROVIDERS.some((p) => {
     const open = p.open.trim();
     const close = p.close.trim();
+    // Providers we haven't checked with short wrappers (e.g. %x%, $x$) would also match ordinary values: skip those.
+    if (p.unverified && open.length + close.length < 3) return false;
     return open && close && v.length > open.length + close.length && v.startsWith(open) && v.endsWith(close);
   });
 }
