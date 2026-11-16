@@ -449,6 +449,16 @@ describe('Full Body Recast tab', () => {
     expect(within(example).getByAltText('Example character').getAttribute('src')).toBe('/media/recast-example/character.jpg')
   })
 
+  it('shows the whole clip and photo instead of cropping them to the panel', async () => {
+    const container = await openRecastTab()
+    const example = container.querySelector('[data-testid="pz-recast-example"]') as HTMLDetailsElement
+    const media = [
+      ...Array.from(example.querySelectorAll('video, img')),
+    ] as HTMLElement[]
+    expect(media.length).toBeGreaterThanOrEqual(3)
+    for (const el of media) expect(el.style.objectFit).toBe('contain')
+  })
+
   it('rejects a clip that is not MP4/MOV without uploading', async () => {
     const container = await openRecastTab()
     const input = container.querySelector('[data-testid="pz-recast-file"]') as HTMLInputElement

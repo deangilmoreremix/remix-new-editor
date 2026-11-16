@@ -950,7 +950,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                           onClick={a.run}
                           style={{
                             width: 26, height: 24, display: 'grid', placeItems: 'center', borderRadius: 6, border: 'none', cursor: a.disabled ? 'default' : 'pointer',
-                            background: a.pressed ? C.cyanSoft : 'transparent', color: a.disabled ? C.muted2 : a.pressed ? C.cyan : C.text, opacity: a.disabled ? 0.5 : 1,
+                            background: a.pressed ? 'transparent' : 'transparent', color: a.disabled ? C.muted2 : a.pressed ? C.cyan : C.text, opacity: a.disabled ? 0.5 : 1,
                           }}
                         >
                           {a.icon}
