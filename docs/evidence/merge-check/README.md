@@ -32,6 +32,7 @@ Test media: two generated 8s VP9 clips. No Supabase / Clerk / provider keys were
 | 89, 90 | Inspector in groups (Basics / Look / Position and motion / Captions / Analyze), full height, with Find a setting |
 | 91, 92, 93 | New Publish tab: Share & Leads (unchanged) and Social with picture cards; clicking a card opens the existing Publish to Social window with the video's public link |
 | 94 | Publish > Contacts: imported CSV (bad and duplicate rows skipped), chips with counts, search, download, remove; landing-page source reports it needs sign-in while the others still show |
+| 95 | Publish > Email: connect MailerLite, choose who, video link, add to MailerLite; Send stays blocked with a plain reason until each step is done; says no email is sent |
 
 ## Not captured / not verified
 - "Open full timeline" button: click timed out, no screenshot (30/43 missing).
@@ -39,3 +40,5 @@ Test media: two generated 8s VP9 clips. No Supabase / Clerk / provider keys were
 - Anything needing a provider key or sign-in: caption generation, AI video, publish, analytics data, live translation.
 - Effect thumbnails in the library modal render as dark placeholders in headless Chromium (WebGL); not confirmed in a real browser.
 - Transitions and Multicam sections were not captured on a real cut/in the Inspector with a transition selected.
+- Social publishing to the real networks, MailerLite connect/send, and Landing-page/Lead contacts need sign-in, provider keys and Supabase, which this environment does not have. Those paths are covered by unit tests with mocked clients and by the gate/error states above, not by a real send.
+- Kit: sending a contact list to Kit is not built (the sync function omits it). New leads from video forms can already go to Kit via the form's own settings.
