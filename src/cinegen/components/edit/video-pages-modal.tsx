@@ -25,7 +25,7 @@ export interface VideoPagesDeps {
   edit: (pageId: string) => boolean;
 }
 
-interface Design { id: string; name: string; description: string; theme: { bg: string; accent: string; text: string; mode?: string }; layout: string; puck?: boolean; compose?: string; site?: unknown; intro?: boolean; pitch?: boolean }
+interface Design { id: string; name: string; description: string; theme: { bg: string; accent: string; text: string; mode?: string }; layout: string; editable?: boolean; compose?: string; site?: unknown; intro?: boolean; pitch?: boolean }
 
 export const MAX_VIDEO_MB = 100;
 const INK = 'rgba(229,237,245,.9)';
@@ -38,9 +38,9 @@ const grid: CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto
 
 /** The studio's own grouping of its templates. */
 export const GROUPS: Array<{ id: string; label: string; glyph: string; test: (t: Design) => boolean }> = [
-  { id: 'editable', label: 'Editable landing pages', glyph: '✦', test: (t) => !!t.puck },
+  { id: 'editable', label: 'Editable landing pages', glyph: '✦', test: (t) => !!t.editable },
   { id: 'structures', label: 'Page structures', glyph: '▦', test: (t) => !!t.compose && !t.site },
-  { id: 'layouts', label: 'Layouts', glyph: '▭', test: (t) => !t.intro && !t.pitch && !t.compose && !t.puck },
+  { id: 'layouts', label: 'Layouts', glyph: '▭', test: (t) => !t.intro && !t.pitch && !t.compose && !t.editable },
   { id: 'intro', label: 'Personal intro', glyph: '◎', test: (t) => !!t.intro },
   { id: 'pitch', label: 'Pitch page', glyph: '▶', test: (t) => !!t.pitch },
 ];

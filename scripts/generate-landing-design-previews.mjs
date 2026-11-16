@@ -3,9 +3,9 @@
  * Real preview pictures of every Video Pages design, for the design pickers (the studio's New page screen and the Template Generator's
  * "Add to Video Pages" window): public/landing-previews/<template id>.jpg.
  *
- *   node scripts/generate-landing-design-previews.mjs [--force] [--only=puck-leadiq,clean] [--port=5198]
+ *   node scripts/generate-landing-design-previews.mjs [--force] [--only=editable-leadiq,clean] [--port=5198]
  *
- * Each design is drawn by the same code the public page uses (mountPuckPage for the editable Puck designs, renderLandingPage for the
+ * Each design is drawn by the same code the public page uses (mountEditablePage for the editable designs, renderLandingPage for the
  * others) with the design's own sample content, in headless Chrome. The script waits until every image on the page (the landing-art
  * pictures, fonts, each video's own poster) has loaded, and refuses to keep a picture whose page has a broken image or is one flat tone. Needs Playwright
  * (preinstalled in the cloud sessions). A temporary Vite page is created in the repo root and removed at the end.
@@ -29,7 +29,7 @@ const JS = `
 import './styles/video-page.css';
 import { TEMPLATES, defaultConfig } from './src/lib/landingPages/templates.js';
 import { renderLandingPage } from './src/lib/landingPages/render.js';
-import { mountPuckPage } from './src/lib/landingPages/puck/mount.jsx';
+import { mountEditablePage } from './src/lib/landingPages/editor/mount.jsx';
 let current = null;
 // the studio's New page picker no longer offers the older fixed-layout website (site) designs, so they get no picture
 window.ids = () => TEMPLATES.filter((t) => !t.site).map((t) => t.id);
@@ -39,9 +39,9 @@ window.draw = (id) => {
   const config = defaultConfig(id, { title: 'Launch video' });
   const page = { id: 'preview', title: 'Launch video', video_url: 'https://preview.test/video.mp4', poster_url: null, duration: 31, published: false, view_count: 0, config };
   const tokens = { firstname: 'Ann', company: 'Acme' };
-  if (config.puck) { const host = document.createElement('div'); root.appendChild(host); current = mountPuckPage(host, { page, data: config.puck, tokens, handlers: {}, preview: true }); }
+  if (config.editor) { const host = document.createElement('div'); root.appendChild(host); current = mountEditablePage(host, { page, data: config.editor, tokens, handlers: {}, preview: true }); }
   else { const view = renderLandingPage({ page, tokens, preview: true }); root.appendChild(view.root); current = view; }
-  return !!config.puck;
+  return !!config.editor;
 };
 window.ready = true;
 `;

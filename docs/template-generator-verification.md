@@ -70,7 +70,7 @@ Next to "Export video" on the Preview step. It renders the video in the browser 
 
 Design pictures: `public/landing-previews/<design id>.jpg`, made by `node scripts/generate-landing-design-previews.mjs` (add `--force` to redo all, `--only=id,id` for some; it renders each design in headless Chrome, waits for every image and font to load and refuses a page with a broken image or one flat tone). Run it again when a design changes or a new one is added; a test fails if a design has no picture. The studio's New page screen shows the same pictures (a card whose picture cannot load shows the page's shape instead).
 
-Verified: all 65 pictures (viewed on a contact sheet), the window in a real browser at the editor's theme (all previews loaded, selecting, the created state, "Open in Editor" handing over the page id), and the hand-off into the studio's editor with tests (Puck and the upload faked there).
+Verified: all 65 pictures (viewed on a contact sheet), the window in a real browser at the editor's theme (all previews loaded, selecting, the created state, "Open in Editor" handing over the page id), and the hand-off into the studio's editor with tests (the editor and the upload faked there).
 **Not verified (needs a real sign-in and the shared project, so I did not create test pages there):** the actual upload and draft row for a real rendered video, and the studio opening that draft in its editor in a second tab. Check: render, press the button, pick a design, create, press "Open in Editor", confirm the editor opens on the design with your video. Limits: 100 MB per video; you must be signed in. The tab handoff expires after two minutes.
 
 ## 9. Other notes

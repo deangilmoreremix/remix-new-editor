@@ -4,16 +4,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 const pages = vi.hoisted(() => ({ list: [] }));
 vi.mock('../../supabase.js', () => ({ isSupabaseConfigured: () => true, getClerkUserId: () => 'user_1', primeSupabaseIdentity: async () => {}, supabase: {} }));
 vi.mock('../client.js', async (orig) => ({ ...(await orig()), listPages: vi.fn(async () => pages.list) }));
-vi.mock('../puck/mount.jsx', () => ({ mountPuckEditor: vi.fn(() => ({ destroy() {} })), mountPuckPage: vi.fn(() => ({ destroy() {} })) }));
+vi.mock('../editor/mount.jsx', () => ({ mountPageEditor: vi.fn(() => ({ destroy() {} })), mountEditablePage: vi.fn(() => ({ destroy() {} })) }));
 vi.mock('../../studioChrome.js', () => ({ mountStudioChrome: () => {} }));
 
 import { queuePageForEditor, takeQueuedPage, queueVideoForPage } from '../handoff.js';
 import { TEMPLATES, defaultConfig } from '../templates.js';
 import { LandingPagesStudio } from '../../../components/LandingPagesStudio.js';
-import { mountPuckEditor } from '../puck/mount.jsx';
+import { mountPageEditor } from '../editor/mount.jsx';
 
 const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v), removeItem: (k) => m.delete(k) }; };
-const page = (id, template = 'puck-leadiq') => ({ id, title: 'Launch video', video_url: 'https://x.test/v.mp4', poster_url: null, duration: 31, published: false, view_count: 0, source: {}, config: defaultConfig(template, { title: 'Launch video' }) });
+const page = (id, template = 'editable-leadiq') => ({ id, title: 'Launch video', video_url: 'https://x.test/v.mp4', poster_url: null, duration: 31, published: false, view_count: 0, source: {}, config: defaultConfig(template, { title: 'Launch video' }) });
 
 describe('"Open in Editor" hand-off', () => {
   it('queues a page id once, and only a real one', () => {
@@ -46,20 +46,20 @@ describe('Video Pages studio', () => {
     queuePageForEditor('abc12345xy');
     const root = LandingPagesStudio(); document.body.appendChild(root);
     await vi.waitFor(() => expect(root.querySelector('input[aria-label="Page title"]')?.value).toBe('Launch video'));
-    await vi.waitFor(() => expect(mountPuckEditor).toHaveBeenCalledTimes(1));
-    expect(mountPuckEditor.mock.calls[0][1].data).toBeTruthy();           // the design's page data is what Puck loads
+    await vi.waitFor(() => expect(mountPageEditor).toHaveBeenCalledTimes(1));
+    expect(mountPageEditor.mock.calls[0][1].data).toBeTruthy();           // the design's page data is what the editor loads
     expect(globalThis.localStorage.getItem('video_pages_open_page')).toBeNull();     // used up
   });
 
   it('with no queued page it shows the list; a queued page that is not there falls back to the list', async () => {
     let root = LandingPagesStudio(); document.body.appendChild(root);
     await vi.waitFor(() => expect(root.textContent).toContain('Landing pages for your videos'));
-    expect(mountPuckEditor).not.toHaveBeenCalled();
+    expect(mountPageEditor).not.toHaveBeenCalled();
     document.body.innerHTML = '';
     queuePageForEditor('nope000000');
     root = LandingPagesStudio(); document.body.appendChild(root);
     await vi.waitFor(() => expect(root.textContent).toContain('Landing pages for your videos'));
-    expect(mountPuckEditor).not.toHaveBeenCalled();
+    expect(mountPageEditor).not.toHaveBeenCalled();
   });
 
   it('the New page picker shows the real preview of every design, and a wireframe when a picture fails to load', async () => {
@@ -67,8 +67,8 @@ describe('Video Pages studio', () => {
     const root = LandingPagesStudio(); document.body.appendChild(root);
     await vi.waitFor(() => expect(root.textContent).toContain('New video page'));
     await vi.waitFor(() => expect(root.querySelectorAll('img[data-design-preview]').length).toBe(TEMPLATES.filter((t) => !t.site).length));
-    const first = root.querySelector('img[data-design-preview="puck-leadiq"]');
-    expect(first.getAttribute('src')).toBe('/landing-previews/puck-leadiq.jpg');
+    const first = root.querySelector('img[data-design-preview="editable-leadiq"]');
+    expect(first.getAttribute('src')).toBe('/landing-previews/editable-leadiq.jpg');
     const card = first.closest('div');
     first.dispatchEvent(new Event('error'));
     expect(card.querySelector('svg')).toBeTruthy();                       // the page's shape stands in

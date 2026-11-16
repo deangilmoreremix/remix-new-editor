@@ -41,8 +41,8 @@ describe('Add to Video Pages window', () => {
     const imgs = Array.from(document.querySelectorAll<HTMLImageElement>('img[data-design-preview]'));
     expect(imgs).toHaveLength(OFFERED.length);
     expect(imgs.every((i) => i.getAttribute('src') === previewUrl(i.dataset.designPreview as string))).toBe(true);
-    expect(previewUrl('puck-leadiq')).toBe('/landing-previews/puck-leadiq.jpg');
-    const card = screen.getByTestId('design-puck-leadiq');
+    expect(previewUrl('editable-leadiq')).toBe('/landing-previews/editable-leadiq.jpg');
+    const card = screen.getByTestId('design-editable-leadiq');
     expect(card.querySelector('svg')).toBeNull();
     fireEvent.error(card.querySelector('img') as HTMLImageElement);
     expect(card.querySelector('img')).toBeNull();
@@ -51,7 +51,7 @@ describe('Add to Video Pages window', () => {
 
   it('the editable designs pill shows the 34-style editable pages, and a pill, the search and the look filter narrow the cards', () => {
     render(<VideoPagesModal video={video} onClose={() => {}} deps={deps()} />);
-    const editable = (TEMPLATES as Array<{ puck?: boolean }>).filter((t) => t.puck).length;
+    const editable = (TEMPLATES as Array<{ editable?: boolean }>).filter((t) => t.editable).length;
     expect(editable).toBeGreaterThan(20);
     fireEvent.click(screen.getByRole('tab', { name: /Editable landing pages/ }));
     expect(screen.getAllByTestId(/^design-/)).toHaveLength(editable);
@@ -62,7 +62,7 @@ describe('Add to Video Pages window', () => {
     expect(screen.getByText('No designs match your search.')).toBeTruthy();
     fireEvent.change(screen.getByLabelText('Search designs'), { target: { value: '' } });
     fireEvent.change(screen.getByLabelText('Look'), { target: { value: 'dark' } });
-    const dark = (TEMPLATES as Array<{ puck?: boolean; theme: { mode?: string } }>).filter((t) => t.puck && (t.theme.mode ?? 'light') === 'dark').length;
+    const dark = (TEMPLATES as Array<{ editable?: boolean; theme: { mode?: string } }>).filter((t) => t.editable && (t.theme.mode ?? 'light') === 'dark').length;
     expect(screen.getAllByTestId(/^design-/)).toHaveLength(dark);
   });
 
@@ -72,13 +72,13 @@ describe('Add to Video Pages window', () => {
     render(<VideoPagesModal video={video} onClose={() => {}} deps={d} />);
     const btn = () => screen.getByTestId('create-draft') as HTMLButtonElement;
     expect(btn().disabled).toBe(true);                                   // no design yet
-    fireEvent.click(screen.getByTestId('design-puck-leadiq'));
-    expect(screen.getByTestId('design-puck-leadiq').getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByTestId('design-editable-leadiq'));
+    expect(screen.getByTestId('design-editable-leadiq').getAttribute('aria-pressed')).toBe('true');
     fireEvent.change(screen.getByLabelText('Page title'), { target: { value: 'Spring offer' } });
     await waitFor(() => expect(btn().disabled).toBe(false));
     fireEvent.click(btn());
     await waitFor(() => expect(screen.getByText(/Draft page “Spring offer” created/)).toBeTruthy());
-    expect(d.create).toHaveBeenCalledWith(video, expect.objectContaining({ template: 'puck-leadiq', title: 'Spring offer' }));
+    expect(d.create).toHaveBeenCalledWith(video, expect.objectContaining({ template: 'editable-leadiq', title: 'Spring offer' }));
     fireEvent.click(screen.getByText('Open in Video Pages'));
     expect(open).toHaveBeenCalledWith('https://app.test/#/video-pages', '_blank', 'noopener');
     fireEvent.click(screen.getByTestId('open-in-editor'));              // the page opens in the editor
