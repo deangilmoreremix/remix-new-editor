@@ -20,6 +20,7 @@
     "build:ask-index": "node scripts/build-ask-index.mjs",
     "check:ask-index": "node scripts/build-ask-index.mjs --check",
     "test": "vitest",
+    "test:media-hub": "node --test backend/services/mediaHub/core.nodetest.mjs",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "clean": "rm -rf dist",
