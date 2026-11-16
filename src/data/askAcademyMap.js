@@ -216,6 +216,12 @@ export const STUDIO_ACADEMY = {
       { track: T09, lesson: '03-selling-to-realtors-and-agencies', why: 'Example of selling to a specific local niche.' },
     ],
   },
+  'video-pages': {
+    tracks: [T14],
+    lessons: [
+      { track: T14, lesson: '03-finding-and-closing-clients', why: 'Turn a video into a page that brings in leads and clients.' },
+    ],
+  },
   'find-my-brand': { tracks: [], lessons: [] },
   'website-builder': { tracks: [], lessons: [] },
   render: { tracks: [], lessons: [] },
