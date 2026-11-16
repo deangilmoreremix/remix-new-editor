@@ -118,7 +118,7 @@ function videoDuration(url) {
 }
 
 export function OutreachStudio() {
-  const container = el('div', 'w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
+  const container = el('div', 'relative w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
   mountStudioChrome(container, { title: 'Video Outreach', currentRoute: 'outreach' });
 
   const draft = loadDraft();
@@ -1897,6 +1897,43 @@ export function OutreachStudio() {
     inner.appendChild(footer);
   }
 
+  // ---- SmartVideo welcome (the first time Video Outreach opens) ---------------------------
+  // Five questions (src/components/outreach/OutreachWelcome.js). Each answer is kept in this browser at once and
+  // saved to Supabase (public.user_onboarding) for the signed-in user; a finished welcome never shows again, on any
+  // device. The answers fill your company, title and website here and open what you chose first.
+  async function startWelcome() {
+    const ob = await import('../lib/outreach/onboarding.js');
+    const user = globalThis.window?.Clerk?.user || null;
+    const uid = user?.id || '';
+    const remoteSave = async (a) => { if (!uid) return; try { await ob.saveOnboarding(await ownerClient(), a, uid); } catch { /* kept in this browser; saved next time */ } };
+    let remote = null;
+    if (uid) { try { remote = await ob.fetchOnboarding(await ownerClient()); } catch { /* offline or signed out */ } }
+    const local = ob.loadLocalOnboarding(uid);
+    const best = ob.newerOnboarding(local, remote);
+    if (best) ob.saveLocalOnboarding(uid, best);
+    if (ob.isDone(best)) { if (!ob.isDone(remote)) remoteSave(best); return; }
+    const { mountOutreachWelcome } = await import('./outreach/OutreachWelcome.js');
+    let timer = null;
+    mountOutreachWelcome(container, {
+      name: String(user?.firstName || '').trim().slice(0, 40),
+      initial: best,
+      onChange: (a) => { ob.saveLocalOnboarding(uid, a); clearTimeout(timer); timer = setTimeout(() => remoteSave(a), 500); },
+      onAcademy: () => { globalThis.location.hash = '#/academy'; },
+      onFinish: (a) => {
+        clearTimeout(timer);
+        remoteSave(a);
+        ob.applyToDraft(draft, a);
+        persist();
+        if (a.goal) {
+          if (!draft.video && !draft.contacts.length && !draft.campaign) { step = 1; notice = ''; render(); }
+          else startNew();
+          if (a.goal === 'personal' && step === 1) openRecorder('both');
+        } else render();
+      },
+    });
+  }
+
   render();
+  startWelcome().catch(() => { /* the studio works without the welcome */ });
   return container;
 }
