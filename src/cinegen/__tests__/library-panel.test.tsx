@@ -14,7 +14,7 @@ beforeEach(() => {
 function mount(overrides: Partial<LibraryActions> = {}) {
   const actions: LibraryActions = {
     onAddOverlay: vi.fn(() => 'Added.'), onAddTemplate: vi.fn(), onAddMg: vi.fn(), onAddHf: vi.fn(),
-    onApplyFx: vi.fn(() => 'Select a clip first.'), onApplyLut: vi.fn(), onApplyTransition: vi.fn(), onAddSound: vi.fn(),
+    onApplyFx: vi.fn(() => 'Select a clip first.'), onApplyLut: vi.fn(), onApplyTransition: vi.fn(), onAddSound: vi.fn(), onAddTemplateVideo: vi.fn(() => 'Added video.'),
     ...overrides,
   };
   const host = document.createElement('div');
@@ -39,6 +39,27 @@ describe('LibraryPanel', () => {
     expect(heads.length).toBeGreaterThan(1); // more than one category answered
     expect(host.querySelectorAll('.lib-card').length).toBeGreaterThan(0);
     for (const c of host.querySelectorAll('.lib-card')) expect(c.querySelector('.lib-card__plus')).not.toBeNull();
+    cleanup();
+  });
+
+  it('template videos: the + adds the clip straight away; clicking the card opens the big window on it', async () => {
+    const { host, actions, cleanup } = mount();
+    const seen: Array<[string | undefined, string | undefined]> = [];
+    const onOpen = (e: Event) => { e.preventDefault(); seen.push([peekPendingAddTab(), peekPendingAddQuery()]); };
+    window.addEventListener(OPEN_ADD_MODAL_EVENT, onOpen);
+    click(host.querySelector('[data-testid="library-cat-videos"]'));
+    const add = host.querySelector('[data-testid^="library-video-"][data-testid$="-add"]');
+    click(add);
+    await flush();
+    expect(actions.onAddTemplateVideo).toHaveBeenCalledTimes(1);
+    expect((actions.onAddTemplateVideo as ReturnType<typeof vi.fn>).mock.calls[0][0]).toMatchObject({ id: expect.any(String), videoSrc: expect.stringContaining('http') });
+    expect(host.querySelector('.library-panel__note')?.textContent).toBe('Added video.');
+    expect(seen).toEqual([]); // the + does not open the window
+    click(host.querySelector('[data-testid^="library-video-"]:not([data-testid$="-add"])'));
+    window.removeEventListener(OPEN_ADD_MODAL_EVENT, onOpen);
+    expect(seen.length).toBe(1);
+    expect(seen[0][0]).toBe('videos');
+    clearPendingAddTab();
     cleanup();
   });
 

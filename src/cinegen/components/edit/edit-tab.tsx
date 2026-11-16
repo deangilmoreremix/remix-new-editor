@@ -52,6 +52,8 @@ import { isMediaDebugEnabled, mediaDebug, mediaDebugError } from '@cinegen/lib/d
 import type { Asset } from '@cinegen/types/project';
 import { directorPoolRelabel } from '@cinegen/lib/director/folders';
 import type { Clip, ToolType, TrackKind, Keyframe, TimelineMarker } from '@cinegen/types/timeline';
+import { findFreeTrack } from '@cinegen/lib/editor/free-track';
+import { placeTemplateVideo, templateVideoAsset } from './template-video-placement';
 
 const PROXY_MODE_STORAGE_KEY = 'cinegen_proxy_mode';
 const EDIT_VIEW_STORAGE_PREFIX = 'cinegen_edit_view_v1';
@@ -910,25 +912,18 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     try { const ac = new AudioContext(); seconds = (await ac.decodeAudioData(await blob.arrayBuffer())).duration; void ac.close(); } catch { /* duration is refreshed by the metadata job */ }
     const asset: Asset = { id: imported.assetId, name, type: 'audio', url: imported.filePath, fileRef: imported.filePath, duration: seconds, createdAt: new Date().toISOString(), status: 'processing', metadata: { source: 'openchatcut-recorder', processingJobs: ['extract_metadata', 'compute_waveform'] } };
     dispatch({ type: 'ADD_ASSET', asset });
-    let tl = timeline;
-    let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
-    if (!track) {
-      track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
-      tl = { ...tl, tracks: [...tl.tracks, track] };
-    }
-    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, recordStartRef.current) });
+    const spot = findFreeTrack(timeline, 'audio', recordStartRef.current, seconds); // [remix] a free audio track, never on top of audio already there
+    if (!spot.trackId) return;
+    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(spot.timeline, spot.trackId, asset, recordStartRef.current) });
   }, [dispatch, timeline]);
   const recorder = useRecorder((blob) => { void handleRecorded(blob); });
   const handleAddSound = useCallback((effect: { id: string; name: string; seconds: number }, ctx?: LibraryDropCtx) => {
     const asset: Asset = { id: generateId(), name: effect.name, type: 'audio', url: soundEffectSrc(effect.id), fileRef: soundEffectSrc(effect.id), duration: effect.seconds, createdAt: new Date().toISOString(), status: 'online', metadata: { source: 'openchatcut-sound-library', soundId: effect.id } };
     dispatch({ type: 'ADD_ASSET', asset });
-    let tl = timeline;
-    let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
-    if (!track) {
-      track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
-      tl = { ...tl, tracks: [...tl.tracks, track] };
-    }
-    const withSound = addClipToTrack(tl, track.id, asset, Math.max(0, ctx?.time ?? currentTime));
+    const at = Math.max(0, ctx?.time ?? currentTime);
+    const spot = findFreeTrack(timeline, 'audio', at, effect.seconds); // [remix] a free audio track, never on top of audio already there
+    if (!spot.trackId) return;
+    const withSound = addClipToTrack(spot.timeline, spot.trackId, asset, at);
     dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: withSound });
     const added = withSound.clips.find((c) => c.assetId === asset.id); // [remix] select it so its properties show and it is clear where it went
     if (added) setSelectedClipIds(new Set([added.id]));
@@ -1014,9 +1009,19 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addGlTransition(timeline, selectedClip, next, id, Math.min(0.5, handle), snap) });
         return 'Added the transition to the cut after this clip.';
       },
+      // [remix] a template video: asset into the pool, clip on a free video track at the playhead (or drop point), selected; its audio goes with it
+      onAddTemplateVideo: (item, ctx) => {
+        const asset = templateVideoAsset(item);
+        dispatch({ type: 'ADD_ASSET', asset });
+        const next = placeTemplateVideo(timeline, asset, Math.max(0, ctx?.time ?? currentTime));
+        dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: next });
+        const placed = next.clips.find((c) => c.assetId === asset.id && next.tracks.find((t) => t.id === c.trackId)?.kind === 'video');
+        if (placed) setSelectedClipIds(new Set([placed.id]));
+        return `Added “${item.title}” ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}.`;
+      },
       onAddSound: (effect, ctx) => { handleAddSound(effect, ctx); return `Added ${effect.name} ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}.`; },
     };
-  }, [currentTime, sequenceDuration, dispatch, selectedClip, timeline, handleUpdateClipProps, handleAddSound]);
+  }, [currentTime, sequenceDuration, dispatch, selectedClip, timeline, handleUpdateClipProps, handleAddSound, setSelectedClipIds]);
 
   // [remix] A Library card dropped on the timeline: what it does depends on where it lands (overlay row, track, clip, or cut).
   const [dropNote, setDropNote] = useState('');

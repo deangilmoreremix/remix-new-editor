@@ -61,6 +61,7 @@ export interface LibraryActions {
   onApplyLut: (id: string, ctx?: LibraryDropCtx) => string | void | Promise<string | void>;
   onApplyTransition: (id: string, ctx?: LibraryDropCtx) => string | void | Promise<string | void>;
   onAddSound: (effect: SoundEffect, ctx?: LibraryDropCtx) => string | void;
+  onAddTemplateVideo: (item: TemplateVideo, ctx?: LibraryDropCtx) => string | void;
 }
 
 /** Cards are div role=button (Chromium does not start a native drag from a <button>). */
@@ -154,10 +155,10 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
     return <LibraryCard key={x.id} testId={`library-template-${x.id}`} title={x.name} sub={x.description} badge={e?.badge} preview={e?.preview} drag={dragProps('template', x.id)}
       onOpen={() => openModal('endscreens', x.name)} onAdd={() => void run(() => actions.onAddTemplate(x.id))} />;
   };
-  // Template videos are long clips: the "+" and the click both open the big window on that clip (it places the clip on a video track).
+  // Template videos: the "+" puts the clip on a video track at the playhead; clicking the card opens the big window on that clip.
   const videoCard = (v: TemplateVideo) => (
     <LibraryCard key={v.id} testId={`library-video-${v.id}`} title={v.title} sub={`${v.duration ? `${Math.round(v.duration)}s · ` : ''}${aspectBucket(v.aspectRatio)}`} image={v.posterSrc} video={v.videoSrc}
-      onOpen={() => openModal('videos', v.title)} onAdd={() => openModal('videos', v.title)} addTip="Preview and add" />
+      onOpen={() => openModal('videos', v.title)} onAdd={() => void run(() => actions.onAddTemplateVideo(v))} />
   );
   const soundRow = (s: SoundEffect) => (
     <div key={s.id} {...dragProps('sound', s.id)} className="library-panel__sound" data-testid={`library-sound-${s.id}`}>
