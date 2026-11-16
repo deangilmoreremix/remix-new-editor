@@ -169,10 +169,15 @@ export function BrandStudio() {
     state.brands.slice(0, 6).forEach((brand) => {
       const card = document.createElement('div');
       card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
-      card.innerHTML = `
-        <div class="text-sm font-bold text-white truncate">${brand.brandName || 'Untitled Brand'}</div>
-        <div class="text-xs text-secondary truncate">${brand.industry || 'No industry'}</div>
-      `;
+      // Scraped / model-written text goes in as text, never as markup.
+      const name = document.createElement('div');
+      name.className = 'text-sm font-bold text-white truncate';
+      name.textContent = brand.brandName || 'Untitled Brand';
+      const industry = document.createElement('div');
+      industry.className = 'text-xs text-secondary truncate';
+      industry.textContent = brand.industry || 'No industry';
+      card.appendChild(name);
+      card.appendChild(industry);
       card.onclick = () => {
         navigate('brand-dna', { id: brand.id });
       };

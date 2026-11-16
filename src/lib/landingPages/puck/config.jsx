@@ -49,7 +49,7 @@ export const puckConfig = {
     },
   },
   categories: {
-    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Footer', 'PageImage'] },
+    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Showcase', 'Footer', 'PageImage'] },
     extras: { title: 'Design extras', components: Object.keys(EXT_COMPONENTS), defaultExpanded: false },
     cards: { title: 'Cards (drop into a Grid)', components: ['LeadMagnetCard', 'TableCard', 'StatsCard', 'ChecklistCard', 'QuoteCard', 'StepsCard', 'FeaturesCard', 'FaqCard', 'KpiCard', 'ScheduleCard', 'ButtonCard'] },
   },
@@ -120,6 +120,24 @@ export const puckConfig = {
     },
     CtaBar: { label: 'Bottom button bar', fields: { text: T('Text beside the button (empty = button only)'), label: T('Button text'), url: T('Link (https, mailto:, tel: or #lead)'), icon: iconField, icons: { type: 'array', label: 'Social icons (button-only bar)', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { text: '', label: 'Book a Free Consultation', url: '#lead', icon: 'calendar', icons: [] }, render: (p) => <C.CtaBar {...p} /> },
     Footer: { label: 'Footer', fields: { text: T('Footer text'), links: linkArray('Footer links') }, defaultProps: { text: 'Sent by {{sender|us}} · {{brand|your brand}}', links: [] }, render: (p) => <C.Footer {...p} /> },
+    Showcase: {
+      label: 'Text + picture (or photo banner)',
+      fields: {
+        variant: { type: 'radio', label: 'Style', options: [{ label: 'Text next to a picture', value: 'split' }, { label: 'Banner with a photo behind', value: 'band' }] },
+        side: { type: 'radio', label: 'Picture side', options: [{ label: 'Right', value: 'right' }, { label: 'Left', value: 'left' }] },
+        title: A('Heading (wrap words in [[double brackets]] to highlight)'),
+        text: A('Text'),
+        bullets: { type: 'array', label: 'Tick list', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Item', defaultItemProps: { text: 'New point' } },
+        buttonLabel: T('Button text'),
+        buttonUrl: T('Button link (https, mailto:, tel: or #video / #lead)'),
+        image: T('Picture (https link)'),
+        imageAlt: T('Picture description for screen readers'),
+        background: T('Banner photo (https link)'),
+        points: { type: 'array', label: 'Points beside a banner', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Point', defaultItemProps: { text: 'New point' } },
+      },
+      defaultProps: { variant: 'split', side: 'right', title: 'See it in [[action]]', text: 'Say what the picture shows in a sentence or two.', bullets: [{ text: 'First point' }, { text: 'Second point' }], buttonLabel: 'Watch the demo video', buttonUrl: '#video', image: '', imageAlt: '', background: '', points: [] },
+      render: (p) => <C.Showcase {...p} />,
+    },
     PageImage: { label: 'Image', fields: { src: T('Image link (https)'), alt: T('Description for screen readers'), rounded: { type: 'radio', label: 'Rounded corners', options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] } }, defaultProps: { src: '', alt: '', rounded: 'yes' }, render: (p) => <C.PageImage {...p} /> },
 
     LeadMagnetCard: { label: 'Download / sign-up card', fields: { columns: cols, tag: T('Small label'), title: T('Title'), cover: T('Text on the book cover'), text: A('Text'), placeholder: T('Email box hint'), buttonLabel: T('Button text') }, defaultProps: { columns: 2, tag: 'FREE RESOURCE', title: 'Get the free playbook', cover: 'The Personalized Video Playbook', text: 'A short guide with templates and scripts.', placeholder: 'Enter your email', buttonLabel: 'Send me the playbook' }, render: (p) => <C.LeadMagnetCard {...p} /> },
