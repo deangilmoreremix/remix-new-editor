@@ -931,9 +931,6 @@ admin:
 	VITE_TURNSTILE_BYPASS_TOKEN=warmbly-local-turnstile-bypass \
 	pnpm dev $(VITE_HOST_FLAG)
 
-site:
-	cd site && pnpm dev $(VITE_HOST_FLAG)
-
 # Engineering docs (Fumadocs / Next.js). Port 4322, :3000 is the tracking
 # service and :4321 is the marketing site. http://localhost:4322
 # Next.js reads PORT from the env (passing -p through pnpm gets mangled).
