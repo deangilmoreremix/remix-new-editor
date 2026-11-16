@@ -1,10 +1,11 @@
 // src/components/landing/TemplateChooser.js
 //
 // The landing page chooser from Video Pages ("New video page"): picture cards of the landing page
-// designs, grouped, each with a wireframe of the page's shape tinted in its colours. Used inline by
+// designs, grouped: a live picture of each editable design's real page, a tinted wireframe for the older layouts. Used inline by
 // Video Pages and as a modal by Video Outreach (the page each prospect lands on).
 
 import { wireframeSvg } from '../../lib/landingPages/wireframes.js';
+import { attachDesignPreview } from '../../lib/landingPages/designPreview.js';
 
 const el = (tag, cls = '', text = '') => {
   const n = document.createElement(tag);
@@ -16,11 +17,12 @@ const el = (tag, cls = '', text = '') => {
 /**
  * Grouped template cards. `groups` is [[label, items]], an item a template (or any
  * { id, name, description, theme?, layout? }). Clicking a card selects it and calls onPick(id).
- * Returns { node, select(id) }.
+ * An item with `puckData` gets a live preview of the real page. Returns { node, select(id), destroy() }.
  */
-export function templateCards({ groups = [], selected = '', onPick = () => {} } = {}) {
+export function templateCards({ groups = [], selected = '', onPick = () => {}, deps = {} } = {}) {
   const node = el('div', 'flex flex-col gap-4');
   const cards = new Map();
+  const previews = [];
   let current = selected;
   const paint = () => cards.forEach((c, id) => {
     const on = id === current;
@@ -39,11 +41,20 @@ export function templateCards({ groups = [], selected = '', onPick = () => {} } 
       b.type = 'button';
       b.title = t.description || '';
       b.setAttribute('data-template-card', t.id);
-      // The thumbnail is the page's SHAPE (a wireframe) tinted with its colours, so layouts are told apart by structure.
-      const sw = el('div', 'h-20 p-2 flex items-center justify-center');
-      sw.style.background = t.theme?.bg || '#111';
-      sw.style.color = t.theme?.accent || '#d9ff00';
-      sw.innerHTML = wireframeSvg(t.layout);
+      let sw;
+      if (t.puckData) {
+        // Editable landing pages: a live, scaled picture of the real page (drawn when it scrolls into view).
+        sw = el('div');
+        sw.style.margin = '8px 8px 0';
+        sw.setAttribute('aria-label', `Preview of ${t.name}`);
+        previews.push(attachDesignPreview(sw, t.puckData, { deps }));
+      } else {
+        // The page's SHAPE (a wireframe) tinted with its colours, so layouts are told apart by structure.
+        sw = el('div', 'h-20 p-2 flex items-center justify-center');
+        sw.style.background = t.theme?.bg || '#111';
+        sw.style.color = t.theme?.accent || '#d9ff00';
+        sw.innerHTML = wireframeSvg(t.layout);
+      }
       const cap = el('div', 'p-2');
       cap.append(el('div', 'text-xs font-bold truncate', t.name), el('div', 'text-[11px] text-secondary line-clamp-2', t.description || ''));
       b.append(sw, cap);
@@ -55,14 +66,14 @@ export function templateCards({ groups = [], selected = '', onPick = () => {} } 
     node.appendChild(grp);
   }
   paint();
-  return { node, select(id) { current = id; paint(); } };
+  return { node, select(id) { current = id; paint(); }, destroy() { previews.splice(0).forEach((h) => h.destroy()); } };
 }
 
 /**
  * The chooser as a modal: pick a card, then "Use this page" calls onPick(id). Esc, the close
  * button or a click outside closes it without picking. Returns { close }.
  */
-export function openTemplateChooser({ title = 'Choose a landing page', subtitle = '', groups = [], selected = '', onPick = () => {}, confirmLabel = 'Use this page' } = {}) {
+export function openTemplateChooser({ title = 'Choose a landing page', subtitle = '', groups = [], selected = '', onPick = () => {}, confirmLabel = 'Use this page', deps = {} } = {}) {
   const opener = document.activeElement;
   let pick = selected;
   const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
@@ -85,7 +96,7 @@ export function openTemplateChooser({ title = 'Choose a landing page', subtitle 
   const ok = el('button', 'rounded-full bg-primary px-5 py-2 text-sm font-bold text-black disabled:opacity-40', confirmLabel);
   ok.type = 'button'; ok.setAttribute('data-template-confirm', '');
   ok.disabled = !groups.some(([, l]) => l?.some((t) => t.id === pick));
-  const cards = templateCards({ groups, selected, onPick: (id) => { pick = id; ok.disabled = false; } });
+  const cards = templateCards({ groups, selected, deps, onPick: (id) => { pick = id; ok.disabled = false; } });
   body.appendChild(cards.node);
   foot.append(cancel, ok);
   box.append(head, body, foot);
@@ -94,6 +105,7 @@ export function openTemplateChooser({ title = 'Choose a landing page', subtitle 
   const onKey = (e) => { if (e.key === 'Escape') close(); };
   function close() {
     document.removeEventListener('keydown', onKey, true);
+    cards.destroy();
     overlay.remove();
     if (opener && typeof opener.focus === 'function' && document.contains(opener)) opener.focus();
   }

@@ -12,6 +12,7 @@ export interface AddToTimelineActions {
   onPickAnimation?: (item: HfItem) => void; // omitted when the HyperFrames flag is off
   onPickMotion: (t: MgTemplate) => void;
   onPickTemplateVideo?: (item: TemplateVideo) => void; // Template videos tab (hidden when omitted)
+  onPickLandingPage?: (designId: string) => void; // Landing pages tab (hidden when omitted)
   onAddKind: (kind: OverlayKind) => void;
   onAddTemplate: (templateId: string, phone?: string) => void;
 }

@@ -1263,7 +1263,7 @@ export function OutreachStudio() {
     myPages.rows = rows.map((r) => {
       const o = { ...pageOption(r), url: pageUrl(r.id), config: r.config };
       const t = tpl.getTemplate(r.config?.template);
-      return { ...o, card: { id: o.id, name: o.title, description: `${t.name}${o.updatedAt ? ` \u00b7 edited ${new Date(o.updatedAt).toLocaleDateString()}` : ''}`, theme: t.theme, layout: t.layout } };
+      return { ...o, card: { id: o.id, name: o.title, description: `${t.name}${o.updatedAt ? ` \u00b7 edited ${new Date(o.updatedAt).toLocaleDateString()}` : ''}`, theme: t.theme, layout: t.layout, puckData: r.config?.puck || t.puckData } };
     });
     myPages.loaded = true;
     return [...myPages.designs, ...myPages.rows];
@@ -1276,6 +1276,9 @@ export function OutreachStudio() {
     render();
   }
 
+  // Live page previews in the Page step; dropped whenever the step is drawn again.
+  const previewHandles = [];
+  const dropPreviewHandles = () => previewHandles.splice(0).forEach((h) => h.destroy());
   const PLAIN_CARD = { id: '', name: 'Plain video page', description: 'Just the personal video, header, message and your booking button.', theme: { bg: '#111318', accent: '#d9ff00' }, layout: 'minimal' };
   const allPages = () => [...myPages.designs, ...myPages.rows];
 
@@ -1293,7 +1296,11 @@ export function OutreachStudio() {
     const sw = el('div', 'h-12 w-20 shrink-0 overflow-hidden rounded-lg p-1.5 flex items-center justify-center');
     const shown = chosen?.card || PLAIN_CARD;
     sw.style.background = shown.theme?.bg || '#111'; sw.style.color = shown.theme?.accent || '#d9ff00';
-    if (wireframe) sw.innerHTML = wireframe(shown.layout); else import('../lib/landingPages/wireframes.js').then((m) => { wireframe = m.wireframeSvg; sw.innerHTML = wireframe(shown.layout); });
+    if (shown.puckData) {
+      // The same live picture of the real page as the chooser cards.
+      sw.className = 'shrink-0';
+      import('../lib/landingPages/designPreview.js').then((m) => { previewHandles.push(m.attachDesignPreview(sw, shown.puckData)); sw.style.width = '128px'; });
+    } else if (wireframe) sw.innerHTML = wireframe(shown.layout); else import('../lib/landingPages/wireframes.js').then((m) => { wireframe = m.wireframeSvg; sw.innerHTML = wireframe(shown.layout); });
     const name = el('div', 'min-w-0 flex-1');
     name.append(el('div', 'truncate text-sm font-bold', chosen?.title || (plainOption || !value ? 'Plain video page' : 'Choose a landing page')), el('div', 'truncate text-[11px] text-secondary', chosen ? (chosen.card?.description || '') : 'No landing page: prospects open the personal video page.'));
     const choose = button('Choose landing page', { small: true, primary: true });
@@ -1832,6 +1839,7 @@ export function OutreachStudio() {
   const VIEWS = { 1: () => renderRecord(), 2: () => renderVoice(), 3: () => renderCustomize(), 4: () => renderContacts(), 5: () => renderGenerate(), 6: () => renderCampaigns() };
 
   function render() {
+    dropPreviewHandles();
     renderStepper();
     inner.replaceChildren();
     inner.appendChild(VIEWS[step]());

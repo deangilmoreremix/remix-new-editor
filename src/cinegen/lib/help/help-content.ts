@@ -104,6 +104,7 @@ export const HELP: Record<string, HelpEntry> = {
   'list view': e('List view', 'Show assets as a list.', 'Displays the media pool as rows with name, type and duration.', ['Press the button.']),
   'compact': e('Compact / Full', 'Shrink or expand the media pool.', 'Toggles between a compact media pool and a full-height one.', ['Press the button.']),
   'search assets...': e('Search assets', 'Find a clip by name.', 'Filters the media pool as you type.', ['Click the box and type part of a name.']),
+  'search landing pages': e('Search landing pages', 'Find a landing page design by name.', 'Filters the landing page designs in the Landing pages tab as you type, by name or description.', ['Click the box and type part of a name, like "navy" or "restaurant".', 'Click a design to open it with your video in it.']),
 
   // ── Timeline bar & tracks ────────────────────────────────────────────────
   'new timeline': e('New timeline', 'Add another timeline to the project.', 'Creates an empty timeline in a new tab. A project can hold several versions or sequences.', ['Press the + button next to the timeline name.', 'Switch between timelines with the tabs.']),

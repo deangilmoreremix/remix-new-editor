@@ -8,9 +8,10 @@ const groups = [['No landing page', [{ id: '', name: 'Plain video page', descrip
 afterEach(() => { document.body.innerHTML = ''; });
 
 describe('landing page chooser', () => {
-  it('shows every design as a card in its group, and marks the picked one', () => {
+  it('shows every design as a card in its group (live page preview), and marks the picked one', async () => {
     const onPick = vi.fn();
-    const { node } = templateCards({ groups, selected: 'puck-spark', onPick });
+    const mountPuckPage = vi.fn(() => ({ destroy() {} }));
+    const { node, destroy } = templateCards({ groups, selected: 'puck-spark', onPick, deps: { mountPuckPage } });
     expect(node.querySelectorAll('[data-template-card]')).toHaveLength(designs.length + 1);
     expect(node.textContent).toContain('Editable landing pages');
     expect(node.textContent).not.toContain('Empty');
@@ -19,7 +20,13 @@ describe('landing page chooser', () => {
     expect(onPick).toHaveBeenCalledWith('puck-enterprise');
     expect(node.querySelector('[data-template-card="puck-enterprise"]').getAttribute('aria-pressed')).toBe('true');
     expect(node.querySelector('[data-template-card="puck-spark"]').getAttribute('aria-pressed')).toBe('false');
-    expect(node.querySelector('[data-template-card="puck-enterprise"] svg')).not.toBeNull();
+    // Editable designs get a live page preview; other layouts keep their wireframe.
+    expect(node.querySelector('[data-template-card="puck-enterprise"] [role="img"]')).not.toBeNull();
+    expect(node.querySelector('[data-template-card=""] svg')).not.toBeNull();
+    await vi.waitFor(() => expect(mountPuckPage).toHaveBeenCalledTimes(designs.length));
+    expect(mountPuckPage.mock.calls[0][1].data).toBe(designs[0].puckData);
+    destroy();
+    expect(node.querySelector('[data-template-card="puck-enterprise"] [role="img"]').children).toHaveLength(0);
   });
 
   it('as a modal: pick a card, then "Use this page"', () => {

@@ -151,7 +151,8 @@ export function LandingPagesStudio() {
     const sel = { video: preselected && preselected.url ? preselected : null, template: 'clean' };
     const back = el('button', BTN, '← Back');
     back.type = 'button';
-    back.addEventListener('click', showList);
+    const dropPreviews = () => { (sel.previewHandles || []).forEach((h) => h.destroy()); sel.previewHandles = []; };
+    back.addEventListener('click', () => { dropPreviews(); showList(); });
 
     const title = el('h1', 'text-2xl font-black', 'New video page');
     const status = el('p', 'text-sm text-secondary min-h-[1.25rem]', sel.video ? `Selected: ${sel.video.title}` : 'Choose a video, then a template.');
@@ -230,7 +231,9 @@ export function LandingPagesStudio() {
     // Template
     const tplHead = el('h2', 'text-sm font-extrabold uppercase tracking-wide', 'Template');
     // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    const tplRow = templateCards({ groups: [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]], selected: sel.template, onPick: (id) => { sel.template = id; } }).node;
+    const tplCards = templateCards({ groups: [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]], selected: sel.template, onPick: (id) => { sel.template = id; } });
+    sel.previewHandles = [tplCards];
+    const tplRow = tplCards.node;
 
     const create = el('button', BTN_PRIMARY, 'Create page');
     create.type = 'button';
@@ -245,6 +248,7 @@ export function LandingPagesStudio() {
           onStep: (label) => { status.textContent = `${label}…`; },
         });
         showToast('Page created', 'success', 2000);
+        dropPreviews();
         showEditor(page);
       } catch (err) {
         status.textContent = err.message || 'Could not create the page.';
