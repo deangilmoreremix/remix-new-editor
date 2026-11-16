@@ -11,6 +11,7 @@
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { emailFor, mailtoUrl, mailMergeCsv } from '../lib/outreach/email.js';
+import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
 import {
   STEPS, SETUP_STEPS, STOCK_VOICES, FIRST_NAME_FALLBACKS, CONTACT_FIELDS, CSV_TEMPLATE, MAX_CONTACTS,
   loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, tokensIn,
@@ -129,6 +130,9 @@ export function OutreachStudio() {
   async function openRecorder(type = 'both') {
     const { RecorderModal } = await import('./modals/RecorderModal.jsx');
     const modal = new RecorderModal({
+      // The Script card's script shows in the recorder's teleprompter; edits there come back.
+      script: draft.script || '',
+      onScriptChange: (script) => { draft.script = script; persist(); },
       onComplete: (result) => {
         if (result?.type === 'audio') return voiceSampleFrom(result.blob);
         addVideo(result.blob, { duration: result.duration, hasAudio: result.hasAudio, type: result.type });
@@ -145,6 +149,76 @@ export function OutreachStudio() {
     openRecorderStudio({
       onUseVideo: (v) => addVideo(v.blob, { duration: v.durationInFrames / v.fps, hasAudio: true, type: 'recorder', name: v.name }),
     });
+  }
+
+  // Script + AI writer (Sendspark "Scripts & Teleprompter"). The script shows in the recorder's
+  // teleprompter; the writer can also draft the email and the landing page text.
+  const writer = { open: false, kind: 'script', audience: '', message: '', language: 'English', useName: true, busy: false };
+  function renderScriptCard() {
+    const box = card('Script', 'Read it from the teleprompter while you record.');
+    box.setAttribute('data-outreach-script', '');
+    const ta = el('textarea', 'w-full min-h-[130px] rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60');
+    ta.placeholder = '[pause]\nI recorded this for you because…';
+    ta.value = draft.script || '';
+    ta.addEventListener('input', () => { draft.script = ta.value; persist(); });
+    const toggle = button(writer.open ? 'Close AI writer' : 'Write with AI', { small: true });
+    toggle.setAttribute('data-outreach-ai-writer', '');
+    toggle.addEventListener('click', () => { writer.open = !writer.open; render(); });
+    box.append(ta, toggle);
+    if (!writer.open) return box;
+
+    const w = el('div', 'flex flex-col gap-2.5 rounded-xl border border-primary/30 bg-primary/5 p-3');
+    const tabs = el('div', 'flex gap-1');
+    for (const [k, label] of [['script', 'Script'], ['email', 'Email'], ['page', 'Page']]) {
+      const b = button(label, { small: true, primary: writer.kind === k });
+      b.setAttribute('data-writer-kind', k);
+      b.addEventListener('click', () => { writer.kind = k; render(); });
+      tabs.appendChild(b);
+    }
+    const audience = textInput(writer.audience, 'e.g. heads of sales at B2B software companies');
+    audience.addEventListener('input', () => { writer.audience = audience.value; });
+    const message = el('textarea', 'w-full min-h-[70px] rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none focus:border-primary/60');
+    message.placeholder = 'What you want to say, e.g. we cut their reps\u2019 prep time in half; ask for a 15-minute call';
+    message.value = writer.message;
+    message.addEventListener('input', () => { writer.message = message.value; });
+    const lang = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-sm text-white');
+    for (const [l] of WRITER_LANGUAGES) { const o = el('option', 'bg-neutral-900', l); o.value = l; o.selected = l === writer.language; lang.appendChild(o); }
+    lang.addEventListener('change', () => { writer.language = lang.value; });
+    const nameOn = el('input'); nameOn.type = 'checkbox'; nameOn.checked = writer.useName;
+    nameOn.addEventListener('change', () => { writer.useName = nameOn.checked; });
+    const nameRow = el('label', 'flex items-center gap-2 text-xs'); nameRow.append(nameOn, el('span', '', 'Use the prospect\u2019s name ({{firstname}})'));
+    const go = button(writer.busy ? 'Writing…' : `Write the ${writer.kind === 'page' ? 'landing page' : writer.kind}`, { primary: true, small: true });
+    go.setAttribute('data-writer-go', '');
+    go.disabled = writer.busy;
+    go.addEventListener('click', runWriter);
+    w.append(tabs, field('Who it\u2019s for', audience), field('What you want to say', message), field('Language', lang), nameRow, go,
+      el('p', 'text-[11px] text-white/45', writer.kind === 'script' ? 'Fills the script above.' : writer.kind === 'email' ? 'Fills the email subject and message (Generate step).' : 'Fills the landing page header, message and button label (Customize step).'),
+      el('p', 'text-[11px] text-white/45', 'Uses one small text request on your MuAPI key.'));
+    box.appendChild(w);
+    return box;
+  }
+
+  async function runWriter() {
+    writer.busy = true; notice = ''; render();
+    try {
+      const { writeWithAI, muapiGenerate } = await import('../lib/outreach/aiWriter.js');
+      const seconds = draft.video?.duration || 60;
+      const out = await writeWithAI(writer.kind, { ...writer, seconds }, { generate: muapiGenerate });
+      if (writer.kind === 'script') draft.script = out.script;
+      else if (writer.kind === 'email') draft.email = { ...draft.email, subject: out.subject, body: out.body };
+      else {
+        draft.header = out.header;
+        if (out.message) draft.message = out.message;
+        if (out.cta) draft.cta = { ...draft.cta, label: out.cta };
+      }
+      persist();
+      notice = writer.kind === 'script' ? 'Script written. Check it, then record with the teleprompter.' : writer.kind === 'email' ? 'Email written: see it in the Generate step.' : 'Landing page text written: see it in Customize.';
+    } catch (err) {
+      notice = err?.message || String(err);
+    } finally {
+      writer.busy = false;
+      render();
+    }
   }
 
   function renderRecord() {
@@ -177,6 +251,7 @@ export function OutreachStudio() {
       ? `${fmtTime(draft.video.duration)} · ${draft.video.hasAudio ? 'with sound' : 'no sound'} · ${draft.video.type === 'both' ? 'screen + camera' : draft.video.type === 'recorder' ? 'made in the Recorder' : draft.video.type}`
       : 'Nothing recorded yet.'));
     if (draft.video && !draft.video.hasAudio) info.appendChild(el('p', 'text-xs text-amber-300', 'This video has no sound, so it cannot be used as your voice sample. You can still record a separate sample in the next step.'));
+    side.appendChild(renderScriptCard());
     const tips = card('Tips');
     tips.appendChild(el('p', 'text-sm text-secondary', 'Leave a two-second pause at the very start: each contact’s personalized greeting (“Hi Mike!”) plays there. Then speak naturally for at least 10 seconds so your voice can be cloned from it.'));
     side.append(info, tips);

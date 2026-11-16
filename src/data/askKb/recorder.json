@@ -29,7 +29,8 @@
     "Chapters, B-roll images and videos, music with fades, transitions",
     "End card with your own avatar, social handles and links",
     "Export to MP4 or WebM in the browser",
-    "Camera effects on the webcam view: blur, virtual backgrounds, your own background image, touch-up"
+    "Camera effects on the webcam view: blur, virtual backgrounds, your own background image, touch-up",
+    "Teleprompter on the webcam view: script, speed, font size; scrolls while recording"
   ],
   "featureExplanations": [
     {
@@ -66,6 +67,13 @@
       "whyToUse": "Hide your room or look more polished.",
       "inputRequired": "A camera source on the Webcam view.",
       "restrictions": "Runs on your device."
+    },
+    {
+      "feature": "Teleprompter",
+      "explanation": "On the Webcam view, click 📜, tick Show the teleprompter, and paste your script. It shows over the camera preview, highlights the current line and scrolls at the chosen speed while you record. It shares the script with Video Outreach's recorder.",
+      "whyToUse": "Read your script while looking at the camera.",
+      "inputRequired": "A script.",
+      "restrictions": "Shown on screen only; not recorded."
     }
   ],
   "howToUse": "Open Recorder, pick your camera and microphone, add your screen in Display, press Start recording, then Save. Switch to Edit to arrange scenes and fix captions, then Export.",

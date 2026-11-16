@@ -1,5 +1,6 @@
 import { BUILTIN_BACKGROUNDS, effectsActive, loadEffects, saveEffects, applyCameraEffects } from '../../lib/recorder/effects.js';
 import { BaseModal } from './BaseModal.jsx';
+import { createTeleprompterClock, loadTeleprompter, readingPosition, saveTeleprompter, scriptLines, teleprompterSettings } from '../../lib/recorder/teleprompter.js';
 
 const QUALITY_OPTIONS = [
   { id: '1080p', name: '1080p HD', resolution: '1920x1080', fps: 30 },
@@ -28,7 +29,7 @@ const RECORDER_STYLES = `
   .combined-preview .screen-area { position: absolute; inset: 0; }
   .combined-preview .preview-placeholder { justify-content: flex-start; padding-top: 14%; }
   .audio-preview { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 28px; color: var(--muted); }
-  .recording-status { position: absolute; top: 10px; left: 10px; z-index: 5; display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; font-weight: 600; }
+  .preview-viewport > .recording-status { position: absolute; top: 10px; left: 10px; right: auto; bottom: auto; z-index: 5; display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; font-weight: 600; }
   .rec-indicator { display: flex; align-items: center; gap: 6px; }
   .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger, #ef4444); }
   .preview-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -67,6 +68,13 @@ export class RecorderModal extends BaseModal {
     // Camera effects (src/lib/recorder/effects.js): blur, virtual background, touch-up, mirror.
     this.effects = loadEffects();
     this.showEffects = false;
+    // Teleprompter (src/lib/recorder/teleprompter.js): the script over the preview, never recorded.
+    // A script passed in (Video Outreach's Script card) wins over the last one used.
+    this.prompter = teleprompterSettings({ ...loadTeleprompter(), ...(options.script ? { script: options.script, on: true } : {}) });
+    this.onScriptChange = options.onScriptChange || null;
+    this.showPrompterPanel = false;
+    this.prompterClock = createTeleprompterClock();
+    this.prompterClock.onFrame((ms) => this.paintPrompter(ms));
     this.previewFx = null;
     this.isRecording = false;
     this.isPaused = false;
@@ -166,6 +174,7 @@ export class RecorderModal extends BaseModal {
               </div>
             `}
 
+            ${this.prompter.on && this.prompter.script.trim() && this.recordingType !== 'screen' && !this.recordedBlob ? this.renderPrompterOverlay() : ''}
             ${this.isRecording ? `
               <div class="recording-status">
                 <div class="rec-indicator">
@@ -183,6 +192,9 @@ export class RecorderModal extends BaseModal {
                 <span>🎤</span> Mic ${this.micEnabled ? 'on' : 'off'}
               </button>
             ` : ''}
+            ${this.recordingType !== 'screen' ? `
+              <button class="preview-toggle ${this.prompter.on ? 'active' : ''}" data-action="toggle-prompter" data-tooltip="Show your script over the preview while you record">📜 Teleprompter</button>
+            ` : ''}
             ${(this.recordingType === 'camera' || this.recordingType === 'both') && !this.isRecording ? `
               <button class="preview-toggle ${effectsActive(this.effects) || this.showEffects ? 'active' : ''}" data-action="toggle-effects" data-tooltip="Background blur, virtual background, touch-up and mirror">✨ Effects</button>
             ` : ''}
@@ -191,6 +203,7 @@ export class RecorderModal extends BaseModal {
               <button class="preview-toggle ${this.camShape === 'rounded' ? 'active' : ''}" data-shape="rounded" data-tooltip="Rounded rectangle camera">▢ Rectangle</button>
             ` : ''}
           </div>
+          ${this.showPrompterPanel && this.recordingType !== 'screen' && !this.recordedBlob ? this.renderPrompterPanel() : ''}
           ${this.showEffects && (this.recordingType === 'camera' || this.recordingType === 'both') && !this.isRecording ? this.renderEffectsPanel() : ''}
           ${this.notice ? `<div class="recorder-notice" style="font-size:12px;opacity:.8;margin-top:6px;">${this.notice}</div>` : ''}
         </div>
@@ -292,6 +305,53 @@ export class RecorderModal extends BaseModal {
       </div>`;
   }
 
+  renderPrompterOverlay() {
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const lines = scriptLines(this.prompter.script);
+    return `
+      <div class="tp-overlay" data-teleprompter style="inset:auto;top:0;left:0;right:0;height:42%;overflow:hidden;background:linear-gradient(rgba(0,0,0,.78),rgba(0,0,0,.55));pointer-events:none;z-index:3;">
+        <div class="tp-lines" style="position:absolute;left:6%;right:6%;top:30%;transition:transform .25s linear;font-size:${this.prompter.fontSize}px;line-height:1.35;font-weight:700;text-align:center;">
+          ${lines.map((l, i) => `<div class="tp-line" data-tp-line="${i}" style="color:rgba(255,255,255,.45);">${esc(l)}</div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  renderPrompterPanel() {
+    const p = this.prompter;
+    return `
+      <div data-teleprompter-panel style="display:flex;flex-direction:column;gap:8px;margin-top:8px;padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;">
+        <textarea data-tp-script rows="5" placeholder="Paste or write your script. Start with [pause] where the personalized greeting goes." style="width:100%;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;font:inherit;font-size:13px;">${String(p.script).replace(/</g, '&lt;')}</textarea>
+        <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><span style="opacity:.7;width:84px;">Speed</span><input type="range" min="60" max="260" step="10" value="${p.wpm}" data-tp-wpm style="flex:1;"><span data-tp-wpm-label style="width:70px;text-align:right;opacity:.7;">${p.wpm} wpm</span></label>
+        <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><span style="opacity:.7;width:84px;">Font size</span><input type="range" min="14" max="48" step="1" value="${p.fontSize}" data-tp-size style="flex:1;"><span style="width:70px;text-align:right;opacity:.7;">${p.fontSize}px</span></label>
+        <div style="display:flex;gap:6px;">
+          <button class="preview-toggle" data-tp-practice>${this.prompterRunning ? 'Pause scrolling' : 'Practice'}</button>
+          <button class="preview-toggle" data-tp-reset>Back to start</button>
+          <span style="font-size:11px;opacity:.5;align-self:center;">Scrolls on its own when you start recording; pauses with the recording.</span>
+        </div>
+      </div>`;
+  }
+
+  // Highlight and scroll to the line being read.
+  paintPrompter(ms) {
+    const box = this.overlay?.querySelector('.tp-lines');
+    if (!box) return;
+    const lines = scriptLines(this.prompter.script);
+    const { index, progress } = readingPosition(lines, ms, this.prompter.wpm);
+    const els = box.querySelectorAll('.tp-line');
+    // Measured, so a line the box wraps onto two rows still scrolls right.
+    const cur = els[Math.min(index, els.length - 1)];
+    if (cur) box.style.transform = `translateY(${-(cur.offsetTop + (index < els.length ? progress : 1) * cur.offsetHeight)}px)`;
+    els.forEach((el, i) => { el.style.color = i === index ? '#fff' : 'rgba(255,255,255,.45)'; });
+  }
+
+  setPrompter(patch, { rerender = false } = {}) {
+    this.prompter = teleprompterSettings({ ...this.prompter, ...patch });
+    saveTeleprompter(this.prompter);
+    if ('script' in patch) this.onScriptChange?.(this.prompter.script);
+    if (rerender) this.rerender();
+    this.paintPrompter(this.prompterClock.elapsed());
+  }
+
   async setEffects(patch, { rerender = true } = {}) {
     this.effects = { ...this.effects, ...patch };
     saveEffects(this.effects);
@@ -301,6 +361,25 @@ export class RecorderModal extends BaseModal {
 
   setupEventListeners() {
     super.setupEventListeners();
+
+    this.overlay.querySelector('[data-action="toggle-prompter"]')?.addEventListener('click', () => {
+      // First click opens the script panel; with a script, the button shows or hides the prompter.
+      if (!this.prompter.script.trim() || !this.showPrompterPanel) { this.showPrompterPanel = true; this.prompter.on = true; } else { this.prompter.on = !this.prompter.on; this.showPrompterPanel = this.prompter.on; }
+      saveTeleprompter(this.prompter);
+      this.rerender();
+    });
+    this.overlay.querySelector('[data-tp-script]')?.addEventListener('input', (e) => this.setPrompter({ script: e.target.value }));
+    this.overlay.querySelector('[data-tp-script]')?.addEventListener('change', () => this.rerender());
+    this.overlay.querySelector('[data-tp-wpm]')?.addEventListener('input', (e) => {
+      this.setPrompter({ wpm: Number(e.target.value) });
+      const l = this.overlay.querySelector('[data-tp-wpm-label]'); if (l) l.textContent = `${this.prompter.wpm} wpm`;
+    });
+    this.overlay.querySelector('[data-tp-size]')?.addEventListener('change', (e) => this.setPrompter({ fontSize: Number(e.target.value) }, { rerender: true }));
+    this.overlay.querySelector('[data-tp-practice]')?.addEventListener('click', () => {
+      if (this.prompterRunning) { this.prompterClock.pause(); this.prompterRunning = false; } else { this.prompterClock.start(); this.prompterRunning = true; }
+      this.rerender();
+    });
+    this.overlay.querySelector('[data-tp-reset]')?.addEventListener('click', () => { this.prompterClock.reset(); this.prompterRunning = false; this.rerender(); });
 
     this.overlay.querySelector('[data-action="toggle-effects"]')?.addEventListener('click', () => {
       this.showEffects = !this.showEffects;
@@ -374,6 +453,7 @@ export class RecorderModal extends BaseModal {
   rerender() {
     this.updateBody(this.renderBody());
     this.syncCameraPreview();
+    this.paintPrompter(this.prompterClock.elapsed());
   }
 
   getPreviewUrl() {
@@ -500,6 +580,9 @@ export class RecorderModal extends BaseModal {
 
       this.isRecording = true;
       this.isPaused = false;
+      this.prompterClock.reset();
+      this.prompterClock.start();
+      this.prompterRunning = true;
       this.recordingTime = 0;
       this.recordingInterval = setInterval(() => {
         if (!this.isPaused) {
@@ -529,19 +612,25 @@ export class RecorderModal extends BaseModal {
     if (!this.session || this.isPaused) return;
     this.session.pause();
     this.isPaused = true;
-    this.updateBody(this.renderBody());
+    this.prompterClock.pause();
+    this.prompterRunning = false;
+    this.rerender();
   }
 
   resumeRecording() {
     if (!this.session || !this.isPaused) return;
     this.session.resume();
     this.isPaused = false;
-    this.updateBody(this.renderBody());
+    this.prompterClock.start();
+    this.prompterRunning = true;
+    this.rerender();
   }
 
   async stopRecording() {
     if (!this.session || this.stopping) return;
     this.stopping = true;
+    this.prompterClock.pause();
+    this.prompterRunning = false;
     clearInterval(this.recordingInterval);
     const session = this.session;
     try {
@@ -614,6 +703,7 @@ export class RecorderModal extends BaseModal {
   // screen capture, otherwise the browser's recording indicators stay on.
   destroy() {
     clearInterval(this.recordingInterval);
+    this.prompterClock.reset();
     const session = this.session;
     this.session = null;
     if (session) {

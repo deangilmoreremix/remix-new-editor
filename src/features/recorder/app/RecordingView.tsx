@@ -10,6 +10,7 @@ import { ResolutionAndFps, Stream } from "./Stream";
 import { ToggleCrop } from "./ToggleCrop";
 import { ToggleMirror } from "./ToggleMirror";
 import { CameraEffects } from "./CameraEffects";
+import { TeleprompterButton, TeleprompterOverlay, useTeleprompterSettings } from "./Teleprompter";
 import { useDevices } from "./WaitingForDevices";
 import { ClearCurrentVideo } from "./components/ClearCurrentVideo";
 import { CurrentAudio } from "./components/CurrentAudio";
@@ -84,6 +85,7 @@ const InnerRecordingView: React.FC<{
   const recordAudio = prefix === WEBCAM_PREFIX;
   const [resolution, setResolution] = useState<ResolutionAndFps | null>(null);
   const [preferPortrait, setPreferPortrait] = useState(false);
+  const [prompter, setPrompter] = useTeleprompterSettings();
 
   const initialMirrorState = useMemo(() => {
     if (prefix !== WEBCAM_PREFIX) {
@@ -322,6 +324,9 @@ const InnerRecordingView: React.FC<{
         activeVideoDevice ? (
           <CameraEffects disabled={recordingStatus.type === "recording"} />
         ) : null}
+        {prefix === WEBCAM_PREFIX ? (
+          <TeleprompterButton settings={prompter} onChange={setPrompter} disabled={recordingStatus.type === "recording"} />
+        ) : null}
         {cameraRotateable ? (
           <ToggleRotate
             pressed={preferPortrait}
@@ -344,6 +349,9 @@ const InnerRecordingView: React.FC<{
           mirror={mirrorCamera}
           clear={clear}
         />
+        {prefix === WEBCAM_PREFIX && !showPicker ? (
+          <TeleprompterOverlay settings={prompter} recording={recordingStatus.type === "recording"} />
+        ) : null}
         {showCropIndicator && resolution && !showPicker ? (
           <CropIndicator resolution={resolution} />
         ) : null}

@@ -67,6 +67,8 @@ export function defaultDraft() {
     // Company logos found while capturing websites: { [site home page]: image URL }.
     siteLogos: {},
     email: { ...DEFAULT_EMAIL },
+    // The recording script (Script card, AI writer), shown in the recorder's teleprompter.
+    script: '',
   };
 }
 
