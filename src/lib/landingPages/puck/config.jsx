@@ -49,7 +49,7 @@ export const puckConfig = {
     },
   },
   categories: {
-    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Footer', 'PageImage'] },
+    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Showcase', 'Footer', 'PageImage'] },
     extras: { title: 'Design extras', components: Object.keys(EXT_COMPONENTS), defaultExpanded: false },
     cards: { title: 'Cards (drop into a Grid)', components: ['LeadMagnetCard', 'TableCard', 'StatsCard', 'ChecklistCard', 'QuoteCard', 'StepsCard', 'FeaturesCard', 'FaqCard', 'KpiCard', 'ScheduleCard', 'ButtonCard'] },
   },
@@ -125,6 +125,24 @@ export const puckConfig = {
       fields: { senderName: T('Your name'), senderTitle: T('Your title and company'), senderPhoto: T('Your photo (https link)'), like: { type: 'radio', label: 'Like button', options: [{ label: 'Show', value: 'yes' }, { label: 'Hide', value: 'no' }] }, ctaLabel: T('Button text'), ctaUrl: T('Button link (https)'), calendarUrl: T('Booking calendar to embed (https, empty = none)'), calendarTitle: T('Calendar heading') },
       defaultProps: { senderName: '{{sender|}}', senderTitle: '', senderPhoto: '', like: 'yes', ctaLabel: 'Book a call', ctaUrl: '', calendarUrl: '', calendarTitle: 'Pick a time that works for you' },
       render: (p) => <C.OutreachActions {...p} />,
+    },
+    Showcase: {
+      label: 'Text + picture (or photo banner)',
+      fields: {
+        variant: { type: 'radio', label: 'Style', options: [{ label: 'Text next to a picture', value: 'split' }, { label: 'Banner with a photo behind', value: 'band' }] },
+        side: { type: 'radio', label: 'Picture side', options: [{ label: 'Right', value: 'right' }, { label: 'Left', value: 'left' }] },
+        title: A('Heading (wrap words in [[double brackets]] to highlight)'),
+        text: A('Text'),
+        bullets: { type: 'array', label: 'Tick list', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Item', defaultItemProps: { text: 'New point' } },
+        buttonLabel: T('Button text'),
+        buttonUrl: T('Button link (https, mailto:, tel: or #video / #lead)'),
+        image: T('Picture (https link)'),
+        imageAlt: T('Picture description for screen readers'),
+        background: T('Banner photo (https link)'),
+        points: { type: 'array', label: 'Points beside a banner', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Point', defaultItemProps: { text: 'New point' } },
+      },
+      defaultProps: { variant: 'split', side: 'right', title: 'See it in [[action]]', text: 'Say what the picture shows in a sentence or two.', bullets: [{ text: 'First point' }, { text: 'Second point' }], buttonLabel: 'Watch the demo video', buttonUrl: '#video', image: '', imageAlt: '', background: '', points: [] },
+      render: (p) => <C.Showcase {...p} />,
     },
     PageImage: { label: 'Image', fields: { src: T('Image link (https)'), alt: T('Description for screen readers'), rounded: { type: 'radio', label: 'Rounded corners', options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] } }, defaultProps: { src: '', alt: '', rounded: 'yes' }, render: (p) => <C.PageImage {...p} /> },
 

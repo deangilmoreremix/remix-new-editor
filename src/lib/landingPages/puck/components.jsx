@@ -448,6 +448,25 @@ export function PageImage({ src, alt, rounded = 'yes' }) {
   return <img className={`pk-image${rounded === 'yes' ? ' pk-image--round' : ''}`} src={url} alt={alt || ''} loading="lazy" />;
 }
 
+/** Text with a tick list and a button next to a picture (e.g. "See it in action" with a laptop mock-up), or a banner with a photo behind it. */
+export function Showcase({ variant = 'split', title, text, bullets, buttonLabel, buttonUrl, image, imageAlt, background, side = 'right', points }) {
+  const t = useTokens();
+  const img = safeImageUrl(image) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(image || '')) ? image : '');
+  return (
+    <section className={`pk-showcase pk-showcase--${variant === 'band' ? 'band' : 'split'} pk-showcase--${side === 'left' ? 'left' : 'right'}`} style={cssImage(background) ? { '--pk-showcase-bg': cssImage(background) } : undefined}>
+      <div className="pk-showcase-copy">
+        {title ? <AccentText as="h2" className="pk-showcase-title" text={title} /> : null}
+        {text ? <p className="pk-showcase-text">{t(text)}</p> : null}
+        {asList(bullets).length ? <ul className="pk-bullets">{asList(bullets).map((b, i) => <li key={i}>{t(b.text)}</li>)}</ul> : null}
+        {buttonLabel ? <SafeLink className="pk-btn pk-btn--primary pk-showcase-btn" href={buttonUrl || '#video'}>{t(buttonLabel)}</SafeLink> : null}
+      </div>
+      {variant === 'band' ? (
+        asList(points).length ? <ul className="pk-showcase-points">{asList(points).map((b, i) => <li key={i}>{t(b.text)}</li>)}</ul> : null
+      ) : img ? <div className="pk-showcase-art"><img src={img} alt={imageAlt || ''} loading="lazy" /></div> : null}
+    </section>
+  );
+}
+
 /** A full-width button bar (usually the last thing on a phone-style page). */
 export function CtaBar({ text, label, url, icon, icons }) {
   const t = useTokens();
