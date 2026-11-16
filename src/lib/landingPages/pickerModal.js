@@ -53,9 +53,21 @@ export function toPickerVideo(input) {
   };
 }
 
+// The picker is shown inside other screens (Timeline Studio loads its own Tailwind build where `bg-primary` etc. differ),
+// so the pieces that must always look right carry inline styles as well as classes.
+const CSS = {
+  [BTN]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
+  [BTN_PRIMARY]: 'background:#d9ff00;border:1px solid #d9ff00;color:#000;border-radius:12px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
+  [`${INPUT} max-w-sm`]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;min-width:220px',
+  [INPUT]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;width:100%',
+  card: 'background:#141414;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;text-align:left;color:#fff;cursor:pointer',
+  dialog: 'background:#0a0a0a;border:1px solid rgba(255,255,255,.12);border-radius:18px;color:#fff;overflow:hidden',
+};
+
 function el(tag, className, text) {
   const n = document.createElement(tag);
   if (className) n.className = className;
+  if (className && CSS[className]) n.style.cssText = CSS[className];
   if (text !== undefined) n.textContent = text;
   return n;
 }
@@ -83,6 +95,7 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
   overlay.style.zIndex = '2000';
   overlay.dataset.landingPicker = '';
   const dialog = el('div', 'w-full max-w-7xl h-full max-h-[94vh] flex flex-col rounded-2xl border border-white/10 bg-panel-bg overflow-hidden text-white');
+  dialog.style.cssText += CSS.dialog + ';width:100%;max-width:1280px;height:100%;max-height:94vh;display:flex;flex-direction:column';
   dialog.setAttribute('role', 'dialog');
   dialog.setAttribute('aria-modal', 'true');
   dialog.setAttribute('aria-label', 'Landing pages');
@@ -164,6 +177,7 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
     const chipBtns = new Map();
     CHIPS.forEach((c) => {
       const b = el('button', 'rounded-full border px-3 py-1 text-xs font-bold transition-colors', c.label);
+      b.style.cssText = 'border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;background:transparent';
       b.type = 'button';
       b.addEventListener('click', () => { state.chip = c.id; paint(); });
       chipBtns.set(c.id, b);
@@ -198,12 +212,15 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
         b.classList.toggle('border-primary', on);
         b.classList.toggle('text-primary', on);
         b.classList.toggle('border-white/15', !on);
+        b.style.borderColor = on ? '#d9ff00' : 'rgba(255,255,255,.18)';
+        b.style.color = on ? '#d9ff00' : '#fff';
       });
       grid.replaceChildren();
       const list = filterTemplates(all, state);
       if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'No designs match.'));
       list.forEach((t) => {
         const b = el('button', 'text-left rounded-xl border border-white/10 bg-card-bg p-3 hover:border-primary/60 transition-colors');
+        b.style.cssText = CSS.card;
         b.type = 'button';
         b.dataset.template = t.id;
         const dots = el('div', 'flex items-center gap-1.5 mb-2');
