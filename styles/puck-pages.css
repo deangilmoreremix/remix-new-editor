@@ -188,5 +188,3 @@
 
 /* Your own logo replaces a design's built-in brand mark (no two logos side by side). */
 .pk-brand:has(img)::before { content: none !important; display: none !important; }
-/* Room between a hero that hangs low (enterprise) and the sender row. */
-.pk-outreach { position: relative; z-index: 1; margin-top: 24px; padding-bottom: 72px; } /* room for a section a design tucks up under the hero (Playful sunshine pulls its strip up 58px) */

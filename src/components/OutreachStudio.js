@@ -642,18 +642,10 @@ export function OutreachStudio() {
   function renderCustomize() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_440px]');
     const main = card('Your prospect page', 'Each prospect gets their own page with their video. Use {{firstname}} and {{company}}; fallbacks fill in when a value is missing.');
-    // Page design: the plain video page, or one of your Video Pages designs (made when you generate).
-    const design = el('select', 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white');
-    design.setAttribute('data-outreach-page-design', '');
-    const plain = el('option', 'bg-neutral-900', 'Plain video page'); plain.value = ''; design.appendChild(plain);
-    if (landingTemplates) {
-      landingTemplates.TEMPLATES.filter((t) => !t.site || t.puck).forEach((t) => { const o = el('option', 'bg-neutral-900', t.name); o.value = t.id; design.appendChild(o); });
-    } else {
-      import('../lib/landingPages/templates.js').then((m) => { landingTemplates = m; if (step === 3) render(); });
-    }
-    design.value = draft.pageDesign || '';
-    design.addEventListener('change', () => { draft.pageDesign = design.value; persist(); });
-    main.appendChild(field('Page design', design, 'Generate publishes every prospect\u2019s page on this design: your brand, their video and text, your button and calendar. You can switch designs later.'));
+    // Which page prospects land on: the plain video page, or one of your own Video Pages pages,
+    // used exactly as you made it (only its video becomes each prospect's personal video).
+    main.appendChild(field('Landing page', pagePicker(draft.pageId || '', (id) => { draft.pageId = id; persist(); render(); }, { plainOption: true }),
+      'Generate publishes every prospect\u2019s link onto this page, with all of its design and words as you made them in Video Pages. Only the video changes: each prospect sees their own. Write {{firstname}} or {{company}} in your page to personalize its text.'));
     const header = textInput(draft.header);
     const message = el('textarea', 'w-full min-h-[90px] rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60');
     message.value = draft.message;
@@ -671,44 +663,10 @@ export function OutreachStudio() {
     ctaOn.addEventListener('change', sync);
     calOn.addEventListener('change', sync);
     const ctaRow = el('label', 'flex items-center gap-3 text-sm font-bold'); ctaRow.append(ctaOn, el('span', '', 'Call-to-action button'));
-    const calRow = el('label', 'flex items-center gap-3 text-sm'); calRow.append(calOn, el('span', '', 'Show the calendar under the video so contacts can book without leaving the page'));
-    main.append(field('Header', header), variableChips(header), field('Message', message), variableChips(message), field('If the company is missing, say', company), ctaRow,
+    const calRow = el('label', 'flex items-center gap-3 text-sm'); calRow.append(calOn, el('span', '', 'Plain video page only: show the calendar under the video so contacts can book without leaving the page'));
+    main.append(field('Header', header, draft.pageId ? 'For the plain video page. Your own landing page keeps its own words.' : ''), variableChips(header), field('Message', message), variableChips(message), field('If the company is missing, say', company), ctaRow,
       field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow);
 
-    // Who sent it: the landing page's menu bar (company, logo), the sender line and "Sent by".
-    const me = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
-    me.setAttribute('data-outreach-sender', '');
-    me.appendChild(el('div', 'text-sm font-bold', 'Your details'));
-    me.appendChild(el('p', 'text-xs text-secondary', 'Shown on every contact\u2019s page: your company and logo at the top, your name and photo beside the booking button.'));
-    const sName = textInput(draft.sender.name, 'Your name');
-    const sTitle = textInput(draft.sender.title, 'Your job title');
-    const sCompany = textInput(draft.sender.company, 'Your company');
-    [sName, sTitle, sCompany].forEach((i, n) => {
-      i.setAttribute('data-sender-field', ['name', 'title', 'company'][n]);
-      i.addEventListener('input', () => { draft.sender = { ...draft.sender, name: sName.value, title: sTitle.value, company: sCompany.value }; persist(); updatePreview(); });
-    });
-    const pics = el('div', 'flex flex-wrap items-center gap-3');
-    for (const [key, label] of [['logo', 'Company logo'], ['photo', 'Your photo']]) {
-      const f = el('input'); f.type = 'file'; f.accept = 'image/*'; f.hidden = true;
-      f.addEventListener('change', async () => {
-        const file = f.files?.[0]; f.value = '';
-        if (!file) return;
-        try {
-          setBusy(`Uploading your ${label.toLowerCase()}\u2026`);
-          const url = await uploadToStorage(file);
-          draft.sender = { ...draft.sender, [key]: url }; persist(); busy = ''; render();
-        } catch (err) { fail(err); }
-      });
-      if (draft.sender[key]) { const th = el('img', `h-10 w-10 border border-white/10 object-cover ${key === 'photo' ? 'rounded-full' : 'rounded-lg bg-white'}`); th.src = draft.sender[key]; pics.appendChild(th); }
-      const b = button(draft.sender[key] ? `Change ${label.toLowerCase()}` : `Upload ${label.toLowerCase()}`, { small: true });
-      b.setAttribute(`data-sender-${key}`, '');
-      b.addEventListener('click', () => f.click());
-      pics.append(b, f);
-    }
-    const two = el('div', 'grid gap-3 sm:grid-cols-3');
-    two.append(field('Name', sName), field('Job title', sTitle), field('Company', sCompany));
-    me.append(two, pics);
-    main.appendChild(me);
 
     // Background: the recording as it is, or each contact's own website behind a round camera bubble.
     const bg = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
@@ -760,6 +718,15 @@ export function OutreachStudio() {
     const sample = { firstname: 'Mike', company: 'Acme' };
     const updatePreview = () => {
       preview.replaceChildren();
+      if (draft.pageId) {
+        // Your own page is shown as it is; open it to see it.
+        const mine = myPages.rows.find((r) => r.id === draft.pageId);
+        preview.appendChild(el('div', 'text-[11px] uppercase tracking-wider text-black/50', 'Prospects land on your page'));
+        preview.appendChild(el('h3', 'text-xl font-extrabold', mine?.title || 'Your landing page'));
+        preview.appendChild(el('p', 'text-sm text-black/70', 'Exactly as you made it in Video Pages, with each prospect\u2019s personal video in place of its video.'));
+        if (mine) { const a = el('a', 'mx-auto rounded-full bg-[#4f46e5] px-6 py-2.5 text-sm font-bold text-white', 'Open my page'); a.href = mine.url; a.target = '_blank'; a.rel = 'noopener'; preview.appendChild(a); }
+        return;
+      }
       preview.appendChild(el('div', 'text-[11px] uppercase tracking-wider text-black/50', 'Preview · Mike at Acme'));
       preview.appendChild(el('h3', 'text-xl font-extrabold', fillTemplate(draft.header, sample, draft.fallbacks)));
       const media = el('div', 'relative aspect-video w-full overflow-hidden rounded-xl bg-black');
@@ -784,7 +751,6 @@ export function OutreachStudio() {
         const cal = el('div', 'grid h-28 place-items-center rounded-xl border border-dashed border-black/20 text-xs text-black/50', calendarEmbedUrl(draft.cta.url) ? 'Your booking calendar shows here' : 'Use a Calendly, Cal.com, Google, HubSpot, SavvyCal or TidyCal link to show the calendar');
         preview.appendChild(cal);
       }
-      if (draft.sender.name || draft.sender.company) preview.appendChild(el('p', 'text-xs text-black/55', `Sent by ${[draft.sender.name, draft.sender.company].filter(Boolean).join(' \u00b7 ')}`));
       if (draft.voice.mode === 'clone') preview.appendChild(el('p', 'text-[11px] text-black/45', 'AI-personalized voice'));
     };
     updatePreview();
@@ -1089,8 +1055,8 @@ export function OutreachStudio() {
       const done = `${draft.campaign.links.length} personal video${draft.campaign.links.length === 1 ? '' : 's'} ready.${lipsync?.failed?.length ? ` Lip-sync failed for ${lipsync.failed.length} contact${lipsync.failed.length === 1 ? '' : 's'}; they hear their greeting without it.` : ''}`;
       // Like Sendspark, one Generate also makes the page and every prospect's thumbnail.
       notice = '';
-      if (draft.pageDesign && draft.campaign.page?.templateId !== draft.pageDesign) {
-        await publishLandingPage(draft.pageDesign);
+      if (draft.pageId && draft.campaign.page?.sourceId !== draft.pageId) {
+        await publishLandingPage(draft.pageId);
         if (notice && !/^Landing page published/.test(notice)) return; // the page failed: its message stays
       }
       progress = null;
@@ -1281,82 +1247,132 @@ export function OutreachStudio() {
   }
 
   // ---- Landing page designs (Video Pages, src/lib/landingPages) -----------------------------
-  // The campaign is published onto one of the landing page designs; the page's video is the
-  // campaign's personal player, and each contact's link opens their page
-  // (src/lib/outreach/landingPage.js).
-  let landingPick = null;
-  let landingTemplates = null;
-  function renderLandingCard() {
-    const box = card('Landing page', 'Send contacts to one of your landing page designs instead of the plain video page. The design shows each contact\u2019s personal video, their name and company in the text, and your buttons and forms.');
-    box.setAttribute('data-outreach-landing', '');
-    if (!landingTemplates) {
-      import('../lib/landingPages/templates.js').then((m) => { landingTemplates = m; if (step === 5) render(); });
-      box.appendChild(el('p', 'text-xs text-secondary', 'Loading designs…'));
-      return box;
-    }
-    const page = draft.campaign.page;
+  // The campaign is published onto one of your own Video Pages pages, as you made it: the
+  // campaign gets a copy whose video is its personal player, and each contact's link opens it
+  // (src/lib/outreach/landingPage.js). Your original page is never changed.
+  const myPages = { loaded: false, loading: false, rows: [], error: '' };
+  // Your pages, fresh from Video Pages (a page you made a minute ago is included).
+  async function fetchMyPages() {
+    const [{ listPages, pageUrl }, { ownPages, pageOption }] = await Promise.all([import('../lib/landingPages/client.js'), import('../lib/outreach/landingPage.js')]);
+    const rows = ownPages(await listPages(await ownerClient()));
+    myPages.rows = rows.map((r) => ({ ...pageOption(r), url: pageUrl(r.id), config: r.config }));
+    myPages.error = ''; myPages.loaded = true;
+    return myPages.rows;
+  }
+  async function loadMyPages() {
+    if (myPages.loading) return;
+    myPages.loading = true;
+    try { await fetchMyPages(); } catch (err) { myPages.error = err?.message || 'Could not load your pages.'; myPages.loaded = true; }
+    myPages.loading = false;
+    render();
+  }
+
+  /** A dropdown of your own landing pages (plus, optionally, the plain video page). */
+  function pagePicker(value, onPick, { plainOption = false } = {}) {
+    const wrap = el('div', 'flex flex-col gap-2');
+    wrap.setAttribute('data-outreach-my-pages', '');
+    if (!myPages.loaded) { loadMyPages(); wrap.appendChild(el('p', 'text-xs text-secondary', 'Loading your landing pages\u2026')); return wrap; }
     const row = el('div', 'flex flex-wrap items-center gap-2');
-    const sel = el('select', 'min-w-[260px] rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-2 text-sm text-white');
-    sel.setAttribute('data-landing-design', '');
-    landingTemplates.TEMPLATES.filter((t) => !t.site || t.puck).forEach((t) => {
-      const o = el('option', 'bg-neutral-900', t.name); o.value = t.id; o.title = t.description || '';
-      o.selected = (landingPick || page?.templateId || draft.pageDesign || 'puck-starter') === t.id;
-      sel.appendChild(o);
-    });
-    sel.addEventListener('change', () => { landingPick = sel.value; render(); });
-    const chosen = landingTemplates.getTemplate(sel.value);
-    const go = button(page ? 'Move to this design' : 'Publish on this design', { primary: !page, small: true });
+    const sel = el('select', 'min-w-[260px] flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white');
+    sel.setAttribute('data-outreach-page', '');
+    if (plainOption) { const o = el('option', 'bg-neutral-900', 'Plain video page'); o.value = ''; sel.appendChild(o); }
+    for (const r of myPages.rows) {
+      const o = el('option', 'bg-neutral-900', `${r.title}${r.updatedAt ? ` \u00b7 edited ${new Date(r.updatedAt).toLocaleDateString()}` : ''}`);
+      o.value = r.id; sel.appendChild(o);
+    }
+    sel.value = myPages.rows.some((r) => r.id === value) ? value : (plainOption ? '' : myPages.rows[0]?.id || '');
+    sel.addEventListener('change', () => onPick(sel.value));
+    row.appendChild(sel);
+    const chosen = myPages.rows.find((r) => r.id === sel.value);
+    if (chosen) { const a = el('a', 'text-xs font-bold text-primary underline', 'Preview'); a.href = chosen.url; a.target = '_blank'; a.rel = 'noopener'; row.appendChild(a); }
+    const again = el('button', 'text-xs font-bold text-secondary underline', 'Refresh');
+    again.type = 'button'; again.title = 'Load your pages again (after making or editing one in Video Pages)';
+    again.addEventListener('click', () => { myPages.loaded = false; render(); });
+    row.appendChild(again);
+    wrap.appendChild(row);
+    if (myPages.error) wrap.appendChild(el('p', 'text-xs text-amber-300', myPages.error));
+    else if (!myPages.rows.length) {
+      const empty = el('div', 'flex flex-wrap items-center gap-2 text-xs text-secondary');
+      const make = button('Make a landing page in Video Pages', { small: true });
+      make.addEventListener('click', () => { window.location.hash = '#/video-pages'; });
+      empty.append(el('span', '', 'You have no landing pages yet.'), make);
+      wrap.appendChild(empty);
+    }
+    return wrap;
+  }
+
+  let landingPick = null;
+  function renderLandingCard() {
+    const box = card('Landing page', 'Send contacts to one of your own landing pages instead of the plain video page. Your page is used exactly as you made it; only its video becomes each contact\u2019s personal video.');
+    box.setAttribute('data-outreach-landing', '');
+    const page = draft.campaign.page;
+    const current = landingPick || page?.sourceId || draft.pageId || '';
+    const picker = pagePicker(current, (id) => { landingPick = id; render(); });
+    box.appendChild(picker);
+    if (!myPages.loaded || !myPages.rows.length) return box;
+    const pick = picker.querySelector('select')?.value || '';
+    const row = el('div', 'flex flex-wrap items-center gap-2');
+    const go = button(page ? 'Use this page instead' : 'Publish on this page', { primary: !page, small: true });
     go.setAttribute('data-landing-publish', '');
-    go.disabled = !!busy;
-    go.addEventListener('click', () => publishLandingPage(sel.value));
-    row.append(sel, go);
+    go.disabled = !!busy || !pick || (page?.sourceId === pick);
+    go.addEventListener('click', () => publishLandingPage(pick));
+    row.appendChild(go);
     if (page) {
-      const editBtn = button('Edit the page', { small: true });
+      const editBtn = button('Edit my page', { small: true });
       editBtn.addEventListener('click', () => { window.location.hash = '#/video-pages'; });
       const off = button('Use the plain video page', { small: true });
       off.addEventListener('click', () => {
         draft.campaign = { ...draft.campaign, page: null, links: draft.campaign.links.map(({ pageLink, ...l }) => l) };
+        draft.pageId = '';
         persist(); render();
       });
       row.append(editBtn, off);
     }
-    box.append(row, el('p', 'text-xs text-white/50', chosen?.description || ''));
-    if (page) box.appendChild(el('p', 'text-xs text-emerald-300', `Links now open your ${landingTemplates.getTemplate(page.templateId)?.name || ''} page. Change its words, images and buttons in Video Pages.`));
+    box.appendChild(row);
+    if (page) {
+      const name = myPages.rows.find((r) => r.id === page.sourceId)?.title || 'landing';
+      box.appendChild(el('p', 'text-xs text-emerald-300', `Links now open your \u201c${name}\u201d page with each contact\u2019s video. After editing your page in Video Pages, click \u201cUse this page instead\u201d to update the campaign\u2019s copy.`));
+    }
     return box;
   }
 
-  async function publishLandingPage(templateId) {
+  async function publishLandingPage(sourceId) {
     abort = null;
     try {
-      setBusy('Publishing the landing page…');
-      const [{ createPage, updatePage, setPagePublished, pageUrl }, { defaultConfig, applyTemplate }, { landingLink, pageConfigFromDraft }] = await Promise.all([
+      setBusy('Publishing your landing page…');
+      const [{ createPage, updatePage, setPagePublished, pageUrl }, { landingLink, campaignPageConfig }] = await Promise.all([
         import('../lib/landingPages/client.js'),
-        import('../lib/landingPages/templates.js'),
         import('../lib/outreach/landingPage.js'),
       ]);
+      const mine = (await fetchMyPages()).find((r) => r.id === sourceId);
+      if (!mine) throw new Error('That landing page was not found. Choose one of your pages again.');
       const client = await ownerClient();
-      const title = String(draft.name || '').trim() || 'Personal video';
+      const title = String(draft.name || '').trim() || mine.title;
       const poster = draft.campaign.links.find((l) => l.thumbnailUrl && !/\.gif(\?|$)/i.test(l.thumbnailUrl))?.thumbnailUrl || null;
+      // Your page exactly as it is: its whole config, unchanged. The copy's video is the campaign's
+      // player, which shows each contact their own video.
+      const config = campaignPageConfig(mine.config);
       const existing = draft.campaign.page;
       let row;
       if (existing?.id) {
-        row = await updatePage(client, existing.id, { config: pageConfigFromDraft(applyTemplate({}, templateId, { title }), draft) });
+        row = await updatePage(client, existing.id, { config });
       } else {
         row = await createPage(client, {
           title,
-          videoUrl: draft.campaign.url, // the campaign's player: the page shows it per contact
+          videoUrl: draft.campaign.url,
           posterUrl: poster,
           duration: draft.video?.duration || null,
-          source: { kind: 'outreach', studio: 'outreach', id: draft.campaign.id },
-          config: pageConfigFromDraft(defaultConfig(templateId, { title }), draft),
+          source: { kind: 'outreach', studio: 'outreach', id: draft.campaign.id, page: sourceId },
+          config,
         });
         await setPagePublished(client, row.id, true);
       }
       const url = pageUrl(row.id);
-      draft.pageDesign = templateId;
+      draft.pageId = sourceId;
+      landingPick = null;
       draft.campaign = {
         ...draft.campaign,
-        page: { id: row.id, templateId, url },
+        page: { id: row.id, sourceId, url },
         links: draft.campaign.links.map((l) => ({ ...l, pageLink: landingLink(url, l.link, contactOf(l)) })),
       };
       persist();

@@ -61,8 +61,8 @@ export function defaultDraft() {
     cta: { enabled: true, label: 'Schedule a demo', url: '' },
     // Who sent it (Customize step): shown on the landing page and in the page's menu bar.
     sender: { name: '', title: '', company: '', logo: '', photo: '' },
-    // The landing page design Generate publishes onto ('' = the plain video page).
-    pageDesign: '',
+    // Your own Video Pages page Generate publishes the campaign onto, as it is ('' = the plain video page).
+    pageId: '',
     contacts: [],
     campaign: null,
     name: '',
@@ -613,7 +613,7 @@ export function newDynamicVideo(from = {}, { keepVideo = false } = {}) {
   if (from.cta) d.cta = { ...d.cta, ...from.cta };
   if (from.email) d.email = { ...d.email, ...from.email };
   if (from.language) d.language = from.language;
-  if (typeof from.pageDesign === 'string') d.pageDesign = from.pageDesign;
+  if (typeof from.pageId === 'string') d.pageId = from.pageId;
   if (keepVideo && from.video) {
     Object.assign(d, { video: from.video, captions: from.captions || null, script: from.script || '', greeting: from.greeting || d.greeting, header: from.header || d.header, message: from.message || d.message, background: { ...d.background, ...(from.background || {}) }, fallbacks: { ...d.fallbacks, ...(from.fallbacks || {}) } });
     d.voice = { ...d.voice, fallbackUrl: from.voice?.fallbackUrl || '', fallbackDuration: from.voice?.fallbackDuration || 0, lipsync: !!from.voice?.lipsync };
