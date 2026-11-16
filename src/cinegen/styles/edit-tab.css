@@ -509,7 +509,7 @@
   color: var(--error);
 }
 .track-header__btn--solo.track-header__btn--active {
-  background: rgba(8, 208, 234, 0.2);
+  background: rgba(217, 255, 0, 0.2);
   color: #d9ff00;
 }
 .track-header__volume {
