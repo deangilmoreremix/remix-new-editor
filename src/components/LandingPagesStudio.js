@@ -17,7 +17,7 @@ import { sampleSections } from '../lib/landingPages/sampleContent.js';
 import { wireframeSvg } from '../lib/landingPages/wireframes.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
-import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
+import { takeQueuedVideo, takeQueuedPage } from '../lib/landingPages/handoff.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
 import {
   listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts,
@@ -247,11 +247,19 @@ export function LandingPagesStudio() {
         const b = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
         b.type = 'button';
         b.title = t.description;
-        // The thumbnail is the page's SHAPE (a wireframe) tinted with its colours, so layouts are told apart by structure.
-        const sw = el('div', 'h-20 p-2 flex items-center justify-center');
+        // The thumbnail is a real picture of the design (public/landing-previews, made by scripts/generate-landing-design-previews.mjs).
+        // If it cannot load, the page's SHAPE (a wireframe) tinted with its colours stands in, so a card is never blank.
+        const sw = el('div', 'overflow-hidden flex items-center justify-center');
+        sw.style.aspectRatio = '8 / 5';
         sw.style.background = t.theme.bg;
         sw.style.color = t.theme.accent;
-        sw.innerHTML = wireframeSvg(t.layout);
+        const shot = el('img', 'w-full h-full object-cover');
+        shot.alt = '';
+        shot.loading = 'lazy';
+        shot.dataset.designPreview = t.id;
+        shot.addEventListener('error', () => { sw.classList.add('p-2'); sw.innerHTML = wireframeSvg(t.layout); }, { once: true });
+        shot.src = `/landing-previews/${encodeURIComponent(t.id)}.jpg`;
+        sw.appendChild(shot);
         const cap = el('div', 'p-2');
         cap.append(el('div', 'text-xs font-bold truncate', t.name), el('div', 'text-[11px] text-secondary line-clamp-2', t.description));
         b.append(sw, cap);
@@ -1033,9 +1041,26 @@ export function LandingPagesStudio() {
     inner.replaceChildren(top, shareRow, tabs, body);
   }
 
+  // Arrived from "Edit in Puck" (the Template Generator's Add to Video Pages window): open that page's editor straight away.
+  async function showEditorFor(id) {
+    if (!guard()) return;
+    inner.replaceChildren(el('p', 'text-sm text-secondary', 'Opening your page…'));
+    try {
+      state.pages = await listPages(await ownerClient());
+    } catch (err) {
+      inner.replaceChildren(el('p', 'text-sm text-red-300', err.message || 'Could not load your pages.'));
+      return;
+    }
+    const page = state.pages.find((p) => p.id === id);
+    if (page) showEditor(page);
+    else showList();
+  }
+
   // Arrived from "Create landing page" elsewhere in the app: start with that video selected.
-  const queued = takeQueuedVideo();
-  if (queued) showNew(queued);
+  const queuedPage = takeQueuedPage();
+  const queued = queuedPage ? null : takeQueuedVideo();
+  if (queuedPage) showEditorFor(queuedPage);
+  else if (queued) showNew(queued);
   else showList();
   return container;
 }

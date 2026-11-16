@@ -1,15 +1,17 @@
 // "Add to Video Pages": the Template Generator's rendered video becomes a draft Video Pages page. The window is built like "Add to timeline".
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
-import { VideoPagesModal, openVideoPagesModal, GROUPS, defaultDeps, type VideoPagesDeps } from '@cinegen/components/edit/video-pages-modal';
+import { VideoPagesModal, openVideoPagesModal, GROUPS, defaultDeps, offered, previewUrl, type VideoPagesDeps } from '@cinegen/components/edit/video-pages-modal';
 // @ts-expect-error plain JS data module
 import { TEMPLATES } from '../../lib/landingPages/templates.js';
 
+const OFFERED = offered(TEMPLATES as never[]) as Array<Record<string, unknown>>;
 const video = { url: 'blob:http://x/abc', title: 'Harbor Dental', fileSize: 12 * 1048576, duration: 31 };
 const deps = (over: Partial<VideoPagesDeps> = {}): VideoPagesDeps => ({
   auth: async () => ({ ok: true }),
   create: vi.fn(async (_v, o) => { o.onStep('Saving video'); return { id: 'abc123', title: o.title }; }),
   studioUrl: () => 'https://app.test/#/video-pages',
+  edit: vi.fn(() => true),
   ...over,
 });
 
@@ -21,16 +23,30 @@ describe('Add to Video Pages window', () => {
     expect(screen.getByRole('dialog', { name: 'Add to Video Pages' })).toBeTruthy();
     const tabs = screen.getAllByRole('tab');
     expect(tabs[0].textContent).toContain('All');
-    expect(tabs[0].textContent).toContain(String(TEMPLATES.length));
+    expect(tabs[0].textContent).toContain(String(OFFERED.length));
     // every studio group that has designs is a pill with its own count, and the counts add up to all of them
-    const counted = GROUPS.map((g) => ({ g, n: (TEMPLATES as Array<Record<string, unknown>>).filter((t) => g.test(t as never)).length })).filter((x) => x.n > 0);
+    const counted = GROUPS.map((g) => ({ g, n: OFFERED.filter((t) => g.test(t as never)).length })).filter((x) => x.n > 0);
     expect(tabs).toHaveLength(counted.length + 1);
-    expect(counted.reduce((a, x) => a + x.n, 0)).toBe(TEMPLATES.length);
+    expect(counted.reduce((a, x) => a + x.n, 0)).toBe(OFFERED.length);
+    expect(OFFERED.some((t) => t.site)).toBe(false);                    // the older fixed-layout designs are not offered (the studio's picker dropped them too)
     expect(screen.getByText('▣ Choose a design')).toBeTruthy();
-    expect(screen.getByText(`${TEMPLATES.length} designs`)).toBeTruthy();
-    expect(screen.getByText(`Showing ${TEMPLATES.length} of ${TEMPLATES.length} designs`)).toBeTruthy();
+    expect(screen.getByText(`${OFFERED.length} designs`)).toBeTruthy();
+    expect(screen.getByText(`Showing ${OFFERED.length} of ${OFFERED.length} designs`)).toBeTruthy();
     expect(screen.getByLabelText('Search designs')).toBeTruthy();
-    expect(screen.getAllByTestId(/^design-/)).toHaveLength(TEMPLATES.length);
+    expect(screen.getAllByTestId(/^design-/)).toHaveLength(OFFERED.length);
+  });
+
+  it('every card shows the real preview of its design, and a card whose picture fails shows the page shape instead', () => {
+    render(<VideoPagesModal video={video} onClose={() => {}} deps={deps()} />);
+    const imgs = Array.from(document.querySelectorAll<HTMLImageElement>('img[data-design-preview]'));
+    expect(imgs).toHaveLength(OFFERED.length);
+    expect(imgs.every((i) => i.getAttribute('src') === previewUrl(i.dataset.designPreview as string))).toBe(true);
+    expect(previewUrl('puck-leadiq')).toBe('/landing-previews/puck-leadiq.jpg');
+    const card = screen.getByTestId('design-puck-leadiq');
+    expect(card.querySelector('svg')).toBeNull();
+    fireEvent.error(card.querySelector('img') as HTMLImageElement);
+    expect(card.querySelector('img')).toBeNull();
+    expect(card.querySelector('svg')).toBeTruthy();
   });
 
   it('the editable designs pill shows the 34-style editable pages, and a pill, the search and the look filter narrow the cards', () => {
@@ -65,6 +81,8 @@ describe('Add to Video Pages window', () => {
     expect(d.create).toHaveBeenCalledWith(video, expect.objectContaining({ template: 'puck-leadiq', title: 'Spring offer' }));
     fireEvent.click(screen.getByText('Open in Video Pages'));
     expect(open).toHaveBeenCalledWith('https://app.test/#/video-pages', '_blank', 'noopener');
+    fireEvent.click(screen.getByTestId('edit-in-puck'));              // the page opens in the Puck editor
+    expect(d.edit).toHaveBeenCalledWith('abc123');
     open.mockRestore();
   });
 
@@ -90,6 +108,18 @@ describe('Add to Video Pages window', () => {
     await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Upload failed'));
     fireEvent.click(screen.getByTestId('create-draft'));
     await waitFor(() => expect(screen.getByText(/created/)).toBeTruthy());
+  });
+
+  it('Edit in Puck says so when the editor cannot be opened, and the page is still named so nothing is lost', async () => {
+    render(<VideoPagesModal video={video} onClose={() => {}} deps={deps({ edit: () => false })} />);
+    await waitFor(() => expect(screen.getByTestId('create-draft')).toBeTruthy());
+    fireEvent.click(screen.getByTestId('design-clean'));
+    await waitFor(() => expect((screen.getByTestId('create-draft') as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(screen.getByTestId('create-draft'));
+    await waitFor(() => expect(screen.getByTestId('edit-in-puck')).toBeTruthy());
+    fireEvent.click(screen.getByTestId('edit-in-puck'));
+    expect(screen.getByRole('alert').textContent).toContain('Could not open the editor');
+    expect(screen.getByRole('alert').textContent).toContain('Harbor Dental');
   });
 
   it('Esc and × close it; while uploading it cannot be closed', async () => {
@@ -121,5 +151,16 @@ describe('Add to Video Pages window', () => {
     const a = await defaultDeps.auth();
     expect(a.ok).toBe(false);
     expect(a.reason).toMatch(/Supabase|Sign in/);
+  });
+
+  it('the real "Edit in Puck" hands the page to the studio and opens it in a new tab', async () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => store.set(k, v), removeItem: (k: string) => store.delete(k) });
+    const open = vi.spyOn(window, 'open').mockReturnValue(null);
+    expect(defaultDeps.edit('abc12345xy')).toBe(true);
+    expect(JSON.parse(store.get('video_pages_open_page') as string).id).toBe('abc12345xy');
+    expect(open).toHaveBeenCalledWith(expect.stringContaining('#/video-pages'), '_blank', 'noopener');
+    expect(defaultDeps.edit('../bad')).toBe(false);                      // only a real page id is handed over
+    open.mockRestore(); vi.unstubAllGlobals();
   });
 });

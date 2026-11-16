@@ -128,6 +128,8 @@ debug_signin.cjs
 !/public/library-previews/sample-in.jpg
 # backdrop of the retired Motion Director StreamResponse card (placeholder; the original image was never committed)
 !public/motion-studio/legacy-textures/agent-stream.jpg
+# real previews of the Video Pages designs (made by scripts/generate-landing-design-previews.mjs; the design pickers show them)
+!/public/landing-previews/*.jpg
 
 # Logs
 logs

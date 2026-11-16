@@ -8,6 +8,8 @@ import { createRoot } from 'react-dom/client';
 import { TEMPLATES } from '../../../lib/landingPages/templates.js';
 // @ts-expect-error plain JS module
 import { wireframeSvg } from '../../../lib/landingPages/wireframes.js';
+// @ts-expect-error plain JS module
+import { queuePageForEditor } from '../../../lib/landingPages/handoff.js';
 
 /** The video to add: the generator's rendered file (a local blob: URL) and what we know about it. */
 export interface VideoPageSource { url: string; title: string; fileSize?: number; duration?: number | null }
@@ -19,6 +21,8 @@ export interface VideoPagesDeps {
   create: (video: VideoPageSource, opts: { template: string; title: string; onStep: (label: string) => void }) => Promise<CreatedPage>;
   /** Where the studio lives, for "Open in Video Pages". */
   studioUrl: () => string;
+  /** "Edit in Puck": open the studio on that page's editor. Returns false when it could not be opened. */
+  edit: (pageId: string) => boolean;
 }
 
 interface Design { id: string; name: string; description: string; theme: { bg: string; accent: string; text: string; mode?: string }; layout: string; puck?: boolean; compose?: string; site?: unknown; intro?: boolean; pitch?: boolean }
@@ -39,8 +43,10 @@ export const GROUPS: Array<{ id: string; label: string; glyph: string; test: (t:
   { id: 'layouts', label: 'Layouts', glyph: '▭', test: (t) => !t.intro && !t.pitch && !t.compose && !t.puck },
   { id: 'intro', label: 'Personal intro', glyph: '◎', test: (t) => !!t.intro },
   { id: 'pitch', label: 'Pitch page', glyph: '▶', test: (t) => !!t.pitch },
-  { id: 'site', label: 'Older website pages', glyph: '▤', test: (t) => !!t.site },
 ];
+
+/** What the studio's New page picker offers: the older fixed-layout website designs were removed from it, so they are not offered here either. */
+export const offered = (all: Design[]) => all.filter((t) => !t.site);
 
 const mb = (n?: number) => (n && n > 0 ? `${(n / 1048576).toFixed(1)} MB` : '');
 const clock = (s?: number | null) => (s && s > 0 ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}` : '');
@@ -70,15 +76,27 @@ export const defaultDeps: VideoPagesDeps = {
     return { id: page.id, title: page.title };
   },
   studioUrl: () => `${window.location.origin}${window.location.pathname}#/video-pages`,
+  // the studio starts on this page's editor (a tab opened with noopener shares no sessionStorage, so the page id goes through localStorage for a moment)
+  edit: (pageId) => {
+    if (!queuePageForEditor(pageId)) return false;
+    window.open(defaultDeps.studioUrl(), '_blank', 'noopener');   // noopener: it always returns null, so there is nothing to check
+    return true;
+  },
 };
 
+/** The real picture of a design (public/landing-previews, made by scripts/generate-landing-design-previews.mjs); the tinted wireframe stands in if it cannot load. */
+export const previewUrl = (id: string) => `/landing-previews/${encodeURIComponent(id)}.jpg`;
+
 function DesignCard({ d, group, on, onPick }: { d: Design; group: string; on: boolean; onPick: () => void }) {
+  const [imgOk, setImgOk] = useState(true);
   return (
     <button type="button" aria-pressed={on} data-testid={`design-${d.id}`} onClick={onPick}
       style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: `1px solid ${on ? 'var(--accent)' : 'var(--border-subtle)'}`, boxShadow: on ? '0 0 0 1px var(--accent) inset' : 'none', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer', display: 'flex', flexDirection: 'column', width: '100%', boxSizing: 'border-box', height: '100%' }}>
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: d.theme.bg, color: d.theme.accent, display: 'grid', placeItems: 'center', padding: 14, boxSizing: 'border-box' }}>
-        <div style={{ width: '100%', height: '100%' }} dangerouslySetInnerHTML={{ __html: wireframeSvg(d.layout) }} />
-        <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.65)', color: '#fff' }}>{group}</span>
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: d.theme.bg, color: d.theme.accent, display: 'grid', placeItems: 'center', padding: imgOk ? 0 : 14, boxSizing: 'border-box' }}>
+        {imgOk
+          ? <img src={previewUrl(d.id)} alt="" loading="lazy" data-design-preview={d.id} onError={() => setImgOk(false)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+          : <div style={{ width: '100%', height: '100%' }} dangerouslySetInnerHTML={{ __html: wireframeSvg(d.layout) }} />}
+        <span style={{ position: 'absolute', left: 8, bottom: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.65)', color: '#fff' }}>{group}</span>
         {on && <span style={{ position: 'absolute', right: 8, top: 8, width: 24, height: 24, borderRadius: 999, background: 'var(--accent)', color: '#04121a', display: 'grid', placeItems: 'center', fontWeight: 800 }}>✓</span>}
       </div>
       <div style={{ fontSize: 14, fontWeight: 700, marginTop: 10 }}>{d.name}</div>
@@ -90,7 +108,7 @@ function DesignCard({ d, group, on, onPick }: { d: Design; group: string; on: bo
 export function VideoPagesModal({ video, onClose, deps }: { video: VideoPageSource; onClose: () => void; deps?: Partial<VideoPagesDeps> }) {
   const d = { ...defaultDeps, ...deps };
   const titleId = useId();
-  const designs = TEMPLATES as Design[];
+  const designs = useMemo(() => offered(TEMPLATES as Design[]), []);
   const [tab, setTab] = useState('all');
   const [q, setQ] = useState('');
   const [look, setLook] = useState('all');
@@ -100,6 +118,7 @@ export function VideoPagesModal({ video, onClose, deps }: { video: VideoPageSour
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [made, setMade] = useState<CreatedPage | null>(null);
+  const [editNote, setEditNote] = useState('');
   const dialogRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const latest = useRef({ onClose, busy });
@@ -206,7 +225,9 @@ export function VideoPagesModal({ video, onClose, deps }: { video: VideoPageSour
             {error && <span role="alert" style={{ fontSize: 12.5, color: '#fca5a5' }}>{error}</span>}
             {made ? (
               <>
-                <button type="button" onClick={() => window.open(d.studioUrl(), '_blank', 'noopener')} style={{ padding: '10px 16px', borderRadius: 10, border: 0, background: 'var(--accent)', color: '#04121a', fontWeight: 700, cursor: 'pointer' }}>Open in Video Pages</button>
+                {editNote && <span role="alert" style={{ fontSize: 12.5, color: '#fbbf24' }}>{editNote}</span>}
+                <button type="button" data-testid="edit-in-puck" onClick={() => { if (!d.edit(made.id)) setEditNote(`Could not open the editor. Open Video Pages and choose “${made.title}”.`); }} style={{ padding: '10px 16px', borderRadius: 10, border: 0, background: 'var(--accent)', color: '#04121a', fontWeight: 700, cursor: 'pointer' }}>Edit in Puck</button>
+                <button type="button" onClick={() => window.open(d.studioUrl(), '_blank', 'noopener')} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border-medium)', background: 'transparent', color: 'inherit', cursor: 'pointer' }}>Open in Video Pages</button>
                 <button type="button" onClick={onClose} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border-medium)', background: 'transparent', color: 'inherit', cursor: 'pointer' }}>Close</button>
               </>
             ) : (
