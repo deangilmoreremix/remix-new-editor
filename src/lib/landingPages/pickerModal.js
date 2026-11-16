@@ -26,7 +26,9 @@ export const CHIPS = Object.freeze([
   { id: 'saas', label: 'SaaS & outreach', match: (id) => /^puck-(starter|leadiq|lead|reach|mono|poster|enterprise|neon|pb-(pro|agency|enterprise|analytics|creator))$/.test(id) },
   { id: 'local', label: 'Local business', match: (id) => /^puck-(local|persona|spark|pb-(eats|auto|health|shop)|pa-(bistro|motors|local|spa|fitness))$/.test(id) },
   { id: 'real', label: 'Property & travel', match: (id) => /^puck-(pb-agent|pa-(estate|travel)|realtor|dreamhome)$/.test(id) },
-  { id: 'more', label: 'Other', match: (id) => /^puck-(pa-(business|learn|creative)|results)$/.test(id) },
+  { id: 'trades', label: 'Home services', match: (id) => /^puck-pc-(plumbing|pest|landscape|cleaning|moving|solar)$/.test(id) },
+  { id: 'care', label: 'Health, pets & kids', match: (id) => /^puck-pc-(vet|vision|preschool)$/.test(id) },
+  { id: 'more', label: 'Other', match: (id) => /^puck-(pa-(business|learn|creative)|results|pc-insurance)$/.test(id) },
 ]);
 
 /** Pure: which designs show for a search text and category chip. */
