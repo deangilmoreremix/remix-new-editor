@@ -5,6 +5,8 @@ vi.mock('../../supabase.js', () => ({ supabase: {}, primeSupabaseIdentity: vi.fn
 vi.mock('../../uploadService.js', () => ({ uploadFileToSupabase: vi.fn() }));
 vi.mock('../../brandStore.js', () => ({ listBrands: () => [] }));
 vi.mock('../../loading.js', () => ({ showToast: vi.fn() }));
+const mountPage = vi.hoisted(() => vi.fn(() => ({ destroy: vi.fn() })));
+vi.mock('../puck/mount.jsx', () => ({ mountPuckPage: mountPage, mountPuckEditor: vi.fn(() => ({ destroy() {} })) }));
 import { openLandingPagePicker, filterTemplates, toPickerVideo, CHIPS } from '../pickerModal.js';
 import { TEMPLATES } from '../templates.js';
 
@@ -42,6 +44,17 @@ describe('filterTemplates / chips', () => {
 describe('openLandingPagePicker', () => {
   beforeEach(() => { document.body.innerHTML = ''; document.body.style.overflow = ''; });
   const grid = () => document.querySelector('[data-design-grid]');
+
+  it('draws a live page preview for every design card and removes them on close', async () => {
+    mountPage.mockClear();
+    const p = openLandingPagePicker({ video: VIDEO, deps: { mountPuckPage: mountPage } });
+    const n = TEMPLATES.filter((t) => t.puck).length;
+    await vi.waitFor(() => expect(mountPage).toHaveBeenCalledTimes(n));
+    expect(mountPage.mock.calls[0][1].preview).toBe(true);
+    const handles = mountPage.mock.results.map((r) => r.value.destroy);
+    p.close();
+    handles.forEach((d) => expect(d).toHaveBeenCalled());
+  });
 
   it('shows every design, locks scroll and restores it on close', () => {
     const onClose = vi.fn();

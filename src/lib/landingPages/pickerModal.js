@@ -14,6 +14,7 @@ import { sampleSections } from './sampleContent.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from './ingest.js';
 import { updatePage, pageUrl } from './client.js';
 import { isPermanentUrl } from './sourceRegistry.js';
+import { attachDesignPreview } from './designPreview.js';
 
 const SAMPLE_TOKENS = { firstname: 'Ann', company: 'Acme' };
 const INPUT = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50';
@@ -114,11 +115,14 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
   let saved = null;
   let chosen = null;
   const state = { q: '', chip: 'all' };
+  let previews = [];
+  const clearPreviews = () => { previews.forEach((h) => h.destroy()); previews = []; };
 
   const destroyEditor = () => { try { editor?.destroy(); } catch { /* already gone */ } editor = null; };
   const close = () => {
     if (!overlay.isConnected) return;
     destroyEditor();
+    clearPreviews();
     overlay.remove();
     document.removeEventListener('keydown', onKey, true);
     document.body.style.overflow = openCount > 1 ? 'hidden' : prevOverflow;
@@ -164,6 +168,7 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
 
   function showGrid() {
     destroyEditor();
+    clearPreviews();
     view = 'grid';
     msg.textContent = '';
     setHead('Choose a landing page');
@@ -215,6 +220,7 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
         b.style.borderColor = on ? '#d9ff00' : 'rgba(255,255,255,.18)';
         b.style.color = on ? '#d9ff00' : '#fff';
       });
+      clearPreviews();
       grid.replaceChildren();
       const list = filterTemplates(all, state);
       if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'No designs match.'));
@@ -223,9 +229,15 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
         b.style.cssText = CSS.card;
         b.type = 'button';
         b.dataset.template = t.id;
-        const dots = el('div', 'flex items-center gap-1.5 mb-2');
-        [t.theme?.bg, t.theme?.accent].forEach((c) => { const d = el('span', 'h-4 w-4 rounded-full border border-white/20'); d.style.background = c || '#000'; dots.appendChild(d); });
-        b.append(dots, el('div', 'text-xs font-bold leading-tight', t.name), el('div', 'text-[11px] text-secondary mt-1 line-clamp-2', t.description));
+        const pic = el('div', '');
+        pic.style.marginBottom = '8px';
+        pic.setAttribute('aria-label', `Preview of ${t.name}`);
+        previews.push(attachDesignPreview(pic, t.puckData, { deps }));
+        const name = el('div', 'text-xs font-bold leading-tight', t.name);
+        name.style.cssText = 'font-size:12px;font-weight:700';
+        const desc = el('div', 'text-[11px] text-secondary mt-1 line-clamp-2', t.description);
+        desc.style.cssText = 'font-size:11px;opacity:.65;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden';
+        b.append(pic, name, desc);
         b.addEventListener('click', () => showEdit(t.id));
         grid.appendChild(b);
       });
@@ -237,6 +249,7 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
   }
 
   async function showEdit(templateId) {
+    clearPreviews();
     chosen = getTemplate(templateId);
     const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: brandDefaults() });
     data = cfg.puck;

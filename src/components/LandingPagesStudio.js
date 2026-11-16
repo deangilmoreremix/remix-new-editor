@@ -18,6 +18,7 @@ import { wireframeSvg } from '../lib/landingPages/wireframes.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
 import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
+import { attachDesignPreview } from '../lib/landingPages/designPreview.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
 import {
   listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts,
@@ -151,7 +152,8 @@ export function LandingPagesStudio() {
     const sel = { video: preselected && preselected.url ? preselected : null, template: 'clean' };
     const back = el('button', BTN, '← Back');
     back.type = 'button';
-    back.addEventListener('click', showList);
+    const dropPreviews = () => { (sel.previewHandles || []).forEach((h) => h.destroy()); sel.previewHandles = []; };
+    back.addEventListener('click', () => { dropPreviews(); showList(); });
 
     const title = el('h1', 'text-2xl font-black', 'New video page');
     const status = el('p', 'text-sm text-secondary min-h-[1.25rem]', sel.video ? `Selected: ${sel.video.title}` : 'Choose a video, then a template.');
@@ -248,10 +250,20 @@ export function LandingPagesStudio() {
         b.type = 'button';
         b.title = t.description;
         // The thumbnail is the page's SHAPE (a wireframe) tinted with its colours, so layouts are told apart by structure.
-        const sw = el('div', 'h-20 p-2 flex items-center justify-center');
-        sw.style.background = t.theme.bg;
-        sw.style.color = t.theme.accent;
-        sw.innerHTML = wireframeSvg(t.layout);
+        let sw;
+        if (t.puck && t.puckData) {
+          // Editable landing pages: a LIVE, scaled picture of the real page (drawn when it scrolls into view).
+          sw = el('div', '');
+          sw.style.margin = '8px 8px 0';
+          const handle = attachDesignPreview(sw, t.puckData);
+          const prev = sel.previewHandles || (sel.previewHandles = []);
+          prev.push(handle);
+        } else {
+          sw = el('div', 'h-20 p-2 flex items-center justify-center');
+          sw.style.background = t.theme.bg;
+          sw.style.color = t.theme.accent;
+          sw.innerHTML = wireframeSvg(t.layout);
+        }
         const cap = el('div', 'p-2');
         cap.append(el('div', 'text-xs font-bold truncate', t.name), el('div', 'text-[11px] text-secondary line-clamp-2', t.description));
         b.append(sw, cap);
@@ -277,6 +289,7 @@ export function LandingPagesStudio() {
           onStep: (label) => { status.textContent = `${label}…`; },
         });
         showToast('Page created', 'success', 2000);
+        dropPreviews();
         showEditor(page);
       } catch (err) {
         status.textContent = err.message || 'Could not create the page.';
