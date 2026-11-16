@@ -13,7 +13,8 @@
     "custom": {
       "case": "upper",
       "prefix": ""
-    }
+    },
+    "recipientId": "UNIQID"
   },
   {
     "key": "activecampaign",

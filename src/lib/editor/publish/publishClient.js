@@ -318,7 +318,7 @@ export function profileFromQuery(search = globalThis.location?.search || '') {
     (style[m[1]] ||= {})[m[2]] = v;
   });
   params.forEach((v, k) => {
-    if (['embed', 'autoplay', 't', 'c'].includes(k) || k.length > 40) return;
+    if (['embed', 'autoplay', 't', 'c', 'preload'].includes(k) || /^utm_/i.test(k) || k.length > 40) return;
     // An email merge tag the provider never replaced ("*|FNAME|*") must not be shown as text.
     if (isUnreplacedMergeTag(v)) return;
     if (/__(f|l)$/.test(k) && isImageTokenKey(k.replace(/__(f|l)$/, ''))) return;

@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import { Copy, Check } from 'lucide-react'
-import { EMAIL_PROVIDERS, mergeTagLink, leadLinks, leadLinksCsv } from './emailMergeLink'
+import { EMAIL_PROVIDERS, mergeTagLink, leadLinks, leadLinksCsv, recipientIdTagFor, previewLink, emailSnippet } from './emailMergeLink'
 
 const STORAGE_KEY = 'pz-email-link-base'
 
@@ -52,11 +52,16 @@ const isHttpUrl = (v: string) => {
  * replaces each merge tag with that recipient's value when it sends.
  * `tokens` are the {{tokens}} the personalized content uses.
  */
-export default function EmailLinkPanel({ tokens }: { tokens: string[] }) {
+export default function EmailLinkPanel({ tokens, noDefaults = [] }: { tokens: string[]; noDefaults?: string[] }) {
   const [base, setBase] = useState(readSaved)
   const [providerKey, setProviderKey] = useState(EMAIL_PROVIDERS[0].key)
   const [preload, setPreload] = useState(true)
   const [custom, setCustom] = useState<CustomDef>(readCustom)
+  const [recipientOverride, setRecipientOverride] = useState<string | null>(null)
+  const [utm, setUtm] = useState('')
+  const [includePrivate, setIncludePrivate] = useState(false)
+  const [poster, setPoster] = useState('')
+  const [snippetCopied, setSnippetCopied] = useState(false)
   const [copied, setCopied] = useState(false)
   const [leads, setLeads] = useState<SavedLead[] | null>(null)
   const [leadsState, setLeadsState] = useState<'idle' | 'loading' | 'error'>('idle')
@@ -76,14 +81,21 @@ export default function EmailLinkPanel({ tokens }: { tokens: string[] }) {
     try { window.localStorage.setItem(CUSTOM_KEY, JSON.stringify(next)) } catch { /* private mode */ }
   }
   const baseOk = isHttpUrl(base.trim())
+  // A unique recipient id lets views be told apart per recipient (the watch page records it as the contact).
+  const recipientId = recipientOverride ?? recipientIdTagFor(provider)
   const result = useMemo(
-    () => (baseOk ? mergeTagLink(base.trim(), tokens, provider, { preload }) : null),
-    [base, baseOk, tokens, provider, preload],
+    () => (baseOk ? mergeTagLink(base.trim(), tokens, provider, { preload, recipientId, utmCampaign: utm, includePrivate }) : null),
+    [base, baseOk, tokens, provider, preload, recipientId, utm, includePrivate],
   )
+  const preview = useMemo(() => (baseOk ? previewLink(base.trim(), tokens) : ''), [base, baseOk, tokens])
+  const snippet = useMemo(() => (result ? emailSnippet({ link: result.link, posterUrl: poster }) : ''), [result, poster])
+  const copySnippet = async () => {
+    try { await navigator.clipboard.writeText(snippet); setSnippetCopied(true); setTimeout(() => setSnippetCopied(false), 1800) } catch { /* ignore */ }
+  }
 
   const rows = useMemo(
-    () => (baseOk && leads ? leadLinks(base.trim(), tokens, leads) : []),
-    [base, baseOk, tokens, leads],
+    () => (baseOk && leads ? leadLinks(base.trim(), tokens, leads, { includePrivate }) : []),
+    [base, baseOk, tokens, leads, includePrivate],
   )
   const loadLeads = async () => {
     setLeadsState('loading')
@@ -195,6 +207,57 @@ export default function EmailLinkPanel({ tokens }: { tokens: string[] }) {
           {result.skipped.length > 0 && (
             <p className="text-xs text-white/40">Not in the link (images can't be merge tags): {result.skipped.join(', ')}.</p>
           )}
+        </div>
+      )}
+      {result && (
+        <div data-testid="pz-email-options" className="space-y-3 rounded-xl border border-white/10 bg-black/30 p-4">
+          <span className="text-xs font-semibold uppercase tracking-wider text-white/40">Campaign options</span>
+          <label className="block text-xs text-white/60">Recipient id tag (to see views per recipient)
+            <input
+              data-testid="pz-email-recipient"
+              value={recipientId}
+              onChange={(e) => setRecipientOverride(e.target.value)}
+              placeholder={`your provider's unique id tag, e.g. ${provider.open}ID${provider.close}`}
+              className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-sm text-white"
+            />
+          </label>
+          <label className="block text-xs text-white/60">Campaign name for analytics (UTM, optional)
+            <input data-testid="pz-email-utm" value={utm} onChange={(e) => setUtm(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-sm text-white" />
+          </label>
+          <label className="flex items-center gap-2 text-xs text-white/60">
+            <input data-testid="pz-email-private" type="checkbox" checked={includePrivate} onChange={(e) => setIncludePrivate(e.target.checked)} />
+            Put email and phone in the link (they will be visible in the URL)
+          </label>
+        </div>
+      )}
+      {result && (
+        <div data-testid="pz-email-preflight" className="space-y-1 rounded-xl border border-white/10 bg-black/30 p-4 text-xs">
+          <span className="text-xs font-semibold uppercase tracking-wider text-white/40">Before you send</span>
+          <p className={recipientId.trim() ? 'text-emerald-300' : 'text-amber-300'}>
+            {recipientId.trim() ? '✓ Views will show per recipient.' : '! No recipient id: every view will look the same. Add your provider\'s unique id tag above.'}
+          </p>
+          <p className={result.unmapped.length ? 'text-amber-300' : 'text-emerald-300'}>
+            {result.unmapped.length ? `! Create a field in ${builtIn.key === 'custom' ? 'your provider' : provider.label} for: ${result.unmapped.join(', ')}.` : '✓ Every token has a field in your provider.'}
+          </p>
+          <p className={noDefaults.length ? 'text-amber-300' : 'text-emerald-300'}>
+            {noDefaults.length ? `! No fallback for ${noDefaults.join(', ')}: a blank in your list leaves a gap. Write {{d ${noDefaults[0]} "there"}} to set one.` : '✓ Every token has a fallback if a value is blank.'}
+          </p>
+          {result.excluded.length > 0 && <p className="text-white/50">Left out of the link so they don't show in the URL: {result.excluded.join(', ')}.</p>}
+          <p className="pt-1">
+            <a data-testid="pz-email-preview" href={preview} target="_blank" rel="noopener noreferrer" className="font-semibold text-white underline">Preview as a recipient ↗</a>
+            <span className="text-white/40"> (opens the video with sample details)</span>
+          </p>
+        </div>
+      )}
+      {result && (
+        <div data-testid="pz-email-snippet" className="space-y-2 rounded-xl border border-white/10 bg-black/30 p-4">
+          <span className="text-xs font-semibold uppercase tracking-wider text-white/40">Email snippet</span>
+          <p className="text-xs text-white/40">Email can't play video. Paste this into your email: it shows a picture (or a button) that opens the personalized video.</p>
+          <input data-testid="pz-email-poster" value={poster} onChange={(e) => setPoster(e.target.value)} placeholder="Poster image URL (optional, https://…)" className="w-full rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-sm text-white" />
+          <pre data-testid="pz-email-snippet-code" className="max-h-32 overflow-auto whitespace-pre-wrap break-all text-xs text-white/70">{snippet}</pre>
+          <button onClick={copySnippet} className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/5">
+            {snippetCopied ? <Check size={14} /> : <Copy size={14} />} {snippetCopied ? 'Copied' : 'Copy snippet'}
+          </button>
         </div>
       )}
       {baseOk && (

@@ -8,7 +8,7 @@ const BASE = 'https://watch.example/v/abc'
 
 describe('emailMergeLink', () => {
   it('builds provider tags and skips image tokens', () => {
-    expect(mergeTagLink(BASE, ['firstName', 'email'], 'mailchimp').link).toBe(`${BASE}?firstName=*|FNAME|*&email=*|EMAIL|*`)
+    expect(mergeTagLink(BASE, ['firstName', 'email'], 'mailchimp', { includePrivate: true }).link).toBe(`${BASE}?firstName=*|FNAME|*&email=*|EMAIL|*`)
     expect(mergeTagLink(BASE, ['firstName'], 'klaviyo').link).toBe(`${BASE}?firstName={{ first_name }}`)
     const r = mergeTagLink(`${BASE}?x=1`, ['firstName', 'logoUrl', 'painPoint'], 'custom', { preload: false })
     expect(r.skipped).toEqual(['logoUrl'])
@@ -42,7 +42,7 @@ describe('EmailLinkPanel', () => {
     fireEvent.change(screen.getByTestId('pz-email-base'), { target: { value: 'not a url' } })
     expect(screen.queryByTestId('pz-email-link')).toBeNull()
     fireEvent.change(screen.getByTestId('pz-email-base'), { target: { value: BASE } })
-    expect(screen.getByTestId('pz-email-link').textContent).toBe(`${BASE}?firstName=*|FNAME|*&company=*|COMPANY|*`)
+    expect(screen.getByTestId('pz-email-link').textContent).toBe(`${BASE}?c=*|UNIQID|*&firstName=*|FNAME|*&company=*|COMPANY|*`)
     fireEvent.change(screen.getByTestId('pz-email-provider'), { target: { value: 'klaviyo' } })
     expect(screen.getByTestId('pz-email-link').textContent).toContain('firstName={{ first_name }}')
     fireEvent.click(screen.getByText('Copy link'))
@@ -99,7 +99,7 @@ describe('per-lead links and CSV', () => {
   ]
   it('builds one link per lead from the values it has, skipping image tokens', () => {
     const rows = leadLinks(BASE, ['company', 'email', 'location', 'firstName', 'logoUrl'], leads)
-    expect(rows[0].link).toBe(`${BASE}?company=Acme%2C+Inc.&email=hi%40acme.test&location=Austin`)
+    expect(rows[0].link).toBe(`${BASE}?company=Acme%2C+Inc.&location=Austin`) // email stays out of the URL by default
     expect(rows[1].link).toBe(`${BASE}?company=Bob+%22Best%22+Plumbing`)
     expect(rows.map((r) => r.name)).toEqual(['Acme, Inc.', 'Bob "Best" Plumbing'])
   })
@@ -198,5 +198,57 @@ describe('custom (user-defined) provider', () => {
     pickCustom()
     expect(screen.getByTestId('pz-email-custom')).toBeTruthy()
     expect(screen.queryByText(/Create a custom field/)).toBeNull()
+  })
+})
+
+describe('campaign options, preflight, preview and email snippet', () => {
+  beforeEach(() => { cleanup(); try { window.localStorage.clear() } catch { /* ignore */ } window.localStorage.setItem('pz-email-link-base', BASE) })
+
+  it('Mailchimp adds its recipient id; other providers ask for one', () => {
+    render(<EmailLinkPanel tokens={['firstName']} />)
+    expect(screen.getByTestId('pz-email-link').textContent).toBe(`${BASE}?c=*|UNIQID|*&firstName=*|FNAME|*`)
+    expect(screen.getByTestId('pz-email-preflight').textContent).toContain('Views will show per recipient')
+    fireEvent.change(screen.getByTestId('pz-email-provider'), { target: { value: 'klaviyo' } })
+    expect(screen.getByTestId('pz-email-link').textContent).toBe(`${BASE}?firstName={{ first_name }}`)
+    expect(screen.getByTestId('pz-email-preflight').textContent).toContain('No recipient id')
+  })
+  it('lets the sender set their own recipient id tag, or clear it', () => {
+    render(<EmailLinkPanel tokens={['firstName']} />)
+    fireEvent.change(screen.getByTestId('pz-email-recipient'), { target: { value: '{{ person.id }}' } })
+    expect(screen.getByTestId('pz-email-link').textContent).toContain('c={{ person.id }}')
+    fireEvent.change(screen.getByTestId('pz-email-recipient'), { target: { value: '' } })
+    expect(screen.getByTestId('pz-email-link').textContent).not.toContain('c=')
+    expect(screen.getByTestId('pz-email-preflight').textContent).toContain('No recipient id')
+  })
+  it('adds UTM tags and keeps email/phone out of the URL unless asked', () => {
+    render(<EmailLinkPanel tokens={['firstName', 'email']} />)
+    expect(screen.getByTestId('pz-email-link').textContent).not.toContain('email=')
+    expect(screen.getByTestId('pz-email-preflight').textContent).toContain('Left out of the link')
+    fireEvent.change(screen.getByTestId('pz-email-utm'), { target: { value: 'Spring sale' } })
+    expect(screen.getByTestId('pz-email-link').textContent).toContain('utm_campaign=Spring%20sale')
+    fireEvent.click(screen.getByTestId('pz-email-private'))
+    expect(screen.getByTestId('pz-email-link').textContent).toContain('email=*|EMAIL|*')
+  })
+  it('warns about tokens with no fallback, and gives a preview link with sample values', () => {
+    render(<EmailLinkPanel tokens={['firstName', 'company']} noDefaults={['firstName']} />)
+    expect(screen.getByTestId('pz-email-preflight').textContent).toContain('No fallback for firstName')
+    expect((screen.getByTestId('pz-email-preview') as HTMLAnchorElement).href).toBe(`${BASE}?firstName=Alex&company=Acme+Co`)
+  })
+  it('builds a copyable email snippet: button by default, poster image when given', async () => {
+    const writeText = vi.fn(async () => {})
+    Object.assign(navigator, { clipboard: { writeText } })
+    render(<EmailLinkPanel tokens={['firstName']} />)
+    expect(screen.getByTestId('pz-email-snippet-code').textContent).toContain('Watch your video</a>')
+    fireEvent.change(screen.getByTestId('pz-email-poster'), { target: { value: 'https://img.example/p.png' } })
+    expect(screen.getByTestId('pz-email-snippet-code').textContent).toContain('<img src="https://img.example/p.png"')
+    fireEvent.click(screen.getByText('Copy snippet'))
+    await Promise.resolve()
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('href="https://watch.example/v/abc?c=*|UNIQID|*'))
+  })
+  it('lead links also keep email out of the URL by default', () => {
+    const rows = leadLinks(BASE, ['company', 'email'], [{ business: { name: 'Acme', email: 'hi@acme.test' } }])
+    expect(rows[0].link).toBe(`${BASE}?company=Acme`)
+    expect(rows[0].email).toBe('hi@acme.test')
+    expect(leadLinks(BASE, ['email'], [{ business: { name: 'Acme', email: 'hi@acme.test' } }], { includePrivate: true })[0].link).toBe(`${BASE}?email=hi%40acme.test`)
   })
 })

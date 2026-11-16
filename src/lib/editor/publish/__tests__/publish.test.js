@@ -348,11 +348,13 @@ describe('share panel email merge-tag link', () => {
 
   it('shows one link with the chosen provider\'s tags, and copies it', async () => {
     const { box, copy } = await mount(() => ['firstName', 'company']);
-    expect(box.querySelector('[data-share-mergelink]').value).toMatch(/\/watch\/abcdefgh12\?firstName=\*\|FNAME\|\*&company=\*\|COMPANY\|\*$/);
+    expect(box.querySelector('[data-share-mergelink]').value).toMatch(/\/watch\/abcdefgh12\?c=\*\|UNIQID\|\*&firstName=\*\|FNAME\|\*&company=\*\|COMPANY\|\*$/);
     const sel = box.querySelector('[data-share-provider]');
     sel.value = 'klaviyo';
     sel.dispatchEvent(new Event('change', { bubbles: true }));
     expect(box.querySelector('[data-share-mergelink]').value).toContain('firstName={{ first_name }}');
+    expect(box.querySelector('[data-share-mergelink]').value).not.toContain('c=');
+    expect(box.querySelector('[data-share-snippet]').value).toContain('<a href="');
     box.querySelector('[data-share-mergecopy]').click();
     await new Promise((r) => setTimeout(r, 0));
     expect(copy).toHaveBeenCalledWith(expect.stringContaining('{{ first_name }}'));

@@ -46,7 +46,7 @@ import {
 import { SocialIcons } from './SocialIcons'
 import { useBusinessEnrichment, mergeCardContacts } from './useBusinessEnrichment'
 import EmailLinkPanel from './EmailLinkPanel'
-import { tokensInText } from './emailMergeLink'
+import { tokensInText, tokensWithoutDefault } from './emailMergeLink'
 import { DEFAULT_ADVANCED_SECTIONS, useDemoPersonalize } from './DemoPersonalizeProvider'
 import type { AutoFillKey } from './businessContentFromResearch'
 import type { AdvancedEditingSections, AdvancedEditingTab } from './types'
@@ -1868,10 +1868,9 @@ export function ResultView(props: any) {
     sharedMediaCount, isVideo, eligibleModes, mode, setMode,
     canPublish = true, canEditInVideoStudio = true, publishNote = '',
   } = props
-  const emailTokens = useMemo(
-    () => tokensInText(promptState?.edited || promptState?.personalized || promptState?.original || ''),
-    [promptState?.edited, promptState?.personalized, promptState?.original],
-  )
+  const emailText = promptState?.edited || promptState?.personalized || promptState?.original || ''
+  const emailTokens = useMemo(() => tokensInText(emailText), [emailText])
+  const emailNoDefaults = useMemo(() => tokensWithoutDefault(emailText), [emailText])
 
   return (
     <div className="py-6 space-y-6">
@@ -1920,7 +1919,7 @@ export function ResultView(props: any) {
         </div>
       )}
 
-      {resultTab === 'email' && <EmailLinkPanel tokens={emailTokens} />}
+      {resultTab === 'email' && <EmailLinkPanel tokens={emailTokens} noDefaults={emailNoDefaults} />}
 
       {resultTab === 'images' && result.type === 'image' && result.url && (
         <div className="space-y-4">

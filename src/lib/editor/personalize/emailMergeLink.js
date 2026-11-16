@@ -64,18 +64,23 @@ export function isUnreplacedMergeTag(value) {
 /**
  * Build the campaign link.
  *   mergeTagLink(url, ['firstName', 'company'], provider, { preload: false })
- * Image tokens can't be merge tags (they're URLs), so they're reported in
- * `skipped`; tokens the provider has no built-in field for are in `unmapped`.
- * Tags are appended raw on purpose: encoding them (%2A%7C…) would stop the
- * provider recognising and replacing them.
+ * Image tokens can't be merge tags (they're URLs), so they're reported in `skipped`; tokens the provider has no
+ * built-in field for are in `unmapped`; email/phone are left out of the URL unless `includePrivate` (they would sit
+ * in plain sight and travel with a forwarded link) and are reported in `excluded`.
+ * Options:
+ *   recipientId  tag for a unique recipient id, sent as ?c= so views can be told apart per recipient
+ *                ('' / undefined = none; pass recipientIdTagFor(provider) for the provider's own)
+ *   utmCampaign  adds utm_source=email&utm_medium=email&utm_campaign=<value>
+ * Tags are appended raw on purpose: encoding them (%2A%7C…) would stop the provider recognising and replacing them.
  */
-export function mergeTagLink(baseUrl, tokens = [], provider, { preload = true } = {}) {
+export function mergeTagLink(baseUrl, tokens = [], provider, { preload = true, recipientId = '', utmCampaign = '', includePrivate = false } = {}) {
   const prov = typeof provider === 'string' ? emailProviderByKey(provider) : provider;
   if (!prov) throw new Error('Unknown email provider');
   const url = new URL(baseUrl);
   const parts = [];
   const unmapped = [];
   const skipped = [];
+  const excluded = [];
   const seen = new Set();
   for (const raw of tokens) {
     const key = canonicalTokenKey(raw) || String(raw);
@@ -85,15 +90,22 @@ export function mergeTagLink(baseUrl, tokens = [], provider, { preload = true } 
       skipped.push(key);
       continue;
     }
+    if (!includePrivate && PRIVATE_KEYS.has(key)) {
+      excluded.push(key);
+      continue;
+    }
     const { tag, mapped } = mergeTagFor(prov, key);
     if (!mapped) unmapped.push(key);
     parts.push(`${encodeURIComponent(key)}=${tag}`);
   }
+  if (String(recipientId || '').trim()) parts.unshift(`c=${String(recipientId).trim()}`);
   if (!preload) parts.unshift('preload=none');
+  const campaign = String(utmCampaign || '').trim();
+  if (campaign) parts.push('utm_source=email', 'utm_medium=email', `utm_campaign=${encodeURIComponent(campaign)}`);
   const base = url.toString();
-  if (!parts.length) return { link: base, unmapped, skipped };
+  if (!parts.length) return { link: base, unmapped, skipped, excluded };
   const sep = url.search ? '&' : '?';
-  return { link: `${base}${sep}${parts.join('&')}`, unmapped, skipped };
+  return { link: `${base}${sep}${parts.join('&')}`, unmapped, skipped, excluded };
 }
 
 /** Token names used in a text ({{firstName}}, {{d company "there"}}, {{first name}}), in order, de-duplicated. */
@@ -126,16 +138,17 @@ export function leadTokenValue(business, tokenKey) {
 
 /**
  * One personal link per lead: the base link plus the values that lead has for the video's tokens.
- * Image tokens and tokens the lead has no value for are left out (the video shows its fallback).
+ * Image tokens, tokens the lead has no value for, and (unless includePrivate) email/phone are left out of the URL.
  * Returns [{ name, email, company, link }].
  */
-export function leadLinks(baseUrl, tokens = [], leads = []) {
+export function leadLinks(baseUrl, tokens = [], leads = [], { includePrivate = false } = {}) {
   return leads.map((lead) => {
     const b = lead?.business || lead || {};
     const url = new URL(baseUrl);
     for (const raw of tokens) {
       const key = canonicalTokenKey(raw) || String(raw);
       if (!key || isImageTokenKey(key)) continue;
+      if (!includePrivate && PRIVATE_KEYS.has(key)) continue;
       const v = leadTokenValue(b, key);
       if (v) url.searchParams.set(key, v);
     }
@@ -152,4 +165,58 @@ const csvCell = (v) => {
 export function leadLinksCsv(rows) {
   const head = ['Name', 'Email', 'Company', 'Link'];
   return [head, ...rows.map((r) => [r.name, r.email, r.company, r.link])].map((r) => r.map(csvCell).join(',')).join('\r\n');
+}
+
+
+/** Personal details that would sit in plain sight in the link; left out unless the sender opts in. */
+const PRIVATE_KEYS = new Set(['email', 'phone', 'businessPhone', 'businessEmail']);
+
+/** Sample values used by "Preview as recipient". */
+const SAMPLE_VALUES = {
+  firstName: 'Alex', lastName: 'Taylor', fullName: 'Alex Taylor', company: 'Acme Co', companyName: 'Acme Co',
+  title: 'Founder', location: 'Austin', industry: 'Retail', email: 'alex@example.com', phone: '555 0100',
+};
+
+/** The provider's recipient-id merge tag (e.g. Mailchimp's *|UNIQID|*), or '' when none is known. */
+export function recipientIdTagFor(provider) {
+  return provider?.recipientId ? `${provider.open}${provider.recipientId}${provider.close}` : '';
+}
+
+/** Escape text for an HTML attribute or text node. */
+const escHtml = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/**
+ * Copy-and-paste HTML for an email: a poster image (or a button when there is no image) that links to the
+ * personalized video. Email can't play video, so the link is what carries the personalization.
+ */
+export function emailSnippet({ link, posterUrl = '', alt = 'Watch your video', buttonText = 'Watch your video', width = 560 }) {
+  const href = escHtml(link);
+  const poster = String(posterUrl || '').trim();
+  if (/^https?:\/\//i.test(poster)) {
+    return `<a href="${href}" target="_blank" style="display:block;text-decoration:none"><img src="${escHtml(poster)}" alt="${escHtml(alt)}" width="${Number(width) || 560}" style="display:block;border:0;max-width:100%;height:auto"></a>`;
+  }
+  return `<a href="${href}" target="_blank" style="display:inline-block;padding:14px 28px;background:#111111;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;text-decoration:none;border-radius:6px">${escHtml(buttonText)}</a>`;
+}
+
+/** Link with sample values filled in, to see what a recipient would see. Image tokens are left out. */
+export function previewLink(baseUrl, tokens = []) {
+  const url = new URL(baseUrl);
+  for (const raw of tokens) {
+    const key = canonicalTokenKey(raw) || String(raw);
+    if (!key || isImageTokenKey(key)) continue;
+    url.searchParams.set(key, SAMPLE_VALUES[key] || `Sample ${key}`);
+  }
+  return url.toString();
+}
+
+/** Tokens a text uses WITHOUT a fallback, so a blank in the recipient list would leave a gap ({{d key "there"}} adds one). */
+export function tokensWithoutDefault(text) {
+  const out = [];
+  for (const m of String(text || '').matchAll(/\{\{\s*([^{}]+?)\s*\}\}/g)) {
+    const body = m[1].trim();
+    if (/^(?:d|default)\s+\S+\s+(["']).*\1$/.test(body)) continue;
+    const key = canonicalTokenKey(body.replace(/^(?:up)\s+(?=\S)/, '')) || body.replace(/^(?:up)\s+(?=\S)/, '');
+    if (key && !isImageTokenKey(key) && !out.includes(key)) out.push(key);
+  }
+  return out;
 }

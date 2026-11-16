@@ -3,7 +3,7 @@
  * link or embed code, see views and leads, update or unpublish it.
  */
 import { watchUrl, embedCode, canonicalUrl, validateSlug, slugify } from './publishClient.js';
-import { EMAIL_PROVIDERS, emailProviderByKey, mergeTagLink } from '../personalize/emailMergeLink.js';
+import { EMAIL_PROVIDERS, emailProviderByKey, mergeTagLink, recipientIdTagFor, previewLink, emailSnippet } from '../personalize/emailMergeLink.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -37,7 +37,7 @@ export function renderSharePanel(container, opts) {
     if (!ui.stats) return '<div class="share-stats-table pz-ui"><p class="pz-hint">Loading views by contact…</p></div>';
     const rows = ui.stats;
     const body = rows.length
-      ? rows.map((r) => `<tr><td>${esc(r.contactId ? (opts.contactLabel?.(r.contactId) || 'Removed contact') : 'Everyone else')}</td><td>${r.views}</td><td>${r.plays}</td><td>${r.completes}</td><td>${r.ctaClicks}</td><td>${r.leads}</td></tr>`).join('')
+      ? rows.map((r) => `<tr><td>${esc(r.contactId ? (opts.contactLabel?.(r.contactId) || `Recipient ${r.contactId}`) : 'Everyone else')}</td><td>${r.views}</td><td>${r.plays}</td><td>${r.completes}</td><td>${r.ctaClicks}</td><td>${r.leads}</td></tr>`).join('')
       : '<tr><td colspan="6"><span class="pz-hint">No views yet. Send personal links to see who watched.</span></td></tr>';
     return `<div class="share-stats-table pz-ui">
       <div class="share-personal__head"><span class="pz-label" style="margin:0;flex:1">Views by contact</span><button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-share-stats-refresh>Refresh</button></div>
@@ -124,15 +124,26 @@ export function renderSharePanel(container, opts) {
     const tokens = opts.mergeTokens() || [];
     if (!tokens.length) return '<p class="addon-field__hint">Email merge tags: use {{tokens}} like {{firstName}} in your text to get one link your email provider can personalize for every recipient.</p>';
     const prov = emailProviderByKey(ui.provider) || EMAIL_PROVIDERS[0];
-    const { link: mlink, unmapped, skipped } = mergeTagLink(link, tokens, prov, { preload: ui.preload !== false });
+    const idTag = ui.recipientId ?? recipientIdTagFor(prov);
+    const { link: mlink, unmapped, skipped, excluded } = mergeTagLink(link, tokens, prov, { preload: ui.preload !== false, recipientId: idTag, utmCampaign: ui.utm || '', includePrivate: !!ui.includePrivate });
     ui.mergeLink = mlink;
+    ui.mergeSnippet = emailSnippet({ link: mlink, posterUrl: ui.poster || '' });
     return `<div class="share-merge pz-ui">
       <div class="share-personal__head"><strong>Email merge-tag link</strong></div>
       <label class="addon-field"><span>Email provider</span>
         <select data-share-provider aria-label="Email provider">${EMAIL_PROVIDERS.map((p) => `<option value="${esc(p.key)}"${p.key === prov.key ? ' selected' : ''}>${esc(p.label)}</option>`).join('')}</select></label>
       <label class="cap-row"><span>Preload video</span><input type="checkbox" data-share-preload ${ui.preload !== false ? 'checked' : ''}/></label>
+      <label class="cap-row"><span>Recipient id tag</span><input type="text" data-share-recipientid value="${esc(idTag)}" placeholder="${esc(recipientIdTagFor(prov) || 'e.g. a unique-id tag from your provider')}"/></label>
+      <label class="cap-row"><span>Campaign name (UTM)</span><input type="text" data-share-utm value="${esc(ui.utm || '')}" placeholder="optional"/></label>
+      <label class="cap-row"><span>Put email/phone in the link</span><input type="checkbox" data-share-private ${ui.includePrivate ? 'checked' : ''}/></label>
       <span class="share-copy"><textarea readonly rows="3" data-share-mergelink aria-label="Merge-tag link">${esc(mlink)}</textarea><button type="button" class="mini-btn" data-share-mergecopy>${ui.copied === 'merge' ? 'Copied ✓' : 'Copy'}</button></span>
       <p class="addon-field__hint">Paste this link into your ${esc(prov.label)} campaign; each recipient gets a video with their own details.</p>
+      ${idTag ? '<p class="addon-field__hint">Views will show per recipient (by that id).</p>' : '<p class="addon-field__hint">Add your provider\'s unique recipient-id tag above to see views per recipient.</p>'}
+      ${excluded.length ? `<p class="addon-field__hint">Left out of the link so they don't show in the URL: ${excluded.map((k) => esc(k)).join(', ')}.</p>` : ''}
+      <p class="addon-field__hint"><a href="${esc(previewLink(link, tokens))}" target="_blank" rel="noopener">Preview as a recipient ↗</a> (sample details)</p>
+      <label class="addon-field"><span>Email snippet (poster image URL optional)</span>
+        <input type="text" data-share-poster value="${esc(ui.poster || '')}" placeholder="https://… poster image"/>
+        <span class="share-copy"><textarea readonly rows="3" data-share-snippet aria-label="Email snippet">${esc(ui.mergeSnippet)}</textarea><button type="button" class="mini-btn" data-share-snippetcopy>${ui.copied === 'snippet' ? 'Copied ✓' : 'Copy'}</button></span></label>
       ${unmapped.length ? `<p class="pz-warning">${esc(prov.label)} has no standard field for ${unmapped.map((k) => esc(k)).join(', ')}. Create a custom field with that name there, or those values stay blank.</p>` : ''}
       ${skipped.length ? `<p class="addon-field__hint">Not in the link (images can't be merge tags): ${skipped.map((k) => esc(k)).join(', ')}. Use personal links for those.</p>` : ''}
     </div>`;
@@ -228,6 +239,10 @@ export function renderSharePanel(container, opts) {
       try { await opts.copy(row.link); ui.copied = `p${d.sharePersonal}`; } catch { ui.copied = ''; }
       draw();
       setTimeout(() => { ui.copied = ''; draw(); }, 1800);
+    } else if (d.shareSnippetcopy !== undefined) {
+      try { await opts.copy(ui.mergeSnippet || ''); ui.copied = 'snippet'; } catch { ui.copied = ''; }
+      draw();
+      setTimeout(() => { ui.copied = ''; draw(); }, 1800);
     } else if (d.shareMergecopy !== undefined) {
       try { await opts.copy(ui.mergeLink || ''); ui.copied = 'merge'; } catch { ui.copied = ''; }
       draw();
@@ -241,8 +256,12 @@ export function renderSharePanel(container, opts) {
   };
 
   const onChange = async (e) => {
-    if (e.target.matches('[data-share-provider]')) { ui.provider = e.target.value; draw(); return; }
+    if (e.target.matches('[data-share-provider]')) { ui.provider = e.target.value; ui.recipientId = undefined; draw(); return; }
     if (e.target.matches('[data-share-preload]')) { ui.preload = e.target.checked; draw(); return; }
+    if (e.target.matches('[data-share-private]')) { ui.includePrivate = e.target.checked; draw(); return; }
+    if (e.target.matches('[data-share-recipientid]')) { ui.recipientId = e.target.value.trim(); draw(); return; }
+    if (e.target.matches('[data-share-utm]')) { ui.utm = e.target.value.trim(); draw(); return; }
+    if (e.target.matches('[data-share-poster]')) { ui.poster = e.target.value.trim(); draw(); return; }
     if (e.target.matches('[data-share-privacy]')) {
       try { await opts.setPrivacy(e.target.value); ui.info = { ...ui.info, privacy: e.target.value }; ui.linkMsg = 'Privacy updated.'; } catch (err) { ui.linkMsg = err?.message || 'Could not update privacy'; }
       draw();
