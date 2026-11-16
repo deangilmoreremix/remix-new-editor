@@ -20,7 +20,6 @@ Test media: two generated 8s VP9 clips. No Supabase / Clerk / provider keys were
 | 42-follow-subject-dialog | Follow subject (motion tracking) dialog |
 | 44-dual-viewer, 45-blade-tool-active | Dual viewer; Blade tool |
 | 46, 47, 48 | Add to timeline > Overlays & forms / End screens & connect forms / Template videos |
-| 50-classic-timeline-editor | The previous editor at `#/timeline-classic` (feature chip row + bottom dock) |
 
 ## Not captured / not verified
 - "Open full timeline" button: click timed out, no screenshot (30/43 missing).
