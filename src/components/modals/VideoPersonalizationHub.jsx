@@ -402,6 +402,7 @@ export class VideoPersonalizationHub extends BaseModal {
           <button class="create-pages-btn" ${this.generations.length === 0 ? 'disabled' : ''}>
             🏠 Generate Landing Pages
           </button>
+          <button class="browse-landing-btn" type="button">▤ Browse landing page designs</button>
         </div>
       </div>
     `;
@@ -533,6 +534,13 @@ export class VideoPersonalizationHub extends BaseModal {
         this.handleGenerate();
       });
     }
+
+    // Browse landing pages: the shared picker (all designs, full view + editor) with the first video attached
+    this.content.querySelector('.browse-landing-btn')?.addEventListener('click', async () => {
+      const v = this.videos[0] || {};
+      const { openLandingPagePicker } = await import('../../lib/landingPages/pickerModal.js');
+      openLandingPagePicker({ video: { url: v.url || v.src || v.videoUrl, name: v.name || v.title, thumbnail_url: v.thumbnail || v.poster, studio: 'personalization' } });
+    });
 
     // Create pages button
     const createPagesBtn = this.content.querySelector('.create-pages-btn');
