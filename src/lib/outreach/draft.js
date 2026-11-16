@@ -64,6 +64,9 @@ export function defaultDraft() {
     // The landing page of this dynamic video (like Sendspark, the page belongs to the video): null = the plain
     // video page, else { template: <design id>, puck: <your edited page> | null (the design as it comes) }.
     page: null,
+    // Kind of dynamic video (Create Dynamic Videos): 'variables' (the greeting says several details, e.g. name and
+    // company), 'greeting' (an AI "Hi {{firstname}}!"), 'same' (everyone hears the recording as is, no AI voice).
+    kind: 'greeting',
     contacts: [],
     campaign: null,
     name: '',
@@ -112,6 +115,13 @@ export function loadDraft(storage = globalThis.localStorage) {
     return base;
   }
 }
+
+/** The three kinds of dynamic video (Create Dynamic Videos), with the greeting each starts with. */
+export const DYNAMIC_KINDS = Object.freeze([
+  { id: 'variables', title: 'Multiple variables', text: 'The greeting says several details, like their name and company.', greeting: 'Hi {{firstname}}, I made this for {{company}}!' },
+  { id: 'greeting', title: 'AI greeting', text: 'Each video starts with “Hi Name” in your voice. Many languages supported.', greeting: 'Hi {{firstname}}!' },
+  { id: 'same', title: 'Same audio', text: 'Everyone hears your recording as it is, without an AI voice.', greeting: '' },
+]);
 
 /** A valid { template, puck } page, or null. */
 export function cleanPage(page) {
@@ -190,7 +200,7 @@ export function stepErrors(draft, step) {
     if (!draft.video?.url) errors.push('Record or upload a video first.');
     else if (draft.video.url.startsWith('blob:')) errors.push('The video has not finished uploading.');
   }
-  if (step === 2) {
+  if (step === 2 && draft.kind !== 'same') {
     const v = draft.voice || {};
     if (v.mode === 'clone') {
       if (!CLONE_VOICE_ID.test(v.cloneVoiceId || '')) errors.push('Clone your voice, or choose a stock voice.');
@@ -479,7 +489,8 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, now
   const id = now.toString(36);
   const { videoSeconds, greetingSeconds, T } = clipsTimeline(draft);
   const voice = voiceSettings(draft);
-  const greeting = String(draft.greeting).trim();
+  const same = draft.kind === 'same';
+  const greeting = same ? '' : String(draft.greeting).trim();
   const personal = tokensIn(greeting).length > 0;
 
   const tts = {
@@ -507,7 +518,8 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, now
       { ...recording, id: `outreach-video-${id}`, trimIn: lipsync.seconds, left: (lipsync.seconds / T) * 100, width: ((videoSeconds - lipsync.seconds) / T) * 100 },
     ]
     : [recording];
-  const voiceTrack = { id: `track-voiceover-${id}`, type: 'audio', name: 'Voiceover', muted: false, solo: false,
+  // Same audio: no greeting track; everyone hears the recording as it is.
+  const voiceTrack = same ? null : { id: `track-voiceover-${id}`, type: 'audio', name: 'Voiceover', muted: false, solo: false,
     items: [{ id: `speech-outreach-${id}`, type: 'audio', role: 'voiceover', name: 'Greeting', src: draft.voice.fallbackUrl, volume: 1, tts, start: 0, end: greetingSeconds }] };
 
   // Website background: each contact's site screenshot full frame (scrolling), the recording in a round
@@ -523,12 +535,12 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, now
         items: [{ id: `outreach-site-${id}`, name: 'Contact background', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', ...(draft.background.mode === 'website' ? { scroll: true, cursor: draft.background.cursor !== false } : {}), left: 0, width: 100 }] },
       { id: `track-cam-${id}`, type: 'video', name: 'Camera', muted: false, solo: false, items: cameraItems },
       voiceTrack,
-    ]
+    ].filter(Boolean)
     : [
       // The greeting plays over the first seconds of the recording (the Record step asks for a pause there).
       { id: `track-video-${id}`, type: 'video', name: 'Main Video', muted: false, solo: false, items: cameraItems },
       voiceTrack,
-    ];
+    ].filter(Boolean);
 
   return {
     title: name.slice(0, 200),
@@ -631,6 +643,7 @@ export function newDynamicVideo(from = {}, { keepVideo = false } = {}) {
   if (from.email) d.email = { ...d.email, ...from.email };
   if (from.language) d.language = from.language;
   if (from.page) d.page = cleanPage(JSON.parse(JSON.stringify(from.page)));
+  if (DYNAMIC_KINDS.some((k) => k.id === from.kind)) d.kind = from.kind;
   if (keepVideo && from.video) {
     Object.assign(d, { video: from.video, captions: from.captions || null, script: from.script || '', greeting: from.greeting || d.greeting, header: from.header || d.header, message: from.message || d.message, background: { ...d.background, ...(from.background || {}) }, fallbacks: { ...d.fallbacks, ...(from.fallbacks || {}) } });
     d.voice = { ...d.voice, fallbackUrl: from.voice?.fallbackUrl || '', fallbackDuration: from.voice?.fallbackDuration || 0, lipsync: !!from.voice?.lipsync };

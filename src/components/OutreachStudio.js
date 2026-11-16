@@ -21,7 +21,7 @@ import {
   parseCsv, guessMapping, contactsFromRows, contactsFromLeads, makeContact, mergeContacts, contactProfile, contactValues,
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
   usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
-  saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage,
+  saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage, DYNAMIC_KINDS,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -560,6 +560,19 @@ export function OutreachStudio() {
   }
 
   function renderVoice() {
+    if (draft.kind === 'same') {
+      // Same audio (Create Dynamic Videos): no AI voice; prospects are personalized by their website and page.
+      const box = card('Same audio for everyone', 'Everyone hears your recording as it is, without an AI voice. Each prospect still gets their website behind you, their own landing page and link.');
+      box.setAttribute('data-outreach-same-audio', '');
+      const row = el('div', 'flex flex-wrap gap-2');
+      for (const k of DYNAMIC_KINDS.filter((x) => x.id !== 'same')) {
+        const b = button(`Use ${k.title.toLowerCase()} instead`, { small: true });
+        b.addEventListener('click', () => { draft.kind = k.id; draft.greeting = k.greeting; draft.voice = { ...draft.voice, fallbackUrl: '', fallbackDuration: 0 }; persist(); render(); });
+        row.appendChild(b);
+      }
+      box.appendChild(row);
+      return box;
+    }
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_400px]');
     const main = card('Choose the voice', 'Each contact hears their own greeting. Clone your voice so it sounds like you, or use a stock voice.');
     const modes = el('div', 'flex gap-2');
@@ -953,13 +966,14 @@ export function OutreachStudio() {
   // Website background: one screenshot per unique site (server-side, cached per site). A site that
   // cannot be captured falls back to the fallback website; the fallback itself must work.
   // { requireFallback: false } when only logos are wanted (thumbnails without website backgrounds).
-  async function captureSites({ requireFallback = true } = {}) {
+  async function captureSites({ requireFallback = true, onProgress = () => {} } = {}) {
     const { installPersonalizationApiAuth } = await import('../features/personalization/lib/apiAuth.ts');
     installPersonalizationApiAuth();
     const todo = sitesToCapture(draft).filter((site) => !draft.siteShots[site]);
     const failed = [];
     for (let i = 0; i < todo.length; i++) {
       if (abort?.signal.aborted) throw Object.assign(new Error('Stopped'), { name: 'AbortError' });
+      onProgress(i / todo.length);
       setBusy(`Capturing websites: ${i + 1} of ${todo.length} (${todo[i].replace(/^https?:\/\//, '').replace(/\/$/, '')})…`);
       try {
         const res = await fetch('/api/outreach/site-shot', {
@@ -998,15 +1012,20 @@ export function OutreachStudio() {
     }
   }
 
-  async function generateCampaign() {
-    const personal = tokensIn(draft.greeting).length > 0;
+  // Returns true when the campaign is published. `confirmed` skips the cost question (the caller asked already);
+  // onStage(stage, part) follows the real work, part = 0..1 of that stage: 'site' (website screenshots), 'voice'
+  // (greetings), 'render' (publishing the personal videos and rendering their thumbnails), 'page' (the landing
+  // page), 'done'. On failure the reason is in `notice`.
+  async function generateCampaign({ confirmed = false, onStage = () => {} } = {}) {
+    const personal = draft.kind !== 'same' && tokensIn(draft.greeting).length > 0;
     const n = draft.contacts.length;
     const wantSync = personal && !!draft.voice.lipsync;
-    if (personal && !window.confirm(`This voices the greeting for up to ${n} contact${n === 1 ? '' : 's'} (repeated names are voiced once). Each one is a paid speech request on your MuAPI key.${wantSync ? ` Lip-sync is on: each distinct greeting is also a paid lip-sync video request (up to ${n}), which costs more and takes about a minute each.` : ''} Continue?`)) return;
+    if (personal && !confirmed && !window.confirm(`This voices the greeting for up to ${n} contact${n === 1 ? '' : 's'} (repeated names are voiced once). Each one is a paid speech request on your MuAPI key.${wantSync ? ` Lip-sync is on: each distinct greeting is also a paid lip-sync video request (up to ${n}), which costs more and takes about a minute each.` : ''} Continue?`)) return false;
     notice = '';
     abort = new AbortController();
     try {
-      if (draft.background.mode === 'website') await captureSites();
+      onStage('site');
+      if (draft.background.mode === 'website') await captureSites({ onProgress: (part) => onStage('site', part) });
       if (draft.background.mode === 'map') await captureMaps();
       let variants = {};
       if (personal) {
@@ -1014,13 +1033,14 @@ export function OutreachStudio() {
           import('../lib/editor/personalize/perContact.js'),
           import('../lib/editor/agent/audioGen.js'),
         ]);
+        onStage('voice');
         progress = { total: n, done: 0, phase: 'Voicing' };
         setBusy(`Voicing greetings: 0 of ${n}…`);
         ({ variants } = await voiceForContacts({
           text: draft.greeting,
           contacts: draft.contacts.map((c) => contactProfile(c)),
           signal: abort.signal,
-          onProgress: ({ done, total, name }) => { progress = { total, done, phase: 'Voicing' }; setBusy(`Voicing greetings: ${done} of ${total} (${name})…`); },
+          onProgress: ({ done, total, name }) => { progress = { total, done, phase: 'Voicing' }; onStage('voice', total ? done / total : 1); setBusy(`Voicing greetings: ${done} of ${total} (${name})…`); },
           generate: async (line) => {
             const remote = await audio.generateAudio('tts', speakRequest(draft, line), { signal: abort.signal });
             const url = await audio.persistAudio(remote, { upload: uploadToStorage, name: 'greeting' });
@@ -1041,6 +1061,7 @@ export function OutreachStudio() {
           onProgress: ({ done, total }) => { progress = { total, done, phase: 'Lip-syncing' }; setBusy(`Lip-syncing greetings: ${done} of ${total}…`); },
         });
       }
+      onStage('render');
       setBusy('Publishing the campaign…');
       const [{ preparePublishProject, publishVideo, makeSlug, watchUrl }, { personalLink }] = await Promise.all([
         import('../lib/editor/publish/publishClient.js'),
@@ -1067,16 +1088,22 @@ export function OutreachStudio() {
       const done = `${draft.campaign.links.length} personal video${draft.campaign.links.length === 1 ? '' : 's'} ready.${lipsync?.failed?.length ? ` Lip-sync failed for ${lipsync.failed.length} contact${lipsync.failed.length === 1 ? '' : 's'}; they hear their greeting without it.` : ''}`;
       // Like Sendspark, one Generate also makes the page and every prospect's thumbnail.
       notice = '';
-      if (!(await publishCampaignPage({ quiet: true }))) return; // the page failed: its message stays
       progress = null;
-      await makeThumbnails();
+      onStage('render', 0.4);
+      await makeThumbnails({ onProgress: (part) => onStage('render', 0.4 + 0.6 * part) });
       const thumbs = /^Thumbnails ready/.test(notice) ? ' Thumbnails made.' : notice ? ` Thumbnails: ${notice}` : '';
+      notice = '';
+      onStage('page');
+      if (!(await publishCampaignPage({ quiet: true }))) return false; // the page failed: its message stays
       busy = '';
       notice = `Campaign published: ${done}${draft.campaign.page ? ' Their page is live.' : ''}${thumbs} Share each link below.`;
+      onStage('done');
       render();
+      return true;
     } catch (err) {
-      if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped. Nothing was published.'; render(); return; }
+      if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped. Nothing was published.'; render(); return false; }
       fail(err);
+      return false;
     } finally {
       abort = null;
       progress = null;
@@ -1111,7 +1138,7 @@ export function OutreachStudio() {
         ? 'Send each contact their own link. It opens your video with their greeting and your booking button.'
         : 'Each contact’s greeting is voiced, the video is published, and every contact gets a personal link.');
     const facts = el('div', 'grid grid-cols-2 md:grid-cols-4 gap-3');
-    const personal = tokensIn(draft.greeting).length > 0;
+    const personal = draft.kind !== 'same' && tokensIn(draft.greeting).length > 0;
     const named = draft.contacts.filter((c) => c.firstName).length;
     for (const [label, value] of [
       ['Contacts', draft.contacts.length],
@@ -1142,7 +1169,7 @@ export function OutreachStudio() {
     } else {
       const gen = button(draft.campaign ? 'Regenerate and republish' : 'Generate campaign', { primary: !draft.campaign });
       gen.disabled = !!busy || [1, 2, 3, 4].some((s) => stepErrors(draft, s).length);
-      gen.addEventListener('click', generateCampaign);
+      gen.addEventListener('click', () => generateCampaign());
       actions.appendChild(gen);
     }
     if (draft.campaign) {
@@ -1413,7 +1440,9 @@ export function OutreachStudio() {
       }
       if (!quiet) setBusy('Updating your landing page…');
       if (!tpl) tpl = await import('../lib/landingPages/templates.js');
-      const data = pagePuck();
+      // The design straight from the templates: the Page step (which loads the list) may not have been opened.
+      const design = tpl.TEMPLATES.find((t) => t.puck && t.id === draft.page.template);
+      const data = draft.page.puck || design?.puckData || null;
       if (!data) throw new Error('That landing page design was not found. Choose your landing page again.');
       const client = await ownerClient();
       const title = String(draft.name || '').trim() || pageName();
@@ -1473,7 +1502,7 @@ export function OutreachStudio() {
 
   const logoFor = (c) => (draft.email.thumb?.logo === false ? '' : draft.siteLogos?.[siteKey(c.website)] || '');
 
-  async function makeThumbnails() {
+  async function makeThumbnails({ onProgress = () => {} } = {}) {
     const T = await import('../lib/outreach/thumbnail.js');
     const settings = T.thumbSettings(draft.email.thumb);
     abort = new AbortController();
@@ -1482,6 +1511,7 @@ export function OutreachStudio() {
       // Logos come from capturing each contact's website (the same capture as website backgrounds).
       if (settings.logo && sitesToCapture(draft).some((site) => !draft.siteShots[site])) await captureSites({ requireFallback: false });
       setBusy('Reading your video…');
+      onProgress(0.05);
       const duration = draft.video.duration || 0;
       const still = settings.type === 'static';
       const frames = await T.grabFrames(draft.video.url, T.frameTimes(settings, duration || Infinity), still ? { width: T.THUMB_W, height: T.THUMB_H, signal } : { signal });
@@ -1489,6 +1519,7 @@ export function OutreachStudio() {
       const links = draft.campaign.links;
       for (let i = 0; i < links.length; i += 1) {
         if (signal.aborted) throw Object.assign(new Error('stopped'), { name: 'AbortError' });
+        onProgress(0.15 + (0.85 * i) / links.length);
         const c = contactOf(links[i]);
         const text = T.thumbnailText(draft.email.thumbText, c, draft.fallbacks);
         const site = siteShotFor(c);
@@ -1727,14 +1758,19 @@ export function OutreachStudio() {
     const lib = listLibrary();
     const box = el('div', 'flex flex-col gap-4');
     box.setAttribute('data-outreach-library', '');
-    const head = el('div', 'flex flex-wrap items-end gap-3');
-    const title = el('div', 'flex-1');
-    title.append(el('h2', 'text-2xl font-black', 'Your dynamic videos'), el('p', 'text-sm text-secondary', 'Record once. Each prospect gets their own intro, page, thumbnail and link.'));
-    const fresh = button('+ New dynamic video', { primary: true });
+    // Like Sendspark's Dynamic Videos page: who you are, what it does, and Create Dynamic Video.
+    const head = el('div', 'flex flex-wrap items-center gap-4 border-b border-white/10 pb-5');
+    const me = globalThis.window?.Clerk?.user || null;
+    const face = el('div', 'grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-lg font-black text-primary');
+    if (me?.imageUrl && /^https:\/\//.test(me.imageUrl)) { const im = el('img', 'h-full w-full object-cover'); im.src = me.imageUrl; im.alt = ''; face.appendChild(im); }
+    else face.textContent = (me?.firstName || 'S').slice(0, 1).toUpperCase();
+    const title = el('div', 'min-w-0 flex-1');
+    title.append(el('h2', 'text-2xl font-black', 'Dynamic Videos'), el('p', 'text-sm text-secondary', 'Scale yourself: record once, and each prospect gets their own intro, page, thumbnail and link.'));
+    const fresh = button('Create Dynamic Video', { primary: true });
     fresh.setAttribute('data-outreach-new', '');
     fresh.disabled = !!busy;
-    fresh.addEventListener('click', () => startNew());
-    head.append(title, fresh);
+    fresh.addEventListener('click', () => openCreateDynamic());
+    head.append(face, title, fresh);
     box.appendChild(head);
 
     const grid = el('div', 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3');
@@ -1772,8 +1808,14 @@ export function OutreachStudio() {
       grid.appendChild(c);
     });
     if (!grid.children.length) {
-      const empty = el('div', 'rounded-2xl border border-white/10 bg-panel-bg p-6 text-sm text-secondary sm:col-span-2 lg:col-span-3');
-      empty.textContent = 'No dynamic videos yet. Click "+ New dynamic video": record yourself once, add your prospects, and each one gets a personal intro and page.';
+      // Nothing yet: the sample presenter explains it, like Sendspark's "Turn one video into thousands".
+      const empty = el('div', 'flex flex-col items-center gap-5 py-6 text-center sm:col-span-2 lg:col-span-3');
+      empty.setAttribute('data-outreach-empty', '');
+      const wrap = el('div', 'relative w-full max-w-2xl');
+      const v = el('video', 'aspect-video w-full rounded-2xl border border-white/10 bg-black object-cover');
+      v.src = '/media/outreach-sample/presenter.mp4'; v.poster = '/media/outreach-sample/presenter.jpg'; v.controls = true; v.preload = 'metadata'; v.playsInline = true;
+      wrap.append(v, el('span', 'pointer-events-none absolute -right-2 -top-6 rotate-[-4deg] text-lg font-bold italic text-primary md:-right-28 md:top-6', 'Turn one video into thousands'));
+      empty.append(wrap, el('p', 'max-w-2xl text-sm leading-relaxed text-white/60', 'Imagine if you could turn one video into thousands. With SmartVideo\u2019s dynamic videos you record one video, and SmartVideo puts each prospect\u2019s website behind you, says their name and builds their own landing page.'));
       grid.appendChild(empty);
     }
     box.appendChild(grid);
@@ -1901,36 +1943,164 @@ export function OutreachStudio() {
   // Five questions (src/components/outreach/OutreachWelcome.js). Each answer is kept in this browser at once and
   // saved to Supabase (public.user_onboarding) for the signed-in user; a finished welcome never shows again, on any
   // device. The answers fill your company, title and website here and open what you chose first.
+  let ob = null; // src/lib/outreach/onboarding.js, loaded with the welcome
+  const welcomeUser = () => globalThis.window?.Clerk?.user || null;
+  async function saveWelcome(a) {
+    const uid = welcomeUser()?.id || '';
+    ob.saveLocalOnboarding(uid, a);
+    if (!uid) return;
+    try { await ob.saveOnboarding(await ownerClient(), a, uid); } catch { /* kept in this browser; saved next time */ }
+  }
   async function startWelcome() {
-    const ob = await import('../lib/outreach/onboarding.js');
-    const user = globalThis.window?.Clerk?.user || null;
+    ob = await import('../lib/outreach/onboarding.js');
+    const user = welcomeUser();
     const uid = user?.id || '';
-    const remoteSave = async (a) => { if (!uid) return; try { await ob.saveOnboarding(await ownerClient(), a, uid); } catch { /* kept in this browser; saved next time */ } };
     let remote = null;
     if (uid) { try { remote = await ob.fetchOnboarding(await ownerClient()); } catch { /* offline or signed out */ } }
-    const local = ob.loadLocalOnboarding(uid);
-    const best = ob.newerOnboarding(local, remote);
+    const best = ob.newerOnboarding(ob.loadLocalOnboarding(uid), remote);
     if (best) ob.saveLocalOnboarding(uid, best);
-    if (ob.isDone(best)) { if (!ob.isDone(remote)) remoteSave(best); return; }
+    if (ob.isDone(best)) {
+      if (!ob.isDone(remote) || remote.firstVideo !== best.firstVideo) saveWelcome(best);
+      if (!best.firstVideo) showFirstVideo(best); // finished the questions, not the first video yet
+      return;
+    }
     const { mountOutreachWelcome } = await import('./outreach/OutreachWelcome.js');
     let timer = null;
     mountOutreachWelcome(container, {
       name: String(user?.firstName || '').trim().slice(0, 40),
       initial: best,
-      onChange: (a) => { ob.saveLocalOnboarding(uid, a); clearTimeout(timer); timer = setTimeout(() => remoteSave(a), 500); },
+      onChange: (a) => { ob.saveLocalOnboarding(uid, a); clearTimeout(timer); timer = setTimeout(() => saveWelcome(a), 500); },
       onAcademy: () => { globalThis.location.hash = '#/academy'; },
       onFinish: (a) => {
         clearTimeout(timer);
-        remoteSave(a);
+        saveWelcome(a);
         ob.applyToDraft(draft, a);
         persist();
-        if (a.goal) {
-          if (!draft.video && !draft.contacts.length && !draft.campaign) { step = 1; notice = ''; render(); }
-          else startNew();
-          if (a.goal === 'personal' && step === 1) openRecorder('both');
-        } else render();
+        showFirstVideo(a);
       },
     });
+  }
+
+  // ---- Your first video (src/components/outreach/OutreachFirstVideo.js) ------------------
+  // Like Sendspark, the person is the first prospect: Video Outreach's own Generate makes their personal video
+  // from the SmartVideo sample presenter, with their website behind it and a landing page, on their MuAPI key.
+  const SAMPLE_PAGE = 'puck-enterprise';
+  const SAMPLE_SECONDS = 26.5;
+  async function showFirstVideo(a) {
+    const [{ mountFirstVideo, SAMPLE_PRESENTER }] = await Promise.all([import('./outreach/OutreachFirstVideo.js')]);
+    const mark = (firstVideo) => { a = { ...a, firstVideo }; saveWelcome(a); };
+    mountFirstVideo(container, {
+      name: String(welcomeUser()?.firstName || '').trim().slice(0, 40),
+      company: a.company,
+      website: a.website,
+      make: async (d, onStage) => {
+        const res = await makeSample(d, SAMPLE_PRESENTER, onStage);
+        if (res.ok) mark('made');
+        return res;
+      },
+      onLater: () => { mark('later'); openChoice(a.goal); },
+      onProspects: () => { if (!a.firstVideo) mark('made'); openCreateDynamic(); },
+    });
+  }
+  // What the person picked first: personal videos open the recorder; dynamic videos the library.
+  function openChoice(goal) {
+    if (goal === 'personal') { startNew(); if (step === 1) openRecorder('both'); return; }
+    step = STEPS.length; notice = ''; render();
+  }
+  async function makeSample(d, presenter, onStage) {
+    const keep = !draft.campaign && (draft.video || draft.contacts.length) ? JSON.parse(JSON.stringify(draft)) : null;
+    const origin = globalThis.location.origin;
+    const me = makeContact({ firstName: d.firstName, company: d.company, website: d.website });
+    if (!me) return { ok: false, error: 'Add your first name.' };
+    const next = newDynamicVideo(draft);
+    Object.assign(next, {
+      name: 'Your sample video',
+      video: { url: `${origin}${presenter.video}`, duration: SAMPLE_SECONDS, hasAudio: true, type: 'camera' },
+      // The presenter's own voice; the "Hi there!" fallback ships with the sample, so only your name is voiced.
+      voice: { ...next.voice, mode: 'stock', stockVoice: 'Wise_Woman', cloneVoiceId: '', fallbackUrl: `${origin}${presenter.hiThere}`, fallbackDuration: 1.58, lipsync: false },
+      kind: 'greeting',
+      greeting: 'Hi {{firstname}}!',
+      fallbacks: { ...next.fallbacks, firstname: 'there' },
+      header: 'Hi {{firstname}}, I made this for you',
+      message: 'A personal video for {{company}}, made with SmartVideo.',
+      cta: { enabled: true, label: 'Make my first campaign', url: `${origin}/#/outreach`, embed: false },
+      contacts: [me],
+      background: { ...next.background, mode: 'website', fallbackSite: d.website, cursor: true },
+      page: { template: SAMPLE_PAGE, puck: null },
+    });
+    replaceDraft(next);
+    const ok = await generateCampaign({ confirmed: true, onStage });
+    if (!ok || !draft.campaign?.links?.length) {
+      const error = notice || 'The video could not be made.';
+      if (keep) replaceDraft(keep);
+      notice = ''; render();
+      return { ok: false, error };
+    }
+    const l = draft.campaign.links[0];
+    return { ok: true, link: l.link, pageLink: l.pageLink || '', embed: `${l.link}${l.link.includes('?') ? '&' : '?'}embed=1` };
+  }
+  // Create Dynamic Videos: name the campaign and pick its kind (Multiple variables, AI greeting, Same audio),
+  // then a new dynamic video starts on the Record step.
+  function openCreateDynamic() {
+    const inProgress = !draft.campaign && (draft.video || draft.contacts.length);
+    const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
+    overlay.setAttribute('data-outreach-create', '');
+    const box = el('div', 'flex w-full max-w-3xl flex-col gap-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-6 text-white shadow-2xl');
+    box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Create Dynamic Videos');
+    const head = el('div', 'flex items-center justify-between');
+    const x = el('button', 'rounded-lg px-2 py-1 text-xl leading-none text-white/60 hover:text-white', '\u00d7');
+    x.type = 'button'; x.setAttribute('aria-label', 'Close');
+    head.append(el('h2', 'text-lg font-extrabold', 'Create Dynamic Videos'), x);
+    const name = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-[15px] text-white placeholder:text-white/35 outline-none focus:border-primary/50');
+    name.placeholder = 'Name your campaign'; name.setAttribute('aria-label', 'Campaign name'); name.maxLength = 120;
+    let kind = '';
+    const kinds = el('div', 'grid gap-3 sm:grid-cols-3');
+    const cards = DYNAMIC_KINDS.map((k) => {
+      const b = el('button', 'flex flex-col items-center gap-2 rounded-2xl border px-4 py-5 text-center transition-colors');
+      b.type = 'button';
+      b.setAttribute('data-create-kind', k.id);
+      const dot = el('span', 'mt-2 grid h-4 w-4 place-items-center rounded-full border border-white/30');
+      b.append(el('span', 'text-[17px] font-bold', k.title), el('span', 'text-[13px] leading-snug text-white/55', k.text), dot);
+      b.addEventListener('click', () => { kind = k.id; paint(); });
+      kinds.appendChild(b);
+      return { k, b, dot };
+    });
+    const go = el('button', 'inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/[0.14] border-l-2 border-l-primary bg-transparent py-3.5 text-[15px] font-bold text-white hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-35', 'Get started \u2192');
+    go.type = 'button'; go.setAttribute('data-create-start', '');
+    const paint = () => {
+      cards.forEach(({ k, b, dot }) => {
+        const on = k.id === kind;
+        b.className = `flex flex-col items-center gap-2 rounded-2xl border px-4 py-5 text-center transition-colors ${on ? 'border-primary/45 bg-primary/[0.07]' : 'border-white/10 hover:border-white/20 hover:bg-white/[0.03]'}`;
+        b.setAttribute('aria-pressed', String(on));
+        dot.innerHTML = on ? '<span class="h-2 w-2 rounded-full bg-primary"></span>' : '';
+        dot.className = `mt-2 grid h-4 w-4 place-items-center rounded-full border ${on ? 'border-primary' : 'border-white/30'}`;
+      });
+      go.disabled = !kind || !name.value.trim();
+    };
+    name.addEventListener('input', paint);
+    box.append(head, name, kinds);
+    if (inProgress) box.appendChild(el('p', 'text-xs text-amber-300', 'The dynamic video you are setting up (not generated yet) will be replaced.'));
+    box.appendChild(go);
+    overlay.appendChild(box);
+    const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey, true); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    x.addEventListener('click', close);
+    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', onKey, true);
+    go.addEventListener('click', () => {
+      const k = DYNAMIC_KINDS.find((d) => d.id === kind);
+      if (!k || !name.value.trim()) return;
+      close();
+      const next = newDynamicVideo(draft);
+      next.name = name.value.trim().slice(0, 120);
+      next.kind = k.id;
+      next.greeting = k.greeting || next.greeting;
+      replaceDraft(next);
+      step = 1; notice = ''; render();
+    });
+    document.body.appendChild(overlay);
+    paint();
+    name.focus();
   }
 
   render();

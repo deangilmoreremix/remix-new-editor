@@ -13,6 +13,7 @@ create table if not exists public.user_onboarding (
   heard_other text check (heard_other is null or char_length(heard_other) <= 120),
   step smallint not null default 1 check (step between 1 and 5),
   completed_at timestamptz,
+  first_video text check (first_video is null or first_video in ('made', 'later')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

@@ -37,7 +37,7 @@ const pick = (list, v) => (list.some((o) => o.id === v) ? v : '');
 const text = (v, max) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
 
 export function blankOnboarding() {
-  return { step: 1, goal: '', team: '', volume: '', company: '', website: '', jobTitle: '', heard: '', heardOther: '', completedAt: null };
+  return { step: 1, goal: '', team: '', volume: '', company: '', website: '', jobTitle: '', heard: '', heardOther: '', completedAt: null, firstVideo: '' };
 }
 
 /** Only known answers, trimmed and capped (it is stored and shown again). */
@@ -55,6 +55,8 @@ export function cleanOnboarding(x = {}) {
     heard: o.heard === 'other' ? 'other' : pick(SOURCES, o.heard),
     heardOther: text(o.heardOther, 120),
     completedAt: typeof o.completedAt === 'string' && !Number.isNaN(Date.parse(o.completedAt)) ? o.completedAt : null,
+    // "Your first video" after the welcome: '' (not yet), 'made' (the sample was made), 'later' (Do this later).
+    firstVideo: ['made', 'later'].includes(o.firstVideo) ? o.firstVideo : '',
   };
 }
 
@@ -85,12 +87,12 @@ export const toRow = (o) => {
     goal: c.goal || null, team_size: c.team || null, videos_per_month: c.volume || null,
     company: c.company || null, website: normalizeWebsite(c.website) || c.website || null, job_title: c.jobTitle || null,
     heard_from: c.heard || null, heard_other: c.heard === 'other' ? c.heardOther || null : null,
-    step: c.step, completed_at: c.completedAt,
+    step: c.step, completed_at: c.completedAt, first_video: c.firstVideo || null,
   };
 };
 export const fromRow = (r) => cleanOnboarding({
   step: r?.step, goal: r?.goal, team: r?.team_size, volume: r?.videos_per_month, company: r?.company, website: r?.website,
-  jobTitle: r?.job_title, heard: r?.heard_from, heardOther: r?.heard_other, completedAt: r?.completed_at,
+  jobTitle: r?.job_title, heard: r?.heard_from, heardOther: r?.heard_other, completedAt: r?.completed_at, firstVideo: r?.first_video,
 });
 
 /** The saved answers, or null (none yet, signed out, or the table is not there). */
@@ -116,6 +118,7 @@ export function newerOnboarding(a, b) {
   if (!a) return b || null;
   if (!b) return a;
   if (isDone(a) !== isDone(b)) return isDone(a) ? a : b;
+  if (!!a.firstVideo !== !!b.firstVideo) return a.firstVideo ? a : b;
   return (b.step || 0) > (a.step || 0) ? b : a;
 }
 

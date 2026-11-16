@@ -295,3 +295,21 @@ describe('the landing page belongs to the dynamic video (like Sendspark)', async
     expect(page.puck.content).toHaveLength(0);
   });
 });
+
+describe('kinds of dynamic video (Create Dynamic Videos)', async () => {
+  const { DYNAMIC_KINDS, stepErrors: errs, newDynamicVideo: fresh } = await import('../draft.js');
+  it('offers multiple variables, AI greeting and same audio', () => {
+    expect(DYNAMIC_KINDS.map((k) => k.id)).toEqual(['variables', 'greeting', 'same']);
+    expect(DYNAMIC_KINDS[0].greeting).toContain('{{company}}');
+  });
+  it('same audio needs no voice and publishes without a greeting track', () => {
+    const d = readyDraft({ kind: 'same', voice: { mode: 'stock', stockVoice: 'Wise_Woman', fallbackUrl: '' }, greeting: '' });
+    expect(errs(d, 2)).toEqual([]);
+    const p = buildCampaignProject(d);
+    expect(JSON.stringify(p)).not.toContain('"role":"voiceover"');
+  });
+  it('a new dynamic video keeps its kind', () => {
+    expect(fresh({ kind: 'same' }).kind).toBe('same');
+    expect(fresh({ kind: 'nope' }).kind).toBe('greeting');
+  });
+});
