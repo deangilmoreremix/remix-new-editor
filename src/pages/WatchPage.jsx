@@ -153,6 +153,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
     },
     onChange: ({ playing, time, duration, gating }) => {
       analytics.onPlayerChange({ playing, time, duration });
+      $('.watch-player')?.toggleAttribute('data-playing', !!playing);
       $('[data-play]').textContent = playing ? '❚❚' : '▶';
       $('[data-play]').setAttribute('aria-label', playing ? 'Pause' : 'Play');
       // The big play button never covers a form the viewer must fill in.

@@ -185,3 +185,8 @@
 @media (min-width: 1100px) { .pk-hero.pk-hero--noform { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); } }
 @media (min-width: 1100px) { .pk-hero.pk-hero--noform.pk-hero--video-copy-form { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); } }
 .pk-like { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Your own logo replaces a design's built-in brand mark (no two logos side by side). */
+.pk-brand:has(img)::before { content: none !important; display: none !important; }
+/* Room between a hero that hangs low (enterprise) and the sender row. */
+.pk-outreach { position: relative; z-index: 1; margin-top: 24px; }

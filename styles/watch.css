@@ -7,9 +7,14 @@ html.watch-embed, html.watch-embed body { background: #000; }
 .watch-head h1 { margin: 0; font-size: clamp(18px, 2.4vw, 26px); font-weight: 700; }
 .watch-player { width: min(1100px, 100%); background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
 .watch-embed .watch-player { width: 100%; border-radius: 0; box-shadow: none; }
-/* Embedded: fit picture + controls inside the iframe's height. */
-.watch-embed .watch-frame { height: calc(100vh - 52px); width: auto; max-width: 100%; margin: 0 auto; }
-.watch-embed .watch-controls { height: 52px; box-sizing: border-box; }
+/* Embedded: the picture fills the iframe and the controls float over its bottom edge (no black side
+   bars). While playing they fade out, and come back on hover or keyboard focus. */
+.watch-embed .watch-player { position: relative; }
+.watch-embed .watch-frame { height: 100vh; width: auto; max-width: 100%; margin: 0 auto; }
+.watch-embed .watch-controls { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; height: 52px; box-sizing: border-box; background: linear-gradient(to top, rgba(0,0,0,.78), rgba(0,0,0,0)); transition: opacity .2s; }
+@media (hover: hover) {
+  .watch-embed .watch-player[data-playing]:not(:hover):not(:focus-within) .watch-controls { opacity: 0; }
+}
 .watch-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
 .watch-stage { position: absolute; inset: 0; }
 .watch-bigplay { position: absolute; inset: 0; margin: auto; width: 84px; height: 84px; border-radius: 50%; border: 0; background: rgba(235,80,84,.92); color: #fff; font-size: 30px; cursor: pointer; z-index: 6; box-shadow: 0 8px 30px rgba(0,0,0,.4); }

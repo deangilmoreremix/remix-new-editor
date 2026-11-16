@@ -107,19 +107,27 @@ export function drawThumbnail(ctx, { frame, site = null, logo = null, text = '',
     cover(ctx, frame, 0, 0, width, height);
   }
   // Darken the top for the text.
-  const g = ctx.createLinearGradient(0, 0, 0, height * 0.5);
-  g.addColorStop(0, 'rgba(0,0,0,0.65)');
+  const g = ctx.createLinearGradient(0, 0, 0, height * 0.55);
+  g.addColorStop(0, 'rgba(0,0,0,0.82)');
   g.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = g;
-  ctx.fillRect(0, 0, width, height * 0.5);
+  ctx.fillRect(0, 0, width, height * 0.55);
   const logoBox = logo ? drawLogo(ctx, logo, width, height) : 0;
   if (text) {
     const size = Math.round(height * 0.085);
     ctx.font = `800 ${size}px Inter, system-ui, -apple-system, sans-serif`;
     ctx.fillStyle = '#fff';
     ctx.textBaseline = 'top';
-    const lines = wrapLines((t) => ctx.measureText(t).width, text, width * 0.88 - logoBox, 2);
-    lines.forEach((l, i) => ctx.fillText(l, width * 0.06, height * 0.07 + i * size * 1.2));
+    const lines = wrapLines((t) => ctx.measureText(t).width, text, width * 0.84 - logoBox, 2);
+    // A dark plate under the words, so they stay readable over a busy website or recording.
+    const x = width * 0.06; const y = height * 0.07; const lh = size * 1.2;
+    const padX = size * 0.55; const padY = size * 0.4;
+    const textW = Math.max(...lines.map((l) => ctx.measureText(l).width));
+    const plateW = textW + padX * 2; const plateH = lines.length * lh - (lh - size) + padY * 2;
+    ctx.fillStyle = 'rgba(0,0,0,0.86)';
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x - padX, y - padY, plateW, plateH, size * 0.35); ctx.fill(); } else ctx.fillRect(x - padX, y - padY, plateW, plateH);
+    ctx.fillStyle = '#fff';
+    lines.forEach((l, i) => ctx.fillText(l, x, y + i * lh));
   }
   if (play?.show !== false) drawPlay(ctx, width / 2, height / 2, Math.round(height * 0.11), play || {});
 }
