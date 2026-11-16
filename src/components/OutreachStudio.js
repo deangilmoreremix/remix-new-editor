@@ -503,6 +503,7 @@ export function OutreachStudio() {
     cut: '<circle cx="6" cy="6.5" r="2.5"/><circle cx="6" cy="17.5" r="2.5"/><path d="M8 8.2 20 18M8 15.8 20 6"/>',
     link: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>',
     eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>',
+    image: '<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-4.5-4.5L8 20"/>',
     user: '<circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/>',
     screen: '<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/>',
     both: '<rect x="3" y="4.5" width="18" height="12" rx="2"/><circle cx="8" cy="12.5" r="2.4"/>',
@@ -545,6 +546,7 @@ export function OutreachStudio() {
     tool('language', 'globe', `Language: ${draft.language || 'English'}`, flip('language'), { active: editorTool === 'language' });
     tool('script', 'doc', 'Script and teleprompter', flip('script'), { active: editorTool === 'script' });
     tool('trim', 'cut', 'Trim, cut and add clips', flip('trim'), { active: editorTool === 'trim', disabled: !has });
+    tool('thumbnail', 'image', 'Thumbnail for your emails', openThumbnails);
     const live = draft.campaign?.links?.[0];
     tool('link', 'link', live ? 'Copy a prospect link' : 'Links are made when you generate', async () => {
       try { await navigator.clipboard.writeText(live.pageLink || live.link); notice = 'Link copied.'; } catch { notice = 'Copy failed.'; }
@@ -1735,7 +1737,7 @@ export function OutreachStudio() {
         onProgress(0.15 + (0.85 * i) / links.length);
         const c = contactOf(links[i]);
         const text = T.thumbnailText(draft.email.thumbText, c, draft.fallbacks);
-        const site = siteShotFor(c);
+        const site = T.thumbBackground(settings, siteShotFor(c));
         const logo = settings.logo ? logoFor(c) : '';
         const key = T.thumbnailKey(text, site, logo);
         if (!made.has(key)) {
@@ -1775,10 +1777,25 @@ export function OutreachStudio() {
     try { await navigator.clipboard.writeText(code); btn.textContent = 'Copied'; } catch { window.prompt('Copy this embed code:', code); }
   }
 
+  // The thumbnail designer (src/components/outreach/ThumbnailDesigner.js): from the editor toolbar and the Email card.
+  async function openThumbnails() {
+    const { openThumbnailDesigner } = await import('./outreach/ThumbnailDesigner.js');
+    const links = draft.campaign?.links || [];
+    openThumbnailDesigner({
+      draft,
+      save: persist,
+      websiteFor: (c) => siteShotFor(c),
+      logoFor: (c) => draft.siteLogos?.[siteKey(c.website)] || '',
+      upload: uploadToStorage,
+      onMake: links.length ? async () => { if (await gate('personalized thumbnails')) makeThumbnails(); } : null,
+      makeLabel: links.some((l) => l.thumbnailUrl) ? 'Remake thumbnails' : `Make thumbnails for ${links.length} prospect${links.length === 1 ? '' : 's'}`,
+      onClose: () => render(),
+    });
+  }
+
   function renderEmailCard() {
     const box = card('Email', 'Write the email once. Each contact gets their name, company and personal link, with a personalized thumbnail that opens their page.');
     box.setAttribute('data-outreach-email', '');
-    const thumbText = textInput(draft.email.thumbText, 'Hi {{firstname}}, this is for you');
     const subject = textInput(draft.email.subject, 'A quick video for {{firstname}}');
     const body = el('textarea', 'w-full min-h-[150px] rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60');
     body.value = draft.email.body;
@@ -1788,7 +1805,6 @@ export function OutreachStudio() {
     let sample = draft.contacts[0] || {};
     const sampleOut = el('pre', 'whitespace-pre-wrap rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-white/80 font-sans');
     const t = () => draft.email.thumb || {};
-    const setThumb = (patch) => { draft.email = { ...draft.email, thumb: { ...t(), ...patch } }; persist(); };
     let video = null; let siteImg = null; let logoImg = null; let T = null;
     let loopStart = 0;
     const draw = () => {
@@ -1805,7 +1821,7 @@ export function OutreachStudio() {
     };
     const loadSampleImages = () => {
       siteImg = null; logoImg = null;
-      const shot = siteShotFor(sample);
+      const shot = T ? T.thumbBackground(T.thumbSettings(t()), siteShotFor(sample)) : siteShotFor(sample);
       if (shot) { const img = new Image(); img.crossOrigin = 'anonymous'; img.onload = () => { siteImg = img; draw(); }; img.src = shot; }
       const logo = draft.siteLogos?.[siteKey(sample.website)];
       if (logo) { const img = new Image(); img.crossOrigin = 'anonymous'; img.onload = () => { logoImg = img; draw(); }; img.src = logo; }
@@ -1835,50 +1851,11 @@ export function OutreachStudio() {
       draw();
     });
     const syncText = () => {
-      draft.email = { ...draft.email, thumbText: thumbText.value, subject: subject.value, body: body.value };
+      draft.email = { ...draft.email, subject: subject.value, body: body.value };
       persist(); draw(); updateEmail();
     };
-    [thumbText, subject, body].forEach((i) => i.addEventListener('input', syncText));
+    [subject, body].forEach((i) => i.addEventListener('input', syncText));
     updateEmail();
-
-    // Thumbnail controls (Sendspark: type, preview start, play button, logo).
-    const controls = el('div', 'grid gap-3 rounded-xl border border-white/10 p-3');
-    controls.setAttribute('data-outreach-thumb-controls', '');
-    const typeRow = el('div', 'flex flex-wrap items-center gap-2');
-    typeRow.appendChild(el('span', 'text-xs font-semibold text-secondary w-24', 'Thumbnail'));
-    for (const [type, label] of [['gif', 'Animated GIF'], ['static', 'Still image']]) {
-      const b = button(label, { small: true, selected: (t().type || 'gif') === type });
-      b.setAttribute('data-thumb-type', type);
-      b.addEventListener('click', () => { setThumb({ type }); render(); });
-      typeRow.appendChild(b);
-    }
-    const start = el('input', 'flex-1 accent-[#d9ff00]');
-    start.type = 'range'; start.min = '0'; start.step = '0.1';
-    start.max = String(Math.max(0, (draft.video?.duration || 3) - ((t().type || 'gif') === 'gif' ? 3 : 0.1)));
-    start.value = String(t().start ?? 1);
-    start.setAttribute('aria-label', 'Preview starts at');
-    const startLabel = el('span', 'w-12 text-right text-xs tabular-nums text-white/60', `${Number(start.value).toFixed(1)}s`);
-    start.addEventListener('input', () => { setThumb({ start: Number(start.value) }); startLabel.textContent = `${Number(start.value).toFixed(1)}s`; seekPreview(); });
-    const startRow = el('div', 'flex items-center gap-2');
-    startRow.append(el('span', 'text-xs font-semibold text-secondary w-24', (t().type || 'gif') === 'gif' ? 'Select preview' : 'Frame'), start, startLabel);
-    const play = t().play || {};
-    const playOn = el('input'); playOn.type = 'checkbox'; playOn.checked = play.show !== false;
-    const playStyle = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-xs text-white');
-    for (const [v, l] of [['solid', 'Solid'], ['outline', 'Outline'], ['glass', 'Glass']]) { const o = el('option', 'bg-neutral-900', l); o.value = v; o.selected = (play.style || 'solid') === v; playStyle.appendChild(o); }
-    const playColor = el('input', 'h-7 w-10 rounded border border-white/10 bg-transparent'); playColor.type = 'color'; playColor.value = play.color || '#4f46e5';
-    const playOpacity = el('input', 'w-24 accent-[#d9ff00]'); playOpacity.type = 'range'; playOpacity.min = '0.2'; playOpacity.max = '1'; playOpacity.step = '0.05'; playOpacity.value = String(play.opacity ?? 1);
-    playOpacity.setAttribute('aria-label', 'Play button opacity');
-    const syncPlay = () => { setThumb({ play: { show: playOn.checked, style: playStyle.value, color: playColor.value, opacity: Number(playOpacity.value) } }); draw(); };
-    [playOn, playStyle, playColor, playOpacity].forEach((i) => i.addEventListener('input', syncPlay));
-    playOn.addEventListener('change', syncPlay);
-    const playRow = el('div', 'flex flex-wrap items-center gap-2 text-xs');
-    const playLbl = el('label', 'flex items-center gap-1.5'); playLbl.append(playOn, el('span', '', 'Show'));
-    playRow.append(el('span', 'text-xs font-semibold text-secondary w-24', 'Play button'), playLbl, playStyle, playColor, el('span', 'text-white/50', 'Opacity'), playOpacity);
-    const logoOn = el('input'); logoOn.type = 'checkbox'; logoOn.checked = t().logo !== false; logoOn.setAttribute('data-thumb-logo', '');
-    logoOn.addEventListener('change', () => { setThumb({ logo: logoOn.checked }); draw(); });
-    const logoRow = el('label', 'flex items-center gap-2 text-xs');
-    logoRow.append(el('span', 'text-xs font-semibold text-secondary w-24', 'Logo'), logoOn, el('span', 'text-white/70', 'Show each prospect\u2019s company logo (found on their website)'));
-    controls.append(typeRow, startRow, playRow, logoRow);
 
     // Which contact the preview shows.
     const who = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-xs text-white');
@@ -1889,7 +1866,18 @@ export function OutreachStudio() {
 
     const grid = el('div', 'grid gap-4 lg:grid-cols-2');
     const left = el('div', 'flex flex-col gap-3');
-    left.append(field('Thumbnail text', thumbText, 'Shown on the picture. {{firstname}}, {{company}} and {{jobtitle}} work here.'), controls,
+    // The thumbnail is designed in the thumbnail designer; here a summary and the button to open it.
+    const thumbRow = el('div', 'flex flex-wrap items-center gap-3 rounded-xl border border-white/10 p-3');
+    thumbRow.setAttribute('data-outreach-thumb-summary', '');
+    const ts = t();
+    thumbRow.append(
+      el('div', 'min-w-0 flex-1 text-xs text-white/70', `${(ts.type || 'gif') === 'static' ? 'Still image' : 'Animated GIF'} \u00b7 \u201c${draft.email.thumbText || ''}\u201d${ts.logo === false ? '' : ' \u00b7 their logo'}`),
+    );
+    const editThumb = button('Design thumbnail', { small: true, primary: true });
+    editThumb.setAttribute('data-outreach-design-thumb', '');
+    editThumb.addEventListener('click', openThumbnails);
+    thumbRow.appendChild(editThumb);
+    left.append(field('Thumbnail', thumbRow, 'The picture each prospect sees in your email: their name, their website and their logo.'),
       field('Subject', subject), field('Message', body, 'Put {{link}} on its own line: the thumbnail goes there in the copied email.'));
     const right = el('div', 'flex flex-col gap-3');
     right.append(canvas, whoRow, sampleOut);

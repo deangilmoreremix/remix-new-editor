@@ -59,9 +59,9 @@ describe('email thumbnails', () => {
   });
 
   it('settings default to an animated GIF with a solid play button, and clean bad values', () => {
-    expect(thumbSettings()).toEqual({ type: 'gif', start: 0, logo: true, play: { show: true, style: 'solid', color: '#4f46e5', opacity: 1 } });
+    expect(thumbSettings()).toEqual({ type: 'gif', start: 0, background: 'auto', image: '', logo: true, play: { show: true, style: 'solid', color: '#4f46e5', opacity: 1 } });
     expect(thumbSettings({ type: 'static', start: -2, logo: false, play: { show: false, style: 'neon', color: 'red', opacity: 5 } }))
-      .toEqual({ type: 'static', start: 0, logo: false, play: { show: false, style: 'solid', color: '#4f46e5', opacity: 1 } });
+      .toEqual({ type: 'static', start: 0, background: 'auto', image: '', logo: false, play: { show: false, style: 'solid', color: '#4f46e5', opacity: 1 } });
   });
 
   it('a GIF is 3 seconds of frames from the chosen start, kept inside the video; a still is one frame', () => {

@@ -21,6 +21,10 @@ export function thumbSettings(t = {}) {
   return {
     type: t.type === 'static' ? 'static' : 'gif',
     start: Math.max(0, Number(t.start) || 0),
+    // What is behind the camera bubble: 'auto' (as in the video: their website when it uses one), 'video'
+    // (just your recording, full frame) or 'image' (your own picture, `image`, behind the bubble).
+    background: ['auto', 'video', 'image'].includes(t.background) ? (t.background === 'image' && !/^https:\/\/\S+$/i.test(t.image || '') ? 'auto' : t.background) : 'auto',
+    image: /^https:\/\/\S+$/i.test(t.image || '') ? t.image : '',
     logo: t.logo !== false,
     play: {
       show: play.show !== false,
@@ -29,6 +33,13 @@ export function thumbSettings(t = {}) {
       opacity: Math.max(0.2, Math.min(1, Number(play.opacity ?? 1) || 1)),
     },
   };
+}
+
+/** The picture behind the bubble for a contact: their website (auto), none (your video full frame) or your image. */
+export function thumbBackground(settings, websiteShot = '') {
+  if (settings.background === 'video') return '';
+  if (settings.background === 'image') return settings.image;
+  return websiteShot || '';
 }
 
 /** The times (seconds) of the frames a thumbnail uses. */
