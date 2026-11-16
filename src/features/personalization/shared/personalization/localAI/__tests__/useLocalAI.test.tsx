@@ -97,4 +97,34 @@ describe('useLocalAI', () => {
     act(() => { root.unmount() })
     expect(signal.aborted).toBe(true)
   })
+
+  describe('two requests at once', () => {
+    it('settles the first one (undefined) when a second arrives while it waits for consent', async () => {
+      const { ref } = mount()
+      let first: Promise<string | undefined> = Promise.resolve('x')
+      let second: Promise<string | undefined> = Promise.resolve('x')
+      act(() => { first = ref.current!.request(async () => 'one') })
+      await flush()
+      expect(ref.current!.phase).toBe('confirm')
+      act(() => { second = ref.current!.request(async () => 'two') })
+      await flush()
+      expect(await first).toBeUndefined()
+      act(() => { ref.current!.confirm() })
+      await flush()
+      expect(await second).toBe('two')
+    })
+    it('stops the earlier run when a second request starts', async () => {
+      engine.isModelCached.mockResolvedValue(true)
+      const { ref } = mount()
+      let firstSignal: AbortSignal | undefined
+      let first: Promise<string | undefined> = Promise.resolve('x')
+      act(() => { first = ref.current!.request(({ signal }) => { firstSignal = signal; return new Promise<string>(() => {}) }) })
+      await flush()
+      expect(firstSignal?.aborted).toBe(false)
+      act(() => { void ref.current!.request(async () => 'two') })
+      await flush()
+      expect(firstSignal?.aborted).toBe(true)
+      void first
+    })
+  })
 })

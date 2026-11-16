@@ -41,6 +41,7 @@ export function useLocalAI(key: ModelKey): LocalAI {
   const abortRef = useRef<AbortController | null>(null)
   const pendingRef = useRef<{ run: () => void; decline: () => void } | null>(null)
   const aliveRef = useRef(true)
+  const latestRef = useRef(0)
   useEffect(() => {
     aliveRef.current = true
     return () => { aliveRef.current = false; abortRef.current?.abort(); pendingRef.current?.decline() }
@@ -48,6 +49,11 @@ export function useLocalAI(key: ModelKey): LocalAI {
   const set = useCallback((patch: Partial<LocalAIState>) => { if (aliveRef.current) setState((s) => ({ ...s, ...patch })) }, [])
 
   const request = useCallback(<T,>(runner: Runner<T>): Promise<T | undefined> => new Promise<T | undefined>((resolve) => {
+    // One action at a time: a newer request replaces an older one, which then settles with `undefined` (never left hanging).
+    const id = ++latestRef.current
+    pendingRef.current?.decline()
+    pendingRef.current = null
+    abortRef.current?.abort()
     const run = async () => {
       pendingRef.current = null
       const ac = new AbortController()
@@ -58,11 +64,15 @@ export function useLocalAI(key: ModelKey): LocalAI {
           signal: ac.signal,
           onProgress: (p) => set({ progress: typeof p.progress === 'number' ? Math.min(1, Math.max(0, p.progress)) : null, message: p.message ?? (p.stage === 'download' ? 'Downloading the model (one time)…' : p.stage ? `Working (${p.stage})…` : null) }),
         })
-        if (abortRef.current === ac) abortRef.current = null
-        set({ phase: 'idle', progress: null, message: null })
+        const current = abortRef.current === ac
+        if (current) abortRef.current = null
+        if (current) set({ phase: 'idle', progress: null, message: null })
         resolve(ac.signal.aborted ? undefined : out)
       } catch (e) {
-        if (abortRef.current === ac) abortRef.current = null
+        const current = abortRef.current === ac
+        if (current) abortRef.current = null
+        // A run that a newer request replaced must not touch the state the newer one now owns.
+        if (!current) { resolve(undefined); return }
         if (isAbort(e) || ac.signal.aborted) { set({ phase: 'idle', progress: null, message: null }); resolve(undefined); return }
         set({ phase: 'error', progress: null, message: null, error: e instanceof Error && e.message ? e.message : 'This could not be done on this device.' })
         resolve(undefined)
@@ -70,7 +80,7 @@ export function useLocalAI(key: ModelKey): LocalAI {
     }
     void (async () => {
       const [info, cached] = await Promise.all([modelInfo(key).catch(() => null), isModelCached(key).catch(() => false)])
-      if (!aliveRef.current) { resolve(undefined); return }
+      if (!aliveRef.current || latestRef.current !== id) { resolve(undefined); return }
       set({ info, error: null })
       if (cached) { void run(); return }
       pendingRef.current = { run: () => void run(), decline: () => resolve(undefined) }

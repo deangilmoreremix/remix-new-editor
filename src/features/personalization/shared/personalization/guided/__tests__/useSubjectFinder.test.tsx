@@ -76,4 +76,45 @@ describe('useSubjectFinder', () => {
     act(() => { ref.current!.clear() })
     expect((setZones.mock.calls[0][0] as ProtectedZone[]).map((z) => z.id)).toEqual(['template-zone'])
   })
+
+  // Detection takes seconds; the customer can change the zones while it runs. The result must be merged into the CURRENT list.
+  describe('zones that change while it is looking', () => {
+    function mountLive(initial: ProtectedZone[]) {
+      const setZones = vi.fn()
+      const ref: { current: SubjectFinder | null } = { current: null }
+      const Probe = ({ zones }: { zones: ProtectedZone[] }) => {
+        ref.current = useSubjectFinder({ settings: { ...createDefaultPreviewSettings(), protectedZones: zones }, videoUrl: 'https://x/clip.mp4', isImageSource: false, setZones })
+        return null
+      }
+      const root = createRoot(document.body.appendChild(document.createElement('div')))
+      const render = (zones: ProtectedZone[]) => act(() => { root.render(<Probe zones={zones} />) })
+      render(initial)
+      return { ref, setZones, render }
+    }
+    // Every detection call waits on one gate (it runs once per sampled frame); `release` opens it.
+    const slowDetection = () => {
+      let open: () => void = () => {}
+      const gate = new Promise<void>((r) => { open = r })
+      engine.detectObjects.mockImplementation(async () => { await gate; return [{ label: 'person', score: 0.9, box: { xmin: 0.3, ymin: 0.2, xmax: 0.5, ymax: 0.8 } }] })
+      return { release: () => act(async () => { open(); await new Promise((r) => setTimeout(r, 30)) }) }
+    }
+    it('drops its result when the customer marked the subject meanwhile', async () => {
+      const slow = slowDetection()
+      const { ref, setZones, render } = mountLive([])
+      await act(async () => { void ref.current!.find() })
+      await vi.waitFor(() => expect(engine.detectObjects).toHaveBeenCalled()) // really mid-detection
+      render([zone('customer-subject')])
+      await slow.release()
+      expect(setZones).not.toHaveBeenCalled()
+    })
+    it('keeps a zone added meanwhile and still replaces only its own earlier zone', async () => {
+      const slow = slowDetection()
+      const { ref, setZones, render } = mountLive([zone('auto-subject')])
+      await act(async () => { void ref.current!.find() })
+      await vi.waitFor(() => expect(engine.detectObjects).toHaveBeenCalled())
+      render([zone('auto-subject'), zone('added-later')])
+      await slow.release()
+      expect((setZones.mock.calls[0][0] as ProtectedZone[]).map((z) => z.id)).toEqual(['added-later', 'auto-subject'])
+    })
+  })
 })

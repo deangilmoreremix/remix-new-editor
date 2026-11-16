@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { detectObjects, grabFramePixels } from '../localAI/engine'
 import { useLocalAI, type LocalAI } from '../localAI/useLocalAI'
 import { AUTO_SUBJECT_ZONE_ID, findSubjectZone, subjectSampleTimes, type SubjectOutcome } from '../preview/placement/subjectDetect'
@@ -40,6 +40,9 @@ export function useSubjectFinder(opts: {
   const ai = useLocalAI('detr')
   const [message, setMessage] = useState<string | null>(null)
   const zones = settings.protectedZones ?? []
+  // Detection takes seconds: merge into the zones as they are NOW, not as they were when it started.
+  const zonesRef = useRef<ProtectedZone[]>(zones)
+  zonesRef.current = zones
   const hasAuto = zones.some((z) => z.id === AUTO_SUBJECT_ZONE_ID)
   const hasCustomerMark = zones.some((z) => z.id === CUSTOMER_SUBJECT_ID)
 
@@ -59,15 +62,17 @@ export function useSubjectFinder(opts: {
     )
     if (!outcome) return
     if (!outcome.ok) { setMessage(NONE_TEXT[outcome.reason]); return }
+    // The customer marked the subject while it was looking: their mark wins, the automatic result is dropped.
+    if (zonesRef.current.some((z) => z.id === CUSTOMER_SUBJECT_ID)) { setMessage(null); return }
     // Replace only the earlier automatic zone; everything else the customer set stays.
-    setZones([...(settings.protectedZones ?? []).filter((z) => z.id !== AUTO_SUBJECT_ZONE_ID), outcome.zone])
+    setZones([...zonesRef.current.filter((z) => z.id !== AUTO_SUBJECT_ZONE_ID), outcome.zone])
     setMessage(`Found a ${outcome.label} (${Math.round(outcome.score * 100)}% sure, in ${outcome.framesUsed} of ${outcome.framesTotal} frames). Text and pictures will keep off it. Wrong? Clear it and mark the subject yourself.`)
-  }, [ai, videoUrl, hasCustomerMark, isImageSource, settings.fps, settings.durationInFrames, settings.width, settings.height, settings.protectedZones, setZones])
+  }, [ai, videoUrl, hasCustomerMark, isImageSource, settings.fps, settings.durationInFrames, settings.width, settings.height, setZones])
 
   const clear = useCallback(() => {
-    setZones((settings.protectedZones ?? []).filter((z) => z.id !== AUTO_SUBJECT_ZONE_ID))
+    setZones(zonesRef.current.filter((z) => z.id !== AUTO_SUBJECT_ZONE_ID))
     setMessage(null)
-  }, [settings.protectedZones, setZones])
+  }, [setZones])
 
   return { ai, hasAuto, hasCustomerMark, message, find, clear }
 }

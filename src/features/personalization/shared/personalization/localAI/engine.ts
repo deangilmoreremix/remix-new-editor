@@ -52,6 +52,7 @@ export async function modelInfo(key: ModelKey): Promise<ModelInfo> {
   if (key === 'whisper') return WHISPER_INFO
   const reg = await loadRegistry()
   const m = reg.LOCAL_MODELS?.[key]
+  if (!m) throw new Error(`Unknown local model: ${key}`)
   return { key, label: m.label, feature: m.feature, sizeMB: m.sizeMB, license: m.license }
 }
 
