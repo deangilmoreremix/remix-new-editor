@@ -33,3 +33,33 @@ describe('design recommendations', () => {
     expect(intro.every((r) => r.design.category !== 'full-scene')).toBe(true)
   })
 })
+
+describe('context-aware ranking ("why this one")', () => {
+  const fake = (id: string, category: any, media: any[] = []): any => ({ id, name: id, description: '', category, media, capabilities: { preview: true, browserExport: true } })
+  const pool = [fake('headline', 'animated-headline'), fake('reveal', 'logo-reveal', [{ role: 'logo' }]), fake('lower', 'lower-third'), fake('promo', 'promo-cta')]
+  const rank = (goal: any, context?: any) =>
+    recommendDesigns({ designs: pool, aspectRatio: '16:9', goal, available: { logo: true, product: true, service: true }, context })
+
+  it('is unchanged without a context, and the reason is just the goal', () => {
+    const r = rank('introduce')
+    expect(r.every((x) => x.reasons.length === 1)).toBe(true)
+    expect(r.map((x) => x.design.id)).toEqual(['headline', 'lower', 'reveal'])
+  })
+  it('prefers designs with room for long text and explains why', () => {
+    const r = rank('introduce', { textLength: 70 })
+    expect(r.map((x) => x.design.id)).toEqual(['headline', 'lower', 'reveal'])
+    expect(r[0].reasons).toContain('has room for longer text')
+    expect(r.find((x) => x.design.id === 'reveal')!.score).toBeLessThan(rank('introduce').find((x) => x.design.id === 'reveal')!.score)
+  })
+  it('lifts a logo design when a logo exists, and a short name suits logo/promo designs', () => {
+    const base = rank('brand-moment').find((x) => x.design.id === 'reveal')!
+    const withLogo = rank('brand-moment', { hasLogo: true, textLength: 10 }).find((x) => x.design.id === 'reveal')!
+    expect(withLogo.score).toBe(base.score + 6 + 4)
+    expect(withLogo.reason).toContain('shows your logo')
+    expect(withLogo.reason).toContain('suits a short name or line')
+  })
+  it('is deterministic for the same context', () => {
+    const ctx = { textLength: 50, hasLogo: true, imageCount: 3 }
+    expect(rank('introduce', ctx).map((x) => x.design.id)).toEqual(rank('introduce', ctx).map((x) => x.design.id))
+  })
+})

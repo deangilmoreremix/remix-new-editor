@@ -51,6 +51,8 @@ export type WebExportFailureReason =
   | 'unsupported-codec'
   | 'render-failed'
   | 'cancelled'
+  /** Another render is still running (or still finishing after a cancel). Only one runs at a time. */
+  | 'busy'
 
 export interface WebExportOptions {
   /** The approved preview props — exactly what the preview rendered. */
@@ -133,12 +135,36 @@ type LoadedWebRenderer = {
  * the UI can always cancel through `cancelActiveExport()`.
  */
 let activeController: AbortController | null = null
+/** When the active render was asked to cancel (0 = not cancelled). */
+let cancelRequestedAt = 0
+/**
+ * After a cancel, a new render is refused for this long while the cancelled one unwinds. A real renderer settles
+ * within milliseconds of an abort; if one ever hangs, this stops it from blocking every later render until reload.
+ */
+export const CANCEL_SETTLE_GRACE_MS = 5_000
 
 /** Cancel the in-flight export, if any. Returns true when one was running. */
 export function cancelActiveExport(): boolean {
   if (!activeController) return false
+  if (!activeController.signal.aborted) cancelRequestedAt = Date.now()
   activeController.abort()
   return true
+}
+
+/**
+ * Forgets any active render without waiting for it. For tests and for recovery from a renderer that never settles;
+ * normal code cancels with `cancelActiveExport()` and lets the render finish unwinding.
+ */
+export function resetActiveExport(): void {
+  activeController = null
+  cancelRequestedAt = 0
+}
+
+/** True while a render is running, or still settling inside the grace period after a cancel. */
+function renderBlocksNewOne(): boolean {
+  if (!activeController) return false
+  if (!activeController.signal.aborted) return true
+  return Date.now() - cancelRequestedAt < CANCEL_SETTLE_GRACE_MS
 }
 
 /** True while an export is running. */
@@ -309,8 +335,19 @@ export async function exportPersonalizedVideo(
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
+  // One render at a time. `activeController` is cleared only when a render has fully settled, so a render that was
+  // just cancelled still counts until it is done; a second one started in that window is refused rather than
+  // overwriting the controller (which would leave "Cancel" aimed at the wrong render).
+  if (renderBlocksNewOne()) {
+    return {
+      ok: false,
+      reason: 'busy',
+      error: 'Another render is still running or finishing. Try again in a moment.',
+    }
+  }
   const controller = new AbortController()
   activeController = controller
+  cancelRequestedAt = 0
   const forwardAbort = () => controller.abort()
   if (signal) {
     if (signal.aborted) {

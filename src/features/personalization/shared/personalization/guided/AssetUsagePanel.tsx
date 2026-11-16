@@ -1,6 +1,9 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
+import { loadImageBlob } from '../backgroundRemoval/loadImageBlob'
+import { LogoTraceError, traceLogo } from '../preview/logoVectorize'
 import { summarizeAssetUsage, type AssetUsage } from '../preview/assetUsage'
 import { buildPreviewInput } from './buildPreviewInput'
 import { C, badgeStyle, hintStyle, panelStyle, secondaryButtonStyle } from './tokens'
@@ -16,6 +19,19 @@ const STATE_LABEL: Record<AssetUsage['state'], string> = { imported: 'Imported â
 export function AssetUsagePanel(): React.JSX.Element | null {
   const ctx = useDemoPersonalize()
   const { assets, previewSettings, updatePreviewLayer } = ctx
+  const [tracing, setTracing] = useState<string | null>(null)
+  const [traceNote, setTraceNote] = useState<{ id: string; text: string } | null>(null)
+  // Which client/session this panel belongs to. A trace that finishes after the person moved to another client (or
+  // closed the modal) must not add its logo to the new client's library.
+  // A counter, not a comparison of keys: it moves on EVERY client/session change and on unmount, so a trace started for
+  // client A cannot be mistaken for current after A -> B -> A.
+  const sessionKey = `${ctx.clientForm?.id ?? ''}|${ctx.source?.id ?? ''}`
+  const epochRef = useRef(0)
+  useEffect(() => {
+    // Entering a client (first render or a switch): nothing from a previous one is still "tracing".
+    setTracing(null); setTraceNote(null)
+    return () => { epochRef.current += 1 }
+  }, [sessionKey])
   const library = [...(assets.logos ?? []), ...(assets.products ?? [])]
   if (library.length === 0) return null
   const { brand } = buildPreviewInput(ctx)
@@ -31,6 +47,26 @@ export function AssetUsagePanel(): React.JSX.Element | null {
       const layer = layerOf(kind)
       if (layer && (layer.imageUrl === a.url)) updatePreviewLayer(layer.id, { imageUrl: undefined, visible: false })
       else if (layer && a.usedBy.length && !layer.imageUrl) updatePreviewLayer(layer.id, { visible: false })
+    }
+  }
+
+  const logoIds = new Set((assets.logos ?? []).map((l) => l.id))
+  // Free, in-browser: redraws a raster logo as a crisp SVG and adds it as an extra logo (the original stays).
+  const trace = async (a: AssetUsage) => {
+    const startedIn = epochRef.current
+    setTracing(a.assetId); setTraceNote(null)
+    try {
+      const blob = await loadImageBlob(a.url)
+      const out = await traceLogo(blob)
+      if (epochRef.current !== startedIn) return // the client/session changed while tracing: drop the result
+      ctx.addLogoUrl(out.dataUrl)
+      setTraceNote({ id: a.assetId, text: 'Added a traced SVG copy to your logos. Make it the main logo if it looks right.' })
+    } catch (e) {
+      if (epochRef.current === startedIn) setTraceNote({ id: a.assetId, text: e instanceof LogoTraceError ? e.message : 'The logo could not be traced.' })
+    } finally {
+      // Only the trace that still belongs to the current client/session may clear the busy state; an older one finishing
+      // must not re-enable the buttons while a newer trace is still running.
+      if (epochRef.current === startedIn) setTracing(null)
     }
   }
 
@@ -53,12 +89,21 @@ export function AssetUsagePanel(): React.JSX.Element | null {
             </span>
             <button type="button" aria-label={`Use ${a.name} as the product image`} onClick={() => assign(a, 'productImage')} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Product</button>
             <button type="button" aria-label={`Use ${a.name} as the service image`} onClick={() => assign(a, 'serviceImage')} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Service</button>
+            {logoIds.has(a.assetId) && !a.url.startsWith('data:image/svg') && (
+              <button type="button" data-testid={`logo-trace-${a.assetId}`} disabled={tracing !== null} aria-label={`Trace ${a.name} to SVG`} onClick={() => void trace(a)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>
+                {tracing === a.assetId ? 'Tracingâ€¦' : 'Trace to SVG'}
+              </button>
+            )}
+            {logoIds.has(a.assetId) && assets.primaryLogo?.id !== a.assetId && (
+              <button type="button" aria-label={`Use ${a.name} as the main logo`} onClick={() => ctx.setPrimaryLogo(a.assetId)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Main logo</button>
+            )}
             {a.state !== 'imported' && (
               <button type="button" aria-label={`Remove ${a.name} from the video`} onClick={() => remove(a)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Remove</button>
             )}
           </li>
         ))}
       </ul>
+      {traceNote && <p role="status" data-testid="logo-trace-note" style={{ ...hintStyle, margin: '8px 0 0', color: C.cyan }}>{traceNote.text}</p>}
     </div>
   )
 }

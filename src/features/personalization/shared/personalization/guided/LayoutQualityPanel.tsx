@@ -135,6 +135,11 @@ function FullPanel({ quality, layers }: { quality: LayoutQualityState; layers: P
                   <Eye size={11} /> Show
                 </button>
               )}
+              {!i.fixable && i.layerId && quality.canFixIssue?.(i) && (
+                <button type="button" data-testid="layout-quality-fix-issue" onClick={() => quality.applyIssueFix(i)} style={{ ...secondaryButtonStyle, minHeight: 28, padding: '0 10px', fontSize: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Wand2 size={11} /> Fix
+                </button>
+              )}
               {i.fixable && i.layerId && (
                 <button type="button" data-testid="layout-quality-fix" onClick={() => quality.applyRecommended(i.layerId)} style={{ ...secondaryButtonStyle, minHeight: 28, padding: '0 10px', fontSize: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   <Wand2 size={11} /> Fix
