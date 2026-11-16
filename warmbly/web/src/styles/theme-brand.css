@@ -1,0 +1,68 @@
+/* Brand theme for this repo. The --wb-sky-* accent scale is generated with Warmbly's own
+   accentScale() (web/src/lib/accentScale.ts) from #d9ff00, exactly as applyBrandTheme() would;
+   the surfaces below recolour Warmbly's dark theme. Loaded after theme-dark.css. */
+:root {
+  --wb-sky-50: oklch(97.64% 0.0184 120.04);
+  --wb-sky-d-50: oklch(68% 0.1619 120.04 / 0.12);
+  --wb-sky-100: oklch(94.98% 0.0367 120.04);
+  --wb-sky-d-100: oklch(68% 0.1619 120.04 / 0.18);
+  --wb-sky-200: oklch(89.93% 0.0819 120.04);
+  --wb-sky-d-200: oklch(70% 0.1666 120.04 / 0.28);
+  --wb-sky-300: oklch(82.52% 0.1568 120.04);
+  --wb-sky-d-300: oklch(72% 0.1713 120.04 / 0.45);
+  --wb-sky-400: oklch(74.37% 0.1769 120.04);
+  --wb-sky-d-400: oklch(76% 0.1808 120.04);
+  --wb-sky-500: oklch(68.15% 0.1622 120.04);
+  --wb-sky-d-500: oklch(72% 0.1713 120.04);
+  --wb-sky-s-500: oklch(63.59% 0.1514 120.04);
+  --wb-sky-600: oklch(58.35% 0.1391 120.04);
+  --wb-sky-d-600: oklch(76% 0.1808 120.04);
+  --wb-sky-s-600: oklch(58.55% 0.1395 120.04);
+  --wb-sky-700: oklch(49.59% 0.1185 120.04);
+  --wb-sky-d-700: oklch(82% 0.1695 120.04);
+  --wb-sky-s-700: oklch(52.59% 0.1255 120.04);
+  --wb-sky-800: oklch(43.99% 0.1053 120.04);
+  --wb-sky-d-800: oklch(88% 0.12 120.04);
+  --wb-sky-s-800: oklch(46.64% 0.1115 120.04);
+  --wb-sky-900: oklch(38.82% 0.0933 120.04);
+  --wb-sky-d-900: oklch(93% 0.0706 120.04);
+  --wb-sky-s-900: oklch(40.68% 0.0976 120.04);
+  --wb-sky-950: oklch(29.04% 0.0709 120.04);
+  --wb-sky-d-950: oklch(96% 0.0395 120.04);
+  --wb-sky-s-950: oklch(30.75% 0.0748 120.04);
+}
+:root,
+:root.dark {
+  --wb-edge-sky: var(--color-sky-500);
+}
+:root.dark {
+  --wb-chrome: #050505;
+  --wb-surface: #0a0a0a;
+  --color-white: #0a0a0a;
+  --background: #0a0a0a;
+  --card: #141414;
+  --popover: #141414;
+  --primary: #d9ff00;
+  --primary-foreground: #050505;
+  --sidebar: #050505;
+  --sidebar-primary: #d9ff00;
+  --sidebar-primary-foreground: #050505;
+  --ring: color-mix(in oklab, #d9ff00 50%, transparent);
+  --sidebar-ring: color-mix(in oklab, #d9ff00 50%, transparent);
+  --muted-foreground: #a1a1aa;
+  --color-slate-50: #0a0a0a;
+  --color-slate-100: #141414;
+  --color-slate-200: #1f1f23;
+  --color-gray-50: #0a0a0a;
+  --color-gray-100: #141414;
+  --color-gray-200: #1f1f23;
+  --color-zinc-50: #0a0a0a;
+  --color-zinc-100: #141414;
+  --color-zinc-200: #1f1f23;
+  --color-neutral-50: #0a0a0a;
+  --color-neutral-100: #141414;
+  --color-neutral-200: #1f1f23;
+  --color-stone-50: #0a0a0a;
+  --color-stone-100: #141414;
+  --color-stone-200: #1f1f23;
+}
