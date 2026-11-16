@@ -1,0 +1,11 @@
+{
+  "name": "vidbee-vendored",
+  "private": true,
+  "packageManager": "pnpm@11.1.2",
+  "scripts": {
+    "install:vidbee": "pnpm install --filter api... --filter web... --frozen-lockfile",
+    "build": "pnpm --filter api run build && VIDBEE_BASE_PATH=${VIDBEE_BASE_PATH:-/vidbee} pnpm --filter web run build",
+    "start:api": "export VIDBEE_MIGRATIONS_DIR=resources/drizzle NODE_PATH=\"$PWD/packages/transcription/node_modules\" && node apps/api/dist/migrate-history.js && node apps/api/dist/index.js",
+    "start:web": "VIDBEE_BASE_PATH=${VIDBEE_BASE_PATH:-/vidbee} node apps/web/server.mjs"
+  }
+}

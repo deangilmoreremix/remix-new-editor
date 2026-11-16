@@ -1325,6 +1325,9 @@ export default defineConfig({
             ignored: ['**/.playwright-mcp/**', '**/.kilo/**'],
         },
         proxy: {
+            // Media Hub: vendored VidBee, gated by the Express backend (see backend/services/vidbeeProxy.js).
+            '/vidbee': { target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001', changeOrigin: true },
+            '/api/vidbee': { target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001', changeOrigin: true },
             '/ai-vfx': {
                 target: 'http://localhost:3000',
                 changeOrigin: true,
