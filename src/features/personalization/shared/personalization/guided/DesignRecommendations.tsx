@@ -21,6 +21,7 @@ export function DesignRecommendations({
   onSelectDesign,
   onAddDesign,
   onSelectLayout,
+  addCheck,
 }: {
   designs: readonly RemotionDesignTemplate[]
   aspectRatio: PreviewAspectRatio
@@ -30,12 +31,18 @@ export function DesignRecommendations({
   /** Adds a design on top of the current layout (keeps the customer's layers). When omitted, only Replace is offered. */
   onAddDesign?: (designId: string) => void
   onSelectLayout: (layoutId: PreviewLayoutId) => void
+  /** Says whether a design may be added on top right now; refused designs are disabled with the reason. */
+  addCheck?: (design: RemotionDesignTemplate) => { ok: boolean; reason?: string }
 }): React.JSX.Element {
   const [goal, setGoal] = useState<DesignGoalId>('introduce')
   const [browseAll, setBrowseAll] = useState(false)
   // Replace swaps the whole layout for the design; Add keeps the layout and puts the design on top.
   const [how, setHow] = useState<'replace' | 'add'>('add')
-  const choose = (id: string, active: boolean) => (how === 'add' && onAddDesign && !active ? onAddDesign(id) : onSelectDesign(active ? null : id))
+  // Add mode never removes: an added design comes off through its Remove button, which keeps the rest.
+  const choose = (id: string, active: boolean) => {
+    if (how === 'add' && onAddDesign) { if (!active) onAddDesign(id); return }
+    onSelectDesign(active ? null : id)
+  }
   const recommended = useMemo(
     () => recommendDesigns({
       designs, aspectRatio, goal, available,
@@ -65,18 +72,20 @@ export function DesignRecommendations({
       <div data-testid="design-recommended" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 8 }}>
         {recommended.map(({ design }) => {
           const active = activeDesignId === design.id
+          const refusal = how === 'add' && !active && addCheck ? addCheck(design) : { ok: true }
           return (
             <button
               key={design.id}
               type="button"
               data-testid={`design-rec-${design.id}`}
               aria-pressed={active}
-              title={design.description}
+              disabled={!refusal.ok}
+              title={refusal.ok ? design.description : refusal.reason}
               onClick={() => choose(design.id, active)}
-              style={{ ...softPanelStyle, textAlign: 'left', cursor: 'pointer', border: `1px solid ${active ? C.cyanBorder : C.border}`, background: active ? C.cyanSoft : undefined }}
+              style={{ ...softPanelStyle, textAlign: 'left', cursor: refusal.ok ? 'pointer' : 'not-allowed', opacity: refusal.ok ? 1 : 0.55, border: `1px solid ${active ? C.cyanBorder : C.border}`, background: active ? C.cyanSoft : undefined }}
             >
               <div style={{ color: C.text, fontSize: 12, fontWeight: 700 }}>{design.name}</div>
-              <div style={{ ...hintStyle, margin: '2px 0 0' }}>{design.description}</div>
+              <div style={{ ...hintStyle, margin: '2px 0 0' }}>{refusal.ok ? design.description : refusal.reason}</div>
             </button>
           )
         })}
@@ -87,7 +96,7 @@ export function DesignRecommendations({
       </button>
       {browseAll && (
         <div style={{ marginTop: 10 }}>
-          <PersonalizationTemplateBrowser designsOnly onSelect={onSelectLayout} onSelectDesign={(id) => choose(id, activeDesignId === id)} />
+          <PersonalizationTemplateBrowser onSelect={onSelectLayout} onSelectDesign={(id) => choose(id, activeDesignId === id)} />
         </div>
       )}
     </div>

@@ -56,6 +56,7 @@ import {
   stageScaleFactor,
   toStageBox,
 } from './overlayGeometry'
+import { AddDesignsPanel } from './AddDesignsPanel'
 import { C, chipStyle, hintStyle, inputStyle, labelStyle, panelStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
 
 const LAYER_LABELS: Record<PreviewLayerKind, string> = {
@@ -227,6 +228,8 @@ export interface OverlayEditorProps {
    * transparent interaction layer above it. Off by default; the stage then shows the poster image.
    */
   liveStage?: boolean
+  /** Shows an "Add a design" button that opens the full template library (all layouts and designs) above the stage. */
+  addDesigns?: boolean
 }
 
 /**
@@ -256,14 +259,14 @@ const INSPECTOR_TABS: { id: InspectorTab; label: string }[] = [
   { id: 'timing', label: 'Timing' },
 ]
 
-export function OverlayEditor({ inputProps, belowStage, liveStage = false }: OverlayEditorProps): React.JSX.Element {
+export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDesigns = false }: OverlayEditorProps): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const {
     previewSettings,
     updatePreviewLayer,
     reorderPreviewLayers,
     setPreviewLayerLocked,
-    setRemotionDesign,
+    removePreviewDesignLayer,
     undoPreview,
     redoPreview,
     canUndoPreview,
@@ -279,6 +282,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false }: Ove
   const [selectedId, setSelectedId] = useState<string>(() => settings.layers[0]?.id || '')
   const dragRef = useRef<DragState | null>(null)
   const [confirmRemoveDesign, setConfirmRemoveDesign] = useState(false)
+  const [addDesignsOpen, setAddDesignsOpen] = useState(false)
   // Snap guides: on by default, switched off from the toolbar or by holding Alt while dragging.
   const [snapOn, setSnapOn] = useState(true)
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('content')
@@ -556,6 +560,11 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false }: Ove
           Edit on the video
         </h3>
         <span style={{ marginLeft: 'auto', display: 'inline-flex', gap: 6 }}>
+          {addDesigns && (
+            <button type="button" data-testid="editor-add-design" aria-expanded={addDesignsOpen} onClick={() => setAddDesignsOpen((v) => !v)} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', borderColor: addDesignsOpen ? C.cyan : undefined, color: addDesignsOpen ? C.cyan : undefined }}>
+              Add a design
+            </button>
+          )}
           <Tip id="undo"><button type="button" data-testid="editor-undo" aria-label="Undo" disabled={!canUndoPreview} onClick={() => undoPreview?.()} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', opacity: canUndoPreview ? 1 : 0.5 }}>Undo</button></Tip>
           <Tip id="redo"><button type="button" data-testid="editor-redo" aria-label="Redo" disabled={!canRedoPreview} onClick={() => redoPreview?.()} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', opacity: canRedoPreview ? 1 : 0.5 }}>Redo</button></Tip>
           <Tip id="snap">
@@ -582,6 +591,11 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false }: Ove
         </button>
         </Tip>
       </div>
+      {addDesigns && addDesignsOpen && (
+        <div style={{ ...softPanelStyle, margin: '8px 0' }}>
+          <AddDesignsPanel />
+        </div>
+      )}
       <p style={hintStyle}>
         Drag any layer on the video to move it, or use its corner handle to resize. Arrow keys nudge the
         selected layer by 1% (Shift for 5%), Delete hides it. Layers stay inside the 2% safe area of the
@@ -1104,7 +1118,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false }: Ove
                   ) : (
                     <span role="alert" style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 10, color: C.muted }}>
                       Remove “{selectedDesign.name}” from the video?
-                      <button type="button" data-testid="design-remove-confirm" onClick={() => { setConfirmRemoveDesign(false); setRemotionDesign(null) }} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Yes, remove</button>
+                      <button type="button" data-testid="design-remove-confirm" onClick={() => { setConfirmRemoveDesign(false); removePreviewDesignLayer(selected.id) }} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Yes, remove</button>
                       <button type="button" onClick={() => setConfirmRemoveDesign(false)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Keep</button>
                     </span>
                   )}

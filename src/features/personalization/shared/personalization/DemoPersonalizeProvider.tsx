@@ -119,6 +119,7 @@ import {
   getCompositionDimensions,
   reflowLayersForAspect,
 } from './preview/presets'
+import { addDesignWithRules, moveDesignLayer } from './preview/designAddons'
 import {
   applyResearchedBrandColors,
   firstParagraphOf,
@@ -1069,6 +1070,8 @@ export type DemoPersonalizeContextValue = {
   addRemotionDesign: (designId: string) => void
   /** Takes one design layer off the video, leaving the other layers. */
   removePreviewDesignLayer: (layerId: string) => void
+  /** Moves one added design earlier (-1) or later (+1) among the design layers. */
+  moveAddedDesign: (layerId: string, direction: -1 | 1) => void
   /** Undo / redo of edits to the preview (layers, designs, layout). */
   undoPreview: () => void
   redoPreview: () => void
@@ -1743,6 +1746,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   const [previewSettings, setPreviewSettings] = useState<PersonalizationPreviewSettings>(() =>
     createDefaultPreviewSettings(),
   )
+  // Mirror of the latest preview settings, so an add-on rule check can read them without a side effect in an updater.
+  const previewSettingsRef = useRef(previewSettings)
+  previewSettingsRef.current = previewSettings
   const [previewVideo, setPreviewVideo] = useState<PreviewVideoRef | null>(null)
 
   // ── Full Body Recast (Advanced Editing tab) ────────────────────────────────
@@ -5792,9 +5798,24 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       setRemotionDesignError(`That design is not available.`)
       return
     }
+    // Rules (duplicate, missing picture, one full scene / transition) and the staggered start live in one pure helper.
+    const result = addDesignWithRules(previewSettingsRef.current, designId, previewSeedRef.current)
+    if (result.error) {
+      remotionDesignErrorIdRef.current = designId
+      setRemotionDesignError(result.error)
+      return
+    }
     remotionDesignErrorIdRef.current = null
     setRemotionDesignError(null)
-    setPreviewSettings((prev) => addDesignTemplate(prev, designId, previewSeedRef.current))
+    setPreviewSettings((prev) => {
+      const next = addDesignWithRules(prev, designId, previewSeedRef.current)
+      return next.error ? prev : next.settings
+    })
+  }, [])
+
+  const moveAddedDesign = useCallback((layerId: string, direction: -1 | 1) => {
+    markSessionStarted()
+    setPreviewSettings((prev) => moveDesignLayer(prev, layerId, direction))
   }, [])
 
   const removePreviewDesignLayer = useCallback((layerId: string) => {
@@ -6667,6 +6688,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setRemotionDesign,
     addRemotionDesign,
     removePreviewDesignLayer,
+    moveAddedDesign,
     undoPreview,
     redoPreview,
     canUndoPreview: historyRef.current.past.length > 0,
