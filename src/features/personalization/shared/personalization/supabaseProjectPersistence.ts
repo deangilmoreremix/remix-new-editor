@@ -47,6 +47,8 @@ export function stripSessionScopedUrls(state: PersonalizationProjectState): Pers
              isBlobUrl(state.previewSettings.audio.url)
                ? null
                : state.previewSettings.audio,
+           // A background picked from this computer only exists in this session; swap it for a color.
+           ...(state.previewSettings.cutout ? { cutout: cutoutForSave(state.previewSettings.cutout) } : {}),
          }
        : state.previewSettings,
   }
@@ -82,6 +84,7 @@ export function resolveRestoredAssetUrl(
   return isDurableMediaUrl(id) ? id : null
 }
 
+import { cutoutForSave } from './preview/cutout/cutoutSettings'
 import type { ClientProfile, AssetLibrary, PersonalizationSource, GenerationOptions, GenerationState, PromptState, OutputType, VideoPersonalizationMode, ImagePersonalizationMode, PersonalizationViewMode } from './types'
 import type { PersonalizationPreviewSettings, PreviewVideoRef } from './preview/types'
 

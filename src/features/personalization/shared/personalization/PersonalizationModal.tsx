@@ -23,6 +23,7 @@
 
 import { cutoutAssetIds } from './backgroundRemoval/useAutoCutout'
 import { RECAST_MAX_SECONDS } from './recast/recastJob'
+import { logoQualityNotes } from './logoScoring'
 import {
   useState,
   useRef,
@@ -45,6 +46,10 @@ import {
   SlidersHorizontal,
 } from 'lucide-react'
 import { SocialIcons } from './SocialIcons'
+import { LeadInsightChips } from './LeadInsightChips'
+import { LeadInsightsPanel } from './LeadInsightsPanel'
+import { createSeenTracker, leadsToCsv } from './leadInsights'
+import { openStatus } from '../../../../../netlify/functions/_personalization/src/server/businessEnrichment/openingHours'
 import { useBusinessEnrichment, mergeCardContacts } from './useBusinessEnrichment'
 import { DEFAULT_ADVANCED_SECTIONS, useDemoPersonalize } from './DemoPersonalizeProvider'
 import type { AutoFillKey } from './businessContentFromResearch'
@@ -70,6 +75,8 @@ import { modelForGeneration, resolveModelCapabilities } from './modelCapabilityR
 import { getModelById, getVideoModelById } from '@ohb/packages/studio/src/models.js'
 import { NICHE_CONTENT } from '@ohb/data/nicheContent'
 import { BUSINESS_NICHES } from './businessNiches'
+import { useFinderContinuity, type SavedSearch } from './useFinderContinuity'
+import { HiddenBar, LooksWrongMenu, SavedSearchesPanel } from './FinderContinuityUi'
 import ImageEditorModal, {
   type ImageEditorApplyResult,
   type PersonalizationImageEditorAsset,
@@ -2072,6 +2079,8 @@ function ConfigurationView(props: any) {
   const {
     autoFilledKeys,
     businessLoadSummary,
+    contactSources,
+    clearContactValue,
     advancedTab: ctxAdvancedTab,
     setAdvancedTab: ctxSetAdvancedTab,
     advancedSections: ctxAdvancedSections,
@@ -2279,6 +2288,17 @@ function ConfigurationView(props: any) {
     findBusinesses(searchNiche, searchLocation.trim(), radiusMiles)
   }, [findBusinesses, searchLocation, searchNiche])
 
+  // Runs a saved search: fills the form with it and searches (same guard as a normal search).
+  const runSavedSearch = useCallback((saved: SavedSearch) => {
+    if (businessSearchInFlightRef.current) return
+    setSearchNiche(saved.niche)
+    setSearchLocation(saved.location)
+    setSearchRadius(saved.radius_miles)
+    businessSearchInFlightRef.current = true
+    setBusinessSearchInFlight(true)
+    findBusinesses(saved.niche, saved.location, saved.radius_miles)
+  }, [findBusinesses])
+
   // ── Saved Leads (lead finder shortlist) ────────────────────────────────────
   // Per-user shortlist behind /api/personalization/leads (Clerk-authenticated).
   // Anonymous sessions never render the save affordance or the panel: the API
@@ -2409,7 +2429,50 @@ function ConfigurationView(props: any) {
   // Long result lists show a page at a time so the section stays short.
   const [shownResultCount, setShownResultCount] = useState(RESULTS_PAGE)
   useEffect(() => { setShownResultCount(RESULTS_PAGE) }, [businessSearchResults])
-  const enrichStates = useBusinessEnrichment(businessSearchResults.slice(0, shownResultCount))
+  // "Open now first" reorders the list (stable; unknown hours sit between open and closed). The enrichment lookups
+  // follow whatever order is on screen, so the visible cards are the ones that get looked up.
+  const [openFirst, setOpenFirst] = useState(false)
+  // Saved searches + the user's own "looks wrong" flags (signed-in only). Flagged businesses are hidden for this
+  // user, never deleted, and can be shown again or un-flagged from the bar above the list.
+  const continuity = useFinderContinuity(!isAnonymous)
+  const [showFlagged, setShowFlagged] = useState(false)
+  const hiddenCount = useMemo(() => businessSearchResults.filter((b) => continuity.isFlagged(b)).length, [businessSearchResults, continuity.isFlagged])
+  const listedResults = useMemo(
+    () => (showFlagged ? businessSearchResults : businessSearchResults.filter((b) => !continuity.isFlagged(b))),
+    [businessSearchResults, continuity.isFlagged, showFlagged],
+  )
+  const orderedResults = useMemo(() => {
+    if (!openFirst) return listedResults
+    const rank = (b: BusinessDiscoveryRecord) => {
+      const st = b.openingHours ? openStatus(b.openingHours, b.region).state : 'unknown'
+      return st === 'open' ? 0 : st === 'unknown' ? 1 : 2
+    }
+    return listedResults.map((b, i) => ({ b, i, r: rank(b) })).sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b)
+  }, [listedResults, openFirst])
+  const enrichStates = useBusinessEnrichment(orderedResults.slice(0, shownResultCount))
+  const enrichmentOf = (id: string) => { const st = enrichStates[id]; return st && st.status === 'done' ? st.data : null }
+  // Businesses already shown in an EARLIER search this session (by website / phone / name+address).
+  const seenTrackerRef = useRef(createSeenTracker())
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
+  useEffect(() => { setSeenIds(seenTrackerRef.current.mark(businessSearchResults)) }, [businessSearchResults])
+  const exportLeadsCsv = useCallback(() => {
+    const csv = leadsToCsv(businessSearchResults, { enrichment: Object.fromEntries(businessSearchResults.map((b) => [b.id, enrichmentOf(b.id) ?? undefined])) })
+    const url = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url; a.download = `businesses-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a); a.click(); a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessSearchResults, enrichStates])
+  // Contact values found on the business's own website that are STILL what the profile holds (a value the user
+  // typed over, or an OpenStreetMap one, is never labelled as "found on the website").
+  const foundContacts = (['email', 'facebook', 'instagram', 'linkedin', 'youtube', 'tiktok'] as const).flatMap((key) => {
+    const source = contactSources[key]
+    const value = clientForm[key]
+    return source && value && value === source.value
+      ? [{ key, label: key === 'email' ? 'Email' : key[0].toUpperCase() + key.slice(1), value, source }]
+      : []
+  })
   const brandRunInFlightRef = useRef(false)
 
   const handleFindMyBrand = useCallback(async () => {
@@ -2977,6 +3040,18 @@ function ConfigurationView(props: any) {
                   ))}
                 </div>
               </div>
+              {!isAnonymous && (
+                <SavedSearchesPanel
+                  current={searchFormReady ? { niche: searchNiche, location: searchLocation.trim(), radiusMiles: searchRadius } : null}
+                  defaultName={`${BUSINESS_NICHES.find((n) => n.key === searchNiche)?.label ?? 'Search'} · ${searchLocation.trim()}`.slice(0, 80)}
+                  searches={continuity.searches}
+                  nicheLabel={(key) => BUSINESS_NICHES.find((n) => n.key === key)?.label ?? key}
+                  onSave={(name) => continuity.saveSearch({ name, niche: searchNiche, location: searchLocation.trim(), radiusMiles: searchRadius })}
+                  onRun={runSavedSearch}
+                  onDelete={continuity.deleteSearch}
+                  disabled={isSearchingBusinesses}
+                />
+              )}
               <button
                 type="button"
                 onClick={() => runBusinessSearch(searchRadius)}
@@ -3059,6 +3134,29 @@ function ConfigurationView(props: any) {
                       Saved Leads{savedLeadsLoaded ? ` (${savedLeads.length})` : ''}
                     </button>
                   )}
+                  {businessSearchResults.some((b) => b.openingHours) && (
+                    <button
+                      type="button"
+                      data-testid="pz-open-first"
+                      aria-pressed={openFirst}
+                      onClick={() => setOpenFirst((v) => !v)}
+                      title="Show businesses that are open right now (in their own time zone) first"
+                      className="rounded-lg text-[10px] font-extrabold uppercase tracking-wide"
+                      style={{ minHeight: 32, padding: '0 12px', border: `1px solid ${openFirst ? C.cyanBorder : C.border}`, background: openFirst ? C.cyanSoft : C.panel, color: openFirst ? C.cyan : 'white' }}
+                    >
+                      Open now first
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    data-testid="pz-export-csv"
+                    onClick={exportLeadsCsv}
+                    title="Download these businesses, with the contacts found on their websites and where each was found"
+                    className="rounded-lg text-[10px] font-extrabold uppercase tracking-wide"
+                    style={{ minHeight: 32, padding: '0 12px', border: `1px solid ${C.border}`, background: C.panel, color: 'white' }}
+                  >
+                    Export CSV
+                  </button>
                   <button
                     type="button"
                     onClick={() => clearBusinessSearch()}
@@ -3075,9 +3173,17 @@ function ConfigurationView(props: any) {
                   </button>
                 </div>
               </div>
+              {!isAnonymous && (
+                <HiddenBar
+                  hiddenCount={hiddenCount}
+                  showing={showFlagged}
+                  onToggle={() => setShowFlagged((v) => !v)}
+                  onUndoAll={() => { void continuity.unflagAll(businessSearchResults.filter((b) => continuity.isFlagged(b))) }}
+                />
+              )}
               {!savedLeadsOpen && (
               <div className="flex flex-col gap-2">
-                {businessSearchResults.slice(0, shownResultCount).map((business) => {
+                {orderedResults.slice(0, shownResultCount).map((business) => {
                   const contacts = mergeCardContacts(business, enrichStates[business.id])
                   return (
                   <div
@@ -3126,6 +3232,7 @@ function ConfigurationView(props: any) {
                             <span style={{ fontSize: 9, fontWeight: 600, color: C.muted2 }} aria-live="polite">Looking up contacts…</span>
                           )}
                         </div>
+                        <LeadInsightChips business={business} enrichment={enrichmentOf(business.id)} seenBefore={seenIds.has(business.id)} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -3139,6 +3246,13 @@ function ConfigurationView(props: any) {
                             {Math.round(business.leadScore || 0)}% match
                           </div>
                         </div>
+                        {!isAnonymous && (
+                          <LooksWrongMenu
+                            businessName={business.name}
+                            flagged={continuity.isFlagged(business)}
+                            onFlag={(reason) => continuity.flag(business, reason)}
+                          />
+                        )}
                         {!isAnonymous && (
                           <button
                             type="button"
@@ -3176,21 +3290,21 @@ function ConfigurationView(props: any) {
                     </div>
                   </div>
                 )})}
-                {businessSearchResults.length > shownResultCount && (
+                {orderedResults.length > shownResultCount && (
                   <button
                     type="button"
                     data-testid="pz-results-show-more"
                     onClick={() => setShownResultCount((count) => count + RESULTS_PAGE)}
                     style={{ minHeight: 34, borderRadius: 10, border: `1px solid ${C.border}`, background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 800 }}
                   >
-                    Show {Math.min(RESULTS_PAGE, businessSearchResults.length - shownResultCount)} more
+                    Show {Math.min(RESULTS_PAGE, orderedResults.length - shownResultCount)} more
                   </button>
                 )}
-                {businessSearchResults.length > RESULTS_PAGE && (
+                {orderedResults.length > RESULTS_PAGE && (
                   <p data-testid="pz-results-count" style={{ margin: 0, textAlign: 'center', color: C.muted2, fontSize: 10 }}>
-                    {businessSearchResults.length > shownResultCount
-                      ? `Showing ${shownResultCount} of ${businessSearchResults.length}`
-                      : `Showing all ${businessSearchResults.length}`}
+                    {orderedResults.length > shownResultCount
+                      ? `Showing ${shownResultCount} of ${orderedResults.length}`
+                      : `Showing all ${orderedResults.length}`}
                   </p>
                 )}
               </div>
@@ -3357,6 +3471,27 @@ function ConfigurationView(props: any) {
               <div style={{ fontSize: 10, color: C.muted, lineHeight: 1.5 }}>
                 {[selectedBusiness.category, selectedBusiness.address, selectedBusiness.city, selectedBusiness.region].filter(Boolean).join(' • ')}
                 {selectedBusiness.phone && <div>Phone: {selectedBusiness.phone}</div>}
+                <LeadInsightsPanel showOutreach business={selectedBusiness} results={businessSearchResults} enrichment={enrichmentOf(selectedBusiness.id)} onPick={(b) => { void handleSelectBusiness(b) }} />
+                {foundContacts.length > 0 && (
+                  <div data-testid="pz-found-contacts" style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: C.muted2 }}>Found on the business's website</div>
+                    {foundContacts.filter((c) => c.key === 'email').map((c) => (
+                      <div key={c.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }} title={`Found on ${c.source.sourceUrl} (${c.source.method}, confidence ${Math.round(c.source.confidence * 100)}%)`}>
+                        <span style={{ color: C.text }}>Email: <a href={`mailto:${c.value}`} style={{ color: C.cyan }}>{c.value}</a></span>
+                        <button type="button" aria-label="Remove Email" onClick={() => clearContactValue('email')} style={{ background: 'transparent', border: 0, color: C.muted2, cursor: 'pointer', fontSize: 12, lineHeight: 1 }}>×</button>
+                      </div>
+                    ))}
+                    {foundContacts.some((c) => c.key !== 'email') && (
+                      <SocialIcons
+                        size={16}
+                        name={selectedBusiness.name}
+                        links={Object.fromEntries(foundContacts.filter((c) => c.key !== 'email').map((c) => [c.key, c.value]))}
+                        titles={Object.fromEntries(foundContacts.filter((c) => c.key !== 'email').map((c) => [c.key, `found on ${c.source.sourceUrl} (${c.source.method}, confidence ${Math.round(c.source.confidence * 100)}%)`]))}
+                        onRemove={(n) => clearContactValue(n)}
+                      />
+                    )}
+                  </div>
+                )}
                 <div>
                   <label style={{ display: 'block', marginBottom: 4, color: C.muted, fontSize: 10 }}>Website</label>
                   <input
@@ -3814,6 +3949,9 @@ function ConfigurationView(props: any) {
               </div>
             </div>
             <UploadZone primary="Upload Logo" secondary="Drag & drop or browse" collapsed={assets.logos.length > 0} addLabel="+ Add another logo" onFiles={handleLogoUpload} onUrl={handleLogoUrl} urlLabel="Add Logo URL" urlPlaceholder="Paste logo URL and press Enter" />
+            {logoQualityNotes(assets.primaryLogo).map((note) => (
+              <p key={note} data-testid="pz-logo-note" style={{ margin: '8px 0 0', color: C.muted, fontSize: 10, lineHeight: 1.4 }}>⚠ {note}</p>
+            ))}
             <div
               className="logo-preview frame-preview"
               draggable

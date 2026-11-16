@@ -639,6 +639,10 @@ export function DiscoveredAssetGrid({
   onDragEnd?: (e: DragEvent) => void
   /** Drop targets rendered under the grid; used where the page has none of its own. */
   dropZones?: DiscoveredAssetDropZone[]
+  /** On-device background removal (auto queue + manual controls). Omitted = feature off. */
+  cutout?: AutoCutoutControls
+  /** Save one asset to the project's assets from the viewer. */
+  onSaveToAssets?: (id: string) => void | Promise<unknown>
   onDropToSection?: (id: string, section: AssignedSection) => void
   /** On-device background removal (auto queue + manual controls). Omitted = feature off. */
   cutout?: AutoCutoutControls
