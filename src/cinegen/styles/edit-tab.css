@@ -37,12 +37,12 @@
   grid-column: 3;
   grid-row: 3;
 }
-/* Right panel spans only viewer row in full mode */
+/* [remix] Right panel runs the full height in full mode: the timeline only occupies column 3 here, so the old "viewer row only" left an empty block under the inspector. */
 .edit-tab[data-panel-mode="full"] > .edit-tab__right-resize {
-  grid-row: 1 / 3;
+  grid-row: 1 / -1;
 }
 .edit-tab[data-panel-mode="full"] > .clip-properties-panel {
-  grid-row: 1 / 3;
+  grid-row: 1 / -1;
 }
 
 /* ---- Compact mode: panel only covers viewer row, timeline spans full width ---- */

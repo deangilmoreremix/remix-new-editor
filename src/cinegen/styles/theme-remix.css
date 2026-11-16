@@ -229,3 +229,14 @@
 .lib-card__star { position: absolute; top: 9px; right: 36px; z-index: 25; width: 22px; height: 22px; border-radius: 999px; border: 0; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 13px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
 .lib-card__star:hover, .lib-card__star:focus-visible { background: rgba(0, 0, 0, 0.85); outline: none; }
 .lib-card__star--on { color: #facc15; }
+
+/* [remix] clip Inspector: find box and collapsible groups (components/edit/inspector-group.tsx, clip-properties-panel.tsx) */
+.inspector-find { padding: 8px 12px 4px; }
+.inspector-find input { width: 100%; box-sizing: border-box; background: #0d1218; color: inherit; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 6px; padding: 6px 8px; font-size: 12px; }
+.inspector-group[hidden], .inspector-group__body[hidden], .clip-properties-panel__section[hidden], .inspector-group__hint[hidden] { display: none !important; }
+.inspector-group { border-bottom: 1px solid var(--border-subtle); }
+.inspector-group__head { width: 100%; display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(255, 255, 255, 0.03); border: 0; color: var(--text-secondary, #aeb8c4); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; text-align: left; }
+.inspector-group__head:hover, .inspector-group__head:focus-visible { color: #fff; background: rgba(34, 211, 238, 0.08); outline: none; }
+.inspector-group__chev { width: 10px; color: #22d3ee; }
+.inspector-group .clip-properties-panel__section:last-child { border-bottom: 0; }
+.inspector-group__hint { padding: 8px 12px 10px; font-size: 10.5px; line-height: 1.4; opacity: 0.55; }

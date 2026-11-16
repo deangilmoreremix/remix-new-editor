@@ -29,6 +29,7 @@ Test media: two generated 8s VP9 clips. No Supabase / Clerk / provider keys were
 | 82-sound-on-its-own-track | The + on a template video adds it directly; a sound added over its audio goes on a new audio track (A2) |
 | 83, 84, 85 | New blank project: the Start your video screen; Pick a template video opens the Add window on that tab; Make a video for me opens the Template Generator |
 | 87, 88 | Library Favorites (★) and Recent strips; the same after a page reload |
+| 89, 90 | Inspector in groups (Basics / Look / Position and motion / Captions / Analyze), full height, with Find a setting |
 
 ## Not captured / not verified
 - "Open full timeline" button: click timed out, no screenshot (30/43 missing).
