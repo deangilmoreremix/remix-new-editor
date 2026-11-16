@@ -6,7 +6,7 @@
 // preview, so it is never recorded).
 
 export const TELEPROMPTER_KEY = 'recorder-teleprompter';
-export const DEFAULTS = { on: false, script: '', wpm: 140, fontSize: 24 };
+export const DEFAULTS = { on: false, script: '', wpm: 140, fontSize: 24, follow: false };
 
 export function teleprompterSettings(t = {}) {
   return {
@@ -14,6 +14,8 @@ export function teleprompterSettings(t = {}) {
     script: String(t.script ?? '').slice(0, 6000),
     wpm: Math.max(60, Math.min(260, Math.round(Number(t.wpm) || DEFAULTS.wpm))),
     fontSize: Math.max(14, Math.min(48, Math.round(Number(t.fontSize) || DEFAULTS.fontSize))),
+    // Scroll to where you are as you speak (src/lib/recorder/voiceFollow.js) instead of at `wpm`.
+    follow: !!t.follow,
   };
 }
 

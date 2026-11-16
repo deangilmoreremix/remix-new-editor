@@ -146,7 +146,7 @@
     },
     {
       "feature": "Script and teleprompter",
-      "explanation": "In Record, the Script card holds what you'll say. Write with AI drafts it from who it's for and what you want to say, in the language you pick; the Email and Page tabs draft the email (Generate step) and the landing page text (Customize). In the recorder, Teleprompter shows the script over the preview, highlights the current line and scrolls while you record (Speed and Font size; Practice to try it first). It is never recorded.",
+      "explanation": "In Record, the Script card holds what you'll say. Write with AI drafts it from who it's for and what you want to say, in the language you pick; the Email and Page tabs draft the email (Generate step) and the landing page text (Customize). In the recorder, Teleprompter shows the script over the preview, highlights the current line and scrolls while you record (Speed and Font size; Practice to try it first). It is never recorded. Tick Follow my voice to have it scroll to where you are as you speak instead of at a set speed (speech is recognised on your device with the Moonshine model, downloaded once, about 50 MB).",
       "whyToUse": "Keep eye contact and say it right the first time.",
       "inputRequired": "A script, typed or written with AI.",
       "restrictions": "Write with AI is one small text request on your MuAPI key. The script has no {{tokens}}: the same recording goes to everyone and only the greeting at [pause] is personalized."

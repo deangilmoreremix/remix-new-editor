@@ -381,6 +381,7 @@ export class RecorderModal extends BaseModal {
     this.isPaused = false;
     this.prompterClock.reset();
     this.prompterRunning = false;
+    this.stopFollowing();
     try {
       const result = await session.stop();
       const { releaseTakes } = await import('../../lib/recorder/session.js');
@@ -413,6 +414,8 @@ export class RecorderModal extends BaseModal {
         <textarea data-tp-script rows="5" placeholder="Paste or write your script. Start with [pause] where the personalized greeting goes." style="width:100%;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;font:inherit;font-size:13px;">${String(p.script).replace(/</g, '&lt;')}</textarea>
         <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><span style="opacity:.7;width:84px;">Speed</span><input type="range" min="60" max="260" step="10" value="${p.wpm}" data-tp-wpm style="flex:1;"><span data-tp-wpm-label style="width:70px;text-align:right;opacity:.7;">${p.wpm} wpm</span></label>
         <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><span style="opacity:.7;width:84px;">Font size</span><input type="range" min="14" max="48" step="1" value="${p.fontSize}" data-tp-size style="flex:1;"><span style="width:70px;text-align:right;opacity:.7;">${p.fontSize}px</span></label>
+        <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><input type="checkbox" data-tp-follow ${p.follow ? 'checked' : ''}> Follow my voice: scroll as I speak (speech is recognised on this device; the model downloads once, about 50 MB)</label>
+        ${this.followStatus ? `<span style="font-size:11px;opacity:.6;">${this.followStatus}</span>` : ''}
         <div style="display:flex;gap:6px;">
           <button class="preview-toggle" data-tp-practice>${this.prompterRunning ? 'Pause scrolling' : 'Practice'}</button>
           <button class="preview-toggle" data-tp-reset>Back to start</button>
@@ -426,7 +429,13 @@ export class RecorderModal extends BaseModal {
     const box = this.overlay?.querySelector('.tp-lines');
     if (!box) return;
     const lines = scriptLines(this.prompter.script);
-    const { index, progress } = readingPosition(lines, ms, this.prompter.wpm);
+    let { index, progress } = readingPosition(lines, ms, this.prompter.wpm);
+    if (this.prompter.follow) {
+      // Follow my voice: the line you are reading, from what the microphone heard.
+      if (!this.followWords) import('../../lib/recorder/voiceFollow.js').then((m) => { this.followMod = m; this.followWords = m.scriptWords(lines); });
+      index = this.followMod && this.followWords ? this.followMod.lineForWord(this.followWords, this.followAt || 0) : 0;
+      progress = 0;
+    }
     const els = box.querySelectorAll('.tp-line');
     // Measured, so a line the box wraps onto two rows still scrolls right.
     const cur = els[Math.min(index, els.length - 1)];
@@ -434,10 +443,39 @@ export class RecorderModal extends BaseModal {
     els.forEach((el, i) => { el.style.color = i === index ? '#fff' : 'rgba(255,255,255,.45)'; });
   }
 
+  // Follow my voice: listen to the microphone (the take's own mic while recording).
+  async startFollowing() {
+    if (!this.prompter.follow || this.follower) return;
+    try {
+      let track = this.liveStreams?.flatMap((st) => st.getAudioTracks())[0] || null;
+      if (!track) { this.followMic = await navigator.mediaDevices.getUserMedia({ audio: true }); track = this.followMic.getAudioTracks()[0]; }
+      const { listen, advance, scriptWords } = await import('../../lib/recorder/voiceFollow.js');
+      const words = scriptWords(scriptLines(this.prompter.script));
+      this.followWords = words;
+      this.follower = await listen(track, {
+        onHeard: (text) => { this.followAt = advance(words, this.followAt || 0, text); this.paintPrompter(this.prompterClock.elapsed()); },
+        onStatus: (st) => {
+          this.followStatus = st.stage === 'download' ? `Loading speech recognition… ${Math.round((st.progress || 0) * 100)}%` : st.stage === 'error' ? `Follow my voice is unavailable: ${st.message}` : '';
+          const el = this.overlay?.querySelector('[data-teleprompter-panel] span');
+          if (el && this.followStatus) el.textContent = this.followStatus;
+        },
+      });
+    } catch (err) {
+      this.followStatus = `Follow my voice is unavailable: ${err?.message || err}`;
+    }
+  }
+
+  stopFollowing() {
+    this.follower?.stop();
+    this.follower = null;
+    this.followMic?.getTracks().forEach((t) => t.stop());
+    this.followMic = null;
+  }
+
   setPrompter(patch, { rerender = false } = {}) {
     this.prompter = teleprompterSettings({ ...this.prompter, ...patch });
     saveTeleprompter(this.prompter);
-    if ('script' in patch) this.onScriptChange?.(this.prompter.script);
+    if ('script' in patch) { this.onScriptChange?.(this.prompter.script); this.followWords = null; this.followAt = 0; }
     if (rerender) this.rerender();
     this.paintPrompter(this.prompterClock.elapsed());
   }
@@ -471,12 +509,16 @@ export class RecorderModal extends BaseModal {
       this.setPrompter({ wpm: Number(e.target.value) });
       const l = this.overlay.querySelector('[data-tp-wpm-label]'); if (l) l.textContent = `${this.prompter.wpm} wpm`;
     });
+    this.overlay.querySelector('[data-tp-follow]')?.addEventListener('change', (e) => {
+      this.setPrompter({ follow: e.target.checked }, { rerender: true });
+      if (e.target.checked) import('../../lib/recorder/voiceFollow.js').then((m) => m.preloadFollow()).catch(() => {});
+    });
     this.overlay.querySelector('[data-tp-size]')?.addEventListener('change', (e) => this.setPrompter({ fontSize: Number(e.target.value) }, { rerender: true }));
     this.overlay.querySelector('[data-tp-practice]')?.addEventListener('click', () => {
-      if (this.prompterRunning) { this.prompterClock.pause(); this.prompterRunning = false; } else { this.prompterClock.start(); this.prompterRunning = true; }
+      if (this.prompterRunning) { this.prompterClock.pause(); this.prompterRunning = false; this.stopFollowing(); } else { this.prompterClock.start(); this.prompterRunning = true; this.startFollowing(); }
       this.rerender();
     });
-    this.overlay.querySelector('[data-tp-reset]')?.addEventListener('click', () => { this.prompterClock.reset(); this.prompterRunning = false; this.rerender(); });
+    this.overlay.querySelector('[data-tp-reset]')?.addEventListener('click', () => { this.prompterClock.reset(); this.prompterRunning = false; this.followAt = 0; this.stopFollowing(); this.rerender(); });
 
     this.overlay.querySelector('[data-action="toggle-effects"]')?.addEventListener('click', () => {
       this.showEffects = !this.showEffects;
@@ -615,6 +657,8 @@ export class RecorderModal extends BaseModal {
   open() {
     super.open();
     this.syncCameraPreview();
+    // Follow my voice: have the speech model ready by the time recording starts.
+    if (this.prompter.on && this.prompter.follow) import('../../lib/recorder/voiceFollow.js').then((m) => m.preloadFollow()).catch(() => {});
   }
 
   // Recording uses the engine ported from Remotion Recorder (src/lib/recorder): every source is
@@ -696,6 +740,9 @@ export class RecorderModal extends BaseModal {
       this.prompterClock.reset();
       this.prompterClock.start();
       this.prompterRunning = true;
+      this.followAt = 0;
+      this.stopFollowing();
+      this.startFollowing();
       this.recordingTime = 0;
       this.recordingInterval = setInterval(() => {
         if (!this.isPaused) {
@@ -744,6 +791,7 @@ export class RecorderModal extends BaseModal {
   async stopRecording() {
     if (!this.session || this.stopping) return;
     this.stopping = true;
+    this.stopFollowing();
     if (this.spotlightOn()) this.spotlights[this.spotlights.length - 1].end = this.takeSeconds();
     this.prompterClock.pause();
     this.prompterRunning = false;
@@ -824,6 +872,7 @@ export class RecorderModal extends BaseModal {
   destroy() {
     clearInterval(this.recordingInterval);
     this.prompterClock.reset();
+    this.stopFollowing();
     const session = this.session;
     this.session = null;
     if (session) {

@@ -12,7 +12,7 @@ import {
   // @ts-expect-error JS module without types
 } from "../../../lib/recorder/teleprompter.js";
 
-type Settings = { on: boolean; script: string; wpm: number; fontSize: number };
+type Settings = { on: boolean; script: string; wpm: number; fontSize: number; follow: boolean };
 
 export const TeleprompterButton: React.FC<{ settings: Settings; onChange: (s: Settings) => void; disabled: boolean }> = ({ settings, onChange, disabled }) => {
   const [open, setOpen] = useState(false);
@@ -55,6 +55,10 @@ export const TeleprompterButton: React.FC<{ settings: Settings; onChange: (s: Se
             <input type="range" min={14} max={48} value={settings.fontSize} onChange={(e) => set({ fontSize: Number(e.target.value) })} className="flex-1" />
             <span className="w-14 text-right">{settings.fontSize}px</span>
           </label>
+          <label className="flex items-center gap-2 text-xs text-white/80">
+            <input type="checkbox" checked={settings.follow} onChange={(e) => set({ follow: e.target.checked })} />
+            Follow my voice (scrolls as you speak; recognised on this device)
+          </label>
           <span className="text-[10px] text-white/40">Scrolls while you record. Not recorded.</span>
         </div>
       ) : null}
@@ -76,8 +80,34 @@ export const TeleprompterOverlay: React.FC<{ settings: Settings; recording: bool
     } else c.pause();
     return () => c.pause();
   }, [recording]);
+  // Follow my voice (src/lib/recorder/voiceFollow.js): the line you are reading, from the mic.
+  const [followAt, setFollowAt] = useState(0);
+  const follow = useRef<{ words: Array<{ w: string; line: number }>; lineFor: (w: Array<{ w: string; line: number }>, i: number) => number } | null>(null);
+  useEffect(() => {
+    if (!settings.follow || !recording) return;
+    let stop: (() => void) | null = null;
+    let mic: MediaStream | null = null;
+    let cancelled = false;
+    setFollowAt(0);
+    (async () => {
+      // @ts-expect-error JS module without types
+      const vf = await import("../../../lib/recorder/voiceFollow.js");
+      mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (cancelled) { mic.getTracks().forEach((t) => t.stop()); return; }
+      const words = vf.scriptWords(lines);
+      follow.current = { words, lineFor: vf.lineForWord };
+      let at = 0;
+      const l = await vf.listen(mic.getAudioTracks()[0], { onHeard: (text: string) => { at = vf.advance(words, at, text); setFollowAt(at); } });
+      stop = () => l.stop();
+    })().catch(() => {});
+    return () => { cancelled = true; stop?.(); mic?.getTracks().forEach((t) => t.stop()); };
+  }, [settings.follow, recording, lines]);
   if (!settings.on || !lines.length) return null;
-  const { index, progress } = readingPosition(lines, ms, settings.wpm);
+  let { index, progress } = readingPosition(lines, ms, settings.wpm);
+  if (settings.follow && follow.current) {
+    index = follow.current.lineFor(follow.current.words, followAt);
+    progress = 0;
+  }
   // Measured, so a line that wraps onto two rows still scrolls right.
   const cur = box.current?.children[Math.min(index, lines.length - 1)] as HTMLElement | undefined;
   const offset = cur ? cur.offsetTop + (index < lines.length ? progress : 1) * cur.offsetHeight : 0;

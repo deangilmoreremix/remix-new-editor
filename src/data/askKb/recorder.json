@@ -70,7 +70,7 @@
     },
     {
       "feature": "Teleprompter",
-      "explanation": "On the Webcam view, click 📜, tick Show the teleprompter, and paste your script. It shows over the camera preview, highlights the current line and scrolls at the chosen speed while you record. It shares the script with Video Outreach's recorder.",
+      "explanation": "On the Webcam view, click 📜, tick Show the teleprompter, and paste your script. It shows over the camera preview, highlights the current line and scrolls at the chosen speed while you record. It shares the script with Video Outreach's recorder. Tick Follow my voice to have it scroll to where you are as you speak instead of at a set speed (speech is recognised on your device with the Moonshine model, downloaded once, about 50 MB).",
       "whyToUse": "Read your script while looking at the camera.",
       "inputRequired": "A script.",
       "restrictions": "Shown on screen only; not recorded."
