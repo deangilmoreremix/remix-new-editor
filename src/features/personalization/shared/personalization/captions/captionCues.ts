@@ -91,7 +91,7 @@ export const MAX_CAPTION_FILE_CHARS = 400_000
  * time order with no per-word times (so a look cannot pick out the spoken word on imported captions).
  */
 export function parseCaptionFile(raw: string): CaptionCue[] {
-  const text = String(raw ?? '').slice(0, MAX_CAPTION_FILE_CHARS).replace(/^﻿/, '').replace(/\r\n?/g, '\n')
+  const text = String(raw ?? '').slice(0, MAX_CAPTION_FILE_CHARS).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n')
   const cues: CaptionCue[] = []
   for (const block of text.split(/\n{2,}/)) {
     const lines = block.split('\n').map((l) => l.trim()).filter(Boolean)
