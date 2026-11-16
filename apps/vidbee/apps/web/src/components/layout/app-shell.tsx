@@ -7,7 +7,7 @@ import { appSidebarIcons } from "@vidbee/ui/components/ui/app-sidebar-icons";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-type AppPage = "about" | "download" | "settings" | "subscriptions";
+type AppPage = "about" | "download" | "settings" | "subscriptions" | "transcripts";
 
 interface AppShellProps {
 	children: ReactNode;
@@ -30,6 +30,15 @@ export const AppShell = ({ children, page }: AppShellProps) => {
 			label: t("menu.home"),
 			onClick: () => {
 				void navigate({ to: "/" });
+			},
+		},
+		{
+			id: "transcripts",
+			active: page === "transcripts",
+			icon: appSidebarIcons.transcripts,
+			label: "Transcripts",
+			onClick: () => {
+				void navigate({ to: "/transcripts" });
 			},
 		},
 		{

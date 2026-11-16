@@ -26,4 +26,12 @@ Transcription uses upstream's local sherpa-onnx models, downloaded on first use 
 
 ## Host patches to upstream
 Listed in `apps/vidbee/UPSTREAM.md` (search `[host patch]`): optional sub-path (`VIDBEE_BASE_PATH=/vidbee`), a `host-theme.css` palette file, and the production start scripts.
-Upstream's transcript viewer with speaker labels and the AI summarize/chat screens exist only in its Electron desktop app and are not part of the web UI.
+## Transcripts + AI (host-added on top of upstream)
+Upstream ships the transcript viewer and AI prompts only in its Electron desktop app, so the web version of this feature is host glue built on upstream's own pieces
+(details in `apps/vidbee/UPSTREAM.md`): upstream's transcript store/queue/worker, its built-in prompts (Overview, Bullet points, Mindmap, Statistics, FAQ, Grammar, Paraphrase, Translate),
+provider presets and exporters, with new `/hub/*` API routes and a **Transcripts** page in the sidebar.
+- **Transcript:** transcribe a finished download (upstream's local speech models), click a line to seek, search by text or speaker, rename speakers, export TXT / MD / SRT / VTT.
+- **AI:** run any built-in prompt or translate into a language code; a plain Q&A chat over the transcript. Configure the provider (OpenAI-compatible endpoints or Anthropic) under *AI settings* on the page.
+  The key is stored on the server (`hub-ai-settings.json`, mode 600) and shared by everyone allowed to use Media Hub; it is never sent back to the browser.
+- **Not ported:** the desktop's 9,600-line transcript UI and its agent runtime (tools, skills install, plugins, share cards, bilingual captions). The chat has no tools.
+- Transcription models download on first use (internet needed). Tests here used upstream's built-in fake backend (`VIDBEE_TRANSCRIPTION_BACKEND=fake`) and a mock AI endpoint.

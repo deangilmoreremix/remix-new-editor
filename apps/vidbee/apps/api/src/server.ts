@@ -1,3 +1,4 @@
+import { registerHubRoutes } from './lib/hub-router'
 import { lookup } from 'node:dns/promises'
 import { createReadStream } from 'node:fs'
 import type { ServerResponse } from 'node:http'
@@ -215,6 +216,9 @@ export const createApiServer = async () => {
     reply.header('content-disposition', `attachment; filename="${fileName.replaceAll('"', '')}"`)
     return reply.send(createReadStream(resolvedPath))
   })
+
+  // [host patch] transcript + AI endpoints for the web UI (see src/lib/hub-router.ts)
+  registerHubRoutes(fastify)
 
   fastify.get<{ Querystring: { url?: string } }>('/images/proxy', async (request, reply) => {
     const sourceUrl = request.query.url?.trim()

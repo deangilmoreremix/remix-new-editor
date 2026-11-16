@@ -16,7 +16,8 @@ const stripBase = (pathname) =>
   BASE_PATH && (pathname === BASE_PATH || pathname.startsWith(`${BASE_PATH}/`))
     ? pathname.slice(BASE_PATH.length) || '/'
     : pathname
-const PROXY_PATH_PREFIXES = ['/events', '/files', '/images', '/rpc']
+// [host patch] '/hub' = transcript + AI endpoints added by the host (apps/api/src/lib/hub-router.ts)
+const PROXY_PATH_PREFIXES = ['/events', '/files', '/hub', '/images', '/rpc']
 const HOP_BY_HOP_HEADERS = new Set([
   'connection',
   'keep-alive',

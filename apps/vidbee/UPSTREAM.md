@@ -11,3 +11,10 @@ Included: `apps/api`, `apps/web`, `resources/drizzle` (from `apps/desktop/resour
 
 ## Updating
 Re-copy from upstream, re-apply the patches above (`git diff` against the previous vendor commit shows them), then rebuild.
+
+## Transcripts + AI (host-added; upstream ships these only in the Electron desktop app)
+- `apps/api/src/upstream/` — **unmodified** copies of `apps/desktop/src/shared/{ai-prompts,ai-presets,ai-types,transcript-export,subtitle-export}.ts` and `apps/desktop/src/main/lib/source-file.ts`, plus `skills/` (built-in prompts: Overview, Translate, FAQ, Mindmap, …).
+  `builtin-skills.ts` is adapted: it reads `skills/*/SKILL.md` from disk instead of Vite's `import.meta.glob`.
+- `apps/api/src/lib/hub-router.ts` (new glue) — `/hub/*` routes over upstream's `TranscriptStore`, `enqueueTranscription` and task queue.
+- `apps/web/src/{lib/hub-client.ts,components/pages/transcripts-page.tsx,routes/transcripts.tsx}` (new) — Transcripts page: captions, speaker rename, export, AI prompts, translate, chat.
+- Not ported: the desktop's 9,600-line transcript UI and its agent runtime (tools, skills install, plugins). The web chat is a plain transcript Q&A.
