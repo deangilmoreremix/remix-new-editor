@@ -472,18 +472,23 @@ export function AnimatePage() {
       }
       state.result = { videoUrl: data.videoUrl };
       if (selectedBrand) {
-        saveAnimation({
-          id: data.id || `${selectedBrand.id}_${Date.now()}`,
-          brandId: selectedBrand.id,
-          sourceImageUrl: state.sourceImageUrl,
-          sourceType: state.sourceType,
-          sourceId: state.sourceId,
-          prompt: state.prompt,
-          videoUrl: data.videoUrl,
-          duration: state.duration,
-          resolution: state.resolution,
-          createdAt: new Date().toISOString(),
-        });
+        // The video exists at this point: a storage failure must not be reported as a failed animation.
+        try {
+          saveAnimation({
+            id: data.id || `${selectedBrand.id}_${Date.now()}`,
+            brandId: selectedBrand.id,
+            sourceImageUrl: state.sourceImageUrl,
+            sourceType: state.sourceType,
+            sourceId: state.sourceId,
+            prompt: state.prompt,
+            videoUrl: data.videoUrl,
+            duration: state.duration,
+            resolution: state.resolution,
+            createdAt: new Date().toISOString(),
+          });
+        } catch (e) {
+          console.warn('[animate] could not save the animation to the brand:', e?.message || e);
+        }
       }
       saveGeneration({
         studio: 'video',

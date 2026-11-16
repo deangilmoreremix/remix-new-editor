@@ -198,3 +198,14 @@ describe('MuAPI failure handling (found by the real-API run)', () => {
     expect(muapiMock.imageEdit2.mock.calls[0][1]).toEqual(['https://x/p.png']);
   });
 });
+
+describe('image helpers never return an empty URL', () => {
+  it('image() and imageEdit() throw when MuAPI returns no media URL', async () => {
+    vi.resetModules(); vi.doUnmock('../lib/muapi.js');
+    const { MuapiClient } = await import('../lib/muapi.js');
+    const c = new MuapiClient();
+    c._runPrediction = vi.fn(async () => ({ status: 'completed' }));
+    await expect(c.image('p')).rejects.toThrow('No image URL');
+    await expect(c.imageEdit('p', ['https://x/a.png'])).rejects.toThrow('No image URL');
+  });
+});

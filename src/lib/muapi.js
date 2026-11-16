@@ -572,13 +572,21 @@ export class MuapiClient {
                     }
                     // MuAPI answers a failed job with a 4xx and { detail: { status: 'failed', error } }. It will never
                     // succeed on retry, so report the real reason now instead of polling until the attempt limit.
-                    const errText = await response.text();
+                    // Bounded: a stuck proxy must not hang the poll loop on the error body.
+                    const errText = await Promise.race([
+                        response.text(),
+                        new Promise((resolve) => setTimeout(() => resolve(''), 10_000)),
+                    ]).catch(() => '');
                     let detail = null;
                     try { detail = JSON.parse(errText)?.detail ?? null; } catch { /* not JSON */ }
-                    const reason = typeof detail === 'string' ? detail : (detail?.error?.message || detail?.error || null);
+                    const rawReason = typeof detail === 'string' ? detail : (detail?.error?.message || detail?.error || null);
+                    const reason = rawReason && typeof rawReason !== 'string' ? JSON.stringify(rawReason) : rawReason;
                     const failed = new Error(reason ? `Generation failed: ${reason}` : `Poll Failed: ${response.status} - ${errText.slice(0, 100)}`);
                     failed.requestId = requestId;
-                    failed.terminal = response.status !== 429 && response.status !== 408;
+                    // Terminal when MuAPI says the job failed, or the request can never succeed (auth). Other 4xx
+                    // (409/425/...) may be transient while a long job runs, so they keep polling.
+                    const providerFailed = ['failed', 'error'].includes(String(detail?.status || '').toLowerCase());
+                    failed.terminal = (providerFailed && response.status !== 429 && response.status !== 408) || response.status === 401 || response.status === 403;
                     throw failed;
                 }
 
@@ -1626,7 +1634,9 @@ export class MuapiClient {
     // nano-banana text-to-image (Open-Pomelli `muapi.image`).
     async image(prompt, aspectRatio = '1:1', signal) {
         const r = await this._runPrediction('nano-banana', { prompt, aspect_ratio: aspectRatio }, signal);
-        return MuapiClient.extractMediaUrl(r);
+        const url = MuapiClient.extractMediaUrl(r);
+        if (!url) throw new Error('No image URL in response');
+        return url;
     }
 
     // nano-banana-edit with reference images, e.g. the brand logo (Open-Pomelli `muapi.imageEdit`).
@@ -1636,7 +1646,9 @@ export class MuapiClient {
             images_list: imagesList,
             aspect_ratio: aspectRatio,
         }, signal);
-        return MuapiClient.extractMediaUrl(r);
+        const url = MuapiClient.extractMediaUrl(r);
+        if (!url) throw new Error('No image URL in response');
+        return url;
     }
 
     async image2(prompt, opts = {}, signal) {
