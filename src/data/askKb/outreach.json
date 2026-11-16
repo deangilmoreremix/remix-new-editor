@@ -33,7 +33,8 @@
     "Add from Lead Finder: pick saved leads with an email as contacts",
     "Email card: thumbnail text, subject and message with {{firstname}}, {{company}} and {{link}}; Make thumbnails; Copy email (with the thumbnail) and Email per contact; mail-merge .csv",
     "MP4 per contact: download that contact's finished video as a file",
-    "Lip-sync the greeting (optional, paid): your mouth says each contact's name"
+    "Lip-sync the greeting (optional, paid): your mouth says each contact's name",
+    "Thumbnails: animated GIF (3 seconds, choose where it starts) or still image; play button show/hide, style, colour and opacity; each prospect's company logo; text with {{firstname}}, {{company}}, {{jobtitle}}; Copy GIF and Embed per contact; Opened/Watched/Clicked per contact"
   ],
   "featureExplanations": [
     {
@@ -108,10 +109,10 @@
     },
     {
       "feature": "Email and thumbnails",
-      "explanation": "After generating, the Email card sets the thumbnail text, subject and message. Make thumbnails draws a picture per contact (a still of your video, or their website with your camera bubble, a play button and their name) and saves it. Copy email puts the finished email with the linked thumbnail on your clipboard; Email opens your mail app; Download mail-merge .csv has every finished email.",
+      "explanation": "After generating, the Email card sets the thumbnail and the email. Thumbnail: Animated GIF (3 seconds from the point you pick with Select preview) or Still image (pick the frame); the play button (Show, Solid/Outline/Glass, colour, opacity); Logo shows each prospect's company logo found on their website. Make thumbnails creates one per prospect (contacts who would get the same picture share one). Each personal link then has Copy GIF (the clickable thumbnail for pasting into an email), Embed (HTML for email tools), Copy email (the whole email with the thumbnail), Email (your mail app) and a status: Not opened, Opened, Watched or Clicked.",
       "whyToUse": "Video emails get more clicks with a personalized thumbnail.",
       "inputRequired": "A generated campaign.",
-      "restrictions": "The app doesn't send email itself: paste into Gmail or Outlook, or use a mail-merge tool. Thumbnails are still images, not GIFs."
+      "restrictions": "The app doesn't send email itself: paste into Gmail or Outlook, or use a mail-merge tool. Logos need the prospect's website; contacts without one get no logo."
     },
     {
       "feature": "MP4 per contact",

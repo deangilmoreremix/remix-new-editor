@@ -10,13 +10,14 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 /**
- * POST /api/outreach/site-shot  { url, refresh? }  →  { url, imageUrl, cached }
+ * POST /api/outreach/site-shot  { url, refresh? }  →  { url, imageUrl, logoUrl, cached }
  *
  * Video Outreach studio: a screenshot of a prospect's website, shown behind the presenter's camera
  * bubble on that contact's page. One light capture of the site's home page (no extra routes, no
  * crops: the Motion Studio capture's browser and SSRF guard, src/server/browserDiscovery.ts),
  * stored once per user and site in the capture bucket, so a campaign with many contacts on the same
- * site captures it once.
+ * site captures it once. The site's logo found by the same capture (a transparent PNG) is stored next
+ * to it for the email thumbnails' logo overlay; logoUrl is null when the site shows none.
  */
 
 /** The site's home page (scheme + host), which is what a background shows. Null when not a web address. */
@@ -43,12 +44,12 @@ export function shotPath(userId: string, site: string): string {
 export const SITE_SHOT_OPTIONS = { maxRoutes: 0, maxCrops: 0, deep: false, firstShotMs: 15_000, budgetMs: 20_000, hardMs: 24_000 } as const
 
 export interface SiteShotDeps {
-  capture: (url: string, options: typeof SITE_SHOT_OPTIONS) => Promise<{ page: Buffer | null }>
+  capture: (url: string, options: typeof SITE_SHOT_OPTIONS) => Promise<{ page: Buffer | null; logo?: Buffer | null }>
   storage: CaptureStorage
 }
 
 export type SiteShotResult =
-  | { ok: true; url: string; imageUrl: string; cached: boolean }
+  | { ok: true; url: string; imageUrl: string; logoUrl: string | null; cached: boolean }
   | { ok: false; status: number; code: string; error: string }
 
 export async function siteShot(userId: string, rawUrl: string, refresh: boolean, deps: SiteShotDeps): Promise<SiteShotResult> {
@@ -57,7 +58,7 @@ export async function siteShot(userId: string, rawUrl: string, refresh: boolean,
   const path = shotPath(userId, site)
   const publicUrl = () => deps.storage.getPublicUrl(path).data?.publicUrl || null
 
-  let capture: { page: Buffer | null }
+  let capture: { page: Buffer | null; logo?: Buffer | null }
   try {
     capture = await deps.capture(site, SITE_SHOT_OPTIONS)
   } catch (err) {
@@ -71,7 +72,14 @@ export async function siteShot(userId: string, rawUrl: string, refresh: boolean,
   if (error && !/exist|duplicate/i.test(error.message)) return { ok: false, status: 502, code: 'STORAGE_FAILED', error: 'The screenshot could not be saved' }
   const imageUrl = publicUrl()
   if (!imageUrl) return { ok: false, status: 502, code: 'STORAGE_FAILED', error: 'The screenshot could not be saved' }
-  return { ok: true, url: site, imageUrl, cached: !!error }
+  // The logo is a bonus: a failure to store it never fails the screenshot.
+  let logoUrl: string | null = null
+  if (capture.logo?.length) {
+    const logoPath = path.replace(/\.jpg$/, '-logo.png')
+    const saved = await deps.storage.upload(logoPath, capture.logo, { contentType: 'image/png', upsert: refresh }).catch(() => ({ error: new Error('upload failed') }))
+    if (!saved.error || /exist|duplicate/i.test(saved.error.message)) logoUrl = deps.storage.getPublicUrl(logoPath).data?.publicUrl || null
+  }
+  return { ok: true, url: site, imageUrl, logoUrl, cached: !!error }
 }
 
 async function captureStorage(): Promise<CaptureStorage> {
@@ -101,5 +109,5 @@ export async function POST(req: NextRequest) {
     storage: await captureStorage(),
   })
   if (!result.ok) return NextResponse.json({ error: result.error, code: result.code }, { status: result.status })
-  return NextResponse.json({ url: result.url, imageUrl: result.imageUrl, cached: result.cached })
+  return NextResponse.json({ url: result.url, imageUrl: result.imageUrl, logoUrl: result.logoUrl, cached: result.cached })
 }

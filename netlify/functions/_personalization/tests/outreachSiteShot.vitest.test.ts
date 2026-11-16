@@ -38,7 +38,7 @@ describe('outreach site shot', () => {
     const r = await siteShot('user_1', 'acme.com/about', false, { capture, storage: s })
     expect(capture).toHaveBeenCalledWith('https://acme.com/', SITE_SHOT_OPTIONS)
     expect(SITE_SHOT_OPTIONS).toMatchObject({ maxRoutes: 0, maxCrops: 0, deep: false })
-    expect(r).toEqual({ ok: true, url: 'https://acme.com/', imageUrl: `https://cdn.test/${shotPath('user_1', 'https://acme.com/')}`, cached: false })
+    expect(r).toEqual({ ok: true, url: 'https://acme.com/', imageUrl: `https://cdn.test/${shotPath('user_1', 'https://acme.com/')}`, logoUrl: null, cached: false })
   })
 
   it('keeps an earlier screenshot of the same site, unless refreshed', async () => {
@@ -57,5 +57,17 @@ describe('outreach site shot', () => {
     expect(await siteShot('u', 'acme.com', false, { capture: async () => ({ page: null }), storage: s })).toMatchObject({ ok: false, code: 'CAPTURE_FAILED' })
     const broken = { ...storage(), upload: async () => ({ error: { message: 'bucket missing' } }) }
     expect(await siteShot('u', 'acme.com', false, { capture: async () => ({ page }), storage: broken })).toMatchObject({ ok: false, code: 'STORAGE_FAILED' })
+  })
+
+  it('stores the logo the capture found next to the screenshot', async () => {
+    const s = storage()
+    const r = await siteShot('user_1', 'acme.com', false, { capture: async () => ({ page, logo: Buffer.from('png') }), storage: s })
+    const logoPath = shotPath('user_1', 'https://acme.com/').replace(/\.jpg$/, '-logo.png')
+    expect(r).toMatchObject({ ok: true, logoUrl: `https://cdn.test/${logoPath}` })
+    expect(s.uploads.map((u) => u.path)).toEqual([shotPath('user_1', 'https://acme.com/'), logoPath])
+    // A logo that can't be stored doesn't fail the screenshot.
+    let n = 0
+    const flaky = { ...storage(), upload: async () => (n++ ? { error: { message: 'quota' } } : { error: null }) }
+    expect(await siteShot('u', 'acme.com', false, { capture: async () => ({ page, logo: Buffer.from('png') }), storage: flaky })).toMatchObject({ ok: true, logoUrl: null })
   })
 })

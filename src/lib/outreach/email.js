@@ -70,3 +70,22 @@ export function mailMergeCsv(rows) {
   }
   return `${lines.join('\r\n')}\r\n`;
 }
+
+/** The clickable thumbnail alone (Copy GIF): the image linked to the contact's page. */
+export function thumbnailHtml({ link, thumbnailUrl, width = 480 }) {
+  const href = safeHttps(link);
+  const src = safeHttps(thumbnailUrl);
+  if (!href || !src) return '';
+  return `<a href="${esc(href)}"><img src="${esc(src)}" alt="Play the video" width="${Number(width) || 480}" style="display:block;max-width:100%;border-radius:12px;border:0"></a>`;
+}
+
+/**
+ * Embed code for email and outreach tools: the clickable thumbnail plus a text link under it,
+ * for inboxes that block images. Email clients don't play video, so the page plays it.
+ */
+export function embedSnippet({ link, thumbnailUrl, name = '' }) {
+  const href = safeHttps(link);
+  if (!href) return '';
+  const label = name ? `Watch the video for ${name}` : 'Watch the video';
+  return `<div class="video-embed">${thumbnailHtml({ link, thumbnailUrl })}<p style="margin:8px 0 0"><a href="${esc(href)}">${esc(label)} &#9654;</a></p></div>`;
+}

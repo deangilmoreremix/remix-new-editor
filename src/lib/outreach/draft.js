@@ -42,6 +42,9 @@ export const DEFAULT_EMAIL = {
   subject: 'A quick video for {{firstname}}',
   body: 'Hi {{firstname}},\n\nI recorded a short video for {{company}}. It takes two minutes:\n\n{{link}}\n\nThanks!',
   thumbText: 'Hi {{firstname}}, this is for you',
+  // Thumbnail look (src/lib/outreach/thumbnail.js thumbSettings): animated GIF or still,
+  // where the preview starts, the prospect's logo, and the play button.
+  thumb: { type: 'gif', start: 1, logo: true, play: { show: true, style: 'solid', color: '#4f46e5', opacity: 1 } },
 };
 
 export function defaultDraft() {
@@ -61,6 +64,8 @@ export function defaultDraft() {
     background: { mode: 'recording', fallbackSite: '' },
     // Screenshots captured during Generate: { [site home page]: image URL }.
     siteShots: {},
+    // Company logos found while capturing websites: { [site home page]: image URL }.
+    siteLogos: {},
     email: { ...DEFAULT_EMAIL },
   };
 }
@@ -80,7 +85,8 @@ export function loadDraft(storage = globalThis.localStorage) {
       contacts: Array.isArray(saved.contacts) ? saved.contacts : [],
       background: { ...base.background, ...(saved.background || {}) },
       siteShots: saved.siteShots && typeof saved.siteShots === 'object' ? saved.siteShots : {},
-      email: { ...base.email, ...(saved.email || {}) },
+      siteLogos: saved.siteLogos && typeof saved.siteLogos === 'object' ? saved.siteLogos : {},
+      email: { ...base.email, ...(saved.email || {}), thumb: { ...base.email.thumb, ...(saved.email?.thumb || {}) } },
     };
   } catch {
     return base;
@@ -212,6 +218,7 @@ export const CONTACT_FIELDS = [
   ['lastName', 'Last name'],
   ['email', 'Email'],
   ['company', 'Company'],
+  ['jobTitle', 'Job title'],
   ['website', 'Website'],
 ];
 
@@ -221,6 +228,7 @@ const HEADER_ALIASES = {
   lastName: ['lastname', 'last', 'surname', 'familyname', 'lname'],
   email: ['email', 'emailaddress', 'mail', 'workemail'],
   company: ['company', 'companyname', 'organization', 'organisation', 'business', 'account'],
+  jobTitle: ['jobtitle', 'title', 'role', 'position', 'job'],
   website: ['website', 'url', 'site', 'domain', 'companywebsite', 'web'],
 };
 const norm = (h) => String(h || '').toLowerCase().replace(/[\s_\-.]+/g, '');
@@ -326,7 +334,7 @@ export function mergeContacts(existing, incoming) {
   return out;
 }
 
-export const CSV_TEMPLATE = 'First Name,Last Name,Email,Company,Website\r\nMike,Markovic,mike@example.com,Acme,acme.com\r\n';
+export const CSV_TEMPLATE = 'First Name,Last Name,Email,Company,Job Title,Website\r\nMike,Markovic,mike@example.com,Acme,Head of Sales,acme.com\r\n';
 
 /** A website's home page, the key its screenshot is stored under (same rule as /api/outreach/site-shot). */
 export function siteKey(raw) {
@@ -356,17 +364,18 @@ export function contactProfile(c, siteShots = {}) {
   return {
     id: c.id,
     name: fullName || c.email,
-    contact: { firstName: c.firstName, lastName: c.lastName, name: fullName, email: c.email, company: c.company },
+    contact: { firstName: c.firstName, lastName: c.lastName, name: fullName, email: c.email, company: c.company, ...(c.jobTitle ? { title: c.jobTitle } : {}) },
     social: { website: c.website },
     variables: {
       firstName: c.firstName, lastName: c.lastName, fullName, email: c.email, company: c.company, website: c.website,
+      ...(c.jobTitle ? { jobTitle: c.jobTitle } : {}),
       ...(shot ? { websiteShotUrl: shot } : {}),
     },
   };
 }
 
 /** Values for the studio's {{tokens}} (keys lower-cased, as fillTemplate reads them). */
-export const contactValues = (c = {}) => ({ firstname: c.firstName || '', lastname: c.lastName || '', email: c.email || '', company: c.company || '', website: c.website || '' });
+export const contactValues = (c = {}) => ({ firstname: c.firstName || '', lastname: c.lastName || '', email: c.email || '', company: c.company || '', jobtitle: c.jobTitle || '', website: c.website || '' });
 
 // ---------------------------------------------------------------- campaign
 
