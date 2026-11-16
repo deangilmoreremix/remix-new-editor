@@ -20,11 +20,11 @@ export function contactVideoName(campaignName, contact) {
 /**
  * @returns {Promise<Blob>} MP4 (or WebM where MP4 can't be encoded)
  */
-export async function renderContactVideo({ campaignId, contact, siteShots = {}, onProgress, signal, deps = {} }) {
+export async function renderContactVideo({ campaignId, contact, siteShots = {}, backgroundUrl = '', onProgress, signal, deps = {} }) {
   const d = { ...loaders, ...deps };
   const video = await d.fetchPublishedVideo(campaignId);
   if (!video?.project) throw new Error('The campaign video could not be loaded. Generate the campaign again.');
-  const model = await d.buildViewerModel(video.project, contactProfile(contact, siteShots), { fps: 30, quality: '1080p' });
+  const model = await d.buildViewerModel(video.project, contactProfile(contact, siteShots, backgroundUrl), { fps: 30, quality: '1080p' });
   try {
     return await d.exportModel(model, { container: 'mp4', quality: '1080p', onProgress, signal });
   } catch (err) {

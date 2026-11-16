@@ -144,7 +144,7 @@ export async function handle(body, { ip = 'unknown', fetchImpl = fetch } = {}) {
   const provider = tts.provider === 'openai' ? 'openai' : 'minimax';
   // A cloned voice lives in the account that cloned it. With the platform key it may be unavailable,
   // in which case MuAPI fails and the player keeps the pre-rendered fallback line.
-  const req = buildRequest({ kind: 'tts', provider, text: line, voice: tts.voice, speed: tts.speed, pitch: tts.pitch, instructions: tts.instructions, ...(provider === 'minimax' && tts.cloneVoiceId ? { cloneVoiceId: tts.cloneVoiceId } : {}) });
+  const req = buildRequest({ kind: 'tts', provider, text: line, voice: tts.voice, speed: tts.speed, pitch: tts.pitch, instructions: tts.instructions, ...(provider === 'minimax' && tts.cloneVoiceId ? { cloneVoiceId: tts.cloneVoiceId } : {}), ...(provider === 'minimax' && tts.languageBoost ? { languageBoost: tts.languageBoost } : {}) });
   if (req.error) return fail(422, 'use_fallback', req.error);
   const cacheKey = createHash('sha256').update(JSON.stringify([provider, req.payload])).digest('hex');
   if (cache.has(cacheKey)) return json(200, { ok: true, status: 'done', url: cache.get(cacheKey), cached: true });

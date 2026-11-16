@@ -20,6 +20,7 @@ import {
   loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, tokensIn,
   parseCsv, guessMapping, contactsFromRows, contactsFromLeads, makeContact, mergeContacts, contactProfile, contactValues,
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
+  usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -388,6 +389,33 @@ export function OutreachStudio() {
     return box;
   }
 
+  async function translateCampaign() {
+    const language = draft.language || 'English';
+    abort = new AbortController();
+    try {
+      setBusy(`Translating into ${language}…`);
+      const { translateTexts, muapiGenerate } = await import('../lib/outreach/aiWriter.js');
+      const out = await translateTexts({
+        greeting: draft.greeting, header: draft.header, message: draft.message, ctaLabel: draft.cta?.label,
+        subject: draft.email?.subject, body: draft.email?.body, thumbText: draft.email?.thumbText,
+      }, language, { generate: muapiGenerate, signal: abort.signal });
+      if (out.greeting) draft.greeting = out.greeting.slice(0, 70);
+      if (out.header) draft.header = out.header;
+      if (out.message) draft.message = out.message;
+      if (out.ctaLabel) draft.cta = { ...draft.cta, label: out.ctaLabel.slice(0, 40) };
+      draft.email = { ...draft.email, ...(out.subject ? { subject: out.subject } : {}), ...(out.body ? { body: out.body } : {}), ...(out.thumbText ? { thumbText: out.thumbText } : {}) };
+      draft.voice = { ...draft.voice, fallbackUrl: '', fallbackDuration: 0 };
+      draft.campaign = null;
+      persist();
+      abort = null; busy = ''; notice = `Translated into ${language}. Generate the greeting again to hear it.`;
+      render();
+    } catch (err) {
+      abort = null;
+      if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped.'; render(); return; }
+      fail(err);
+    }
+  }
+
   async function runWriter() {
     writer.busy = true; notice = ''; render();
     try {
@@ -531,10 +559,22 @@ export function OutreachStudio() {
       main.appendChild(field('Voice', sel));
     }
 
-    const greet = card('The greeting', 'Spoken at the start of the video. Use {{firstname}} or {{company}}.');
+    const greet = card('The greeting', 'Spoken at the start of the video. Use {{firstname}}, {{company}} or {{jobtitle}} (more than one is fine: "Hi {{firstname}}, a quick idea for {{company}}").');
     const g = textInput(draft.greeting, 'Hi {{firstname}}!');
     g.addEventListener('change', () => { draft.greeting = g.value; draft.voice.fallbackUrl = ''; persist(); render(); });
     greet.appendChild(field('Greeting', g, 'Up to 70 characters.'));
+    // Output language: the greeting is spoken in it; Translate rewrites the campaign's texts into it.
+    const langRow = el('div', 'flex flex-wrap items-center gap-2');
+    const lang = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-sm text-white');
+    lang.setAttribute('data-outreach-language', '');
+    for (const [l] of WRITER_LANGUAGES) { const o = el('option', 'bg-neutral-900', l); o.value = l; o.selected = (draft.language || 'English') === l; lang.appendChild(o); }
+    lang.addEventListener('change', () => { draft.language = lang.value; draft.voice = { ...draft.voice, fallbackUrl: '', fallbackDuration: 0 }; draft.campaign = null; persist(); render(); });
+    const tr = button('Translate greeting, page and email', { small: true });
+    tr.setAttribute('data-outreach-translate', '');
+    tr.disabled = !!busy || (draft.language || 'English') === 'English';
+    tr.addEventListener('click', translateCampaign);
+    langRow.append(lang, tr);
+    greet.appendChild(field('Output language', langRow, 'The greeting is spoken in this language, in your cloned or stock voice. Translate rewrites your greeting, landing page text and email into it (one small text request on your MuAPI key).'));
     const fb = el('div', 'flex flex-wrap gap-2');
     for (const word of FIRST_NAME_FALLBACKS) {
       const b = button(word, { primary: draft.fallbacks.firstname === word, small: true });
@@ -596,8 +636,9 @@ export function OutreachStudio() {
     const bg = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
     bg.appendChild(el('div', 'text-sm font-bold', 'Video background'));
     const bgModes = el('div', 'flex flex-wrap gap-2');
-    for (const [mode, label] of [['recording', 'My recording'], ['website', 'Each contact\u2019s website']]) {
+    for (const [mode, label] of [['recording', 'My recording'], ['website', 'Each contact\u2019s website'], ['image', 'An image'], ['map', 'A map of their address']]) {
       const b = button(label, { primary: draft.background.mode === mode, small: true });
+      b.setAttribute('data-bg-mode', mode);
       b.addEventListener('click', () => { draft.background = { ...draft.background, mode }; draft.campaign = null; persist(); render(); });
       bgModes.appendChild(b);
     }
@@ -608,6 +649,32 @@ export function OutreachStudio() {
       fallback.addEventListener('input', () => { draft.background = { ...draft.background, fallbackSite: fallback.value.trim() }; draft.campaign = null; persist(); });
       fallback.addEventListener('change', () => render());
       bg.appendChild(field('Fallback website', fallback, 'Shown for contacts without a website, or whose site could not be captured.'));
+      const curOn = el('input'); curOn.type = 'checkbox'; curOn.checked = draft.background.cursor !== false;
+      curOn.addEventListener('change', () => { draft.background = { ...draft.background, cursor: curOn.checked }; draft.campaign = null; persist(); });
+      const curRow = el('label', 'flex items-center gap-2 text-xs'); curRow.append(curOn, el('span', '', 'Show a pointer moving over their website, as if you were pointing things out'));
+      bg.appendChild(curRow);
+    }
+    if (draft.background.mode === 'image' || draft.background.mode === 'map') {
+      bg.appendChild(el('p', 'text-xs text-secondary', draft.background.mode === 'image'
+        ? 'Your camera appears in a round bubble over an image: each contact\u2019s own (the Background image column, an https link) or the one below for everyone else.'
+        : 'Your camera appears in a round bubble over a map of each contact\u2019s address (the Address column). Maps are made when you generate the campaign; addresses are looked up on OpenStreetMap.'));
+      const img = el('div', 'flex flex-wrap items-center gap-3');
+      if (draft.background.image) { const th = el('img', 'h-14 w-24 rounded-lg object-cover border border-white/10'); th.src = draft.background.image; img.appendChild(th); }
+      const f = el('input'); f.type = 'file'; f.accept = 'image/*'; f.hidden = true;
+      f.addEventListener('change', async () => {
+        const file = f.files?.[0]; f.value = '';
+        if (!file) return;
+        try {
+          setBusy('Uploading the image…');
+          const url = await uploadToStorage(file);
+          draft.background = { ...draft.background, image: url }; draft.campaign = null; persist(); busy = ''; render();
+        } catch (err) { fail(err); }
+      });
+      const up = button(draft.background.image ? 'Change image' : 'Upload image', { small: true });
+      up.setAttribute('data-bg-image', '');
+      up.addEventListener('click', () => f.click());
+      img.append(up, f);
+      bg.appendChild(field(draft.background.mode === 'image' ? 'Background image (and fallback)' : 'Fallback image', img, draft.background.mode === 'image' ? 'For contacts without their own background image.' : 'For contacts without an address, or whose address could not be found.'));
     }
     main.appendChild(bg);
 
@@ -619,9 +686,9 @@ export function OutreachStudio() {
       preview.appendChild(el('h3', 'text-xl font-extrabold', fillTemplate(draft.header, sample, draft.fallbacks)));
       const media = el('div', 'relative aspect-video w-full overflow-hidden rounded-xl bg-black');
       const camVideo = () => { const v = el('video', 'h-full w-full object-cover'); v.src = draft.video.url; v.muted = true; v.playsInline = true; return v; };
-      if (draft.background.mode === 'website') {
-        // The fallback site's screenshot when captured, else a placeholder page.
-        const shot = draft.siteShots?.[siteKey(draft.background.fallbackSite)];
+      if (usesBackground(draft)) {
+        // The fallback picture when there is one, else a placeholder page.
+        const shot = fallbackShotFor(draft);
         const page = el('div', 'absolute inset-0');
         if (shot) { page.style.backgroundImage = `url(${JSON.stringify(shot)})`; page.style.backgroundSize = 'cover'; page.style.backgroundPosition = 'top center'; } else {
           page.className = 'absolute inset-0 flex flex-col gap-2 bg-gradient-to-br from-slate-200 to-slate-300 p-4';
@@ -856,6 +923,24 @@ export function OutreachStudio() {
     return failed;
   }
 
+  // Map backgrounds: one picture per address (server: /api/outreach/site-shot { map }).
+  async function captureMaps() {
+    const { installPersonalizationApiAuth } = await import('../features/personalization/lib/apiAuth.ts');
+    installPersonalizationApiAuth();
+    const todo = addressesToCapture(draft).filter((a) => !draft.mapShots?.[a]);
+    for (let i = 0; i < todo.length; i++) {
+      if (abort?.signal.aborted) throw Object.assign(new Error('Stopped'), { name: 'AbortError' });
+      setBusy(`Making maps: ${i + 1} of ${todo.length}…`);
+      try {
+        const res = await fetch('/api/outreach/site-shot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ map: todo[i] }), signal: abort?.signal });
+        const body = await res.json().catch(() => ({}));
+        if (res.ok && body.imageUrl) { draft.mapShots = { ...draft.mapShots, [todo[i]]: body.imageUrl }; persist(); }
+      } catch (err) {
+        if (err?.name === 'AbortError') throw err;
+      }
+    }
+  }
+
   async function generateCampaign() {
     const personal = tokensIn(draft.greeting).length > 0;
     const n = draft.contacts.length;
@@ -865,6 +950,7 @@ export function OutreachStudio() {
     abort = new AbortController();
     try {
       if (draft.background.mode === 'website') await captureSites();
+      if (draft.background.mode === 'map') await captureMaps();
       let variants = {};
       if (personal) {
         const [{ voiceForContacts }, audio] = await Promise.all([
@@ -1055,7 +1141,7 @@ export function OutreachStudio() {
     try {
       setBusy(`Making ${l.name || 'the contact'}\u2019s video…`);
       const blob = await renderContactVideo({
-        campaignId: draft.campaign.id, contact, siteShots: draft.siteShots, signal: abort.signal,
+        campaignId: draft.campaign.id, contact, backgroundUrl: backgroundShotFor(draft, contact), signal: abort.signal,
         onProgress: (p) => { busy = `Making ${l.name || 'the contact'}\u2019s video… ${Math.round((p || 0) * 100)}%`; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; },
       });
       const { downloadBlob } = await import('../lib/editor/remotion/exportClient.js');
@@ -1177,10 +1263,7 @@ export function OutreachStudio() {
   }
 
   // The picture behind the bubble for a contact (website backgrounds), else none.
-  const siteShotFor = (c) => {
-    if (draft.background?.mode !== 'website') return '';
-    return draft.siteShots?.[siteKey(c.website)] || draft.siteShots?.[siteKey(draft.background.fallbackSite)] || '';
-  };
+  const siteShotFor = (c) => (usesBackground(draft) ? backgroundShotFor(draft, c) || fallbackShotFor(draft) : '');
 
   const logoFor = (c) => (draft.email.thumb?.logo === false ? '' : draft.siteLogos?.[siteKey(c.website)] || '');
 

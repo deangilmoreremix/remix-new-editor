@@ -40,7 +40,10 @@
     "Edit in the Record step: trim the start and end, cut sections out, add a clip before or after",
     "Captions and transcript made in your browser, with translations into other languages",
     "Recorder tools: draw on the screen (pen, arrow, box), camera Spotlight, Restart and Delete",
-    "Landing page: publish the campaign onto any of your Video Pages designs; each contact's link opens their personalized page with their personal video"
+    "Landing page: publish the campaign onto any of your Video Pages designs; each contact's link opens their personalized page with their personal video",
+    "Backgrounds behind your camera bubble: each contact's website (with a moving pointer), an image (theirs or yours), or a map of their address",
+    "Output language: the greeting spoken in another language, and one-click translation of greeting, page and email",
+    "Greeting variables: {{firstname}}, {{company}}, {{jobtitle}}"
   ],
   "featureExplanations": [
     {
@@ -175,6 +178,20 @@
       "whyToUse": "Use your branded landing page designs for outreach.",
       "inputRequired": "A generated campaign.",
       "restrictions": "Designs built from blocks keep their own words; change them in Video Pages. Video events from the personal player are counted on the campaign."
+    },
+    {
+      "feature": "Image and map backgrounds",
+      "explanation": "In Customize → Video background, An image puts each contact's own picture (the Background image column, an https link) behind your camera bubble, or your uploaded image for everyone else. A map of their address uses the Address column: maps are made when you generate (addresses are looked up on OpenStreetMap). Each contact's website shows with a pointer moving over it (turn it off with the checkbox).",
+      "whyToUse": "Make each video feel made for that contact.",
+      "inputRequired": "Address or Background image columns, and a fallback image.",
+      "restrictions": "Addresses are sent to OpenStreetMap to find them. Contacts whose address can't be found get the fallback image."
+    },
+    {
+      "feature": "Output language",
+      "explanation": "In Voice, Output language sets the language the greeting is spoken in (your cloned or stock voice). Translate greeting, page and email rewrites those texts into it, keeping {{tokens}}.",
+      "whyToUse": "Reach prospects in their language.",
+      "inputRequired": "A greeting.",
+      "restrictions": "Translate is one small text request on your MuAPI key; check the result. The main recording stays in the language you recorded it in."
     }
   ],
   "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",

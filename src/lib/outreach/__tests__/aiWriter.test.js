@@ -29,3 +29,21 @@ describe('AI writer', () => {
     await expect(writeWithAI('poem', {}, { generate })).rejects.toThrow(/Unknown/);
   });
 });
+
+describe('translating the campaign', () => {
+  it('keeps {{tokens}} and refuses a translation that changes them', async () => {
+    const { translateTexts, buildTranslatePrompt } = await import('../aiWriter.js');
+    expect(buildTranslatePrompt({ greeting: 'Hi {{firstname}}!' }, 'Spanish')).toContain('into Spanish');
+    const ok = await translateTexts({ greeting: 'Hi {{firstname}}!', header: '', body: 'See {{link}}' }, 'Spanish', { generate: async () => '{"greeting":"¡Hola {{firstname}}!","body":"Mira {{ link }}"}' });
+    expect(ok).toEqual({ greeting: '¡Hola {{firstname}}!', body: 'Mira {{ link }}' });
+    await expect(translateTexts({ greeting: 'Hi {{firstname}}!' }, 'Spanish', { generate: async () => '{"greeting":"¡Hola {{nombre}}!"}' })).rejects.toThrow(/token/);
+    await expect(translateTexts({ greeting: 'Hi' }, 'Spanish', { generate: async () => 'nope' })).rejects.toThrow(/unusable/);
+  });
+
+  it('the greeting is spoken in the chosen language', async () => {
+    const { speakRequest, defaultDraft } = await import('../draft.js');
+    const d = { ...defaultDraft(), language: 'Spanish', voice: { ...defaultDraft().voice, mode: 'stock', stockVoice: 'Wise_Woman' } };
+    expect(speakRequest(d, 'Hola')).toMatchObject({ languageBoost: 'Spanish' });
+    expect(speakRequest({ ...d, language: 'English' }, 'Hi').languageBoost).toBeUndefined();
+  });
+});

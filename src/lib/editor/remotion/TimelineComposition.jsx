@@ -11,6 +11,7 @@
  * mix-blend-mode (Remotion ≥ 4.0.540). Things the renderer can't draw
  * directly (Text Mask's SVG mask) are pre-rendered to an image.
  */
+import { cursorAt, cursorStops } from './websiteCursor.js';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   AbsoluteFill, Sequence, Img, useCurrentFrame, useVideoConfig, delayRender, continueRender,
@@ -529,7 +530,22 @@ function MediaLayerBody({ layer, seqFrom }) {
   // A scrolling page (e.g. a website screenshot behind the presenter): top of the image at the start,
   // bottom at the end of the clip.
   const scroll = layer.scroll ? { objectPosition: `50% ${Math.round(Math.max(0, Math.min(1, t / Math.max(0.001, layer.durationInFrames / fps))) * 1000) / 10}%` } : {};
-  return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...scroll, ...mirror }} />;
+  const img = <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...scroll, ...mirror }} />;
+  if (!layer.cursor) return img;
+  // A pointer moving over the page (src/lib/editor/remotion/websiteCursor.js).
+  const pos = cursorAt(t, cursorStops(layer.id));
+  const size = Math.round(H * 0.045);
+  return (
+    <AbsoluteFill>
+      {img}
+      <div style={{ position: 'absolute', left: `${pos.x * 100}%`, top: `${pos.y * 100}%`, width: 0, height: 0 }}>
+        {pos.click > 0 ? <div style={{ position: 'absolute', left: -size * 0.9, top: -size * 0.9, width: size * 1.8, height: size * 1.8, borderRadius: '50%', border: `${Math.max(2, size / 10)}px solid rgba(79,70,229,${0.8 * pos.click})`, transform: `scale(${1.6 - 0.6 * pos.click})` }} /> : null}
+        <svg width={size} height={size} viewBox="0 0 24 24" style={{ position: 'absolute', left: 0, top: 0, filter: 'drop-shadow(0 2px 3px rgba(0,0,0,.45))' }}>
+          <path d="M3 2l7.5 19 2.6-7.9L21 10.5z" fill="#fff" stroke="#111" strokeWidth="1.4" strokeLinejoin="round" />
+        </svg>
+      </div>
+    </AbsoluteFill>
+  );
 }
 
 function OverlayLayer({ layer, Comp }) {

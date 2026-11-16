@@ -237,3 +237,31 @@ describe('contacts from Lead Finder', () => {
     expect(contacts[0]).toMatchObject({ email: 'hi@acme.test', company: 'Acme Plumbing', website: 'https://acme.test', firstName: '' });
   });
 });
+
+describe('image and map backgrounds', () => {
+  it('each contact gets their own picture, or the fallback image', async () => {
+    const { backgroundShotFor, fallbackShotFor, buildCampaignProject, stepErrors, addressesToCapture, mapKey, makeContact } = await import('../draft.js');
+    const contacts = [
+      { id: 'c1', firstName: 'Mike', lastName: '', email: 'm@x.co', company: '', website: '', address: '1 Market St', backgroundImage: 'https://cdn/mike.jpg' },
+      { id: 'c2', firstName: 'Ann', lastName: '', email: 'a@x.co', company: '', website: '', address: '', backgroundImage: '' },
+    ];
+    const img = readyDraft({ contacts, background: { mode: 'image', image: 'https://cdn/fallback.jpg' } });
+    expect(backgroundShotFor(img, contacts[0])).toBe('https://cdn/mike.jpg');
+    expect(fallbackShotFor(img)).toBe('https://cdn/fallback.jpg');
+    const bg = buildCampaignProject(img).tracks[0].items[0];
+    expect(bg).toMatchObject({ src: '{{websiteShotUrl}}', fallbackSrc: 'https://cdn/fallback.jpg' });
+    expect(bg.scroll).toBeUndefined();
+    const map = readyDraft({ contacts, background: { mode: 'map', image: '' }, mapShots: { [mapKey('1 Market St')]: 'https://cdn/map.jpg' } });
+    expect(stepErrors(map, 3).join(' ')).toMatch(/fallback image/);
+    expect(backgroundShotFor(map, contacts[0])).toBe('https://cdn/map.jpg');
+    expect(addressesToCapture(map)).toEqual(['1 market st']);
+    expect(makeContact({ email: 'x@y.co', backgroundImage: 'javascript:alert(1)' }).backgroundImage).toBe('');
+  });
+
+  it('a website background gets the moving pointer unless turned off', async () => {
+    const { buildCampaignProject } = await import('../draft.js');
+    const d = readyDraft({ background: { mode: 'website', fallbackSite: 'me.com' }, siteShots: { 'https://me.com/': 'https://cdn/me.jpg' } });
+    expect(buildCampaignProject(d).tracks[0].items[0]).toMatchObject({ scroll: true, cursor: true });
+    expect(buildCampaignProject({ ...d, background: { ...d.background, cursor: false } }).tracks[0].items[0].cursor).toBe(false);
+  });
+});

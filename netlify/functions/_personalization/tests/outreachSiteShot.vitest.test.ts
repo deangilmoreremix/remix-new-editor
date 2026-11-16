@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { normalizeSite, shotPath, siteShot, SITE_SHOT_OPTIONS } from '../app/api/outreach/site-shot/route'
+import { normalizeSite, shotPath, siteShot, SITE_SHOT_OPTIONS, mapShot, mapPath, normalizeAddress, osmEmbedUrl, geocodeAddress } from '../app/api/outreach/site-shot/route'
 import { BrowserSsrfError } from '../src/server/browserDiscovery'
 
 function storage(existing = new Set<string>()) {
@@ -69,5 +69,27 @@ describe('outreach site shot', () => {
     let n = 0
     const flaky = { ...storage(), upload: async () => (n++ ? { error: { message: 'quota' } } : { error: null }) }
     expect(await siteShot('u', 'acme.com', false, { capture: async () => ({ page, logo: Buffer.from('png') }), storage: flaky })).toMatchObject({ ok: true, logoUrl: null })
+  })
+
+  it('map backgrounds: geocode the address, capture OpenStreetMap there, store once per address', async () => {
+    expect(normalizeAddress('  1 Market St,   San Francisco ')).toBe('1 market st, san francisco')
+    expect(normalizeAddress('12')).toBeNull()
+    expect(osmEmbedUrl(37.79, -122.39)).toMatch(/^https:\/\/www\.openstreetmap\.org\/export\/embed\.html\?bbox=.*&marker=37\.790000,-122\.390000$/)
+    const s = storage()
+    const capture = vi.fn(async () => ({ page }))
+    const geocode = vi.fn(async () => ({ lat: 37.79, lon: -122.39 }))
+    const r = await mapShot('user_1', '1 Market St, San Francisco', false, { capture, storage: s, geocode })
+    expect(geocode).toHaveBeenCalledWith('1 market st, san francisco')
+    expect(capture.mock.calls[0][0]).toContain('openstreetmap.org/export/embed.html')
+    expect(r).toMatchObject({ ok: true, imageUrl: `https://cdn.test/${mapPath('user_1', '1 market st, san francisco')}` })
+    expect(await mapShot('u', 'Nowhere Lane 999', false, { capture, storage: s, geocode: async () => null })).toMatchObject({ ok: false, code: 'NOT_FOUND' })
+  })
+
+  it('geocodes with Nominatim, sending only the address and an app User-Agent', async () => {
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify([{ lat: '1.5', lon: '2.5' }])))
+    expect(await geocodeAddress('1 market st', fetchImpl as unknown as typeof fetch)).toEqual({ lat: 1.5, lon: 2.5 })
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=1%20market%20st')
+    expect((init.headers as Record<string, string>)['User-Agent']).toMatch(/SmartVideo/)
   })
 })

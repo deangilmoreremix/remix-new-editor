@@ -85,3 +85,34 @@ export async function muapiGenerate(prompt, signal) {
   const { muapi } = await import('../muapi.js');
   return muapi.text(prompt, 'gpt-5-nano', signal);
 }
+
+/**
+ * Translate the campaign's texts into `language`, keeping {{tokens}} as they are.
+ * texts: { greeting, header, message, ctaLabel, subject, body, thumbText } → the same keys.
+ */
+export function buildTranslatePrompt(texts, language) {
+  return `Translate each value of this JSON into ${language}. Keep every {{token}} exactly as written (do not translate inside the braces) and keep line breaks. Reply with the same JSON keys only.\n${JSON.stringify(texts)}`;
+}
+
+export function parseTranslateReply(text, keys) {
+  const m = String(text || '').match(/\{[\s\S]*\}/);
+  let j = null;
+  try { j = m ? JSON.parse(m[0]) : null; } catch { j = null; }
+  if (!j) throw new Error('The translation came back unusable. Try again.');
+  const out = {};
+  const tokens = (s) => (String(s).match(/\{\{\s*[A-Za-z0-9_]+\s*\}\}/g) || []).map((t) => t.replace(/\s/g, '').toLowerCase()).sort().join();
+  for (const k of keys) if (typeof j[k] === 'string') out[k] = j[k];
+  return { out, tokens };
+}
+
+/** Translate texts, refusing a result that lost or invented a {{token}}. */
+export async function translateTexts(texts, language, { generate, signal } = {}) {
+  const keys = Object.keys(texts).filter((k) => String(texts[k] || '').trim());
+  const subset = Object.fromEntries(keys.map((k) => [k, texts[k]]));
+  const { out, tokens } = parseTranslateReply(await generate(buildTranslatePrompt(subset, language), signal), keys);
+  for (const k of keys) {
+    if (out[k] == null) throw new Error('The translation missed some of the text. Try again.');
+    if (tokens(out[k]) !== tokens(subset[k])) throw new Error('The translation changed a {{token}}. Try again.');
+  }
+  return out;
+}

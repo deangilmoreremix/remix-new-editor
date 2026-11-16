@@ -111,3 +111,13 @@ describe('agent-audio voice cloning', () => {
     expect(JSON.parse((await handle({ action: 'status', requestId: 'tts9' }, 'u4', { keys })).body).status).toBe('failed');
   });
 });
+
+describe('spoken language', () => {
+  it('passes an allowed language to MiniMax as language_boost, and drops anything else', async () => {
+    const mod = await import('../agent-audio.js');
+    const build = mod.buildRequest || mod.default?.buildRequest;
+    const es = build({ kind: 'tts', text: 'Hola', voice: 'Wise_Woman', languageBoost: 'Spanish' });
+    expect(es.payload.language_boost).toBe('Spanish');
+    expect(build({ kind: 'tts', text: 'Hi', voice: 'Wise_Woman', languageBoost: 'Klingon' }).payload.language_boost).toBeUndefined();
+  });
+});

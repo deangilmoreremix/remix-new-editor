@@ -37,6 +37,7 @@ export const VOICES = [
 const TTS_MODEL = process.env.MUAPI_TTS_MODEL || 'minimax-speech-2.6-hd';
 
 // Ids of cloned voices. Conservative: starts with a letter, 8-64 safe characters.
+export const LANGUAGE_BOOST = ['auto', 'English', 'Spanish', 'French', 'German', 'Portuguese', 'Italian', 'Dutch', 'Japanese', 'Korean', 'Chinese', 'Hindi', 'Arabic', 'Russian', 'Turkish', 'Polish', 'Indonesian', 'Vietnamese', 'Thai', 'Ukrainian'];
 const CLONE_VOICE_ID = /^[A-Za-z][A-Za-z0-9_-]{7,63}$/;
 const CLONE_SAMPLE_TEXT = 'Hello, this is a preview of my cloned voice.';
 
@@ -94,7 +95,9 @@ export function buildRequest(body) {
     const voice = cloned || (VOICES.includes(body.voice) ? body.voice : 'Wise_Woman');
     const speed = Math.max(0.5, Math.min(2, Number(body.speed) || 1));
     const pitch = Math.max(-12, Math.min(12, Math.round(Number(body.pitch) || 0)));
-    return { endpoint: `/${TTS_MODEL}`, payload: { prompt: text, text, voice_id: voice, voice, speed, ...(pitch ? { pitch } : {}) } };
+    // The spoken language (MiniMax language_boost), e.g. a greeting in Spanish in a cloned voice.
+    const language = LANGUAGE_BOOST.includes(body.languageBoost) ? body.languageBoost : null;
+    return { endpoint: `/${TTS_MODEL}`, payload: { prompt: text, text, voice_id: voice, voice, speed, ...(pitch ? { pitch } : {}), ...(language ? { language_boost: language } : {}) } };
   }
   if (body.kind === 'voice-clone') {
     if (body.consent !== true) return { error: 'Confirm that the recording is your own voice before cloning it.' };

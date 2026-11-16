@@ -61,7 +61,11 @@ export function defaultDraft() {
     campaign: null,
     name: '',
     // 'recording': the video as recorded. 'website': each contact's website behind the camera bubble.
-    background: { mode: 'recording', fallbackSite: '' },
+    // 'recording': the video as recorded. 'website' | 'image' | 'map': a per-contact picture behind a
+    // round camera bubble: their website, an image (theirs or yours), or a map of their address.
+    background: { mode: 'recording', fallbackSite: '', image: '' },
+    // Map captures during Generate: { [normalized address]: image URL }.
+    mapShots: {},
     // Screenshots captured during Generate: { [site home page]: image URL }.
     siteShots: {},
     // Company logos found while capturing websites: { [site home page]: image URL }.
@@ -69,6 +73,8 @@ export function defaultDraft() {
     email: { ...DEFAULT_EMAIL },
     // The recording script (Script card, AI writer), shown in the recorder's teleprompter.
     script: '',
+    // Output language of the greeting voice and texts (Voice step).
+    language: 'English',
     // Captions of the recording (src/lib/outreach/transcript.js): { lang, lines, translations }.
     captions: null,
   };
@@ -89,6 +95,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       contacts: Array.isArray(saved.contacts) ? saved.contacts : [],
       background: { ...base.background, ...(saved.background || {}) },
       siteShots: saved.siteShots && typeof saved.siteShots === 'object' ? saved.siteShots : {},
+      mapShots: saved.mapShots && typeof saved.mapShots === 'object' ? saved.mapShots : {},
       siteLogos: saved.siteLogos && typeof saved.siteLogos === 'object' ? saved.siteLogos : {},
       email: { ...base.email, ...(saved.email || {}), thumb: { ...base.email.thumb, ...(saved.email?.thumb || {}) } },
     };
@@ -186,6 +193,9 @@ export function stepErrors(draft, step) {
       else if (draft.cta.embed && !calendarEmbedUrl(draft.cta.url)) errors.push('Only Calendly, Cal.com, Google Calendar appointment, HubSpot, SavvyCal and TidyCal booking pages can be shown on the page. Turn off "Show the calendar" or use one of those links.');
     }
   }
+  if (step === 3 && (draft.background?.mode === 'image' || draft.background?.mode === 'map')) {
+    if (!/^https:\/\//i.test(String(draft.background.image || ''))) errors.push(draft.background.mode === 'map' ? 'Add a fallback image for contacts without an address.' : 'Add a background image (it is also used for contacts without their own).');
+  }
   if (step === 3 && draft.background?.mode === 'website') {
     if (!siteKey(draft.background.fallbackSite)) errors.push('Add a fallback website for contacts without one.');
   }
@@ -212,7 +222,9 @@ export function voiceSettings(draft) {
 /** The request body for /api/agent-audio that speaks `text` in the chosen voice. */
 export function speakRequest(draft, text) {
   const s = voiceSettings(draft);
-  return { provider: 'minimax', text, voice: s.voice, speed: 1, ...(s.cloneVoiceId ? { cloneVoiceId: s.cloneVoiceId } : {}) };
+  // The greeting's language (Customize → Output language), spoken in that language by MiniMax.
+  const lang = draft.language && draft.language !== 'English' ? { languageBoost: draft.language } : {};
+  return { provider: 'minimax', text, voice: s.voice, speed: 1, ...(s.cloneVoiceId ? { cloneVoiceId: s.cloneVoiceId } : {}), ...lang };
 }
 
 // ---------------------------------------------------------------- contacts
@@ -224,6 +236,8 @@ export const CONTACT_FIELDS = [
   ['company', 'Company'],
   ['jobTitle', 'Job title'],
   ['website', 'Website'],
+  ['address', 'Address'],
+  ['backgroundImage', 'Background image'],
 ];
 
 // Header spellings that map to each field (compared lower-case, without spaces, _ or -).
@@ -234,6 +248,8 @@ const HEADER_ALIASES = {
   company: ['company', 'companyname', 'organization', 'organisation', 'business', 'account'],
   jobTitle: ['jobtitle', 'title', 'role', 'position', 'job'],
   website: ['website', 'url', 'site', 'domain', 'companywebsite', 'web'],
+  address: ['address', 'streetaddress', 'location', 'fulladdress', 'officeaddress'],
+  backgroundImage: ['backgroundimage', 'background', 'backgroundurl', 'bgimage', 'image', 'imageurl'],
 };
 const norm = (h) => String(h || '').toLowerCase().replace(/[\s_\-.]+/g, '');
 
@@ -282,8 +298,10 @@ const shortId = (rand = Math.random) => `c${Math.floor(rand() * 2 ** 40).toStrin
 /** A contact from loose input: trims, caps lengths, adds an id; null when it has no name and no email. */
 export function makeContact(input = {}, { rand } = {}) {
   const c = {};
-  for (const [field] of CONTACT_FIELDS) c[field] = String(input[field] ?? '').trim().slice(0, field === 'website' ? 300 : 120);
+  for (const [field] of CONTACT_FIELDS) c[field] = String(input[field] ?? '').trim().slice(0, field === 'website' || field === 'backgroundImage' ? 500 : field === 'address' ? 200 : 120);
   if (c.website && !/^https?:\/\//i.test(c.website)) c.website = `https://${c.website}`;
+  // A background image must be a public https picture.
+  if (c.backgroundImage && !/^https:\/\/[^\s]+$/i.test(c.backgroundImage)) c.backgroundImage = '';
   if (!c.firstName && !c.lastName && !c.email) return null;
   c.id = SAFE_ID.test(String(input.id || '')) ? String(input.id) : shortId(rand);
   return c;
@@ -320,7 +338,8 @@ export function contactsFromLeads(leads = [], opts) {
     const b = lead?.business || {};
     const email = String(b.email || '').trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { skipped += 1; continue; }
-    const c = makeContact({ email, company: b.name, website: b.website }, opts);
+    const address = [b.address, b.city, b.region, b.country].filter(Boolean).join(', ');
+    const c = makeContact({ email, company: b.name, website: b.website, address }, opts);
     if (c) contacts.push(c); else skipped += 1;
   }
   return { contacts, skipped };
@@ -338,7 +357,7 @@ export function mergeContacts(existing, incoming) {
   return out;
 }
 
-export const CSV_TEMPLATE = 'First Name,Last Name,Email,Company,Job Title,Website\r\nMike,Markovic,mike@example.com,Acme,Head of Sales,acme.com\r\n';
+export const CSV_TEMPLATE = 'First Name,Last Name,Email,Company,Job Title,Website,Address,Background Image\r\nMike,Markovic,mike@example.com,Acme,Head of Sales,acme.com,"1 Market St, San Francisco, CA",\r\n';
 
 /** A website's home page, the key its screenshot is stored under (same rule as /api/outreach/site-shot). */
 export function siteKey(raw) {
@@ -361,9 +380,40 @@ export function sitesToCapture(draft) {
   return [...sites];
 }
 
+export const BACKGROUND_MODES = ['recording', 'website', 'image', 'map'];
+export const usesBackground = (draft) => ['website', 'image', 'map'].includes(draft.background?.mode);
+
+/** A contact's address as a cache key (lower-case, single spaces). '' when there is none. */
+export const mapKey = (address) => String(address || '').trim().replace(/\s+/g, ' ').toLowerCase().slice(0, 200);
+
+/** Every address a map campaign needs a picture of. */
+export function addressesToCapture(draft) {
+  return [...new Set((draft.contacts || []).map((c) => mapKey(c.address)).filter(Boolean))];
+}
+
+/** The picture behind this contact's camera bubble, or '' (then the fallback shows). */
+export function backgroundShotFor(draft, c) {
+  const mode = draft.background?.mode;
+  if (mode === 'website') return draft.siteShots?.[siteKey(c.website)] || '';
+  if (mode === 'image') return c.backgroundImage || '';
+  if (mode === 'map') return draft.mapShots?.[mapKey(c.address)] || '';
+  return '';
+}
+
+/** The picture for contacts without their own. */
+export function fallbackShotFor(draft) {
+  const mode = draft.background?.mode;
+  if (mode === 'website') return draft.siteShots?.[siteKey(draft.background.fallbackSite)] || '';
+  if (mode === 'image' || mode === 'map') return /^https:\/\//i.test(String(draft.background.image || '')) ? draft.background.image : '';
+  return '';
+}
+
+/** The contact's profile with their background picture (all background modes). */
+export const contactProfileFor = (draft, c) => contactProfile(c, {}, backgroundShotFor(draft, c));
+
 /** The contact as a token profile, the shape the personalization helpers read (tokenSchema paths). */
-export function contactProfile(c, siteShots = {}) {
-  const shot = siteShots[siteKey(c.website)] || '';
+export function contactProfile(c, siteShots = {}, backgroundUrl = '') {
+  const shot = backgroundUrl || siteShots[siteKey(c.website)] || '';
   const fullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
   return {
     id: c.id,
@@ -409,6 +459,7 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, now
     provider: 'minimax',
     voice: voice.voice,
     ...(voice.cloneVoiceId ? { cloneVoiceId: voice.cloneVoiceId } : {}),
+    ...(draft.language && draft.language !== 'English' ? { languageBoost: draft.language } : {}),
     speed: 1,
     text: greeting,
     fallback: personal ? fillTemplate(greeting, {}, draft.fallbacks) : '',
@@ -434,14 +485,15 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, now
 
   // Website background: each contact's site screenshot full frame (scrolling), the recording in a round
   // bubble on top (Multi-Cam picture-in-picture, which the public player draws).
-  const website = draft.background?.mode === 'website';
-  const fallbackShot = website ? (draft.siteShots || {})[siteKey(draft.background.fallbackSite)] : null;
-  if (website && !fallbackShot) throw new Error('Capture the fallback website first.');
+  const website = usesBackground(draft);
+  const fallbackShot = website ? fallbackShotFor(draft) : null;
+  if (website && !fallbackShot) throw new Error(draft.background.mode === 'website' ? 'Capture the fallback website first.' : 'Add the fallback image first.');
   const tracks = website
     ? [
-      { id: `track-bg-${id}`, type: 'video', name: 'Website background', muted: true, solo: false,
-        // scroll: the page moves from its top (header, logo) to its bottom over the video.
-        items: [{ id: `outreach-site-${id}`, name: 'Contact website', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', scroll: true, left: 0, width: 100 }] },
+      { id: `track-bg-${id}`, type: 'video', name: 'Contact background', muted: true, solo: false,
+        // scroll: a website moves from its top (header, logo) to its bottom over the video, with a
+        // pointer moving over it; images and maps stay still.
+        items: [{ id: `outreach-site-${id}`, name: 'Contact background', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', ...(draft.background.mode === 'website' ? { scroll: true, cursor: draft.background.cursor !== false } : {}), left: 0, width: 100 }] },
       { id: `track-cam-${id}`, type: 'video', name: 'Camera', muted: false, solo: false, items: cameraItems },
       voiceTrack,
     ]
@@ -474,8 +526,8 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, now
 
 /** Each contact's link, given the campaign's watch URL and the personalLink helper. */
 export function campaignLinks(draft, watchUrl, personalLink, variants = {}) {
-  const website = draft.background?.mode === 'website';
-  const tokens = ['firstName', 'lastName', 'company', 'email', 'website', ...(website ? ['websiteShotUrl'] : [])];
+  const website = usesBackground(draft);
+  const tokens = ['firstName', 'lastName', 'company', 'email', 'website', 'jobTitle', ...(website ? ['websiteShotUrl'] : [])];
   return (draft.contacts || []).map((c) => ({
     contactId: c.id,
     name: [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email,
@@ -483,7 +535,7 @@ export function campaignLinks(draft, watchUrl, personalLink, variants = {}) {
     company: c.company,
     voiced: !!variants[c.id]?.url,
     // Which background the contact sees: their own site, or the fallback.
-    ...(website ? { site: draft.siteShots?.[siteKey(c.website)] ? 'own' : 'fallback' } : {}),
-    link: personalLink(watchUrl, contactProfile(c, website ? draft.siteShots : {}), tokens),
+    ...(website ? { site: backgroundShotFor(draft, c) ? 'own' : 'fallback' } : {}),
+    link: personalLink(watchUrl, website ? contactProfileFor(draft, c) : contactProfile(c), tokens),
   }));
 }
