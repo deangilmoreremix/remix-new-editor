@@ -402,6 +402,7 @@ export class VideoPersonalizationHub extends BaseModal {
           <button class="create-pages-btn" ${this.generations.length === 0 ? 'disabled' : ''}>
             🏠 Generate Landing Pages
           </button>
+          <button class="browse-landing-btn" type="button">▤ Browse landing page designs</button>
         </div>
       </div>
     `;
@@ -533,6 +534,16 @@ export class VideoPersonalizationHub extends BaseModal {
         this.handleGenerate();
       });
     }
+
+    // Browse landing pages: the shared picker (all designs, full view + editor) with the first video attached
+    this.content.querySelector('.browse-landing-btn')?.addEventListener('click', async () => {
+      const v = this.videos[0] || {};
+      const { openLandingPagePicker } = await import('../../lib/landingPages/pickerModal.js');
+      const { normalizeCustomer } = await import('../../lib/landingPages/customerProfile.js');
+      // the contacts imported in this window become the customers: one page, one personal link each
+      const customers = (this.contacts || []).map((c, i) => normalizeCustomer({ id: c.id || `hub-${i}`, ...c }, 'contact')).filter(Boolean);
+      openLandingPagePicker({ video: { url: v.url || v.src || v.videoUrl, name: v.name || v.title, thumbnail_url: v.thumbnail || v.poster, studio: 'personalization' }, customers, preselect: customers.length ? 'all' : 'active' });
+    });
 
     // Create pages button
     const createPagesBtn = this.content.querySelector('.create-pages-btn');

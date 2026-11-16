@@ -7,6 +7,7 @@ import { withImagePickers } from './ImageField.jsx';
 import { FONT_OPTIONS, fontStack } from './fontChoices.js';
 import { ICON_KEYS } from '../siteIcons.js';
 import { PUCK_TEMPLATES } from './designs.js';
+import { slotFields, SLOT_DEFAULTS } from './slotFields.js';
 
 // Designs may ship extra components (puck/extensions/NN-name.jsx exporting `components`), merged in automatically.
 const EXT = Object.entries(import.meta.glob('./extensions/*.jsx', { eager: true })).sort(([a], [b]) => a.localeCompare(b)).map(([, m]) => m);
@@ -49,7 +50,7 @@ export const puckConfig = {
     },
   },
   categories: {
-    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Footer', 'PageImage'] },
+    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Showcase', 'Footer', 'PageImage'] },
     extras: { title: 'Design extras', components: Object.keys(EXT_COMPONENTS), defaultExpanded: false },
     cards: { title: 'Cards (drop into a Grid)', components: ['LeadMagnetCard', 'TableCard', 'StatsCard', 'ChecklistCard', 'QuoteCard', 'StepsCard', 'FeaturesCard', 'FaqCard', 'KpiCard', 'ScheduleCard', 'ButtonCard'] },
   },
@@ -73,6 +74,7 @@ export const puckConfig = {
         buttons: buttonArray,
         chip: T('Label on the video'),
         photo: T('Placeholder image before the video plays (https link)'),
+        ...slotFields(),
         showForm: { type: 'radio', label: 'Lead form', options: [{ label: 'Show', value: 'yes' }, { label: 'Hide', value: 'no' }] },
         formTitle: T('Form title'),
         formSubtitle: T('Form subtitle'),
@@ -83,7 +85,7 @@ export const puckConfig = {
       defaultProps: {
         variant: 'copy-video-form', eyebrow: 'A video made for you', headline: 'Hi {{firstname|there}}, here is a smarter way to [[grow your business.]]',
         subhead: 'Press play for a short video, then tell us what you think.', bullets: [{ text: 'Made for {{company|your team}}' }, { text: 'Takes two minutes' }],
-        buttons: [], chip: 'Hi {{firstname|there}}!', photo: '', showForm: 'yes', formTitle: 'Want to talk it through?', formSubtitle: 'Leave your details and we will be in touch.',
+        buttons: [], chip: 'Hi {{firstname|there}}!', photo: '', ...SLOT_DEFAULTS, showForm: 'yes', formTitle: 'Want to talk it through?', formSubtitle: 'Leave your details and we will be in touch.',
         formFields: HERO_FIELDS, submitLabel: 'Send', privacy: '',
       },
       render: (p) => <C.Hero {...p} />,
@@ -120,6 +122,24 @@ export const puckConfig = {
     },
     CtaBar: { label: 'Bottom button bar', fields: { text: T('Text beside the button (empty = button only)'), label: T('Button text'), url: T('Link (https, mailto:, tel: or #lead)'), icon: iconField, icons: { type: 'array', label: 'Social icons (button-only bar)', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { text: '', label: 'Book a Free Consultation', url: '#lead', icon: 'calendar', icons: [] }, render: (p) => <C.CtaBar {...p} /> },
     Footer: { label: 'Footer', fields: { text: T('Footer text'), links: linkArray('Footer links') }, defaultProps: { text: 'Sent by {{sender|us}} · {{brand|your brand}}', links: [] }, render: (p) => <C.Footer {...p} /> },
+    Showcase: {
+      label: 'Text + picture (or photo banner)',
+      fields: {
+        variant: { type: 'radio', label: 'Style', options: [{ label: 'Text next to a picture', value: 'split' }, { label: 'Banner with a photo behind', value: 'band' }] },
+        side: { type: 'radio', label: 'Picture side', options: [{ label: 'Right', value: 'right' }, { label: 'Left', value: 'left' }] },
+        title: A('Heading (wrap words in [[double brackets]] to highlight)'),
+        text: A('Text'),
+        bullets: { type: 'array', label: 'Tick list', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Item', defaultItemProps: { text: 'New point' } },
+        buttonLabel: T('Button text'),
+        buttonUrl: T('Button link (https, mailto:, tel: or #video / #lead)'),
+        image: T('Picture (https link)'),
+        imageAlt: T('Picture description for screen readers'),
+        background: T('Banner photo (https link)'),
+        points: { type: 'array', label: 'Points beside a banner', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Point', defaultItemProps: { text: 'New point' } },
+      },
+      defaultProps: { variant: 'split', side: 'right', title: 'See it in [[action]]', text: 'Say what the picture shows in a sentence or two.', bullets: [{ text: 'First point' }, { text: 'Second point' }], buttonLabel: 'Watch the demo video', buttonUrl: '#video', image: '', imageAlt: '', background: '', points: [] },
+      render: (p) => <C.Showcase {...p} />,
+    },
     PageImage: { label: 'Image', fields: { src: T('Image link (https)'), alt: T('Description for screen readers'), rounded: { type: 'radio', label: 'Rounded corners', options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] } }, defaultProps: { src: '', alt: '', rounded: 'yes' }, render: (p) => <C.PageImage {...p} /> },
 
     LeadMagnetCard: { label: 'Download / sign-up card', fields: { columns: cols, tag: T('Small label'), title: T('Title'), cover: T('Text on the book cover'), text: A('Text'), placeholder: T('Email box hint'), buttonLabel: T('Button text') }, defaultProps: { columns: 2, tag: 'FREE RESOURCE', title: 'Get the free playbook', cover: 'The Personalized Video Playbook', text: 'A short guide with templates and scripts.', placeholder: 'Enter your email', buttonLabel: 'Send me the playbook' }, render: (p) => <C.LeadMagnetCard {...p} /> },

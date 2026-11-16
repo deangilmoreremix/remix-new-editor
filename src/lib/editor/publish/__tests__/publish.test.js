@@ -108,6 +108,7 @@ describe('publish client', () => {
   it('reads personalization from the link', () => {
     expect(profileFromQuery('?firstname=Ann&embed=1&company=Acme')).toEqual({ variables: { firstname: 'Ann', company: 'Acme' } });
     expect(profileFromQuery('?embed=1')).toBeNull();
+    expect(profileFromQuery('?src=mp4')).toBeNull();
     expect(personalize('Hi {{firstname}}!', null)).toBe('Hi !');
     expect(stripUnresolvedTokens({ text: 'A {{x}} B', src: '{{keep}}' })).toEqual({ text: 'A B', src: '{{keep}}' });
     expect(profileWithAnswers(null, { 'FIRST NAME': 'Zoe' }).variables.firstname).toBe('Zoe');

@@ -2,6 +2,7 @@
  *  a leads card with an "Add contacts" button, and a card grid that accepts them. */
 import { useState } from 'react';
 import { useTokens, AccentText, VideoPlayer, LeadForm, SafeLink, CardShell } from '../components.jsx';
+import { slotFields, SLOT_DEFAULTS } from '../slotFields.js';
 
 const list = (v) => (Array.isArray(v) ? v : []);
 const T = (label) => ({ type: 'text', label });
@@ -10,7 +11,7 @@ const cols = { type: 'select', label: 'Width (grid columns)', options: [1, 2, 3,
 const buttonArray = { type: 'array', label: 'Buttons', arrayFields: { label: T('Text'), url: T('Link (https, mailto: or tel:, #lead)'), style: { type: 'radio', label: 'Style', options: [{ label: 'Primary', value: 'primary' }, { label: 'Secondary', value: 'secondary' }] } }, getItemSummary: (i) => i.label || 'Button', defaultItemProps: { label: 'Button', url: '', style: 'secondary' } };
 const formFieldArray = { type: 'array', label: 'Form fields', arrayFields: { key: T('Field name (a-z)'), label: T('Label / placeholder'), type: { type: 'select', label: 'Type', options: ['text', 'email', 'tel', 'textarea', 'select'].map((v) => ({ label: v === 'select' ? 'dropdown' : v, value: v })) }, options: T('Dropdown choices (comma separated)'), required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, getItemSummary: (i) => i.label || 'Field', defaultItemProps: { key: 'name', label: 'Name', type: 'text', required: true } };
 
-function SparkHero({ eyebrow, headline, subhead, bullets, buttons, orText, chip, photo, formTitle, formSubtitle, formFields, submitLabel, privacy }) {
+function SparkHero({ eyebrow, headline, subhead, bullets, buttons, orText, chip, photo, slotImage, slotVideo, bakedPlay, formTitle, formSubtitle, formFields, submitLabel, privacy }) {
   const t = useTokens();
   const [playing, setPlaying] = useState(false);
   const fields = list(formFields).filter((f) => f.key && f.label).map((f) => ({ ...f, key: String(f.key).replace(/[^a-z0-9_]/gi, '').toLowerCase() }));
@@ -29,7 +30,7 @@ function SparkHero({ eyebrow, headline, subhead, bullets, buttons, orText, chip,
         ) : null}
       </div>
       <div className={`pk-hero-video${playing ? ' is-playing' : ''}`} id="video" onPlayCapture={() => setPlaying(true)} onPauseCapture={() => setPlaying(false)} onEndedCapture={() => setPlaying(false)}>
-        <VideoPlayer poster={photo} />
+        <VideoPlayer poster={photo} slotImage={slotImage} slotVideo={slotVideo} bakedPlay={bakedPlay} />
         <span className="pk-playbtn" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#fb3f4e" /><path d="M25 18 L48 32 L25 46Z" fill="#fff" /></svg></span>
         <svg className="pk-sticker-arrow" viewBox="0 0 80 50" aria-hidden="true"><path d="M4 6 C30 2 62 8 68 38" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" /><path d="M58 32 L69 42 L73 27" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
         {chip ? <div className="pk-chip">{t(chip)}</div> : null}
@@ -82,6 +83,7 @@ export const components = {
       buttons: buttonArray,
       chip: T('Sticker on the video'),
       photo: T('Placeholder image before the video plays'),
+      ...slotFields(),
       formTitle: T('Form title ([[words]] highlighted)'),
       formSubtitle: T('Form subtitle'),
       formFields: formFieldArray,
@@ -90,7 +92,7 @@ export const components = {
     },
     defaultProps: {
       eyebrow: '', headline: 'Turn Prospects into Fans with Personalized [[Videos!]]', subhead: 'Create and send custom videos at scale.', bullets: [{ text: 'No credit card' }],
-      orText: 'or', buttons: [{ label: 'Schedule a Demo', url: '', style: 'secondary' }], chip: 'Personalized for you, {{firstname|there}}!', photo: '',
+      orText: 'or', buttons: [{ label: 'Schedule a Demo', url: '', style: 'secondary' }], chip: 'Personalized for you, {{firstname|there}}!', ...SLOT_DEFAULTS, photo: '',
       formTitle: 'Get Your Own Personalized Video!', formSubtitle: '',
       formFields: [{ key: 'name', label: 'Your Name', type: 'text', required: true }, { key: 'email', label: 'Your Email', type: 'email', required: true }, { key: 'business', label: 'Your Business Type', type: 'select', options: 'Marketing Agency, Real Estate, SaaS, Other', required: false }],
       submitLabel: 'Create My Personalized Video', privacy: '',
