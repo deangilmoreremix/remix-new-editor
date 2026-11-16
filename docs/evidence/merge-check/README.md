@@ -33,6 +33,7 @@ Test media: two generated 8s VP9 clips. No Supabase / Clerk / provider keys were
 | 91, 92, 93 | New Publish tab: Share & Leads (unchanged) and Social with picture cards; clicking a card opens the existing Publish to Social window with the video's public link |
 | 94 | Publish > Contacts: imported CSV (bad and duplicate rows skipped), chips with counts, search, download, remove; landing-page source reports it needs sign-in while the others still show |
 | 95 | Publish > Email: connect MailerLite, choose who, video link, add to MailerLite; Send stays blocked with a plain reason until each step is done; says no email is sent |
+| 96-social-window-1..4 | The Publish to Social window restyled to match the Personalize this demo window (black panels, lime accent, 22px shell, icon-tile header, pill step tabs, lime Publish button); all publishing logic unchanged |
 
 ## Not captured / not verified
 - "Open full timeline" button: click timed out, no screenshot (30/43 missing).
