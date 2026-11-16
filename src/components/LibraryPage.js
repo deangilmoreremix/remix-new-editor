@@ -438,7 +438,7 @@ export function LibraryPage() {
           onClick: () => downloadItem(item),
         },
         // Any generated video can become a landing page (public link, CTA, lead form, analytics).
-        ...(item.type === 'video' ? [{
+        ...(item.type === 'video' || item.type === 'image' ? [{
           id: 'landing-page',
           label: 'Create landing page',
           onClick: async () => {

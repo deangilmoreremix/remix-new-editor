@@ -208,17 +208,17 @@ export function openLandingPagePicker({ video = null, template = null, customers
     const panel = cp.el; cp.fill();
     const hint = el('p', 'text-xs text-secondary mb-4', src ? 'Click a design to see the full page with your video in it, edit every word, then save.' : '');
     if (!src) {
-      msg.textContent = 'No usable video yet (it needs an https link). Paste one below to continue.';
+      msg.textContent = 'No usable video or picture yet (it needs an https link). Paste one below to continue.';
       const row = el('div', 'flex flex-col sm:flex-row gap-2 mb-4');
       const link = el('input', INPUT);
       link.type = 'url';
-      link.placeholder = 'https://…/video.mp4';
+      link.placeholder = 'https://…/video.mp4 or picture.png';
       link.setAttribute('aria-label', 'Video link');
       const use = el('button', BTN, 'Use link');
       use.type = 'button';
       use.addEventListener('click', () => {
         const v = toPickerVideo({ url: link.value.trim(), title: decodeURIComponent(link.value.split('?')[0].split('/').pop() || '').replace(/\.[^.]+$/, '') });
-        if (!v || !/^https:\/\//i.test(v.url)) { msg.textContent = 'Paste a full https:// video link.'; return; }
+        if (!v || !/^https:\/\//i.test(v.url)) { msg.textContent = 'Paste a full https:// video or picture link.'; return; }
         src = v;
         showGrid();
       });

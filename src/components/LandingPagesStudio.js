@@ -184,13 +184,13 @@ export function LandingPagesStudio() {
     const linkRow = el('div', 'flex flex-col sm:flex-row gap-2');
     const linkInput = el('input', INPUT);
     linkInput.type = 'url';
-    linkInput.placeholder = 'Or paste a video link (https://…/video.mp4)';
+    linkInput.placeholder = 'Or paste a video or picture link (https://…/video.mp4 or image.png)';
     linkInput.setAttribute('aria-label', 'Video link');
     const linkBtn = el('button', BTN, 'Use link');
     linkBtn.type = 'button';
     linkBtn.addEventListener('click', () => {
       const url = linkInput.value.trim();
-      if (!/^https:\/\/\S+$/i.test(url)) { showToast('Paste a full https:// video link.', 'warning', 3000); return; }
+      if (!/^https:\/\/\S+$/i.test(url)) { showToast('Paste a full https:// video or picture link.', 'warning', 3000); return; }
       const name = decodeURIComponent(url.split('?')[0].split('/').pop() || '').replace(/\.[^.]+$/, '') || 'Linked video';
       sel.video = { key: `link:${url}`, url, posterUrl: null, title: name.slice(0, 80), duration: null, source: { kind: 'link' }, createdAt: null, permanent: false };
       status.textContent = `Selected: ${sel.video.title}`;
