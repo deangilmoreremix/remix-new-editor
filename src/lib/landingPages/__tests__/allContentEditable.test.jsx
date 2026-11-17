@@ -31,7 +31,9 @@ function strings(node, out = []) {
 const stripTokens = (s) => String(s).replace(/\{\{[^}|]*\|([^}]*)\}\}/g, '$1').replace(/\{\{[^}]*\}\}/g, '');
 
 function offenders(t) {
-  const known = norm(strings(t.puckData).map(stripTokens).join(' '));
+  // Match against each prop value on its own, so text that is hard-coded cannot pass by straddling two props.
+  const props = strings(t.puckData).map((s) => norm(stripTokens(s))).filter(Boolean);
+  const known = { includes: (v) => props.some((s) => s.includes(v)) };
   const urls = strings(t.puckData).join(' ');
   const root = document.createElement('div'); root.innerHTML = html(t.puckData);
   const bad = [];
