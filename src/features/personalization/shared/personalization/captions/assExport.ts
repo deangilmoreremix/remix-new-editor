@@ -109,7 +109,7 @@ export function generateAss(o: AssOptions): string {
 
   const positionPct = o.positionPct ?? 10
   const dim = Math.max(o.height / 1920, 0.35)
-  const { maxChars, fontScale } = layoutFor(language, style.fontSize)
+  const { maxChars, fontScale } = layoutFor(language, style.fontSize, { width: o.width, dim })
 
   // Groups of up to two lines.
   const groups: Placed[][] = []
@@ -165,7 +165,7 @@ export function generateAss(o: AssOptions): string {
     '',
     '[V4+ Styles]',
     'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-    `Style: Default,${fontName},${fontSize},${primary},${primary},${outlineColour},${backColour},${flag(style.bold)},${flag(style.italic)},0,0,100,100,${style.letterSpacing},0,${borderStyle},${outline},${shadow},2,${margin},${margin},${marginV},1`,
+    `Style: Default,${fontName},${fontSize},${primary},${primary},${outlineColour},${backColour},${flag(style.bold)},${flag(style.italic)},0,0,100,100,${round1(style.letterSpacing * fontScale * dim)},0,${borderStyle},${outline},${shadow},2,${margin},${margin},${marginV},1`,
     '',
     '[Events]',
     'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',

@@ -53,6 +53,17 @@ describe('generateAss', () => {
     expect(d).toHaveLength(3)
     expect(d[0]).toContain('0:00:00.50')
   })
+  it('scales letter spacing with the exported font size, like the rest of the style', () => {
+    const style = { ...base, letterSpacing: 10 }
+    const spacing = (ass: string) => Number(ass.split('\n').find((l) => l.startsWith('Style: '))!.split(',')[13])
+    expect(spacing(gen({ style }))).toBe(10)
+    expect(spacing(gen({ style, width: 1920, height: 1080 }))).toBeCloseTo(5.6, 1)
+  })
+  it('fits more words on a line in a wide export, where the letters are drawn smaller and the line is longer', () => {
+    const many = 'one two three four five six seven eight'.split(' ').map((text, i) => ({ text, start: i, end: i + 1, group: 0 }))
+    const shown = (ass: string) => (dialogues(ass)[0].match(/\{\\r\}/g) ?? []).length + 0 && dialogues(ass)[0].split(/\{[^}]*\}|\\N| /).filter(Boolean).length
+    expect(shown(gen({ words: many, width: 1920, height: 1080 }))).toBeGreaterThan(shown(gen({ words: many })))
+  })
   it('colours only the spoken word, upper-cases by default, and keeps casing when asked', () => {
     const d = dialogues(gen())
     expect(d[1]).toContain('{\\c&H00FFFF00}US{\\r}')

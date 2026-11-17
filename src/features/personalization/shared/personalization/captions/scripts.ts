@@ -107,14 +107,20 @@ export function representativeLanguage(id: ScriptId): string {
 
 /** Target line width at the 1080-px reference frame, as in ai-video-captions (1000 px usable, about 85 %). */
 const TARGET_LINE_WIDTH = 850
+const REFERENCE_WIDTH = 1080
 
-/** How many characters fit on a line and how much to scale the font, for a language and a base font size. */
-export function layoutFor(language: string | undefined, fontSize = 105): { maxChars: number; fontScale: number } {
+/**
+ * How many characters fit on a line and how much to scale the font, for a language and a base font size (in the 1080 x 1920 reference). `frame`
+ * is the real export: its width, and `dim` = the factor the font is drawn at (height / 1920), so a wide export, whose letters are smaller and
+ * whose line is longer, holds more letters than the portrait reference.
+ */
+export function layoutFor(language: string | undefined, fontSize = 105, frame?: { width: number; dim: number }): { maxChars: number; fontScale: number } {
   const noLanguage = baseCode(language) === ''
   const cfg = scriptOf(language)
   const { charWidthRatio, fontScale } = cfg ?? (noLanguage ? { charWidthRatio: SCRIPTS[0].charWidthRatio, fontScale: 1 } : OTHER)
-  const avg = fontSize * fontScale * charWidthRatio
-  return { maxChars: Math.max(5, Math.floor(TARGET_LINE_WIDTH / avg)), fontScale }
+  const avg = fontSize * fontScale * charWidthRatio * (frame ? frame.dim : 1)
+  const line = frame ? (frame.width * TARGET_LINE_WIDTH) / REFERENCE_WIDTH : TARGET_LINE_WIDTH
+  return { maxChars: Math.max(5, Math.floor(line / avg)), fontScale }
 }
 
 /** Whisper's languages: [code, English name]. Order: English first, then roughly by how often they are spoken. */
