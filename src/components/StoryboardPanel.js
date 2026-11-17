@@ -36,7 +36,7 @@ function createFrameVisual(frame, large = false) {
 
 export function StoryboardPanel({ appendTo } = {}) {
   const root = document.createElement('div');
-  root.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5';
+  root.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5';
 
   // ───────────────────────────────────────────────────────────────────────
   // Subscribe to runtime state

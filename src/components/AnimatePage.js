@@ -353,7 +353,7 @@ export function AnimatePage() {
     }
     advancedMuapiRow.classList.remove('hidden');
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
 
     const addField = (label, type, value, onChange, placeholder) => {
       const row = document.createElement('div');
@@ -563,7 +563,7 @@ export function AnimatePage() {
     }
 
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden';
 
     const video = document.createElement('video');
     video.src = state.result.videoUrl;
@@ -594,7 +594,7 @@ export function AnimatePage() {
 
     animations.forEach(anim => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden';
       if (anim.videoUrl) {
         const video = document.createElement('video');
         video.src = anim.videoUrl;

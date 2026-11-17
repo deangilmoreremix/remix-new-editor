@@ -76,7 +76,7 @@ export function TextToVideoPage() {
 
   contentWrapper.innerHTML = `
     <!-- Features -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-lg font-black text-white mb-4">Video Generation Reimagined</h2>
       <p class="text-sm text-muted mb-6">Everything you need to create stunning videos</p>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -91,7 +91,7 @@ export function TextToVideoPage() {
     </div>
 
     <!-- Start CTA -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h2 class="text-lg font-black text-white mb-1">Ready to Create Videos?</h2>
@@ -107,7 +107,7 @@ export function TextToVideoPage() {
     </div>
 
     <!-- Models -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-lg font-black text-white mb-1">Available Models</h2>
       <p class="text-sm text-muted mb-6">Choose from ${TEXT_TO_VIDEO_MODELS.length} powerful video generation models</p>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -124,7 +124,7 @@ export function TextToVideoPage() {
     </div>
 
     <!-- Example Prompts -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-lg font-black text-white mb-1">Example Prompts</h2>
       <p class="text-sm text-muted mb-6">Get inspired by these creative video prompts</p>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -141,7 +141,7 @@ export function TextToVideoPage() {
     </div>
 
     <!-- Bottom CTA -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h2 class="text-lg font-black text-white mb-1">Start Creating Now</h2>
