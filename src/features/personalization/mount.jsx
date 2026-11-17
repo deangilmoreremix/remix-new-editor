@@ -8,7 +8,7 @@
  * rest of the session. Every studio's Personalize button and the Lead Finder
  * page go through `openPersonalization()`, which opens the same modal.
  */
-import React, { useEffect, useState, useSyncExternalStore } from 'react'
+import React, { useEffect, useSyncExternalStore } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createPortal } from 'react-dom'
 import { DemoPersonalizeProvider, useDemoPersonalize } from './shared/personalization/DemoPersonalizeProvider'
@@ -20,7 +20,7 @@ import {
 } from './shared/personalization/demoSources'
 import { installPersonalizationApiAuth } from './lib/apiAuth'
 import { SocialPublishProvider } from './components/SocialPublishProvider'
-import { getApiKey } from './lib/authConfig.ts'
+import { useAuthConfig } from './lib/authConfig.ts'
 
 /**
  * OpenHiggsBolt's shell listens for `muapi:auth-required` (dispatched by the
@@ -35,18 +35,10 @@ function openSettings() {
 
 /** Feeds the publisher the Settings MuAPI key and keeps it current when the key changes. */
 function SocialPublishRoot({ children }) {
-  const [apiKey, setApiKey] = useState(() => getApiKey() || null)
-  useEffect(() => {
-    const refresh = () => setApiKey(getApiKey() || null)
-    window.addEventListener('storage', refresh)
-    window.addEventListener('focus', refresh)
-    return () => {
-      window.removeEventListener('storage', refresh)
-      window.removeEventListener('focus', refresh)
-    }
-  }, [])
+  // useAuthConfig subscribes to the key manager, so a key added, replaced or cleared in Settings (same tab) updates this at once.
+  const { apiKey } = useAuthConfig()
   return (
-    <SocialPublishProvider apiKey={apiKey} onRequestApiKey={openSettings}>
+    <SocialPublishProvider apiKey={apiKey || null} onRequestApiKey={openSettings}>
       {children}
     </SocialPublishProvider>
   )

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Play,
   Camera,
@@ -167,6 +167,10 @@ export default function DestinationsStep({
   const [connecting, setConnecting] = useState(false);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
+  // Which platform the loaded accounts belong to, and which request is the latest: a slow answer for a platform the
+  // user has already left must never replace (or be shown as) the current platform's accounts.
+  const [accountsPlatform, setAccountsPlatform] = useState('youtube');
+  const accountsRequest = useRef(0);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -180,6 +184,8 @@ export default function DestinationsStep({
     () => ALL_PLATFORMS.filter((p) => p.supports.includes(mediaType)),
     [mediaType],
   );
+
+  const visibleAccounts = accountsPlatform === activePlatform ? accounts : [];
 
   const platformMeta = useMemo(
     () => ALL_PLATFORMS.find((p) => p.id === activePlatform),
@@ -199,23 +205,27 @@ export default function DestinationsStep({
         if (!silent) setError('Enter your MuAPI key in Settings first.');
         return;
       }
+      const requestId = ++accountsRequest.current;
+      const requestedPlatform = activePlatform;
       setLoadingAccounts(true);
       if (!silent) setError(null);
       try {
         const data = await listExternalSocialAccounts(apiKey);
+        if (requestId !== accountsRequest.current) return; // a newer request owns the list now
         const list = Array.isArray(data) ? data : data?.accounts || [];
         const filtered = list.filter((a: any) => {
           const p = String(a.platform_name || a.platform || '').toLowerCase();
           return p === activePlatform.toLowerCase();
         });
         setAccounts(filtered);
+        setAccountsPlatform(requestedPlatform);
         if (filtered.length === 0 && !silent) {
           setError('No connected accounts yet. Use "Connect account" to authorize one.');
         }
       } catch (err) {
-        if (!silent) setError(formatError(err));
+        if (requestId === accountsRequest.current && !silent) setError(formatError(err));
       } finally {
-        setLoadingAccounts(false);
+        if (requestId === accountsRequest.current) setLoadingAccounts(false);
       }
     },
     [apiKey, activePlatform],
@@ -369,6 +379,7 @@ export default function DestinationsStep({
   }, [latestResult]);
 
   useEffect(() => {
+    setAccounts([]);
     refreshAccounts(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePlatform]);
@@ -512,9 +523,9 @@ export default function DestinationsStep({
           </button>
         </div>
 
-        {accounts.length > 0 && (
+        {visibleAccounts.length > 0 && (
           <div className="space-y-2 mb-3">
-            {accounts.map((a) => {
+            {visibleAccounts.map((a) => {
               const id = String(a.id);
               const dest = destinations.find(
                 (d) => d.platform === activePlatform && d.accountId === id,

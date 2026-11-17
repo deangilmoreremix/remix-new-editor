@@ -114,9 +114,11 @@ export function WriteStep({ asset, copy, onUpdateCopy, onRequestApiKey, sessionI
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [needsOpenAiKey, setNeedsOpenAiKey] = useState(false)
-  const [localCopy, setLocalCopy] = useState<CopyState>(() =>
-    copy.master || (copy.variants?.length || 0) > 0 ? copy : buildEmptyCopy('')
-  )
+  const [localCopy, setLocalCopy] = useState<CopyState>(() => {
+    const start = copy.master || (copy.variants?.length || 0) > 0 ? copy : buildEmptyCopy('')
+    // A copy that arrives with a master post but no variant slots still gets its three slots.
+    return start.variants?.length ? start : { ...start, variants: buildEmptyCopy('').variants }
+  })
 
   useEffect(() => {
     setTopic(getPrefillTopic(asset))
@@ -196,7 +198,9 @@ export function WriteStep({ asset, copy, onUpdateCopy, onRequestApiKey, sessionI
       const result = await generateCopy(topic, asset)
       if (isStale(startedIn)) return
       const master = result.masterPost || ''
-      const variants = localCopy.variants.map((v, idx) => ({
+      // The publish flow can open with a title (so a master post) but no variant slots yet: build them, never map over [].
+      const slots = localCopy.variants.length > 0 ? localCopy.variants : buildEmptyCopy('').variants
+      const variants = slots.map((v, idx) => ({
         ...v,
         text: result.variants?.[idx] || '',
       }))
