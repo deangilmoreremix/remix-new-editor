@@ -215,3 +215,63 @@ describe('languages, free position, script fonts', () => {
     expect(captionFont({ fontFamily: 'Inter' }, 40)).toContain('"Noto Sans SC"');
   });
 });
+
+// ---- layout core + hand-off payload (used by the personalization editor)
+import { layoutCaptionFrame, activePageAt } from '../layout.js';
+import { studioPayload, captionsFromPages } from '../studioData.js';
+import { pageAt as modelPageAt, captionPages as modelPages } from '../model.js';
+
+describe('layout core', () => {
+  const caps = words('hello', 'brave', 'new', 'world');
+  const meas = (t) => t.length * 10;
+  const frameAt = (ms, st = {}, W = 1000, H = 1000) => {
+    const page = activePageAt(modelPages(caps, { combineMs: 5000 }), ms);
+    return layoutCaptionFrame({ page, style: { fontSize: 6, ...st }, ms, width: W, height: H, measure: meas });
+  };
+  it('is pure data: no canvas or DOM needed', () => {
+    const f = frameAt(500);
+    expect(f.words.map((w) => w.text)).toEqual(['hello', 'brave', 'new', 'world']);
+    expect(f.fontPx).toBe(60);
+    expect(f.words.every((w) => Number.isFinite(w.cx) && Number.isFinite(w.cy))).toBe(true);
+  });
+  it('picks the same page as the Timeline rule', () => {
+    const pages = modelPages(caps, { combineMs: 900 });
+    [0, 300, 450, 900, 1500, 2500, 9000].forEach((ms) => expect(activePageAt(pages, ms)).toEqual(modelPageAt(pages, ms)));
+  });
+  it('highlights the spoken word and leaves the others', () => {
+    const f = frameAt(500, { color: '#ffffff', highlightColor: '#ff0000' });
+    expect(f.words.map((w) => w.color)).toEqual(['#ffffff', '#ff0000', '#ffffff', '#ffffff']);
+  });
+  it('centres the block on the height and clamps it to the frame', () => {
+    expect(frameAt(500, { positionY: 0.3 }).words[0].cy).toBeCloseTo(300, -1);
+    expect(frameAt(500, { positionY: 5 }).words[0].cy).toBeLessThan(1000);
+    expect(frameAt(500, { position: 'top' }).words[0].cy).toBeLessThan(frameAt(500, { position: 'bottom' }).words[0].cy);
+  });
+  it('describes outline, boxes and wipes as data', () => {
+    expect(frameAt(500, { stroke: true }).words[0].outlinePx).toBeCloseTo(3.6);
+    expect(frameAt(500, { animation: 'box' }).words[1].box).toMatchObject({ color: expect.any(String) });
+    expect(frameAt(500, { animation: 'karaoke' }).words[1].wipe.fraction).toBeGreaterThan(0);
+    expect(frameAt(500, { background: true }).lineBoxes).toHaveLength(1);
+    expect(frameAt(500, { background: true, stroke: true }).words[0].outlinePx).toBe(0); // a line box replaces the outline
+  });
+  it('returns nothing when there is no page', () => {
+    expect(layoutCaptionFrame({ page: null, style: {}, ms: 0, width: 100, height: 100, measure: meas })).toBeNull();
+  });
+});
+
+describe('studio hand-off payload', () => {
+  const caps = words('hello', 'brave', 'new', 'world');
+  it('carries pages, a whitelisted style and the resolved motion', () => {
+    const p = studioPayload(caps, { ...defaultCaptionStyle('capite-bounce'), secret: 'x', combineMs: 5000 });
+    expect(p.pages).toHaveLength(1);
+    expect(p.pages[0].tokens.map((t) => t.text.trim())).toEqual(['hello', 'brave', 'new', 'world']);
+    expect(p.style.animation).toBe('bounce');
+    expect(p.style.secret).toBeUndefined();
+    expect(p.style.fontFamily).toBeTruthy();
+  });
+  it('round-trips back to word captions', () => {
+    const p = studioPayload(caps, { combineMs: 5000 });
+    const back = captionsFromPages(p.pages);
+    expect(back.map((c) => [c.text, c.startMs, c.endMs])).toEqual(caps.map((c) => [c.text, c.startMs, c.endMs]));
+  });
+});

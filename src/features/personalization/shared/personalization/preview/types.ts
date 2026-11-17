@@ -5,6 +5,7 @@
  */
 
 import type { ImageHints, ImageRole, ImageStyle } from './imageStyle'
+import type { StudioCaptions } from '../captions/studioCaptions'
 
 export type PreviewLayoutId =
   | 'business-introduction'
@@ -180,6 +181,12 @@ export interface PreviewCaptions {
   style: CaptionStyleId
   position: CaptionPosition
   cues: PreviewCaptionCue[]
+  /**
+   * Captions made in the Caption Studio: ready-made pages plus the full style (font, colours, outline, height, motion). When present the
+   * preview and every export draw THESE, so what was designed in the Studio is what is exported; `cues` still carry the text for the list,
+   * SRT/VTT and as the fallback.
+   */
+  studio?: StudioCaptions
 }
 
 export interface PersonalizationPreviewSettings {

@@ -9,6 +9,7 @@
 //   videoUrl, language ('en' | 'auto' | …), accentColor ('#d9ff00'), captions, style,
 //   onComplete(url)                                 the video with captions burned in (blob: URL)
 //   onApply({ captions, captionStyle, srt, vtt })   hand the captions to a timeline / project
+//   applyLabel ('Add captions to timeline'), fonts (limit the Font menu, e.g. to fonts the host can export offline)
 //   onError(err), onClose()
 import {
   ENGINES, WHISPER_MODELS, CAPTION_LANGUAGES, detectCapabilities, recommendEngine, recommendModel, transcribeMedia,
@@ -268,7 +269,7 @@ export class CaptionStudioModal extends ModalShell {
 
   renderFooter() {
     return `
-      ${this.opts.onApply ? '<button type="button" class="csm-btn primary" data-act="apply"' + (this.captions.length ? '' : ' disabled') + '>＋ Add captions to timeline</button>' : ''}
+      ${this.opts.onApply ? '<button type="button" class="csm-btn primary" data-act="apply"' + (this.captions.length ? '' : ' disabled') + `>＋ ${esc(this.opts.applyLabel || 'Add captions to timeline')}</button>` : ''}
       <button type="button" class="csm-btn" data-act="close">Close</button>`;
   }
 
@@ -415,6 +416,12 @@ export class CaptionStudioModal extends ModalShell {
   }
 
   // ---------------------------------------------------------------- render
+  /** The Font menu: the host's list when it gave one (always including the font in use), otherwise every font. */
+  fontList() {
+    const own = this.opts.fonts?.length ? [...this.opts.fonts] : FONTS;
+    return own.includes(this.style.fontFamily) ? own : [this.style.fontFamily, ...own];
+  }
+
   lookName() {
     const c = capiteOf(this.style.preset);
     return c?.name || CAPTION_PRESETS[this.style.preset]?.label || 'Custom';
@@ -506,7 +513,8 @@ export class CaptionStudioModal extends ModalShell {
       <div class="csm-chips">${cats.map(([id, label, n]) => `<button type="button" class="csm-chip${this.styleFilter === id ? ' on' : ''}" data-act="filter" data-f="${id}">${esc(label)}<span class="csm-badge">${n}</span></button>`).join('')}</div>
       <div class="csm-presets">${shown.map(card).join('')}</div>
       <h4>Customize</h4>
-      <label class="csm-row"><span>Font</span><select data-style="fontFamily">${FONTS.map((f) => `<option ${f === s.fontFamily ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select></label>
+      <label class="csm-row"><span>Font</span><select data-style="fontFamily">${this.fontList().map((f) => `<option ${f === s.fontFamily ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select></label>
+      ${this.opts.fonts?.length ? '<p class="csm-hint" style="margin:0">Limited to fonts built into the editor, so they draw and export offline.</p>' : ''}
       <label class="csm-row"><span>Size</span><input type="range" min="2" max="14" step="0.5" value="${esc(s.fontSize)}" data-style="fontSize" data-kind="num" /></label>
       <label class="csm-row"><span>Position</span><select data-style="position">${CAPTION_POSITIONS.map((q) => `<option value="${q}" ${q === s.position && !Number.isFinite(s.positionY) ? 'selected' : ''}>${q[0].toUpperCase() + q.slice(1)}</option>`).join('')}${Number.isFinite(s.positionY) ? '<option value="custom" selected>Custom (dragged)</option>' : ''}</select></label>
       <label class="csm-row"><span>Height</span><input type="range" min="4" max="96" step="1" value="${Math.round(this.effectiveY() * 100)}" data-style="positionY" data-kind="pct" title="Or drag the ⇕ handle on the video" /></label>

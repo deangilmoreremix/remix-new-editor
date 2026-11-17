@@ -6,10 +6,7 @@
  */
 import { captionPages, pageAt } from './model.js';
 import { capiteStyleById } from './styles.js';
-
-const POSITION_Y = { top: 0.08, middle: 0.5, bottom: 0.82 };
-const clamp01 = (n) => Math.max(0, Math.min(1, n));
-const easeOutBack = (t) => { const c = 1.70158; const x = t - 1; return 1 + (c + 1) * x * x * x + c * x * x; };
+import { layoutCaptionFrame } from './layout.js';
 
 /** Which Capite motion a style uses ('highlight' | 'scale' | 'pop' | 'bounce' | 'glow' | 'box' | 'karaoke'). */
 export function captionAnimation(style = {}) {
@@ -30,26 +27,58 @@ export const scriptFontsFor = (text = '') => SCRIPT_FONTS.filter(([re]) => re.te
 const FALLBACKS = ['Noto Sans', ...SCRIPT_FONTS.map(([, f]) => `"${f}"`), 'Arial', 'sans-serif'];
 export const captionFont = (style, px) => `${style.italic ? 'italic ' : ''}${style.bold ? 800 : 500} ${px}px "${style.fontFamily || 'Inter'}", ${FALLBACKS.join(', ')}`;
 
-/** Word-wrap a page's tokens into lines that fit maxWidth. Pure given a `measure(text) => width`. */
-export function layoutWords(tokens, measure, maxWidth, uppercase) {
-  const words = tokens.map((t) => ({ token: t, text: uppercase ? t.text.trim().toUpperCase() : t.text.trim() })).filter((w) => w.text);
-  const space = measure(' ');
-  const lines = [];
-  let line = null;
-  words.forEach((w) => {
-    w.width = measure(w.text);
-    if (!line || line.width + space + w.width > maxWidth) { line = { words: [], width: 0 }; lines.push(line); }
-    line.width += (line.words.length ? space : 0) + w.width;
-    line.words.push(w);
-  });
-  return { lines, space };
-}
+export { layoutWords, layoutCaptionFrame, activePageAt } from './layout.js';
 
 const roundRect = (ctx, x, y, w, h, r) => {
   ctx.beginPath();
   if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
   else ctx.rect(x, y, w, h);
 };
+
+/** The style the layout understands: the preset's motion is resolved once here so layout.js needs no knowledge of the looks. */
+export const frameStyle = (style = {}) => ({ ...style, animation: captionAnimation(style) });
+
+/** Draw a laid-out frame (see layoutCaptionFrame) onto a 2D context. */
+export function drawCaptionFrame(ctx, frame, style = {}) {
+  const { fontPx, lineH } = frame;
+  ctx.save();
+  ctx.font = captionFont(style, fontPx);
+  ctx.textAlign = 'left';
+  ctx.lineJoin = 'round';
+  // A CSS line box centres the font's ascent+descent, not the em square (canvas 'middle'). Fonts such as Anton or Bebas Neue are
+  // lopsided, so 'middle' drew them several px higher than the Timeline and personalization (both DOM). Use the font's own metrics so
+  // all three place text identically; fall back to 'middle' where the browser does not report them.
+  const m = ctx.measureText('Hg');
+  const hasMetrics = Number.isFinite(m.fontBoundingBoxAscent) && Number.isFinite(m.fontBoundingBoxDescent);
+  ctx.textBaseline = hasMetrics ? 'alphabetic' : 'middle';
+  const baseline = hasMetrics ? (m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2 : 0;
+  frame.lineBoxes.forEach((b) => { ctx.fillStyle = b.color; roundRect(ctx, b.x, b.y, b.w, b.h, b.r); ctx.fill(); });
+  frame.words.forEach((w) => {
+    ctx.save();
+    ctx.translate(w.cx, w.cy);
+    ctx.scale(w.scale, w.scale);
+    const lx = -w.width / 2;
+    if (w.box) { ctx.fillStyle = w.box.color; roundRect(ctx, w.box.x, w.box.y, w.box.w, w.box.h, w.box.r); ctx.fill(); }
+    const draw = (color, clipFraction) => {
+      ctx.save();
+      if (clipFraction != null) { ctx.beginPath(); ctx.rect(lx, -lineH, w.width * clipFraction, lineH * 2); ctx.clip(); }
+      if (w.outlinePx) {
+        ctx.lineWidth = w.outlinePx * 2; // the stroke is centred on the glyph edge, so half of it shows outside
+        ctx.strokeStyle = w.outlineColor;
+        ctx.shadowColor = 'transparent';
+        ctx.strokeText(w.text, lx, baseline);
+      }
+      if (w.shadow) { ctx.shadowColor = w.shadow.color; ctx.shadowBlur = w.shadow.blur; ctx.shadowOffsetY = w.shadow.offsetY; }
+      ctx.fillStyle = color;
+      ctx.fillText(w.text, lx, baseline);
+      ctx.restore();
+    };
+    draw(w.color);
+    if (w.wipe) draw(w.wipe.color, w.wipe.fraction);
+    ctx.restore();
+  });
+  ctx.restore();
+}
 
 /**
  * Draw the caption page showing at `ms` (relative to the video start) onto ctx.
@@ -58,83 +87,14 @@ const roundRect = (ctx, x, y, w, h, r) => {
 export function paintCaptions(ctx, W, H, captions, style = {}, ms = 0, { pages } = {}) {
   const page = pageAt(pages || captionPages(captions, style), ms);
   if (!page) return false;
-  const fontSize = (Math.max(1, Number(style.fontSize) || 6) / 100) * H;
-  const anim = captionAnimation(style);
-  const boxed = anim === 'box';
-  const lineBg = style.background && !boxed ? (style.backgroundColor || 'rgba(0,0,0,0.6)') : null;
-  const base = style.color || '#FFFFFF';
-  const hi = style.highlightColor || '#FFE14D';
-  const lineH = fontSize * 1.25;
-
+  const fs = frameStyle(style);
+  const fontPx = (Math.max(1, Number(style.fontSize) || 6) / 100) * H;
   ctx.save();
-  ctx.font = captionFont(style, fontSize);
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'left';
-  ctx.lineJoin = 'round';
-  const { lines, space } = layoutWords(page.tokens, (t) => ctx.measureText(t).width, W * 0.88, !!style.uppercase);
-  if (!lines.length) { ctx.restore(); return false; }
-
-  const blockH = lines.length * lineH;
-  const centreY = Number.isFinite(style.positionY) ? clamp01(style.positionY) : (POSITION_Y[style.position] ?? POSITION_Y.bottom);
-  let top = centreY * H - blockH / 2;
-  top = Math.max(H * 0.02, Math.min(H * 0.98 - blockH, top));
-
-  lines.forEach((line, li) => {
-    const cy = top + li * lineH + lineH / 2;
-    let x = (W - line.width) / 2;
-    if (lineBg) {
-      ctx.fillStyle = lineBg;
-      roundRect(ctx, x - fontSize * 0.35, cy - lineH / 2 + fontSize * 0.06, line.width + fontSize * 0.7, lineH - fontSize * 0.12, fontSize * 0.18);
-      ctx.fill();
-    }
-    line.words.forEach((w) => {
-      const { fromMs, toMs } = w.token;
-      const active = style.highlightActive !== false && ms >= fromMs && ms < toMs;
-      const spoken = anim === 'karaoke' && ms >= fromMs;
-      const progress = clamp01((ms - fromMs) / Math.max(1, Math.min(240, toMs - fromMs)));
-      let scale = 1; let dy = 0;
-      if (active) {
-        if (anim === 'scale') scale = 1 + 0.15 * progress;
-        else if (anim === 'pop') scale = 0.85 + 0.3 * easeOutBack(progress);
-        else if (anim === 'bounce') dy = -Math.sin(progress * Math.PI) * fontSize * 0.18;
-      }
-      const wx = x + w.width / 2;
-      ctx.save();
-      ctx.translate(wx, cy + dy);
-      ctx.scale(scale, scale);
-      const lx = -w.width / 2;
-
-      if (boxed) {
-        ctx.fillStyle = active ? hi : (style.backgroundColor || 'rgba(0,0,0,0.6)');
-        roundRect(ctx, lx - fontSize * 0.15, -lineH / 2 + fontSize * 0.1, w.width + fontSize * 0.3, lineH - fontSize * 0.2, fontSize * 0.15);
-        ctx.fill();
-      }
-      const fill = boxed ? '#FFFFFF' : (active || spoken) && anim !== 'karaoke' ? hi : base;
-      const outline = !lineBg && !boxed && style.stroke;
-      const draw = (color, clipFraction) => {
-        ctx.save();
-        if (clipFraction != null) { ctx.beginPath(); ctx.rect(lx, -lineH, w.width * clipFraction, lineH * 2); ctx.clip(); }
-        if (outline) {
-          ctx.lineWidth = fontSize * 0.12;
-          ctx.strokeStyle = style.strokeColor || '#000000';
-          ctx.shadowColor = 'transparent';
-          ctx.strokeText(w.text, lx, 0);
-        }
-        if (!lineBg && !boxed) { ctx.shadowColor = anim === 'glow' && active ? hi : 'rgba(0,0,0,0.55)'; ctx.shadowBlur = anim === 'glow' && active ? fontSize * 0.5 : fontSize * 0.2; ctx.shadowOffsetY = anim === 'glow' && active ? 0 : 2; }
-        ctx.fillStyle = color;
-        ctx.fillText(w.text, lx, 0);
-        ctx.restore();
-      };
-      if (anim === 'karaoke') {
-        draw(base);
-        const f = ms >= toMs ? 1 : ms >= fromMs ? clamp01((ms - fromMs) / Math.max(1, toMs - fromMs)) : 0;
-        if (f > 0) draw(hi, f);
-      } else draw(fill);
-      ctx.restore();
-      x += w.width + space;
-    });
-  });
+  ctx.font = captionFont(style, fontPx); // measuring happens at the caption's real size
+  const frame = layoutCaptionFrame({ page, style: fs, ms, width: W, height: H, measure: (t) => ctx.measureText(t).width });
   ctx.restore();
+  if (!frame) return false;
+  drawCaptionFrame(ctx, frame, style);
   return true;
 }
 

@@ -3,6 +3,7 @@
  * sanitise captions read back from a saved project. No browser or Remotion code here, so it is fully testable.
  */
 import { isCapiteStyleId } from './capiteStyles'
+import { cleanStudioCaptions } from './studioCaptions'
 import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptionWord, PreviewCaptions } from '../preview/types'
 
 export const CAPTION_STYLES: readonly { id: CaptionStyleId; label: string; hint: string }[] = Object.freeze([
@@ -97,6 +98,7 @@ export function normalizeCaptions(raw: unknown): PreviewCaptions | undefined {
   const r = raw as Partial<PreviewCaptions> | null
   if (!r || typeof r !== 'object') return undefined
   const cues = cleanCues(r.cues)
+  const studio = cleanStudioCaptions(r.studio)
   if (!cues.length || typeof r.forUrl !== 'string' || !r.forUrl) return undefined
   return {
     enabled: r.enabled !== false,
@@ -104,6 +106,7 @@ export function normalizeCaptions(raw: unknown): PreviewCaptions | undefined {
     style: isStyle(r.style) ? r.style : 'bold',
     position: isPosition(r.position) ? r.position : 'bottom',
     cues,
+    ...(studio ? { studio } : {}),
   }
 }
 

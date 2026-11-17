@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Captions as CaptionsIcon, Copy, Download, Trash2 } from 'lucide-react'
 import { clockLabel, cuesToSrt, cuesToText, cuesToVtt } from '../captions/captionCues'
+import { studioToCues } from '../captions/studioCaptions'
 import { CAPITE_CAPTION_STYLES, CAPITE_CATEGORIES, capiteStyleById } from '../captions/capiteStyles'
 import { CAPTION_POSITIONS, CAPTION_STYLES } from '../captions/captionStyle'
 import { useCaptions } from '../captions/useCaptions'
@@ -32,7 +33,10 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
   const [confirmRedo, setConfirmRedo] = useState(false)
   if (!videoUrl) return null
   const busy = c.ai.phase !== 'idle'
-  const cues = c.captions?.cues ?? []
+  const studio = c.captions?.studio
+  // With the Caption Studio available, captions are made and edited in that one window; this panel only opens it and shows the result.
+  const hosted = c.studioAvailable
+  const cues = studio ? studioToCues(studio) : c.captions?.cues ?? []
   const copy = async () => {
     try { await navigator.clipboard.writeText(cuesToText(cues)); setCopied('copied') } catch { setCopied('failed') }
   }
@@ -40,6 +44,19 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
   return (
     <div data-testid="captions-panel" style={{ marginTop: 12 }}>
       <div style={{ ...labelStyle, marginBottom: 6 }}>Captions</div>
+      {hosted ? (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
+            type="button" data-testid="captions-open-studio" disabled={disabled}
+            onClick={c.openStudio}
+            style={{ ...secondaryButtonStyle, minHeight: 30, fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 6, opacity: disabled ? 0.5 : 1 }}
+          >
+            <CaptionsIcon size={12} /> {c.captions ? 'Edit in Caption Studio' : 'Open Caption Studio'}
+          </button>
+          <span style={{ ...hintStyle, margin: 0 }}>Free, on this device. Transcribe, edit, restyle and recolour in one window.</span>
+        </div>
+      ) : (
+        <>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <button
           type="button" data-testid="captions-generate" disabled={disabled || busy}
@@ -58,6 +75,8 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
         </div>
       )}
       <LocalAINotice ai={c.ai} doing="turns the video’s own speech into caption text" />
+        </>
+      )}
       {c.note && <p data-testid="captions-note" style={{ ...hintStyle, margin: '6px 0 0' }}>{c.note}</p>}
 
       {c.captions && (
@@ -66,6 +85,12 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
             <input type="checkbox" data-testid="captions-enabled" checked={c.captions.enabled} onChange={(e) => c.setEnabled(e.target.checked)} />
             Show captions in the video
           </label>
+          {hosted ? (
+            <p data-testid="captions-summary" style={{ ...hintStyle, margin: 0 }}>
+              {cues.length} lines{studio ? ` · ${studio.style.fontFamily}, drawn exactly as designed in the Caption Studio` : ' · open the Caption Studio to restyle or fix these'}.
+            </p>
+          ) : (
+            <>
           <div role="group" aria-label="Caption style" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ ...hintStyle, margin: 0 }}>Look:</span>
             {CAPTION_STYLES.map((s) => (
@@ -106,6 +131,9 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
             ))}
           </ol>
           <p style={{ ...hintStyle, margin: 0 }}>Written automatically, so read it through and fix any mistakes. Clear a line to delete it.</p>
+
+            </>
+          )}
 
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <button type="button" data-testid="captions-srt" onClick={() => saveText(cuesToSrt(cues), 'captions.srt', 'application/x-subrip')} style={smallButton}><Download size={11} /> Download .srt</button>

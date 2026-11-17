@@ -21,6 +21,8 @@ import {
 import { installPersonalizationApiAuth } from './lib/apiAuth'
 import { SocialPublishContext } from './components/SocialPublishProvider'
 import { openSocialPublish } from '../../lib/socialPublishHelpers.js'
+import { registerCaptionStudio } from './shared/personalization/captions/captionStudioBridge'
+import { openCaptionStudioForPersonalization } from './captionStudioHost.js'
 
 /**
  * OpenHiggsBolt wraps the modal in SocialPublishProvider, so "Publish" opens
@@ -39,6 +41,12 @@ const SOCIAL_PUBLISH_VALUE = {
     if (url) openSocialPublish({ mediaUrl: url, mediaType: asset?.type === 'video' ? 'video' : 'image' })
   },
 }
+
+/**
+ * Captions: the personalization editor has no caption editor of its own. It opens the one Caption Studio and draws whatever comes back
+ * (pages + full style) itself, so colours, font and height carry over to the preview and every export.
+ */
+registerCaptionStudio(openCaptionStudioForPersonalization)
 
 /**
  * OpenHiggsBolt's shell listens for `muapi:auth-required` (dispatched by the
