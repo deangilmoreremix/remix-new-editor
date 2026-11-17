@@ -101,3 +101,28 @@ describe('video-events handler with heat events (mocked database)', () => {
     expect(res.statusCode).toBe(400);
   });
 });
+
+describe('video-events: deploy order (heatmap migration not applied yet)', () => {
+  it('a 404 from ingest_video_heat_events does not fail the batch: regular events stay accepted', async () => {
+    const calls = [];
+    const fetchImpl = vi.fn(async (url, init) => {
+      const name = url.split('/rpc/')[1]; calls.push(name);
+      if (name === 'rate_limit_check') return { ok: true, json: async () => ({ allowed: true }) };
+      if (name === 'ingest_video_heat_events') return { ok: false, status: 404, json: async () => ({ code: 'PGRST202' }) };
+      return { ok: true, json: async () => ({ ok: true, accepted: 1, duplicates: 0 }) };
+    });
+    const out = await handle({ ...base, events: [{ type: 'play', seq: 1 }, { type: 'heat_click', seq: 2, props: { x: 0.5, y: 0.5 } }] }, { env, fetchImpl });
+    expect(out.statusCode).toBe(200);
+    expect(calls).toContain('ingest_video_heat_events');
+  });
+  it('other heat failures (HTTP 500) still fail the batch', async () => {
+    const fetchImpl = vi.fn(async (url) => {
+      const name = url.split('/rpc/')[1];
+      if (name === 'rate_limit_check') return { ok: true, json: async () => ({ allowed: true }) };
+      if (name === 'ingest_video_heat_events') return { ok: false, status: 500, json: async () => ({}) };
+      return { ok: true, json: async () => ({ ok: true, accepted: 1, duplicates: 0 }) };
+    });
+    const out = await handle({ ...base, events: [{ type: 'play', seq: 1 }, { type: 'heat_click', seq: 2, props: { x: 0.5, y: 0.5 } }] }, { env, fetchImpl });
+    expect(out.statusCode).toBe(502);
+  });
+});

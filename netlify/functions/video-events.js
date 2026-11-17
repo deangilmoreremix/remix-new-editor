@@ -155,7 +155,7 @@ async function rpc(cfg, fetchImpl, name, args) {
     headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(args),
   });
-  if (!res.ok) throw new Error(`rpc ${name} failed (HTTP ${res.status})`);
+  if (!res.ok) throw Object.assign(new Error(`rpc ${name} failed (HTTP ${res.status})`), { status: res.status });
   return res.json();
 }
 
@@ -218,11 +218,21 @@ export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch,
       }
     }
     if (result?.ok && heat.length) {
-      const h = await rpc(cfg, fetchImpl, 'ingest_video_heat_events', {
-        p_video_id: body.video, p_session_key: body.session, p_events: heat,
-      });
-      if (!h?.ok) return fail(400, h?.error || 'bad_request', 'Rejected');
-      result = { ...result, accepted: (result.accepted || 0) + (h.accepted || 0), duplicates: (result.duplicates || 0) + (h.duplicates || 0) };
+      let h = null;
+      try {
+        h = await rpc(cfg, fetchImpl, 'ingest_video_heat_events', {
+          p_video_id: body.video, p_session_key: body.session, p_events: heat,
+        });
+      } catch (err) {
+        // Deploy-order safety: before the heatmap migration is applied the database has no such function (PostgREST answers 404).
+        // The regular events above were recorded, so the batch still succeeds; the heat events are dropped until the migration lands.
+        if (err?.status !== 404) throw err;
+        console.warn('[video-events] heatmap ingest unavailable (migration not applied?):', err?.message);
+      }
+      if (h) {
+        if (!h.ok) return fail(400, h.error || 'bad_request', 'Rejected');
+        result = { ...result, accepted: (result.accepted || 0) + (h.accepted || 0), duplicates: (result.duplicates || 0) + (h.duplicates || 0) };
+      }
     }
   } catch (err) {
     console.error('[video-events] ingest failed:', err?.message);
