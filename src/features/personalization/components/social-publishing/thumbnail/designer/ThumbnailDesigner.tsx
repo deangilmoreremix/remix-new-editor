@@ -10,11 +10,13 @@ import {
 } from './model';
 import { exportProject, type ExportFormat } from './exportImage';
 import { renderProject, type RenderAssets } from './render';
-import { MAX_UPLOAD_BYTES, canvasSizeFor, cutOutSubject, fileToDataUrl, loadImage, makeMeasure, naturalSize, plannedBackdrop, plannedLook } from './designerAssets';
+import { MAX_UPLOAD_BYTES, canvasSizeFor, fileToDataUrl, loadImage, makeMeasure, naturalSize, plannedBackdrop, plannedLook } from './designerAssets';
 import { chip } from './designerUi';
 import DesignerStage from './DesignerStage';
 import LayerPanel from './LayerPanel';
 import Inspector from './Inspector';
+import type { PictureTool } from './PictureTools';
+import { runAiTool, runFreeTool } from './pictureTools';
 import BackgroundControls from './BackgroundControls';
 import EditRegionPanel from './EditRegionPanel';
 import ThumbnailPlatformPreview from '../ThumbnailPlatformPreview';
@@ -112,7 +114,7 @@ export default function ThumbnailDesigner({ initialProject, backgroundImageUrl, 
   const [message, setMessage] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [editNote, setEditNote] = useState<string | null>(null);
-  const [cutOutBusy, setCutOutBusy] = useState(false);
+  const [toolBusy, setToolBusy] = useState<string | null>(null);
   const [format, setFormat] = useState<ExportFormat>('image/png');
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState<string | null>(null);
@@ -262,25 +264,31 @@ export default function ThumbnailDesigner({ initialProject, backgroundImageUrl, 
     }
   }, [editBackground, readImageFile]);
 
-  const cutOut = useCallback(async () => {
+  /** Runs a picture tool on the selected picture layer: free ones in the browser, AI ones only when chosen. */
+  const runTool = useCallback(async (tool: PictureTool) => {
     if (!selected || selected.kind !== 'image') return;
     const img = assets[selected.src];
     if (!img) { setMessage('Wait for the picture to finish loading, then try again.'); return; }
     const id = selected.id;
     const startSrc = selected.src;
+    const isCutout = (tool.kind === 'free' && tool.id === 'cutout_person') || (tool.kind === 'ai' && (tool.id === 'remove_background' || tool.id === 'transparent_cutout'));
     setMessage(null);
-    setCutOutBusy(true);
+    setToolBusy(tool.id);
     try {
-      const dataUrl = await cutOutSubject(img);
-      const cut = await loadImage(dataUrl);
+      const dataUrl = tool.kind === 'free' ? await runFreeTool(tool.id, img) : await runAiTool(tool.id, img, tool.note);
+      const next = await loadImage(dataUrl);
       if (!mounted.current) return;
-      setAssets((prev) => ({ ...prev, [dataUrl]: cut }));
-      const { w, h } = naturalSize(cut);
-      if (projectRef.current.layers.some((l) => l.id === id && l.kind === 'image' && l.src === startSrc)) edit(id, { src: dataUrl, naturalW: w, naturalH: h, role: 'subject', outline: 'white', name: 'Subject', fit: 'contain' } as Partial<ImageLayer>);
+      setAssets((prev) => ({ ...prev, [dataUrl]: next }));
+      const { w, h } = naturalSize(next);
+      if (projectRef.current.layers.some((l) => l.id === id && l.kind === 'image' && l.src === startSrc)) {
+        edit(id, isCutout
+          ? { src: dataUrl, naturalW: w, naturalH: h, role: 'subject', outline: 'white', name: 'Subject', fit: 'contain' } as Partial<ImageLayer>
+          : { src: dataUrl, naturalW: w, naturalH: h } as Partial<ImageLayer>);
+      }
     } catch (err) {
-      if (mounted.current) setMessage(err instanceof Error ? err.message : 'The cut-out failed. Try again.');
+      if (mounted.current) setMessage(err instanceof Error ? err.message : 'That tool failed. Try again.');
     } finally {
-      if (mounted.current) setCutOutBusy(false);
+      if (mounted.current) setToolBusy(null);
     }
   }, [assets, edit, selected]);
 
@@ -388,7 +396,7 @@ export default function ThumbnailDesigner({ initialProject, backgroundImageUrl, 
               {selected && (
                 <div className="pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                   {selected.locked && <p className="mb-2 text-[10px] text-white/40">This layer is locked: unlock it to move it on the canvas.</p>}
-                  <Inspector layer={selected} onChange={(patch) => edit(selected.id, patch)} onCutOut={selected.kind === 'image' ? cutOut : undefined} cutOutBusy={cutOutBusy} />
+                  <Inspector layer={selected} onChange={(patch) => edit(selected.id, patch)} onTool={selected.kind === 'image' ? runTool : undefined} toolBusy={toolBusy} />
                 </div>
               )}
             </div>

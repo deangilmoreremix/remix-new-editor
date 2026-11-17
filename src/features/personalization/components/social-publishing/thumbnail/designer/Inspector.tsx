@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Loader2, Scissors } from 'lucide-react';
 import { DEFAULT_FONTS, type ImageLayer, type Layer, type ShapeLayer, type TextLayer } from './model';
+import PictureTools, { type PictureTool } from './PictureTools';
 import { CheckField, ColorField, Field, Section, SliderField, ToggleGroup, TRANSPARENT, inputStyle, isTransparent, withAlpha } from './designerUi';
 
 export interface InspectorProps {
   layer: Layer;
   onChange: (patch: Partial<Layer>) => void;
-  onCutOut?: () => void;
-  cutOutBusy?: boolean;
+  onTool?: (tool: PictureTool) => void;
+  toolBusy?: string | null;
 }
 
 const fontName = (f: string) => f.split(',')[0].trim();
@@ -90,7 +90,7 @@ function TextInspector({ layer, onChange }: { layer: TextLayer; onChange: (patch
   );
 }
 
-function ImageInspector({ layer, onChange, onCutOut, cutOutBusy }: { layer: ImageLayer; onChange: (patch: Partial<ImageLayer>) => void; onCutOut?: () => void; cutOutBusy?: boolean }) {
+function ImageInspector({ layer, onChange, onTool, toolBusy }: { layer: ImageLayer; onChange: (patch: Partial<ImageLayer>) => void; onTool?: (tool: PictureTool) => void; toolBusy?: string | null }) {
   return (
     <>
       <div className="grid grid-cols-2 gap-2">
@@ -103,12 +103,7 @@ function ImageInspector({ layer, onChange, onCutOut, cutOutBusy }: { layer: Imag
           </select>
         </Field>
       </div>
-      {onCutOut && (
-        <button type="button" onClick={onCutOut} disabled={cutOutBusy} className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-[11px] font-semibold transition-all disabled:opacity-50" style={{ background: 'rgba(217,255,0,0.1)', color: '#d9ff00', border: '1px solid rgba(217,255,0,0.25)' }}>
-          {cutOutBusy ? <><Loader2 size={13} className="animate-spin" />Cutting out…</> : <><Scissors size={13} />Cut out subject</>}
-        </button>
-      )}
-      <p className="text-[10px] text-white/30">Cut out removes the background with AI and keeps the person or product. A white outline then makes it pop.</p>
+      {onTool && <PictureTools onTool={onTool} busy={toolBusy} />}
     </>
   );
 }
@@ -143,7 +138,7 @@ function ShapeInspector({ layer, onChange }: { layer: ShapeLayer; onChange: (pat
 }
 
 /** Edits for the selected layer: name, opacity and rotation for all, then the controls of its kind. */
-export default function Inspector({ layer, onChange, onCutOut, cutOutBusy }: InspectorProps) {
+export default function Inspector({ layer, onChange, onTool, toolBusy }: InspectorProps) {
   const patch = onChange as (patch: Partial<Layer>) => void;
   return (
     <div className="space-y-3" data-testid="designer-inspector" key={layer.id}>
@@ -152,7 +147,7 @@ export default function Inspector({ layer, onChange, onCutOut, cutOutBusy }: Ins
         <input type="text" value={layer.name} maxLength={40} onChange={(e) => patch({ name: e.target.value })} className="w-full rounded-lg px-2.5 py-1.5 text-[11px] outline-none" style={inputStyle} />
       </Field>
       {layer.kind === 'text' && <TextInspector layer={layer} onChange={patch as (p: Partial<TextLayer>) => void} />}
-      {layer.kind === 'image' && <ImageInspector layer={layer} onChange={patch as (p: Partial<ImageLayer>) => void} onCutOut={onCutOut} cutOutBusy={cutOutBusy} />}
+      {layer.kind === 'image' && <ImageInspector layer={layer} onChange={patch as (p: Partial<ImageLayer>) => void} onTool={onTool} toolBusy={toolBusy} />}
       {layer.kind === 'shape' && <ShapeInspector layer={layer} onChange={patch as (p: Partial<ShapeLayer>) => void} />}
       <Section title="Position">
         <SliderField label="Opacity" value={Math.round(layer.opacity * 100)} min={0} max={100} onChange={(v) => patch({ opacity: v / 100 })} unit="%" />
