@@ -11,7 +11,7 @@
  */
 import { periodRange, retentionPoints } from './analyticsData.js';
 
-const BATCH_SIZE = 200;       // matches the cap inside the database function
+const BATCH_SIZE = 10;        // 100 rows per video x 10 = 1,000, the API's default max rows per response (the database function itself accepts up to 200 ids)
 const DEFAULT_CONCURRENCY = 4;
 
 // Once the batch function is known to be missing, skip it for the rest of the page's life.

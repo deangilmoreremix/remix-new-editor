@@ -202,7 +202,8 @@ export function renderProjectsPanel(host, deps) {
 
   /** What a card's heatmap area shows right now. */
   function heatInner(c) {
-    if (c.publishedId && heat[c.publishedId]) return heatStripHtml(heat[c.publishedId]);
+    // Cached bars are only shown while the card still qualifies (e.g. plays did not drop to zero).
+    if (canHaveHeat(c) && heat[c.publishedId]) return heatStripHtml(heat[c.publishedId]);
     if (!c.published) return heatPlaceholderHtml('unpublished');
     if (!canHaveHeat(c)) return heatPlaceholderHtml('unwatched');
     return heatPlaceholderHtml(heatMiss[c.publishedId] ? 'unavailable' : 'loading');

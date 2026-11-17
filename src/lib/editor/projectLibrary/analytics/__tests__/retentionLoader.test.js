@@ -33,11 +33,11 @@ describe('loadRetentionCurves', () => {
     expect(rpc.mock.calls[0][1].p_video_ids).toEqual(['a']);
   });
 
-  it('splits very long lists into requests of at most 200 ids', async () => {
+  it('splits long lists so one response never exceeds 1,000 rows (10 videos x 100 buckets)', async () => {
     const rpc = vi.fn(async () => ({ data: [], error: null }));
-    const ids = Array.from({ length: 450 }, (_, i) => `v${i}`);
+    const ids = Array.from({ length: 25 }, (_, i) => `v${i}`);
     await loadRetentionCurves({ rpc }, ids, {});
-    expect(rpc.mock.calls.map(([, a]) => a.p_video_ids.length)).toEqual([200, 200, 50]);
+    expect(rpc.mock.calls.map(([, a]) => a.p_video_ids.length)).toEqual([10, 10, 5]);
   });
 
   it('falls back to one request per video when the batch function is missing, and remembers that', async () => {

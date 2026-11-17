@@ -319,6 +319,20 @@ describe('projects panel', () => {
       expect(host.querySelectorAll('.prj-heat')).toHaveLength(9);
     });
 
+    it('a refresh that drops plays to zero replaces cached bars with the placeholder', async () => {
+      let plays = 12;
+      const d = withPlays({ getStats: async () => ({ a: { plays } }) });
+      const panel = renderProjectsPanel(host, d);
+      await tick(); await tick(); await tick();
+      expect(host.querySelector('[data-id="a"] .prj-heat:not(.prj-heat-empty)')).toBeTruthy();
+      plays = 0;
+      await panel.refresh();
+      await tick(); await tick(); await tick();
+      const a = host.querySelector('[data-id="a"]');
+      expect(a.querySelector('.prj-heat:not(.prj-heat-empty)')).toBeNull();
+      expect(a.querySelector('.prj-heat-note').textContent).toContain('No viewer data yet');
+    });
+
     it('keeps strips when the view or search changes', async () => {
       renderProjectsPanel(host, withPlays());
       await tick(); await tick(); await tick();
