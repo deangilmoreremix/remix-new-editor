@@ -53,9 +53,9 @@ const getWorker = () => {
 /**
  * @returns {Promise<{ captions, text }>} captions in ms from `fromSec`
  */
-export async function transcribeInBrowser(src, { fromSec = 0, toSec = Infinity, model, language, onProgress, signal } = {}) {
+export async function transcribeInBrowser(src, { fromSec = 0, toSec = Infinity, model, language, device = 'auto', audio: preDecoded, onProgress, signal } = {}) {
   onProgress?.({ stage: 'decode', progress: 0 });
-  const audio = await decodeAudio(src, { fromSec, toSec, signal });
+  const audio = preDecoded || await decodeAudio(src, { fromSec, toSec, signal });
   if (!audio.length) throw new Error('The clip has no audio to transcribe');
   const w = getWorker();
   const id = ++seq;
@@ -82,6 +82,6 @@ export async function transcribeInBrowser(src, { fromSec = 0, toSec = Infinity, 
     w.addEventListener('message', onMsg);
     w.addEventListener('error', onErr);
     signal?.addEventListener('abort', onAbort);
-    w.postMessage({ type: 'transcribe', id, audio, model, language }, [audio.buffer]);
+    w.postMessage({ type: 'transcribe', id, audio, model, language, device }, [audio.buffer]);
   });
 }

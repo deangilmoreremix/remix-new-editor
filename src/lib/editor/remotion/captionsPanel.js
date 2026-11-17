@@ -47,6 +47,7 @@ export function renderCaptionsPanel(container, opts = {}) {
     container.innerHTML = `
       <div class="cap-panel">
         <h4 class="addon-panel__heading">Auto-captions</h4>
+        ${opts.onOpenStudio ? '<button type="button" class="mini-btn cap-primary" data-cap-studio>✨ Open Caption Studio (free)</button><p class="addon-field__hint">Transcribe, edit lines, restyle and recolour, and export SRT/VTT or a captioned video — all on your device.</p>' : ''}
         ${sources.length ? `
           <label class="cap-row"><span>From clip</span><select data-cap-source>${sources.map((s) => `<option value="${esc(s.id)}" ${s.id === ui.source ? 'selected' : ''}>${esc(s.label)}</option>`).join('')}</select></label>
           <label class="cap-row"><span>Language</span><select data-cap-lang>${CAPTION_LANGUAGES.map(([v, l]) => `<option value="${v}" ${v === ui.language ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
@@ -168,7 +169,8 @@ export function renderCaptionsPanel(container, opts = {}) {
     const b = e.target.closest('button');
     if (!b || !container.contains(b)) return;
     const d = b.dataset;
-    if (d.capTranscribe !== undefined) transcribe();
+    if (d.capStudio !== undefined) opts.onOpenStudio?.();
+    else if (d.capTranscribe !== undefined) transcribe();
     else if (d.capCancel !== undefined) ui.controller?.abort();
     else if (d.capPreset) {
       const keep = { fontSize: style.fontSize, position: style.position };

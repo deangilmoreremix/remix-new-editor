@@ -6670,6 +6670,7 @@ export function TimelineEditorPage() {
             sources: mediaSourcesForCaptions(),
             selectedSource: clip.sourceClipId ? String(clip.sourceClipId) : undefined,
             autoTranscribe: auto,
+            onOpenStudio: () => openCaptionStudio(allClips().find((c) => String(c.id) === String(clip.sourceClipId)), clip),
             currentMs: () => Math.max(0, (playheadSec() - clipStartSec(clip)) * 1000),
             onSeek: (ms) => seekToSeconds(clipStartSec(clip) + ms / 1000),
             onDownload: (name, text, mime) => downloadText(`${(clip.name || 'captions').replace(/[^\w-]+/g, '_')}.${name.split('.').pop()}`, text, mime),
@@ -7503,31 +7504,61 @@ export function TimelineEditorPage() {
 
     renderTracks();
 
-    /** Captions: add a captions clip and transcribe the selected (or first) media clip in the browser. */
+    /**
+     * Captions: open the free Caption Studio (on-device Whisper, editable lines, 32 looks, SRT/VTT) on the selected (or first) media clip,
+     * then add its result as a captions clip — or update the one being edited. Times in the studio are source-file times; the clip's
+     * times start at the clip's own start, so the trim-in is subtracted/added on the way through.
+     */
+    async function openCaptionStudio(source, existing) {
+      const { addCaptionButton } = await import('../lib/editor/captionActions.js');
+      const { shiftCaptions, defaultCaptionStyle } = await import('../lib/editor/remotion/captions.js');
+      const fromSec = source ? (Number(source.trimIn ?? source.sourceStart ?? 0) || 0) : 0;
+      addCaptionButton({
+        videoUrl: source?.src,
+        appTheme: 'timeline-editor',
+        captions: existing?.captions?.length ? shiftCaptions(existing.captions, fromSec * 1000) : undefined,
+        style: existing?.captionStyle,
+        onError: (err) => showToast(err?.message || 'Captions error', 'error'),
+        onApply: ({ captions, captionStyle }) => {
+          const rel = shiftCaptions(captions, -fromSec * 1000);
+          const first = rel.slice(0, 5).map((c) => c.text).join('').trim();
+          const name = first ? `Captions: ${first}${rel.length > 5 ? '…' : ''}` : 'Captions';
+          saveStateSnapshot(state);
+          if (existing) {
+            existing.captions = rel;
+            existing.captionStyle = captionStyle;
+            existing.name = name;
+            scheduleEngineUpdate();
+            renderTracks();
+            showClipEditor(existing.id);
+          } else {
+            const startSec = source ? clipStartSec(source) : playheadSec();
+            const clip = {
+              id: `captions-${Date.now()}`,
+              type: 'captions',
+              name,
+              captions: rel,
+              captionStyle: { ...defaultCaptionStyle('tiktok'), ...captionStyle },
+              sourceClipId: source?.id ?? null,
+              start: startSec,
+              end: startSec + (source ? clipDurationSec(source) : Math.max(1, Math.min(timelineSec() - startSec, (rel[rel.length - 1]?.endMs || 10000) / 1000))),
+            };
+            const textTrack = state.tracks.find((t) => (t.type || '').toLowerCase() === 'text') || state.tracks.find((t) => t.name === 'Text');
+            insertClipIntoTrack(clip, textTrack?.name || 'Text');
+            showClipEditor(clip.id);
+          }
+          showToast(`${rel.length} caption words added`, 'success');
+          debouncedSave();
+        },
+      });
+    }
+
     async function generateSubtitles() {
       const selected = findSelectedClip();
       if (selected?.type === 'captions') { showClipEditor(selected.id); return; }
       const media = allClips().filter((c) => (c.type === 'video' || c.type === 'audio') && c.src);
       const source = selected && media.includes(selected) ? selected : media.sort((a, b) => (a.left || 0) - (b.left || 0))[0];
-      const { defaultCaptionStyle } = await import('../lib/editor/remotion/captions.js');
-      saveStateSnapshot(state);
-      const startSec = source ? clipStartSec(source) : playheadSec();
-      const clip = {
-        id: `captions-${Date.now()}`,
-        type: 'captions',
-        name: 'Captions',
-        captions: [],
-        captionStyle: defaultCaptionStyle('tiktok'),
-        sourceClipId: source?.id ?? null,
-        start: startSec,
-        end: startSec + (source ? clipDurationSec(source) : Math.min(10, timelineSec() - startSec)),
-      };
-      const textTrack = state.tracks.find((t) => (t.type || '').toLowerCase() === 'text') || state.tracks.find((t) => t.name === 'Text');
-      insertClipIntoTrack(clip, textTrack?.name || 'Text');
-      if (source) pendingAutoCaptions = clip.id;
-      else showToast('Captions added — import an SRT/VTT file or type captions in its settings', 'info');
-      showClipEditor(clip.id);
-      debouncedSave();
+      openCaptionStudio(source, null);
     }
 
     async function suggestBRoll() {

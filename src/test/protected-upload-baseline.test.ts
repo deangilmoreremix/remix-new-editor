@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', '7c00f6614c38f5259d6a0b4611f87380e464d60c5f4a27dbb5a1b8b003c7dd84'], // re-recorded after the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels). Semantic coverage in section 5.
+        ['src/components/TimelineEditorPage.jsx', '87a27e08c933ec8284d1dc7b0e791b4dc3a7264c67bdf87410de45bc23bfebe3'], // re-recorded after the approved free Caption Studio entry point (openCaptionStudio: on-device Whisper, no upload or provider call; semantic coverage in section 5), and earlier the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels). Semantic coverage in section 5.
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -969,6 +969,19 @@ describe('protected files — semantic integrity assertions', () => {
     // Opening a project must never silently replace an unsaved timeline.
     expect(source).toContain('is not saved as a project and will be replaced');
     // No browser-exposed provider key or direct provider fetch was introduced.
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+  });
+
+  it('TimelineEditorPage.jsx opens the free on-device Caption Studio without a new upload or provider path', () => {
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    // Subtitle entry points open the studio through the shared caption action (dynamic import, no static upload import).
+    expect(source).toContain('async function openCaptionStudio(source, existing)');
+    expect(source).toContain("import('../lib/editor/captionActions.js')");
+    // The result becomes a captions clip through the existing timeline helpers.
+    expect(source).toContain("insertClipIntoTrack(clip, textTrack?.name || 'Text')");
+    // Captions are made on the user's device: nothing here uploads media or calls a provider.
+    const block = source.slice(source.indexOf('async function openCaptionStudio'), source.indexOf('async function suggestBRoll'));
+    expect(block).not.toMatch(/uploadFileToStorage|supabase|muapi|fetch\(/);
     expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
   });
 
