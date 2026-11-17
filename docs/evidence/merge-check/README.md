@@ -34,13 +34,14 @@ Test media: two generated 8s VP9 clips. No Supabase / Clerk / provider keys were
 | 94 | Publish > Contacts: imported CSV (bad and duplicate rows skipped), chips with counts, search, download, remove; landing-page source reports it needs sign-in while the others still show |
 | 95 | Publish > Email: connect MailerLite, choose who, video link, add to MailerLite; Send stays blocked with a plain reason until each step is done; says no email is sent |
 | 96-social-window-1..4 | The Publish to Social window restyled to match the Personalize this demo window (black panels, lime accent, 22px shell, icon-tile header, pill step tabs, lime Publish button); all publishing logic unchanged |
+| 101-effect-thumbnails-fixed | Library > Effects with real pictures. They were blank everywhere because the sample pictures they are drawn from (`/library-previews/sample-*.jpg`) only existed in the upstream app; they are now in `public/` (captured with software WebGL, which headless Chromium lacks by default) |
 | 97-100 | The Publish tab pages (Share & Leads, Social, Contacts, Email) in the lime accent, matching the Personalize and Publish to Social windows; the rest of the editor stays cyan |
 
 ## Not captured / not verified
 - "Open full timeline" button: click timed out, no screenshot (30/43 missing).
 - Voice-over recorder: "Could not access the microphone" (headless, expected).
 - Anything needing a provider key or sign-in: caption generation, AI video, publish, analytics data, live translation.
-- Effect thumbnails in the library modal render as dark placeholders in headless Chromium (WebGL); not confirmed in a real browser.
+- Effect thumbnails: the blank-thumbnail cause was a missing sample picture, now fixed and shown in 101. Not yet looked at on a physical GPU browser.
 - Transitions and Multicam sections were not captured on a real cut/in the Inspector with a transition selected.
 - Social publishing to the real networks, MailerLite connect/send, and Landing-page/Lead contacts need sign-in, provider keys and Supabase, which this environment does not have. Those paths are covered by unit tests with mocked clients and by the gate/error states above, not by a real send.
-- Kit: sending a contact list to Kit is not built (the sync function omits it). New leads from video forms can already go to Kit via the form's own settings.
+- Kit: sending a contact list to Kit is not built on purpose: Kit's API docs could not be reached from this environment and `landing-sync.js` does not ship unverified provider code. New leads from video forms can already go to Kit via the form's own settings.
