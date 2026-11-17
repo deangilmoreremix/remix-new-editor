@@ -24,6 +24,7 @@ import {
   type QualityReport,
 } from '../preview/placement'
 import { checkAccessibility, fixForIssue, withAccessibility } from '../preview/placement/a11y'
+import { useSubjectFinder, type SubjectFinder } from './useSubjectFinder'
 import { splitSideFor } from '../preview/imagePresets'
 import {
   compositionZones,
@@ -55,6 +56,8 @@ export interface LayoutQualityState {
   canFixIssue: (issue: QualityIssue) => boolean
   /** Applies that fix to the layer. Returns whether anything changed. */
   applyIssueFix: (issue: QualityIssue) => boolean
+  /** Free automatic subject detection (on this device); absent where the host does not provide it. */
+  subjectFinder?: SubjectFinder
   /** Customer marks where the subject is (composition space), or clears it. */
   markSubject: (where: 'left' | 'center' | 'right' | 'clear') => void
 }
@@ -206,11 +209,14 @@ export function useLayoutQuality(inputProps: PreviewInputProps): LayoutQualitySt
     return true
   }, [settings, brand, updatePreviewLayer])
 
+  const subjectFinder = useSubjectFinder({ settings, videoUrl, isImageSource, setZones: setPreviewProtectedZones })
+
   const markSubject = useCallback((where: 'left' | 'center' | 'right' | 'clear') => {
-    const others = (settings.protectedZones ?? []).filter((z) => z.id !== 'customer-subject')
+    // Marking by hand replaces any automatic result too: the customer's call wins.
+    const others = (settings.protectedZones ?? []).filter((z) => z.id !== 'customer-subject' && z.id !== 'auto-subject')
     if (where === 'clear') { setPreviewProtectedZones(others); return }
     setPreviewProtectedZones([...others, { id: 'customer-subject', label: 'Subject you marked', source: 'user', ...SUBJECT_ZONES[where] }])
   }, [settings.protectedZones, setPreviewProtectedZones])
 
-  return { report, profile, sampling, zones, rightsNeedConfirmation: rightsNeedConfirmation(profile), show, applyRecommended, restoreRecommended, markSubject, canFixIssue, applyIssueFix }
+  return { report, profile, sampling, zones, rightsNeedConfirmation: rightsNeedConfirmation(profile), show, applyRecommended, restoreRecommended, markSubject, canFixIssue, applyIssueFix, subjectFinder }
 }
