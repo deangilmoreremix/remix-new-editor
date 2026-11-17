@@ -63,7 +63,7 @@ const triggerBtn = document.createElement('button');
   updateTrigger();
 
   const dropdown = document.createElement('div');
-  dropdown.className = 'fixed z-[200] bg-card-bg border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
   dropdown.style.width = 'calc(100vw - 2rem)';
   dropdown.style.maxWidth = '480px';
   dropdown.style.maxHeight = '70vh';
@@ -182,7 +182,7 @@ const triggerBtn = document.createElement('button');
 
   // Input area
   const inputArea = document.createElement('div');
-  inputArea.className = 'w-full max-w-2xl bg-card-bg/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col gap-3 animate-fade-in-up';
+  inputArea.className = 'w-full max-w-2xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col gap-3 animate-fade-in-up';
   inputArea.style.animationDelay = '0.3s';
 
   // System prompt (optional)
