@@ -44,7 +44,7 @@ export function loadLocalCustomers({ store = defaultStore, storage = globalThis.
 /** The signed-in user's saved Personalization projects (their generated pictures); [] when signed out or offline. */
 export async function fetchSavedProjects(fetchImpl = globalThis.fetch) {
   try {
-    const res = await fetchImpl('/api/personalization/project', { credentials: 'same-origin' });
+    const res = await fetchImpl('/api/personalization/project?list=true', { credentials: 'same-origin' });
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data?.projects) ? data.projects : [];
