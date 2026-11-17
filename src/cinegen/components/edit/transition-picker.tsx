@@ -33,7 +33,7 @@ export function TransitionPicker({ value, classic, plugin, onPick }: { value?: s
         {items.length === 0 && <span style={{ fontSize: 11, opacity: 0.65, gridColumn: '1 / -1' }}>No transitions match.</span>}
         {items.map((it) => (
           <button key={it.id} type="button" title={getGltEntry(it.id)?.description ?? it.label} aria-pressed={value === it.id} data-testid={`tr-pick-${it.id}`}
-            className={`cc-resource-card${hover === it.id ? ' hovered' : ''}`} style={value === it.id ? { borderColor: '#22d3ee' } : undefined}
+            className={`cc-resource-card${hover === it.id ? ' hovered' : ''}`} style={value === it.id ? { borderColor: '#d9ff00' } : undefined}
             onMouseEnter={() => setHover(it.id)} onMouseLeave={() => setHover(null)} onFocus={() => setHover(it.id)} onBlur={() => setHover(null)} onClick={() => onPick(it.id)}>
             <div className="cc-resource-thumb">{it.id.startsWith('plugin:') ? <span style={{ fontSize: 10, opacity: 0.6 }}>plugin</span> : <TransitionThumb type={it.id} playing={hover === it.id} />}</div>
             <span className="cc-resource-name">{it.label}</span>

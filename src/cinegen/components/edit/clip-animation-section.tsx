@@ -52,7 +52,7 @@ export function ClipAnimationSection({ clip, currentTime = 0, onUpdate, onSeek }
         <span className="clip-properties-panel__label">{r.label}</span>
         <input type="range" className="clip-properties-panel__slider" data-testid={`anim-${r.id}`} aria-label={r.label} min={r.min} max={r.max} step={r.step} value={v} onChange={(e) => set(r.id, parseFloat(e.target.value))} />
         <span className="clip-properties-panel__value">{v.toFixed(r.step < 0.01 ? 3 : 2)}{r.unit ?? ''}</span>
-        <button className="clip-properties-panel__toggle-btn" data-testid={`anim-key-${r.id}`} aria-label={`${atKey ? 'Update' : 'Add'} keyframe for ${r.label}`} title={atKey ? 'Update the keyframe at the playhead' : 'Add a keyframe at the playhead'} style={{ padding: '0 5px', color: list.length ? '#22d3ee' : undefined }} onClick={() => set(r.id, v, true)}>{atKey ? '◆' : '◇'}</button>
+        <button className="clip-properties-panel__toggle-btn" data-testid={`anim-key-${r.id}`} aria-label={`${atKey ? 'Update' : 'Add'} keyframe for ${r.label}`} title={atKey ? 'Update the keyframe at the playhead' : 'Add a keyframe at the playhead'} style={{ padding: '0 5px', color: list.length ? '#d9ff00' : undefined }} onClick={() => set(r.id, v, true)}>{atKey ? '◆' : '◇'}</button>
         {list.length > 0 && <button className="clip-properties-panel__toggle-btn" aria-label={`Clear keyframes for ${r.label}`} title="Clear this property's keyframes (keeps the value at the playhead)" style={{ padding: '0 5px' }} onClick={() => clearFor(r.id, r.dflt)}>✕</button>}
       </div>
     );

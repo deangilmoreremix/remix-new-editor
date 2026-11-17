@@ -69,7 +69,8 @@ body {
   box-shadow: 0 0 16px rgba(217, 255, 0, 0.08); transform: translateY(-1px);
 }
 .btn:active:not(:disabled) { transform: translateY(0) scale(0.98); }
-.btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(217, 255, 0, 0.4); }
+/* focus uses an outline, not a box-shadow, so the primary glow / danger `box-shadow: none` rules below can never hide it */
+.btn:focus-visible { outline: 2px solid rgba(217, 255, 0, 0.75); outline-offset: 2px; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 /* the most important action on the screen (Export film / Send): brighter glow, like Generate */
 .btn.primary { font-weight: 700; color: #fff; box-shadow: 0 0 14px rgba(217, 255, 0, 0.14); }
@@ -456,7 +457,7 @@ select.btn:hover:not(:disabled), .btn.btn-play:hover:not(:disabled) { border-col
 .chat-msg.user { align-self: flex-end; align-items: flex-end; }
 .chat-msg.assistant { align-self: flex-start; }
 .chat-bubble { padding: 7px 10px; border-radius: 10px; font-size: 12px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; background: rgba(255,255,255,.06); }
-.chat-msg.user .chat-bubble { background: rgba(10,132,255,.25); }
+.chat-msg.user .chat-bubble { background: rgba(217,255,0,.14); }
 .chat-msg.error .chat-bubble { background: rgba(255,69,58,.18); }
 .chat-note { font-size: 11px; margin-top: 3px; }
 .chat-input { display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--line, #2a2a2e); align-items: flex-end; }

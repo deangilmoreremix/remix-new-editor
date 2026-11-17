@@ -330,7 +330,7 @@
 .cinegen-root .export-tab__panel { max-width: min(1120px, 100%); gap: 20px; }
 .cinegen-root .export-tab__subtitle { margin-top: -12px; }
 .cinegen-root .export-settings {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px 28px; align-items: start;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 18px 28px; align-items: start;
 }
 .cinegen-root .export-settings > .export-settings__section:has(.export-settings__presets),
 .cinegen-root .export-settings > .export-settings__section:has(input[type="checkbox"]),

@@ -35,7 +35,7 @@ export function CurveEditor({ ease, onChange, onClose }: { ease: EaseSpec | unde
   };
   const setNum = (i: number, v: number) => { if (!Number.isFinite(v)) return; const n: BezierPoints = [...bz] as BezierPoints; n[i] = i % 2 === 0 ? Math.max(0, Math.min(1, v)) : Math.max(-1, Math.min(2, v)); onChange({ bezier: n }); };
   const tab = (k: typeof kind, label: string, make: () => EaseSpec) => (
-    <button type="button" className="clip-properties-panel__toggle-btn" data-testid={`curve-mode-${k}`} aria-pressed={kind === k} style={kind === k ? { borderColor: '#22d3ee', color: '#22d3ee' } : undefined} onClick={() => { if (kind !== k) onChange(make()); }}>{label}</button>
+    <button type="button" className="clip-properties-panel__toggle-btn" data-testid={`curve-mode-${k}`} aria-pressed={kind === k} style={kind === k ? { borderColor: '#d9ff00', color: '#d9ff00' } : undefined} onClick={() => { if (kind !== k) onChange(make()); }}>{label}</button>
   );
   return (
     <div role="dialog" aria-label="Curve editor" data-testid="curve-editor" className="stage2-popover" style={{ position: 'fixed', top: 120, right: 340, width: 270, zIndex: 60, background: 'var(--bg-elevated, #151a24)', border: '1px solid var(--border-medium, rgba(255,255,255,.2))', borderRadius: 8, padding: 10, boxShadow: '0 6px 24px rgba(0,0,0,.45)' }}>
@@ -52,7 +52,7 @@ export function CurveEditor({ ease, onChange, onClose }: { ease: EaseSpec | unde
         {kind === 'bezier' && <>
           <line x1={px(0)} y1={py(0)} x2={px(bz[0])} y2={py(bz[1])} stroke="#f59e0b" /><line x1={px(1)} y1={py(1)} x2={px(bz[2])} y2={py(bz[3])} stroke="#f59e0b" />
         </>}
-        <polyline points={pts} fill="none" stroke="#22d3ee" strokeWidth={2} data-testid="curve-path" />
+        <polyline points={pts} fill="none" stroke="#d9ff00" strokeWidth={2} data-testid="curve-path" />
         {kind === 'bezier' && <>
           <circle cx={px(bz[0])} cy={py(bz[1])} r={7} fill="#f59e0b" style={{ cursor: 'grab' }} data-testid="curve-handle-1" onPointerDown={drag(0)} />
           <circle cx={px(bz[2])} cy={py(bz[3])} r={7} fill="#f59e0b" style={{ cursor: 'grab' }} data-testid="curve-handle-2" onPointerDown={drag(1)} />
