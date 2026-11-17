@@ -18,7 +18,8 @@ export const SPEEDS = [0.75, 1, 1.25, 1.5];
 export const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const styleById = Object.fromEntries(ALL_CAPTION_STYLES.map((s) => [s.id, s]));
 export const styleFor = (id) => styleById[id] || styleById['capite-hormozi'];
-const hint = (s) => s.bestFor || s.hint || '';
+/** Capite looks say what they are best for; the editor's own looks (whose hints are in Chinese) show their font instead. */
+const hint = (s) => s.bestFor || `${s.fontFamily} · ${s.wholeLine ? 'whole line' : s.highlightBackground ? 'highlight box' : 'word colour'}`;
 const dot = (s) => `<span class="cap-dot" style="background:linear-gradient(135deg,${esc(s.color)} 50%,${esc(s.highlightBackground || s.highlightColor)} 50%)"></span>`;
 
 /** Style filter chips with counts: All, Popular, Capite's four categories, the editor's own looks. */
