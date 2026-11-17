@@ -240,3 +240,6 @@
 .inspector-group__chev { width: 10px; color: #22d3ee; }
 .inspector-group .clip-properties-panel__section:last-child { border-bottom: 0; }
 .inspector-group__hint { padding: 8px 12px 10px; font-size: 10.5px; line-height: 1.4; opacity: 0.55; }
+
+/* [remix] The Publish tab is lime (same #d9ff00 as the Personalize and Publish to Social windows), so its active top tab gets a lime underline. */
+.top-nav__tab.top-nav__tab--publish { border-bottom-color: #d9ff00; }

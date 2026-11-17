@@ -121,7 +121,7 @@ export function TopTabs({
           return (
             <button
               key={id}
-              className={`top-nav__tab${id === activeTab ? ' top-nav__tab--active' : ''}${showReady ? ' top-nav__tab--unread' : ''}`}
+              className={`top-nav__tab${id === activeTab ? ' top-nav__tab--active' : ''}${id === 'leads' && id === activeTab ? ' top-nav__tab--publish' : ''}${showReady ? ' top-nav__tab--unread' : ''}`}
               onClick={() => onTabChange(id)}
             >
               <span className="top-nav__tab-label">{label}</span>
