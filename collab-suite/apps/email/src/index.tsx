@@ -11,7 +11,8 @@ export default function Email() {
   const save = (box: Mail["box"]) => {
     if (!f.to.trim()) return;
     const id = editing ?? uid();
-    setMail((l) => [{ id, at: Date.now(), box, ...f }, ...l.filter((x) => x.id !== id)]);
+    const saved = setMail((l) => [{ id, at: Date.now(), box, ...f }, ...l.filter((x) => x.id !== id)]);
+    if (!saved) { alert("Could not save: browser storage is full or blocked. Your message is still in the composer."); return; }
     setF({ to: "", subject: "", body: "" }); setEditing(null);
   };
   return (
