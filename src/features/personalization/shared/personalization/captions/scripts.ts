@@ -75,9 +75,17 @@ export function scriptFor(language: string | undefined, text = ''): ScriptConfig
  * captions are sized for the frame, so the correction here is only for the width of the letters.)
  */
 export function displayScale(language: string | undefined, text = ''): number {
-  const cfg = scriptFor(language, text)
-  return Math.round(Math.min(1, Math.max(0.6, SCRIPTS[0].charWidthRatio / cfg.charWidthRatio)) * 100) / 100
+  const listed = scriptOf(language)
+  const code = baseCode(language)
+  // A language Whisper supports that the table does not list (Bengali, Greek, Tamil…), or letters of a script it does not list: wide-script settings.
+  const unlistedLanguage = !listed && code !== '' && NAMES.has(code)
+  const unlistedLetters = !listed && !unlistedLanguage && detectScript(text) === 'latin' && hasOtherLetters(text)
+  const ratio = listed ? listed.charWidthRatio : unlistedLanguage || unlistedLetters ? OTHER.charWidthRatio : scriptFor(language, text).charWidthRatio
+  return Math.round(Math.min(1, Math.max(0.6, SCRIPTS[0].charWidthRatio / ratio)) * 100) / 100
 }
+
+/** Letters that are not Latin and that the script table has no entry for (Greek, Bengali, Tamil, Armenian, Georgian…). */
+const hasOtherLetters = (text: string): boolean => /[^\p{Script=Latin}\P{L}]/u.test(String(text ?? ''))
 
 /** The first language of a script: a stand-in when a file needs a language and has none. */
 export function representativeLanguage(id: ScriptId): string {

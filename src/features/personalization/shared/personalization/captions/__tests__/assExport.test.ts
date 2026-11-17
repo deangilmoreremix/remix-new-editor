@@ -137,4 +137,29 @@ describe('generateAss', () => {
       expect(two.map((w) => w.group)).toEqual([0, 1])
     })
   })
+
+  describe('review fixes', () => {
+    const ZWJ = String.fromCodePoint(0x200d)
+    const gen = (words: { text: string; start: number; end: number }[], style: AssStyle = base) => generateAss({ words, width: 1080, height: 1920, style })
+    it('removes emoji sequences whole, joiner included, but keeps the joiners that shape ordinary script text', () => {
+      const cp = (...codes: number[]) => codes.map((c) => String.fromCodePoint(c)).join('')
+      const family = cp(0x1f468, 0x200d, 0x1f469, 0x200d, 0x1f467)
+      const devanagari = cp(0x0915, 0x094d, 0x200d, 0x0937) // KA + VIRAMA + ZWJ + SSA: the joiner asks for a half-form
+      const d = dialogues(gen([{ text: `${family}ok`, start: 0, end: 1 }, { text: devanagari, start: 1, end: 2 }])).join('\n')
+      expect(d).toContain('OK')
+      expect(d).not.toContain(String.fromCodePoint(0x1f468))
+      expect(d).not.toContain(cp(0x200d, 0x1f469)) // no joiner left behind from the emoji
+      expect(d).toContain(devanagari)
+    })
+    it('starts a karaoke sweep from the look\'s own text colour, not a fixed red', () => {
+      const style = { ...base, animation: 'karaoke' as const, primaryColor: '#FFFFFF', highlightColor: '#0080FF' }
+      expect(gen(words, style)).toContain('&H00FFFFFF,&H00FFFFFF,') // Primary, then Secondary
+      expect(gen(words, style)).not.toContain('&H000000FF,')
+    })
+    it('writes the look\'s letter spacing into the base style, so every reset restores it', () => {
+      expect(gen(words, { ...base, letterSpacing: 2 })).toMatch(/,100,100,2,0,1,/)
+      expect(gen(words, { ...base, letterSpacing: 0 })).toMatch(/,100,100,0,0,1,/)
+    })
+  })
+
 })

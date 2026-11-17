@@ -59,3 +59,18 @@ describe('transcriptText', () => {
     expect(transcriptText([])).toBe('')
   })
 })
+
+describe('review fixes', () => {
+  it('whole-word matching treats combining marks as part of the word', () => {
+    const decomposed = 'cafe' + String.fromCodePoint(0x0301)
+    expect(findReplace([{ text: decomposed }], 'cafe', 'tea', { wholeWord: true }).count).toBe(0)
+    expect(findReplace([{ text: `${decomposed} and cafe` }], 'cafe', 'tea', { wholeWord: true }).items[0].text).toBe(`${decomposed} and tea`)
+  })
+  it('a nudge never goes below zero: the end is extended instead when the minimum length needs it', () => {
+    expect(clampNudge(0, 0.1, 0.1, -0.1, 0.1)).toEqual([0, 0.1])
+    expect(clampNudge(0.05, 0.15, 0.1, -0.1, 0.1)).toEqual([0, 0.1]) // squeezed from both sides: kept at the minimum length, from zero
+    const [s, e] = clampNudge(0, 0.2, -1, 0)
+    expect(s).toBe(0)
+    expect(e).toBeGreaterThanOrEqual(0.1)
+  })
+})

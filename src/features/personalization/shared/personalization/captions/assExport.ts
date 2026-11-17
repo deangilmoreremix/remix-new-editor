@@ -85,8 +85,9 @@ export function cuesToWords(cues: readonly { start: number; end: number; text: s
 }
 
 // Emoji and pictographs the renderer cannot draw. (Capite's own pattern uses one huge range that also matches CJK and Arabic letters, which
-// would delete the words of those languages, so this uses the Unicode definition of emoji instead.)
-const EMOJI = /(?:\p{Extended_Pictographic}|[\u{1F1E0}-\u{1F1FF}]|\u{FE0F}|\u{200D})+/gu
+// would delete the words of those languages, so this uses the Unicode definition of emoji instead. A zero-width joiner goes only as part of an
+// emoji sequence: in ordinary script text, such as Devanagari, it is meaningful for shaping and stays.)
+const EMOJI = /(?:\p{Extended_Pictographic}(?:\u{FE0F}|[\u{1F3FB}-\u{1F3FF}])*(?:\u{200D}\p{Extended_Pictographic}(?:\u{FE0F}|[\u{1F3FB}-\u{1F3FF}])*)*|[\u{1F1E0}-\u{1F1FF}]+)+/gu
 const escapeAss = (t: string) => t.replace(/\\/g, '\\\\').replace(/\{/g, '\\{').replace(/\}/g, '\\}').replace(/\n/g, ' ')
 const flag = (v: boolean) => (v ? -1 : 0)
 const round1 = (n: number) => Math.round(n * 10) / 10
@@ -160,7 +161,7 @@ export function generateAss(o: AssOptions): string {
     '',
     '[V4+ Styles]',
     'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-    `Style: Default,${fontName},${fontSize},${primary},&H000000FF,${outlineColour},${backColour},${flag(style.bold)},${flag(style.italic)},0,0,100,100,0.5,0,${borderStyle},${outline},${shadow},2,${margin},${margin},${marginV},1`,
+    `Style: Default,${fontName},${fontSize},${primary},${primary},${outlineColour},${backColour},${flag(style.bold)},${flag(style.italic)},0,0,100,100,${style.letterSpacing},0,${borderStyle},${outline},${shadow},2,${margin},${margin},${marginV},1`,
     '',
     '[Events]',
     'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
@@ -203,7 +204,6 @@ export function generateAss(o: AssOptions): string {
         prevLine = w.line
       })
       let text = style.wordSpacing !== 100 ? parts.join(`{\\fscx${style.wordSpacing}} {\\fscx100}`) : parts.join(' ')
-      if (style.letterSpacing !== 0) text = `{\\fsp${style.letterSpacing}}${text}`
       text = `{\\pos(${posX},${posY})}${text}`
       const end = Math.max(eventEnd - 0.01, word.start + 0.01)
       events.push(`Dialogue: 0,${assTime(word.start)},${assTime(end)},Default,,0,0,0,,${text}`)

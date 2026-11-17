@@ -44,7 +44,7 @@ const tick = () => act(async () => { await new Promise((r) => setTimeout(r, 5)) 
 const click = (el: Element | null) => act(async () => { (el as HTMLElement).click() })
 const readBlob = (b: Blob) => new Promise<string>((resolve) => { const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.readAsText(b) })
 const generate = async (el: HTMLElement) => { await click(q(el, 'captions-generate')); await tick() }
-const stored = () => ctx.previewSettings.captions as { enabled: boolean; style: string; position: string; forUrl: string; cues: { text: string; words?: unknown[] }[] } | undefined
+const stored = () => ctx.previewSettings.captions as { enabled: boolean; style: string; position: string; forUrl: string; language?: string; cues: { text: string; words?: unknown[] }[] } | undefined
 
 describe('CaptionsPanel', () => {
   it('renders nothing without a video', () => { expect(q(mount(null).el, 'captions-panel')).toBeNull() })

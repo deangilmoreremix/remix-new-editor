@@ -73,4 +73,14 @@ describe('scripts', () => {
     for (const s of SCRIPTS) expect(s.fallbackStack, s.id).not.toMatch(/(^|,\s*)(ui-sans-serif|system-ui|sans-serif|serif|monospace)\s*(,|$)/)
     for (const s of SCRIPTS.filter((x) => x.id !== 'latin')) expect(s.fallbackStack.length, s.id).toBeGreaterThan(0)
   })
+
+  it('sets supported languages that are not in the script table (Bengali, Greek, Tamil) and their text at the wide-script size too', () => {
+    for (const l of ['bn', 'el', 'ta', 'te', 'ka', 'hy']) expect(displayScale(l, ''), l).toBeLessThan(1)
+    expect(displayScale(undefined, String.fromCodePoint(0x09ac, 0x09be, 0x0982, 0x09b2, 0x09be))).toBeLessThan(1) // Bengali letters, no language
+    expect(displayScale(undefined, String.fromCodePoint(0x0395, 0x03bb, 0x03bb, 0x03b7, 0x03bd, 0x03b9, 0x03ba, 0x03ac))).toBeLessThan(1) // Greek
+    expect(displayScale('xx', 'hello')).toBe(1) // an unknown code: judged by the text, which is Latin
+    expect(displayScale('en', 'hello')).toBe(1)
+    expect(displayScale(undefined, 'Cafe\u0301 olé')).toBe(1) // accented Latin is still Latin
+  })
+
 })

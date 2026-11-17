@@ -20,7 +20,7 @@ export interface FindOptions { matchCase?: boolean; wholeWord?: boolean }
 export function findReplace<T extends { text: string }>(items: readonly T[], find: string, replace: string, opts: FindOptions = {}): { items: T[]; count: number } {
   if (!find) return { items: items as T[], count: 0 }
   const body = escapeRe(find)
-  const src = opts.wholeWord ? `(?<![\\p{L}\\p{N}_])${body}(?![\\p{L}\\p{N}_])` : body
+  const src = opts.wholeWord ? `(?<![\\p{L}\\p{M}\\p{N}_])${body}(?![\\p{L}\\p{M}\\p{N}_])` : body
   const re = new RegExp(src, opts.matchCase ? 'gu' : 'giu')
   let count = 0
   const out = items.map((item) => {
@@ -38,8 +38,10 @@ export function clampNudge(start: number, end: number, deltaStart: number, delta
   let s = round3(Math.max(0, start + deltaStart))
   let e = round3(end + deltaEnd)
   if (e - s < minLen - 1e-9) {
-    if (deltaStart !== 0) s = round3(e - minLen)
+    if (deltaStart !== 0) s = Math.max(0, round3(e - minLen))
     else e = round3(s + minLen)
+    // Never below zero: when the start cannot move back far enough, the end gives way instead.
+    if (e - s < minLen - 1e-9) e = round3(s + minLen)
   }
   return [s, e]
 }
