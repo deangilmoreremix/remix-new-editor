@@ -48,7 +48,7 @@ function toSegments(words: Array<{ text: string; start: number; end: number }>) 
   return segments;
 }
 
-type ExportJobState = { id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; createdAt: string; completedAt?: string };
+type ExportJobState = { done?: number; total?: number; label?: string; failures?: string[]; id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; createdAt: string; completedAt?: string };
 const exportJobs = new Map<string, ExportJobState>();
 
 const batchListeners = new Set<(e: unknown) => void>();
@@ -128,7 +128,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ glType: string; glDef?: unknown; clipAId: string; clipBId: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; contactIds?: string[]; title?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ glType: string; glDef?: unknown; clipAId: string; clipBId: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -150,6 +150,8 @@ export function registerWebApi() {
             ...(c.kf?.length ? { keyframes: kfToComposition(c.kf) } : {}),
             ...(c.blendMode && c.blendMode !== 'normal' ? { blendMode: c.blendMode } : {}),
           });
+          // [remix] The composition for the whole timeline, optionally filled in for one contact.
+          const buildModel = async (profile?: unknown) => {
           const state = {
             timelineSeconds: Math.max(1, a.totalDuration),
             tracks: [
@@ -159,8 +161,8 @@ export function registerWebApi() {
               { id: 'a', type: 'audio', items: a.clips.filter((c) => c.type === 'audio' || c.trackKind === 'audio').map((c, i) => item({ ...c, type: 'audio' }, 1000 + i)) },
             ],
           };
-          const model = timelineToComposition(state, { fps: a.fps, quality, aspect: a.aspect });
-          // [remix] a generic export has no contact profile: unfilled {{tokens}} are removed from text, as the published player does
+          const model = timelineToComposition(state, { fps: a.fps, quality, aspect: a.aspect, ...(profile ? { profile } : {}) });
+          // [remix] unfilled {{tokens}} are removed from text, as the published player does (a generic export has no contact profile)
           (model as { layers: unknown[] }).layers = stripUnresolvedTokens((model as { layers: unknown[] }).layers) as unknown[];
           // [remix] OpenChatCut motion-graphics templates → code layers on top (the sandboxed renderer runs them; the code gate still applies)
           {
@@ -192,6 +194,38 @@ export function registerWebApi() {
               out: { src: A.c.inputPath, trimBefore: Math.round((A.c.trimStart + (start - A.c.startTime) * rate(A.c)) * a.fps), playbackRate: rate(A.c) },
               inn: { src: B.c.inputPath, trimBefore: Math.round(B.c.trimStart * a.fps), playbackRate: rate(B.c) } }];
           });
+          return model;
+          };
+          // [remix] One video per contact: each person's details fill the text and images; one failing render must not lose the rest.
+          const wanted = new Set((a.contactIds ?? []).map(String));
+          if (wanted.size) {
+            const [store, per] = await Promise.all([import('../../lib/contactStore.js'), import('../../lib/editor/personalize/perContact.js')]);
+            const contacts = (per.listContactProfiles(store) as Array<{ id: unknown }>).filter((p) => wanted.has(String(p.id)));
+            if (!contacts.length) throw new Error('Pick at least one contact');
+            job.total = contacts.length; job.done = 0; job.failures = [];
+            const used = new Set<string>();
+            const title = String(a.title || 'timeline').replace(/[^a-z0-9 _-]+/gi, '').trim() || 'timeline';
+            for (let i = 0; i < contacts.length; i += 1) {
+              const who = String(per.contactName(contacts[i]));
+              job.label = `Video ${i + 1} of ${contacts.length} · ${who}`;
+              try {
+                const part = await exportModel(await buildModel(contacts[i]), { container: 'mp4', quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(((i + pr) / contacts.length) * 100); } });
+                let base = `${title} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || String(contacts[i].id)}`;
+                if (used.has(base.toLowerCase())) base = `${base} (${String(contacts[i].id).slice(0, 8)})`;
+                used.add(base.toLowerCase());
+                downloadBlob(part, `${base}.mp4`);
+                job.done = (job.done ?? 0) + 1;
+                job.fileSize = (job.fileSize ?? 0) + part.size;
+              } catch (err) { (job.failures ??= []).push(`${who}: ${err instanceof Error ? err.message : String(err)}`); }
+            }
+            job.label = undefined;
+            job.progress = 100;
+            if (!job.done) throw new Error(job.failures[0] || 'No video could be made');
+            job.status = 'complete';
+            job.completedAt = new Date().toISOString();
+            return;
+          }
+          const model = await buildModel();
           const blob = await exportModel(model, { container: 'mp4', quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
           job.outputUrl = URL.createObjectURL(blob);
           job.fileSize = blob.size;

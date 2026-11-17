@@ -23,7 +23,7 @@ export const personalLinksMissing = (error) => /video_personalizations|get_perso
 const fail = (error, fallback) => {
   if (!error) return;
   if (personalLinksMissing(error)) throw Object.assign(new Error('Personal links need the database update (20261115000000_video_personalizations.sql).'), { code: 'links_unavailable' });
-  const msg = /JWT|permission|row-level|401|403/i.test(error.message || '') ? 'Sign in to manage personal links' : (error.message || fallback);
+  const msg = /JWT|permission|row-level|401|403/i.test(error.message || '') ? 'You can only change links from the browser or account that published this video' : (error.message || fallback);
   throw new Error(msg);
 };
 

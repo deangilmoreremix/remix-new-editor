@@ -4,6 +4,8 @@ import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { publishIncludes } from '@cinegen/lib/leads/leads';
 // @ts-expect-error plain JS
 import { watchUrl, embedCode } from '../../../lib/editor/publish/publishClient.js';
+// @ts-expect-error plain JS
+import { GUEST_NOTICE } from '../../../lib/editor/publish/guestMessages.js';
 import type { usePublished } from './use-publish';
 
 export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePublished>; leadCount: number }) {
@@ -29,7 +31,7 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
         {pub.info && <button type="button" className="leads-btn" disabled={pub.busy} onClick={() => void pub.setLive(!live)} data-testid="unpublish-btn">{live ? 'Unpublish' : 'Republish'}</button>}
       </div>
       {pub.error && <p className="leads-error" role="alert">{pub.error}</p>}
-      {!pub.signedIn && <p className="leads-note">Sign in to publish videos.</p>}
+      {pub.guest && <p className="leads-note" data-testid="guest-notice">{GUEST_NOTICE}</p>}
       {pub.info && pub.id && (
         <div className="leads-links">
           <div className="leads-copy"><span className="leads-label">Link</span><input readOnly value={watchUrl(pub.id)} className="leads-input" /><button type="button" className="leads-btn" onClick={() => copy('link', watchUrl(pub.id!))}>{copied === 'link' ? 'Copied' : 'Copy'}</button></div>

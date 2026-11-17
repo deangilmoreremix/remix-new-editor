@@ -10540,10 +10540,22 @@ input[type='range']::-moz-range-track {
 
 .export-tab__panel {
   width: 100%;
-  max-width: 560px;
+  max-width: 1120px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+/* Two columns so every render option is visible at once; one column on narrow windows. */
+.export-tab__cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+.export-tab__col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.export-tab__col-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin: 0; }
+@media (max-width: 900px) {
+  .export-tab__cols { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 }
 
 .export-tab__title {
@@ -10600,8 +10612,11 @@ input[type='range']::-moz-range-track {
   font-family: var(--font-display);
   padding: 8px 12px;
   font-size: 14px;
-  width: 120px;
+  width: auto;
+  min-width: 160px;
+  max-width: 100%;
 }
+.export-settings__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
 .export-settings__render-btn {
   background: var(--accent);

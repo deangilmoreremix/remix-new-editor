@@ -9,10 +9,13 @@ import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
 import type { ExportPreset, ExportJob } from '@cinegen/types/export';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 import { exportBlockers, describeBlockers } from '@cinegen/lib/export-blockers';
+import { PersonalizedOutput } from './personalized-output';
 
 export function ExportTab() {
   const { state, dispatch } = useWorkspace();
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  // [remix] set by ExportSettings: renders with the options chosen there (optionally one video per contact)
+  const renderRef = useRef<((contactIds?: string[]) => void) | null>(null);
 
   const activeTimeline = getActiveTimeline(state);
   const exportClips = useMemo(() => {
@@ -59,6 +62,8 @@ export function ExportTab() {
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
+        // [remix] Personalized output: one video per contact, named after the timeline
+        title: activeTimeline.name, ...(extras?.contactIds?.length ? { contactIds: extras.contactIds } : {}),
         // [remix] OpenChatCut motion-graphics templates on the overlay lane are rendered into the export
         // [remix] visual overlays (text, stickers, call buttons, End Screens, Connect Forms…) are drawn into the render; interactive forms stay player-only
         overlays: (state.overlays ?? []).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
@@ -72,7 +77,7 @@ export function ExportTab() {
     } catch (error) {
       console.error('Failed to start render:', error);
     }
-  }, [dispatch, exportClips, totalDuration, activeTimeline.transitions, state.overlays]);
+  }, [dispatch, exportClips, totalDuration, activeTimeline.transitions, activeTimeline.name, state.overlays]);
 
   useEffect(() => {
     if (!activeJob) {
@@ -95,6 +100,10 @@ export function ExportTab() {
             completedAt: updated.completedAt,
             qa: updated.qa,
             qaStatus: updated.qaStatus,
+            done: updated.done,
+            total: updated.total,
+            label: updated.label,
+            failures: updated.failures,
           },
         });
       } catch {
@@ -115,7 +124,14 @@ export function ExportTab() {
           Render your timeline as an MP4 video
         </p>
 
-        <ExportSettings hasClips={hasClips} blockedReason={blockedReason} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
+        <div className="export-tab__cols" data-testid="export-columns">
+          <div className="export-tab__col" data-testid="export-col-settings">
+            <h3 className="export-tab__col-title">Render options</h3>
+            <ExportSettings renderRef={renderRef} hasClips={hasClips} blockedReason={blockedReason} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
+          </div>
+          <div className="export-tab__col" data-testid="export-col-output">
+            <h3 className="export-tab__col-title">Output</h3>
+            <PersonalizedOutput renderRef={renderRef} busy={!!activeJob} hasClips={hasClips} />
         {/* [remix] OpenChatCut FCPXML export (Final Cut Pro / Premiere / DaVinci Resolve) */}
         <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
           <button type="button" disabled={!hasClips} data-testid="export-fcpxml" onClick={() => {
@@ -131,6 +147,9 @@ export function ExportTab() {
         <p className="export-tab__hint" style={{ marginTop: 16 }}>
           Publish an interactive version (forms, buttons) and collect leads in the <button type="button" className="mini-btn" data-testid="export-to-leads" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Leads</button> tab.
         </p>
+
+          </div>
+        </div>
 
         {latestJob && (
           <div className="export-tab__progress">

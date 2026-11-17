@@ -14,6 +14,11 @@ export interface ExportJob {
   qaStatus?: string;
   videoBitrateBps?: number;
   error?: string;
+  /** [remix] one video per contact: finished / total, the contact being rendered, and per-contact failures */
+  done?: number;
+  total?: number;
+  label?: string;
+  failures?: string[];
   createdAt: string;
   completedAt?: string;
 }
