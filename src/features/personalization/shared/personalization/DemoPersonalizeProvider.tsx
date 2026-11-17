@@ -101,6 +101,7 @@ import { normalizeUrl, TRACKING_PARAMS } from './urlNormalizer'
 import { createProjectPersistence, durableAssetUrls, loadProject, resolveRestoredAssetUrl, type LoadProjectResult, type PersonalizationProjectState } from './supabaseProjectPersistence'
 import { imageLoadsInBrowser } from './imageLoadProbe'
 import { prefetchBackgroundRemovalModel, cancelBackgroundRemovalPrefetch } from './backgroundRemoval/backgroundRemovalClient'
+import { findAlreadyImported } from './backgroundRemoval/importDedupe'
 import { useAutoCutout, shouldHoldAutoImport, AUTO_IMPORT_CUTOUT_WAIT_MS, type AutoCutoutControls } from './backgroundRemoval/useAutoCutout'
 import { buildPreviewInput } from './guided/buildPreviewInput'
 import { reorderLayers } from './preview/layerOrder'
@@ -4069,14 +4070,23 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       : discoveredAssets.filter((a) => a.selected && !a.rejected)
     // Free (signed-out) visitors see and download cutouts, but cannot store files: they import the
     // original image link exactly as before, so nothing needs an upload or a sign-in.
-    const toImport = access === 'anonymous'
+    const toImportAll = access === 'anonymous'
       ? toImportRaw.map((a) =>
           a.editMetadata?.engine === 'bg0'
             ? { ...a, editedDataUrl: undefined, edited: false, hasTransparency: false, editMetadata: undefined }
             : a,
         )
       : toImportRaw
+    // A picture that is already in the library (or listed twice) is not added again. A cutout of a picture
+    // whose library copy is still the untouched original is kept next to it.
+    const lib = assetsRef.current
+    const repeatIds = findAlreadyImported(toImportAll, [
+      ...lib.identities, ...lib.logos, ...lib.products, ...lib.brandReferences,
+      ...([lib.firstFrame, lib.lastFrame, lib.ctaGraphic].filter(Boolean) as PersonalizationAsset[]),
+    ])
+    const toImport = toImportAll.filter((a) => !repeatIds.has(a.id))
     if (toImport.length === 0) {
+      if (repeatIds.size > 0) setDiscoveredAssetsState((prev) => prev.filter((a) => !repeatIds.has(a.id)))
       setDiscoveryStatus('reviewing')
       return []
     }
@@ -4261,8 +4271,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // so they can be retried.
     const importedIds = new Set(assetsToCreate.map(({ item }) => item.id))
     const anyFailed = toImport.some((item) => !importedIds.has(item.id))
-    if (ids || anyFailed) {
-      setDiscoveredAssetsState((prev) => prev.filter((a) => !importedIds.has(a.id)))
+    if (ids || anyFailed || repeatIds.size > 0) {
+      setDiscoveredAssetsState((prev) => prev.filter((a) => !importedIds.has(a.id) && !repeatIds.has(a.id)))
       setDiscoveryStatus('reviewing')
     } else {
       setDiscoveredAssetsState([])
