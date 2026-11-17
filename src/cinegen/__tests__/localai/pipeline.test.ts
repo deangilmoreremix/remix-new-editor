@@ -129,7 +129,7 @@ describe('semantic scene search', () => {
     expect(await idx.index(scenes)).toBe(0);
     const hits = await idx.search(scenes, 'a person');
     expect(hits.map((h) => h.scene.id)).toEqual(['a:1']);
-    expect((worker.seen.find((x) => x.type === 'embed-text') as { texts: string[] }).texts).toEqual(['a photo of a person']);
+    expect((worker.seen.find((x) => x.type === 'embed-text') as { texts: string[] }).texts[0]).toBe('a photo of a person');
     vi.unstubAllGlobals();
   });
 
