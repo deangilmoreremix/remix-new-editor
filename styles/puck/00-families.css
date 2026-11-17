@@ -216,3 +216,11 @@
 .pk-page[class*="pk-d-pd-"] .pk-showcase-points li::before { content: "\2713"; position: absolute; left: 0; top: 1px; width: 20px; height: 20px; border-radius: 50%; background: var(--pk-b1); color: var(--pk-on-btn); display: grid; place-items: center; font-size: 12px; font-weight: 900; }
 @media (min-width: 900px) { .pk-page[class*="pk-d-pd-"] .pk-showcase--band { grid-template-columns: minmax(0, 1.4fr) minmax(0, .8fr); padding-left: calc(min(34vw, 420px) + 12px); } }
 @media (max-width: 899px) { .pk-page[class*="pk-d-pd-"] .pk-showcase--band::before { width: 100%; opacity: .35; -webkit-mask-image: none; mask-image: none; } .pk-page[class*="pk-d-pd-"] .pk-showcase-points { border-left: 0; padding-left: 0; } }
+
+/* Strip items with a small photo (service cards). */
+.pk-strip-photo { width: clamp(64px, 7vw, 110px); aspect-ratio: 5 / 4; object-fit: cover; border-radius: 8px; flex: none; border: 1px solid rgba(255,255,255,.18); }
+
+/* Long labels and wide pictures never push the page sideways (phones). */
+.pk-page[class*="pk-d-pc-"] img, .pk-page[class*="pk-d-pd-"] img { max-width: 100%; }
+.pk-page[class*="pk-d-pc-"] .pk-btn, .pk-page[class*="pk-d-pd-"] .pk-btn { max-width: 100%; white-space: normal; text-align: center; }
+.pk-page[class*="pk-d-pc-"] .pk-strip-item > span, .pk-page[class*="pk-d-pd-"] .pk-strip-item > span { min-width: 0; overflow-wrap: anywhere; }

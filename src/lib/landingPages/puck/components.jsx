@@ -238,7 +238,7 @@ export function Strip({ kind = 'logos', title, items }) {
       <ul className="pk-strip-row">
         {asList(items).map((it, i) => (
           <li key={i} className="pk-strip-item">
-            {kind === 'benefits' ? <><Icon name={it.icon} className="pk-ico pk-ico--lg" /><span><b>{t(it.title)}</b>{it.text ? <small>{t(it.text)}</small> : null}</span></>
+            {kind === 'benefits' ? <>{imgUrl(it.image) ? <img className="pk-strip-photo" src={imgUrl(it.image)} alt="" loading="lazy" /> : null}<Icon name={it.icon} className="pk-ico pk-ico--lg" /><span><b>{t(it.title)}</b>{it.text ? <small>{t(it.text)}</small> : null}</span></>
               : kind === 'stats' ? <><b className="pk-stat-value">{t(it.value)}</b><span>{t(it.title)}</span></>
                 : <span className="pk-logo-word">{t(it.title)}</span>}
           </li>
@@ -439,7 +439,7 @@ export function ScheduleCard({ columns, title, text, month, days, time, buttonLa
       <h3 className="pk-card-title">{t(title)}</h3>
       {text ? <p className="pk-card-text">{t(text)}</p> : null}
       {month ? <div className="pk-cal-month">{t(month)}</div> : null}
-      <div className="pk-cal-grid pk-cal-head">{(split(weekdays).length ? split(weekdays) : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => <span key={i}>{d}</span>)}</div>
+      <div className="pk-cal-grid pk-cal-head">{(split(weekdays).length === 7 ? split(weekdays) : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => <span key={i}>{d}</span>)}</div>
       <div className="pk-cal-grid">{split(days).map((d, i) => <span key={i} className={`pk-cal-day${d.startsWith('*') ? ' is-on' : ''}`}>{d.replace(/^\*/, '')}</span>)}</div>
       {time ? <div className="pk-cal-time">{t(time)}</div> : null}
       {buttonLabel ? <a className="pk-btn pk-btn--primary" href="#lead">{t(buttonLabel)}</a> : null}
@@ -527,4 +527,17 @@ export function LeadAnchorFallback() {
     return () => document.removeEventListener('click', onClick);
   }, []);
   return null;
+}
+
+/**
+ * A slim strip shown ONLY to someone who opened a personal link (the page knows their name or company):
+ * "A personal video for Dana". Generic visitors see nothing, so a design looks exactly as designed for them.
+ */
+export function PersonalGreeting({ text }) {
+  const t = useTokens();
+  const { tokens } = usePage();
+  const known = ['firstname', 'company'].some((k) => String(tokens?.[k] ?? '').trim());
+  const out = known && String(text || '').trim() ? t(text) : '';
+  if (!out) return null;
+  return <div className="pk-greeting" role="note">{out}</div>;
 }
