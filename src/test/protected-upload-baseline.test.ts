@@ -565,8 +565,7 @@ describe('protected applications — upload import surface', () => {
       './dragDrop.js',
     ];
     // Files with live upload call sites. Superset of the byte baseline: it also
-    // covers non-byte-pinned upload call sites (the shared caption modal and
-    // its action wrapper), so a re-route there stays visible even though those
+    // covers non-byte-pinned upload call sites (the caption action wrapper), so a re-route there stays visible even though those
     // files are not protected application files.
     const uploadCallSiteFiles = [
       'src/components/TimelineEditorPage.jsx',
@@ -575,7 +574,6 @@ describe('protected applications — upload import surface', () => {
       'src/lib/editor/mediaLibrary.js',
       'src/lib/editor/aiTools.js',
       'src/lib/editor/captionActions.js',
-      'src/components/modals/AICaptionsModal.jsx',
       'src/components/ChatStudio.js',
       'src/components/chat/ChatStudio.jsx',
       'src/components/chat/ChatInput.jsx',
