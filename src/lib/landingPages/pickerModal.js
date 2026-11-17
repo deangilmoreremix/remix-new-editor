@@ -46,6 +46,8 @@ export function filterTemplates(list, { q = '', chip = 'all' } = {}) {
 }
 
 /** Pure: accept a loose {url, title|name, posterUrl|thumbnail_url, studio, file} or a normalized source; null when unusable. */
+const isPicture = (input) => input.type === 'image' || input.kind === 'image' || /\.(png|jpe?g|webp|gif|avif)$/i.test(String(input.url || '').split(/[?#]/)[0]);
+
 export function toPickerVideo(input) {
   if (!input || typeof input !== 'object') return null;
   const url = String(input.url || '');
@@ -55,9 +57,9 @@ export function toPickerVideo(input) {
     key: input.key || `picker:${url}`,
     url,
     posterUrl: typeof poster === 'string' && /^https:\/\//i.test(poster) && poster !== url ? poster : null,
-    title: String(input.title || input.name || input.prompt || '').replace(/\s+/g, ' ').trim().slice(0, 120) || 'My video',
+    title: String(input.title || input.name || input.prompt || '').replace(/\s+/g, ' ').trim().slice(0, 120) || (isPicture(input) ? 'My picture' : 'My video'),
     duration: Number.isFinite(Number(input.duration)) ? Number(input.duration) : null,
-    source: input.source && typeof input.source === 'object' ? input.source : { kind: 'video', studio: String(input.studio || '').slice(0, 40) },
+    source: input.source && typeof input.source === 'object' ? input.source : { kind: isPicture(input) ? 'image' : 'video', studio: String(input.studio || '').slice(0, 40) },
     permanent: isPermanentUrl(url),
     ...(input.file ? { file: input.file } : {}),
   };

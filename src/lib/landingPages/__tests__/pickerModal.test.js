@@ -246,3 +246,11 @@ describe('personalizing for a customer', () => {
     expect(slot(1)).toBe(false);
   });
 });
+
+describe('toPickerVideo with pictures', () => {
+  it('marks a picture as an image (by type or file extension) and names it as a picture', () => {
+    expect(toPickerVideo({ url: 'https://cdn.test/a.png', type: 'image' })).toMatchObject({ title: 'My picture', source: { kind: 'image' } });
+    expect(toPickerVideo({ url: 'https://cdn.test/b.webp?x=1' })).toMatchObject({ source: { kind: 'image' } });
+    expect(toPickerVideo({ url: 'https://cdn.test/c.mp4' })).toMatchObject({ title: 'My video', source: { kind: 'video' } });
+  });
+});

@@ -105,7 +105,7 @@ export function LandingPagesStudio() {
     titleWrap.append(
       el('div', 'text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary mb-1', 'Video Pages'),
       el('h1', 'text-2xl md:text-3xl font-black', 'Landing pages for your videos'),
-      el('p', 'text-sm text-secondary mt-1 max-w-xl', 'Turn any generated or uploaded video into a branded page with a call to action, a lead form and view analytics.'),
+      el('p', 'text-sm text-secondary mt-1 max-w-xl', 'Turn any generated or uploaded video or picture into a branded page with a call to action, a lead form and view analytics. Free for everything you create.'),
     );
     const newBtn = el('button', BTN_PRIMARY, '+ New page');
     newBtn.type = 'button';
