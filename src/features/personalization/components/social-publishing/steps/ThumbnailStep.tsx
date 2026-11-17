@@ -119,6 +119,9 @@ export default function ThumbnailStep({
   const [selectedModel, setSelectedModel] = useState<string>(MODEL_OPTIONS[0].value)
   const [aspectRatio, setAspectRatio] = useState<string>(thumbnail.aspectRatio || '16:9')
   const [generationCount, setGenerationCount] = useState<GenerationCount>(1)
+  /** Show the picture while it draws (one image at a time). Free of extra setup; off if you prefer the finished picture only. */
+  const [livePreview, setLivePreview] = useState(true)
+  const [partialUrl, setPartialUrl] = useState<string | null>(null)
   const [isEnhancing, setIsEnhancing] = useState(false)
   const [style, setStyle] = useState('vibrant')
 
@@ -253,6 +256,7 @@ export default function ThumbnailStep({
     setGeneratingCount(generationCount)
     setResults([])
     setSelectedIndex(null)
+    setPartialUrl(null)
 
     abortControllerRef.current?.abort()
     const ac = new AbortController()
@@ -270,9 +274,10 @@ export default function ThumbnailStep({
         referenceUrls: effectiveReferences.length > 0 ? effectiveReferences : undefined,
         style,
         quality: 'medium',
-      })
+      }, livePreview && generationCount === 1 ? { onPartial: (url) => { if (!ac.signal.aborted) setPartialUrl(url) }, signal: ac.signal } : undefined)
 
       if (ac.signal.aborted) return
+      setPartialUrl(null)
       setResults(genResults)
       if (genResults.length > 0) {
         setSelectedIndex(0)
@@ -293,9 +298,10 @@ export default function ThumbnailStep({
       if (!ac.signal.aborted) {
         setGenerating(false)
         setGeneratingCount(0)
+        setPartialUrl(null)
       }
     }
-  }, [buildFullPrompt, selectedTemplateId, selectedModel, aspectRatio, generationCount, headline, subheadline, references, effectiveReferences, style, onUpdateThumbnail])
+  }, [buildFullPrompt, selectedTemplateId, selectedModel, aspectRatio, generationCount, headline, subheadline, references, effectiveReferences, style, livePreview, onUpdateThumbnail])
 
   const handleSelectResult = useCallback((index: number) => {
     setSelectedIndex(index)
@@ -532,6 +538,12 @@ export default function ThumbnailStep({
             </button>
           ))}
         </div>
+        {generationCount === 1 && (
+          <label className="flex items-center gap-1.5 text-[10px] text-white/50" title="Shows the picture while it draws. Adds a few cents at most.">
+            <input type="checkbox" checked={livePreview} onChange={(e) => setLivePreview(e.target.checked)} disabled={generating} aria-label="Live preview while drawing" />
+            Live preview
+          </label>
+        )}
         <button type="button" onClick={handleGenerate} disabled={generating || !canGenerate} className="flex-1 min-w-[120px] h-10 rounded-xl text-xs font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2" style={{ background: 'var(--color-primary, #d9ff00)', color: 'black' }} aria-label={`Generate ${generationCount} thumbnail${generationCount > 1 ? 's' : ''}`}>
           {generating ? <><Loader2 size={14} className="animate-spin" />Generating…</> : <><Image size={14} />Generate {generationCount > 1 ? `${generationCount}` : ''}</>}
         </button>
@@ -636,7 +648,7 @@ export default function ThumbnailStep({
         </p>
       )}
 
-      <ThumbnailGenerationResults results={results} selectedIndex={selectedIndex} onSelect={handleSelectResult} generating={generating} error={error} generatingCount={generatingCount} onRetry={generating ? undefined : handleGenerate} onDownload={handleDownloadResult} thumbnail={thumbnail} onUpdateThumbnail={onUpdateThumbnail} />
+      <ThumbnailGenerationResults results={results} selectedIndex={selectedIndex} onSelect={handleSelectResult} generating={generating} error={error} generatingCount={generatingCount} partialUrl={partialUrl} onRetry={generating ? undefined : handleGenerate} onDownload={handleDownloadResult} thumbnail={thumbnail} onUpdateThumbnail={onUpdateThumbnail} />
 
       <div className="flex items-center gap-3 rounded-xl p-3" style={{ background: 'rgba(217,255,0,0.04)', border: '1px solid rgba(217,255,0,0.2)' }} data-testid="thumbnail-design-entry">
         {thumbnail.design && thumbnail.imageUrl && <img src={thumbnail.imageUrl} alt="Designed thumbnail" className="h-12 w-20 shrink-0 rounded-md object-cover" />}

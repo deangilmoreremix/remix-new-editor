@@ -147,7 +147,7 @@ export function extraFields(model: string, extra?: ExtraImageOptions): Record<st
   return out;
 }
 
-export async function edits(key: string, model: string, prompt: string, aspectRatio: string, n: number, quality: string, images: ImagePart[], mask?: ImagePart, extra?: ExtraImageOptions, markup?: ImagePart) {
+export async function edits(key: string, model: string, prompt: string, aspectRatio: string, n: number, quality: string, images: ImagePart[], mask?: ImagePart, extra?: ExtraImageOptions, markup?: ImagePart, streamPartials?: number): Promise<{ urls?: string[]; revised?: string; error?: NextResponse; stream?: Response }> {
   const form = new FormData();
   form.append('model', model);
   form.append('prompt', prompt);
@@ -160,6 +160,10 @@ export async function edits(key: string, model: string, prompt: string, aspectRa
   if (mask) form.append('mask', mask.blob, mask.filename);
   // Images 2.6 markup layer: a transparent PNG of arrows/notes drawn over the first image (cannot be combined with a mask).
   if (markup) form.append('markup', markup.blob, markup.filename);
+  if (streamPartials !== undefined) {
+    form.append('stream', 'true');
+    form.append('partial_images', String(streamPartials));
+  }
 
   const res = await fetch(`${OPENAI_BASE}/images/edits`, {
     method: 'POST',
@@ -167,6 +171,7 @@ export async function edits(key: string, model: string, prompt: string, aspectRa
     body: form,
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   });
+  if (streamPartials !== undefined && res.ok) return { stream: res };
   const payload = await readUpstream(res);
   if (!res.ok) return { error: upstreamError(res, payload) };
   return toUrls(payload);

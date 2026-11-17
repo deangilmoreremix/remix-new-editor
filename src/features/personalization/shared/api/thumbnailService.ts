@@ -28,6 +28,76 @@ async function postToEdgeFunction(url: string, body: Record<string, unknown>): P
   return response.json() as Promise<Record<string, unknown>>
 }
 
+/** One event of the thumbnail stream (see the thumbnail-generate route). */
+export type ThumbnailStreamEvent =
+  | { type: 'partial'; index: number; url: string }
+  | { type: 'done'; urls: string[]; model?: string; request_id?: string; usage?: unknown; revised_prompt?: string; fallback_from?: string }
+  | { type: 'error'; error: string; code?: string }
+
+/** Reads a text/event-stream body and calls `onEvent` for each JSON `data:` block. */
+export async function readSse(response: Response, onEvent: (event: ThumbnailStreamEvent) => void): Promise<void> {
+  const reader = response.body?.getReader()
+  if (!reader) throw new Error('The thumbnail service sent no stream.')
+  const decoder = new TextDecoder()
+  let buffer = ''
+  const flush = (block: string) => {
+    const data = block.split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trim()).join('')
+    if (!data) return
+    try {
+      onEvent(JSON.parse(data) as ThumbnailStreamEvent)
+    } catch {
+      // A malformed block is skipped; the stream's own done/error event still ends the request.
+    }
+  }
+  for (;;) {
+    const { value, done } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    let cut = buffer.indexOf('\n\n')
+    while (cut !== -1) {
+      flush(buffer.slice(0, cut))
+      buffer = buffer.slice(cut + 2)
+      cut = buffer.indexOf('\n\n')
+    }
+  }
+  if (buffer.trim()) flush(buffer)
+}
+
+/** Options for a live-preview generation: partial pictures arrive while it draws. */
+export interface ThumbnailStreamOptions {
+  onPartial?: (url: string, index: number) => void
+  signal?: AbortSignal
+}
+
+async function postStreaming(url: string, body: Record<string, unknown>, options: ThumbnailStreamOptions): Promise<Record<string, unknown>> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...body, stream: true, partial_images: 2 }),
+    signal: options.signal,
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+    throw Object.assign(new Error(errorData.error || `Thumbnail service error: ${response.status}`), {
+      code: typeof errorData.code === 'string' ? errorData.code : undefined,
+      moderationDetails: errorData.moderation_details,
+    })
+  }
+  if (!(response.headers.get('content-type') || '').includes('text/event-stream')) {
+    return response.json() as Promise<Record<string, unknown>> // an older server answered normally
+  }
+  let final: Record<string, unknown> | null = null
+  let failure: Error | null = null
+  await readSse(response, (event) => {
+    if (event.type === 'partial') options.onPartial?.(event.url, event.index)
+    else if (event.type === 'done') final = { urls: event.urls, model: event.model, request_id: event.request_id, usage: event.usage, revised_prompt: event.revised_prompt, fallback_from: event.fallback_from }
+    else if (event.type === 'error') failure = Object.assign(new Error(event.error), { code: event.code })
+  })
+  if (failure) throw failure
+  if (!final) throw new Error('The picture stream ended early. Try again.')
+  return final
+}
+
 export type ThumbnailQuality = 'auto' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 export type ThumbnailComplexity = 'low' | 'medium' | 'high'
 
@@ -84,6 +154,8 @@ export interface ThumbnailGenerateResult {
   aspectRatio?: string
   model?: string
   fallbackFrom?: string
+  /** Token usage reported by OpenAI for this request. */
+  usage?: unknown
 }
 
 export interface ThumbnailRefineParams extends ThumbnailImageControls {
@@ -108,13 +180,14 @@ export interface ThumbnailRefineResult {
   model?: string
   /** Set when the requested model was unavailable and GPT Image 2 was used instead. */
   fallbackFrom?: string
+  usage?: unknown
 }
 
 /**
  * Generate thumbnail(s) via the server-side proxy.
  * The client never receives or persists raw API keys.
  */
-export async function generateThumbnail(params: ThumbnailGenerateParams): Promise<ThumbnailGenerateResult[]> {
+export async function generateThumbnail(params: ThumbnailGenerateParams, stream?: ThumbnailStreamOptions): Promise<ThumbnailGenerateResult[]> {
   const body: Record<string, unknown> = {
     action: 'generate',
     prompt: params.prompt,
@@ -135,7 +208,10 @@ export async function generateThumbnail(params: ThumbnailGenerateParams): Promis
     body.strength = params.strength ?? 0.6
   }
 
-  const data = await postToEdgeFunction('/api/proxy/thumbnail-generate', body)
+  const wantsStream = !!stream?.onPartial && (params.n ?? 1) === 1 && !params.imageUrl
+  const data = wantsStream
+    ? await postStreaming('/api/proxy/thumbnail-generate', body, stream!)
+    : await postToEdgeFunction('/api/proxy/thumbnail-generate', body)
 
   const results: ThumbnailGenerateResult[] = []
   const urls = data.urls || data.images || data.outputs || []
@@ -151,6 +227,7 @@ export async function generateThumbnail(params: ThumbnailGenerateParams): Promis
         aspectRatio: params.aspectRatio,
         model: typeof data.model === 'string' ? data.model : undefined,
         fallbackFrom: typeof data.fallback_from === 'string' ? data.fallback_from : undefined,
+        usage: data.usage,
       })
     } else if (u && typeof u === 'object' && 'url' in u && typeof (u as { url?: unknown }).url === 'string') {
       results.push({
@@ -198,6 +275,7 @@ export async function refineThumbnail(params: ThumbnailRefineParams): Promise<Th
         revisedPrompt: typeof data.revised_prompt === 'string' ? data.revised_prompt : undefined,
         model: typeof data.model === 'string' ? data.model : undefined,
         fallbackFrom: typeof data.fallback_from === 'string' ? data.fallback_from : undefined,
+        usage: data.usage,
       })
     } else if (u && typeof u === 'object' && 'url' in u && typeof (u as { url?: unknown }).url === 'string') {
       results.push({
