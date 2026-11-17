@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stage 7: applies the migrations to a throwaway local Postgres and runs 70_heatmap_assertions.sql (non-zero exit on failure).
+# Stage 7 (+ Stage 11 campaign filter: also applies 20261117100000 twice and runs 71_heatmap_campaign_assertions.sql): applies the migrations to a throwaway local Postgres and runs 70_heatmap_assertions.sql (non-zero exit on failure).
 # HARDEN=1 first applies supabase/tests/05_hardening_preamble.sql (live-project hardening) before the heatmap migration.
 # Usage: PGHOST=... PGUSER=postgres supabase/tests/run-heatmap-assertions.sh
 set -euo pipefail
@@ -12,10 +12,12 @@ for m in 20260730_create_distributed_rate_limiter 20261105120000_create_publishe
          20261105160000_published_video_events 20261112000000_create_timeline_projects \
          20261112010000_publish_hardening_slugs 20261112020000_video_analytics \
          20261112030000_retargeting_notifications 20261112040000_label_smartvideo_timeline_objects \
-         20261112050000_drop_public_published_videos_read 20261114100000_heatmap_analytics 20261114100000_heatmap_analytics; do
+         20261112050000_drop_public_published_videos_read 20261114100000_heatmap_analytics 20261114100000_heatmap_analytics \
+         20261117100000_heatmap_campaign_filter 20261117100000_heatmap_campaign_filter; do
   if [ "${HARDEN:-}" = 1 ] && [ "$m" = 20261114100000_heatmap_analytics ] && [ -z "${HARDENED_DONE:-}" ]; then  # live-project hardening, see 05_hardening_preamble.sql
     psql -q -v ON_ERROR_STOP=1 -d "$DB" -f supabase/tests/05_hardening_preamble.sql >/dev/null; HARDENED_DONE=1
   fi
   PGOPTIONS="-c client_min_messages=warning" psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "supabase/migrations/$m.sql" >/dev/null
 done
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -f supabase/tests/70_heatmap_assertions.sql 2>&1 | sed -n 's/^psql:.*NOTICE:  //p;/ALL HEATMAP/p;/ERROR/p'
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -f supabase/tests/71_heatmap_campaign_assertions.sql 2>&1 | sed -n 's/^psql:.*NOTICE:  //p;/ALL HEATMAP/p;/ERROR/p'

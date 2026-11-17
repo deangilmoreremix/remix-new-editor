@@ -19,9 +19,11 @@ const rpc = async (client, name, args) => {
 };
 
 /** Load the data behind one heatmap type (the CTA list is always loaded: it feeds the CTA selector). */
-export async function loadHeatmap(client, { videoId, type, from, to, viewport = 'all', cta = 'all', pageBucket = null }) {
+export async function loadHeatmap(client, { videoId, type, from, to, viewport = 'all', cta = 'all', pageBucket = null, campaign = 'all' }) {
   const vp = viewport === 'all' ? null : viewport;
-  const base = { p_video_id: videoId, p_from: from, p_to: to };
+  // p_campaign is sent ONLY when a campaign is selected, so databases without 20261117100000 (old RPC signatures) keep working.
+  const camp = campaign && campaign !== 'all' ? { p_campaign: campaign } : {};
+  const base = { p_video_id: videoId, p_from: from, p_to: to, ...camp };
   const ctas = await rpc(client, 'video_heat_cta_stats', { ...base, p_viewport: vp });
   let data = null;
   if (type === 'click') {
@@ -32,6 +34,19 @@ export async function loadHeatmap(client, { videoId, type, from, to, viewport = 
     data = await rpc(client, 'video_heat_engagement', { ...base, p_viewport: vp });
   }
   return { type, data, ctas };
+}
+
+/**
+ * Campaign filter options (20261117100000). The control exists only when the database has the campaign linkage:
+ * a missing RPC (migration not applied), an error, or {available:false} all mean "no filter" and never an error banner.
+ * -> { available: boolean, campaigns: [{ id, name }] }
+ */
+export async function loadCampaignOptions(client, videoId) {
+  try {
+    const { data, error } = await client.rpc('video_heat_campaign_options', { p_video_id: videoId });
+    if (error || !data || data.available !== true || !Array.isArray(data.campaigns) || !data.campaigns.length) return { available: false, campaigns: [] };
+    return { available: true, campaigns: data.campaigns.filter((c) => c && c.id).map((c) => ({ id: String(c.id), name: c.name || `Campaign ${String(c.id).slice(0, 8)}` })) };
+  } catch { return { available: false, campaigns: [] }; }
 }
 
 /** [[cx,cy,n],...] on an N x N grid -> normalized cell-centre points {x,y,value}. */
