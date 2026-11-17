@@ -28,7 +28,7 @@ import { makeVoiceover, narrationText, VOICE_ENGINES, OPENAI_VOICE_CHOICES, FREE
 import { MUSIC_TRACKS } from './template-generator/music.js';
 import { audioPlan } from './template-generator/audioPlan.js';
 import { CAPTION_ENGINES, LOCAL_ENGINE, CAPTION_MODELS, CAPTION_LANGUAGES, DEFAULT_CAPTION_ENGINE, defaultModelFor, transcribeCaptions, localServerStatus } from './template-generator/captions.js';
-import { captionTextCss, captionSampleHTML, captionPages, pagesToSrt } from './template-generator/captionPreview.js';
+import { captionTextCss, captionSampleHTML, captionPages, pagesToSrt, pagesToVtt } from './template-generator/captionPreview.js';
 import { CAPITE_STYLES, CAPITE_CATEGORY_LABEL } from '../../openchatcut/captions/capiteStyles';
 import { CAPTION_STYLES, captionStyleFor } from '../../openchatcut/captions/styles';
 import { createPreviewPlayer, renderPlayerHTML, playlistFromPreview, formatTime } from './template-generator/preview.js';
@@ -1178,7 +1178,7 @@ export class TemplateGeneratorModal extends BaseModal {
       <div class="tg-voice-actions">
         <button type="button" class="tg-chip is-active" data-act="cap-generate" ${u.capBusy || !sources.length ? 'disabled' : ''}>${u.capBusy ? 'Listening…' : (heard ? '↻ Listen again' : '💬 Make word-timed captions')}</button>
         ${u.capBusy ? '<button type="button" class="tg-chip" data-act="cap-cancel">Cancel</button>' : ''}
-        ${heard && !u.capBusy ? '<button type="button" class="tg-chip" data-act="cap-srt">⬇ .srt</button><button type="button" class="tg-chip" data-act="cap-clear">Use my script instead</button>' : ''}
+        ${heard && !u.capBusy ? '<button type="button" class="tg-chip" data-act="cap-srt">⬇ .srt</button><button type="button" class="tg-chip" data-act="cap-vtt">⬇ .vtt</button><button type="button" class="tg-chip" data-act="cap-clear">Use my script instead</button>' : ''}
       </div>
       ${u.capBusy ? `<div class="tg-bgprogress"><span>${esc(u.capNote || 'Listening…')} ${Math.round((u.capProgress || 0) * 100)}%</span><i style="width:${Math.round((u.capProgress || 0) * 100)}%"></i></div>` : ''}
       ${!sources.length && !heard ? '<p class="tg-hint">Nothing to listen to yet: make the voiceover below, or pick footage with speech. Until then the words follow your script.</p>' : ''}
@@ -1220,13 +1220,16 @@ export class TemplateGeneratorModal extends BaseModal {
     }
   }
 
-  downloadCaptionsSrt() {
+  /** Download the word-timed captions as .srt (default) or .vtt: the same cues, one per page as they show on the video. */
+  downloadCaptionsSrt(format = 'srt') {
     const c = this.s.captions;
     if (!c.words?.length) return;
     const st = captionStyleFor(c.style || 'plain');
-    const blob = new Blob([pagesToSrt(captionPages(c.words, st))], { type: 'application/x-subrip' });
+    const pages = captionPages(c.words, st);
+    const vtt = format === 'vtt';
+    const blob = new Blob([vtt ? pagesToVtt(pages) : pagesToSrt(pages)], { type: vtt ? 'text/vtt' : 'application/x-subrip' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = `${(this.s.selectedScript?.name || 'captions').replace(/[^\w-]+/g, '-')}.srt`;
+    a.href = URL.createObjectURL(blob); a.download = `${(this.s.selectedScript?.name || 'captions').replace(/[^\w-]+/g, '-')}.${vtt ? 'vtt' : 'srt'}`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
@@ -1647,6 +1650,7 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'cap-generate': this.generateCaptions(); break;
       case 'cap-cancel': this._capAbort?.abort(); break;
       case 'cap-srt': this.downloadCaptionsSrt(); break;
+      case 'cap-vtt': this.downloadCaptionsSrt('vtt'); break;
       case 'cap-clear': this.s.captions.words = null; this.s.captions.wordsFor = ''; this._redrawCaptions(); break;
       case 'voice-generate': this.generateVoice(); break;
       case 'voice-cancel': this._voiceAbort?.abort(); break;

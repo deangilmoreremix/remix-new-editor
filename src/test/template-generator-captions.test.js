@@ -18,7 +18,7 @@ import { TemplateGeneratorModal } from '../components/modals/TemplateGeneratorMo
 import { STEPS, createWizardState, toBuilderState, captionTrackFor, previewTexts } from '../components/modals/template-generator/rules.js';
 import { createTemplateStore, snapshotTemplate, restoreTemplate } from '../components/modals/template-generator/templates.js';
 import { captionsToWords, evenWords, transcribeCaptions, engineStatus, localServerStatus, encodeWav, CAPTION_MODELS, MAX_CAPTION_AUDIO_SEC } from '../components/modals/template-generator/captions.js';
-import { captionPages, captionPageHTML, captionTextCss, pagesToSrt } from '../components/modals/template-generator/captionPreview.js';
+import { captionPages, captionPageHTML, captionTextCss, pagesToSrt, pagesToVtt } from '../components/modals/template-generator/captionPreview.js';
 import { CAPITE_STYLES } from '../openchatcut/captions/capiteStyles';
 import { CAPTION_STYLES, CAPTION_STYLE_BY_ID, captionStyleFor } from '../openchatcut/captions/styles';
 
@@ -243,6 +243,9 @@ describe('caption preview drawing', () => {
     expect(captionPageHTML(st, { words: [{ text: '<b>', start: 0, end: 100 }], start: 0, end: 100 }, 0)).not.toContain('<b>');
     const srt = pagesToSrt([{ words: [{ text: 'Hello' }, { text: 'there' }], start: 0, end: 1500 }, { words: [{ text: 'Bye' }], start: 1600, end: 2100 }]);
     expect(srt).toBe('1\n00:00:00,000 --> 00:00:01,500\nHello there\n\n2\n00:00:01,600 --> 00:00:02,100\nBye\n');
+    const vtt = pagesToVtt([{ words: [{ text: 'Hello' }, { text: 'there' }], start: 0, end: 1500 }, { words: [{ text: 'Tom & <b>' }], start: 1600, end: 2100 }]);
+    expect(vtt).toBe('WEBVTT\n\n1\n00:00:00.000 --> 00:00:01.500\nHello there\n\n2\n00:00:01.600 --> 00:00:02.100\nTom &amp; &lt;b>\n');
+    expect(pagesToVtt([])).toBe('WEBVTT\n\n');
   });
 });
 
@@ -296,6 +299,22 @@ describe('Preview step — styled captions panel', () => {
     await vi.waitFor(() => expect(m.s.captions.words?.length).toBe(2));
     expect(captionMaker.mock.calls.map((c) => c[0])).toEqual(['https://x.test/1.mp4', 'https://x.test/2.mp4']);
     expect(m.s.captions.words.map((w) => w.start)).toEqual([0, 6000]);   // the second clip starts 6 s in
+    m.destroy();
+  });
+
+  it('once words are timed, the panel offers .srt and .vtt downloads with the same cues', async () => {
+    const m = open({ captionMaker: async () => ({ words: [{ text: 'Hi', start: 0, end: 300 }, { text: 'all', start: 320, end: 700 }], engine: 'whisper-webgpu', model: 'm' }) });
+    m.s.voice.enabled = true; m.s.voice.generatedAsset = { url: 'https://cdn.test/v.mp3', duration: 6 }; m._refreshCaptions();
+    document.querySelector('[data-act="cap-generate"]').click();
+    await vi.waitFor(() => expect(m.s.captions.words?.length).toBe(2));
+    expect(document.querySelector('[data-act="cap-srt"]')).toBeTruthy();
+    expect(document.querySelector('[data-act="cap-vtt"]')).toBeTruthy();
+    const blobs = []; const orig = URL.createObjectURL; URL.createObjectURL = (b) => { blobs.push(b); return 'blob:x'; };
+    document.querySelector('[data-act="cap-vtt"]').click();
+    URL.createObjectURL = orig;
+    expect(blobs[0].type).toBe('text/vtt');
+    const text = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(String(fr.result)); fr.readAsText(blobs[0]); });
+    expect(text).toMatch(/^WEBVTT\n\n1\n00:00:00\.000 --> /);
     m.destroy();
   });
 

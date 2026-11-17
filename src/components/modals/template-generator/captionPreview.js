@@ -58,6 +58,14 @@ export function captionSampleHTML(style, text = 'Make it pop') {
 
 const stamp = (ms) => { const t = Math.max(0, Math.round(ms)); const p = (n, w = 2) => String(n).padStart(w, '0'); return `${p(Math.floor(t / 3600000))}:${p(Math.floor((t % 3600000) / 60000))}:${p(Math.floor((t % 60000) / 1000))},${p(t % 1000, 3)}`; };
 
+const vttEscape = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const vttStamp = (ms) => stamp(ms).replace(',', '.');
+
+/** The caption pages as a WebVTT (.vtt) file: the same cues as the .srt, with the WEBVTT header, dot milliseconds and escaped text. */
+export function pagesToVtt(pages) {
+  return `WEBVTT\n\n${pages.map((pg, i) => `${i + 1}\n${vttStamp(pg.start)} --> ${vttStamp(Math.max(pg.end, pg.start + 200))}\n${vttEscape(pg.words.map((w) => w.text).join(' '))}`).join('\n\n')}${pages.length ? '\n' : ''}`;
+}
+
 /** The caption pages as an .srt file (one cue per page, the way they show on the video). */
 export function pagesToSrt(pages) {
   return `${pages.map((pg, i) => `${i + 1}\n${stamp(pg.start)} --> ${stamp(Math.max(pg.end, pg.start + 200))}\n${pg.words.map((w) => w.text).join(' ')}`).join('\n\n')}${pages.length ? '\n' : ''}`;

@@ -62,7 +62,7 @@ The native engine also works from the command line: `node scripts/transcribe-whi
 - The browser calling the local server from the deployed https page (Chrome allows https → `127.0.0.1`; headers for Private Network Access are sent, but this was only checked with curl).
 - With the page isolated (headers above), a model download and a listen through the WASM build.
 
-Captions land on the timeline as the editor's own captions (first clip's Captions section), editable there; `.srt` can be downloaded from the panel. With no audio to listen to, the words follow the written script over the cut; listening covers the first 3 minutes.
+Captions land on the timeline as the editor's own captions (first clip's Captions section), editable there; `.srt` and `.vtt` can be downloaded from the panel (and from the clip's Captions section in the editor). With no audio to listen to, the words follow the written script over the cut; listening covers the first 3 minutes.
 Capite's looks are ported from <https://github.com/muneebkhan08/Capite> (MIT, © 2026 Capite Contributors): fonts, colours, outline, glow and highlight style, drawn with the editor's caption renderer. Capite's server and its ASS/VTT/MP4 export are not used.
 
 ## 8. Add to Video Pages (Preview step → "🏠 Add to Video Pages")
