@@ -132,6 +132,10 @@ export function buildBeforeInputProps(inputProps: PreviewInputProps, beforeVideo
       ...inputProps.settings,
       layers: inputProps.settings.layers.map((layer) => ({ ...layer, visible: false })),
       showEndCard: false,
+      // "Before" is the footage as it was: no colour look, no background removal, no burned-in captions.
+      look: undefined,
+      cutout: undefined,
+      captions: undefined,
     },
   }
   // Guard: the comparison is only honest when both panes show one source —
