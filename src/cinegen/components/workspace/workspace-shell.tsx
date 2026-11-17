@@ -1,7 +1,7 @@
 import { useAssetMediaBackfill } from './use-asset-media-backfill';
 import { registerMcpCommands } from '@cinegen/lib/mcp/app-commands';
 
-import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import type { WorkflowSpace, WorkspaceState } from '@cinegen/types/workspace';
 import type { ProjectTab } from '@cinegen/types/workspace';
@@ -76,7 +76,7 @@ import {
 } from '@cinegen/lib/utils/api-key';
 import { markWorkspaceSavePending } from './workspace-persistence';
 import { useMcpBridge } from './use-mcp-bridge';
-import { useCrashRecovery } from './use-crash-recovery'; // [remix] Stage 11
+import { useCrashRecovery, recoverySliceFromState } from './use-crash-recovery'; // [remix] Stage 11 (+ Fix N: full slice)
 import { HelpTooltipLayer } from '@cinegen/components/ui/help-tooltip-layer'; // [remix] hover help for every control
 
 /* ------------------------------------------------------------------
@@ -391,7 +391,9 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
     historyDispatch(action);
   }, []);
   // [remix] Stage 11: crash recovery (snapshot while a save is pending, prompt on the next open)
-  const crashRecovery = useCrashRecovery({ projectId, slice: { timelines: state.timelines, activeTimelineId: state.activeTimelineId, assets: state.assets as never }, hydrated: hydrationComplete && !hydrationError, savePendingRef, dispatch: wrappedDispatch as never });
+  // memoised on exactly the persisted slices so its identity tracks them
+  const recoverySlice = useMemo(() => recoverySliceFromState(state), [state.timelines, state.activeTimelineId, state.assets, state.overlays, state.spaces, state.activeSpaceId, state.openSpaceIds, state.nodes, state.edges, state.mediaFolders, state.director, state.sets]);
+  const crashRecovery = useCrashRecovery({ projectId, slice: recoverySlice, hydrated: hydrationComplete && !hydrationError, savePendingRef, dispatch: wrappedDispatch as never });
 
   const directorMounted = useRef(false);
   if (state.activeTab === 'director') directorMounted.current = true;
@@ -1427,7 +1429,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
       // before this timer fires; keeping the flag set lets that render reschedule
       // the same save instead of cancelling the completed generation result.
       savePendingRef.current = false;
-      const savedSlice = { timelines: state.timelines, activeTimelineId: state.activeTimelineId, assets: state.assets as never }; // [remix] Stage 11
+      const savedSlice = recoverySlice; // [remix] Stage 11
       void persistWorkspace().then(() => crashRecovery.markSaved(savedSlice)).catch((error) => {
         savePendingRef.current = true;
         console.error('[workspace] Failed to save project:', error);
