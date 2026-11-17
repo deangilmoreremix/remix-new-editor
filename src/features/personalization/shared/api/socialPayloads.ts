@@ -227,3 +227,31 @@ export function describePublishError(err: any, platformLabel = 'this platform'):
   if (status) return `${platformLabel} publish failed (${status})${detail ? `: ${detail}` : '.'}`
   return err?.message || 'Publishing failed.'
 }
+
+export type ThumbnailAspect = '16:9' | '1:1' | '4:5' | '9:16'
+export const THUMBNAIL_ASPECTS: ThumbnailAspect[] = ['16:9', '1:1', '4:5', '9:16']
+/** Output sizes for each shape: multiples of 16 within Images 2.6's custom-size limits. */
+export const THUMBNAIL_ASPECT_SIZES: Record<ThumbnailAspect, string> = {
+  '16:9': '1536x864',
+  '1:1': '1024x1024',
+  '4:5': '1024x1280',
+  '9:16': '864x1536',
+}
+
+/** Which thumbnail shape a platform uses; null when it does not use a separate thumbnail. */
+export function thumbnailAspectFor(platform: string, settings?: Record<string, any>): ThumbnailAspect | null {
+  if (platform === 'youtube') return '16:9'
+  if (platform === 'instagram') return settings?.placement === 'timeline' ? '4:5' : '9:16'
+  return null
+}
+
+/** The thumbnail image to send to a platform: its own shape when one was made, else the main thumbnail. */
+export function pickThumbnailUrl(
+  thumbnail: { imageUrl?: string; variants?: Record<string, string> } | undefined,
+  platform: string,
+  settings?: Record<string, any>,
+): string | undefined {
+  if (!thumbnail) return undefined
+  const aspect = thumbnailAspectFor(platform, settings)
+  return (aspect && thumbnail.variants?.[aspect]) || thumbnail.imageUrl
+}

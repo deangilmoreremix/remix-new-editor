@@ -11,7 +11,7 @@ import {
   pollSocialResult,
   setYouTubeThumbnail,
 } from '@ohb/lib/muapi'
-import { PLATFORM_SPECS, buildPublishPayload, describePublishError, isPublicMediaUrl, type PlatformId } from './socialPayloads'
+import { PLATFORM_SPECS, buildPublishPayload, describePublishError, isPublicMediaUrl, type PlatformId, pickThumbnailUrl } from './socialPayloads'
 
 type PublishFn = (apiKey: string, payload: Record<string, any>) => Promise<any>
 
@@ -131,7 +131,7 @@ export async function publishOne(
       mediaType: asset.type,
       copy,
       settings: destination.settings,
-      thumbnailUrl: thumbnail?.imageUrl,
+      thumbnailUrl: pickThumbnailUrl(thumbnail, platform, destination.settings),
     })
     if (!built.payload) return fail(built.errors.join(' '))
     payload = built.payload
@@ -149,7 +149,7 @@ export async function publishOne(
       output: out,
     }
     if (platform === 'youtube' && thumbnail?.imageUrl) {
-      result.note = await applyYouTubeThumbnail(deps, apiKey, destination.accountId, out, thumbnail.imageUrl)
+      result.note = await applyYouTubeThumbnail(deps, apiKey, destination.accountId, out, pickThumbnailUrl(thumbnail, 'youtube') || thumbnail.imageUrl)
     }
     return result
   }

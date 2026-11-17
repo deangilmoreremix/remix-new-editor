@@ -152,7 +152,11 @@ export function SocialPublishProvider({
   // The Thumbnail step sends partial updates (just the aspect ratio, just the
   // references, ...). Merge them so one change never wipes the chosen image.
   const updateThumbnail = useCallback((thumbnail: ThumbnailState) => {
-    setState((s) => ({ ...s, thumbnail: { ...s.thumbnail, ...thumbnail } }));
+    setState((s) => {
+      // Other-shape versions were made from the old picture: drop them when it changes.
+      const changed = thumbnail.imageUrl !== undefined && thumbnail.imageUrl !== s.thumbnail.imageUrl && !('variants' in thumbnail);
+      return { ...s, thumbnail: { ...s.thumbnail, ...thumbnail, ...(changed ? { variants: undefined } : {}) } };
+    });
   }, []);
 
   const updateDestinations = useCallback((destinations: Destination[]) => {
