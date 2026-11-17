@@ -1,3 +1,4 @@
+/* global process, console, document, getComputedStyle, location */
 /**
  * Lists every visible button on the app's main routes that has a fill (non-transparent background or a gradient)
  * or text too dark to read on the dark app. Exit code 1 when any are found.
@@ -5,9 +6,11 @@
  *   npm run dev -- --port 5197          (in another terminal)
  *   BASE=http://127.0.0.1:5197/ node scripts/audit-button-fills.cjs
  *
- * Needs playwright and a Chromium: set CHROMIUM=/path/to/chromium if it is not at the default.
+ * Needs Playwright with a Chromium (`npx playwright install chromium`), or set CHROMIUM=/path/to/chromium.
+ * AUDIT_BUDGET_MS (default 10 minutes) bounds the whole run: exit code 2 if it runs out before every route is read.
  */
-const { chromium } = require('playwright');
+let chromium;
+try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require('playwright-core')); }
 const fs = require('fs');
 const BASE = process.env.BASE || 'http://127.0.0.1:5197/';
 const OUT = process.env.OUT || 'button-fill-audit.json';
@@ -30,7 +33,7 @@ const probe = () => {
   for (const el of document.querySelectorAll(sel)) {
     const r = el.getBoundingClientRect();
     if (r.width < 4 || r.height < 4) continue;
-    if (el.matches('[role=switch],[data-keep-fill]') || el.matches('[class*="overflow-hidden"], [class*="aspect-"]') || el.querySelector(':scope > video, :scope > canvas, :scope > picture, :scope > img[class*="object-cover"], :scope > div > img[class*="object-cover"]') || /background/.test(el.getAttribute('style') || '')) continue;
+    if (el.matches('[role=switch],[data-keep-fill],[style*="background"]:empty') || /background-image/.test(el.getAttribute('style') || '') || el.querySelector(':scope > video, :scope > canvas, :scope > picture, :scope > img[class*="object-cover"], :scope > div > img[class*="object-cover"]')) continue;
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) continue;
     const cls = typeof el.className === 'string' ? el.className : '';
@@ -58,20 +61,38 @@ const probe = () => {
   }
   return out;
 };
+/** Waits until the page has rendered: the number of buttons is non-zero and stops changing for ~2 seconds (max 30s). */
+async function settle(p, maxMs = 30000) {
+  const end = Date.now() + maxMs;
+  let last = -1, steady = 0;
+  while (Date.now() < end) {
+    const n = await p.evaluate(() => document.querySelectorAll('button, [role=button]').length).catch(() => -1);
+    steady = n === last && n > 0 ? steady + 1 : 0;
+    if (steady >= 4) return true;
+    last = n;
+    await p.waitForTimeout(500);
+  }
+  return false;
+}
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--no-sandbox'] });
+  const launch = { args: ['--no-sandbox'] };
+  if (process.env.CHROMIUM) launch.executablePath = process.env.CHROMIUM;
+  const b = await chromium.launch(launch);
+  const deadline = Date.now() + (Number(process.env.AUDIT_BUDGET_MS) || 10 * 60 * 1000);
+  let incomplete = false;
   const p = await b.newPage({ viewport: { width: 1600, height: 1000 } });
   const result = {};
   await p.goto(BASE, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(9000);
+  await settle(p);
   result['landing'] = await p.evaluate(probe);
   console.log('landing', result['landing'].length);
   await p.locator('header a, header button, nav a, nav button').filter({ hasText: /^Explore$/ }).first().click({ timeout: 8000 }).catch(() => {});
-  await p.waitForTimeout(12000);
+  await settle(p);
   for (const name of NAV) {
+    if (Date.now() > deadline) { incomplete = true; console.log('Out of time before', name); break; }
     try {
       await p.evaluate((h) => { location.hash = '#/' + h }, name);
-      await p.waitForTimeout(10000);
+      await settle(p);
       result[name] = (await p.evaluate(probe)).concat(await p.evaluate(probeInline));
       
       console.log(name, result[name].length);
@@ -80,6 +101,6 @@ const probe = () => {
   fs.writeFileSync(OUT, JSON.stringify(result, null, 1));
   await b.close();
   const total = Object.values(result).reduce((n, v) => n + v.length, 0);
-  console.log(total ? `FOUND ${total} filled or unreadable buttons (see ${OUT})` : 'OK: no filled buttons');
-  process.exit(total ? 1 : 0);
+  console.log(total ? `FOUND ${total} filled or unreadable buttons (see ${OUT})` : incomplete ? 'No filled buttons in the routes read, but the run was incomplete' : 'OK: no filled buttons');
+  process.exit(total ? 1 : incomplete ? 2 : 0);
 })().catch(e => { console.error('FAIL', e.message); process.exit(1); });

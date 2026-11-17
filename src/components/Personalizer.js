@@ -535,7 +535,7 @@ export function Personalizer() {
     margin: 0 12px 12px;
     padding: 6px 10px;
     border-radius: 6px;
-    border: none;
+    border: 1px solid rgba(255,255,255,0.12);
     background: transparent;
     color: #fff;
     font-size: 12px;
@@ -555,7 +555,7 @@ export function Personalizer() {
     margin: 0 12px 12px;
     padding: 6px 10px;
     border-radius: 6px;
-    border: none;
+    border: 1px solid rgba(255,255,255,0.12);
     background: transparent;
     color: #fff;
     font-size: 12px;
@@ -579,7 +579,7 @@ export function Personalizer() {
     margin: 0 12px 12px;
     padding: 6px 10px;
     border-radius: 6px;
-    border: none;
+    border: 1px solid rgba(255,255,255,0.12);
     background: transparent;
     color: #fff;
     font-size: 12px;
