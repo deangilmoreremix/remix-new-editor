@@ -3,8 +3,8 @@
 This directory is the `web/` app of https://github.com/warmbly/warmbly, vendored unmodified except for the patches below.
 Licence: Apache License 2.0 (`LICENSE`). Source commit: `c2e36cc`.
 
-It is built under `/mailkiln-app/` and embedded in the Mailkiln studio. The product is rebranded **at build time** by
-`../mailkiln-brand/rebrand-plugin.mjs`, so these sources stay exactly as upstream wrote them and future upstream syncs stay simple.
+It is built under `/smartkiln-app/` and embedded in the SmartKiln studio. The product is rebranded **at build time** by
+`../smartkiln-brand/rebrand-plugin.mjs`, so these sources stay exactly as upstream wrote them and future upstream syncs stay simple.
 
 Check at any time that nothing else has drifted:
 
@@ -38,6 +38,6 @@ To use a real upstream-compatible backend instead, build without `VITE_DEMO` and
 
 Only the capitalised product name in user-facing text, links to the original site and docs, the logo mark, icons and the web
 manifest. Lowercase identifiers (storage keys, `data-warmbly-*` attributes, API paths and headers, `.warmbly.zip` exports) are never
-touched, because a real backend depends on them. See `../mailkiln-brand/README.md`.
+touched, because a real backend depends on them. See `../smartkiln-brand/README.md`.
 
 Warmbly is a trademark of its owners; the Apache licence does not grant trademark rights, which is why the product is rebranded.

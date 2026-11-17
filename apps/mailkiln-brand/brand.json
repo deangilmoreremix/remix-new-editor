@@ -1,9 +1,0 @@
-{
-  "name": "Mailkiln",
-  "slug": "mailkiln",
-  "tagline": "Email warmup, cold outreach and inbox in one workspace",
-  "upstream": { "name": "Warmbly", "repo": "https://github.com/warmbly/warmbly", "commit": "c2e36cc", "license": "Apache-2.0" },
-  "paths": { "app": "/mailkiln-app/", "help": "/mailkiln-help/" },
-  "accent": "#e8590c",
-  "notes": "Change `name` (and `slug`/`paths` if you rename the routes) and rebuild: the dashboard and Help site are rebranded at build time from this file. The vendored upstream sources are never edited."
-}

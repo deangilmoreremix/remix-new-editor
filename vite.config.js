@@ -885,16 +885,16 @@ function gtmBoostDevPlugin() {
  * file removes a 404 path and matches the production behavior (Netlify
  * serves the same file as a static rewrite).
  */
-// Dev server: client-side routes of the embedded Mailkiln dashboard (built to public/mailkiln-app) serve its own index.html,
-// and Help pages (public/mailkiln-help/**/index.html) resolve their directory URLs.
-function mailkilnFallbackPlugin() {
+// Dev server: client-side routes of the embedded SmartKiln dashboard (built to public/smartkiln-app) serve its own index.html,
+// and Help pages (public/smartkiln-help/**/index.html) resolve their directory URLs.
+function smartkilnFallbackPlugin() {
   return {
-    name: 'mailkiln-spa-fallback',
+    name: 'smartkiln-spa-fallback',
     configureServer(server) {
       server.middlewares.use((req, _res, next) => {
         const url = (req.url || '').split('?')[0];
-        if (url.startsWith('/mailkiln-app/') && !/\.[a-z0-9]+$/i.test(url)) req.url = '/mailkiln-app/index.html';
-        else if (url.startsWith('/mailkiln-help/') && url.endsWith('/')) req.url = `${url}index.html`;
+        if (url.startsWith('/smartkiln-app/') && !/\.[a-z0-9]+$/i.test(url)) req.url = '/smartkiln-app/index.html';
+        else if (url.startsWith('/smartkiln-help/') && url.endsWith('/')) req.url = `${url}index.html`;
         next();
       });
     },
@@ -1066,7 +1066,7 @@ export default defineConfig({
         },
     },
     plugins: [
-      mailkilnFallbackPlugin(),
+      smartkilnFallbackPlugin(),
         // [remix] OpenChatCut's dev-only plugin (config/vite.config.ts `serveOrtWasmLoader`): serve the prebuilt onnxruntime loader
         // module from public/models/silero-vad verbatim, since Vite refuses to import JS from /public.
         {

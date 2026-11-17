@@ -7,5 +7,5 @@
 /api/intelligence/*  /.netlify/functions/intelligence-api/:splat  200
 /api/personalizer/*   /.netlify/functions/personalizer-api/:splat   200
 
-# Mailkiln studio (embedded dashboard): client-side routes fall back to its index.html. Real files win (non-forced).
-/mailkiln-app/*  /mailkiln-app/index.html  200
+# SmartKiln studio (embedded dashboard): client-side routes fall back to its index.html. Real files win (non-forced).
+/smartkiln-app/*  /smartkiln-app/index.html  200
