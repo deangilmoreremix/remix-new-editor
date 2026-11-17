@@ -6,6 +6,8 @@ const item = (id: string, url: string, cut = false) => ({
   previewUrl: url,
   originalPreviewUrl: url,
   editedDataUrl: cut ? 'data:image/png;base64,AAAA' : undefined,
+  edited: cut,
+  editMetadata: cut ? ({ operation: 'remove_background', engine: 'bg0' } as never) : undefined,
 })
 
 describe('normalizeImageAddress', () => {
@@ -42,7 +44,7 @@ describe('findAlreadyImported', () => {
   })
   it('skips a cutout already in the library as a cutout', () => {
     const skip = findAlreadyImported([item('d1', 'https://shop.example/p.jpg', true)], [
-      { url: 'https://cdn/x.png', uploadedUrl: 'https://cdn/x.png', originalUrl: 'https://shop.example/p.jpg', editedDataUrl: 'data:image/png;base64,AAAA', edited: true },
+      { url: 'https://cdn/x.png', uploadedUrl: 'https://cdn/x.png', originalUrl: 'https://shop.example/p.jpg', editedDataUrl: 'data:image/png;base64,AAAA', edited: true, editMetadata: { operation: 'remove_background', engine: 'bg0' } as never },
     ])
     expect([...skip]).toEqual(['d1'])
   })
@@ -55,5 +57,16 @@ describe('findAlreadyImported', () => {
   })
   it('never skips an item with no usable address', () => {
     expect(findAlreadyImported([item('d1', 'blob:https://x/1')], [{ url: 'blob:https://x/1' }]).size).toBe(0)
+  })
+  it('keeps a new cutout when the library copy is an AI-edited variant, not a cutout', () => {
+    const skip = findAlreadyImported([item('d1', 'https://shop.example/p.jpg', true)], [
+      { url: 'https://cdn/x.png', originalUrl: 'https://shop.example/p.jpg', editedDataUrl: 'data:image/png;base64,BBBB', edited: true, editMetadata: { operation: 'edit', engine: 'ai' } as never },
+    ])
+    expect(skip.size).toBe(0)
+  })
+  it('never drops an AI-edited discovered variant of a picture already in the library', () => {
+    const edited = { id: 'd1', previewUrl: 'https://shop.example/p.jpg', originalPreviewUrl: 'https://shop.example/p.jpg', editedDataUrl: 'data:image/png;base64,CCCC', edited: true, editMetadata: { operation: 'edit', engine: 'ai' } as never }
+    const skip = findAlreadyImported([edited, { ...edited, id: 'd2' }], [{ url: 'https://shop.example/p.jpg', originalUrl: 'https://shop.example/p.jpg' }])
+    expect(skip.size).toBe(0)
   })
 })

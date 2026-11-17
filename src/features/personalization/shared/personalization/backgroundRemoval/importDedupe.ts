@@ -20,10 +20,19 @@ export function normalizeImageAddress(url: string | null | undefined): string | 
   }
 }
 
-type LibraryEntry = Pick<PersonalizationAsset, 'url' | 'uploadedUrl' | 'originalUrl' | 'editedDataUrl' | 'edited'>
+type LibraryEntry = Pick<PersonalizationAsset, 'url' | 'uploadedUrl' | 'originalUrl' | 'editedDataUrl' | 'edited' | 'editMetadata'>
 
-const hasCutout = (a: { editedDataUrl?: string; editMetadata?: { engine?: string } | null }) =>
-  Boolean(a.editedDataUrl)
+type Kind = 'original' | 'cutout' | 'edited'
+
+/**
+ * original = the untouched picture, cutout = an on-device background removal, edited = anything else the user
+ * changed (AI edit, style...). Edited variants are distinct pictures and are never treated as repeats.
+ */
+function kindOf(a: { editedDataUrl?: string; edited?: boolean; editMetadata?: unknown }): Kind {
+  if ((a.editMetadata as { engine?: string } | null | undefined)?.engine === 'bg0') return 'cutout'
+  if (a.editedDataUrl || a.edited) return 'edited'
+  return 'original'
+}
 
 /**
  * Discovered images that are already in the library (same website picture) and must not be added again.
@@ -31,18 +40,18 @@ const hasCutout = (a: { editedDataUrl?: string; editMetadata?: { engine?: string
  * Two items of the same picture within one import keep only the first (per kind: original / cutout).
  */
 export function findAlreadyImported(
-  items: Array<Pick<DiscoveredAsset, 'id' | 'previewUrl' | 'originalPreviewUrl' | 'editedDataUrl'>>,
+  items: Array<Pick<DiscoveredAsset, 'id' | 'previewUrl' | 'originalPreviewUrl' | 'editedDataUrl' | 'edited' | 'editMetadata'>>,
   library: LibraryEntry[],
 ): Set<string> {
-  const seen = new Map<string, Set<'original' | 'cutout'>>()
-  const mark = (address: string | null, kind: 'original' | 'cutout') => {
-    if (!address) return
+  const seen = new Map<string, Set<Kind>>()
+  const mark = (address: string | null, kind: Kind) => {
+    if (!address || kind === 'edited') return
     const kinds = seen.get(address) || new Set()
     kinds.add(kind)
     seen.set(address, kinds)
   }
   for (const entry of library) {
-    const kind = entry.editedDataUrl || entry.edited ? 'cutout' : 'original'
+    const kind = kindOf(entry)
     mark(normalizeImageAddress(entry.originalUrl), kind)
     mark(normalizeImageAddress(entry.url), kind)
     mark(normalizeImageAddress(entry.uploadedUrl), kind)
@@ -51,7 +60,8 @@ export function findAlreadyImported(
   for (const item of items) {
     const address = normalizeImageAddress(item.originalPreviewUrl || item.previewUrl)
     if (!address) continue
-    const kind = hasCutout(item) ? 'cutout' : 'original'
+    const kind = kindOf(item)
+    if (kind === 'edited') continue
     if (seen.get(address)?.has(kind)) skip.add(item.id)
     else mark(address, kind)
   }
