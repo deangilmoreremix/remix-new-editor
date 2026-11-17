@@ -24,6 +24,8 @@ export interface ThumbnailState {
   aspectRatio?: string;
   /** The layered design behind the exported thumbnail (kept so it can be edited again). */
   design?: DesignProject;
+  /** The same thumbnail re-made for other shapes ('16:9' | '1:1' | '4:5' | '9:16' -> image URL). */
+  variants?: Record<string, string>;
 }
 
 export interface CopyState {
@@ -49,17 +51,6 @@ export interface CopyState {
 }
 
 export type WriteCopyState = CopyState
-
-export interface ThumbnailState {
-  templateId?: string
-  values?: Record<string, any>
-  references?: string[]
-  imageUrl?: string
-  responseId?: string
-  aspectRatio?: string
-  /** The layered design behind the exported thumbnail (kept so it can be edited again). */
-  design?: DesignProject
-}
 
 export interface Destination {
   id: string

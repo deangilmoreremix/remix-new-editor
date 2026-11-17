@@ -72,6 +72,7 @@ export default function SocialPublishModal({
   const [hostedUrl, setHostedUrl] = useState<{ from: string; url: string } | null>(null);
   // Generated thumbnails are data: URLs; they are uploaded once so the platforms get a public link.
   const [hostedThumb, setHostedThumb] = useState<{ from: string; url: string } | null>(null);
+  const hostedVariants = useRef(new Map<string, string>());
 
   // The copy every step after Write (and publishing) uses: Write-step text wins.
   const copy = useMemo(() => mergeCopy(writeCopy, socialCopy), [writeCopy, socialCopy]);
@@ -141,12 +142,33 @@ export default function SocialPublishModal({
 
   /** Same idea for the thumbnail: upload generated/edited images and use the hosted link. */
   const resolveThumbnail = useCallback(async (t: typeof thumbnail): Promise<typeof thumbnail> => {
-    const src = t?.imageUrl;
-    if (!src || isPublicMediaUrl(src)) return t;
-    if (hostedThumb && hostedThumb.from === src) return { ...t, imageUrl: hostedThumb.url };
-    const url = await uploadPublishMedia(apiKey, await prepareThumbnailFile(src));
-    setHostedThumb({ from: src, url });
-    return { ...t, imageUrl: url };
+    if (!t) return t;
+    let out = t;
+    const src = t.imageUrl;
+    if (src && !isPublicMediaUrl(src)) {
+      if (hostedThumb && hostedThumb.from === src) {
+        out = { ...out, imageUrl: hostedThumb.url };
+      } else {
+        const url = await uploadPublishMedia(apiKey, await prepareThumbnailFile(src));
+        setHostedThumb({ from: src, url });
+        out = { ...out, imageUrl: url };
+      }
+    }
+    // Versions made for other shapes are hosted the same way (once each).
+    if (t.variants) {
+      const hosted: Record<string, string> = {};
+      for (const [aspect, vSrc] of Object.entries(t.variants)) {
+        if (isPublicMediaUrl(vSrc)) { hosted[aspect] = vSrc; continue; }
+        let url = hostedVariants.current.get(vSrc);
+        if (!url) {
+          url = await uploadPublishMedia(apiKey, await prepareThumbnailFile(vSrc));
+          hostedVariants.current.set(vSrc, url);
+        }
+        hosted[aspect] = url;
+      }
+      out = { ...out, variants: hosted };
+    }
+    return out;
   }, [apiKey, hostedThumb]);
 
   // Only YouTube (thumbnail) and Instagram *videos* (cover) use the thumbnail; images and other platforms never need it uploaded.

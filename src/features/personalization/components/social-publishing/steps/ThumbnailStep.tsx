@@ -12,6 +12,7 @@ import ThumbnailGenerationResults from '../thumbnail/ThumbnailGenerationResults'
 import ThumbnailRefinement from '../thumbnail/ThumbnailRefinement';
 import ThumbnailPlatformPreview from '../thumbnail/ThumbnailPlatformPreview';
 import ThumbnailConceptPanel from '../thumbnail/ThumbnailConceptPanel';
+import ThumbnailVersions from '../thumbnail/ThumbnailVersions';
 import ThumbnailDesigner, { type DesignerResult } from '../thumbnail/designer/ThumbnailDesigner';
 import type { CanvasAdjustments } from '../thumbnail/thumbnailPrompt';
 
@@ -651,6 +652,14 @@ export default function ThumbnailStep({
           <Paintbrush size={13} />{thumbnail.design ? 'Edit design' : 'Design this thumbnail'}
         </button>
       </div>
+
+      <ThumbnailVersions
+        sourceUrl={thumbnail.imageUrl ?? activeImageUrl}
+        sourceAspect={thumbnail.aspectRatio ?? aspectRatio}
+        variants={thumbnail.variants}
+        onChange={(variants) => onUpdateThumbnail({ variants })}
+        disabled={generating}
+      />
 
       <ThumbnailRefinement sourceImageUrl={refineSourceUrl} aspectRatio={aspectRatio} disabled={generating} onResults={handleRefineResults} />
       {(thumbnail.design || activeImageUrl) && (
