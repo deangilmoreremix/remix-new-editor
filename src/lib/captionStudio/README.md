@@ -25,14 +25,12 @@ Browser-only: call it from a click handler / client component. Nothing is upload
 - **Not merged:** CineGen/OpenChatCut's clip captions (their own caption model with translation, saved presets and font import) and the `video-agent-studio` subtree. They share the engine, not the window.
 
 ## Host adapters (the only per-repo code)
-- **remix-new-editor:** `src/lib/editor/captionActions.js` → `addCaptionButton({ videoUrl, appTheme, onComplete, onApply })`.
-- **OpenHiggsBolt:** `hosts/openhiggsbolt/CaptionStudioAction.js` (→ `components/CaptionStudioAction.js`), injected into studios through a
-  `renderCaptionAction` render prop, the same pattern as `PersonalizeVideoAction`.
+- **remix-new-editor:** `src/lib/editor/captionActions.js` → `addCaptionButton({ videoUrl, appTheme, onComplete, onApply })`. Its personalization editor draws the Studio's pages itself (see above).
+- **OpenHiggsBolt:** `hosts/openhiggsbolt/CaptionStudioAction.js` (→ `components/CaptionStudioAction.js`), shown beside Personalize / Landing page in every video studio and on every Clipping Studio clip (`renderCaptionAction`, injected by `StandaloneShell`). Its personalization editor keeps its own renderer: `preview/captionsFromStudio.ts` there maps the Studio's output onto its own cues (with the exact time of every word) and style. The two personalization editors have diverged, so they are maintained natively, not synced.
 
 ## Keeping the repos in sync
 ```bash
 node scripts/sync-caption-studio.mjs ../OpenHiggsBolt          # copy core + adapter, list missing dependencies
 node scripts/sync-caption-studio.mjs ../OpenHiggsBolt --check  # exit 1 if they differ
-node scripts/sync-caption-studio.mjs ../OpenHiggsBolt --include-modified  # also overwrite the personalization files this work edited (diff them first)
 ```
 Edit the core here, run the sync, commit in both repos.
