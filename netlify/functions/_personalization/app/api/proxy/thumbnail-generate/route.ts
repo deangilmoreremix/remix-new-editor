@@ -16,6 +16,7 @@ import {
   type ImagePart,
 } from '../../../../src/lib/openaiImageApi';
 import { parseImageOptions } from '../../../../src/lib/openaiImageOptions';
+import { safetyIdentifier } from '../../../../src/lib/safetyIdentifier';
 
 /**
  * Thumbnail generation for the Social Publish modal (opened from every studio).
@@ -172,6 +173,8 @@ export async function POST(req: NextRequest) {
     background: parsed.options.background,
     outputFormat: parsed.options.outputFormat,
     outputCompression: parsed.options.outputCompression,
+    moderation: parsed.options.moderation,
+    safetyIdentifier: safetyIdentifier(userId),
   };
   let quality = normalizeQuality(body.quality);
   const requestedModel = typeof body.model === 'string' ? body.model : DEFAULT_MODEL;

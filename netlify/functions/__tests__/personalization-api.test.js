@@ -216,6 +216,44 @@ describe('/api/proxy/thumbnail-generate (Images 2.6)', () => {
     })
   })
 
+  it('sends a hashed safety_identifier, never the raw user id', async () => {
+    await withFetch(image, async (upstream) => {
+      await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare' })
+      await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare' })
+      const ids = upstream.mock.calls.map(([, init]) => JSON.parse(init.body).safety_identifier)
+      expect(ids[0]).toMatch(/^[0-9a-f]{64}$/)
+      expect(ids[1]).toBe(ids[0]) // stable per user
+      expect(JSON.stringify(upstream.mock.calls.map(([, init]) => init.body))).not.toMatch(/user_|@/)
+    })
+  })
+
+  it('passes the content-filter setting and rejects unknown values', async () => {
+    await withFetch(image, async (upstream) => {
+      const ok = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', moderation: 'low' })
+      expect(ok.status).toBe(200)
+      expect(JSON.parse(upstream.mock.calls[0][1].body).moderation).toBe('low')
+      const bad = await post({ action: 'generate', prompt: 'p', moderation: 'off' })
+      expect(bad.status).toBe(400)
+      expect(upstream).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('explains a moderation block, includes the details, and does not retry', async () => {
+    const blocked = {
+      error: { code: 'moderation_blocked', type: 'image_generation_user_error', message: 'blocked', moderation_details: { moderation_stage: 'input', categories: ['violence'] } },
+    }
+    await withFetch(async () => new Response(JSON.stringify(blocked), { status: 400 }), async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-sunburst' })
+      expect(res.status).toBe(400)
+      const out = await res.json()
+      expect(out.code).toBe('moderation_blocked')
+      expect(out.error).toMatch(/prompt or picture/)
+      expect(out.error).toMatch(/violence/)
+      expect(out.moderation_details.moderation_stage).toBe('input')
+      expect(upstream).toHaveBeenCalledTimes(1)
+    })
+  })
+
   it('falls back to GPT Image 2 when the key has no Images 2.6 access', async () => {
     let call = 0
     await withFetch(async () => {
