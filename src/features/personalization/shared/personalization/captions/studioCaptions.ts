@@ -108,15 +108,9 @@ export function studioFallbackStyle(style: StudioCaptionStyle): CaptionStyleId {
 }
 
 /**
- * Fonts that ship inside the app (the @fontsource packages), so captions in them draw and export with no network. A Studio look in
- * any other font falls back to the composition's own stack.
+ * The ONE font the personalization composition draws with (the local "Personalization Sans" Inter subset, public/fonts), so the live
+ * preview and the browser export can never disagree and nothing is fetched at export. The Caption Studio is told this is the only allowed
+ * font, so a look's own font is replaced by it while designing. (Other font packages are installed but not loaded in the composition, so
+ * a caption in e.g. Anton would silently fall back; it is deliberately not offered.)
  */
-export const BUNDLED_CAPTION_FONTS: readonly string[] = Object.freeze([
-  'Anton', 'Archivo Black', 'Baloo 2', 'Be Vietnam Pro', 'Bebas Neue', 'Caveat', 'Cormorant Garamond', 'DM Sans', 'DM Serif Display', 'Figtree', 'Fraunces',
-  'Fredoka', 'Inter', 'Lexend', 'Lora', 'Manrope', 'Montserrat', 'Newsreader', 'Nunito', 'Onest', 'Outfit', 'Patrick Hand', 'Permanent Marker',
-  'Playfair Display', 'Plus Jakarta Sans', 'Poppins', 'Sora', 'Space Grotesk', 'Work Sans',
-])
-export const isBundledCaptionFont = (name: string): boolean => BUNDLED_CAPTION_FONTS.includes(name)
-
-/** `"Family", <the composition's own stack>`: the family when this device has it, otherwise the studio font. */
-export const studioFontStack = (family: string, fallbackStack: string): string => (isBundledCaptionFont(family) ? `"${family}", ${fallbackStack}` : fallbackStack)
+export const EDITOR_CAPTION_FONTS: readonly string[] = Object.freeze(['Inter'])

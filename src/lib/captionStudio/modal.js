@@ -9,7 +9,7 @@
 //   videoUrl, language ('en' | 'auto' | …), accentColor ('#d9ff00'), captions, style,
 //   onComplete(url)                                 the video with captions burned in (blob: URL)
 //   onApply({ captions, captionStyle, srt, vtt })   hand the captions to a timeline / project
-//   applyLabel ('Add captions to timeline'), fonts (limit the Font menu, e.g. to fonts the host can export offline)
+//   applyLabel ('Add captions to timeline'), fonts (the ONLY fonts allowed, e.g. the one font a host can draw and export; every look is forced onto them)
 //   onError(err), onClose()
 import {
   ENGINES, WHISPER_MODELS, CAPTION_LANGUAGES, detectCapabilities, recommendEngine, recommendModel, transcribeMedia,
@@ -222,7 +222,7 @@ export class CaptionStudioModal extends ModalShell {
     this.model = WHISPER_MODELS[1][0];
     this.language = options.language && CAPTION_LANGUAGES.some(([v]) => v === options.language) ? options.language : 'auto';
     this.captions = sortCaptions(options.captions || []);
-    this.style = { ...defaultCaptionStyle(options.theme || 'tiktok'), ...(options.style || {}) };
+    this.style = this.coerceFont({ ...defaultCaptionStyle(options.theme || 'tiktok'), ...(options.style || {}) });
     this.srcUrl = options.videoUrl || '';
     this.srcBlob = null;
     this.srcName = options.videoUrl ? options.videoUrl.split('?')[0].split('/').pop() : '';
@@ -416,10 +416,16 @@ export class CaptionStudioModal extends ModalShell {
   }
 
   // ---------------------------------------------------------------- render
-  /** The Font menu: the host's list when it gave one (always including the font in use), otherwise every font. */
+  /** The Font menu: only the host's fonts when it gave a list, otherwise every font. */
   fontList() {
-    const own = this.opts.fonts?.length ? [...this.opts.fonts] : FONTS;
-    return own.includes(this.style.fontFamily) ? own : [this.style.fontFamily, ...own];
+    return this.opts.fonts?.length ? [...this.opts.fonts] : FONTS;
+  }
+
+  /** With a host font list, a look's own font is replaced by an allowed one so the preview shows exactly what the host will draw. */
+  coerceFont(style) {
+    const allowed = this.opts.fonts;
+    if (!allowed?.length || allowed.includes(style.fontFamily)) return style;
+    return { ...style, fontFamily: allowed.includes('Inter') ? 'Inter' : allowed[0] };
   }
 
   lookName() {
@@ -514,7 +520,7 @@ export class CaptionStudioModal extends ModalShell {
       <div class="csm-presets">${shown.map(card).join('')}</div>
       <h4>Customize</h4>
       <label class="csm-row"><span>Font</span><select data-style="fontFamily">${this.fontList().map((f) => `<option ${f === s.fontFamily ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select></label>
-      ${this.opts.fonts?.length ? '<p class="csm-hint" style="margin:0">Limited to fonts built into the editor, so they draw and export offline.</p>' : ''}
+      ${this.opts.fonts?.length ? `<p class="csm-hint" style="margin:0">Captions here use the editor's built-in font (${esc(this.fontList().join(', '))}) so the preview and the exported video always match.</p>` : ''}
       <label class="csm-row"><span>Size</span><input type="range" min="2" max="14" step="0.5" value="${esc(s.fontSize)}" data-style="fontSize" data-kind="num" /></label>
       <label class="csm-row"><span>Position</span><select data-style="position">${CAPTION_POSITIONS.map((q) => `<option value="${q}" ${q === s.position && !Number.isFinite(s.positionY) ? 'selected' : ''}>${q[0].toUpperCase() + q.slice(1)}</option>`).join('')}${Number.isFinite(s.positionY) ? '<option value="custom" selected>Custom (dragged)</option>' : ''}</select></label>
       <label class="csm-row"><span>Height</span><input type="range" min="4" max="96" step="1" value="${Math.round(this.effectiveY() * 100)}" data-style="positionY" data-kind="pct" title="Or drag the ⇕ handle on the video" /></label>
@@ -665,7 +671,7 @@ export class CaptionStudioModal extends ModalShell {
       tab: () => { this.tab = el.dataset.tab; this.errMsg = ''; this.refresh(); },
       generate: () => this.generate(),
       cancel: () => { this.controller?.abort(); this.busy = null; this.refresh(); },
-      preset: () => { this.style = { ...defaultCaptionStyle(el.dataset.preset), fontSize: this.style.fontSize, position: this.style.position, ...(Number.isFinite(this.style.positionY) ? { positionY: this.style.positionY } : {}) }; ensureCaptionFont(this.style, this.fontText()); this.refresh(); },
+      preset: () => { this.style = this.coerceFont({ ...defaultCaptionStyle(el.dataset.preset), fontSize: this.style.fontSize, position: this.style.position, ...(Number.isFinite(this.style.positionY) ? { positionY: this.style.positionY } : {}) }); ensureCaptionFont(this.style, this.fontText()); this.refresh(); },
       seek: () => { this.video.currentTime = Number(el.dataset.ms) / 1000; this.video.play().catch(() => {}); },
       'del-line': () => { this.editingLine = -1; this.captions = removeLine(this.captions, captionLines(this.captions, this.style)[Number(el.dataset.i)]); this.refresh(); },
       shift: () => { this.captions = shiftCaptions(this.captions, Math.round(Number(this.overlay.querySelector('[data-shift]').value || 0) * 1000)); this.refresh(); },
@@ -678,7 +684,7 @@ export class CaptionStudioModal extends ModalShell {
       speed: () => { this.speed = Number(el.dataset.v); this.video.playbackRate = this.speed; this.refresh(); },
       pos: () => { this.style = { ...this.style, position: el.dataset.p }; delete this.style.positionY; this.queueSave(); this.refresh(); },
       filter: () => { this.styleFilter = el.dataset.f; this.refresh(); },
-      'reset-style': () => { this.style = defaultCaptionStyle(this.style.preset); ensureCaptionFont(this.style, this.fontText()); this.refresh(); },
+      'reset-style': () => { this.style = this.coerceFont(defaultCaptionStyle(this.style.preset)); ensureCaptionFont(this.style, this.fontText()); this.refresh(); },
       autoscroll: () => { this.autoScroll = !this.autoScroll; this.refresh(); },
       'edit-line': () => { const i = Number(el.dataset.i); this.editingLine = this.editingLine === i ? -1 : i; this.refresh(); },
       'add-line': () => this.addLine(),

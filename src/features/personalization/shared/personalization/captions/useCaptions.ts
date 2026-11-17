@@ -7,7 +7,7 @@ import { useLocalAI, type LocalAI } from '../localAI/useLocalAI'
 import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptions } from '../preview/types'
 import { groupCaptionCues } from './captionCues'
 import { getCaptionStudio, type CaptionStudioWord } from './captionStudioBridge'
-import { BUNDLED_CAPTION_FONTS, cleanStudioCaptions, isBundledCaptionFont, studioFallbackStyle, studioToCues } from './studioCaptions'
+import { EDITOR_CAPTION_FONTS, cleanStudioCaptions, studioFallbackStyle, studioToCues } from './studioCaptions'
 
 export interface Captions {
   ai: LocalAI
@@ -84,13 +84,13 @@ export function useCaptions(videoUrl: string | null): Captions {
       ? captions.studio.pages.flatMap((p) => p.tokens.map((t) => ({ text: t.text.trim(), startMs: t.fromMs, endMs: t.toMs })))
       : (captions?.cues ?? []).flatMap((cue) => cue.words?.length ? cue.words.map((w) => ({ text: w.text, startMs: w.startMs, endMs: w.endMs })) : [{ text: cue.text, startMs: cue.startMs, endMs: cue.endMs }])
     open({
-      videoUrl, words, style: captions?.studio?.style, fonts: BUNDLED_CAPTION_FONTS,
+      videoUrl, words, style: captions?.studio?.style, fonts: EDITOR_CAPTION_FONTS,
       onApply: (raw) => {
         if (latestUrl.current !== openedFor) { setNote('The video changed while you were captioning, so those captions were not added.'); return }
         const studio = cleanStudioCaptions(raw)
         if (!studio) { setNote('No captions were made, so there is nothing to show.'); return }
         updatePreviewCaptions({ enabled: true, forUrl: openedFor, style: studioFallbackStyle(studio.style), position: studio.style.position, cues: studioToCues(studio), studio })
-        setNote(isBundledCaptionFont(studio.style.fontFamily) ? null : `“${studio.style.fontFamily}” is not built into this app, so these captions use the studio font. Pick one of the built-in fonts in the Caption Studio to keep that exact look.`)
+        setNote(null)
       },
       onError: (err) => setNote(err.message),
     })

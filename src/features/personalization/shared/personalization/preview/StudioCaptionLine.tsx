@@ -1,7 +1,7 @@
 import React from 'react'
 import { AbsoluteFill } from 'remotion'
 import { activePageAt, layoutCaptionFrame } from '../captions/studioLayout'
-import { studioFontStack, type StudioCaptions } from '../captions/studioCaptions'
+import type { StudioCaptions } from '../captions/studioCaptions'
 
 /** Shared scratch canvas: text is measured here so the layout is computed with the same font the DOM then draws with. */
 let scratch: CanvasRenderingContext2D | null | undefined
@@ -35,7 +35,8 @@ export const StudioCaptionLine: React.FC<{ studio: StudioCaptions; ms: number; w
   if (!page) return null
   const st = studio.style
   const fontPx = (Math.max(1, st.fontSize) / 100) * height
-  const stack = studioFontStack(st.fontFamily, fallbackStack)
+  // Always the composition's own font stack: it is the only font that is loaded and identical in the preview and the export.
+  const stack = fallbackStack
   const weight = st.bold ? 800 : 500
   const measure = measurer(`${st.italic ? 'italic ' : ''}${weight} ${fontPx}px ${stack}`)
   if (!measure) return null

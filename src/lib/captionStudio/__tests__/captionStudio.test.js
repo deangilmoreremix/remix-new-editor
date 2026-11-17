@@ -275,3 +275,21 @@ describe('studio hand-off payload', () => {
     expect(back.map((c) => [c.text, c.startMs, c.endMs])).toEqual(caps.map((c) => [c.text, c.startMs, c.endMs]));
   });
 });
+
+// ---- the modal enforces a host's font list (so what the Studio shows is what the host draws)
+describe('host font list', () => {
+  it('forces every look onto an allowed font', async () => {
+    const { CaptionStudioModal } = await import('../modal.js');
+    const m = new CaptionStudioModal({ fonts: ['Inter'], style: { preset: 'capite-hormozi', fontFamily: 'Montserrat' } });
+    expect(m.style.fontFamily).toBe('Inter');
+    expect(m.fontList()).toEqual(['Inter']);
+    expect(m.coerceFont({ fontFamily: 'Orbitron' }).fontFamily).toBe('Inter');
+    expect(m.coerceFont({ fontFamily: 'Inter', x: 1 })).toEqual({ fontFamily: 'Inter', x: 1 });
+  });
+  it('leaves every font available when the host gives no list', async () => {
+    const { CaptionStudioModal } = await import('../modal.js');
+    const m = new CaptionStudioModal({ style: { fontFamily: 'Orbitron' } });
+    expect(m.style.fontFamily).toBe('Orbitron');
+    expect(m.fontList().length).toBeGreaterThan(10);
+  });
+});

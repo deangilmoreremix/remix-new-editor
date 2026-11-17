@@ -39,19 +39,18 @@ describe('StudioCaptionLine: the Caption Studio look, drawn as DOM', () => {
     expect(spans[1].style.color).toBe('rgb(255, 0, 0)')
     expect(el.querySelector('[data-testid="captions-layer"]')?.getAttribute('data-caption-source')).toBe('studio')
   })
-  it('carries the font, the outline colour and the dragged height', () => {
+  it('carries the outline colour and the dragged height', () => {
     const lo = line(studio({ positionY: 0.2 }), 500)
     const hi = line(studio({ positionY: 0.7 }), 500)
     const topOf = (el: HTMLElement) => parseFloat((el.querySelector('span')!.parentElement as HTMLElement).style.top)
     expect(topOf(lo)).toBeLessThan(topOf(hi))
-    const span = lo.querySelector('span')!
-    expect(span.style.fontFamily).toContain('Anton') // a font that ships in the app
     // #001122 outline (jsdom may serialise the colour as hex or as rgb(), depending on its version)
-    expect(span.style.textShadow).toMatch(/#001122|rgb\(0, 17, 34\)/i)
+    expect(lo.querySelector('span')!.style.textShadow).toMatch(/#001122|rgb\(0, 17, 34\)/i)
   })
-  it('never asks for a font the app does not ship (no network at export)', () => {
-    const el = line(studio({ fontFamily: 'Orbitron' }), 500)
-    expect(el.querySelector('span')!.style.fontFamily).toBe('Arial')
+  it('always draws in the composition font, whatever font the studio data names (no font that is not loaded)', () => {
+    for (const fontFamily of ['Anton', 'Orbitron', 'Inter']) {
+      expect(line(studio({ fontFamily }), 500).querySelector('span')!.style.fontFamily).toBe('Arial') // the stack the test passes as the composition's own
+    }
   })
   it('draws karaoke wipes, boxed words and a line background with plain CSS', () => {
     const k = line(studio({ animation: 'karaoke' }), 600)

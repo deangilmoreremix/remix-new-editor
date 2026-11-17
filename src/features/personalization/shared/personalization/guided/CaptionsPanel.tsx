@@ -87,7 +87,7 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
           </label>
           {hosted ? (
             <p data-testid="captions-summary" style={{ ...hintStyle, margin: 0 }}>
-              {cues.length} lines{studio ? ` · ${studio.style.fontFamily}, drawn exactly as designed in the Caption Studio` : ' · open the Caption Studio to restyle or fix these'}.
+              {cues.length} lines{studio ? ' · drawn as designed in the Caption Studio (colours, motion and height included)' : ' · open the Caption Studio to restyle or fix these'}.
             </p>
           ) : (
             <>
