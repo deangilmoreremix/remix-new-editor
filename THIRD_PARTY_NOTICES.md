@@ -15,3 +15,7 @@ On-device background removal in the Personalization Modal's Asset Finder uses:
 BG0's own documentation lists additional third-party components (for example HEIC decoding under the LGPL) in
 other BG0 packages. Version 0.1.1 of `@bg0/browser` does not include them; if a later version is adopted,
 re-check its notices and keep any required attribution and distribution terms.
+
+## Warmbly dashboard
+
+`apps/warmbly-web/` contains the dashboard from https://github.com/warmbly/warmbly, licensed under the Apache License 2.0 (copy in `apps/warmbly-web/LICENSE`). See `apps/warmbly-web/UPSTREAM.md` for the source commit and the local changes.

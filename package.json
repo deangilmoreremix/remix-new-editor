@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite --port 3100",
     "dev:all": "concurrently -n root,video-agent-studio -c magenta,cyan \"npm run dev\" \"npm run dev:video-agent-studio\"",
-    "build": "npm run build:openthorn && npm run build:workbench && npm run build:motion-agent && rm -rf dist && npm run gen:motion-sources && npm run sync:mg-thumbs && node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
+    "build": "npm run build:openthorn && npm run build:workbench && npm run build:warmbly && npm run build:motion-agent && rm -rf dist && npm run gen:motion-sources && npm run sync:mg-thumbs && node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
@@ -41,6 +41,7 @@
     "cinegen:build": "npm --prefix apps/cinegen/web run build",
     "cinegen:start": "NODE_ENV=production npm --prefix apps/cinegen/web run start",
     "build:workbench": "npm --prefix apps/shotcraft/workbench ci --no-audit --no-fund && cd apps/shotcraft/workbench && node scripts/gen-index.mjs && npx vite build --base=/workbench-app/ && rm -rf ../../../public/workbench-app && cp -rL dist ../../../public/workbench-app",
+    "build:warmbly": "npx --yes pnpm@10.28.0 --dir apps/warmbly-web install --frozen-lockfile && cd apps/warmbly-web && VITE_DEMO=1 VITE_BASE=/warmbly-app/ npx --yes pnpm@10.28.0 exec vite build && rm -rf ../../public/warmbly-app && cp -r dist ../../public/warmbly-app && rm -f ../../public/warmbly-app/_headers ../../public/warmbly-app/_redirects ../../public/warmbly-app/404.html",
     "build:motion-agent": "npm --prefix apps/motion-agent ci --no-audit --no-fund && cd apps/motion-agent && npx vite build --base=/motion-agent/ && rm -rf ../../public/motion-agent && cp -r dist ../../public/motion-agent",
     "gen:video-agent-server": "node apps/motion-agent/scripts/gen-server.mjs",
     "gen:motion-sources": "node scripts/motion-director/gen-demo-sources.mjs",

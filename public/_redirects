@@ -6,3 +6,6 @@
 
 /api/intelligence/*  /.netlify/functions/intelligence-api/:splat  200
 /api/personalizer/*   /.netlify/functions/personalizer-api/:splat   200
+
+# Warmbly Studio (embedded dashboard): client-side routes fall back to its index.html. Real files win (non-forced).
+/warmbly-app/*  /warmbly-app/index.html  200
