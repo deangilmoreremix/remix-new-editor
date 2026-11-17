@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { introSeconds, lipsyncJobs, padSamples, lipsyncContacts } from '../lipsync.js';
+import { introSeconds, lipsyncJobs, padSamples, lipsyncContacts, paidJobCount, copyClip, introKey, clipKey, speechStart, pauseWarning } from '../lipsync.js';
 import { buildCampaignProject, defaultDraft } from '../draft.js';
 import { timelineToComposition } from '../../editor/remotion/timelineToComposition.js';
 
@@ -21,16 +21,88 @@ describe('lip-synced greeting', () => {
     expect(Array.from(padded)).toEqual([1, 1, 0, 0]);
   });
 
-  it('cuts the intro once, pads audio, lip-syncs per greeting, and keeps going when one fails', async () => {
+  it('cuts the intro once, pads audio, lip-syncs per greeting, keeps our copy, and keeps going when one fails', async () => {
     const upload = vi.fn(async (f) => `https://store/${f.name}`);
     const lipSync = vi.fn(async ({ audio_url }) => { if (lipSync.mock.calls.length === 2) throw new Error('model busy'); return { url: `https://ls/${lipSync.mock.calls.length}.mp4`, audio_url }; });
     const cutIntro = vi.fn(async () => new Blob(['v']));
     const padAudio = vi.fn(async () => new Blob(['a']));
-    const out = await lipsyncContacts({ draft: ready(), variants, upload, lipSync, deps: { cutIntro, padAudio } });
+    const copyClip = vi.fn(async (url) => url.replace('https://ls/', 'https://store/ls-'));
+    const out = await lipsyncContacts({ draft: ready(), variants, upload, lipSync, concurrency: 1, deps: { cutIntro, padAudio, copyClip } });
     expect(cutIntro).toHaveBeenCalledWith('https://cdn.x/rec.mp4', 2);
     expect(lipSync).toHaveBeenCalledTimes(2);
     expect(lipSync.mock.calls[0][0]).toMatchObject({ video_url: 'https://store/greeting-intro.mp4', audio_url: 'https://store/greeting-padded.wav' });
-    expect(out).toEqual({ introUrl: 'https://store/greeting-intro.mp4', seconds: 2, clips: { c1: 'https://ls/1.mp4', c2: 'https://ls/1.mp4' }, failed: ['c3'] });
+    expect(out).toMatchObject({ introUrl: 'https://store/greeting-intro.mp4', seconds: 2, clips: { c1: 'https://store/ls-1.mp4', c2: 'https://store/ls-1.mp4' }, failed: ['c3'], errors: { c3: 'model busy' }, paid: 2 });
+  });
+
+  it('when the quick cut fails it renders the window instead; when both fail, Generate goes on without lip-sync', async () => {
+    const upload = vi.fn(async (f) => `https://store/${f.name}`);
+    const lipSync = vi.fn(async () => ({ url: 'https://ls/x.mp4' }));
+    const padAudio = async () => new Blob(['a']);
+    const renderIntro = vi.fn(async () => new Blob(['r']));
+    const ok = await lipsyncContacts({ draft: ready(), variants, upload, lipSync, deps: { cutIntro: async () => { throw new Error('webm'); }, renderIntro, padAudio, copyClip: async (u) => u } });
+    expect(renderIntro).toHaveBeenCalledWith('https://cdn.x/rec.mp4', 2);
+    expect(ok.failed).toEqual([]);
+    const none = await lipsyncContacts({ draft: ready(), variants, upload, lipSync: vi.fn(), deps: { cutIntro: async () => { throw new Error('webm'); }, renderIntro: async () => { throw new Error('no codec'); }, padAudio } });
+    expect(none).toMatchObject({ introUrl: '', clips: {}, failed: ['c1', 'c2', 'c3'], paid: 0 });
+    expect(none.error).toMatch(/skipped.*no codec/);
+  });
+
+  it('reuses clips already paid for, and counts only the new ones', async () => {
+    const cache = {};
+    const upload = vi.fn(async (f) => `https://store/${f.name}`);
+    const lipSync = vi.fn(async () => ({ url: 'https://ls/x.mp4' }));
+    const deps = { cutIntro: vi.fn(async () => new Blob(['v'])), padAudio: async () => new Blob(['a']), copyClip: async (u) => `${u}#ours` };
+    expect(paidJobCount(ready(), variants, cache)).toBe(2);
+    await lipsyncContacts({ draft: ready(), variants, upload, lipSync, cache, deps });
+    expect(cache[introKey('https://cdn.x/rec.mp4', 2)]).toBe('https://store/greeting-intro.mp4');
+    expect(cache[clipKey('https://cdn.x/rec.mp4', 2, 'https://cdn.x/ann.mp3')]).toBe('https://ls/x.mp4#ours');
+    expect(paidJobCount(ready(), variants, cache)).toBe(0);
+    const again = await lipsyncContacts({ draft: ready(), variants, upload, lipSync, cache, deps });
+    expect(lipSync).toHaveBeenCalledTimes(2);
+    expect(deps.cutIntro).toHaveBeenCalledTimes(1);
+    expect(again).toMatchObject({ paid: 0, failed: [] });
+  });
+
+  it('runs 3 at a time and gives up on a job that takes too long', async () => {
+    const many = Object.fromEntries(Array.from({ length: 6 }, (_, i) => [`k${i}`, { url: `https://cdn.x/${i}.mp3`, duration: 1 }]));
+    let running = 0; let peak = 0;
+    const lipSync = vi.fn(({ audio_url, signal }) => new Promise((resolve, reject) => {
+      running += 1; peak = Math.max(peak, running);
+      if (lipSync.mock.calls.length === 1) { signal.addEventListener('abort', () => { running -= 1; reject(new Error('aborted')); }); return; } // never finishes
+      setTimeout(() => { running -= 1; resolve({ url: `https://ls/${audio_url.split('/').pop()}` }); }, 5);
+    }));
+    const out = await lipsyncContacts({ draft: ready(), variants: many, upload: async (f) => `https://store/${f.name}`, lipSync, timeoutMs: 40,
+      deps: { cutIntro: async () => new Blob(['v']), padAudio: async () => new Blob(['a']), copyClip: async (u) => u } });
+    expect(peak).toBe(3);
+    expect(out.failed).toEqual(['k0']);
+    expect(out.errors.k0).toBe('Lip-sync took too long');
+  });
+
+  it('stops everything when Generate is stopped', async () => {
+    const ctrl = new AbortController();
+    const lipSync = vi.fn(({ signal }) => new Promise((_, reject) => { signal.addEventListener('abort', () => reject(new Error('x'))); ctrl.abort(); }));
+    await expect(lipsyncContacts({ draft: ready(), variants, upload: async (f) => f.name, lipSync, signal: ctrl.signal,
+      deps: { cutIntro: async () => new Blob(['v']), padAudio: async () => new Blob(['a']) } })).rejects.toMatchObject({ name: 'AbortError' });
+  });
+
+  it('copies a finished clip into our storage', async () => {
+    const upload = vi.fn(async (f) => `https://store/${f.name}`);
+    const fetchImpl = vi.fn(async () => ({ ok: true, blob: async () => new Blob(['mp4'], { type: 'video/mp4' }) }));
+    expect(await copyClip('https://ls/a.mp4', upload, { fetchImpl })).toBe('https://store/greeting-lipsync.mp4');
+    await expect(copyClip('https://ls/a.mp4', upload, { fetchImpl: async () => ({ ok: false, status: 403 }) })).rejects.toThrow(/403/);
+  });
+
+  it('the greeting track lasts as long as the longest greeting and the lip-synced intro (no cut-off names)', () => {
+    const long = { ...variants, c3: { url: 'https://cdn.x/alexandra.mp3', duration: 2.6 } };
+    const voiceEnd = (p) => p.tracks.find((t) => t.name === 'Voiceover').items[0].end;
+    expect(voiceEnd(buildCampaignProject(ready(), { variants: long, now: 1000 }))).toBe(2.6);
+    const lipsync = { introUrl: 'https://store/intro.mp4', seconds: 3, clips: { c1: 'https://ls/1.mp4' } };
+    const p = buildCampaignProject(ready(), { variants: long, lipsync, now: 1000 });
+    expect(voiceEnd(p)).toBe(3);
+    const [intro, rest] = p.tracks.find((t) => t.name === 'Main Video').items;
+    // The intro and the rest of the recording meet exactly: no gap, no overlap.
+    expect(intro.left + intro.width).toBeCloseTo(rest.left, 6);
+    expect(rest.trimIn).toBe(3);
   });
 
   it('the campaign plays each contact their synced intro, muted, then the rest of the recording', () => {
@@ -46,5 +118,12 @@ describe('lip-synced greeting', () => {
     expect(firstVideo(forAnn).src).toBe('https://store/intro.mp4');
     // Without lip-sync the project is unchanged: one recording clip.
     expect(buildCampaignProject(ready(), { variants, now: 1000 }).tracks.find((t) => t.name === 'Main Video').items).toHaveLength(1);
+  });
+
+  it('warns when the greeting window runs into your first words (the real sample: 1.6s pause, "Alexandra" needs 2.6s)', () => {
+    expect(speechStart([{ start: 0, end: 1.6 }, { start: 5, end: 6 }])).toBe(1.6);
+    expect(speechStart([{ start: 2, end: 3 }])).toBe(0);
+    expect(pauseWarning(2.6, 1.6)).toMatch(/pause is 1\.6s.*needs 2\.6s.*first 1\.0s/);
+    expect(pauseWarning(1.9, 1.8)).toBeNull();
   });
 });

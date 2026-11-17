@@ -1229,7 +1229,14 @@ export function OutreachStudio() {
     const personal = draft.kind !== 'same' && tokensIn(draft.greeting).length > 0;
     const n = draft.contacts.length;
     const wantSync = personal && !!draft.voice.lipsync;
-    if (personal && !confirmed && !window.confirm(`This voices the greeting for up to ${n} contact${n === 1 ? '' : 's'} (repeated names are voiced once). Each one is a paid speech request on your MuAPI key.${wantSync ? ` Lip-sync is on: each distinct greeting is also a paid lip-sync video request (up to ${n}), which costs more and takes about a minute each.` : ''} Continue?`)) return false;
+    // Lip-sync is cut from the uploaded video: edits not applied yet would not be in the lips.
+    if (wantSync && editModule && !editSegmentsInfo().unchanged) {
+      notice = 'Apply your edits first (Trim, then Apply edits): lip-sync uses the finished video.';
+      render();
+      return false;
+    }
+    const names = new Set(draft.contacts.map((c) => fillTemplate(draft.greeting, contactValues(c), draft.fallbacks).trim().toLowerCase())).size;
+    if (personal && !confirmed && !window.confirm(`This voices the greeting for ${n} contact${n === 1 ? '' : 's'} (${names} different greeting${names === 1 ? '' : 's'}; repeated names are voiced once). Each one is a paid speech request on your MuAPI key.${wantSync ? ` Lip-sync is on: each different greeting is also a paid lip-sync video request (up to ${names}; ones made before are reused for free), which costs more and takes about a minute each, 3 at a time.` : ''} Continue?`)) return false;
     notice = '';
     abort = new AbortController();
     try {
@@ -1259,16 +1266,35 @@ export function OutreachStudio() {
       }
       let lipsync = null;
       if (wantSync && Object.keys(variants).length) {
-        const [{ lipsyncContacts, LIPSYNC_MODEL }, { muapi }] = await Promise.all([
+        const [{ lipsyncContacts, LIPSYNC_MODEL, introSeconds, speechStart, pauseWarning, paidJobCount }, { muapi }] = await Promise.all([
           import('../lib/outreach/lipsync.js'),
           import('../lib/muapi.js'),
         ]);
+        // Does the greeting window run into your first words? (Measured on the recording's audio.)
+        let warn = null;
+        try {
+          const { detectSilences } = await import('../lib/editor/ml/localAI.js');
+          warn = pauseWarning(introSeconds(draft, variants), speechStart(await detectSilences(draft.video.url, { toSec: 8, minSec: 0.2, signal: abort.signal })));
+        } catch { /* no audio or not decodable: go on */ }
+        const jobs = paidJobCount(draft, variants, draft.lipsyncCache || {});
+        if (warn && !confirmed && !window.confirm(`${warn}\n\nLip-sync ${jobs} greeting${jobs === 1 ? '' : 's'} anyway?`)) {
+          notice = warn; progress = null; busy = ''; render(); return false;
+        }
         setBusy('Lip-syncing greetings: preparing your video…');
+        if (!draft.lipsyncCache || typeof draft.lipsyncCache !== 'object') draft.lipsyncCache = {};
         lipsync = await lipsyncContacts({
-          draft, variants, upload: uploadToStorage, signal: abort.signal,
+          draft, variants, upload: uploadToStorage, signal: abort.signal, cache: draft.lipsyncCache,
           lipSync: ({ video_url, audio_url, signal }) => muapi.processLipSync({ model: LIPSYNC_MODEL, video_url, audio_url }, signal),
+          deps: {
+            // When the quick cut can't read the recording (e.g. WebM in Safari): render the window as MP4.
+            renderIntro: async (src, seconds) => {
+              const m = editModule || (editModule = await import('../lib/outreach/videoEdit.jsx'));
+              return (await m.renderSegments([{ src, from: 0, to: seconds }], { width: 1280, height: 720, signal: abort.signal })).blob;
+            },
+          },
           onProgress: ({ done, total }) => { progress = { total, done, phase: 'Lip-syncing' }; setBusy(`Lip-syncing greetings: ${done} of ${total}…`); },
         });
+        persist(); // keep what was paid for, even if a later step fails
       }
       onStage('render');
       setBusy('Publishing the campaign…');
@@ -1289,12 +1315,13 @@ export function OutreachStudio() {
         links: campaignLinks(draft, url, personalLink, variants).map((l) => ({
           ...l,
           ...(lipsync?.clips?.[l.contactId] ? { lipsynced: true } : {}),
+          ...(lipsync?.errors?.[l.contactId] ? { lipsyncError: lipsync.errors[l.contactId] } : {}),
           ...(page ? { pageLink: landingLink(page.url, l.link, draft.contacts.find((c) => c.id === l.contactId) || {}) } : {}),
         })),
       };
       persist();
       campaigns.loaded = false; // refresh the Campaigns list next time it opens
-      const done = `${draft.campaign.links.length} personal video${draft.campaign.links.length === 1 ? '' : 's'} ready.${lipsync?.failed?.length ? ` Lip-sync failed for ${lipsync.failed.length} contact${lipsync.failed.length === 1 ? '' : 's'}; they hear their greeting without it.` : ''}`;
+      const done = `${draft.campaign.links.length} personal video${draft.campaign.links.length === 1 ? '' : 's'} ready.${lipsync?.error ? ` ${lipsync.error}` : lipsync?.failed?.length ? ` Lip-sync failed for ${lipsync.failed.length} contact${lipsync.failed.length === 1 ? '' : 's'}; they hear their greeting without it.` : ''}`;
       // Like Sendspark, one Generate also makes the page and every prospect's thumbnail.
       notice = '';
       progress = null;
@@ -1404,7 +1431,7 @@ export function OutreachStudio() {
         row.append(el('span', 'w-8 text-white/40 tabular-nums', String(i + 1).padStart(2, '0')));
         const who = el('div', 'min-w-0 flex-1');
         who.append(el('div', 'truncate font-semibold', l.name || '(no name)'), el('div', 'truncate text-xs text-white/50', l.email || ''));
-        const state = el('span', `text-xs ${l.voiced ? 'text-emerald-300' : 'text-white/50'}`, l.voiced ? (l.lipsynced ? '● Greeted by name, lip-synced' : '● Greeted by name') : '● Fallback greeting');
+        const state = el('span', `text-xs ${l.voiced ? 'text-emerald-300' : 'text-white/50'}`, l.voiced ? (l.lipsynced ? '● Greeted by name, lip-synced' : l.lipsyncError ? `● Greeted by name (no lip-sync: ${l.lipsyncError})` : '● Greeted by name') : '● Fallback greeting');
         const siteState = l.site ? el('span', `text-xs ${l.site === 'own' ? 'text-emerald-300' : 'text-white/50'}`, l.site === 'own' ? '● Their website' : '● Fallback website') : null;
         const copy = button('Copy link', { small: true });
         copy.addEventListener('click', async () => {

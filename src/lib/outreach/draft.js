@@ -89,6 +89,9 @@ export function defaultDraft() {
     language: 'English',
     // Captions of the recording (src/lib/outreach/transcript.js): { lang, lines, translations }.
     captions: null,
+    // Lip-synced greetings already made (src/lib/outreach/lipsync.js): { [key]: our stored URL }, so Generate
+    // doesn't pay again for the same recording and greeting.
+    lipsyncCache: {},
   };
 }
 
@@ -110,6 +113,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       siteShots: saved.siteShots && typeof saved.siteShots === 'object' ? saved.siteShots : {},
       mapShots: saved.mapShots && typeof saved.mapShots === 'object' ? saved.mapShots : {},
       siteLogos: saved.siteLogos && typeof saved.siteLogos === 'object' ? saved.siteLogos : {},
+      lipsyncCache: saved.lipsyncCache && typeof saved.lipsyncCache === 'object' ? saved.lipsyncCache : {},
       email: { ...base.email, ...(saved.email || {}), thumb: { ...base.email.thumb, ...(saved.email?.thumb || {}) } },
       ...pageOf(saved),
     };
@@ -479,9 +483,13 @@ export const contactValues = (c = {}) => ({ firstname: c.firstName || '', lastna
 
 // ---------------------------------------------------------------- campaign
 
-const clipsTimeline = (draft) => {
+// The greeting track must be as long as the longest greeting (and the lip-synced intro): the
+// player stops a clip's audio at its end, so a longer name would otherwise be cut off.
+const clipsTimeline = (draft, variants = {}, lipsync = null) => {
   const videoSeconds = Math.max(1, Math.round(Number(draft.video.duration) || 30));
-  const greetingSeconds = Math.max(0.5, Number(draft.voice.fallbackDuration) || 2);
+  const greetingSeconds = Math.max(0.5, Number(draft.voice.fallbackDuration) || 2,
+    ...Object.values(variants || {}).map((v) => Number(v?.duration) || 0),
+    lipsync?.introUrl ? Number(lipsync.seconds) || 0 : 0);
   return { videoSeconds, greetingSeconds, T: Math.max(videoSeconds, Math.ceil(greetingSeconds + 1)) };
 };
 
@@ -496,7 +504,7 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, now
     if (errors.length) throw new Error(errors[0]);
   }
   const id = now.toString(36);
-  const { videoSeconds, greetingSeconds, T } = clipsTimeline(draft);
+  const { videoSeconds, greetingSeconds, T } = clipsTimeline(draft, variants, lipsync);
   const voice = voiceSettings(draft);
   const same = draft.kind === 'same';
   const greeting = same ? '' : String(draft.greeting).trim();
