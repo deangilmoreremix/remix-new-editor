@@ -12,7 +12,8 @@ import { marksFromAsset, marksMetadataPatch } from '@cinegen/lib/editor/range/so
 import { setRangeIn, setRangeOut, resolveTimelineRange, withRange, loopTarget } from '@cinegen/lib/editor/range/timeline-range'; // [remix] Fix B2
 import { formatTimecode } from './time-ruler';
 import { SpeedCurveEditor } from './speed-curve-editor'; // [remix] Stage 11
-import { applySpeedCurve, type SpeedCurve } from '@cinegen/lib/editor/stage11/speed-curve';
+import type { SpeedCurve } from '@cinegen/lib/editor/stage11/speed-curve';
+import { applySpeedCurveGroup, inspectSpeedGroup, reapplySpeedCurve } from '@cinegen/lib/editor/stage11/speed-group'; // [remix] Fix M: re-editable curves
 import { liftRange, extractRange } from '@cinegen/lib/editor/stage11/range-edit';
 
 // [remix] Fix B2: also dispatches UPDATE_ASSET (source marks are saved in the asset's metadata)
@@ -152,7 +153,15 @@ export function useStage1Editing(p: Stage1Params) {
   const applyCurve = useCallback((curve: SpeedCurve, steps: number) => {
     const c = rampTarget();
     if (!c) { say('Select a clip to ramp.'); return; }
-    const r = applySpeedCurve(live.current.timeline, c.id, curve, { steps });
+    // [remix] Fix M: an intact curve group is replaced as a whole (one commit = one undo step); otherwise a fresh curve over the selected clip
+    const insp = inspectSpeedGroup(live.current.timeline, c.id);
+    if (insp.ok) {
+      const rr = reapplySpeedCurve(live.current.timeline, c.id, curve, { steps });
+      if (!rr.ok) { say(rr.reason ?? 'Could not re-apply the speed curve.'); return; }
+      commit(rr.timeline); setSelectedClipIds(new Set(rr.clipIds)); setCurveOpen(false); say(`Speed curve re-applied (${rr.clipIds.length} pieces)`);
+      return;
+    }
+    const r = applySpeedCurveGroup(live.current.timeline, c.id, curve, { steps });
     commit(r.timeline); setSelectedClipIds(new Set(r.clipIds)); setCurveOpen(false); say(`Speed curve applied (${r.clipIds.length} pieces)`);
   }, [commit, setSelectedClipIds, say]);
 
@@ -245,7 +254,13 @@ export function useStage1Editing(p: Stage1Params) {
         {Object.entries(RAMP_PRESETS).map(([id, r]) => <option key={id} value={id}>{r.label}</option>)}
       </select>
       <button type="button" data-testid="speed-curve-btn" disabled={!hasSel} onClick={() => setCurveOpen((o) => !o)} title="Edit a speed curve for the selected clip (bezier easing per segment)">Speed curve…</button>
-      {curveOpen && hasSel && (() => { const c = rampTarget(); return c ? <SpeedCurveEditor sourceSeconds={c.duration - c.trimStart - c.trimEnd} onApply={applyCurve} onClose={() => setCurveOpen(false)} /> : null; })()}
+      {curveOpen && hasSel && (() => {
+        const c = rampTarget(); if (!c) return null;
+        const insp = inspectSpeedGroup(timeline, c.id); // [remix] Fix M
+        return insp.ok
+          ? <SpeedCurveEditor key={insp.group} sourceSeconds={insp.sourceSeconds} initial={insp.curve} initialSteps={insp.steps} note={`Editing the curve of this ramped clip (${insp.steps} pieces). Applying replaces all its pieces.`} onApply={applyCurve} onClose={() => setCurveOpen(false)} />
+          : <SpeedCurveEditor key={c.id} sourceSeconds={c.duration - c.trimStart - c.trimEnd} note={insp.hadInfo ? `${insp.reason} Applying makes a new curve over this piece only.` : undefined} onApply={applyCurve} onClose={() => setCurveOpen(false)} />;
+      })()}
       <span data-testid="shuttle-readout" title="J K L shuttle" style={{ minWidth: 34, textAlign: 'center', opacity: rate ? 1 : 0.6 }}>{rate === 0 ? 'JKL' : `${rate < 0 ? '◀' : '▶'} ${Math.abs(rate)}x`}</span>
       <span data-testid="range-controls" style={{ display: 'flex', gap: 4, alignItems: 'center', borderLeft: '1px solid rgba(255,255,255,0.18)', paddingLeft: 6 }} title={RANGE_HINT}>
         <button type="button" data-testid="range-in" onClick={() => rangeIn()}>In</button>

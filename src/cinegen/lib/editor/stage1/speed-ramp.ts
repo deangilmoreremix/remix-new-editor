@@ -55,6 +55,7 @@ function pieces(clip: Clip, speeds: number[]): Clip[] {
       .map((k) => ({ ...k, time: Math.max(0, (k.time * clip.speed - a) / sp) }));
     const piece: Clip = { ...clip, id: i === 0 ? clip.id : generateId(), startTime: acc, trimStart: clip.trimStart + a, trimEnd: clip.trimEnd + (S - b), speed: sp, keyframes: kf, linkedClipIds: undefined };
     if (clip.anim) piece.anim = sliceAnim(clip.anim, a / clip.speed, b / clip.speed, clip.speed / sp); // [remix] Stage 2
+    delete piece.speedCurve; // [remix] Fix M: a curve group's info never leaks onto the pieces of a different ramp
     if (i > 0) delete piece.fadeIn;
     if (i < n - 1) delete piece.fadeOut;
     acc += (b - a) / sp;
@@ -62,7 +63,7 @@ function pieces(clip: Clip, speeds: number[]): Clip[] {
   });
 }
 
-export interface RampResult { timeline: Timeline; clipIds: string[] }
+export interface RampResult { timeline: Timeline; clipIds: string[]; /** [remix] Fix M: pieces made per original clip id (the clip and its linked clips) */ chains?: Record<string, string[]> }
 
 /** Replace the clip (and its linked clips) by a stepped speed ramp. Clips after it on the same tracks ripple by the length change. */
 export function applySpeedRamp(timeline: Timeline, clipId: string, points: RampPoint[], opts: { steps?: number; ripple?: boolean; /** [remix] Stage 11: explicit constant speed per piece (the speed-curve path) */ speeds?: number[] } = {}): RampResult {
@@ -103,5 +104,5 @@ export function applySpeedRamp(timeline: Timeline, clipId: string, points: RampP
     return t;
   });
   const out = { ...timeline, clips, transitions };
-  return { timeline: { ...out, duration: calculateTimelineDuration(out) }, clipIds: (made.get(clipId) as Clip[]).map((c) => c.id) };
+  return { timeline: { ...out, duration: calculateTimelineDuration(out) }, clipIds: (made.get(clipId) as Clip[]).map((c) => c.id), chains: Object.fromEntries([...made].map(([k, v]) => [k, v.map((c) => c.id)])) };
 }

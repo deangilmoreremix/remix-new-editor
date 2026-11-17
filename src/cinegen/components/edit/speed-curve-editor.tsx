@@ -18,9 +18,9 @@ const unx = (p: number) => Math.max(0, Math.min(1, (p - PAD) / (W - 2 * PAD)));
 const uns = (p: number) => 2 ** (LMIN + (1 - (p - PAD) / (H - 2 * PAD)) * (LMAX - LMIN));
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 
-export function SpeedCurveEditor({ sourceSeconds, initial, onApply, onClose }: { sourceSeconds: number; initial?: SpeedCurve; onApply: (curve: SpeedCurve, steps: number) => void; onClose: () => void }) {
+export function SpeedCurveEditor({ sourceSeconds, initial, initialSteps, note, onApply, onClose }: { sourceSeconds: number; initial?: SpeedCurve; initialSteps?: number; /** [remix] Fix M: re-edit / stale-group message */ note?: string; onApply: (curve: SpeedCurve, steps: number) => void; onClose: () => void }) {
   const [curve, setCurve] = useState<SpeedCurve>(() => normalizeCurve(initial ?? CURVE_PRESETS['hero-moment'].curve));
-  const [steps, setSteps] = useState(CURVE_DEFAULT_STEPS);
+  const [steps, setSteps] = useState(initialSteps ?? CURVE_DEFAULT_STEPS);
   const [sel, setSel] = useState(0); // selected point = the segment that starts there
   const [easeOpen, setEaseOpen] = useState(false);
   const svg = useRef<SVGSVGElement>(null);
@@ -63,6 +63,7 @@ export function SpeedCurveEditor({ sourceSeconds, initial, onApply, onClose }: {
         <strong>Speed curve</strong>
         <button type="button" aria-label="Close speed curve" data-testid="speed-curve-close" onClick={onClose}>✕</button>
       </div>
+      {note && <div data-testid="speed-curve-note" style={{ opacity: 0.85, marginBottom: 6 }}>{note}</div>}
       <select aria-label="Speed curve preset" data-testid="speed-curve-preset" value="" onChange={(e) => { const p = CURVE_PRESETS[e.target.value]; if (p) { setCurve(normalizeCurve(p.curve)); setSel(0); } }} style={{ width: '100%', marginBottom: 6 }}>
         <option value="">Start from a preset…</option>
         {Object.entries(CURVE_PRESETS).map(([id, p]) => <option key={id} value={id}>{p.label}</option>)}

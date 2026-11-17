@@ -17,6 +17,7 @@ import type { Element, ElementImage } from '../types/elements';
 import type { ExportJob, ExportPreset, ExportStatus } from '../types/export';
 import { normalizeAnim } from './editor/stage2/anim';
 import { normalizeClipPitch } from './audio/pitch'; // [remix] Stage 11
+import { normalizeClipSpeedCurve } from './editor/stage11/speed-group'; // [remix] Fix M
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -195,13 +196,16 @@ export function clipFromRow(
       const captions = json<Clip['captions']>(row['captions_json']);
       if (captions && typeof captions === 'object') out.captions = captions;
       // [remix] Stage 1: group id + compound content (one JSON column; absent on rows saved before they existed)
-      const s1 = json<{ groupId?: string; compound?: Clip['compound']; anim?: unknown }>(row['stage1_json']);
+      const s1 = json<{ groupId?: string; compound?: Clip['compound']; anim?: unknown; speedCurve?: unknown }>(row['stage1_json']);
       if (s1 && typeof s1 === 'object') {
         if (typeof s1.groupId === 'string' && s1.groupId) out.groupId = s1.groupId;
         if (s1.compound && Array.isArray(s1.compound.clips)) out.compound = s1.compound;
         // [remix] Stage 2: unified keyframes + motion modifiers travel in the same JSON column (no schema change)
         const anim = normalizeAnim(s1.anim);
         if (anim) out.anim = anim;
+        // [remix] Fix M: speed-curve group info (re-editable speed curves), same column
+        const sc = normalizeClipSpeedCurve(s1.speedCurve);
+        if (sc) out.speedCurve = sc;
       }
       // [remix] Stage 4: clip EQ
       const s4 = json<{ eq?: Clip['eq']; pitch?: Clip['pitch'] }>(row['stage4_json']);
@@ -417,7 +421,7 @@ export function clipToRow(clip: Clip, timelineId: string): Record<string, unknow
     captions_json: clip.captions ? JSON.stringify(clip.captions) : null,
     // [remix] Stage 1: group id + compound content
     stage4_json: clip.eq || clip.pitch ? JSON.stringify({ ...(clip.eq ? { eq: clip.eq } : {}), ...(clip.pitch ? { pitch: clip.pitch } : {}) }) : null,
-    stage1_json: clip.groupId || clip.compound || clip.anim ? JSON.stringify({ groupId: clip.groupId, compound: clip.compound, anim: clip.anim }) : null,
+    stage1_json: clip.groupId || clip.compound || clip.anim || clip.speedCurve ? JSON.stringify({ groupId: clip.groupId, compound: clip.compound, anim: clip.anim, speedCurve: clip.speedCurve }) : null,
   };
 }
 
