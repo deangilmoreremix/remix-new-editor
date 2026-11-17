@@ -26,6 +26,7 @@
  *   POST          /api/demo/discover           (anonymous "Find My Brand")
  *   POST          /api/demo/download-image     (public image proxy for signed-out background removal)
  *   POST          /api/proxy/openai-enhance    (prompt personalizer / enhance text)
+ *   POST          /api/proxy/thumbnail-generate (Social Publish thumbnails: OpenAI Images 2.6)
  *   GET|POST      /api/api/v1/*                (OpenHiggsBolt MuAPI proxy: generation submit + poll)
  *   GET|POST      /api/v1/upload_file          (OpenHiggsBolt MuAPI upload + durable originals)
  *   GET           /api/media/shotcraft/:key    (motion-template preview clips)
@@ -58,6 +59,7 @@ import * as leadFeedback from './_personalization/app/api/personalization/lead-f
 import * as savedSearches from './_personalization/app/api/personalization/saved-searches/route'
 import * as providerStatus from './_personalization/app/api/personalization/provider-status/route'
 import * as openaiEnhance from './_personalization/extra/openaiEnhance'
+import * as thumbnailGenerate from './_personalization/app/api/proxy/thumbnail-generate/route'
 import * as muapiProxy from './_personalization/app/api/api/v1/[[...path]]/route.js'
 import * as muapiUploadFile from './_personalization/app/api/v1/upload_file/route'
 import * as resolveWebsite from './_personalization/app/api/personalization/resolve-website/route'
@@ -96,6 +98,7 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/demo/discover': demoDiscover as RouteModule,
   '/api/demo/download-image': demoDownloadImage as RouteModule,
   '/api/proxy/openai-enhance': openaiEnhance as unknown as RouteModule,
+  '/api/proxy/thumbnail-generate': thumbnailGenerate as unknown as RouteModule,
   '/api/v1/upload_file': muapiUploadFile as unknown as RouteModule,
   // Motion Director (ported from OpenHiggsBolt app/api/motion-studio).
   '/api/motion-studio/director': motionDirector as unknown as RouteModule,
@@ -175,6 +178,7 @@ export const config: Config = {
     '/api/demo/download-image',
     '/api/video/record',
     '/api/proxy/openai-enhance',
+    '/api/proxy/thumbnail-generate',
     '/api/api/v1/*',
     '/api/v1/upload_file',
     '/api/media/shotcraft/*',

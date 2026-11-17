@@ -25,7 +25,7 @@ import { useAuthConfig } from '@ohb/lib/authConfig'
 import { getMotionTemplate, motionTemplateTitle, type MotionTemplate } from '@ohb/data/motionRecipeCatalog'
 
 /** Safe accessor for SocialPublishContext — returns null when not wrapped in a provider. */
-function useOptionalSocialPublish(): null | { openPublish: (opts: { mediaUrl: string; mediaType?: 'image' | 'video'; title?: string; caption?: string }) => void; closePublish: () => void; openSocialPublisher: (opts: { asset: unknown }) => void } {
+function useOptionalSocialPublish() {
   return useContext(SocialPublishContext)
 }
 import type {

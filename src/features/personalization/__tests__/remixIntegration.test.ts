@@ -119,6 +119,12 @@ describe('installPersonalizationApiAuth', () => {
     expect(calls[1].headers.get('authorization')).toBeNull()
   })
 
+  it('gives the thumbnail route the signed-in user and their own OpenAI key (it was missing from both lists)', async () => {
+    await window.fetch('/api/proxy/thumbnail-generate', { method: 'POST' })
+    expect(calls[0].headers.get('authorization')).toBe('Bearer clerk-session-token')
+    expect(calls[0].headers.get('x-openai-key')).toBe('sk-test-openai-key-1234567890')
+  })
+
   it("sends the user's OpenAI key only to the image routes", async () => {
     await window.fetch('/api/personalization/image-edit', { method: 'POST' })
     await window.fetch('/api/personalization/find-businesses', { method: 'POST' })
