@@ -34,6 +34,8 @@ const toHex = (c) => {
 };
 const hexToRgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
 const TABS = [['generate', '1 · Captions'], ['style', '2 · Style'], ['edit', '3 · Edit'], ['export', '4 · Export']];
+/** The Capite look behind a preset key, only for `capite-*` keys (the basic presets 'classic', 'karaoke' and 'minimal' share names with Capite ids). */
+const capiteOf = (key) => (typeof key === 'string' && key.startsWith('capite-') ? capiteStyleById(key.slice(7)) : undefined);
 const SAMPLE = [' Free', ' captions', ' that', ' run', ' on', ' your', ' device'].map((text, i) => ({ text, startMs: i * 450, endMs: i * 450 + 450, timestampMs: i * 450 + 225, confidence: null }));
 
 const STYLE_TEXT = `
@@ -414,7 +416,7 @@ export class CaptionStudioModal extends ModalShell {
 
   // ---------------------------------------------------------------- render
   lookName() {
-    const c = capiteStyleById(String(this.style.preset || '').replace(/^capite-/, ''));
+    const c = capiteOf(this.style.preset);
     return c?.name || CAPTION_PRESETS[this.style.preset]?.label || 'Custom';
   }
 
@@ -495,9 +497,9 @@ export class CaptionStudioModal extends ModalShell {
     const cats = [['all', 'All', all.length], ...CAPITE_PRESET_GROUPS.map((g) => [g.id, g.label, all.filter((x) => x[2] === g.id).length]), ['basic', 'Basic', 5]];
     const shown = all.filter((x) => this.styleFilter === 'all' || x[2] === this.styleFilter);
     const blurb = { tiktok: 'Short-form hooks', classic: 'Clean subtitles', box: 'Boxed words', karaoke: 'Sing-along wipe', minimal: 'Quiet & simple' };
-    const card = ([k, p]) => `<button type="button" class="csm-preset${s.preset === k ? ' on' : ''}" data-act="preset" data-preset="${k}" title="${esc(capiteStyleById(k.replace(/^capite-/, ''))?.description || p.label)}">
-      <b>${esc(p.label)}</b><span>${esc(capiteStyleById(k.replace(/^capite-/, ''))?.bestFor || `Basic • ${blurb[k] || ''}`)}</span><i style="background:linear-gradient(135deg,${esc(toHex(p.color))} 50%,${esc(toHex(p.highlightColor))} 50%)"></i></button>`;
-    const info = capiteStyleById(String(s.preset || '').replace(/^capite-/, ''));
+    const card = ([k, p]) => `<button type="button" class="csm-preset${s.preset === k ? ' on' : ''}" data-act="preset" data-preset="${k}" title="${esc(capiteOf(k)?.description || p.label)}">
+      <b>${esc(p.label)}</b><span>${esc(capiteOf(k)?.bestFor || `Basic • ${blurb[k] || ''}`)}</span><i style="background:linear-gradient(135deg,${esc(toHex(p.color))} 50%,${esc(toHex(p.highlightColor))} 50%)"></i></button>`;
+    const info = capiteOf(s.preset);
     return `
       <h3 class="csm-sec-title"><span class="glyph">✺</span>Motion style presets<span class="grow"></span><button type="button" class="csm-mini" data-act="reset-style">↺ Reset to default</button></h3>
       <p class="csm-hint">${info ? `<strong>${esc(info.name)}</strong> — ${esc(info.description)}. Best for ${esc(info.bestFor)}.` : 'Pick a look, then fine-tune it below. The preview shows exactly what will be rendered.'}</p>
