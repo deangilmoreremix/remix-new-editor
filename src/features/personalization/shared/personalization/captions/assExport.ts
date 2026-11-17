@@ -31,7 +31,8 @@ export interface AssStyle {
   boxColor?: string
 }
 
-export interface AssWord { text: string; start: number; end: number }
+/** `group` = which caption the word belongs to: words of different captions are never shown together. */
+export interface AssWord { text: string; start: number; end: number; group?: number }
 
 export interface AssOptions {
   words: readonly AssWord[]
@@ -66,15 +67,17 @@ export function assTime(sec: number): string {
 /** Words with times from lines that only have a start, an end and text: each line's time is shared between its words by length. */
 export function cuesToWords(cues: readonly { start: number; end: number; text: string }[]): AssWord[] {
   const out: AssWord[] = []
+  let group = -1
   for (const c of cues) {
     const tokens = String(c.text ?? '').split(/\s+/).filter(Boolean)
     if (!tokens.length || !(c.end > c.start)) continue
+    group++
     const weights = tokens.map((t) => t.length + 1)
     const total = weights.reduce((a, b) => a + b, 0)
     let t = c.start
     tokens.forEach((text, i) => {
       const end = i === tokens.length - 1 ? c.end : t + ((c.end - c.start) * weights[i]) / total
-      out.push({ text, start: t, end })
+      out.push({ text, start: t, end, group })
       t = end
     })
   }
@@ -89,14 +92,14 @@ const flag = (v: boolean) => (v ? -1 : 0)
 const round1 = (n: number) => Math.round(n * 10) / 10
 const display = (w: string, casing: AssOptions['casing']) => (casing === 'title' ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : casing === 'original' ? w : w.toUpperCase())
 
-interface Placed { text: string; start: number; end: number; line: number }
+interface Placed { text: string; start: number; end: number; line: number; group?: number }
 
 /** The ASS file text, or '' when there are no words. */
 export function generateAss(o: AssOptions): string {
   const language = o.language ?? 'en'
   const style = o.style
   const words = o.words
-    .map((w) => ({ text: String(w.text ?? '').replace(EMOJI, '').trim(), start: Number(w.start), end: Number(w.end) }))
+    .map((w) => ({ text: String(w.text ?? '').replace(EMOJI, '').trim(), start: Number(w.start), end: Number(w.end), group: w.group }))
     .filter((w) => w.text && Number.isFinite(w.start) && Number.isFinite(w.end))
     .map((w) => ({ ...w, end: Math.max(w.end, w.start) }))
   if (!words.length) return ''
@@ -110,7 +113,11 @@ export function generateAss(o: AssOptions): string {
   let lines: Placed[][] = [[]]
   let chars = [0]
   const flush = () => { const flat = lines.flatMap((l) => l); if (flat.length) groups.push(flat); lines = [[]]; chars = [0] }
+  let prevGroup: number | undefined
   for (const w of words) {
+    // A new caption starts a new group: its words are never shown with the previous caption's, and an event ends with its own caption.
+    if (prevGroup !== undefined && w.group !== prevGroup) flush()
+    prevGroup = w.group
     const li = lines.length - 1
     const withWord = chars[li] + (lines[li].length ? 1 : 0) + w.text.length
     if (withWord <= maxChars || !lines.flat().length) { lines[li].push({ ...w, line: li }); chars[li] = withWord; continue }

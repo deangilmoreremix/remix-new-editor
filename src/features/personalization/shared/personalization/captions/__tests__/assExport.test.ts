@@ -114,4 +114,27 @@ describe('generateAss', () => {
       expect(ass, language).not.toContain('👍')
     }
   })
+  describe('separate captions stay separate', () => {
+    const two = cuesToWords([{ start: 0, end: 1, text: 'Hello' }, { start: 10, end: 11, text: 'Later' }])
+    it('never shows one caption\'s words with another\'s, and never keeps a caption up through the silence after it', () => {
+      const d = dialogues(generateAss({ words: two, width: 1080, height: 1920, style: base }))
+      expect(d).toHaveLength(2)
+      expect(d[0]).toContain('HELLO')
+      expect(d[0]).not.toContain('LATER')
+      expect(d[1]).toContain('LATER')
+      expect(d[1]).not.toContain('HELLO')
+      expect(d[0]).toContain('0:00:00.00,0:00:00.99') // ends with its own caption, not at the next one
+      expect(d[1]).toContain('0:00:10.00,0:00:10.99')
+    })
+    it('still breaks one long caption into lines and groups, but only within that caption', () => {
+      const long = cuesToWords([{ start: 0, end: 6, text: Array.from({ length: 14 }, (_, i) => `word${i}`).join(' ') }, { start: 8, end: 9, text: 'next' }])
+      const d = dialogues(generateAss({ words: long, width: 1080, height: 1920, style: base }))
+      expect(d).toHaveLength(15)
+      expect(d.slice(0, 14).every((l) => !l.includes('NEXT'))).toBe(true)
+      expect(d[14]).not.toContain('WORD')
+    })
+    it('cuesToWords marks which caption each word belongs to', () => {
+      expect(two.map((w) => w.group)).toEqual([0, 1])
+    })
+  })
 })

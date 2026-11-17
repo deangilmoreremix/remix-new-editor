@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { LANGUAGES, detectScript, displayScale, isRtl, languageName, layoutFor, representativeLanguage, scriptFor, scriptOf } from '../scripts'
+import { SCRIPTS, LANGUAGES, detectScript, displayScale, isRtl, languageName, layoutFor, representativeLanguage, scriptFor, scriptOf } from '../scripts'
 
 describe('scripts', () => {
   it('knows the script of a language code, with region suffixes', () => {
@@ -68,5 +68,9 @@ describe('scripts', () => {
     expect(representativeLanguage('arabic')).toBe('ar')
     expect(representativeLanguage('latin')).toBe('en')
     expect(scriptOf(representativeLanguage('thai'))?.id).toBe('thai')
+  })
+  it('keeps generic families out of the script font stacks, so the layer can put them AFTER the script\'s own fonts', () => {
+    for (const s of SCRIPTS) expect(s.fallbackStack, s.id).not.toMatch(/(^|,\s*)(ui-sans-serif|system-ui|sans-serif|serif|monospace)\s*(,|$)/)
+    for (const s of SCRIPTS.filter((x) => x.id !== 'latin')) expect(s.fallbackStack.length, s.id).toBeGreaterThan(0)
   })
 })

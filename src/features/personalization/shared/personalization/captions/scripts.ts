@@ -15,21 +15,21 @@ export interface ScriptConfig {
   /** Size compared with the Latin display fonts (1 = same). */
   fontScale: number
   rtl: boolean
-  /** CSS font stack for text in this script, tried after the look's own font. */
+  /** Named font families for this script, tried after the look's own font and BEFORE the generic families (which the caller adds after). No generic family in it. Empty for Latin. */
   fallbackStack: string
 }
 
 export const SCRIPTS: readonly ScriptConfig[] = Object.freeze([
   {
-    id: 'latin', charWidthRatio: 0.55, fontScale: 1, rtl: false, fallbackStack: 'sans-serif',
+    id: 'latin', charWidthRatio: 0.55, fontScale: 1, rtl: false, fallbackStack: '',
     languages: ['en', 'es', 'fr', 'de', 'pt', 'it', 'nl', 'pl', 'ro', 'sv', 'no', 'nn', 'da', 'fi', 'cs', 'sk', 'hu', 'hr', 'sl', 'et', 'lv', 'lt', 'id', 'ms', 'vi', 'tl', 'sw', 'tr', 'az', 'uz', 'ca', 'gl', 'eu', 'cy', 'af', 'is', 'sq', 'bs', 'mt', 'la', 'lb', 'br', 'oc', 'fo', 'ht', 'mi', 'haw', 'ln', 'ha', 'sn', 'so', 'yo', 'mg', 'su', 'jw', 'tk'],
   },
-  { id: 'cyrillic', charWidthRatio: 0.85, fontScale: 0.5, rtl: false, fallbackStack: "'IBM Plex Sans', 'Noto Sans', 'Segoe UI', sans-serif", languages: ['ru', 'uk', 'bg', 'sr', 'mk', 'be', 'kk', 'ky', 'mn', 'tg', 'tt', 'ba'] },
-  { id: 'cjk', charWidthRatio: 1.05, fontScale: 0.65, rtl: false, fallbackStack: "'Noto Sans CJK SC', 'Noto Sans JP', 'Noto Sans KR', 'PingFang SC', 'Hiragino Sans', 'Microsoft YaHei', 'Malgun Gothic', sans-serif", languages: ['zh', 'ja', 'ko'] },
-  { id: 'arabic', charWidthRatio: 0.58, fontScale: 0.5, rtl: true, fallbackStack: "'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif", languages: ['ar', 'ur', 'fa', 'ps', 'sd'] },
-  { id: 'devanagari', charWidthRatio: 0.7, fontScale: 0.5, rtl: false, fallbackStack: "'IBM Plex Sans Devanagari', 'Noto Sans Devanagari', 'Nirmala UI', sans-serif", languages: ['hi', 'mr', 'ne', 'sa'] },
-  { id: 'thai', charWidthRatio: 0.62, fontScale: 0.5, rtl: false, fallbackStack: "'IBM Plex Sans Thai', 'Noto Sans Thai', 'Leelawadee UI', sans-serif", languages: ['th', 'lo'] },
-  { id: 'hebrew', charWidthRatio: 0.58, fontScale: 0.5, rtl: true, fallbackStack: "'IBM Plex Sans Hebrew', 'Noto Sans Hebrew', 'Segoe UI', sans-serif", languages: ['he', 'yi'] },
+  { id: 'cyrillic', charWidthRatio: 0.85, fontScale: 0.5, rtl: false, fallbackStack: "'IBM Plex Sans', 'Noto Sans', 'Segoe UI'", languages: ['ru', 'uk', 'bg', 'sr', 'mk', 'be', 'kk', 'ky', 'mn', 'tg', 'tt', 'ba'] },
+  { id: 'cjk', charWidthRatio: 1.05, fontScale: 0.65, rtl: false, fallbackStack: "'Noto Sans CJK SC', 'Noto Sans JP', 'Noto Sans KR', 'PingFang SC', 'Hiragino Sans', 'Microsoft YaHei', 'Malgun Gothic'", languages: ['zh', 'ja', 'ko'] },
+  { id: 'arabic', charWidthRatio: 0.58, fontScale: 0.5, rtl: true, fallbackStack: "'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma", languages: ['ar', 'ur', 'fa', 'ps', 'sd'] },
+  { id: 'devanagari', charWidthRatio: 0.7, fontScale: 0.5, rtl: false, fallbackStack: "'IBM Plex Sans Devanagari', 'Noto Sans Devanagari', 'Nirmala UI'", languages: ['hi', 'mr', 'ne', 'sa'] },
+  { id: 'thai', charWidthRatio: 0.62, fontScale: 0.5, rtl: false, fallbackStack: "'IBM Plex Sans Thai', 'Noto Sans Thai', 'Leelawadee UI'", languages: ['th', 'lo'] },
+  { id: 'hebrew', charWidthRatio: 0.58, fontScale: 0.5, rtl: true, fallbackStack: "'IBM Plex Sans Hebrew', 'Noto Sans Hebrew', 'Segoe UI'", languages: ['he', 'yi'] },
 ] as ScriptConfig[])
 
 /** For a language the table does not list (Greek, Bengali, Tamil…): a safe wide-script setting. */

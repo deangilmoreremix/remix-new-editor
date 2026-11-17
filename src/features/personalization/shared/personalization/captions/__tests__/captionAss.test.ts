@@ -48,4 +48,12 @@ describe('captionsToAss', () => {
   it('is empty when there are no captions', () => {
     expect(captionsToAss(caps({ cues: [] }), opts)).toBe('')
   })
+  it('keeps separate captions apart, with or without real word times', () => {
+    const c = caps({ cues: [{ startMs: 0, endMs: 1000, text: 'Hello', words: [{ text: 'Hello', startMs: 0, endMs: 1000 }] }, { startMs: 10000, endMs: 11000, text: 'Later' }] })
+    const d = dialogues(captionsToAss(c, opts))
+    expect(d).toHaveLength(2)
+    expect(d[0]).not.toContain('LATER'.toLowerCase())
+    expect(d[0]).toContain('0:00:00.00,0:00:00.99')
+    expect(d[1]).toContain('0:00:10.00,0:00:10.99')
+  })
 })

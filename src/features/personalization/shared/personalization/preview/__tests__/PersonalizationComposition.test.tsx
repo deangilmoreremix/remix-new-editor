@@ -349,6 +349,16 @@ describe('burned-in captions', () => {
       expect(line(mountComposition(one('こんにちは', { language: 'ja' })).container).style.fontFamily).toContain('Noto Sans')
       expect(line(mountComposition(one('Call us today')).container).style.fontFamily).not.toContain('Noto Sans Arabic')
     })
+    it('puts the script\'s fonts BEFORE the generic families, so an installed Arabic or CJK font is used instead of whatever the system font happens to cover', () => {
+      for (const [text, language, font] of [['مرحبا', 'ar', 'Noto Sans Arabic'], ['שלום', 'he', 'Noto Sans Hebrew'], ['こんにちは', 'ja', 'Noto Sans JP']] as const) {
+        const stack = line(mountComposition(one(text, { language })).container).style.fontFamily
+        expect(stack.indexOf(font), language).toBeGreaterThan(-1)
+        expect(stack.indexOf(font), language).toBeLessThan(stack.indexOf('system-ui'))
+        expect(stack.indexOf(font), language).toBeLessThan(stack.indexOf('ui-sans-serif'))
+      }
+      const capite = line(mountComposition(one('مرحبا', { language: 'ar', style: 'hormozi' })).container).style.fontFamily
+      expect(capite.indexOf('Noto Sans Arabic')).toBeLessThan(capite.indexOf('system-ui'))
+    })
     it('sets wide scripts a little smaller so a line holds about as many letters, never below 60 %', () => {
       const size = (el: HTMLElement) => parseFloat(el.style.fontSize)
       const latin = size(line(mountComposition(one('Call us today')).container))

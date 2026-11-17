@@ -18,9 +18,9 @@ const BUILT_IN: Record<'bold' | 'bar' | 'clean', Omit<AssStyle, 'highlightColor'
 }
 
 export function captionsToAss(c: PreviewCaptions, o: { width: number; height: number; accent: string }): string {
-  const words: AssWord[] = c.cues.flatMap((cue) => cue.words?.length
-    ? cue.words.map((w) => ({ text: w.text, start: w.startMs / 1000, end: w.endMs / 1000 }))
-    : cuesToWords([{ start: cue.startMs / 1000, end: cue.endMs / 1000, text: cue.text }]))
+  const words: AssWord[] = c.cues.flatMap((cue, group) => cue.words?.length
+    ? cue.words.map((w) => ({ text: w.text, start: w.startMs / 1000, end: w.endMs / 1000, group }))
+    : cuesToWords([{ start: cue.startMs / 1000, end: cue.endMs / 1000, text: cue.text }]).map((w) => ({ ...w, group })))
   if (!words.length) return ''
   const language = c.language ?? representativeLanguage(detectScript(c.cues.map((x) => x.text).join(' ')))
   const look = capiteStyleById(c.style)
