@@ -5274,7 +5274,7 @@ function AdvancedOverlaySection({ source }: { source: PersonalizationSource | nu
           : 'Layers apply to video outputs only — choose Video or Everything under Output & engine to include them.'}
       </p>
       <div style={{ marginTop: 16 }}>
-        <OverlayEditor inputProps={inputProps} />
+        <OverlayEditor inputProps={inputProps} addDesigns />
       </div>
     </section>
   )

@@ -5,6 +5,7 @@
  */
 import React, { useMemo, useState } from 'react';
 import '../../../../../styles/smartvideo-analytics.css';
+import { heatBuckets } from './heatBuckets.js';
 
 export type AnalyticsEvent = { day: string; plays: number };
 export type AudiencePoint = { positionPercent: number; retentionPercent: number };
@@ -76,11 +77,8 @@ function Bars({items}:{items:Conversion[]}) {
 }
 export function EngagementExplorer({project,onSeekTo,renderPreview}:{project:ProjectAnalyticsData;onSeekTo?:(ms:number)=>void;renderPreview?:(project:ProjectAnalyticsData)=>React.ReactNode}) {
   const max=Math.max(1,project.durationMs);
-  const buckets=Array.from({length:34},(_,i)=>{
-    const pos=i/33*100;
-    const nearest=project.retention.reduce((best,p)=>Math.abs(p.positionPercent-pos)<Math.abs(best.positionPercent-pos)?p:best, project.retention[0] ?? {positionPercent:0,retentionPercent:0});
-    return nearest.retentionPercent;
-  });
+  // Same 34 slices as before; with no data every slice is 0 (the bars sit at their minimum height).
+  const buckets=project.retention.length ? heatBuckets(project.retention,34) : Array.from({length:34},()=>0);
   const topSection=project.sections.slice().sort((a,b)=>b.engagementPercent-a.engagementPercent)[0];
   return <div className="sv-card sv-explorer">
     <h3>Video engagement explorer</h3><p className="sv-subtitle">Select a section to seek the existing project preview</p>

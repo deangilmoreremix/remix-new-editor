@@ -50,8 +50,10 @@ export async function ensurePermanent(video, { upload, fetchImpl = globalThis.fe
   if (blob.size > MAX_VIDEO_BYTES) {
     throw new IngestError(`This video is ${Math.round(blob.size / 1048576)}MB; the limit is ${MAX_VIDEO_BYTES / 1048576}MB. Compress it first.`, 'too_large');
   }
-  const type = blob.type && blob.type.startsWith('video/') ? blob.type : 'video/mp4';
-  const ext = type === 'video/webm' ? 'webm' : type === 'video/quicktime' ? 'mov' : 'mp4';
+  // Keep the real type: an image stays an image (png/jpg/webp/gif); anything that is not a video or image is treated as mp4.
+  const type = blob.type && (blob.type.startsWith('video/') || blob.type.startsWith('image/')) ? blob.type : 'video/mp4';
+  const EXT = { 'video/webm': 'webm', 'video/quicktime': 'mov', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' };
+  const ext = EXT[type] || (type.startsWith('image/') ? 'png' : 'mp4');
   const name = (video.file?.name || `${(video.title || 'video').replace(/[^a-z0-9]+/gi, '-').slice(0, 40) || 'video'}.${ext}`);
   const file = blob instanceof File ? blob : new File([blob], name, { type });
   const res = await upload(file);

@@ -539,7 +539,10 @@ export class VideoPersonalizationHub extends BaseModal {
     this.content.querySelector('.browse-landing-btn')?.addEventListener('click', async () => {
       const v = this.videos[0] || {};
       const { openLandingPagePicker } = await import('../../lib/landingPages/pickerModal.js');
-      openLandingPagePicker({ video: { url: v.url || v.src || v.videoUrl, name: v.name || v.title, thumbnail_url: v.thumbnail || v.poster, studio: 'personalization' } });
+      const { normalizeCustomer } = await import('../../lib/landingPages/customerProfile.js');
+      // the contacts imported in this window become the customers: one page, one personal link each
+      const customers = (this.contacts || []).map((c, i) => normalizeCustomer({ id: c.id || `hub-${i}`, ...c }, 'contact')).filter(Boolean);
+      openLandingPagePicker({ video: { url: v.url || v.src || v.videoUrl, name: v.name || v.title, thumbnail_url: v.thumbnail || v.poster, studio: 'personalization' }, customers, preselect: customers.length ? 'all' : 'active' });
     });
 
     // Create pages button

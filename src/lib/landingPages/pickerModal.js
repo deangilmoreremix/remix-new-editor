@@ -12,7 +12,11 @@ import { showToast } from '../loading.js';
 import { TEMPLATES, defaultConfig, sanitizePuck, getTemplate } from './templates.js';
 import { sampleSections } from './sampleContent.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from './ingest.js';
-import { updatePage, pageUrl } from './client.js';
+import { updatePage, pageUrl, addContacts, personalUrl } from './client.js';
+import { exportLinksCsv } from './csv.js';
+import { loadCustomers } from './customerSources.js';
+import { createCustomerPanel } from './customerPanel.js';
+import { applyCustomerToPuck, brandForConfig, customerTokens, toContactFields, dedupeCustomers } from './customerProfile.js';
 import { isPermanentUrl } from './sourceRegistry.js';
 import { attachDesignPreview } from './designPreview.js';
 
@@ -88,7 +92,7 @@ const brandDefaults = () => {
 
 let openCount = 0;
 
-export function openLandingPagePicker({ video = null, template = null, onPick, onClose, deps = {} } = {}) {
+export function openLandingPagePicker({ video = null, template = null, customers = [], preselect = 'active', onPick, onClose, deps = {} } = {}) {
   let src = toPickerVideo(video);
   const prevOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
@@ -117,6 +121,17 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
   let saved = null;
   let chosen = null;
   const state = { q: '', chip: 'all' };
+  // `customers` = people the caller already has (e.g. the contacts imported in the Personalize hub), listed first.
+  const baseLoad = deps.loadCustomers || loadCustomers;
+  const cp = createCustomerPanel({
+    preselect,
+    loadCustomers: async () => {
+      const r = await baseLoad();
+      const given = (customers || []).filter(Boolean);
+      return { customers: dedupeCustomers([...given, ...(r?.customers || [])]), activeId: r?.activeId };
+    },
+  });
+  const selected = () => cp.selected();
   let previews = [];
   const clearPreviews = () => { previews.forEach((h) => h.destroy()); previews = []; };
 
@@ -190,19 +205,20 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
       chipBtns.set(c.id, b);
       bar.appendChild(b);
     });
+    const panel = cp.el; cp.fill();
     const hint = el('p', 'text-xs text-secondary mb-4', src ? 'Click a design to see the full page with your video in it, edit every word, then save.' : '');
     if (!src) {
-      msg.textContent = 'No usable video yet (it needs an https link). Paste one below to continue.';
+      msg.textContent = 'No usable video or picture yet (it needs an https link). Paste one below to continue.';
       const row = el('div', 'flex flex-col sm:flex-row gap-2 mb-4');
       const link = el('input', INPUT);
       link.type = 'url';
-      link.placeholder = 'https://…/video.mp4';
+      link.placeholder = 'https://…/video.mp4 or picture.png';
       link.setAttribute('aria-label', 'Video link');
       const use = el('button', BTN, 'Use link');
       use.type = 'button';
       use.addEventListener('click', () => {
         const v = toPickerVideo({ url: link.value.trim(), title: decodeURIComponent(link.value.split('?')[0].split('/').pop() || '').replace(/\.[^.]+$/, '') });
-        if (!v || !/^https:\/\//i.test(v.url)) { msg.textContent = 'Paste a full https:// video link.'; return; }
+        if (!v || !/^https:\/\//i.test(v.url)) { msg.textContent = 'Paste a full https:// video or picture link.'; return; }
         src = v;
         showGrid();
       });
@@ -246,15 +262,25 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
     }
     search.addEventListener('input', () => { state.q = search.value; paint(); });
     paint();
-    wrap.append(bar, hint, grid);
+    wrap.append(panel, bar, hint, grid);
     body.replaceChildren(wrap);
   }
 
-  async function showEdit(templateId) {
+  async function showEdit(templateId, { plain = false } = {}) {
     clearPreviews();
     chosen = getTemplate(templateId);
-    const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: brandDefaults() });
-    data = cfg.puck;
+    const sel = selected();
+    const one = sel.length === 1 ? sel[0] : null;
+    const withBrand = !!one && cp.brand() && !plain;
+    let applied = [];
+    if (withBrand) {
+      const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: brandForConfig(one) });
+      const r = applyCustomerToPuck(cfg.puck, one);
+      data = r.data; applied = r.applied;
+    } else {
+      data = defaultConfig(chosen.id, { title: src?.title || '', brand: brandDefaults() }).puck;
+    }
+    const previewTokens = sel.length ? customerTokens(sel[0]) : SAMPLE_TOKENS;
     view = 'edit';
     msg.textContent = '';
     const saveBtn = el('button', BTN_PRIMARY, 'Save as my page');
@@ -262,16 +288,32 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
     saveBtn.disabled = !src;
     setHead(chosen.name, [saveBtn]);
     const hint = el('p', 'px-4 md:px-6 pt-2 text-xs text-secondary', 'Click any text to edit it. Use the left panel to add, remove or reorder sections.');
+    let noteEl = null;
+    if (sel.length) {
+      const note = el('div', 'px-4 md:px-6 pt-1 text-xs');
+      note.dataset.personalizedNote = '';
+      note.style.cssText = 'color:#d9ff00;display:flex;gap:10px;align-items:center;flex-wrap:wrap';
+      note.appendChild(el('span', '', withBrand
+        ? `Personalized for ${one.label}${applied.length ? `: ${applied.join(', ')} filled in` : ''}. Previewing as ${sel[0].label}.`
+        : sel.length === 1 ? `Plain design. Previewing as ${sel[0].label}.` : `${sel.length} personal links will be made when you save. Previewing as ${sel[0].label}.`));
+      if (withBrand) {
+        const undo = el('button', '', 'Use the plain design'); undo.type = 'button';
+        undo.style.cssText = 'background:none;border:0;color:#fff;text-decoration:underline;cursor:pointer;font-size:12px';
+        undo.addEventListener('click', () => showEdit(templateId, { plain: true }));
+        note.appendChild(undo);
+      }
+      noteEl = note;
+    }
     const host = el('div', 'flex-1 min-h-0 m-3 md:m-4 rounded-2xl border border-white/10 overflow-hidden bg-white');
     host.dataset.editorHost = '';
-    body.replaceChildren(hint, host);
+    body.replaceChildren(...[hint, noteEl, host].filter(Boolean));
     try {
       const mount = deps.mountPuckEditor || (await import('./puck/mount.jsx')).mountPuckEditor;
       if (view !== 'edit' || !overlay.isConnected) return;
       editor = mount(host, {
         page: { id: 'preview', title: src?.title || '', video_url: src?.url || '', poster_url: src?.posterUrl || null },
         data,
-        tokens: SAMPLE_TOKENS,
+        tokens: previewTokens,
         onPublish: () => saveBtn.click(),
         onChange: (d) => { const n = sanitizePuck(d); if (n) data = n; },
       });
@@ -285,9 +327,13 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
       try {
         await primeSupabaseIdentity();
         const create = deps.createPageFromVideo || createPageFromVideo;
-        const row = await create(supabase, src, { template: chosen.id, brand: brandDefaults(), deps: { upload }, onStep: (l) => { saveBtn.textContent = `${l}…`; } });
+        const row = await create(supabase, src, { template: chosen.id, brand: withBrand ? brandForConfig(one) : brandDefaults(), deps: { upload }, onStep: (l) => { saveBtn.textContent = `${l}…`; } });
         const page = await (deps.updatePage || updatePage)(supabase, row.id, { config: { ...row.config, puck: sanitizePuck(data) || row.config?.puck } });
-        saved = { id: row.id, url: pageUrl(row.id), published: !!page.published, page };
+        saved = { id: row.id, url: pageUrl(row.id), published: !!page.published, page, contacts: [], contactError: '' };
+        const contactRows = sel.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
+        if (contactRows.length) {
+          try { saved.contacts = await (deps.addContacts || addContacts)(supabase, row.id, contactRows); } catch (err) { saved.contactError = err?.message || 'Could not make the personal links'; }
+        }
         busy = false;
         try { onPick?.(saved); } catch { /* caller bug */ }
         showDone();
@@ -307,6 +353,18 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
     box.appendChild(el('div', 'rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200', `Saved to Video Pages with your video attached${saved.published ? ' and published.' : ' as a draft.'}`));
     box.appendChild(el('div', 'rounded-xl border border-white/10 bg-white/5 p-3 text-xs break-all', saved.url));
     const note = el('div', 'text-xs font-bold text-primary min-h-[1rem]');
+    if (saved.contactError) box.appendChild(el('div', 'text-sm text-amber-300', `The page is saved, but the personal links were not made: ${saved.contactError}. Add them from Video Pages > Personal links.`));
+    if (saved.contacts?.length) {
+      const links = el('div', ''); links.dataset.personalLinks = '';
+      links.style.cssText = 'width:100%;border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 12px;font-size:12px;display:grid;gap:4px';
+      links.appendChild(el('div', '', `${saved.contacts.length} personal link${saved.contacts.length === 1 ? '' : 's'} (they work once the page is published)`));
+      saved.contacts.slice(0, 4).forEach((c) => { const l = el('div', 'break-all text-secondary', `${[c.fields?.firstname, c.fields?.lastname].filter(Boolean).join(' ') || c.fields?.company || 'Contact'}: ${personalUrl(saved.id, c.id)}`); links.appendChild(l); });
+      if (saved.contacts.length > 4) links.appendChild(el('div', 'text-secondary', `and ${saved.contacts.length - 4} more`));
+      const csvBtn = el('button', BTN, 'Copy all links (CSV)'); csvBtn.type = 'button';
+      csvBtn.addEventListener('click', async () => { try { await navigator.clipboard.writeText(exportLinksCsv(saved.contacts, saved.id, globalThis.location?.origin || '')); note.textContent = 'Links copied'; } catch { note.textContent = 'Copy failed'; } });
+      links.appendChild(csvBtn);
+      box.appendChild(links);
+    }
     const row = el('div', 'flex flex-wrap gap-2');
     const copy = async () => { try { await navigator.clipboard.writeText(saved.url); note.textContent = 'Link copied'; } catch { note.textContent = 'Copy failed'; } };
     if (saved.published) {
@@ -343,6 +401,7 @@ export function openLandingPagePicker({ video = null, template = null, onPick, o
     body.replaceChildren(box);
   }
 
+  void cp.load();
   if (template && TEMPLATES.some((t) => t.puck && t.id === template)) showEdit(template); else showGrid();
   dialog.focus();
   return { close, element: overlay };

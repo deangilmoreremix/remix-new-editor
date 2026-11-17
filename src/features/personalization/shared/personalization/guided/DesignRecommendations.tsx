@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { isRemotionDesignTemplateSupported } from '../templates'
-import { DESIGN_GOALS, recommendDesigns, type DesignGoalId } from '../templates/recommendations'
+import { DESIGN_GOALS, recommendDesigns, type DesignGoalId, type RecommendContext } from '../templates/recommendations'
 import type { RemotionDesignTemplate } from '../templates/types'
 import type { PreviewAspectRatio, PreviewLayoutId } from '../preview/types'
 import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser'
@@ -18,33 +18,44 @@ export function DesignRecommendations({
   aspectRatio,
   activeDesignId,
   available,
+  context,
   onSelectDesign,
   onAddDesign,
   onSelectLayout,
+  addCheck,
 }: {
   designs: readonly RemotionDesignTemplate[]
   aspectRatio: PreviewAspectRatio
   activeDesignId: string | null
   available: { logo: boolean; product: boolean; service: boolean }
+  /** Project facts that tune the ranking and the "why this one" line. */
+  context?: RecommendContext
   onSelectDesign: (designId: string | null) => void
   /** Adds a design on top of the current layout (keeps the customer's layers). When omitted, only Replace is offered. */
   onAddDesign?: (designId: string) => void
   onSelectLayout: (layoutId: PreviewLayoutId) => void
+  /** Says whether a design may be added on top right now; refused designs are disabled with the reason. */
+  addCheck?: (design: RemotionDesignTemplate) => { ok: boolean; reason?: string }
 }): React.JSX.Element {
   const [goal, setGoal] = useState<DesignGoalId>('introduce')
   const [browseAll, setBrowseAll] = useState(false)
   // Replace swaps the whole layout for the design; Add keeps the layout and puts the design on top.
-  const [how, setHow] = useState<'replace' | 'add'>('replace')
-  const choose = (id: string, active: boolean) => (how === 'add' && onAddDesign && !active ? onAddDesign(id) : onSelectDesign(active ? null : id))
+  const [how, setHow] = useState<'replace' | 'add'>('add')
+  // Add mode never removes: an added design comes off through its Remove button, which keeps the rest.
+  const choose = (id: string, active: boolean) => {
+    if (how === 'add' && onAddDesign) { if (!active) onAddDesign(id); return }
+    onSelectDesign(active ? null : id)
+  }
   const recommended = useMemo(
     () => recommendDesigns({
-      designs, aspectRatio, goal, available,
+      designs, aspectRatio, goal, available, context,
       isSupported: (d) => isRemotionDesignTemplateSupported(d.id, aspectRatio).supported,
     }),
-    [designs, aspectRatio, goal, available],
+    [designs, aspectRatio, goal, available, context?.textLength, context?.hasLogo, context?.imageCount],
   )
   return (
     <div data-testid="design-recommendations" style={{ marginBottom: 12 }}>
+      <p style={{ ...hintStyle, marginTop: 0 }}>Designs add animation to your video; your layout stays.</p>
       <div style={{ ...labelStyle, marginBottom: 6 }}>What is this video for?</div>
       <div role="group" aria-label="Goal" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
         {DESIGN_GOALS.map((g) => (
@@ -56,26 +67,29 @@ export function DesignRecommendations({
       {onAddDesign && (
         <div role="group" aria-label="When I pick a design" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
           <span style={{ ...hintStyle, margin: 0 }}>When I pick a design:</span>
-          <button type="button" data-testid="design-how-replace" aria-pressed={how === 'replace'} onClick={() => setHow('replace')} style={chipStyle(how === 'replace')}>Replace my layout</button>
-          <button type="button" data-testid="design-how-add" aria-pressed={how === 'add'} onClick={() => setHow('add')} style={chipStyle(how === 'add')}>Add on top (keep my edits)</button>
+          <button type="button" data-testid="design-how-replace" aria-pressed={how === 'replace'} onClick={() => setHow('replace')} style={chipStyle(how === 'replace')}>Replace my layout (starts over)</button>
+          <button type="button" data-testid="design-how-add" aria-pressed={how === 'add'} onClick={() => setHow('add')} style={chipStyle(how === 'add')}>Add on top (keeps my layout and edits)</button>
         </div>
       )}
       <div style={{ ...labelStyle, marginBottom: 6 }}>Recommended designs</div>
       <div data-testid="design-recommended" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 8 }}>
-        {recommended.map(({ design }) => {
+        {recommended.map(({ design, reasons }) => {
           const active = activeDesignId === design.id
+          const refusal = how === 'add' && !active && addCheck ? addCheck(design) : { ok: true }
           return (
             <button
               key={design.id}
               type="button"
               data-testid={`design-rec-${design.id}`}
               aria-pressed={active}
-              title={design.description}
+              disabled={!refusal.ok}
+              title={refusal.ok ? design.description : refusal.reason}
               onClick={() => choose(design.id, active)}
-              style={{ ...softPanelStyle, textAlign: 'left', cursor: 'pointer', border: `1px solid ${active ? C.cyanBorder : C.border}`, background: active ? C.cyanSoft : undefined }}
+              style={{ ...softPanelStyle, textAlign: 'left', cursor: refusal.ok ? 'pointer' : 'not-allowed', opacity: refusal.ok ? 1 : 0.55, border: `1px solid ${active ? C.cyanBorder : C.border}`, background: active ? C.cyanSoft : undefined }}
             >
               <div style={{ color: C.text, fontSize: 12, fontWeight: 700 }}>{design.name}</div>
-              <div style={{ ...hintStyle, margin: '2px 0 0' }}>{design.description}</div>
+              <div style={{ ...hintStyle, margin: '2px 0 0' }}>{refusal.ok ? design.description : refusal.reason}</div>
+              {reasons.length > 1 && <div data-testid={`design-why-${design.id}`} style={{ ...hintStyle, margin: '4px 0 0', color: C.cyan }}>Why: {reasons.slice(1).join(' · ')}</div>}
             </button>
           )
         })}

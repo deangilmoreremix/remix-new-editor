@@ -63,6 +63,19 @@ const NOOP_SEQUENCE_MANAGER = {
   sequences: [],
 }
 
+/**
+ * Remotion 4.0.5xx removed `Internals.SequenceManager` (the registry moved to other contexts), and reading
+ * `.Provider` off `undefined` crashed EVERY render of the composition: the preview, the template cards and the
+ * export all showed black. The wrapper only exists for the jsdom/test case above, so it is applied only when
+ * the installed Remotion still has it; a real browser renders the children directly.
+ */
+function MaybeSequenceManager({ children }: { children: React.ReactNode }): React.JSX.Element {
+  const Provider = (Internals as unknown as {
+    SequenceManager?: { Provider?: React.ComponentType<{ value: unknown; children?: React.ReactNode }> }
+  }).SequenceManager?.Provider
+  return Provider ? <Provider value={NOOP_SEQUENCE_MANAGER}>{children}</Provider> : <>{children}</>
+}
+
 /** Dark text on light colors, white on dark ones (hex colors; else the default). */
 export function readableTextOn(background: string, dark: string): string {
   const match = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(background.trim())
@@ -393,7 +406,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
   const { start: endCardStart, length: endCardLen } = endCardFrames(settings.durationInFrames)
 
   return (
-    <Internals.SequenceManager.Provider value={NOOP_SEQUENCE_MANAGER}>
+    <MaybeSequenceManager>
     <AbsoluteFill style={{ background: '#05070a' }}>
       {renderBackground()}
       {audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
@@ -706,6 +719,6 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           </Sequence>
         ) : null}
       </AbsoluteFill>
-    </Internals.SequenceManager.Provider>
+    </MaybeSequenceManager>
   )
 }

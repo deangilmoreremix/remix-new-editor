@@ -31,26 +31,53 @@ export function AccentText({ text, as: Tag = 'span', className }) {
   );
 }
 
-export function VideoPlayer({ poster = '' }) {
+const IMAGE_PATH = /\.(png|jpe?g|webp|gif|avif|svg)$/i;
+const pathOf = (u) => String(u || '').split(/[?#]/)[0];
+const httpsMedia = (v) => (/^https:\/\/[^\s"'<>()\\]+$/i.test(String(v || '').trim()) ? String(v).trim() : '');
+/** A page "video" that is really a picture (an image-only page keeps its image there) is not played. */
+export const isPlayableVideo = (u) => !!httpsMedia(u) && !IMAGE_PATH.test(pathOf(u));
+
+/**
+ * The video slot. Always shows a round play button over the picture so people know a video goes here:
+ *   - a video exists (slotVideo, else the page's video): the picture is its poster; the button starts it
+ *   - no video yet: the design's mock picture (or a neutral mock) + play button + "Your video goes here" in the editor
+ *   - only a picture (slotImage, or an image-only page): shown as a still, no play button
+ * The user's own picture (slotImage, then the page poster) beats the design's picture. `bakedPlay` says the design's
+ * picture already draws a play button, so the overlay is only added over the user's own pictures.
+ */
+export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', bakedPlay = '' }) {
   const { page, handlers, preview } = usePage();
   const fired = useRef(new Set());
+  const ref = useRef(null);
+  const [started, setStarted] = useState(false);
   const once = (kind, fn) => {
     if (preview || fired.current.has(kind)) return;
     fired.current.add(kind);
     fn?.(kind);
   };
-  const src = /^https:\/\//i.test(page?.video_url || '') ? page.video_url : '';
-  const posterUrl = safeImageUrl(page?.poster_url) || safeImageUrl(poster) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(poster) ? poster : '');
+  const pageVideo = isPlayableVideo(page?.video_url) ? page.video_url : '';
+  const src = (isPlayableVideo(slotVideo) ? httpsMedia(slotVideo) : '') || pageVideo;
+  const pageImage = !pageVideo && httpsMedia(page?.video_url) && IMAGE_PATH.test(pathOf(page.video_url)) ? httpsMedia(page.video_url) : '';
+  const userImage = safeImageUrl(slotImage) || pageImage;
+  const designPoster = safeImageUrl(poster) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(poster) ? poster : '');
+  const posterUrl = userImage || safeImageUrl(page?.poster_url) || designPoster;
+  const ownPicture = !!(userImage || safeImageUrl(page?.poster_url));
+  const still = !src && !!userImage;
+  const baked = bakedPlay === true || bakedPlay === 'yes';
+  const showPlay = !started && !still && (!baked || ownPicture);
+  const mock = !src && !userImage;
+  const play = () => { const v = ref.current; if (v && src) { void v.play?.(); } };
   return (
-    <div className="pk-video">
+    <div className={`pk-video${mock ? ' pk-video--mock' : ''}${still ? ' pk-video--still' : ''}`}>
       <video
-        controls
+        ref={ref}
+        controls={!!src}
         playsInline
         preload="metadata"
         src={src || undefined}
         poster={posterUrl || undefined}
-        aria-label={page?.title || 'Video'}
-        onPlay={() => once('play', () => handlers.onPlay?.())}
+        aria-label={still || mock ? (page?.title ? `Picture for ${page.title}` : 'Video placeholder') : (page?.title || 'Video')}
+        onPlay={() => { setStarted(true); once('play', () => handlers.onPlay?.()); }}
         onTimeUpdate={(e) => {
           const v = e.currentTarget;
           if (!v.duration || !Number.isFinite(v.duration)) return;
@@ -58,6 +85,8 @@ export function VideoPlayer({ poster = '' }) {
         }}
         onEnded={() => once('complete', () => handlers.onComplete?.())}
       />
+      {showPlay ? <button type="button" className="pk-video-play" aria-label={src ? 'Play video' : 'Video placeholder: your video goes here'} onClick={play} tabIndex={src ? 0 : -1} /> : null}
+      {mock && preview ? <span className="pk-video-label">Your video goes here</span> : null}
     </div>
   );
 }
@@ -179,7 +208,7 @@ const cssImage = (v) => {
   return u && !/["'()\\\s<>]/.test(u) ? `url(${JSON.stringify(u)})` : '';
 };
 
-export function Hero({ variant = 'copy-video-form', background, eyebrow, headline, subhead, bullets, chip, photo, formTitle, formSubtitle, submitLabel, formFields, privacy, buttons, showForm = 'yes' }) {
+export function Hero({ variant = 'copy-video-form', background, eyebrow, headline, subhead, bullets, chip, photo, slotImage, slotVideo, bakedPlay, formTitle, formSubtitle, submitLabel, formFields, privacy, buttons, showForm = 'yes' }) {
   const t = useTokens();
   const fields = asList(formFields).filter((f) => f.key && f.label).map((f) => ({ ...f, key: String(f.key).replace(/[^a-z0-9_]/gi, '').toLowerCase() }));
   return (
@@ -192,7 +221,7 @@ export function Hero({ variant = 'copy-video-form', background, eyebrow, headlin
         {asList(buttons).length ? <div className="pk-actions">{asList(buttons).map((b, i) => <SafeLink key={i} className={`pk-btn pk-btn--${b.style === 'primary' ? 'primary' : 'secondary'}`} href={b.url}>{t(b.label)}</SafeLink>)}</div> : null}
       </div>
       <div className="pk-hero-video" id="video">
-        <VideoPlayer poster={photo} />
+        <VideoPlayer poster={photo} slotImage={slotImage} slotVideo={slotVideo} bakedPlay={bakedPlay} />
         {chip ? <div className="pk-chip">{t(chip)}</div> : null}
       </div>
       {showForm === 'yes' ? <div className="pk-hero-form" id="lead"><LeadForm title={formTitle} subtitle={formSubtitle} submitLabel={submitLabel} privacy={privacy} fields={fields.length ? fields : undefined} /></div> : null}
