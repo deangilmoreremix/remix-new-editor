@@ -114,10 +114,11 @@ interface MirrorCircuit {
 const circuitByEndpoint: Map<string, MirrorCircuit> = new Map()
 
 function recordSuccess(endpoint: string): void {
-  const c = circuitByEndpoint.get(endpoint)
-  if (!c) return
+  // A mirror that works is tracked as well, so overpassHealth() counts every mirror that was tried.
+  const c = circuitByEndpoint.get(endpoint) || { consecutiveFailures: 0, openUntil: 0 }
   c.consecutiveFailures = 0
   c.openUntil = 0
+  circuitByEndpoint.set(endpoint, c)
 }
 
 function recordFailure(endpoint: string): void {

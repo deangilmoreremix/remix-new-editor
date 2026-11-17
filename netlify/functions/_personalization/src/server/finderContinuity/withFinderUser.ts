@@ -37,7 +37,8 @@ export async function withFinderUser(
       log('auth', 401, 'UNAUTHENTICATED', 'No authenticated user')
       return NextResponse.json({ error: 'UNAUTHENTICATED' }, { status: 401 })
     }
-    const limit = rateLimit(resolveRateLimitKey(userId, null), { windowMs: 60_000, max: opts.writes ? 30 : 120 })
+    // Reads and writes have their own bucket, so browsing saved searches can never use up the allowance for saving one.
+    const limit = rateLimit(`${resolveRateLimitKey(userId, null)}:${opts.writes ? 'write' : 'read'}`, { windowMs: 60_000, max: opts.writes ? 30 : 120 })
     if (!limit.allowed) return rateLimit429(limit.retryAfterMs)
     return await fn({ userId, correlationId, supabase: createServerClient(), log })
   } catch (err) {
