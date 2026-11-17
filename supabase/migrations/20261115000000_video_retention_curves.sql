@@ -35,4 +35,6 @@ as $$
 $$;
 
 revoke all on function public.video_retention_curves(text[], date, date) from public;
+-- Some projects grant anon execute by default privileges; keep this signed-in only.
+revoke execute on function public.video_retention_curves(text[], date, date) from anon;
 grant execute on function public.video_retention_curves(text[], date, date) to authenticated;
