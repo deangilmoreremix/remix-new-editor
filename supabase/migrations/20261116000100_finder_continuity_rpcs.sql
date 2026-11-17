@@ -103,9 +103,16 @@ begin
     raise exception 'finder_lead_feedback_add: business_id is required' using errcode = '22023';
   end if;
   perform set_config('app.clerk_user_id', p_clerk_user_id, true);
-  select count(*) into v_count from public.finder_lead_feedback where clerk_user_id = p_clerk_user_id;
-  if v_count >= 500 then
-    raise exception 'finder_lead_feedback_add: limit of 500 flags reached' using errcode = '54000';
+  -- The cap is for NEW flags only: re-sending an existing business/reason pair (to change its note, or to retry
+  -- after a lost response) must still work when the user is at the limit.
+  if not exists (
+    select 1 from public.finder_lead_feedback
+    where clerk_user_id = p_clerk_user_id and business_id = p_business_id and reason = p_reason
+  ) then
+    select count(*) into v_count from public.finder_lead_feedback where clerk_user_id = p_clerk_user_id;
+    if v_count >= 500 then
+      raise exception 'finder_lead_feedback_add: limit of 500 flags reached' using errcode = '54000';
+    end if;
   end if;
   -- The CHECK constraint rejects an unknown reason; the same flag twice is a no-op that returns the existing row.
   insert into public.finder_lead_feedback (clerk_user_id, business_id, reason, note)

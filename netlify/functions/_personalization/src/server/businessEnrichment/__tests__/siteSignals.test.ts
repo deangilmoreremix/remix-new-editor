@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { extractSiteSignals, mergeSiteSignals } from '../siteSignals'
+import { extractSiteSignals, extractRating, mergeSiteSignals } from '../siteSignals'
 
 const U = 'https://joes.com/'
 describe('extractSiteSignals', () => {
@@ -42,5 +42,27 @@ describe('mergeSiteSignals', () => {
     ])
     expect(m.video?.kinds.sort()).toEqual(['vimeo', 'youtube'])
     expect(m.contactForm?.sourceUrl).toBe('b'); expect(m.quality?.sourceUrl).toBe('a'); expect(m.booking?.href).toBe('h')
+  })
+})
+
+describe('review fixes', () => {
+  const article = JSON.stringify({ '@type': 'BlogPosting', headline: 'Our week', aggregateRating: { ratingValue: 5, reviewCount: 1 } })
+  const restaurant = JSON.stringify({ '@type': 'Restaurant', name: 'Joes', aggregateRating: { ratingValue: 4.4, reviewCount: 120 } })
+  it('ignores a rated article or page and takes the rated business that follows it', () => {
+    expect(extractRating([article, restaurant], U)).toMatchObject({ value: 4.4, count: 120 })
+    expect(extractRating([JSON.stringify({ '@type': 'WebPage', aggregateRating: { ratingValue: 5, reviewCount: 9 } })], U)).toBeUndefined()
+    expect(extractRating([JSON.stringify({ '@type': ['NewsArticle'], aggregateRating: { ratingValue: 5, reviewCount: 9 } })], U)).toBeUndefined()
+  })
+  it('still reads a business with several types, and a LocalBusiness subtype', () => {
+    expect(extractRating([JSON.stringify({ '@type': ['Dentist', 'LocalBusiness'], aggregateRating: { ratingValue: 4.8, reviewCount: 30 } })], U)).toMatchObject({ value: 4.8 })
+  })
+  it('an outside "/book" link or "Book now" on another site is not a booking signal, and does not hide a real one', () => {
+    expect(extractSiteSignals('<a href="https://publisher.example/book">Our founder\'s book</a>', U).booking).toBeUndefined()
+    expect(extractSiteSignals('<a href="https://other.example/x">Book now</a>', U).booking).toBeUndefined()
+    const both = extractSiteSignals('<a href="https://publisher.example/book">A book</a><a href="https://calendly.com/joe">Meet</a>', U)
+    expect(both.booking).toMatchObject({ provider: 'Calendly' })
+  })
+  it('own-site booking still counts, including the www form of the same host', () => {
+    expect(extractSiteSignals('<a href="https://www.joes.com/book-online">Go</a>', U).booking?.href).toBe('https://www.joes.com/book-online')
   })
 })

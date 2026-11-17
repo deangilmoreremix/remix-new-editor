@@ -73,8 +73,14 @@ export async function POST(req: NextRequest) {
       const enrichment = await enrichBusinessWebsite(b.website, { throttle, breaker, signal: deadline.signal, maxPages: 4 })
       // Only a crawl that actually completed is worth keeping: a deadline abort or an unreachable site would
       // otherwise pin an empty result for a day.
-      if (!deadline.signal.aborted && (enrichment.pagesVisited.length > 0 || enrichment.robots.status === 'disallow-all')) { enrichmentCache.set(b.website, enrichment); await durablePut(b.website, enrichment) }
+      // The finished result is recorded first, so a slow cache write can never turn a completed crawl into "timed out".
       slots[i] = { id: b.id, website: b.website, ok: true, enrichment }
+      if (!deadline.signal.aborted && (enrichment.pagesVisited.length > 0 || enrichment.robots.status === 'disallow-all')) {
+        enrichmentCache.set(b.website, enrichment)
+        // "disallow-all" also stands for a robots.txt that could not be read (5xx, network): that is kept in memory for
+        // this instance only, never pinned for a week for every instance. Only a crawl that visited pages is shared.
+        if (enrichment.pagesVisited.length > 0) await durablePut(b.website, enrichment)
+      }
     } catch (err) {
       // SSRF rejections and other failures are reported per business, without internals.
       const msg = err instanceof Error ? err.message : 'failed'

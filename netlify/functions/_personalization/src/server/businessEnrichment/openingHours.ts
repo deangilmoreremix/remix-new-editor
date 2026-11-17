@@ -107,10 +107,12 @@ export function openStatus(raw: string | undefined, region: string | undefined, 
   if (!now) return { state: 'unknown' }
 
   // Later rules override earlier ones for the same day (OSM semantics), so evaluate in order and keep the last match.
-  const covers = (day: number, minutes: number, prevDay: boolean): boolean | null => {
+  const covers = (day: number, minutes: number, prevDay: boolean): { result: boolean | null; index: number } => {
     let result: boolean | null = null
-    for (const rule of parsed) {
+    let index = -1 // the last rule that names this day
+    for (const [ruleIndex, rule] of parsed.entries()) {
       if (!rule.days.includes(day)) continue
+      index = ruleIndex
       if (rule.ranges === 'off') { result = false; continue }
       let hit = false
       for (const [a, b] of rule.ranges) {
@@ -121,11 +123,14 @@ export function openStatus(raw: string | undefined, region: string | undefined, 
       }
       result = hit
     }
-    return result
+    return { result, index }
   }
   const today = covers(now.day, now.minutes, false)
-  const yesterdaySpill = covers((now.day + 6) % 7, now.minutes, true)
-  const open = today === true || yesterdaySpill === true
+  const yesterday = covers((now.day + 6) % 7, now.minutes, true)
+  // A later rule that names today replaces what an earlier rule spilled over from yesterday
+  // ("Sa 16:00-03:00; Su 16:00-23:00" is closed on Sunday at 01:00). Without such a rule the spill stands.
+  const spillStands = yesterday.result === true && !(today.index > yesterday.index)
+  const open = today.result === true || spillStands
   return { state: open ? 'open' : 'closed' }
 }
 
@@ -156,13 +161,31 @@ export function describeHours(raw: string | undefined): string | null {
   const parsed = parseOpeningHours(raw)
   if (!parsed) return null
   if (parsed === '24/7') return 'open 24/7'
-  const open = parsed.filter((r) => r.ranges !== 'off')
-  if (open.length === 0 || open.length > 2) return null
+  // Apply the rules in order, so a later "off" (or a later hours rule) takes its days out of an earlier one:
+  // "Mo-Su 09:00-17:00; Su off" is Monday to Saturday, not daily.
+  const perDay = new Map<number, Array<[number, number]>>()
+  for (const rule of parsed) {
+    for (const day of rule.days) {
+      if (rule.ranges === 'off') perDay.delete(day)
+      else perDay.set(day, rule.ranges)
+    }
+  }
+  if (perDay.size === 0) return null
+  const groups = new Map<string, { days: number[]; ranges: Array<[number, number]> }>()
+  for (const [day, ranges] of perDay) {
+    const key = JSON.stringify(ranges)
+    const group = groups.get(key) ?? { days: [], ranges }
+    group.days.push(day)
+    groups.set(key, group)
+  }
+  if (groups.size > 2) return null
+  const monFirst = (day: number) => (day + 6) % 7
+  const ordered = [...groups.values()].sort((x, y) => Math.min(...x.days.map(monFirst)) - Math.min(...y.days.map(monFirst)))
   const parts: string[] = []
-  for (const rule of open) {
-    if (rule.ranges === 'off' || rule.ranges.length !== 1) return null
-    const [a, b] = rule.ranges[0]
-    parts.push(`${dayLabel(rule.days)} ${clock(a)}–${clock(b)}`)
+  for (const group of ordered) {
+    if (group.ranges.length !== 1) return null
+    const [a, b] = group.ranges[0]
+    parts.push(`${dayLabel(group.days)} ${clock(a)}–${clock(b)}`)
   }
   return parts.join(', ')
 }

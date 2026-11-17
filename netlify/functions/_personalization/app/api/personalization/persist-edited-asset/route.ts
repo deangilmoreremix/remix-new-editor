@@ -75,6 +75,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing assetId.' }, { status: 400 })
   }
 
+  // Only the image is stored here (same as OpenHiggsBolt). The edit's provenance (original asset, operation, prompt)
+  // stays with the client's saved project; no `personalization_edited_assets` table exists in either repository.
   // A new object per edit, so a cached earlier edit is never shown in place
   // of a newer one (the client stores whichever URL comes back).
   const objectPath = `${sanitizeSegment(userId)}/edited/${sanitizeSegment(assetId)}/edited-${crypto.randomUUID()}.${EXTENSION[image.type]}`

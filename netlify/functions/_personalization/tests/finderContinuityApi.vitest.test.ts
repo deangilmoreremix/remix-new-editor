@@ -1,4 +1,6 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { NextRequest } from '../shims/next-server'
 
 let authUserId: string | null = 'user-123'
@@ -121,3 +123,34 @@ describe('lead-feedback route', () => {
     expect((await DELETE(req('lead-feedback', 'DELETE', undefined, '?businessId=b1&reason=closed'))).status).toBe(404)
   })
 })
+
+describe('rate limits (review fixes)', () => {
+  it('reads do not use up the write allowance', async () => {
+    const { GET, POST } = await import('../app/api/personalization/saved-searches/route')
+    for (let i = 0; i < 40; i++) expect((await GET(req('saved-searches'))).status).not.toBe(429)
+    const res = await POST(req('saved-searches', 'POST', goodSearch))
+    expect(res.status).not.toBe(429)
+  })
+  it('writes are still limited to 30 a minute per user', async () => {
+    const { POST } = await import('../app/api/personalization/saved-searches/route')
+    let limited = false
+    for (let i = 0; i < 35; i++) { if ((await POST(req('saved-searches', 'POST', goodSearch))).status === 429) { limited = true; break } }
+    expect(limited).toBe(true)
+  })
+})
+
+describe('finder_lead_feedback_add migration (review fixes)', () => {
+  const sql = readFileSync(join(process.cwd(), 'supabase/migrations/20261116000100_finder_continuity_rpcs.sql'), 'utf8')
+  const fn = sql.slice(sql.indexOf('function public.finder_lead_feedback_add'), sql.indexOf('function public.finder_lead_feedback_delete'))
+  it('checks whether the flag already exists before it applies the 500-flag cap, so existing flags can still be re-saved', () => {
+    const exists = fn.indexOf('if not exists')
+    const cap = fn.indexOf('v_count >= 500')
+    expect(exists).toBeGreaterThan(-1)
+    expect(cap).toBeGreaterThan(exists)
+  })
+  it('keeps the upsert and the cap for new flags', () => {
+    expect(fn).toMatch(/limit of 500 flags reached/)
+    expect(fn).toMatch(/on conflict \(clerk_user_id, business_id, reason\) do update/)
+  })
+})
+
