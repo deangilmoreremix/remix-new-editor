@@ -157,3 +157,19 @@ describe('projectRestore', () => {
     expect(res.projects![1].outputType).toBe('video')
   })
 })
+
+describe('saved projects with website-found contact fields', () => {
+  it('passes optional email/social client fields through untouched, and older saves without them still load', async () => {
+    const { loadProject } = await import('../projectRestore')
+    const mk = (client: Record<string, unknown>) => ({ project: { id: 'p1', client, source: {}, assets: {}, prompt: {}, generation: {} } })
+    const respond = (body: unknown) => vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => body })))
+    respond(mk({ businessName: 'Acme', email: 'hi@acme.example', instagram: 'https://instagram.com/acme' }))
+    const withFields = await loadProject('p1')
+    expect(withFields).toMatchObject({ ok: true })
+    expect((withFields as any).project.client).toMatchObject({ email: 'hi@acme.example', instagram: 'https://instagram.com/acme' })
+    respond(mk({ businessName: 'Old Save' }))
+    const legacy = await loadProject('p1')
+    expect((legacy as any).project.client.email).toBeUndefined()
+    vi.unstubAllGlobals()
+  })
+})

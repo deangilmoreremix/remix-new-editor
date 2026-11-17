@@ -7,6 +7,7 @@ import { LayoutTemplate, Palette } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
 import { layoutOnVideo } from '../preview/designAddons'
+import { buildCtaSuggestions, ratingLine } from '../preview/ctaSuggestions'
 import { designPrimarySlotUpdates } from '../preview/designSlots'
 import { C, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens'
 import { ColorField } from './editor/ColorField'
@@ -68,6 +69,7 @@ export function StepPersonalize({
   const ctx = useDemoPersonalize()
   const {
     clientForm = {},
+    selectedBusiness = null,
     updateClientForm,
     assets,
     previewSettings,
@@ -132,6 +134,18 @@ export function StepPersonalize({
   }, [clientForm.brandDescription, taglineLayer?.id, taglineLayer?.text, updatePreviewLayer])
 
   /** Update a client field AND the matching layer text so both stay in sync. */
+  // Suggested call-to-action lines, built only from details the business really has.
+  const ctaSuggestions = buildCtaSuggestions({
+    phone: clientForm.phone || selectedBusiness?.phone,
+    website: clientForm.website || selectedBusiness?.website,
+    email: clientForm.email || selectedBusiness?.email,
+    instagram: clientForm.instagram || selectedBusiness?.instagram,
+    openingHours: selectedBusiness?.openingHours,
+  })
+
+  const foundRating = ctx.foundSignals?.rating
+  const foundRatingLine = ratingLine(foundRating)
+
   const setField = (field: keyof ClientProfile, value: string, layerKind: PreviewLayerKind) => {
     updateClientForm({ ...clientForm, [field]: value })
     const layer = layers.find((item) => item.kind === layerKind)
@@ -190,6 +204,17 @@ export function StepPersonalize({
               style={inputStyle}
             />
             <p style={hintStyle}>Optional — leave it empty if you would rather not show one.</p>
+            {foundRatingLine && foundRating && (
+              <button
+                type="button"
+                data-testid="pz-rating-chip"
+                title={`Published on ${foundRating.sourceUrl}`}
+                onClick={() => setField('brandDescription', foundRatingLine, 'tagline')}
+                style={{ ...softPanelStyle, cursor: 'pointer', padding: '3px 9px', fontSize: 11, color: C.text, marginTop: 4 }}
+              >
+                Use “{foundRatingLine}” — from their website
+              </button>
+            )}
           </div>
           <div>
             <label style={labelStyle} htmlFor="guided-offer">Offer (optional)</label>
@@ -211,6 +236,22 @@ export function StepPersonalize({
               placeholder={clientForm.website ? `Visit ${clientForm.website}` : clientForm.phone ? `Call ${clientForm.phone}` : 'e.g. Book a free quote'}
               style={inputStyle}
             />
+            {ctaSuggestions.length > 0 && (
+              <div data-testid="pz-cta-suggestions" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                {ctaSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.id}
+                    type="button"
+                    data-testid={`pz-cta-suggestion-${suggestion.id}`}
+                    title={`Built from the ${suggestion.source.toLowerCase()} on file`}
+                    onClick={() => setField('callToAction', suggestion.text, 'cta')}
+                    style={{ ...softPanelStyle, cursor: 'pointer', padding: '3px 9px', fontSize: 11, color: C.text }}
+                  >
+                    {suggestion.text}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label style={labelStyle} htmlFor="guided-phone">Phone</label>

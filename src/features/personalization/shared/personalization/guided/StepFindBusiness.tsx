@@ -224,7 +224,7 @@ export function StepFindBusiness({
                     padding: '0 12px',
                     borderRadius: 999,
                     border: `1px solid ${searchRadius === radius ? C.cyanBorder : C.border}`,
-                    background: searchRadius === radius ? C.cyanSoft : 'transparent',
+                    background: searchRadius === radius ? 'transparent' : 'transparent',
                     color: searchRadius === radius ? C.cyan : C.muted,
                     fontSize: 11,
                     fontWeight: 700,

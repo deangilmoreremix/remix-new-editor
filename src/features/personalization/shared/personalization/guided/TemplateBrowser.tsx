@@ -376,7 +376,7 @@ function CategoryTab({
         padding: '0 12px',
         borderRadius: 999,
         border: `1px solid ${active ? C.cyanBorder : C.border}`,
-        background: active ? C.cyanSoft : 'transparent',
+        background: active ? 'transparent' : 'transparent',
         color: active ? C.cyan : C.muted,
         fontSize: 11,
         fontWeight: 700,

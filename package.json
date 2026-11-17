@@ -141,6 +141,7 @@
     "@higgsfield/transitions": "file:packages/transitions",
     "@higgsfield/video-compiler": "file:packages/video-compiler",
     "@huggingface/transformers": "4.3.1",
+    "@mediapipe/tasks-vision": "0.10.17",
     "@puckeditor/core": "^0.24.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",

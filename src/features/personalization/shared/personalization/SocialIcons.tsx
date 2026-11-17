@@ -50,19 +50,22 @@ export interface SocialIconsProps {
   name?: string
   /** Optional hover text per network (e.g. where the profile was found). */
   titles?: Partial<Record<SocialNetwork, string>>
+  /** When given, each icon gets a small × beside it that calls this with the network (to remove a found value). */
+  onRemove?: (network: SocialNetwork) => void
 }
 
-export function SocialIcons({ links, size = 14, name, titles }: SocialIconsProps) {
+export function SocialIcons({ links, size = 14, name, titles, onRemove }: SocialIconsProps) {
   const items = ORDER.map((n) => ({ n, href: socialHref(n, links[n]) })).filter((x): x is { n: SocialNetwork; href: string } => !!x.href)
   const gid = `ig-grad-${React.useId().replace(/[^a-zA-Z0-9_-]/g, '')}` // stable across server and client render
   if (!items.length) return null
   return (
-    <span data-testid="social-icons" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+    <span data-testid="social-icons" style={{ display: 'inline-flex', alignItems: 'center', gap: onRemove ? 8 : 4 }}>
       {items.map(({ n, href }) => {
         const fill = n === 'instagram' ? `url(#${gid})` : BRAND[n]
         return (
+          <span key={n} style={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
           <a
-            key={n} href={href} target="_blank" rel="noopener noreferrer"
+            href={href} target="_blank" rel="noopener noreferrer"
             aria-label={name ? `${LABEL[n]} page for ${name}` : `${LABEL[n]} page`} title={titles?.[n] ? `${LABEL[n]} page — ${titles[n]}` : `${LABEL[n]} page`}
             data-network={n} onClick={(e) => e.stopPropagation()}
             style={{ display: 'inline-flex', width: size, height: size, alignItems: 'center', justifyContent: 'center', lineHeight: 0 }}
@@ -85,6 +88,13 @@ export function SocialIcons({ links, size = 14, name, titles }: SocialIconsProps
               <path d={PATHS[n]} fill={fill} transform={n === 'linkedin' ? 'translate(2.4 2.4) scale(0.8)' : undefined} />
             </svg>
           </a>
+          {onRemove && (
+            <button
+              type="button" aria-label={`Remove ${LABEL[n]}`} onClick={(e) => { e.stopPropagation(); onRemove(n) }}
+              style={{ background: 'transparent', border: 0, padding: 0, color: 'inherit', opacity: 0.55, cursor: 'pointer', fontSize: 11, lineHeight: 1 }}
+            >×</button>
+          )}
+          </span>
         )
       })}
     </span>
