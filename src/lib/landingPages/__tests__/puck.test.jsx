@@ -206,3 +206,28 @@ describe('heading and body font choices', () => {
     });
   });
 });
+
+describe('#lead buttons on pages without a hero form', () => {
+  it('scroll to the contact band, and never duplicate the lead id', async () => {
+    const { createElement } = await import('react');
+    const { createRoot } = await import('react-dom/client');
+    const { act } = await import('react');
+    const { LeadAnchorFallback } = await import('../puck/components.jsx');
+    const host = document.createElement('div');
+    host.innerHTML = '<a id="go" href="#lead">Go</a><section id="contact"></section>';
+    document.body.appendChild(host);
+    const scrolled = [];
+    host.querySelector('#contact').scrollIntoView = () => scrolled.push('contact');
+    const root = createRoot(document.createElement('div'));
+    await act(async () => { root.render(createElement(LeadAnchorFallback)); });
+    host.querySelector('#go').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    expect(scrolled).toEqual(['contact']);
+    // with a real #lead element the browser handles the link itself
+    const lead = document.createElement('div'); lead.id = 'lead'; host.appendChild(lead);
+    host.querySelector('#go').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    expect(scrolled).toEqual(['contact']);
+    expect(html(PUCK_TEMPLATES.find((t) => t.id === 'puck-pc-roofing').puckData).match(/id="lead"/g) || []).toHaveLength(0);
+    await act(async () => { root.unmount(); });
+    host.remove();
+  });
+});

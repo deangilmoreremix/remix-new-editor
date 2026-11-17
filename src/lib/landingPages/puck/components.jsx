@@ -3,7 +3,7 @@
  * (escaped), links/images go through safeUrl/safeImageUrl, and the video / lead form keep the same tracking
  * events and token rules as the classic renderer.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fillTokens, splitAccent, prefillFor, safeUrl, safeImageUrl } from '../templates.js';
 import { usePage, useThanks } from './context.js';
 import { ICON_PATHS } from '../siteIcons.js';
@@ -266,7 +266,7 @@ export function Band({ title, text, buttonLabel, placeholder, social, tagline, b
 export function ContactBand({ eyebrow, title, text, fields, submitLabel, successMessage }) {
   const t = useTokens();
   return (
-    <section className="pk-band pk-band--contact" id="contact"><span id="lead" className="pk-anchor" aria-hidden="true" />
+    <section className="pk-band pk-band--contact" id="contact">
       <div className="pk-band-in pk-band-in--contact">
         <div className="pk-band-text">{eyebrow ? <small className="pk-eyebrow-plain">{t(eyebrow)}</small> : null}<b>{t(title)}</b>{text ? <span>{t(text)}</span> : null}</div>
         <LeadForm submitLabel={submitLabel || 'Contact us'} successMessage={successMessage} fields={asList(fields).filter((f) => f.key && f.label)} />
@@ -507,4 +507,24 @@ export function CtaBar({ text, label, url, icon, icons }) {
       <a className="pk-btn pk-btn--cta" href={href} {...ext}>{t(label)}</a>
     </section>
   );
+}
+
+/**
+ * "#lead" buttons scroll to the hero form. Designs without a hero form keep their form in the contact band
+ * (id="contact"), so those buttons fall back to it. Done on click, so no element needs a duplicate id.
+ */
+export function LeadAnchorFallback() {
+  useEffect(() => {
+    const onClick = (e) => {
+      const a = e.target?.closest?.('a[href="#lead"]');
+      if (!a || document.getElementById('lead')) return;
+      const target = document.getElementById('contact');
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, []);
+  return null;
 }
