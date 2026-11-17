@@ -37,6 +37,22 @@ function bump(body: unknown, by: number) {
     if (isObj(body.pagination) && typeof body.pagination.total === "number") body.pagination.total += by;
 }
 
+// How a detail response wraps its item (e.g. { automation: {...} }), learned from a recorded sibling; null when bare.
+function envelopeKey(collection: string): string | null {
+    for (const [key, e] of store) {
+        const [method, rest] = key.split(" ");
+        if (method !== "GET") continue;
+        const path = rest.split("?")[0];
+        if (!path.startsWith(`${collection}/`) || path.slice(collection.length + 1).includes("/")) continue;
+        if (isObj(e.b)) {
+            const keys = Object.keys(e.b);
+            if (keys.length === 1 && isObj(e.b[keys[0]]) && "id" in (e.b[keys[0]] as object)) return keys[0];
+            if ("id" in e.b) return null;
+        }
+    }
+    return null;
+}
+
 const looksLikeId = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(s) || /^[0-9a-z_-]{6,}$/i.test(s) && /\d/.test(s);
 
 function mutate(method: string, path: string, body: unknown): DemoResponse {
@@ -71,7 +87,11 @@ function mutate(method: string, path: string, body: unknown): DemoResponse {
                 if (l) { l.unshift(created); bump(e.b, 1); }
             }
         }
-        return json(201, created);
+        const key = envelopeKey(collection);
+        const wrapped = key ? { [key]: created } : created;
+        // Make the new item's own page openable.
+        store.set(`GET ${collection}/${created.id}`, { s: 200, b: wrapped });
+        return json(201, wrapped);
     }
     return json(200, { success: true, ...payload });
 }

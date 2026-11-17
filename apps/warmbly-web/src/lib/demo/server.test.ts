@@ -56,4 +56,15 @@ describe("demo API server", () => {
         expect(a.status).toBe(200);
         expect(JSON.stringify(a.body)).toBe(JSON.stringify(b.body));
     });
+
+    it("a created item comes back in the same envelope the app expects and its page opens", () => {
+        const created = send("POST", "/v1/automations", { name: "Mine", trigger_event: "meeting.booked", graph: { nodes: [], edges: [] }, enabled: false }).body as { automation: { id: string } };
+        expect(created.automation.id).toBeTruthy();
+        const detail = get(`/v1/automations/${created.automation.id}`);
+        expect(detail.status).toBe(200);
+        expect((detail.body as { automation: { name: string } }).automation.name).toBe("Mine");
+        expect(JSON.stringify(get("/v1/automations").body)).toContain("Mine");
+        send("PATCH", `/v1/automations/${created.automation.id}`, { name: "Mine 2" });
+        expect((get(`/v1/automations/${created.automation.id}`).body as { automation: { name: string } }).automation.name).toBe("Mine 2");
+    });
 });
