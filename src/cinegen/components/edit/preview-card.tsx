@@ -121,7 +121,7 @@ export function PreviewCard({ preview, title, sub, badge, onClick, testId, ariaL
   return (
     <div ref={ref} className="add-card-wrap" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)}
       style={{ position: 'relative', height: '100%', contentVisibility: 'auto', containIntrinsicSize: 'auto 260px' }}>
-      <button type="button" className="add-card" onClick={onClick} aria-label={ariaLabel ?? title} data-testid={testId}
+      <button type="button" className="add-card" onClick={onClick} aria-label={ariaLabel ?? title} data-testid={testId} data-card-title={title}
         style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', width: '100%', boxSizing: 'border-box', height: '100%' }}>
         <div data-live={slot ? 'true' : 'false'} data-playing={wantLive && slot && playing ? 'true' : 'false'} style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: STAGE_BG }}>
           {showImage && <img src={image} alt="" loading="lazy" onError={() => setImgOk(false)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />}

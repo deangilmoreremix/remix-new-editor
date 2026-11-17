@@ -12,7 +12,7 @@ import { TemplateVideosPanel } from './template-videos-modal';
 // @ts-expect-error plain JS data module
 import { templateVideos } from '../../../data/templateVideoLibrary.js';
 import { PreviewCard, CARD_CSS } from './preview-card';
-import { buildCatalog, clearPendingAddTab, hfEntries, mgEntries, peekPendingAddQuery, peekPendingAddTab, type AddModalTab, type AddToTimelineActions, type CatalogEntry, type CatalogTab } from './add-to-timeline-registry';
+import { buildCatalog, clearPendingAddTab, hfEntries, mgEntries, peekPendingAddFocus, peekPendingAddQuery, peekPendingAddTab, type AddModalTab, type AddToTimelineActions, type CatalogEntry, type CatalogTab } from './add-to-timeline-registry';
 
 export type { AddToTimelineActions } from './add-to-timeline-registry';
 
@@ -40,6 +40,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   // [remix] the Library can open this window on a given tab (ignored when that tab is not available); read without clearing so a double render keeps it
   const [requested] = useState(peekPendingAddTab);
   const [requestedQuery] = useState(peekPendingAddQuery);
+  const [focusTitle] = useState(peekPendingAddFocus); // the exact card the user clicked in the Library
   useEffect(() => { clearPendingAddTab(); }, []);
   const startTab: Tab = requested && (requested !== 'videos' || hasVideos) && (requested !== 'animations' || hasAnimations) ? requested : hasAnimations ? 'animations' : 'motion';
   const [tab, setTab] = useState<Tab>(startTab);
@@ -109,6 +110,18 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
     { id: 'videos', label: 'Template videos', glyph: '🎬', count: (templateVideos as unknown[]).length, hidden: !hasVideos },
   ];
 
+  // Scroll to and ring the exact card that was clicked (cards render lazily, so keep looking until it shows up)
+  useEffect(() => {
+    if (!focusTitle) return undefined;
+    let tries = 0;
+    const find = () => {
+      const el = Array.from(panelRef.current?.querySelectorAll<HTMLElement>('[data-card-title]') ?? []).find((n) => n.dataset.cardTitle === focusTitle);
+      if (el) { el.scrollIntoView?.({ block: 'center' }); el.style.outline = '2px solid var(--accent)'; el.style.outlineOffset = '2px'; el.dataset.focused = 'true'; return; }
+      if (tries++ < 20) timer = window.setTimeout(find, 150);
+    };
+    let timer = window.setTimeout(find, 0);
+    return () => window.clearTimeout(timer);
+  }, [focusTitle, tab, mg]);
   const needle = q.trim().toLowerCase();
   const shown = entries.filter((e) => (tab === 'all' || e.tab === tab) && (!needle || `${e.label} ${e.blurb} ${e.keywords ?? ''}`.toLowerCase().includes(needle)));
   // Animations and Motion graphics have their own tabs with category chips and filters; every other tab is a search + grid

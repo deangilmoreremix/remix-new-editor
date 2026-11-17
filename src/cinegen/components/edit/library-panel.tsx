@@ -6,7 +6,7 @@
 // small + adds it at the playhead; dragging it onto the timeline places it there. One search box looks through every category at once.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { OverlayKind } from '@cinegen/types/workspace';
-import { OVERLAY_KINDS, overlayTemplates } from '@cinegen/lib/overlays/overlays';
+import { OVERLAY_KINDS, overlayTemplates, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
 import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates';
 import { buildAnimationCatalog, animationGroups, filterAnimations } from '@cinegen/lib/occ/animation-catalog';
 import { hyperframesItems, type HfItem } from '@cinegen/lib/hyperframes/overlay';
@@ -40,7 +40,7 @@ const dragProps = (kind: LibraryKind, id: string) => ({
   onDragStart: (e: React.DragEvent) => { e.dataTransfer.setData(LIBRARY_DND, encodeLibraryDrag({ kind, id })); e.dataTransfer.effectAllowed = 'copy'; },
 });
 
-export type LibraryCategory = 'animations' | 'effects' | 'transitions' | 'looks' | 'overlays' | 'videos' | 'sounds';
+export type LibraryCategory = 'animations' | 'effects' | 'transitions' | 'looks' | 'overlays' | 'videos' | 'sounds' | 'stock';
 
 export const LIBRARY_CATEGORIES: Array<{ id: LibraryCategory; label: string; hint: string }> = [
   { id: 'animations', label: 'Animations', hint: 'Animated titles, lower thirds and call-outs' },
@@ -50,6 +50,7 @@ export const LIBRARY_CATEGORIES: Array<{ id: LibraryCategory; label: string; hin
   { id: 'overlays', label: 'Overlays & forms', hint: 'Lead forms, buttons, text, stickers and end screens' },
   { id: 'videos', label: 'Template videos', hint: 'Ready-made AI video clips to drop on a video track' },
   { id: 'sounds', label: 'Sounds', hint: 'Sound effects placed at the playhead' },
+  { id: 'stock', label: 'Stock & AI media', hint: 'Free stock photos and videos, or make a clip with AI' },
 ];
 
 /** What happens when you click a card. A handler may return a short message to show (for example "Select a clip first"). */
@@ -63,6 +64,8 @@ export interface LibraryActions {
   onApplyTransition: (id: string, ctx?: LibraryDropCtx) => string | void | Promise<string | void>;
   onAddSound: (effect: SoundEffect, ctx?: LibraryDropCtx) => string | void;
   onAddTemplateVideo: (item: TemplateVideo, ctx?: LibraryDropCtx) => string | void;
+  /** Opens the Stock & AI media browser (the same window as the toolbar button). */
+  onOpenStock?: () => void;
 }
 
 /** Cards are div role=button (Chromium does not start a native drag from a <button>). */
@@ -86,6 +89,8 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
   const [playing, setPlaying] = useState<string | null>(null);
   const [pinned, setPinned] = useState(false); // true once a category was chosen: the search then filters that category instead of showing results from all of them
   const [videosShown, setVideosShown] = useState(PAGE);
+  const [phoneFor, setPhoneFor] = useState<{ id: string; name: string } | null>(null); // Connect Form waiting for its phone number
+  const [phone, setPhone] = useState('');
   const fixedRef = useRef<Map<string, CatalogEntry> | null>(null);
   const memory = useLibraryMemory(); // Recents + Favorites (this browser only)
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -139,7 +144,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
 
   const animItems = useMemo(() => (hfItems.length || mg ? buildAnimationCatalog({ mg: mg ?? [], hf: hfItems, hfGroup: groupOf }) : []), [hfItems, mg]);
   const fixed = () => (fixedRef.current ??= new Map(buildCatalog({ onAddKind: noop, onAddTemplate: noop }, { close: noop, askPhone: noop }).map((e) => [e.id, e])));
-  const openModal = (tab: AddModalTab, query: string) => { if (!openAddToTimeline(tab, query)) say('Open the timeline first.'); };
+  const openModal = (tab: AddModalTab, query: string) => { if (!openAddToTimeline(tab, query, query || undefined)) say('Open the timeline first.'); };
 
   // ── picture cards ──────────────────────────────────────────────────────────
   const animCard = (x: AnimItem) => {
@@ -158,7 +163,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
     const e = fixed().get(`tpl:${x.id}`);
     const mid = `tpl:${x.id}`;
     return <LibraryCard key={x.id} testId={`library-template-${x.id}`} favorite={memory.isFavorite(mid)} onToggleFavorite={() => memory.toggleFavorite(mid)} title={x.name} sub={x.description} badge={e?.badge} preview={e?.preview} drag={dragProps('template', x.id)}
-      onOpen={() => openModal('endscreens', x.name)} onAdd={() => { memory.remember(mid); void run(() => actions.onAddTemplate(x.id)); }} />;
+      onOpen={() => openModal('endscreens', x.name)} onAdd={() => { memory.remember(mid); if (isConnectTemplate(x.id)) { setPhoneFor({ id: x.id, name: x.name }); setPhone(''); return; } void run(() => actions.onAddTemplate(x.id)); }} />;
   };
   // Template videos: the "+" puts the clip on a video track at the playhead; clicking the card opens the big window on that clip.
   const videoCard = (v: TemplateVideo) => (
@@ -181,7 +186,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
   const soundMatches = sounds.filter((s) => match(s.name, s.desc, s.keywords.join(' '), SOUND_GROUPS.find((g) => g.id === s.group)?.nameEn));
   const idMatches = (ids: string[], name: (id: string) => string) => ids.filter((id) => match(name(id)));
 
-  const counts: Record<LibraryCategory, number> = { animations: animItems.length, effects: fxIds.length, transitions: trIds.length, looks: lutIds.length, overlays: OVERLAY_KINDS.length + overlayTemplates().length, videos: ALL_VIDEOS.length, sounds: sounds.length };
+  const counts: Record<LibraryCategory, number> = { animations: animItems.length, effects: fxIds.length, transitions: trIds.length, looks: lutIds.length, overlays: OVERLAY_KINDS.length + overlayTemplates().length, videos: ALL_VIDEOS.length, sounds: sounds.length, stock: 3 };
 
   const head = (label: string, n: number, c: LibraryCategory) => (
     <div className="library-panel__group-head"><span>{label}</span><span style={{ opacity: 0.6 }}>{n}</span>{n > SEARCH_CAP && <button type="button" onClick={() => { setCat(c); setPinned(true); }}>See all {n}</button>}</div>
@@ -193,6 +198,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
     if (animMatches.length) sections.push(<div key="a">{head('Animations', animMatches.length, 'animations')}<div className="library-panel__cards">{animMatches.slice(0, SEARCH_CAP).map(animCard)}</div></div>);
     if (kindMatches.length || tplMatches.length) sections.push(<div key="o">{head('Overlays, forms & end screens', kindMatches.length + tplMatches.length, 'overlays')}<div className="library-panel__cards">{kindMatches.slice(0, SEARCH_CAP).map(overlayCard)}{tplMatches.slice(0, Math.max(0, SEARCH_CAP - kindMatches.length)).map(templateCard)}</div></div>);
     if (videoMatches.length) sections.push(<div key="v">{head('Template videos', videoMatches.length, 'videos')}<div className="library-panel__cards">{videoMatches.slice(0, SEARCH_CAP).map(videoCard)}</div></div>);
+    if (match('stock', 'ai media', 'pexels', 'pixabay', 'photos', 'ai video')) sections.push(<div key="k">{head('Stock & AI media', 3, 'stock')}{stockBody()}</div>);
     if (soundMatches.length) sections.push(<div key="s">{head('Sounds', soundMatches.length, 'sounds')}<div className="library-panel__stack">{soundMatches.slice(0, 3).map(soundRow)}</div></div>);
     const fx = idMatches(fxIds, fxName); const lk = idMatches(lutIds, fxName); const tr = idMatches(trIds, trName);
     if (fx.length) sections.push(<div key="e">{head('Effects', fx.length, 'effects')}{thumbGrid(fx.slice(0, SEARCH_CAP), 'fx', actions.onApplyFx, 'fx')}</div>);
@@ -222,6 +228,12 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
     const main = bodyOf();
     return strips.length ? <div className="library-panel__stack">{strips}{main}</div> : main;
   };
+  const stockBody = () => (
+    <div className="library-panel__stack" data-testid="library-stock">
+      <div className="library-panel__hint">Search free Pexels and Pixabay photos and videos, or make a clip with AI. Anything you pick lands on the timeline with its real pictures.</div>
+      <button type="button" className="library-panel__chip library-panel__chip--on" data-testid="library-open-stock" disabled={!actions.onOpenStock} onClick={() => actions.onOpenStock?.()} style={{ alignSelf: 'flex-start' }}>Open Stock &amp; AI media</button>
+    </div>
+  );
   const bodyOf = () => {
     if (cat === 'animations') {
       return (
@@ -240,6 +252,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
         </div>
       );
     }
+    if (cat === 'stock') return stockBody();
     if (cat === 'effects') return thumbGrid(fxIds, 'fx', actions.onApplyFx, 'fx');
     if (cat === 'looks') return thumbGrid(lutIds, 'fx', actions.onApplyLut, 'lut');
     if (cat === 'transitions') return thumbGrid(trIds, 'tr', actions.onApplyTransition, 'transition');
@@ -282,6 +295,14 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
       </div>
       <div className="library-panel__hint">{q.trim() && !pinned ? `Results for “${q.trim()}” from every category` : active.hint}</div>
       <button type="button" className="library-panel__chip" data-testid="library-open-add" title="Open the Add to timeline window: every animation, motion graphic, overlay, form and end screen with previews" onClick={() => { if (!openAddToTimeline()) say('Open the timeline first.'); }} style={{ alignSelf: 'flex-start', margin: '2px 0 6px' }}>+ Browse everything with previews</button>
+      {phoneFor && (
+        <form className="library-panel__note" data-testid="library-phone-form" onSubmit={(e) => { e.preventDefault(); const id = phoneFor.id; const ph = phone.trim(); setPhoneFor(null); void run(() => actions.onAddTemplate(id, { time: undefined as never, phone: ph } as LibraryDropCtx)); }} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label style={{ fontSize: 12 }}>Phone number for “{phoneFor.name}” (with area code)
+            <input autoFocus type="tel" inputMode="tel" aria-label="Phone number to call" data-testid="library-phone-input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="212 555 0147" style={{ display: 'block', width: '100%', marginTop: 4 }} />
+          </label>
+          <span style={{ display: 'flex', gap: 6 }}><button type="submit" className="library-panel__chip library-panel__chip--on" data-testid="library-phone-add">Add</button><button type="button" className="library-panel__chip" onClick={() => setPhoneFor(null)}>Cancel</button></span>
+        </form>
+      )}
       {note && <div className="library-panel__note" role="status">{note}</div>}
       <style>{CARD_CSS}</style>
       <div className="library-panel__body">{body()}</div>

@@ -959,7 +959,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         return `Added ${overlay.name} ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}. Remove it with the × on the Overlays lane.`;
       },
       onAddTemplate: (templateId, ctx) => {
-        const phone = isConnectTemplate(templateId) ? (window.prompt('Phone number to call (with area code, e.g. 212 555 0147)', '') ?? '').trim() : '';
+        const phone = isConnectTemplate(templateId) ? (ctx?.phone ?? '').trim() : ''; // the Library asks for it in its own inline field; a drop leaves it blank to fill in later
         const made = createTemplateOverlays(templateId, ctx?.time ?? currentTime, Math.max(sequenceDuration, 10), phone ? { phone } : undefined);
         made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
         if (made.length) selectOverlay(made[made.length - 1].id);
@@ -1020,8 +1020,9 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         return `Added “${item.title}” ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}.`;
       },
       onAddSound: (effect, ctx) => { handleAddSound(effect, ctx); return `Added ${effect.name} ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}.`; },
+      onOpenStock: () => mediaBrowser.setOpen(true),
     };
-  }, [currentTime, sequenceDuration, dispatch, selectedClip, timeline, handleUpdateClipProps, handleAddSound, setSelectedClipIds]);
+  }, [mediaBrowser.setOpen, currentTime, sequenceDuration, dispatch, selectedClip, timeline, handleUpdateClipProps, handleAddSound, setSelectedClipIds]);
 
   // [remix] A Library card dropped on the timeline: what it does depends on where it lands (overlay row, track, clip, or cut).
   const [dropNote, setDropNote] = useState('');

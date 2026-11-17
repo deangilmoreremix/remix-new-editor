@@ -93,13 +93,16 @@ export type AddModalTab = 'all' | CatalogTab | 'videos';
  *  timeline-editor.tsx) so that file stays close to upstream CineGen. */
 let pendingTab: AddModalTab | undefined;
 let pendingQuery: string | undefined;
+let pendingFocus: string | undefined;
+/** Title of the exact card to scroll to and highlight when the window opens (the search prefill still narrows the list). */
+export const peekPendingAddFocus = (): string | undefined => pendingFocus;
 export const peekPendingAddTab = (): AddModalTab | undefined => pendingTab;
 export const peekPendingAddQuery = (): string | undefined => pendingQuery;
-export const clearPendingAddTab = (): void => { pendingTab = undefined; pendingQuery = undefined; };
+export const clearPendingAddTab = (): void => { pendingTab = undefined; pendingQuery = undefined; pendingFocus = undefined; };
 /** True when the editor took the event (it calls preventDefault); false when no timeline editor is mounted to open the window.
  *  `tab` opens the window on that tab; `query` pre-fills its search (for example the title of the Library card that was clicked). */
-export const openAddToTimeline = (tab?: AddModalTab, query?: string): boolean => {
-  pendingTab = tab; pendingQuery = query;
+export const openAddToTimeline = (tab?: AddModalTab, query?: string, focusTitle?: string): boolean => {
+  pendingTab = tab; pendingQuery = query; pendingFocus = focusTitle;
   const taken = !window.dispatchEvent(new CustomEvent(OPEN_ADD_MODAL_EVENT, { cancelable: true }));
   if (!taken) clearPendingAddTab();
   return taken;

@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react';
 import { LibraryPanel, LIBRARY_CATEGORIES, type LibraryActions } from '../components/edit/library-panel';
-import { OPEN_ADD_MODAL_EVENT, peekPendingAddTab, peekPendingAddQuery, clearPendingAddTab } from '../components/edit/add-to-timeline-registry';
+import { OPEN_ADD_MODAL_EVENT, peekPendingAddTab, peekPendingAddQuery, peekPendingAddFocus, clearPendingAddTab } from '../components/edit/add-to-timeline-registry';
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -125,9 +125,9 @@ describe('LibraryPanel', () => {
     cleanup();
   });
 
-  it('has the seven categories', () => {
+  it('has the eight categories', () => {
     const { host, cleanup } = mount();
-    expect(LIBRARY_CATEGORIES.map((c) => c.id)).toEqual(['animations', 'effects', 'transitions', 'looks', 'overlays', 'videos', 'sounds']);
+    expect(LIBRARY_CATEGORIES.map((c) => c.id)).toEqual(['animations', 'effects', 'transitions', 'looks', 'overlays', 'videos', 'sounds', 'stock']);
     for (const c of LIBRARY_CATEGORIES) expect(host.querySelector(`[data-testid="library-cat-${c.id}"]`)).not.toBeNull();
     cleanup();
   });
@@ -165,6 +165,47 @@ describe('LibraryPanel', () => {
     await flush();
     expect(actions.onApplyFx).toHaveBeenCalledTimes(1);
     expect(host.querySelector('.library-panel__note')?.textContent).toBe('Select a clip first.');
+    cleanup();
+  });
+
+  it('a card click also names the exact card so the big window can scroll to and ring it', () => {
+    const { host, cleanup } = mount();
+    let focus: string | undefined;
+    const onOpen = (e: Event) => { e.preventDefault(); focus = peekPendingAddFocus(); };
+    window.addEventListener(OPEN_ADD_MODAL_EVENT, onOpen);
+    click(host.querySelector('[data-testid="library-cat-overlays"]'));
+    click(host.querySelector('[data-testid^="library-overlay-"]:not([data-testid$="-add"]):not([data-testid$="-star"])'));
+    window.removeEventListener(OPEN_ADD_MODAL_EVENT, onOpen);
+    expect(focus).toBeTruthy();
+    clearPendingAddTab();
+    cleanup();
+  });
+
+  it('Stock & AI media is a category that opens the stock browser', () => {
+    const onOpenStock = vi.fn();
+    const { host, cleanup } = mount({ onOpenStock });
+    expect(LIBRARY_CATEGORIES.some((c) => c.id === 'stock')).toBe(true);
+    click(host.querySelector('[data-testid="library-cat-stock"]'));
+    click(host.querySelector('[data-testid="library-open-stock"]'));
+    expect(onOpenStock).toHaveBeenCalledTimes(1);
+    cleanup();
+  });
+
+  it('a connect form asks for the phone number in a field in the panel (no browser prompt), then adds it with the number', async () => {
+    const prompt = vi.spyOn(window, 'prompt').mockReturnValue('x');
+    const { host, actions, cleanup } = mount();
+    click(host.querySelector('[data-testid="library-cat-overlays"]'));
+    click(host.querySelector('[data-testid="library-template-cf-call-now-add"]'));
+    const form = host.querySelector('[data-testid="library-phone-form"]');
+    expect(form).not.toBeNull();
+    const input = host.querySelector('[data-testid="library-phone-input"]') as HTMLInputElement;
+    act(() => { const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!; set.call(input, '212 555 0147'); input.dispatchEvent(new Event('input', { bubbles: true })); });
+    click(host.querySelector('[data-testid="library-phone-add"]'));
+    await flush();
+    const calls = (actions.onAddTemplate as ReturnType<typeof vi.fn>).mock.calls;
+    expect(calls.at(-1)?.[1]).toMatchObject({ phone: '212 555 0147' });
+    expect(prompt).not.toHaveBeenCalled();
+    prompt.mockRestore();
     cleanup();
   });
 });
