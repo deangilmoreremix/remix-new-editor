@@ -159,10 +159,11 @@ export default function SocialPublishModal({
       const hosted: Record<string, string> = {};
       for (const [aspect, vSrc] of Object.entries(t.variants)) {
         if (isPublicMediaUrl(vSrc)) { hosted[aspect] = vSrc; continue; }
-        let url = hostedVariants.current.get(vSrc);
+        let url: string | undefined = hostedVariants.current.get(vSrc);
         if (!url) {
-          url = await uploadPublishMedia(apiKey, await prepareThumbnailFile(vSrc));
-          hostedVariants.current.set(vSrc, url);
+          const uploaded: string = await uploadPublishMedia(apiKey, await prepareThumbnailFile(vSrc));
+          hostedVariants.current.set(vSrc, uploaded);
+          url = uploaded;
         }
         hosted[aspect] = url;
       }
