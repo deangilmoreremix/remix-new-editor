@@ -45,7 +45,10 @@
     "gen:video-agent-server": "node apps/motion-agent/scripts/gen-server.mjs",
     "gen:motion-sources": "node scripts/motion-director/gen-demo-sources.mjs",
     "sync:mg-thumbs": "node scripts/sync-mg-thumbs.mjs",
-    "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs"
+    "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs",
+    "mcp:catalog": "node scripts/build-mcp-catalog.mjs",
+    "mcp:start": "node mcp/index.js",
+    "test:mcp": "npm --prefix packages/studio-mcp-core install --workspaces=false --no-audit --no-fund && npm --prefix packages/studio-mcp-core exec -- vitest run"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.29.9",

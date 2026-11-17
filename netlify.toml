@@ -75,6 +75,13 @@
   status = 200
   force = true
 
+# Branded gateway for the SmartVid MCP server (mcp/). BYOK: the caller's key is used per request.
+[[redirects]]
+  from = "/api/mcp-gateway/*"
+  to = "/.netlify/functions/mcp-gateway/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/model-catalog"
   to = "/api/model-catalog.json"
