@@ -197,6 +197,7 @@
     "http-proxy": "^1.18.1",
     "http-proxy-middleware": "^2.0.10",
     "idb-keyval": "^6.2.6",
+    "imagetracerjs": "^1.2.6",
     "interactjs": "^1.10.2",
     "jose": "^6.2.12",
     "jquery": "^3.7.1",

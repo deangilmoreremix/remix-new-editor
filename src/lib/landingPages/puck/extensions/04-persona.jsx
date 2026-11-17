@@ -3,6 +3,7 @@
  * Every visible string is a field; images only render from safe https links or the bundled /landing-art/ crops.
  */
 import { useTokens, SafeLink, AccentText, VideoPlayer, LeadForm, EmailSignup } from '../components.jsx';
+import { slotFields, SLOT_DEFAULTS } from '../slotFields.js';
 import { safeImageUrl } from '../../templates.js';
 
 const T = (label) => ({ type: 'text', label });
@@ -26,7 +27,7 @@ function Ico({ name }) {
   return <svg className="ps-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={ICONS[name]} /></svg>;
 }
 
-function PersonaHero({ eyebrow, headline, subhead, bullets, buttonLabel, buttonUrl, chipText, chipScript, photo, formTitle, formSubtitle, formFields, submitLabel, privacy }) {
+function PersonaHero({ eyebrow, headline, subhead, bullets, buttonLabel, buttonUrl, chipText, chipScript, photo, slotImage, slotVideo, bakedPlay, formTitle, formSubtitle, formFields, submitLabel, privacy }) {
   const t = useTokens();
   const fields = asList(formFields).filter((f) => f.key && f.label).map((f) => ({ ...f, key: String(f.key).replace(/[^a-z0-9_]/gi, '').toLowerCase() }));
   return (
@@ -39,7 +40,7 @@ function PersonaHero({ eyebrow, headline, subhead, bullets, buttonLabel, buttonU
         {buttonLabel ? <div className="pk-actions"><Cta url={buttonUrl || '#lead'} className="pk-btn pk-btn--primary">{t(buttonLabel)}</Cta></div> : null}
       </div>
       <div className="pk-hero-video" id="video">
-        <VideoPlayer poster={photo} />
+        <VideoPlayer poster={photo} slotImage={slotImage} slotVideo={slotVideo} bakedPlay={bakedPlay} />
         {chipText || chipScript ? <div className="pk-chip">{chipText ? <span>{t(chipText)} </span> : null}{chipScript ? <span className="ps-script">{t(chipScript)}</span> : null}</div> : null}
       </div>
       <div className="pk-hero-form" id="lead"><LeadForm title={formTitle} subtitle={formSubtitle} submitLabel={submitLabel} privacy={privacy} fields={fields.length ? fields : undefined} /></div>
@@ -149,6 +150,7 @@ export const components = {
       buttonLabel: T('Button text'), buttonUrl: T('Button link (https, mailto:, tel: or #lead)'),
       chipText: T('Video greeting'), chipScript: T('Video greeting name (script lettering)'),
       photo: T('Placeholder image before the video plays'),
+      ...slotFields(),
       formTitle: T('Form title'), formSubtitle: T('Form subtitle'),
       formFields: { type: 'array', label: 'Form fields', arrayFields: { key: T('Field id (letters)'), label: T('Label'), type: { type: 'select', label: 'Type', options: [{ label: 'Text', value: 'text' }, { label: 'Email', value: 'email' }, { label: 'Dropdown', value: 'select' }] }, options: T('Dropdown choices (comma separated)'), required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, getItemSummary: (i) => i.label || 'Field', defaultItemProps: { key: 'field', label: 'Label', type: 'text', required: false } },
       submitLabel: T('Form button text'), privacy: T('Line under the form button'),
@@ -160,7 +162,7 @@ export const components = {
       bullets: [{ text: 'Higher Engagement' }, { text: 'More Qualified Leads' }, { text: 'Greater Revenue' }],
       buttonLabel: 'Start Your Personalized Video Experience', buttonUrl: '#lead',
       chipText: 'A Personalized Message for You,', chipScript: '{{firstname|Jordan}}',
-      photo: '/landing-art/04/presenter.webp',
+      ...SLOT_DEFAULTS, photo: '/landing-art/04/presenter.webp',
       formTitle: 'Request a Private Consultation', formSubtitle: 'Let’s explore how personalized video can drive results for your business.',
       formFields: [{ key: 'name', label: 'Full Name', type: 'text', required: true }, { key: 'email', label: 'Business Email', type: 'email', required: true }, { key: 'company', label: 'Company', type: 'text', required: false }, { key: 'goals', label: 'Tell us about your goals', type: 'select', options: 'Generate more leads, Nurture existing clients, Launch a new offer, Something else', required: false }],
       submitLabel: 'Request My Consultation', privacy: 'A concierge will be in touch within 1 business day.',

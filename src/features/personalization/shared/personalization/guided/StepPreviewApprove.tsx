@@ -18,6 +18,7 @@ import { PREVIEW_ASPECT_RATIOS } from '../preview/types'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
 import { getRemotionDesignFixedSvgIdWarning } from '../templates/catalog'
 import { chooseFinalOutputPath } from '../finalOutput'
+import { ExtraFormatsExport } from './ExtraFormatsExport'
 
 /**
  * Simple Mode step 4 — free Before/After preview, direct on-video overlay
@@ -70,6 +71,8 @@ export function StepPreviewApprove(): React.JSX.Element {
   // judgments (Needs adjustment / Review required) only warn.
   const exportBlocked = quality.report.blocksExport
   const [rightsConfirmed, setRightsConfirmed] = useState(false)
+  // True while "Also export other shapes" renders: the main render shares its renderer, so it waits.
+  const [extraRunning, setExtraRunning] = useState(false)
   const rightsGate = quality.rightsNeedConfirmation && !rightsConfirmed
   // Overlay-only personalizations render locally; AI modes keep the generation
   // pipeline. The active path is the primary action; the other stays visible
@@ -166,6 +169,11 @@ export function StepPreviewApprove(): React.JSX.Element {
               aspectRatio={previewSettings.aspectRatio}
               activeDesignId={activeRemotionDesignId}
               available={{ logo: Boolean(assets?.primaryLogo), product: (assets?.products?.length || 0) > 0, service: (assets?.products?.length || 0) > 0 }}
+              context={{
+                textLength: Math.max(0, ...(previewSettings.layers ?? []).filter((l) => l.visible && l.kind !== 'design').map((l) => (l.text ?? '').trim().length)),
+                hasLogo: Boolean(assets?.primaryLogo),
+                imageCount: assets?.products?.length || 0,
+              }}
               onSelectDesign={setRemotionDesign}
               onAddDesign={ctx.addRemotionDesign}
               onSelectLayout={setPreviewLayout}
@@ -283,7 +291,7 @@ export function StepPreviewApprove(): React.JSX.Element {
                   type="button"
                   onClick={handleCreate}
                   // The render uses exactly what was approved.
-                  disabled={generating || !isBrandedPath || !previewApproved || exportBlocked || rightsGate}
+                  disabled={generating || extraRunning || !isBrandedPath || !previewApproved || exportBlocked || rightsGate}
                   title={isBrandedPath && !previewApproved ? 'Approve the preview first' : exportBlocked ? 'Fix the critical layout problem first' : rightsGate ? 'Confirm you may use this clip' : undefined}
                   aria-pressed={isBrandedPath}
                   style={{
@@ -395,6 +403,7 @@ export function StepPreviewApprove(): React.JSX.Element {
             </div>
           )}
         </div>
+        {isBrandedPath && previewApproved && <ExtraFormatsExport inputProps={inputProps} disabled={generating || exportBlocked || rightsGate} onRunningChange={setExtraRunning} />}
         {generating && generation?.progressMessage && (
           <p style={{ ...hintStyle, marginTop: 8, color: C.cyan }}>{generation.progressMessage}</p>
         )}

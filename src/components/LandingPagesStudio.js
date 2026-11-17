@@ -17,17 +17,21 @@ import { sampleSections } from '../lib/landingPages/sampleContent.js';
 import { templateCards } from './landing/TemplateChooser.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
+import { createCustomerPanel } from '../lib/landingPages/customerPanel.js';
+import { applyCustomerToPuck, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
 import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
 import { ownPages } from '../lib/outreach/landingPage.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
 import {
-  listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts,
+  listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts, addContacts,
 } from '../lib/landingPages/client.js';
 
 const INPUT = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50';
 const BTN = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:border-primary/60 hover:text-primary transition-colors disabled:opacity-50';
 const BTN_PRIMARY = 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-black hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50';
 const SAMPLE_TOKENS = { firstname: 'Ann', company: 'Acme' };
+// The customer a page was just made for: the editor previews as them instead of the sample person.
+let editorPreviewTokens = null;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -181,13 +185,13 @@ export function LandingPagesStudio() {
     const linkRow = el('div', 'flex flex-col sm:flex-row gap-2');
     const linkInput = el('input', INPUT);
     linkInput.type = 'url';
-    linkInput.placeholder = 'Or paste a video link (https://…/video.mp4)';
+    linkInput.placeholder = 'Or paste a video or picture link (https://…/video.mp4 or image.png)';
     linkInput.setAttribute('aria-label', 'Video link');
     const linkBtn = el('button', BTN, 'Use link');
     linkBtn.type = 'button';
     linkBtn.addEventListener('click', () => {
       const url = linkInput.value.trim();
-      if (!/^https:\/\/\S+$/i.test(url)) { showToast('Paste a full https:// video link.', 'warning', 3000); return; }
+      if (!/^https:\/\/\S+$/i.test(url)) { showToast('Paste a full https:// video or picture link.', 'warning', 3000); return; }
       const name = decodeURIComponent(url.split('?')[0].split('/').pop() || '').replace(/\.[^.]+$/, '') || 'Linked video';
       sel.video = { key: `link:${url}`, url, posterUrl: null, title: name.slice(0, 80), duration: null, source: { kind: 'link' }, createdAt: null, permanent: false };
       status.textContent = `Selected: ${sel.video.title}`;
@@ -237,18 +241,33 @@ export function LandingPagesStudio() {
     sel.previewHandles = [tplCards];
     const tplRow = tplCards.node;
 
+    const cp = createCustomerPanel();
+    void cp.load();
     const create = el('button', BTN_PRIMARY, 'Create page');
     create.type = 'button';
     create.addEventListener('click', async () => {
       if (!sel.video) { showToast('Choose a video first.', 'warning', 3000); return; }
       create.disabled = true;
       try {
-        const page = await createPageFromVideo(await ownerClient(), sel.video, {
+        const chosen = cp.selected();
+        const one = chosen.length === 1 ? chosen[0] : null;
+        const withBrand = !!one && cp.brand();
+        const client = await ownerClient();
+        let page = await createPageFromVideo(client, sel.video, {
           template: sel.template,
-          brand: brandDefaults(),
+          brand: withBrand ? brandForConfig(one) : brandDefaults(),
           deps: { upload },
           onStep: (label) => { status.textContent = `${label}…`; },
         });
+        if (withBrand && page.config?.puck) {
+          const applied = applyCustomerToPuck(page.config.puck, one);
+          page = await updatePage(client, page.id, { config: { ...page.config, puck: applied.data } });
+        }
+        const rows = chosen.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
+        if (rows.length) {
+          try { await addContacts(client, page.id, rows); showToast(`${rows.length} personal link${rows.length === 1 ? '' : 's'} made (Personal links tab)`, 'success', 3500); } catch (err) { showToast(`Page saved, but the personal links were not made: ${err.message}`, 'warning', 5000); }
+        }
+        editorPreviewTokens = chosen.length ? customerTokens(chosen[0]) : null;
         showToast('Page created', 'success', 2000);
         dropPreviews();
         showEditor(page);
@@ -258,7 +277,7 @@ export function LandingPagesStudio() {
       }
     });
 
-    inner.replaceChildren(el('div', 'flex items-center gap-3'), title, status, drop, linkRow, libHead, grid, tplHead, tplRow, create);
+    inner.replaceChildren(el('div', 'flex items-center gap-3'), title, status, drop, linkRow, libHead, grid, cp.el, tplHead, tplRow, create);
     inner.firstChild.appendChild(back);
   }
 
@@ -453,7 +472,7 @@ export function LandingPagesStudio() {
         puckHandle = mountPuckEditorFn(host, {
           page: current,
           data,
-          tokens: SAMPLE_TOKENS,
+          tokens: editorPreviewTokens || SAMPLE_TOKENS,
           onPublish: () => saveBtn.click(), // Puck's own Publish button = our Save
           onChange: (d) => {
             const next = sanitizePuck(d);

@@ -21,6 +21,7 @@ import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, us
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { canMoveLayer, moveLayer, type LayerMove } from '../preview/layerOrder'
 import { layerSnapBox, snapMove, snapTargets } from './editor/snap'
+import { BrandAndTemplates } from './editor/BrandAndTemplates'
 import { DesignLayerPlayer } from './DesignLayerPlayer'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import {
@@ -588,6 +589,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false }: Ove
         frame, and positions are saved with your project.
       </p>
       <EditorTour />
+      <BrandAndTemplates />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 14, marginTop: 12 }} className="guided-overlay-grid">
         {/* ── Stage column: stage + anything pinned directly under it ───── */}
