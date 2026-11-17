@@ -130,6 +130,76 @@ describe('/api/proxy/openai-enhance', () => {
   })
 })
 
+describe('/api/proxy/thumbnail-generate (Images 2.6)', () => {
+  const headers = { 'content-type': 'application/json', authorization: 'Bearer good-token', 'x-openai-key': 'sk-user-key-1234567890' }
+  const post = (body, h = headers) => call('POST', '/api/proxy/thumbnail-generate', { headers: h, body: JSON.stringify(body) })
+  const withFetch = async (impl, run) => {
+    const realFetch = globalThis.fetch
+    const upstream = vi.fn(impl)
+    globalThis.fetch = upstream
+    try {
+      await run(upstream)
+    } finally {
+      globalThis.fetch = realFetch
+    }
+  }
+  const image = () => new Response(JSON.stringify({ data: [{ b64_json: 'iVBORw0KGgo=' }] }), { status: 200 })
+
+  it('requires a signed-in user', async () => {
+    const res = await post({ action: 'generate', prompt: 'a thumbnail' }, { 'content-type': 'application/json' })
+    expect(res.status).toBe(401)
+  })
+
+  it('asks for an OpenAI key when none is available', async () => {
+    const res = await post({ action: 'generate', prompt: 'a thumbnail' }, { 'content-type': 'application/json', authorization: 'Bearer good-token' })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects an unsupported image size before calling OpenAI', async () => {
+    await withFetch(image, async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', size: '100x100' })
+      expect(res.status).toBe(400)
+      expect(upstream).not.toHaveBeenCalled()
+    })
+  })
+
+  it('sends an Images 2.6 request with the 2.6 controls and returns image urls', async () => {
+    await withFetch(image, async (upstream) => {
+      const res = await post({
+        action: 'generate', prompt: 'a launch video thumbnail', model: 'gpt-image-2.6-flare', aspect_ratio: '16:9',
+        quality: 'xhigh', complexity: 'high', output_format: 'webp',
+      })
+      expect(res.status).toBe(200)
+      const out = await res.json()
+      expect(Array.isArray(out.urls) && out.urls.length).toBeGreaterThan(0)
+      const [url, init] = upstream.mock.calls[0]
+      expect(String(url)).toContain('api.openai.com/v1/images/generations')
+      const sent = JSON.parse(init.body)
+      expect(sent.model).toBe('gpt-image-2.6-flare')
+      expect(sent.quality).toBe('xhigh')
+      expect(sent.complexity).toBe('high')
+    })
+  })
+
+  it('falls back to GPT Image 2 when the key has no Images 2.6 access', async () => {
+    let call = 0
+    await withFetch(async () => {
+      call += 1
+      return call === 1
+        ? new Response(JSON.stringify({ error: { message: 'The model does not exist or you do not have access to it.' } }), { status: 404 })
+        : image()
+    }, async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-sunburst', quality: 'max' })
+      expect(res.status).toBe(200)
+      const out = await res.json()
+      expect(out.fallback_from).toBe('gpt-image-2.6-sunburst')
+      const retry = JSON.parse(upstream.mock.calls[1][1].body)
+      expect(retry.model).toBe('gpt-image-2')
+      expect(retry.quality).toBe('high')
+    })
+  })
+})
+
 describe('client IP normalisation', () => {
   it("replaces caller-supplied forwarding headers with Netlify's connection IP", async () => {
     const { withTrustedClientIp } = await import('../personalization-api.mts')
