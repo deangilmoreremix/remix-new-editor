@@ -37,21 +37,35 @@ export function loadVideo(src: string): Promise<HTMLVideoElement> {
   })
 }
 
-export async function openVideoFrameSource(src: string): Promise<FrameSource> {
-  const video = await loadVideo(src)
+/**
+ * A FrameSource over one video element. The element has a single `currentTime`, so two draws that overlap (mask
+ * measuring and the live preview both use the shared decoder) would replace each other's seek target and paint the
+ * same frame twice. Each draw therefore runs as one complete seek-and-draw step, strictly one after another.
+ */
+export function frameSourceFromVideo(video: HTMLVideoElement): FrameSource {
+  let queue: Promise<unknown> = Promise.resolve()
   return {
     duration: video.duration,
     width: video.videoWidth,
     height: video.videoHeight,
-    async draw(ctx, timeSec, dx, dy, dw, dh) {
-      await seek(video, timeSec)
-      ctx.drawImage(video, dx, dy, dw, dh)
+    draw(ctx, timeSec, dx, dy, dw, dh) {
+      const step = queue.then(async () => {
+        await seek(video, timeSec)
+        ctx.drawImage(video, dx, dy, dw, dh)
+      })
+      // A failed draw must not block the ones queued behind it.
+      queue = step.catch(() => undefined)
+      return step
     },
     dispose() {
       video.removeAttribute('src')
       video.load()
     },
   }
+}
+
+export async function openVideoFrameSource(src: string): Promise<FrameSource> {
+  return frameSourceFromVideo(await loadVideo(src))
 }
 
 /** One shared decoder per URL for painting frames (preview and export), so a scrub does not reload the file. */
