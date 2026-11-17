@@ -307,6 +307,55 @@ export function isValidEmail(raw: unknown): raw is string {
 
 export const MAX_NOTIFY_EMAILS = 3;
 
+// ---------------------------------------------------------------------------------------------------- spam signals
+/** A person needs longer than this to fill in a form; scripts finish almost instantly. */
+export const MIN_FILL_MS = 1500;
+
+/**
+ * True when a submission looks automated. `signals` is what the form sends next to the answers: `hp`, the hidden honeypot
+ * field's value (people never fill it), and `ms`, how long the form was open (left out when answers were prefilled).
+ * Old clients send no signals, so they are never flagged.
+ */
+export function looksAutomated(signals: unknown): boolean {
+  if (!signals || typeof signals !== "object" || Array.isArray(signals)) return false;
+  const d = signals as Record<string, unknown>;
+  if (typeof d.hp === "string" && d.hp.trim()) return true;
+  if (d.ms === undefined || d.ms === null || d.ms === "") return false;
+  const ms = Number(d.ms);
+  return Number.isFinite(ms) && ms >= 0 && ms < MIN_FILL_MS;
+}
+
+/** Throwaway-inbox domains. Kept short and static (no paid lookup); owners switch the check on per form. */
+const DISPOSABLE_DOMAINS = new Set([
+  "mailinator.com", "guerrillamail.com", "guerrillamail.net", "guerrillamail.org", "sharklasers.com", "grr.la", "10minutemail.com",
+  "10minutemail.net", "temp-mail.org", "tempmail.com", "tempmail.net", "tempmailo.com", "throwawaymail.com", "yopmail.com", "yopmail.net",
+  "trashmail.com", "trashmail.net", "getnada.com", "nada.email", "maildrop.cc", "dispostable.com", "fakeinbox.com", "mailnesia.com",
+  "mintemail.com", "mohmal.com", "emailondeck.com", "burnermail.io", "spamgourmet.com", "mytemp.email", "tmpmail.org", "tmpmail.net",
+  "discard.email", "spambox.us", "moakt.com", "inboxkitten.com", "temp-mail.io", "tempinbox.com", "mail.tm", "harakirimail.com",
+  "33mail.com", "anonbox.net", "getairmail.com", "jetable.org", "meltmail.com", "mailcatch.com", "mailnull.com", "trbvm.com",
+]);
+
+export function isDisposableEmail(raw: unknown): boolean {
+  if (typeof raw !== "string") return false;
+  const at = raw.trim().toLowerCase().lastIndexOf("@");
+  if (at < 0) return false;
+  const domain = raw.trim().toLowerCase().slice(at + 1);
+  return DISPOSABLE_DOMAINS.has(domain) || [...DISPOSABLE_DOMAINS].some((d) => domain.endsWith(`.${d}`));
+}
+
+/**
+ * A short, viewer-safe message when an email answer is not acceptable, else "". Every answer whose field name contains "email"
+ * must be a valid address; with `blockDisposable` (an owner setting) throwaway inboxes are refused too.
+ */
+export function emailProblem(data: Record<string, string>, opts: { blockDisposable?: boolean } = {}): string {
+  for (const [key, value] of Object.entries(data)) {
+    if (!/e-?mail/i.test(key)) continue;
+    if (!isValidEmail(value)) return "Please enter a valid email address.";
+    if (opts.blockDisposable && isDisposableEmail(value)) return "Please use a permanent email address.";
+  }
+  return "";
+}
+
 /** Valid addresses only, trimmed, de-duplicated ignoring case, at most MAX_NOTIFY_EMAILS. */
 export function uniqueEmails(list: unknown[]): string[] {
   const seen = new Set<string>();

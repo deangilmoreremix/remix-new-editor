@@ -193,6 +193,7 @@ export function defaultOptin(kind = 'list-builder') {
     gtmId: '',
     espProvider: '',
     espListId: '',
+    blockDisposableEmails: false,
     transition: 'popcorn-none',
     ...POINTER_DEFAULTS,
     pointerEnabled: !lead, // upstream only showed the arrow on the List Builder
@@ -330,6 +331,7 @@ export function listBuilderFields(config) {
       { key: 'gaMeasurementId', label: 'Google Analytics 4 Measurement ID (G-XXXXXXXXXX)', type: 'text', tab: 'Integrations' },
       { key: 'tiktokPixelId', label: 'TikTok Pixel ID', type: 'text', tab: 'Integrations' },
       { key: 'gtmId', label: 'Google Tag Manager ID (GTM-XXXXXXX)', type: 'text', tab: 'Integrations' },
+      { key: 'blockDisposableEmails', label: 'Block throwaway email addresses (published videos)', type: 'toggle', tab: 'Integrations' },
       { key: 'espProvider', label: 'Add leads to an email list (published videos)', type: 'select', options: ESP_PROVIDERS, tab: 'Integrations' },
       { key: 'espListId', label: espListLabel(config?.espProvider), type: 'text', tab: 'Integrations', showIf: (o) => !!o.espProvider },
       { key: '_espConnect', label: `Connect ${espName(config?.espProvider) || 'account'}`, type: 'action', action: 'connectEsp', tab: 'Integrations', showIf: (o) => !!o.espProvider },
@@ -385,6 +387,7 @@ const CLIP_KEYS = {
   gtmId: 'gtmId',
   espProvider: 'espProvider',
   espListId: 'espListId',
+  blockDisposableEmails: 'blockDisposableEmails',
 };
 
 // opt-in option → clip.style key.

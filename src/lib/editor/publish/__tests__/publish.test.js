@@ -47,6 +47,26 @@ function fakeEngine() {
   return { e, create };
 }
 
+describe('viewer-safe lead errors', () => {
+  it('returns the server message as `fix` only for a 400', async () => {
+    const mk = (status, body) => vi.fn(async () => ({ ok: status < 300, status, json: async () => body }));
+    const cfg = { url: 'https://x.supabase.co', key: 'k' };
+    const bad = await submitViewerLead({ publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'x@mailinator.com' } }, { ...cfg, fetchImpl: mk(400, { ok: false, error: 'Please use a permanent email address.' }) });
+    expect(bad).toMatchObject({ stored: false, fix: 'Please use a permanent email address.' });
+    const down = await submitViewerLead({ publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'a@b.co' } }, { ...cfg, fetchImpl: mk(500, { ok: false, error: 'Boom' }) });
+    expect(down.fix).toBeNull();
+  });
+  it('sends the bot signals next to the answers, not inside them', async () => {
+    const fetchImpl = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ ok: true, stored: true }) }));
+    await submitViewerLead({ publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'a@b.co' }, signals: { hp: '', ms: 4200 } }, { url: 'https://x.supabase.co', key: 'k', fetchImpl });
+    const sent = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(sent.data).toEqual({ EMAIL: 'a@b.co' });
+    expect(sent.signals).toEqual({ hp: '', ms: 4200 });
+    await submitViewerLead({ publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'a@b.co' }, signals: { hp: '' } }, { url: 'https://x.supabase.co', key: 'k', fetchImpl });
+    expect(JSON.parse(fetchImpl.mock.calls[1][1].body).signals).toEqual({ hp: '' }); // prefilled: no timing
+  });
+});
+
 describe('publish client', () => {
   it('makes unguessable slugs and share links', () => {
     const s = makeSlug();
@@ -148,7 +168,7 @@ describe('interactive player', () => {
     form.querySelector('input').value = 'ann@example.com';
     form.dispatchEvent(new Event('submit', { cancelable: true }));
     await new Promise((r) => setTimeout(r, 0));
-    expect(onLead).toHaveBeenCalledWith({ clipId: 'lf', kind: 'lead-form', data: { EMAIL: 'ann@example.com' } });
+    expect(onLead).toHaveBeenCalledWith({ clipId: 'lf', kind: 'lead-form', data: { EMAIL: 'ann@example.com' }, signals: expect.objectContaining({ hp: '' }) });
     expect(player.playing).toBe(true);
     expect(frame.querySelector('.addon-overlay--optin')).toBeNull();
     e.advance(8.5);

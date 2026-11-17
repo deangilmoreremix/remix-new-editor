@@ -111,6 +111,7 @@ export const LEAD_FORM = registerAddon({
     gtmId: '',
     espProvider: '',
     espListId: '',
+    blockDisposableEmails: false,
     successMessage: 'Thanks!',
     afterSubmitAction: 'continue',
     afterSubmitUrl: '',
