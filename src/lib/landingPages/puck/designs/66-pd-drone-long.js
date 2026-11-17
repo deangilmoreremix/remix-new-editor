@@ -303,7 +303,7 @@ export default {
                   {
                     "text": "The video explained everything clearly and made it easy to decide what to do next.",
                     "name": "Local customer example",
-                    "role": "★★★★★",
+                    "role": "Local customer",
                     "avatar": ""
                   }
                 ]
@@ -319,7 +319,7 @@ export default {
                   {
                     "text": "I appreciated seeing the options before getting in touch. The process felt personal.",
                     "name": "Illustrative testimonial",
-                    "role": "★★★★★",
+                    "role": "Local customer",
                     "avatar": ""
                   }
                 ]
@@ -335,7 +335,7 @@ export default {
                   {
                     "text": "It was simple to get details, ask questions, and schedule a convenient time.",
                     "name": "Illustrative testimonial",
-                    "role": "★★★★★",
+                    "role": "Local customer",
                     "avatar": ""
                   }
                 ]
