@@ -15,12 +15,12 @@ export function useStore<T>(key: string, initial: T) {
     window.addEventListener("storage", on);
     return () => window.removeEventListener("storage", on);
   }, [key]);
+  // Re-read storage on every write so an update from another tab that this tab has not
+  // seen yet is built on, not overwritten. Updaters should use the functional form.
   const set = useCallback((u: T | ((p: T) => T)) => {
-    setValue((p) => {
-      const n = typeof u === "function" ? (u as (p: T) => T)(p) : u;
-      try { localStorage.setItem(key, JSON.stringify(n)); } catch { /* quota/private mode */ }
-      return n;
-    });
+    const n = typeof u === "function" ? (u as (p: T) => T)(read()) : u;
+    try { localStorage.setItem(key, JSON.stringify(n)); } catch { /* quota/private mode */ }
+    setValue(n);
   }, [key]);
   return [value, set] as const;
 }

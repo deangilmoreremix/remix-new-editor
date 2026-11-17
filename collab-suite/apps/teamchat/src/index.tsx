@@ -18,7 +18,7 @@ export default function Teamchat() {
       <div className="side">
         <input value={user} onChange={(e) => setUser(e.target.value)} style={{ width: "100%", marginBottom: 8 }} />
         {channels.map((c) => <div key={c} className={"item" + (c === ch ? " on" : "")} onClick={() => setCh(c)}># {c}</div>)}
-        <button style={{ marginTop: 8 }} onClick={() => { const n = prompt("Channel name")?.trim().toLowerCase(); if (n && !channels.includes(n)) setChannels([...channels, n]); }}>+ Channel</button>
+        <button style={{ marginTop: 8 }} onClick={() => { const n = prompt("Channel name")?.trim().toLowerCase(); if (n) setChannels((l) => (l.includes(n) ? l : [...l, n])); }}>+ Channel</button>
       </div>
       <div className="main">
         <div className="grow" style={{ overflow: "auto", padding: 12 }}>
