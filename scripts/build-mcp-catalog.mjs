@@ -1,6 +1,7 @@
 // Emits mcp/catalog.json: a brand-neutral, trimmed model catalog for the SmartVid MCP server.
 // Run: node scripts/build-mcp-catalog.mjs
 import { writeFileSync } from 'node:fs';
+import { getImageInputContract, getAuxiliaryImageInputs } from '../src/lib/imageInputContracts.js';
 import * as m from '../src/lib/models.js';
 import { recastModels, motionControlModels } from '../src/lib/motionModels.js';
 
@@ -35,6 +36,21 @@ for (const [kind, [list, studios]] of Object.entries(KINDS)) {
     for (const [name, def] of Object.entries(model.inputs || {})) {
       inputs[name] = {};
       for (const k of KEEP) if (def[k] !== undefined) inputs[name][k] = k === 'description' ? strip(def[k]) : def[k];
+    }
+    // Requirements the app enforces before it calls the backend: model.required, promptRequired and the image-input contracts.
+    const req = new Set(Array.isArray(model.required) ? model.required : []);
+    if (model.promptRequired) req.add('prompt');
+    const mode = kind === 'i2i' ? 'i2i' : kind === 't2i' ? 't2i' : null;
+    if (mode) {
+      const c = getImageInputContract(model, mode);
+      if (c.promptRequired) req.add(c.promptField || 'prompt');
+      if (c.primaryImageRequired) req.add(model.imageField || 'image_url');
+      for (const a of getAuxiliaryImageInputs(model, mode)) if (a.required) req.add(a.field);
+    }
+    if (kind === 'i2i' || kind === 'i2v') req.add(model.imageField || 'image_url');
+    if (kind === 'v2v') req.add(model.videoField || 'video_url');
+    for (const name of req) {
+      inputs[name] = { ...(inputs[name] || { type: 'string', title: name }), required: true };
     }
     entries.push({
       key, kind, studios: entryStudios, id: model.id, name: strip(model.name), family: model.family,

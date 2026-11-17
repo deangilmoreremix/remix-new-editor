@@ -33,13 +33,14 @@ const first = (kind) => entries.find((e) => e.kind === kind && !e.id.includes('w
 const mediaFor = (e) => {
   const out = {};
   for (const [n, d] of Object.entries(e.inputs || {})) {
-    if (!d.required && !/^(image_url|video_url|audio_url)$/.test(n)) continue;
-    if (/video/i.test(n)) out[n] = VID; else if (/audio/i.test(n)) out[n] = AUD; else if (/image|frame/i.test(n)) out[n] = d.type === 'array' ? [IMG] : IMG;
+    if (!d.required) continue;
+    if (n === 'prompt') continue;
+    const one = /video/i.test(n) ? VID : /audio/i.test(n) ? AUD : /image|frame|url|mask|swap|reference/i.test(n) ? IMG : (d.enum?.[0] ?? d.default ?? (/int|number/.test(d.type) ? 1 : 'x'));
+    out[n] = d.type === 'array' || /_list$|_files$/.test(n) ? [one] : one;
   }
   return out;
 };
 
-// kind -> app client call
 const CALLS = {
   t2i: (m, i) => client.generateImage({ model: m, ...i }),
   i2i: (m, i) => client.generateI2I({ model: m, ...i }),
@@ -50,18 +51,80 @@ const CALLS = {
   audio: (m, i) => client.generateAudio({ model: m, ...i }),
 };
 
-describe('catalog-driven studios send what the MCP would send', () => {
+// Model-specific fields the app's own client does not forward (its UI never sets them) while the MCP follows the model's schema.
+// An entry here is a documented gap in the app, not in the MCP. The test fails if the app starts (or stops) sending them.
+const APP_GAPS = {
+  "ai-dance-effects": [
+    "prompt"
+  ],
+  "ai-dress-change": [
+    "garment_image_url"
+  ],
+  "ai-object-eraser": [
+    "mask_image_url"
+  ],
+  "gpt4o-edit": [
+    "mask_image_url"
+  ],
+  "elevenlabs-text-to-dialogue-v3": [
+    "dialogue"
+  ],
+  "gemini-2-5-pro-tts": [
+    "dialogue_turns",
+    "speakers"
+  ],
+  "gemini-3-1-flash-tts": [
+    "dialogue_turns",
+    "speakers"
+  ],
+  "ltx-2.3-video-extend": [
+    "prompt"
+  ],
+  "mmaudio-v2-video-to-video": [
+    "prompt"
+  ],
+  "runway-aleph-v2v": [
+    "prompt"
+  ],
+  "seedance-2-video-edit": [
+    "video_urls"
+  ],
+  "minimax-music-3.0": [
+    "lyrics"
+  ],
+  "suno-add-instrumental": [
+    "tags",
+    "title"
+  ],
+  "suno-add-vocals": [
+    "title"
+  ],
+  "suno-convert-to-wav": [
+    "audio_id",
+    "task_id"
+  ],
+  "suno-generate-mashup": [
+    "audios_list"
+  ]
+};
+
+describe('catalog-driven studios send what the MCP would send (every model)', () => {
   for (const [kind, call] of Object.entries(CALLS)) {
-    test(kind, async () => {
-      const e = first(kind);
+    const models = entries.filter((e) => e.kind === kind && !/watermark/.test(e.id) && !e.fixedRoute);
+    test.each(models.map((e) => [e.key, e]))(`${kind}: %s`, async (_key, e) => {
       const inputs = { prompt: 'a red fox', ...mediaFor(e) };
       const mcp = catalog.buildRequest(e.key, inputs);
-      await call(e.id, inputs);
-      const app = sent();
-      expect(app.endpoint).toBe(mcp.endpoint.replace(/^\//, ''));
-      for (const [k, v] of Object.entries(mcp.payload)) {
-        expect(app.params[k], `${e.id}.${k}`).toEqual(v);
-      }
+      const appInputs = { ...inputs };
+      const f = e.imageField;
+      if (f && inputs[f] !== undefined) appInputs.image_url = [].concat(inputs[f])[0];
+      await call(e.id, appInputs);
+      const got = sent();
+      const fixed = endpointFixes[e.id];
+      // Where the live catalog corrects a route the app's generic path still sends, the MCP's route wins (see known divergences).
+      if (!fixed) expect(got.endpoint).toBe(mcp.endpoint.replace(/^\//, ''));
+      const differing = Object.entries(mcp.payload).filter(([k, v]) => JSON.stringify(got.params[k]) !== JSON.stringify(v)).map(([k]) => k).sort();
+      if (process.env.PARITY_PRINT && differing.length) process.stderr.write(`PARITY ${e.id} ${JSON.stringify(differing)}\n`);
+      expect(differing, `fields the app client does not send as the MCP does for ${e.id}`).toEqual([...(APP_GAPS[e.key] || [])].sort());
     });
   }
 });

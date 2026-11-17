@@ -69,6 +69,12 @@ describe('SmartVid MCP', () => {
     expect(gw.calls.length).toBe(0);
   });
 
+  it('enforces the required inputs the studios enforce (e.g. an edit needs a source image)', () => {
+    const edit = entries.find((e) => e.kind === 'i2i' && !e.inputs.image_url?.enum && Object.values(e.inputs).some((d) => d.required));
+    expect(edit, 'catalog carries required flags').toBeTruthy();
+    expect(() => catalog.buildRequest(edit.key, { prompt: 'x' })).toThrow(/required/);
+  });
+
   it('scrubs upstream names from gateway errors and reports a missing key', async () => {
     const mcp = await connect(fakeGateway().fetchImpl);
     const r = await mcp.callTool({ name: 'smartvid_upload_file', arguments: { url: 'https://example.com/a.png' } });

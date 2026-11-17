@@ -19,6 +19,7 @@ export const GENERATION_TOOLS = [
   { name: 'motion_control', kinds: ['motion'], timeoutMs: 600_000, description: 'Drive an image/character with the motion of a reference video.' },
   { name: 'motion_graphics', kinds: ['graphics'], timeoutMs: 300_000, description: 'Generate or edit an animated motion-graphics clip from a prompt.' },
   { name: 'marketing_ad', kinds: ['ad'], timeoutMs: 900_000, description: 'Create a product ad video from reference images/videos (omni-reference).' },
+  { name: 'clip_video', kinds: ['clipping'], timeoutMs: 900_000, description: 'Extract highlight clips from a long video (AI clipping).' },
   { name: 'recast', kinds: ['recast'], timeoutMs: 600_000, description: 'Swap the performer/body in a video.' },
 ];
 

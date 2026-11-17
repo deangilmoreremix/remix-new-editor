@@ -46,6 +46,8 @@ export function createCatalog(entries, { endpointFixes = {} } = {}) {
       if (!allowed.has(name)) throw new InputError(`"${name}" is not an input of ${key}. Allowed: ${[...allowed].join(', ')}`);
       const def = spec[name] || {};
       let value = raw;
+      // List-typed fields (images_list, video_files, ...) take arrays; accept a single URL for convenience.
+      if ((def.type === 'array' || /_list$|_files$/.test(name)) && !Array.isArray(value)) value = [value];
       if (NUMERIC.has(def.type) && typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) value = Number(value);
       if (def.enum && !Array.isArray(value) && !def.enum.map(String).includes(String(value))) {
         throw new InputError(`"${name}" must be one of: ${def.enum.join(', ')}`);
@@ -59,7 +61,8 @@ export function createCatalog(entries, { endpointFixes = {} } = {}) {
     for (const [name, def] of Object.entries(spec)) {
       if (def.required && payload[name] === undefined) throw new InputError(`"${name}" is required for ${key}`);
     }
-    if (!payload.prompt && entry.hasPrompt === false) delete payload.prompt;
+    // Models that take no prompt: drop it rather than send an undeclared field (the studios do the same).
+    if (entry.hasPrompt === false && !spec.prompt) delete payload.prompt;
     return { endpoint: `/${endpointFixes[entry.id] || entry.endpoint || entry.id}`, payload, entry };
   }
 
