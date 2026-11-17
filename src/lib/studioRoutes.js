@@ -196,6 +196,7 @@ export const NAV_GROUPS = [
     { id: 'workbench', label: 'Workbench' },
     { id: 'viral', label: 'Viral' },
     { id: 'personalizer', label: 'Personalizer' },
+    { id: 'leadfinder', label: 'Lead Finder' },
     { id: 'video-pages', label: 'Video Pages' },
     { id: 'website-builder', label: 'Website' },
   ] },
