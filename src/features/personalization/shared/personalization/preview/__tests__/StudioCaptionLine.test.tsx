@@ -46,7 +46,8 @@ describe('StudioCaptionLine: the Caption Studio look, drawn as DOM', () => {
     expect(topOf(lo)).toBeLessThan(topOf(hi))
     const span = lo.querySelector('span')!
     expect(span.style.fontFamily).toContain('Anton') // a font that ships in the app
-    expect(span.style.textShadow).toContain('rgb(0, 17, 34)') // #001122 outline
+    // #001122 outline (jsdom may serialise the colour as hex or as rgb(), depending on its version)
+    expect(span.style.textShadow).toMatch(/#001122|rgb\(0, 17, 34\)/i)
   })
   it('never asks for a font the app does not ship (no network at export)', () => {
     const el = line(studio({ fontFamily: 'Orbitron' }), 500)
