@@ -8,7 +8,7 @@ import { PREVIEW_LAYOUTS } from '../../preview/presets'
 const ctx: Record<string, unknown> = {}
 vi.mock('../../DemoPersonalizeProvider', () => ({ useDemoPersonalize: () => ctx }))
 
-vi.mock('../PersonalizationTemplateBrowser', () => ({ PersonalizationTemplateBrowser: () => null }))
+vi.mock('../PersonalizationTemplateBrowser', () => ({ PersonalizationTemplateBrowser: () => null, TemplateLivePreview: () => null }))
 vi.mock('../AssetUsagePanel', () => ({ AssetUsagePanel: () => null }))
 
 import { StepPersonalize } from '../StepPersonalize'
