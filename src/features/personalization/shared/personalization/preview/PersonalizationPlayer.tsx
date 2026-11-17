@@ -357,9 +357,6 @@ export function PersonalizationPlayer(
           numberOfSharedAudioTags={8}
           acknowledgeRemotionLicense
           autoPlay={autoPlay}
-          // Without this a throwing composition only shows Remotion's bare ⚠️
-          // and the cause is lost.
-          onError={(error) => console.error('[PersonalizationPlayer] composition failed to render', error)}
           style={{ width: '100%', height: '100%' }}
           initiallyMuted={muted ?? true}
         />

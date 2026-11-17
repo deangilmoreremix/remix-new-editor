@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { isRemotionDesignTemplateSupported } from '../templates'
 import { DESIGN_GOALS, recommendDesigns, type DesignGoalId, type GoalSuggestion, type RecommendContext } from '../templates/recommendations'
 import type { RemotionDesignTemplate } from '../templates/types'
-import type { PreviewAspectRatio } from '../preview/types'
+import type { PreviewAspectRatio, PreviewLayoutId } from '../preview/types'
 import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser'
 import { C, chipStyle, hintStyle, labelStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
 
