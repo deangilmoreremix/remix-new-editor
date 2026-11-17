@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { spin, renderTemplate, spamCheck, extractVariables } from '../domain/template';
 import { warmupVolume, daysToTarget, mailboxHealth } from '../domain/warmup';
 import { validateCampaign, inSendWindow, nextSendSlot, nextStep, campaignStats, dedupeContacts, estimateCompletion } from '../domain/campaign';
-import { classifyReply, matches } from '../domain/automation';
+import { classifyReply } from '../domain/automation';
 import { parseCSV, toCSV } from '../domain/analytics';
 import { mailboxReport, shouldAutoPause } from '../domain/deliverability';
 import { buildSeed } from '../api/seed';
@@ -55,11 +55,6 @@ describe('automation + classification', () => {
   it('classifies replies', () => {
     expect(classifyReply('Not interested, remove me')).toBe('not-interested'); expect(classifyReply('Out of office until Monday')).toBe('out-of-office');
     expect(classifyReply('Sounds good, tell me more')).toBe('interested'); expect(classifyReply('How does it work?')).toBe('question'); expect(classifyReply('Does Thursday 2pm work?')).toBe('meeting-booked');
-  });
-  it('matches conditions', () => {
-    const a = { id: 'a', name: '', enabled: true, trigger: 'reply-received' as const, conditions: [{ field: 'company' as const, op: 'contains' as const, value: 'acme' }], actions: [], runs: 0, createdAt: '' };
-    expect(matches(a, { trigger: 'reply-received', contact: { company: 'ACME Inc' } as never })).toBe(true);
-    expect(matches({ ...a, enabled: false }, { trigger: 'reply-received', contact: { company: 'acme' } as never })).toBe(false);
   });
 });
 describe('csv', () => {

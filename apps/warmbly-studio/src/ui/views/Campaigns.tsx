@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useWb } from '../store';
-import { Badge, Btn, Card, Empty, Field, Funnel, LineChart, Modal, Stat, Tabs, fmtDate, useConfirm } from '../kit';
+import { Badge, Btn, Card, Empty, Field, Modal, Tabs, fmtDate, useConfirm } from '../kit';
+import { CampaignDetail } from './CampaignDetail';
+import { StepFields } from '../StepEditor';
 import type { Campaign, SequenceStep } from '../../types';
 import { campaignStats, estimateCompletion, validateCampaign } from '../../domain/campaign';
 import { contactVars, extractVariables, renderEmail, spamCheck } from '../../domain/template';
-import { dailySeries, funnel, pct } from '../../domain/analytics';
+import { pct } from '../../domain/analytics';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 let sid = 0; const newId = () => `st_${Date.now().toString(36)}${++sid}`;
@@ -16,7 +18,7 @@ export function Campaigns() {
   const [editing, setEditing] = useState<Campaign | null>(null);
   const { confirm, el } = useConfirm();
   const open = ws.campaigns.find(c => c.id === arg);
-  if (open) return <CampaignDetail c={open} onBack={() => nav('campaigns')} onEdit={() => setEditing(open)} editor={editing && <Builder initial={editing} onClose={() => setEditing(null)} />} />;
+  if (open) return <CampaignDetail key={open.id} c={open} onBack={() => nav('campaigns')} />;
   return <div className="wb-grid">
     <div className="wb-row"><span className="wb-mute">{ws.campaigns.length} campaigns</span><span className="wb-sp" /><Btn pri onClick={() => setEditing(blankCampaign())}>+ New campaign</Btn></div>
     {ws.campaigns.length === 0 ? <Empty>No campaigns yet. Create a multi-step sequence to start reaching out.</Empty> : <Card><table><thead><tr><th>Campaign</th><th>Status</th><th>Contacts</th><th>Sent</th><th>Opens</th><th>Replies</th><th /></tr></thead><tbody>
@@ -32,37 +34,6 @@ export function Campaigns() {
     </tbody></table></Card>}
     {editing && <Builder initial={editing} onClose={() => setEditing(null)} />}{el}
   </div>;
-}
-
-function CampaignDetail({ c, onBack, onEdit, editor }: { c: Campaign; onBack: () => void; onEdit: () => void; editor: React.ReactNode }) {
-  const { ws, adapter, dispatch } = useWb();
-  const [tab, setTab] = useState<'overview' | 'sequence' | 'contacts'>('overview');
-  const s = campaignStats(ws.events, c.id);
-  const evs = ws.events.filter(e => e.campaignId === c.id);
-  return <div className="wb-grid">
-    <div className="wb-row"><Btn sm onClick={onBack}>← Campaigns</Btn><h2 style={{ margin: 0 }}>{c.name}</h2><Badge tone={c.status === 'active' ? 'good' : undefined}>{c.status}</Badge><span className="wb-sp" />
-      {c.status === 'active' ? <Btn onClick={() => dispatch({ type: 'campaign/status', id: c.id, status: 'paused' })}>Pause</Btn> : c.status !== 'completed' && <Btn pri onClick={() => dispatch({ type: 'campaign/status', id: c.id, status: 'active' })}>Launch</Btn>}
-      <Btn onClick={onEdit}>Edit</Btn></div>
-    <Tabs tabs={[{ id: 'overview', label: 'Overview' }, { id: 'sequence', label: 'Sequence' }, { id: 'contacts', label: 'Contacts' }]} value={tab} onChange={setTab} />
-    {tab === 'overview' && <>
-      <div className="wb-grid wb-g4"><Stat label="Sent" value={s.sent} /><Stat label="Opened" value={pct(s.openRate)} sub={`${s.opened} contacts`} /><Stat label="Clicked" value={pct(s.clickRate)} /><Stat label="Replied" value={pct(s.replyRate)} sub={`${s.replied} contacts`} /><Stat label="Bounced" value={pct(s.bounceRate)} /></div>
-      <div className="wb-grid wb-g2"><Card title="Sends, last 14 days"><LineChart data={dailySeries(evs, 'sent', 14, adapter.now())} /></Card><Card title="Funnel"><Funnel steps={funnel(evs)} /></Card></div>
-      <Card title="Delivery plan"><span className="wb-mute">Up to {c.dailyCap} emails/day, {DAYS.filter((_, i) => c.schedule.days.includes(i)).join(', ')} {c.schedule.startHour}:00–{c.schedule.endHour}:00 ({c.schedule.timezone}). Estimated {estimateCompletion(c).days} days to complete.</span></Card></>}
-    {tab === 'sequence' && <Card>{c.steps.map((st, i) => <StepRow key={st.id} st={st} i={i} stats={ws.events.filter(e => e.stepId === st.id && e.campaignId === c.id)} />)}</Card>}
-    {tab === 'contacts' && <Card><table><thead><tr><th>Contact</th><th>Company</th><th>Progress</th><th>Outcome</th></tr></thead><tbody>
-      {c.contactIds.map(id => { const ct = ws.contacts.find(x => x.id === id); if (!ct) return null; const mine = evs.filter(e => e.contactId === id); const sent = mine.filter(e => e.type === 'sent').length;
-        const outcome = mine.find(e => e.type === 'replied') ? 'replied' : mine.find(e => e.type === 'bounced') ? 'bounced' : mine.find(e => e.type === 'clicked') ? 'clicked' : mine.find(e => e.type === 'opened') ? 'opened' : sent ? 'sent' : 'queued';
-        return <tr key={id}><td>{ct.firstName} {ct.lastName}<div className="wb-mute wb-sm">{ct.email}</div></td><td>{ct.company}</td><td>{sent}/{c.steps.filter(x => x.kind === 'email').length}</td><td><Badge tone={outcome === 'replied' ? 'good' : outcome === 'bounced' ? 'bad' : undefined}>{outcome}</Badge></td></tr>; })}</tbody></table></Card>}
-    {editor}
-  </div>;
-}
-
-function StepRow({ st, i, stats }: { st: SequenceStep; i: number; stats: { type: string }[] }) {
-  return <div className="wb-step"><div className="n">{i + 1}</div><div className="box">
-    {st.kind === 'email' && <><b>{st.subject || '(reply in thread)'}</b><div className="wb-mute wb-sm" style={{ whiteSpace: 'pre-wrap' }}>{st.body}</div><div className="wb-sm wb-mute" style={{ marginTop: 6 }}>{stats.filter(e => e.type === 'sent').length} sent · {stats.filter(e => e.type === 'opened').length} opened · {stats.filter(e => e.type === 'replied').length} replies</div></>}
-    {st.kind === 'wait' && <span>Wait {st.waitDays} day{st.waitDays === 1 ? '' : 's'}</span>}
-    {st.kind === 'condition' && <span>Continue only if contact {st.negate ? 'has not' : 'has'} {st.condition}</span>}
-    {st.kind === 'task' && <span>Create task: {st.taskTitle}</span>}</div></div>;
 }
 
 function Builder({ initial, onClose }: { initial: Campaign; onClose: () => void }) {

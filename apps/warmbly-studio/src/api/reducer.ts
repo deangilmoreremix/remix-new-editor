@@ -3,7 +3,7 @@ import type { Action } from './actions';
 import { dedupeContacts } from '../domain/campaign';
 import { addSuppression } from '../domain/deliverability';
 import { mailboxHealth, warmupVolume } from '../domain/warmup';
-import { fireAutomations, rollDay, tick, uid } from './engine';
+import { fireAutomations, rollDay, sendDraft, tick, uid } from './engine';
 
 const nowISO = () => new Date().toISOString();
 const upsert = <X extends { id: string }>(list: X[], item: X) => list.some(x => x.id === item.id) ? list.map(x => x.id === item.id ? item : x) : [...list, item];
@@ -46,6 +46,19 @@ export function reduce(ws: T.Workspace, a: Action, now: Date = new Date()): T.Wo
       const mb = ws.mailboxes.find(m => m.id === t.mailboxId); const c = ws.contacts.find(x => x.id === t.contactId);
       const msg: T.Message = { id: uid('msg'), threadId: t.id, direction: 'out', from: mb?.email ?? '', to: c?.email ?? '', subject: `Re: ${t.subject.replace(/^Re:\s*/i, '')}`, body: a.body, at: now.toISOString() };
       return { ...ws, threads: ws.threads.map(x => x.id === t.id ? { ...x, messages: [...x.messages, msg], unread: false, draft: undefined, updatedAt: msg.at } : x) };
+    }
+    case 'thread/bulk': return { ...ws, threads: ws.threads.map(t => a.ids.includes(t.id) ? { ...t, ...a.patch } : t) };
+    case 'thread/labels': return { ...ws, threads: ws.threads.map(t => !a.ids.includes(t.id) ? t : { ...t, labelIds: a.remove ? (t.labelIds ?? []).filter(l => l !== a.labelId) : (t.labelIds ?? []).includes(a.labelId) ? t.labelIds : [...(t.labelIds ?? []), a.labelId] }) };
+    case 'thread/tags': return { ...ws, threads: ws.threads.map(t => !a.ids.includes(t.id) ? t : { ...t, tags: a.remove ? (t.tags ?? []).filter(g => g !== a.tag) : (t.tags ?? []).includes(a.tag) ? t.tags : [...(t.tags ?? []), a.tag] }) };
+    case 'thread/purge': return { ...ws, threads: ws.threads.filter(t => !(a.ids.includes(t.id) && t.trashed)) };
+    case 'label/save': return { ...ws, labels: upsert(ws.labels, a.label.id ? a.label : { ...a.label, id: uid('lbl') }) };
+    case 'label/remove': return { ...ws, labels: ws.labels.filter(l => l.id !== a.id), threads: ws.threads.map(t => t.labelIds?.includes(a.id) ? { ...t, labelIds: t.labelIds.filter(l => l !== a.id) } : t) };
+    case 'draft/save': return { ...ws, drafts: upsert(ws.drafts, a.draft.id ? a.draft : { ...a.draft, id: uid('dr') }) };
+    case 'draft/delete': return { ...ws, drafts: ws.drafts.filter(d => d.id !== a.id) };
+    case 'draft/send': {
+      const d = a.draft.id ? a.draft : { ...a.draft, id: uid('dr') };
+      if (d.scheduledAt && d.scheduledAt > now.toISOString()) return { ...ws, drafts: upsert(ws.drafts, d) };
+      return sendDraft({ ...ws, drafts: ws.drafts.filter(x => x.id !== d.id) }, d, now);
     }
     case 'deal/save': return { ...ws, deals: upsert(ws.deals, a.deal.id ? a.deal : { ...a.deal, id: uid('deal') }) };
     case 'deal/move': return { ...ws, deals: ws.deals.map(d => d.id === a.id ? { ...d, stageId: a.stageId } : d) };

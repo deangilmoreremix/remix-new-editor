@@ -1,6 +1,7 @@
 import type * as T from '../types';
 import { reduce } from './reducer';
 import { rollDay, tick } from './engine';
+import { linearToFlow } from '../domain/flow';
 
 export function mulberry32(a: number) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
@@ -10,6 +11,11 @@ const CO = ['Northwind', 'Lumen Labs', 'Brightpath', 'Quanta', 'Helix Co', 'Orbi
 const TITLE = ['Head of Growth', 'Founder', 'VP Marketing', 'Sales Director', 'Operations Lead', 'CMO'];
 
 const day = (d: number, base: Date) => new Date(base.getTime() - d * 86_400_000).toISOString();
+
+export const DEFAULT_LABELS: T.Label[] = [{ id: 'lbl_lead', name: 'Lead', color: 'warn' }, { id: 'lbl_customer', name: 'Customer', color: 'good' }, { id: 'lbl_churn', name: 'Churn risk', color: 'bad' }];
+
+const mk = (id: string, name: string, trigger: T.AutomationTrigger, conditions: T.AutomationCondition[], actions: [T.AutomationActionKind, string][], createdAt: string): T.Automation => ({
+  id, name, enabled: true, trigger, runs: 0, createdAt, flow: linearToFlow(trigger, conditions, actions.map(([kind, value]) => ({ kind, value }))) });
 
 export function baseWorkspace(now: Date, rand: () => number): T.Workspace {
   const iso = now.toISOString();
@@ -63,10 +69,9 @@ export function baseWorkspace(now: Date, rand: () => number): T.Workspace {
       { id: 'm_2', title: 'Demo: Orbit Media', contactId: 'c_6', at: day(-4, now), durationMin: 45 },
     ],
     automations: [
-      { id: 'auto_1', name: 'Interested replies → deal + task', enabled: true, trigger: 'reply-received', conditions: [{ field: 'label', op: 'equals', value: 'interested' }],
-        actions: [{ id: 'a1', kind: 'create-deal', value: '6000' }, { id: 'a2', kind: 'create-task', value: 'Reply to interested lead within 24h' }, { id: 'a3', kind: 'tag', value: 'hot' }], runs: 0, createdAt: day(14, now) },
-      { id: 'auto_2', name: 'Not interested → unsubscribe', enabled: true, trigger: 'reply-received', conditions: [{ field: 'label', op: 'equals', value: 'not-interested' }], actions: [{ id: 'a1', kind: 'unsubscribe' }], runs: 0, createdAt: day(14, now) },
-      { id: 'auto_3', name: 'Questions → AI draft', enabled: true, trigger: 'reply-received', conditions: [{ field: 'label', op: 'equals', value: 'question' }], actions: [{ id: 'a1', kind: 'ai-draft' }], runs: 0, createdAt: day(10, now) },
+      mk('auto_1', 'Interested replies → deal + task', 'reply-received', [{ field: 'label', op: 'equals', value: 'interested' }], [['create-deal', '6000'], ['create-task', 'Reply to interested lead within 24h'], ['tag', 'hot']], day(14, now)),
+      mk('auto_2', 'Not interested → unsubscribe', 'reply-received', [{ field: 'label', op: 'equals', value: 'not-interested' }], [['unsubscribe', '']], day(14, now)),
+      mk('auto_3', 'Questions → AI draft', 'reply-received', [{ field: 'label', op: 'equals', value: 'question' }], [['ai-draft', '']], day(10, now)),
     ],
     webhooks: [{ id: 'wh_1', url: 'https://hooks.example.com/warmbly', events: ['reply.received', 'email.bounced'], secret: 'whsec_demo123456', enabled: true, lastStatus: 200 }],
     apiKeys: [{ id: 'key_1', name: 'Zapier', prefix: 'wb_demo1234', createdAt: day(20, now), lastUsedAt: day(1, now), scopes: ['contacts:write', 'campaigns:read'] }],
@@ -75,7 +80,7 @@ export function baseWorkspace(now: Date, rand: () => number): T.Workspace {
       { id: 'slack', name: 'Slack', connected: true, detail: '#sales-replies' }, { id: 'zapier', name: 'Zapier', connected: false },
       { id: 'make', name: 'Make', connected: false }, { id: 'calendly', name: 'Calendly', connected: false },
     ],
-    suppression: [],
+    suppression: [], pending: [], labels: DEFAULT_LABELS, drafts: [],
     team: [{ id: 'u_1', name: 'Alex Morgan', email: 'alex@getacme.io', role: 'owner', online: true }, { id: 'u_2', name: 'Priya Shah', email: 'priya@getacme.io', role: 'admin', online: true }, { id: 'u_3', name: 'Marcus Lee', email: 'marcus@getacme.io', role: 'member', online: false }],
     templates: [
       { id: 'tpl_1', name: 'Short intro', subject: '{Quick question|Idea} for {{company}}', body: 'Hi {{firstName | there}},\n\nQuick intro and a question about how {{company}} handles outbound today.\n\nBest,\n{{sender}}' },
@@ -83,6 +88,37 @@ export function baseWorkspace(now: Date, rand: () => number): T.Workspace {
     ],
     settings: { workspaceName: 'Acme Outbound', timezone: 'America/New_York', trackingDomain: 'track.getacme.io', unsubscribeFooter: 'Not relevant? Reply "stop" and I will not email again.', signature: 'Alex Morgan\nAcme' },
   };
+}
+
+/** Inbound conversations that cover every inbox folder, so the studio opens with a lived-in mailbox. */
+export function seedInbox(ws: T.Workspace, now: Date): T.Workspace {
+  const H = 3_600_000, ago = (h: number) => new Date(now.getTime() - h * H).toISOString();
+  const pool = ws.contacts.slice(48); // contacts not used by the active campaigns
+  const mbs = ws.mailboxes;
+  let contacts = ws.contacts.map(c => c.id === pool[3]?.id ? { ...c, status: 'customer' as const } : c);
+  const threads: T.Thread[] = []; let n = 0;
+  const add = (ci: number, mi: number, subject: string, msgs: [('in' | 'out'), string, number][], extra: Partial<T.Thread> = {}) => {
+    const c = pool[ci % pool.length], mb = mbs[mi % mbs.length], id = `th_seed_${++n}`;
+    const messages: T.Message[] = msgs.map(([dir, body, h], i) => ({ id: `${id}_m${i}`, threadId: id, direction: dir, from: dir === 'in' ? c.email : mb.email, to: dir === 'in' ? mb.email : c.email, subject: i ? `Re: ${subject}` : subject, body, at: ago(h) }));
+    threads.push({ id, mailboxId: mb.id, contactId: c.id, subject, messages, unread: false, starred: false, archived: false, label: 'none', updatedAt: messages[messages.length - 1].at, labelIds: [], tags: [], ...extra });
+  };
+  const co = (i: number) => pool[i % pool.length].company;
+  add(0, 0, `Re: Quick question about ${co(0)}`, [['out', 'Hi, quick question about how you handle outbound today.', 52], ['in', 'Interested. Can you send the deliverability benchmarks you mentioned? Our current provider has been rough.', 10]], { unread: true, label: 'interested', labelIds: ['lbl_lead'], assigneeId: 'u_2' });
+  add(1, 1, `Re: Partnering with ${co(1)}`, [['out', 'We work with agencies on white-label outbound. Open to a call?', 60], ['in', 'The white-label angle is compelling if the reporting can carry our branding. What does onboarding look like?', 26]], { unread: true, label: 'question', labelIds: ['lbl_lead'], tags: ['vip'], starred: true });
+  add(2, 2, `Quick question about ${co(2)}`, [['out', 'Hi, quick question about your outbound setup.', 70], ['in', 'Hi, I am out of office until next Monday with limited access to email.', 50]], { label: 'out-of-office' });
+  add(3, 0, `Renewal check-in, ${co(3)}`, [['out', 'Checking in ahead of your renewal next month.', 120], ['in', 'Thanks for the note, the renewal is on track. Can you send the updated invoice?', 30]], { unread: true, label: 'question', labelIds: ['lbl_customer'], tags: ['renewal'] });
+  add(4, 1, `Re: Quick question about ${co(4)}`, [['out', 'Wanted to share a short idea for your team.', 150], ['in', 'Not interested, please remove me from your list.', 100]], { label: 'not-interested', labelIds: ['lbl_churn'], archived: true });
+  add(5, 2, `Re: Quick question about ${co(5)}`, [['out', 'Hi, a quick question on how you source leads.', 90], ['in', 'Sounds interesting. What does pricing look like?', 40], ['out', 'Happy to share, pricing starts at $79/mo per mailbox. Want a walkthrough on Thursday?', 20]], { label: 'interested', labelIds: ['lbl_lead'] });
+  add(6, 0, `How does the warmup pool work?`, [['in', 'Hi, how does your warmup pool avoid looking like a network of throwaway accounts?', 5]], { unread: true, label: 'question', draft: `Hi ${pool[6 % pool.length].firstName},\n\nGood question. Short answer: the pool is made of monitored, real mailboxes that reply like people do. Happy to walk through it live if useful.\n\n${ws.settings.signature}` });
+  add(7, 1, `Following up from the webinar`, [['out', 'Thanks for joining the webinar, here are the slides.', 200], ['in', 'Great session. Let us reconnect next quarter.', 140]], { label: 'none', snoozedUntil: new Date(now.getTime() + 20 * H).toISOString() });
+  add(8, 2, 'Mail Delivery Subsystem: Delivery Status Notification (Failure)', [['in', 'Your message could not be delivered. The recipient address was not found. Please check the address and try again.', 75]], { label: 'none' });
+  add(9, 0, 'Boost your SEO ranking in 24h!!!', [['in', 'FREE audit, act now. Guaranteed results, click here to claim your limited time offer.', 33]], { spam: true });
+  add(10, 1, 'Old thread to delete', [['in', 'Please ignore this message.', 300]], { trashed: true });
+  const drafts: T.Draft[] = [
+    { id: 'dr_seed_1', kind: 'compose', mailboxId: mbs[0]?.id ?? '', to: pool[11 % pool.length].email, subject: 'Introduction from Acme', body: 'Hi,\n\nI wanted to introduce myself and share a quick idea.', createdAt: ago(3) },
+    { id: 'dr_seed_2', kind: 'compose', mailboxId: mbs[1]?.id ?? '', to: pool[10 % pool.length].email, subject: 'Next steps and pricing', body: 'Hi,\n\nSending over the pricing we discussed.', scheduledAt: new Date(now.getTime() + 18 * H).toISOString(), createdAt: ago(1) },
+  ];
+  return { ...ws, contacts, threads: [...ws.threads, ...threads], drafts: [...ws.drafts, ...drafts] };
 }
 
 /** Build a believable workspace by running the real engine over the last `days` days. */
@@ -95,6 +131,5 @@ export function buildSeed(now: Date = new Date(), days = 7, seed = 7): T.Workspa
     for (let h = 9; h < 17; h++) { const t = new Date(base); t.setHours(h, 0, 0, 0); ws = tick(ws, t, rand); }
     ws = rollDay(ws);
   }
-  // Fix: sim history leaves mailboxes with sentToday 0; add one meeting-booked automation example for CRM realism
-  return reduce(ws, { type: 'settings/update', patch: {} });
+  return seedInbox(reduce(ws, { type: 'settings/update', patch: {} }), now);
 }

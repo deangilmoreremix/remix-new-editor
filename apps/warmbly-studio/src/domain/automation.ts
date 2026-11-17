@@ -1,28 +1,27 @@
-import type { Automation, AutomationAction, AutomationTrigger, Contact, Thread } from '../types';
+import type { Automation, AutomationActionKind, AutomationCondition, AutomationTrigger, Contact, Thread } from '../types';
 
 export interface AutomationContext { trigger: AutomationTrigger; contact: Contact; thread?: Thread; label?: string }
-export function matches(a: Automation, ctx: AutomationContext): boolean {
-  if (!a.enabled || a.trigger !== ctx.trigger) return false;
-  return a.conditions.every(c => {
-    const hay = c.field === 'label' ? (ctx.label ?? ctx.thread?.label ?? '')
-      : c.field === 'company' ? ctx.contact.company
-      : c.field === 'subject' ? (ctx.thread?.subject ?? '')
-      : (ctx.thread?.messages.at(-1)?.body ?? '');
-    const h = hay.toLowerCase(), v = c.value.toLowerCase();
-    return c.op === 'equals' ? h === v : c.op === 'contains' ? h.includes(v) : !h.includes(v);
-  });
+
+export function conditionHolds(c: AutomationCondition, ctx: AutomationContext): boolean {
+  const hay = c.field === 'label' ? (ctx.label ?? ctx.thread?.label ?? '')
+    : c.field === 'company' ? ctx.contact.company
+    : c.field === 'subject' ? (ctx.thread?.subject ?? '')
+    : (ctx.thread?.messages.at(-1)?.body ?? '');
+  const h = hay.toLowerCase(), v = c.value.toLowerCase();
+  return c.op === 'equals' ? h === v : c.op === 'contains' ? h.includes(v) : !h.includes(v);
 }
-/** Returns the actions to execute for a context across all matching automations. */
-export function planActions(automations: Automation[], ctx: AutomationContext): { automationId: string; action: AutomationAction }[] {
-  return automations.filter(a => matches(a, ctx)).flatMap(a => a.actions.map(action => ({ automationId: a.id, action })));
-}
+export const conditionsHold = (cs: AutomationCondition[], ctx: AutomationContext) => cs.every(c => conditionHolds(c, ctx));
+
 export const TRIGGER_LABEL: Record<AutomationTrigger, string> = {
   'reply-received': 'A reply is received', 'link-clicked': 'A link is clicked', 'email-opened': 'An email is opened',
   bounced: 'An email bounces', 'meeting-booked': 'A meeting is booked',
 };
-export const ACTION_LABEL: Record<AutomationAction['kind'], string> = {
+export const ACTION_LABEL: Record<AutomationActionKind, string> = {
   label: 'Label the thread', tag: 'Add tag to contact', 'stop-campaign': 'Stop the campaign for this contact',
-  'create-task': 'Create a task', 'create-deal': 'Create a deal', webhook: 'Send webhook', 'ai-draft': 'Draft an AI reply', unsubscribe: 'Unsubscribe contact',
+  'create-task': 'Create a task', 'create-deal': 'Create a deal', webhook: 'Send webhook', 'ai-draft': 'Draft an AI reply', unsubscribe: 'Unsubscribe contact', notify: 'Notify the team',
+};
+export const ACTION_NEEDS_VALUE: Partial<Record<AutomationActionKind, string>> = {
+  label: 'Label (interested, question, …)', tag: 'Tag name', 'create-task': 'Task title', 'create-deal': 'Deal value ($)', notify: 'Message',
 };
 
 /** Rule-based reply classifier (the local stand-in for the AI classifier). */
@@ -46,3 +45,4 @@ export function draftReply(thread: Thread, contact: Contact, signature: string):
     : 'Thanks for getting back to me.';
   return `${open}\n\n${body}\n\n${signature}`;
 }
+export type { Automation };

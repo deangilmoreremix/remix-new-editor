@@ -3,6 +3,13 @@ import type { Action, WarmblyAdapter } from './actions';
 import { reduce } from './reducer';
 import { buildSeed } from './seed';
 import { rollDay, tick } from './engine';
+import { normalizeAutomation } from '../domain/flow';
+import { DEFAULT_LABELS } from './seed';
+
+/** Bring older persisted workspaces up to the current shape. */
+export function migrate(w: Workspace): Workspace {
+  return { ...w, pending: w.pending ?? [], labels: w.labels ?? DEFAULT_LABELS, drafts: w.drafts ?? [], automations: (w.automations ?? []).map(a => normalizeAutomation(a as never)) };
+}
 
 export interface LocalAdapterOptions { storageKey?: string; persist?: boolean; seed?: () => Workspace }
 
@@ -14,7 +21,7 @@ export function createLocalAdapter(opts: LocalAdapterOptions = {}): WarmblyAdapt
   const listeners = new Set<(w: Workspace) => void>();
   const now = () => new Date(Date.now() + offsetMs);
 
-  const read = (): Workspace | null => { if (!persist) return null; try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) as Workspace : null; } catch { return null; } };
+  const read = (): Workspace | null => { if (!persist) return null; try { const raw = localStorage.getItem(key); return raw ? migrate(JSON.parse(raw) as Workspace) : null; } catch { return null; } };
   const write = (w: Workspace) => { if (!persist) return; try { localStorage.setItem(key, JSON.stringify(w)); } catch { /* quota or private mode */ } };
   const set = (w: Workspace) => { ws = w; write(w); listeners.forEach(l => l(w)); return w; };
   const ensure = () => ws ?? (ws = read() ?? (opts.seed ? opts.seed() : buildSeed(now())));

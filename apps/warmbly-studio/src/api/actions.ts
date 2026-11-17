@@ -16,6 +16,15 @@ export type Action =
   | { type: 'campaign/duplicate'; id: T.ID }
   | { type: 'thread/update'; id: T.ID; patch: Partial<Pick<T.Thread, 'unread' | 'starred' | 'archived' | 'label' | 'draft'>> }
   | { type: 'thread/reply'; id: T.ID; body: string }
+  | { type: 'thread/bulk'; ids: T.ID[]; patch: Partial<Pick<T.Thread, 'unread' | 'starred' | 'archived' | 'trashed' | 'spam' | 'snoozedUntil' | 'assigneeId'>> }
+  | { type: 'thread/labels'; ids: T.ID[]; labelId: T.ID; remove?: boolean }
+  | { type: 'thread/tags'; ids: T.ID[]; tag: string; remove?: boolean }
+  | { type: 'thread/purge'; ids: T.ID[] }
+  | { type: 'label/save'; label: T.Label }
+  | { type: 'label/remove'; id: T.ID }
+  | { type: 'draft/save'; draft: T.Draft }
+  | { type: 'draft/delete'; id: T.ID }
+  | { type: 'draft/send'; draft: T.Draft }
   | { type: 'deal/save'; deal: T.Deal }
   | { type: 'deal/move'; id: T.ID; stageId: T.ID }
   | { type: 'deal/close'; id: T.ID; status: 'won' | 'lost' | 'open' }

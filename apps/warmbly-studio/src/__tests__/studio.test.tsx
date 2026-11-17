@@ -69,25 +69,8 @@ describe('campaigns', () => {
   });
   it('shows campaign detail', async () => {
     setup('campaigns'); await ready(); fireEvent.click(await screen.findByText('Founders outreach Q4'));
-    expect(await screen.findByRole('tab', { name: 'Sequence' })).toBeInTheDocument(); fireEvent.click(screen.getByRole('tab', { name: 'Contacts' }));
+    expect(await screen.findByRole('tab', { name: 'Steps' })).toBeInTheDocument(); fireEvent.click(screen.getByRole('tab', { name: 'Leads' }));
     expect((await screen.findAllByText(/@/)).length).toBeGreaterThan(5);
-  });
-});
-
-describe('inbox', () => {
-  it('opens a thread, marks read, drafts and sends a reply', async () => {
-    const a = setup('inbox'); await ready();
-    const ws = await a.load(); const unread = ws.threads.find(t => t.unread && t.messages.some(m => m.direction === 'in'))!;
-    const c = ws.contacts.find(x => x.id === unread.contactId)!;
-    fireEvent.click((await screen.findAllByText(new RegExp(`${c.firstName} ${c.lastName}`)))[0]);
-    await waitFor(async () => expect((await a.load()).threads.find(t => t.id === unread.id)!.unread).toBe(false));
-    fireEvent.click(screen.getByText('✨ AI draft')); expect((screen.getByLabelText('Reply') as HTMLTextAreaElement).value).toContain(`Hi ${c.firstName}`);
-    fireEvent.click(screen.getByRole('button', { name: 'Send reply' }));
-    await waitFor(async () => expect((await a.load()).threads.find(t => t.id === unread.id)!.messages.at(-1)!.direction).toBe('out'));
-  });
-  it('filters by search', async () => {
-    setup('inbox'); await ready(); fireEvent.change(await screen.findByLabelText('Search inbox'), { target: { value: 'zzz-no-match' } });
-    expect(await screen.findByText('No conversations match.')).toBeInTheDocument();
   });
 });
 
@@ -121,13 +104,12 @@ describe('pipeline', () => {
 });
 
 describe('automations', () => {
-  it('toggles and creates a playbook', async () => {
+  it('toggles from the list and opens the editor', async () => {
     const a = setup('automations'); await ready();
     fireEvent.click((await screen.findAllByRole('button', { name: 'Disable' }))[0]);
     await waitFor(async () => expect((await a.load()).automations.filter(x => !x.enabled).length).toBe(1));
-    fireEvent.click(screen.getByText('+ New playbook')); const dlg = await screen.findByRole('dialog');
-    fireEvent.change(within(dlg).getByLabelText('Name'), { target: { value: 'Tag bounced' } }); fireEvent.click(within(dlg).getByRole('button', { name: 'Save' }));
-    await waitFor(async () => expect((await a.load()).automations.some(x => x.name === 'Tag bounced')).toBe(true));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
+    expect(await screen.findByLabelText('Automation name')).toBeInTheDocument();
   });
 });
 

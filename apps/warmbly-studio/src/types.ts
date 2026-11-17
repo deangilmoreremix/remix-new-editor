@@ -47,7 +47,13 @@ export type ThreadLabel = 'interested' | 'not-interested' | 'meeting-booked' | '
 export interface Thread {
   id: ID; mailboxId: ID; contactId: ID; campaignId?: ID; subject: string; messages: Message[];
   unread: boolean; starred: boolean; archived: boolean; label: ThreadLabel; updatedAt: ISODate; draft?: string;
+  /** Workspace labels (Lead, Customer, …) and free-form tags. */
+  labelIds?: ID[]; tags?: string[];
+  trashed?: boolean; spam?: boolean; snoozedUntil?: ISODate; assigneeId?: ID;
 }
+
+export interface Label { id: ID; name: string; color: 'acc' | 'good' | 'bad' | 'warn' | 'purple' }
+export interface Draft { id: ID; kind: 'compose' | 'reply' | 'forward'; mailboxId: ID; to: string; subject: string; body: string; threadId?: ID; scheduledAt?: ISODate; createdAt: ISODate }
 
 export interface Stage { id: ID; name: string; probability: number }
 export interface Deal { id: ID; title: string; contactId: ID; stageId: ID; value: number; closeDate?: ISODate; status: 'open' | 'won' | 'lost'; createdAt: ISODate }
@@ -55,13 +61,22 @@ export interface Task { id: ID; title: string; contactId?: ID; dealId?: ID; due?
 export interface Meeting { id: ID; title: string; contactId: ID; at: ISODate; durationMin: number; notes?: string }
 
 export type AutomationTrigger = 'reply-received' | 'link-clicked' | 'email-opened' | 'bounced' | 'meeting-booked';
-export type AutomationActionKind = 'label' | 'tag' | 'stop-campaign' | 'create-task' | 'create-deal' | 'webhook' | 'ai-draft' | 'unsubscribe';
+export type AutomationActionKind = 'label' | 'tag' | 'stop-campaign' | 'create-task' | 'create-deal' | 'webhook' | 'ai-draft' | 'unsubscribe' | 'notify';
 export interface AutomationCondition { field: 'label' | 'subject' | 'body' | 'company'; op: 'contains' | 'equals' | 'not-contains'; value: string }
-export interface AutomationAction { id: ID; kind: AutomationActionKind; value?: string }
-export interface Automation {
-  id: ID; name: string; enabled: boolean; trigger: AutomationTrigger;
-  conditions: AutomationCondition[]; actions: AutomationAction[]; runs: number; createdAt: ISODate;
+export type FlowKind = 'trigger' | 'condition' | 'action' | 'delay';
+/** Automation graph as a tree: trigger/action/delay continue via `next`; condition branches via `yes` / `no`. */
+export interface FlowNode {
+  id: ID; kind: FlowKind;
+  trigger?: AutomationTrigger;
+  conditions?: AutomationCondition[];            // condition: all must match
+  action?: AutomationActionKind; value?: string; // action
+  delayMinutes?: number;                         // delay
+  next?: FlowNode | null; yes?: FlowNode | null; no?: FlowNode | null;
 }
+export interface Automation {
+  id: ID; name: string; enabled: boolean; trigger: AutomationTrigger; flow: FlowNode; runs: number; createdAt: ISODate;
+}
+export interface PendingAction { id: ID; automationId: ID; action: AutomationActionKind; value?: string; contactId: ID; threadId?: ID; campaignId?: ID; runAt: ISODate }
 
 export interface Webhook { id: ID; url: string; events: string[]; secret: string; enabled: boolean; lastStatus?: number }
 export interface ApiKey { id: ID; name: string; prefix: string; createdAt: ISODate; lastUsedAt?: ISODate; scopes: string[] }
@@ -75,6 +90,6 @@ export interface Workspace {
   mailboxes: Mailbox[]; contacts: Contact[]; campaigns: Campaign[]; events: CampaignEvent[]; threads: Thread[];
   stages: Stage[]; deals: Deal[]; tasks: Task[]; meetings: Meeting[]; automations: Automation[];
   webhooks: Webhook[]; apiKeys: ApiKey[]; integrations: IntegrationState[]; suppression: SuppressionEntry[];
-  team: TeamMember[]; templates: Template[];
+  team: TeamMember[]; templates: Template[]; pending: PendingAction[]; labels: Label[]; drafts: Draft[];
   settings: { workspaceName: string; timezone: string; trackingDomain: string; unsubscribeFooter: string; signature: string };
 }
