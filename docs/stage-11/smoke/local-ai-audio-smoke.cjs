@@ -51,12 +51,15 @@ async function runExport(pg, base) {
 
 (async () => {
   const { chromium } = require('playwright'); const cons = [];
-  const b = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+  const b = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'].concat(process.env.WEBGPU ? ['--enable-unsafe-webgpu'] : []) });
   const ctx = await b.newContext({ viewport: { width: 1600, height: 950 }, acceptDownloads: true, bypassCSP: true });
   const pg = await ctx.newPage();
   pg.on('console', (m) => { if (m.type() === 'error') cons.push(m.text().slice(0, 240)); });
   pg.on('pageerror', (e) => { cons.push('PAGEERR ' + String(e).slice(0, 300)); console.log('PAGEERR', String(e).slice(0, 300)); });
   await pg.addInitScript(() => { try { sessionStorage.setItem('setup_popup_shown', '1'); } catch {} });
+  // Fix Q: WEBGPU=1 adds --enable-unsafe-webgpu (a SwiftShader fallback adapter then exists) and expects the card to say 'running on WebGPU';
+  // WEBGPU=1 FAIL_WEBGPU=1 makes adapter.requestDevice() reject, so session creation fails and the manager must retry on WASM.
+  if (process.env.FAIL_WEBGPU) await pg.addInitScript(() => { if (window.GPUAdapter) GPUAdapter.prototype.requestDevice = () => Promise.reject(new Error('simulated WebGPU device loss')); });
   await routes(pg);
   await L.goTimeline(pg); await L.newProject(pg, 'localai');
   // a silent 8 s video (no audio stream) so the timeline is exportable and the only sound in the export is the narration
@@ -79,9 +82,26 @@ async function runExport(pg, base) {
   await pg.evaluate(() => document.querySelector('[data-testid=lai-consent-kokoro-82m-q8]').click());
   const t0 = Date.now(); await pg.evaluate(() => document.querySelector('[data-testid=lai-download-kokoro-82m-q8]').click());
   pg.on('console', (m) => { const t = m.text(); if (/kokoro|onnx|wasm|model|fetch|abort|cache|memory/i.test(t)) info('console ' + m.type() + ' ' + t.slice(0, 240)); });
+  if (process.env.FAIL_WEBGPU) {
+    // adapter.requestDevice() rejects: the WebGPU start fails and onnxruntime-web then cannot start a WASM session in the same page (Fix Q), so the app must
+    // show a readable message (not a bare number), remember the failure for this tab and load on WASM after a reload.
+    await pg.waitForFunction(() => /could not start|installed/.test(document.querySelector('[data-testid=lai-model-kokoro-82m-q8]')?.innerText || ''), null, { timeout: 240000 });
+    const failCard = (await pg.locator('[data-testid=lai-model-kokoro-82m-q8]').innerText()).replace(/\n/g, ' | '); info('after simulated WebGPU failure: ' + failCard.slice(-330));
+    if (!/installed/.test(failCard)) {
+      assert(/could not start.*Reload the page/.test(failCard) && !/\| \d{5,} *$/.test(failCard), 'the failed WebGPU start shows a readable message, not a bare number');
+      await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(8000);
+      await pg.evaluate(() => [...document.querySelectorAll('button')].find((x) => x.innerText.trim() === 'EDIT')?.click()); await pg.waitForTimeout(2000);
+      await openAudio(pg);
+      await pg.locator('[data-testid=lai-model]').selectOption('kokoro-82m-q8');
+      if (await pg.locator('[data-testid=lai-download-kokoro-82m-q8]').isDisabled()) await pg.evaluate(() => document.querySelector('[data-testid=lai-consent-kokoro-82m-q8]').click());
+      await pg.evaluate(() => document.querySelector('[data-testid=lai-download-kokoro-82m-q8]').click());
+    }
+  }
   await pg.waitForSelector('[data-testid=lai-delete-kokoro-82m-q8]', { timeout: 240000 }).catch(async (e) => { info('install wait failed: card = ' + (await pg.locator('[data-testid=lai-model-kokoro-82m-q8]').innerText()).replace(/\n/g, ' | ').slice(-300) + ' | cons=' + JSON.stringify(cons.slice(-5))); throw e; });
   info('model download+load ms=' + (Date.now() - t0));
   assert(/installed/.test(await pg.locator('[data-testid=lai-model-kokoro-82m-q8]').innerText()), 'model reports installed after download');
+  { const card = (await pg.locator('[data-testid=lai-model-kokoro-82m-q8]').innerText()).replace(/\n/g, ' | '); info('card: ' + card.slice(0, 300));
+    if (process.env.WEBGPU) { const want = process.env.FAIL_WEBGPU ? /running on WASM/ : /running on WebGPU/; assert(want.test(card), 'device after load matches ' + want + ' (WEBGPU=' + process.env.WEBGPU + ' FAIL_WEBGPU=' + (process.env.FAIL_WEBGPU || '') + ')'); } }
   const cached = await pg.evaluate(async () => { const c = await caches.open('transformers-cache'); return (await c.keys()).map((r) => r.url).filter((u) => /model_quantized/.test(u)).length; });
   assert(cached === 1, 'weights are in browser Cache Storage (transformers-cache)');
   const TEXT = 'Welcome to CineGen. This narration was generated entirely inside your browser.';

@@ -36,7 +36,13 @@ const progressFor = (id) => {
 };
 async function webgpuOk() {
   try {
-    return !!self.navigator?.gpu && !!await self.navigator.gpu.requestAdapter();
+    // [remix] Fix Q: an adapter is not enough. When requestDevice() fails, onnxruntime-web fails to start and cannot start a WASM session afterwards in the same
+    // worker either (both threw the same bare number), so prove a device can be created BEFORE handing the session to the runtime; otherwise load on WASM.
+    const adapter = self.navigator?.gpu ? await self.navigator.gpu.requestAdapter() : null;
+    if (!adapter) return false;
+    const device = await adapter.requestDevice();
+    try { device.destroy?.(); } catch { /* probe device only */ }
+    return true;
   } catch {
     return false;
   }
