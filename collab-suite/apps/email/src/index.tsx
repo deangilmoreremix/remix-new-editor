@@ -14,7 +14,7 @@ export default function Email() {
       <input placeholder="Subject" value={f.subject} onChange={(e) => setF({ ...f, subject: e.target.value })} />
       <textarea rows={5} placeholder="Message" value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} />
       <div className="row" style={{ padding: 0 }}><button onClick={() => save("draft")}>Save draft</button><button className="primary" onClick={() => save("outbox")}>Queue (not sent)</button></div>
-      {mail.map((m) => <div key={m.id} className="row" style={{ borderBottom: "1px solid var(--line)" }}><span className="muted">[{m.box}]</span><b>{m.subject || "(no subject)"}</b><span className="muted grow">to {m.to}</span><button onClick={() => setMail((l) => l.filter((x) => x.id !== m.id))}>Delete</button></div>)}
+      {mail.map((m) => <div key={m.id} className="row" style={{ borderBottom: "1px solid var(--line)" }}><span className="muted">[{m.box}]</span><b>{m.subject || "(no subject)"}</b><span className="muted grow">to {m.to}</span>{m.box === "draft" && <button onClick={() => { setF({ to: m.to, subject: m.subject, body: m.body }); setMail((l) => l.filter((x) => x.id !== m.id)); }}>Edit</button>}<button onClick={() => setMail((l) => l.filter((x) => x.id !== m.id))}>Delete</button></div>)}
     </div>
   );
 }
