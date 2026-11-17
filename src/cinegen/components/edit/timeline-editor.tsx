@@ -885,31 +885,6 @@ export function TimelineEditor({
     openLandingPagePicker({ template: designId, video: clip ? { url: clip.url, name: clip.name, thumbnail_url: clip.thumbnailUrl, studio: 'timeline' } : null });
   }, [state.assets]);
 
-  // [remix] Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
-  const handleOpenGenerator = useCallback(async () => {
-    const { TemplateGeneratorModal } = await import('../../../components/modals/TemplateGeneratorModal.jsx');
-    const modal = new TemplateGeneratorModal({
-      onConfirm: (result: { composition?: Composition }) => {
-        if (!result?.composition) return;
-        const applied = applyComposition(timelineRef.current, result.composition);
-        applied.assets.forEach((asset) => dispatch({ type: 'ADD_ASSET', asset }));
-        applied.overlays.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
-        setTimeline(applied.timeline);
-      },
-    });
-    // "My Media" in the wizard lists the project's own clips and images (as it listed the classic editor's media)
-    (modal as unknown as { data: { media: unknown[] } }).data.media = state.assets
-      .filter((x) => x.type === 'video' || x.type === 'image')
-      .map((x) => ({ id: x.id, assetId: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height }));
-    modal.open();
-  }, [dispatch, setTimeline, state.assets]);
-
-  // [remix] Personalization hub (contacts, tokens, per-contact generation) — the classic editor's own window
-  const handleOpenPersonalization = useCallback(async () => {
-    const { VideoPersonalizationHub } = await import('../../../components/modals/VideoPersonalizationHub.jsx');
-    new VideoPersonalizationHub({ onComplete: () => {}, onError: (e: unknown) => console.warn('Personalization error', e) }).open();
-  }, []);
-
   // Throttled trim
   const trimRafRef = useRef<number | null>(null);
   const pendingTrimRef = useRef<{ clipId: string; trimStart: number; trimEnd: number; startTime?: number } | null>(null);
