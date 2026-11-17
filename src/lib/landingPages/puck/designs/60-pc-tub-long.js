@@ -77,11 +77,6 @@ export default {
               "label": "Watch Your Personalized Video",
               "url": "#video",
               "style": "primary"
-            },
-            {
-              "label": "",
-              "url": "#lead",
-              "style": "secondary"
             }
           ],
           "chip": "",

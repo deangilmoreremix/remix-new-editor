@@ -73,11 +73,6 @@ export default {
               "label": "Get My Free Crawlspace Quote",
               "url": "#video",
               "style": "primary"
-            },
-            {
-              "label": "",
-              "url": "#lead",
-              "style": "secondary"
             }
           ],
           "chip": "",
