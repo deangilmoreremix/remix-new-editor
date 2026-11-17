@@ -1,0 +1,16 @@
+{
+  "name": "collab-suite",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev -w @collab/shell",
+    "build": "npm run build -w @collab/shell",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": { "react": "^19.2.0", "react-dom": "^19.2.0" },
+  "devDependencies": {
+    "@types/react": "^19.0.0", "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4", "typescript": "^5.6.0", "vite": "^5.4.21"
+  }
+}
