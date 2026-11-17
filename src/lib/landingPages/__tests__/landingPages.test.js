@@ -182,6 +182,26 @@ describe('ingest', () => {
   });
 });
 
+describe('image items (Library "Create landing page")', () => {
+  const IMG_PERM = 'https://x.supabase.co/storage/v1/object/public/uploads/u/pic.png';
+  it('an image hosted elsewhere is rehosted as an image and the page keeps an image URL', async () => {
+    const uploaded = [];
+    const upload = vi.fn(async (file) => { uploaded.push(file); return { url: `https://x.supabase.co/storage/v1/object/public/uploads/u/${file.name}` }; });
+    const fetchImpl = vi.fn(async () => ({ ok: true, blob: async () => new Blob(['img'], { type: 'image/png' }) }));
+    const inserted = [];
+    const client = { from: () => ({ insert: (row) => { inserted.push(row); return { select: () => ({ single: async () => ({ data: { ...row, view_count: 0 }, error: null }) }) }; } }) };
+    const page = await createPageFromVideo(client, { url: 'https://cdn.other/pic', title: 'Hero', source: { kind: 'image' } }, { template: 'clean', deps: { upload, fetchImpl } });
+    expect(uploaded[0].type).toBe('image/png');
+    expect(page.video_url).toMatch(/\.png$/); // a URL the landing-page player shows as a still picture
+    expect(page.video_url).not.toMatch(/\.mp4$/);
+  });
+  it('an image already on permanent storage is used as is', async () => {
+    const upload = vi.fn();
+    expect(await ensurePermanent({ url: IMG_PERM }, { upload })).toBe(IMG_PERM);
+    expect(upload).not.toHaveBeenCalled();
+  });
+});
+
 describe('client', () => {
   const cfg = { url: 'https://x.supabase.co', key: 'anon' };
 
