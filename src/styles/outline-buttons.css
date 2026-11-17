@@ -1,0 +1,110 @@
+/*
+ * OUTLINE-ONLY BUTTONS.
+ *
+ * Buttons in this app are never filled: not at rest, not on hover, not when selected or primary. A button is a
+ * transparent surface with a thin border. State is shown by the border and the text colour:
+ *   rest      thin neutral border
+ *   hover     brighter border and text
+ *   selected  neon border and text
+ *   primary   neon border and text
+ *
+ * Most fills arrive as Tailwind utility classes written into JavaScript class strings (bg-white/5,
+ * hover:bg-white/10, bg-primary, bg-gradient-to-r ...), so they cannot be fixed one stylesheet at a time.
+ * This file wins over them with !important. It is loaded last and is covered by
+ * src/styles/__tests__/noFilledButtons.test.ts and scripts/audit-button-fills.cjs.
+ *
+ * Deliberate exceptions (not buttons, or needing their own colour):
+ *   - role="switch" tracks, colour swatches, and anything with an inline background (swatches, picture tiles)
+ *   - picture/video tiles and cards (buttons that wrap a cover image, video or canvas, or are overflow-hidden/aspect-*)
+ *   - opt out with data-keep-fill only for something that is not a button in disguise
+ */
+
+:root {
+  --ob-border: rgba(255, 255, 255, 0.12);
+  --ob-border-hover: rgba(255, 255, 255, 0.32);
+  --ob-neon: #d9ff00;
+  --ob-neon-border: rgba(217, 255, 0, 0.55);
+}
+
+/* 1. No fill, at rest or on hover/focus/active, whatever utility or stylesheet asked for one. */
+button:not([role="switch"]):not([data-keep-fill]):not([style*="background"]):not(:has(> video, > canvas, > img[class*="object-cover"], > div > img[class*="object-cover"], > picture)):not([class*="overflow-hidden"]):not([class*="aspect-"]),
+[role="button"]:not([data-keep-fill]):not([style*="background"]):not(:has(> video, > canvas, > img[class*="object-cover"], > div > img[class*="object-cover"], > picture)):not([class*="overflow-hidden"]):not([class*="aspect-"]),
+input[type="button"]:not([data-keep-fill]),
+input[type="submit"]:not([data-keep-fill]),
+a.btn:not([data-keep-fill]),
+a[class*="btn-"]:not([data-keep-fill]):not([style*="background"]),
+summary[class*="btn"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* 2. Neutral buttons keep a thin border so they still read as buttons without a fill. */
+button[class*="bg-white/"]:not([role="switch"]):not([style*="background"]):not(:has(> video, > canvas, > img[class*="object-cover"], > div > img[class*="object-cover"], > picture)):not([class*="overflow-hidden"]):not([class*="aspect-"]),
+button[class*="bg-black/"]:not([role="switch"]):not([style*="background"]):not(:has(> video, > canvas, > img[class*="object-cover"], > div > img[class*="object-cover"], > picture)):not([class*="overflow-hidden"]):not([class*="aspect-"]),
+button[class*="bg-panel"]:not([style*="background"]):not(:has(> video, > canvas, > img[class*="object-cover"], > div > img[class*="object-cover"], > picture)):not([class*="overflow-hidden"]):not([class*="aspect-"]),
+button[class*="bg-card"]:not([style*="background"]):not(:has(> video, > canvas, > img[class*="object-cover"], > div > img[class*="object-cover"], > picture)):not([class*="overflow-hidden"]):not([class*="aspect-"]),
+button[class*="bg-[#"]:not([style*="background"]):not(:has(> video, > canvas, > img[class*="object-cover"], > div > img[class*="object-cover"], > picture)):not([class*="overflow-hidden"]):not([class*="aspect-"]) {
+  border: 1px solid var(--ob-border);
+}
+button[class*="bg-white/"]:not([role="switch"]):hover,
+button[class*="hover:bg-"]:not([role="switch"]):hover {
+  border-color: var(--ob-border-hover);
+  color: #ffffff;
+}
+
+/* 3. Primary and selected buttons (neon fills, gradients) become neon outlines with neon text. */
+button[class*="bg-primary"]:not([role="switch"]):not([style*="background"]),
+button[class*="bg-[#d9ff00]"]:not([style*="background"]),
+button[class*="bg-accent"]:not([style*="background"]),
+button[class*="bg-gradient"]:not([style*="background"]),
+button[class*="from-primary"]:not([style*="background"]),
+button[class*="from-[#"]:not([style*="background"]),
+button.active:not([role="switch"]):not([style*="background"]),
+button[aria-pressed="true"]:not([style*="background"]),
+button[aria-selected="true"]:not([style*="background"]),
+button[aria-checked="true"]:not([role="switch"]):not([style*="background"]),
+[role="tab"][aria-selected="true"]:not([style*="background"]),
+.btn-primary-modern:not([style*="background"]),
+.btn-enhanced,
+.cta-primary {
+  color: var(--ob-neon) !important;
+  border: 1px solid var(--ob-neon-border) !important;
+}
+button[class*="bg-primary"]:hover,
+button.active:hover,
+button[aria-pressed="true"]:hover,
+button[aria-selected="true"]:hover,
+.btn-primary-modern:hover,
+.btn-enhanced:hover,
+.cta-primary:hover {
+  border-color: var(--ob-neon) !important;
+}
+
+/* 4. Buttons floating over page content or pictures stay readable with a blur, not a fill. */
+button[class*="bg-black/"]:not([role="switch"]):not([style*="background"]),
+button[class*="fixed"][class*="bottom-"][class*="right-"] {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+button[class*="fixed"][class*="bottom-"][class*="right-"] {
+  color: var(--ob-neon) !important;
+  border: 1px solid var(--ob-neon-border) !important;
+}
+
+/* 5. Buttons written for a light or coloured fill (dark text) get neon text, so they stay readable without it. */
+button[class*="text-black"]:not([style*="background"]),
+button[class*="text-gray-9"]:not([style*="background"]),
+button[class*="text-zinc-9"]:not([style*="background"]),
+button[class*="text-neutral-9"]:not([style*="background"]),
+button[class*="text-slate-9"]:not([style*="background"]),
+button[class*="text-[#0"]:not([style*="background"]),
+button[class*="text-[#1"]:not([style*="background"]) {
+  color: var(--ob-neon) !important;
+  border: 1px solid var(--ob-neon-border) !important;
+}
+
+/* 6. Small icon or badge chips drawn inside a button do not add a fill either. */
+button > [class*="bg-white/"]:not(img):not(video):not(canvas) {
+  background-color: transparent !important;
+}
