@@ -127,7 +127,7 @@ export function extraFields(model: string, extra?: ExtraImageOptions): Record<st
   return out;
 }
 
-export async function edits(key: string, model: string, prompt: string, aspectRatio: string, n: number, quality: string, images: ImagePart[], mask?: ImagePart, extra?: ExtraImageOptions) {
+export async function edits(key: string, model: string, prompt: string, aspectRatio: string, n: number, quality: string, images: ImagePart[], mask?: ImagePart, extra?: ExtraImageOptions, markup?: ImagePart) {
   const form = new FormData();
   form.append('model', model);
   form.append('prompt', prompt);
@@ -138,6 +138,8 @@ export async function edits(key: string, model: string, prompt: string, aspectRa
   for (const image of images) form.append('image[]', image.blob, image.filename);
   // Transparent pixels in the mask mark the region to repaint.
   if (mask) form.append('mask', mask.blob, mask.filename);
+  // Images 2.6 markup layer: a transparent PNG of arrows/notes drawn over the first image (cannot be combined with a mask).
+  if (markup) form.append('markup', markup.blob, markup.filename);
 
   const res = await fetch(`${OPENAI_BASE}/images/edits`, {
     method: 'POST',

@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Brush, Eraser, Loader2, Wand2, X } from 'lucide-react';
 import { refineThumbnail, type ThumbnailRefineResult } from '@ohb/shared/api/thumbnailService';
-import { composeMarkup, drawStrokes, MARKUP_INSTRUCTION, strokesToMaskPng, type Stroke } from '../thumbnailMask';
+import { composeMarkup, drawStrokes, MARKUP_INSTRUCTION, NATIVE_MARKUP_INSTRUCTION, strokesToMarkupPng, strokesToMaskPng, type Stroke } from '../thumbnailMask';
+import { isImages26 } from '@ohb/lib/openaiImageOptions';
 import { boxToImagePoint, clientToBoxPoint, coverFit } from './coverFit';
 
 type Mode = 'prompt' | 'mask' | 'markup';
@@ -129,9 +130,14 @@ export default function EditRegionPanel({ sourceUrl, boxWidth, boxHeight, model,
     try {
       let imageUrl = sourceUrl;
       let maskUrl: string | undefined;
+      let markupUrl: string | undefined;
       let text = prompt.trim();
       if (mode === 'mask') {
         maskUrl = strokesToMaskPng(natW, natH, strokes);
+      } else if (mode === 'markup' && isImages26(model || '')) {
+        // Images 2.6 takes the drawing as its own transparent layer, so the picture is sent untouched.
+        markupUrl = strokesToMarkupPng(natW, natH, strokes);
+        text = `${NATIVE_MARKUP_INSTRUCTION} ${text}`;
       } else if (mode === 'markup') {
         try {
           imageUrl = composeMarkup(img, strokes);
@@ -140,7 +146,7 @@ export default function EditRegionPanel({ sourceUrl, boxWidth, boxHeight, model,
         }
         text = `${MARKUP_INSTRUCTION} ${text}`;
       }
-      const [first] = await refineThumbnail({ imageUrl, prompt: text, aspectRatio, n: 1, quality, model, maskUrl });
+      const [first] = await refineThumbnail({ imageUrl, prompt: text, aspectRatio, n: 1, quality, model, maskUrl, markupUrl });
       if (id !== requestId.current) return; // the background changed meanwhile
       if (!first) throw new Error('No image came back. Try again.');
       setPending(first);

@@ -200,6 +200,16 @@ export async function POST(req: NextRequest) {
   const maskSource = action === 'refine' && typeof body.mask_url === 'string' && body.mask_url ? body.mask_url : '';
   if (maskSource && !maskSource.startsWith('data:image/png')) return errorJson('The edit mask must be a PNG image', 400);
 
+  // Optional Images 2.6 markup layer (refine only): a transparent PNG drawn over the picture being edited.
+  const markupSource = action === 'refine' && typeof body.markup_url === 'string' && body.markup_url ? body.markup_url : '';
+  if (markupSource) {
+    if (!markupSource.startsWith('data:image/png')) return errorJson('The markup layer must be a PNG image', 400);
+    if (maskSource) return errorJson('Use either a painted area or a drawing, not both.', 400);
+    if (!/^gpt-image-2\.6-/.test(typeof body.model === 'string' ? body.model : '')) {
+      return errorJson('Drawing edits need an Images 2.6 model.', 400);
+    }
+  }
+
   // Image editing needs a gpt-image model; dall-e-3 can only generate from text.
   let model = requestedModel === 'dall-e-3' || GPT_IMAGE_MODELS.has(requestedModel) ? requestedModel : DEFAULT_MODEL;
   if (uniqueSources.length > 0 && model === 'dall-e-3') model = DEFAULT_MODEL;
@@ -222,7 +232,19 @@ export async function POST(req: NextRequest) {
           return errorJson(err?.message || 'Could not read the edit mask', 400);
         }
       }
-      result = await edits(key, model, prompt, aspectRatio, n, quality, images, mask, extra);
+      let markup: ImagePart | undefined;
+      if (markupSource) {
+        try {
+          markup = await loadImage(markupSource, 98);
+        } catch (err: any) {
+          return errorJson(err?.message || 'Could not read the markup layer', 400);
+        }
+      }
+      result = await edits(key, model, prompt, aspectRatio, n, quality, images, mask, extra, markup);
+      if (result.error && markup && model !== DEFAULT_MODEL && (await isModelUnavailable(result.error))) {
+        // GPT Image 2 has no markup layer, so a silent fallback would ignore the drawing.
+        return errorJson('Your OpenAI key cannot use Images 2.6 yet, and drawing edits need it. Use "Paint an area" or "Describe" instead.', 400);
+      }
       if (result.error && model !== DEFAULT_MODEL && (await isModelUnavailable(result.error))) {
         fellBackFrom = model;
         model = DEFAULT_MODEL;

@@ -72,5 +72,22 @@ export function composeMarkup(img: HTMLImageElement, strokes: Stroke[]): string 
   return canvas.toDataURL('image/png')
 }
 
+/**
+ * The drawing alone, on a transparent PNG the size of the picture: OpenAI's native Images 2.6 `markup` layer.
+ * The picture itself is sent untouched, so nothing has to be "removed" from it afterwards.
+ */
+export function strokesToMarkupPng(width: number, height: number, strokes: Stroke[]): string {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Drawing is not supported in this browser.')
+  drawStrokes(ctx, strokes, '#ff2d2d')
+  return canvas.toDataURL('image/png')
+}
+
+export const NATIVE_MARKUP_INSTRUCTION =
+  'Apply the edits shown by the markup layer (circles, arrows and notes), and keep everything else exactly as it is.'
+
 export const MARKUP_INSTRUCTION =
   'The image has red markup drawn on it that shows the edits to make. Apply those edits, then remove all of the red markup completely and keep everything else exactly as it is.'

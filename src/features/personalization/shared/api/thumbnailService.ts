@@ -85,6 +85,8 @@ export interface ThumbnailRefineParams extends ThumbnailImageControls {
   quality?: ThumbnailQuality
   /** PNG data URL; transparent pixels mark the region to repaint (inpainting). */
   maskUrl?: string
+  /** Images 2.6 only: PNG data URL of drawn arrows/notes (transparent elsewhere). Not combinable with maskUrl. */
+  markupUrl?: string
 }
 
 export interface ThumbnailRefineResult {
@@ -167,6 +169,7 @@ export async function refineThumbnail(params: ThumbnailRefineParams): Promise<Th
     strength: params.strength ?? 0.5,
     ...(params.quality ? { quality: params.quality } : {}),
     ...(params.maskUrl ? { mask_url: params.maskUrl } : {}),
+    ...(params.markupUrl ? { markup_url: params.markupUrl } : {}),
     ...imageControlFields(params),
   }
 
