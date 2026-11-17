@@ -131,6 +131,15 @@ describe('ingest', () => {
     expect(file.name).toBe('My-video.mp4');
   });
 
+  it('keeps an image an image when rehosting (png stays image/png, not video/mp4)', async () => {
+    const upload = vi.fn(async () => ({ url: PERM }));
+    const fetchImpl = vi.fn(async () => ({ ok: true, blob: async () => new Blob(['img'], { type: 'image/png' }) }));
+    await ensurePermanent({ url: 'https://cdn/pic', title: 'My pic' }, { upload, fetchImpl });
+    const file = upload.mock.calls[0][0];
+    expect(file.type).toBe('image/png');
+    expect(file.name).toBe('My-pic.png');
+  });
+
   it('uploads a picked File directly', async () => {
     const upload = vi.fn(async () => ({ url: PERM }));
     const file = new File(['abc'], 'clip.mp4', { type: 'video/mp4' });
