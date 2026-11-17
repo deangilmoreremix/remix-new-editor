@@ -1,37 +1,34 @@
-# Media Hub (vendored upstream VidBee)
+# Media Hub (VidBee desktop app, run as a web app)
 
-Media Hub is the **unmodified upstream [VidBee](https://github.com/nexmoe/VidBee)** API + web app (MIT, `apps/vidbee`, see `apps/vidbee/UPSTREAM.md`),
-re-themed with this app's neon yellow-green palette and embedded at `#/media-hub` (Video menu).
-Downloads (yt-dlp, 1000+ sites), queue, RSS subscriptions, settings and optional server-side auto-transcription are all upstream's code.
+Media Hub is **upstream's VidBee desktop app** ([nexmoe/VidBee](https://github.com/nexmoe/VidBee), MIT) vendored in `apps/vidbee` and served to the browser:
+the unmodified desktop **renderer** (every screen: Home/downloads, Transcript viewer with speaker labels, Overview / Mindmap / FAQ and the other AI skills,
+translate, the AI **Chat** agent, Subscribe/RSS, Settings) plus the unmodified **main process** running in Node behind a small HTTP/SSE bridge.
+Only colors and buttons differ from upstream: neon yellow-green (`#d9ff00`) on black with the outlined button style of our studios. Full list of host files and patches: `apps/vidbee/UPSTREAM.md`.
+
+Mounted at `#/media-hub` (Video menu), as an iframe of `/vidbee/`.
 
 ## Run it
+Needs yt-dlp, ffmpeg/ffprobe and node on the server, and pnpm 11.
 ```bash
-# one-time: yt-dlp + ffmpeg must be on PATH; pnpm 11 required (apps/vidbee is its own pnpm workspace)
-npm run vidbee:install && npm run vidbee:build
-# env for the API: VIDBEE_API_PORT=3100 VIDBEE_DATA_DIR VIDBEE_DOWNLOAD_DIR VIDBEE_HISTORY_STORE_PATH
-# env for the web: VIDBEE_WEB_PORT=3200 VIDBEE_API_URL_INTERNAL=http://127.0.0.1:3100
-npm run vidbee:start
-# Express backend (proxy/gate): VIDBEE_WEB_URL=http://127.0.0.1:3200  VIDBEE_ALLOWED_USERS="<user id or email>,…"
+npm run vidbee:install     # pnpm install (Electron binary download skipped)
+npm run vidbee:setup       # links the server's yt-dlp / ffmpeg / ffprobe / node into apps/vidbee/apps/desktop/resources
+npm run vidbee:build       # esbuild (main process + workers) + Vite (renderer), base path /vidbee
+npm run vidbee:start       # VIDBEE_PORT=3300 VIDBEE_DATA_DIR=… VIDBEE_DOWNLOAD_DIR=…  (optional: VIDBEE_HOST, VIDBEE_BASE_PATH)
+# Express backend: VIDBEE_WEB_URL=http://127.0.0.1:3300 VIDBEE_ALLOWED_USERS="<user id or email>,…"
 ```
 
 ## Access control (important)
-Upstream VidBee is single-tenant with **no login**, and it can browse server folders and change its download directory.
-It is therefore only reachable through `backend/services/vidbeeProxy.js`: a signed-in user on `VIDBEE_ALLOWED_USERS` gets an 8 h
-HttpOnly cookie scoped to `/vidbee`; everything else gets 401/403. With `VIDBEE_ALLOWED_USERS` unset, only `NODE_ENV=development` allows everyone.
-All allowed users share one queue and library. Cross-site deployments (frontend and backend on different sites) need HTTPS (`SameSite=None; Secure`).
+Upstream VidBee is single-user and has no login; it can browse server folders, change its download directory and run an AI agent with tools.
+The host server is therefore only reachable through `backend/services/vidbeeProxy.js` (Supabase JWT + cookie session). Everything except the built static assets requires a signed-in, allow-listed user
+(`VIDBEE_ALLOWED_USERS`, user id or email; unset = everyone only in `NODE_ENV=development`). All allowed users share one library, queue, AI provider key and agent history.
+The bridge binds to 127.0.0.1 by default — keep it that way and expose it only through the gate.
 
-## Hosting
-Needs long-running Node processes with yt-dlp + ffmpeg (self-hosted/Docker). Netlify functions cannot run it.
-Transcription uses upstream's local sherpa-onnx models, downloaded on first use (needs internet access to the model hosts).
+## What differs from the Electron app
+Window chrome, tray, dock, auto-update, protocol handlers and native file pickers don't exist in a browser; local-path drag-and-drop is unavailable; VidBee Cloud sign-in, analytics and crash reporting are removed.
+Media plays through a `/media` route limited to the download folders. Needs a long-running Node host (not serverless).
+Transcription models and yt-dlp updates download from the internet on first use.
 
-## Host patches to upstream
-Listed in `apps/vidbee/UPSTREAM.md` (search `[host patch]`): optional sub-path (`VIDBEE_BASE_PATH=/vidbee`), a `host-theme.css` palette file, and the production start scripts.
-## Transcripts + AI (host-added on top of upstream)
-Upstream ships the transcript viewer and AI prompts only in its Electron desktop app, so the web version of this feature is host glue built on upstream's own pieces
-(details in `apps/vidbee/UPSTREAM.md`): upstream's transcript store/queue/worker, its built-in prompts (Overview, Bullet points, Mindmap, Statistics, FAQ, Grammar, Paraphrase, Translate),
-provider presets and exporters, with new `/hub/*` API routes and a **Transcripts** page in the sidebar.
-- **Transcript:** transcribe a finished download (upstream's local speech models), click a line to seek, search by text or speaker, rename speakers, export TXT / MD / SRT / VTT.
-- **AI:** run any built-in prompt or translate into a language code; a plain Q&A chat over the transcript. Configure the provider (OpenAI-compatible endpoints or Anthropic) under *AI settings* on the page.
-  The key is stored on the server (`hub-ai-settings.json`, mode 600) and shared by everyone allowed to use Media Hub; it is never sent back to the browser.
-- **Not ported:** the desktop's 9,600-line transcript UI and its agent runtime (tools, skills install, plugins, share cards, bilingual captions). The chat has no tools.
-- Transcription models download on first use (internet needed). Tests here used upstream's built-in fake backend (`VIDBEE_TRANSCRIPTION_BACKEND=fake`) and a mock AI endpoint.
+## Tested
+In a real browser through the gate with upstream's own fake transcription backend (`VIDBEE_TRANSCRIPTION_BACKEND=fake`) and a mock OpenAI-compatible provider: add URL → download → transcript with speakers →
+Overview via upstream's AI runner; Chat, Subscribe, Settings and About load without errors. Real speech models and a real AI provider were not available in the sandbox.
+`npm run test:vidbee-gate` covers the access gate.

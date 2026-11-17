@@ -1,8 +1,0 @@
-@import "tailwindcss";
-@import "@vidbee/ui/theme.css";
-@import "tw-animate-css";
-@import "@vidbee/ui/base.css";
-/* [host patch] host palette, imported last so it wins over upstream tokens */
-@import "./host-theme.css";
-
-@source inline("bg-hover bg-surface-{1..8} shadow-surface-{1..8}");

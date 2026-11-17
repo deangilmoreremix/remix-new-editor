@@ -1,0 +1,6 @@
+# build output and machine-specific links (created by `npm run vidbee:build` / `vidbee:setup`)
+node_modules/
+out-web/
+apps/desktop/resources/yt-dlp_*
+apps/desktop/resources/ffmpeg/
+apps/desktop/resources/node/

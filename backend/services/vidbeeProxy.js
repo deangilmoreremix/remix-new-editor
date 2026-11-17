@@ -17,7 +17,7 @@ import express from 'express';
 const COOKIE = 'vidbee_session';
 const TTL_MS = 8 * 3600 * 1000;
 const secret = process.env.VIDBEE_SESSION_SECRET || crypto.randomBytes(32).toString('hex');
-const target = () => new URL(process.env.VIDBEE_WEB_URL || 'http://127.0.0.1:3200');
+const target = () => new URL(process.env.VIDBEE_WEB_URL || 'http://127.0.0.1:3300');
 
 const sign = (v) => crypto.createHmac('sha256', secret).update(v).digest('hex');
 const issue = (userId) => { const exp = Date.now() + TTL_MS; const body = `${Buffer.from(String(userId)).toString('base64url')}.${exp}`; return `${body}.${sign(body)}`; };
