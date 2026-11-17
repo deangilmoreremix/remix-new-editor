@@ -16,8 +16,8 @@ export interface SpeedPoint { at: number; speed: number; /** easing of the segme
 export interface SpeedCurve { points: SpeedPoint[] }
 
 export const CURVE_MIN_STEPS = 4;
-// real exports of 16, 24, 32 and 36 pieces finished in about a minute; a 40-piece export never produced a file in 290 s (no crash this time), so the slider stops at 32
-export const CURVE_MAX_STEPS = 32;
+// Fix M: the earlier stall of a 40-piece export was NOT reproduced (it matches a cold dev server compiling the export runner while the machine was loaded, see docs/stage-11/FIX_M_REPORT.md); real exports of 16 to 64 pieces now finish in 13 to 21 s each (40, 48 and 64 proven, 64 twice, once under CPU load)
+export const CURVE_MAX_STEPS = 64;
 export const CURVE_DEFAULT_STEPS = 24;
 const SIMPSON = 64; // sub-intervals per piece (even)
 

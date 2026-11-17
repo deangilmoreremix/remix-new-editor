@@ -14,9 +14,13 @@ async function exportAs(pg, fmt, base, preset = 'Draft') {
   const qa = pg.locator('[data-testid=export-auto-qa]'); if (await qa.count() && await qa.isChecked()) await qa.uncheck();
   await pg.locator('.export-settings__preset-card').filter({ hasText: preset }).first().click();
   await pg.selectOption('[data-testid=export-format]', fmt);
-  const dl = pg.waitForEvent('download', { timeout: 290000 }).catch((e) => ({ err: String(e) }));
+  // Fix M: log the renderer's progress messages (encoded frames over time) so a stall can be told from slow work. Set PROGRESS=1.
+  await pg.evaluate(() => { window.__prog = []; window.addEventListener('message', (e) => { const d = e.data; if (d && d.type === 'progress') window.__prog.push([Math.round(performance.now()), d.progress, d.encodedFrames]); }); });
+  const dl = pg.waitForEvent('download', { timeout: +(process.env.DL_TIMEOUT || 290000) }).catch((e) => ({ err: String(e) }));
   await pg.locator('.export-settings__render-btn').click();
-  const d = await dl;
+  const t0 = Date.now(); let poll;
+  if (process.env.PROGRESS) poll = setInterval(async () => { try { const a = await pg.evaluate(() => window.__prog.slice(-1)[0]); const n = await pg.evaluate(() => window.__prog.length); const m = await pg.evaluate(() => (performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : -1)); console.log('PROG t=' + Math.round((Date.now() - t0) / 1000) + 's msgs=' + n + ' last=' + JSON.stringify(a) + ' heapMB=' + m); } catch (e) { console.log('PROG poll failed ' + String(e).slice(0, 80)); } }, 10000);
+  const d = await dl; if (poll) clearInterval(poll); info('export wall time ' + Math.round((Date.now() - t0) / 1000) + ' s');
   if (!d || !d.saveAs) { info('NO DOWNLOAD ' + JSON.stringify(d)); return null; }
   const out = L.SP + base + '.' + (/\.(\w+)$/.exec(d.suggestedFilename()) || [, fmt])[1]; await d.saveAs(out); info('SAVED ' + out + ' ' + fs.statSync(out).size + ' bytes'); return out;
 }
