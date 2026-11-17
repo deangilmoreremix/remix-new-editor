@@ -1,0 +1,59 @@
+// @vitest-environment jsdom
+// Reverse audit: everything a visitor SEES (text, alt text, placeholders, pictures) must come from a Puck prop,
+// so it can be edited in the editor. (The forward audit, newDesignsEditable, proves every prop has a field.)
+import { describe, it, expect, vi } from 'vitest';
+
+vi.hoisted(() => {
+  globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+  globalThis.matchMedia = globalThis.matchMedia || (() => ({ matches: false, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
+});
+import { renderToString } from 'react-dom/server';
+import { Render } from '@puckeditor/core';
+import { puckConfig } from '../puck/config.jsx';
+import { PageContext } from '../puck/context.js';
+import { PUCK_TEMPLATES } from '../puck/designs.js';
+
+const page = { id: 'abc12345', title: 'Intro', video_url: '', poster_url: null };
+const html = (data) => renderToString(<PageContext.Provider value={{ page, tokens: {}, handlers: {}, preview: false }}><Render config={puckConfig} data={data} /></PageContext.Provider>);
+const norm = (s) => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+// Pure interface words that are not page content (screen-reader names for controls, video chrome).
+const CHROME = new Set(['playvideo', 'site', 'email', 'loading', 'close', 'menu', 'search', 'videoplaceholderyourvideogoeshere'].map(norm));
+// Screen-reader names built from the page title ("Picture for <title>"): not visible content.
+// Also: star ratings, carousel arrows and landmark names are accessibility labels; bare numerals are automatic list counters.
+const isChrome = (v) => CHROME.has(norm(v)) || /^picture for |out of 5 stars$|^(previous|next) testimonials$|^highlights$|^\d+$/i.test(String(v).trim());
+
+function strings(node, out = []) {
+  if (typeof node === 'string') out.push(node);
+  else if (Array.isArray(node)) node.forEach((n) => strings(n, out));
+  else if (node && typeof node === 'object') Object.values(node).forEach((n) => strings(n, out));
+  return out;
+}
+const stripTokens = (s) => String(s).replace(/\{\{[^}|]*\|([^}]*)\}\}/g, '$1').replace(/\{\{[^}]*\}\}/g, '');
+
+function offenders(t) {
+  const known = norm(strings(t.puckData).map(stripTokens).join(' '));
+  const urls = strings(t.puckData).join(' ');
+  const root = document.createElement('div'); root.innerHTML = html(t.puckData);
+  const bad = [];
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    const v = norm(n.nodeValue); if (!v || isChrome(n.nodeValue)) continue;
+    if (!known.includes(v)) bad.push(`text: ${n.nodeValue.trim().slice(0, 60)}`);
+  }
+  root.querySelectorAll('[alt],[placeholder],[aria-label],[title]').forEach((el) => {
+    ['alt', 'placeholder', 'aria-label', 'title'].forEach((a) => {
+      const v = el.getAttribute(a); if (!v || !norm(v) || isChrome(v)) return;
+      if (!known.includes(norm(v))) bad.push(`${a}: ${v.slice(0, 60)}`);
+    });
+  });
+  root.querySelectorAll('img[src],source[src],video[poster]').forEach((el) => {
+    const v = el.getAttribute('src') || el.getAttribute('poster'); if (v && !v.startsWith('data:') && !urls.includes(v)) bad.push(`picture: ${v.slice(0, 80)}`);
+  });
+  return [...new Set(bad)];
+}
+
+describe('every visible piece of content comes from an editable prop', () => {
+  PUCK_TEMPLATES.forEach((t) => {
+    it(t.id, () => { expect(offenders(t)).toEqual([]); });
+  });
+});
