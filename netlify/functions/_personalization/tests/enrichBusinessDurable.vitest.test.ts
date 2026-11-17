@@ -50,3 +50,20 @@ describe('enrich-business cache layers', () => {
     expect(crawls).toEqual([])
   })
 })
+
+describe('enrich-business durable cache rules (review fixes)', () => {
+  it('does not pin a robots problem for every instance: kept in memory, never written durably', async () => {
+    vi.resetModules()
+    const site = 'https://robots-five.example.com'
+    const blocked = { ...enrichment(site), pagesVisited: [], robots: { checked: true, status: 'disallow-all' } }
+    vi.doMock('../src/server/businessEnrichment/enrich', () => ({ enrichBusinessWebsite: vi.fn(async (s: string) => { crawls.push(s); return blocked }) }))
+    const { POST } = await import('../app/api/personalization/enrich-business/route')
+    const first = await (await POST(post(site))).json()
+    expect(first.results[0].ok).toBe(true)
+    expect(puts).toEqual([])
+    // the in-memory layer still remembers it, so this instance does not hammer the site
+    await POST(post(site))
+    expect(crawls).toEqual([site])
+  })
+})
+

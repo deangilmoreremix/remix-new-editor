@@ -39,7 +39,16 @@ const BOOKING_HOSTS: Array<[RegExp, string]> = [
   [/(^|\.)tock\.com$/, 'Tock'], [/(^|\.)toasttab\.com$/, 'Toast'], [/(^|\.)zocdoc\.com$/, 'Zocdoc'], [/(^|\.)glossgenius\.com$/, 'GlossGenius'],
 ]
 const BOOKING_TEXT = /\b(book (now|online|an? appointment|a table)|schedule( an? (appointment|visit|service))?|reserve( a table)?|request an? (quote|estimate|appointment))\b/i
-const NOT_A_BUSINESS_TYPE = /^(Product|Recipe|Book|Movie|Course|SoftwareApplication|MobileApplication|Event|CreativeWork|Article|Review|Game|MusicRecording|Offer)$/i
+// Things that carry an aggregateRating but are not the business: products, content, pages, people, media.
+const NOT_A_BUSINESS_TYPE = /^(Product|Recipe|Book|Movie|Course|SoftwareApplication|MobileApplication|Event|CreativeWork|Article|Review|Game|MusicRecording|Offer|[A-Za-z]*Article|[A-Za-z]*Posting|WebPage|WebSite|FAQPage|CollectionPage|ItemList|VideoObject|ImageObject|AudioObject|HowTo|PodcastEpisode|PodcastSeries|TVSeries)$/i
+
+/** True when a link's host is the page's own host (a leading "www." does not count as a different site). */
+function sameSite(linkHost: string, pageUrl: string): boolean {
+  try {
+    const strip = (h: string) => h.toLowerCase().replace(/^www\./, '')
+    return strip(linkHost) === strip(new URL(pageUrl).hostname)
+  } catch { return false }
+}
 
 function typesOf(node: Record<string, unknown>): string[] {
   const t = node['@type']
@@ -98,7 +107,10 @@ export function extractSiteSignals(html: string, pageUrl: string, opts: { isHome
     if (!/^https?:$/.test(abs.protocol)) return
     const provider = BOOKING_HOSTS.find(([re]) => re.test(abs.hostname.toLowerCase()))?.[1]
     const text = $(a).text().replace(/\s+/g, ' ').trim()
-    if (provider || BOOKING_PATH.test(abs.pathname) || (BOOKING_TEXT.test(text) && text.length < 40)) {
+    // A recognised booking provider may be anywhere; a /book path or "Book now" wording only counts on the business's own site
+    // (an outside link to someone's book is not a booking signal, and must not hide a real one found later).
+    const ownSite = sameSite(abs.hostname, pageUrl)
+    if (provider || (ownSite && (BOOKING_PATH.test(abs.pathname) || (BOOKING_TEXT.test(text) && text.length < 40)))) {
       out.booking = { sourceUrl: pageUrl, href: abs.toString(), ...(provider ? { provider } : {}) }
     }
   })
