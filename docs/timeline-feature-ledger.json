@@ -1,6 +1,6 @@
 {
  "regression": {
-  "vitest": "npx vitest run src: 769 files passed, 4 failed (8 tests), all 4 failing identically on a clean origin/develop: 2 netlify personalization discovery files need real DNS, askSmartVideo has no guide for zackd / video-pages, zackd studio test. src/cinegen: 215 files, 1510 tests passed",
+  "vitest": "npx vitest run src netlify: 798 files passed, 9519 tests passed, 0 failed (42 skipped). Earlier the same run had 8 failures that also failed on a clean origin/develop; they are fixed here (Ask SmartVideo guides for zackd and video-pages, a Zack D test mock, and the two personalization discovery test files now stub DNS). src/cinegen: 215 files, 1510 tests passed",
   "viteBuild": "npx vite build exit 0 (2m59s) at commit 8f53c484; npm run lint exit 0 (0 errors)",
   "classicEditor": "#/timeline-classic now opens the CineGen editor (commit 642979f0); the old TimelineEditorPage.jsx is no longer reachable from the app",
   "tsc": "not run: repo-wide tsc aborts on unrelated syntax errors in apps/director; a scoped check needs @cinegen path mapping (done once, not repeated)",

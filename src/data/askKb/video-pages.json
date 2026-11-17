@@ -1,0 +1,116 @@
+{
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the studio's header comment and imports, the landing page data layer file list, and the MailerLite sync function notes. Not run against a live account.",
+    "verifiedAt": "2026-11-17",
+    "verifiedBy": "Code review (LLM-assisted)"
+  },
+  "id": "video-pages",
+  "name": "Video Pages",
+  "route": "#/video-pages",
+  "description": "Video Pages turns a video you generated or uploaded into a branded landing page with a call-to-action, a lead form and analytics. Each page has a public link of the form /p/<slug>.",
+  "shortDescription": "Turn a video into a shareable landing page with a button, a lead form and stats.",
+  "fullDescription": "Video Pages is a studio for building one page around one video. You pick a video (one you made in another SmartVideo studio or one you upload), choose a page template, set your branding and text, and publish to get a public link. Pages can carry a call-to-action, a lead form and analytics, and can be shown per contact with personalised text tokens such as first name and company. Unpublished pages are drafts only you can see.",
+  "bestFor": "Anyone who wants a simple page for a single video, with a way to capture leads and see how it performs.",
+  "whenToUse": [
+    "You want a shareable page for a video instead of just a file.",
+    "You want to collect leads from people who watch the video.",
+    "You want a personal link for each contact.",
+    "You want to see views and activity for a page."
+  ],
+  "whenToUseAnother": [
+    "To build a whole multi-page website, use the Website Builder.",
+    "To edit the video itself first, use Timeline or Workbench.",
+    "To publish the video straight to YouTube, TikTok or Instagram, use the Publish tab of the Timeline editor."
+  ],
+  "keyFeatures": [
+    "Pages built from a video you generated or uploaded",
+    "Page templates",
+    "Branding (taken from your first saved brand when you have one)",
+    "Call-to-action and lead form",
+    "Public link at /p/<slug> and an embed code",
+    "Personal links per contact using text tokens",
+    "AI help to rewrite the page text",
+    "Page statistics",
+    "Draft and published states",
+    "Optional sync of contacts to your MailerLite account (you bring your own token)"
+  ],
+  "howToUse": "1. Open Video Pages from the Agents group in the side menu (#/video-pages). 2. Pick a video or upload one. 3. Choose a template and fill in your headline, text, button and branding. 4. Preview the page. 5. Publish to get the link, and copy the link or the embed code.",
+  "howToSteps": [
+    "Open Video Pages from the side menu.",
+    "Choose a video from your generations, or upload a file.",
+    "Pick a template and edit the page text, button and branding.",
+    "Check the preview. A page stays a draft, visible only to you, until you publish it.",
+    "Publish, then copy the page link or the embed code.",
+    "Add contacts if you want a personal link for each person."
+  ],
+  "gettingStarted": [
+    "Have one finished video ready.",
+    "Sign in: pages are saved to your account.",
+    "Start from a template, then change the text.",
+    "Publish when it looks right."
+  ],
+  "inputs": [
+    "A video (from your generations or an upload)",
+    "Page text and button",
+    "Branding"
+  ],
+  "requiredInputs": [
+    "A video"
+  ],
+  "optionalInputs": [
+    "Branding",
+    "Contacts",
+    "AI rewrite instructions"
+  ],
+  "outputs": [
+    "A public landing page link (/p/<slug>)",
+    "An embed code",
+    "Page statistics",
+    "Leads from the form"
+  ],
+  "limitations": [
+    "You need to be signed in to save and publish pages.",
+    "Uploaded videos have a size limit.",
+    "Sending contacts to MailerLite needs your own MailerLite token.",
+    "Sending contacts to Kit from this studio is not available."
+  ],
+  "troubleshooting": [
+    "If a page does not open for other people, check that it is published and not a draft.",
+    "If saving fails, check that you are signed in.",
+    "If an upload is rejected, try a smaller file."
+  ],
+  "faqs": [
+    {
+      "question": "Who can see my page?",
+      "answer": "Only you, until you publish it. After that anyone with the link can."
+    },
+    {
+      "question": "Can each contact get their own link?",
+      "answer": "Yes, add contacts to the page and each one gets a personal link that fills in tokens like first name and company."
+    },
+    {
+      "question": "Is there a way to send contacts to my email tool?",
+      "answer": "The page can push contacts to your own MailerLite account with your own token. It does not send email itself."
+    }
+  ],
+  "relatedStudios": [
+    "website-builder",
+    "timeline",
+    "personalizer",
+    "render"
+  ],
+  "notConfirmed": [
+    "The exact upload size limit",
+    "Which templates are shown for your account",
+    "Whether lead notifications are emailed to you",
+    "How long statistics are kept"
+  ],
+  "sourceFiles": [
+    "src/components/LandingPagesStudio.js",
+    "src/lib/landingPages/client.js",
+    "src/lib/landingPages/ingest.js",
+    "src/pages/VideoPage.jsx",
+    "netlify/functions/landing-sync.js"
+  ]
+}

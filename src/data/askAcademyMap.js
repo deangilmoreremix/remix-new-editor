@@ -188,6 +188,8 @@ export const STUDIO_ACADEMY = {
     ],
   },
   workbench: { tracks: [], lessons: [] },
+  zackd: { tracks: [], lessons: [] },
+  'video-pages': { tracks: [], lessons: [] },
   viral: {
     tracks: [T04],
     lessons: [

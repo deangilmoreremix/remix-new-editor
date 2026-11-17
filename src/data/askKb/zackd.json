@@ -1,0 +1,109 @@
+{
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the studio's header comment, imports and stored-state keys. Not run end to end; the video model and costs were not confirmed.",
+    "verifiedAt": "2026-11-17",
+    "verifiedBy": "Code review (LLM-assisted)"
+  },
+  "id": "zackd",
+  "name": "Zack D Studio",
+  "route": "#/zackd",
+  "description": "Zack D Studio turns one question into a short finished video: a curiosity-loop script, 3D character sheets, keyframes, video clips and a final cut with optional voice, music and burned-in captions.",
+  "shortDescription": "One question in, a short story video out.",
+  "fullDescription": "Zack D Studio is a step-by-step video pipeline built like the other video studios. You type a question or topic, the studio writes a script as a map of shots, you approve it, and it then makes character sheets, keyframes and clips and cuts them together. The final cut runs in your browser. You can also start from a ready-made template. The studio is adapted from the MIT-licensed Zack D Films AI video generator.",
+  "bestFor": "Short explainer or story videos where you want the studio to plan the script and shots from a single question.",
+  "whenToUse": [
+    "You have a question or topic and want a short video that answers it.",
+    "You want a consistent look across shots.",
+    "You want voice, music and captions added for you."
+  ],
+  "whenToUseAnother": [
+    "To make a video from a plain prompt without the story pipeline, use Video or Video Agent.",
+    "To edit footage you already have, use the Timeline editor.",
+    "To make a talking presenter, use Avatar."
+  ],
+  "keyFeatures": [
+    "Script written from your question",
+    "Approval step before anything expensive runs",
+    "Character sheets and keyframes for a consistent look",
+    "A choice of looks",
+    "Optional voiceover with a choice of voices and speed",
+    "Optional music",
+    "Optional burned-in captions with language and theme choices",
+    "Ready-made templates",
+    "History sidebar of earlier projects",
+    "Final cut assembled in the browser"
+  ],
+  "howToUse": "1. Open Zack D from the Agents group in the side menu (#/zackd). 2. Type your question or pick a suggested topic. 3. Choose a look. 4. Generate the script and review it. 5. Approve it so the studio can make the character sheets, keyframes and clips. 6. Add voice, music or captions if you want them. 7. Build the final cut and download it.",
+  "howToSteps": [
+    "Enter a question or choose a seed topic.",
+    "Pick a look.",
+    "Generate the script and read the shot map.",
+    "Approve the script.",
+    "Let the studio make sheets, keyframes and clips (several run at the same time).",
+    "Choose voice, music and captions.",
+    "Assemble the final cut in the browser and download the video."
+  ],
+  "gettingStarted": [
+    "Start from a template if you are unsure.",
+    "Read the script before approving it.",
+    "Keep the tab open while it builds."
+  ],
+  "inputs": [
+    "A question or topic",
+    "A look",
+    "Voice, music and caption choices"
+  ],
+  "requiredInputs": [
+    "A question or topic"
+  ],
+  "optionalInputs": [
+    "Voice",
+    "Music",
+    "Captions",
+    "Template"
+  ],
+  "outputs": [
+    "A finished video",
+    "Subtitles (SRT) when captions are on",
+    "A saved project in your history"
+  ],
+  "limitations": [
+    "The final cut is assembled in your browser, so the tab must stay open.",
+    "Your current project is stored in this browser.",
+    "Generating clips uses provider credits."
+  ],
+  "troubleshooting": [
+    "If a step fails, the studio shows an error under the prompt bar and keeps a Redo button.",
+    "If the final cut does not start, check that the browser tab stayed open and try again."
+  ],
+  "faqs": [
+    {
+      "question": "Do I have to approve the script?",
+      "answer": "Yes, the studio waits for your approval before it makes the character sheets, keyframes and clips."
+    },
+    {
+      "question": "Where is my project saved?",
+      "answer": "The current project is kept in this browser, and earlier ones appear in the history sidebar."
+    }
+  ],
+  "relatedStudios": [
+    "video",
+    "video-agent",
+    "avatar",
+    "audio",
+    "timeline"
+  ],
+  "notConfirmed": [
+    "Which video model is used and what each run costs",
+    "The maximum video length",
+    "Whether a project can be moved to another device"
+  ],
+  "sourceFiles": [
+    "src/components/studios/ZackDStudio/ZackDStudio.js",
+    "src/lib/zackd/api.js",
+    "src/lib/zackd/assemble.js",
+    "src/lib/zackd/templates.js",
+    "netlify/functions/zackd.js"
+  ]
+}
