@@ -181,6 +181,41 @@ describe('/api/proxy/thumbnail-generate (Images 2.6)', () => {
     })
   })
 
+  const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+
+  it('sends the drawing as an Images 2.6 markup layer, with the picture untouched', async () => {
+    await withFetch(image, async (upstream) => {
+      const res = await post({ action: 'refine', prompt: 'apply the notes', image_url: PNG, markup_url: PNG, model: 'gpt-image-2.6-flare' })
+      expect(res.status).toBe(200)
+      const [url, init] = upstream.mock.calls[0]
+      expect(String(url)).toContain('/images/edits')
+      expect(init.body.get('markup')).toBeTruthy()
+      expect(init.body.get('mask')).toBeNull()
+      expect(init.body.get('model')).toBe('gpt-image-2.6-flare')
+    })
+  })
+
+  it('rejects a drawing combined with a painted area, a non-PNG drawing, and non-2.6 models', async () => {
+    await withFetch(image, async (upstream) => {
+      const both = await post({ action: 'refine', prompt: 'p', image_url: PNG, markup_url: PNG, mask_url: PNG, model: 'gpt-image-2.6-flare' })
+      expect(both.status).toBe(400)
+      const jpeg = await post({ action: 'refine', prompt: 'p', image_url: PNG, markup_url: 'data:image/jpeg;base64,AAAA', model: 'gpt-image-2.6-flare' })
+      expect(jpeg.status).toBe(400)
+      const old = await post({ action: 'refine', prompt: 'p', image_url: PNG, markup_url: PNG, model: 'gpt-image-2' })
+      expect(old.status).toBe(400)
+      expect(upstream).not.toHaveBeenCalled()
+    })
+  })
+
+  it('does not silently drop the drawing when it would have to fall back to GPT Image 2', async () => {
+    await withFetch(async () => new Response(JSON.stringify({ error: { message: 'The model does not exist or you do not have access to it.' } }), { status: 404 }), async (upstream) => {
+      const res = await post({ action: 'refine', prompt: 'p', image_url: PNG, markup_url: PNG, model: 'gpt-image-2.6-sunburst' })
+      expect(res.status).toBe(400)
+      expect((await res.json()).error).toMatch(/Images 2\.6/)
+      expect(upstream).toHaveBeenCalledTimes(1)
+    })
+  })
+
   it('falls back to GPT Image 2 when the key has no Images 2.6 access', async () => {
     let call = 0
     await withFetch(async () => {
