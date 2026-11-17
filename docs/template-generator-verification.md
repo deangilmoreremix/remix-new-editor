@@ -83,6 +83,9 @@ While the microphone voice-over recorder runs (the record button in the Edit tab
 Verified: the engine and the strip with a stand-in recognizer (tests), and the real Chrome 153 API surface in headless Chrome: the recognizer exists and `available({ langs: ['en-US'], processLocally: true })` answers `downloadable`.
 **Not verified (needs a real microphone and the language pack):** a real recording with live text on this device and via the online service; the pack download (it comes from the browser vendor), other languages, and Safari/Edge behaviour. The language is English (US) for now.
 
+### MoonshineJS (live captions): checked, not integrated
+Checked from npm and Hugging Face: `@moonshine-ai/moonshine-js` 0.1.29 is **MIT**, and so is the English model it uses (the `onnx-community/moonshine-*-ONNX` model cards say MIT). Its **Spanish model is under the "Moonshine AI Community License"** (free for researchers, developers, small businesses and creators under $1M annual revenue), which is not a blanket production licence for this app. The package was last published in **July 2025**, the original JS repository is reported as archived in favour of a newer SDK (I could not read the repository from this session to confirm), and the models are **English only**. Web Speech (above) already gives a live preview in many languages with no extra download, and Whisper does the timed captions. So it is **not added**. If a free, fully on-device live engine for English becomes a requirement, the MIT English model is the candidate; re-verify the current SDK and licence first.
+
 ## 10. Other notes
 - `public/motion-studio/legacy-textures/agent-stream.jpg` is a generated placeholder (the original artwork was never committed in this repo or in `develop`). Replace it with the real image when you have it.
 - Merging the pull request is done in GitHub.
