@@ -4,6 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { loadImageBlob } from '../backgroundRemoval/loadImageBlob'
 import { LogoTraceError, traceLogo } from '../preview/logoVectorize'
+import { upscaleImage } from '../localAI/engine'
+import { useLocalAI } from '../localAI/useLocalAI'
+import { blobToFile, fileToFileList, sharpenedFileName, shouldOfferSharpen } from '../preview/imageUpscale'
+import { LocalAINotice } from './LocalAINotice'
 import { summarizeAssetUsage, type AssetUsage } from '../preview/assetUsage'
 import { buildPreviewInput } from './buildPreviewInput'
 import { C, badgeStyle, hintStyle, panelStyle, secondaryButtonStyle } from './tokens'
@@ -21,6 +25,7 @@ export function AssetUsagePanel(): React.JSX.Element | null {
   const { assets, previewSettings, updatePreviewLayer } = ctx
   const [tracing, setTracing] = useState<string | null>(null)
   const [traceNote, setTraceNote] = useState<{ id: string; text: string } | null>(null)
+  const sharpenAi = useLocalAI('upscale')
   // Which client/session this panel belongs to. A trace that finishes after the person moved to another client (or
   // closed the modal) must not add its logo to the new client's library.
   // A counter, not a comparison of keys: it moves on EVERY client/session change and on unmount, so a trace started for
@@ -70,6 +75,27 @@ export function AssetUsagePanel(): React.JSX.Element | null {
     }
   }
 
+  // Free, on-device 2x upscale. The sharper copy is ADDED next to the original; a result for a client the person has
+  // since left is dropped, like the logo trace.
+  const sharpen = async (a: AssetUsage) => {
+    const startedIn = epochRef.current
+    setTraceNote(null)
+    const asset = [...(assets.logos ?? []), ...(assets.products ?? [])].find((x) => x.id === a.assetId)
+    const blob = await sharpenAi.request((helpers) => upscaleImage(a.url, helpers))
+    if (!blob || epochRef.current !== startedIn) return
+    const file = blobToFile(blob, sharpenedFileName(asset?.name || a.name))
+    const list = fileToFileList(file)
+    const isLogo = logoIds.has(a.assetId)
+    if (list) { if (isLogo) ctx.addLogoFiles(list); else ctx.addProductFiles(list) }
+    else if (isLogo) ctx.addLogoUrl(URL.createObjectURL(blob))
+    else ctx.addProductUrl(URL.createObjectURL(blob))
+    setTraceNote({ id: a.assetId, text: 'Added a sharper 2× copy to your pictures. The original is still there.' })
+  }
+  const canSharpen = (a: AssetUsage) => {
+    const asset = [...(assets.logos ?? []), ...(assets.products ?? [])].find((x) => x.id === a.assetId)
+    return shouldOfferSharpen(asset?.width, asset?.height, `${asset?.mimeType ?? ''} ${a.url.slice(0, 40)}`)
+  }
+
   return (
     <div data-testid="asset-usage-panel" style={panelStyle}>
       <h3 style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
@@ -94,6 +120,11 @@ export function AssetUsagePanel(): React.JSX.Element | null {
                 {tracing === a.assetId ? 'Tracing…' : 'Trace to SVG'}
               </button>
             )}
+            {canSharpen(a) && (
+              <button type="button" data-testid={`sharpen-${a.assetId}`} disabled={sharpenAi.phase !== 'idle'} aria-label={`Sharpen ${a.name} 2×`} title="Free, on this device. Adds a sharper copy." onClick={() => void sharpen(a)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>
+                Sharpen 2×
+              </button>
+            )}
             {logoIds.has(a.assetId) && assets.primaryLogo?.id !== a.assetId && (
               <button type="button" aria-label={`Use ${a.name} as the main logo`} onClick={() => ctx.setPrimaryLogo(a.assetId)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Main logo</button>
             )}
@@ -103,6 +134,7 @@ export function AssetUsagePanel(): React.JSX.Element | null {
           </li>
         ))}
       </ul>
+      <LocalAINotice ai={sharpenAi} doing="makes small pictures 2× sharper" />
       {traceNote && <p role="status" data-testid="logo-trace-note" style={{ ...hintStyle, margin: '8px 0 0', color: C.cyan }}>{traceNote.text}</p>}
     </div>
   )

@@ -21,6 +21,7 @@
 
 'use client'
 
+import { cutoutAssetIds } from './backgroundRemoval/useAutoCutout'
 import { RECAST_MAX_SECONDS } from './recast/recastJob'
 import {
   useState,
@@ -2213,6 +2214,7 @@ function ConfigurationView(props: any) {
   // affordances exist — the modal never renders a paid action the server has not
   // granted.
   const isAnonymous = access !== 'authenticated'
+  const cutoutIds = cutoutAssetIds(discoveredAssets)
   // Face only / Full presenter models set their own resolution and quality.
   const modelSetsQuality = mode === 'face_only' || mode === 'full_body'
   // Saved clients are picked one way at a time: the cards (customer audience)
@@ -4464,6 +4466,20 @@ function ConfigurationView(props: any) {
                     {batchVideoReady.running
                       ? `Preparing ${batchVideoReady.current}/${batchVideoReady.total}…`
                       : '✨ Make Selected Video Ready'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idSet = new Set(cutoutIds)
+                      setDiscoveredAssets((prev) => prev.map((a) => (idSet.has(a.id) ? { ...a, selected: true } : a)))
+                      void importDiscoveredAssets({ ids: cutoutIds })
+                    }}
+                    disabled={batchVideoReady.running || discoveryStatus === 'importing' || cutoutIds.length === 0}
+                    title={cutoutIds.length === 0 ? 'No cutouts are ready yet' : 'Adds every cutout to your assets. The video uses your logo and first 2 products.'}
+                    className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
+                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan }}
+                  >
+                    {`Add All Cutouts to Assets (${cutoutIds.length})`}
                   </button>
                   <button
                     type="button"

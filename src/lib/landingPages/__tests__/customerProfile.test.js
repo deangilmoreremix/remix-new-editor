@@ -122,3 +122,64 @@ describe('contacts imported in the Personalize hub', () => {
     expect(normalizeCustomer({ phone: '123' }, 'contact')).toBeNull();
   });
 });
+
+import { personalImagesFromProjects, attachPersonalImages } from '../customerProfile.js';
+
+describe('the customer\'s personalized picture', () => {
+  const PROJECTS = [
+    { updated_at: '2026-11-10T00:00:00Z', client: { id: 'c1', businessName: 'Riverside Plumbing' }, output_type: 'image', generation: { outputUrls: ['https://cdn.test/old.png'] } },
+    { updated_at: '2026-11-15T00:00:00Z', client: { id: 'c1', businessName: 'Riverside Plumbing' }, output_type: 'video', generation: { outputUrls: ['https://cdn.test/clip.mp4', 'blob:xyz', 'https://cdn.test/new.webp'] } },
+    { updated_at: '2026-11-12T00:00:00Z', client: { businessName: 'Acme Roofing' }, output_type: 'image', generation: { outputUrls: ['https://cdn.test/acme-image'] } },
+    { updated_at: '2026-11-12T00:00:00Z', client: { id: 'c9' }, generation: { outputUrls: ['http://insecure/x.png'] } },
+  ];
+  it('takes the newest https picture per customer (id first, then business name), never videos, blob: or http', () => {
+    const { byId, byName } = personalImagesFromProjects(PROJECTS);
+    expect(byId.c1).toBe('https://cdn.test/new.webp');
+    expect(byName.acmeroofing).toBe('https://cdn.test/acme-image');
+    expect(byId.c9).toBeUndefined();
+  });
+  it('attaches it to the customers and keeps one they already have', () => {
+    const list = attachPersonalImages([normalizeCustomer({ id: 'c1', businessName: 'Riverside Plumbing' }, 'client'), normalizeCustomer({ id: 'x', businessName: 'Acme Roofing' }, 'client'), { ...normalizeCustomer({ id: 'y', businessName: 'Mine' }, 'client'), image: 'https://cdn.test/mine.png' }], PROJECTS);
+    expect(list.map((c) => c.image)).toEqual(['https://cdn.test/new.webp', 'https://cdn.test/acme-image', 'https://cdn.test/mine.png']);
+  });
+  it('applyCustomerToEditor puts it in every design\'s video slot when asked, and not when switched off', () => {
+    const c = { ...normalizeCustomer(CLIENT, 'client'), image: 'https://cdn.test/personal.png' };
+    EDITABLE_TEMPLATES.forEach((t) => {
+      const hasSlot = t.editorData.content.some((x) => /Hero|VideoSection/.test(x.type));
+      const on = applyCustomerToEditor(t.editorData, c);
+      const off = applyCustomerToEditor(t.editorData, c, { useImage: false });
+      const slots = (d) => JSON.stringify(d).match(/"slotImage":"https:\/\/cdn\.test\/personal\.png"/g) || [];
+      expect(off.data && slots(off.data).length).toBe(0);
+      if (hasSlot) { expect(slots(on.data).length).toBeGreaterThan(0); expect(on.applied).toContain('personalized image'); } else expect(slots(on.data).length).toBe(0);
+    });
+  });
+});
+
+describe('personalized picture without the brand option', () => {
+  const c = { ...normalizeCustomer(CLIENT, 'client', { assets: ASSETS, brandColors: { primary: '#ff8a1f' } }), image: 'https://cdn.test/me.png' };
+  it('fills only the video slot picture when the brand option is off', () => {
+    const t = EDITABLE_TEMPLATES.find((x) => x.id === 'editable-pc-roofing');
+    const { data, applied } = applyCustomerToEditor(t.editorData, c, { useImage: true, brand: false });
+    expect(data.content.find((x) => x.type === 'Hero').props.slotImage).toBe('https://cdn.test/me.png');
+    expect(data.root.props.accent).toBe(t.editorData.root.props.accent);
+    expect(data.content.find((x) => x.type === 'NavBar').props.brand).toBe(t.editorData.content.find((x) => x.type === 'NavBar').props.brand);
+    expect(applied).toEqual(['personalized image']);
+  });
+});
+
+describe('personal image lookup', () => {
+  it('ignores inherited object keys such as "constructor"', async () => {
+    const { attachPersonalImages } = await import('../customerProfile.js');
+    const out = attachPersonalImages([{ id: 'constructor', business: { name: 'Constructor' }, image: '' }], []);
+    expect(out[0].image).toBe('');
+  });
+});
+
+describe('personal image from a saved project that only has client.clientId', () => {
+  it('attaches the picture by the persisted clientId', async () => {
+    const { attachPersonalImages } = await import('../customerProfile.js');
+    const c = normalizeCustomer(CLIENT, 'client');
+    const out = attachPersonalImages([c], [{ client: { clientId: c.id }, generation: { outputUrls: ['https://cdn.test/p.png'] }, output_type: 'image', updated_at: '2026-01-01' }]);
+    expect(out[0].image).toBe('https://cdn.test/p.png');
+  });
+});

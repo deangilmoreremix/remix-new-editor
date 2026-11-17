@@ -61,7 +61,8 @@ import type {
   PreviewAspectRatio,
 } from './types'
 import { EMPTY_GENERATION_STATE } from './types'
-import type { ProtectedZone } from './preview/types'
+import type { PreviewCaptions, ProtectedZone } from './preview/types'
+import { applyCaptionsPatch } from './captions/captionStyle'
 import { measureImageHints } from './preview/imageHintsLoader'
 import { normalizePersonalizationSource, getEligibility } from './sourceNormalizer'
 import {
@@ -101,6 +102,7 @@ import { normalizeUrl, TRACKING_PARAMS } from './urlNormalizer'
 import { createProjectPersistence, durableAssetUrls, loadProject, resolveRestoredAssetUrl, type LoadProjectResult, type PersonalizationProjectState } from './supabaseProjectPersistence'
 import { imageLoadsInBrowser } from './imageLoadProbe'
 import { prefetchBackgroundRemovalModel, cancelBackgroundRemovalPrefetch } from './backgroundRemoval/backgroundRemovalClient'
+import { findAlreadyImported } from './backgroundRemoval/importDedupe'
 import { useAutoCutout, shouldHoldAutoImport, AUTO_IMPORT_CUTOUT_WAIT_MS, type AutoCutoutControls } from './backgroundRemoval/useAutoCutout'
 import { buildPreviewInput } from './guided/buildPreviewInput'
 import { reorderLayers } from './preview/layerOrder'
@@ -1055,6 +1057,8 @@ export type DemoPersonalizeContextValue = {
    */
   applyPreviewPlacements: (items: { layerId: string; x: number; y: number; scale?: number }[], options?: { overrideManual?: boolean }) => void
   updatePreviewBrandColors: (patch: Partial<PreviewBrandColors>) => void
+  /** Burned-in captions: merge a patch over them, or `null` to remove them. Counts for undo/redo, saves with the project. */
+  updatePreviewCaptions: (patch: Partial<PreviewCaptions> | null) => void
    updatePreviewComposition: (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard'>>) => void
    resetPreviewLayout: () => void
    /**
@@ -4069,14 +4073,24 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       : discoveredAssets.filter((a) => a.selected && !a.rejected)
     // Free (signed-out) visitors see and download cutouts, but cannot store files: they import the
     // original image link exactly as before, so nothing needs an upload or a sign-in.
-    const toImport = access === 'anonymous'
+    const toImportAll = access === 'anonymous'
       ? toImportRaw.map((a) =>
           a.editMetadata?.engine === 'bg0'
             ? { ...a, editedDataUrl: undefined, edited: false, hasTransparency: false, editMetadata: undefined }
             : a,
         )
       : toImportRaw
+    // A picture that is already in the library (or listed twice) is not added again. A cutout of a picture
+    // whose library copy is still the untouched original is kept next to it.
+    const lib = assetsRef.current
+    // An explicit drop onto a section is the user's choice: it always imports.
+    const repeatIds = sectionOverride ? new Set<string>() : findAlreadyImported(toImportAll, [
+      ...lib.identities, ...lib.logos, ...lib.products, ...lib.brandReferences,
+      ...([lib.firstFrame, lib.lastFrame, lib.ctaGraphic].filter(Boolean) as PersonalizationAsset[]),
+    ])
+    const toImport = toImportAll.filter((a) => !repeatIds.has(a.id))
     if (toImport.length === 0) {
+      if (repeatIds.size > 0) setDiscoveredAssetsState((prev) => prev.filter((a) => !repeatIds.has(a.id)))
       setDiscoveryStatus('reviewing')
       return []
     }
@@ -4261,8 +4275,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // so they can be retried.
     const importedIds = new Set(assetsToCreate.map(({ item }) => item.id))
     const anyFailed = toImport.some((item) => !importedIds.has(item.id))
-    if (ids || anyFailed) {
-      setDiscoveredAssetsState((prev) => prev.filter((a) => !importedIds.has(a.id)))
+    if (ids || anyFailed || repeatIds.size > 0) {
+      setDiscoveredAssetsState((prev) => prev.filter((a) => !importedIds.has(a.id) && !repeatIds.has(a.id)))
       setDiscoveryStatus('reviewing')
     } else {
       setDiscoveredAssetsState([])
@@ -5972,6 +5986,20 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     }))
   }, [])
 
+  const updatePreviewCaptions = useCallback((patch: Partial<PreviewCaptions> | null) => {
+    markSessionStarted()
+    setPreviewSettings((prev) => {
+      const captions = applyCaptionsPatch(prev.captions, patch)
+      if (!captions) {
+        if (!prev.captions) return prev
+        const { captions: _removed, ...rest } = prev
+        void _removed
+        return rest
+      }
+      return { ...prev, captions }
+    })
+  }, [])
+
   const updatePreviewComposition = useCallback(
     (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard'>>) => {
       markSessionStarted()
@@ -6681,6 +6709,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setPreviewProtectedZones,
     applyPreviewPlacements,
     updatePreviewBrandColors,
+    updatePreviewCaptions,
     updatePreviewComposition,
     resetPreviewLayout,
     remotionDesignTemplates,

@@ -227,4 +227,18 @@ describe('personalizing for a customer', () => {
     open({ deps: { loadCustomers: async () => ({ customers: [], activeId: '' }), mountEditablePage: () => ({ destroy() {} }) } }); await flushAll();
     expect(document.querySelector('[data-customer-panel]').textContent).toContain('No customer found yet');
   });
+
+  it('puts the customer\'s personalized picture in the video slot, and lets you switch that off', async () => {
+    const withImage = [{ ...CUSTOMERS[0], image: 'https://cdn.test/personal.png' }, CUSTOMERS[1]];
+    const mountPageEditor = vi.fn(() => ({ destroy() {} }));
+    openLandingPagePicker({ video: VIDEO, deps: { loadCustomers: async () => ({ customers: withImage, activeId: 'c1' }), mountPageEditor, mountEditablePage: () => ({ destroy() {} }) } }); await flushAll();
+    const box = document.querySelector('[data-customer-image]'); expect(box.checked).toBe(true);
+    document.querySelector('[data-template="editable-pc-plumbing"]').click(); await flushAll();
+    const slot = (call) => JSON.stringify(mountPageEditor.mock.calls[call][1].data).includes('"slotImage":"https://cdn.test/personal.png"');
+    expect(slot(0)).toBe(true);
+    [...document.querySelectorAll('button')].find((b) => b.textContent.includes('All pages')).click(); await flushAll();
+    document.querySelector('[data-customer-image]').click(); await flushAll();
+    document.querySelector('[data-template="editable-pc-plumbing"]').click(); await flushAll();
+    expect(slot(1)).toBe(false);
+  });
 });

@@ -24,6 +24,7 @@ import { hasTextScrim, scrimForBox, scrimPeakAt, scrimStyle } from './scrim'
 import { layerBoxMetrics } from '../guided/overlayGeometry'
 import { resolveDesignSlotValues } from './designSlots'
 import { toPlayablePreviewMediaUrl } from './remoteMedia'
+import { CaptionsLayer } from './CaptionsLayer'
 import {
   clearPreviewMediaFailure,
   emitPreviewMediaFailure,
@@ -711,6 +712,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
             </React.Fragment>
           )
         })}
+        <CaptionsLayer captions={settings.captions} videoUrl={videoUrl ?? null} settings={settings} width={compW} height={compH} />
         {settings.showEndCard ? (
           // zIndex: layers are stacked up to stackOrder 65 * 100 + 99 (see layerZIndex), so
           // the end card needs a higher level to stay on top of layers that run to the end.

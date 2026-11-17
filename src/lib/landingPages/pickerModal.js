@@ -29,8 +29,8 @@ export const CHIPS = Object.freeze([
   { id: 'all', label: 'All', match: () => true },
   { id: 'saas', label: 'SaaS & outreach', match: (id) => /^editable-(starter|leadiq|lead|reach|mono|poster|enterprise|neon|pb-(pro|agency|enterprise|analytics|creator))$/.test(id) },
   { id: 'local', label: 'Local business', match: (id) => /^editable-(local|persona|spark|pb-(eats|auto|health|shop)|pa-(bistro|motors|local|spa|fitness)|pd-restaurant)$/.test(id) },
-  { id: 'real', label: 'Property & travel', match: (id) => /^editable-(pb-agent|pa-(estate|travel)|realtor|dreamhome)$/.test(id) },
-  { id: 'trades', label: 'Home services', match: (id) => /^editable-pc-(plumbing|pest|landscape|cleaning|moving|solar)$/.test(id) },
+  { id: 'real', label: 'Property & travel', match: (id) => /^editable-(pb-agent|pa-(estate|travel)|pc-realestate|realtor|dreamhome)$/.test(id) },
+  { id: 'trades', label: 'Home services', match: (id) => /^editable-pc-(plumbing|pest|landscape|cleaning|moving|solar|roofing|hvac|detailing)$/.test(id) },
   { id: 'care', label: 'Health, beauty & kids', match: (id) => /^editable-pc-(vet|vision|preschool)$/.test(id) || /^editable-pd-(dental|chiro|medspa|salon)$/.test(id) },
   { id: 'more', label: 'Other', match: (id) => /^editable-(pa-(business|learn|creative)|results|pc-insurance)$/.test(id) },
 ]);
@@ -273,10 +273,11 @@ export function openLandingPagePicker({ video = null, template = null, customers
     const sel = selected();
     const one = sel.length === 1 ? sel[0] : null;
     const withBrand = !!one && cp.brand() && !plain;
+    const withImage = !!one && cp.useImage() && !plain; // the picture option works even with the brand option off
     let applied = [];
-    if (withBrand) {
-      const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: brandForConfig(one) });
-      const r = applyCustomerToEditor(cfg.editor, one);
+    if (withBrand || withImage) {
+      const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: withBrand ? brandForConfig(one) : brandDefaults() });
+      const r = applyCustomerToEditor(cfg.editor, one, { useImage: cp.useImage(), brand: withBrand });
       data = r.data; applied = r.applied;
     } else {
       data = defaultConfig(chosen.id, { title: src?.title || '', brand: brandDefaults() }).editor;
@@ -294,10 +295,10 @@ export function openLandingPagePicker({ video = null, template = null, customers
       const note = el('div', 'px-4 md:px-6 pt-1 text-xs');
       note.dataset.personalizedNote = '';
       note.style.cssText = 'color:#d9ff00;display:flex;gap:10px;align-items:center;flex-wrap:wrap';
-      note.appendChild(el('span', '', withBrand
+      note.appendChild(el('span', '', (withBrand || withImage)
         ? `Personalized for ${one.label}${applied.length ? `: ${applied.join(', ')} filled in` : ''}. Previewing as ${sel[0].label}.`
         : sel.length === 1 ? `Plain design. Previewing as ${sel[0].label}.` : `${sel.length} personal links will be made when you save. Previewing as ${sel[0].label}.`));
-      if (withBrand) {
+      if (withBrand || withImage) {
         const undo = el('button', '', 'Use the plain design'); undo.type = 'button';
         undo.style.cssText = 'background:none;border:0;color:#fff;text-decoration:underline;cursor:pointer;font-size:12px';
         undo.addEventListener('click', () => showEdit(templateId, { plain: true }));
@@ -402,8 +403,14 @@ export function openLandingPagePicker({ video = null, template = null, customers
     body.replaceChildren(box);
   }
 
-  void cp.load();
-  if (template && TEMPLATES.some((t) => t.editable && t.id === template)) showEdit(template); else showGrid();
+  // A design chosen by the caller opens the editor right away, but only after the customers are loaded,
+  // so the first draft already has the customer's brand and personalized picture.
+  if (template && TEMPLATES.some((t) => t.editable && t.id === template)) {
+    Promise.resolve(cp.load()).catch(() => {}).then(() => { if (overlay.isConnected) showEdit(template); });
+  } else {
+    void cp.load();
+    showGrid();
+  }
   dialog.focus();
   return { close, element: overlay };
 }

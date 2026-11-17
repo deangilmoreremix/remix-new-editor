@@ -5,6 +5,10 @@
 import { useEffect, useRef } from 'react';
 import { AccentText, VideoPlayer, LeadForm, EmailSignup, Icon, SafeLink, useTokens } from '../components.jsx';
 import { slotFields, SLOT_DEFAULTS } from '../slotFields.js';
+import { safeImageUrl } from '../../templates.js';
+
+// https pictures, or the design's own art under /landing-art/ (same rule as the other editor components).
+const artUrl = (v) => safeImageUrl(v) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(v || '')) ? String(v) : '');
 
 const T = (label) => ({ type: 'text', label });
 const A = (label) => ({ type: 'textarea', label });
@@ -67,11 +71,11 @@ function NeonHero(p) {
         </section>
         <section className="pk-neon-gift">
           <div className="pk-neon-gift-body">
-            <img className="pk-neon-giftico" src="/landing-art/10/gift.webp" alt="" />
+            {artUrl(p.giftIcon ?? '/landing-art/10/gift.webp') ? <img className="pk-neon-giftico" src={artUrl(p.giftIcon ?? '/landing-art/10/gift.webp')} alt="" /> : null}
             <h2 className="pk-neon-gift-title">{t(p.giftTitle)}</h2>
             <EmailSignup className="pk-neon-signup" placeholder={p.giftPlaceholder} label={p.giftButton} source={p.giftTitle} />
           </div>
-          <div className="pk-neon-book"><img src="/landing-art/10/book.webp" alt="" /><b className="pk-sr">{t(p.giftCover)}</b></div>
+          <div className="pk-neon-book">{artUrl(p.giftBook ?? '/landing-art/10/book.webp') ? <img src={artUrl(p.giftBook ?? '/landing-art/10/book.webp')} alt="" /> : null}<b className="pk-sr">{t(p.giftCover)}</b></div>
         </section>
       </aside>
     </header>
@@ -102,6 +106,8 @@ export const components = {
       giftPlaceholder: T('Gift email box hint'),
       giftButton: T('Gift button text'),
       giftCover: T('Text on the gift book cover'),
+      giftIcon: T('Gift icon picture (https link or /landing-art path)'),
+      giftBook: T('Gift book picture (https link or /landing-art path)'),
     },
     defaultProps: {
       eyebrow: 'Personalized Video Lead Generation',
@@ -112,7 +118,7 @@ export const components = {
       formTitle: 'Get Your Personalized Video & Grow Your Lead List', formFields: FORM_FIELDS, submitLabel: 'Create My Personalized Video', privacy: '',
       orLabel: 'or', buttons: [{ label: 'Book a Live Walkthrough', url: '#lead' }],
       kpiTitle: 'Leads Captured (All Time)', kpiValue: '128,349', kpiBadge: '+37% (Last 30 days)',
-      giftTitle: 'Join Our Insider List & Get a Free "Personalized Video Playbook"', giftPlaceholder: 'Enter your email', giftButton: 'Get the Free Playbook', giftCover: 'The Personalized Video Playbook',
+      giftTitle: 'Join Our Insider List & Get a Free "Personalized Video Playbook"', giftPlaceholder: 'Enter your email', giftButton: 'Get the Free Playbook', giftCover: 'The Personalized Video Playbook', giftIcon: '/landing-art/10/gift.webp', giftBook: '/landing-art/10/book.webp',
     },
     render: (p) => <NeonHero {...p} />,
   },
