@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { answerColumns, countsByForm, filterRows, leadForms, rowFormKey, rowsToCsv, sourceLabel, whenLabel, LEAD_RANGES, type LeadRange, type LeadRow } from '@cinegen/lib/leads/leads';
 import { setLeadsForm, useLeadsForm } from '@cinegen/lib/leads/leads-filter';
+import { SAMPLE_FORMS, SAMPLE_LEADS, SAMPLE_VIEWS } from '@cinegen/lib/leads/sample-data';
 import type { LeadsData } from './use-leads';
 
 export function LeadsCard({ data, published, views }: { data: LeadsData; published: boolean; views: number }) {
@@ -10,14 +11,18 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
   const form = useLeadsForm();
   const [query, setQuery] = useState('');
   const [range, setRange] = useState<LeadRange>('all');
-  const forms = leadForms(state.overlays ?? []);
-  const counts = countsByForm(data.rows);
-  const shown = filterRows(data.rows, { form, query, range });
+  // Before publishing there is nothing to show, so the tab previews its layout with labelled sample rows (read-only).
+  const preview = !published;
+  const allRows = preview ? SAMPLE_LEADS : data.rows;
+  const forms = preview ? SAMPLE_FORMS : leadForms(state.overlays ?? []);
+  const counts = countsByForm(allRows);
+  const shown = filterRows(allRows, { form: preview ? 'all' : form, query: preview ? '' : query, range: preview ? 'all' : range });
   const cols = answerColumns(shown);
   const showSource = shown.some((r) => sourceLabel(r)); // the column appears once any lead has a source
-  const total = data.rows.length;
+  const total = allRows.length;
   const wall = counts['list-builder'] ?? 0;
-  const pct = views > 0 ? `${Math.min(100, Math.round((total / views) * 100))}%` : '—';
+  const shownViews = preview ? SAMPLE_VIEWS : views;
+  const pct = shownViews > 0 ? `${Math.min(100, Math.round((total / shownViews) * 100))}%` : '—';
   const tag = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r));
   const download = () => {
     const url = URL.createObjectURL(new Blob([rowsToCsv(shown, forms)], { type: 'text/csv' }));
@@ -25,12 +30,14 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
   };
   return (
     <section className="leads-card" data-testid="leads-card">
-      <h3 className="leads-card__title">Leads</h3>
+      <h3 className="leads-card__title">Leads{preview && <span className="leads-sample-badge" data-testid="leads-sample-badge">Sample data</span>}</h3>
+      {preview && <p className="leads-note" data-testid="leads-unpublished">Publish this video to start collecting leads. This is a preview of what you will see here.</p>}
+      <div className={preview ? 'leads-preview' : undefined} aria-hidden={preview || undefined} {...(preview ? { inert: '' } : {})}>
       <div className="leads-kpis">
         <div><b>{total}</b><span>Total</span></div><div><b>{wall}</b><span>List Builder</span></div>
         <div><b>{total - wall}</b><span>Lead Generator</span></div><div><b>{pct}</b><span>Of viewers signed up</span></div>
       </div>
-      {!published ? <p className="leads-note" data-testid="leads-unpublished">Publish this video to start collecting leads.</p> : (
+      {(
         <>
           <div className="leads-chips">
             <button type="button" className={`leads-chip${form === 'all' ? ' is-on' : ''}`} onClick={() => setLeadsForm('all')}>All {total}</button>
@@ -59,6 +66,7 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
           )}
         </>
       )}
+      </div>
     </section>
   );
 }
