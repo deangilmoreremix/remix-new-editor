@@ -27,10 +27,10 @@ function missingFields(item, path = '') {
   return out;
 }
 
-describe('the 37 new industry designs are fully editable', () => {
-  it('there are 37 of them (27 one-screen pc-* + 10 full-page pd-*)', () => {
-    expect(NEW.filter((t) => t.id.startsWith('puck-pc-')).length).toBe(27);
-    expect(NEW.filter((t) => t.id.startsWith('puck-pd-')).length).toBe(10);
+describe('the 42 new industry designs are fully editable', () => {
+  it('there are 42 of them (29 one-screen pc-* + 13 full-page pd-*)', () => {
+    expect(NEW.filter((t) => t.id.startsWith('puck-pc-')).length).toBe(29);
+    expect(NEW.filter((t) => t.id.startsWith('puck-pd-')).length).toBe(13);
   });
 
   NEW.forEach((t) => {
