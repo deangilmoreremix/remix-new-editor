@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from '../../../../shims/next-server'
 import { auth } from '../../../../shims/clerk-server'
 import { getOpenAiKeyForUser } from '../../../../src/lib/openaiKeyServer'
 import { rateLimit, rateLimit429 } from '../../../../lib/rateLimit'
+import { safetyIdentifier } from '../../../../src/lib/safetyIdentifier'
+import { moderationMessage, type ModerationDetails } from '../../../../src/lib/openaiImageApi'
 import { IMAGE_EDIT_OPERATIONS, type EditorOperationId } from '../../../../src/shared/personalization/image-editor/imageEditRegistry'
 
 export const dynamic = "force-dynamic";
@@ -153,6 +155,7 @@ export async function POST(req: NextRequest) {
     upstream.append('quality', quality)
     upstream.append('size', size)
     upstream.append('output_format', outputFormat)
+    upstream.append('safety_identifier', safetyIdentifier(userId))
     if (outputCompression !== undefined && outputFormat !== 'png') {
       upstream.append('output_compression', String(Math.round(outputCompression)))
     }
@@ -175,6 +178,10 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
+      if (data?.error?.code === 'moderation_blocked') {
+        const details: ModerationDetails | undefined = data.error.moderation_details ?? data.moderation_details
+        return NextResponse.json({ error: moderationMessage(details), code: 'moderation_blocked', ...(details ? { moderation_details: details } : {}) }, { status: 400 })
+      }
       const message =
         data?.error?.message ||
         data?.message ||

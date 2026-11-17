@@ -12,8 +12,8 @@ export const UPSTREAM_TIMEOUT_MS = 180_000;
 export const REFERENCE_TIMEOUT_MS = 15_000;
 export const MAX_REFERENCE_BYTES = 20 * 1024 * 1024;
 
-export function errorJson(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
+export function errorJson(message: string, status: number, extra?: Record<string, unknown>) {
+  return NextResponse.json({ error: message, ...(extra || {}) }, { status });
 }
 
 /** gpt-image models take three sizes; pick the one closest to the requested ratio. */
@@ -70,6 +70,18 @@ export async function loadImage(source: string, index: number): Promise<ImagePar
   return { blob: new Blob([buffer], { type }), filename: `reference-${index}.${extensionFor(type)}` };
 }
 
+export interface ModerationDetails {
+  moderation_stage?: 'input' | 'output' | 'unknown';
+  categories?: string[];
+}
+
+/** A plain-language reason for a blocked request. Blocked requests are user errors and are not retried automatically. */
+export function moderationMessage(details?: ModerationDetails): string {
+  const where = details?.moderation_stage === 'input' ? 'your prompt or picture' : details?.moderation_stage === 'output' ? 'the picture it made' : 'this request';
+  const why = details?.categories?.length ? ` (${details.categories.join(', ')})` : '';
+  return `OpenAI's content filter blocked ${where}${why}. Change the prompt or picture and try again; it is not retried automatically.`;
+}
+
 export type OpenAiImageResponse = {
   data?: { url?: string; b64_json?: string; revised_prompt?: string }[];
   error?: { message?: string; code?: string };
@@ -99,7 +111,9 @@ export async function readUpstream(res: Response): Promise<OpenAiImageResponse> 
 
 export function upstreamError(res: Response, payload: OpenAiImageResponse) {
   if (payload.error?.code === 'moderation_blocked') {
-    return errorJson('Content moderation blocked this request. Please revise the prompt.', 400);
+    const details = (payload.error as { moderation_details?: ModerationDetails }).moderation_details
+      ?? (payload as { moderation_details?: ModerationDetails }).moderation_details;
+    return errorJson(moderationMessage(details), 400, { code: 'moderation_blocked', ...(details ? { moderation_details: details } : {}) });
   }
   const message = payload.error?.message || `OpenAI image error (${res.status})`;
   // 401 from OpenAI means the stored key is wrong, not that the user is signed out.
@@ -114,6 +128,10 @@ export interface ExtraImageOptions {
   background?: string;
   outputFormat?: string;
   outputCompression?: number;
+  /** 'auto' (standard) or 'low' (less restrictive). */
+  moderation?: string;
+  /** Privacy-preserving end-user id (see safetyIdentifier.ts). */
+  safetyIdentifier?: string;
 }
 
 /** Fields shared by generations (JSON) and edits (multipart). `complexity` exists only on Images 2.6. */
@@ -124,6 +142,8 @@ export function extraFields(model: string, extra?: ExtraImageOptions): Record<st
   if (extra.background) out.background = extra.background;
   if (extra.outputFormat) out.output_format = extra.outputFormat;
   if (extra.outputCompression !== undefined) out.output_compression = extra.outputCompression;
+  if (extra.moderation) out.moderation = extra.moderation;
+  if (extra.safetyIdentifier) out.safety_identifier = extra.safetyIdentifier;
   return out;
 }
 

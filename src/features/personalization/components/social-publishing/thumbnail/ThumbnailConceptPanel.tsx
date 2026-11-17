@@ -151,6 +151,7 @@ export default function ThumbnailConceptPanel({
   const [count, setCount] = useState(1);
   const [imageBackground, setImageBackground] = useState<'auto' | 'opaque' | 'transparent'>('auto');
   const [outputFormat, setOutputFormat] = useState<'png' | 'jpeg' | 'webp'>('png');
+  const [moderation, setModeration] = useState<'auto' | 'low'>('auto');
   const [compression, setCompression] = useState(80);
 
   const [generating, setGenerating] = useState(false);
@@ -243,6 +244,7 @@ export default function ThumbnailConceptPanel({
         quality,
         ...(complexity ? { complexity } : {}),
         ...(imageBackground !== 'auto' ? { background: imageBackground } : {}),
+        ...(moderation !== 'auto' ? { moderation } : {}),
         outputFormat,
         ...(outputFormat !== 'png' ? { outputCompression: compression } : {}),
         ...(referenceUrls.length ? { referenceUrls } : {}),
@@ -265,7 +267,7 @@ export default function ThumbnailConceptPanel({
         onGeneratingChange?.(0);
       }
     }
-  }, [generating, formError, sizeCheck, onError, runMode, brief, count, onGeneratingChange, references, engine, quality, complexity, imageBackground, outputFormat, compression, onResults]);
+  }, [generating, formError, sizeCheck, onError, runMode, brief, count, onGeneratingChange, references, engine, quality, complexity, imageBackground, moderation, outputFormat, compression, onResults]);
 
   const pickUpload = useCallback(async (files: FileList | null) => {
     const file = files?.[0];
@@ -417,6 +419,7 @@ export default function ThumbnailConceptPanel({
         <div className="grid grid-cols-3 gap-2">
           <Select<"auto" | "transparent" | "opaque"> label="Background" value={imageBackground} disabled={off} onChange={setImageBackground} options={['auto', 'opaque', 'transparent']} />
           <Select<"png" | "jpeg" | "webp"> label="Output format" value={outputFormat} disabled={off} onChange={setOutputFormat} options={['png', 'jpeg', 'webp']} />
+          <Select<"auto" | "low"> label="Content filter (auto: standard, low: relaxed)" value={moderation} disabled={off} onChange={setModeration} options={['auto', 'low']} />
           <Field label={`Compression: ${compression}`}><input type="range" aria-label="Output compression" min={0} max={100} value={compression} onChange={(e) => setCompression(Number(e.target.value))} disabled={off || outputFormat === 'png'} className="w-full accent-[#d9ff00] disabled:opacity-40" /></Field>
         </div>
       </Section>

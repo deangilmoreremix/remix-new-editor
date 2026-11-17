@@ -19,7 +19,10 @@ async function postToEdgeFunction(url: string, body: Record<string, unknown>): P
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-    throw new Error(errorData.error || `Thumbnail service error: ${response.status}`)
+    throw Object.assign(new Error(errorData.error || `Thumbnail service error: ${response.status}`), {
+      code: typeof errorData.code === 'string' ? errorData.code : undefined,
+      moderationDetails: errorData.moderation_details,
+    })
   }
 
   return response.json() as Promise<Record<string, unknown>>
@@ -37,6 +40,13 @@ export interface ThumbnailImageControls {
   background?: 'transparent' | 'opaque' | 'auto'
   outputFormat?: 'png' | 'jpeg' | 'webp'
   outputCompression?: number
+  /** Content filter: 'auto' (standard, default) or 'low' (less restrictive). */
+  moderation?: 'auto' | 'low'
+}
+
+/** True when OpenAI's content filter blocked the request (it should not be retried unchanged). */
+export function isModerationBlocked(err: unknown): boolean {
+  return !!err && typeof err === 'object' && (err as { code?: string }).code === 'moderation_blocked'
 }
 
 function imageControlFields(params: ThumbnailImageControls): Record<string, unknown> {
@@ -46,6 +56,7 @@ function imageControlFields(params: ThumbnailImageControls): Record<string, unkn
     ...(params.background ? { background: params.background } : {}),
     ...(params.outputFormat ? { output_format: params.outputFormat } : {}),
     ...(params.outputCompression !== undefined ? { output_compression: params.outputCompression } : {}),
+    ...(params.moderation && params.moderation !== 'auto' ? { moderation: params.moderation } : {}),
   }
 }
 

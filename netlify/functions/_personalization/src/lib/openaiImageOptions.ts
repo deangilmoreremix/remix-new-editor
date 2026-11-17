@@ -7,6 +7,8 @@ export const IMAGE_QUALITIES = ['auto', 'low', 'medium', 'high', 'xhigh', 'max']
 export const IMAGE_COMPLEXITIES = ['low', 'medium', 'high'] as const
 export const IMAGE_FORMATS = ['png', 'jpeg', 'webp'] as const
 export const IMAGE_BACKGROUNDS = ['transparent', 'opaque', 'auto'] as const
+/** Content filter: 'auto' is OpenAI's standard filtering, 'low' is less restrictive. */
+export const IMAGE_MODERATION = ['auto', 'low'] as const
 
 /** Images 2.6 models (Flare = fast concepts, Sunburst = detail and careful edits). */
 export const IMAGES_26_MODELS = ['gpt-image-2.6-flare', 'gpt-image-2.6-sunburst'] as const
@@ -33,6 +35,7 @@ export interface ImageOptions {
   background?: (typeof IMAGE_BACKGROUNDS)[number]
   outputFormat?: (typeof IMAGE_FORMATS)[number]
   outputCompression?: number
+  moderation?: (typeof IMAGE_MODERATION)[number]
 }
 
 /** Read and validate the optional controls from a request body; returns an error message for a bad value. */
@@ -58,6 +61,10 @@ export function parseImageOptions(body: Record<string, any>): { options: ImageOp
   if (has('output_format')) {
     if (!(IMAGE_FORMATS as readonly string[]).includes(body.output_format)) return { options, error: 'Unsupported output format.' }
     options.outputFormat = body.output_format
+  }
+  if (has('moderation')) {
+    if (!(IMAGE_MODERATION as readonly string[]).includes(body.moderation)) return { options, error: 'Content filter must be auto or low.' }
+    options.moderation = body.moderation
   }
   if (has('output_compression')) {
     const c = Number(body.output_compression)
