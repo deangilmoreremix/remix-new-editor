@@ -1,7 +1,7 @@
 import React from 'react'
 import { AbsoluteFill, useCurrentFrame } from 'remotion'
 import { capiteStyleById, capiteTextCss, capiteWordCss } from '../captions/capiteStyles'
-import { displayScale, scriptFor } from '../captions/scripts'
+import { displayScale, scriptFor, withScriptFonts } from '../captions/scripts'
 import { activeCueAt, activeWordIndex, captionLayout } from '../captions/captionStyle'
 import { endCardFrames } from './endCard'
 import { fontStackById } from './presets'
@@ -41,7 +41,7 @@ export const CaptionsLayer: React.FC<{
   // The language is the saved one, or read from the letters when there is none.
   const script = scriptFor(captions.language, cue.text)
   const fs = Math.max(10, Math.round(layout.fontSizePx * displayScale(captions.language, cue.text)))
-  const font = script.id === 'latin' ? fontStackById(undefined) : `${script.fallbackStack}, ${fontStackById(undefined)}`
+  const font = withScriptFonts(fontStackById(undefined), script)
   const capite = capiteStyleById(captions.style)
   const wordIdx = captions.style === 'bold' || capite ? activeWordIndex(cue, ms) : -1
   const justify = layout.anchor === 'bottom' ? 'flex-end' : layout.anchor === 'top' ? 'flex-start' : 'center'

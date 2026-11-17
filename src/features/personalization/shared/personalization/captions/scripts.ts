@@ -69,6 +69,19 @@ export function scriptFor(language: string | undefined, text = ''): ScriptConfig
   return scriptOf(language) ?? SCRIPTS.find((s) => s.id === detectScript(text)) ?? SCRIPTS[0]
 }
 
+const GENERIC_FAMILY = /^(ui-sans-serif|ui-serif|ui-monospace|ui-rounded|system-ui|sans-serif|serif|monospace|cursive|fantasy|emoji|math|fangsong)$/i
+
+/**
+ * A look's font stack with the script's own fonts added: after the look's NAMED fonts (so Latin letters keep the look's face) and before its
+ * generic families (so an installed Arabic or CJK font is tried before whatever the system font happens to cover). Latin changes nothing.
+ */
+export function withScriptFonts(stack: string, script: ScriptConfig): string {
+  if (!script.fallbackStack) return stack
+  const parts = stack.split(',').map((x) => x.trim()).filter(Boolean)
+  const at = parts.findIndex((x) => GENERIC_FAMILY.test(x))
+  return (at < 0 ? [...parts, script.fallbackStack] : [...parts.slice(0, at), script.fallbackStack, ...parts.slice(at)]).join(', ')
+}
+
 /**
  * How much smaller than a Latin caption this text is set on screen, 0.6 to 1. Wide letters (CJK, Cyrillic…) get smaller so a line holds about as
  * many characters as a Latin one. (ai-video-captions halves the font for ASS because its Latin looks use very big, narrow display fonts; these

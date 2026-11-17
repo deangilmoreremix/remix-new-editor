@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { SCRIPTS, LANGUAGES, detectScript, displayScale, isRtl, languageName, layoutFor, representativeLanguage, scriptFor, scriptOf } from '../scripts'
+import { SCRIPTS, LANGUAGES, detectScript, displayScale, isRtl, languageName, layoutFor, representativeLanguage, scriptFor, scriptOf, withScriptFonts } from '../scripts'
 
 describe('scripts', () => {
   it('knows the script of a language code, with region suffixes', () => {
@@ -83,4 +83,13 @@ describe('scripts', () => {
     expect(displayScale(undefined, 'Cafe\u0301 olé')).toBe(1) // accented Latin is still Latin
   })
 
+
+  it('adds a script\'s fonts after the named fonts and before the generic ones; Latin and generic-free stacks behave', () => {
+    const ar = scriptFor('ar')
+    const out = withScriptFonts('"Personalization Sans", Inter, ui-sans-serif, system-ui, sans-serif', ar)
+    expect(out.indexOf('Inter')).toBeLessThan(out.indexOf(ar.fallbackStack))
+    expect(out.indexOf(ar.fallbackStack)).toBeLessThan(out.indexOf('ui-sans-serif'))
+    expect(withScriptFonts('Inter', ar)).toBe(`Inter, ${ar.fallbackStack}`)
+    expect(withScriptFonts('Inter, sans-serif', scriptFor('en'))).toBe('Inter, sans-serif')
+  })
 })

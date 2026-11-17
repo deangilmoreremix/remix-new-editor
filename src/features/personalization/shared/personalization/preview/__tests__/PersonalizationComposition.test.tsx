@@ -359,6 +359,12 @@ describe('burned-in captions', () => {
       const capite = line(mountComposition(one('مرحبا', { language: 'ar', style: 'hormozi' })).container).style.fontFamily
       expect(capite.indexOf('Noto Sans Arabic')).toBeLessThan(capite.indexOf('system-ui'))
     })
+    it('keeps the look\'s own named fonts ahead of the script\'s, so Latin letters in a mixed line keep the look\'s face', () => {
+      const stack = line(mountComposition(one('مرحبا', { language: 'ar' })).container).style.fontFamily
+      expect(stack.indexOf('Personalization Sans')).toBeGreaterThan(-1)
+      expect(stack.indexOf('Personalization Sans')).toBeLessThan(stack.indexOf('Noto Sans Arabic'))
+      expect(stack.indexOf('Inter')).toBeLessThan(stack.indexOf('Noto Sans Arabic'))
+    })
     it('sets wide scripts a little smaller so a line holds about as many letters, never below 60 %', () => {
       const size = (el: HTMLElement) => parseFloat(el.style.fontSize)
       const latin = size(line(mountComposition(one('Call us today')).container))
