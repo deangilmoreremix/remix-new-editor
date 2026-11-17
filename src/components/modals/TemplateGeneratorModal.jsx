@@ -2226,7 +2226,13 @@ export class TemplateGeneratorModal extends BaseModal {
     const last = this.ui.expLast;
     if (!last?.url) return;   // the export said why (shown under the buttons)
     try {
-      await this.videoPagesHost({ url: last.url, title: last.title, fileSize: last.fileSize, duration: last.duration });
+      await this.videoPagesHost({ url: last.url, title: last.title, fileSize: last.fileSize, duration: last.duration }, {
+        // the app's landing page picker saved a page from this video: say so (and where to find it)
+        onPick: (saved) => {
+          this.ui.exp = { ...this.ui.exp, error: '', done: saved?.published && saved?.url ? `Landing page published: ${saved.url}` : 'Saved as a draft landing page. Open it in Video Pages to edit and publish it.' };
+          this._refreshExport();
+        },
+      });
     } catch (err) {
       this.ui.exp = { ...this.ui.exp, error: err?.message || 'Could not open Video Pages.', done: '' };
       this._refreshExport();

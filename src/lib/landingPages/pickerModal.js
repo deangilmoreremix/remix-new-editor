@@ -92,14 +92,15 @@ const brandDefaults = () => {
 
 let openCount = 0;
 
-export function openLandingPagePicker({ video = null, template = null, customers = [], preselect = 'active', onPick, onClose, deps = {} } = {}) {
+/** `zIndex`: where the picker stacks (default 2000); a caller that is itself a full-screen window (the Template Generator, 9999) passes a higher one. */
+export function openLandingPagePicker({ video = null, template = null, customers = [], preselect = 'active', onPick, onClose, zIndex = 2000, deps = {} } = {}) {
   let src = toPickerVideo(video);
   const prevOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
   openCount += 1;
 
   const overlay = el('div', 'fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-xl p-2 md:p-6');
-  overlay.style.zIndex = '2000';
+  overlay.style.zIndex = String(zIndex);
   overlay.dataset.landingPicker = '';
   const dialog = el('div', 'w-full max-w-7xl h-full max-h-[94vh] flex flex-col rounded-2xl border border-white/10 bg-panel-bg overflow-hidden text-white');
   dialog.style.cssText += CSS.dialog + ';width:100%;max-width:1280px;height:100%;max-height:94vh;display:flex;flex-direction:column';

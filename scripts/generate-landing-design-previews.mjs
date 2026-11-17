@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Real preview pictures of every Video Pages design, for the design pickers (the studio's New page screen and the Template Generator's
- * "Add to Video Pages" window): public/landing-previews/<template id>.jpg.
+ * Real preview pictures of the Video Pages designs that cannot be drawn live (the plain layouts, intro and pitch pages), for the studio's New page
+ * screen: public/landing-previews/<template id>.jpg. The editable designs are drawn live by the shared picker, so they have none.
  *
- *   node scripts/generate-landing-design-previews.mjs [--force] [--only=editable-leadiq,clean] [--port=5198]
+ *   node scripts/generate-landing-design-previews.mjs [--force] [--only=clean,dark] [--port=5198]
  *
  * Each design is drawn by the same code the public page uses (mountEditablePage for the editable designs, renderLandingPage for the
  * others) with the design's own sample content, in headless Chrome. The script waits until every image on the page (the landing-art
@@ -31,8 +31,8 @@ import { TEMPLATES, defaultConfig } from './src/lib/landingPages/templates.js';
 import { renderLandingPage } from './src/lib/landingPages/render.js';
 import { mountEditablePage } from './src/lib/landingPages/editor/mount.jsx';
 let current = null;
-// the studio's New page picker no longer offers the older fixed-layout website (site) designs, so they get no picture
-window.ids = () => TEMPLATES.filter((t) => !t.site).map((t) => t.id);
+// no picture for the older fixed-layout website (site) designs (the picker dropped them) nor for the editable designs (the pickers draw those live)
+window.ids = () => TEMPLATES.filter((t) => !t.site && !t.editable).map((t) => t.id);
 window.draw = (id) => {
   current?.destroy?.();
   const root = document.getElementById('root'); root.replaceChildren();

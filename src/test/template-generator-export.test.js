@@ -102,6 +102,19 @@ describe('Preview step — Add to Video Pages', () => {
     m.destroy();
   });
 
+  it('when the landing page picker saves a page, the generator says so (published: the link; draft: where to find it)', async () => {
+    let cb;
+    const addToVideoPages = vi.fn(async (_video, opts) => { cb = opts.onPick; });
+    const m = open({ exportVideo: rendered(), addToVideoPages });
+    document.querySelector('#tg-videopages').click();
+    await vi.waitFor(() => expect(addToVideoPages).toHaveBeenCalledTimes(1));
+    cb({ id: 'abc12345xy', url: 'https://app.test/p/abc12345xy', published: false });
+    expect(document.querySelector('#tg-exportstatus .tg-status').textContent).toContain('Saved as a draft landing page');
+    cb({ id: 'abc12345xy', url: 'https://app.test/p/abc12345xy', published: true });
+    expect(document.querySelector('#tg-exportstatus .tg-status').textContent).toContain('https://app.test/p/abc12345xy');
+    m.destroy();
+  });
+
   it('reuses the render it already has (no second export), and a new render replaces it', async () => {
     const exportVideo = vi.fn()
       .mockResolvedValueOnce({ filename: 'a.mp4', fileSize: 1000, url: 'blob:http://x/one' })

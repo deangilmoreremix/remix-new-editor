@@ -29,10 +29,16 @@ export function generatorHostOptions(assets: Asset[]) {
       if (job.status === 'failed') throw new Error(job.error || 'The export failed');
       return { filename: 'cinegen-export.mp4', fileSize: job.fileSize ?? 0, url: job.outputUrl };
     },
-    // Upload the rendered video and make a draft Video Pages page from it (own window, own React root; loaded only when used)
-    addToVideoPages: async (video: { url: string; title: string; fileSize?: number; duration?: number | null }) => {
-      const { openVideoPagesModal } = await import('../../components/edit/video-pages-modal');
-      openVideoPagesModal(video);
+    // "Add to Video Pages": the app's one landing page picker (src/lib/landingPages/pickerModal.js) with the rendered video attached. It lists the
+    // designs, opens the chosen one in the visual editor with the video in it, and "Save as my page" uploads the video (a local blob: file is copied
+    // to storage) and creates the draft. It opens above this window (9999), and `onPick` hears about the saved page.
+    addToVideoPages: async (video: { url: string; title: string; fileSize?: number; duration?: number | null }, opts: { onPick?: (saved: { id?: string; url?: string; published?: boolean }) => void } = {}) => {
+      const { openLandingPagePicker } = await import('../../../lib/landingPages/pickerModal.js');
+      openLandingPagePicker({
+        video: { url: video.url, name: video.title, ...(video.duration != null ? { duration: video.duration } : {}), studio: 'template-generator' },
+        zIndex: 10050,
+        onPick: opts.onPick,
+      });
     },
   };
 }

@@ -19,7 +19,7 @@ import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.j
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
 import { createCustomerPanel } from '../lib/landingPages/customerPanel.js';
 import { applyCustomerToEditor, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
-import { takeQueuedVideo, takeQueuedPage } from '../lib/landingPages/handoff.js';
+import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
 import { attachDesignPreview } from '../lib/landingPages/designPreview.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
 import {
@@ -1073,26 +1073,9 @@ export function LandingPagesStudio() {
     inner.replaceChildren(top, shareRow, tabs, body);
   }
 
-  // Arrived from "Open in Editor" (the Template Generator's Add to Video Pages window): open that page's editor straight away.
-  async function showEditorFor(id) {
-    if (!guard()) return;
-    inner.replaceChildren(el('p', 'text-sm text-secondary', 'Opening your page…'));
-    try {
-      state.pages = await listPages(await ownerClient());
-    } catch (err) {
-      inner.replaceChildren(el('p', 'text-sm text-red-300', err.message || 'Could not load your pages.'));
-      return;
-    }
-    const page = state.pages.find((p) => p.id === id);
-    if (page) showEditor(page);
-    else showList();
-  }
-
   // Arrived from "Create landing page" elsewhere in the app: start with that video selected.
-  const queuedPage = takeQueuedPage();
-  const queued = queuedPage ? null : takeQueuedVideo();
-  if (queuedPage) showEditorFor(queuedPage);
-  else if (queued) showNew(queued);
+  const queued = takeQueuedVideo();
+  if (queued) showNew(queued);
   else showList();
   return container;
 }

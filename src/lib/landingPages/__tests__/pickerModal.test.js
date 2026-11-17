@@ -69,6 +69,15 @@ describe('openLandingPagePicker', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('stacks at 2000 by default, and above a full-screen caller (the Template Generator, 9999) when given a higher zIndex', () => {
+    let p = openLandingPagePicker({ video: VIDEO });
+    expect(document.querySelector('[data-landing-picker]').style.zIndex).toBe('2000');
+    p.close();
+    p = openLandingPagePicker({ video: VIDEO, zIndex: 10050 });
+    expect(document.querySelector('[data-landing-picker]').style.zIndex).toBe('10050');
+    p.close();
+  });
+
   it('click a design -> editor with the video; save creates the page and returns the link', async () => {
     const mountPageEditor = vi.fn(() => ({ destroy: vi.fn() }));
     const createPageFromVideo = vi.fn(async (_c, v, o) => ({ id: 'abcd123456', config: { template: o.template }, video_url: v.url }));

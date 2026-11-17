@@ -7,7 +7,7 @@ vi.mock('../client.js', async (orig) => ({ ...(await orig()), listPages: vi.fn(a
 vi.mock('../editor/mount.jsx', () => ({ mountPageEditor: vi.fn(() => ({ destroy() {} })), mountEditablePage: vi.fn(() => ({ destroy() {} })) }));
 vi.mock('../../studioChrome.js', () => ({ mountStudioChrome: () => {} }));
 
-import { queuePageForEditor, takeQueuedPage, queueVideoForPage } from '../handoff.js';
+import { queueVideoForPage } from '../handoff.js';
 import { TEMPLATES, defaultConfig } from '../templates.js';
 import { LandingPagesStudio } from '../../../components/LandingPagesStudio.js';
 import { mountPageEditor } from '../editor/mount.jsx';
@@ -15,49 +15,12 @@ import { mountPageEditor } from '../editor/mount.jsx';
 const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v), removeItem: (k) => m.delete(k) }; };
 const page = (id, template = 'editable-leadiq') => ({ id, title: 'Launch video', video_url: 'https://x.test/v.mp4', poster_url: null, duration: 31, published: false, view_count: 0, source: {}, config: defaultConfig(template, { title: 'Launch video' }) });
 
-describe('"Open in Editor" hand-off', () => {
-  it('queues a page id once, and only a real one', () => {
-    const storage = memory();
-    expect(queuePageForEditor('abc12345xy', { storage })).toBe(true);
-    expect(takeQueuedPage({ storage })).toBe('abc12345xy');
-    expect(takeQueuedPage({ storage })).toBeNull();           // taken once
-    expect(queuePageForEditor('../etc', { storage })).toBe(false);
-    expect(queuePageForEditor('', { storage })).toBe(false);
-    expect(takeQueuedPage({ storage })).toBeNull();
-  });
-
-  it('expires after two minutes, ignores a broken value, and survives storage that throws', () => {
-    const storage = memory(); const t = 1_000_000;
-    queuePageForEditor('abc12345xy', { storage, now: () => t });
-    expect(takeQueuedPage({ storage, now: () => t + 3 * 60 * 1000 })).toBeNull();
-    storage.setItem('video_pages_open_page', '{not json');
-    expect(takeQueuedPage({ storage })).toBeNull();
-    const bad = { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('blocked'); }, removeItem: () => {} };
-    expect(queuePageForEditor('abc12345xy', { storage: bad })).toBe(false);
-    expect(takeQueuedPage({ storage: bad })).toBeNull();
-  });
-});
-
 describe('Video Pages studio', () => {
   afterEach(() => { vi.unstubAllGlobals(); });
   beforeEach(() => { vi.stubGlobal('localStorage', memory()); vi.stubGlobal('sessionStorage', memory()); document.body.innerHTML = ''; vi.clearAllMocks(); pages.list = [page('abc12345xy'), page('zzz98765qq', 'clean')]; });
 
-  it('starts in the editor of a queued page (the "Open in Editor" button of the Add to Video Pages window)', async () => {
-    queuePageForEditor('abc12345xy');
+  it('with no queued video it shows the list of pages', async () => {
     const root = LandingPagesStudio(); document.body.appendChild(root);
-    await vi.waitFor(() => expect(root.querySelector('input[aria-label="Page title"]')?.value).toBe('Launch video'));
-    await vi.waitFor(() => expect(mountPageEditor).toHaveBeenCalledTimes(1));
-    expect(mountPageEditor.mock.calls[0][1].data).toBeTruthy();           // the design's page data is what the editor loads
-    expect(globalThis.localStorage.getItem('video_pages_open_page')).toBeNull();     // used up
-  });
-
-  it('with no queued page it shows the list; a queued page that is not there falls back to the list', async () => {
-    let root = LandingPagesStudio(); document.body.appendChild(root);
-    await vi.waitFor(() => expect(root.textContent).toContain('Landing pages for your videos'));
-    expect(mountPageEditor).not.toHaveBeenCalled();
-    document.body.innerHTML = '';
-    queuePageForEditor('nope000000');
-    root = LandingPagesStudio(); document.body.appendChild(root);
     await vi.waitFor(() => expect(root.textContent).toContain('Landing pages for your videos'));
     expect(mountPageEditor).not.toHaveBeenCalled();
   });
