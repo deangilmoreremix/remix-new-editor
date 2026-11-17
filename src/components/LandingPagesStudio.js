@@ -207,17 +207,17 @@ export function LandingPagesStudio() {
       tile.classList.toggle('ring-2', sel.video?.key === key);
       tile.classList.toggle('ring-primary', sel.video?.key === key);
     });
-    (state.sources ? Promise.resolve(state.sources) : loadVideoSources()).then((list) => {
+    (state.sources ? Promise.resolve(state.sources) : loadVideoSources({ pictures: true })).then((list) => {
       state.sources = list;
       grid.replaceChildren();
-      if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'No videos found yet. Generate one in any studio, or upload an MP4 above.'));
+      if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'Nothing found yet. Make a video or picture in any studio, or upload an MP4 above.'));
       list.slice(0, 60).forEach((v) => {
         const tile = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
         tile.type = 'button';
         const media = el('div', 'aspect-video bg-black');
-        if (v.posterUrl) {
+        if (v.posterUrl || v.isPicture) {
           const img = el('img', 'w-full h-full object-cover');
-          img.src = v.posterUrl; img.alt = ''; img.loading = 'lazy';
+          img.src = v.posterUrl || v.url; img.alt = ''; img.loading = 'lazy';
           media.appendChild(img);
         } else {
           const vid = el('video', 'w-full h-full object-cover');
@@ -227,7 +227,15 @@ export function LandingPagesStudio() {
         const cap = el('div', 'p-2');
         cap.append(el('div', 'text-xs font-bold truncate', v.title), el('div', 'text-[11px] text-secondary truncate', [v.source.studio || v.source.kind, v.permanent ? '' : 'will be copied'].filter(Boolean).join(' · ')));
         tile.append(media, cap);
-        tile.addEventListener('click', () => { sel.video = v; status.textContent = `Selected: ${v.title}`; markSelected(); });
+        tile.addEventListener('click', async () => {
+          if (v.isPicture) {
+            // A picture becomes a page through the design picker (it fills the video slot as a still).
+            const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
+            openLandingPagePicker({ video: { url: v.url, title: v.title, type: 'image', studio: v.source?.studio || '' } });
+            return;
+          }
+          sel.video = v; status.textContent = `Selected: ${v.title}`; markSelected();
+        });
         tiles.set(v.key, tile);
         grid.appendChild(tile);
       });

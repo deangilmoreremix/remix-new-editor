@@ -113,6 +113,20 @@ describe('sourceRegistry', () => {
     });
     expect(out).toHaveLength(1);
   });
+
+  it('lists pictures only when asked, and marks them', async () => {
+    const loaders = {
+      generations: async () => [{ id: 'g1', type: 'image', url: 'https://cdn.test/a.png', timestamp: '2026-02-01' }, { id: 'g2', type: 'video', url: 'https://cdn.test/b.mp4', timestamp: '2026-01-01' }],
+      content: async () => [],
+      assets: async () => [{ id: 'a1', type: 'image/webp', url: 'https://cdn.test/c.webp', created_at: '2026-03-01' }, { id: 'a2', type: 'audio/mpeg', url: 'https://cdn.test/d.mp3' }],
+    };
+    const videosOnly = await loadVideoSources({ loaders });
+    expect(videosOnly.map((v) => v.url)).toEqual(['https://cdn.test/b.mp4']);
+    const both = await loadVideoSources({ loaders, pictures: true });
+    expect(both.map((v) => v.url)).toEqual(['https://cdn.test/c.webp', 'https://cdn.test/a.png', 'https://cdn.test/b.mp4']);
+    expect(both.filter((v) => v.isPicture).length).toBe(2);
+    expect(both.find((v) => v.url.endsWith('b.mp4')).isPicture).toBeUndefined();
+  });
 });
 
 describe('ingest', () => {
