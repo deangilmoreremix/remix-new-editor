@@ -157,6 +157,7 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         ...(clip.blendMode && clip.blendMode !== 'normal' ? { clipBlend: clip.blendMode } : {}),
         ...(clip.zoom ? { clipZoom: clip.zoom } : {}),
         ...(clip.transform ? { clipTransform: clip.transform } : {}),
+        ...(clip.anim ? { clipAnim: clip.anim } : {}), // [remix] Stage 2 keyframes + motion modifiers
         keyframes: clip.keyframes || null,
         // [remix] OpenChatCut clip fades (seconds)
         ...(clip.fadeIn > 0 ? { fadeIn: clip.fadeIn } : {}),
@@ -164,6 +165,12 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
       };
       const addon = getAddon(clip.type);
 
+      // [remix] Fix E: a compound rendered as ONE group: its own look (fx, opacity, blend, transform, crop, fades, zoom, flip) applies to the offscreen
+      // render of its children (collected below); it sits at its own track's z position
+      if (clip.type === 'group') {
+        layers.push({ ...base, kind: 'group', groupKey: String(clip.groupKey || clip.id), ...(clip.flipH || clip.flipV ? { flip: { h: !!clip.flipH, v: !!clip.flipV } } : {}), children: [] });
+        return;
+      }
       // CTA buttons are drawn in the video (animated or plain); clicking them
       // works in the interactive player only.
       if (clip.type === 'click-to-call') {
@@ -210,13 +217,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         return;
       }
       if (clip.type === 'video' && src) {
-        const layer = { ...base, kind: 'video', src, trimBefore, ...speed, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0 };
+        const layer = { ...base, kind: 'video', src, trimBefore, ...speed, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0, ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
         layers.push(layer);
         if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;
       }
       if (clip.type === 'image' && src) {
-        const layer = { ...base, kind: 'image', src, ...flip, fit: clip.transform?.fit || clip.fit || 'cover' };
+        const layer = { ...base, kind: 'image', src, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
         layers.push(layer);
         if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;
@@ -237,6 +244,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
     tr.outgoingId = out?.id || null;
     tr.incomingId = into?.id || null;
   });
+
+  // [remix] Fix E: the picture children of a group are drawn by the group (in layer order = z order), not as layers of their own
+  const groupLayers = new Map(layers.filter((l) => l.kind === 'group').map((l) => [l.groupKey, l]));
+  if (groupLayers.size) {
+    for (const l of layers) if (l.compoundGroup && groupLayers.has(l.compoundGroup)) groupLayers.get(l.compoundGroup).children.push(l);
+    for (const l of [...layers]) if (l.compoundGroup && groupLayers.has(l.compoundGroup)) layers.splice(layers.indexOf(l), 1);
+  }
 
   const lastFrame = Math.max(
     toFrame(T),

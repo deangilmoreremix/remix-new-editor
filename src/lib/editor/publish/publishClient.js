@@ -312,7 +312,7 @@ export function profileFromQuery(search = globalThis.location?.search || '') {
     (style[m[1]] ||= {})[m[2]] = v;
   });
   params.forEach((v, k) => {
-    if (['embed', 'autoplay', 't', 'c'].includes(k) || k.length > 40) return;
+    if (['embed', 'autoplay', 't', 'c', 'src'].includes(k) || k.length > 40) return;
     if (/__(f|l)$/.test(k) && isImageTokenKey(k.replace(/__(f|l)$/, ''))) return;
     // Image URLs from personal links ({{logoUrl}}, …) are kept whole — a cut
     // URL is a broken image — but only http(s) ones of sane length.

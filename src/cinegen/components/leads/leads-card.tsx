@@ -1,7 +1,7 @@
 // [remix] Right column of the Leads tab: KPIs, filter chips, search, CSV, table, delete.
 import { useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
-import { answerColumns, countsByForm, filterRows, leadForms, rowFormKey, rowsToCsv, sourceLabel, whenLabel, LEAD_RANGES, type LeadRange, type LeadRow } from '@cinegen/lib/leads/leads';
+import { answerColumns, countsByForm, filterRows, fromMp4, leadForms, rowFormKey, rowsToCsv, sourceLabel, whenLabel, LEAD_RANGES, type LeadRange, type LeadRow } from '@cinegen/lib/leads/leads';
 import { setLeadsForm, useLeadsForm } from '@cinegen/lib/leads/leads-filter';
 import type { LeadsData } from './use-leads';
 
@@ -17,6 +17,7 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
   const showSource = shown.some((r) => sourceLabel(r)); // the column appears once any lead has a source
   const total = data.rows.length;
   const wall = counts['list-builder'] ?? 0;
+  const mp4 = data.rows.filter(fromMp4).length;
   const pct = views > 0 ? `${Math.min(100, Math.round((total / views) * 100))}%` : '—';
   const tag = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r));
   const download = () => {
@@ -28,7 +29,7 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
       <h3 className="leads-card__title">Leads</h3>
       <div className="leads-kpis">
         <div><b>{total}</b><span>Total</span></div><div><b>{wall}</b><span>List Builder</span></div>
-        <div><b>{total - wall}</b><span>Lead Generator</span></div><div><b>{pct}</b><span>Of viewers signed up</span></div>
+        <div><b>{total - wall}</b><span>Lead Generator</span></div><div><b>{pct}</b><span>Of viewers signed up</span></div><div data-testid="kpi-mp4"><b>{mp4}</b><span>From MP4 link</span></div>
       </div>
       {!published ? <p className="leads-note" data-testid="leads-unpublished">Publish this video to start collecting leads.</p> : (
         <>
@@ -50,7 +51,7 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
             <div className="leads-tablewrap"><table className="leads-table" data-testid="leads-table">
               <thead><tr><th>When</th><th>Form</th>{cols.map((c) => <th key={c.key}>{c.label}</th>)}{showSource && <th>Source</th>}<th /></tr></thead>
               <tbody>{shown.map((r) => (
-                <tr key={r.id}><td>{whenLabel(r.createdAt)}</td><td><span className={`leads-tag leads-tag--${tag(r)?.tone ?? 'lead'}`}>{tag(r)?.short ?? 'Form'}</span></td>
+                <tr key={r.id}><td>{whenLabel(r.createdAt)}</td><td><span className={`leads-tag leads-tag--${tag(r)?.tone ?? 'lead'}`}>{tag(r)?.short ?? 'Form'}</span>{fromMp4(r) && <span className="leads-tag leads-tag--mp4" data-testid="mp4-tag">MP4</span>}</td>
                   {cols.map((c) => <td key={c.key}>{r.data[c.key] ?? ''}</td>)}
                   {showSource && <td data-testid="lead-source" title={r.source?.referrer ?? ''}>{sourceLabel(r)}</td>}
                   <td><button type="button" className="leads-x" aria-label="Delete lead" onClick={() => { if (window.confirm('Delete this lead?')) void data.remove(r.id); }}>✕</button></td></tr>

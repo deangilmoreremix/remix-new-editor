@@ -107,10 +107,9 @@ export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, 
           {TRANSLATION_LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}
         </select>
         <button className="clip-properties-panel__toggle-btn" disabled={!!busy} onClick={() => run('captions', async () => {
-          setLines(['Transcribing (first run downloads the speech model)…']);
-          const { transcribeInBrowser, WHISPER_MODELS } = await import('../../../lib/editor/remotion/transcribe.js');
-          const model = (navigator as Navigator & { gpu?: unknown }).gpu ? WHISPER_MODELS[0][0] : WHISPER_MODELS[1][0];
-          const out = await transcribeInBrowser(src, { model, onProgress: () => {} });
+          setLines(['Transcribing on this device (needs a speech model from Media tools > Local AI)…']);
+          const { transcribeAsset } = await import('@cinegen/lib/local-ai/clip-transcribe');
+          const out = await transcribeAsset(src);
           const cues = phrasesFromWords(out.captions as Array<{ text: string; startMs: number; endMs: number }>);
           if (!cues.length) { setLines(['No speech found to caption.']); return; }
           setLines([`Translating ${cues.length} caption lines to ${lang}…`]);

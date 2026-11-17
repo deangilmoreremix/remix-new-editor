@@ -21,7 +21,9 @@
 
 'use client'
 
+import { cutoutAssetIds } from './backgroundRemoval/useAutoCutout'
 import { RECAST_MAX_SECONDS } from './recast/recastJob'
+import { logoQualityNotes } from './logoScoring'
 import {
   useState,
   useRef,
@@ -44,6 +46,10 @@ import {
   SlidersHorizontal,
 } from 'lucide-react'
 import { SocialIcons } from './SocialIcons'
+import { LeadInsightChips } from './LeadInsightChips'
+import { LeadInsightsPanel } from './LeadInsightsPanel'
+import { createSeenTracker, leadsToCsv } from './leadInsights'
+import { openStatus } from '../../../../../netlify/functions/_personalization/src/server/businessEnrichment/openingHours'
 import { useBusinessEnrichment, mergeCardContacts } from './useBusinessEnrichment'
 import { DEFAULT_ADVANCED_SECTIONS, useDemoPersonalize } from './DemoPersonalizeProvider'
 import type { AutoFillKey } from './businessContentFromResearch'
@@ -69,6 +75,8 @@ import { modelForGeneration, resolveModelCapabilities } from './modelCapabilityR
 import { getModelById, getVideoModelById } from '@ohb/packages/studio/src/models.js'
 import { NICHE_CONTENT } from '@ohb/data/nicheContent'
 import { BUSINESS_NICHES } from './businessNiches'
+import { useFinderContinuity, type SavedSearch } from './useFinderContinuity'
+import { HiddenBar, LooksWrongMenu, SavedSearchesPanel } from './FinderContinuityUi'
 import ImageEditorModal, {
   type ImageEditorApplyResult,
   type PersonalizationImageEditorAsset,
@@ -396,7 +404,7 @@ function UploadZone({
                 minHeight: 32,
                 padding: '0 12px',
                 border: `1px solid ${C.cyanBorder}`,
-                background: C.cyanSoft,
+                background: 'transparent',
                 color: C.cyan,
               }}
             >
@@ -557,7 +565,7 @@ function ThumbUploaded({
           type="button"
           onClick={(e) => { e.stopPropagation(); onEdit() }}
           className="absolute left-1 top-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-          style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
+          style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
           aria-label="Edit image"
         >
           {EDIT_WITH_AI}
@@ -1789,8 +1797,8 @@ export default function PersonalizationModal() {
                 minHeight: 42,
                 padding: '0 19px',
                 border: `1px solid ${C.cyan}`,
-                background: C.cyan,
-                color: '#000000',
+                background: 'transparent',
+                color: C.cyan,
                 boxShadow: '0 8px 26px rgba(217,255,0,.18)',
               }}
             >
@@ -1840,7 +1848,7 @@ function ErrorView({ errorMessage, retry, generate, stage }: { errorMessage: str
         <button
           onClick={retry}
           className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-          style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}
+          style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
         >
           <RefreshCw size={14} /> {retryLabel}
         </button>
@@ -1848,7 +1856,7 @@ function ErrorView({ errorMessage, retry, generate, stage }: { errorMessage: str
           <button
             onClick={generate}
             className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-            style={{ background: C.cyan, color: '#000000' }}
+            style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
           >
             Try Again
           </button>
@@ -1907,7 +1915,7 @@ function ResultView(props: any) {
             </pre>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
+            <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}>
               <RefreshCw size={14} /> Generate Again
             </button>
           </div>
@@ -1935,7 +1943,7 @@ function ResultView(props: any) {
             </button>
             {/* Only offered where publishing is available on this page. */}
             {canPublish && (
-              <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
+              <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}>
                 <Share2 size={14} /> Publish
               </button>
             )}
@@ -1974,7 +1982,7 @@ function ResultView(props: any) {
             )}
             {/* Only offered where publishing is available on this page. */}
             {canPublish && (
-              <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
+              <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}>
                 <Share2 size={14} /> Publish
               </button>
             )}
@@ -2017,7 +2025,7 @@ function ResultView(props: any) {
             <button
               onClick={retryBranding}
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold"
-              style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}
+              style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
             >
               <RefreshCw size={14} /> Retry Branding
             </button>
@@ -2071,6 +2079,8 @@ function ConfigurationView(props: any) {
   const {
     autoFilledKeys,
     businessLoadSummary,
+    contactSources,
+    clearContactValue,
     advancedTab: ctxAdvancedTab,
     setAdvancedTab: ctxSetAdvancedTab,
     advancedSections: ctxAdvancedSections,
@@ -2213,6 +2223,7 @@ function ConfigurationView(props: any) {
   // affordances exist — the modal never renders a paid action the server has not
   // granted.
   const isAnonymous = access !== 'authenticated'
+  const cutoutIds = cutoutAssetIds(discoveredAssets)
   // Face only / Full presenter models set their own resolution and quality.
   const modelSetsQuality = mode === 'face_only' || mode === 'full_body'
   // Saved clients are picked one way at a time: the cards (customer audience)
@@ -2276,6 +2287,17 @@ function ConfigurationView(props: any) {
     setSearchRadius(radiusMiles)
     findBusinesses(searchNiche, searchLocation.trim(), radiusMiles)
   }, [findBusinesses, searchLocation, searchNiche])
+
+  // Runs a saved search: fills the form with it and searches (same guard as a normal search).
+  const runSavedSearch = useCallback((saved: SavedSearch) => {
+    if (businessSearchInFlightRef.current) return
+    setSearchNiche(saved.niche)
+    setSearchLocation(saved.location)
+    setSearchRadius(saved.radius_miles)
+    businessSearchInFlightRef.current = true
+    setBusinessSearchInFlight(true)
+    findBusinesses(saved.niche, saved.location, saved.radius_miles)
+  }, [findBusinesses])
 
   // ── Saved Leads (lead finder shortlist) ────────────────────────────────────
   // Per-user shortlist behind /api/personalization/leads (Clerk-authenticated).
@@ -2407,7 +2429,50 @@ function ConfigurationView(props: any) {
   // Long result lists show a page at a time so the section stays short.
   const [shownResultCount, setShownResultCount] = useState(RESULTS_PAGE)
   useEffect(() => { setShownResultCount(RESULTS_PAGE) }, [businessSearchResults])
-  const enrichStates = useBusinessEnrichment(businessSearchResults.slice(0, shownResultCount))
+  // "Open now first" reorders the list (stable; unknown hours sit between open and closed). The enrichment lookups
+  // follow whatever order is on screen, so the visible cards are the ones that get looked up.
+  const [openFirst, setOpenFirst] = useState(false)
+  // Saved searches + the user's own "looks wrong" flags (signed-in only). Flagged businesses are hidden for this
+  // user, never deleted, and can be shown again or un-flagged from the bar above the list.
+  const continuity = useFinderContinuity(!isAnonymous)
+  const [showFlagged, setShowFlagged] = useState(false)
+  const hiddenCount = useMemo(() => businessSearchResults.filter((b) => continuity.isFlagged(b)).length, [businessSearchResults, continuity.isFlagged])
+  const listedResults = useMemo(
+    () => (showFlagged ? businessSearchResults : businessSearchResults.filter((b) => !continuity.isFlagged(b))),
+    [businessSearchResults, continuity.isFlagged, showFlagged],
+  )
+  const orderedResults = useMemo(() => {
+    if (!openFirst) return listedResults
+    const rank = (b: BusinessDiscoveryRecord) => {
+      const st = b.openingHours ? openStatus(b.openingHours, b.region).state : 'unknown'
+      return st === 'open' ? 0 : st === 'unknown' ? 1 : 2
+    }
+    return listedResults.map((b, i) => ({ b, i, r: rank(b) })).sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b)
+  }, [listedResults, openFirst])
+  const enrichStates = useBusinessEnrichment(orderedResults.slice(0, shownResultCount))
+  const enrichmentOf = (id: string) => { const st = enrichStates[id]; return st && st.status === 'done' ? st.data : null }
+  // Businesses already shown in an EARLIER search this session (by website / phone / name+address).
+  const seenTrackerRef = useRef(createSeenTracker())
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
+  useEffect(() => { setSeenIds(seenTrackerRef.current.mark(businessSearchResults)) }, [businessSearchResults])
+  const exportLeadsCsv = useCallback(() => {
+    const csv = leadsToCsv(businessSearchResults, { enrichment: Object.fromEntries(businessSearchResults.map((b) => [b.id, enrichmentOf(b.id) ?? undefined])) })
+    const url = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url; a.download = `businesses-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a); a.click(); a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessSearchResults, enrichStates])
+  // Contact values found on the business's own website that are STILL what the profile holds (a value the user
+  // typed over, or an OpenStreetMap one, is never labelled as "found on the website").
+  const foundContacts = (['email', 'facebook', 'instagram', 'linkedin', 'youtube', 'tiktok'] as const).flatMap((key) => {
+    const source = contactSources[key]
+    const value = clientForm[key]
+    return source && value && value === source.value
+      ? [{ key, label: key === 'email' ? 'Email' : key[0].toUpperCase() + key.slice(1), value, source }]
+      : []
+  })
   const brandRunInFlightRef = useRef(false)
 
   const handleFindMyBrand = useCallback(async () => {
@@ -2708,7 +2773,7 @@ function ConfigurationView(props: any) {
           className="order-first xl:hidden"
           onClick={() => setMobilePreviewOpen((open) => !open)}
           aria-expanded={mobilePreviewOpen}
-          style={{ marginTop: 12, minHeight: 34, borderRadius: 10, border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan, fontSize: 11, fontWeight: 800 }}
+          style={{ marginTop: 12, minHeight: 34, borderRadius: 10, border: `1px solid ${C.cyanBorder}`, background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 800 }}
         >
           {mobilePreviewOpen ? 'Hide preview' : 'Show preview'}
         </button>
@@ -2728,7 +2793,7 @@ function ConfigurationView(props: any) {
             <button
               type="button"
               onClick={() => goToSection('assets', 'found')}
-              style={{ minHeight: 32, padding: '0 14px', borderRadius: 10, border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000', fontSize: 11, fontWeight: 900 }}
+              style={{ minHeight: 32, padding: '0 14px', borderRadius: 10, border: `1px solid ${C.cyan}`, background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 900 }}
             >
               Review in Assets →
             </button>
@@ -2796,8 +2861,8 @@ function ConfigurationView(props: any) {
                   padding: '0 18px',
                   whiteSpace: 'nowrap',
                   border: `1px solid ${C.cyan}`,
-                  background: C.cyan,
-                  color: '#000000',
+                  background: 'transparent',
+                  color: C.cyan,
                 }}
               >
                 {brandRunInFlight ? 'Finding…' : '✦ Find My Brand'}
@@ -2849,8 +2914,8 @@ function ConfigurationView(props: any) {
                 style={{
                   minHeight: 38,
                   border: `1px solid ${clientForm.audience === key ? C.cyan : C.border}`,
-                  background: clientForm.audience === key ? C.cyan : '#121212',
-                  color: clientForm.audience === key ? '#000000' : C.text,
+                  background: 'transparent',
+                  color: clientForm.audience === key ? C.cyan : C.text,
                 }}
               >
                 {label}
@@ -2871,7 +2936,7 @@ function ConfigurationView(props: any) {
                     minHeight: 38,
                     padding: '0 16px',
                     border: `1px solid ${C.cyan}`,
-                    background: C.cyanSoft,
+                    background: 'transparent',
                     color: C.cyan,
                   }}
                 >
@@ -2975,6 +3040,18 @@ function ConfigurationView(props: any) {
                   ))}
                 </div>
               </div>
+              {!isAnonymous && (
+                <SavedSearchesPanel
+                  current={searchFormReady ? { niche: searchNiche, location: searchLocation.trim(), radiusMiles: searchRadius } : null}
+                  defaultName={`${BUSINESS_NICHES.find((n) => n.key === searchNiche)?.label ?? 'Search'} · ${searchLocation.trim()}`.slice(0, 80)}
+                  searches={continuity.searches}
+                  nicheLabel={(key) => BUSINESS_NICHES.find((n) => n.key === key)?.label ?? key}
+                  onSave={(name) => continuity.saveSearch({ name, niche: searchNiche, location: searchLocation.trim(), radiusMiles: searchRadius })}
+                  onRun={runSavedSearch}
+                  onDelete={continuity.deleteSearch}
+                  disabled={isSearchingBusinesses}
+                />
+              )}
               <button
                 type="button"
                 onClick={() => runBusinessSearch(searchRadius)}
@@ -2984,8 +3061,8 @@ function ConfigurationView(props: any) {
                   minHeight: 42,
                   padding: '0 19px',
                   border: `1px solid ${C.cyan}`,
-                  background: C.cyan,
-                  color: '#000000',
+                  background: 'transparent',
+                  color: C.cyan,
                 }}
               >
                 Find Businesses
@@ -3050,13 +3127,36 @@ function ConfigurationView(props: any) {
                         minHeight: 32,
                         padding: '0 12px',
                         border: `1px solid ${savedLeadsOpen ? C.cyanBorder : C.border}`,
-                        background: savedLeadsOpen ? C.cyanSoft : C.panel,
+                        background: savedLeadsOpen ? 'transparent' : C.panel,
                         color: savedLeadsOpen ? C.cyan : 'white',
                       }}
                     >
                       Saved Leads{savedLeadsLoaded ? ` (${savedLeads.length})` : ''}
                     </button>
                   )}
+                  {businessSearchResults.some((b) => b.openingHours) && (
+                    <button
+                      type="button"
+                      data-testid="pz-open-first"
+                      aria-pressed={openFirst}
+                      onClick={() => setOpenFirst((v) => !v)}
+                      title="Show businesses that are open right now (in their own time zone) first"
+                      className="rounded-lg text-[10px] font-extrabold uppercase tracking-wide"
+                      style={{ minHeight: 32, padding: '0 12px', border: `1px solid ${openFirst ? C.cyanBorder : C.border}`, background: openFirst ? C.cyanSoft : C.panel, color: openFirst ? C.cyan : 'white' }}
+                    >
+                      Open now first
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    data-testid="pz-export-csv"
+                    onClick={exportLeadsCsv}
+                    title="Download these businesses, with the contacts found on their websites and where each was found"
+                    className="rounded-lg text-[10px] font-extrabold uppercase tracking-wide"
+                    style={{ minHeight: 32, padding: '0 12px', border: `1px solid ${C.border}`, background: C.panel, color: 'white' }}
+                  >
+                    Export CSV
+                  </button>
                   <button
                     type="button"
                     onClick={() => clearBusinessSearch()}
@@ -3073,9 +3173,17 @@ function ConfigurationView(props: any) {
                   </button>
                 </div>
               </div>
+              {!isAnonymous && (
+                <HiddenBar
+                  hiddenCount={hiddenCount}
+                  showing={showFlagged}
+                  onToggle={() => setShowFlagged((v) => !v)}
+                  onUndoAll={() => { void continuity.unflagAll(businessSearchResults.filter((b) => continuity.isFlagged(b))) }}
+                />
+              )}
               {!savedLeadsOpen && (
               <div className="flex flex-col gap-2">
-                {businessSearchResults.slice(0, shownResultCount).map((business) => {
+                {orderedResults.slice(0, shownResultCount).map((business) => {
                   const contacts = mergeCardContacts(business, enrichStates[business.id])
                   return (
                   <div
@@ -3124,6 +3232,7 @@ function ConfigurationView(props: any) {
                             <span style={{ fontSize: 9, fontWeight: 600, color: C.muted2 }} aria-live="polite">Looking up contacts…</span>
                           )}
                         </div>
+                        <LeadInsightChips business={business} enrichment={enrichmentOf(business.id)} seenBefore={seenIds.has(business.id)} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -3137,6 +3246,13 @@ function ConfigurationView(props: any) {
                             {Math.round(business.leadScore || 0)}% match
                           </div>
                         </div>
+                        {!isAnonymous && (
+                          <LooksWrongMenu
+                            businessName={business.name}
+                            flagged={continuity.isFlagged(business)}
+                            onFlag={(reason) => continuity.flag(business, reason)}
+                          />
+                        )}
                         {!isAnonymous && (
                           <button
                             type="button"
@@ -3162,8 +3278,8 @@ function ConfigurationView(props: any) {
                             minHeight: 32,
                             padding: '0 12px',
                             border: `1px solid ${C.cyan}`,
-                            background: C.cyan,
-                            color: '#000000',
+                            background: 'transparent',
+                            color: C.cyan,
                           }}
                         >
                           {websiteLookup?.status === 'searching' && websiteLookup.businessId === business.id
@@ -3174,21 +3290,21 @@ function ConfigurationView(props: any) {
                     </div>
                   </div>
                 )})}
-                {businessSearchResults.length > shownResultCount && (
+                {orderedResults.length > shownResultCount && (
                   <button
                     type="button"
                     data-testid="pz-results-show-more"
                     onClick={() => setShownResultCount((count) => count + RESULTS_PAGE)}
                     style={{ minHeight: 34, borderRadius: 10, border: `1px solid ${C.border}`, background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 800 }}
                   >
-                    Show {Math.min(RESULTS_PAGE, businessSearchResults.length - shownResultCount)} more
+                    Show {Math.min(RESULTS_PAGE, orderedResults.length - shownResultCount)} more
                   </button>
                 )}
-                {businessSearchResults.length > RESULTS_PAGE && (
+                {orderedResults.length > RESULTS_PAGE && (
                   <p data-testid="pz-results-count" style={{ margin: 0, textAlign: 'center', color: C.muted2, fontSize: 10 }}>
-                    {businessSearchResults.length > shownResultCount
-                      ? `Showing ${shownResultCount} of ${businessSearchResults.length}`
-                      : `Showing all ${businessSearchResults.length}`}
+                    {orderedResults.length > shownResultCount
+                      ? `Showing ${shownResultCount} of ${orderedResults.length}`
+                      : `Showing all ${orderedResults.length}`}
                   </p>
                 )}
               </div>
@@ -3314,8 +3430,8 @@ function ConfigurationView(props: any) {
                                 minHeight: 32,
                                 padding: '0 12px',
                                 border: `1px solid ${C.cyan}`,
-                                background: C.cyan,
-                                color: '#000000',
+                                background: 'transparent',
+                                color: C.cyan,
                               }}
                             >
                               Open in Personalization
@@ -3355,6 +3471,27 @@ function ConfigurationView(props: any) {
               <div style={{ fontSize: 10, color: C.muted, lineHeight: 1.5 }}>
                 {[selectedBusiness.category, selectedBusiness.address, selectedBusiness.city, selectedBusiness.region].filter(Boolean).join(' • ')}
                 {selectedBusiness.phone && <div>Phone: {selectedBusiness.phone}</div>}
+                <LeadInsightsPanel showOutreach business={selectedBusiness} results={businessSearchResults} enrichment={enrichmentOf(selectedBusiness.id)} onPick={(b) => { void handleSelectBusiness(b) }} />
+                {foundContacts.length > 0 && (
+                  <div data-testid="pz-found-contacts" style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: C.muted2 }}>Found on the business's website</div>
+                    {foundContacts.filter((c) => c.key === 'email').map((c) => (
+                      <div key={c.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }} title={`Found on ${c.source.sourceUrl} (${c.source.method}, confidence ${Math.round(c.source.confidence * 100)}%)`}>
+                        <span style={{ color: C.text }}>Email: <a href={`mailto:${c.value}`} style={{ color: C.cyan }}>{c.value}</a></span>
+                        <button type="button" aria-label="Remove Email" onClick={() => clearContactValue('email')} style={{ background: 'transparent', border: 0, color: C.muted2, cursor: 'pointer', fontSize: 12, lineHeight: 1 }}>×</button>
+                      </div>
+                    ))}
+                    {foundContacts.some((c) => c.key !== 'email') && (
+                      <SocialIcons
+                        size={16}
+                        name={selectedBusiness.name}
+                        links={Object.fromEntries(foundContacts.filter((c) => c.key !== 'email').map((c) => [c.key, c.value]))}
+                        titles={Object.fromEntries(foundContacts.filter((c) => c.key !== 'email').map((c) => [c.key, `found on ${c.source.sourceUrl} (${c.source.method}, confidence ${Math.round(c.source.confidence * 100)}%)`]))}
+                        onRemove={(n) => clearContactValue(n)}
+                      />
+                    )}
+                  </div>
+                )}
                 <div>
                   <label style={{ display: 'block', marginBottom: 4, color: C.muted, fontSize: 10 }}>Website</label>
                   <input
@@ -3385,7 +3522,7 @@ function ConfigurationView(props: any) {
                         if (website) void runDiscoveryWorkflow(website, { business: { ...selectedBusiness, website } })
                       }}
                       className="rounded-[8px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-40"
-                      style={{ minHeight: 28, padding: '0 10px', border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan }}
+                      style={{ minHeight: 28, padding: '0 10px', border: `1px solid ${C.cyanBorder}`, background: 'transparent', color: C.cyan }}
                     >
                       Load from website
                     </button>
@@ -3403,8 +3540,8 @@ function ConfigurationView(props: any) {
                       minHeight: 38,
                       padding: '0 16px',
                       border: `1px solid ${C.cyan}`,
-                      background: businessResearch.status === 'done' ? '#000000' : C.cyan,
-                      color: businessResearch.status === 'done' ? C.cyan : '#000000',
+                      background: 'transparent',
+                      color: C.cyan,
                     }}
                   >
                     {businessResearch.status === 'researching' ? 'Researching...' : businessResearch.status === 'done' ? 'Research Complete' : 'Research Business'}
@@ -3591,8 +3728,8 @@ function ConfigurationView(props: any) {
                   minHeight: 42,
                   padding: '0 19px',
                   border: `1px solid ${C.cyan}`,
-                  background: C.cyan,
-                  color: '#000000',
+                  background: 'transparent',
+                  color: C.cyan,
                 }}
               >
                 {discoveryStatus === 'discovering' ? 'Discovering...' : 'Find Business Assets'}
@@ -3672,7 +3809,7 @@ function ConfigurationView(props: any) {
                     window.setTimeout(() => setClientSaveStatus(null), 2500)
                   }}
                   className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold"
-                  style={{ background: 'rgba(217,255,0,.12)', border: `1px solid ${C.cyanBorder}`, color: C.cyan }}
+                  style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
                 >
                   <Save size={14} /> {selectedClientId ? 'Update Client' : 'Save Client'}
                 </button>
@@ -3789,7 +3926,7 @@ function ConfigurationView(props: any) {
               <ThumbPlaceholder label="+" add onClick={handleIdentityAddClick} />
             </div>
             {assets.primaryIdentity && (
-              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
+              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: 'transparent', color: C.cyan, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
             )}
             <div style={{ marginTop: 9, color: C.muted2, fontSize: 10 }}>Recommended: Face + Full Body + 3/4</div>
           </article>
@@ -3812,6 +3949,9 @@ function ConfigurationView(props: any) {
               </div>
             </div>
             <UploadZone primary="Upload Logo" secondary="Drag & drop or browse" collapsed={assets.logos.length > 0} addLabel="+ Add another logo" onFiles={handleLogoUpload} onUrl={handleLogoUrl} urlLabel="Add Logo URL" urlPlaceholder="Paste logo URL and press Enter" />
+            {logoQualityNotes(assets.primaryLogo).map((note) => (
+              <p key={note} data-testid="pz-logo-note" style={{ margin: '8px 0 0', color: C.muted, fontSize: 10, lineHeight: 1.4 }}>⚠ {note}</p>
+            ))}
             <div
               className="logo-preview frame-preview"
               draggable
@@ -3856,7 +3996,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => onEditLibrary(assets.primaryLogo)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
+                  style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
                 >
                   {EDIT_WITH_AI}
                 </button>
@@ -3931,8 +4071,8 @@ function ConfigurationView(props: any) {
             </div>
             {assets.primaryLogo && (
               <>
-                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
-                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Final Overlay</span>
+                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: 'transparent', color: C.cyan, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
+                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: 'transparent', color: C.cyan, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Final Overlay</span>
               </>
             )}
           </article>
@@ -4118,7 +4258,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => onEditLibrary(assets.firstFrame)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
+                  style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
                 >
                   {EDIT_WITH_AI}
                 </button>
@@ -4145,7 +4285,7 @@ function ConfigurationView(props: any) {
               )}
             </div>
             <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>First Frame</span>
+              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: 'transparent', color: C.cyan, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>First Frame</span>
               {assets.firstFrame && (
                 <button
                   type="button"
@@ -4222,7 +4362,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => onEditLibrary(assets.lastFrame)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
+                  style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
                 >
                   {EDIT_WITH_AI}
                 </button>
@@ -4249,7 +4389,7 @@ function ConfigurationView(props: any) {
               )}
             </div>
             <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Last Frame</span>
+              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: 'transparent', color: C.cyan, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Last Frame</span>
               {assets.lastFrame && (
                 <button
                   type="button"
@@ -4293,8 +4433,8 @@ function ConfigurationView(props: any) {
                   minHeight: 34,
                   padding: '0 14px',
                   border: `1px solid ${savedAssetLibraryTab === key ? C.cyan : C.border}`,
-                  background: savedAssetLibraryTab === key ? C.cyan : '#121212',
-                  color: savedAssetLibraryTab === key ? '#000000' : C.text,
+                  background: 'transparent',
+                  color: savedAssetLibraryTab === key ? C.cyan : C.text,
                 }}
               >
                 {label}
@@ -4459,7 +4599,7 @@ function ConfigurationView(props: any) {
                       discoveredAssets.filter((a) => a.selected && !a.rejected && a.category !== 'irrelevant' && !a.videoReady).length === 0
                     }
                     className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan }}
+                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyanBorder}`, background: 'transparent', color: C.cyan }}
                   >
                     {batchVideoReady.running
                       ? `Preparing ${batchVideoReady.current}/${batchVideoReady.total}…`
@@ -4467,10 +4607,24 @@ function ConfigurationView(props: any) {
                   </button>
                   <button
                     type="button"
+                    onClick={() => {
+                      const idSet = new Set(cutoutIds)
+                      setDiscoveredAssets((prev) => prev.map((a) => (idSet.has(a.id) ? { ...a, selected: true } : a)))
+                      void importDiscoveredAssets({ ids: cutoutIds })
+                    }}
+                    disabled={batchVideoReady.running || discoveryStatus === 'importing' || cutoutIds.length === 0}
+                    title={cutoutIds.length === 0 ? 'No cutouts are ready yet' : 'Adds every cutout to your assets. The video uses your logo and first 2 products.'}
+                    className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
+                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyan}`, background: 'transparent', color: C.cyan }}
+                  >
+                    {`Add All Cutouts to Assets (${cutoutIds.length})`}
+                  </button>
+                  <button
+                    type="button"
                     onClick={importDiscoveredAssets}
                     disabled={batchVideoReady.running || discoveredAssets.filter((a) => a.selected && !a.rejected).length === 0}
                     className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000' }}
+                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyan}`, background: 'transparent', color: C.cyan }}
                   >
                     Use Selected Assets
                   </button>
@@ -4715,7 +4869,7 @@ function ConfigurationView(props: any) {
               onClick={handlePersonalize}
               disabled={!canPersonalize || isPersonalizing}
               className="rounded-[9px] text-[11px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-              style={{ minHeight: 38, padding: '0 15px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000' }}
+              style={{ minHeight: 38, padding: '0 15px', border: `1px solid ${C.cyan}`, background: 'transparent', color: C.cyan }}
             >
               {isPersonalizing ? <Loader2 size={12} className="animate-spin inline" /> : '✦'} Personalize Prompt
             </button>
@@ -4777,7 +4931,7 @@ function ConfigurationView(props: any) {
                   }}
                 >
                   {active && (
-                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: C.cyan, color: '#000000', fontSize: 11, fontWeight: 900 }}>✓</div>
+                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 900 }}>✓</div>
                   )}
                   <h4 style={{ margin: '0 0 6px', fontSize: 12, textTransform: 'uppercase' }}>{label}</h4>
                   <p style={{ margin: 0, color: C.muted, fontSize: 10, lineHeight: 1.45 }}>{description}</p>
@@ -4840,7 +4994,7 @@ function ConfigurationView(props: any) {
                   }}
                 >
                   {active && (
-                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: C.cyan, color: '#000000', fontSize: 11, fontWeight: 900 }}>✓</div>
+                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 900 }}>✓</div>
                   )}
                   <h4 style={{ margin: '0 0 6px', fontSize: 12, textTransform: 'uppercase' }}>{m.label}</h4>
                   <p style={{ margin: 0, color: C.muted, fontSize: 10, lineHeight: 1.45 }}>{m.description}</p>
@@ -5274,7 +5428,7 @@ function AdvancedOverlaySection({ source }: { source: PersonalizationSource | nu
           : 'Layers apply to video outputs only — choose Video or Everything under Output & engine to include them.'}
       </p>
       <div style={{ marginTop: 16 }}>
-        <OverlayEditor inputProps={inputProps} />
+        <OverlayEditor inputProps={inputProps} addDesigns />
       </div>
     </section>
   )

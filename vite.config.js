@@ -1445,6 +1445,10 @@ export default defineConfig({
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },
+            '/api/proxy/thumbnail-generate': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
             // OpenHiggsBolt MuAPI proxy, upload route and template preview clips,
             // served by the same personalization function.
             '/api/api/v1/': {

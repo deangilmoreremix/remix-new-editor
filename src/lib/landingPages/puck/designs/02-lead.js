@@ -48,7 +48,7 @@ export default {
             { type: 'ChecklistCard', props: { id: 'lead-segments', columns: 1, title: 'Contact Segmentation', text: 'Organize and target leads with smart segments.', items: [{ label: 'Marketing Pros', value: '1,248' }, { label: 'Sales Teams', value: '842' }, { label: 'Enterprise', value: '309' }, { label: 'Partners', value: '176' }] } },
             { type: 'QuoteCard', props: { id: 'lead-quote', columns: 1, heading: 'What Our Customers Say', quotes: [{ text: 'Personalized video has completely changed our lead generation. We are seeing higher engagement and 3× more qualified leads.', name: 'Jordan Miller', role: 'Head of Growth, BrightPath' }] } },
             { type: 'FeaturesCard', props: { id: 'lead-features', columns: 1, title: 'Key Features', items: [ic('Personalized video at scale', 'video', 'Create 1:1 videos in minutes.'), ic('Lead capture & list-building', 'filter', 'Turn views into qualified leads.'), ic('Automated follow-ups', 'bolt', 'Keep leads engaged and moving.'), ic('Performance insights', 'chart', 'Track views, conversions, and ROI.')] } },
-            { type: 'ScheduleCard', props: { id: 'lead-schedule', columns: 1, title: 'Book a Demo', text: 'Pick a time that works for you.', month: 'Mar 2025', days: '9,10,11,*12,13,14,15', time: '10:00 AM (30 min)', buttonLabel: 'Confirm Demo' } },
+            { type: 'ScheduleCard', props: { id: 'lead-schedule', columns: 1, title: 'Book a Demo', text: 'Pick a time that works for you.', month: 'Mar 2025', weekdays: 'Sun, Mon, Tue, Wed, Thu, Fri, Sat', days: '9,10,11,*12,13,14,15', time: '10:00 AM (30 min)', buttonLabel: 'Confirm Demo' } },
             {
               type: 'TableCard',
               props: {

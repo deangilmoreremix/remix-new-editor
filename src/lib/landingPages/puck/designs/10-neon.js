@@ -29,7 +29,7 @@ export default {
         formFields: [{ key: 'name', label: 'Your First Name', type: 'text', required: true }, { key: 'email', label: 'Your Email Address', type: 'email', required: true }, { key: 'company', label: 'Company (Optional)', type: 'text', required: false }],
         submitLabel: 'Create My Personalized Video', privacy: '', orLabel: 'or', buttons: [{ label: 'Book a Live Walkthrough', url: '#lead' }],
         kpiTitle: 'Leads Captured (All Time)', kpiValue: '128,349', kpiBadge: '+37% (Last 30 days)',
-        giftTitle: 'Join Our Insider List & Get a Free "Personalized Video Playbook"', giftPlaceholder: 'Enter your email', giftButton: 'Get the Free Playbook', giftCover: 'The Personalized Video Playbook',
+        giftTitle: 'Join Our Insider List & Get a Free "Personalized Video Playbook"', giftPlaceholder: 'Enter your email', giftButton: 'Get the Free Playbook', giftCover: 'The Personalized Video Playbook', giftIcon: '/landing-art/10/gift.webp', giftBook: '/landing-art/10/book.webp',
       } },
       { type: 'Strip', props: { id: 'neon-strip', kind: 'benefits', title: '', items: [{ title: 'Personalized Video at Scale', text: '', value: '', icon: 'video' }, { title: 'Build & Grow Your List', text: '', value: '', icon: 'users' }, { title: 'Automated Lead Capture', text: '', value: '', icon: 'bolt' }, { title: 'Lead Tracking & Mini CRM', text: '', value: '', icon: 'layers' }, { title: 'Book More Sales Calls', text: '', value: '', icon: 'calendar' }] } },
       {

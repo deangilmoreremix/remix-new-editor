@@ -1,6 +1,7 @@
 /** Design 32 (Real estate page): menu bar with tagline, video-with-overlay section, steps + phone mockup, closing CTA band. Sample copy only. */
 import { useState } from 'react';
 import { AccentText, Icon, LeadForm, SafeLink, VideoPlayer, useTokens } from '../components.jsx';
+import { slotFields, SLOT_DEFAULTS } from '../slotFields.js';
 import { safeImageUrl } from '../../templates.js';
 
 const T = (label) => ({ type: 'text', label });
@@ -45,13 +46,13 @@ function RealtorHero({ background, eyebrow, headline, subhead, bullets, formTitl
   );
 }
 
-function RealtorVideoSection({ poster, overlayText, eyebrow, title, text, callout }) {
+function RealtorVideoSection({ poster, slotImage, slotVideo, bakedPlay, overlayText, eyebrow, title, text, callout }) {
   const t = useTokens();
   const [playing, setPlaying] = useState(false);
   return (
     <section className="rl-vid">
       <div className={`rl-vid-media${playing ? ' is-playing' : ''}`} onPlayCapture={() => setPlaying(true)} onPauseCapture={() => setPlaying(false)} onEndedCapture={() => setPlaying(false)}>
-        <VideoPlayer poster={img(poster)} />
+        <VideoPlayer poster={img(poster)} slotImage={slotImage} slotVideo={slotVideo} bakedPlay={bakedPlay} />
         <div className="rl-vid-note" aria-hidden="true">
           <p>{lines(overlayText).map((l, i) => <span key={i}>{t(l)}</span>)}</p>
           <i><Icon name="home" /></i>
@@ -141,8 +142,8 @@ export const components = {
   },
   RealtorVideoSection: {
     label: 'Realtor: video with handwritten overlay + copy',
-    fields: { poster: T('Video placeholder image'), overlayText: A('Handwritten note on the video (one line per row)'), eyebrow: T('Small label'), title: A('Heading'), text: A('Text'), callout: A('Highlighted line ([[double brackets]] make words bold)') },
-    defaultProps: { poster: '/landing-art/realtor/agent.webp', overlayText: 'Hi Sarah,\nYour dream home\nis waiting!', eyebrow: 'REAL PEOPLE. REAL CONNECTIONS.', title: 'Make Every Prospect Feel Like a VIP', text: 'With SmartVideo AI, you can create personalized real estate videos that include the right property, location, and message — all tailored to each lead. It’s the easiest way to build trust and get more responses.', callout: '[[Personalization]] increases response rates by [[up to 3x]] compared to generic outreach.' },
+    fields: { poster: T('Video placeholder image'), ...slotFields(), overlayText: A('Handwritten note on the video (one line per row)'), eyebrow: T('Small label'), title: A('Heading'), text: A('Text'), callout: A('Highlighted line ([[double brackets]] make words bold)') },
+    defaultProps: { ...SLOT_DEFAULTS, poster: '/landing-art/realtor/agent.webp', overlayText: 'Hi Sarah,\nYour dream home\nis waiting!', eyebrow: 'REAL PEOPLE. REAL CONNECTIONS.', title: 'Make Every Prospect Feel Like a VIP', text: 'With SmartVideo AI, you can create personalized real estate videos that include the right property, location, and message — all tailored to each lead. It’s the easiest way to build trust and get more responses.', callout: '[[Personalization]] increases response rates by [[up to 3x]] compared to generic outreach.' },
     render: (p) => <RealtorVideoSection {...p} />,
   },
   RealtorSteps: {
