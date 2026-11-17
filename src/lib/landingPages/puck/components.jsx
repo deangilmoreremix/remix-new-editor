@@ -238,7 +238,7 @@ export function Strip({ kind = 'logos', title, items }) {
       <ul className="pk-strip-row">
         {asList(items).map((it, i) => (
           <li key={i} className="pk-strip-item">
-            {kind === 'benefits' ? <><Icon name={it.icon} className="pk-ico pk-ico--lg" /><span><b>{t(it.title)}</b>{it.text ? <small>{t(it.text)}</small> : null}</span></>
+            {kind === 'benefits' ? <>{imgUrl(it.image) ? <img className="pk-strip-photo" src={imgUrl(it.image)} alt="" loading="lazy" /> : null}<Icon name={it.icon} className="pk-ico pk-ico--lg" /><span><b>{t(it.title)}</b>{it.text ? <small>{t(it.text)}</small> : null}</span></>
               : kind === 'stats' ? <><b className="pk-stat-value">{t(it.value)}</b><span>{t(it.title)}</span></>
                 : <span className="pk-logo-word">{t(it.title)}</span>}
           </li>
