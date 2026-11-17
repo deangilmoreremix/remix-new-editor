@@ -49,6 +49,9 @@ test.describe('hosted player analytics (public)', () => {
 });
 
 test.describe('Projects (signed in)', () => {
+  // #/timeline-classic now opens the CineGen editor, which has no `.floating-rail` / `#projectsPanel` (those belonged to the old editor), so this
+  // spec has nothing to drive until it is rewritten for the CineGen Project Manager and Publish tab.
+  test.skip(true, 'written for the removed classic editor; rewrite for the CineGen Project Manager');
   test.skip(!AUTH_STATE, 'set E2E_AUTH_STATE to a signed-in Playwright storage state');
   test.use({ storageState: AUTH_STATE });
 

@@ -1177,7 +1177,6 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           duration={sequenceDuration}
           isPlaying={isPlaying}
           onPlayPause={togglePlayPause}
-          onSeek={seek}
           proxyMode={proxyMode}
           onProxyModeChange={setProxyMode}
           sourceViewerVisible={layout.sourceViewerVisible}
@@ -1296,6 +1295,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           timeline={timeline}
           syncTarget={syncTarget}
           currentTime={currentTime}
+          onSeek={seek} /* [remix] caption cue timecodes in the Inspector move the playhead */
           onTimelineEdit={(edit) => dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: edit(timeline) })}
         />
       )}
