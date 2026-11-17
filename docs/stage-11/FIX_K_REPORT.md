@@ -22,3 +22,9 @@ Run on the merged branch (ports H, I1, I2, J merged). Everything below was run f
 - Firefox / Safari, WebGPU, MusicGen, multilingual Whisper, Lottie panel UI, WebM through the picker.
 - Why a 40-piece speed-curve export stalls.
 - Crash recovery still covers timelines and assets only.
+
+## Real-browser verification of the remaining items (follow-up run)
+- **Kokoro cancel/delete** (`local-ai-audio-smoke.cjs`, ALL PASS): the first run exposed a real leak. Cancel returned early while the library kept loading and fetched its next file without the abort signal, which later failed with `Could not locate file ...` (also logged by the app's own error logger, so `preventDefault` alone was not enough). Fix: the abort signal stays on the library's fetches until its load has stopped, plus a narrow filter for that error within a minute of a cancel. After the fix: no unhandled rejection after Cancel; Delete leaves 0 files of the Kokoro repo in Cache Storage (weights, tokenizer, config, voices).
+- **Caption picker** (`fixk-real.cjs`, STAGES=captions, real Whisper tiny + tiny.en downloaded through the consent UI, speech from the Kokoro narration): both selects show, the model list = best installed + the two installed models, English-only model + Spanish is refused with the English-only message (proves language and model reach the transcriber), multilingual model + auto produced captions.
+- **Scene-vector persistence** (STAGES=persist, real CLIP): first indexing sent 1 embed request and stored 4 rows in IndexedDB; after a page reload indexing reported "0 new, 4 total" with 0 embed requests and search worked.
+- Harness note: a first run of `fixk-real.cjs` was wrong because `/installed/` also matches "not installed"; fixed in the script.

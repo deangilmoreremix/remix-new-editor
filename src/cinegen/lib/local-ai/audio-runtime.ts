@@ -73,6 +73,17 @@ function progressTracker(m: AudioModel, emit: (message: string, fraction: number
  */
 let activeSignal: AbortSignal | null = null;
 let fetchPatched = false;
+// kokoro-js leaves an internal promise rejected ("Could not locate file ...") when its download is aborted, and it can surface long after the cancel.
+// One permanent, narrow filter: only that error, and only within a minute of a cancelled load.
+const underlying: Promise<unknown>[] = [];
+let lastAbortAt = 0; let filterInstalled = false;
+function installStrayRejectionFilter() {
+  if (filterInstalled || typeof globalThis.addEventListener !== 'function') return; filterInstalled = true;
+  globalThis.addEventListener('unhandledrejection', ((ev: PromiseRejectionEvent) => {
+    const r = ev.reason as { message?: string } | undefined;
+    if (Date.now() - lastAbortAt < 60_000 && /Could not locate file/.test(String(r?.message ?? r))) ev.preventDefault();
+  }) as EventListener);
+}
 let loadChain: Promise<unknown> = Promise.resolve();
 function patchFetchOnce() {
   if (fetchPatched) return; fetchPatched = true;
@@ -86,13 +97,14 @@ function withAbortableFetch<T>(signal: AbortSignal, fn: () => Promise<T>): Promi
   const run = loadChain.then(async () => {
     if (signal.aborted) throw aborted();
     patchFetchOnce(); activeSignal = signal;
-    // kokoro-js leaves an internal promise rejected ("Could not locate file ...") when its download is aborted: swallow only that, only for an aborted load
-    const quiet = (ev: PromiseRejectionEvent) => { if (signal.aborted) ev.preventDefault(); };
-    globalThis.addEventListener?.('unhandledrejection', quiet as EventListener);
+    signal.addEventListener('abort', () => { lastAbortAt = Date.now(); }, { once: true });
+    installStrayRejectionFilter();
     try { return await fn(); } finally {
+      // a cancelled load returns early (withAbort) while the library keeps running: keep the abort signal on its fetches until it has stopped, or its next file
+      // downloads unabortably in the background and fails later with a stray rejection
+      const rest = underlying.splice(0);
+      if (signal.aborted && rest.length) await Promise.race([Promise.allSettled(rest), new Promise((r) => setTimeout(r, 10_000))]);
       activeSignal = null;
-      // the stray rejection is reported a tick after the load settles
-      setTimeout(() => globalThis.removeEventListener?.('unhandledrejection', quiet as EventListener), 1000);
     }
   });
   loadChain = run.catch(() => undefined);
@@ -106,8 +118,10 @@ async function transformers() {
 }
 
 const aborted = () => new ManagerError('cancelled', 'Cancelled.');
-const withAbort = <T,>(p: Promise<T>, signal: AbortSignal): Promise<T> =>
-  new Promise<T>((res, rej) => { if (signal.aborted) { rej(aborted()); return; } const on = () => rej(aborted()); signal.addEventListener('abort', on, { once: true }); p.then(res, rej).finally(() => signal.removeEventListener('abort', on)); });
+const withAbort = <T,>(p: Promise<T>, signal: AbortSignal): Promise<T> => {
+  underlying.push(p.catch(() => undefined));
+  return new Promise<T>((res, rej) => { if (signal.aborted) { rej(aborted()); return; } const on = () => rej(aborted()); signal.addEventListener('abort', on, { once: true }); p.then(res, rej).finally(() => signal.removeEventListener('abort', on)); });
+};
 
 type KokoroLike = { generate(text: string, o: { voice: string; speed: number }): Promise<{ audio: Float32Array; sampling_rate: number }> };
 export function kokoroRuntime(tts: KokoroLike & { model?: { dispose?: () => Promise<void> } }): ModelRuntime {

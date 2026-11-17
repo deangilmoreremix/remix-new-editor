@@ -135,15 +135,22 @@ async function runExport(pg, base) {
   await pg.evaluate(() => document.querySelector('[data-testid=lai-download-kokoro-82m-fp32]').click());
   await pg.waitForSelector('[data-testid=lai-progress-kokoro-82m-fp32]', { timeout: 20000 });
   assert(await pg.locator('[data-testid=lai-cancel-kokoro-82m-fp32]').isVisible(), 'progress + Cancel shown while downloading');
+  const consBefore = cons.length;
   await pg.evaluate(() => document.querySelector('[data-testid=lai-cancel-kokoro-82m-fp32]').click()); await pg.waitForSelector('[data-testid=lai-download-kokoro-82m-fp32]', { timeout: 20000 }).catch(() => {}); await pg.waitForTimeout(500);
   assert(await pg.locator('[data-testid=lai-progress-kokoro-82m-fp32]').count() === 0 && await pg.locator('[data-testid=lai-download-kokoro-82m-fp32]').isVisible(), 'Cancel returns the model to "not downloaded"');
   await pg.unroute(/huggingface\.co\//); await pg.unroute(/cdn\.jsdelivr\.net\//); await routes(pg);
+  // the stalled request is released by the re-route: that is when the library's stray rejection used to surface
+  await pg.waitForTimeout(4000);
+  const stray = cons.slice(consBefore).filter((x) => /Could not locate file|Uncaught \(in promise\)|PAGEERR/.test(x));
+  assert(stray.length === 0, 'Cancel leaves no unhandled rejection in the console ' + JSON.stringify(stray));
 
   // delete the downloaded files
   await pg.locator('[data-testid=lai-model]').selectOption('kokoro-82m-q8');
   await pg.evaluate(() => document.querySelector('[data-testid=lai-delete-kokoro-82m-q8]').click()); await pg.waitForTimeout(1500);
   const left = await pg.evaluate(async () => { const c = await caches.open('transformers-cache'); return (await c.keys()).filter((r) => /model_quantized/.test(r.url)).length; });
   assert(left === 0, 'Delete removes the weights from Cache Storage');
+  const repoLeft = await pg.evaluate(async () => { const c = await caches.open('transformers-cache'); return (await c.keys()).map((r) => r.url).filter((u) => /kokoro-82m-v1\.0-onnx/i.test(u)); });
+  assert(repoLeft.length === 0, 'Delete also removes tokenizer / config / voice files of the repo ' + JSON.stringify(repoLeft));
   await pg.goto('about:blank'); await b.close();
   console.log(JSON.stringify({ requested: [...new Set(requested)], cons: cons.slice(0, 8) }, null, 1));
   fs.writeFileSync(SP + 'localai-results.json', JSON.stringify({ results, requested: [...new Set(requested)] }, null, 1));
