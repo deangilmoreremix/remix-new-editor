@@ -229,6 +229,19 @@ describe('AI Captions modal — your videos, no upload', () => {
     m.close();
   });
 
+  it('shows the look on a real picture: the bundled photo, then the picked video\'s own frame; tiles too', async () => {
+    history.list = [H(1)];
+    const m = open();
+    await flush(); await flush();
+    click('[data-act="tab"][data-val="style"]');
+    expect(q('.cap-tile-pic').getAttribute('style')).toContain('/library-previews/sample-in.jpg');
+    expect(q('.cap-tile-cap').textContent).toContain('Make');
+    m.frame = 'data:image/jpeg;base64,REAL'; m.refreshBody();
+    expect(q('.cap-tile-pic').getAttribute('style')).toContain('data:image/jpeg;base64,REAL');
+    expect(q('.cap-phone-screen').getAttribute('style')).toContain('data:image/jpeg;base64,REAL');
+    m.close();
+  });
+
   it('keeps the clip the studio passed, first and picked', async () => {
     history.list = [H(1), H(2)];
     const m = open({ videoUrl: 'https://cdn.test/mine.mp4' });

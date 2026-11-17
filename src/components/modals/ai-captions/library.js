@@ -87,3 +87,35 @@ export function subscribeNewVideos(onVideo, win = globalThis.window) {
   win.addEventListener(VIDEO_CREATED_EVENT, made);
   return () => { win.removeEventListener(SAVED_EVENT, saved); win.removeEventListener(VIDEO_CREATED_EVENT, made); };
 }
+
+const frames = new Map();
+/**
+ * A real still from `url` (the video's own picture about half a second in) as a data URL, for the look previews. Resolves null when the browser
+ * will not let a page read that video's pixels (no CORS) or it cannot be decoded: the caller then shows the bundled photo instead.
+ */
+export function captureFrame(url, { doc = globalThis.document, at = 0.5, timeoutMs = 6000 } = {}) {
+  if (!url || !doc?.createElement) return Promise.resolve(null);
+  if (frames.has(url)) return Promise.resolve(frames.get(url));
+  return new Promise((resolve) => {
+    const v = doc.createElement('video');
+    let done = false;
+    const finish = (val) => { if (done) return; done = true; clearTimeout(timer); v.removeAttribute('src'); try { v.load(); } catch { /* gone */ } frames.set(url, val); resolve(val); };
+    const timer = setTimeout(() => finish(null), timeoutMs);
+    v.muted = true; v.preload = 'auto'; v.playsInline = true;
+    if (!/^(blob|data):/.test(url)) v.crossOrigin = 'anonymous';
+    v.onerror = () => finish(null);
+    v.onloadedmetadata = () => { try { v.currentTime = Math.min(at, Math.max(0, (v.duration || at) / 2)); } catch { finish(null); } };
+    v.onseeked = () => {
+      try {
+        const w = v.videoWidth; const h = v.videoHeight;
+        if (!w || !h) return finish(null);
+        const scale = Math.min(1, 480 / w);
+        const c = doc.createElement('canvas'); c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+        c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+        finish(c.toDataURL('image/jpeg', 0.8));
+      } catch { finish(null); }                      // a tainted canvas (no CORS) throws here
+    };
+    v.src = url;
+  });
+}
+export const clearFrames = () => frames.clear();

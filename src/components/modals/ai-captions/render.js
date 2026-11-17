@@ -6,9 +6,10 @@
 import { CAPITE_STYLES, CAPITE_CATEGORY_LABEL } from '../../../openchatcut/captions/capiteStyles';
 import { ALL_CAPTION_STYLES, CAPTION_STYLES } from '../../../openchatcut/captions/styles';
 import { CAPTION_LANGUAGES } from '../template-generator/captions.js';
-import { POSITIONS, BACKGROUNDS, MIN_POS, MAX_POS, presetFor, phonePreviewHTML } from './phonePreview.js';
+import { POSITIONS, BACKGROUNDS, screenBackground, MIN_POS, MAX_POS, presetFor, phonePreviewHTML } from './phonePreview.js';
 import { lineLabel, countWords } from './scriptOps.js';
 import { formatBytes, formatDuration } from './history.js';
+import { captionSampleHTML, captionTextCss } from '../template-generator/captionPreview.js';
 import { filterVideos, studioCounts } from './library.js';
 
 export const TABS = [['create', 'Create'], ['script', 'Script & Words'], ['style', 'Motion & Style'], ['history', 'History']];
@@ -71,7 +72,7 @@ function inputBlock(m) {
 /** The chosen video with the chosen look drawn over it (a sample caption until the real ones exist). */
 function livePreview(m) {
   const s = m.effectiveStyle();
-  return `<div class="cap-side cap-side-live"><div class="cap-player"><div class="cap-stage" style="background:${(BACKGROUNDS.find((b) => b[0] === m.bg) || BACKGROUNDS[0])[2]}"><video id="ai-cap-video" src="${esc(m.videoUrl)}" controls playsinline preload="metadata"></video><div class="cap-live" id="ai-cap-live" data-testid="cap-live" style="bottom:${m.percent}%"></div></div>`
+  return `<div class="cap-side cap-side-live"><div class="cap-player"><div class="cap-stage" style="background:${screenBackground(m.bg, m.frame)}"><video id="ai-cap-video" src="${esc(m.videoUrl)}" controls playsinline preload="metadata"></video><div class="cap-live" id="ai-cap-live" data-testid="cap-live" style="bottom:${m.percent}%"></div></div>`
     + `<div class="cap-meta" data-testid="cap-live-title">${esc(m.sourceName || 'Selected video')} · ${esc(s.label)}</div></div>${positionControls(m)}</div>`;
 }
 
@@ -96,7 +97,7 @@ export function renderCreate(m) {
   const left = `${inputBlock(m)}${filters(m)}<div class="cap-sub">Caption look</div>${looks}`;
   const right = m.engine !== 'device' ? ''
     : m.libraryMode && m.videoUrl ? livePreview(m)
-      : `<div class="cap-side">${phonePreviewHTML(s, { percent: m.percent, background: m.bg })}${positionControls(m)}</div>`;
+      : `<div class="cap-side">${phonePreviewHTML(s, { percent: m.percent, background: m.bg, frame: m.frame })}${positionControls(m)}</div>`;
   return sectionCard('Choose a video', `<p class="cap-note">Add animated word-by-word captions to any video. ${m.engine === 'device' ? 'Everything runs in your browser; nothing is uploaded.' : 'The cloud service burns them in for you.'}</p><div class="cap-create">${`<div class="cap-create-main">${left}</div>`}${right}</div>`, `<span class="cap-meta">${m.engine === 'device' ? 'Whisper · ' + CAPTION_LANGUAGES.length + ' languages' : 'MuAPI · ' + m.themes.length + ' themes'}</span>`);
 }
 
@@ -133,7 +134,7 @@ export function renderScript(m) {
 export function renderPlayer(m) {
   if (!m.videoUrl) return '<div class="cap-player cap-player-empty">The video is not attached. Open it again from History, or pick it on the Create tab.</div>';
   const s = styleFor(m.styleId);
-  return `<div class="cap-player"><div class="cap-stage" style="background:${(BACKGROUNDS.find((b) => b[0] === m.bg) || BACKGROUNDS[0])[2]}"><video id="ai-cap-video" src="${esc(m.videoUrl)}" playsinline preload="metadata"${m.livePreview ? '' : ' data-nolive="1"'}></video>`
+  return `<div class="cap-player"><div class="cap-stage" style="background:${screenBackground(m.bg, m.frame)}"><video id="ai-cap-video" src="${esc(m.videoUrl)}" playsinline preload="metadata"${m.livePreview ? '' : ' data-nolive="1"'}></video>`
     + `<div class="cap-live" id="ai-cap-live" data-testid="cap-live" style="bottom:${m.percent}%"></div></div>`
     + `<div class="cap-transport"><button type="button" class="cap-play" data-act="play" aria-label="Play or pause">▶</button><span class="cap-speeds">${SPEEDS.map((v) => `<button type="button" class="cap-mini${m.speed === v ? ' is-on' : ''}" data-act="speed" data-val="${v}">${v}x</button>`).join('')}</span>`
     + `<button type="button" class="cap-chip${m.livePreview ? ' is-on' : ''}" data-act="live">Live preview: ${m.livePreview ? 'ON' : 'OFF'}</button><span class="cap-meta">Space = play / pause · ${esc(s.label)}</span></div></div>`;
@@ -158,14 +159,14 @@ export function renderStyle(m) {
   const ids = new Set(group[2]);
   const q = m.styleQuery.trim().toLowerCase();
   const list = ALL_CAPTION_STYLES.filter((s) => ids.has(s.id) && (!q || `${s.label} ${hint(s)}`.toLowerCase().includes(q)));
-  const grid = list.length ? `<div class="cap-grid" data-testid="cap-style-grid">${list.map((s) => `<button type="button" class="cap-tile${m.styleId === s.id ? ' is-on' : ''}" data-act="look" data-val="${esc(s.id)}"><span class="cap-tile-top"><b>${esc(s.label)}</b>${dot(s)}</span><span class="cap-tile-sub">${esc(hint(s))}</span></button>`).join('')}</div>` : '<p class="cap-empty">No look matches.</p>';
+  const grid = list.length ? `<div class="cap-grid" data-testid="cap-style-grid">${list.map((s) => `<button type="button" class="cap-tile${m.styleId === s.id ? ' is-on' : ''}" data-act="look" data-val="${esc(s.id)}"><span class="cap-tile-pic" style="background:${screenBackground('frame', m.frame)}"><span class="cap-tile-cap" style="${captionTextCss(s, 240)}">${captionSampleHTML(s, 'Make it pop')}</span></span><span class="cap-tile-top"><b>${esc(s.label)}</b>${dot(s)}</span><span class="cap-tile-sub">${esc(hint(s))}</span></button>`).join('')}</div>` : '<p class="cap-empty">No look matches.</p>';
   const s = styleFor(m.styleId);
   const fonts = `<div class="cap-filters"><div class="cap-field"><label for="ai-cap-case">Casing</label><select id="ai-cap-case"><option value="style"${!m.upperOverride ? ' selected' : ''}>As the look</option><option value="upper"${m.upperOverride === 'upper' ? ' selected' : ''}>UPPERCASE</option><option value="none"${m.upperOverride === 'none' ? ' selected' : ''}>Normal</option></select></div>`
     + `<div class="cap-field"><label for="ai-cap-color">Text colour</label><input id="ai-cap-color" type="color" value="${esc(toHex(m.colorOverride || s.color))}"></div>`
     + `<div class="cap-field"><label for="ai-cap-hl">Highlight colour</label><input id="ai-cap-hl" type="color" value="${esc(toHex(m.highlightOverride || s.highlightBackground || s.highlightColor))}"></div>`
     + `<div class="cap-field"><label for="ai-cap-bg">Preview background</label><select id="ai-cap-bg">${BACKGROUNDS.map(([id, label]) => `<option value="${id}"${m.bg === id ? ' selected' : ''}>${label}</option>`).join('')}</select></div>`
     + `<div class="cap-field cap-field-end"><button type="button" class="cap-mini" data-act="reset-style">Reset to default</button></div></div>`;
-  const side = `<div class="cap-side">${phonePreviewHTML(m.effectiveStyle(), { percent: m.percent, background: m.bg })}${positionControls(m)}</div>`;
+  const side = `<div class="cap-side">${phonePreviewHTML(m.effectiveStyle(), { percent: m.percent, background: m.bg, frame: m.frame })}${positionControls(m)}</div>`;
   const body = `<div class="cap-chips">${groups.map(([id, label, gids]) => chip('group', id, label, group[0] === id, gids.length)).join('')}</div>`
     + `<div class="cap-filters"><div class="cap-field"><label for="ai-cap-q">Search</label><input id="ai-cap-q" placeholder="Search looks…" value="${esc(m.styleQuery)}"></div></div>`
     + `<p class="cap-note">Showing ${list.length} of ${ALL_CAPTION_STYLES.length} looks</p>${grid}${fonts}`;

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { toVideoCard, announceVideo, clearSessionVideos, loadVideos, studioCounts, filterVideos, addVideo, subscribeNewVideos, studioLabel, VIDEO_CREATED_EVENT } from '../components/modals/ai-captions/library.js';
+import { captureFrame, clearFrames, toVideoCard, announceVideo, clearSessionVideos, loadVideos, studioCounts, filterVideos, addVideo, subscribeNewVideos, studioLabel, VIDEO_CREATED_EVENT } from '../components/modals/ai-captions/library.js';
 
 const H = (n, extra = {}) => ({ id: String(n), url: `https://cdn.test/${n}.mp4`, prompt: `Prompt ${n}`, studio: 'video', type: 'video', timestamp: new Date(2026, 0, n).toISOString(), ...extra });
 
@@ -62,5 +62,26 @@ describe('AI Captions — your videos', () => {
     stop();
     fire(H(7), 'cinema');
     expect(got).toHaveLength(1);
+  });
+});
+
+describe('AI Captions — a real frame of the picked video', () => {
+  it('gives up with null (so the bundled photo shows) when the video cannot be read', async () => {
+    clearFrames();
+    expect(await captureFrame('')).toBeNull();
+    const doc = { createElement: () => { const v = { removeAttribute() {}, load() {}, set src(_) { setTimeout(() => v.onerror?.(), 0); } }; return v; } };
+    expect(await captureFrame('https://cdn.test/a.mp4', { doc })).toBeNull();
+  });
+
+  it('draws the frame to a data URL when the browser can read it', async () => {
+    clearFrames();
+    const canvas = { width: 0, height: 0, getContext: () => ({ drawImage() {} }), toDataURL: () => 'data:image/jpeg;base64,FRAME' };
+    const doc = { createElement: (t) => {
+      if (t === 'canvas') return canvas;
+      const v = { videoWidth: 960, videoHeight: 540, duration: 4, removeAttribute() {}, load() {}, set src(_) { setTimeout(() => { v.onloadedmetadata?.(); setTimeout(() => v.onseeked?.(), 0); }, 0); } };
+      return v;
+    } };
+    expect(await captureFrame('https://cdn.test/b.mp4', { doc })).toBe('data:image/jpeg;base64,FRAME');
+    expect(canvas.width).toBe(480);                                  // scaled down
   });
 });

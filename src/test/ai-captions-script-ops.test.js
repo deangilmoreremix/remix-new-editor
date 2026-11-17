@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { segmentWords, flattenSegments, nudgeSegment, editWord, splitSegment, mergeSegments, deleteSegment, addSegment, replaceAll, countMatches, convertCase, segmentsToSrt, segmentsToVtt, segmentsToTxt, lineLabel, segmentText } from '../components/modals/ai-captions/scriptOps.js';
-import { phonePreviewHTML, presetFor, clampPos, positionStyle } from '../components/modals/ai-captions/phonePreview.js';
+import { phonePreviewHTML, presetFor, clampPos, positionStyle, screenBackground, FALLBACK_FRAME } from '../components/modals/ai-captions/phonePreview.js';
 import { saveJob, listJobs, getJob, deleteJob, clearJobs, MAX_JOBS } from '../components/modals/ai-captions/history.js';
 import { drawCaption, layoutLines } from '../components/modals/ai-captions/burnIn.js';
 import { captionStyleFor } from '../openchatcut/captions/styles';
@@ -83,6 +83,19 @@ describe('AI Captions — phone preview and position', () => {
     expect(presetFor(8)).toBe('bottom'); expect(presetFor(50)).toBe('middle'); expect(presetFor(88)).toBe('top');
     expect(clampPos(0)).toBe(5); expect(clampPos(500)).toBe(90); expect(clampPos('x')).toBe(8);
     expect(positionStyle(120)).toBe('bottom:90%');
+  });
+});
+
+describe('AI Captions — previews use real pictures', () => {
+  it('shows the real frame of the picked video, else the bundled photo, never a made-up placeholder', () => {
+    expect(screenBackground('frame', 'data:image/jpeg;base64,AAA')).toContain('data:image/jpeg;base64,AAA');
+    expect(screenBackground('frame', '')).toContain(FALLBACK_FRAME);
+    expect(screenBackground(undefined, '')).toContain(FALLBACK_FRAME);
+    expect(screenBackground('light', 'x')).toContain('linear-gradient');
+    expect(screenBackground('frame', 'a"b')).not.toContain('"');
+    const html = phonePreviewHTML(captionStyleFor('capite-hormozi'), { frame: 'data:image/jpeg;base64,BBB' });
+    expect(html).toContain('data:image/jpeg;base64,BBB');
+    expect(phonePreviewHTML(captionStyleFor('capite-hormozi'))).toContain(FALLBACK_FRAME);
   });
 });
 

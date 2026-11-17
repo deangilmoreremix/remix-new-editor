@@ -6,7 +6,7 @@ import { segmentWords, flattenSegments, nudgeSegment, editWord, splitSegment, me
 import { POSITION_PERCENT, clampPos } from './ai-captions/phonePreview.js';
 import { saveJob, listJobs, getJob, deleteJob, clearJobs } from './ai-captions/history.js';
 import { burnInCaptions, burnInSupported } from './ai-captions/burnIn.js';
-import { loadVideos, addVideo, announceVideo, subscribeNewVideos } from './ai-captions/library.js';
+import { loadVideos, addVideo, announceVideo, subscribeNewVideos, captureFrame } from './ai-captions/library.js';
 import { registerGeneration } from '../../lib/generationHistory.js';
 import { renderTabs, renderTab, styleFor } from './ai-captions/render.js';
 
@@ -133,7 +133,8 @@ export class AICaptionsModal extends BaseModal {
     this.styleGroup = 'all';
     this.styleQuery = '';
     this.percent = POSITION_PERCENT.bottom;
-    this.bg = 'cinema';
+    this.bg = 'frame';
+    this.frame = '';
     this.upperOverride = '';
     this.colorOverride = '';
     this.highlightOverride = '';
@@ -407,6 +408,16 @@ export class AICaptionsModal extends BaseModal {
     this.uploadedFile = null; this.uploadedFileName = '';
     this.sourceName = card.title;
     this.inputMode = 'url';
+    void this.loadFrame(card.url);
+  }
+
+  /** A real still of the picked video for the previews (the bundled photo is used until it arrives, or when the video cannot be read). */
+  async loadFrame(url) {
+    this.frame = '';
+    const still = await captureFrame(url);
+    if (this.selectedUrl !== url || !still) return;
+    this.frame = still;
+    if (this.overlay && this.state === 'open' && (this.tab === 'create' || this.tab === 'style') && !this.isGenerating && !this.rendering) this.refreshBody();
   }
 
   pickVideo(id) {
@@ -447,7 +458,7 @@ export class AICaptionsModal extends BaseModal {
       case 'look': this.styleId = val; this.refreshBody(); break;
       case 'group': this.styleGroup = val; this.refreshBody(); break;
       case 'pos': this.setPercent(POSITION_PERCENT[val]); this.refreshBody(); break;
-      case 'reset-style': this.upperOverride = ''; this.colorOverride = ''; this.highlightOverride = ''; this.percent = POSITION_PERCENT.bottom; this.bg = 'cinema'; this.refreshBody(); break;
+      case 'reset-style': this.upperOverride = ''; this.colorOverride = ''; this.highlightOverride = ''; this.percent = POSITION_PERCENT.bottom; this.bg = 'frame'; this.refreshBody(); break;
       case 'word': this.editing = { s: si, w: wi }; this.refreshBody(); break;
       case 'seek': this.seekTo(segmentStart(this.segments[si]) / 1000); break;
       case 'nudge': this.segments = nudgeSegment(this.segments, si, Number(el.dataset.d) || NUDGE_MS); this.edited(); break;

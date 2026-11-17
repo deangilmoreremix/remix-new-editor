@@ -827,3 +827,8 @@
 /* the spoken word is scaled up in the preview: give it room so the words do not run together */
 .cap-live .tg-cw.is-on, .cap-phone-caption .tg-cw.is-on { margin: 0 0.1em; }
 .cap-live .tg-cw, .cap-phone-caption .tg-cw { word-spacing: 0.12em; }
+
+/* look tiles show the look on a real picture */
+.cap-tile-pic { position: relative; display: grid; place-items: end center; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; padding-bottom: 8%; }
+.cap-tile-cap { display: block; max-width: 92%; text-align: center; }
+.cap-phone-screen { background-size: cover; }
