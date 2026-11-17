@@ -138,4 +138,13 @@ describe('lip-synced greeting', () => {
     expect(preparePublishProject(p, { title: 'x' }).chapters).toEqual(d.chapters);
     expect(buildCampaignProject({ ...d, chapters: [d.chapters[0]] }, { variants, now: 1000 }).chapters).toBeUndefined();
   });
+
+  it('a square or vertical video is published in its own shape, and the player uses it', async () => {
+    const { buildViewerModel } = await import('../../editor/publish/interactivePlayer.js');
+    const p = preparePublishProject(buildCampaignProject(ready(), { variants, aspect: '1:1', now: 1000 }), { title: 'x' });
+    expect(p.aspect).toBe('1:1');
+    expect(buildViewerModel(p, null, { quality: '720p' })).toMatchObject({ width: 720, height: 720 });
+    expect(preparePublishProject(buildCampaignProject(ready(), { variants, aspect: '16:9', now: 1000 }), { title: 'x' }).aspect).toBeUndefined();
+    expect(preparePublishProject({ tracks: [], aspect: '1:1;evil' }, { title: 'x' }).aspect).toBeUndefined();
+  });
 });

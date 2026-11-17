@@ -23,7 +23,7 @@ const round = (n) => Math.round(n * 1000) / 1000;
 const clamp = (v, lo, hi, d) => { const n = Number(v); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : d; };
 const uid = (p) => `${p}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-export const ASPECTS = [['16:9', 'Landscape 16:9'], ['1:1', 'Square 1:1'], ['9:16', 'Vertical 9:16']];
+export const ASPECTS = [['auto', 'Same as recording'], ['16:9', 'Landscape 16:9'], ['1:1', 'Square 1:1'], ['9:16', 'Vertical 9:16']];
 export const CAPTION_STYLES = [['classic', 'Classic subtitles'], ['tiktok', 'Word highlight'], ['box', 'Boxed words'], ['karaoke', 'Karaoke'], ['minimal', 'Minimal']];
 export const TRANSITIONS = [['none', 'None'], ['fade', 'Fade'], ['slide', 'Slide'], ['wipeLeft', 'Wipe'], ['CrossZoom', 'Zoom'], ['dissolve', 'Dissolve']];
 export const QUALITY = [['small', 'Small file', 1_500_000], ['standard', 'Standard', 0], ['high', 'High quality', 8_000_000]];
@@ -32,7 +32,7 @@ export const STICKERS = ['wave', 'thumbs up', 'clap', 'rocket', 'fire', 'party p
   .map((name) => ({ name, src: `/assets/sticker/animated-emoji/${name.replace(/ /g, '-')}.json` }));
 export const LOWER_THIRD_TEMPLATE = 'classic-bar';
 
-export const LOOK = Object.freeze({ aspect: '16:9', rotate: 0, flipH: false, flipV: false, zoom: 1, brightness: 0, contrast: 1, saturation: 1, warmth: 0, vignette: 0 });
+export const LOOK = Object.freeze({ aspect: 'auto', rotate: 0, flipH: false, flipV: false, zoom: 1, brightness: 0, contrast: 1, saturation: 1, warmth: 0, vignette: 0 });
 export const AUDIO = Object.freeze({ volume: 1, louder: false, music: null });
 export const CAPTIONS = Object.freeze({ burn: false, preset: 'classic', position: 'bottom', color: '#FFFFFF', size: 5.5 });
 export const BACKGROUND = Object.freeze({ mode: 'none', blur: 0.6, image: 'office', color: '#20232a' });
@@ -42,7 +42,7 @@ export function blankEdit() {
   return {
     trimStart: 0, trimEnd: null, cuts: [], before: null, after: null,
     look: { ...LOOK }, audio: { ...AUDIO }, captions: { ...CAPTIONS }, background: { ...BACKGROUND },
-    overlays: [], broll: [], transition: 'none', quality: 'standard',
+    overlays: [], broll: [], transition: 'none', quality: 'standard', v: 2,
   };
 }
 
@@ -52,6 +52,8 @@ const okUrl = (u) => /^(https:\/\/|blob:|data:image\/|\/)/.test(String(u || ''))
 export function normalizeEdit(e = {}) {
   const b = blankEdit();
   const look = { ...b.look, ...(e.look || {}) };
+  // Recipes before "Same as recording" saved 16:9 as the default: they mean the recording's own shape.
+  if (!e.v && look.aspect === '16:9') look.aspect = 'auto';
   return {
     ...b,
     trimStart: clamp(e.trimStart, 0, 1e6, 0),
@@ -60,7 +62,7 @@ export function normalizeEdit(e = {}) {
     before: e.before || null,
     after: e.after || null,
     look: {
-      aspect: ASPECTS.some(([k]) => k === look.aspect) ? look.aspect : '16:9',
+      aspect: ASPECTS.some(([k]) => k === look.aspect) ? look.aspect : 'auto',
       rotate: [0, 90, 180, 270].includes(Number(look.rotate)) ? Number(look.rotate) : 0,
       flipH: !!look.flipH, flipV: !!look.flipV,
       zoom: clamp(look.zoom, 1, 3, 1),
@@ -81,6 +83,7 @@ export function normalizeEdit(e = {}) {
     broll: Array.isArray(e.broll) ? e.broll.filter((o) => o && o.id && (o.src || o.kind === 'website')) : [],
     transition: TRANSITIONS.some(([k]) => k === e.transition) ? e.transition : 'none',
     quality: QUALITY.some(([k]) => k === e.quality) ? e.quality : 'standard',
+    v: 2,
   };
 }
 
@@ -94,7 +97,7 @@ export function hasRenderableEdits(edit, main) {
   const e = normalizeEdit(edit);
   const segs = buildSegments({ main, edits: e, before: e.before, after: e.after });
   const cut = !(segs.length === 1 && segs[0].src === main.src && segs[0].from === 0 && Math.abs(segs[0].to - main.duration) < 0.05);
-  return cut || lookChanged(e.look) || e.captions.burn || e.audio.volume !== 1 || e.audio.louder || !!e.audio.music
+  return cut || lookChanged(e.look) || e.background.mode !== 'none' || e.captions.burn || e.audio.volume !== 1 || e.audio.louder || !!e.audio.music
     || e.overlays.some((o) => !isPersonal(o)) || e.broll.some((o) => !isPersonal(o)) || e.quality !== 'standard';
 }
 
@@ -176,8 +179,9 @@ export function chaptersFromLines(lines = [], { gapMs = 1200, minSec = 15, max =
 /** A new addition with sensible placement. kind: text | lower | logo | image | sticker. */
 export function newOverlay(kind, { start = 0, end = 5, ...rest } = {}) {
   const base = { id: uid('ov'), kind, start: round(start), end: round(Math.max(start + 0.5, end)) };
-  if (kind === 'text') return { ...base, text: 'Your text', color: '#FFFFFF', size: 7, background: true, left: 10, top: 10, width: 80, height: 14, ...rest };
-  if (kind === 'lower') return { ...base, text: 'Your name', title: 'Your job title', color: '#d9ff00', left: 3, top: 62, width: 50, height: 22.2, ...rest };
+  if (kind === 'text') return { ...base, text: 'Your text', color: '#FFFFFF', size: 5, background: true, left: 15, top: 11, width: 70, height: 12, ...rest };
+  // Lottie strap drawn at 1000×250: height is 4/9 of its width in a 16:9 frame (it keeps its own ratio).
+  if (kind === 'lower') return { ...base, text: 'Your name', title: 'Your job title', color: '#d9ff00', left: 3, top: 54, width: 40, height: 17.8, ...rest };
   if (kind === 'logo') return { ...base, src: '', left: 82, top: 5, width: 14, height: 14, ...rest };
   if (kind === 'image') return { ...base, src: '', left: 60, top: 10, width: 35, height: 35, ...rest };
   if (kind === 'sticker') return { ...base, src: STICKERS[0].src, name: STICKERS[0].name, left: 78, top: 60, width: 16, height: 16, ...rest };
@@ -197,7 +201,7 @@ export function overlayClip(o) {
   const at = { id: o.id, start: o.start, end: o.end };
   if (o.kind === 'text') {
     return { ...at, type: 'overlay-text', addon: {
-      text: String(o.text || ''), position: 'custom', alignment: 'center', fontFamily: 'Montserrat', fontSize: clamp(o.size, 2, 20, 7), fontColor: o.color || '#FFFFFF',
+      text: String(o.text || ''), position: 'custom', alignment: 'center', fontFamily: 'Montserrat', fontSize: clamp(o.size, 2, 20, 5), fontColor: o.color || '#FFFFFF',
       fontDecorations: { bold: true, italics: false, responsive: true }, shadow: !o.background, shadowColor: '#000000', background: !!o.background, backgroundColor: 'rgba(0,0,0,0.55)',
       stroke: false, strokeColor: '#000000', rotation: 0, opacity: 100, blendMode: 'normal', geometry: geometry(o), animation: ANIM, linkMode: 'url', linkUrl: '', linkTarget: '_blank',
     } };
@@ -214,14 +218,110 @@ export function overlayClip(o) {
   return null;
 }
 
-const PIP = { x: 30, y: -28, scale: 0.36, rotation: 0 };
+export const PIP_SCALE = 0.34;
+// Picture-in-picture corners as offsets of the centre (% of the frame); top right is kept for the player's labels.
+export const PIP_SPOTS = [{ x: -30, y: -30 }, { x: 30, y: 30 }, { x: -30, y: 30 }, { x: -30, y: 5 }, { x: 30, y: 5 }, { x: 30, y: -24 }];
 
 /** One B-roll piece → a clip on the B-roll track. `fallbackShot` stands in for a prospect without a website. */
 export function brollClip(b, { fallbackShot = '' } = {}) {
-  const at = { id: b.id, start: b.start, end: b.end, ...(b.mode === 'pip' ? { transform: { ...PIP } } : {}) };
+  const spot = Number.isFinite(b.x) && Number.isFinite(b.y) ? { x: b.x, y: b.y } : PIP_SPOTS[0];
+  const at = { id: b.id, start: b.start, end: b.end, ...(b.mode === 'pip' ? { transform: { ...spot, scale: PIP_SCALE, rotation: 0 } } : {}) };
   if (b.kind === 'website') return { ...at, type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot || undefined, fit: 'cover', scroll: true, cursor: true };
   if (b.kind === 'image') return { ...at, type: 'image', src: b.src, fit: 'cover' };
   return { ...at, type: 'video', src: b.src, trimIn: 0, volume: 0, fit: 'cover' };
+}
+
+// ---------------------------------------------------------------- placement
+
+// Where the watch page draws its own labels ("AI-generated voice"), and the captions bands.
+export const LABEL_ZONE = { left: 76, top: 0, width: 24, height: 10 };
+const CAPTION_ZONE = { bottom: { left: 4, top: 72, width: 92, height: 20 }, middle: { left: 4, top: 40, width: 92, height: 20 }, top: { left: 4, top: 0, width: 92, height: 20 } };
+const MARGIN = 3;
+
+/** The box an addition covers (% of the frame); null for full-screen B-roll (it is the picture). */
+export function boxOf(item) {
+  if (!item) return null;
+  if (item.mode === 'full' && 'mode' in item) return null;
+  if (item.mode === 'pip') {
+    const s = PIP_SCALE * 100;
+    const { x, y } = Number.isFinite(item.x) ? item : PIP_SPOTS[0];
+    return { left: 50 + x - s / 2, top: 50 + y - s / 2, width: s, height: s };
+  }
+  return { left: item.left, top: item.top, width: item.width, height: item.height };
+}
+
+const meet = (a, b) => Math.max(0, Math.min(a.left + a.width, b.left + b.width) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.top + a.height, b.top + b.height) - Math.max(a.top, b.top));
+const sameTime = (a, b) => a.start < b.end && b.start < a.end;
+
+export function itemLabel(item) {
+  if (!item) return '';
+  if ('mode' in item) return item.kind === 'website' ? 'their website' : item.kind === 'video' ? 'a B-roll clip' : 'a B-roll picture';
+  if (item.kind === 'text') return `the text “${String(item.text || '').slice(0, 24)}”`;
+  return { lower: 'the name strap', logo: 'the logo', image: 'a picture', sticker: `the ${item.name || ''} sticker` }[item.kind] || 'another item';
+}
+
+/** What else is on screen while `item` shows: [{ label, box }]. */
+function blockers(item, edit) {
+  const e = edit;
+  const out = [{ label: 'the player’s label (top right)', box: LABEL_ZONE }];
+  if (e.captions?.burn) out.push({ label: 'the captions', box: CAPTION_ZONE[e.captions.position] || CAPTION_ZONE.bottom });
+  [...(e.overlays || []), ...(e.broll || [])].forEach((o) => {
+    if (o.id === item.id || !sameTime(o, item)) return;
+    const box = boxOf(o);
+    if (box) out.push({ label: itemLabel(o), box });
+  });
+  return out;
+}
+
+/** The things `item` covers (labels), for the card's warning. */
+export function overlapsOf(item, edit) {
+  const box = boxOf(item);
+  if (!box) return [];
+  const min = box.width * box.height * 0.04;
+  return blockers(item, edit).filter((b) => meet(box, b.box) > min).map((b) => b.label);
+}
+
+function spots(item) {
+  const w = item.width; const h = item.height;
+  const centre = (100 - w) / 2;
+  if ('mode' in item) return PIP_SPOTS.map((p) => ({ x: p.x, y: p.y }));
+  // Texts start just under the player's label band, then step down (the captions band is below 72%).
+  if (item.kind === 'text') return [11, 26, 41, 56].map((top) => ({ left: centre, top })).concat([{ left: MARGIN, top: 11 }, { left: 100 - w - MARGIN, top: 26 }]);
+  if (item.kind === 'lower') return [54, 40, 22, 10].map((top) => ({ left: MARGIN, top }));
+  // Logos, pictures, stickers: corners (top right sits below the player's label), then the sides.
+  return [
+    { left: MARGIN, top: MARGIN }, { left: 100 - w - MARGIN, top: 100 - h - 22 }, { left: MARGIN, top: 100 - h - 22 },
+    { left: 100 - w - MARGIN, top: LABEL_ZONE.height + 2 }, { left: 100 - w - MARGIN, top: (100 - h) / 2 }, { left: MARGIN, top: (100 - h) / 2 },
+  ];
+}
+
+/**
+ * The item moved to the first spot where it covers nothing else on screen at the same time (other
+ * additions, the website picture-in-picture, the captions, the player's label). With no free spot,
+ * the one that covers least. Full-screen B-roll is left as it is.
+ */
+export function placeItem(item, edit) {
+  if (item.mode === 'full') return item;
+  const others = blockers(item, edit);
+  let best = null;
+  for (const spot of spots(item)) {
+    const moved = { ...item, ...spot };
+    const box = boxOf(moved);
+    const hit = others.reduce((n, b) => n + meet(box, b.box), 0);
+    if (!best || hit < best.hit) best = { moved, hit };
+    if (hit === 0) break;
+  }
+  return { ...best.moved, ...('left' in best.moved ? { left: round(best.moved.left), top: round(best.moved.top) } : {}) };
+}
+
+/** "16:9", "1:1", "9:16", or for 'auto' the recording's own shape ("W:H"). */
+export function resolveAspect(aspect, main = {}) {
+  if (aspect !== 'auto') return aspect;
+  const w = Math.round(Number(main.width)); const h = Math.round(Number(main.height));
+  if (!(w > 0 && h > 0)) return '16:9';
+  const g = (a, b) => (b ? g(b, a % b) : a);
+  const d = g(w, h);
+  return `${w / d}:${h / d}`;
 }
 
 // ---------------------------------------------------------------- the project
@@ -247,7 +347,7 @@ const aspectRatio = (a) => { const [w, h] = String(a).split(':').map(Number); re
 
 /**
  * The edit as a timeline project (what timelineToComposition reads), everything burned in.
- * @param o.main { src, duration }   the uploaded video
+ * @param o.main { src, duration, width?, height? }   the original recording (edits are always made from it)
  * @param o.lines  caption lines in the main video's time (draft.captions.lines), for burned-in captions
  * @returns {{ project, segs, seconds, aspect }}
  */
@@ -256,13 +356,15 @@ export function editProject({ main, edit, lines = [] }) {
   const segs = buildSegments({ main, edits: e, before: e.before, after: e.after });
   if (!segs.length) throw new Error('Nothing is left to keep. Undo a cut or the trim.');
   const fx = lookEffects(e.look);
-  const transform = lookTransform(e.look, aspectRatio(e.look.aspect));
+  const aspect = resolveAspect(e.look.aspect, main);
+  const transform = lookTransform(e.look, aspectRatio(aspect));
   const flip = { ...(e.look.flipH ? { flipH: true } : {}), ...(e.look.flipV ? { flipV: true } : {}) };
   let at = 0;
   const videoItems = segs.map((s, i) => {
     const len = s.to - s.from;
-    // Kept shape (16:9): the whole picture fits, like the plain trim render. A new shape fills it (cropping the middle).
-    const item = { id: `seg-${i}`, type: 'video', src: s.src, trimIn: s.from, start: round(at), end: round(at + len), volume: e.audio.volume, fit: e.look.aspect === '16:9' ? 'contain' : 'cover', effects: fx, ...flip, ...(transform ? { transform } : {}) };
+    // Same as recording: the frame is the recording's shape, so the whole picture fills it (clips before/after of
+    // another shape fit inside). A chosen shape fills the frame, cropping the middle.
+    const item = { id: `seg-${i}`, type: 'video', src: s.src, trimIn: s.from, start: round(at), end: round(at + len), volume: e.audio.volume, fit: e.look.aspect === 'auto' ? 'contain' : 'cover', effects: fx, ...flip, ...(transform ? { transform } : {}) };
     at += len;
     return item;
   });
@@ -288,7 +390,7 @@ export function editProject({ main, edit, lines = [] }) {
     const len = e.audio.music.duration > 0 ? Math.min(seconds, e.audio.music.duration) : seconds;
     tracks.push({ id: 'track-music', type: 'audio', name: 'Music', muted: false, solo: false, items: [{ id: 'music', type: 'audio', src: e.audio.music.src, start: 0, end: round(len), volume: e.audio.music.volume }] });
   }
-  return { project: { title: 'Outreach edit', timelineSeconds: seconds, tracks }, segs, seconds, aspect: e.look.aspect };
+  return { project: { title: 'Outreach edit', timelineSeconds: seconds, tracks }, segs, seconds, aspect };
 }
 
 /**
@@ -306,10 +408,13 @@ export function personalTracks(edit, T, { fallbackShot = '' } = {}) {
   return tracks;
 }
 
-/** After "Apply edits" the recipe's burned-in parts are in the video: what is left to keep editing. */
-export function afterApply(edit) {
+/** A key for the recipe as rendered: when it equals the last applied key, the video is up to date. */
+export function recipeKey(edit, sourceUrl) {
   const e = normalizeEdit(edit);
-  return { ...blankEdit(), overlays: e.overlays.filter(isPersonal), broll: e.broll.filter(isPersonal), captions: { ...e.captions, burn: false }, quality: e.quality };
+  return JSON.stringify([sourceUrl, e.trimStart, e.trimEnd, e.cuts, e.look, e.audio, e.captions, e.background, e.overlays.filter((o) => !isPersonal(o)), e.broll.filter((o) => !isPersonal(o)), e.transition, e.quality, e.before?.src || null, e.after?.src || null]);
 }
+
+/** The background pass's cache key (the MediaPipe pass is redone only when these change). */
+export const backgroundKey = (sourceUrl, b) => (b?.mode && b.mode !== 'none' ? JSON.stringify([sourceUrl, b.mode, b.blur, b.image, b.color]) : '');
 
 export { keptRanges };

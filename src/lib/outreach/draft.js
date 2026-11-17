@@ -95,6 +95,13 @@ export function defaultDraft() {
     // The editor's recipe (src/lib/outreach/editTools.js normalizeEdit) and chapters made from the captions.
     edit: null,
     chapters: [],
+    // Editing is always done from the original recording (sourceVideo: url, duration, width, height); video is the
+    // campaign video (the original, or the last applied edit). videoSegs maps the original's timeline (captions,
+    // chapters) onto it; appliedKey is the recipe it was rendered from; bgCache the background pass.
+    sourceVideo: null,
+    videoSegs: null,
+    appliedKey: null,
+    bgCache: null,
   };
 }
 
@@ -502,7 +509,7 @@ const clipsTimeline = (draft, variants = {}, lipsync = null) => {
  * from perContact.voiceForContacts. Track and clip shapes are the ones the public player reads
  * (same as the editor's publish: tracks with items, start/end seconds or left/width percent).
  */
-export function buildCampaignProject(draft, { variants = {}, lipsync = null, extraTracks = null, now = Date.now() } = {}) {
+export function buildCampaignProject(draft, { variants = {}, lipsync = null, extraTracks = null, aspect = '', now = Date.now() } = {}) {
   for (const step of [1, 2, 3, 4]) {
     const errors = stepErrors(draft, step);
     if (errors.length) throw new Error(errors[0]);
@@ -571,6 +578,8 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
     title: name.slice(0, 200),
     timelineSeconds: T,
     tracks,
+    // The video's own shape (a square or vertical recording plays uncropped); a website background stays 16:9.
+    ...(aspect && !website && aspect !== '16:9' ? { aspect } : {}),
     ...(chapters.length > 1 ? { chapters } : {}),
     ...(website ? { multiCam: { mode: 'pip', mainTrackId: `track-bg-${id}`, secondTrackId: `track-cam-${id}`, pip: { corner: 'bottom-left', size: 26, shape: 'circle' } } } : {}),
     kind: 'outreach',

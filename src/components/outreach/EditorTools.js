@@ -17,7 +17,8 @@
 //                              picture(file, opts) → url, waveform() → Promise<bars>, makeCaptions(),
 //                              captionsFile('srt'|'vtt'), makeChapters(), mediaDuration(file) → seconds }
 //   cutPanel                 the Cut tab's element (trim, cuts, before/after), built by the studio
-import { ASPECTS, CAPTION_STYLES, TRANSITIONS, QUALITY, STICKERS, newOverlay, newBroll, isPersonal } from '../../lib/outreach/editTools.js';
+//   sender                   { name, title } from the Page step, for the name strap
+import { ASPECTS, CAPTION_STYLES, TRANSITIONS, QUALITY, STICKERS, newOverlay, newBroll, isPersonal, placeItem, overlapsOf } from '../../lib/outreach/editTools.js';
 
 const el = (tag, cls = '', txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt !== undefined) n.textContent = txt; return n; };
 const LOOK = {
@@ -147,7 +148,7 @@ function look(body, o) {
   const set = (key) => (v, soft) => o.update((e) => { e.look[key] = v; }, { soft });
   body.append(
     choices('Shape', ASPECTS, l.aspect, (k) => o.update((e) => { e.look.aspect = k; }), 'data-look-aspect'),
-    note('A new shape crops the middle of your video (zoom and the preview show what is kept).'),
+    note('Same as recording keeps your whole picture with no black bars. Another shape crops the middle (zoom and the preview show what is kept).'),
   );
   const turn = el('div', 'flex flex-wrap items-center gap-2 text-xs');
   turn.appendChild(el('span', 'w-28 text-white/55', 'Rotate and flip'));
@@ -176,7 +177,7 @@ function background(body, o) {
   const b = o.edit.background;
   body.append(
     heading('Background behind you'),
-    note('MediaPipe finds you in every frame and changes what is behind you, in your browser. Applying it makes a new copy of your video (about as long as the video plays). Do this before applying text, captions or graphics: anything already burned into the video behind you would be blurred or replaced too.'),
+    note('MediaPipe finds you in every frame and changes what is behind you, in your browser. It is done when you click Apply edits, first, before text, captions and graphics are added, so they stay sharp. The first time takes about as long as the video plays; after that it is reused.'),
     choices('Background', [['none', 'Keep it'], ['blur', 'Blur'], ['image', 'Picture'], ['color', 'Solid colour']], b.mode, (k) => o.update((e) => { e.background.mode = k; }), 'data-bg-mode'),
   );
   if (b.mode === 'blur') body.appendChild(slider('Blur', b.blur, { min: 0, max: 1 }, (v, soft) => o.update((e) => { e.background.blur = v; }, { soft })));
@@ -189,10 +190,7 @@ function background(body, o) {
     c.addEventListener('change', () => o.update((e) => { e.background.color = c.value; }));
     body.appendChild(c);
   }
-  const go = btn('Apply background', { primary: true, attr: 'data-bg-apply' });
-  go.disabled = b.mode === 'none';
-  go.addEventListener('click', () => o.actions.applyBackground());
-  body.appendChild(go);
+  if (b.mode !== 'none') body.appendChild(note('The preview shows the background once it has been applied.'));
 }
 
 function audio(body, o) {
@@ -264,11 +262,12 @@ function place(item, key) {
 function add(body, o) {
   const row = el('div', 'flex flex-wrap gap-2');
   const at = () => { const t = o.now(); return { start: t, end: Math.min(o.seconds, t + 5) }; };
-  const push = (item) => o.update((e) => { e.overlays.push(item); });
-  // Each new text goes a row lower than the last, so two texts never sit on top of each other.
-  const textRow = () => { const n = o.edit.overlays.filter((x) => x.kind === 'text').length % 4; return { top: [10, 28, 46, 70][n] }; };
-  const addText = btn('+ Text', { attr: 'data-add-text' }); addText.addEventListener('click', () => push(newOverlay('text', { ...at(), ...textRow() })));
-  const addLower = btn('+ Name and title', { attr: 'data-add-lower' }); addLower.addEventListener('click', () => push(newOverlay('lower', at())));
+  // Every new item goes where it covers nothing else on screen at that time (placeItem).
+  const push = (item) => o.update((e) => { e.overlays.push(placeItem(item, e)); });
+  const addText = btn('+ Text', { attr: 'data-add-text' }); addText.addEventListener('click', () => push(newOverlay('text', at())));
+  const sender = o.sender || {};
+  const addLower = btn('+ Name and title', { attr: 'data-add-lower' });
+  addLower.addEventListener('click', () => push(newOverlay('lower', { ...at(), ...(sender.name ? { text: sender.name } : {}), ...(sender.title || sender.name ? { title: sender.title || '' } : {}) })));
   row.append(addText, addLower);
   const picOpts = { removeBackground: false, sharpen: false };
   const addPic = (kind) => filePick(kind === 'logo' ? '+ Logo' : '+ Picture', 'image/*', async (file) => {
@@ -306,6 +305,7 @@ function overlayCard(item, i, o) {
   del.addEventListener('click', () => o.update((e) => { e.overlays.splice(i, 1); }));
   head.appendChild(del);
   card.appendChild(head);
+  card.appendChild(overlapNote(item, o, (e) => { e.overlays[i] = placeItem(e.overlays[i], e); }));
   if (item.kind === 'text' || item.kind === 'lower') {
     const t = el('input', 'w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm text-white'); t.value = item.text || '';
     t.setAttribute('data-overlay-text', '');
@@ -321,17 +321,36 @@ function overlayCard(item, i, o) {
     const colRow = el('div', 'flex items-center gap-3 text-xs'); colRow.append(el('span', 'text-white/55', 'Colour'), col);
     if (item.kind === 'text') colRow.appendChild(check('Dark box behind', item.background, (on) => change((x) => { x.background = on; })));
     card.appendChild(colRow);
+    if (item.kind === 'text') card.appendChild(slider('Text size', item.size || 5, { min: 3, max: 10, step: 0.5, show: (v) => v.toFixed(1), attr: 'data-overlay-size' }, (v, soft) => change((x) => { x.size = v; }, soft)));
   }
   if (item.kind !== 'lower') card.appendChild(choices('', POSITIONS.map(([k, n]) => [k, n]), '', (k) => change((x) => place(x, k))));
   if (item.kind !== 'lower' && item.kind !== 'text') card.appendChild(slider('Size', item.width, { min: 5, max: 60, step: 1, show: (v) => `${Math.round(v)}%` }, (v, soft) => change((x) => { const r = x.height / x.width; x.width = v; x.height = v * r; }, soft)));
-  card.appendChild(timeRange(item, o, (k, v) => change((x) => { x[k] = v; if (x.end <= x.start) x.end = x.start + 0.5; })));
+  card.appendChild(timeRange(item, o, (k, v) => o.update((e) => {
+    const x = e.overlays[i]; x[k] = v; if (x.end <= x.start) x.end = x.start + 0.5;
+    // Moved to a time where it would cover something: find it a free spot.
+    if (overlapsOf(x, e).length) e.overlays[i] = placeItem(x, e);
+  })));
   return card;
+}
+
+/** "Overlaps …" with a Fix position button, or nothing. */
+function overlapNote(item, o, fix) {
+  const hits = overlapsOf(item, o.edit);
+  const row = el('div', hits.length ? 'flex flex-wrap items-center gap-2 rounded-lg bg-amber-400/10 px-3 py-2 text-[11px] text-amber-200' : 'hidden');
+  if (!hits.length) return row;
+  row.setAttribute('data-overlaps', '');
+  row.appendChild(el('span', '', `Overlaps ${hits.slice(0, 2).join(' and ')}${hits.length > 2 ? ` and ${hits.length - 2} more` : ''}.`));
+  const b = btn('Fix position', { attr: 'data-fix-position' });
+  b.addEventListener('click', () => o.update(fix));
+  row.appendChild(b);
+  return row;
 }
 
 function broll(body, o) {
   const at = () => { const t = o.now(); return { start: t, end: Math.min(o.seconds, t + 4) }; };
   const push = (item) => o.update((e) => { e.broll.push(item); });
   const row = el('div', 'flex flex-wrap gap-2');
+  const fixBroll = (i) => (e) => { e.broll[i] = placeItem(e.broll[i], e); };
   row.append(
     filePick('+ Clip', 'video/*', async (file) => { const src = await o.actions.upload(file); if (src) push(newBroll('video', { ...at(), src, name: file.name })); }, 'data-broll-clip'),
     filePick('+ Picture', 'image/*', async (file) => { const src = await o.actions.picture(file, { maxSize: 1920 }); if (src) push(newBroll('image', { ...at(), src, name: file.name })); }, 'data-broll-picture'),
@@ -351,8 +370,12 @@ function broll(body, o) {
     head.appendChild(del);
     card.append(
       head,
-      choices('', [['full', 'Full screen'], ['pip', 'In a corner']], b.mode, (k) => o.update((e) => { e.broll[i].mode = k; }), 'data-broll-mode'),
-      timeRange(b, o, (k, v) => o.update((e) => { e.broll[i][k] = v; if (e.broll[i].end <= e.broll[i].start) e.broll[i].end = e.broll[i].start + 0.5; })),
+      overlapNote(b, o, fixBroll(i)),
+      choices('', [['full', 'Full screen'], ['pip', 'In a corner']], b.mode, (k) => o.update((e) => { e.broll[i].mode = k; if (k === 'pip') e.broll[i] = placeItem(e.broll[i], e); }), 'data-broll-mode'),
+      timeRange(b, o, (k, v) => o.update((e) => {
+        const x = e.broll[i]; x[k] = v; if (x.end <= x.start) x.end = x.start + 0.5;
+        if (overlapsOf(x, e).length) e.broll[i] = placeItem(x, e);
+      })),
     );
     body.appendChild(card);
   });

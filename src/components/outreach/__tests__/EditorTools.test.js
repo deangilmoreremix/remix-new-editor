@@ -51,9 +51,9 @@ describe('Video Outreach editor tools', () => {
     expect(edit().look).toMatchObject({ aspect: '9:16', rotate: 90, flipH: true, saturation: 1.4 });
   });
 
-  it('background: pick a mode and apply', () => {
-    const { actions, edit } = mount('background');
-    expect($('[data-bg-apply]').disabled).toBe(true);
+  it('background: pick a mode; it is applied with Apply edits (no separate button)', () => {
+    const { edit } = mount('background');
+    expect($('[data-bg-apply]')).toBeNull();
     $('[data-bg-mode="blur"]').click();
     expect(edit().background.mode).toBe('blur');
   });
@@ -97,6 +97,26 @@ describe('Video Outreach editor tools', () => {
     await new Promise((r) => setTimeout(r, 0));
     expect(actions.picture).toHaveBeenCalledWith(expect.any(File), expect.objectContaining({ removeBackground: true, maxSize: 600 }));
     expect(edit().overlays[3]).toMatchObject({ kind: 'logo', src: 'https://cdn.x/logo.png', start: 0, end: 20 });
+  });
+
+  it('the name strap uses the sender, texts land apart, and an overlap can be fixed', () => {
+    const { edit, o } = mount('add', { sender: { name: 'Alex Morgan', title: 'Head of Growth' } });
+    $('[data-add-lower]').click();
+    expect(edit().overlays[0]).toMatchObject({ kind: 'lower', text: 'Alex Morgan', title: 'Head of Growth' });
+    $('[data-add-text]').click();
+    $('[data-add-text]').click();
+    const [, a, b] = edit().overlays;
+    expect(a.top).not.toBe(b.top);
+    // Put the second text on the first: the card warns, and Fix position moves it.
+    o.update((e) => { e.overlays[2].top = e.overlays[1].top; });
+    document.body.replaceChildren(renderEditorTools(o));
+    expect(document.querySelector('[data-overlaps]').textContent).toMatch(/Overlaps the text/);
+    document.querySelector('[data-fix-position]').click();
+    expect(edit().overlays[2].top).not.toBe(edit().overlays[1].top);
+    document.body.replaceChildren(renderEditorTools(o));
+    const size = document.querySelector('[data-overlay-size]');
+    size.value = '7'; size.dispatchEvent(new Event('change'));
+    expect(edit().overlays.find((x) => x.kind === 'text').size).toBe(7);
   });
 
   it('B-roll: their website, full screen or in a corner', () => {

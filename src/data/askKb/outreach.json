@@ -202,7 +202,7 @@
     },
     {
       "feature": "Editor tools",
-      "explanation": "On the Record step click the scissors icon. Cut: trim, cut sections, add a clip before or after, Remove silences (keeps the greeting pause at the start) and transitions. Look: shape (16:9, 1:1, 9:16), rotate, flip, zoom, brightness, contrast, saturation, warmth, vignette. Background: blur, a picture or a solid colour behind you (MediaPipe, frame by frame). Audio: waveform, volume, Make it louder (FFmpeg loudness), background music. Captions: burned-in captions in 5 styles plus .srt and .vtt downloads. Text & graphics: text, name and title, logo or picture (optionally with its background removed by BG0, in your browser), animated stickers. B-roll: a clip, a picture, or each prospect's own website, full screen or in a corner. Chapters: made from your captions and shown under the video. Export: file size. The video area plays your edits live; Apply edits renders them into a new video.",
+      "explanation": "On the Record step click the scissors icon. Cut: trim, cut sections, add a clip before or after, Remove silences (keeps the greeting pause at the start) and transitions. Look: shape (Same as recording, 16:9, 1:1, 9:16), rotate, flip, zoom, brightness, contrast, saturation, warmth, vignette. Background: blur, a picture or a solid colour behind you (MediaPipe, frame by frame). Audio: waveform, volume, Make it louder (FFmpeg loudness), background music. Captions: burned-in captions in 5 styles plus .srt and .vtt downloads. Text & graphics: text, name and title, logo or picture (optionally with its background removed by BG0, in your browser), animated stickers. B-roll: a clip, a picture, or each prospect's own website, full screen or in a corner. Chapters: made from your captions and shown under the video. Export: file size. The video area plays your edits live; Apply edits renders them from your original recording into a new video; new text, logos and stickers are placed where they cover nothing else, and a card warns you if something overlaps.",
       "whyToUse": "Polish one recording before it becomes hundreds of personal videos, with free tools that run in your browser."
     },
     {
@@ -356,8 +356,8 @@
       "answer": "No. Silence removal, colour, background blur, captions (Whisper), picture background removal (BG0), stickers, B-roll and FFmpeg all run in your browser. Only the AI voice and lip-sync use your MuAPI key."
     },
     {
-      "question": "Why should I change the background before adding text?",
-      "answer": "Changing the background treats everything behind you as background, so text or graphics already burned into the video would be blurred or replaced too. Apply the background first, then text, captions and graphics."
+      "question": "Can I change my edits after applying them?",
+      "answer": "Yes. Edits are always made from your original recording, so you can change, move or remove any text, caption or graphic and click Apply edits again: the new video replaces the old one (nothing is burned in twice). The background change is done first, before text and graphics, so they stay sharp, and it is reused when you only change other things."
     }
   ],
   "glossary": [

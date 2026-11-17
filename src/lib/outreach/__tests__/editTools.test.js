@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   blankEdit, normalizeEdit, hasRenderableEdits, silencesToCuts, toOutputTime, remapLines, linesToWords, chaptersFromLines,
-  newOverlay, newBroll, overlayClip, editProject, personalTracks, afterApply, isPersonal, lookTransform, STICKERS,
+  newOverlay, newBroll, overlayClip, editProject, personalTracks, isPersonal, lookTransform, STICKERS,
+  placeItem, overlapsOf, boxOf, resolveAspect, recipeKey, backgroundKey,
 } from '../editTools.js';
 import { buildSegments } from '../videoEdit.jsx';
 import { contactProfile } from '../draft.js';
@@ -21,7 +22,10 @@ describe('the Video Outreach edit recipe', () => {
     const e = normalizeEdit({ trimStart: 1, cuts: [[2, 3]], look: { rotate: 45, zoom: 9, contrast: 'x' }, transition: 'spin', audio: { music: { src: 'javascript:alert(1)' } } });
     expect(e.trimStart).toBe(1);
     expect(e.cuts).toEqual([[2, 3]]);
-    expect(e.look).toMatchObject({ rotate: 0, zoom: 3, contrast: 1, aspect: '16:9' });
+    expect(e.look).toMatchObject({ rotate: 0, zoom: 3, contrast: 1, aspect: 'auto' });
+    // A recipe saved before "Same as recording" had 16:9 as the default; a new one keeps a chosen 16:9.
+    expect(normalizeEdit({ look: { aspect: '9:16' } }).look.aspect).toBe('9:16');
+    expect(normalizeEdit({ v: 2, look: { aspect: '16:9' } }).look.aspect).toBe('16:9');
     expect(e.transition).toBe('none');
     expect(e.audio.music).toBeNull();
     expect(hasRenderableEdits(blankEdit(), main)).toBe(false);
@@ -83,7 +87,7 @@ describe('the Video Outreach edit recipe', () => {
     };
     const { project, seconds, aspect } = editProject({ main, edit, lines });
     expect(seconds).toBe(18.5);
-    expect(aspect).toBe('16:9');
+    expect(aspect).toBe('16:9'); // no size known for the recording
     const model = timelineToComposition(project, { quality: '720p' });
     const kinds = model.layers.map((l) => l.type || l.kind);
     expect(kinds.filter((k) => k === 'video')).toHaveLength(2);
@@ -93,9 +97,9 @@ describe('the Video Outreach edit recipe', () => {
     const v = model.layers.find((l) => l.kind === 'video');
     expect(v.effects.map((f) => f.id)).toEqual(['color-correction', 'vignette']);
     expect(v.flip).toEqual({ h: true, v: false });
-    expect(v.clipTransform).toMatchObject({ rotation: 90, scale: 0.563 });
-    expect(v.volume).toBe(0.8);
+        expect(v.volume).toBe(0.8);
     expect(v.fit).toBe('contain');
+    expect(v.clipTransform).toMatchObject({ rotation: 90 });
     expect(model.transitions).toHaveLength(1);
     expect(model.transitions[0]).toMatchObject({ presentation: 'fade', outgoingId: 'seg-0', incomingId: 'seg-1' });
     expect(model.audio).toEqual([expect.objectContaining({ src: 'https://cdn.x/music.mp3', volume: 0.2 })]);
@@ -103,7 +107,7 @@ describe('the Video Outreach edit recipe', () => {
     expect(caps.style).toMatchObject({ preset: 'tiktok', fontSize: 6 });
     expect(caps.captions[0]).toMatchObject({ text: 'I', startMs: 2000 });
     expect(model.layers.find((l) => l.type === 'overlay-sticker').options).toMatchObject({ kind: 'lottie', resolvedSrc: '/assets/sticker/animated-emoji/wave.json' });
-    expect(model.layers.find((l) => l.kind === 'image').clipTransform).toMatchObject({ scale: 0.36 });
+    expect(model.layers.find((l) => l.kind === 'image').clipTransform).toMatchObject({ scale: 0.34, x: -30, y: -30 });
     expect(model.durationInSeconds).toBe(18.5);
   });
 
@@ -125,7 +129,59 @@ describe('the Video Outreach edit recipe', () => {
     const model = timelineToComposition({ timelineSeconds: 20, tracks }, { profile: contactProfile({ id: 'c1', firstName: 'Mike', company: 'Linear', website: 'https://linear.app' }, { 'https://linear.app/': 'https://cdn.x/linear.jpg' }) });
     expect(model.layers.find((l) => l.type === 'overlay-text').options.text).toBe('Made for Linear');
     expect(model.layers.find((l) => l.kind === 'image').src).toBe('https://cdn.x/linear.jpg');
-    // After applying, only the personal parts stay in the recipe.
-    expect(afterApply({ ...edit, look: { saturation: 2 } })).toMatchObject({ overlays: [edit.overlays[0]], broll: edit.broll, look: { saturation: 1 } });
+  });
+
+  it('the shape follows the recording: a square recording makes a square video, with the picture filling it', () => {
+    expect(resolveAspect('auto', { width: 720, height: 720 })).toBe('1:1');
+    expect(resolveAspect('auto', { width: 1920, height: 1080 })).toBe('16:9');
+    expect(resolveAspect('auto', {})).toBe('16:9');
+    expect(resolveAspect('9:16', { width: 720, height: 720 })).toBe('9:16');
+    const { project, aspect } = editProject({ main: { ...main, width: 720, height: 720 }, edit: { ...blankEdit(), look: { ...blankEdit().look, saturation: 1.2 } } });
+    expect(aspect).toBe('1:1');
+    const model = timelineToComposition(project, { quality: '1080p', aspect });
+    expect(model).toMatchObject({ width: 1080, height: 1080 });
+    expect(model.layers[0].fit).toBe('contain');
+  });
+
+  it('new items go where nothing else is: other text, the website corner, the captions, the player label', () => {
+    let edit = { ...blankEdit(), captions: { ...blankEdit().captions, burn: true } };
+    const t1 = placeItem(newOverlay('text', { text: 'Save 2 hours a week', start: 0, end: 5 }), edit);
+    edit = { ...edit, overlays: [t1] };
+    const t2 = placeItem(newOverlay('text', { text: 'Made for {{company}}', start: 1, end: 4 }), edit);
+    expect(t2.top).not.toBe(t1.top);
+    expect(overlapsOf(t2, { ...edit, overlays: [t1, t2] })).toEqual([]);
+    // A text shown at another time can use the same place.
+    expect(placeItem(newOverlay('text', { start: 10, end: 12 }), edit).top).toBe(t1.top);
+    edit = { ...edit, overlays: [t1, t2] };
+    const site = placeItem(newBroll('website', { start: 0, end: 6, mode: 'pip' }), edit);
+    edit = { ...edit, broll: [site] };
+    const rocket = placeItem(newOverlay('sticker', { start: 0, end: 3 }), edit);
+    const all = { ...edit, overlays: [t1, t2, rocket] };
+    expect(overlapsOf(site, all)).toEqual([]);
+    expect(overlapsOf(rocket, all)).toEqual([]);
+    // Nothing sits in the captions band or under the player's label.
+    [t1, t2, rocket].forEach((o) => expect(boxOf(o).top + boxOf(o).height).toBeLessThanOrEqual(72));
+    // The warning names what an item covers.
+    const moved = { ...t2, top: t1.top };
+    expect(overlapsOf(moved, { ...all, overlays: [t1, moved] })[0]).toMatch(/the text “Save 2 hours a week”/);
+  });
+
+  it('a re-apply renders from the original with the whole recipe; the background pass is reused while it matches', () => {
+    const e = { ...blankEdit(), overlays: [newOverlay('text', { text: 'Hi' })] };
+    const k1 = recipeKey(e, 'https://cdn.x/rec.mp4');
+    expect(recipeKey({ ...e }, 'https://cdn.x/rec.mp4')).toBe(k1);
+    expect(recipeKey({ ...e, overlays: [{ ...e.overlays[0], text: 'Hello' }] }, 'https://cdn.x/rec.mp4')).not.toBe(k1);
+    // Personal text is not part of the render.
+    expect(recipeKey({ ...e, overlays: [...e.overlays, newOverlay('text', { text: '{{company}}' })] }, 'https://cdn.x/rec.mp4')).toBe(k1);
+    expect(backgroundKey('u', { mode: 'none' })).toBe('');
+    expect(backgroundKey('u', { mode: 'blur', blur: 0.6 })).toBe(backgroundKey('u', { mode: 'blur', blur: 0.6 }));
+    expect(hasRenderableEdits({ ...blankEdit(), background: { mode: 'blur' } }, main)).toBe(true);
+  });
+
+  it('text starts small and inside a box that fits it', () => {
+    const t = newOverlay('text');
+    expect(t).toMatchObject({ size: 5, width: 70 });
+    expect(overlayClip(t).addon).toMatchObject({ fontSize: 5, fontDecorations: { responsive: true } });
+    expect(newOverlay('lower')).toMatchObject({ width: 40, height: 17.8 });
   });
 });

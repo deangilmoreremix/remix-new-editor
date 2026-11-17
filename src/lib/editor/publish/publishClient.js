@@ -135,6 +135,8 @@ export function preparePublishProject(state, { title } = {}) {
     version: PROJECT_VERSION,
     title: String(title || state?.projectTitle || 'Untitled video').slice(0, 200),
     timelineSeconds: Number(state?.timelineSeconds) || 60,
+    // The frame's shape ("W:H"), when it isn't 16:9 (a square or vertical Video Outreach recording).
+    ...(/^\d{1,4}:\d{1,4}$/.test(String(state?.aspect || '')) && state.aspect !== '16:9' ? { aspect: state.aspect } : {}),
     tracks,
     listBuilder: state?.listBuilder ? clean(state.listBuilder) : null,
     multiCam: state?.multiCam ? clean(state.multiCam) : null,

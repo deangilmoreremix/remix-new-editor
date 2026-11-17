@@ -109,11 +109,16 @@ async function uploadToStorage(file) {
 }
 
 function videoDuration(url) {
+  return videoMeta(url).then((m) => m.duration);
+}
+
+/** Length and picture size of a video (0s when it can't be read). */
+function videoMeta(url) {
   return new Promise((resolve) => {
     const v = document.createElement('video');
     v.preload = 'metadata';
-    v.onloadedmetadata = () => resolve(Number.isFinite(v.duration) ? v.duration : 0);
-    v.onerror = () => resolve(0);
+    v.onloadedmetadata = () => resolve({ duration: Number.isFinite(v.duration) ? v.duration : 0, width: v.videoWidth || 0, height: v.videoHeight || 0 });
+    v.onerror = () => resolve({ duration: 0, width: 0, height: 0 });
     v.src = url;
   });
 }
@@ -166,7 +171,9 @@ export function OutreachStudio() {
   }
 
   // ---- Step 1: Record ----------------------------------------------------
-  async function addVideo(blob, { duration, hasAudio = true, type = 'upload', name = 'outreach.webm', keepCaptions = false } = {}) {
+  // A new recording (or upload, or a video picked from the library) becomes the original that every edit is made
+  // from (draft.sourceVideo) and, until edits are applied, the campaign video itself (draft.video).
+  async function addVideo(blob, { duration, hasAudio = true, type = 'upload', name = 'outreach.webm' } = {}) {
     if (!(await gate('Video Outreach'))) return;
     notice = '';
     setBusy('Uploading your video…');
@@ -174,11 +181,16 @@ export function OutreachStudio() {
       recordingBlob = blob;
       const file = blob instanceof File ? blob : new File([blob], name, { type: blob.type || 'video/webm' });
       const url = await uploadToStorage(file);
-      const seconds = duration || await videoDuration(url);
+      const meta = await videoMeta(url);
+      const seconds = duration || meta.duration;
       draft.video = { url, duration: Math.round(seconds), hasAudio, type };
-      // A new recording means new captions, a new voice sample and greeting (unless only its look changed).
-      if (!keepCaptions) { draft.captions = null; draft.chapters = []; }
-      edit = startEdit(tools ? tools.afterApply(edit) : null);
+      draft.video = { ...draft.video, width: meta.width, height: meta.height };
+      draft.sourceVideo = { ...draft.video };
+      draft.videoSegs = null; draft.appliedKey = null; draft.bgCache = null;
+      // A new recording means new captions, a new voice sample and greeting. Your look, text and graphics stay;
+      // trims and cuts belonged to the old recording.
+      draft.captions = null; draft.chapters = [];
+      edit = { ...edit, trimStart: 0, trimEnd: null, cuts: [] };
       waveCache = null;
       draft.voice = { ...draft.voice, fallbackUrl: '', fallbackDuration: 0 };
       persist();
@@ -218,6 +230,22 @@ export function OutreachStudio() {
   let toolsUi = null; // src/components/outreach/EditorTools.js
   const startEdit = (saved) => (tools ? tools.normalizeEdit(saved || {}) : { ...{ trimStart: 0, trimEnd: null, cuts: [], before: null, after: null }, ...(saved || {}), before: null, after: null });
   let edit = startEdit(draft.edit);
+  // Drafts from before editing kept the original: their video is the original.
+  if (draft.video?.url && !draft.sourceVideo?.url) draft.sourceVideo = { ...draft.video };
+  const source = () => draft.sourceVideo || draft.video;
+  const sourceMain = () => { const v = source(); return { src: v.url, duration: v.duration, width: v.width, height: v.height }; };
+  // Captions and chapters are kept on the original's timeline; what prospects see follows the applied cuts.
+  const outLines = (lines) => (draft.videoSegs && tools ? tools.remapLines(lines || [], draft.videoSegs, 'source') : (lines || []));
+  const outputCaptions = () => {
+    const c = draft.captions;
+    if (!c?.lines?.length || !draft.videoSegs || !tools) return c;
+    return { ...c, lines: outLines(c.lines), translations: Object.fromEntries(Object.entries(c.translations || {}).map(([k, v]) => [k, outLines(v)])) };
+  };
+  const outputChapters = () => (draft.chapters || []).map((c) => {
+    if (!draft.videoSegs || !tools) return c;
+    const t = tools.toOutputTime(c.startMs / 1000, draft.videoSegs, 'source');
+    return t == null ? null : { ...c, startMs: Math.round(t * 1000) };
+  }).filter(Boolean);
   let editTab = 'cut';
   let waveCache = null;
   const fmtS = (n) => `${Math.floor(n / 60)}:${(n % 60).toFixed(1).padStart(4, '0')}`;
@@ -226,7 +254,7 @@ export function OutreachStudio() {
     const box = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
     box.setAttribute('data-outreach-edit', '');
     box.appendChild(el('div', 'text-sm font-bold', 'Trim and cut'));
-    const dur = draft.video.duration || 0;
+    const dur = source().duration || 0;
     const end = edit.trimEnd ?? dur;
     const slider = (label, value, onInput, attr) => {
       const row = el('label', 'flex items-center gap-3 text-xs');
@@ -286,7 +314,7 @@ export function OutreachStudio() {
 
   // The Apply bar under every editor tool: what will change, and Apply edits.
   function renderApplyBar() {
-    const dur = draft.video.duration || 0;
+    const dur = source().duration || 0;
     const total = editSegmentsInfo();
     const row = el('div', 'flex flex-wrap items-center gap-2');
     const apply = button('Apply edits', { primary: total.changed, small: true });
@@ -295,13 +323,19 @@ export function OutreachStudio() {
     apply.addEventListener('click', applyEdits);
     const personal = tools ? edit.overlays.filter(tools.isPersonal).length + edit.broll.filter(tools.isPersonal).length : 0;
     row.append(apply, el('span', 'text-xs text-white/50', [
-      total.changed ? `New length ${fmtS(total.seconds)} (was ${fmtS(dur)}).` : 'No changes to render yet.',
+      total.changed ? `Renders your recording with these edits: ${fmtS(total.seconds)} long (the recording is ${fmtS(dur)}).` : (draft.appliedKey ? 'Your edits are applied. Change anything and apply again: edits are always made from your original recording.' : 'No changes to render yet.'),
       personal ? `${personal} personal addition${personal === 1 ? '' : 's'} added to each prospect’s video (not burned in).` : '',
     ].filter(Boolean).join(' ')));
     return row;
   }
 
   let editModule = null;
+  // The original as the editor uses it: with the background pass when one is applied and still matches.
+  const editBase = () => {
+    const main = sourceMain();
+    const key = tools?.backgroundKey(main.src, edit.background);
+    return key && draft.bgCache?.key === key ? { ...main, src: draft.bgCache.url } : main;
+  };
   function editSegmentsInfo() {
     if (!editModule || !tools) {
       Promise.all([import('../lib/outreach/videoEdit.jsx'), import('../lib/outreach/editTools.js'), import('./outreach/EditorTools.js')]).then(([m, t, ui]) => {
@@ -310,11 +344,18 @@ export function OutreachStudio() {
       });
       return { unchanged: true, changed: false, seconds: 0 };
     }
-    const main = { src: draft.video.url, duration: draft.video.duration };
+    // Recordings saved before their size was kept: measure it once (the shape "Same as recording" needs it).
+    const src = source();
+    if (src?.url && !src.width && !measuring) {
+      measuring = true;
+      videoMeta(src.url).then((m) => { if (m.width) { draft.sourceVideo = { ...source(), width: m.width, height: m.height }; persist(); if (step === 1) render(); } });
+    }
+    const main = editBase();
     const segs = editModule.buildSegments({ main, edits: edit, before: edit.before, after: edit.after });
-    const unchanged = editModule.isUnchanged(segs, main);
-    return { segs, unchanged, changed: tools.hasRenderableEdits(edit, main), seconds: editModule.segmentsDuration(segs) };
+    const upToDate = tools.hasRenderableEdits(edit, main) ? draft.appliedKey === tools.recipeKey(edit, sourceMain().src) : draft.video?.url === src.url;
+    return { segs, changed: !upToDate, seconds: editModule.segmentsDuration(segs) };
   }
+  let measuring = false;
 
   // Only trims, cuts and clips before/after: the quick segment render. Anything else (look, captions, text, music,
   // B-roll, transitions): the timeline renderer (the same composition the preview shows), then FFmpeg when asked.
@@ -325,18 +366,39 @@ export function OutreachStudio() {
   };
   const busyText = (t) => { busy = t; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; };
 
+  // Apply edits: always from the original recording, so changing or removing a text later replaces it instead of
+  // adding a second one. 1) the background (MediaPipe, kept for next time), 2) everything else on top, so text,
+  // captions and graphics stay sharp.
   async function applyEdits() {
-    const { segs } = editSegmentsInfo();
-    if (!segs) return;
+    if (!editModule || !tools) return;
     abort = new AbortController();
     stopPreview();
     try {
       setBusy('Applying edits…');
-      const main = { src: draft.video.url, duration: draft.video.duration };
-      let blob; let duration; let mime;
-      if (onlyCuts()) {
-        const out = await editModule.renderSegments(segs, { signal: abort.signal, onProgress: (p) => busyText(`Applying edits… ${Math.round(p * 100)}%`) });
-        ({ blob, duration } = out); mime = out.mimeType;
+      const original = sourceMain();
+      const key = tools.recipeKey(edit, original.src);
+      // Nothing to render: the campaign uses the original as it is.
+      if (!tools.hasRenderableEdits(edit, original) && !tools.backgroundKey(original.src, edit.background)) {
+        await setEditedVideo(null, { key });
+        return;
+      }
+      const bgKey = tools.backgroundKey(original.src, edit.background);
+      if (bgKey && draft.bgCache?.key !== bgKey) {
+        busyText('Changing the background: loading MediaPipe…');
+        const { backgroundVideo } = await import('../lib/outreach/mediaTools.js');
+        const blob = await backgroundVideo(original.src, edit.background, { signal: abort.signal, onProgress: (p) => busyText(`Changing the background… ${Math.round(p * 100)}%`) });
+        const url = await uploadToStorage(new File([blob], 'background.webm', { type: 'video/webm' }));
+        draft.bgCache = { key: bgKey, url };
+        persist();
+      }
+      const main = editBase();
+      const segs = editModule.buildSegments({ main, edits: edit, before: edit.before, after: edit.after });
+      const { frameForAspect } = await import('../lib/editor/remotion/timelineToComposition.js');
+      let blob; let duration;
+      const size = frameForAspect('1080p', tools.resolveAspect(edit.look.aspect, original));
+      if (onlyCuts() && editModule.segmentsDuration(segs) > 0) {
+        const out = await editModule.renderSegments(segs, { ...size, signal: abort.signal, onProgress: (p) => busyText(`Applying edits… ${Math.round(p * 100)}%`) });
+        ({ blob, duration } = out);
       } else {
         const [{ timelineToComposition }, { exportModel }, media] = await Promise.all([
           import('../lib/editor/remotion/timelineToComposition.js'),
@@ -350,23 +412,36 @@ export function OutreachStudio() {
           busyText('Finishing with FFmpeg…');
           blob = await media.finishVideo(blob, { louder: edit.audio.louder, quality: edit.quality, signal: abort.signal, onProgress: (p) => busyText(`Finishing with FFmpeg… ${Math.round(p * 100)}%`) });
         }
-        duration = seconds; mime = blob.type || 'video/mp4';
+        duration = seconds;
       }
-      // Captions and chapters follow the cuts, so the transcript still matches the new video.
-      const lines = draft.captions?.lines?.length ? tools.remapLines(draft.captions.lines, segs, main.src) : null;
-      const chapters = (draft.chapters || []).map((c) => ({ ...c, startMs: Math.round((tools.toOutputTime(c.startMs / 1000, segs, main.src) ?? -1) * 1000) })).filter((c) => c.startMs >= 0);
-      abort = null; busy = '';
-      await addVideo(blob, { duration, hasAudio: draft.video.hasAudio, type: draft.video.type, name: `edited.${/webm/.test(mime) ? 'webm' : 'mp4'}`, keepCaptions: true });
-      if (draft.captions && lines) draft.captions = { ...draft.captions, lines, translations: {} };
-      draft.chapters = chapters;
-      persist();
-      notice = 'Edits applied. Check the voice step: the voice sample comes from the new video.';
-      render();
+      // Captions and chapters stay on the original's timeline; these segments map them onto the new video.
+      const videoSegs = segs.map((x) => ({ ...x, src: x.src === main.src ? 'source' : 'clip' }));
+      await setEditedVideo(blob, { key, duration, videoSegs, size });
     } catch (err) {
       abort = null;
       if (err?.name === 'AbortError' || /Stopped|cancel/i.test(err?.message || '')) { busy = ''; notice = 'Stopped.'; render(); return; }
       fail(err);
     }
+  }
+
+  // The campaign video becomes the rendered edit (or the original again when blob is null).
+  async function setEditedVideo(blob, { key, duration = 0, videoSegs = null, size = null }) {
+    const original = source();
+    if (blob) {
+      const name = `edited.${/webm/.test(blob.type) ? 'webm' : 'mp4'}`;
+      const url = await uploadToStorage(new File([blob], name, { type: blob.type || 'video/mp4' }));
+      draft.video = { url, duration: Math.round(duration || original.duration), hasAudio: original.hasAudio, type: original.type, ...(size || {}) };
+    } else {
+      draft.video = { url: original.url, duration: original.duration, hasAudio: original.hasAudio, type: original.type, width: original.width, height: original.height };
+    }
+    draft.videoSegs = videoSegs;
+    draft.appliedKey = key;
+    // The voice sample and greeting come from the campaign video.
+    draft.voice = { ...draft.voice, fallbackUrl: '', fallbackDuration: 0 };
+    abort = null; busy = '';
+    persist();
+    notice = blob ? 'Edits applied. Check the voice step: the voice sample comes from the new video.' : 'Back to your original recording.';
+    render();
   }
 
   // ---- The editor's other tools (src/components/outreach/EditorTools.js) -------------------------
@@ -378,7 +453,7 @@ export function OutreachStudio() {
 
   async function previewModel() {
     const { timelineToComposition } = await import('../lib/editor/remotion/timelineToComposition.js');
-    const main = { src: draft.video.url, duration: draft.video.duration };
+    const main = editBase();
     const { project, seconds, aspect } = tools.editProject({ main, edit, lines: draft.captions?.lines || [] });
     // Personal additions preview for the first prospect.
     project.tracks.push(...tools.personalTracks(edit, seconds, { fallbackShot: Object.values(draft.siteShots || {})[0] || '' }));
@@ -430,7 +505,7 @@ export function OutreachStudio() {
       } catch (err) { fail(err); return null; }
     },
     waveform: async () => {
-      const src = draft.video.url;
+      const src = source().url;
       if (waveCache?.src !== src) { const { waveformBars } = await import('../lib/outreach/mediaTools.js'); waveCache = { src, bars: await waveformBars(src) }; }
       return waveCache.bars;
     },
@@ -441,36 +516,20 @@ export function OutreachStudio() {
         const { detectSilencesIn } = await import('../lib/outreach/mediaTools.js');
         const { speechStart } = await import('../lib/outreach/lipsync.js');
         const opt = SILENCE[level] || SILENCE.normal;
-        const silences = await detectSilencesIn(draft.video.url, { thresholdDb: opt.thresholdDb, signal: abort.signal });
+        const silences = await detectSilencesIn(source().url, { thresholdDb: opt.thresholdDb, signal: abort.signal });
         // The greeting plays in the opening pause: keep it.
         const keepStart = draft.kind === 'same' ? 0 : speechStart(silences);
-        const cuts = tools.silencesToCuts(silences, { minSec: opt.minSec, keepStart, duration: draft.video.duration });
-        edit.cuts = editModule.normalizeCuts([...edit.cuts, ...cuts], draft.video.duration);
+        const cuts = tools.silencesToCuts(silences, { minSec: opt.minSec, keepStart, duration: source().duration });
+        edit.cuts = editModule.normalizeCuts([...edit.cuts, ...cuts], source().duration);
         abort = null; busy = '';
         notice = cuts.length ? `Cut ${cuts.length} pause${cuts.length === 1 ? '' : 's'} (${fmtS(cuts.reduce((n, [a, b]) => n + b - a, 0))}). Undo any of them in the list.` : 'No long pauses found.';
         persist(); render();
       } catch (err) { abort = null; if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped.'; render(); return; } fail(err); }
     },
-    applyBackground: async () => {
-      abort = new AbortController();
-      stopPreview();
-      try {
-        setBusy('Changing the background: loading MediaPipe…');
-        const { backgroundVideo } = await import('../lib/outreach/mediaTools.js');
-        const blob = await backgroundVideo(draft.video.url, edit.background, { signal: abort.signal, onProgress: (p) => busyText(`Changing the background… ${Math.round(p * 100)}%`) });
-        abort = null; busy = '';
-        const keep = { ...edit, background: { ...edit.background, mode: 'none' } };
-        await addVideo(blob, { duration: draft.video.duration, hasAudio: draft.video.hasAudio, type: draft.video.type, name: 'background.webm', keepCaptions: true });
-        edit = { ...keep, before: edit.before, after: edit.after };
-        persist();
-        notice = 'Background changed. Your other edits are still here.';
-        render();
-      } catch (err) { abort = null; if (err?.name === 'AbortError' || /Stopped/.test(err?.message || '')) { busy = ''; notice = 'Stopped.'; render(); return; } fail(err); }
-    },
     makeCaptions: () => makeCaptions(),
     captionsFile: async (fmt) => {
       const { captionsToSrt, captionsToVtt } = await import('../lib/editor/remotion/captions.js');
-      const lines = draft.captions?.lines || [];
+      const lines = outLines(draft.captions?.lines || []);
       const text = fmt === 'vtt' ? captionsToVtt(lines) : captionsToSrt(lines);
       const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: fmt === 'vtt' ? 'text/vtt' : 'application/x-subrip' }));
       a.download = `${(draft.name || 'captions').replace(/[^\w-]+/g, '-')}.${fmt}`; a.click();
@@ -488,7 +547,8 @@ export function OutreachStudio() {
     if (!tools || !toolsUi) { editSegmentsInfo(); wrap.appendChild(el('p', 'text-xs text-white/50', 'Loading the editor…')); return wrap; }
     wrap.appendChild(toolsUi.renderEditorTools({
       tab: editTab, setTab: (t) => { editTab = t; render(); },
-      edit, update: editUpdate, now: previewTime, seconds: editSegmentsInfo().seconds || draft.video.duration,
+      edit, update: editUpdate, now: previewTime, seconds: editSegmentsInfo().seconds || source().duration,
+      sender: draft.sender || {},
       lines: draft.captions?.lines || [], chapters: draft.chapters || [], setChapters: (list) => { draft.chapters = list; persist(); render(); },
       actions: editActions, cutPanel: renderEditPanel(),
     }));
@@ -547,7 +607,7 @@ export function OutreachStudio() {
         import('../lib/editor/remotion/transcribe.js'),
         import('../lib/outreach/transcript.js'),
       ]);
-      const { captions } = await transcribeInBrowser(draft.video.url, {
+      const { captions } = await transcribeInBrowser(source().url, {
         signal: abort.signal,
         onProgress: (p) => { busy = p.stage === 'download' ? `Downloading the speech model… ${Math.round((p.progress || 0) * 100)}%` : 'Making captions…'; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; },
       });
@@ -1503,8 +1563,12 @@ export function OutreachStudio() {
       ]);
       // Personal text and "their website" B-roll from the editor ride on every prospect's video.
       const t = tools || await import('../lib/outreach/editTools.js');
+      if (!tools) tools = t;
       const extraTracks = draft.edit ? (T) => t.personalTracks(draft.edit, T, { fallbackShot: Object.values(draft.siteShots || {})[0] || '' }) : null;
-      const built = buildCampaignProject(draft, { variants, lipsync, extraTracks });
+      // The transcript and chapters as they fall in the edited video (they are kept on the original's timeline).
+      if (draft.video?.url && !draft.video.width) { const m = await videoMeta(draft.video.url); if (m.width) draft.video = { ...draft.video, width: m.width, height: m.height }; }
+      const aspect = draft.video?.width ? t.resolveAspect('auto', draft.video) : '';
+      const built = buildCampaignProject({ ...draft, captions: outputCaptions(), chapters: outputChapters() }, { variants, lipsync, extraTracks, aspect });
       const project = preparePublishProject(built, { title: built.title });
       const id = draft.campaign?.id || makeSlug();
       await publishVideo(await ownerClient(), { id, project });
