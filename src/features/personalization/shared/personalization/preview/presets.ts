@@ -788,8 +788,11 @@ export function addDesignTemplate(
   if (!design) return prev
   const layers = Array.isArray(prev.layers) ? prev.layers : []
   if (layers.some((l) => l && l.kind === 'design' && l.designId === design.id)) return prev
-  const built = applyDesignTemplate({ ...prev, layers: [] }, design.id, ctx).layers[0]
-  if (!built) return prev
+  const first = applyDesignTemplate({ ...prev, layers: [] }, design.id, ctx).layers[0]
+  if (!first) return prev
+  // Every design layer is created with the id 'design'; a second one needs its own id, or removing, editing or
+  // selecting one would act on both.
+  const built = layers.some((l) => l && l.id === first.id) ? { ...first, id: `design-${design.id}` } : first
   return { ...prev, layers: [...layers, built], remotionDesignId: prev.remotionDesignId ?? design.id }
 }
 
