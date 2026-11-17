@@ -3,9 +3,9 @@
  * (escaped), links/images go through safeUrl/safeImageUrl, and the video / lead form keep the same tracking
  * events and token rules as the classic renderer.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fillTokens, splitAccent, prefillFor, safeUrl, safeImageUrl } from '../templates.js';
-import { usePage } from './context.js';
+import { usePage, useThanks } from './context.js';
 import { ICON_PATHS } from '../siteIcons.js';
 
 const MARKS = [{ at: 0.25, kind: 'progress_25' }, { at: 0.5, kind: 'progress_50' }, { at: 0.75, kind: 'progress_75' }];
@@ -162,8 +162,9 @@ const split = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Bool
 export function EmailSignup({ placeholder = 'Enter your email', label = 'Subscribe', source = '', className = '' }) {
   const { handlers, preview } = usePage();
   const t = useTokens();
+  const thanks = useThanks();
   const [state, setState] = useState({ status: 'idle', error: '' });
-  if (state.status === 'done') return <p className="pk-thanks">Thanks! Check your inbox.</p>;
+  if (state.status === 'done') return <p className="pk-thanks">{t(thanks) || 'Thanks!'}</p>;
   const onSubmit = async (e) => {
     e.preventDefault();
     if (preview) { setState({ status: 'idle', error: 'Preview only: nothing is sent.' }); return; }
@@ -431,14 +432,14 @@ export function KpiCard({ columns, title, value, note }) {
   );
 }
 
-export function ScheduleCard({ columns, title, text, month, days, time, buttonLabel }) {
+export function ScheduleCard({ columns, title, text, month, days, time, buttonLabel , weekdays }) {
   const t = useTokens();
   return (
     <CardShell columns={columns}>
       <h3 className="pk-card-title">{t(title)}</h3>
       {text ? <p className="pk-card-text">{t(text)}</p> : null}
       {month ? <div className="pk-cal-month">{t(month)}</div> : null}
-      <div className="pk-cal-grid pk-cal-head">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => <span key={d}>{d}</span>)}</div>
+      <div className="pk-cal-grid pk-cal-head">{(split(weekdays).length ? split(weekdays) : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => <span key={i}>{d}</span>)}</div>
       <div className="pk-cal-grid">{split(days).map((d, i) => <span key={i} className={`pk-cal-day${d.startsWith('*') ? ' is-on' : ''}`}>{d.replace(/^\*/, '')}</span>)}</div>
       {time ? <div className="pk-cal-time">{t(time)}</div> : null}
       {buttonLabel ? <a className="pk-btn pk-btn--primary" href="#lead">{t(buttonLabel)}</a> : null}
@@ -506,4 +507,24 @@ export function CtaBar({ text, label, url, icon, icons }) {
       <a className="pk-btn pk-btn--cta" href={href} {...ext}>{t(label)}</a>
     </section>
   );
+}
+
+/**
+ * "#lead" buttons scroll to the hero form. Designs without a hero form keep their form in the contact band
+ * (id="contact"), so those buttons fall back to it. Done on click, so no element needs a duplicate id.
+ */
+export function LeadAnchorFallback() {
+  useEffect(() => {
+    const onClick = (e) => {
+      const a = e.target?.closest?.('a[href="#lead"]');
+      if (!a || document.getElementById('lead')) return;
+      const target = document.getElementById('contact');
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, []);
+  return null;
 }
