@@ -11,6 +11,7 @@ import { TimelineBottomBar } from './timeline-bottom-bar';
 import { ResizeHandle } from './resize-handle';
 import { activeGlTransition } from '@cinegen/lib/occ/transitions';
 import { useRecorder } from '../../../openchatcut/audio/recorder';
+import { LiveCaptionStrip } from './live-caption-strip'; // [remix] live captions while recording (Web Speech API, on this device)
 import { SoundLibraryPopup } from './sound-library-popup';
 import { StockMediaPopup } from './stock-media-popup';
 import { useMediaBrowser } from './use-media-browser';
@@ -1203,6 +1204,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         {dropNote && <div role="status" data-testid="library-drop-note" style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: 'rgba(8,12,18,.92)', border: '1px solid var(--accent, #22d3ee)', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 12 }}>{dropNote}</div>}
         {recorder.error && <div role="alert" data-testid="record-error" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#7f1d1d', color: '#fff', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>{recorder.error}</div>}
         {recorder.recording && <div role="status" data-testid="recording-chip" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#0b1016', color: '#f87171', border: '1px solid #f87171', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>● Recording voice-over… click the mic to stop</div>}
+        <LiveCaptionStrip recording={recorder.recording} />
         {soundLibrary && <SoundLibraryPopup onClose={() => setSoundLibrary(false)} onAdd={handleAddSound} />}
         {mediaBrowser.open && <StockMediaPopup onClose={() => mediaBrowser.setOpen(false)} onAdd={mediaBrowser.handleAddStock} onGenerate={mediaBrowser.handleGenerateAi} assets={state.assets} onAddAsset={(a) => mediaBrowser.placeAtPlayhead(a)} />}
 

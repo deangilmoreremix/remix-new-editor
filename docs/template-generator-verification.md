@@ -73,6 +73,16 @@ Design pictures: the studio's New page screen draws the editable designs live an
 Verified: the picker opening with the generator's video, above the generator window, and reporting the saved page (tests with the picker faked), and the picker's own tests.
 **Not verified (needs a real sign-in and the shared project, so I did not create test pages there):** a real render → "Save as my page" in the live app (the upload and the draft row), and the saved page showing in Video Pages. Check: render, press the button, pick a design, edit if you like, "Save as my page", then open Video Pages and confirm the draft with your video.
 
-## 9. Other notes
+## 9. Live captions while recording (the new editor's voice-over recorder)
+While the microphone voice-over recorder runs (the record button in the Edit tab's tool sidebar), a strip shows what is being said, using the browser's Web Speech API (`src/lib/editor/speech/liveCaptions.js`, the strip is `src/cinegen/components/edit/live-caption-strip.tsx`).
+- **On this device by default** (`processLocally`): needs a browser with the on-device check (Chrome 139+) and the language pack. If the pack is not downloaded the strip offers "Download it"; nothing listens until it is there.
+- **The browser's online service only on a click** ("Use the browser's online service"): in Chrome it sends the audio to the browser's provider, and the strip says so. The choice is remembered in this browser (`remix.liveCaptions.browserService`).
+- It is a **live preview with no word timing**. Timed, styled captions come afterwards from the clip's "Generate captions" (Whisper) in the Captions section.
+- Firefox has no speech recognition; the strip says so.
+
+Verified: the engine and the strip with a stand-in recognizer (tests), and the real Chrome 153 API surface in headless Chrome: the recognizer exists and `available({ langs: ['en-US'], processLocally: true })` answers `downloadable`.
+**Not verified (needs a real microphone and the language pack):** a real recording with live text on this device and via the online service; the pack download (it comes from the browser vendor), other languages, and Safari/Edge behaviour. The language is English (US) for now.
+
+## 10. Other notes
 - `public/motion-studio/legacy-textures/agent-stream.jpg` is a generated placeholder (the original artwork was never committed in this repo or in `develop`). Replace it with the real image when you have it.
 - Merging the pull request is done in GitHub.
