@@ -29,6 +29,8 @@ export interface AssStyle {
   animation: AssAnimation
   /** Colour of the box of a `box` look when it should differ from the highlight colour. */
   boxColor?: string
+  /** A box behind the whole caption (every word), with its own colour and opacity 0-1. Independent of the word effect. */
+  background?: { color: string; opacity: number }
 }
 
 /** `group` = which caption the word belongs to: words of different captions are never shown together. */
@@ -134,10 +136,12 @@ export function generateAss(o: AssOptions): string {
   const fontSize = Math.floor(style.fontSize * fontScale * dim)
   const primary = assColor(style.primaryColor)
   let outline: number, shadow: number, borderStyle: number, outlineColour: string, backColour: string
-  if (isBox) {
+  const bg = style.background
+  if (isBox || bg) {
     borderStyle = 3
     outline = round1(Math.max(style.outlineSize, 8) * fontScale * dim)
-    outlineColour = assColor(style.outlineColor, 255) // inactive words get no box
+    // With a background every word sits on it; with only the word effect, inactive words get no box.
+    outlineColour = bg ? assColor(bg.color, Math.round((1 - Math.min(1, Math.max(0, bg.opacity))) * 255)) : assColor(style.outlineColor, 255)
     shadow = 0
     backColour = assColor('#000000', 255)
   } else {

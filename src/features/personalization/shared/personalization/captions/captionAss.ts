@@ -6,8 +6,7 @@ import { detectScript, representativeLanguage } from './scripts'
 /**
  * The project's captions as an .ass file (Advanced SubStation Alpha) for editors and players that take styled subtitles. Lines that have the
  * real time of each word use it; the others share the line's time between their words by length. A Capite look keeps its font, colours,
- * outline and word effect; the three built-in looks are given matching numbers (the dark bar of "Bar" has no ASS equivalent and is drawn as
- * a plain outlined style).
+ * outline and word effect; the three built-in looks are given matching numbers (the dark bar of "Bar" is exported as a box behind the whole caption).
  */
 const POSITION_PCT = { bottom: 10, middle: 46, top: 86 } as const
 
@@ -30,6 +29,11 @@ export function captionsToAss(c: PreviewCaptions, o: { width: number; height: nu
         outlineColor: look.outlineColor, shadowColor: look.shadowColor, shadowAlpha: look.shadowAlpha, outlineSize: look.outlineSize, shadowDepth: look.shadowDepth,
         bold: look.bold, italic: look.italic, letterSpacing: look.letterSpacing, wordSpacing: look.wordSpacing, animation: look.animationType as AssAnimation,
       }
-    : { ...BUILT_IN[(c.style === 'bar' || c.style === 'clean' ? c.style : 'bold') as 'bold' | 'bar' | 'clean'], highlightColor: c.style === 'bold' ? o.accent : '#FFFFFF' }
+    : {
+        ...BUILT_IN[(c.style === 'bar' || c.style === 'clean' ? c.style : 'bold') as 'bold' | 'bar' | 'clean'],
+        highlightColor: c.style === 'bold' ? o.accent : '#FFFFFF',
+        // The Bar look: white text on a dark bar behind the whole caption.
+        ...(c.style === 'bar' ? { background: { color: '#000000', opacity: 0.68 } } : {}),
+      }
   return generateAss({ words, width: o.width, height: o.height, style, language, positionPct: POSITION_PCT[c.position], casing: look ? 'uppercase' : 'original' })
 }

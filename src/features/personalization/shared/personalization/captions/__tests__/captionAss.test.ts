@@ -56,4 +56,8 @@ describe('captionsToAss', () => {
     expect(d[0]).toContain('0:00:00.00,0:00:00.99')
     expect(d[1]).toContain('0:00:10.00,0:00:10.99')
   })
+  it('exports the Bar look with its dark bar behind the text', () => {
+    const ass = captionsToAss(caps({ style: 'bar' }), opts)
+    expect(ass).toMatch(/,100,100,[^,]*,0,3,/) // BorderStyle 3: a box behind the whole caption
+  })
 })

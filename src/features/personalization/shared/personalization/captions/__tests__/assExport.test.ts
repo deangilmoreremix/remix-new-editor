@@ -162,4 +162,22 @@ describe('generateAss', () => {
     })
   })
 
+  describe('a background behind the whole caption', () => {
+    const gen = (style: AssStyle) => generateAss({ words, width: 1080, height: 1920, style })
+    it('draws an opaque box behind every word, in its own colour and opacity, whatever the word effect', () => {
+      const ass = gen({ ...base, animation: 'highlight', background: { color: '#112233', opacity: 0.5 } })
+      expect(ass).toMatch(/,100,100,0,0,3,/) // BorderStyle 3: opaque box
+      expect(ass).toContain('&H80332211') // #112233 at half opacity (alpha 0x80), channels reversed
+      expect(dialogues(ass)[0]).not.toContain('\\3a&H00&') // no per-word box effect
+    })
+    it('keeps the plain outline style when there is no background', () => {
+      expect(gen({ ...base, animation: 'highlight' })).toMatch(/,100,100,0,0,1,/)
+    })
+    it('lets the word box effect sit on the background: inactive words show the background, the spoken word the effect colour', () => {
+      const ass = gen({ ...base, animation: 'box', background: { color: '#000000', opacity: 1 } })
+      expect(ass).toContain('&H00000000') // the background is opaque black, not hidden (alpha FF)
+      expect(dialogues(ass)[1]).toContain('\\3a&H00&')
+    })
+  })
+
 })
