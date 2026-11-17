@@ -20,11 +20,18 @@ export function SampleAnalytics() {
       </div>
       <div className="cg-sample__chart">
         <div className="cg-sample__label">Audience retention: share of viewers still watching</div>
-        <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" role="img" aria-label="Sample retention curve">
-          <path d={`${line} L${w},${h} L0,${h} Z`} fill="rgba(34,211,238,.15)" />
-          <path d={line} fill="none" stroke="#22d3ee" strokeWidth="2" vectorEffect="non-scaling-stroke" />
-        </svg>
-        <div className="cg-sample__axis"><span>Start</span><span>Halfway</span><span>End</span></div>
+        <div className="cg-sample__plot">
+          <div className="cg-sample__yaxis">{[100, 75, 50, 25, 0].map((t) => <span key={t}>{t}%</span>)}</div>
+          <div className="cg-sample__area">
+            {[0, 25, 50, 75, 100].map((t) => <i key={t} className="cg-sample__grid" style={{ bottom: `${t}%` }} />)}
+            <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" role="img" aria-label="Sample retention curve">
+              <path d={`${line} L${w},${h} L0,${h} Z`} fill="rgba(34,211,238,.15)" />
+              <path d={line} fill="none" stroke="#22d3ee" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+            </svg>
+            <span className="cg-sample__end" style={{ bottom: `${pts[pts.length - 1]}%` }}>{pts[pts.length - 1]}% finish</span>
+          </div>
+        </div>
+        <div className="cg-sample__axis"><span>0:00</span><span>25%</span><span>50%</span><span>75%</span><span>End of video</span></div>
       </div>
     </div>
   );
