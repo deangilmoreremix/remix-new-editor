@@ -644,10 +644,6 @@ export function DiscoveredAssetGrid({
   /** Save one asset to the project's assets from the viewer. */
   onSaveToAssets?: (id: string) => void | Promise<unknown>
   onDropToSection?: (id: string, section: AssignedSection) => void
-  /** On-device background removal (auto queue + manual controls). Omitted = feature off. */
-  cutout?: AutoCutoutControls
-  /** Save one asset to the project's assets from the viewer. */
-  onSaveToAssets?: (id: string) => void | Promise<unknown>
   /** Show at most this many per category, with "Show more" (omitted: show all). */
   pageSize?: number
 }) {
