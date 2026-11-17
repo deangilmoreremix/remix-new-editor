@@ -726,12 +726,12 @@ The `.agents/skills/` directory is large. When you're not coming in through a to
 - Do not skip the Provider Menu at preflight. The user must see what they have AND what they could unlock.
 - Do not change provider, model, or render path without telling the user first and getting approval when the change is material.
 
-## SmartKiln studio (vendored upstream dashboard)
+## SmartWarmupAI studio (vendored upstream dashboard)
 
-The SmartKiln studio embeds the open-source Warmbly dashboard, rebranded at build time. Rules for working on it:
+The SmartWarmupAI studio embeds the open-source Warmbly dashboard, rebranded at build time. Rules for working on it:
 
-- **Never edit vendored upstream files** (`apps/warmbly-web/**`, `apps/smartkiln-help/content/**`, `apps/smartkiln-help/upstream/**`). The only allowed differences are listed in `apps/warmbly-web/UPSTREAM.md`. Run `npm run verify:upstream -- <path to an upstream clone at the commit in apps/smartkiln-brand/brand.json>` after any change there.
-- **Branding lives in one place:** `apps/smartkiln-brand/brand.json`. Product name, logo mark and icons are applied at build time by `rebrand-plugin.mjs`, `apps/smartkiln-help/build.mjs` and `agent-docs.mjs`. Never rewrite lowercase technical identifiers (`warmbly` commands, `WARMBLY_*`, API paths, storage keys): a real backend depends on them.
-- **Build:** `npm run build:smartkiln` (dashboard to `public/smartkiln-app`, Help site to `public/smartkiln-help`). Tests: `npm run test:smartkiln-help` and `cd apps/warmbly-web && pnpm exec vitest run src/lib/demo`.
+- **Never edit vendored upstream files** (`apps/warmbly-web/**`, `apps/smartwarmupai-help/content/**`, `apps/smartwarmupai-help/upstream/**`). The only allowed differences are listed in `apps/warmbly-web/UPSTREAM.md`. Run `npm run verify:upstream -- <path to an upstream clone at the commit in apps/smartwarmupai-brand/brand.json>` after any change there.
+- **Branding lives in one place:** `apps/smartwarmupai-brand/brand.json`. Product name, logo mark and icons are applied at build time by `rebrand-plugin.mjs`, `apps/smartwarmupai-help/build.mjs` and `agent-docs.mjs`. Never rewrite lowercase technical identifiers (`warmbly` commands, `WARMBLY_*`, API paths, storage keys): a real backend depends on them.
+- **Build:** `npm run build:smartwarmupai` (dashboard to `public/smartwarmupai-app`, Help site to `public/smartwarmupai-help`). Tests: `npm run test:smartwarmupai-help` and `cd apps/warmbly-web && pnpm exec vitest run src/lib/demo`.
 - **Demo data:** with no backend the dashboard answers from `apps/warmbly-web/src/lib/demo/fixtures.json`. Add a recorded response there when a view reports "no recorded demo data"; to use a real backend build without `VITE_DEMO` and set `WARMBLY_API_URL`.
-- Upstream's own agent rules and skills are kept, rebranded, in `apps/smartkiln-help/agent/` and published in the Help site under "Developers & agents".
+- Upstream's own agent rules and skills are kept, rebranded, in `apps/smartwarmupai-help/agent/` and published in the Help site under "Developers & agents".

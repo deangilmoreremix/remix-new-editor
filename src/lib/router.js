@@ -25,7 +25,7 @@ const ROUTE_MAP = {
   'Video Agent': 'video-agent',
   'Video Agent Studio': 'video-agent-studio',
   'Zack D Studio': 'zackd',
-  'SmartKiln': 'smartkiln',
+  'SmartWarmupAI': 'smartwarmupai',
   'AI VFX': 'ai-vfx',
   'Brand Studio': 'brand',
   'Brand DNA': 'brand-dna',
@@ -115,11 +115,11 @@ const pageLoaders = {
   'zackd-studio': () => import('../components/studios/ZackDStudio/ZackDStudio.js').then(m => m.ZackDStudio()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   workbench: () => import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio()),
-  // SmartKiln studio: email warmup, outreach, inbox, CRM and automations (apps/warmbly-web, rebranded at build time).
-  smartkiln: () => import('../components/studios/SmartKilnStudio/SmartKilnStudio.js').then(m => m.SmartKilnStudio()),
-  // Deep links into the studio: #/smartkiln/<view> and #/smartkiln/help[/<docs path>].
+  // SmartWarmupAI studio: email warmup, outreach, inbox, CRM and automations (apps/warmbly-web, rebranded at build time).
+  smartwarmupai: () => import('../components/studios/SmartWarmupAIStudio/SmartWarmupAIStudio.js').then(m => m.SmartWarmupAIStudio()),
+  // Deep links into the studio: #/smartwarmupai/<view> and #/smartwarmupai/help[/<docs path>].
   ...Object.fromEntries(['dashboard', 'campaigns', 'inbox', 'contacts', 'pipeline', 'mailboxes', 'deliverability', 'automations', 'integrations', 'settings', 'help']
-    .map(v => [`smartkiln/${v}`, () => import('../components/studios/SmartKilnStudio/SmartKilnStudio.js').then(m => m.SmartKilnStudio())])),
+    .map(v => [`smartwarmupai/${v}`, () => import('../components/studios/SmartWarmupAIStudio/SmartWarmupAIStudio.js').then(m => m.SmartWarmupAIStudio())])),
   // CineGen Studio was replaced by the Workbench; keep old links working.
   cinegen: () => {
     try { window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/workbench`); } catch { /* ignore */ }

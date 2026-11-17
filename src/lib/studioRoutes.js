@@ -44,7 +44,7 @@ const ICONS = {
   'content-library': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',
   'studios/product-photo-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
   'studios/fashion-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-  smartkiln: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>',
+  smartwarmupai: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>',
   workbench: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="13" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="7" y1="18" x2="7" y2="22"/><line x1="15" y1="18" x2="15" y2="22"/><path d="M10 7.5l4 2.5-4 2.5z" fill="currentColor"/></svg>',
    openthorn: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
    'video-agent': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
@@ -97,7 +97,7 @@ export const STUDIO_ROUTES = {
   director: { label: 'Director', category: 'Agents' },
   timeline: { label: 'Timeline Editor', category: 'Agents' },
   workbench: { label: 'Workbench', category: 'Agents' },
-  smartkiln: { label: 'SmartKiln', category: 'Agents' },
+  smartwarmupai: { label: 'SmartWarmupAI', category: 'Agents' },
   viral: { label: 'Smart Video Viral', category: 'Agents' },
   personalizer: { label: 'Personalizer', category: 'Agents' },
   leadfinder: { label: 'Lead Finder', category: 'Agents' },
@@ -194,7 +194,7 @@ export const NAV_GROUPS = [
     { id: 'director', label: 'Director' },
     { id: 'timeline', label: 'Timeline' },
     { id: 'workbench', label: 'Workbench' },
-    { id: 'smartkiln', label: 'SmartKiln' },
+    { id: 'smartwarmupai', label: 'SmartWarmupAI' },
     { id: 'viral', label: 'Viral' },
     { id: 'personalizer', label: 'Personalizer' },
     { id: 'website-builder', label: 'Website' },
@@ -230,7 +230,7 @@ export function getNavItemForRoute(route) {
   const page = String(route).replace(/^#?\/?/, '').split('?')[0];
   if (page.startsWith('template/')) return 'templates';
   if (page === 'academy' || page.startsWith('academy/')) return 'academy';
-  if (page.startsWith('smartkiln/')) return 'smartkiln';
+  if (page.startsWith('smartwarmupai/')) return 'smartwarmupai';
   const id = NAV_ALIASES[page] || page;
   return NAV_GROUPS.some((g) => g.items.some((it) => it.id === id)) ? id : null;
 }
