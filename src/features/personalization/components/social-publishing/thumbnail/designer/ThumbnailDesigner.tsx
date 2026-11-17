@@ -20,6 +20,7 @@ import { runAiTool, runFreeTool } from './pictureTools';
 import BackgroundControls from './BackgroundControls';
 import EditRegionPanel from './EditRegionPanel';
 import ThumbnailPlatformPreview from '../ThumbnailPlatformPreview';
+import type { DesignerGraphic } from '../ThumbnailExtras';
 
 export interface DesignerResult {
   file: File;
@@ -44,6 +45,8 @@ export interface ThumbnailDesignerProps {
   adjustments?: CanvasAdjustments | null;
   /** Image model picked in the Thumbnail step, used by "Edit a region". */
   model?: string;
+  /** Optional AI graphics (made as SVG, shown as PNG) the user can add as picture layers. */
+  graphics?: DesignerGraphic[];
   /** Open on the "Edit a region" panel. */
   openEditRegion?: boolean;
   onDone: (result: DesignerResult) => void;
@@ -92,7 +95,7 @@ function PhonePreview({ project, assets }: { project: DesignProject; assets: Ren
   );
 }
 
-export default function ThumbnailDesigner({ initialProject, backgroundImageUrl, aspectRatio, headline, adjustments, model, openEditRegion, onDone, onCancel }: ThumbnailDesignerProps) {
+export default function ThumbnailDesigner({ initialProject, backgroundImageUrl, aspectRatio, headline, adjustments, model, graphics, openEditRegion, onDone, onCancel }: ThumbnailDesignerProps) {
   const [project, setProject] = useState<DesignProject>(() => {
     const saved = sanitizeProject(initialProject);
     if (saved) return saved;
@@ -351,6 +354,9 @@ export default function ThumbnailDesigner({ initialProject, backgroundImageUrl, 
         <UploadButton label="Logo" onFile={(f) => addImage(f, 'logo')} />
         <UploadButton label="Photo" onFile={(f) => addImage(f, 'photo')} />
         <UploadButton label="Subject" onFile={(f) => addImage(f, 'subject')} />
+        {(graphics ?? []).map((g, i) => (
+          <button key={g.id} type="button" className={addBtn} style={addStyle} onClick={async () => addImage(new File([await (await fetch(g.dataUrl)).blob()], `${g.name}.png`, { type: 'image/png' }), 'photo')}>Your graphic {i + 1}</button>
+        ))}
         <button type="button" className={addBtn} style={{ ...addStyle, opacity: canEditRegion ? 1 : 0.4 }} disabled={!canEditRegion} onClick={() => { setEditNote(null); setEditing(true); }}><Wand2 size={12} />Edit a region</button>
         {SHAPES.map((s) => (
           <button key={s.shape} type="button" className={addBtn} style={addStyle} onClick={() => addNew(makeShapeLayer(projectRef.current, s.shape))}><Square size={11} />{s.label}</button>

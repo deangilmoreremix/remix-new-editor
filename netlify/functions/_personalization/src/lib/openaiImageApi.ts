@@ -86,10 +86,14 @@ export type OpenAiImageResponse = {
   data?: { url?: string; b64_json?: string; revised_prompt?: string }[];
   error?: { message?: string; code?: string };
   output_format?: string;
+  usage?: unknown;
 };
 
-export function toUrls(payload: OpenAiImageResponse): { urls: string[]; revised?: string } {
-  const format = payload.output_format || 'png';
+/** File type in a data URL for each output format (svg is image/svg+xml). */
+export const mimeSubtype = (format: string) => (format === 'svg' ? 'svg+xml' : format);
+
+export function toUrls(payload: OpenAiImageResponse): { urls: string[]; revised?: string; usage?: unknown } {
+  const format = mimeSubtype(payload.output_format || 'png');
   const urls: string[] = [];
   let revised: string | undefined;
   for (const item of payload.data || []) {
@@ -97,7 +101,7 @@ export function toUrls(payload: OpenAiImageResponse): { urls: string[]; revised?
     else if (item.url) urls.push(item.url);
     if (!revised && item.revised_prompt) revised = item.revised_prompt;
   }
-  return { urls, revised };
+  return { urls, revised, ...(payload.usage ? { usage: payload.usage } : {}) };
 }
 
 export async function readUpstream(res: Response): Promise<OpenAiImageResponse> {
@@ -132,6 +136,9 @@ export interface ExtraImageOptions {
   moderation?: string;
   /** Privacy-preserving end-user id (see safetyIdentifier.ts). */
   safetyIdentifier?: string;
+  /** gif only. */
+  frameCount?: number;
+  frameDurationMs?: number;
 }
 
 /** Fields shared by generations (JSON) and edits (multipart). `complexity` exists only on Images 2.6. */
@@ -144,10 +151,14 @@ export function extraFields(model: string, extra?: ExtraImageOptions): Record<st
   if (extra.outputCompression !== undefined) out.output_compression = extra.outputCompression;
   if (extra.moderation) out.moderation = extra.moderation;
   if (extra.safetyIdentifier) out.safety_identifier = extra.safetyIdentifier;
+  if (extra.outputFormat === 'gif') {
+    if (extra.frameCount !== undefined) out.frame_count = extra.frameCount;
+    if (extra.frameDurationMs !== undefined) out.frame_duration_ms = extra.frameDurationMs;
+  }
   return out;
 }
 
-export async function edits(key: string, model: string, prompt: string, aspectRatio: string, n: number, quality: string, images: ImagePart[], mask?: ImagePart, extra?: ExtraImageOptions, markup?: ImagePart, streamPartials?: number): Promise<{ urls?: string[]; revised?: string; error?: NextResponse; stream?: Response }> {
+export async function edits(key: string, model: string, prompt: string, aspectRatio: string, n: number, quality: string, images: ImagePart[], mask?: ImagePart, extra?: ExtraImageOptions, markup?: ImagePart, streamPartials?: number): Promise<{ urls?: string[]; revised?: string; usage?: unknown; error?: NextResponse; stream?: Response }> {
   const form = new FormData();
   form.append('model', model);
   form.append('prompt', prompt);
