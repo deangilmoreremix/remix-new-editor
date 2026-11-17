@@ -178,6 +178,7 @@ export const STUDIO_ACADEMY = {
     ],
   },
   'video-agent': { tracks: [], lessons: [] },
+  zackd: { tracks: [T13], lessons: [] },
   'motion-director': { tracks: [], lessons: [] },
   director: { tracks: [], lessons: [] },
   timeline: {

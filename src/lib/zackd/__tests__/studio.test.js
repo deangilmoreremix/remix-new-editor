@@ -187,7 +187,8 @@ describe('ZackDStudio (built like the other video studios)', () => {
     typeTopic(root, 'Gum'); await step(root, 'Write script'); generate(root).click();
     await step(root, 'Approve script');
     runJob.mockRejectedValueOnce(new Error('The generation failed. Try again.'));
-    const scrollIntoView = vi.fn(); Element.prototype.scrollIntoView = scrollIntoView;
+    // src/test/setup.js polyfills HTMLElement.prototype.scrollIntoView, which shadows an override on Element.prototype: spy on the one the studio actually reaches
+    const scrollIntoView = vi.spyOn(HTMLElement.prototype, 'scrollIntoView').mockImplementation(() => {});
     generate(root).click();
     await until(() => root.querySelector('[role=alert]:not(.hidden)'), 'error');
     const alert = root.querySelector('[role=alert]');
