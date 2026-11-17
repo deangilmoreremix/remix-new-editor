@@ -404,7 +404,7 @@ export function StepPreviewApprove(): React.JSX.Element {
             </div>
           )}
         </div>
-        {isBrandedPath && previewApproved && !inputProps.isImageSource && <CaptionsPanel videoUrl={inputProps.videoUrl} disabled={generating} />}
+        {isBrandedPath && !inputProps.isImageSource && <CaptionsPanel videoUrl={inputProps.videoUrl} disabled={generating} />}
         {isBrandedPath && previewApproved && <ExtraFormatsExport inputProps={inputProps} disabled={generating || exportBlocked || rightsGate} onRunningChange={setExtraRunning} />}
         {generating && generation?.progressMessage && (
           <p style={{ ...hintStyle, marginTop: 8, color: C.cyan }}>{generation.progressMessage}</p>
