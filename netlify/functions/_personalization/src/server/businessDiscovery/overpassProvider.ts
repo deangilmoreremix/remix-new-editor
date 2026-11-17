@@ -114,10 +114,11 @@ interface MirrorCircuit {
 const circuitByEndpoint: Map<string, MirrorCircuit> = new Map()
 
 function recordSuccess(endpoint: string): void {
-  const c = circuitByEndpoint.get(endpoint)
-  if (!c) return
+  // A mirror that works is tracked as well, so overpassHealth() counts every mirror that was tried.
+  const c = circuitByEndpoint.get(endpoint) || { consecutiveFailures: 0, openUntil: 0 }
   c.consecutiveFailures = 0
   c.openUntil = 0
+  circuitByEndpoint.set(endpoint, c)
 }
 
 function recordFailure(endpoint: string): void {
@@ -155,6 +156,16 @@ export class AllOverpassProvidersFailed extends Error {
     super(message)
     this.name = 'AllOverpassProvidersFailed'
   }
+}
+
+/**
+ * Public, internals-free health summary of the Overpass mirrors seen by THIS server instance: how many have
+ * been tried and how many are cooling down after repeated failures. No endpoint names or error text.
+ */
+export function overpassHealth(now: number = Date.now()): { tracked: number; coolingDown: number } {
+  let coolingDown = 0
+  for (const c of circuitByEndpoint.values()) if (c.openUntil !== 0 && now < c.openUntil) coolingDown++
+  return { tracked: circuitByEndpoint.size, coolingDown }
 }
 
 /**

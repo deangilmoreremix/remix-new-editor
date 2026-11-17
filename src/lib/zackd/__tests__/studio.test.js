@@ -187,7 +187,7 @@ describe('ZackDStudio (built like the other video studios)', () => {
     typeTopic(root, 'Gum'); await step(root, 'Write script'); generate(root).click();
     await step(root, 'Approve script');
     runJob.mockRejectedValueOnce(new Error('The generation failed. Try again.'));
-    // src/test/setup.js polyfills HTMLElement.prototype.scrollIntoView, which shadows an override on Element.prototype: spy on the one the studio actually reaches
+    // The shared test setup polyfills scrollIntoView on HTMLElement.prototype, which shadows Element.prototype, so spy there.
     const scrollIntoView = vi.spyOn(HTMLElement.prototype, 'scrollIntoView').mockImplementation(() => {});
     generate(root).click();
     await until(() => root.querySelector('[role=alert]:not(.hidden)'), 'error');
@@ -198,6 +198,7 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(scrollIntoView).toHaveBeenCalled();
     expect(generate(root).textContent).toContain('Generate 1 character sheet'); // the failed sheet is retried from the same button
     expect(root.querySelector('button[aria-label^="Generate character sheet"], button[aria-label^="Redo"], button[aria-label^="Generate"]')).toBeTruthy();
+    scrollIntoView.mockRestore();
   });
 
   it('drops a generated voice-over when the narration text it was made from is edited', async () => {

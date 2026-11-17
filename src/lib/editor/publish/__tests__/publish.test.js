@@ -108,6 +108,7 @@ describe('publish client', () => {
   it('reads personalization from the link', () => {
     expect(profileFromQuery('?firstname=Ann&embed=1&company=Acme')).toEqual({ variables: { firstname: 'Ann', company: 'Acme' } });
     expect(profileFromQuery('?embed=1')).toBeNull();
+    expect(profileFromQuery('?src=mp4')).toBeNull();
     expect(personalize('Hi {{firstname}}!', null)).toBe('Hi !');
     expect(stripUnresolvedTokens({ text: 'A {{x}} B', src: '{{keep}}' })).toEqual({ text: 'A B', src: '{{keep}}' });
     expect(profileWithAnswers(null, { 'FIRST NAME': 'Zoe' }).variables.firstname).toBe('Zoe');
@@ -218,6 +219,50 @@ describe('form answers go into the video', () => {
     await submit('Zoe');
     expect(e.model.layers.find((l) => l.id === 'txt').options.text).toBe('Hello Zoe');
     expect(e.playing).toBe(true);
+  });
+
+  it('List Builder: a lead that was not saved keeps the form open for a retry (no redirect, not remembered)', async () => {
+    const store = new Map();
+    vi.stubGlobal('localStorage', { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) });
+    try {
+      const { e, create } = fakeEngine();
+      const p = project();
+      p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'email', type: 'email', label: 'Email' }], afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+      let ok = false;
+      const onLead = vi.fn(async () => (ok ? { stored: true, error: null } : { stored: false, error: 'offline' }));
+      createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, rememberKey: 'vid9', onLead });
+      await submit('a@b.co');
+      expect(frame.querySelector('.addon-overlay--optin')).not.toBeNull(); // still there
+      expect(frame.querySelector('.addon-optin__status').textContent).toMatch(/try again/i);
+      expect(frame.querySelector('[data-overlay="thanks"]')).toBeNull();
+      expect(store.size).toBe(0); // not marked as done, so it asks again on return
+      expect(e.model).toBeNull(); // the video is still behind the wall
+      ok = true;
+      await submit('a@b.co'); // retry succeeds
+      expect(frame.querySelector('.addon-overlay--optin')).toBeNull();
+      expect(store.size).toBe(1);
+      expect(e.model).not.toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('a submission that finishes after the player was destroyed shows no thank-you card or redirect', async () => {
+    const { create } = fakeEngine();
+    const p = project();
+    p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'email', type: 'email', label: 'Email' }], afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+    let finish;
+    const onLead = vi.fn(() => new Promise((resolve) => { finish = () => resolve({ stored: true, error: null }); }));
+    const player = createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, onLead });
+    const layer = frame.querySelector('.addon-overlay-layer');
+    const form = frame.querySelector('form');
+    form.querySelector('input').value = 'a@b.co';
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+    await new Promise((r) => setTimeout(r, 0)); // submit is now in flight
+    player.destroy(); // the viewer left the page
+    finish();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(layer.querySelector('[data-overlay="thanks"]')).toBeNull();
   });
 
   it('a viewer who already filled the List Builder in is not asked again (unless askEveryVisit)', () => {

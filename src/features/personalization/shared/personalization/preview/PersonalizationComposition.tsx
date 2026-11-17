@@ -1,4 +1,5 @@
 import { contractFor, layerZIndex, roleForLayer } from './mediaRoles'
+import { CutoutBackdrop } from './cutout/CutoutBackdrop'
 import { ownText, resolveLayerImageUrl, resolveLayerText } from './layerContent'
 import { endCardFrames } from './endCard'
 import { exitFactors, revealFactors } from './imageStyle'
@@ -19,11 +20,15 @@ import { Video, Audio } from '@remotion/media'
 import { fontStackById, isImageLayerKind, toBox } from './presets'
 import { entranceFor, exitFor, itemEntrance, usesWordEntrance, wordEntrance } from './motion'
 import { rotateCss, rotatedExtent } from './rotation'
+import { isNeutralKeyframeState, keyframeStateFor, keyframeTransformParts } from './keyframes'
+import { layerEffectsFilter, lookFilter } from './effects'
+import { LookLayers } from './LookLayers'
 import { accentRuleStyle, ctaPillStyle, endCardBackground, isSingleLineBox, layerTextStyle, textAlignFor, type TextStyleKind } from './textStyle'
 import { hasTextScrim, scrimForBox, scrimPeakAt, scrimStyle } from './scrim'
 import { layerBoxMetrics } from '../guided/overlayGeometry'
 import { resolveDesignSlotValues } from './designSlots'
 import { toPlayablePreviewMediaUrl } from './remoteMedia'
+import { CaptionsLayer } from './CaptionsLayer'
 import {
   clearPreviewMediaFailure,
   emitPreviewMediaFailure,
@@ -61,6 +66,19 @@ const NOOP_SEQUENCE_MANAGER = {
   registerSequence: () => {},
   unregisterSequence: () => {},
   sequences: [],
+}
+
+/**
+ * Remotion 4.0.5xx removed `Internals.SequenceManager` (the registry moved to other contexts), and reading
+ * `.Provider` off `undefined` crashed EVERY render of the composition: the preview, the template cards and the
+ * export all showed black. The wrapper only exists for the jsdom/test case above, so it is applied only when
+ * the installed Remotion still has it; a real browser renders the children directly.
+ */
+function MaybeSequenceManager({ children }: { children: React.ReactNode }): React.JSX.Element {
+  const Provider = (Internals as unknown as {
+    SequenceManager?: { Provider?: React.ComponentType<{ value: unknown; children?: React.ReactNode }> }
+  }).SequenceManager?.Provider
+  return Provider ? <Provider value={NOOP_SEQUENCE_MANAGER}>{children}</Provider> : <>{children}</>
 }
 
 /** Dark text on light colors, white on dark ones (hex colors; else the default). */
@@ -217,6 +235,25 @@ const EndCard: React.FC<{
           {contactLine}
         </div>
       ) : null}
+      {brand.contactExtra ? (
+        <div
+          data-testid="pz-endcard-extra"
+          style={{
+            fontFamily: fontStackById(),
+            color: onPrimary,
+            fontSize: Math.round(settings.height * 0.028),
+            fontWeight: 600,
+            lineHeight: 1.2,
+            letterSpacing: '0.02em',
+            textAlign: 'center',
+            width: '90%',
+            wordBreak: 'break-word',
+            ...item(2),
+          }}
+        >
+          {brand.contactExtra}
+        </div>
+      ) : null}
       {ctaText ? (
         <div style={{ width: '100%', textAlign: 'center', ...item(3) }}>
           <span
@@ -290,13 +327,52 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
     clearPreviewMediaFailure()
   }, [videoUrl])
 
+  // Keyframes move, scale, tilt and fade a layer on top of its own animation. They are applied by wrapping whatever the
+  // layer draws, about the layer's own center, and only while a keyframe is actually changing something, so a layer
+  // without keyframes is drawn exactly as before.
+  const withKeyframes = (layer: PreviewLayer, node: React.ReactNode): React.ReactNode => {
+    if (!node || layer.kind === 'design' || !layer.keyframes?.length) return node
+    const state = keyframeStateFor(layer.keyframes, frame)
+    if (isNeutralKeyframeState(state)) return node
+    const m = layerBoxMetrics(layer, compW, compH, isImageLayerKind(layer.kind) ? undefined : resolveLayerText(layer, brand))
+    const cx = m.leftPx + m.widthPx / 2
+    const cy = m.topPx + m.heightPx / 2
+    return (
+      <AbsoluteFill
+        key={layer.id}
+        style={{
+          zIndex: layerZIndex(roleForLayer(layer), visibleLayers.indexOf(layer)),
+          transform: keyframeTransformParts(state, compW, compH).join(' ') || undefined,
+          transformOrigin: `${cx}px ${cy}px`,
+          opacity: state.opacity,
+          pointerEvents: 'none',
+        }}
+      >
+        {node}
+      </AbsoluteFill>
+    )
+  }
+  // The footage's look: a filter on the picture itself, plus color overlays and a vignette drawn over it (LookLayers).
+  const lookCss = lookFilter(settings.look)
+  const cutoutActive = Boolean(settings.cutout?.enabled && videoUrl && !isImageSource && !mediaFailed)
+
   const renderBackground = () => {
+    if (cutoutActive && videoUrl && settings.cutout) {
+      // The presenter is cut out of every frame and drawn over the chosen background by CutoutBackdrop.
+      // It draws pixels only, so the source's own sound is kept with an audio-only element.
+      return (
+        <>
+          <CutoutBackdrop videoUrl={videoUrl} cutout={settings.cutout} width={compW} height={compH} filter={lookCss} />
+          <Audio src={toPlayablePreviewMediaUrl(videoUrl)} />
+        </>
+      )
+    }
     if (isImageSource && !videoUrl) {
       if (!posterUrl) return null
       return (
         <Img
           src={posterUrl}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: lookCss }}
         />
       )
     }
@@ -314,7 +390,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           src={toPlayablePreviewMediaUrl(videoUrl)}
           muted={false}
           onError={handleMediaError}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: lookCss }}
         />
       )
     }
@@ -322,7 +398,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       return (
         <Img
           src={posterUrl}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: lookCss }}
         />
       )
     }
@@ -393,9 +469,10 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
   const { start: endCardStart, length: endCardLen } = endCardFrames(settings.durationInFrames)
 
   return (
-    <Internals.SequenceManager.Provider value={NOOP_SEQUENCE_MANAGER}>
+    <MaybeSequenceManager>
     <AbsoluteFill style={{ background: '#05070a' }}>
       {renderBackground()}
+      <LookLayers look={settings.look} />
       {audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
       <AbsoluteFill
           style={{
@@ -404,7 +481,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
             pointerEvents: 'none',
           }}
         />
-        {visibleLayers.map((layer) => {
+        {visibleLayers.map((layer) => withKeyframes(layer, (() => {
           const isImage = isImageLayerKind(layer.kind)
           const isText = TEXT_LAYER_KINDS.includes(layer.kind)
           const isDesign = layer.kind === 'design'
@@ -463,6 +540,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
             transform: transformParts.length > 0 ? transformParts.join(' ') : undefined,
             opacity: layer.opacity * entrance.opacity * exit.opacity,
             pointerEvents: 'none',
+            filter: layerEffectsFilter(layer.effects),
           }
 
           if (isDesign) {
@@ -697,7 +775,8 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
               ) : null}
             </React.Fragment>
           )
-        })}
+        })()))}
+        <CaptionsLayer captions={settings.captions} videoUrl={videoUrl ?? null} settings={settings} width={compW} height={compH} />
         {settings.showEndCard ? (
           // zIndex: layers are stacked up to stackOrder 65 * 100 + 99 (see layerZIndex), so
           // the end card needs a higher level to stay on top of layers that run to the end.
@@ -706,6 +785,6 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           </Sequence>
         ) : null}
       </AbsoluteFill>
-    </Internals.SequenceManager.Provider>
+    </MaybeSequenceManager>
   )
 }

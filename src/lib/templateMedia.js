@@ -569,7 +569,7 @@ function nearest(options, wanted) {
  *   effect models (set false when the template has its own `name` input).
  * @returns {{ element: HTMLElement, refresh: () => void, getSettings: () => object }}
  */
-export function createVideoSettingsControls({ getTarget, preferred = {}, offerEffects = true } = {}) {
+export function createVideoSettingsControls({ getTarget, preferred = {}, offerEffects = true, onChange } = {}) {
   const state = { duration: preferred.duration ?? null, resolution: preferred.resolution ?? null, nativeAudio: false, effect: preferred.effect ?? null };
   // The user's own effect pick, kept across model switches.
   let pickedEffect = null;
@@ -613,10 +613,11 @@ export function createVideoSettingsControls({ getTarget, preferred = {}, offerEf
     e.stopPropagation();
     state.nativeAudio = !state.nativeAudio;
     paintAudio();
+    if (onChange) onChange();
   };
 
-  dur.sel.onchange = () => { state.duration = Number(dur.sel.value); };
-  res.sel.onchange = () => { state.resolution = res.sel.value; };
+  dur.sel.onchange = () => { state.duration = Number(dur.sel.value); if (onChange) onChange(); };
+  res.sel.onchange = () => { state.resolution = res.sel.value; if (onChange) onChange(); };
   fx.sel.onchange = () => { state.effect = fx.sel.value; pickedEffect = fx.sel.value; };
 
   // Explains when the template's suggested length is longer than the model
@@ -686,6 +687,7 @@ export function createVideoSettingsControls({ getTarget, preferred = {}, offerEf
     paintAudio();
     el.classList.toggle('hidden', !durations.length && !resolutions.length && !audio && !effects.length);
     current = { durations, resolutions, audio, video, effects };
+    if (onChange) onChange();
   };
 
   return {

@@ -9,6 +9,7 @@ import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates'
 import { HyperframesPanel } from './hyperframes-modal';
 import { MgTemplatesPanel, MgLoadError } from './mg-templates-modal';
 import { TemplateVideosPanel } from './template-videos-modal';
+import { LandingPagesPanel } from './landing-pages-panel';
 // @ts-expect-error plain JS data module
 import { templateVideos } from '../../../data/templateVideoLibrary.js';
 import { PreviewCard, CARD_CSS } from './preview-card';
@@ -17,7 +18,7 @@ import { buildCatalog, hfEntries, mgEntries, type AddToTimelineActions, type Cat
 export type { AddToTimelineActions } from './add-to-timeline-registry';
 
 // 'videos' is a panel tab like Animations / Motion graphics, but its 184 live clips are not mixed into the All tab
-type Tab = 'all' | CatalogTab | 'videos';
+type Tab = 'all' | CatalogTab | 'videos' | 'landing';
 
 // The hover-help layer also opens a card when a field gets keyboard focus. These two fields are focused automatically, so a help card would pop up
 // over the cards every time a tab opens; their labels are constants (not literals) so no help entry is looked up for them.
@@ -37,6 +38,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const titleId = useId();
   const hasAnimations = !!actions.onPickAnimation;
   const hasVideos = !!actions.onPickTemplateVideo;
+  const hasLanding = !!actions.onPickLandingPage;
   const [tab, setTab] = useState<Tab>(hasAnimations ? 'animations' : 'motion');
   const [q, setQ] = useState('');
   const [connect, setConnect] = useState<string | null>(null); // Connect Form template waiting for its phone number
@@ -102,12 +104,13 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
     { id: 'overlays', label: 'Overlays & forms', glyph: '▭', count: count('overlays') },
     { id: 'endscreens', label: 'End screens & connect forms', glyph: '▶', count: count('endscreens') },
     { id: 'videos', label: 'Template videos', glyph: '🎬', count: (templateVideos as unknown[]).length, hidden: !hasVideos },
+    { id: 'landing', label: 'Landing pages', glyph: '▤', count: 34, hidden: !hasLanding },
   ];
 
   const needle = q.trim().toLowerCase();
   const shown = entries.filter((e) => (tab === 'all' || e.tab === tab) && (!needle || `${e.label} ${e.blurb} ${e.keywords ?? ''}`.toLowerCase().includes(needle)));
   // Animations and Motion graphics have their own tabs with category chips and filters; every other tab is a search + grid
-  const isPanel = tab === 'animations' || tab === 'motion' || tab === 'videos';
+  const isPanel = tab === 'animations' || tab === 'motion' || tab === 'videos' || tab === 'landing';
   const pending = connect ? entries.find((e) => e.id === `tpl:${connect}`) : undefined;
   const renderCard = (e: CatalogEntry) => <PreviewCard key={e.id} preview={e.preview} title={e.label} sub={e.blurb} badge={e.badge} onClick={e.run} testId={e.testId} />;
 
@@ -140,6 +143,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
         <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
           {tab === 'animations' && hasAnimations && <HyperframesPanel onPick={(i) => { actions.onPickAnimation?.(i); onClose(); }} />}
           {tab === 'videos' && hasVideos && <TemplateVideosPanel onPick={(v) => { actions.onPickTemplateVideo?.(v); onClose(); }} />}
+          {tab === 'landing' && hasLanding && <LandingPagesPanel onPick={(id) => { actions.onPickLandingPage?.(id); onClose(); }} />}
           {tab === 'motion' && <MgTemplatesPanel templates={mg} error={mgError} onRetry={loadMg} onPick={(t) => { actions.onPickMotion(t); onClose(); }} />}
           {!isPanel && (
             <>

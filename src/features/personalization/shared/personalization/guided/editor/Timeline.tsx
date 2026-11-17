@@ -22,6 +22,7 @@ export function Timeline({
   onChange,
   playheadFrame,
   onSeek,
+  onKeyframeMove,
 }: {
   layers: PreviewLayer[]
   labels: Record<string, string>
@@ -34,14 +35,29 @@ export function Timeline({
   playheadFrame?: number
   /** When given, clicking or dragging the ruler seeks the preview. */
   onSeek?: (frame: number) => void
+  /** When given, keyframes show as diamonds on the layer's track and can be dragged to another moment. */
+  onKeyframeMove?: (layerId: string, fromFrame: number, toFrame: number) => void
 }): React.JSX.Element | null {
   const trackRef = useRef<HTMLDivElement>(null)
   const drag = useRef<{ id: string; part: TimelineEdit; startX: number; origin: Pick<PreviewLayer, 'startFrame' | 'endFrame'>; pointerId: number | null } | null>(null)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+  const kfMoveRef = useRef(onKeyframeMove)
+  kfMoveRef.current = onKeyframeMove
+  const kfDrag = useRef<{ id: string; frame: number; startX: number; startFrame: number } | null>(null)
   const duration = Math.max(1, Math.round(durationInFrames))
 
   const onMove = useCallback((e: PointerEvent) => {
+    const k = kfDrag.current
+    const kt = trackRef.current
+    if (k && kt) {
+      const w = kt.getBoundingClientRect().width
+      if (w > 0) {
+        const next = Math.round(k.startFrame + ((e.clientX - k.startX) / w) * (duration - 1))
+        if (next !== k.frame) { kfMoveRef.current?.(k.id, k.frame, next); k.frame = Math.max(0, Math.min(duration - 1, next)) }
+      }
+      return
+    }
     const d = drag.current
     const track = trackRef.current
     if (!d || !track) return
@@ -51,7 +67,7 @@ export function Timeline({
     const deltaFrames = ((e.clientX - d.startX) / width) * (duration - 1)
     onChangeRef.current(d.id, applyTimelineEdit(d.origin, d.part, deltaFrames, duration))
   }, [duration])
-  const onUp = useCallback(() => { drag.current = null }, [])
+  const onUp = useCallback(() => { drag.current = null; kfDrag.current = null }, [])
   useEffect(() => {
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
@@ -123,6 +139,28 @@ export function Timeline({
                     aria-valuetext={layer.endFrame === undefined ? 'until the end' : formatSeconds(end, fps)} data-testid="timeline-end"
                     onPointerDown={(e) => begin(e, layer, 'end')} onKeyDown={(e) => key(e, layer, 'end')} style={{ ...handle, right: 0 }} />
                 </div>
+                {(layer.keyframes ?? []).map((k) => (
+                  <Tip key={k.frame} id="keyframeDiamond" side="top">
+                    <button
+                      type="button"
+                      data-testid="timeline-keyframe"
+                      data-frame={k.frame}
+                      aria-label={`${name} keyframe at ${formatSeconds(k.frame, fps)}`}
+                      onPointerDown={(e) => {
+                        e.preventDefault(); e.stopPropagation()
+                        onSelect(layer.id)
+                        onSeek?.(k.frame)
+                        if (onKeyframeMove) kfDrag.current = { id: layer.id, frame: k.frame, startX: e.clientX, startFrame: k.frame }
+                      }}
+                      onKeyDown={(e) => {
+                        if (!onKeyframeMove || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
+                        e.preventDefault()
+                        onKeyframeMove(layer.id, k.frame, k.frame + (e.shiftKey ? 10 : 1) * (e.key === 'ArrowLeft' ? -1 : 1))
+                      }}
+                      style={{ position: 'absolute', top: 4, left: `${frameToFraction(k.frame, duration) * 100}%`, width: 12, height: 12, marginLeft: -6, padding: 0, background: '#facc15', border: '1px solid #422006', transform: 'rotate(45deg)', cursor: 'grab', zIndex: 4, touchAction: 'none' }}
+                    />
+                  </Tip>
+                ))}
                 {playheadFrame !== undefined && <div aria-hidden data-testid="timeline-playhead" style={{ position: 'absolute', top: 0, bottom: 0, left: `${frameToFraction(playheadFrame, duration) * 100}%`, width: 2, marginLeft: -1, background: '#ff4fd8', pointerEvents: 'none', zIndex: 3 }} />}
               </div>
             </div>

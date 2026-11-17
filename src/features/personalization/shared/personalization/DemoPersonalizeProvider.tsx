@@ -6,6 +6,7 @@
 
 'use client'
 
+import { pickBestLogo } from './logoScoring'
 import {
   createContext,
   useCallback,
@@ -61,8 +62,9 @@ import type {
   PreviewAspectRatio,
 } from './types'
 import { EMPTY_GENERATION_STATE } from './types'
-import type { ProtectedZone } from './preview/types'
-import { measureImageHints } from './preview/imageHintsLoader'
+import type { PreviewCaptions, ProtectedZone } from './preview/types'
+import { applyCaptionsPatch } from './captions/captionStyle'
+import { measureImageHints, measureLogoTrim } from './preview/imageHintsLoader'
 import { normalizePersonalizationSource, getEligibility } from './sourceNormalizer'
 import {
   loadClients,
@@ -93,14 +95,17 @@ import { fitToModel, optionsForGeneration, resolveModelCapabilities, resolveAsse
 import { applyPostProcessing, generateEndCardImage } from './postProcessor'
 import type { BusinessDiscoveryRecord } from './types'
 import { isOwnedWebsite, nonOwnedWebsiteMessage } from './websiteClassification'
+import { enrichmentToAutoFill, foundSignalsOf, type ContactSources, type FoundSignals } from './businessEnrichmentToClient'
 import { uploadPersonalizationAsset } from './assetUploadService'
 import { cancelActiveExport } from './webExport'
+import { ALL_ASPECT_RATIOS, exportAllAspects } from './exportAllAspects'
 import { persistEditedPersonalizationAsset } from './editedAssetPersistence'
 
 import { normalizeUrl, TRACKING_PARAMS } from './urlNormalizer'
 import { createProjectPersistence, durableAssetUrls, loadProject, resolveRestoredAssetUrl, type LoadProjectResult, type PersonalizationProjectState } from './supabaseProjectPersistence'
 import { imageLoadsInBrowser } from './imageLoadProbe'
 import { prefetchBackgroundRemovalModel, cancelBackgroundRemovalPrefetch } from './backgroundRemoval/backgroundRemovalClient'
+import { findAlreadyImported } from './backgroundRemoval/importDedupe'
 import { useAutoCutout, shouldHoldAutoImport, AUTO_IMPORT_CUTOUT_WAIT_MS, type AutoCutoutControls } from './backgroundRemoval/useAutoCutout'
 import { buildPreviewInput } from './guided/buildPreviewInput'
 import { reorderLayers } from './preview/layerOrder'
@@ -119,6 +124,7 @@ import {
   getCompositionDimensions,
   reflowLayersForAspect,
 } from './preview/presets'
+import { addDesignWithRules, moveDesignLayer } from './preview/designAddons'
 import {
   applyResearchedBrandColors,
   firstParagraphOf,
@@ -735,7 +741,7 @@ export function pickAutoImportAssets(discovered: DiscoveredAsset[], library: Ass
   const ranked = [...usable].sort((a, b) => discoveredAssetRank(b) - discoveredAssetRank(a))
   const picked: DiscoveredAsset[] = []
   if (library.logos.length === 0) {
-    const logo = ranked.find((asset) => asset.category === 'logo')
+    const logo = pickBestLogo(ranked.filter((asset) => asset.category === 'logo'))
     if (logo) picked.push({ ...logo, assignedSection: 'logo' })
   }
   const cards: Array<{ section: 'products' | 'brand'; empty: boolean }> = [
@@ -763,6 +769,17 @@ export interface WebsiteLookupState {
 export interface ImportDiscoveredAssetsOptions {
   ids?: string[]
   section?: AssignedSection
+}
+
+export interface ShapeExportItem {
+  aspect: string
+  status: 'waiting' | 'rendering' | 'done' | 'failed' | 'cancelled'
+  progress: number
+  error?: string
+}
+export interface ShapeExportState {
+  status: 'idle' | 'running' | 'finished'
+  items: ShapeExportItem[]
 }
 
 export type DemoPersonalizeContextValue = {
@@ -915,6 +932,12 @@ export type DemoPersonalizeContextValue = {
   autoFilledKeys: Set<AutoFillKey>
   /** What finding the current business loaded, for the one-line summary. */
   businessLoadSummary: BusinessLoadSummary | null
+  /** Where each contact value found on the business's own website came from (for the "found on" tooltips). */
+  contactSources: ContactSources
+  /** What the business's own site publishes (booking link, video) — used only to suggest a video goal. */
+  foundSignals: FoundSignals
+  /** Removes a found contact value from the profile (a wrong or unwanted one). */
+  clearContactValue: (key: 'email' | 'facebook' | 'instagram' | 'linkedin' | 'youtube' | 'tiktok') => void
   /**
    * Finds a selected business's OWN website when OpenStreetMap lists only a
    * social page (or nothing). Resolves the verified URL or `null`.
@@ -1054,7 +1077,9 @@ export type DemoPersonalizeContextValue = {
    */
   applyPreviewPlacements: (items: { layerId: string; x: number; y: number; scale?: number }[], options?: { overrideManual?: boolean }) => void
   updatePreviewBrandColors: (patch: Partial<PreviewBrandColors>) => void
-   updatePreviewComposition: (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard'>>) => void
+  /** Burned-in captions: merge a patch over them, or `null` to remove them. Counts for undo/redo, saves with the project. */
+  updatePreviewCaptions: (patch: Partial<PreviewCaptions> | null) => void
+   updatePreviewComposition: (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard' | 'look' | 'cutout'>>) => void
    resetPreviewLayout: () => void
    /**
     * Every registered Remotion design, in registration order. Empty when no
@@ -1069,6 +1094,8 @@ export type DemoPersonalizeContextValue = {
   addRemotionDesign: (designId: string) => void
   /** Takes one design layer off the video, leaving the other layers. */
   removePreviewDesignLayer: (layerId: string) => void
+  /** Moves one added design earlier (-1) or later (+1) among the design layers. */
+  moveAddedDesign: (layerId: string, direction: -1 | 1) => void
   /** Undo / redo of edits to the preview (layers, designs, layout). */
   undoPreview: () => void
   redoPreview: () => void
@@ -1077,6 +1104,10 @@ export type DemoPersonalizeContextValue = {
    /** Why the last `setRemotionDesign` call failed, or null. */
    remotionDesignError: string | null
    previewApproved: boolean
+  /** One-click export of every video shape (16:9, 9:16, 1:1, 4:5) in the browser. */
+  shapeExport: ShapeExportState
+  exportAllShapes: () => Promise<void>
+  cancelShapeExport: () => void
   /** The approval was cleared by a later change (approve again). */
   approvalStale?: boolean
    approvePersonalization: () => void
@@ -1513,6 +1544,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   // Discovered-asset ids that were placed automatically for this business.
   const autoImportedDiscoveredIdsRef = useRef<Set<string>>(new Set())
   const [businessLoadSummary, setBusinessLoadSummary] = useState<BusinessLoadSummary | null>(null)
+  const [contactSources, setContactSources] = useState<ContactSources>({})
+  const [foundSignals, setFoundSignals] = useState<FoundSignals>({})
 
   // Saved client assets (persisted per-client library)
   const [savedClientAssets, setSavedClientAssets] = useState<ClientAssetLibrary>(() =>
@@ -1743,6 +1776,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   const [previewSettings, setPreviewSettings] = useState<PersonalizationPreviewSettings>(() =>
     createDefaultPreviewSettings(),
   )
+  // Mirror of the latest preview settings, so an add-on rule check can read them without a side effect in an updater.
+  const previewSettingsRef = useRef(previewSettings)
+  previewSettingsRef.current = previewSettings
   const [previewVideo, setPreviewVideo] = useState<PreviewVideoRef | null>(null)
 
   // ── Full Body Recast (Advanced Editing tab) ────────────────────────────────
@@ -1885,6 +1921,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     }
   }, [assets.presenterVideos, preRecastVideo, source?.sourceMedia, fitPreviewLengthToVideo])
   const [previewApproved, setPreviewApproved] = useState(false)
+  const [shapeExport, setShapeExport] = useState<ShapeExportState>({ status: 'idle', items: [] })
+  const shapeExportAbortRef = useRef<AbortController | null>(null)
   /** True when an approval was cleared because something changed after it. */
   const [approvalStale, setApprovalStale] = useState(false)
   /** Shown under the prompt when it was filled in without the AI. */
@@ -4063,14 +4101,24 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       : discoveredAssets.filter((a) => a.selected && !a.rejected)
     // Free (signed-out) visitors see and download cutouts, but cannot store files: they import the
     // original image link exactly as before, so nothing needs an upload or a sign-in.
-    const toImport = access === 'anonymous'
+    const toImportAll = access === 'anonymous'
       ? toImportRaw.map((a) =>
           a.editMetadata?.engine === 'bg0'
             ? { ...a, editedDataUrl: undefined, edited: false, hasTransparency: false, editMetadata: undefined }
             : a,
         )
       : toImportRaw
+    // A picture that is already in the library (or listed twice) is not added again. A cutout of a picture
+    // whose library copy is still the untouched original is kept next to it.
+    const lib = assetsRef.current
+    // An explicit drop onto a section is the user's choice: it always imports.
+    const repeatIds = sectionOverride ? new Set<string>() : findAlreadyImported(toImportAll, [
+      ...lib.identities, ...lib.logos, ...lib.products, ...lib.brandReferences,
+      ...([lib.firstFrame, lib.lastFrame, lib.ctaGraphic].filter(Boolean) as PersonalizationAsset[]),
+    ])
+    const toImport = toImportAll.filter((a) => !repeatIds.has(a.id))
     if (toImport.length === 0) {
+      if (repeatIds.size > 0) setDiscoveredAssetsState((prev) => prev.filter((a) => !repeatIds.has(a.id)))
       setDiscoveryStatus('reviewing')
       return []
     }
@@ -4255,8 +4303,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // so they can be retried.
     const importedIds = new Set(assetsToCreate.map(({ item }) => item.id))
     const anyFailed = toImport.some((item) => !importedIds.has(item.id))
-    if (ids || anyFailed) {
-      setDiscoveredAssetsState((prev) => prev.filter((a) => !importedIds.has(a.id)))
+    if (ids || anyFailed || repeatIds.size > 0) {
+      setDiscoveredAssetsState((prev) => prev.filter((a) => !importedIds.has(a.id) && !repeatIds.has(a.id)))
       setDiscoveryStatus('reviewing')
     } else {
       setDiscoveredAssetsState([])
@@ -4649,6 +4697,11 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   const resolveBusinessWebsiteRef = useRef(resolveBusinessWebsite)
   resolveBusinessWebsiteRef.current = resolveBusinessWebsite
 
+  const clearContactValue = useCallback((key: 'email' | 'facebook' | 'instagram' | 'linkedin' | 'youtube' | 'tiktok') => {
+    setClientForm((prev) => ({ ...prev, [key]: '' }))
+    setContactSources((prev) => { const next = { ...prev }; delete next[key]; return next })
+  }, [])
+
   const selectBusiness = useCallback((business: BusinessDiscoveryRecord) => {
     businessSessionRef.current += 1
     setSelectedBusiness(business)
@@ -4674,6 +4727,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     removeAutoImportedAssets()
     autoImportPendingRef.current = false
     setBusinessLoadSummary(null)
+    setContactSources({})
+    setFoundSignals({})
     placeholderNameRef.current = business.id.startsWith('url:') ? business.name : ''
 
     // Populate client form from business, through the single shared mapping
@@ -4700,6 +4755,46 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       autoFilledRef.current = filled
       return next
     })
+
+    // Contact details the business published on its OWN website (email, social profiles, a missing phone).
+    // Looked up once for the chosen business and merged into EMPTY fields only: anything typed, or already filled
+    // from OpenStreetMap, wins. A pick that is no longer current when the answer arrives is dropped.
+    const enrichmentSession = businessSessionRef.current
+    if (isOwnedWebsite(business.website)) {
+      void (async () => {
+        try {
+          const res = await fetch('/api/personalization/enrich-business', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ businesses: [{ id: business.id, website: business.website }] }),
+          })
+          if (!res.ok) return
+          const body = (await res.json().catch(() => null)) as { results?: Array<{ ok?: boolean; enrichment?: Parameters<typeof enrichmentToAutoFill>[0] }> } | null
+          const enrichment = body?.results?.[0]?.ok ? body.results[0].enrichment : null
+          if (!enrichment || enrichmentSession !== businessSessionRef.current) return
+          setFoundSignals(foundSignalsOf(enrichment))
+          const { values, sources } = enrichmentToAutoFill(enrichment)
+          if (!Object.keys(values).length) return
+          setClientForm((prev) => {
+            // EMPTY fields only. `mergeAutoFilledContent` would also replace a value an earlier auto-fill put there
+            // (e.g. the OpenStreetMap phone); website-found contacts must never displace that.
+            const emptyOnly: Record<string, string> = {}
+            for (const [k, v] of Object.entries(values)) {
+              if (!String((prev as Record<string, unknown>)[k] ?? '').trim()) emptyOnly[k] = v as string
+            }
+            const merged = mergeAutoFilledContent(prev, emptyOnly, autoFilledRef.current, { placeholderName: placeholderNameRef.current })
+            autoFilledRef.current = merged.autoFilled
+            return merged.form
+          })
+          // Sources are kept per found value; the UI shows one only while the profile still holds that exact value,
+          // so a value the user typed instead (or an OpenStreetMap one) never gets a "found on the website" label.
+          setContactSources((prev) => ({ ...prev, ...sources }))
+        } catch {
+          /* enrichment is a bonus: a failed lookup leaves the form exactly as it was */
+        }
+      })()
+    }
 
     // OpenStreetMap often lists only a Facebook/Instagram page. Look for the
     // business's own website in the background and fill the form when it is
@@ -5792,9 +5887,24 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       setRemotionDesignError(`That design is not available.`)
       return
     }
+    // Rules (duplicate, missing picture, one full scene / transition) and the staggered start live in one pure helper.
+    const result = addDesignWithRules(previewSettingsRef.current, designId, previewSeedRef.current)
+    if (result.error) {
+      remotionDesignErrorIdRef.current = designId
+      setRemotionDesignError(result.error)
+      return
+    }
     remotionDesignErrorIdRef.current = null
     setRemotionDesignError(null)
-    setPreviewSettings((prev) => addDesignTemplate(prev, designId, previewSeedRef.current))
+    setPreviewSettings((prev) => {
+      const next = addDesignWithRules(prev, designId, previewSeedRef.current)
+      return next.error ? prev : next.settings
+    })
+  }, [])
+
+  const moveAddedDesign = useCallback((layerId: string, direction: -1 | 1) => {
+    markSessionStarted()
+    setPreviewSettings((prev) => moveDesignLayer(prev, layerId, direction))
   }, [])
 
   const removePreviewDesignLayer = useCallback((layerId: string) => {
@@ -5884,10 +5994,30 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // No stale-result guard: the merge is idempotent, and a URL is only measured once.
     void measureImageHints(urls).then((measured) => {
       if (!Object.keys(measured).length) return
-      setPreviewSettings((prev) => ({ ...prev, imageHints: { ...(prev.imageHints ?? {}), ...measured } }))
+      // Merged per URL so a late measurement never drops a trimmed-logo copy that landed first.
+      setPreviewSettings((prev) => {
+        const merged = { ...(prev.imageHints ?? {}) }
+        for (const [u, hint] of Object.entries(measured)) merged[u] = { ...merged[u], ...hint }
+        return { ...prev, imageHints: merged }
+      })
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignedImageUrlsKey])
+
+  // A transparent logo with a lot of empty padding renders small. Make ONE trimmed copy (the original is untouched)
+  // and keep it as a hint, so the preview, the gallery and the export all draw the same cropped logo.
+  const logoSourceUrl = assets.primaryLogo?.uploadedUrl || assets.primaryLogo?.url || ''
+  const trimmedLogoUrlsRef = useRef<Set<string>>(new Set())
+  useEffect(() => {
+    const url = logoSourceUrl
+    if (!url || trimmedLogoUrlsRef.current.has(url) || previewSettings.imageHints?.[url]?.trimmedUrl) return
+    trimmedLogoUrlsRef.current.add(url)
+    void measureLogoTrim(url).then((trimmedUrl) => {
+      if (!trimmedUrl) return
+      setPreviewSettings((prev) => ({ ...prev, imageHints: { ...(prev.imageHints ?? {}), [url]: { ...(prev.imageHints?.[url] ?? {}), trimmedUrl } } }))
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [logoSourceUrl])
 
   const reorderPreviewLayers = useCallback((orderedIds: string[]) => {
     markSessionStarted()
@@ -5951,8 +6081,22 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     }))
   }, [])
 
+  const updatePreviewCaptions = useCallback((patch: Partial<PreviewCaptions> | null) => {
+    markSessionStarted()
+    setPreviewSettings((prev) => {
+      const captions = applyCaptionsPatch(prev.captions, patch)
+      if (!captions) {
+        if (!prev.captions) return prev
+        const { captions: _removed, ...rest } = prev
+        void _removed
+        return rest
+      }
+      return { ...prev, captions }
+    })
+  }, [])
+
   const updatePreviewComposition = useCallback(
-    (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard'>>) => {
+    (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard' | 'look' | 'cutout'>>) => {
       markSessionStarted()
       setPreviewSettings((prev) => {
         let next = { ...prev, ...patch }
@@ -6039,6 +6183,43 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       setApprovalStale(true)
     }
   }, [previewApproved, approvalSignature])
+
+  const cancelShapeExport = useCallback(() => {
+    shapeExportAbortRef.current?.abort()
+    cancelActiveExport()
+  }, [])
+
+  const exportAllShapes = useCallback(async () => {
+    if (!previewApproved || shapeExportAbortRef.current) return
+    const controller = new AbortController()
+    shapeExportAbortRef.current = controller
+    const inputProps = buildPreviewInput({ source, previewSettings, previewVideo, clientForm, assets })
+    const items: ShapeExportItem[] = ALL_ASPECT_RATIOS.map((aspect) => ({ aspect, status: 'waiting', progress: 0 }))
+    const update = (aspect: string, patch: Partial<ShapeExportItem>) =>
+      setShapeExport((prev) => ({ ...prev, items: prev.items.map((i) => (i.aspect === aspect ? { ...i, ...patch } : i)) }))
+    setShapeExport({ status: 'running', items })
+    try {
+      const { exportPersonalizedVideo, downloadWebExportBlob } = await import('./webExport')
+      const stamp = Date.now().toString(36)
+      await exportAllAspects({
+        inputProps,
+        signal: controller.signal,
+        exportOne: (props, onProgress) => exportPersonalizedVideo({ inputProps: props, onProgress, signal: controller.signal }),
+        onProgress: ({ aspect, progress }) => update(aspect, { status: 'rendering', progress }),
+        onResult: ({ aspect, result }) => {
+          if (result.ok) {
+            downloadWebExportBlob(result.blob, `personalized-${aspect.replace(':', 'x')}-${stamp}.${result.extension}`)
+            update(aspect, { status: 'done', progress: 1 })
+          } else {
+            update(aspect, { status: result.reason === 'cancelled' ? 'cancelled' : 'failed', error: result.error })
+          }
+        },
+      })
+    } finally {
+      shapeExportAbortRef.current = null
+      setShapeExport((prev) => ({ status: 'finished', items: prev.items.map((i) => (i.status === 'waiting' ? { ...i, status: 'cancelled' } : i)) }))
+    }
+  }, [previewApproved, source, previewSettings, previewVideo, clientForm, assets])
 
   const createFinalVideo = useCallback(async (options?: { approveNow?: boolean }) => {
     lastRunWasFinalVideoRef.current = true
@@ -6581,6 +6762,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     selectBusiness,
     autoFilledKeys,
     businessLoadSummary,
+    contactSources,
+    foundSignals,
+    clearContactValue,
     resolveBusinessWebsite,
     websiteLookup,
     researchBusiness,
@@ -6660,6 +6844,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setPreviewProtectedZones,
     applyPreviewPlacements,
     updatePreviewBrandColors,
+    updatePreviewCaptions,
     updatePreviewComposition,
     resetPreviewLayout,
     remotionDesignTemplates,
@@ -6667,12 +6852,16 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setRemotionDesign,
     addRemotionDesign,
     removePreviewDesignLayer,
+    moveAddedDesign,
     undoPreview,
     redoPreview,
     canUndoPreview: historyRef.current.past.length > 0,
     canRedoPreview: historyRef.current.future.length > 0,
     remotionDesignError,
     previewApproved,
+    shapeExport,
+    exportAllShapes,
+    cancelShapeExport,
     approvalStale,
     approvePersonalization,
      createFinalVideo,

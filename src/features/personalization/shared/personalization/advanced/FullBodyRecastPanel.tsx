@@ -57,7 +57,9 @@ function RecastPanel({ caption, children }: { caption: string; children: ReactNo
   )
 }
 
-const mediaStyle: CSSProperties = { width: '100%', height: '100%', objectFit: 'cover', display: 'block' }
+// `contain`: show the whole clip / photo, letterboxed on the dark panel, instead of
+// cropping a landscape clip into a tall portrait panel.
+const mediaStyle: CSSProperties = { width: '100%', height: '100%', objectFit: 'contain', display: 'block' }
 
 /** Bundled example (open-genjutsu sample media, MIT) in public/media/recast-example. */
 export const RECAST_EXAMPLE = {
@@ -275,7 +277,7 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
               aria-current={active ? 'step' : undefined}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 999, fontSize: 10, fontWeight: 800,
-                background: active ? C.cyanSoft : C.panel, color: active ? C.cyan : complete ? C.text : C.muted,
+                background: active ? 'transparent' : C.panel, color: active ? C.cyan : complete ? C.text : C.muted,
                 border: `1px solid ${active ? C.cyanBorder : C.border}`,
               }}
             >
@@ -311,7 +313,7 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
             <>
               <video ref={sourceVideoRef} src={shownSourceUrl} muted loop playsInline preload="metadata" controls style={mediaStyle} data-testid="pz-recast-source" />
               {shownSourceLength > 0 && (
-                <span style={{ position: 'absolute', left: 8, bottom: 8, zIndex: 2, padding: '3px 8px', borderRadius: 999, background: 'rgba(0,0,0,.7)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+                <span data-testid="pz-recast-source-length" style={{ position: 'absolute', right: 8, top: 38, zIndex: 2, padding: '3px 8px', borderRadius: 999, background: 'rgba(0,0,0,.7)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
                   {Math.round(shownSourceLength)}s
                 </span>
               )}
@@ -377,7 +379,7 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
             disabled={running || !currentVideoUrl}
             onClick={useCurrentVideo}
             aria-pressed={clip.kind === 'current'}
-            style={{ minHeight: 30, padding: '0 10px', borderRadius: 8, fontSize: 10, fontWeight: 800, border: `1px solid ${clip.kind === 'current' ? C.cyanBorder : C.border}`, background: clip.kind === 'current' ? C.cyanSoft : 'transparent', color: clip.kind === 'current' ? C.cyan : C.text }}
+            style={{ minHeight: 30, padding: '0 10px', borderRadius: 8, fontSize: 10, fontWeight: 800, border: `1px solid ${clip.kind === 'current' ? C.cyanBorder : C.border}`, background: clip.kind === 'current' ? 'transparent' : 'transparent', color: clip.kind === 'current' ? C.cyan : C.text }}
           >
             Current video
           </button>
@@ -386,7 +388,7 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
             disabled={running || isAnonymous}
             onClick={() => fileInputRef.current?.click()}
             aria-pressed={clip.kind === 'upload'}
-            style={{ minHeight: 30, padding: '0 10px', borderRadius: 8, fontSize: 10, fontWeight: 800, border: `1px solid ${clip.kind === 'upload' ? C.cyanBorder : C.border}`, background: clip.kind === 'upload' ? C.cyanSoft : 'transparent', color: clip.kind === 'upload' ? C.cyan : C.text }}
+            style={{ minHeight: 30, padding: '0 10px', borderRadius: 8, fontSize: 10, fontWeight: 800, border: `1px solid ${clip.kind === 'upload' ? C.cyanBorder : C.border}`, background: clip.kind === 'upload' ? 'transparent' : 'transparent', color: clip.kind === 'upload' ? C.cyan : C.text }}
           >
             {clip.kind === 'upload' ? `↑ ${clip.label}` : '↑ Upload a clip'}
           </button>
@@ -460,7 +462,7 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
             disabled={!canRecast}
             data-testid="pz-recast-run"
             className="disabled:opacity-40"
-            style={{ minHeight: 40, padding: '0 18px', borderRadius: 10, border: 'none', background: C.cyan, color: '#000000', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.04em' }}
+            style={{ minHeight: 40, padding: '0 18px', borderRadius: 10, border: `1px solid ${C.cyan}`, background: 'transparent', color: C.cyan, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.04em' }}
           >
             ✦ {done ? 'Recast again' : 'Recast full body'}
           </button>
