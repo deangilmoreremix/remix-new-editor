@@ -108,8 +108,12 @@ export interface ThumbnailImageControls {
   /** 'WxH' in pixels (multiples of 16); overrides the aspect-ratio derived size. */
   size?: string
   background?: 'transparent' | 'opaque' | 'auto'
-  outputFormat?: 'png' | 'jpeg' | 'webp'
+  outputFormat?: 'png' | 'jpeg' | 'webp' | 'svg' | 'gif'
   outputCompression?: number
+  /** gif only: 2 to 16 frames (default 9). */
+  frameCount?: number
+  /** gif only: 20 to 2000 ms per frame (default 200). */
+  frameDurationMs?: number
   /** Content filter: 'auto' (standard, default) or 'low' (less restrictive). */
   moderation?: 'auto' | 'low'
 }
@@ -127,6 +131,8 @@ function imageControlFields(params: ThumbnailImageControls): Record<string, unkn
     ...(params.outputFormat ? { output_format: params.outputFormat } : {}),
     ...(params.outputCompression !== undefined ? { output_compression: params.outputCompression } : {}),
     ...(params.moderation && params.moderation !== 'auto' ? { moderation: params.moderation } : {}),
+    ...(params.frameCount !== undefined ? { frame_count: params.frameCount } : {}),
+    ...(params.frameDurationMs !== undefined ? { frame_duration_ms: params.frameDurationMs } : {}),
   }
 }
 

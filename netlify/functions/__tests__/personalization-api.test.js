@@ -310,6 +310,74 @@ describe('/api/proxy/thumbnail-generate (Images 2.6)', () => {
     })
   })
 
+  const b64 = (text) => Buffer.from(text).toString('base64')
+  const SAFE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="#d9ff00"/></svg>'
+  const imageWith = (data, extra = {}) => async () => new Response(JSON.stringify({ data: [{ b64_json: data }], ...extra }), { status: 200 })
+
+  it('draws an SVG from a prompt: one image, svg file type, usage passed through', async () => {
+    await withFetch(imageWith(b64(SAFE_SVG), { output_format: 'svg', usage: { output_tokens: 321 } }), async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'a badge', model: 'gpt-image-2.6-flare', output_format: 'svg', n: 3 })
+      expect(res.status).toBe(200)
+      const sent = JSON.parse(upstream.mock.calls[0][1].body)
+      expect(sent.output_format).toBe('svg')
+      expect(sent.n).toBe(1)
+      const out = await res.json()
+      expect(out.urls[0].startsWith('data:image/svg+xml;base64,')).toBe(true)
+      expect(out.usage.output_tokens).toBe(321)
+    })
+  })
+
+  it('refuses an unsafe SVG from OpenAI', async () => {
+    await withFetch(imageWith(b64('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'), { output_format: 'svg' }), async () => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'svg' })
+      expect(res.status).toBe(502)
+    })
+  })
+
+  it('rejects SVG with a picture, with compression, or without an Images 2.6 model', async () => {
+    await withFetch(image, async (upstream) => {
+      expect((await post({ action: 'refine', prompt: 'p', image_url: PNG, model: 'gpt-image-2.6-flare', output_format: 'svg' })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'svg', output_compression: 50 })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2', output_format: 'svg' })).status).toBe(400)
+      expect(upstream).not.toHaveBeenCalled()
+    })
+  })
+
+  it('makes an animated GIF with frame count and duration (duration rounded to 10 ms)', async () => {
+    await withFetch(imageWith('R0lGODlh', { output_format: 'gif' }), async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-sunburst', output_format: 'gif', frame_count: 5, frame_duration_ms: 205, size: '512x512' })
+      expect(res.status).toBe(200)
+      const sent = JSON.parse(upstream.mock.calls[0][1].body)
+      expect(sent.output_format).toBe('gif')
+      expect(sent.frame_count).toBe(5)
+      expect(sent.frame_duration_ms).toBe(210)
+      expect(sent.size).toBe('512x512')
+      expect((await res.json()).urls[0].startsWith('data:image/gif;base64,')).toBe(true)
+    })
+  })
+
+  it('validates GIF settings and does not fall back to another model for GIF', async () => {
+    await withFetch(image, async (upstream) => {
+      expect((await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'gif', frame_count: 20 })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'gif', frame_duration_ms: 5 })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'png', frame_count: 4 })).status).toBe(400)
+      expect(upstream).not.toHaveBeenCalled()
+    })
+    await withFetch(async () => new Response(JSON.stringify({ error: { message: 'The model does not exist or you do not have access to it.' } }), { status: 404 }), async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'gif' })
+      expect(res.status).toBe(400)
+      expect((await res.json()).error).toMatch(/Images 2\.6/)
+      expect(upstream).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('returns token usage for normal images too', async () => {
+    await withFetch(imageWith('iVBORw0KGgo=', { usage: { output_tokens: 1000, input_tokens: 50 } }), async () => {
+      const out = await (await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare' })).json()
+      expect(out.usage.output_tokens).toBe(1000)
+    })
+  })
+
   it('falls back to GPT Image 2 when the key has no Images 2.6 access', async () => {
     let call = 0
     await withFetch(async () => {

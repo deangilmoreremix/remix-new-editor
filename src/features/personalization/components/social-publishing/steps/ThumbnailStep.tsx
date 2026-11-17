@@ -13,6 +13,8 @@ import ThumbnailRefinement from '../thumbnail/ThumbnailRefinement';
 import ThumbnailPlatformPreview from '../thumbnail/ThumbnailPlatformPreview';
 import ThumbnailConceptPanel from '../thumbnail/ThumbnailConceptPanel';
 import ThumbnailVersions from '../thumbnail/ThumbnailVersions';
+import ThumbnailExtras, { type DesignerGraphic } from '../thumbnail/ThumbnailExtras';
+import { describeUsage } from '@ohb/shared/api/imageUsage';
 import ThumbnailDesigner, { type DesignerResult } from '../thumbnail/designer/ThumbnailDesigner';
 import type { CanvasAdjustments } from '../thumbnail/thumbnailPrompt';
 
@@ -122,6 +124,8 @@ export default function ThumbnailStep({
   /** Show the picture while it draws (one image at a time). Free of extra setup; off if you prefer the finished picture only. */
   const [livePreview, setLivePreview] = useState(true)
   const [partialUrl, setPartialUrl] = useState<string | null>(null)
+  /** Optional AI graphics (SVG) the designer can place as picture layers. */
+  const [graphics, setGraphics] = useState<DesignerGraphic[]>([])
   const [isEnhancing, setIsEnhancing] = useState(false)
   const [style, setStyle] = useState('vibrant')
 
@@ -403,6 +407,7 @@ export default function ThumbnailStep({
           headline={headline || copy.headline || ''}
           adjustments={canvasAdjustments}
           model={selectedModel}
+          graphics={graphics}
           openEditRegion={designerEditRegion}
           onDone={handleDesignDone}
           onCancel={() => { setDesigning(false); setDesignerEditRegion(false) }}
@@ -648,6 +653,8 @@ export default function ThumbnailStep({
         </p>
       )}
 
+      {(() => { const u = describeUsage(results[0]?.usage, results[0]?.model ?? selectedModel); return u ? <p className="text-[10px] text-white/40" data-testid="thumbnail-usage">{u.text}</p> : null })()}
+
       <ThumbnailGenerationResults results={results} selectedIndex={selectedIndex} onSelect={handleSelectResult} generating={generating} error={error} generatingCount={generatingCount} partialUrl={partialUrl} onRetry={generating ? undefined : handleGenerate} onDownload={handleDownloadResult} thumbnail={thumbnail} onUpdateThumbnail={onUpdateThumbnail} />
 
       <div className="flex items-center gap-3 rounded-xl p-3" style={{ background: 'rgba(217,255,0,0.04)', border: '1px solid rgba(217,255,0,0.2)' }} data-testid="thumbnail-design-entry">
@@ -664,6 +671,8 @@ export default function ThumbnailStep({
           <Paintbrush size={13} />{thumbnail.design ? 'Edit design' : 'Design this thumbnail'}
         </button>
       </div>
+
+      <ThumbnailExtras onGraphic={(g) => setGraphics((prev) => [...prev, g])} disabled={generating} />
 
       <ThumbnailVersions
         sourceUrl={thumbnail.imageUrl ?? activeImageUrl}

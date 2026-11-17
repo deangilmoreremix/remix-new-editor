@@ -18,6 +18,7 @@ import {
 import { parseImageOptions } from '../../../../src/lib/openaiImageOptions';
 import { safetyIdentifier } from '../../../../src/lib/safetyIdentifier';
 import { toClientStream } from '../../../../src/lib/openaiImageStream';
+import { isSafeSvg, svgTextFromDataUrl } from '../../../../src/lib/svgSafety';
 
 /**
  * Thumbnail generation for the Social Publish modal (opened from every studio).
@@ -104,7 +105,7 @@ function buildPrompt(body: Record<string, any>, aspectRatio: string): string {
   return parts.join(' ').slice(0, 30_000);
 }
 
-async function generations(key: string, model: string, prompt: string, aspectRatio: string, n: number, quality: string, extra?: ExtraImageOptions, streamPartials?: number): Promise<{ urls?: string[]; revised?: string; error?: NextResponse; stream?: Response }> {
+async function generations(key: string, model: string, prompt: string, aspectRatio: string, n: number, quality: string, extra?: ExtraImageOptions, streamPartials?: number): Promise<{ urls?: string[]; revised?: string; usage?: unknown; error?: NextResponse; stream?: Response }> {
   if (model === 'dall-e-3') {
     // dall-e-3 only returns one image per request.
     const calls = Array.from({ length: n }, () =>
@@ -166,7 +167,7 @@ export async function POST(req: NextRequest) {
 
   const action: Action = body.action === 'refine' ? 'refine' : 'generate';
   const aspectRatio = typeof body.aspect_ratio === 'string' ? body.aspect_ratio : '16:9';
-  const n = clampCount(body.n);
+  let n = clampCount(body.n);
   const parsed = parseImageOptions(body);
   if (parsed.error) return errorJson(parsed.error, 400);
   const extra: ExtraImageOptions = {
@@ -177,7 +178,11 @@ export async function POST(req: NextRequest) {
     outputCompression: parsed.options.outputCompression,
     moderation: parsed.options.moderation,
     safetyIdentifier: safetyIdentifier(userId),
+    frameCount: parsed.options.frameCount,
+    frameDurationMs: parsed.options.frameDurationMs,
   };
+  // SVG and animated GIF are Images 2.6 outputs. SVG is drawn from a prompt only (one image, no picture in).
+  const specialFormat = extra.outputFormat === 'svg' || extra.outputFormat === 'gif' ? extra.outputFormat : undefined;
   // Live preview: the picture streams back as partial images while it draws (one image at a time).
   const wantsStream = body.stream === true;
   let streamPartials: number | undefined;
@@ -229,10 +234,15 @@ export async function POST(req: NextRequest) {
   let model = requestedModel === 'dall-e-3' || GPT_IMAGE_MODELS.has(requestedModel) ? requestedModel : DEFAULT_MODEL;
   if (uniqueSources.length > 0 && model === 'dall-e-3') model = DEFAULT_MODEL;
   if (wantsStream && model === 'dall-e-3') return errorJson('Live previews need a GPT Image or Images 2.6 model.', 400);
+  if (specialFormat) {
+    if (!/^gpt-image-2\.6-/.test(requestedModel)) return errorJson('SVG and GIF output need an Images 2.6 model.', 400);
+    if (specialFormat === 'svg' && (uniqueSources.length > 0 || action === 'refine')) return errorJson('SVG is drawn from a prompt only. It cannot edit a picture.', 400);
+    if (specialFormat === 'svg') n = 1;
+  }
 
   let fellBackFrom: string | undefined;
   try {
-    let result: { urls?: string[]; revised?: string; error?: NextResponse; stream?: Response };
+    let result: { urls?: string[]; revised?: string; usage?: unknown; error?: NextResponse; stream?: Response };
     if (uniqueSources.length > 0) {
       let images: ImagePart[];
       try {
@@ -261,7 +271,7 @@ export async function POST(req: NextRequest) {
         // GPT Image 2 has no markup layer, so a silent fallback would ignore the drawing.
         return errorJson('Your OpenAI key cannot use Images 2.6 yet, and drawing edits need it. Use "Paint an area" or "Describe" instead.', 400);
       }
-      if (result.error && model !== DEFAULT_MODEL && (await isModelUnavailable(result.error))) {
+      if (result.error && !specialFormat && model !== DEFAULT_MODEL && (await isModelUnavailable(result.error))) {
         fellBackFrom = model;
         model = DEFAULT_MODEL;
         quality = fallbackQuality(quality);
@@ -269,7 +279,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       result = await generations(key, model, prompt, aspectRatio, n, quality, extra, streamPartials);
-      if (result.error && model !== DEFAULT_MODEL && (await isModelUnavailable(result.error))) {
+      if (result.error && !specialFormat && model !== DEFAULT_MODEL && (await isModelUnavailable(result.error))) {
         fellBackFrom = model;
         model = DEFAULT_MODEL;
         quality = fallbackQuality(quality);
@@ -277,6 +287,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (result.error && specialFormat && model !== DEFAULT_MODEL && (await isModelUnavailable(result.error))) {
+      return errorJson('Your OpenAI key cannot use Images 2.6 yet, and SVG or GIF output needs it.', 400);
+    }
     if (result.error) return result.error;
     if (result.stream) {
       return new NextResponse(
@@ -288,10 +301,16 @@ export async function POST(req: NextRequest) {
       return errorJson('The image service returned no thumbnails. Try again.', 502);
     }
 
+    if (specialFormat === 'svg') {
+      const unsafe = result.urls.some((u) => { const text = svgTextFromDataUrl(u); return !text || !isSafeSvg(text); });
+      if (unsafe) return errorJson('The SVG could not be used safely. Try again.', 502);
+    }
+
     return NextResponse.json({
       urls: result.urls,
       request_id: `thumb_${Date.now().toString(36)}`,
       revised_prompt: result.revised,
+      ...(result.usage ? { usage: result.usage } : {}),
       model,
       ...(fellBackFrom ? { fallback_from: fellBackFrom } : {}),
     });
