@@ -1,5 +1,12 @@
 import { BaseModal } from './BaseModal.jsx';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
+import { CAPTION_MODELS, DEFAULT_CAPTION_ENGINE, transcribeCaptions } from './template-generator/captions.js';
+import { captionPages, captionAt, captionPageHTML, captionTextCss } from './template-generator/captionPreview.js';
+import { segmentWords, flattenSegments, nudgeSegment, editWord, splitSegment, mergeSegments, deleteSegment, addSegment, replaceAll, countMatches, convertCase, segmentsToSrt, segmentsToVtt, segmentsToTxt, segmentStart, segmentEnd, NUDGE_MS } from './ai-captions/scriptOps.js';
+import { POSITION_PERCENT, clampPos } from './ai-captions/phonePreview.js';
+import { saveJob, listJobs, getJob, deleteJob, clearJobs } from './ai-captions/history.js';
+import { burnInCaptions, burnInSupported } from './ai-captions/burnIn.js';
+import { renderTabs, renderTab, styleFor } from './ai-captions/render.js';
 
 const CAPTION_LANGUAGES = [
   { value: 'English', label: 'English' },
@@ -74,12 +81,15 @@ const GENERATION_STEPS = [
   'Uploading video...',
   'Generating captions...',
 ];
+const DEVICE_STEPS = ['Reading the video...', 'Listening (Whisper on this device)...', 'Building the script...'];
+const DEFAULT_LOOK = 'capite-hormozi';
+const TITLE_HTML = '<span class="cap-title"><span class="cap-title-tile" aria-hidden="true">✦</span><span class="cap-title-text"><span class="cap-title-main">AI Captions</span><span class="cap-title-sub">Animated word-by-word captions: pick a look, fix the words, download the video, .srt, .vtt or .txt.</span></span></span>';
 
 export class AICaptionsModal extends BaseModal {
   constructor(options = {}) {
     super({
-      title: '💬 AI Captions',
-      size: 'large',
+      title: TITLE_HTML,
+      size: 'full',
       showFooter: true,
       ...options,
     });
@@ -106,6 +116,50 @@ export class AICaptionsModal extends BaseModal {
     this.uploading = false;
     this.uploadErrorMessage = '';
     this.mediaAssetId = null;
+
+    // On-device captions (Whisper in the browser) + the editor around them
+    this.engine = options.engine === 'cloud' ? 'cloud' : 'device';
+    this.deviceLang = options.deviceLang || 'auto';
+    this.captionEngine = DEFAULT_CAPTION_ENGINE;
+    this.models = CAPTION_MODELS[DEFAULT_CAPTION_ENGINE];
+    this.model = this.models[0][0];
+    this.languages = CAPTION_LANGUAGES;
+    this.themes = CAPTION_THEMES;
+    this.tab = 'create';
+    this.styleId = options.styleId || DEFAULT_LOOK;
+    this.styleGroup = 'all';
+    this.styleQuery = '';
+    this.percent = POSITION_PERCENT.bottom;
+    this.bg = 'cinema';
+    this.upperOverride = '';
+    this.colorOverride = '';
+    this.highlightOverride = '';
+    this.segments = [];
+    this.detectedLang = '';
+    this.findText = '';
+    this.replText = '';
+    this.matchCount = 0;
+    this.autoScroll = true;
+    this.activeSeg = -1;
+    this.activeWord = -1;
+    this.editing = null;
+    this.speed = 1;
+    this.livePreview = true;
+    this.sourceBlob = null;
+    this.videoUrl = this.videoUrl || '';
+    this.sourceName = '';
+    this.outputUrl = '';
+    this.outputSize = 0;
+    this.outputName = 'captioned.mp4';
+    this.rendering = false;
+    this.renderPct = 0;
+    this.renderNote = '';
+    this.canBurn = burnInSupported();
+    this.jobs = [];
+    this.historyCount = 0;
+    this.jobId = '';
+    this.blobUrls = [];
+    this.abort = null;
 
     this.onComplete = options.onComplete || (() => {});
     this.onError = options.onError || (() => {});
@@ -148,55 +202,28 @@ export class AICaptionsModal extends BaseModal {
     if (this.isGenerating) return this.renderProgress();
     if (this.errorMessage) return this.renderError();
     if (this.captionedUrl) return this.renderResult();
-    return this.renderForm();
+    return this.renderShell();
   }
 
-  renderForm() {
-    return `
-      <div class="ai-captions-modal" style="${this.themeVars()}">
-        <p class="ai-captions-subtitle">
-          Add AI-generated animated captions to your video. Choose a language and viral caption theme.
-        </p>
-        <div class="ai-captions-mode-switch">
-          <button type="button" class="mode-btn ${this.inputMode === 'url' ? 'active' : ''}" data-mode="url">
-            <span class="mode-icon">🔗</span> Video URL
-          </button>
-          <button type="button" class="mode-btn ${this.inputMode === 'upload' ? 'active' : ''}" data-mode="upload">
-            <span class="mode-icon">📁</span> Upload Video
-          </button>
-        </div>
-        <div class="ai-captions-form">
-          ${this.errorMessage ? `<div class="error-message" role="alert">⚠ ${this.escapeHtml(this.errorMessage)}</div>` : ''}
-          ${this.inputMode === 'url' ? this.renderUrlForm() : this.renderUploadForm()}
-          <div class="form-grid">
-            <div class="form-section">
-              <label for="ai-cap-language">Language</label>
-              <select id="ai-cap-language">
-                ${CAPTION_LANGUAGES.map((l) => `<option value="${l.value}" ${this.language === l.value ? 'selected' : ''}>${this.escapeHtml(l.label)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="form-section">
-              <label for="ai-cap-theme">Caption Theme</label>
-              <select id="ai-cap-theme">
-                ${CAPTION_THEMES.map((t) => `<option value="${t.value}" ${this.theme === t.value ? 'selected' : ''}>${this.escapeHtml(t.label)}</option>`).join('')}
-              </select>
-            </div>
-          </div>
-          <div class="ai-captions-preview">
-            <div class="ai-captions-preview-label">Theme Preview</div>
-            <div class="ai-captions-theme-chips">
-              ${CAPTION_THEMES.slice(0, 9).map((t) => `
-                <button type="button" class="theme-chip ${this.theme === t.value ? 'active' : ''}" data-theme="${t.value}">
-                  <span class="theme-chip-dot"></span>
-                  ${this.escapeHtml(t.label)}
-                </button>
-              `).join('')}
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
+  /** The tabbed shell (Create · Script & Words · Motion & Style · History). */
+  renderShell() {
+    return `<div class="ai-captions-modal cap-root" style="${this.themeVars()}">${renderTabs(this)}<div class="cap-panel" data-tab="${this.tab}">${renderTab(this)}</div></div>`;
   }
+
+  renderForm() { return this.renderShell(); }
+
+  /** The look in use: the chosen caption style with the Motion & Style overrides applied. */
+  effectiveStyle() {
+    const s = styleFor(this.styleId);
+    const out = { ...s };
+    if (this.upperOverride === 'upper') out.textTransform = 'uppercase';
+    if (this.upperOverride === 'none') out.textTransform = 'none';
+    if (this.colorOverride) out.color = this.colorOverride;
+    if (this.highlightOverride) { if (s.highlightBackground) out.highlightBackground = this.highlightOverride; else out.highlightColor = this.highlightOverride; }
+    return out;
+  }
+
+  stepList() { return this.engine === 'device' ? DEVICE_STEPS : GENERATION_STEPS; }
 
   renderUrlForm() {
     const isVideoUrl = this.videoUrl && /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(this.videoUrl);
@@ -238,14 +265,15 @@ export class AICaptionsModal extends BaseModal {
   }
 
   renderProgress() {
-    const step = GENERATION_STEPS[this.currentStep] || GENERATION_STEPS[GENERATION_STEPS.length - 1];
-    const pct = Math.min(100, Math.round((this.currentStep / (GENERATION_STEPS.length - 1)) * 100));
+    const steps = this.stepList();
+    const step = steps[this.currentStep] || steps[steps.length - 1];
+    const pct = this.engine === 'device' && this.deviceProgress != null ? Math.round(this.deviceProgress * 100) : Math.min(100, Math.round((this.currentStep / (steps.length - 1)) * 100));
     return `
       <div class="ai-captions-modal" style="${this.themeVars()}">
         <div class="generation-progress">
           <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
           <div class="progress-steps">
-            ${GENERATION_STEPS.map((label, idx) => `
+            ${steps.map((label, idx) => `
               <div class="progress-step ${idx < this.currentStep ? 'done' : ''} ${idx === this.currentStep ? 'active' : ''}">
                 <span class="progress-dot"></span><span>${label}</span>
               </div>
@@ -293,100 +321,286 @@ export class AICaptionsModal extends BaseModal {
     const body = this.overlay.querySelector('.modal-body');
     if (body) {
       body.innerHTML = this.renderBody();
-      this.bindBodyListeners();
+      this.afterRender();
     }
   }
+
+  /** Overlay look + the player after every render. */
+  afterRender() {
+    this.overlay?.classList.add('cap-overlay');
+    this.content?.classList.add('cap-modal');
+    const input = this.overlay?.querySelector('[data-edit="1"]');
+    if (input) { input.focus(); input.select(); }
+    this.bindPlayer();
+  }
+
+  onRender() { this.afterRender(); }
 
   setupEventListeners() {
     super.setupEventListeners();
-    this.bindBodyListeners();
+    if (!this.overlay) return;
+    this.afterRender();
+    const root = this.overlay;
+    if (root.dataset.capBound === '1') return;
+    root.dataset.capBound = '1';
+    root.addEventListener('click', (e) => this.onClick(e));
+    root.addEventListener('change', (e) => this.onChange(e));
+    root.addEventListener('input', (e) => this.onInput(e));
+    root.addEventListener('keydown', (e) => this.onKey(e));
+    root.addEventListener('focusout', (e) => { if (e.target?.dataset?.edit === '1') this.commitEdit(e.target.value); });
+    root.addEventListener('dragover', (e) => { const dz = e.target.closest?.('#ai-cap-dropzone'); if (dz) { e.preventDefault(); dz.classList.add('drag-over'); } });
+    root.addEventListener('dragleave', (e) => e.target.closest?.('#ai-cap-dropzone')?.classList.remove('drag-over'));
+    root.addEventListener('drop', (e) => {
+      const dz = e.target.closest?.('#ai-cap-dropzone');
+      if (!dz) return;
+      e.preventDefault(); dz.classList.remove('drag-over');
+      const file = e.dataTransfer?.files?.[0];
+      if (file && file.type.startsWith('video/')) this.takeFile(file);
+    });
+    const generateBtn = root.querySelector('[data-action="generate"]');
+    if (generateBtn) generateBtn.addEventListener('click', (e) => { e.preventDefault(); this.generate(); });
+    const cancelBtn = root.querySelector('[data-action="cancel"]');
+    if (cancelBtn) {
+      cancelBtn.removeEventListener('click', this.boundHandlers.cancel);
+      this.boundHandlers.cancel = () => this.close();
+      cancelBtn.addEventListener('click', this.boundHandlers.cancel);
+    }
+    void this.refreshJobs();
   }
 
-  bindBodyListeners() {
-    const scope = this.overlay?.querySelector('.modal-body');
-    if (!scope) return;
+  takeFile(file) {
+    this.uploadedFile = file;
+    this.uploadedFileName = file.name;
+    this.refreshBody();
+  }
 
-    const modeBtns = scope.querySelectorAll('.mode-btn');
-    modeBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        this.inputMode = btn.dataset.mode;
-        this.refreshBody();
+  onClick(e) {
+    const el = e.target.closest?.('[data-act],[data-action="retry"],[data-action="open-new-tab"],#ai-cap-dropzone');
+    if (!el || !this.overlay?.contains(el)) return;
+    if (el.id === 'ai-cap-dropzone') { el.querySelector('input[type="file"]')?.click(); return; }
+    if (el.dataset.action === 'retry') { this.errorMessage = ''; this.refreshBody(); this.generate(); return; }
+    if (el.dataset.action === 'open-new-tab') { if (this.captionedUrl) window.open(this.captionedUrl, '_blank', 'noopener'); return; }
+    const act = el.dataset.act; const val = el.dataset.val;
+    const si = Number(el.dataset.s); const wi = Number(el.dataset.w);
+    switch (act) {
+      case 'tab': this.tab = val; if (val === 'history') void this.refreshJobs(true); else this.refreshBody(); break;
+      case 'mode': this.inputMode = val; this.refreshBody(); break;
+      case 'theme': this.theme = val; this.refreshBody(); break;
+      case 'look': this.styleId = val; this.refreshBody(); break;
+      case 'group': this.styleGroup = val; this.refreshBody(); break;
+      case 'pos': this.setPercent(POSITION_PERCENT[val]); this.refreshBody(); break;
+      case 'reset-style': this.upperOverride = ''; this.colorOverride = ''; this.highlightOverride = ''; this.percent = POSITION_PERCENT.bottom; this.bg = 'cinema'; this.refreshBody(); break;
+      case 'word': this.editing = { s: si, w: wi }; this.refreshBody(); break;
+      case 'seek': this.seekTo(segmentStart(this.segments[si]) / 1000); break;
+      case 'nudge': this.segments = nudgeSegment(this.segments, si, Number(el.dataset.d) || NUDGE_MS); this.edited(); break;
+      case 'split': this.segments = splitSegment(this.segments, si, Math.floor((this.segments[si]?.words.length || 0) / 2)); this.edited(); break;
+      case 'merge': this.segments = mergeSegments(this.segments, si); this.edited(); break;
+      case 'del': this.segments = deleteSegment(this.segments, si); this.edited(); break;
+      case 'add': this.addLine(); break;
+      case 'replace-all': this.segments = replaceAll(this.segments, this.findText, this.replText); this.findText = ''; this.matchCount = 0; this.edited(); break;
+      case 'case': this.segments = convertCase(this.segments, val); this.edited(); break;
+      case 'autoscroll': this.autoScroll = !this.autoScroll; this.refreshBody(); break;
+      case 'copy': this.copyScript(); break;
+      case 'play': this.togglePlay(); break;
+      case 'speed': this.speed = Number(val) || 1; this.refreshBody(); break;
+      case 'live': this.livePreview = !this.livePreview; this.refreshBody(); break;
+      case 'render': void this.renderVideo(); break;
+      case 'export': this.exportText(val); break;
+      case 'job-open': void this.openJob(el.dataset.id); break;
+      case 'job-srt': void this.exportJob(el.dataset.id); break;
+      case 'job-del': void deleteJob(el.dataset.id).then(() => this.refreshJobs(true)); break;
+      case 'job-clear': void clearJobs().then(() => this.refreshJobs(true)); break;
+      default: break;
+    }
+  }
+
+  onChange(e) {
+    const t = e.target;
+    if (t.id === 'ai-cap-file-input') { const file = t.files?.[0]; if (file) this.takeFile(file); return; }
+    if (t.id === 'ai-cap-engine') { this.engine = t.value === 'cloud' ? 'cloud' : 'device'; this.refreshBody(); return; }
+    if (t.id === 'ai-cap-language') { if (this.engine === 'cloud') this.language = t.value; else this.deviceLang = t.value; return; }
+    if (t.id === 'ai-cap-model') { this.model = t.value; return; }
+    if (t.id === 'ai-cap-theme') { this.theme = t.value; this.refreshBody(); return; }
+    if (t.id === 'ai-cap-more') { if (t.value) { this.styleId = t.value; this.refreshBody(); } return; }
+    if (t.id === 'ai-cap-case') { this.upperOverride = t.value === 'style' ? '' : t.value; this.refreshBody(); return; }
+    if (t.id === 'ai-cap-color') { this.colorOverride = t.value; this.refreshBody(); return; }
+    if (t.id === 'ai-cap-hl') { this.highlightOverride = t.value; this.refreshBody(); return; }
+    if (t.id === 'ai-cap-bg') { this.bg = t.value; this.refreshBody(); return; }
+    if (t.dataset?.act === 'pos-range') { this.refreshBody(); }
+  }
+
+  onInput(e) {
+    const t = e.target;
+    if (t.id === 'ai-cap-url') { this.videoUrl = t.value; return; }
+    if (t.id === 'ai-cap-find') { this.findText = t.value; this.matchCount = countMatches(this.segments, t.value); const b = this.overlay.querySelector('[data-act="replace-all"]'); if (b) b.textContent = `Replace${t.value ? ` (${this.matchCount})` : ''}`; return; }
+    if (t.id === 'ai-cap-repl') { this.replText = t.value; return; }
+    if (t.id === 'ai-cap-q') { this.styleQuery = t.value; this.refreshBody(); const q = this.overlay.querySelector('#ai-cap-q'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } return; }
+    if (t.dataset?.act === 'pos-range') this.setPercent(Number(t.value));
+  }
+
+  onKey(e) {
+    const t = e.target;
+    if (t?.dataset?.edit === '1') {
+      if (e.key === 'Enter') { e.preventDefault(); this.commitEdit(t.value); } else if (e.key === 'Escape') { e.stopPropagation(); this.editing = null; this.refreshBody(); }
+      return;
+    }
+    if (e.code === 'Space' && !/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(t?.tagName || '') && (this.tab === 'script' || this.tab === 'style') && this.overlay.querySelector('#ai-cap-video')) { e.preventDefault(); this.togglePlay(); }
+    if ((e.key === 'Enter' || e.key === ' ') && t?.dataset?.act === 'word') { e.preventDefault(); t.click(); }
+  }
+
+  setPercent(p) {
+    this.percent = clampPos(p);
+    const cap = this.overlay?.querySelector('.cap-phone-caption'); if (cap) cap.style.bottom = `${this.percent}%`;
+    const live = this.overlay?.querySelector('#ai-cap-live'); if (live) live.style.bottom = `${this.percent}%`;
+    const out = this.overlay?.querySelector('[data-testid="cap-pos-value"]'); if (out) out.textContent = `${this.percent}%`;
+  }
+
+  // ---------------------------------------------------------------- script edits
+
+  edited() { this.editing = null; this.matchCount = countMatches(this.segments, this.findText); this.outputStale = !!this.outputUrl; this.refreshBody(); }
+
+  commitEdit(text) {
+    if (!this.editing) return;
+    const { s, w } = this.editing;
+    this.editing = null;
+    this.segments = editWord(this.segments, s, w, text);
+    this.edited();
+  }
+
+  addLine() {
+    const ms = (this.overlay?.querySelector('#ai-cap-video')?.currentTime || 0) * 1000;
+    let after = -1;
+    this.segments.forEach((sg, i) => { if (segmentEnd(sg) <= ms) after = i; });
+    this.segments = addSegment(this.segments, 'New line', { after });
+    this.edited();
+  }
+
+  async copyScript() {
+    const text = segmentsToTxt(this.segments);
+    try { await navigator.clipboard.writeText(text); this.renderNote = 'Script copied.'; } catch { this.renderNote = 'Copy is not allowed here. Download the .txt instead.'; }
+    this.refreshBody();
+  }
+
+  fileBase() { return (this.sourceName || 'captions').replace(/\.[^.]+$/, '').replace(/[^\w.-]+/g, '_') || 'captions'; }
+
+  download(name, text, mime) {
+    const url = URL.createObjectURL(new Blob([text], { type: mime }));
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  exportText(kind, segments = this.segments, base = this.fileBase()) {
+    if (kind === 'vtt') this.download(`${base}.vtt`, segmentsToVtt(segments), 'text/vtt');
+    else if (kind === 'txt') this.download(`${base}.txt`, segmentsToTxt(segments), 'text/plain');
+    else this.download(`${base}.srt`, segmentsToSrt(segments), 'application/x-subrip');
+  }
+
+  // ---------------------------------------------------------------- player
+
+  seekTo(sec) { const v = this.overlay?.querySelector('#ai-cap-video'); if (v) { v.currentTime = sec; this.updateLive(); } }
+  togglePlay() { const v = this.overlay?.querySelector('#ai-cap-video'); if (!v) return; if (v.paused) v.play?.().catch(() => {}); else v.pause(); }
+
+  bindPlayer() {
+    const v = this.overlay?.querySelector('#ai-cap-video');
+    if (!v || v.dataset.bound === '1') return;
+    v.dataset.bound = '1';
+    v.playbackRate = this.speed;
+    const tick = () => { this.updateLive(); if (!v.paused && !v.ended) this.raf = requestAnimationFrame(tick); };
+    v.addEventListener('play', () => { const b = this.overlay.querySelector('.cap-play'); if (b) b.textContent = '❚❚'; cancelAnimationFrame(this.raf); tick(); });
+    v.addEventListener('pause', () => { const b = this.overlay.querySelector('.cap-play'); if (b) b.textContent = '▶'; });
+    v.addEventListener('timeupdate', () => this.updateLive());
+    v.addEventListener('seeked', () => this.updateLive());
+    this.updateLive();
+  }
+
+  /** Draw the caption showing now over the video and follow the line being spoken. */
+  updateLive() {
+    const v = this.overlay?.querySelector('#ai-cap-video');
+    const live = this.overlay?.querySelector('#ai-cap-live');
+    if (!v || !live) return;
+    const ms = v.currentTime * 1000;
+    const style = this.effectiveStyle();
+    let seg = -1; let word = -1;
+    this.segments.forEach((sg, i) => { if (ms >= segmentStart(sg) && ms < segmentEnd(sg) + 150) { seg = i; sg.words.forEach((w, j) => { if (ms >= w.start && ms < w.end) word = j; }); } });
+    if (seg !== this.activeSeg || word !== this.activeWord) {
+      const lines = this.overlay.querySelector('#ai-cap-lines');
+      if (lines) {
+        lines.querySelectorAll('.cap-line.is-active').forEach((n) => n.classList.remove('is-active'));
+        lines.querySelectorAll('.cap-w.is-hot').forEach((n) => n.classList.remove('is-hot'));
+        const card = lines.querySelector(`.cap-line[data-seg="${seg}"]`);
+        if (card) { card.classList.add('is-active'); card.querySelector(`.cap-w[data-w="${word}"]`)?.classList.add('is-hot'); if (this.autoScroll && seg !== this.activeSeg) card.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }); }
+      }
+      this.activeSeg = seg; this.activeWord = word;
+    }
+    if (!this.livePreview) { live.innerHTML = ''; return; }
+    const page = captionAt(captionPages(flattenSegments(this.segments), style), ms);
+    live.style.cssText = `bottom:${this.percent}%;${captionTextCss(style, v.clientHeight || 360)}`;
+    live.innerHTML = page ? captionPageHTML(style, page, ms, { motion: style.motion || 'pop' }) : '';
+  }
+
+  // ---------------------------------------------------------------- render, history
+
+  async renderVideo() {
+    if (this.rendering || !this.sourceBlob || !this.segments.length) return;
+    this.rendering = true; this.renderPct = 0; this.renderNote = ''; this.refreshBody();
+    this.abort = new AbortController();
+    try {
+      const out = await burnInCaptions(this.sourceBlob, {
+        words: flattenSegments(this.segments), style: this.effectiveStyle(), percent: this.percent, signal: this.abort.signal,
+        onProgress: (p) => { this.renderPct = p; const b = this.overlay?.querySelector('[data-testid="cap-render"]'); if (b) b.textContent = `Rendering… ${Math.round(p * 100)}%`; },
       });
+      if (this.outputUrl) URL.revokeObjectURL(this.outputUrl);
+      this.outputUrl = URL.createObjectURL(out.blob);
+      this.outputSize = out.fileSize;
+      this.outputName = `${this.fileBase()}-captioned.mp4`;
+      this.outputStale = false;
+      this.renderNote = 'Done. The captions are burned into the video.';
+      this.onComplete(this.outputUrl);
+      void this.saveCurrentJob();
+    } catch (err) {
+      this.renderNote = err?.message || 'The video could not be rendered.';
+    } finally {
+      this.rendering = false; this.abort = null; this.refreshBody();
+    }
+  }
+
+  async saveCurrentJob(extra = {}) {
+    if (!this.segments.length) return;
+    const video = this.sourceBlob;
+    const rec = await saveJob({
+      id: this.jobId || undefined, title: this.sourceName || 'Untitled video', durationSec: this.durationSec || (this.segments.length ? segmentEnd(this.segments[this.segments.length - 1]) / 1000 : 0),
+      language: this.detectedLang || this.deviceLang, styleId: this.styleId, percent: this.percent, processingMs: this.processingMs || 0,
+      fileSize: this.outputSize || video?.size || 0, segments: this.segments, ...(video ? { video } : {}), ...extra,
     });
+    this.jobId = rec.id;
+    await this.refreshJobs();
+  }
 
-    const urlInput = scope.querySelector('#ai-cap-url');
-    if (urlInput) {
-      urlInput.addEventListener('input', (e) => {
-        this.videoUrl = e.target.value;
-      });
-    }
+  async refreshJobs(rerender = false) {
+    try { this.jobs = (await listJobs()).map((j) => ({ ...j, hasVideo: !!j.video })); } catch { this.jobs = []; }
+    this.historyCount = this.jobs.length;
+    if ((rerender || this.tab === 'history') && this.overlay && this.state === 'open') this.refreshBody();
+  }
 
-    const fileInput = scope.querySelector('#ai-cap-file-input');
-    if (fileInput) {
-      fileInput.addEventListener('change', (e) => {
-        const file = e.target.files?.[0];
-        if (file) {
-          this.uploadedFile = file;
-          this.uploadedFileName = file.name;
-          this.refreshBody();
-        }
-      });
-    }
+  async openJob(id) {
+    const j = await getJob(id);
+    if (!j) return;
+    this.jobId = j.id; this.segments = (j.segments || []).map((s) => ({ ...s })); this.styleId = j.styleId || this.styleId; this.percent = clampPos(j.percent);
+    this.sourceName = j.title || ''; this.detectedLang = j.language || ''; this.durationSec = j.durationSec; this.sourceBlob = j.video || null; this.outputUrl = '';
+    if (j.video) { this.videoUrl = this.trackUrl(j.video); }
+    this.tab = 'script'; this.refreshBody();
+  }
 
-    const dropzone = scope.querySelector('#ai-cap-dropzone');
-    if (dropzone) {
-      dropzone.addEventListener('click', () => {
-        const input = dropzone.querySelector('input[type="file"]');
-        if (input) input.click();
-      });
-      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
-      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('drag-over');
-        const file = e.dataTransfer?.files?.[0];
-        if (file && file.type.startsWith('video/')) {
-          this.uploadedFile = file;
-          this.uploadedFileName = file.name;
-          this.refreshBody();
-        }
-      });
-    }
+  async exportJob(id) { const j = await getJob(id); if (j) this.exportText('srt', j.segments || [], (j.title || 'captions').replace(/\.[^.]+$/, '').replace(/[^\w.-]+/g, '_')); }
 
-    const languageEl = scope.querySelector('#ai-cap-language');
-    if (languageEl) languageEl.addEventListener('change', (e) => { this.language = e.target.value; });
+  trackUrl(blob) { const u = URL.createObjectURL(blob); this.blobUrls.push(u); return u; }
 
-    const themeEl = scope.querySelector('#ai-cap-theme');
-    if (themeEl) {
-      themeEl.addEventListener('change', (e) => {
-        this.theme = e.target.value;
-        this.refreshBody();
-      });
-    }
-
-    const themeChips = scope.querySelectorAll('.theme-chip');
-    themeChips.forEach((chip) => {
-      chip.addEventListener('click', () => {
-        this.theme = chip.dataset.theme;
-        this.refreshBody();
-      });
-    });
-
-    const retryBtn = scope.querySelector('[data-action="retry"]');
-    if (retryBtn) {
-      retryBtn.addEventListener('click', () => {
-        this.errorMessage = '';
-        this.refreshBody();
-        this.generate();
-      });
-    }
-
-    const openTabBtn = scope.querySelector('[data-action="open-new-tab"]');
-    if (openTabBtn) {
-      openTabBtn.addEventListener('click', () => {
-        if (this.captionedUrl) window.open(this.captionedUrl, '_blank', 'noopener');
-      });
-    }
+  destroy() {
+    cancelAnimationFrame(this.raf);
+    this.abort?.abort();
+    [...this.blobUrls, this.outputUrl].forEach((u) => { if (u) { try { URL.revokeObjectURL(u); } catch { /* gone */ } } });
+    this.blobUrls = [];
+    super.destroy();
   }
 
   async uploadFileIfNeeded() {
@@ -440,6 +654,66 @@ export class AICaptionsModal extends BaseModal {
   }
 
   async generate() {
+    return this.engine === 'cloud' ? this.generateCloud() : this.generateDevice();
+  }
+
+  /** Captions on this device: Whisper in the browser → editable script → burned-in MP4. */
+  async generateDevice() {
+    if (!this.videoUrl && !this.uploadedFile) {
+      this.errorMessage = 'Please provide a video URL or upload a video file.';
+      this.refreshBody();
+      return;
+    }
+    this.isGenerating = true; this.currentStep = 0; this.deviceProgress = 0; this.errorMessage = ''; this.refreshBody();
+    const t0 = Date.now();
+    try {
+      let blob = this.uploadedFile || null;
+      let src;
+      if (blob) { src = this.trackUrl(blob); this.sourceName = this.uploadedFileName || blob.name || 'video.mp4'; }
+      else {
+        src = this.videoUrl;
+        this.sourceName = decodeURIComponent((src.split('?')[0].split('/').pop() || 'video.mp4'));
+        try { const res = await fetch(src); if (res.ok) blob = await res.blob(); } catch { /* cross-origin: captions still work, burn-in needs the file */ }
+        if (blob) src = this.trackUrl(blob);
+      }
+      this.sourceBlob = blob;
+      this.currentStep = 1; this.refreshBody();
+      const result = await transcribeCaptions(src, {
+        engine: this.captionEngine, model: this.model, language: this.deviceLang,
+        onProgress: (p) => { this.deviceProgress = Math.min(0.95, Number(p?.progress) || 0); const bar = this.overlay?.querySelector('.progress-fill'); if (bar) bar.style.width = `${Math.round(this.deviceProgress * 100)}%`; },
+      });
+      this.currentStep = 2; this.refreshBody();
+      this.segments = segmentWords(result.words);
+      this.detectedLang = this.deviceLang === 'auto' ? 'auto' : this.deviceLang;
+      this.processingMs = Date.now() - t0;
+      this.durationSec = await AICaptionsModal.videoDuration(src, this.segments);
+      this.videoUrl = src; this.outputUrl = ''; this.jobId = ''; this.renderNote = result.note || '';
+      this.isGenerating = false; this.deviceProgress = null; this.tab = 'script';
+      await this.saveCurrentJob();
+      this.refreshBody();
+      if (this.sourceBlob && this.canBurn) void this.renderVideo();
+    } catch (err) {
+      console.error('[AICaptionsModal] On-device captions failed:', err);
+      this.isGenerating = false; this.deviceProgress = null;
+      this.errorMessage = err?.message || 'Captions could not be made on this device.';
+      this.refreshBody();
+      this.onError(err);
+    }
+  }
+
+  static videoDuration(src, segments) {
+    const fallback = segments.length ? segmentEnd(segments[segments.length - 1]) / 1000 : 0;
+    return new Promise((resolve) => {
+      try {
+        const v = document.createElement('video'); v.preload = 'metadata';
+        const done = (d) => { v.removeAttribute('src'); resolve(Number.isFinite(d) && d > 0 ? d : fallback); };
+        v.onloadedmetadata = () => done(v.duration); v.onerror = () => done(0); setTimeout(() => done(0), 3000);
+        v.src = src;
+      } catch { resolve(fallback); }
+    });
+  }
+
+  async generateCloud() {
     if (!this.videoUrl && !this.uploadedFile) {
       this.errorMessage = 'Please provide a video URL or upload a video file.';
       this.refreshBody();
@@ -488,27 +762,6 @@ export class AICaptionsModal extends BaseModal {
       this.errorMessage = err.message || 'Caption service unavailable. Please try again.';
       this.refreshBody();
       this.onError(err);
-    }
-  }
-
-  setupEventListeners() {
-    super.setupEventListeners();
-    const scope = this.overlay?.querySelector('.modal-body');
-    if (!scope) return;
-
-    const generateBtn = this.overlay.querySelector('[data-action="generate"]');
-    if (generateBtn) {
-      generateBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.generate();
-      });
-    }
-
-    const cancelBtn = this.overlay.querySelector('[data-action="cancel"]');
-    if (cancelBtn) {
-      cancelBtn.removeEventListener('click', this.boundHandlers.cancel);
-      this.boundHandlers.cancel = () => this.close();
-      cancelBtn.addEventListener('click', this.boundHandlers.cancel);
     }
   }
 }
