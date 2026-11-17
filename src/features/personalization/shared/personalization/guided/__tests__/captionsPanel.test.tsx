@@ -198,4 +198,47 @@ describe('CaptionsPanel', () => {
     expect(stored()?.style).toBe('bar')
     expect((q(el, 'captions-capite-select') as HTMLSelectElement).value).toBe('')
   })
+
+  describe('languages and more downloads', () => {
+    const downloads = async (ids: string[]) => {
+      const created: Blob[] = []
+      URL.createObjectURL = vi.fn((b: Blob) => { created.push(b); return 'blob:x' }) as unknown as typeof URL.createObjectURL
+      URL.revokeObjectURL = vi.fn()
+      const names: string[] = []
+      const origClick = HTMLAnchorElement.prototype.click
+      HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) { names.push(this.download) }
+      try {
+        const { el } = mount(); await generate(el)
+        for (const id of ids) await click(q(el, id))
+        return { names, texts: await Promise.all(created.map(readBlob)) }
+      } finally { HTMLAnchorElement.prototype.click = origClick }
+    }
+    it('downloads the words as a .txt file and the styled captions as an .ass file', async () => {
+      const { names, texts } = await downloads(['captions-txt', 'captions-ass'])
+      expect(names).toEqual(['captions.txt', 'captions.ass'])
+      expect(texts[0]).toBe('Call us today\n')
+      expect(texts[1]).toContain('[V4+ Styles]')
+      expect(texts[1]).toContain('Dialogue:')
+    })
+    it('offers auto-detect and the Whisper languages, and transcribes in the chosen one', async () => {
+      const { el } = mount()
+      const select = q(el, 'captions-language') as HTMLSelectElement
+      expect(select.value).toBe('auto')
+      expect(select.querySelectorAll('option').length).toBeGreaterThan(90)
+      await act(async () => { select.value = 'es'; select.dispatchEvent(new Event('change', { bubbles: true })) })
+      await generate(el) // the model is already on this device, so it runs straight away
+      expect(engine.transcribeVideo).toHaveBeenCalledWith(VIDEO, expect.objectContaining({ language: 'es' }))
+      expect(stored()?.language).toBe('es')
+    })
+    it('lets auto-detect run with no language, and changing the language of existing captions updates them', async () => {
+      const { el } = mount(); await generate(el)
+      expect(engine.transcribeVideo).toHaveBeenCalledWith(VIDEO, expect.not.objectContaining({ language: expect.anything() }))
+      expect(stored()?.language).toBeUndefined()
+      const select = q(el, 'captions-language') as HTMLSelectElement
+      await act(async () => { select.value = 'ar'; select.dispatchEvent(new Event('change', { bubbles: true })) })
+      expect(stored()?.language).toBe('ar')
+      await act(async () => { select.value = 'auto'; select.dispatchEvent(new Event('change', { bubbles: true })) })
+      expect(stored()?.language).toBeUndefined()
+    })
+  })
 })

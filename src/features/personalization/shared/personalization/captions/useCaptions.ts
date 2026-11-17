@@ -14,6 +14,9 @@ export interface Captions {
   /** Plain-words outcome when there is nothing to show ("No speech was found"). */
   note: string | null
   generate: () => Promise<void>
+  /** The language to write captions in: an ISO code, or 'auto' to detect it. */
+  language: string
+  setLanguage: (language: string) => void
   setEnabled: (enabled: boolean) => void
   setStyle: (style: CaptionStyleId) => void
   setPosition: (position: CaptionPosition) => void
@@ -40,18 +43,26 @@ export function useCaptions(videoUrl: string | null): Captions {
 
   const stored = previewSettings.captions
   const captions = stored && videoUrl && stored.forUrl === videoUrl ? stored : null
+  // Before any captions exist the choice is kept here; afterwards it lives in the captions themselves.
+  const [pendingLanguage, setPendingLanguage] = useState('auto')
+  const language = captions ? captions.language ?? 'auto' : pendingLanguage
+  const setLanguage = useCallback((next: string) => {
+    setPendingLanguage(next)
+    if (captions) updatePreviewCaptions({ language: next === 'auto' ? undefined : next })
+  }, [captions, updatePreviewCaptions])
 
   const generate = useCallback(async () => {
     if (!videoUrl) return
     const startedFor = videoUrl
     setNote(null)
-    const out = await ai.request((helpers) => transcribeVideo(startedFor, helpers))
+    const chosen = language === 'auto' ? undefined : language
+    const out = await ai.request((helpers) => transcribeVideo(startedFor, chosen ? { ...helpers, language: chosen } : helpers))
     if (!out || latestUrl.current !== startedFor) return
     const cues = groupCaptionCues(out.captions)
     if (!cues.length) { setNote('No speech was found in this video, so there is nothing to caption.'); return }
     const keep = previewSettings.captions
-    updatePreviewCaptions({ enabled: true, forUrl: startedFor, style: keep?.style ?? 'bold', position: keep?.position ?? 'bottom', cues })
-  }, [ai, videoUrl, previewSettings.captions, updatePreviewCaptions])
+    updatePreviewCaptions({ enabled: true, forUrl: startedFor, style: keep?.style ?? 'bold', position: keep?.position ?? 'bottom', cues, language: chosen })
+  }, [ai, videoUrl, language, previewSettings.captions, updatePreviewCaptions])
 
   const setEnabled = useCallback((enabled: boolean) => updatePreviewCaptions({ enabled }), [updatePreviewCaptions])
   const setStyle = useCallback((style: CaptionStyleId) => updatePreviewCaptions({ style }), [updatePreviewCaptions])
@@ -68,5 +79,5 @@ export function useCaptions(videoUrl: string | null): Captions {
   }, [captions, updatePreviewCaptions])
   const remove = useCallback(() => { updatePreviewCaptions(null); setNote(null) }, [updatePreviewCaptions])
 
-  return { ai, captions, note, generate, setEnabled, setStyle, setPosition, editCue, remove }
+  return { ai, captions, note, generate, language, setLanguage, setEnabled, setStyle, setPosition, editCue, remove }
 }

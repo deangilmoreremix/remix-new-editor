@@ -187,6 +187,8 @@ export interface PreviewCaptions {
   style: CaptionStyleId
   position: CaptionPosition
   cues: PreviewCaptionCue[]
+  /** Language of the words (ISO code such as `es` or `pt-BR`), when known: sets the font fallback, size and reading direction. Absent = work it out from the text. */
+  language?: string
 }
 
 export interface PersonalizationPreviewSettings {
