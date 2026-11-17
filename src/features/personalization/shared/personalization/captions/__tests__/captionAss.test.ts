@@ -53,12 +53,20 @@ describe('captionsToAss', () => {
     const d = dialogues(captionsToAss(c, opts))
     expect(d).toHaveLength(2)
     expect(d[0]).not.toContain('LATER'.toLowerCase())
-    expect(d[0]).toContain('0:00:00.00,0:00:00.99')
-    expect(d[1]).toContain('0:00:10.00,0:00:10.99')
+    expect(d[0]).toContain('0:00:00.00,0:00:01.00')
+    expect(d[1]).toContain('0:00:10.00,0:00:11.00')
   })
   it('never keeps a caption on screen past its own end, even when a word is timed beyond it', () => {
     const c = caps({ cues: [{ startMs: 0, endMs: 1000, text: 'Hello', words: [{ text: 'Hello', startMs: 0, endMs: 5000 }] }] })
-    expect(dialogues(captionsToAss(c, opts))[0]).toContain('0:00:00.00,0:00:00.99')
+    expect(dialogues(captionsToAss(c, opts))[0]).toContain('0:00:00.00,0:00:01.00')
+  })
+  it('keeps a caption up for the whole of its cue, even when its words are timed inside it (a short cue is padded to a minimum length)', () => {
+    const c = caps({ cues: [{ startMs: 0, endMs: 800, text: 'Hi', words: [{ text: 'Hi', startMs: 100, endMs: 200 }] }] })
+    expect(dialogues(captionsToAss(c, opts))[0]).toContain('0:00:00.00,0:00:00.80')
+  })
+  it('never runs an event past its cue when a word starts after the cue ends', () => {
+    const c = caps({ cues: [{ startMs: 0, endMs: 1000, text: 'Hi', words: [{ text: 'Hi', startMs: 1500, endMs: 1800 }] }] })
+    for (const d of dialogues(captionsToAss(c, opts))) expect(d.split(',')[2] <= '0:00:01.00').toBe(true)
   })
   it('exports the Bar look with its dark bar behind the text', () => {
     const ass = captionsToAss(caps({ style: 'bar' }), opts)

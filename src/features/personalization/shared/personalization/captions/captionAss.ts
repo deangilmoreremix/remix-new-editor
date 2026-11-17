@@ -23,11 +23,18 @@ const clampToCue = (s: number, e: number, cs: number, ce: number) => {
 }
 
 export function captionsToAss(c: PreviewCaptions, o: { width: number; height: number; accent: string }): string {
-  const words: AssWord[] = c.cues.flatMap((cue, group) => cue.words?.length
-    ? cue.words.map((w) => ({ text: w.text, ...clampToCue(w.startMs, w.endMs, cue.startMs, cue.endMs), group }))
-    : cuesToWords([{ start: cue.startMs / 1000, end: cue.endMs / 1000, text: cue.text }]).map((w) => ({ ...w, group })))
+  // A caption's language: the saved one, else read from its own letters (so English next to Japanese keeps its own font).
+  const lang = (text: string) => c.language ?? representativeLanguage(detectScript(text))
+  const words: AssWord[] = c.cues.flatMap((cue, group) => {
+    const own = cue.words?.length
+      ? cue.words.map((w) => ({ text: w.text, ...clampToCue(w.startMs, w.endMs, cue.startMs, cue.endMs), group, language: lang(cue.text) }))
+      : cuesToWords([{ start: cue.startMs / 1000, end: cue.endMs / 1000, text: cue.text }]).map((w) => ({ ...w, group, language: lang(cue.text) }))
+    // The caption is on screen for its whole cue (a short utterance is padded to a minimum length), not only while its words are spoken.
+    if (own.length) { own[0].start = cue.startMs / 1000; own[own.length - 1].end = cue.endMs / 1000 }
+    return own
+  })
   if (!words.length) return ''
-  const language = c.language ?? representativeLanguage(detectScript(c.cues.map((x) => x.text).join(' ')))
+  const language = lang(c.cues.map((x) => x.text).join(' '))
   const look = capiteStyleById(c.style)
   const style: AssStyle = look
     ? {
@@ -41,5 +48,5 @@ export function captionsToAss(c: PreviewCaptions, o: { width: number; height: nu
         // The Bar look: white text on a dark bar behind the whole caption.
         ...(c.style === 'bar' ? { background: { color: '#000000', opacity: 0.68 } } : {}),
       }
-  return generateAss({ words, width: o.width, height: o.height, style, language, positionPct: POSITION_PCT[c.position], casing: look ? 'uppercase' : 'original' })
+  return generateAss({ words, width: o.width, height: o.height, style, language, positionPct: POSITION_PCT[c.position], sizing: 'preview', casing: look ? 'uppercase' : 'original' })
 }

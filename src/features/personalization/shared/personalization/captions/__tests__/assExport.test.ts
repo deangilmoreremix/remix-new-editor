@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { displayScale } from '../scripts'
 import { assColor, assTime, cuesToWords, generateAss, type AssStyle } from '../assExport'
 
 const base: AssStyle = {
@@ -134,8 +135,8 @@ describe('generateAss', () => {
       expect(d[0]).not.toContain('LATER')
       expect(d[1]).toContain('LATER')
       expect(d[1]).not.toContain('HELLO')
-      expect(d[0]).toContain('0:00:00.00,0:00:00.99') // ends with its own caption, not at the next one
-      expect(d[1]).toContain('0:00:10.00,0:00:10.99')
+      expect(d[0]).toContain('0:00:00.00,0:00:01.00') // ends with its own caption, not at the next one
+      expect(d[1]).toContain('0:00:10.00,0:00:11.00')
     })
     it('still breaks one long caption into lines and groups, but only within that caption', () => {
       const long = cuesToWords([{ start: 0, end: 6, text: Array.from({ length: 14 }, (_, i) => `word${i}`).join(' ') }, { start: 8, end: 9, text: 'next' }])
@@ -191,4 +192,52 @@ describe('generateAss', () => {
     })
   })
 
+
+  describe('review round 3', () => {
+    const g = (over: Partial<Parameters<typeof generateAss>[0]> = {}) => generateAss({ words, width: 1080, height: 1920, style: base, ...over })
+    const startEnd = (d: string) => d.split(',').slice(1, 3)
+    it('keeps consecutive events contiguous, so the caption never flashes off between words, and ends the last at the caption\'s end', () => {
+      const d = dialogues(g({ words: cuesToWords([{ start: 0, end: 1, text: 'aa bb cc' }]) }))
+      expect(d).toHaveLength(3)
+      expect(startEnd(d[0])[1]).toBe(startEnd(d[1])[0])
+      expect(startEnd(d[1])[1]).toBe(startEnd(d[2])[0])
+      expect(startEnd(d[2])[1]).toBe('0:00:01.00')
+    })
+    it('keeps a caption\'s own start and end when an emoji-only word at its edge is removed', () => {
+      const lead = dialogues(g({ words: cuesToWords([{ start: 0, end: 3, text: String.fromCodePoint(0x1f600) + ' Hello world' }]) }))
+      expect(startEnd(lead[0])[0]).toBe('0:00:00.00')
+      const trail = dialogues(g({ words: cuesToWords([{ start: 0, end: 3, text: 'Hello world ' + String.fromCodePoint(0x1f600) }]) }))
+      expect(startEnd(trail[trail.length - 1])[1]).toBe('0:00:03.00')
+      expect(dialogues(g({ words: cuesToWords([{ start: 0, end: 3, text: String.fromCodePoint(0x1f600) }]) }))).toHaveLength(0)
+    })
+    it('can size the text like the preview (the script\'s display scale) instead of the legacy half size', () => {
+      const size = (ass: string) => Number(ass.split('\n').find((l) => l.startsWith('Style: '))!.split(',')[2])
+      const a = { language: 'ar', height: 1080, width: 1920 }
+      expect(size(g({ ...a, sizing: 'preview' }))).toBe(Math.floor(105 * displayScale('ar') * 0.5625))
+      expect(size(g({ ...a }))).toBe(Math.floor(105 * 0.5 * 0.5625))
+    })
+    it('styles each caption for its own script when words carry a language, so English next to Japanese keeps its own font', () => {
+      const mixed = [{ text: 'Hello', start: 0, end: 1, group: 0, language: 'en' }, { text: 'こんにちは', start: 2, end: 3, group: 1, language: 'ja' }]
+      const ass = g({ words: mixed, language: 'en' })
+      expect(ass.match(/^Style: /gm)).toHaveLength(2)
+      const d = dialogues(ass)
+      expect(d[0]).toContain(',Default,')
+      expect(d[1]).not.toContain(',Default,')
+      const styleName = d[1].split(',')[3]
+      expect(ass).toContain(`Style: ${styleName},IBM Plex Sans`)
+      expect(ass).toContain('Style: Default,Montserrat')
+    })
+    it('shows only the preview\'s moving window of words in each event when a window is given', () => {
+      const w = cuesToWords([{ start: 0, end: 4, text: 'a b c d' }])
+      const d = dialogues(g({ words: w, casing: 'original', visibleRange: (count, active) => [Math.min(active, count - 2), Math.min(active, count - 2) + 2] }))
+      const letters = (line: string) => line.replace(/\{[^}]*\}/g, '').split(',,').pop()!.trim().split(' ').filter(Boolean).length
+      expect(d).toHaveLength(4)
+      for (const line of d) expect(letters(line)).toBe(2)
+    })
+    it('title-cases the first whole code point of a word', () => {
+      const deseret = String.fromCodePoint(0x10428)
+      const d = dialogues(g({ words: [{ text: deseret + 'bc', start: 0, end: 1 }], casing: 'title' }))
+      expect(d[0]).toContain(String.fromCodePoint(0x10400))
+    })
+  })
 })

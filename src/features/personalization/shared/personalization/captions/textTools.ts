@@ -9,7 +9,7 @@ export function applyCasing(text: string, casing: Casing): string {
   const t = String(text ?? '')
   if (casing === 'upper') return t.toUpperCase()
   if (casing === 'lower') return t.toLowerCase()
-  return t.replace(/\S+/gu, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+  return t.replace(/\S+/gu, (w) => { const [first = ''] = w; return first.toUpperCase() + w.slice(first.length).toLowerCase() })
 }
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

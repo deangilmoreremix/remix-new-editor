@@ -73,4 +73,7 @@ describe('review fixes', () => {
     expect(s).toBe(0)
     expect(e).toBeGreaterThanOrEqual(0.1)
   })
+  it('title-cases the first whole code point, not half of a surrogate pair', () => {
+    expect(applyCasing(String.fromCodePoint(0x10428) + 'BC', 'title')).toBe(String.fromCodePoint(0x10400) + 'bc')
+  })
 })

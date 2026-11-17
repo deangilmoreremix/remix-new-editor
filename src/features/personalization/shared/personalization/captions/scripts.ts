@@ -114,10 +114,12 @@ const REFERENCE_WIDTH = 1080
  * is the real export: its width, and `dim` = the factor the font is drawn at (height / 1920), so a wide export, whose letters are smaller and
  * whose line is longer, holds more letters than the portrait reference.
  */
-export function layoutFor(language: string | undefined, fontSize = 105, frame?: { width: number; dim: number }): { maxChars: number; fontScale: number } {
+export function layoutFor(language: string | undefined, fontSize = 105, frame?: { width: number; dim: number; /** Replaces the script's legacy font scale (the preview's display scale). */ scale?: number }): { maxChars: number; fontScale: number } {
   const noLanguage = baseCode(language) === ''
   const cfg = scriptOf(language)
-  const { charWidthRatio, fontScale } = cfg ?? (noLanguage ? { charWidthRatio: SCRIPTS[0].charWidthRatio, fontScale: 1 } : OTHER)
+  const found = cfg ?? (noLanguage ? { charWidthRatio: SCRIPTS[0].charWidthRatio, fontScale: 1 } : OTHER)
+  const { charWidthRatio } = found
+  const fontScale = frame?.scale ?? found.fontScale
   const avg = fontSize * fontScale * charWidthRatio * (frame ? frame.dim : 1)
   const line = frame ? (frame.width * TARGET_LINE_WIDTH) / REFERENCE_WIDTH : TARGET_LINE_WIDTH
   return { maxChars: Math.max(5, Math.floor(line / avg)), fontScale }
