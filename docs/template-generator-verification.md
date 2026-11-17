@@ -46,7 +46,7 @@ Pick a look (Capite's 27, grouped by category, plus the editor's own) and the wo
 | Engine | Package | Where it runs | Needs |
 |---|---|---|---|
 | **Whisper WebGPU** (default) | `@remotion/whisper-webgpu`, in a worker | your GPU, in the tab | WebGPU. Without it the editor's built-in Whisper (same Transformers.js underneath, CPU path) listens instead and the panel says so. Model from `remotion.media`, cached, then works offline. Sizes: base, tiny, small, large-v3-turbo. |
-| **Whisper.cpp (WASM)** | `@remotion/whisper-web` | the tab | a cross-origin-isolated page (`Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: credentialless`). This site is not isolated, so choosing it shows why and uses Whisper WebGPU. |
+| **Whisper.cpp (WASM, experimental)** | `@remotion/whisper-web` | the tab | a cross-origin-isolated page (`Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: credentialless`). This site is not isolated, so choosing it shows why and uses Whisper WebGPU. |
 | **Whisper.cpp (local server)** | `@remotion/install-whisper-cpp` | a small server on your computer | `node scripts/captions-server.mjs`, Node, git, a C compiler (`make`) and `ffmpeg`. Listed in the panel only while the server answers on `127.0.0.1:8787`. A native program cannot run in a tab or on Netlify. |
 
 The native engine also works from the command line: `node scripts/transcribe-whisper-cpp.mjs clip.mp4 --model=base --language=auto --out=captions.json` (first run installs Whisper.cpp and the model into `./.whisper`, git-ignored). The server only answers pages on localhost, `smartvid.app` and this site's Netlify previews, one listen at a time.

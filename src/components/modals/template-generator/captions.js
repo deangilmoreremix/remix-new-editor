@@ -17,7 +17,7 @@ export const LOCAL_SERVER_URL = 'http://127.0.0.1:8787';
 
 export const CAPTION_ENGINES = [
   { id: 'whisper-webgpu', label: 'Whisper WebGPU', note: 'Free, on-device, on your GPU (a browser without WebGPU uses the CPU, slower). Works offline after the model downloads.' },
-  { id: 'whisper-cpp', label: 'Whisper.cpp (WASM)', note: 'Free, on-device. Needs a cross-origin-isolated page.' },
+  { id: 'whisper-cpp', label: 'Whisper.cpp (WASM, experimental)', note: 'Free, on-device. Experimental: it needs a cross-origin-isolated page (this site is not one yet), so it uses Whisper WebGPU instead and says why. Not verified in a real browser.' },
 ];
 export const LOCAL_ENGINE = { id: 'whisper-cpp-local', label: 'Whisper.cpp (local server)', note: 'Free. The native Whisper.cpp running on your computer (scripts/captions-server.mjs): fastest and most accurate.' };
 export const DEFAULT_CAPTION_ENGINE = 'whisper-webgpu';

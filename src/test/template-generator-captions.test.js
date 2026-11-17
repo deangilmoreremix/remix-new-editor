@@ -309,6 +309,13 @@ describe('Preview step — styled captions panel', () => {
     m.destroy();
   });
 
+  it('the browser Whisper.cpp engine is labelled experimental (it needs a cross-origin-isolated page this site is not yet)', () => {
+    const m = open();
+    const opt = [...document.querySelector('select[data-cap="engine"]').options].find((o) => o.value === 'whisper-cpp');
+    expect(opt.textContent).toContain('experimental');
+    m.destroy();
+  });
+
   it('the engine, model and language selectors store the choice (Whisper.cpp is offered next to Whisper WebGPU)', () => {
     const m = open();
     const eng = document.querySelector('select[data-cap="engine"]');
