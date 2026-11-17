@@ -5,7 +5,7 @@
  * /v/<business>/<slug>). It is the ONLY writer of analytics tables:
  *
  *   POST /api/video-events
- *   { video, session, viewer?, contact?, ref?, events: [{ type, seq, t?, clip?, section?, props? }] }
+ *   { video, session, viewer?, contact?, recipient?, ref?, events: [{ type, seq, t?, clip?, section?, props? }] }
  *   → 200 { ok, accepted, duplicates }
  *   → 400 invalid · 404 unknown/unpublished video · 413 too large · 429 rate limited
  *
@@ -17,6 +17,9 @@
  *   - unknown or unpublished videos are rejected
  *   - idempotent: (session, seq) is unique, so retried batches never double count
  *   - abuse control: shared database rate limits per client, session and video
+ *   - campaign attribution is never trusted from the client: the optional `recipient` (campaign recipient token from the
+ *     watch link ?cr=) is only a lookup key; the database attributes the session when it resolves to a ready recipient of
+ *     the same owner as the video, and otherwise silently records nothing. Failures never affect ingest.
  *   - privacy: the random viewer id is hashed with a server salt before it is
  *     stored; IP addresses are used only to derive a hashed rate-limit key
  *
@@ -43,6 +46,9 @@ const VIDEO = /^[A-Za-z0-9_-]{8,32}$/;
 const SESSION = /^[A-Za-z0-9_-]{16,64}$/;
 const CONTACT = /^[A-Za-z0-9_-]{1,80}$/;
 const HOST = /^[A-Za-z0-9.-]{1,120}$/;
+// Campaign recipient public_token (campaign_recipients.public_token). Only its shape is checked here; whether it belongs
+// to a campaign of the video's owner is decided in the database (attribute_video_session_campaign).
+export const RECIPIENT_TOKEN = /^[A-Za-z0-9_-]{16,64}$/;
 
 const json = (statusCode, body) => ({
   statusCode,
@@ -179,6 +185,7 @@ export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch,
 
   const viewer = typeof body.viewer === 'string' && SESSION.test(body.viewer) ? sha(cfg.salt, body.viewer).slice(0, 32) : null;
   const contact = typeof body.contact === 'string' && CONTACT.test(body.contact) ? body.contact : null;
+  const recipient = typeof body.recipient === 'string' && RECIPIENT_TOKEN.test(body.recipient) ? body.recipient : null;
   const referrer = typeof body.ref === 'string' && HOST.test(body.ref) ? body.ref : null;
 
   if (await limited(cfg, fetchImpl, [
@@ -201,6 +208,15 @@ export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch,
       p_referrer: referrer,
       p_events: legacy,
     });
+    if (result?.ok && recipient) {
+      // Best effort and silent: an old database without the function, a bad token, or another owner's campaign all end up
+      // as "not attributed"; none of it is reported to the client or fails the batch.
+      try {
+        await rpc(cfg, fetchImpl, 'attribute_video_session_campaign', { p_video_id: body.video, p_session_key: body.session, p_token: recipient });
+      } catch (err) {
+        console.warn('[video-events] campaign attribution skipped:', err?.message);
+      }
+    }
     if (result?.ok && heat.length) {
       const h = await rpc(cfg, fetchImpl, 'ingest_video_heat_events', {
         p_video_id: body.video, p_session_key: body.session, p_events: heat,

@@ -110,6 +110,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
   const analytics = deps.analytics || createAnalytics({
     videoId: video.id,
     contactId: viewerProfile?.id || null,
+    recipientToken: params.get('cr') || null, // campaign recipient link (?cr=<public_token>), validated server-side
     sections: projectSections(video.project).map((x) => ({ id: x.id, start: x.start, end: x.end })),
   });
   const labels = ctaLabels(video.project);

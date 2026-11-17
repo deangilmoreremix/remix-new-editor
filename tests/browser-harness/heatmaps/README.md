@@ -17,3 +17,10 @@ node tests/browser-harness/heatmaps/watch-real.mjs      # env: VITE_PORT, MEDIA,
 Stage 10 (Fix F): `watch-real.mjs` also presses Play IMMEDIATELY after load (big-play overlay, control-bar button, Space) before the Remotion player exists
 (asserts the press happened with no `.__remotion-player` in the stage, a pending spinner (`data-play-pending`) is shown, playback starts by itself, one play-through range starting at 0,
 `watch_buckets` sent). A press lost to the wiring race fails every attempt of that check. Run it with `OUT=/tmp/watchF DB=heatF VITE_PORT=<port>` to keep your scratch dirs apart from other runs.
+
+## watch-campaign.mjs (Stage 11, Fix P)
+Real `WatchPage.jsx` in real Chromium with `?cr=<recipient token>` links; the batches the page sends are pushed through the real `netlify/functions/video-events.js` handler (including `attribute_video_session_campaign`) into a local Postgres built by `mkdb-campaign.sh`. Seven viewers: valid token, another owner's token, garbage, malformed, none, owner A's token on owner B's video, owner B's own token. Asserts the stored `campaign_id`, that the handler answer is identical in every case and that no token is stored.
+```bash
+VITE_SUPABASE_URL=https://supa.test VITE_SUPABASE_ANON_KEY=x npx vite --port 3141 --strictPort &
+node tests/browser-harness/heatmaps/watch-campaign.mjs        # env: VITE_PORT, MEDIA, CHROME, DB, OUT, CAMPAIGNS_MIGRATION=<campaigns branch migration file> for the real schema
+```
