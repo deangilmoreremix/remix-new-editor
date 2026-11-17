@@ -37,5 +37,8 @@ psql -q -v ON_ERROR_STOP=1 -d "svheat_$$" -f supabase/tests/71_heatmap_campaign_
 # Fix P: attribution write path on our branch alone (no campaign tables) and, inside 72, with minimal campaign tables
 # (or the real ones when CAMPAIGNS_MIGRATION points at the campaigns branch migration, used by the trial worktree).
 # shellcheck disable=SC2086
-build_db "svattr_$$" $BASE ${CAMPAIGNS_MIGRATION_NAME:-} $FIXP
+# (the campaigns migration uses gen_random_bytes(); Supabase has pgcrypto, plain Postgres needs it created first)
+build_db "svattr_$$" $BASE
+[ -n "${CAMPAIGNS_MIGRATION_NAME:-}" ] && psql -q -v ON_ERROR_STOP=1 -d "svattr_$$" -c 'create extension if not exists pgcrypto' >/dev/null
+for m in ${CAMPAIGNS_MIGRATION_NAME:-} $FIXP; do PGOPTIONS="-c client_min_messages=warning" psql -q -v ON_ERROR_STOP=1 -d "svattr_$$" -f "supabase/migrations/$m.sql" >/dev/null; done
 psql -q -v ON_ERROR_STOP=1 -d "svattr_$$" -f supabase/tests/72_campaign_attribution_assertions.sql 2>&1 | filter
