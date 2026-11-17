@@ -1,6 +1,7 @@
 'use client'
 
 import { AssetUsagePanel } from './AssetUsagePanel'
+import { CopySuggestionsPanel } from './CopySuggestionsPanel'
 import { useEffect, useRef, useState } from 'react'
 import { LayoutTemplate, Palette } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
@@ -223,6 +224,7 @@ export function StepPersonalize({
             <p style={hintStyle}>Shown on the branded end card.</p>
           </div>
         </div>
+        <CopySuggestionsPanel client={clientForm} onPick={(field, value, layer) => setField(field, value, layer)} />
       </div>
 
       {/* ── Brand colors ────────────────────────────────────────────────── */}

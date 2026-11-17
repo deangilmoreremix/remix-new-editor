@@ -77,6 +77,11 @@ export function AddDesignsPanel(): React.JSX.Element | null {
         aspectRatio={previewSettings.aspectRatio}
         activeDesignId={activeRemotionDesignId}
         available={available}
+        context={{
+          textLength: Math.max(0, ...(previewSettings.layers ?? []).filter((l) => l.visible && l.kind !== 'design').map((l) => (l.text ?? '').trim().length)),
+          hasLogo: Boolean(assets?.primaryLogo),
+          imageCount: assets?.products?.length || 0,
+        }}
         onSelectDesign={setRemotionDesign}
         onAddDesign={addRemotionDesign}
         onSelectLayout={setPreviewLayout}
