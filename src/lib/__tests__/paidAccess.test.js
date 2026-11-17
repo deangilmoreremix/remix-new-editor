@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@clerk/react', () => ({ useAuth: () => ({}), useUser: () => ({}) }));
-import { hasPaidAccess, setEntitlement, PAID_FEATURE } from '../clerkEntitlements.js';
+import { hasPaidAccess, setEntitlement, requireEntitlement, PAID_FEATURE } from '../clerkEntitlements.js';
 import UpgradePrompt from '../../components/UpgradePrompt.js';
 
 const clerkWith = ({ user = { id: 'u1', publicMetadata: {} }, plan = false, mount = true } = {}) => ({
@@ -20,6 +20,21 @@ describe('SmartVideo full access', () => {
     expect(hasPaidAccess(clerkWith({ user: { id: 'u1', publicMetadata: { legacy_access: true } } }))).toBe(true);
     expect(hasPaidAccess({ user: null })).toBe(false);
     expect(hasPaidAccess(undefined)).toBe(false);
+  });
+
+  it('once Clerk is loaded, the cached value set from the console does not unlock anything', async () => {
+    setEntitlement({ hasFullAccess: true });
+    expect(hasPaidAccess(clerkWith({ plan: false }))).toBe(false);
+    const throws = clerkWith();
+    throws.session.checkAuthorization = () => { throw new Error('offline'); };
+    expect(hasPaidAccess(throws)).toBe(false);
+    window.Clerk = { ...clerkWith({ plan: false }), loaded: true };
+    try {
+      expect(await requireEntitlement()).toBe(false);
+      document.querySelector('[aria-label="Close"]')?.click();
+      window.Clerk = { ...clerkWith({ plan: true }), loaded: true };
+      expect(await requireEntitlement()).toBe(true);
+    } finally { delete window.Clerk; }
   });
 
   it('the upgrade screen shows Clerk’s pricing table and checks again on close (a purchase unlocks)', async () => {

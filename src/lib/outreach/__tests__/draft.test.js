@@ -144,6 +144,13 @@ describe('contact import', () => {
     const c = makeContact({ firstName: 'C', id: 'c' });
     expect(mergeContacts([a], [b, c]).map((x) => x.id)).toEqual(['a', 'c']);
   });
+
+  it('contacts without an email are not added twice when the same file is imported again', () => {
+    const p = { id: 'p1', firstName: 'Mike', lastName: 'Markovic', email: '', company: 'Acme' };
+    const again = { ...p, id: 'p2', firstName: ' mike ' };
+    const other = { ...p, id: 'p3', company: 'Globex' };
+    expect(mergeContacts([p], [again, other]).map((x) => x.id)).toEqual(['p1', 'p3']);
+  });
 });
 
 describe('voice sample encoding', () => {

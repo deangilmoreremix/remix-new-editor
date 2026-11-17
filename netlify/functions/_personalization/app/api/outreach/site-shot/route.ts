@@ -106,8 +106,9 @@ export function osmEmbedUrl(lat: number, lon: number): string {
 /** Address → coordinates with OpenStreetMap Nominatim (its usage policy: an app User-Agent, ≤1 request/s). */
 export async function geocodeAddress(address: string, fetchImpl: typeof fetch = fetch): Promise<{ lat: number; lon: number } | null> {
   const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(address)}`
-  const res = await fetchImpl(url, { headers: { 'User-Agent': 'SmartVideo-Outreach/1.0 (personalized video backgrounds)', Accept: 'application/json' } })
-  if (!res.ok) return null
+  // A slow lookup must not hold the function open: give up after 10 seconds and use no map.
+  const res = await fetchImpl(url, { signal: AbortSignal.timeout(10_000), headers: { 'User-Agent': 'SmartVideo-Outreach/1.0 (personalized video backgrounds)', Accept: 'application/json' } }).catch(() => null)
+  if (!res?.ok) return null
   const rows = (await res.json().catch(() => [])) as Array<{ lat?: string; lon?: string }>
   const lat = Number(rows?.[0]?.lat); const lon = Number(rows?.[0]?.lon)
   return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null

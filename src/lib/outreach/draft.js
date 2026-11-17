@@ -385,10 +385,17 @@ export function contactsFromLeads(leads = [], opts) {
 }
 
 export function mergeContacts(existing, incoming) {
-  const seen = new Set(existing.map((c) => c.email.toLowerCase()).filter(Boolean));
+  // Same person: the same email, or (with no email) the same name and company.
+  const keyOf = (c) => {
+    const email = String(c?.email || '').trim().toLowerCase();
+    if (email) return `e:${email}`;
+    const who = [c?.firstName, c?.lastName, c?.company].map((v) => String(v || '').trim().toLowerCase());
+    return who.some(Boolean) ? `n:${who.join('|')}` : '';
+  };
+  const seen = new Set(existing.map(keyOf).filter(Boolean));
   const out = [...existing];
   for (const c of incoming) {
-    const key = c.email.toLowerCase();
+    const key = keyOf(c);
     if (key && seen.has(key)) continue;
     if (key) seen.add(key);
     out.push(c);

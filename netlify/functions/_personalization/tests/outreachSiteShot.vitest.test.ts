@@ -91,5 +91,11 @@ describe('outreach site shot', () => {
     const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=1%20market%20st')
     expect((init.headers as Record<string, string>)['User-Agent']).toMatch(/SmartVideo/)
+    expect(init.signal).toBeInstanceOf(AbortSignal)
+  })
+
+  it('a lookup that fails or times out gives no map instead of an error', async () => {
+    const fetchImpl = vi.fn(async () => { throw new DOMException('The operation timed out.', 'TimeoutError') })
+    expect(await geocodeAddress('1 market st', fetchImpl as unknown as typeof fetch)).toBeNull()
   })
 })

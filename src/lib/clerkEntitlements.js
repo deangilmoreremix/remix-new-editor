@@ -43,19 +43,20 @@ export function hasFullAccess() {
 
 /**
  * Full access right now, read from Clerk itself (window.Clerk): the billing feature, or legacy access on the user.
- * The same rule as useEntitlement; falls back to the cached value when Clerk is not loaded yet.
+ * The same rule as useEntitlement. The cached value (a plain global anyone can set from the console) is only used
+ * on a Clerk too old to answer checkAuthorization; a check that throws counts as no access.
  */
 export function hasPaidAccess(clerk = globalThis.window?.Clerk) {
   if (!clerk?.user) return false;
   if (clerk.user.publicMetadata?.legacy_access === true) return true;
-  try {
-    if (typeof clerk.session?.checkAuthorization === 'function') return clerk.session.checkAuthorization({ feature: PAID_FEATURE }) === true;
-  } catch { /* fall back to the cached value */ }
-  return hasFullAccess();
+  if (typeof clerk.session?.checkAuthorization !== 'function') return hasFullAccess();
+  try { return clerk.session.checkAuthorization({ feature: PAID_FEATURE }) === true; } catch { return false; }
 }
 
 export async function requireEntitlement() {
-  if (hasFullAccess() || hasPaidAccess()) return true;
+  // Once Clerk is loaded it decides; the cache only covers the moment before it loads.
+  const clerk = globalThis.window?.Clerk;
+  if (clerk?.loaded || clerk?.user ? hasPaidAccess(clerk) : hasFullAccess()) return true;
   const { default: UpgradePrompt } = await import('../components/UpgradePrompt.js');
   UpgradePrompt();
   return false;
