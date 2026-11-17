@@ -823,3 +823,7 @@
 .cap-vmeta { font-size: 10px; color: #71717a; }
 .cap-vempty { padding: 26px 12px; text-align: center; font-size: 13px; color: #a1a1aa; border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 14px; }
 .cap-side-live { width: 100%; align-items: stretch; }
+
+/* the spoken word is scaled up in the preview: give it room so the words do not run together */
+.cap-live .tg-cw.is-on, .cap-phone-caption .tg-cw.is-on { margin: 0 0.1em; }
+.cap-live .tg-cw, .cap-phone-caption .tg-cw { word-spacing: 0.12em; }
