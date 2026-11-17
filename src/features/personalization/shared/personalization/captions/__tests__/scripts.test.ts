@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { SCRIPTS, LANGUAGES, detectScript, displayScale, isRtl, languageName, layoutFor, representativeLanguage, scriptFor, scriptOf, withScriptFonts } from '../scripts'
+import { SCRIPTS, LANGUAGES, detectScript, displayScale, isRtl, languageName, layoutFor, inferLanguage, representativeLanguage, scriptFor, scriptOf, withScriptFonts } from '../scripts'
 
 describe('scripts', () => {
   it('knows the script of a language code, with region suffixes', () => {
@@ -91,5 +91,14 @@ describe('scripts', () => {
     expect(out.indexOf(ar.fallbackStack)).toBeLessThan(out.indexOf('ui-sans-serif'))
     expect(withScriptFonts('Inter', ar)).toBe(`Inter, ${ar.fallbackStack}`)
     expect(withScriptFonts('Inter, sans-serif', scriptFor('en'))).toBe('Inter, sans-serif')
+  })
+  it('infers a language for a text: the first language of its script, and a stand-in for scripts the table does not list (so they are not taken for English)', () => {
+    expect(inferLanguage('Call us today')).toBe('en')
+    expect(inferLanguage('مرحبا')).toBe('ar')
+    const greek = inferLanguage('Καλημέρα')
+    expect(greek).not.toBe('en')
+    expect(scriptOf(greek)).toBeUndefined()
+    expect(displayScale(greek)).toBeLessThan(1)
+    expect(displayScale(inferLanguage('বাংলা'))).toBeLessThan(1)
   })
 })

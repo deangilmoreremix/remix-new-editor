@@ -74,6 +74,12 @@ describe('captionsToAss', () => {
     expect(d).toHaveLength(2)
     expect(d[1].split(',')[2]).toBe('0:00:01.00')
   })
+  it('sizes text in a script the table does not list (Greek) as wide script when no language is saved, as the preview does', () => {
+    const size = (ass: string) => Number(ass.split('\n').find((l) => l.startsWith('Style: '))!.split(',')[2])
+    const greek = size(captionsToAss(caps({ cues: [{ startMs: 0, endMs: 1000, text: 'Καλημέρα κόσμε' }] }), opts))
+    const latin = size(captionsToAss(caps({ cues: [{ startMs: 0, endMs: 1000, text: 'Hello world' }] }), opts))
+    expect(greek).toBeLessThan(latin)
+  })
   it('exports the Bar look with its dark bar behind the text', () => {
     const ass = captionsToAss(caps({ style: 'bar' }), opts)
     expect(ass).toMatch(/,100,100,[^,]*,0,3,/) // BorderStyle 3: a box behind the whole caption

@@ -1,7 +1,7 @@
 import type { PreviewCaptions } from '../preview/types'
 import { generateAss, cuesToWords, type AssAnimation, type AssStyle, type AssWord } from './assExport'
 import { capiteStyleById } from './capiteStyles'
-import { detectScript, representativeLanguage } from './scripts'
+import { inferLanguage } from './scripts'
 
 /**
  * The project's captions as an .ass file (Advanced SubStation Alpha) for editors and players that take styled subtitles. Lines that have the
@@ -24,7 +24,7 @@ const clampToCue = (s: number, e: number, cs: number, ce: number) => {
 
 export function captionsToAss(c: PreviewCaptions, o: { width: number; height: number; accent: string }): string {
   // A caption's language: the saved one, else read from its own letters (so English next to Japanese keeps its own font).
-  const lang = (text: string) => c.language ?? representativeLanguage(detectScript(text))
+  const lang = (text: string) => c.language ?? inferLanguage(text)
   const words: AssWord[] = c.cues.flatMap((cue, group) => {
     const own = cue.words?.length
       ? cue.words.map((w) => ({ text: w.text, ...clampToCue(w.startMs, w.endMs, cue.startMs, cue.endMs), group, language: lang(cue.text) }))

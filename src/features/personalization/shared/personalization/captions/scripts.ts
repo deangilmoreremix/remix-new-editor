@@ -105,6 +105,15 @@ export function representativeLanguage(id: ScriptId): string {
   return (SCRIPTS.find((s) => s.id === id) ?? SCRIPTS[0]).languages[0]
 }
 
+/**
+ * A language code for a text that has none: the first language of its script, or, for letters of a script the table does not list (Greek,
+ * Bengali, Tamil…), a Whisper language of that kind, so that it is sized and styled as wide script and not taken for English.
+ */
+export function inferLanguage(text: string): string {
+  const id = detectScript(text)
+  return id === 'latin' && hasOtherLetters(text) ? 'el' : representativeLanguage(id)
+}
+
 /** Target line width at the 1080-px reference frame, as in ai-video-captions (1000 px usable, about 85 %). */
 const TARGET_LINE_WIDTH = 850
 const REFERENCE_WIDTH = 1080
