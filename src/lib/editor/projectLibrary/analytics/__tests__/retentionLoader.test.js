@@ -33,6 +33,15 @@ describe('loadRetentionCurves', () => {
     expect(rpc.mock.calls[0][1].p_video_ids).toEqual(['a']);
   });
 
+  it('a throwing onCurve callback is not treated as a failed batch', async () => {
+    const rpc = vi.fn(async (_n, a) => ({ data: a.p_video_ids.flatMap((id) => Array.from({ length: 100 }, (_, b) => ({ video_id: id, bucket: b, viewers: 5, base: 10 }))), error: null }));
+    const onCurve = vi.fn(() => { throw new Error('render failed'); });
+    const out = await loadRetentionCurves({ rpc }, ['a', 'b'], { onCurve });
+    expect(Object.keys(out).sort()).toEqual(['a', 'b']);
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(onCurve).toHaveBeenCalledTimes(2);
+  });
+
   it('splits long lists so one response never exceeds 1,000 rows (10 videos x 100 buckets)', async () => {
     const rpc = vi.fn(async () => ({ data: [], error: null }));
     const ids = Array.from({ length: 25 }, (_, i) => `v${i}`);

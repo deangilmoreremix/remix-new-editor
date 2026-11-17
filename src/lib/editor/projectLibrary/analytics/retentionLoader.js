@@ -40,7 +40,8 @@ export async function loadRetentionCurves(client, videoIds, { period = '30d', co
     const points = retentionPoints(rows);
     if (!points.length) return;
     out[id] = points;
-    onCurve?.(id, points);
+    // A consumer's error must never be mistaken for a failed request (that would refetch everything).
+    try { onCurve?.(id, points); } catch { /* ignore consumer errors */ }
   };
 
   if (!batchMissing) {

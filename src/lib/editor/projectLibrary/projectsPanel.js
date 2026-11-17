@@ -210,10 +210,10 @@ export function renderProjectsPanel(host, deps) {
   }
 
   function paintHeat(videoId) {
+    const card = cards.find((x) => x.publishedId === videoId);
+    if (!card) return;
     host.querySelectorAll('[data-heat]').forEach((slot) => {
-      if (slot.dataset.heat !== videoId) return;
-      const card = cards.find((x) => x.publishedId === videoId);
-      if (card) slot.innerHTML = heatInner(card);
+      if (slot.dataset.heat === videoId) slot.innerHTML = heatInner(card);
     });
   }
 
