@@ -16,6 +16,11 @@ and `__tests__/captionStudio.test.js` fails if that stops being true or if it dr
 Dependencies: `@remotion/captions` (match your `remotion` version), `@huggingface/transformers@4.3.1`, `mediabunny@1.64.0`.
 Browser-only: call it from a click handler / client component. Nothing is uploaded and no credits are used.
 
+## One captions window, one engine
+- **Window:** every "Captions" button opens this modal: the studios (`addCaptionButton`), the Timeline editor (subtitle entry points and the captions clip's inspector, which is now only a summary + "Open Caption Studio"), ZackD Studio (replaces its paid "Burn captions"), and the library detail view.
+- **Engine:** in-browser Whisper lives only in `transcribe.worker.js` / `transcribeClient.js`. `src/lib/editor/remotion/transcribe.js` re-exports it, so CineGen, the personalization editor and the Timeline agent API use the same implementation and model list.
+- **Not merged (different renderers):** the personalization editor's own caption panel and CineGen/OpenChatCut's clip captions use their own caption models and renderers. They share the engine, not the window.
+
 ## Host adapters (the only per-repo code)
 - **remix-new-editor:** `src/lib/editor/captionActions.js` → `addCaptionButton({ videoUrl, appTheme, onComplete, onApply })`.
 - **OpenHiggsBolt:** `hosts/openhiggsbolt/CaptionStudioAction.js` (→ `components/CaptionStudioAction.js`), injected into studios through a

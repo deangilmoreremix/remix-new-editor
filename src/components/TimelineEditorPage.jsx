@@ -83,7 +83,6 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 // Subtitle system integration
 import { SubtitleTimeline } from '../lib/editor/subtitleTimeline.js';
-import { whisperService } from '../services/whisper-client.js';
 
 // Modal imports - these are vanilla JS modal implementations
 import { EndScreenModal } from './modals/EndScreenModal.jsx';
@@ -5700,7 +5699,6 @@ export function TimelineEditorPage() {
     // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
     var activeCaptionsPanel = null;
     // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
-    var pendingAutoCaptions = null;
     // eslint-disable-next-line no-var -- background-removal jobs outlive the clip editor
     var bgJobs = new Map();
     // eslint-disable-next-line no-var
@@ -6660,45 +6658,12 @@ export function TimelineEditorPage() {
 
       if (clip.type === 'captions') {
         const host = editorSection('clip-captions', 'Captions');
-        const auto = pendingAutoCaptions === clip.id;
-        pendingAutoCaptions = null;
         import('../lib/editor/remotion/captionsPanel.js').then(({ renderCaptionsPanel }) => {
           if (!host.isConnected) return;
           activeCaptionsPanel = renderCaptionsPanel(host, {
             captions: clip.captions || [],
             style: clip.captionStyle,
-            sources: mediaSourcesForCaptions(),
-            selectedSource: clip.sourceClipId ? String(clip.sourceClipId) : undefined,
-            autoTranscribe: auto,
             onOpenStudio: () => openCaptionStudio(allClips().find((c) => String(c.id) === String(clip.sourceClipId)), clip),
-            currentMs: () => Math.max(0, (playheadSec() - clipStartSec(clip)) * 1000),
-            onSeek: (ms) => seekToSeconds(clipStartSec(clip) + ms / 1000),
-            onDownload: (name, text, mime) => downloadText(`${(clip.name || 'captions').replace(/[^\w-]+/g, '_')}.${name.split('.').pop()}`, text, mime),
-            onError: (err) => showToast(err?.message || 'Captions error', 'error'),
-            onTranscribe: async ({ sourceId, model, language, onProgress, signal }) => {
-              const source = allClips().find((c) => String(c.id) === sourceId);
-              if (!source?.src) throw new Error('That clip has no media to transcribe');
-              const { transcribeInBrowser } = await import('../lib/editor/remotion/transcribe.js');
-              const fromSec = Number(source.trimIn ?? source.sourceStart ?? 0) || 0;
-              const { captions } = await transcribeInBrowser(source.src, { fromSec, toSec: fromSec + clipDurationSec(source), model, language, onProgress, signal });
-              if (!captions.length) throw new Error('No speech was found in that clip');
-              // Line the captions clip up with the clip it was made from.
-              saveStateSnapshot(state);
-              clip.left = source.left;
-              clip.width = source.width;
-              clip.sourceClipId = source.id;
-              renderTracks();
-              showToast(`${captions.length} words transcribed`, 'success');
-              return captions;
-            },
-            onChange: ({ captions, captionStyle }) => {
-              clip.captions = captions;
-              clip.captionStyle = captionStyle;
-              const first = captions.slice(0, 5).map((c) => c.text).join('').trim();
-              clip.name = first ? `Captions: ${first}${captions.length > 5 ? '…' : ''}` : 'Captions';
-              scheduleEngineUpdate();
-              debouncedSave();
-            },
           });
         });
       }
