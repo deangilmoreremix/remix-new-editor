@@ -35,7 +35,7 @@ function offenders(t) {
   const urls = strings(t.puckData).join(' ');
   const root = document.createElement('div'); root.innerHTML = html(t.puckData);
   const bad = [];
-  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const w = document.createTreeWalker(root, 4 /* NodeFilter.SHOW_TEXT */);
   for (let n = w.nextNode(); n; n = w.nextNode()) {
     const v = norm(n.nodeValue); if (!v || isChrome(n.nodeValue)) continue;
     if (!known.includes(v)) bad.push(`text: ${n.nodeValue.trim().slice(0, 60)}`);
@@ -45,6 +45,10 @@ function offenders(t) {
       const v = el.getAttribute(a); if (!v || !norm(v) || isChrome(v)) return;
       if (!known.includes(norm(v))) bad.push(`${a}: ${v.slice(0, 60)}`);
     });
+  });
+  root.querySelectorAll('img').forEach((el) => { if (!el.getAttribute('src')) bad.push('picture: <img> without a usable address'); });
+  root.querySelectorAll('[style*="background-image"]').forEach((el) => {
+    const m = /url\(['"]?([^'")]+)['"]?\)/.exec(el.getAttribute('style') || ''); if (m && !urls.includes(m[1])) bad.push(`background: ${m[1].slice(0, 80)}`);
   });
   root.querySelectorAll('img[src],source[src],video[poster]').forEach((el) => {
     const v = el.getAttribute('src') || el.getAttribute('poster'); if (v && !v.startsWith('data:') && !urls.includes(v)) bad.push(`picture: ${v.slice(0, 80)}`);

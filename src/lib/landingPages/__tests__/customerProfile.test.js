@@ -134,3 +134,23 @@ describe('the customer\'s personalized picture', () => {
     });
   });
 });
+
+describe('personalized picture without the brand option', () => {
+  const c = { ...normalizeCustomer(CLIENT, 'client', { assets: ASSETS, brandColors: { primary: '#ff8a1f' } }), image: 'https://cdn.test/me.png' };
+  it('fills only the video slot picture when the brand option is off', () => {
+    const t = PUCK_TEMPLATES.find((x) => x.id === 'puck-pc-roofing');
+    const { data, applied } = applyCustomerToPuck(t.puckData, c, { useImage: true, brand: false });
+    expect(data.content.find((x) => x.type === 'Hero').props.slotImage).toBe('https://cdn.test/me.png');
+    expect(data.root.props.accent).toBe(t.puckData.root.props.accent);
+    expect(data.content.find((x) => x.type === 'NavBar').props.brand).toBe(t.puckData.content.find((x) => x.type === 'NavBar').props.brand);
+    expect(applied).toEqual(['personalized image']);
+  });
+});
+
+describe('personal image lookup', () => {
+  it('ignores inherited object keys such as "constructor"', async () => {
+    const { attachPersonalImages } = await import('../customerProfile.js');
+    const out = attachPersonalImages([{ id: 'constructor', business: { name: 'Constructor' }, image: '' }], []);
+    expect(out[0].image).toBe('');
+  });
+});

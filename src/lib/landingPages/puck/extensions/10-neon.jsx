@@ -7,6 +7,9 @@ import { AccentText, VideoPlayer, LeadForm, EmailSignup, Icon, SafeLink, useToke
 import { slotFields, SLOT_DEFAULTS } from '../slotFields.js';
 import { safeImageUrl } from '../../templates.js';
 
+// https pictures, or the design's own art under /landing-art/ (same rule as the other Puck components).
+const artUrl = (v) => safeImageUrl(v) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(v || '')) ? String(v) : '');
+
 const T = (label) => ({ type: 'text', label });
 const A = (label) => ({ type: 'textarea', label });
 const asList = (v) => (Array.isArray(v) ? v : []);
@@ -68,11 +71,11 @@ function NeonHero(p) {
         </section>
         <section className="pk-neon-gift">
           <div className="pk-neon-gift-body">
-            {(p.giftIcon ?? '/landing-art/10/gift.webp') ? <img className="pk-neon-giftico" src={safeImageUrl(p.giftIcon ?? '/landing-art/10/gift.webp')} alt="" /> : null}
+            {artUrl(p.giftIcon ?? '/landing-art/10/gift.webp') ? <img className="pk-neon-giftico" src={artUrl(p.giftIcon ?? '/landing-art/10/gift.webp')} alt="" /> : null}
             <h2 className="pk-neon-gift-title">{t(p.giftTitle)}</h2>
             <EmailSignup className="pk-neon-signup" placeholder={p.giftPlaceholder} label={p.giftButton} source={p.giftTitle} />
           </div>
-          <div className="pk-neon-book">{(p.giftBook ?? '/landing-art/10/book.webp') ? <img src={safeImageUrl(p.giftBook ?? '/landing-art/10/book.webp')} alt="" /> : null}<b className="pk-sr">{t(p.giftCover)}</b></div>
+          <div className="pk-neon-book">{artUrl(p.giftBook ?? '/landing-art/10/book.webp') ? <img src={artUrl(p.giftBook ?? '/landing-art/10/book.webp')} alt="" /> : null}<b className="pk-sr">{t(p.giftCover)}</b></div>
         </section>
       </aside>
     </header>

@@ -272,10 +272,11 @@ export function openLandingPagePicker({ video = null, template = null, customers
     const sel = selected();
     const one = sel.length === 1 ? sel[0] : null;
     const withBrand = !!one && cp.brand() && !plain;
+    const withImage = !!one && cp.useImage() && !plain; // the picture option works even with the brand option off
     let applied = [];
-    if (withBrand) {
-      const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: brandForConfig(one) });
-      const r = applyCustomerToPuck(cfg.puck, one, { useImage: cp.useImage() });
+    if (withBrand || withImage) {
+      const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: withBrand ? brandForConfig(one) : brandDefaults() });
+      const r = applyCustomerToPuck(cfg.puck, one, { useImage: cp.useImage(), brand: withBrand });
       data = r.data; applied = r.applied;
     } else {
       data = defaultConfig(chosen.id, { title: src?.title || '', brand: brandDefaults() }).puck;
@@ -293,10 +294,10 @@ export function openLandingPagePicker({ video = null, template = null, customers
       const note = el('div', 'px-4 md:px-6 pt-1 text-xs');
       note.dataset.personalizedNote = '';
       note.style.cssText = 'color:#d9ff00;display:flex;gap:10px;align-items:center;flex-wrap:wrap';
-      note.appendChild(el('span', '', withBrand
+      note.appendChild(el('span', '', (withBrand || withImage)
         ? `Personalized for ${one.label}${applied.length ? `: ${applied.join(', ')} filled in` : ''}. Previewing as ${sel[0].label}.`
         : sel.length === 1 ? `Plain design. Previewing as ${sel[0].label}.` : `${sel.length} personal links will be made when you save. Previewing as ${sel[0].label}.`));
-      if (withBrand) {
+      if (withBrand || withImage) {
         const undo = el('button', '', 'Use the plain design'); undo.type = 'button';
         undo.style.cssText = 'background:none;border:0;color:#fff;text-decoration:underline;cursor:pointer;font-size:12px';
         undo.addEventListener('click', () => showEdit(templateId, { plain: true }));
@@ -401,8 +402,14 @@ export function openLandingPagePicker({ video = null, template = null, customers
     body.replaceChildren(box);
   }
 
-  void cp.load();
-  if (template && TEMPLATES.some((t) => t.puck && t.id === template)) showEdit(template); else showGrid();
+  // A design chosen by the caller opens the editor right away, but only after the customers are loaded,
+  // so the first draft already has the customer's brand and personalized picture.
+  if (template && TEMPLATES.some((t) => t.puck && t.id === template)) {
+    Promise.resolve(cp.load()).catch(() => {}).then(() => { if (overlay.isConnected) showEdit(template); });
+  } else {
+    void cp.load();
+    showGrid();
+  }
   dialog.focus();
   return { close, element: overlay };
 }

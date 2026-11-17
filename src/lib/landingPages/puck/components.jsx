@@ -266,7 +266,7 @@ export function Band({ title, text, buttonLabel, placeholder, social, tagline, b
 export function ContactBand({ eyebrow, title, text, fields, submitLabel, successMessage }) {
   const t = useTokens();
   return (
-    <section className="pk-band pk-band--contact" id="contact">
+    <section className="pk-band pk-band--contact" id="contact"><span id="lead" className="pk-anchor" aria-hidden="true" />
       <div className="pk-band-in pk-band-in--contact">
         <div className="pk-band-text">{eyebrow ? <small className="pk-eyebrow-plain">{t(eyebrow)}</small> : null}<b>{t(title)}</b>{text ? <span>{t(text)}</span> : null}</div>
         <LeadForm submitLabel={submitLabel || 'Contact us'} successMessage={successMessage} fields={asList(fields).filter((f) => f.key && f.label)} />

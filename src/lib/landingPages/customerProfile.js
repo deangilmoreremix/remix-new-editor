@@ -186,7 +186,7 @@ const isImageOutput = (url, outputType) => {
 export function personalImagesFromProjects(projects) {
   const rows = (Array.isArray(projects) ? projects : []).filter((r) => r && typeof r === 'object')
     .sort((a, b) => String(b.updated_at || b.updatedAt || '').localeCompare(String(a.updated_at || a.updatedAt || '')));
-  const byId = {}; const byName = {};
+  const byId = Object.create(null); const byName = Object.create(null); // no inherited keys like "constructor"
   rows.forEach((r) => {
     const gen = r.generation && typeof r.generation === 'object' ? r.generation : {};
     const urls = [...(Array.isArray(gen.outputUrls) ? gen.outputUrls : []), ...(Array.isArray(r.outputUrls) ? r.outputUrls : [])];
@@ -216,23 +216,23 @@ const DEFAULT_FOOTER = /^Sent by \{\{sender\|us\}\}/;
  * Write one customer's brand into a page's Puck data. Pure: returns { data, applied }.
  * Only brand slots change (page colour, menu-bar name and logo, the default footer line, empty links); no other copy.
  */
-export function applyCustomerToPuck(puckData, customer, { useImage = true } = {}) {
+export function applyCustomerToPuck(puckData, customer, { useImage = true, brand: writeBrand = true } = {}) {
   const data = JSON.parse(JSON.stringify(puckData || {}));
   const applied = [];
   if (!customer || !Array.isArray(data.content)) return { data, applied };
   const { business, brand } = customer;
-  const accent = hexColor(brand.accent);
+  const accent = writeBrand ? hexColor(brand.accent) : '';
   if (accent && data.root?.props) { data.root.props.accent = accent; applied.push('page colour'); }
   const image = useImage ? httpsUrl(customer.image) : '';
   data.content.forEach((item) => {
     const p = item.props || {};
     if (image && /Hero|VideoSection/.test(item.type) && ('slotImage' in p || 'photo' in p || 'poster' in p || item.type === 'Hero')) { p.slotImage = image; applied.push('personalized image'); }
-    if (item.type === 'NavBar') {
+    if (item.type === 'NavBar' && writeBrand) {
       if (business.name) { p.brand = business.name; applied.push('business name'); }
       if (httpsUrl(brand.logoUrl)) { p.logo = brand.logoUrl; applied.push('logo'); }
       if (!p.loginUrl && business.website) p.loginUrl = business.website;
     }
-    if (item.type === 'Footer' && business.name && (!p.text || DEFAULT_FOOTER.test(p.text))) {
+    if (item.type === 'Footer' && writeBrand && business.name && (!p.text || DEFAULT_FOOTER.test(p.text))) {
       p.text = [business.name, business.phone, business.website && business.website.replace(/^https:\/\//, '')].filter(Boolean).join(' · ');
       applied.push('footer');
     }

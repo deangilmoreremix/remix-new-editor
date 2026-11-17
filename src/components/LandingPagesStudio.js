@@ -291,6 +291,7 @@ export function LandingPagesStudio() {
         const chosen = cp.selected();
         const one = chosen.length === 1 ? chosen[0] : null;
         const withBrand = !!one && cp.brand();
+        const withImage = !!one && cp.useImage();
         const client = await ownerClient();
         let page = await createPageFromVideo(client, sel.video, {
           template: sel.template,
@@ -298,8 +299,8 @@ export function LandingPagesStudio() {
           deps: { upload },
           onStep: (label) => { status.textContent = `${label}…`; },
         });
-        if (withBrand && page.config?.puck) {
-          const applied = applyCustomerToPuck(page.config.puck, one, { useImage: cp.useImage() });
+        if ((withBrand || withImage) && page.config?.puck) {
+          const applied = applyCustomerToPuck(page.config.puck, one, { useImage: cp.useImage(), brand: withBrand });
           page = await updatePage(client, page.id, { config: { ...page.config, puck: applied.data } });
         }
         const rows = chosen.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
