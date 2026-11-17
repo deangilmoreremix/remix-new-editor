@@ -68,6 +68,12 @@ describe('captionsToAss', () => {
     const c = caps({ cues: [{ startMs: 0, endMs: 1000, text: 'Hi', words: [{ text: 'Hi', startMs: 1500, endMs: 1800 }] }] })
     for (const d of dialogues(captionsToAss(c, opts))) expect(d.split(',')[2] <= '0:00:01.00').toBe(true)
   })
+  it('ends the event of a word that starts after its cue at the cue\'s boundary, not 0.01 s past it', () => {
+    const c = caps({ cues: [{ startMs: 0, endMs: 1000, text: 'Hi there', words: [{ text: 'Hi', startMs: 0, endMs: 500 }, { text: 'there', startMs: 1500, endMs: 1800 }] }] })
+    const d = dialogues(captionsToAss(c, opts))
+    expect(d).toHaveLength(2)
+    expect(d[1].split(',')[2]).toBe('0:00:01.00')
+  })
   it('exports the Bar look with its dark bar behind the text', () => {
     const ass = captionsToAss(caps({ style: 'bar' }), opts)
     expect(ass).toMatch(/,100,100,[^,]*,0,3,/) // BorderStyle 3: a box behind the whole caption
