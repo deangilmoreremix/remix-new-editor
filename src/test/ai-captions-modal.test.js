@@ -13,6 +13,8 @@ vi.mock('../components/modals/ai-captions/burnIn.js', async (orig) => ({
   burnInSupported: () => true,
   burnInCaptions: vi.fn(async () => ({ blob: new Blob(['mp4'], { type: 'video/mp4' }), mimeType: 'video/mp4', extension: 'mp4', fileSize: 3 })),
 }));
+const history = vi.hoisted(() => ({ list: [] }));
+vi.mock('../lib/generationHistory.js', () => ({ loadGenerationHistory: async () => history.list, registerGeneration: vi.fn(async () => null), saveGeneration: vi.fn() }));
 const processVideoTool = vi.fn(async () => ({ url: 'https://cdn.test/out.mp4' }));
 vi.mock('../lib/muapi.js', () => ({ muapi: { processVideoTool: (...a) => processVideoTool(...a) } }));
 
@@ -20,11 +22,13 @@ import { AICaptionsModal } from '../components/modals/AICaptionsModal.jsx';
 import { burnInCaptions } from '../components/modals/ai-captions/burnIn.js';
 import { transcribeCaptions } from '../components/modals/template-generator/captions.js';
 import { clearJobs } from '../components/modals/ai-captions/history.js';
+import { clearSessionVideos } from '../components/modals/ai-captions/library.js';
 
 const q = (sel) => document.querySelector(sel);
 const click = (sel) => { const el = q(sel); if (!el) throw new Error(`missing ${sel}`); el.click(); };
 const flush = () => new Promise((r) => setTimeout(r, 0));
 const open = (opts = {}) => { const m = new AICaptionsModal(opts); m.open(); return m; };
+const H = (n, extra = {}) => ({ id: String(n), url: `https://cdn.test/${n}.mp4`, prompt: `Prompt ${n}`, studio: 'video', type: 'video', timestamp: new Date(2026, 0, n).toISOString(), ...extra });
 
 beforeAll(() => {
   vi.stubGlobal('indexedDB', undefined);
@@ -35,7 +39,7 @@ beforeAll(() => {
   HTMLMediaElement.prototype.play = vi.fn(async () => {});
   HTMLMediaElement.prototype.pause = vi.fn();
 });
-afterEach(async () => { document.body.innerHTML = ''; await clearJobs(); vi.clearAllMocks(); });
+afterEach(async () => { history.list = []; clearSessionVideos(); document.body.innerHTML = ''; await clearJobs(); vi.clearAllMocks(); });
 
 describe('AI Captions modal — shell and Create tab', () => {
   it('has the four tabs, the six reference looks, a phone preview and position controls', () => {
@@ -56,8 +60,9 @@ describe('AI Captions modal — shell and Create tab', () => {
     m.close();
   });
 
-  it('keeps everything that was there: URL / upload modes, Generate and Cancel, the 18 cloud themes and the 45 languages', () => {
+  it('keeps everything that was there: URL / upload modes, Generate and Cancel, the 18 cloud themes and the 45 languages', async () => {
     const m = open();
+    await flush(); await flush();                               // no videos made yet: it opens on the upload form
     expect(q('#ai-cap-dropzone')).toBeTruthy();
     click('[data-act="mode"][data-val="url"]');
     expect(q('#ai-cap-url')).toBeTruthy();
@@ -206,6 +211,70 @@ describe('AI Captions modal — on-device captions, editor, history', () => {
     await m.generate();
     expect(q('.modal-error-message').textContent).toContain('No speech');
     expect(onError).toHaveBeenCalled();
+    m.close();
+  });
+});
+
+describe('AI Captions modal — your videos, no upload', () => {
+  it('lists every created video, picks the newest and shows it as the preview', async () => {
+    history.list = [H(1), H(3, { studio: 'avatar' }), H(2)];
+    const m = open();
+    await flush(); await flush();
+    expect(document.querySelectorAll('[data-testid="cap-vcard"]')).toHaveLength(3);
+    expect(m.videoUrl).toBe('https://cdn.test/3.mp4');
+    expect(q('.cap-vcard.is-on').textContent).toContain('Prompt 3');
+    expect(q('#ai-cap-video').getAttribute('src')).toBe('https://cdn.test/3.mp4');
+    expect(q('[data-testid="cap-live-title"]').textContent).toContain('Prompt 3');
+    expect(q('[data-act="lib-studio"][data-val="avatar"]').textContent).toContain('1');
+    m.close();
+  });
+
+  it('keeps the clip the studio passed, first and picked', async () => {
+    history.list = [H(1), H(2)];
+    const m = open({ videoUrl: 'https://cdn.test/mine.mp4' });
+    await flush(); await flush();
+    expect(m.selectedUrl).toBe('https://cdn.test/mine.mp4');
+    expect(document.querySelectorAll('[data-testid="cap-vcard"]')).toHaveLength(3);
+    m.close();
+  });
+
+  it('captions the picked video without uploading anything', async () => {
+    history.list = [H(1), H(2)];
+    const m = open();
+    await flush(); await flush();
+    click('[data-act="pick-video"][data-id="1"]');
+    expect(m.videoUrl).toBe('https://cdn.test/1.mp4');
+    global.fetch = vi.fn(async () => ({ ok: true, blob: async () => new Blob(['v'], { type: 'video/mp4' }) }));
+    const upload = vi.spyOn(m, 'uploadFileIfNeeded');
+    await m.generate();
+    await flush(); await flush();
+    expect(upload).not.toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalledWith('https://cdn.test/1.mp4');
+    expect(transcribeCaptions).toHaveBeenCalled();
+    expect(m.tab).toBe('script');
+    expect(document.querySelectorAll('.cap-line')).toHaveLength(2);
+    m.close();
+  });
+
+  it('adds a video a studio finishes while the modal is open, and searches the list', async () => {
+    history.list = [H(1, { prompt: 'Dentist ad' })];
+    const m = open();
+    await flush(); await flush();
+    window.dispatchEvent(new CustomEvent('generation:saved', { detail: { entry: H(5, { prompt: 'Roofing promo' }), studio: 'cinema' } }));
+    expect(document.querySelectorAll('[data-testid="cap-vcard"]')).toHaveLength(2);
+    expect(q('[data-testid="cap-vcard"]').textContent).toContain('Roofing promo');
+    const search = q('#ai-cap-vq'); search.value = 'dentist'; search.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(document.querySelectorAll('[data-testid="cap-vcard"]')).toHaveLength(1);
+    m.close();
+  });
+
+  it('with no videos yet it opens on the upload form', async () => {
+    const m = open();
+    await flush(); await flush();
+    expect(m.libraryMode).toBe(false);
+    expect(q('#ai-cap-dropzone')).toBeTruthy();
+    click('[data-act="mode"][data-val="library"]');
+    expect(q('[data-testid="cap-vempty"]').textContent).toContain('No videos made yet');
     m.close();
   });
 });

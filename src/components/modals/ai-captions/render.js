@@ -9,6 +9,7 @@ import { CAPTION_LANGUAGES } from '../template-generator/captions.js';
 import { POSITIONS, BACKGROUNDS, MIN_POS, MAX_POS, presetFor, phonePreviewHTML } from './phonePreview.js';
 import { lineLabel, countWords } from './scriptOps.js';
 import { formatBytes, formatDuration } from './history.js';
+import { filterVideos, studioCounts } from './library.js';
 
 export const TABS = [['create', 'Create'], ['script', 'Script & Words'], ['style', 'Motion & Style'], ['history', 'History']];
 /** The six looks the ai-video-captions app opens with, by their Capite ids. */
@@ -46,8 +47,32 @@ function positionControls(m) {
     + `<label class="cap-slider">From the bottom <input type="range" min="${MIN_POS}" max="${MAX_POS}" value="${m.percent}" data-act="pos-range" aria-label="Caption position"><b data-testid="cap-pos-value">${m.percent}%</b></label></div>`;
 }
 
+/** The video grid: every video made in the app (first frame as the picture), search, studio chips with counts. */
+export function renderLibrary(m) {
+  const list = filterVideos(m.library, { query: m.libQuery, studio: m.libStudio });
+  const shown = list.slice(0, m.libLimit);
+  const captioned = m.captionedUrls || new Set();
+  const chips = `<div class="cap-chips">${studioCounts(m.library).map(([id, label, n]) => chip('lib-studio', id, label, m.libStudio === id, n)).join('')}</div>`;
+  const search = `<div class="cap-filters"><div class="cap-field"><label for="ai-cap-vq">Search</label><input id="ai-cap-vq" placeholder="Search your videos…" value="${esc(m.libQuery)}"></div></div>`;
+  const cards = shown.map((v) => `<button type="button" class="cap-vcard${m.selectedUrl === v.url ? ' is-on' : ''}" data-act="pick-video" data-id="${esc(v.id)}" data-testid="cap-vcard" aria-pressed="${m.selectedUrl === v.url}">`
+    + `<span class="cap-vthumb"><video src="${esc(v.url)}#t=0.1" preload="metadata" muted playsinline tabindex="-1"></video>${captioned.has(v.url) ? '<span class="cap-vbadge">Captioned</span>' : ''}</span>`
+    + `<span class="cap-vtitle">${esc(v.title)}</span><span class="cap-vmeta">${esc(v.label)} · ${esc(new Date(v.createdAt).toLocaleDateString())}</span></button>`).join('');
+  const more = list.length > shown.length ? `<button type="button" class="cap-mini" data-act="lib-more">Show more (${list.length - shown.length})</button>` : '';
+  if (!m.library.length) return `<div class="cap-vempty" data-testid="cap-vempty">${m.libraryLoading ? 'Looking for your videos…' : 'No videos made yet. Create one in any studio and it shows up here, or upload one.'}</div>`;
+  return `${chips}${search}<p class="cap-note">Showing ${shown.length} of ${m.library.length} videos · pick one to caption it, nothing is uploaded</p><div class="cap-vgrid" data-testid="cap-vgrid">${cards || '<p class="cap-empty">No video matches.</p>'}</div>${more}`;
+}
+
 function inputBlock(m) {
-  return `<div class="cap-modes">${chip('mode', 'upload', '📁 Upload video', m.inputMode === 'upload')}${chip('mode', 'url', '🔗 Video URL', m.inputMode === 'url')}</div>${m.inputMode === 'url' ? m.renderUrlForm() : m.renderUploadForm()}`;
+  const modes = `<div class="cap-modes">${chip('mode', 'library', '🎞 Your videos', m.libraryMode, m.library.length)}${chip('mode', 'upload', '📁 Upload video', !m.libraryMode && m.inputMode === 'upload')}${chip('mode', 'url', '🔗 Video URL', !m.libraryMode && m.inputMode === 'url')}</div>`;
+  if (m.libraryMode) return `${modes}${renderLibrary(m)}`;
+  return `${modes}${m.inputMode === 'url' ? m.renderUrlForm() : m.renderUploadForm()}`;
+}
+
+/** The chosen video with the chosen look drawn over it (a sample caption until the real ones exist). */
+function livePreview(m) {
+  const s = m.effectiveStyle();
+  return `<div class="cap-side cap-side-live"><div class="cap-player"><div class="cap-stage" style="background:${(BACKGROUNDS.find((b) => b[0] === m.bg) || BACKGROUNDS[0])[2]}"><video id="ai-cap-video" src="${esc(m.videoUrl)}" controls playsinline preload="metadata"></video><div class="cap-live" id="ai-cap-live" data-testid="cap-live" style="bottom:${m.percent}%"></div></div>`
+    + `<div class="cap-meta" data-testid="cap-live-title">${esc(m.sourceName || 'Selected video')} · ${esc(s.label)}</div></div>${positionControls(m)}</div>`;
 }
 
 function filters(m) {
@@ -69,8 +94,9 @@ export function renderCreate(m) {
     : `<div class="cap-chips">${REFERENCE_STYLES.map((id) => chip('look', id, styleFor(id).label, m.styleId === id)).join('')}<select class="cap-more" id="ai-cap-more" aria-label="More looks"><option value="">More looks…</option>${ALL_CAPTION_STYLES.filter((x) => !REFERENCE_STYLES.includes(x.id)).map((x) => `<option value="${esc(x.id)}"${m.styleId === x.id ? ' selected' : ''}>${esc(x.label)}</option>`).join('')}</select></div>`
     + `<div class="cap-desc" data-testid="cap-desc"><b>${esc(s.label)}</b> — ${esc(hint(s))}</div>`;
   const left = `${inputBlock(m)}${filters(m)}<div class="cap-sub">Caption look</div>${looks}`;
-  const right = m.engine === 'device'
-    ? `<div class="cap-side">${phonePreviewHTML(s, { percent: m.percent, background: m.bg })}${positionControls(m)}</div>` : '';
+  const right = m.engine !== 'device' ? ''
+    : m.libraryMode && m.videoUrl ? livePreview(m)
+      : `<div class="cap-side">${phonePreviewHTML(s, { percent: m.percent, background: m.bg })}${positionControls(m)}</div>`;
   return sectionCard('Choose a video', `<p class="cap-note">Add animated word-by-word captions to any video. ${m.engine === 'device' ? 'Everything runs in your browser; nothing is uploaded.' : 'The cloud service burns them in for you.'}</p><div class="cap-create">${`<div class="cap-create-main">${left}</div>`}${right}</div>`, `<span class="cap-meta">${m.engine === 'device' ? 'Whisper · ' + CAPTION_LANGUAGES.length + ' languages' : 'MuAPI · ' + m.themes.length + ' themes'}</span>`);
 }
 

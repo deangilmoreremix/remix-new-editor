@@ -1,11 +1,13 @@
 import { BaseModal } from './BaseModal.jsx';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { CAPTION_MODELS, DEFAULT_CAPTION_ENGINE, transcribeCaptions } from './template-generator/captions.js';
-import { captionPages, captionAt, captionPageHTML, captionTextCss } from './template-generator/captionPreview.js';
+import { captionPages, captionAt, captionPageHTML, captionTextCss, captionSampleHTML } from './template-generator/captionPreview.js';
 import { segmentWords, flattenSegments, nudgeSegment, editWord, splitSegment, mergeSegments, deleteSegment, addSegment, replaceAll, countMatches, convertCase, segmentsToSrt, segmentsToVtt, segmentsToTxt, segmentStart, segmentEnd, NUDGE_MS } from './ai-captions/scriptOps.js';
 import { POSITION_PERCENT, clampPos } from './ai-captions/phonePreview.js';
 import { saveJob, listJobs, getJob, deleteJob, clearJobs } from './ai-captions/history.js';
 import { burnInCaptions, burnInSupported } from './ai-captions/burnIn.js';
+import { loadVideos, addVideo, announceVideo, subscribeNewVideos } from './ai-captions/library.js';
+import { registerGeneration } from '../../lib/generationHistory.js';
 import { renderTabs, renderTab, styleFor } from './ai-captions/render.js';
 
 const CAPTION_LANGUAGES = [
@@ -103,6 +105,7 @@ export class AICaptionsModal extends BaseModal {
     this.appColors = this.getAppColorScheme(this.appTheme);
 
     this.videoUrl = options.videoUrl || '';
+    this.passedUrl = options.videoUrl || '';
     this.uploadedFile = null;
     this.uploadedFileName = '';
     this.inputMode = this.videoUrl ? 'url' : 'upload';
@@ -160,6 +163,18 @@ export class AICaptionsModal extends BaseModal {
     this.jobId = '';
     this.blobUrls = [];
     this.abort = null;
+
+    // "Your videos": everything made in the app, captioned without uploading
+    this.library = [];
+    this.libraryLoading = true;
+    this.libraryMode = true;
+    this.libQuery = '';
+    this.libStudio = 'all';
+    this.libLimit = 24;
+    this.selectedUrl = '';
+    this.captionedUrls = new Set();
+    this.sourceUrl = '';
+    this.stopWatching = null;
 
     this.onComplete = options.onComplete || (() => {});
     this.onError = options.onError || (() => {});
@@ -366,6 +381,46 @@ export class AICaptionsModal extends BaseModal {
       cancelBtn.addEventListener('click', this.boundHandlers.cancel);
     }
     void this.refreshJobs();
+    void this.refreshLibrary();
+    this.stopWatching = subscribeNewVideos((card) => this.onNewVideo(card));
+  }
+
+  // ---------------------------------------------------------------- your videos
+
+  /** Load every video made in the app; the clip the studio passed (if any) comes first and is picked, else the newest. */
+  async refreshLibrary() {
+    const current = this.passedUrl ? { url: this.passedUrl, title: this.sourceName || '' } : null;
+    this.library = await loadVideos({ current });
+    this.libraryLoading = false;
+    if (!this.selectedUrl) {
+      const first = this.passedUrl ? this.library.find((v) => v.url === this.passedUrl) : this.library[0];
+      if (first) this.selectVideo(first);
+    }
+    // nothing made yet and nothing passed in: go straight to the upload form
+    if (!this.library.length && !this.videoUrl) this.libraryMode = false;
+    if (this.overlay && this.state === 'open' && this.tab === 'create' && !this.isGenerating) this.refreshBody();
+  }
+
+  selectVideo(card) {
+    this.selectedUrl = card.url;
+    this.videoUrl = card.url;
+    this.uploadedFile = null; this.uploadedFileName = '';
+    this.sourceName = card.title;
+    this.inputMode = 'url';
+  }
+
+  pickVideo(id) {
+    const card = this.library.find((v) => v.id === id);
+    if (!card) return;
+    this.selectVideo(card);
+    this.refreshBody();
+  }
+
+  /** A studio just finished a video (or something announced one): add it, and pick it when nothing is picked yet. */
+  onNewVideo(card) {
+    this.library = addVideo(this.library, card);
+    if (!this.selectedUrl && this.libraryMode) this.selectVideo(card);
+    if (this.overlay && this.state === 'open' && this.tab === 'create' && !this.isGenerating && !this.rendering) this.refreshBody();
   }
 
   takeFile(file) {
@@ -384,7 +439,10 @@ export class AICaptionsModal extends BaseModal {
     const si = Number(el.dataset.s); const wi = Number(el.dataset.w);
     switch (act) {
       case 'tab': this.tab = val; if (val === 'history') void this.refreshJobs(true); else this.refreshBody(); break;
-      case 'mode': this.inputMode = val; this.refreshBody(); break;
+      case 'mode': this.libraryMode = val === 'library'; if (!this.libraryMode) this.inputMode = val; this.refreshBody(); break;
+      case 'pick-video': this.pickVideo(el.dataset.id); break;
+      case 'lib-studio': this.libStudio = val; this.libLimit = 24; this.refreshBody(); break;
+      case 'lib-more': this.libLimit += 24; this.refreshBody(); break;
       case 'theme': this.theme = val; this.refreshBody(); break;
       case 'look': this.styleId = val; this.refreshBody(); break;
       case 'group': this.styleGroup = val; this.refreshBody(); break;
@@ -434,6 +492,7 @@ export class AICaptionsModal extends BaseModal {
     if (t.id === 'ai-cap-url') { this.videoUrl = t.value; return; }
     if (t.id === 'ai-cap-find') { this.findText = t.value; this.matchCount = countMatches(this.segments, t.value); const b = this.overlay.querySelector('[data-act="replace-all"]'); if (b) b.textContent = `Replace${t.value ? ` (${this.matchCount})` : ''}`; return; }
     if (t.id === 'ai-cap-repl') { this.replText = t.value; return; }
+    if (t.id === 'ai-cap-vq') { this.libQuery = t.value; this.libLimit = 24; this.refreshBody(); const q = this.overlay.querySelector('#ai-cap-vq'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } return; }
     if (t.id === 'ai-cap-q') { this.styleQuery = t.value; this.refreshBody(); const q = this.overlay.querySelector('#ai-cap-q'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } return; }
     if (t.dataset?.act === 'pos-range') this.setPercent(Number(t.value));
   }
@@ -533,6 +592,7 @@ export class AICaptionsModal extends BaseModal {
       this.activeSeg = seg; this.activeWord = word;
     }
     if (!this.livePreview) { live.innerHTML = ''; return; }
+    if (!this.segments.length) { live.style.cssText = `bottom:${this.percent}%;${captionTextCss(style, v.clientHeight || 360)}`; live.innerHTML = captionSampleHTML(style, 'Your captions look like this'); return; }
     const page = captionAt(captionPages(flattenSegments(this.segments), style), ms);
     live.style.cssText = `bottom:${this.percent}%;${captionTextCss(style, v.clientHeight || 360)}`;
     live.innerHTML = page ? captionPageHTML(style, page, ms, { motion: style.motion || 'pop' }) : '';
@@ -556,6 +616,7 @@ export class AICaptionsModal extends BaseModal {
       this.outputStale = false;
       this.renderNote = 'Done. The captions are burned into the video.';
       this.onComplete(this.outputUrl);
+      announceVideo({ url: this.outputUrl, title: `${this.sourceName || 'Video'} (captioned)`, studio: 'ai-captions' });
       void this.saveCurrentJob();
     } catch (err) {
       this.renderNote = err?.message || 'The video could not be rendered.';
@@ -570,7 +631,7 @@ export class AICaptionsModal extends BaseModal {
     const rec = await saveJob({
       id: this.jobId || undefined, title: this.sourceName || 'Untitled video', durationSec: this.durationSec || (this.segments.length ? segmentEnd(this.segments[this.segments.length - 1]) / 1000 : 0),
       language: this.detectedLang || this.deviceLang, styleId: this.styleId, percent: this.percent, processingMs: this.processingMs || 0,
-      fileSize: this.outputSize || video?.size || 0, segments: this.segments, ...(video ? { video } : {}), ...extra,
+      fileSize: this.outputSize || video?.size || 0, sourceUrl: this.sourceUrl || '', segments: this.segments, ...(video ? { video } : {}), ...extra,
     });
     this.jobId = rec.id;
     await this.refreshJobs();
@@ -579,6 +640,7 @@ export class AICaptionsModal extends BaseModal {
   async refreshJobs(rerender = false) {
     try { this.jobs = (await listJobs()).map((j) => ({ ...j, hasVideo: !!j.video })); } catch { this.jobs = []; }
     this.historyCount = this.jobs.length;
+    this.captionedUrls = new Set(this.jobs.map((j) => j.sourceUrl).filter(Boolean));
     if ((rerender || this.tab === 'history') && this.overlay && this.state === 'open') this.refreshBody();
   }
 
@@ -596,6 +658,7 @@ export class AICaptionsModal extends BaseModal {
   trackUrl(blob) { const u = URL.createObjectURL(blob); this.blobUrls.push(u); return u; }
 
   destroy() {
+    this.stopWatching?.();
     cancelAnimationFrame(this.raf);
     this.abort?.abort();
     [...this.blobUrls, this.outputUrl].forEach((u) => { if (u) { try { URL.revokeObjectURL(u); } catch { /* gone */ } } });
@@ -677,6 +740,7 @@ export class AICaptionsModal extends BaseModal {
         if (blob) src = this.trackUrl(blob);
       }
       this.sourceBlob = blob;
+      this.sourceUrl = /^blob:/.test(this.selectedUrl || this.videoUrl) || this.uploadedFile ? '' : (this.selectedUrl || this.videoUrl);
       this.currentStep = 1; this.refreshBody();
       const result = await transcribeCaptions(src, {
         engine: this.captionEngine, model: this.model, language: this.deviceLang,
@@ -753,6 +817,8 @@ export class AICaptionsModal extends BaseModal {
         this.isGenerating = false;
         this.refreshBody();
         this.onComplete(captionedUrl);
+        // keep the result with the other videos (a studio that already saved it is not saved twice)
+        if (!this.library.some((v) => v.url === captionedUrl)) void registerGeneration('ai-captions', 'video', captionedUrl, { prompt: `${this.sourceName || 'Video'} (captioned)`, model: 'ai-captions' }).catch(() => {});
       } else {
         throw new Error('No captioned video returned from the service.');
       }

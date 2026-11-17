@@ -810,3 +810,16 @@
 .cap-root .dropzone-text { color: #fff; }
 .cap-root .dropzone-hint { color: #a1a1aa; }
 .cap-phone { width: 200px; }
+
+/* Your videos: every video made in the app */
+.cap-vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; max-height: 38vh; overflow-y: auto; padding-right: 4px; }
+.cap-vcard { display: flex; flex-direction: column; gap: 6px; padding: 8px; text-align: left; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.03); color: #fff; cursor: pointer; }
+.cap-vcard:hover { border-color: rgba(217, 255, 0, 0.35); }
+.cap-vcard.is-on { border-color: #22c55e; background: rgba(34, 197, 94, 0.08); box-shadow: 0 0 0 1px #22c55e; }
+.cap-vthumb { position: relative; display: block; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden; background: var(--color-app-bg, #050505); }
+.cap-vthumb video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.cap-vbadge { position: absolute; top: 6px; right: 6px; padding: 2px 8px; border-radius: 999px; background: #22c55e; color: #04130a; font-size: 10px; font-weight: 800; }
+.cap-vtitle { font-size: 12px; font-weight: 700; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.cap-vmeta { font-size: 10px; color: #71717a; }
+.cap-vempty { padding: 26px 12px; text-align: center; font-size: 13px; color: #a1a1aa; border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 14px; }
+.cap-side-live { width: 100%; align-items: stretch; }
