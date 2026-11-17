@@ -3,7 +3,7 @@
  * the language pack ("on-device"), otherwise the browser sends the audio to its speech service ("browser-cloud") — the UI says which.
  * The API gives no word times, so each phrase's words are spread across the time it took to say them.
  */
-import { normalizeCaption } from '../editor/remotion/captions.js';
+import { normalizeCaption } from './model.js';
 
 const RecClass = () => globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
 export const liveSpeechSupported = () => !!RecClass();

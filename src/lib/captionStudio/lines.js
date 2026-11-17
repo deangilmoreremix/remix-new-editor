@@ -2,7 +2,7 @@
  * Line-level editing over word-level captions. Whisper returns one caption per word; people edit whole lines. A "line" is
  * what the viewer sees at once (a caption page), and editing it keeps each word's timing where the word count is unchanged.
  */
-import { captionPages, sortCaptions, normalizeCaption } from '../editor/remotion/captions.js';
+import { captionPages, sortCaptions, normalizeCaption } from './model.js';
 
 /** @returns {{ from: number, to: number, startMs: number, endMs: number, text: string }[]}  from/to index the sorted captions, `to` exclusive */
 export function captionLines(captions, style = {}) {

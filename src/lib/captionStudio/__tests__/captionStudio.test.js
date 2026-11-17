@@ -117,3 +117,31 @@ describe('engines', () => {
     expect(recommendEngine({ webgpu: true })).toBe('whisper-webgpu');
   });
 });
+
+// ---- the portable core must not drift from the copies it was made from, and must not import from the host app
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import * as core from '../model.js';
+import * as timeline from '../../editor/remotion/captions.js';
+import { CAPITE_CAPTION_STYLES } from '../styles.js';
+import { CAPITE_CAPTION_STYLES as shared } from '../../../features/personalization/shared/personalization/captions/capiteStyles';
+
+describe('portable core', () => {
+  it('has the same Capite looks as the shared personalization data', () => {
+    expect(CAPITE_CAPTION_STYLES).toEqual(shared);
+  });
+  it('builds the same style presets and caption pages as the Timeline editor', () => {
+    expect(Object.keys(core.CAPITE_PRESETS)).toEqual(Object.keys(timeline.CAPITE_PRESETS));
+    ['tiktok', 'classic', 'box', 'karaoke', 'minimal', ...Object.keys(core.CAPITE_PRESETS)].forEach((k) => expect(core.defaultCaptionStyle(k)).toEqual(timeline.defaultCaptionStyle(k)));
+    const caps = words('one', 'two', 'three', 'four', 'five', 'six');
+    expect(core.captionPages(caps, { combineMs: 900 })).toEqual(timeline.captionPages(caps, { combineMs: 900 }));
+    expect(core.captionsToSrt(caps)).toBe(timeline.captionsToSrt(caps));
+  });
+  it('imports only npm packages and its own files, so the folder can be copied between repos', () => {
+    const dir = join(__dirname, '..');
+    readdirSync(dir).filter((f) => f.endsWith('.js')).forEach((f) => {
+      const specs = [...readFileSync(join(dir, f), 'utf8').matchAll(/(?:^|\n)\s*import[^'"]*?from\s*['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)|new URL\(\s*['"]([^'"]+)['"]/g)].map((m) => m[1] || m[2] || m[3]);
+      specs.forEach((s) => expect(s.startsWith('./') || ['@remotion/captions', '@huggingface/transformers', 'mediabunny'].includes(s), `${f} imports ${s}`).toBe(true));
+    });
+  });
+});

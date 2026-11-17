@@ -4,8 +4,8 @@
  * height, block centred at 8 / 50 / 82 % for top / middle / bottom, word highlight, boxed words and karaoke wipe,
  * plus the Capite looks' scale / pop / bounce / glow motion.
  */
-import { captionPages, pageAt } from '../editor/remotion/captions.js';
-import { capiteStyleById } from '../../features/personalization/shared/personalization/captions/capiteStyles';
+import { captionPages, pageAt } from './model.js';
+import { capiteStyleById } from './styles.js';
 
 const POSITION_Y = { top: 0.08, middle: 0.5, bottom: 0.82 };
 const clamp01 = (n) => Math.max(0, Math.min(1, n));

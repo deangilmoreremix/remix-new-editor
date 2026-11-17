@@ -1,28 +1,29 @@
-// CaptionStudioModal.jsx — free, on-device captions for every studio.
+// Caption Studio modal — free, on-device captions. Framework-free (plain DOM), no imports from the host app, so the identical file
+// runs in remix-new-editor (Vite) and OpenHiggsBolt (Next.js, client-only). Host apps wrap it in a thin adapter.
 //
 // Upload (or pass in) a finished video → Whisper transcribes it in the browser (Transformers.js, WebGPU with a WebAssembly fallback) →
 // edit the lines, pick one of 32 caption looks and recolour it → export SRT / VTT, or render the captions into the video, all in the
 // browser. No credits, no server, the audio never leaves the device. "Record live" uses the Web Speech API with the microphone.
 //
-// Open it with addCaptionButton() from lib/editor/captionActions.js. Options:
-//   videoUrl, appTheme, language ('en' | 'auto' | …),
-//   onComplete(url)              the video with captions burned in (blob: URL)
-//   onApply({ captions, captionStyle, srt, vtt })   the Timeline editor uses this to add a captions clip
-//   onError(err)
-import { BaseModal } from './BaseModal.jsx';
-import { openaiConfig } from '../../lib/config/openaiConfig.js';
+// openCaptionStudio(options):
+//   videoUrl, language ('en' | 'auto' | …), accentColor ('#d9ff00'), captions, style,
+//   onComplete(url)                                 the video with captions burned in (blob: URL)
+//   onApply({ captions, captionStyle, srt, vtt })   hand the captions to a timeline / project
+//   onError(err), onClose()
 import {
   ENGINES, WHISPER_MODELS, CAPTION_LANGUAGES, detectCapabilities, recommendEngine, recommendModel, transcribeMedia,
-  paintCaptions, ensureCaptionFont, captionLines, setLineText, removeLine, setLineTiming,
-  burnCaptions, liveSpeechSupported, startLiveCaptions,
-} from '../../lib/captionStudio/index.js';
+} from './engines.js';
+import { paintCaptions, ensureCaptionFont } from './painter.js';
+import { captionLines, setLineText, removeLine, setLineTiming } from './lines.js';
+import { burnCaptions } from './burn.js';
+import { liveSpeechSupported, startLiveCaptions } from './live.js';
 import {
   CAPTION_PRESETS, CAPITE_PRESETS, CAPITE_PRESET_GROUPS, CAPTION_POSITIONS, defaultCaptionStyle, sortCaptions, captionsFromFile,
   captionsToSrt, captionsToVtt, captionPages, shiftCaptions,
-} from '../../lib/editor/remotion/captions.js';
-import { OVERLAY_FONTS } from '../../lib/editor/addons/overlayData.js';
+} from './model.js';
+import { BASE_FONTS } from './styles.js';
 
-const FONTS = [...new Set(['Montserrat', 'Inter', 'Poppins', 'Anton', 'Bebas Neue', 'Roboto', ...OVERLAY_FONTS, ...Object.values(CAPITE_PRESETS).map((p) => p.fontFamily)])];
+const FONTS = [...new Set([...BASE_FONTS, ...Object.values(CAPITE_PRESETS).map((p) => p.fontFamily)])];
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const secs = (ms) => (Math.round(ms / 10) / 100).toFixed(2);
 const toHex = (c) => {
@@ -34,7 +35,14 @@ const hexToRgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rg
 const TABS = [['generate', '1 · Captions'], ['style', '2 · Style'], ['edit', '3 · Edit'], ['export', '4 · Export']];
 const SAMPLE = [' Free', ' captions', ' that', ' run', ' on', ' your', ' device'].map((text, i) => ({ text, startMs: i * 450, endMs: i * 450 + 450, timestampMs: i * 450 + 225, confidence: null }));
 
-const CSS = `
+const STYLE_TEXT = `
+.csm-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;justify-content:flex-end;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.csm-dialog{display:flex;flex-direction:column;width:min(1280px,94vw);height:100%;background:#0d1219;color:#e5edf5;border-left:1px solid rgba(255,255,255,.1);box-shadow:-20px 0 60px rgba(0,0,0,.5)}
+.csm-head{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.csm-head h2{margin:0;font-size:17px}
+.csm-x{background:none;border:1px solid rgba(255,255,255,.15);color:inherit;border-radius:8px;width:32px;height:32px;font-size:16px;cursor:pointer}
+.csm-body{flex:1;overflow:auto;padding:20px 24px}
+.csm-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 24px;border-top:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}
 .csm{display:grid;grid-template-columns:minmax(260px,1fr) minmax(300px,1.1fr);gap:18px;color:var(--text,#e5edf5);font-size:12.5px}
 @media(max-width:900px){.csm{grid-template-columns:1fr}}
 .csm-stage{position:relative;background:#000;border-radius:12px;overflow:hidden;margin:0 auto;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
@@ -70,12 +78,79 @@ const CSS = `
 .csm-live{font-size:15px;min-height:44px;padding:10px;border-radius:10px;background:rgba(0,0,0,.4)}
 `;
 let cssIn = false;
-const injectCss = () => { if (cssIn || typeof document === 'undefined') return; const s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s); cssIn = true; };
+const injectCss = () => { if (cssIn || typeof document === 'undefined') return; const s = document.createElement('style'); s.textContent = STYLE_TEXT; document.head.appendChild(s); cssIn = true; };
 
-export class CaptionStudioModal extends BaseModal {
+
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** Minimal modal chrome: overlay, header, body, footer, Escape, focus trap, focus restore, refresh that keeps focus. */
+class ModalShell {
+  constructor({ title }) { this.title = title; this.overlay = null; this.state = 'closed'; }
+
+  open() {
+    if (this.state === 'open' || typeof document === 'undefined') return;
+    injectCss();
+    this.opener = document.activeElement;
+    const o = document.createElement('div');
+    o.className = 'csm-overlay';
+    o.innerHTML = `<div class="csm-dialog" role="dialog" aria-modal="true" aria-label="${esc(this.title)}" tabindex="-1">
+      <div class="csm-head"><h2>${esc(this.title)}</h2><button type="button" class="csm-x" data-act="close" aria-label="Close">✕</button></div>
+      <div class="csm-body">${this.renderBody()}</div><div class="csm-foot">${this.renderFooter()}</div></div>`;
+    o.addEventListener('mousedown', (e) => { if (e.target === o) this.close(); });
+    this.overlay = o;
+    this.onKey = (e) => {
+      if (e.key === 'Escape') { e.stopPropagation(); this.close(); return; }
+      if (e.key !== 'Tab') return;
+      const items = [...o.querySelectorAll(FOCUSABLE)].filter((el) => el.getClientRects().length);
+      if (!items.length) return;
+      const first = items[0]; const last = items[items.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !o.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', this.onKey, true);
+    this.prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.body.appendChild(o);
+    this.state = 'open';
+    o.querySelector('.csm-dialog').focus({ preventScroll: true });
+    this.start?.();
+    this.onRender();
+  }
+
+  /** Re-render body and footer in place, keeping the focused control and caret. */
+  refresh() {
+    const o = this.overlay;
+    if (!o || this.state !== 'open') return;
+    const a = document.activeElement;
+    let sel = null; let s0 = null; let s1 = null;
+    if (a && o.contains(a)) {
+      const attr = [...a.attributes].find((x) => x.name.startsWith('data-'));
+      if (attr) sel = `[${attr.name}${attr.value ? `="${CSS.escape(attr.value)}"` : ''}]`;
+      try { s0 = a.selectionStart; s1 = a.selectionEnd; } catch { /* not a text field */ }
+    }
+    o.querySelector('.csm-body').innerHTML = this.renderBody();
+    o.querySelector('.csm-foot').innerHTML = this.renderFooter();
+    this.onRender();
+    const el = sel && o.querySelector(sel);
+    if (el) { el.focus(); if (s0 != null) { try { el.setSelectionRange(s0, s1); } catch { /* ignore */ } } }
+  }
+
+  close() { if (this.state === 'open') { this.destroy(); } }
+
+  destroy() {
+    if (this.overlay) { this.overlay.remove(); this.overlay = null; }
+    document.removeEventListener('keydown', this.onKey, true);
+    document.body.style.overflow = this.prevOverflow || '';
+    this.state = 'closed';
+    if (this.opener?.isConnected) this.opener.focus?.({ preventScroll: true });
+    this.opts?.onClose?.();
+  }
+}
+
+export class CaptionStudioModal extends ModalShell {
   constructor(options = {}) {
-    super({ title: '💬 Free AI Captions', size: 'full', showFooter: true, ...options });
-    this.appColors = openaiConfig.getStudioColorScheme(options.appTheme || 'timeline-editor');
+    super({ title: '💬 Free AI Captions' });
+    this.accent = /^#[0-9a-f]{6}$/i.test(options.accentColor || '') ? options.accentColor : '#d9ff00';
     this.opts = options;
     this.tab = 'generate';
     this.caps = null;
@@ -95,14 +170,11 @@ export class CaptionStudioModal extends BaseModal {
     this.live = null; // { handle, interim, mode, recorder }
     this.shift = 0;
     this._raf = 0;
-    const userOnOpen = options.onOpen;
-    this.onOpen = () => { this.start(); userOnOpen?.(); };
   }
 
   // ---------------------------------------------------------------- theme / chrome
   get themeStyle() {
-    const { primary } = this.appColors;
-    return `--app-primary:${primary};--app-soft:${hexToRgba(toHex(primary), 0.12)}`;
+    return `--app-primary:${this.accent};--app-soft:${hexToRgba(this.accent, 0.12)}`;
   }
 
   start() {
@@ -130,8 +202,8 @@ export class CaptionStudioModal extends BaseModal {
 
   renderFooter() {
     return `
-      ${this.opts.onApply ? '<button type="button" class="modal-btn modal-btn-primary" data-act="apply"' + (this.captions.length ? '' : ' disabled') + '>＋ Add captions to timeline</button>' : ''}
-      <button type="button" class="modal-btn modal-btn-secondary" data-act="close">Close</button>`;
+      ${this.opts.onApply ? '<button type="button" class="csm-btn primary" data-act="apply"' + (this.captions.length ? '' : ' disabled') + '>＋ Add captions to timeline</button>' : ''}
+      <button type="button" class="csm-btn" data-act="close">Close</button>`;
   }
 
   // ---------------------------------------------------------------- preview stage (built once, re-attached after each refresh)
@@ -471,7 +543,7 @@ export class CaptionStudioModal extends BaseModal {
   }
 }
 
-export function openCaptionStudioModal(options = {}) {
+export function openCaptionStudio(options = {}) {
   const modal = new CaptionStudioModal(options);
   modal.open();
   return modal;

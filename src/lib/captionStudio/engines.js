@@ -5,7 +5,7 @@
  *   whisper-wasm    Transformers.js + Whisper on WebAssembly   word timestamps   works in any modern browser
  *   webspeech       Web Speech API (live microphone only)      approximate word timing, on-device where the browser offers it
  */
-import { transcribeInBrowser, WHISPER_MODELS } from '../editor/remotion/transcribe.js';
+import { transcribeInBrowser, WHISPER_MODELS } from './transcribeClient.js';
 
 export { WHISPER_MODELS };
 

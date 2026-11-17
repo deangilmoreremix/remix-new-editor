@@ -4,7 +4,7 @@
  *   1. mediabunny / WebCodecs (fast, frame-accurate, keeps the original audio): decode → paintCaptions on every frame → encode MP4 (H.264) or WebM.
  *   2. MediaRecorder fallback (any browser with canvas.captureStream): plays the video and records the canvas + its audio in real time.
  */
-import { captionPages } from '../editor/remotion/captions.js';
+import { captionPages } from './model.js';
 import { paintCaptions, ensureCaptionFont } from './painter.js';
 
 const abortError = () => Object.assign(new Error('Render cancelled'), { name: 'AbortError' });
