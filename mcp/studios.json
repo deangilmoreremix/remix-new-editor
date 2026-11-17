@@ -1,0 +1,293 @@
+{
+ "supported": {
+  "image": {
+   "tools": [
+    "image_generate",
+    "image_edit"
+   ],
+   "kinds": [
+    "t2i",
+    "i2i"
+   ]
+  },
+  "text-to-image": {
+   "tools": [
+    "image_generate"
+   ],
+   "kinds": [
+    "t2i"
+   ]
+  },
+  "image-to-image": {
+   "tools": [
+    "image_edit"
+   ],
+   "kinds": [
+    "i2i"
+   ]
+  },
+  "video": {
+   "tools": [
+    "video_generate",
+    "video_from_image",
+    "video_to_video"
+   ],
+   "kinds": [
+    "t2v",
+    "i2v",
+    "v2v"
+   ]
+  },
+  "text-to-video": {
+   "tools": [
+    "video_generate"
+   ],
+   "kinds": [
+    "t2v"
+   ]
+  },
+  "image-to-video": {
+   "tools": [
+    "video_from_image"
+   ],
+   "kinds": [
+    "i2v"
+   ]
+  },
+  "video-to-video": {
+   "tools": [
+    "video_to_video"
+   ],
+   "kinds": [
+    "v2v"
+   ]
+  },
+  "cinema": {
+   "tools": [
+    "image_generate",
+    "video_generate",
+    "video_from_image"
+   ],
+   "kinds": [
+    "t2i",
+    "t2v",
+    "i2v"
+   ]
+  },
+  "cinema-page": {
+   "tools": [
+    "video_generate"
+   ],
+   "kinds": [
+    "t2v"
+   ]
+  },
+  "cinema-template": {
+   "tools": [
+    "video_generate",
+    "video_from_image",
+    "video_to_video",
+    "image_generate"
+   ],
+   "kinds": [
+    "t2v",
+    "i2v",
+    "v2v",
+    "t2i"
+   ]
+  },
+  "effects": {
+   "tools": [
+    "video_from_image",
+    "motion_graphics"
+   ],
+   "kinds": [
+    "i2v",
+    "graphics"
+   ]
+  },
+  "effects-page": {
+   "tools": [
+    "video_from_image",
+    "motion_graphics"
+   ],
+   "kinds": [
+    "i2v",
+    "graphics"
+   ]
+  },
+  "edit": {
+   "tools": [
+    "image_edit"
+   ],
+   "kinds": [
+    "i2i"
+   ]
+  },
+  "upscale": {
+   "tools": [
+    "image_edit"
+   ],
+   "kinds": [
+    "i2i"
+   ]
+  },
+  "upscale-page": {
+   "tools": [
+    "image_edit"
+   ],
+   "kinds": [
+    "i2i"
+   ]
+  },
+  "character": {
+   "tools": [
+    "image_edit"
+   ],
+   "kinds": [
+    "i2i"
+   ]
+  },
+  "character-page": {
+   "tools": [
+    "image_edit"
+   ],
+   "kinds": [
+    "i2i"
+   ]
+  },
+  "influencer": {
+   "tools": [
+    "image_edit"
+   ],
+   "kinds": [
+    "i2i"
+   ]
+  },
+  "influencer-page": {
+   "tools": [
+    "image_edit"
+   ],
+   "kinds": [
+    "i2i"
+   ]
+  },
+  "commercial": {
+   "tools": [
+    "marketing_ad",
+    "image_edit"
+   ],
+   "kinds": [
+    "ad",
+    "i2i"
+   ]
+  },
+  "commercial-page": {
+   "tools": [
+    "marketing_ad"
+   ],
+   "kinds": [
+    "ad"
+   ]
+  },
+  "avatar": {
+   "tools": [
+    "avatar_generate"
+   ],
+   "kinds": [
+    "avatar"
+   ]
+  },
+  "audio": {
+   "tools": [
+    "audio_generate"
+   ],
+   "kinds": [
+    "audio"
+   ]
+  },
+  "videotools": {
+   "tools": [
+    "video_tool",
+    "motion_control",
+    "recast"
+   ],
+   "kinds": [
+    "tools",
+    "motion",
+    "recast"
+   ]
+  },
+  "lipsync": {
+   "tools": [
+    "lipsync"
+   ],
+   "kinds": [
+    "lipsync"
+   ]
+  },
+  "storyboard": {
+   "tools": [
+    "image_generate"
+   ],
+   "kinds": [
+    "t2i"
+   ]
+  },
+  "storyboard-page": {
+   "tools": [
+    "image_generate"
+   ],
+   "kinds": [
+    "t2i"
+   ]
+  },
+  "video-watermark": {
+   "tools": [
+    "video_to_video"
+   ],
+   "kinds": [
+    "v2v"
+   ]
+  }
+ },
+ "unsupported": {
+  "library": "Non-generative UI (browsing, learning or navigation).",
+  "content-library": "Non-generative UI (browsing, learning or navigation).",
+  "explore": "Non-generative UI (browsing, learning or navigation).",
+  "apps": "Non-generative UI (browsing, learning or navigation).",
+  "templates": "Non-generative UI (browsing, learning or navigation).",
+  "academy": "Non-generative UI (browsing, learning or navigation).",
+  "timeline-iframe-warning": "Non-generative UI (browsing, learning or navigation).",
+  "smart-video-scheduler": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "brightbean": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "leadfinder": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "find-my-brand": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "personalizer": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "brand": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "brand-dna": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "campaign": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "campaign-page": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "asset-edit": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "photo-studio": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "brand-photo-studio": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "animate": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "smart-video-studio": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
+  "motion-director": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "motion-director/workbench": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "video-pages": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "website-builder": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "render": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "video-agent": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "video-agent-studio": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "zackd": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "zackd-studio": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "director": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "workbench": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "cinegen": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "timeline": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "timeline-classic": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "ai-vfx": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
+  "viral": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1."
+ }
+}

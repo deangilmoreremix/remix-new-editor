@@ -48,7 +48,7 @@
     "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs",
     "mcp:catalog": "node scripts/build-mcp-catalog.mjs",
     "mcp:start": "node mcp/index.js",
-    "test:mcp": "npm --prefix packages/studio-mcp-core install --workspaces=false --no-audit --no-fund && npm --prefix packages/studio-mcp-core exec -- vitest run"
+    "test:mcp": "vitest run tests/mcp"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.29.9",

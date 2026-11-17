@@ -17,6 +17,8 @@ export const GENERATION_TOOLS = [
   { name: 'model_train', kinds: ['training'], timeoutMs: 120_000, description: 'Start training a custom model (e.g. a LoRA) from your images. Returns a request_id; training runs long.' },
   { name: 'text_generate', kinds: ['text'], timeoutMs: 120_000, description: 'Generate text with an LLM (scripts, prompts, captions).' },
   { name: 'motion_control', kinds: ['motion'], timeoutMs: 600_000, description: 'Drive an image/character with the motion of a reference video.' },
+  { name: 'motion_graphics', kinds: ['graphics'], timeoutMs: 300_000, description: 'Generate or edit an animated motion-graphics clip from a prompt.' },
+  { name: 'marketing_ad', kinds: ['ad'], timeoutMs: 900_000, description: 'Create a product ad video from reference images/videos (omni-reference).' },
   { name: 'recast', kinds: ['recast'], timeoutMs: 600_000, description: 'Swap the performer/body in a video.' },
 ];
 
