@@ -4,14 +4,14 @@
  * intensity slider, overlay toggle, CSV export and a printable report. All data: owner-only aggregated RPCs; sets
  * smaller than the minimum cohort are shown as "not enough data" (nothing is drawn or exported for them); inside a large enough view, every cell with fewer than the minimum number of distinct sessions is merged or hidden (see heatmapData.js, and the owner RPCs for the rules).
  * There is NO pointer-movement heatmap by design (privacy: it approximates reading behaviour per person, and is not
- * eye tracking). There is no campaign filter: campaign data does not exist on this branch.
+ * eye tracking). The Campaign filter (Stage 11) appears only when the database has the campaign linkage (video_heat_campaign_options -> available); otherwise it is hidden and nothing changes.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../../../../../styles/heatmaps.css';
 import { periodRange, defaultCustomRange } from './analyticsData.js';
 import { HeatmapCanvas, EngagementStrip } from './heatmap/HeatmapCanvas.jsx';
 import {
-  HEATMAP_TYPES, VIEWPORTS, loadHeatmap, cellsToPoints, coarseToPoints, coarseBlocks, minCohort, pageAspect, topPageBucket, ctaRows, engagementSeries, scrollRows,
+  HEATMAP_TYPES, VIEWPORTS, loadHeatmap, loadCampaignOptions, cellsToPoints, coarseToPoints, coarseBlocks, minCohort, pageAspect, topPageBucket, ctaRows, engagementSeries, scrollRows,
   heatmapCsv, csvFilename, downloadCsv,
 } from './heatmap/heatmapData.js';
 
@@ -27,6 +27,8 @@ export default function HeatmapsSection({ client, video, projectName, thumbnailU
   const [videos, setVideos] = useState(video ? [{ id: video.id, title: video.title || projectName || video.id }] : []);
   const [viewport, setViewport] = useState('all');
   const [cta, setCta] = useState('all');
+  const [campaign, setCampaign] = useState('all');
+  const [campaigns, setCampaigns] = useState({ available: false, campaigns: [] });
   const [intensity, setIntensity] = useState(1);
   const [overlay, setOverlay] = useState(true);
   const [loaded, setLoaded] = useState(null);
@@ -55,13 +57,20 @@ export default function HeatmapsSection({ client, video, projectName, thumbnailU
     if (!videoId) return;
     const mine = ++token.current;
     setLoading(true); setError(null);
-    loadHeatmap(client, { videoId, type, from: range.from, to: range.to, viewport, cta })
+    loadHeatmap(client, { videoId, type, from: range.from, to: range.to, viewport, cta, campaign })
       .then((r) => { if (mine === token.current) { setLoaded(r); setLoading(false); } })
       .catch((e) => { if (mine === token.current) { setError(e.message || 'Could not load heatmap data'); setLoading(false); } });
-  }, [client, videoId, type, range.from, range.to, viewport, cta]);
+  }, [client, videoId, type, range.from, range.to, viewport, cta, campaign]);
   useEffect(() => { load(); return () => { token.current += 1; }; }, [load]);
   // A CTA that no longer exists for the new video/filters must not stay selected.
-  useEffect(() => { setCta('all'); }, [videoId]);
+  useEffect(() => { setCta('all'); setCampaign('all'); }, [videoId]);
+  // Campaign options: hidden unless the database reports the linkage (older databases: RPC missing -> no control).
+  useEffect(() => {
+    let live = true;
+    setCampaigns({ available: false, campaigns: [] });
+    if (videoId) loadCampaignOptions(client, videoId).then((o) => { if (live) setCampaigns(o); });
+    return () => { live = false; };
+  }, [client, videoId]);
 
   const ctas = useMemo(() => ctaRows(loaded?.ctas), [loaded]);
   const d = loaded?.data;
@@ -111,6 +120,13 @@ export default function HeatmapsSection({ client, video, projectName, thumbnailU
               <option value="all">All clicks</option>
               {ctas.map((c) => <option key={c.key} value={c.key}>{c.label} ({c.kindLabel})</option>)}
             </select></label>
+          {campaigns.available && (
+            <label>Campaign
+              <select value={campaign} onChange={(e) => setCampaign(e.target.value)} aria-label="Campaign">
+                <option value="all">All traffic</option>
+                {campaigns.campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select></label>
+          )}
           <label>Intensity
             <input type="range" min="0.3" max="2" step="0.1" value={intensity} aria-label="Intensity" onChange={(e) => setIntensity(Number(e.target.value))} /></label>
           <label className="sv-heat-check"><input type="checkbox" checked={overlay} onChange={(e) => setOverlay(e.target.checked)} aria-label="Overlay" /> Overlay</label>
@@ -126,6 +142,7 @@ export default function HeatmapsSection({ client, video, projectName, thumbnailU
           <h3>{typeLabel(type)}</h3>
           <p className="sv-subtitle" data-testid="heat-summary">
             {currentTitle} · {range.from} to {range.to} · {VIEWPORTS.find(([k]) => k === viewport)?.[1]}
+            {campaigns.available && campaign !== 'all' ? ` · Campaign: ${campaigns.campaigns.find((c) => c.id === campaign)?.name || campaign}` : ''}
             {type === 'click' && cta !== 'all' ? ` · CTA: ${ctas.find((c) => c.key === cta)?.label || cta}` : ''}
           </p>
         </header>
