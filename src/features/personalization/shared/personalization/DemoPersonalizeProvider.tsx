@@ -4080,7 +4080,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // A picture that is already in the library (or listed twice) is not added again. A cutout of a picture
     // whose library copy is still the untouched original is kept next to it.
     const lib = assetsRef.current
-    const repeatIds = findAlreadyImported(toImportAll, [
+    // An explicit drop onto a section is the user's choice: it always imports.
+    const repeatIds = sectionOverride ? new Set<string>() : findAlreadyImported(toImportAll, [
       ...lib.identities, ...lib.logos, ...lib.products, ...lib.brandReferences,
       ...([lib.firstFrame, lib.lastFrame, lib.ctaGraphic].filter(Boolean) as PersonalizationAsset[]),
     ])
