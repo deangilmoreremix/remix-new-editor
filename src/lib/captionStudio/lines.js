@@ -60,3 +60,36 @@ export function setLineTiming(captions, line, startMs, endMs) {
   }));
   return [...sorted.slice(0, line.from), ...moved, ...sorted.slice(line.to)];
 }
+
+/** Shift one line earlier/later (e.g. ±100 ms nudge buttons). */
+export function nudgeLine(captions, line, deltaMs) {
+  return setLineTiming(captions, line, Math.max(0, line.startMs + deltaMs), Math.max(30, line.endMs + deltaMs));
+}
+
+/** Find & replace over the transcript. Matches are found per line, so a phrase that spans two words still matches. */
+export function findReplace(captions, find, replace = '', { matchCase = false } = {}) {
+  const needle = String(find || '');
+  let out = sortCaptions(captions);
+  if (!needle) return { captions: out, count: 0 };
+  const re = new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), matchCase ? 'g' : 'gi');
+  let count = 0;
+  const lines = captionLines(out, { combineMs: 2600 });
+  // From the last line to the first so the indexes of earlier lines stay valid.
+  for (let k = lines.length - 1; k >= 0; k -= 1) {
+    const hits = lines[k].text.match(re);
+    if (!hits) continue;
+    count += hits.length;
+    out = setLineText(out, lines[k], lines[k].text.replace(re, () => replace));
+  }
+  return { captions: out, count };
+}
+
+const titleCase = (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+/** Change the case of every word: 'upper' | 'lower' | 'title'. Timing and leading spaces are kept. */
+export function changeCase(captions, mode) {
+  const fn = mode === 'upper' ? (t) => t.toUpperCase() : mode === 'lower' ? (t) => t.toLowerCase() : titleCase;
+  return sortCaptions(captions).map((c) => normalizeCaption({ ...c, text: c.text.replace(/\S+/g, fn) }));
+}
+
+/** The whole transcript as plain text (for copy). */
+export const captionsToPlain = (captions) => sortCaptions(captions).map((c) => c.text).join('').replace(/\s+/g, ' ').trim();

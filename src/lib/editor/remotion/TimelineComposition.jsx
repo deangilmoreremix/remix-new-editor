@@ -571,7 +571,7 @@ export function CaptionsLayer({ layer }) {
   const lineBg = s.background && !boxedWords ? (s.backgroundColor || 'rgba(0,0,0,0.6)') : undefined;
   return (
     <AbsoluteFill style={{ pointerEvents: 'none' }}>
-      <div style={{ position: 'absolute', left: '6%', right: '6%', top: CAPTION_TOP[s.position] || CAPTION_TOP.bottom, transform: 'translateY(-50%)', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ position: 'absolute', left: '6%', right: '6%', top: Number.isFinite(s.positionY) ? `${Math.max(4, Math.min(96, s.positionY * 100))}%` : (CAPTION_TOP[s.position] || CAPTION_TOP.bottom), transform: 'translateY(-50%)', display: 'flex', justifyContent: 'center' }}>
         <div style={{
           fontFamily: `"${s.fontFamily || 'Inter'}", Arial, sans-serif`, fontWeight: s.bold ? 800 : 500, fontStyle: s.italic ? 'italic' : 'normal', fontSize, lineHeight: 1.25,
           textAlign: 'center', color: s.color || '#fff', textTransform: s.uppercase ? 'uppercase' : 'none', textShadow: lineBg ? undefined : shadow,

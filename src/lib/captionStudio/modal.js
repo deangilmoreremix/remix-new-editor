@@ -14,14 +14,15 @@ import {
   ENGINES, WHISPER_MODELS, CAPTION_LANGUAGES, detectCapabilities, recommendEngine, recommendModel, transcribeMedia,
 } from './engines.js';
 import { paintCaptions, ensureCaptionFont } from './painter.js';
-import { captionLines, setLineText, removeLine, setLineTiming } from './lines.js';
+import { captionLines, setLineText, removeLine, setLineTiming, nudgeLine, findReplace, changeCase, captionsToPlain } from './lines.js';
+import { captionsToTxt, captionsToAss } from './exports.js';
 import { burnCaptions } from './burn.js';
-import { liveSpeechSupported, startLiveCaptions } from './live.js';
+import { liveSpeechSupported, startLiveCaptions, spreadWords } from './live.js';
 import {
   CAPTION_PRESETS, CAPITE_PRESETS, CAPITE_PRESET_GROUPS, CAPTION_POSITIONS, defaultCaptionStyle, sortCaptions, captionsFromFile,
   captionsToSrt, captionsToVtt, captionPages, shiftCaptions,
 } from './model.js';
-import { BASE_FONTS } from './styles.js';
+import { BASE_FONTS, capiteStyleById } from './styles.js';
 
 const FONTS = [...new Set([...BASE_FONTS, ...Object.values(CAPITE_PRESETS).map((p) => p.fontFamily)])];
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -36,46 +37,100 @@ const TABS = [['generate', '1 · Captions'], ['style', '2 · Style'], ['edit', '
 const SAMPLE = [' Free', ' captions', ' that', ' run', ' on', ' your', ' device'].map((text, i) => ({ text, startMs: i * 450, endMs: i * 450 + 450, timestampMs: i * 450 + 225, confidence: null }));
 
 const STYLE_TEXT = `
-.csm-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;justify-content:flex-end;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
-.csm-dialog{display:flex;flex-direction:column;width:min(1280px,94vw);height:100%;background:#0d1219;color:#e5edf5;border-left:1px solid rgba(255,255,255,.1);box-shadow:-20px 0 60px rgba(0,0,0,.5)}
-.csm-head{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
-.csm-head h2{margin:0;font-size:17px}
-.csm-x{background:none;border:1px solid rgba(255,255,255,.15);color:inherit;border-radius:8px;width:32px;height:32px;font-size:16px;cursor:pointer}
-.csm-body{flex:1;overflow:auto;padding:20px 24px}
-.csm-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 24px;border-top:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}
-.csm{display:grid;grid-template-columns:minmax(260px,1fr) minmax(300px,1.1fr);gap:18px;color:var(--text,#e5edf5);font-size:12.5px}
-@media(max-width:900px){.csm{grid-template-columns:1fr}}
-.csm-stage{position:relative;background:#000;border-radius:12px;overflow:hidden;margin:0 auto;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
-.csm-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.csm-overlay{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.7);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.csm-dialog{--ink:#e5edf5;--mute:rgba(229,237,245,.62);--line:rgba(255,255,255,.1);--card:#0f151c;--field:rgba(0,0,0,.4);position:relative;display:flex;flex-direction:column;width:min(1480px,100%);height:min(930px,100%);background:#0a0e13;color:var(--ink);border:1px solid var(--line);border-radius:28px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.6);outline:none}
+.csm-dialog.full{width:100%;height:100%;border-radius:0}
+.csm-head{display:flex;align-items:flex-start;gap:16px;padding:20px 26px 16px;border-bottom:1px solid var(--line)}
+.csm-icon{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--app-soft,rgba(217,255,0,.12));color:var(--app-primary,#d9ff00);border:1px solid var(--app-line,rgba(217,255,0,.25))}
+.csm-titles{flex:1;min-width:0}
+.csm-titles h2{margin:0;font-size:19px;font-weight:700}
+.csm-titles p{margin:4px 0 0;font-size:12.5px;line-height:1.5;color:var(--mute);max-width:820px}
+.csm-iconbtn{flex:none;height:34px;min-width:34px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.csm-iconbtn:hover{border-color:rgba(255,255,255,.35)}
+.csm-body{flex:1;min-height:0;overflow:auto;padding:18px 26px}
+.csm-foot{display:flex;justify-content:flex-end;gap:10px;padding:12px 26px;border-top:1px solid var(--line)}
+.csm{display:grid;grid-template-columns:minmax(300px,1fr) minmax(360px,1.05fr);gap:22px;font-size:12.5px;align-items:start}
+@media(max-width:960px){.csm{grid-template-columns:1fr}}
+.csm-left{display:flex;flex-direction:column;gap:12px;min-width:0}
+.csm-stage{position:relative;background:#000;border-radius:18px;overflow:hidden;margin:0 auto;box-shadow:0 0 0 1px var(--line)}
+.csm-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:transparent}
 .csm-stage canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.csm-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.csm-tab{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit;font-weight:700;font-size:11.5px;cursor:pointer}
-.csm-tab.on{border-color:var(--app-primary,#d9ff00);color:var(--app-primary,#d9ff00);background:var(--app-soft,rgba(217,255,0,.1))}
-.csm h4{margin:14px 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.65}
-.csm h4:first-child{margin-top:0}
-.csm-row{display:grid;grid-template-columns:104px 1fr;align-items:center;gap:8px;margin:6px 0}
-.csm select,.csm input[type=text],.csm input[type=number]{width:100%;box-sizing:border-box;background:rgba(0,0,0,.4);color:inherit;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 9px;font:inherit}
+.csm-stage.phone{border-radius:38px;box-shadow:0 0 0 7px #151b24,0 0 0 8px var(--line),0 24px 60px rgba(0,0,0,.5)}
+.csm-stage.phone::before{content:"";position:absolute;top:8px;left:50%;width:28%;height:15px;margin-left:-14%;border-radius:99px;background:#05070a;z-index:3}
+.csm-handle{position:absolute;right:8px;width:30px;height:30px;margin-top:-15px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.65);border:1px solid var(--app-primary,#d9ff00);color:var(--app-primary,#d9ff00);cursor:ns-resize;touch-action:none;font-size:15px;z-index:2}
+.csm-speed{display:flex;align-items:center;gap:6px;justify-content:center}
+.csm-seg3{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:rgba(255,255,255,.03)}
+.csm-seg3 button{border:0;background:transparent;color:var(--mute);padding:5px 11px;border-radius:999px;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer}
+.csm-seg3 button.on{background:var(--app-soft,rgba(217,255,0,.12));color:var(--app-primary,#d9ff00)}
+.csm-final{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border-radius:18px;border:1px solid var(--line);background:var(--card)}
+.csm-final-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.05);font-size:18px}
+.csm-final-text{flex:1;min-width:160px;display:flex;flex-direction:column;gap:2px}
+.csm-final-text strong{font-size:13.5px}
+.csm-final-text span{color:var(--mute);font-size:11.5px}
+.csm-final-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.csm-tip{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:14px;border:1px solid var(--line);color:var(--mute);font-size:12px}
+.csm-tip strong{color:var(--ink)}
+.csm-tip kbd{margin-left:auto;padding:3px 8px;border-radius:7px;background:rgba(255,255,255,.07);font:inherit;font-size:11px}
+.csm-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.csm-tab{display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--ink);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.csm-tab.on{border-color:var(--app-primary,#d9ff00);color:var(--app-primary,#d9ff00);background:var(--app-soft,rgba(217,255,0,.12))}
+.csm-badge{min-width:22px;height:20px;padding:0 6px;box-sizing:border-box;display:inline-grid;place-items:center;border-radius:999px;font-size:11px;background:rgba(255,255,255,.08)}
+.csm-tab.on .csm-badge{background:var(--app-soft,rgba(217,255,0,.18))}
+.csm-section{border:1px solid var(--line);border-radius:20px;background:var(--card);padding:16px 18px}
+.csm-sec-title{display:flex;align-items:center;gap:8px;margin:0 0 4px;font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.csm-sec-title .glyph{color:var(--app-primary,#d9ff00)}
+.csm-sec-title .grow{flex:1}
+.csm-sec-title button{text-transform:none;letter-spacing:0;font-weight:600}
+.csm h4{margin:16px 0 6px;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+.csm-row{display:grid;grid-template-columns:104px 1fr;align-items:center;gap:8px;margin:7px 0}
+.csm select,.csm input[type=text],.csm input[type=number]{width:100%;box-sizing:border-box;background:var(--field);color:inherit;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 10px;font:inherit}
 .csm input[type=color]{width:44px;height:28px;border:0;background:none;padding:0;cursor:pointer}
-.csm input[type=range]{width:100%}
-.csm-btn{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+.csm input[type=range]{width:100%;accent-color:var(--app-primary,#d9ff00)}
+.csm-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer;text-decoration:none}
 .csm-btn:hover{border-color:rgba(255,255,255,.4)}
-.csm-btn.primary{border-color:var(--app-primary,#d9ff00);color:var(--app-primary,#d9ff00)}
+.csm-btn.primary{border-color:var(--app-primary,#d9ff00);color:var(--app-primary,#d9ff00);background:var(--app-soft,rgba(217,255,0,.1))}
 .csm-btn:disabled{opacity:.4;cursor:not-allowed}
-.csm-chips{display:flex;flex-wrap:wrap;gap:6px}
-.csm-chip{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:transparent;color:inherit;cursor:pointer;font-size:11.5px}
-.csm-chip.on{border-color:var(--app-primary,#d9ff00);color:var(--app-primary,#d9ff00)}
-.csm-drop{border:1.5px dashed rgba(255,255,255,.22);border-radius:12px;padding:16px;text-align:center;cursor:pointer}
+.csm-chips{display:flex;flex-wrap:wrap;gap:7px}
+.csm-center{justify-content:center}
+.csm-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:transparent;color:inherit;cursor:pointer;font:inherit;font-size:12px;font-weight:600}
+.csm-chip.on{border-color:var(--app-primary,#d9ff00);color:var(--app-primary,#d9ff00);background:var(--app-soft,rgba(217,255,0,.1))}
+.csm-presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;margin-top:10px}
+.csm-preset{position:relative;text-align:left;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.025);color:inherit;font:inherit;cursor:pointer;min-width:0}
+.csm-preset:hover{border-color:rgba(255,255,255,.3)}
+.csm-preset.on{border-color:var(--app-primary,#d9ff00);background:var(--app-soft,rgba(217,255,0,.1))}
+.csm-preset b{display:block;font-size:12.5px;padding-right:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.csm-preset span{display:block;margin-top:3px;font-size:11px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.csm-preset i{position:absolute;top:10px;right:10px;width:14px;height:14px;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+.csm-drop{border:1.5px dashed rgba(255,255,255,.22);border-radius:16px;padding:22px 16px;text-align:center;cursor:pointer}
 .csm-drop.over,.csm-drop:hover{border-color:var(--app-primary,#d9ff00)}
-.csm-hint{opacity:.62;font-size:11.5px;line-height:1.45;margin:6px 0}
-.csm-note{padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.06);margin:8px 0}
-.csm-err{padding:8px 10px;border-radius:8px;background:rgba(239,68,68,.14);color:#fca5a5;margin:8px 0}
+.csm-hint{opacity:.7;font-size:11.5px;line-height:1.5;margin:6px 0}
+.csm-note{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.06);margin:0 0 12px}
+.csm-err{padding:9px 12px;border-radius:12px;background:rgba(239,68,68,.14);color:#fca5a5;margin:0 0 12px}
 .csm-bar{height:6px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin:8px 0}
 .csm-bar>i{display:block;height:100%;background:var(--app-primary,#d9ff00);transition:width .2s}
-.csm-lines{max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:6px;padding-right:4px}
-.csm-line{display:grid;grid-template-columns:auto 62px 62px 1fr auto;gap:5px;align-items:center}
 .csm-toggles{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px}
 .csm-toggles label{display:flex;gap:6px;align-items:center}
-.csm-live{font-size:15px;min-height:44px;padding:10px;border-radius:10px;background:rgba(0,0,0,.4)}
+.csm-tools{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:8px 0}
+.csm-tools input[type=text]{width:140px}
+.csm-segs{display:flex;flex-direction:column;gap:10px;max-height:min(52vh,520px);overflow:auto;padding-right:4px;margin-top:6px}
+.csm-seg{border:1px solid var(--line);border-radius:16px;padding:11px 13px;background:rgba(255,255,255,.02)}
+.csm-seg.speaking{border-color:var(--app-primary,#d9ff00);background:var(--app-soft,rgba(217,255,0,.07))}
+.csm-seg-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.csm-seg-head .grow{flex:1}
+.csm-time{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:0;background:rgba(255,255,255,.09);color:inherit;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums}
+.csm-seg.speaking .csm-time{background:var(--app-primary,#d9ff00);color:#000}
+.csm-dur{color:var(--mute);font-size:11px}
+.csm-speaking{color:var(--app-primary,#d9ff00);font-size:11px;font-weight:700}
+.csm-mini{padding:3px 8px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--mute);font:inherit;font-size:11px;cursor:pointer}
+.csm-mini:hover{border-color:var(--line);color:var(--ink)}
+.csm-seg-words{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.csm-word{padding:3px 8px;border-radius:7px;border:1px solid transparent;background:rgba(255,255,255,.07);color:inherit;font:inherit;cursor:pointer}
+.csm-word:hover{border-color:rgba(255,255,255,.3)}
+.csm-word.on{background:var(--app-primary,#d9ff00);color:#000}
+.csm-word-edit{width:auto!important;min-width:60px;padding:2px 6px!important}
+.csm-lineedit{display:grid;grid-template-columns:62px 62px 1fr;gap:6px;margin-top:9px}
+.csm-foot-note{display:flex;justify-content:space-between;gap:10px;margin-top:10px;color:var(--mute);font-size:11.5px}
+.csm-live{font-size:15px;min-height:44px;padding:10px;border-radius:12px;background:var(--field)}
 `;
 let cssIn = false;
 const injectCss = () => { if (cssIn || typeof document === 'undefined') return; const s = document.createElement('style'); s.textContent = STYLE_TEXT; document.head.appendChild(s); cssIn = true; };
@@ -85,7 +140,7 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
 
 /** Minimal modal chrome: overlay, header, body, footer, Escape, focus trap, focus restore, refresh that keeps focus. */
 class ModalShell {
-  constructor({ title }) { this.title = title; this.overlay = null; this.state = 'closed'; }
+  constructor({ title, subtitle }) { this.title = title; this.subtitle = subtitle; this.overlay = null; this.state = 'closed'; }
 
   open() {
     if (this.state === 'open' || typeof document === 'undefined') return;
@@ -93,13 +148,19 @@ class ModalShell {
     this.opener = document.activeElement;
     const o = document.createElement('div');
     o.className = 'csm-overlay';
-    o.innerHTML = `<div class="csm-dialog" role="dialog" aria-modal="true" aria-label="${esc(this.title)}" tabindex="-1">
-      <div class="csm-head"><h2>${esc(this.title)}</h2><button type="button" class="csm-x" data-act="close" aria-label="Close">✕</button></div>
+    o.innerHTML = `<div class="csm-dialog" role="dialog" aria-modal="true" aria-label="${esc(this.title)}" tabindex="-1" style="${this.themeStyle || ''}">
+      <div class="csm-head">
+        <div class="csm-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 11h4M13 11h4M7 15h7"/></svg></div>
+        <div class="csm-titles"><h2>${esc(this.title)}</h2><p>${esc(this.subtitle || '')}</p></div>
+        <button type="button" class="csm-iconbtn" data-act="full" aria-label="Expand" title="Expand">⛶</button>
+        <button type="button" class="csm-iconbtn" data-act="close" aria-label="Close">✕</button>
+      </div>
       <div class="csm-body">${this.renderBody()}</div><div class="csm-foot">${this.renderFooter()}</div></div>`;
     o.addEventListener('mousedown', (e) => { if (e.target === o) this.close(); });
     this.overlay = o;
     this.onKey = (e) => {
       if (e.key === 'Escape') { e.stopPropagation(); this.close(); return; }
+      if (e.key === ' ' && this.onSpace) { this.onSpace(e); return; }
       if (e.key !== 'Tab') return;
       const items = [...o.querySelectorAll(FOCUSABLE)].filter((el) => el.getClientRects().length);
       if (!items.length) return;
@@ -149,7 +210,7 @@ class ModalShell {
 
 export class CaptionStudioModal extends ModalShell {
   constructor(options = {}) {
-    super({ title: '💬 Free AI Captions' });
+    super({ title: 'Free AI Captions', subtitle: 'Add captions on your device — free, no credits. Upload a finished video, edit the script, pick a motion style, then export SRT, VTT, TXT or ASS, or render the captions into the video.' });
     this.accent = /^#[0-9a-f]{6}$/i.test(options.accentColor || '') ? options.accentColor : '#d9ff00';
     this.opts = options;
     this.tab = 'generate';
@@ -169,12 +230,15 @@ export class CaptionStudioModal extends ModalShell {
     this.result = null; // { url, ext, engine }
     this.live = null; // { handle, interim, mode, recorder }
     this.shift = 0;
+    this.speed = 1; this.backdrop = 'cinematic'; this.view = 'lines'; this.styleFilter = 'all'; this.autoScroll = true; this.editingLine = -1; this.fr = { find: '', replace: '', matchCase: false };
+    this.renderQuality = 'high'; this.renderSize = 'original'; this._wi = -1;
+    if (this.srcUrl) this.restore();
     this._raf = 0;
   }
 
   // ---------------------------------------------------------------- theme / chrome
   get themeStyle() {
-    return `--app-primary:${this.accent};--app-soft:${hexToRgba(this.accent, 0.12)}`;
+    return `--app-primary:${this.accent};--app-soft:${hexToRgba(this.accent, 0.12)};--app-line:${hexToRgba(this.accent, 0.3)}`;
   }
 
   start() {
@@ -211,10 +275,23 @@ export class CaptionStudioModal extends ModalShell {
     if (this.stage) return;
     const stage = document.createElement('div');
     stage.className = 'csm-stage';
-    stage.innerHTML = '<video controls playsinline preload="metadata"></video><canvas></canvas>';
+    stage.innerHTML = '<video controls playsinline preload="metadata"></video><canvas></canvas><div class="csm-handle" title="Drag to move the captions up or down" role="slider" aria-label="Caption position" hidden>⇕</div>';
     this.stage = stage;
     this.video = stage.querySelector('video');
     this.canvas = stage.querySelector('canvas');
+    this.handle = stage.querySelector('.csm-handle');
+    this.handle.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      this.handle.setPointerCapture(e.pointerId);
+      const move = (ev) => {
+        const r = this.stage.getBoundingClientRect();
+        this.style = { ...this.style, positionY: Math.max(0.04, Math.min(0.96, (ev.clientY - r.top) / r.height)) };
+        this.queueSave();
+      };
+      const up = () => { this.handle.removeEventListener('pointermove', move); this.handle.removeEventListener('pointerup', up); if (this.tab === 'style') this.refresh(); };
+      this.handle.addEventListener('pointermove', move);
+      this.handle.addEventListener('pointerup', up);
+    });
     this.video.addEventListener('loadedmetadata', () => this.fitStage());
     this.video.addEventListener('error', () => { if (this.srcUrl) { this.errMsg = 'The browser could not open this video. Try uploading the file instead of using a link.'; this.refresh(); } });
     window.addEventListener('resize', () => this.fitStage());
@@ -223,12 +300,13 @@ export class CaptionStudioModal extends ModalShell {
 
   fitStage() {
     if (!this.stage?.parentElement) return;
-    const w = this.video.videoWidth || 16; const h = this.video.videoHeight || 9;
+    const phone = !this.srcUrl;
+    const w = phone ? 9 : (this.video.videoWidth || 16); const h = phone ? 16 : (this.video.videoHeight || 9);
     const maxW = this.stage.parentElement.clientWidth || 480;
-    const maxH = Math.max(200, window.innerHeight * 0.5);
-    const s = Math.min(maxW / w, maxH / h);
-    this.stage.style.width = `${Math.floor(w * s)}px`;
-    this.stage.style.height = `${Math.floor(h * s)}px`;
+    const maxH = Math.max(220, window.innerHeight * (phone ? 0.5 : 0.46));
+    const k = Math.min(maxW / w, maxH / h);
+    this.stage.style.width = `${Math.floor(w * k)}px`;
+    this.stage.style.height = `${Math.floor(h * k)}px`;
   }
 
   loop() {
@@ -242,20 +320,84 @@ export class CaptionStudioModal extends ModalShell {
         const ctx = c.getContext('2d');
         ctx.clearRect(0, 0, W, H);
         const hasCaptions = this.captions.length > 0;
-        const showSample = !hasCaptions && this.tab === 'style';
+        const showSample = !hasCaptions && (!this.srcUrl || this.tab === 'style');
         const list = hasCaptions ? this.captions : showSample ? SAMPLE : [];
         const ms = showSample ? ((this.video.currentTime * 1000) % 3150) : this.video.currentTime * 1000;
-        if (list.length) paintCaptions(ctx, W, H, list, this.style, ms, { pages: this.pagesFor(list) });
+        const st = !this.srcUrl && this.style.position === 'top' && !Number.isFinite(this.style.positionY) ? { ...this.style, positionY: 0.13 } : this.style; // clear of the phone notch
+        if (list.length) paintCaptions(ctx, W, H, list, st, ms, { pages: this.pagesFor(list) });
+        this.handle.hidden = !list.length;
+        this.handle.style.top = `${this.effectiveY() * 100}%`;
         if (this.live?.interim) paintCaptions(ctx, W, H, [{ text: this.live.interim.trim(), startMs: 0, endMs: 1e9 }], { ...this.style, highlightActive: false }, 100);
       }
     }
+    this.followWord();
     this._raf = requestAnimationFrame(() => this.loop());
   }
 
+  effectiveY() { return Number.isFinite(this.style.positionY) ? this.style.positionY : ({ top: 0.08, middle: 0.5, bottom: 0.82 }[this.style.position] ?? 0.82); }
+
+  /** Highlight the word and segment being spoken in the Script & Words tab; keep them in sight when Auto-scroll is on. */
+  followWord() {
+    if (this.tab !== 'edit' || !this.overlay || !this._lineMap) return;
+    const ms = this.video.currentTime * 1000;
+    let idx = -1;
+    for (let i = 0; i < this.captions.length; i += 1) { if (this.captions[i].startMs <= ms) idx = i; else break; }
+    if (idx === this._wi) return;
+    this._wi = idx;
+    this.overlay.querySelectorAll('.csm-word').forEach((c) => c.classList.toggle('on', Number(c.dataset.wi) === idx));
+    const seg = this._lineMap.findIndex(([f, t]) => idx >= f && idx < t);
+    this.overlay.querySelectorAll('.csm-seg').forEach((el) => {
+      const on = Number(el.dataset.seg) === seg;
+      el.classList.toggle('speaking', on);
+      el.querySelector('.csm-speaking').hidden = !on;
+    });
+    if (this.autoScroll) this.overlay.querySelector(`.csm-seg[data-seg="${seg}"]`)?.scrollIntoView({ block: 'nearest' });
+  }
+
+  onSpace(e) {
+    if (!this.srcUrl || /^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(e.target?.tagName || '')) return;
+    e.preventDefault();
+    if (this.video.paused) this.video.play().catch(() => {}); else this.video.pause();
+  }
+
+  fontText() { return this.captions.map((c) => c.text).join(''); }
+
+  /** Page layout for the preview. Every edit makes a new captions array, so the array itself is the cache key (plus the page length). */
   pagesFor(list) {
-    const key = `${list.length}|${list[0]?.text}|${list[list.length - 1]?.endMs}|${this.style.combineMs}`;
-    if (this._pk !== key) { this._pk = key; this._pages = captionPages(list, this.style); }
+    if (this._pl !== list || this._pc !== this.style.combineMs) { this._pl = list; this._pc = this.style.combineMs; this._pages = captionPages(list, this.style); }
     return this._pages;
+  }
+
+  // ---------------------------------------------------------------- autosave (captions + look per video, in this browser)
+  storageKey() {
+    const id = this.srcBlob ? `${this.srcName}|${this.srcBlob.size}` : this.srcUrl.split('?')[0];
+    return id ? `captionStudio:v1:${id}` : '';
+  }
+
+  queueSave() {
+    clearTimeout(this._saveT);
+    this._saveT = setTimeout(() => {
+      try {
+        const key = this.storageKey();
+        if (!key) return;
+        if (!this.captions.length) { localStorage.removeItem(key); return; }
+        const json = JSON.stringify({ captions: this.captions, style: this.style, savedAt: Date.now() });
+        if (json.length < 1.5e6) localStorage.setItem(key, json);
+      } catch { /* private mode or full storage: autosave is a convenience */ }
+    }, 500);
+  }
+
+  restore() {
+    try {
+      const raw = this.storageKey() && localStorage.getItem(this.storageKey());
+      const saved = raw && JSON.parse(raw);
+      if (saved?.captions?.length && !this.captions.length) {
+        this.captions = sortCaptions(saved.captions);
+        this.style = { ...this.style, ...saved.style };
+        this.note = `Restored your saved captions for this video (${this.captions.length} words).`;
+        ensureCaptionFont(this.style, this.fontText());
+      }
+    } catch { /* ignore a corrupt entry */ }
   }
 
   // ---------------------------------------------------------------- source
@@ -263,26 +405,57 @@ export class CaptionStudioModal extends ModalShell {
     if (this.srcBlob && this.srcUrl) URL.revokeObjectURL(this.srcUrl);
     if (fileOrUrl instanceof Blob) { this.srcBlob = fileOrUrl; this.srcUrl = URL.createObjectURL(fileOrUrl); this.srcName = name || fileOrUrl.name || 'video'; }
     else { this.srcBlob = null; this.srcUrl = String(fileOrUrl || ''); this.srcName = name || this.srcUrl.split('?')[0].split('/').pop(); }
-    this.result = null; this.errMsg = ''; this.note = '';
+    this.result = null; this.errMsg = ''; this.note = ''; this.captions = [];
+    this.restore();
     this.ensureStage();
     this.video.src = this.srcUrl;
     this.refresh();
   }
 
   // ---------------------------------------------------------------- render
+  lookName() {
+    const c = capiteStyleById(String(this.style.preset || '').replace(/^capite-/, ''));
+    return c?.name || CAPTION_PRESETS[this.style.preset]?.label || 'Custom';
+  }
+
   renderBody() {
+    const words = this.captions.length;
+    const tabs = [['generate', 'Generate', '◎', null], ['edit', 'Script & Words', '≣', words || null], ['style', 'Motion & Style', '✺', 32], ['export', 'Export', '⬇', null]];
+    const noVideo = !this.srcUrl;
     return `<div class="csm" style="${this.themeStyle}">
-      <div>
+      <div class="csm-left">
         <div data-stage-slot></div>
+        ${noVideo ? `<div class="csm-chips csm-center">${['top', 'middle', 'bottom'].map((q) => `<button type="button" class="csm-chip${this.style.position === q && !Number.isFinite(this.style.positionY) ? ' on' : ''}" data-act="pos" data-p="${q}">${q[0].toUpperCase()}${q.slice(1)}</button>`).join('')}</div><p class="csm-hint" style="text-align:center">Drag ⇕ on the preview to reposition. Add a video to see your own footage.</p>` : `
+        <div class="csm-speed"><span class="csm-hint" style="margin:0">Speed</span><div class="csm-seg3">${[0.75, 1, 1.25, 1.5].map((v) => `<button type="button" class="${v === this.speed ? 'on' : ''}" data-act="speed" data-v="${v}">${v}×</button>`).join('')}</div></div>`}
         ${this.live ? `<div class="csm-live" aria-live="polite">${esc(this.live.interim || 'Listening…')}</div>` : ''}
-        <p class="csm-hint">${this.captions.length ? `${this.captions.length} words · the preview shows exactly what will be rendered.` : 'Add a video, then generate captions. Everything runs on your device.'}</p>
+        ${this.renderFinal()}
+        <div class="csm-tip"><span aria-hidden="true">✦</span><span><strong>Tip:</strong> click a word to jump there, double-click it to fix the spelling.</span><kbd>Space = play / pause</kbd></div>
       </div>
-      <div>
-        <div class="csm-tabs" role="tablist">${TABS.map(([id, label]) => `<button type="button" role="tab" class="csm-tab${this.tab === id ? ' on' : ''}" data-act="tab" data-tab="${id}">${label}</button>`).join('')}</div>
+      <div class="csm-right">
+        <div class="csm-tabs" role="tablist">${tabs.map(([id, label, glyph, n]) => `<button type="button" role="tab" class="csm-tab${this.tab === id ? ' on' : ''}" data-act="tab" data-tab="${id}"><span aria-hidden="true">${glyph}</span>${label}${n ? `<span class="csm-badge">${n}</span>` : ''}</button>`).join('')}</div>
         ${this.errMsg ? `<div class="csm-err" role="alert">⚠ ${esc(this.errMsg)}</div>` : ''}
         ${this.note ? `<div class="csm-note">${esc(this.note)}</div>` : ''}
-        ${{ generate: () => this.renderGenerate(), style: () => this.renderStyle(), edit: () => this.renderEdit(), export: () => this.renderExport() }[this.tab]()}
+        <section class="csm-section">${{ generate: () => this.renderGenerate(), style: () => this.renderStyle(), edit: () => this.renderEdit(), export: () => this.renderExport() }[this.tab]()}</section>
       </div>
+    </div>`;
+  }
+
+  /** "Final captioned video" card under the preview: render, download, and the subtitle files. */
+  renderFinal() {
+    const has = this.captions.length > 0;
+    const r = this.result;
+    const status = r ? `Hardcoded motion subtitles • ${esc(this.lookName())} style` : has ? `Ready to render • ${esc(this.lookName())} style` : 'Generate or import captions first';
+    const file = (k, l, t = '') => `<button type="button" class="csm-chip" data-act="dl-${k}" ${has ? '' : 'disabled'}${t ? ` title="${t}"` : ''}>${l}</button>`;
+    return `<div class="csm-final">
+      <div class="csm-final-icon" aria-hidden="true">🎞</div>
+      <div class="csm-final-text"><strong>Final captioned video</strong><span>${status}</span></div>
+      <div class="csm-final-actions">
+        ${this.busy?.kind === 'render' ? '' : `<button type="button" class="csm-btn primary" data-act="render" ${has && this.srcUrl ? '' : 'disabled'}>${r ? '↻ Render again' : '⬇ Render video — free'}</button>`}
+        ${r ? `<a class="csm-btn" href="${esc(r.url)}" download="captioned-${esc((this.srcName || 'video').replace(/\.[^.]+$/, ''))}.${r.ext}">Download .${esc(r.ext)}</a>` : ''}
+        ${r && this.opts.onComplete ? '<button type="button" class="csm-btn" data-act="use">Use this video</button>' : ''}
+      </div>
+      ${this.busy?.kind === 'render' ? `<div style="flex-basis:100%">${this.progressHtml()}</div>` : ''}
+      <div class="csm-chips" style="flex-basis:100%">${file('srt', 'SRT')}${file('vtt', 'VTT')}${file('txt', 'TXT')}${file('ass', 'ASS', 'Animated subtitles for VLC, Aegisub and FFmpeg')}</div>
     </div>`;
   }
 
@@ -295,76 +468,104 @@ export class CaptionStudioModal extends ModalShell {
     const caps = this.caps;
     const engines = ENGINES.filter((e) => e.file && (e.device !== 'webgpu' || caps?.webgpu));
     return `
-      <h4>Video</h4>
+      <h3 class="csm-sec-title"><span class="glyph">◎</span>Free on-device transcription</h3>
+      <p class="csm-hint">Whisper runs in your browser${caps?.webgpu ? ' on your GPU' : ''}. The model downloads once and is cached. No credits are used and the audio never leaves your computer.</p>
       <div class="csm-drop" data-act="pick" data-drop>
         <input type="file" accept="video/*,audio/*" hidden data-file />
         ${this.srcName ? `<strong>${esc(this.srcName)}</strong><div class="csm-hint">Click or drop to replace</div>` : '<strong>Drop a finished video here or click to browse</strong><div class="csm-hint">MP4, MOV, WebM, MP3, WAV…</div>'}
       </div>
-      <h4>Free on-device transcription</h4>
+      <h4>Engine</h4>
       <label class="csm-row"><span>Engine</span><select data-set="engine">${engines.map((e) => `<option value="${e.id}" ${e.id === this.engine ? 'selected' : ''}>${esc(e.label)}</option>`).join('')}</select></label>
       <label class="csm-row"><span>Model</span><select data-set="model">${WHISPER_MODELS.map(([v, l]) => `<option value="${v}" ${v === this.model ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
       <label class="csm-row"><span>Language</span><select data-set="language">${CAPTION_LANGUAGES.map(([v, l]) => `<option value="${v}" ${v === this.language ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
-      ${this.busy && !this.live ? this.progressHtml() : `<button type="button" class="csm-btn primary" data-act="generate" ${this.srcUrl ? '' : 'disabled'}>${this.captions.length ? 'Re-generate (replaces captions)' : '✨ Generate captions — free'}</button>`}
-      <p class="csm-hint">Whisper runs in your browser${caps?.webgpu ? ' on your GPU' : ''}. The model (~40–80 MB) downloads once and is cached. No credits are used and the audio never leaves your computer.</p>
+      ${this.busy?.kind === 'transcribe' && !this.live ? this.progressHtml() : `<button type="button" class="csm-btn primary" data-act="generate" ${this.srcUrl ? '' : 'disabled'}>${this.captions.length ? '↻ Re-generate (replaces captions)' : '✨ Generate captions — free'}</button>`}
       <h4>Live captions (microphone)</h4>
       ${this.live ? '<button type="button" class="csm-btn" data-act="live-stop">■ Stop</button>' : `<button type="button" class="csm-btn" data-act="live-start" ${liveSpeechSupported() ? '' : 'disabled'}>● Record with live captions</button>`}
       <p class="csm-hint">${liveSpeechSupported()
         ? (this.live?.mode === 'on-device' ? 'Recognition is running on-device.' : this.live?.mode === 'browser-cloud' ? 'Your browser is sending the speech to its own speech service; use a video file for fully local captions.' : 'Uses your camera and microphone and the browser’s Web Speech API. Word timing is approximate; generate from the recording for exact timing.')
         : 'Live speech recognition needs Chrome or Edge.'}</p>
       <h4>Or import</h4>
-      <label class="csm-btn" style="display:inline-block">Import SRT / VTT<input type="file" accept=".srt,.vtt,text/vtt,text/plain" hidden data-import /></label>`;
+      <label class="csm-btn" style="display:inline-flex">Import SRT / VTT<input type="file" accept=".srt,.vtt,text/vtt,text/plain" hidden data-import /></label>`;
   }
 
   renderStyle() {
     const s = this.style;
-    const presetBtn = (k, p) => `<button type="button" class="csm-chip${s.preset === k ? ' on' : ''}" data-act="preset" data-preset="${k}">${esc(p.label)}</button>`;
+    const catOf = (k) => CAPITE_PRESETS[k]?.group || 'basic';
+    const all = [...Object.entries(CAPTION_PRESETS).map(([k, p]) => [k, p, 'basic']), ...Object.entries(CAPITE_PRESETS).map(([k, p]) => [k, p, catOf(k)])];
+    const cats = [['all', 'All', all.length], ...CAPITE_PRESET_GROUPS.map((g) => [g.id, g.label, all.filter((x) => x[2] === g.id).length]), ['basic', 'Basic', 5]];
+    const shown = all.filter((x) => this.styleFilter === 'all' || x[2] === this.styleFilter);
+    const blurb = { tiktok: 'Short-form hooks', classic: 'Clean subtitles', box: 'Boxed words', karaoke: 'Sing-along wipe', minimal: 'Quiet & simple' };
+    const card = ([k, p]) => `<button type="button" class="csm-preset${s.preset === k ? ' on' : ''}" data-act="preset" data-preset="${k}" title="${esc(capiteStyleById(k.replace(/^capite-/, ''))?.description || p.label)}">
+      <b>${esc(p.label)}</b><span>${esc(capiteStyleById(k.replace(/^capite-/, ''))?.bestFor || `Basic • ${blurb[k] || ''}`)}</span><i style="background:linear-gradient(135deg,${esc(toHex(p.color))} 50%,${esc(toHex(p.highlightColor))} 50%)"></i></button>`;
+    const info = capiteStyleById(String(s.preset || '').replace(/^capite-/, ''));
     return `
-      <h4>Looks</h4>
-      <div class="csm-chips">${Object.entries(CAPTION_PRESETS).map(([k, p]) => presetBtn(k, p)).join('')}</div>
-      ${CAPITE_PRESET_GROUPS.map((g) => `<h4>${esc(g.label)}</h4><div class="csm-chips">${Object.entries(CAPITE_PRESETS).filter(([, p]) => p.group === g.id).map(([k, p]) => presetBtn(k, p)).join('')}</div>`).join('')}
+      <h3 class="csm-sec-title"><span class="glyph">✺</span>Motion style presets<span class="grow"></span><button type="button" class="csm-mini" data-act="reset-style">↺ Reset to default</button></h3>
+      <p class="csm-hint">${info ? `<strong>${esc(info.name)}</strong> — ${esc(info.description)}. Best for ${esc(info.bestFor)}.` : 'Pick a look, then fine-tune it below. The preview shows exactly what will be rendered.'}</p>
+      <div class="csm-chips">${cats.map(([id, label, n]) => `<button type="button" class="csm-chip${this.styleFilter === id ? ' on' : ''}" data-act="filter" data-f="${id}">${esc(label)}<span class="csm-badge">${n}</span></button>`).join('')}</div>
+      <div class="csm-presets">${shown.map(card).join('')}</div>
       <h4>Customize</h4>
       <label class="csm-row"><span>Font</span><select data-style="fontFamily">${FONTS.map((f) => `<option ${f === s.fontFamily ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select></label>
       <label class="csm-row"><span>Size</span><input type="range" min="2" max="14" step="0.5" value="${esc(s.fontSize)}" data-style="fontSize" data-kind="num" /></label>
-      <label class="csm-row"><span>Position</span><select data-style="position">${CAPTION_POSITIONS.map((p) => `<option value="${p}" ${p === s.position ? 'selected' : ''}>${p[0].toUpperCase() + p.slice(1)}</option>`).join('')}</select></label>
+      <label class="csm-row"><span>Position</span><select data-style="position">${CAPTION_POSITIONS.map((q) => `<option value="${q}" ${q === s.position && !Number.isFinite(s.positionY) ? 'selected' : ''}>${q[0].toUpperCase() + q.slice(1)}</option>`).join('')}${Number.isFinite(s.positionY) ? '<option value="custom" selected>Custom (dragged)</option>' : ''}</select></label>
+      <label class="csm-row"><span>Height</span><input type="range" min="4" max="96" step="1" value="${Math.round(this.effectiveY() * 100)}" data-style="positionY" data-kind="pct" title="Or drag the ⇕ handle on the video" /></label>
       <label class="csm-row"><span>Text colour</span><input type="color" value="${toHex(s.color)}" data-style="color" /></label>
       <label class="csm-row"><span>Highlight</span><input type="color" value="${toHex(s.highlightColor)}" data-style="highlightColor" /></label>
       <label class="csm-row"><span>Outline</span><input type="color" value="${toHex(s.strokeColor || '#000000')}" data-style="strokeColor" /></label>
       <label class="csm-row"><span>Background</span><input type="color" value="${toHex(s.backgroundColor)}" data-style="backgroundColor" data-kind="rgba" /></label>
       <label class="csm-row"><span>Page length</span><input type="range" min="200" max="4000" step="100" value="${esc(s.combineMs)}" data-style="combineMs" data-kind="num" title="How much text shows at once (ms)" /></label>
       <div class="csm-toggles">${[['bold', 'Bold'], ['italic', 'Italic'], ['uppercase', 'Uppercase'], ['stroke', 'Outline'], ['background', 'Background box'], ['highlightActive', 'Highlight spoken word']]
-        .map(([k, l]) => `<label><input type="checkbox" data-style="${k}" data-kind="bool" ${s[k] ? 'checked' : ''} /> ${l}</label>`).join('')}</div>`;
+        .map(([k, l]) => `<label><input type="checkbox" data-style="${k}" data-kind="bool" ${s[k] ? 'checked' : ''} /> ${l}</label>`).join('')}</div>
+      ${this.srcUrl ? '' : `<h4>Preview backdrop</h4><div class="csm-chips">${['cinematic', 'dark', 'light', 'grid'].map((b) => `<button type="button" class="csm-chip${this.backdrop === b ? ' on' : ''}" data-act="backdrop" data-b="${b}">${b[0].toUpperCase()}${b.slice(1)}</button>`).join('')}</div>`}`;
   }
 
   renderEdit() {
-    if (!this.captions.length) return '<p class="csm-hint">No captions yet. Generate them, record live, or import an SRT/VTT file.</p>';
+    const head = '<h3 class="csm-sec-title"><span class="glyph">≣</span>Script &amp; words</h3>';
+    if (!this.captions.length) return `${head}<p class="csm-hint">No captions yet. Generate them on the first tab, record live, or import an SRT/VTT file.</p>`;
     const lines = captionLines(this.captions, this.style);
-    return `
-      <h4>Lines (${lines.length})</h4>
-      <div class="csm-lines">${lines.map((l, i) => `
-        <div class="csm-line">
-          <button type="button" class="csm-chip" data-act="seek" data-ms="${l.startMs}" aria-label="Play from line ${i + 1}">⏵</button>
-          <input type="number" step="0.05" min="0" value="${secs(l.startMs)}" data-line-start="${i}" aria-label="Start (s)" />
-          <input type="number" step="0.05" min="0" value="${secs(l.endMs)}" data-line-end="${i}" aria-label="End (s)" />
-          <input type="text" value="${esc(l.text)}" data-line-text="${i}" aria-label="Caption text" />
-          <button type="button" class="csm-chip" data-act="del-line" data-i="${i}" aria-label="Delete line ${i + 1}">✕</button>
+    this._lineMap = lines.map((l) => [l.from, l.to]);
+    const fr = this.fr;
+    const fmt = (ms) => { const t = Math.max(0, Math.round(ms / 10)); return `${String(Math.floor(t / 6000)).padStart(2, '0')}:${String(Math.floor((t % 6000) / 100)).padStart(2, '0')}.${String(t % 100).padStart(2, '0')}`; };
+    const lang = this.language === 'auto' ? 'Auto' : this.language.toUpperCase();
+    return `${head}
+      <div class="csm-tools">
+        <input type="text" placeholder="Find" value="${esc(fr.find)}" data-fr="find" aria-label="Find" />
+        <input type="text" placeholder="Replace with" value="${esc(fr.replace)}" data-fr="replace" aria-label="Replace with" />
+        <label class="csm-toggles" style="margin:0"><input type="checkbox" data-fr="matchCase" ${fr.matchCase ? 'checked' : ''} /> Aa</label>
+        <button type="button" class="csm-chip" data-act="fr-apply">Find &amp; Replace</button>
+      </div>
+      <div class="csm-tools">
+        <div class="csm-seg3"><button type="button" data-act="case" data-mode="upper">AA</button><button type="button" data-act="case" data-mode="title">Aa</button><button type="button" data-act="case" data-mode="lower">aa</button></div>
+        <button type="button" class="csm-chip${this.autoScroll ? ' on' : ''}" data-act="autoscroll">Auto-scroll</button>
+        <button type="button" class="csm-chip" data-act="copy">Copy</button>
+        <button type="button" class="csm-chip" data-act="add-line">＋ Add</button>
+      </div>
+      <div class="csm-segs">${lines.map((l, i) => `
+        <div class="csm-seg" data-seg="${i}">
+          <div class="csm-seg-head">
+            <button type="button" class="csm-time" data-act="seek" data-ms="${l.startMs}" aria-label="Play from segment ${i + 1}">◔ ${fmt(l.startMs)} – ${fmt(l.endMs)}</button>
+            <span class="csm-dur">${((l.endMs - l.startMs) / 1000).toFixed(1)}s</span>
+            <span class="csm-speaking" hidden>● Speaking</span>
+            <span class="grow"></span>
+            <button type="button" class="csm-mini" data-act="nudge" data-i="${i}" data-d="-100" title="0.1 s earlier" aria-label="Move segment ${i + 1} 0.1 seconds earlier">−0.1s</button>
+            <button type="button" class="csm-mini" data-act="nudge" data-i="${i}" data-d="100" title="0.1 s later" aria-label="Move segment ${i + 1} 0.1 seconds later">+0.1s</button>
+            <button type="button" class="csm-mini" data-act="edit-line" data-i="${i}" title="Edit text and timing">Edit line</button>
+            <button type="button" class="csm-mini" data-act="del-line" data-i="${i}" aria-label="Delete segment ${i + 1}">✕</button>
+          </div>
+          <div class="csm-seg-words">${this.captions.slice(l.from, l.to).map((c, k) => `<button type="button" class="csm-word" data-act="seek" data-ms="${c.startMs}" data-wi="${l.from + k}" title="Click to jump, double-click to edit">${esc(c.text.trim())}</button>`).join('')}</div>
+          ${this.editingLine === i ? `<div class="csm-lineedit"><input type="number" step="0.05" min="0" value="${secs(l.startMs)}" data-line-start="${i}" aria-label="Start (s)" /><input type="number" step="0.05" min="0" value="${secs(l.endMs)}" data-line-end="${i}" aria-label="End (s)" /><input type="text" value="${esc(l.text)}" data-line-text="${i}" aria-label="Caption text" /></div>` : ''}
         </div>`).join('')}</div>
-      <div class="csm-row" style="grid-template-columns:104px 80px auto"><span>Shift all (s)</span><input type="number" step="0.05" value="${this.shift}" data-shift /><button type="button" class="csm-btn" data-act="shift">Apply</button></div>
-      <button type="button" class="csm-btn" data-act="clear">Clear all captions</button>`;
+      <div class="csm-foot-note"><span>${lines.length} segments • ${this.captions.length} words • ${lang}</span><span>Click any word to fix spelling</span></div>
+      <div class="csm-tools"><span>Shift all (s)</span><input type="number" step="0.05" value="${this.shift}" data-shift style="width:80px" /><button type="button" class="csm-chip" data-act="shift">Apply</button><button type="button" class="csm-chip" data-act="clear">Clear all</button></div>`;
   }
 
   renderExport() {
-    const has = this.captions.length > 0;
     const r = this.result;
     return `
-      <h4>Subtitle files</h4>
-      <div class="csm-chips"><button type="button" class="csm-btn" data-act="dl-srt" ${has ? '' : 'disabled'}>Download SRT</button><button type="button" class="csm-btn" data-act="dl-vtt" ${has ? '' : 'disabled'}>Download VTT</button></div>
-      <h4>Video with captions burned in</h4>
-      ${this.busy ? this.progressHtml() : `<button type="button" class="csm-btn primary" data-act="render" ${has && this.srcUrl ? '' : 'disabled'}>🎞 Render video with captions — free</button>`}
-      <p class="csm-hint">Rendered in your browser with the style shown in the preview, keeping the original audio. ${this.caps?.webCodecs === false ? 'This browser lacks WebCodecs, so the render runs in real time.' : 'Output is MP4 where the browser can encode it, otherwise WebM.'}</p>
-      ${r ? `<div class="csm-note"><strong>Done</strong> (${esc(r.ext.toUpperCase())}, ${r.engine === 'webcodecs' ? 'fast render' : 'real-time render'})
-        <video src="${esc(r.url)}" controls playsinline style="width:100%;margin-top:8px;border-radius:8px;background:#000"></video>
-        <div class="csm-chips" style="margin-top:8px"><a class="csm-btn" href="${esc(r.url)}" download="captioned-${esc((this.srcName || 'video').replace(/\.[^.]+$/, ''))}.${r.ext}">Download</a>
-        ${this.opts.onComplete ? '<button type="button" class="csm-btn primary" data-act="use">Use this video</button>' : ''}</div></div>` : ''}`;
+      <h3 class="csm-sec-title"><span class="glyph">⬇</span>Export</h3>
+      <p class="csm-hint">Rendered in your browser with the style shown in the preview, keeping the original audio. ${this.caps?.webCodecs === false ? 'This browser lacks WebCodecs, so the render runs in real time.' : 'Output is MP4 where the browser can encode it, otherwise WebM.'} Use <em>Render video</em> under the preview.</p>
+      <label class="csm-row"><span>Quality</span><select data-set="renderQuality"><option value="high" ${this.renderQuality === 'high' ? 'selected' : ''}>High</option><option value="veryHigh" ${this.renderQuality === 'veryHigh' ? 'selected' : ''}>Very high (larger file)</option></select></label>
+      <label class="csm-row"><span>Size</span><select data-set="renderSize"><option value="original" ${this.renderSize === 'original' ? 'selected' : ''}>Original (up to 4K)</option><option value="1080" ${this.renderSize === '1080' ? 'selected' : ''}>1080p</option><option value="720" ${this.renderSize === '720' ? 'selected' : ''}>720p</option></select></label>
+      ${r ? `<h4>Result (${esc(r.ext.toUpperCase())}, ${r.engine === 'webcodecs' ? 'fast render' : 'real-time render'})</h4><video src="${esc(r.url)}" controls playsinline style="width:100%;border-radius:14px;background:#000"></video>` : '<p class="csm-hint">Nothing rendered yet.</p>'}`;
   }
 
   // ---------------------------------------------------------------- wiring (delegated once; survives refresh())
@@ -373,11 +574,15 @@ export class CaptionStudioModal extends ModalShell {
     const slot = this.overlay.querySelector('[data-stage-slot]');
     if (slot && this.stage.parentElement !== slot) slot.appendChild(this.stage);
     this.fitStage();
+    this.applyBackdrop();
+    this.video.playbackRate = this.speed;
+    this.queueSave();
     if (this.overlay._csm) return;
     this.overlay._csm = true;
     const o = this.overlay;
     o.addEventListener('click', (e) => this.onClick(e));
     o.addEventListener('change', (e) => this.onChange(e));
+    o.addEventListener('dblclick', (e) => this.editWord(e));
     o.addEventListener('input', (e) => { if (e.target.matches('input[type=range],input[type=color]')) this.onChange(e); });
     o.addEventListener('dragover', (e) => { if (e.target.closest?.('[data-drop]')) { e.preventDefault(); e.target.closest('[data-drop]').classList.add('over'); } });
     o.addEventListener('dragleave', (e) => e.target.closest?.('[data-drop]')?.classList.remove('over'));
@@ -387,6 +592,49 @@ export class CaptionStudioModal extends ModalShell {
       const f = e.dataTransfer?.files?.[0];
       if (f && /^(video|audio)\//.test(f.type)) this.setSource(f);
     });
+  }
+
+  applyBackdrop() {
+    const BACKDROPS = {
+      cinematic: 'linear-gradient(160deg,#1f2a44,#0b0f1a 60%,#3a1c2e)', dark: 'linear-gradient(#202428,#101214)',
+      light: 'linear-gradient(#f3f4f6,#d1d5db)', grid: 'repeating-linear-gradient(0deg,#0b0f14 0 23px,#1b2430 23px 24px),repeating-linear-gradient(90deg,#0b0f14 0 23px,#1b2430 23px 24px)',
+    };
+    this.stage.classList.toggle('phone', !this.srcUrl);
+    this.stage.style.background = this.srcUrl ? '#000' : BACKDROPS[this.backdrop] || BACKDROPS.cinematic;
+    this.video.style.visibility = this.srcUrl ? 'visible' : 'hidden';
+  }
+
+  /** Double-click a word chip to fix it in place. Empty deletes the word; several words share its time. */
+  editWord(e) {
+    const chip = e.target.closest?.('.csm-word');
+    if (!chip) return;
+    const i = Number(chip.dataset.wi);
+    const c = this.captions[i];
+    if (!c) return;
+    const input = document.createElement('input');
+    input.type = 'text'; input.className = 'csm-word-edit'; input.value = c.text.trim(); input.size = Math.max(4, input.value.length + 1);
+    input.setAttribute('aria-label', 'Edit word');
+    chip.replaceWith(input);
+    input.focus(); input.select();
+    let cancelled = false;
+    input.addEventListener('keydown', (k) => { if (k.key === 'Enter') input.blur(); if (k.key === 'Escape') { cancelled = true; input.blur(); } k.stopPropagation(); });
+    input.addEventListener('blur', () => {
+      const v = input.value.trim();
+      if (!cancelled && v !== c.text.trim()) {
+        const next = this.captions.slice();
+        next.splice(i, 1, ...(v ? spreadWords(v, c.startMs, c.endMs, i === 0) : []));
+        this.captions = sortCaptions(next);
+      }
+      this.refresh();
+    });
+  }
+
+  /** "+ Add": a new two-word caption at the playhead (or after the last one), ready to edit. */
+  addLine() {
+    const at = this.srcUrl ? Math.round(this.video.currentTime * 1000) : (this.captions.at(-1)?.endMs || 0);
+    this.captions = sortCaptions([...this.captions, ...spreadWords('New caption', at, at + 1800, this.captions.length === 0)]);
+    this.note = 'Added a caption at the playhead. Double-click a word to change it.';
+    this.refresh();
   }
 
   fail(err) {
@@ -407,13 +655,28 @@ export class CaptionStudioModal extends ModalShell {
       tab: () => { this.tab = el.dataset.tab; this.errMsg = ''; this.refresh(); },
       generate: () => this.generate(),
       cancel: () => { this.controller?.abort(); this.busy = null; this.refresh(); },
-      preset: () => { this.style = { ...defaultCaptionStyle(el.dataset.preset), fontSize: this.style.fontSize, position: this.style.position }; ensureCaptionFont(this.style); this.refresh(); },
+      preset: () => { this.style = { ...defaultCaptionStyle(el.dataset.preset), fontSize: this.style.fontSize, position: this.style.position, ...(Number.isFinite(this.style.positionY) ? { positionY: this.style.positionY } : {}) }; ensureCaptionFont(this.style, this.fontText()); this.refresh(); },
       seek: () => { this.video.currentTime = Number(el.dataset.ms) / 1000; this.video.play().catch(() => {}); },
-      'del-line': () => { this.captions = removeLine(this.captions, captionLines(this.captions, this.style)[Number(el.dataset.i)]); this.refresh(); },
+      'del-line': () => { this.editingLine = -1; this.captions = removeLine(this.captions, captionLines(this.captions, this.style)[Number(el.dataset.i)]); this.refresh(); },
       shift: () => { this.captions = shiftCaptions(this.captions, Math.round(Number(this.overlay.querySelector('[data-shift]').value || 0) * 1000)); this.refresh(); },
-      clear: () => { this.captions = []; this.result = null; this.refresh(); },
+      clear: () => { this.captions = []; this.result = null; this.editingLine = -1; this.refresh(); },
       'dl-srt': () => this.download('captions.srt', captionsToSrt(this.captions, { combineMs: this.style.combineMs }), 'application/x-subrip'),
       'dl-vtt': () => this.download('captions.vtt', captionsToVtt(this.captions, { combineMs: this.style.combineMs }), 'text/vtt'),
+      'dl-txt': () => this.download('transcript.txt', captionsToTxt(this.captions, { combineMs: this.style.combineMs }), 'text/plain'),
+      'dl-ass': () => this.download('captions.ass', captionsToAss(this.captions, this.style, { width: this.video.videoWidth || 1080, height: this.video.videoHeight || 1920 }), 'text/x-ssa'),
+      backdrop: () => { this.backdrop = el.dataset.b; this.refresh(); },
+      speed: () => { this.speed = Number(el.dataset.v); this.video.playbackRate = this.speed; this.refresh(); },
+      pos: () => { this.style = { ...this.style, position: el.dataset.p }; delete this.style.positionY; this.queueSave(); this.refresh(); },
+      filter: () => { this.styleFilter = el.dataset.f; this.refresh(); },
+      'reset-style': () => { this.style = defaultCaptionStyle(this.style.preset); ensureCaptionFont(this.style, this.fontText()); this.refresh(); },
+      autoscroll: () => { this.autoScroll = !this.autoScroll; this.refresh(); },
+      'edit-line': () => { const i = Number(el.dataset.i); this.editingLine = this.editingLine === i ? -1 : i; this.refresh(); },
+      'add-line': () => this.addLine(),
+      full: () => { this.overlay.querySelector('.csm-dialog').classList.toggle('full'); this.fitStage(); },
+      nudge: () => { this.captions = nudgeLine(this.captions, captionLines(this.captions, this.style)[Number(el.dataset.i)], Number(el.dataset.d)); this.refresh(); },
+      case: () => { this.captions = changeCase(this.captions, el.dataset.mode); this.refresh(); },
+      copy: () => { const text = captionsToPlain(this.captions); (navigator.clipboard?.writeText(text) || Promise.reject()).then(() => { this.note = 'Transcript copied.'; this.refresh(); }, () => { this.errMsg = 'Copying was blocked by the browser.'; this.refresh(); }); },
+      'fr-apply': () => { const r = findReplace(this.captions, this.fr.find, this.fr.replace, { matchCase: this.fr.matchCase }); this.captions = r.captions; this.note = r.count ? `Replaced ${r.count} match${r.count === 1 ? '' : 'es'}.` : 'No matches found.'; this.refresh(); },
       render: () => this.renderVideo(),
       use: () => { this.opts.onComplete?.(this.result.url); this.close(); },
       apply: () => this.apply(),
@@ -428,14 +691,19 @@ export class CaptionStudioModal extends ModalShell {
     if (t.matches('[data-file]')) { const f = t.files?.[0]; if (f) this.setSource(f); return; }
     if (t.matches('[data-import]')) {
       const f = t.files?.[0];
-      f?.text().then((text) => { this.captions = captionsFromFile(text, f.name); this.note = `Imported ${this.captions.length} captions from ${f.name}.`; this.tab = 'style'; this.refresh(); }).catch((err) => this.fail(err));
+      f?.text().then((text) => { this.captions = captionsFromFile(text, f.name); ensureCaptionFont(this.style, this.fontText()); this.note = `Imported ${this.captions.length} captions from ${f.name}.`; this.tab = 'edit'; this.refresh(); }).catch((err) => this.fail(err));
       return;
     }
     if (t.dataset.set) { this[t.dataset.set] = t.value; return; }
+    if (t.dataset.speed !== undefined) { this.speed = Number(t.value); this.video.playbackRate = this.speed; return; }
+    if (t.dataset.fr) { this.fr[t.dataset.fr] = t.type === 'checkbox' ? t.checked : t.value; return; }
     if (t.dataset.style) {
       const k = t.dataset.style; const kind = t.dataset.kind;
-      this.style = { ...this.style, [k]: kind === 'bool' ? t.checked : kind === 'num' ? Number(t.value) : kind === 'rgba' ? hexToRgba(t.value, 0.6) : t.value };
-      if (k === 'fontFamily' || k === 'bold' || k === 'italic') ensureCaptionFont(this.style);
+      if (k === 'position' && t.value === 'custom') return;
+      this.style = { ...this.style, [k]: kind === 'bool' ? t.checked : kind === 'num' ? Number(t.value) : kind === 'pct' ? Number(t.value) / 100 : kind === 'rgba' ? hexToRgba(t.value, 0.6) : t.value };
+      if (k === 'position') { delete this.style.positionY; this.refresh(); }
+      if (k === 'fontFamily' || k === 'bold' || k === 'italic') ensureCaptionFont(this.style, this.fontText());
+      this.queueSave();
       return;
     }
     const lines = () => captionLines(this.captions, this.style);
@@ -456,8 +724,8 @@ export class CaptionStudioModal extends ModalShell {
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
-  setBusy(text, progress = 0) {
-    this.busy = { text, progress };
+  setBusy(text, progress = 0, kind) {
+    this.busy = { text, progress, kind: kind || this.busy?.kind || 'transcribe' };
     const bar = this.overlay?.querySelector('.csm-bar > i');
     const txt = bar?.parentElement?.previousElementSibling;
     if (bar && txt) { bar.style.width = `${Math.round(progress * 100)}%`; txt.textContent = text; } else this.refresh();
@@ -468,7 +736,7 @@ export class CaptionStudioModal extends ModalShell {
     this.controller?.abort();
     const ctl = new AbortController(); this.controller = ctl;
     this.errMsg = ''; this.note = '';
-    this.setBusy('Reading audio…');
+    this.setBusy('Reading audio…', 0, 'transcribe');
     try {
       const { captions } = await transcribeMedia(this.srcBlob || this.srcUrl, {
         engine: this.engine, model: this.model, language: this.language, signal: ctl.signal,
@@ -476,9 +744,10 @@ export class CaptionStudioModal extends ModalShell {
       });
       if (ctl.signal.aborted) return;
       this.captions = sortCaptions(captions);
+      ensureCaptionFont(this.style, this.fontText());
       this.busy = null; this.result = null;
       this.note = `${this.captions.length} words transcribed. Pick a look, then render or export.`;
-      this.tab = 'style';
+      this.tab = 'edit';
       this.refresh();
     } catch (err) { this.fail(err); } finally { if (this.controller === ctl) this.controller = null; }
   }
@@ -486,10 +755,11 @@ export class CaptionStudioModal extends ModalShell {
   async renderVideo() {
     const ctl = new AbortController(); this.controller = ctl;
     this.errMsg = ''; this.result = null;
-    this.setBusy('Rendering captions into the video…');
+    this.setBusy('Rendering captions into the video…', 0, 'render');
     try {
       const out = await burnCaptions({
         src: this.srcBlob || this.srcUrl, captions: this.captions, style: this.style, signal: ctl.signal,
+        quality: this.renderQuality, maxLongEdge: { original: 4096, 1080: 1920, 720: 1280 }[this.renderSize] || 1920,
         onProgress: (p) => this.setBusy(p.stage === 'fallback' ? 'This browser can’t render faster than real time — recording the video with captions…' : 'Rendering captions into the video…', p.progress || 0),
       });
       this.result = out; this.busy = null; this.refresh();

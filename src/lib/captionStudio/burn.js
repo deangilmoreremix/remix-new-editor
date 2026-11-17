@@ -22,7 +22,7 @@ const makeCanvas = (w, h) => {
 };
 
 /** Fast path. Throws `{ code: 'unsupported' }` when this browser/file can't do it so the caller can fall back. */
-export async function burnWithWebCodecs({ src, captions, style, onProgress, signal, maxLongEdge = 1920 }) {
+export async function burnWithWebCodecs({ src, captions, style, onProgress, signal, maxLongEdge = 1920, quality = 'high' }) {
   const unsupported = (msg) => Object.assign(new Error(msg), { code: 'unsupported' });
   if (typeof VideoEncoder !== 'function' || typeof VideoDecoder !== 'function') throw unsupported('WebCodecs is not available in this browser.');
   const mb = await import('mediabunny');
@@ -30,7 +30,7 @@ export async function burnWithWebCodecs({ src, captions, style, onProgress, sign
   const input = new mb.Input({ source: new mb.BlobSource(blob), formats: mb.ALL_FORMATS });
   const vTrack = await input.getPrimaryVideoTrack();
   if (!vTrack) throw unsupported('That file has no video track.');
-  await ensureCaptionFont(style);
+  await ensureCaptionFont(style, captions.map((c) => c.text).join(''));
 
   // MP4 (H.264 + AAC) plays everywhere; fall back to WebM where the browser can't encode it.
   const tryFormats = [
@@ -56,7 +56,7 @@ export async function burnWithWebCodecs({ src, captions, style, onProgress, sign
       const conversion = await mb.Conversion.init({
         input, output,
         video: {
-          codec, width: W, height: H, fit: 'contain', quality: mb.QUALITY_HIGH, forceTranscode: true,
+          codec, width: W, height: H, fit: 'contain', quality: quality === 'veryHigh' ? mb.QUALITY_VERY_HIGH : mb.QUALITY_HIGH, forceTranscode: true,
           process: (sample) => {
             ctx.clearRect(0, 0, W, H);
             sample.draw(ctx, 0, 0, W, H);
@@ -88,7 +88,7 @@ export async function burnWithWebCodecs({ src, captions, style, onProgress, sign
 /** Real-time fallback: plays the video and records canvas + audio. Takes as long as the video. */
 export async function burnWithRecorder({ src, captions, style, onProgress, signal }) {
   if (typeof MediaRecorder !== 'function' || !HTMLCanvasElement.prototype.captureStream) throw new Error('This browser cannot record video, so captions cannot be rendered here. Try Chrome, Edge or Firefox.');
-  await ensureCaptionFont(style);
+  await ensureCaptionFont(style, captions.map((c) => c.text).join(''));
   const blob = await toBlob(src, signal);
   const url = URL.createObjectURL(blob);
   const video = document.createElement('video');

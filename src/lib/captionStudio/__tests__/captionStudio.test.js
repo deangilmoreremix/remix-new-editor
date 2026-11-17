@@ -145,3 +145,73 @@ describe('portable core', () => {
     });
   });
 });
+
+// ---- features added from the Capite / ai-video-captions comparison
+import { nudgeLine, findReplace, changeCase, captionsToPlain } from '../lines.js';
+import { captionsToTxt, captionsToAss, assColor } from '../exports.js';
+import { CAPTION_LANGUAGES } from '../engines.js';
+import { scriptFontsFor, captionFont } from '../painter.js';
+
+describe('transcript tools', () => {
+  const caps = words('hello', 'brave', 'new', 'world');
+  it('nudges a line by 100 ms without going negative', () => {
+    const [line] = captionLines(caps, style);
+    const out = nudgeLine(caps, line, 100);
+    expect(out[0].startMs).toBe(100);
+    expect(nudgeLine(caps, line, -5000)[0].startMs).toBe(0);
+  });
+  it('finds and replaces, including a phrase that spans two words', () => {
+    const r = findReplace(caps, 'brave new', 'bold');
+    expect(r.count).toBe(1);
+    expect(captionsToPlain(r.captions)).toBe('hello bold world');
+    expect(findReplace(caps, 'HELLO', 'bye', { matchCase: true }).count).toBe(0);
+    expect(findReplace(caps, 'HELLO', 'bye').count).toBe(1);
+    expect(findReplace(caps, '', 'x').count).toBe(0);
+    expect(findReplace(caps, '(', 'x').count).toBe(0); // regex characters are literal
+  });
+  it('changes case and keeps timing and spacing', () => {
+    const up = changeCase(caps, 'upper');
+    expect(up.map((c) => c.text)).toEqual(['HELLO', ' BRAVE', ' NEW', ' WORLD']);
+    expect(changeCase(caps, 'title').map((c) => c.text.trim())).toEqual(['Hello', 'Brave', 'New', 'World']);
+    expect(changeCase(up, 'lower')[1].text).toBe(' brave');
+    expect(up.map((c) => c.startMs)).toEqual(caps.map((c) => c.startMs));
+  });
+});
+
+describe('file exports', () => {
+  const caps = words('hello', 'brave', 'new', 'world');
+  it('writes a plain transcript', () => expect(captionsToTxt(caps, { combineMs: 5000 })).toBe('hello brave new world\n'));
+  it('writes ASS with a style, karaoke word timing and a position', () => {
+    const ass = captionsToAss(caps, { ...style, fontFamily: 'Montserrat', uppercase: true, color: '#ffffff', highlightColor: '#ff0000', position: 'bottom', stroke: true }, { width: 1080, height: 1920 });
+    expect(ass).toContain('PlayResX: 1080');
+    expect(ass).toContain('Style: Default,Montserrat,');
+    expect(ass).toContain('&H000000FF'); // red highlight, ASS is BGR
+    expect(ass).toMatch(/Dialogue: 0,0:00:00\.00,0:00:01\.\d\d,Default,,0,0,0,,\{\\an8\\pos\(540,\d+\)\}\{\\k40\}HELLO\{\\k40\} BRAVE/);
+    expect(ass.split('\n').filter((l) => l.startsWith('Dialogue')).length).toBe(1);
+  });
+  it('converts colours to ASS order and alpha', () => {
+    expect(assColor('#ff8000')).toBe('&H000080FF');
+    expect(assColor('rgba(0,0,0,0.6)')).toBe('&H66000000');
+  });
+});
+
+describe('languages, free position, script fonts', () => {
+  it('offers every Whisper language, English first after auto-detect', () => {
+    expect(CAPTION_LANGUAGES).toHaveLength(100);
+    expect(CAPTION_LANGUAGES[0][0]).toBe('auto');
+    expect(CAPTION_LANGUAGES[1][0]).toBe('en');
+    expect(new Set(CAPTION_LANGUAGES.map((l) => l[0])).size).toBe(100);
+  });
+  it('honours a dragged vertical position over the named position', () => {
+    const y = (st) => { const ctx = mockCtx(); paintCaptions(ctx, 1000, 1000, words('hi'), st, 100); return ctx.calls.find((c) => c[0] === 'translate')[2]; };
+    expect(y({ ...style, position: 'bottom', positionY: 0.3 })).toBeCloseTo(300, -1);
+    expect(y({ ...style, positionY: 2 })).toBeLessThan(1000); // clamped on the frame
+  });
+  it('picks fallback fonts for the script of the text', () => {
+    expect(scriptFontsFor('hello')).toEqual([]);
+    expect(scriptFontsFor('こんにちは')).toEqual(['Noto Sans JP']);
+    expect(scriptFontsFor('مرحبا')).toEqual(['Noto Sans Arabic']);
+    expect(scriptFontsFor('नमस्ते')).toEqual(['Noto Sans Devanagari']);
+    expect(captionFont({ fontFamily: 'Inter' }, 40)).toContain('"Noto Sans SC"');
+  });
+});

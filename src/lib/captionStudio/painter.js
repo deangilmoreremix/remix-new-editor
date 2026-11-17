@@ -19,7 +19,16 @@ export function captionAnimation(style = {}) {
   return (id && capiteStyleById(id)?.animationType) || 'highlight';
 }
 
-export const captionFont = (style, px) => `${style.italic ? 'italic ' : ''}${style.bold ? 800 : 500} ${px}px "${style.fontFamily || 'Inter'}", Arial, sans-serif`;
+/** Script → Google Font that has its glyphs. Latin, Cyrillic and Greek are covered by the caption font itself or by Noto Sans. */
+const SCRIPT_FONTS = [
+  [/[\u3040-\u30ff]/, 'Noto Sans JP'], [/[\uac00-\ud7af\u1100-\u11ff]/, 'Noto Sans KR'], [/[\u4e00-\u9fff]/, 'Noto Sans SC'],
+  [/[\u0600-\u06ff\u0750-\u077f]/, 'Noto Sans Arabic'], [/[\u0900-\u097f]/, 'Noto Sans Devanagari'], [/[\u0e00-\u0e7f]/, 'Noto Sans Thai'],
+  [/[\u0590-\u05ff]/, 'Noto Sans Hebrew'], [/[\u0980-\u09ff]/, 'Noto Sans Bengali'], [/[\u0b80-\u0bff]/, 'Noto Sans Tamil'], [/[\u0c00-\u0c7f]/, 'Noto Sans Telugu'],
+];
+/** The fallback families a piece of text needs (for example ['Noto Sans JP'] for Japanese). */
+export const scriptFontsFor = (text = '') => SCRIPT_FONTS.filter(([re]) => re.test(text)).map(([, f]) => f);
+const FALLBACKS = ['Noto Sans', ...SCRIPT_FONTS.map(([, f]) => `"${f}"`), 'Arial', 'sans-serif'];
+export const captionFont = (style, px) => `${style.italic ? 'italic ' : ''}${style.bold ? 800 : 500} ${px}px "${style.fontFamily || 'Inter'}", ${FALLBACKS.join(', ')}`;
 
 /** Word-wrap a page's tokens into lines that fit maxWidth. Pure given a `measure(text) => width`. */
 export function layoutWords(tokens, measure, maxWidth, uppercase) {
@@ -66,7 +75,8 @@ export function paintCaptions(ctx, W, H, captions, style = {}, ms = 0, { pages }
   if (!lines.length) { ctx.restore(); return false; }
 
   const blockH = lines.length * lineH;
-  let top = (POSITION_Y[style.position] ?? POSITION_Y.bottom) * H - blockH / 2;
+  const centreY = Number.isFinite(style.positionY) ? clamp01(style.positionY) : (POSITION_Y[style.position] ?? POSITION_Y.bottom);
+  let top = centreY * H - blockH / 2;
   top = Math.max(H * 0.02, Math.min(H * 0.98 - blockH, top));
 
   lines.forEach((line, li) => {
@@ -129,25 +139,33 @@ export function paintCaptions(ctx, W, H, captions, style = {}, ms = 0, { pages }
 }
 
 const loaded = new Set();
+const addFontLink = (family, spec) => {
+  const id = `csm-font-${family.replace(/\W+/g, '-')}`;
+  if (document.getElementById(id)) return;
+  const link = document.createElement('link');
+  link.id = id; link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}${spec}&display=swap`;
+  document.head.appendChild(link);
+};
 /**
- * Make sure the caption font can be drawn on a canvas (canvas never waits for a web font). Google Fonts are loaded on demand;
- * a font that cannot be loaded falls back to Arial instead of blocking the render.
+ * Make sure the caption font can be drawn on a canvas (canvas never waits for a web font). Google Fonts are loaded on demand, and so are
+ * the fonts the caption text needs for its script (Japanese, Korean, Chinese, Arabic, Devanagari, Thai, …). A font that cannot be loaded
+ * falls back to Arial instead of blocking the render.
+ * @param {string} [text]  the caption text, to pick script fonts
  */
-export async function ensureCaptionFont(style = {}) {
+export async function ensureCaptionFont(style = {}, text = '') {
+  if (typeof document === 'undefined' || !document.fonts) return;
   const family = style.fontFamily || 'Inter';
-  const key = `${family}|${style.bold ? 1 : 0}|${style.italic ? 1 : 0}`;
-  if (loaded.has(key) || typeof document === 'undefined' || !document.fonts) return;
+  const scripts = scriptFontsFor(text);
+  const key = `${family}|${style.bold ? 1 : 0}|${style.italic ? 1 : 0}|${scripts.join(',')}`;
+  if (loaded.has(key)) return;
   try {
-    if (!document.fonts.check(`16px "${family}"`)) {
-      const id = `csm-font-${family.replace(/\W+/g, '-')}`;
-      if (!document.getElementById(id)) {
-        const link = document.createElement('link');
-        link.id = id; link.rel = 'stylesheet';
-        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:ital,wght@0,500;0,800;1,500;1,800&display=swap`;
-        document.head.appendChild(link);
-      }
-    }
-    await Promise.race([document.fonts.load(captionFont(style, 32)), new Promise((r) => setTimeout(r, 4000))]);
+    if (!document.fonts.check(`16px "${family}"`)) addFontLink(family, ':ital,wght@0,500;0,800;1,500;1,800');
+    scripts.forEach((f) => { if (!document.fonts.check(`16px "${f}"`)) addFontLink(f, ':wght@500;800'); });
+    await Promise.race([
+      Promise.all([document.fonts.load(captionFont(style, 32), text || undefined), ...scripts.map((f) => document.fonts.load(`800 32px "${f}"`, text))]),
+      new Promise((r) => setTimeout(r, 5000)),
+    ]);
   } catch { /* fall back to the system font */ }
   loaded.add(key);
 }
