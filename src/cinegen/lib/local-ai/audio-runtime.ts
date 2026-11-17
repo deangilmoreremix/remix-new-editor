@@ -8,10 +8,32 @@ import { chunkText, concatSamples } from './wav';
 const CACHE_NAME = 'transformers-cache'; // transformers.js default env.cacheKey
 
 let gpuProbe: Promise<boolean> | null = null;
+// [remix] Fix Q: once a WebGPU model load has failed in this tab, onnxruntime-web cannot create a WASM session in the same page any more (the retry threw the
+// same raw number), so remember it for the tab (sessionStorage): after a reload the capability check reports no WebGPU and the model loads on WASM.
+const GPU_FAILED_KEY = 'cinegen.localai.webgpu-failed';
+const gpuFailedBefore = () => { try { return sessionStorage.getItem(GPU_FAILED_KEY) === '1'; } catch { return false; } };
+export function markWebgpuFailed(): void { try { sessionStorage.setItem(GPU_FAILED_KEY, '1'); } catch { /* not remembered */ } }
+/** A readable message for a failed model load: the runtime can throw a bare number (an emscripten exception pointer) that used to be shown as the error. */
+export function describeLoadFailure(e: unknown, device: 'webgpu' | 'wasm'): Error {
+  if (e instanceof Error) return e;
+  const code = typeof e === 'number' || typeof e === 'string' ? String(e) : 'unknown';
+  return new Error(device === 'webgpu'
+    ? `The WebGPU runtime could not start on this device (internal code ${code}). Reload the page and download or load the model again: it will then run on WASM (CPU).`
+    : `The WASM runtime could not start (internal code ${code}). Reload the page and try again.`);
+}
 /** `navigator.gpu` can exist with no usable adapter (headless Chromium, blocklisted GPUs): ask for an adapter once. */
 function hasGpuAdapter(): Promise<boolean> {
   gpuProbe ??= (async () => {
-    try { const gpu = (navigator as unknown as { gpu?: { requestAdapter(): Promise<unknown> } }).gpu; return !!gpu && !!(await gpu.requestAdapter()); } catch { return false; }
+    if (gpuFailedBefore()) return false;
+    try {
+      const gpu = (navigator as unknown as { gpu?: { requestAdapter(): Promise<{ requestDevice?: () => Promise<{ destroy?: () => void }> } | null> } }).gpu;
+      const adapter = gpu ? await gpu.requestAdapter() : null;
+      if (!adapter) return false;
+      // an adapter is not enough: when requestDevice() fails the runtime cannot start any session in this page (see GPU_FAILED_KEY), so prove a device exists first
+      const dev = await adapter.requestDevice?.();
+      try { dev?.destroy?.(); } catch { /* probe device only */ }
+      return true;
+    } catch { return false; }
   })();
   return gpuProbe;
 }
@@ -145,6 +167,13 @@ export function kokoroRuntime(tts: KokoroLike & { model?: { dispose?: () => Prom
 }
 
 export async function loadAudioModel(m: AudioModel, device: 'webgpu' | 'wasm', io: { signal: AbortSignal; onProgress: (message: string, fraction: number) => void }): Promise<ModelRuntime> {
+  return loadAudioModelOn(m, device, io).catch((e) => {
+    // a bare (non-Error) throw is the runtime failing to start, not a download problem: a failed WebGPU start is remembered for this tab
+    if (device === 'webgpu' && !io.signal.aborted && !(e instanceof Error)) markWebgpuFailed();
+    throw describeLoadFailure(e, device);
+  });
+}
+function loadAudioModelOn(m: AudioModel, device: 'webgpu' | 'wasm', io: { signal: AbortSignal; onProgress: (message: string, fraction: number) => void }): Promise<ModelRuntime> {
   return withAbortableFetch(io.signal, async () => {
     const track = progressTracker(m, io.onProgress);
     if (m.loader.kind === 'kokoro') {
