@@ -79,6 +79,9 @@ export interface Clip {
   pitch?: import('../lib/audio/pitch').ClipPitch;
   /** [remix] Stage 2: unified keyframes (position, scale, rotation, opacity, crop, effect params; easing / bezier / spring) + procedural motion modifiers (lib/editor/stage2/anim.ts) */
   anim?: import('../lib/editor/stage2/anim').ClipAnim;
+  /** [remix] Fix M: set on every piece made by a speed CURVE (lib/editor/stage11/speed-group.ts): the curve, step count and the original source span, so the curve can be
+   *  re-opened and re-applied while the pieces are still contiguous and unchanged. Saved in the stage1_json column (additive; old projects have none). */
+  speedCurve?: import('../lib/editor/stage11/speed-group').ClipSpeedCurve;
 }
 
 export interface CompoundContent { clips: Clip[]; transitions: Transition[] }
