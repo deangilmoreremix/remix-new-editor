@@ -40,6 +40,14 @@ export function rowFormKey(row: LeadRow): string {
   return row.clipId ?? 'unknown';
 }
 
+/** Where the viewer came from: "mp4" when they followed the QR / link on an exported video (`?src=mp4` on the page they submitted from). */
+export function rowSource(row: LeadRow): string {
+  const page = row.source?.page;
+  if (!page) return '';
+  try { return new URL(page).searchParams.get('src') ?? ''; } catch { return ''; }
+}
+export const fromMp4 = (row: LeadRow): boolean => rowSource(row) === 'mp4';
+
 export function countsByForm(rows: LeadRow[]): Record<string, number> {
   const out: Record<string, number> = {};
   rows.forEach((r) => { const k = rowFormKey(r); out[k] = (out[k] ?? 0) + 1; });
@@ -93,6 +101,7 @@ export function rowsToCsv(rows: LeadRow[], forms: LeadForm[]): string {
     if (utm.term) src['UTM Term'] = csvSafe(utm.term);
     if (utm.content) src['UTM Content'] = csvSafe(utm.content);
     if (r.source?.referrer) src.Referrer = csvSafe(r.source.referrer);
+    if (fromMp4(r)) src['From MP4'] = 'Yes';
     return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src };
   }));
 }

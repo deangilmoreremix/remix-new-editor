@@ -140,11 +140,20 @@ export function mergeCustomer(a, b) {
 
 const key = (c) => c.id || '';
 const nameKey = (c) => (c.business.name || `${c.tokens.firstname} ${c.tokens.lastname}`).toLowerCase().replace(/[^a-z0-9]+/g, '');
-/** Same id or same business/person name => one customer (the first one's values win). Keeps order. */
+/** Who the person is (email, else first + last name); '' for a business-only record. */
+const personKey = (c) => (c.email || '').trim().toLowerCase() || `${c.tokens.firstname || ''} ${c.tokens.lastname || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '');
+/** The same customer: same id; or, when both are named people, the same person; else (a business-only record) the same business name. */
+const sameCustomer = (a, b) => {
+  if (key(a) && key(a) === key(b)) return true;
+  const pa = personKey(a); const pb = personKey(b);
+  if (pa && pb) return pa === pb; // Ann and Bob at Acme are two recipients, not one
+  return !!nameKey(a) && nameKey(a) === nameKey(b);
+};
+/** Same id, same person, or (for business-only records) same business name => one customer (the first one's values win). Keeps order. */
 export function dedupeCustomers(list) {
   const out = [];
   (list || []).filter(Boolean).forEach((c) => {
-    const i = out.findIndex((o) => (key(c) && key(o) === key(c)) || (nameKey(c) && nameKey(o) === nameKey(c)));
+    const i = out.findIndex((o) => sameCustomer(o, c));
     if (i === -1) out.push(c); else out[i] = mergeCustomer(out[i], c);
   });
   return out;

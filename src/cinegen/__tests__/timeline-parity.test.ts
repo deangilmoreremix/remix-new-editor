@@ -12,7 +12,7 @@ const BUDGET: Record<string, number> = {
   'components/edit/tool-sidebar.tsx': 30,
   'components/edit/left-panel.tsx': 80,
   'components/edit/timeline-viewer.tsx': 70,
-  // [remix] 240: develop's own copy was already past the old 220 (228, then more with its Landing pages tab); the Template Generator's host wiring lives in lib/occ/template-generator-host.ts and adds only a few lines here
+  // [remix] 240: the Landing pages tab, Template videos modal and desktop drop-to-track were added to this file after the 220 budget was set.
   'components/edit/timeline-editor.tsx': 240,
   'components/edit/edit-tab.tsx': 260,
   'lib/editor/playback-engine.ts': 80,
