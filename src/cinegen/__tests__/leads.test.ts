@@ -1,6 +1,6 @@
 // [remix] Leads tab logic: forms, counts, filter/search, columns, CSV, includes, delete/list via a fake client, tab registration.
 import { describe, it, expect } from 'vitest';
-import { answerColumns, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, csvSafe, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
+import { answerColumns, fromMp4, rowSource, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, csvSafe, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
 import { createOverlay } from '@cinegen/lib/overlays/overlays';
 import { setLeadsForm, getLeadsForm } from '@cinegen/lib/leads/leads-filter';
 // @ts-expect-error plain JS
@@ -88,10 +88,26 @@ describe('leads logic', () => {
   it('registers the Leads tab', () => { expect(PROJECT_TABS.map((t: any) => t.id)).toContain('leads'); });
 });
 
+describe('MP4 attribution', () => {
+  const r = (page: string | null): LeadRow => ({ id: 'x', kind: 'list-builder', clipId: 'list-builder', createdAt: 't', data: { EMAIL: 'a@b.c' }, source: { page } });
+  it('reads ?src=mp4 from the page the viewer submitted on', () => {
+    expect(rowSource(r('https://x.app/watch/Abc123XyZ9?src=mp4'))).toBe('mp4');
+    expect(fromMp4(r('https://x.app/watch/Abc123XyZ9?src=mp4'))).toBe(true);
+    expect(fromMp4(r('https://x.app/watch/Abc123XyZ9'))).toBe(false);
+    expect(fromMp4(r('not a url'))).toBe(false);
+    expect(fromMp4({ ...r(null), source: undefined })).toBe(false);
+  });
+  it('adds an optional From MP4 column to the CSV', () => {
+    const csv = rowsToCsv([r('https://x.app/watch/Abc123XyZ9?src=mp4')], []);
+    expect(csv).toContain('"From MP4"'); expect(csv).toContain('"Yes"');
+    expect(rowsToCsv([r('https://x.app/watch/Abc123XyZ9')], [])).not.toContain('From MP4');
+  });
+});
+
 describe('fetchLeadRows', () => {
   it('maps rows and reports errors', async () => {
-    const ok = { functions: { invoke: async () => ({ data: { ok: true, leads: [{ id: '9', data: { EMAIL: 'z' }, created_at: 't', clip_id: 'c', kind: 'lead-form' }] }, error: null }) } };
-    expect(await fetchLeadRows(ok, { projectId: 'p' })).toMatchObject({ ok: true, rows: [{ id: '9', clipId: 'c', createdAt: 't', data: { EMAIL: 'z' } }] });
+    const ok = { functions: { invoke: async () => ({ data: { ok: true, leads: [{ id: '9', data: { EMAIL: 'z' }, created_at: 't', clip_id: 'c', kind: 'lead-form', source: { page: 'https://x/watch/Abc123XyZ9?src=mp4' } }] }, error: null }) } };
+    expect(await fetchLeadRows(ok, { projectId: 'p' })).toMatchObject({ ok: true, rows: [{ id: '9', clipId: 'c', createdAt: 't', data: { EMAIL: 'z' }, source: { page: 'https://x/watch/Abc123XyZ9?src=mp4' } }] });
     const bad = { functions: { invoke: async () => ({ data: null, error: { message: 'boom' } }) } };
     expect(await fetchLeadRows(bad, {})).toMatchObject({ ok: false, error: 'boom' });
   });
