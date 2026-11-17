@@ -192,7 +192,8 @@ export function personalImagesFromProjects(projects) {
     const urls = [...(Array.isArray(gen.outputUrls) ? gen.outputUrls : []), ...(Array.isArray(r.outputUrls) ? r.outputUrls : [])];
     const img = urls.find((u) => isImageOutput(u, r.output_type || r.outputType));
     if (!img) return;
-    const id = clip(r.client?.id, 80); const name = clip(r.client?.businessName || r.client?.name, 120).toLowerCase().replace(/[^a-z0-9]+/g, '');
+    // saved projects persist the customer as client.clientId
+    const id = clip(r.client?.id || r.client?.clientId || r.clientId, 80); const name = clip(r.client?.businessName || r.client?.name, 120).toLowerCase().replace(/[^a-z0-9]+/g, '');
     if (id && !byId[id]) byId[id] = httpsUrl(img);
     if (name && !byName[name]) byName[name] = httpsUrl(img);
   });

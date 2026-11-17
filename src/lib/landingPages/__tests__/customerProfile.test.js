@@ -154,3 +154,12 @@ describe('personal image lookup', () => {
     expect(out[0].image).toBe('');
   });
 });
+
+describe('personal image from a saved project that only has client.clientId', () => {
+  it('attaches the picture by the persisted clientId', async () => {
+    const { attachPersonalImages } = await import('../customerProfile.js');
+    const c = normalizeCustomer(CLIENT, 'client');
+    const out = attachPersonalImages([c], [{ client: { clientId: c.id }, generation: { outputUrls: ['https://cdn.test/p.png'] }, output_type: 'image', updated_at: '2026-01-01' }]);
+    expect(out[0].image).toBe('https://cdn.test/p.png');
+  });
+});
