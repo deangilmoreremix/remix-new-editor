@@ -104,7 +104,7 @@ function categoryLabel(key: PersonalizationCategoryKey): string {
 }
 
 /** One card in the gallery. */
-type GalleryItem =
+export type GalleryItem =
   | { kind: 'layout'; id: PreviewLayoutId; name: string; description: string; category: 'layouts' }
   | {
       kind: 'design'
@@ -115,8 +115,8 @@ type GalleryItem =
       design: RemotionDesignTemplate
     }
 
-function buildItems(designs: RemotionDesignTemplate[]): GalleryItem[] {
-  const layouts: GalleryItem[] = PREVIEW_LAYOUTS.map((layout) => ({
+function buildItems(designs: RemotionDesignTemplate[], designsOnly = false): GalleryItem[] {
+  const layouts: GalleryItem[] = designsOnly ? [] : PREVIEW_LAYOUTS.map((layout) => ({
     kind: 'layout' as const,
     id: layout.id,
     name: layout.name,
@@ -135,7 +135,7 @@ function buildItems(designs: RemotionDesignTemplate[]): GalleryItem[] {
 }
 
 /** Brand context for previews; sample copy keeps empty cards readable. */
-function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
+export function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
   const { brand } = baseInput
   return {
     businessName: brand.businessName || 'Your Business',
@@ -152,7 +152,7 @@ function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
 }
 
 /** The frame a paused card rests on: after the template has animated in. */
-function restFrameFor(item: GalleryItem, durationInFrames: number, fps: number): number {
+export function restFrameFor(item: GalleryItem, durationInFrames: number, fps: number): number {
   let frame = Math.round(fps * 1.5)
   if (item.kind === 'design') {
     const end = item.design.placement?.endFrame
@@ -202,12 +202,15 @@ export interface PersonalizationTemplateBrowserProps {
   onSelect?: (layoutId: PreviewLayoutId) => void
   /** When a Remotion design is selected. Defaults to the provider's `setRemotionDesign`. */
   onSelectDesign?: (designId: string) => void
+  /** Hide the built-in layouts: only the animated designs (add-ons) are listed. */
+  designsOnly?: boolean
 }
 
 /** Categorized gallery of every layout and Remotion design template. */
 export function PersonalizationTemplateBrowser({
   onSelect,
   onSelectDesign,
+  designsOnly = false,
 }: PersonalizationTemplateBrowserProps): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const {
@@ -249,7 +252,7 @@ export function PersonalizationTemplateBrowser({
     [onSelect, onSelectDesign, setPreviewLayout, setRemotionDesign],
   )
 
-  const items = useMemo(() => buildItems(remotionDesignTemplates), [remotionDesignTemplates])
+  const items = useMemo(() => buildItems(remotionDesignTemplates, designsOnly), [remotionDesignTemplates, designsOnly])
 
   const counts = useMemo(() => {
     const map = new Map<PersonalizationCategoryKey, number>()
@@ -295,7 +298,7 @@ export function PersonalizationTemplateBrowser({
               color: C.text,
             }}
           >
-            Video templates
+            {designsOnly ? 'Animated designs' : 'Video templates'}
           </h3>
           <span style={badgeStyle('muted')}>{totalCount} templates</span>
           <span style={badgeStyle('cyan')}>{counts.size} categories</span>
@@ -610,7 +613,7 @@ function TemplateCard({
  * holds dozens of decoders), and it only plays while the card is selected or
  * hovered.
  */
-function TemplateLivePreview({
+export function TemplateLivePreview({
   item,
   inputProps,
   playing,

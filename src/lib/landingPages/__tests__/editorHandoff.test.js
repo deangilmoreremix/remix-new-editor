@@ -62,13 +62,15 @@ describe('Video Pages studio', () => {
     expect(mountPageEditor).not.toHaveBeenCalled();
   });
 
-  it('the New page picker shows the real preview of every design, and a wireframe when a picture fails to load', async () => {
+  it('the New page picker: editable designs show a live preview of the page, every other design shows its picture, and a wireframe stands in when a picture fails to load', async () => {
     expect(queueVideoForPage({ url: 'https://x.test/v.mp4', type: 'video', prompt: 'Launch video' })).toBe(true);
     const root = LandingPagesStudio(); document.body.appendChild(root);
     await vi.waitFor(() => expect(root.textContent).toContain('New video page'));
-    await vi.waitFor(() => expect(root.querySelectorAll('img[data-design-preview]').length).toBe(TEMPLATES.filter((t) => !t.site).length));
-    const first = root.querySelector('img[data-design-preview="editable-leadiq"]');
-    expect(first.getAttribute('src')).toBe('/landing-previews/editable-leadiq.jpg');
+    const others = TEMPLATES.filter((t) => !t.site && !t.editable);
+    await vi.waitFor(() => expect(root.querySelectorAll('img[data-design-preview]').length).toBe(others.length));
+    const first = root.querySelector('img[data-design-preview="clean"]');
+    expect(first.getAttribute('src')).toBe('/landing-previews/clean.jpg');
+    expect(root.querySelector('img[data-design-preview="editable-leadiq"]')).toBeNull();   // an editable design is drawn live instead
     const card = first.closest('div');
     first.dispatchEvent(new Event('error'));
     expect(card.querySelector('svg')).toBeTruthy();                       // the page's shape stands in

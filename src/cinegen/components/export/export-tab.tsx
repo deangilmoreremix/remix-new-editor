@@ -100,7 +100,7 @@ export function ExportTab() {
 
         {/* [remix] interactive sharing moved to the Leads tab */}
         <p className="export-tab__hint" style={{ marginTop: 16 }}>
-          Publish an interactive version (forms, buttons) and collect leads in the <button type="button" className="mini-btn" data-testid="export-to-leads" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Leads</button> tab.
+          Publish an interactive version (forms, buttons) and collect leads in the <button type="button" className="mini-btn" data-testid="export-to-leads" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Leads</button> tab. A plain MP4 can't hold a form, so add a QR end card there to send MP4 viewers to your published link.
         </p>
 
         {latestJob && (
