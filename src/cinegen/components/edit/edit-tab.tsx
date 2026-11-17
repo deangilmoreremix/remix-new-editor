@@ -52,6 +52,9 @@ import { isMediaDebugEnabled, mediaDebug, mediaDebugError } from '@cinegen/lib/d
 import type { Asset } from '@cinegen/types/project';
 import { directorPoolRelabel } from '@cinegen/lib/director/folders';
 import type { Clip, ToolType, TrackKind, Keyframe, TimelineMarker } from '@cinegen/types/timeline';
+import { flattenCompounds, expandSelectionWithGroups } from '@cinegen/lib/editor/stage1'; // [remix] Stage 1
+import { useStage1Editing } from './use-stage1-editing';
+import { Stage4Dock } from './stage4/stage4-dock'; // [remix] Stage 4: audio / scenes / media health
 
 const PROXY_MODE_STORAGE_KEY = 'cinegen_proxy_mode';
 const EDIT_VIEW_STORAGE_PREFIX = 'cinegen_edit_view_v1';
@@ -200,6 +203,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [state.assets]);
 
   // Playback engine (replaces inline RAF loop, video pool, audio mixer)
+  const playTimeline = useMemo(() => flattenCompounds(timeline), [timeline]); // [remix] Stage 1: compound clips play as their content
   const {
     currentTime,
     isPlaying,
@@ -207,11 +211,13 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     proxyMode,
     setProxyMode,
     togglePlayPause,
+    play, pause, setSpeed,
     seek,
     setVideoContainer,
     setMetadataPreloadEnabled,
     handleSystemWake,
-  } = usePlaybackEngine(timeline, state.assets, {
+    engine, // [remix] Stage 4
+  } = usePlaybackEngine(playTimeline, state.assets, {
     initialProxyMode,
     onProxyFallbackRequest: handleProxyFallbackRequest,
   });
@@ -362,7 +368,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   const [selectedClipIds, setSelectedClipIdsRaw] = useState<Set<string>>(new Set());
   const setSelectedClipIds = useCallback((ids: Set<string>) => {
     if (ids.size === 0) { setSelectedClipIdsRaw(ids); return; }
-    const expanded = new Set(ids);
+    const expanded = expandSelectionWithGroups(timeline.clips, ids); // [remix] Stage 1: groups select together
     for (const id of ids) {
       const clip = timeline.clips.find((c) => c.id === id);
       if (clip?.linkedClipIds) {
@@ -729,6 +735,10 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     if (!sourceViewerEntry) return null;
     return state.assets.find((asset) => asset.id === sourceViewerEntry.asset.id) ?? null;
   }, [sourceViewerEntry, state.assets]);
+  const stage1 = useStage1Editing({
+    timeline, dispatch, selectedClipIds, setSelectedClipIds, currentTime, seek, isPlaying, play, pause, setSpeed,
+    sourceAsset: sourceViewerEntry && !sourceViewerEntry.clip ? resolvedSourceViewerAsset : null, sourceVisible: layout.sourceViewerVisible,
+  });
   const sourceViewerNativeVideoEnabled = nativeVideoAvailable
     && activeTool !== 'mask'
     && !isHtmlOnlyAsset(resolvedSourceViewerAsset);
@@ -940,7 +950,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [selectedClip, state.assets]);
 
   const handleUpdateClipProps = useCallback(
-    (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>) => {
+    (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions' | 'anim' | 'keyframes'>>) => {
       const updated = updateClipProperties(timeline, clipId, updates);
       dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: updated });
     },
@@ -1135,6 +1145,8 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         className="edit-tab__left-resize"
       />
 
+      {stage1.bar}
+      <Stage4Dock engine={engine} timeline={timeline} dispatch={dispatch} assets={state.assets} selectedClipIds={selectedClipIds} currentTime={currentTime} seek={seek} isPlaying={isPlaying} proxyMode={proxyMode} setProxyMode={setProxyMode} />
       {/* Viewers */}
       <div className="edit-tab__viewers">
         {layout.sourceViewerVisible && (
@@ -1149,6 +1161,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
               proxyMode={proxyMode}
               activeTool={activeTool}
               onAcceptMaskedVideo={handleAcceptMaskedVideo}
+              {...stage1.sourceProps}
             />
             <div className="edit-tab__viewer-divider" />
           </>
@@ -1163,13 +1176,14 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           nativeVideoEnabled={timelineNativeVideoEnabled}
           activeAsset={activeAsset}
           glTransition={activeGlTransition(timeline, currentTime)}
+          compoundGroups={playTimeline.groups}
+          playClips={playTimeline.clips}
           activeClip={activeClip ? (timeline.clips.find((c) => c.id === activeClip.id) ?? activeClip) : null}
           currentTime={currentTime}
           onSeek={seek}
           duration={sequenceDuration}
           isPlaying={isPlaying}
           onPlayPause={togglePlayPause}
-          onSeek={seek}
           proxyMode={proxyMode}
           onProxyModeChange={setProxyMode}
           sourceViewerVisible={layout.sourceViewerVisible}

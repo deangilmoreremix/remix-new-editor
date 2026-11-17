@@ -13,6 +13,7 @@ import { openAddToTimeline } from './add-to-timeline-registry';
 // @ts-expect-error plain JS flag module
 import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 import { GL_TRANSITION_ORDER, glTransitionLabel } from '@cinegen/lib/occ/transitions';
+import { GLT_IDS } from '../../../openchatcut/gl/glt';
 import { userLutIds } from '@cinegen/lib/occ/user-luts';
 import { availableSounds, soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { SOUND_GROUPS, formatSoundDuration, type SoundEffect } from '../../../openchatcut/audio/soundLibrary';
@@ -86,7 +87,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
 
   const fxIds = useMemo(() => [...FX_IDS, ...pluginResourceItems(packs, 'fx').map((i) => i.id)], [packs]);
   const lutIds = useMemo(() => [...LUT_IDS, ...userLutIds(), ...pluginResourceItems(packs, 'lut').map((i) => i.id)], [packs]);
-  const trIds = useMemo(() => [...GL_TRANSITION_ORDER, ...pluginResourceItems(packs, 'transition').map((i) => i.id)], [packs]);
+  const trIds = useMemo(() => [...GL_TRANSITION_ORDER, ...GLT_IDS, ...pluginResourceItems(packs, 'transition').map((i) => i.id)], [packs]);
   const fxName = (id: string) => t(ALL_FX[id]?.name ?? id);
   const trName = (id: string) => (id.startsWith('plugin:') ? getCustomTransition(id)?.label ?? id : glTransitionLabel(id));
   const hfItems = useMemo(() => (isHyperframesEnabled() ? hyperframesItems() : []), []);

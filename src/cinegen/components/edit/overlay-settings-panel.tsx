@@ -8,6 +8,7 @@ import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
 import { applyOptinToLeadForm, switchListBuilderKind } from '../../../lib/editor/addons/listBuilder.js';
 import type { MgPropField } from '@cinegen/lib/occ/mg-templates';
 import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
+import { LottieEditSection } from './lottie-edit-section';
 import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 import { hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
@@ -163,6 +164,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       )}
       {overlay.type === 'hyperframes' && <HfPlacementControls overlay={overlay} duration={duration} onUpdate={onUpdate} />}
       {overlay.type === 'mg-template' || overlay.type === 'hyperframes' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
+      {overlay.type === 'overlay-sticker' && (overlay.addon as { kind?: string } | undefined)?.kind === 'lottie' && <LottieEditSection addon={overlay.addon as never} onChange={(next) => onUpdate({ addon: next })} />}
     </aside>
   );
 }

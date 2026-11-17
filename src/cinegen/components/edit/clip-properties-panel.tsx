@@ -11,13 +11,14 @@ import { ClipLayoutSection } from './clip-layout-section';
 import { ClipMulticamSection } from './clip-multicam-section';
 import { ClipTransformSection } from './clip-transform-section';
 import { ClipZoomSection } from './clip-zoom-section';
+import { ClipAnimationSection } from './clip-animation-section';
 import { ClipTransitionSection } from './clip-transition-section';
 import type { Timeline } from '@cinegen/types/timeline';
 
 interface ClipPropertiesPanelProps {
   clip: Clip | null;
   asset: Asset | null;
-  onUpdateClip: (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>) => void;
+  onUpdateClip: (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions' | 'anim' | 'keyframes'>>) => void;
   onAddKeyframe: (clipId: string, property: 'opacity' | 'volume', time: number, value: number) => void;
   onRemoveKeyframe: (clipId: string, index: number) => void;
   onClose: () => void;
@@ -206,6 +207,8 @@ export function ClipPropertiesPanel({
       {!isAudio && <ClipCaptionsSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} onSeek={onSeek} />}
 
       {!isAudio && <ClipTransformSection clip={clip} currentTime={currentTime} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+
+      {!isAudio && <ClipAnimationSection clip={clip} currentTime={currentTime} onSeek={onSeek} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 
       {!isAudio && <ClipZoomSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 

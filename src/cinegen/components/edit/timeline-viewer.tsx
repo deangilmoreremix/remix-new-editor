@@ -8,6 +8,7 @@ import type { PlaybackProxyMode } from '@cinegen/lib/editor/playback-engine';
 import type { OverlayClip } from '@cinegen/types/workspace';
 import { OverlayLayer } from './overlay-layer';
 import { resolveFit, aspectRatio, frameFor } from '@cinegen/lib/occ/frame-geometry';
+import { GlGroupLayer } from './gl-group-layer';
 import { GlClipLayer } from './gl-clip-layer';
 import { CaptionsPreviewLayer } from './captions-preview-layer';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
@@ -24,6 +25,9 @@ interface TimelineViewerProps {
   /** [remix] clip under the playhead (for OpenChatCut fx preview) */
   activeClip?: Clip | null;
   glTransition?: import('./gl-clip-layer').GlTransitionState | null;
+  /** [remix] Fix E: compounds rendered as one group (flattenCompounds().groups) and the flattened clips */
+  compoundGroups?: import('@cinegen/types/timeline').Clip[];
+  playClips?: import('@cinegen/types/timeline').Clip[];
   currentTime: number;
   duration: number;
   isPlaying: boolean;
@@ -67,6 +71,8 @@ export function TimelineViewer({
   activeAsset,
   activeClip = null,
   glTransition = null,
+  compoundGroups,
+  playClips,
   currentTime,
   duration,
   isPlaying,
@@ -225,10 +231,14 @@ export function TimelineViewer({
             draggable={false}
           />
         )}
+        <GlGroupLayer container={glContainer} groups={compoundGroups} clips={playClips ?? []} currentTime={currentTime} />
         <GlClipLayer container={glContainer} clip={activeClip} assetId={activeAsset?.id ?? null} transition={glTransition} />
         </div>
         </div>
-        <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />
+        {/* [remix] Fix E: inside a GL transition window both clips' captions show (they are not drawn by the transition canvas) */}
+        {glTransition?.outClip && glTransition.inClip
+          ? [glTransition.outClip, glTransition.inClip].map((c) => <CaptionsPreviewLayer key={c.id} captions={c.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />)
+          : <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />}
         <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onResume={onPlayPause} onEditText={onOverlayText} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)} />
         </div>
       </div>

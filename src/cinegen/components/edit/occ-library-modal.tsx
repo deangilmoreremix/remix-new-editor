@@ -7,6 +7,7 @@ import { PreviewCleanupContext } from '../../../openchatcut/library/ResourcePrev
 import { ALL_FX, FX_IDS, LUT_IDS } from '../../../openchatcut/gl/fx/effects';
 import { t } from '../../../openchatcut/i18n/t';
 import { GL_TRANSITION_ORDER, glTransitionLabel } from '@cinegen/lib/occ/transitions';
+import { GLT_IDS } from '../../../openchatcut/gl/glt';
 import { userLutIds } from '@cinegen/lib/occ/user-luts';
 import { usePluginPacks, pluginResourceItems } from '../../../openchatcut/library/pluginResources';
 import { installFromText, installFromUrl, removePack, setPackEnabled } from '@cinegen/lib/occ/plugins';
@@ -24,13 +25,13 @@ export function OccLibraryModal({ onClose, onPickFx, onPickLut, onPickTransition
   const pfx = pluginResourceItems(packs, 'fx').map((i) => i.id);
   const plut = pluginResourceItems(packs, 'lut').map((i) => i.id);
   const ptr = pluginResourceItems(packs, 'transition').map((i) => i.id);
-  const ids = tab === 'fx' ? [...FX_IDS, ...pfx] : tab === 'lut' ? [...LUT_IDS, ...userLutIds(), ...plut] : [...GL_TRANSITION_ORDER, ...ptr];
+  const ids = tab === 'fx' ? [...FX_IDS, ...pfx] : tab === 'lut' ? [...LUT_IDS, ...userLutIds(), ...plut] : [...GL_TRANSITION_ORDER, ...GLT_IDS, ...ptr];
   const pick = (id: string) => { if (tab === 'fx') onPickFx(id); else if (tab === 'lut') onPickLut(id); else onPickTransition?.(id); };
   return (
     <div className="occ-library" role="dialog" aria-label="Effects library" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div style={{ width: 'min(760px, 94vw)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: '#0b1016', border: '1px solid rgba(255,255,255,.14)', borderRadius: 8, padding: 14 }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-          {([['fx', `Effects (${FX_IDS.length + pfx.length})`], ['lut', `LUTs & looks (${LUT_IDS.length + userLutIds().length + plut.length})`], ['tr', `Transitions (${GL_TRANSITION_ORDER.length + ptr.length})`], ['ext', `Extensions (${packs.length})`]] as Array<[Tab, string]>).map(([k, label]) => (
+          {([['fx', `Effects (${FX_IDS.length + pfx.length})`], ['lut', `LUTs & looks (${LUT_IDS.length + userLutIds().length + plut.length})`], ['tr', `Transitions (${GL_TRANSITION_ORDER.length + GLT_IDS.length + ptr.length})`], ['ext', `Extensions (${packs.length})`]] as Array<[Tab, string]>).map(([k, label]) => (
             <button key={k} className="clip-properties-panel__toggle-btn" style={tab === k ? { borderColor: '#22d3ee' } : undefined} onClick={() => setTab(k)}>{label}</button>
           ))}
           <span style={{ flex: 1 }} />
