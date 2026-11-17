@@ -97,7 +97,7 @@ describe('MP4 attribution', () => {
     expect(fromMp4(r('not a url'))).toBe(false);
     expect(fromMp4({ ...r(null), source: undefined })).toBe(false);
   });
-  it('adds a Source column to the CSV', () => {
+  it('adds an optional From MP4 column to the CSV', () => {
     const csv = rowsToCsv([r('https://x.app/watch/Abc123XyZ9?src=mp4')], []);
     expect(csv).toContain('"From MP4"'); expect(csv).toContain('"Yes"');
     expect(rowsToCsv([r('https://x.app/watch/Abc123XyZ9')], [])).not.toContain('From MP4');
