@@ -7,6 +7,7 @@ import { chunksToCaptions } from './model.js';
 export const WHISPER_MODELS = [
   ['onnx-community/whisper-base_timestamped', 'Accurate (≈ 80 MB)'],
   ['onnx-community/whisper-tiny_timestamped', 'Fast (≈ 40 MB)'],
+  ['onnx-community/whisper-small_timestamped', 'Best accuracy (≈ 250 MB; ≈ 590 MB on GPU)'],
 ];
 
 /** Fetch media and decode it to 16 kHz mono PCM, cut to [fromSec, toSec). */
