@@ -17,6 +17,7 @@ import {
 } from '../../../../src/lib/openaiImageApi';
 import { parseImageOptions } from '../../../../src/lib/openaiImageOptions';
 import { safetyIdentifier } from '../../../../src/lib/safetyIdentifier';
+import { toClientStream } from '../../../../src/lib/openaiImageStream';
 
 /**
  * Thumbnail generation for the Social Publish modal (opened from every studio).
@@ -103,7 +104,7 @@ function buildPrompt(body: Record<string, any>, aspectRatio: string): string {
   return parts.join(' ').slice(0, 30_000);
 }
 
-async function generations(key: string, model: string, prompt: string, aspectRatio: string, n: number, quality: string, extra?: ExtraImageOptions) {
+async function generations(key: string, model: string, prompt: string, aspectRatio: string, n: number, quality: string, extra?: ExtraImageOptions, streamPartials?: number): Promise<{ urls?: string[]; revised?: string; error?: NextResponse; stream?: Response }> {
   if (model === 'dall-e-3') {
     // dall-e-3 only returns one image per request.
     const calls = Array.from({ length: n }, () =>
@@ -137,9 +138,10 @@ async function generations(key: string, model: string, prompt: string, aspectRat
   const res = await fetch(`${OPENAI_BASE}/images/generations`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, prompt, n, size: extra?.size || gptImageSize(aspectRatio), quality, ...extraFields(model, extra) }),
+    body: JSON.stringify({ model, prompt, n, size: extra?.size || gptImageSize(aspectRatio), quality, ...extraFields(model, extra), ...(streamPartials !== undefined ? { stream: true, partial_images: streamPartials } : {}) }),
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   });
+  if (streamPartials !== undefined && res.ok) return { stream: res };
   const payload = await readUpstream(res);
   if (!res.ok) return { error: upstreamError(res, payload) };
   return toUrls(payload);
@@ -176,6 +178,16 @@ export async function POST(req: NextRequest) {
     moderation: parsed.options.moderation,
     safetyIdentifier: safetyIdentifier(userId),
   };
+  // Live preview: the picture streams back as partial images while it draws (one image at a time).
+  const wantsStream = body.stream === true;
+  let streamPartials: number | undefined;
+  if (wantsStream) {
+    if (n > 1) return errorJson('Live previews work for one image at a time.', 400);
+    if (parsed.options.outputFormat === 'svg' || parsed.options.outputFormat === 'gif') return errorJson('Live previews are not available for SVG or GIF.', 400);
+    const partials = Number(body.partial_images ?? 2);
+    if (!Number.isInteger(partials) || partials < 0 || partials > 3) return errorJson('partial_images must be 0 to 3.', 400);
+    streamPartials = partials;
+  }
   let quality = normalizeQuality(body.quality);
   const requestedModel = typeof body.model === 'string' ? body.model : DEFAULT_MODEL;
 
@@ -216,10 +228,11 @@ export async function POST(req: NextRequest) {
   // Image editing needs a gpt-image model; dall-e-3 can only generate from text.
   let model = requestedModel === 'dall-e-3' || GPT_IMAGE_MODELS.has(requestedModel) ? requestedModel : DEFAULT_MODEL;
   if (uniqueSources.length > 0 && model === 'dall-e-3') model = DEFAULT_MODEL;
+  if (wantsStream && model === 'dall-e-3') return errorJson('Live previews need a GPT Image or Images 2.6 model.', 400);
 
   let fellBackFrom: string | undefined;
   try {
-    let result: { urls?: string[]; revised?: string; error?: NextResponse };
+    let result: { urls?: string[]; revised?: string; error?: NextResponse; stream?: Response };
     if (uniqueSources.length > 0) {
       let images: ImagePart[];
       try {
@@ -243,7 +256,7 @@ export async function POST(req: NextRequest) {
           return errorJson(err?.message || 'Could not read the markup layer', 400);
         }
       }
-      result = await edits(key, model, prompt, aspectRatio, n, quality, images, mask, extra, markup);
+      result = await edits(key, model, prompt, aspectRatio, n, quality, images, mask, extra, markup, streamPartials);
       if (result.error && markup && model !== DEFAULT_MODEL && (await isModelUnavailable(result.error))) {
         // GPT Image 2 has no markup layer, so a silent fallback would ignore the drawing.
         return errorJson('Your OpenAI key cannot use Images 2.6 yet, and drawing edits need it. Use "Paint an area" or "Describe" instead.', 400);
@@ -252,19 +265,25 @@ export async function POST(req: NextRequest) {
         fellBackFrom = model;
         model = DEFAULT_MODEL;
         quality = fallbackQuality(quality);
-        result = await edits(key, model, prompt, aspectRatio, n, quality, images, mask, extra);
+        result = await edits(key, model, prompt, aspectRatio, n, quality, images, mask, extra, undefined, streamPartials);
       }
     } else {
-      result = await generations(key, model, prompt, aspectRatio, n, quality, extra);
+      result = await generations(key, model, prompt, aspectRatio, n, quality, extra, streamPartials);
       if (result.error && model !== DEFAULT_MODEL && (await isModelUnavailable(result.error))) {
         fellBackFrom = model;
         model = DEFAULT_MODEL;
         quality = fallbackQuality(quality);
-        result = await generations(key, model, prompt, aspectRatio, n, quality, extra);
+        result = await generations(key, model, prompt, aspectRatio, n, quality, extra, streamPartials);
       }
     }
 
     if (result.error) return result.error;
+    if (result.stream) {
+      return new NextResponse(
+        toClientStream(result.stream, { format: extra.outputFormat || 'png', model, fellBackFrom, requestId: `thumb_${Date.now().toString(36)}` }),
+        { status: 200, headers: { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store, no-transform', 'X-Accel-Buffering': 'no' } },
+      );
+    }
     if (!result.urls || result.urls.length === 0) {
       return errorJson('The image service returned no thumbnails. Try again.', 502);
     }

@@ -254,6 +254,62 @@ describe('/api/proxy/thumbnail-generate (Images 2.6)', () => {
     })
   })
 
+  const sse = (events) => new Response(new ReadableStream({ start(c) { const e = new TextEncoder(); for (const ev of events) c.enqueue(e.encode(`event: x\ndata: ${JSON.stringify(ev)}\n\n`)); c.close() } }), { status: 200, headers: { 'content-type': 'text/event-stream' } })
+  const readEvents = async (res) => (await res.text()).split('\n\n').filter(Boolean).map((b) => JSON.parse(b.replace(/^data: /, '')))
+
+  it('streams partial images then a final result with usage', async () => {
+    await withFetch(async () => sse([
+      { type: 'image_generation.partial_image', partial_image_index: 0, b64_json: 'PART0' },
+      { type: 'image_generation.partial_image', partial_image_index: 1, b64_json: 'PART1' },
+      { type: 'image_generation.completed', b64_json: 'FINAL', usage: { output_tokens: 1234 } },
+    ]), async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', stream: true, partial_images: 2 })
+      expect(res.status).toBe(200)
+      expect(res.headers.get('content-type')).toContain('text/event-stream')
+      const sent = JSON.parse(upstream.mock.calls[0][1].body)
+      expect(sent.stream).toBe(true)
+      expect(sent.partial_images).toBe(2)
+      const events = await readEvents(res)
+      expect(events.map((e) => e.type)).toEqual(['partial', 'partial', 'done'])
+      expect(events[0].url).toBe('data:image/png;base64,PART0')
+      expect(events[2].urls[0]).toBe('data:image/png;base64,FINAL')
+      expect(events[2].usage.output_tokens).toBe(1234)
+      expect(events[2].model).toBe('gpt-image-2.6-flare')
+    })
+  })
+
+  it('refuses streaming for several images, bad partial counts, SVG/GIF and DALL-E', async () => {
+    await withFetch(image, async (upstream) => {
+      expect((await post({ action: 'generate', prompt: 'p', stream: true, n: 2 })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', stream: true, partial_images: 5 })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', stream: true, model: 'dall-e-3' })).status).toBe(400)
+      expect(upstream).not.toHaveBeenCalled()
+    })
+  })
+
+  it('reports an early end of the stream as an error event', async () => {
+    await withFetch(async () => sse([{ type: 'image_generation.partial_image', partial_image_index: 0, b64_json: 'P' }]), async () => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', stream: true })
+      const events = await readEvents(res)
+      expect(events[events.length - 1].type).toBe('error')
+    })
+  })
+
+  it('still falls back to GPT Image 2 for a streamed request when 2.6 is unavailable', async () => {
+    let call = 0
+    await withFetch(async () => {
+      call += 1
+      return call === 1
+        ? new Response(JSON.stringify({ error: { message: 'The model does not exist or you do not have access to it.' } }), { status: 404 })
+        : sse([{ type: 'image_generation.completed', b64_json: 'FINAL' }])
+    }, async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', stream: true })
+      const events = await readEvents(res)
+      expect(events[events.length - 1].fallback_from).toBe('gpt-image-2.6-flare')
+      expect(JSON.parse(upstream.mock.calls[1][1].body).model).toBe('gpt-image-2')
+    })
+  })
+
   it('falls back to GPT Image 2 when the key has no Images 2.6 access', async () => {
     let call = 0
     await withFetch(async () => {

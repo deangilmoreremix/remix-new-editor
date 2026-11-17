@@ -11,6 +11,8 @@ export interface ThumbnailGenerationResultsProps {
   generating: boolean
   error: string | null
   generatingCount?: number
+  /** The newest partial picture while one image is still being drawn (live preview). */
+  partialUrl?: string | null
   onRetry?: () => void
   onDownload?: (url: string, index: number) => void
   thumbnail?: ThumbnailState
@@ -31,6 +33,7 @@ export default function ThumbnailGenerationResults({
   generating,
   error,
   generatingCount = 0,
+  partialUrl = null,
   onRetry,
   onDownload,
   thumbnail,
@@ -76,6 +79,13 @@ export default function ThumbnailGenerationResults({
           </span>
         )}
       </div>
+
+      {generating && partialUrl && (
+        <div className="overflow-hidden rounded-xl border border-white/10" data-testid="thumbnail-live-preview">
+          <img src={partialUrl} alt="Live preview while the thumbnail is drawn" className="w-full object-cover" style={{ filter: 'blur(2px)' }} />
+          <p className="bg-black/50 px-2 py-1 text-[10px] text-white/60">Live preview, still drawing…</p>
+        </div>
+      )}
 
       {error && (
         <div
