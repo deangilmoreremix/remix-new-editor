@@ -528,3 +528,16 @@ export function LeadAnchorFallback() {
   }, []);
   return null;
 }
+
+/**
+ * A slim strip shown ONLY to someone who opened a personal link (the page knows their name or company):
+ * "A personal video for Dana". Generic visitors see nothing, so a design looks exactly as designed for them.
+ */
+export function PersonalGreeting({ text }) {
+  const t = useTokens();
+  const { tokens } = usePage();
+  const known = ['firstname', 'company'].some((k) => String(tokens?.[k] ?? '').trim());
+  const out = known && String(text || '').trim() ? t(text) : '';
+  if (!out) return null;
+  return <div className="pk-greeting" role="note">{out}</div>;
+}

@@ -76,7 +76,7 @@ describe('dedupe keeps distinct people', () => {
 describe('tokens and contact row', () => {
   const c = normalizeCustomer(CLIENT, 'client', { assets: ASSETS });
   it('customerTokens only returns the public page tokens', () => {
-    expect(Object.keys(customerTokens(c)).sort()).toEqual(['city', 'company', 'companylogo', 'firstname', 'lastname']);
+    expect(Object.keys(customerTokens(c)).sort()).toEqual(['city', 'company', 'companylogo', 'custom1', 'custom2', 'firstname', 'lastname']); // custom1/custom2 = city / the person, for designs that read those
   });
   it('toContactFields keeps the email (owner only) and skips customers with nothing to personalize', () => {
     expect(toContactFields(c).email).toBe('dana@riversideplumbing.com');
@@ -95,10 +95,10 @@ describe('applyCustomerToPuck on every design', () => {
       expect(data.content.map((x) => x.type)).toEqual(t.puckData.content.map((x) => x.type));
       expect(data.root.props.accent).toBe('#ff8a1f');
       expect(applied).toContain('page colour');
-      const nav = data.content.find((x) => x.type === 'NavBar');
+      const nav = data.content.find((x) => /Nav(Bar)?$/.test(x.type));
       if (nav) { expect(nav.props.brand).toBe('Riverside Plumbing'); expect(nav.props.logo).toBe('https://cdn.test/logo.png'); }
       // everything except the brand slots is untouched
-      const strip = (d) => JSON.stringify(d.content.map((x) => (x.type === 'NavBar' || x.type === 'Footer' ? { type: x.type } : x)));
+      const strip = (d) => JSON.stringify(d.content.map((x) => (/Nav(Bar)?$/.test(x.type) || x.type === 'Footer' ? { type: x.type } : x)));
       expect(strip(data)).toBe(strip(t.puckData));
     });
   });

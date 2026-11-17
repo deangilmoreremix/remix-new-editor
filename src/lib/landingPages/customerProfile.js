@@ -165,6 +165,9 @@ export function dedupeCustomers(list) {
 export function customerTokens(c) {
   if (!c) return {};
   const t = { ...c.tokens, company: c.tokens.company || c.business.name, companylogo: httpsUrl(c.tokens.companylogo || c.brand.logoUrl) };
+  // The industry designs read their city from {{custom1}} and the person's name from {{custom2}} (e.g. a pet owner).
+  if (!t.custom1 && t.city) t.custom1 = t.city;
+  if (!t.custom2 && t.firstname) t.custom2 = t.firstname;
   return Object.fromEntries(Object.entries(t).filter(([, v]) => v));
 }
 
@@ -240,7 +243,7 @@ export function applyCustomerToPuck(puckData, customer, { useImage = true, brand
   data.content.forEach((item) => {
     const p = item.props || {};
     if (image && /Hero|VideoSection/.test(item.type) && ('slotImage' in p || 'photo' in p || 'poster' in p || item.type === 'Hero')) { p.slotImage = image; applied.push('personalized image'); }
-    if (item.type === 'NavBar' && writeBrand) {
+    if (/Nav(Bar)?$/.test(item.type) && writeBrand) {
       if (business.name) { p.brand = business.name; applied.push('business name'); }
       if (httpsUrl(brand.logoUrl)) { p.logo = brand.logoUrl; applied.push('logo'); }
       if (!p.loginUrl && business.website) p.loginUrl = business.website;
