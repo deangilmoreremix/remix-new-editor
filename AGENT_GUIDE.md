@@ -725,3 +725,13 @@ The `.agents/skills/` directory is large. When you're not coming in through a to
 - Do not present a single unavailable tool in isolation. Always show the full capability picture: "X of Y providers configured for this capability."
 - Do not skip the Provider Menu at preflight. The user must see what they have AND what they could unlock.
 - Do not change provider, model, or render path without telling the user first and getting approval when the change is material.
+
+## Mailkiln studio (vendored upstream dashboard)
+
+The Mailkiln studio embeds the open-source Warmbly dashboard, rebranded at build time. Rules for working on it:
+
+- **Never edit vendored upstream files** (`apps/warmbly-web/**`, `apps/mailkiln-help/content/**`, `apps/mailkiln-help/upstream/**`). The only allowed differences are listed in `apps/warmbly-web/UPSTREAM.md`. Run `npm run verify:upstream -- <path to an upstream clone at the commit in apps/mailkiln-brand/brand.json>` after any change there.
+- **Branding lives in one place:** `apps/mailkiln-brand/brand.json`. Product name, logo mark and icons are applied at build time by `rebrand-plugin.mjs`, `apps/mailkiln-help/build.mjs` and `agent-docs.mjs`. Never rewrite lowercase technical identifiers (`warmbly` commands, `WARMBLY_*`, API paths, storage keys): a real backend depends on them.
+- **Build:** `npm run build:mailkiln` (dashboard to `public/mailkiln-app`, Help site to `public/mailkiln-help`). Tests: `npm run test:mailkiln-help` and `cd apps/warmbly-web && pnpm exec vitest run src/lib/demo`.
+- **Demo data:** with no backend the dashboard answers from `apps/warmbly-web/src/lib/demo/fixtures.json`. Add a recorded response there when a view reports "no recorded demo data"; to use a real backend build without `VITE_DEMO` and set `WARMBLY_API_URL`.
+- Upstream's own agent rules and skills are kept, rebranded, in `apps/mailkiln-help/agent/` and published in the Help site under "Developers & agents".

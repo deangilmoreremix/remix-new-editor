@@ -885,14 +885,16 @@ function gtmBoostDevPlugin() {
  * file removes a 404 path and matches the production behavior (Netlify
  * serves the same file as a static rewrite).
  */
-// Dev server: client-side routes of the embedded Warmbly dashboard (built to public/warmbly-app) serve its own index.html.
-function warmblyAppFallbackPlugin() {
+// Dev server: client-side routes of the embedded Mailkiln dashboard (built to public/mailkiln-app) serve its own index.html,
+// and Help pages (public/mailkiln-help/**/index.html) resolve their directory URLs.
+function mailkilnFallbackPlugin() {
   return {
-    name: 'warmbly-app-spa-fallback',
+    name: 'mailkiln-spa-fallback',
     configureServer(server) {
       server.middlewares.use((req, _res, next) => {
         const url = (req.url || '').split('?')[0];
-        if (url.startsWith('/warmbly-app/') && !/\.[a-z0-9]+$/i.test(url)) req.url = '/warmbly-app/index.html';
+        if (url.startsWith('/mailkiln-app/') && !/\.[a-z0-9]+$/i.test(url)) req.url = '/mailkiln-app/index.html';
+        else if (url.startsWith('/mailkiln-help/') && url.endsWith('/')) req.url = `${url}index.html`;
         next();
       });
     },
@@ -1058,14 +1060,13 @@ export default defineConfig({
             '@higgsfield/style-templates': path.resolve(__dirname, 'packages/style-templates/src'),
             '@higgsfield/video-compiler': path.resolve(__dirname, 'packages/video-compiler/src'),
             '@higgsfield/ai-chat': path.resolve(__dirname, 'packages/ai-chat/src'),
-            '@smartvideo/warmbly-studio': path.resolve(__dirname, 'apps/warmbly-studio/src'),
             // Personalization + Lead Finder system ported from OpenHiggsBolt.
             // The copied files keep OpenHiggsBolt's folder layout under this root.
             '@ohb': path.resolve(__dirname, 'src/features/personalization'),
         },
     },
     plugins: [
-      warmblyAppFallbackPlugin(),
+      mailkilnFallbackPlugin(),
         // [remix] OpenChatCut's dev-only plugin (config/vite.config.ts `serveOrtWasmLoader`): serve the prebuilt onnxruntime loader
         // module from public/models/silero-vad verbatim, since Vite refuses to import JS from /public.
         {

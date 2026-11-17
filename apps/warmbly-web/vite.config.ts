@@ -4,6 +4,7 @@ import path from "path";
 import tailwindcss from "@tailwindcss/vite";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { dashboardCspPlugin, noncePlaceholder } from "./csp";
+import rebrand from "../mailkiln-brand/rebrand-plugin.mjs";
 
 // A Cloudflare Pages build sets no release, so its events are tagged with the commit it built.
 if (!process.env.VITE_SENTRY_RELEASE && process.env.CF_PAGES_COMMIT_SHA) process.env.VITE_SENTRY_RELEASE = process.env.CF_PAGES_COMMIT_SHA;
@@ -67,6 +68,8 @@ export default defineConfig(({ command, mode, isPreview }) => ({
     base: process.env.VITE_BASE || "/",
     html: { cspNonce: command === "serve" && !isPreview ? noncePlaceholder : undefined },
     plugins: [
+        // Rebrands user-facing text at build time (see ../mailkiln-brand); off with VITE_BRAND=off for a pristine upstream build.
+        ...(process.env.VITE_BRAND === "off" ? [] : [rebrand()]),
         react(),
         tailwindcss(),
         preloadInterfaceFont(),
