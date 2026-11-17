@@ -108,6 +108,13 @@ export async function mountWatchPage(container, ref, deps = {}) {
       </section>`
     : '';
 
+  // Chapters (made in the Video Outreach editor from the captions): click one to jump there.
+  const chapters = embed ? [] : (Array.isArray(video.project.chapters) ? video.project.chapters : [])
+    .filter((c) => Number.isFinite(c?.startMs) && typeof c.title === 'string' && c.title.trim()).slice(0, 20);
+  const chaptersBody = chapters.length > 1
+    ? `<nav class="watch-chapters" data-chapters aria-label="Chapters"><h2>Chapters</h2><ol>${chapters.map((c, i) => `<li><button type="button" class="watch-chapter" data-chapter="${i}"><span class="watch-transcript-time">${esc(clock(c.startMs))}</span><span>${esc(c.title)}</span></button></li>`).join('')}</ol></nav>`
+    : '';
+
   container.innerHTML = `
     <main class="watch">
       ${embed ? '' : `<header class="watch-head"><h1>${esc(heading)}</h1></header>`}
@@ -125,6 +132,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
           <button type="button" class="watch-btn" data-fs aria-label="Full screen">⛶</button>
         </div>
       </section>
+      ${chaptersBody}
       ${landingBody}
       ${transcriptBody}
     </main>`;
@@ -224,6 +232,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
     };
     const follow = setInterval(mark, 250);
   }
+  container.querySelectorAll('[data-chapter]').forEach((b) => b.addEventListener('click', () => { player.seek(chapters[Number(b.dataset.chapter)].startMs / 1000); player.play(); }));
   $('[data-bigplay]').addEventListener('click', start);
   $('[data-play]').addEventListener('click', () => player.toggle());
   const seekInput = $('[data-seek]');

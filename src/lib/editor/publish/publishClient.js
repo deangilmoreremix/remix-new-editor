@@ -109,6 +109,16 @@ function clean(value) {
  * The JSON snapshot that gets published.
  * @throws when local (unsaved) media is still referenced
  */
+/** Chapters as plain data: up to 20, sorted, a time and a short title each. */
+export function cleanChapters(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((c) => c && Number.isFinite(Number(c.startMs)) && typeof c.title === 'string' && c.title.trim())
+    .slice(0, 20)
+    .map((c) => ({ startMs: Math.max(0, Math.round(Number(c.startMs))), title: c.title.trim().slice(0, 80) }))
+    .sort((a, b) => a.startMs - b.startMs);
+}
+
 export function preparePublishProject(state, { title } = {}) {
   const tracks = (state?.tracks || []).map((t) => ({
     id: t.id, name: t.name, type: t.type, muted: !!t.muted, solo: !!t.solo,
@@ -138,6 +148,8 @@ export function preparePublishProject(state, { title } = {}) {
     ...(state?.landing ? { landing: cleanLanding(state.landing) } : {}),
     // Its transcript (src/lib/outreach/transcript.js), shown under the video on the watch page.
     ...(cleanTranscript(state?.transcript) ? { transcript: cleanTranscript(state.transcript) } : {}),
+    // Its chapters (Video Outreach editor), listed under the video: [{ startMs, title }].
+    ...(cleanChapters(state?.chapters).length > 1 ? { chapters: cleanChapters(state.chapters) } : {}),
   };
 }
 

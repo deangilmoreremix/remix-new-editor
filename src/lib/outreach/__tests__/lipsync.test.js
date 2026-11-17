@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { introSeconds, lipsyncJobs, padSamples, lipsyncContacts, paidJobCount, copyClip, introKey, clipKey, speechStart, pauseWarning } from '../lipsync.js';
 import { buildCampaignProject, defaultDraft } from '../draft.js';
 import { timelineToComposition } from '../../editor/remotion/timelineToComposition.js';
+import { preparePublishProject } from '../../editor/publish/publishClient.js';
 
 const ready = () => ({
   ...defaultDraft(),
@@ -125,5 +126,16 @@ describe('lip-synced greeting', () => {
     expect(speechStart([{ start: 2, end: 3 }])).toBe(0);
     expect(pauseWarning(2.6, 1.6)).toMatch(/pause is 1\.6s.*needs 2\.6s.*first 1\.0s/);
     expect(pauseWarning(1.9, 1.8)).toBeNull();
+  });
+
+  it('publishes chapters and the editor’s personal additions with the campaign', () => {
+    const d = { ...ready(), chapters: [{ startMs: 0, title: 'Intro' }, { startMs: 9000, title: 'Demo' }] };
+    const extra = vi.fn((T) => [{ id: 'track-personal-text', type: 'video', name: 'Personal text', items: [{ id: 'x', type: 'overlay-text', left: 0, width: (5 / T) * 100, addon: { text: 'For {{company}}' } }] }]);
+    const p = buildCampaignProject(d, { variants, extraTracks: extra, now: 1000 });
+    expect(extra).toHaveBeenCalledWith(20);
+    expect(p.tracks.map((t) => t.name)).toEqual(['Main Video', 'Voiceover', 'Personal text']);
+    expect(p.chapters).toEqual(d.chapters);
+    expect(preparePublishProject(p, { title: 'x' }).chapters).toEqual(d.chapters);
+    expect(buildCampaignProject({ ...d, chapters: [d.chapters[0]] }, { variants, now: 1000 }).chapters).toBeUndefined();
   });
 });

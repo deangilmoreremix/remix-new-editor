@@ -92,6 +92,9 @@ export function defaultDraft() {
     // Lip-synced greetings already made (src/lib/outreach/lipsync.js): { [key]: our stored URL }, so Generate
     // doesn't pay again for the same recording and greeting.
     lipsyncCache: {},
+    // The editor's recipe (src/lib/outreach/editTools.js normalizeEdit) and chapters made from the captions.
+    edit: null,
+    chapters: [],
   };
 }
 
@@ -114,6 +117,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       mapShots: saved.mapShots && typeof saved.mapShots === 'object' ? saved.mapShots : {},
       siteLogos: saved.siteLogos && typeof saved.siteLogos === 'object' ? saved.siteLogos : {},
       lipsyncCache: saved.lipsyncCache && typeof saved.lipsyncCache === 'object' ? saved.lipsyncCache : {},
+      chapters: Array.isArray(saved.chapters) ? saved.chapters : [],
       email: { ...base.email, ...(saved.email || {}), thumb: { ...base.email.thumb, ...(saved.email?.thumb || {}) } },
       ...pageOf(saved),
     };
@@ -498,7 +502,7 @@ const clipsTimeline = (draft, variants = {}, lipsync = null) => {
  * from perContact.voiceForContacts. Track and clip shapes are the ones the public player reads
  * (same as the editor's publish: tracks with items, start/end seconds or left/width percent).
  */
-export function buildCampaignProject(draft, { variants = {}, lipsync = null, now = Date.now() } = {}) {
+export function buildCampaignProject(draft, { variants = {}, lipsync = null, extraTracks = null, now = Date.now() } = {}) {
   for (const step of [1, 2, 3, 4]) {
     const errors = stepErrors(draft, step);
     if (errors.length) throw new Error(errors[0]);
@@ -559,10 +563,15 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, now
       voiceTrack,
     ].filter(Boolean);
 
+  // Personal additions from the editor (src/lib/outreach/editTools.js personalTracks): text with {{tokens}} and the
+  // prospect's website as B-roll, on top of everything, filled in for each prospect.
+  if (typeof extraTracks === 'function') tracks.push(...extraTracks(T));
+  const chapters = (draft.chapters || []).filter((c) => Number.isFinite(c?.startMs) && c.title).slice(0, 20).map((c) => ({ startMs: Math.max(0, Math.round(c.startMs)), title: String(c.title).slice(0, 80) }));
   return {
     title: name.slice(0, 200),
     timelineSeconds: T,
     tracks,
+    ...(chapters.length > 1 ? { chapters } : {}),
     ...(website ? { multiCam: { mode: 'pip', mainTrackId: `track-bg-${id}`, secondTrackId: `track-cam-${id}`, pip: { corner: 'bottom-left', size: 26, shape: 'circle' } } } : {}),
     kind: 'outreach',
     campaign: { name: name.slice(0, 120), contacts: (draft.contacts || []).length },

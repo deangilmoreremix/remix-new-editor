@@ -148,8 +148,10 @@ export function OutreachStudio() {
   container.append(stepper, scroll);
 
   // A generated campaign is also kept in the Videos library, so it can be opened again later.
-  const persist = () => { saveDraft(draft); if (draft.campaign) saveToLibrary(draft); };
-  const replaceDraft = (next) => { for (const k of Object.keys(draft)) delete draft[k]; Object.assign(draft, next); edit = { trimStart: 0, trimEnd: null, cuts: [], before: null, after: null }; linkStats = { id: null, loading: false, byContact: null }; pendingCsv = null; pendingLeads = null; persist(); };
+  // The edit recipe (src/lib/outreach/editTools.js) is saved with the draft; clips added before/after are local files,
+  // kept for this session only.
+  const persist = () => { draft.edit = { ...edit, before: null, after: null }; saveDraft(draft); if (draft.campaign) saveToLibrary(draft); };
+  const replaceDraft = (next) => { for (const k of Object.keys(draft)) delete draft[k]; Object.assign(draft, next); edit = startEdit(draft.edit); stopPreview(); linkStats = { id: null, loading: false, byContact: null }; pendingCsv = null; pendingLeads = null; persist(); };
   const setBusy = (label) => { busy = label; render(); };
   const fail = (err) => { busy = ''; notice = err?.message || String(err); render(); };
   // Everyone can look around Video Outreach; recording, generating and sharing need SmartVideo full access.
@@ -164,7 +166,7 @@ export function OutreachStudio() {
   }
 
   // ---- Step 1: Record ----------------------------------------------------
-  async function addVideo(blob, { duration, hasAudio = true, type = 'upload', name = 'outreach.webm' } = {}) {
+  async function addVideo(blob, { duration, hasAudio = true, type = 'upload', name = 'outreach.webm', keepCaptions = false } = {}) {
     if (!(await gate('Video Outreach'))) return;
     notice = '';
     setBusy('Uploading your video…');
@@ -174,9 +176,10 @@ export function OutreachStudio() {
       const url = await uploadToStorage(file);
       const seconds = duration || await videoDuration(url);
       draft.video = { url, duration: Math.round(seconds), hasAudio, type };
-      // A new recording means new captions, a new voice sample and greeting.
-      draft.captions = null;
-      edit = { trimStart: 0, trimEnd: null, cuts: [], before: null, after: null };
+      // A new recording means new captions, a new voice sample and greeting (unless only its look changed).
+      if (!keepCaptions) { draft.captions = null; draft.chapters = []; }
+      edit = startEdit(tools ? tools.afterApply(edit) : null);
+      waveCache = null;
       draft.voice = { ...draft.voice, fallbackUrl: '', fallbackDuration: 0 };
       persist();
       busy = '';
@@ -211,13 +214,18 @@ export function OutreachStudio() {
   }
 
   // ---- Edit: trim, cut, add a clip before/after (src/lib/outreach/videoEdit.jsx) -------------
-  let edit = { trimStart: 0, trimEnd: null, cuts: [], before: null, after: null };
+  let tools = null; // src/lib/outreach/editTools.js, loaded with the editor
+  let toolsUi = null; // src/components/outreach/EditorTools.js
+  const startEdit = (saved) => (tools ? tools.normalizeEdit(saved || {}) : { ...{ trimStart: 0, trimEnd: null, cuts: [], before: null, after: null }, ...(saved || {}), before: null, after: null });
+  let edit = startEdit(draft.edit);
+  let editTab = 'cut';
+  let waveCache = null;
   const fmtS = (n) => `${Math.floor(n / 60)}:${(n % 60).toFixed(1).padStart(4, '0')}`;
 
   function renderEditPanel() {
     const box = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
     box.setAttribute('data-outreach-edit', '');
-    box.appendChild(el('div', 'text-sm font-bold', 'Edit'));
+    box.appendChild(el('div', 'text-sm font-bold', 'Trim and cut'));
     const dur = draft.video.duration || 0;
     const end = edit.trimEnd ?? dur;
     const slider = (label, value, onInput, attr) => {
@@ -229,7 +237,7 @@ export function OutreachStudio() {
       row.append(el('span', 'w-24 text-secondary', label), r, v);
       return row;
     };
-    const seekPreview = (t) => { const v = container.querySelector('[data-outreach-edit-preview] video, .aspect-video video'); if (v) v.currentTime = t; };
+    const seekPreview = (t) => { if (preview?.engine) { persist(); refreshPreview(); return; } const v = container.querySelector('[data-editor-video] video'); if (v) v.currentTime = t; };
     box.append(
       slider('Start at', edit.trimStart, (t) => { edit.trimStart = Math.min(t, (edit.trimEnd ?? dur) - 0.5); seekPreview(t); }, 'data-edit-start'),
       slider('End at', end, (t) => { edit.trimEnd = Math.max(t, edit.trimStart + 0.5); seekPreview(t); }, 'data-edit-end'),
@@ -244,14 +252,14 @@ export function OutreachStudio() {
     addCut.addEventListener('click', () => {
       const a = Number(from.value); const b = Number(to.value);
       if (!(b > a)) { notice = 'Set where the cut starts and ends (seconds).'; render(); return; }
-      edit.cuts = [...edit.cuts, [a, Math.min(b, dur)]]; render();
+      edit.cuts = [...edit.cuts, [a, Math.min(b, dur)]]; persist(); render();
     });
     cutRow.append(el('span', 'w-24 text-secondary', 'Cut a section'), from, to, addCut);
     box.appendChild(cutRow);
     edit.cuts.forEach(([a, b], i) => {
       const r = el('div', 'flex items-center gap-2 text-xs text-white/70');
       const rm = button('Undo', { small: true });
-      rm.addEventListener('click', () => { edit.cuts = edit.cuts.filter((_, j) => j !== i); render(); });
+      rm.addEventListener('click', () => { edit.cuts = edit.cuts.filter((_, j) => j !== i); persist(); render(); });
       r.append(el('span', '', `Cut ${fmtS(a)} – ${fmtS(b)}`), rm);
       box.appendChild(r);
     });
@@ -273,43 +281,219 @@ export function OutreachStudio() {
       clipRow.append(b, f);
     }
     box.appendChild(clipRow);
-    const total = editSegmentsInfo();
-    const applyRow = el('div', 'flex flex-wrap items-center gap-2');
-    const apply = button('Apply edits', { primary: !total.unchanged, small: true });
-    apply.setAttribute('data-edit-apply', '');
-    apply.disabled = total.unchanged || !!busy;
-    apply.addEventListener('click', applyEdits);
-    applyRow.append(apply, el('span', 'text-xs text-white/50', total.unchanged ? 'No changes yet.' : `New length ${fmtS(total.seconds)} (was ${fmtS(dur)}).`));
-    box.appendChild(applyRow);
     return box;
+  }
+
+  // The Apply bar under every editor tool: what will change, and Apply edits.
+  function renderApplyBar() {
+    const dur = draft.video.duration || 0;
+    const total = editSegmentsInfo();
+    const row = el('div', 'flex flex-wrap items-center gap-2');
+    const apply = button('Apply edits', { primary: total.changed, small: true });
+    apply.setAttribute('data-edit-apply', '');
+    apply.disabled = !total.changed || !!busy;
+    apply.addEventListener('click', applyEdits);
+    const personal = tools ? edit.overlays.filter(tools.isPersonal).length + edit.broll.filter(tools.isPersonal).length : 0;
+    row.append(apply, el('span', 'text-xs text-white/50', [
+      total.changed ? `New length ${fmtS(total.seconds)} (was ${fmtS(dur)}).` : 'No changes to render yet.',
+      personal ? `${personal} personal addition${personal === 1 ? '' : 's'} added to each prospect’s video (not burned in).` : '',
+    ].filter(Boolean).join(' ')));
+    return row;
   }
 
   let editModule = null;
   function editSegmentsInfo() {
-    if (!editModule) { import('../lib/outreach/videoEdit.jsx').then((m) => { editModule = m; if (step === 1) render(); }); return { unchanged: true, seconds: 0 }; }
+    if (!editModule || !tools) {
+      Promise.all([import('../lib/outreach/videoEdit.jsx'), import('../lib/outreach/editTools.js'), import('./outreach/EditorTools.js')]).then(([m, t, ui]) => {
+        editModule = m; toolsUi = ui; if (!tools) { tools = t; edit = { ...t.normalizeEdit(edit), before: edit.before, after: edit.after }; }
+        if (step === 1) render();
+      });
+      return { unchanged: true, changed: false, seconds: 0 };
+    }
     const main = { src: draft.video.url, duration: draft.video.duration };
     const segs = editModule.buildSegments({ main, edits: edit, before: edit.before, after: edit.after });
-    return { segs, unchanged: editModule.isUnchanged(segs, main), seconds: editModule.segmentsDuration(segs) };
+    const unchanged = editModule.isUnchanged(segs, main);
+    return { segs, unchanged, changed: tools.hasRenderableEdits(edit, main), seconds: editModule.segmentsDuration(segs) };
   }
+
+  // Only trims, cuts and clips before/after: the quick segment render. Anything else (look, captions, text, music,
+  // B-roll, transitions): the timeline renderer (the same composition the preview shows), then FFmpeg when asked.
+  const onlyCuts = () => {
+    const b = tools.blankEdit();
+    return JSON.stringify([edit.look, edit.audio, edit.captions.burn, edit.transition, edit.quality]) === JSON.stringify([b.look, b.audio, false, 'none', 'standard'])
+      && !edit.overlays.some((o) => !tools.isPersonal(o)) && !edit.broll.some((o) => !tools.isPersonal(o));
+  };
+  const busyText = (t) => { busy = t; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; };
 
   async function applyEdits() {
     const { segs } = editSegmentsInfo();
+    if (!segs) return;
     abort = new AbortController();
+    stopPreview();
     try {
       setBusy('Applying edits…');
-      const out = await editModule.renderSegments(segs, {
-        signal: abort.signal,
-        onProgress: (p) => { busy = `Applying edits… ${Math.round(p * 100)}%`; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; },
-      });
+      const main = { src: draft.video.url, duration: draft.video.duration };
+      let blob; let duration; let mime;
+      if (onlyCuts()) {
+        const out = await editModule.renderSegments(segs, { signal: abort.signal, onProgress: (p) => busyText(`Applying edits… ${Math.round(p * 100)}%`) });
+        ({ blob, duration } = out); mime = out.mimeType;
+      } else {
+        const [{ timelineToComposition }, { exportModel }, media] = await Promise.all([
+          import('../lib/editor/remotion/timelineToComposition.js'),
+          import('../lib/editor/remotion/exportClient.js'),
+          import('../lib/outreach/mediaTools.js'),
+        ]);
+        const { project, seconds, aspect } = tools.editProject({ main, edit, lines: draft.captions?.lines || [] });
+        const model = timelineToComposition(project, { quality: '1080p', aspect });
+        blob = await exportModel(model, { container: 'mp4', signal: abort.signal, onProgress: (p) => busyText(`Rendering your edits… ${Math.round((p || 0) * 100)}%`) });
+        if (media.needsFinish({ louder: edit.audio.louder, quality: edit.quality })) {
+          busyText('Finishing with FFmpeg…');
+          blob = await media.finishVideo(blob, { louder: edit.audio.louder, quality: edit.quality, signal: abort.signal, onProgress: (p) => busyText(`Finishing with FFmpeg… ${Math.round(p * 100)}%`) });
+        }
+        duration = seconds; mime = blob.type || 'video/mp4';
+      }
+      // Captions and chapters follow the cuts, so the transcript still matches the new video.
+      const lines = draft.captions?.lines?.length ? tools.remapLines(draft.captions.lines, segs, main.src) : null;
+      const chapters = (draft.chapters || []).map((c) => ({ ...c, startMs: Math.round((tools.toOutputTime(c.startMs / 1000, segs, main.src) ?? -1) * 1000) })).filter((c) => c.startMs >= 0);
       abort = null; busy = '';
-      await addVideo(out.blob, { duration: out.duration, hasAudio: draft.video.hasAudio, type: draft.video.type, name: `edited.${/webm/.test(out.mimeType) ? 'webm' : 'mp4'}` });
+      await addVideo(blob, { duration, hasAudio: draft.video.hasAudio, type: draft.video.type, name: `edited.${/webm/.test(mime) ? 'webm' : 'mp4'}`, keepCaptions: true });
+      if (draft.captions && lines) draft.captions = { ...draft.captions, lines, translations: {} };
+      draft.chapters = chapters;
+      persist();
       notice = 'Edits applied. Check the voice step: the voice sample comes from the new video.';
       render();
     } catch (err) {
       abort = null;
-      if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped.'; render(); return; }
+      if (err?.name === 'AbortError' || /Stopped|cancel/i.test(err?.message || '')) { busy = ''; notice = 'Stopped.'; render(); return; }
       fail(err);
     }
+  }
+
+  // ---- The editor's other tools (src/components/outreach/EditorTools.js) -------------------------
+  let preview = null; // { engine, host, frame }
+  function stopPreview() { try { preview?.engine?.destroy(); } catch { /* gone */ } preview = null; }
+  const previewTime = () => (preview ? preview.frame / 30 : 0);
+  // The sample prospect the preview shows personal text for: your first prospect, else the fallbacks.
+  const previewProfile = () => contactProfile(draft.contacts[0] || { id: 'preview', firstName: draft.fallbacks.firstname || 'there', company: draft.fallbacks.company || '' }, draft.siteShots || {});
+
+  async function previewModel() {
+    const { timelineToComposition } = await import('../lib/editor/remotion/timelineToComposition.js');
+    const main = { src: draft.video.url, duration: draft.video.duration };
+    const { project, seconds, aspect } = tools.editProject({ main, edit, lines: draft.captions?.lines || [] });
+    // Personal additions preview for the first prospect.
+    project.tracks.push(...tools.personalTracks(edit, seconds, { fallbackShot: Object.values(draft.siteShots || {})[0] || '' }));
+    return timelineToComposition(project, { quality: '720p', aspect, profile: previewProfile() });
+  }
+
+  let previewSeq = 0;
+  async function refreshPreview(stage) {
+    if (!tools || !draft.video?.url) return;
+    const seq = ++previewSeq;
+    let model;
+    try { model = await previewModel(); } catch (err) { notice = err?.message || String(err); return; }
+    if (seq !== previewSeq) return;
+    if (!preview) {
+      const host = el('div', 'h-full w-full');
+      host.setAttribute('data-edit-preview', '');
+      const { createPreviewEngine } = await import('../lib/editor/remotion/previewEngine.jsx');
+      if (seq !== previewSeq) return;
+      preview = { host, frame: 0, engine: null };
+      preview.engine = createPreviewEngine(host, { model, onFrame: (f) => { if (preview) { preview.frame = f; const t = container.querySelector('[data-edit-time]'); if (t) t.textContent = fmtS(f / 30); } } });
+    } else preview.engine.update(model);
+    const target = stage || container.querySelector('[data-editor-video]');
+    if (target && preview.host.parentNode !== target) target.replaceChildren(preview.host);
+  }
+
+  const editUpdate = (fn, { soft = false } = {}) => {
+    fn(edit);
+    if (tools) edit = { ...tools.normalizeEdit(edit), before: edit.before, after: edit.after };
+    persist();
+    if (soft) refreshPreview(); else render();
+  };
+
+  async function uploadPicked(file) {
+    try { setBusy('Uploading…'); const url = await uploadToStorage(file); busy = ''; render(); return url; } catch (err) { fail(err); return null; }
+  }
+
+  const SILENCE = { light: { thresholdDb: -45, minSec: 1.5 }, normal: { thresholdDb: -40, minSec: 0.7 }, tight: { thresholdDb: -36, minSec: 0.4 } };
+  const editActions = {
+    upload: uploadPicked,
+    mediaDuration: (file) => videoDuration(URL.createObjectURL(file)).catch(() => 0),
+    picture: async (file, opts = {}) => {
+      try {
+        setBusy(opts.removeBackground ? 'Removing the picture’s background (in your browser)…' : 'Preparing the picture…');
+        const { preparePicture } = await import('../lib/outreach/mediaTools.js');
+        const png = await preparePicture(file, { ...opts, onProgress: (p) => { if (p?.stage === 'background' && p.progress != null) busyText(`Removing the background… ${Math.round(p.progress * 100)}%`); } });
+        const url = await uploadToStorage(new File([png], `${(file.name || 'picture').replace(/\.[^.]+$/, '')}.png`, { type: 'image/png' }));
+        busy = ''; render();
+        return url;
+      } catch (err) { fail(err); return null; }
+    },
+    waveform: async () => {
+      const src = draft.video.url;
+      if (waveCache?.src !== src) { const { waveformBars } = await import('../lib/outreach/mediaTools.js'); waveCache = { src, bars: await waveformBars(src) }; }
+      return waveCache.bars;
+    },
+    removeSilences: async (level) => {
+      abort = new AbortController();
+      try {
+        setBusy('Finding the pauses…');
+        const { detectSilencesIn } = await import('../lib/outreach/mediaTools.js');
+        const { speechStart } = await import('../lib/outreach/lipsync.js');
+        const opt = SILENCE[level] || SILENCE.normal;
+        const silences = await detectSilencesIn(draft.video.url, { thresholdDb: opt.thresholdDb, signal: abort.signal });
+        // The greeting plays in the opening pause: keep it.
+        const keepStart = draft.kind === 'same' ? 0 : speechStart(silences);
+        const cuts = tools.silencesToCuts(silences, { minSec: opt.minSec, keepStart, duration: draft.video.duration });
+        edit.cuts = editModule.normalizeCuts([...edit.cuts, ...cuts], draft.video.duration);
+        abort = null; busy = '';
+        notice = cuts.length ? `Cut ${cuts.length} pause${cuts.length === 1 ? '' : 's'} (${fmtS(cuts.reduce((n, [a, b]) => n + b - a, 0))}). Undo any of them in the list.` : 'No long pauses found.';
+        persist(); render();
+      } catch (err) { abort = null; if (err?.name === 'AbortError') { busy = ''; notice = 'Stopped.'; render(); return; } fail(err); }
+    },
+    applyBackground: async () => {
+      abort = new AbortController();
+      stopPreview();
+      try {
+        setBusy('Changing the background: loading MediaPipe…');
+        const { backgroundVideo } = await import('../lib/outreach/mediaTools.js');
+        const blob = await backgroundVideo(draft.video.url, edit.background, { signal: abort.signal, onProgress: (p) => busyText(`Changing the background… ${Math.round(p * 100)}%`) });
+        abort = null; busy = '';
+        const keep = { ...edit, background: { ...edit.background, mode: 'none' } };
+        await addVideo(blob, { duration: draft.video.duration, hasAudio: draft.video.hasAudio, type: draft.video.type, name: 'background.webm', keepCaptions: true });
+        edit = { ...keep, before: edit.before, after: edit.after };
+        persist();
+        notice = 'Background changed. Your other edits are still here.';
+        render();
+      } catch (err) { abort = null; if (err?.name === 'AbortError' || /Stopped/.test(err?.message || '')) { busy = ''; notice = 'Stopped.'; render(); return; } fail(err); }
+    },
+    makeCaptions: () => makeCaptions(),
+    captionsFile: async (fmt) => {
+      const { captionsToSrt, captionsToVtt } = await import('../lib/editor/remotion/captions.js');
+      const lines = draft.captions?.lines || [];
+      const text = fmt === 'vtt' ? captionsToVtt(lines) : captionsToSrt(lines);
+      const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: fmt === 'vtt' ? 'text/vtt' : 'application/x-subrip' }));
+      a.download = `${(draft.name || 'captions').replace(/[^\w-]+/g, '-')}.${fmt}`; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    },
+    makeChapters: () => {
+      draft.chapters = tools.chaptersFromLines(draft.captions?.lines || []);
+      notice = draft.chapters.length ? `${draft.chapters.length} chapters made. Rename them as you like.` : 'This video is too short or has no clear pauses for chapters.';
+      persist(); render();
+    },
+  };
+
+  function renderTools() {
+    const wrap = el('div', 'flex flex-col gap-3');
+    if (!tools || !toolsUi) { editSegmentsInfo(); wrap.appendChild(el('p', 'text-xs text-white/50', 'Loading the editor…')); return wrap; }
+    wrap.appendChild(toolsUi.renderEditorTools({
+      tab: editTab, setTab: (t) => { editTab = t; render(); },
+      edit, update: editUpdate, now: previewTime, seconds: editSegmentsInfo().seconds || draft.video.duration,
+      lines: draft.captions?.lines || [], chapters: draft.chapters || [], setChapters: (list) => { draft.chapters = list; persist(); render(); },
+      actions: editActions, cutPanel: renderEditPanel(),
+    }));
+    wrap.appendChild(renderApplyBar());
+    return wrap;
   }
 
   // ---- Captions: Whisper in the browser, free translations (src/lib/outreach/transcript.js) ----
@@ -545,7 +729,7 @@ export function OutreachStudio() {
     tool('captions', 'cc', 'Captions and transcript', flip('captions'), { active: editorTool === 'captions', disabled: !has });
     tool('language', 'globe', `Language: ${draft.language || 'English'}`, flip('language'), { active: editorTool === 'language' });
     tool('script', 'doc', 'Script and teleprompter', flip('script'), { active: editorTool === 'script' });
-    tool('trim', 'cut', 'Trim, cut and add clips', flip('trim'), { active: editorTool === 'trim', disabled: !has });
+    tool('trim', 'cut', 'Edit: cut, look, background, audio, captions, text, B-roll, chapters', flip('trim'), { active: editorTool === 'trim', disabled: !has });
     tool('thumbnail', 'image', 'Thumbnail for your emails', openThumbnails);
     const live = draft.campaign?.links?.[0];
     tool('link', 'link', live ? 'Copy a prospect link' : 'Links are made when you generate', async () => {
@@ -650,7 +834,12 @@ export function OutreachStudio() {
     const main = el('div', 'flex min-w-0 flex-col items-center gap-4 p-5 md:p-8');
     const stage = el('div', 'grid aspect-video w-full max-w-3xl place-items-center overflow-hidden rounded-2xl border border-white/10 bg-black');
     stage.setAttribute('data-editor-video', '');
-    if (has) { const v = el('video', 'h-full w-full'); v.src = draft.video.url; v.controls = true; v.playsInline = true; stage.appendChild(v); }
+    const editing = editorTool === 'trim' && has;
+    if (!editing && preview) stopPreview();
+    if (editing && preview?.host) stage.appendChild(preview.host);
+    else if (has) { const v = el('video', 'h-full w-full'); v.src = draft.video.url; v.controls = true; v.playsInline = true; stage.appendChild(v); }
+    // While editing, the stage plays the edited video (Remotion Player): every change shows straight away.
+    if (editing) refreshPreview(stage);
     else {
       const ph = el('div', 'flex flex-col items-center gap-2 text-white/35');
       ph.innerHTML = '<svg width="56" height="56" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>';
@@ -658,13 +847,23 @@ export function OutreachStudio() {
       stage.appendChild(ph);
     }
     main.appendChild(stage);
+    if (editing) {
+      const ctl = el('div', 'flex items-center gap-2 text-xs text-white/60');
+      ctl.setAttribute('data-edit-controls', '');
+      const pp = button('▶ / ❚❚ Play', { small: true });
+      pp.setAttribute('data-edit-play', '');
+      pp.addEventListener('click', () => { const e = preview?.engine; if (!e) return; if (e.isPlaying()) e.pause(); else e.play(); });
+      const t = el('span', 'tabular-nums', fmtS(previewTime())); t.setAttribute('data-edit-time', '');
+      ctl.append(pp, t, el('span', 'text-white/40', '· preview of your edits (personal text shows for your first prospect)'));
+      main.appendChild(ctl);
+    }
     if (has) main.appendChild(el('p', 'text-xs text-white/45', `${fmtTime(draft.video.duration)} · ${draft.video.hasAudio ? 'with sound' : 'no sound'}${draft.kind !== 'same' ? ' · the greeting plays over the first seconds' : ''}`));
     const brand = el('p', 'flex items-center gap-1.5 text-xs text-white/40');
     brand.innerHTML = '<span>Video message by</span><span class="font-extrabold text-white/70">SmartVideo</span>';
     main.appendChild(brand);
     const drawer = el('div', 'w-full max-w-3xl');
     if (editorTool === 'captions' && has) drawer.appendChild(renderCaptionsPanel());
-    if (editorTool === 'trim' && has) drawer.appendChild(renderEditPanel());
+    if (editorTool === 'trim' && has) drawer.appendChild(renderTools());
     if (editorTool === 'script') drawer.appendChild(renderScriptCard());
     if (editorTool === 'language') {
       const box = el('div', 'flex flex-wrap items-center gap-3 rounded-xl border border-white/10 p-4');
@@ -1302,7 +1501,10 @@ export function OutreachStudio() {
         import('../lib/editor/publish/publishClient.js'),
         import('../lib/editor/personalize/perContact.js'),
       ]);
-      const built = buildCampaignProject(draft, { variants, lipsync });
+      // Personal text and "their website" B-roll from the editor ride on every prospect's video.
+      const t = tools || await import('../lib/outreach/editTools.js');
+      const extraTracks = draft.edit ? (T) => t.personalTracks(draft.edit, T, { fallbackShot: Object.values(draft.siteShots || {})[0] || '' }) : null;
+      const built = buildCampaignProject(draft, { variants, lipsync, extraTracks });
       const project = preparePublishProject(built, { title: built.title });
       const id = draft.campaign?.id || makeSlug();
       await publishVideo(await ownerClient(), { id, project });

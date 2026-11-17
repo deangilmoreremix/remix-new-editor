@@ -48,7 +48,9 @@
     "Variable chips for {{firstname}}, {{company}}, {{jobtitle}} and {{lastname}}",
     "Per-prospect Waiting / Generating / Ready while generating",
     "Gmail and LinkedIn share buttons per prospect",
-    "Sendspark-style landing page on any Video Pages design, with Your details"
+    "Sendspark-style landing page on any Video Pages design, with Your details",
+    "Editor tools (scissors icon on the Record step): Cut, Look, Background, Audio, Captions, Text & graphics, B-roll, Chapters and Export, previewed live and rendered in your browser with Apply edits",
+    "Lip-sync the greeting: your mouth says each prospect's name (one paid MuAPI lip-sync request per different greeting, about $0.05 each; ones already made are reused for free)"
   ],
   "featureExplanations": [
     {
@@ -197,6 +199,21 @@
       "whyToUse": "Reach prospects in their language.",
       "inputRequired": "A greeting.",
       "restrictions": "Translate is one small text request on your MuAPI key; check the result. The main recording stays in the language you recorded it in."
+    },
+    {
+      "feature": "Editor tools",
+      "explanation": "On the Record step click the scissors icon. Cut: trim, cut sections, add a clip before or after, Remove silences (keeps the greeting pause at the start) and transitions. Look: shape (16:9, 1:1, 9:16), rotate, flip, zoom, brightness, contrast, saturation, warmth, vignette. Background: blur, a picture or a solid colour behind you (MediaPipe, frame by frame). Audio: waveform, volume, Make it louder (FFmpeg loudness), background music. Captions: burned-in captions in 5 styles plus .srt and .vtt downloads. Text & graphics: text, name and title, logo or picture (optionally with its background removed by BG0, in your browser), animated stickers. B-roll: a clip, a picture, or each prospect's own website, full screen or in a corner. Chapters: made from your captions and shown under the video. Export: file size. The video area plays your edits live; Apply edits renders them into a new video.",
+      "whyToUse": "Polish one recording before it becomes hundreds of personal videos, with free tools that run in your browser."
+    },
+    {
+      "feature": "Personal text and their website",
+      "explanation": "A text with {{firstname}} or {{company}}, and B-roll set to Their website, are not burned into the video: they are added to every prospect's video when you generate, so each prospect sees their own name, company and website.",
+      "whyToUse": "Personalize what is on screen, not just what is said."
+    },
+    {
+      "feature": "Lip-sync the greeting",
+      "explanation": "On Generate & share, tick Lip-sync the greeting. The first seconds of your video are cut out once and each prospect's greeting is lip-synced onto them, so your mouth says their name. Leave a pause at the start at least as long as the longest greeting: you are warned before paying if your first words would be covered. Failed prospects still hear their greeting, with the reason shown.",
+      "whyToUse": "The greeting looks natural instead of your mouth not moving."
     }
   ],
   "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",
@@ -333,6 +350,14 @@
     {
       "question": "What does a contact without a name hear?",
       "answer": "The fallback greeting, for example 'Hi there!'."
+    },
+    {
+      "question": "Do the editor tools cost anything?",
+      "answer": "No. Silence removal, colour, background blur, captions (Whisper), picture background removal (BG0), stickers, B-roll and FFmpeg all run in your browser. Only the AI voice and lip-sync use your MuAPI key."
+    },
+    {
+      "question": "Why should I change the background before adding text?",
+      "answer": "Changing the background treats everything behind you as background, so text or graphics already burned into the video would be blurred or replaced too. Apply the background first, then text, captions and graphics."
     }
   ],
   "glossary": [
