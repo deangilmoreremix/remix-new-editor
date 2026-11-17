@@ -439,7 +439,7 @@ export function ScheduleCard({ columns, title, text, month, days, time, buttonLa
       <h3 className="pk-card-title">{t(title)}</h3>
       {text ? <p className="pk-card-text">{t(text)}</p> : null}
       {month ? <div className="pk-cal-month">{t(month)}</div> : null}
-      <div className="pk-cal-grid pk-cal-head">{(split(weekdays).length ? split(weekdays) : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => <span key={i}>{d}</span>)}</div>
+      <div className="pk-cal-grid pk-cal-head">{(split(weekdays).length === 7 ? split(weekdays) : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => <span key={i}>{d}</span>)}</div>
       <div className="pk-cal-grid">{split(days).map((d, i) => <span key={i} className={`pk-cal-day${d.startsWith('*') ? ' is-on' : ''}`}>{d.replace(/^\*/, '')}</span>)}</div>
       {time ? <div className="pk-cal-time">{t(time)}</div> : null}
       {buttonLabel ? <a className="pk-btn pk-btn--primary" href="#lead">{t(buttonLabel)}</a> : null}

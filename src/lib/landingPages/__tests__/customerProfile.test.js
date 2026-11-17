@@ -183,3 +183,21 @@ describe('personal image from a saved project that only has client.clientId', ()
     expect(out[0].image).toBe('https://cdn.test/p.png');
   });
 });
+
+describe('personal image ordering', () => {
+  const row = (clientId, url, saved, generated) => ({ client: { clientId }, output_type: 'image', updated_at: saved, generation: { outputUrls: [url], ...(generated ? { outputGeneratedAt: generated } : {}) } });
+  it('picks the newest generated picture, not the most recently saved project', () => {
+    const { byId } = personalImagesFromProjects([
+      row('c1', 'https://cdn.test/older-generation.png', '2026-11-16T00:00:00Z', '2026-11-01T00:00:00Z'), // saved again later by an unrelated edit
+      row('c1', 'https://cdn.test/newer-generation.png', '2026-11-10T00:00:00Z', '2026-11-09T00:00:00Z'),
+    ]);
+    expect(byId.c1).toBe('https://cdn.test/newer-generation.png');
+  });
+  it('still orders older rows (no generation stamp) by when they were saved', () => {
+    const { byId } = personalImagesFromProjects([
+      row('c2', 'https://cdn.test/a.png', '2026-11-01T00:00:00Z'),
+      row('c2', 'https://cdn.test/b.png', '2026-11-05T00:00:00Z'),
+    ]);
+    expect(byId.c2).toBe('https://cdn.test/b.png');
+  });
+});

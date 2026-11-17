@@ -25,6 +25,9 @@ const INPUT = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 tex
 const BTN = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:border-primary/60 hover:text-primary transition-colors disabled:opacity-50';
 const BTN_PRIMARY = 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-black hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50';
 
+/** How long a design chosen by the caller waits for the customer list before the editor opens anyway. */
+export const CUSTOMER_LOAD_LIMIT_MS = 5000;
+
 export const CHIPS = Object.freeze([
   { id: 'all', label: 'All', match: () => true },
   { id: 'saas', label: 'SaaS & outreach', match: (id) => /^puck-(starter|leadiq|lead|reach|mono|poster|enterprise|neon|pb-(pro|agency|enterprise|analytics|creator))$/.test(id) },
@@ -405,7 +408,11 @@ export function openLandingPagePicker({ video = null, template = null, customers
   // A design chosen by the caller opens the editor right away, but only after the customers are loaded,
   // so the first draft already has the customer's brand and personalized picture.
   if (template && TEMPLATES.some((t) => t.puck && t.id === template)) {
-    Promise.resolve(cp.load()).catch(() => {}).then(() => { if (overlay.isConnected) showEdit(template); });
+    // Wait for the customers, but never more than a few seconds: a stalled request must not keep the editor closed.
+    const loaded = Promise.resolve(cp.load()).catch(() => {});
+    let timer;
+    const limit = new Promise((resolve) => { timer = setTimeout(resolve, CUSTOMER_LOAD_LIMIT_MS); });
+    Promise.race([loaded, limit]).then(() => { clearTimeout(timer); if (overlay.isConnected) showEdit(template); });
   } else {
     void cp.load();
     showGrid();

@@ -7,7 +7,7 @@ vi.mock('../../brandStore.js', () => ({ listBrands: () => [] }));
 vi.mock('../../loading.js', () => ({ showToast: vi.fn() }));
 const mountPage = vi.hoisted(() => vi.fn(() => ({ destroy: vi.fn() })));
 vi.mock('../puck/mount.jsx', () => ({ mountPuckPage: mountPage, mountPuckEditor: vi.fn(() => ({ destroy() {} })) }));
-import { openLandingPagePicker, filterTemplates, toPickerVideo, CHIPS } from '../pickerModal.js';
+import { openLandingPagePicker, filterTemplates, toPickerVideo, CHIPS, CUSTOMER_LOAD_LIMIT_MS } from '../pickerModal.js';
 import { TEMPLATES } from '../templates.js';
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -120,6 +120,19 @@ describe('openLandingPagePicker', () => {
     await tick();
     expect(grid()).toBeNull();
     expect(mountPuckEditor).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the chosen design after at most 5 s even if the customers request never answers', async () => {
+    vi.useFakeTimers();
+    try {
+      const mountPuckEditor = vi.fn(() => ({ destroy() {} }));
+      const id = TEMPLATES.find((t) => t.puck).id;
+      openLandingPagePicker({ video: VIDEO, template: id, deps: { mountPuckEditor, loadCustomers: () => new Promise(() => {}) } });
+      await vi.advanceTimersByTimeAsync(CUSTOMER_LOAD_LIMIT_MS - 100);
+      expect(mountPuckEditor).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(200);
+      expect(mountPuckEditor).toHaveBeenCalledTimes(1);
+    } finally { vi.useRealTimers(); }
   });
 
   it('Escape goes back from the editor first, then closes', async () => {

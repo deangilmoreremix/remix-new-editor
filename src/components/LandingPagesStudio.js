@@ -300,7 +300,7 @@ export function LandingPagesStudio() {
           onStep: (label) => { status.textContent = `${label}…`; },
         });
         if ((withBrand || withImage) && page.config?.puck) {
-          const applied = applyCustomerToPuck(page.config.puck, one, { useImage: cp.useImage(), brand: withBrand });
+          const applied = applyCustomerToPuck(page.config.puck, one, { useImage: withImage, brand: withBrand });
           page = await updatePage(client, page.id, { config: { ...page.config, puck: applied.data } });
         }
         const rows = chosen.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
