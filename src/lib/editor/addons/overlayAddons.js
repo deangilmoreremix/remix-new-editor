@@ -13,11 +13,12 @@
  * composites every overlay active at the playhead above the video.
  */
 import { registerAddon } from './registry.js';
-import { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, VIDEO_TRANSITIONS } from './overlayData.js';
+import { BLEND_MODES, OVERLAY_ANIMATIONS, VIDEO_TRANSITIONS } from './overlayData.js';
 import { TRANSITION_CATEGORIES } from './stockMedia.js';
 import { mapVideoTransition, presentationLabel } from '../remotion/transitionMap.js';
 import { CTA_LINK_FIELDS, CTA_LINK_DEFAULTS } from './ctaLink.js';
 import { TEXT_ANIMATIONS } from './textEffects.js';
+import { overlayFontOptions } from './fontLibrary.js';
 import { TEXT_STYLE_PRESETS } from './textStylePresets.js';
 
 /**
@@ -53,7 +54,8 @@ export const IMAGE_TRANSITIONS = [
   ['popcorn-fade-in-up', 'Fade In Up'],
 ];
 
-const fontOptions = OVERLAY_FONTS.map((f) => [f, f]);
+// the shared font list (upstream's + the captions' Google families + fonts the user imported); a function so a newly imported font shows at once
+const fontOptions = (services) => overlayFontOptions(services?.userFonts?.() ?? [], services?.extraFonts ?? []);
 
 const PAD = 3;
 /** Upstream Basic tab position math (left/center/right × top/middle/bottom). */

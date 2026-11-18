@@ -129,9 +129,9 @@ function renderFinderImages(field, services) {
 }
 
 /** "Aa" sample in the chosen font (the font is loaded the same way the overlay loads it). */
-function fontPreview(family) {
+function fontPreview(family, imported = []) {
   if (!family) return '';
-  ensureFormFont(family);
+  if (!imported.includes(family)) ensureFormFont(family); // an imported font is already in the page; Google does not have it
   return `<div class="addon-font-preview" style="font-family:&quot;${esc(family)}&quot;, sans-serif" aria-hidden="true">Aa — The quick brown fox 123</div>`;
 }
 
@@ -167,9 +167,12 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
         <div class="addon-image-actions"><label class="mini-btn addon-upload-btn">Load .cube file<input type="file" accept=".cube,text/plain" data-cube-upload="${field.key}" hidden /></label>
         <span class="addon-field__hint">${loadedName ? esc(loadedName) : 'Identity (no change)'}</span></div></div>`;
     }
-    case 'font':
-      return `<div class="clip-editor__field addon-field">${label}<select id="${id}" data-key="${field.key}" data-kind="select" class="addon-font-select">${(field.options || [])
-        .map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(value) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>${field.preview ? fontPreview(value) : ''}</div>`;
+    case 'font': {
+      const options = typeof field.options === 'function' ? field.options(services) : (field.options || []);
+      const imported = services.userFonts?.() ?? [];
+      return `<div class="clip-editor__field addon-field">${label}<select id="${id}" data-key="${field.key}" data-kind="select" class="addon-font-select">${options
+        .map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(value) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>${field.preview ? fontPreview(value, imported) : ''}${services.importFont ? `<div class="addon-font-import"><button type="button" class="mini-btn" data-font-import="${esc(field.key)}">Import font…</button><input type="file" accept=".ttf,.otf,.woff,.woff2" hidden data-font-file="${esc(field.key)}"/><span class="addon-field__hint">.ttf, .otf, .woff or .woff2 up to 8 MB. Kept in this browser.</span>${ui.fontError ? `<span class="addon-font-error" role="alert">${esc(ui.fontError)}</span>` : ''}</div>` : ''}</div>`;
+    }
     case 'tokens': {
       // Text with personalization tokens; the select inserts {{token}} at
       // the cursor (upstream's Personalize button).
@@ -504,6 +507,10 @@ export function renderAddonEditor(container, {
         draw();
         return;
       }
+      if (btn?.dataset.fontImport) {
+        btn.parentElement?.querySelector('input[type=file]')?.click();
+        return;
+      }
       if (btn?.dataset.animOpen) {
         ui.animOpen = ui.animOpen === btn.dataset.animOpen ? null : btn.dataset.animOpen;
         draw();
@@ -629,6 +636,16 @@ export function renderAddonEditor(container, {
         emit(false, ta.dataset.key);
       }
       el.value = '';
+      return;
+    }
+    if (e.type === 'change' && el.dataset?.fontFile) {
+      const file = el.files?.[0];
+      const fontKey = el.dataset.fontFile;
+      el.value = '';
+      if (!file || !services.importFont) return;
+      Promise.resolve(services.importFont(file))
+        .then((family) => { ui.fontError = ''; if (family) setAndEmit(fontKey, family); else draw(); })
+        .catch((err) => { ui.fontError = err?.message || 'That font could not be added.'; draw(); });
       return;
     }
     if (e.type === 'change' && (el.dataset?.imageUpload || el.dataset?.lottieUpload)) {

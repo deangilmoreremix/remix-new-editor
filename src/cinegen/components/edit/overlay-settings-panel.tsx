@@ -15,6 +15,8 @@ import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 import { SavePresetRow } from './save-preset-row';
 import { OPEN_SPEECH_EVENT } from '@cinegen/lib/occ/smart-speech';
+import { importFontFile, loadUserFonts, userFontFamilies } from '@cinegen/lib/occ/user-fonts';
+import { CAPTION_FONT_FAMILIES } from '@cinegen/lib/occ/design-style';
 import { hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers
 import { HF_FITS, HF_FIT_LABELS, normalizeGeom, isReactItem } from '../../../lib/hyperframes/placement.js';
@@ -94,6 +96,10 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       // [remix] the Personalize menu of Smart Text / Text Mask (the old editor passed the same token list)
       services: {
         tokens: (TOKEN_DEFS as Array<{ key: string; label: string }>).map((d) => [d.key, d.label]),
+        // the same font import the captions have: the Font list then includes what was imported (stored in this browser)
+        extraFonts: CAPTION_FONT_FAMILIES,
+        userFonts: userFontFamilies,
+        importFont: importFontFile,
         // Smart Text: "Convert to Smart Speech" opens the Smart Speech window with this text
         fieldAction: (action: string, opts: { text?: string }) => { if (action === 'speech') window.dispatchEvent(new CustomEvent(OPEN_SPEECH_EVENT, { detail: { text: String(opts.text ?? '') } })); },
       },
@@ -126,6 +132,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       },
     });
     editorRef.current = editor;
+    void loadUserFonts().then((f) => { if (f.length) editor?.setOptions?.(overlaySchema(latest.current).options); }); // fonts imported earlier appear in the list
     return () => { editor?.destroy?.(); editorRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay.id]);

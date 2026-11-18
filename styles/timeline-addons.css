@@ -1495,3 +1495,8 @@
 .addon-style-tile:hover, .addon-style-tile:focus-visible { border-color: var(--cyan, #22d3ee); }
 .addon-style-sample { font-size: 24px; line-height: 1.2; }
 .addon-style-name { font-size: 10px; color: var(--text-dim, rgba(255, 255, 255, 0.7)); }
+
+/* Font import under the Font list (same control the captions have) */
+.addon-font-import { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.addon-font-import .mini-btn { align-self: flex-start; }
+.addon-font-error { font-size: 11px; color: #ff6b6b; }
