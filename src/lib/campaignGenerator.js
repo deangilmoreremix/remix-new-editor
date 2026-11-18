@@ -9,12 +9,12 @@ import { defaultLayout } from './layout.js';
 import { usableImageRefs } from './imageRefs.js';
 
 export const CAMPAIGN_GOALS = [
-  { value: 'product-launch', label: 'Product Launch', description: 'Announce a new product or feature' },
-  { value: 'lead-gen', label: 'Lead Generation', description: 'Capture qualified prospects' },
-  { value: 'awareness', label: 'Brand Awareness', description: 'Reach new audiences' },
+  { value: 'product-launch', label: 'Product launch', description: 'Announce a new product or feature' },
+  { value: 'lead-gen', label: 'Lead generation', description: 'Capture qualified prospects' },
+  { value: 'awareness', label: 'Brand awareness', description: 'Reach new audiences' },
   { value: 'engagement', label: 'Engagement', description: 'Drive replies, shares, comments' },
-  { value: 'thought-leadership', label: 'Thought Leadership', description: 'Establish authority and POV' },
-  { value: 'sales', label: 'Direct Sales', description: 'Drive purchases or sign-ups' },
+  { value: 'thought-leadership', label: 'Thought leadership', description: 'Establish authority and POV' },
+  { value: 'sales', label: 'Direct sales', description: 'Drive purchases or sign-ups' },
 ];
 
 const list = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x) : []);
@@ -28,6 +28,18 @@ function parseJSON(text) {
   return JSON.parse(m[0]);
 }
 
+/** The model answers with a bare array (our prompt, like upstream's), but accept {"concepts": [...]} too. */
+function parseConceptList(text) {
+  const fenced = String(text).match(/```(?:json)?\s*([\s\S]*?)```/);
+  const candidate = fenced ? fenced[1] : String(text);
+  const arr = candidate.match(/\[[\s\S]*\]/);
+  if (arr) {
+    try { const v = JSON.parse(arr[0]); if (Array.isArray(v)) return v; } catch { /* fall through to the object form */ }
+  }
+  const obj = parseJSON(candidate);
+  return Array.isArray(obj.concepts) ? obj.concepts : [];
+}
+
 function truncateToWordCap(text, max) {
   const words = (text || '').trim().split(/\s+/).filter(Boolean);
   return words.length > max ? words.slice(0, max).join(' ') : (text || '').trim();
@@ -37,21 +49,19 @@ function buildConceptsPrompt(brand, goal, userDirection) {
   const goalLabel = CAMPAIGN_GOALS.find((g) => g.value === goal)?.label ?? goal;
   return `You are a senior brand strategist. Generate exactly 4 distinct on-brand marketing campaign concepts for the brand below, tailored to the goal: "${goalLabel}".
 
-Return STRICT JSON only — an object with a "concepts" array of 4 objects with this exact shape (no markdown, no commentary):
-{
-  "concepts": [
-    {
-      "title": "short evocative concept name (max 6 words)",
-      "theme": "1 sentence — the strategic angle",
-      "key_message": "1 sentence — what the audience should remember",
-      "hook": "1 short line — the opening line of the lead asset",
-      "cta": "2-4 word call to action",
-      "recommended_platforms": ["platform ids from: ${PLATFORMS.map((p) => p.id).join(', ')}"],
-      "tone_notes": "how to write this concept — match the brand's voice",
-      "visual_direction": "1-2 sentences — palette, imagery, layout cues"
-    }
-  ]
-}
+Return STRICT JSON only — an array of 4 objects with this exact shape (no markdown, no commentary):
+[
+  {
+    "title": "short evocative concept name (max 6 words)",
+    "theme": "1 sentence — the strategic angle",
+    "key_message": "1 sentence — what the audience should remember",
+    "hook": "1 short line — the opening line of the lead asset",
+    "cta": "2-4 word call to action",
+    "recommended_platforms": ["instagram","linkedin","facebook","twitter","email","banner","youtube_thumb","google_ad"],
+    "tone_notes": "how to write this concept — match the brand's voice",
+    "visual_direction": "1-2 sentences — palette, imagery, layout cues"
+  }
+]
 
 Keep concepts genuinely distinct in angle. Match the brand voice and palette. Be specific to the brand, not generic marketing fluff.
 
@@ -74,8 +84,7 @@ ${userDirection ? `USER DIRECTION: ${userDirection}` : ''}`;
 
 export async function generateCampaignConcepts(brand, goal, direction = '') {
   const raw = await muapi.text(buildConceptsPrompt(brand, goal, direction));
-  const parsed = parseJSON(raw);
-  const concepts = Array.isArray(parsed.concepts) ? parsed.concepts : [];
+  const concepts = parseConceptList(raw);
   if (concepts.length === 0) throw new Error('Concepts response had no concepts');
 
   return concepts.slice(0, 4).map((c) => ({

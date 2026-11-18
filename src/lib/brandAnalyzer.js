@@ -160,8 +160,9 @@ export async function analyzeBrand(url) {
   const vision = parseJSON(visionRaw);
 
   const sitePalette = pickPalette(site.rawColors);
-  const primaryColors = dedupHex(sitePalette.primary, asStringArray(vision.primary_colors)).slice(0, 5);
-  const secondaryColors = dedupHex(sitePalette.secondary, asStringArray(vision.secondary_colors)).slice(0, 5);
+  // Same order as Open-Pomelli: the model's reading of the screenshot first, then the colours found in the site's CSS.
+  const primaryColors = dedupHex(asStringArray(vision.primary_colors), sitePalette.primary).slice(0, 5);
+  const secondaryColors = dedupHex(asStringArray(vision.secondary_colors), sitePalette.secondary).slice(0, 5);
 
   const logoUrl = site.logoCandidates[0] || site.ogImage || site.favicon;
 

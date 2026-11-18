@@ -4,67 +4,75 @@
 export const PLATFORMS = [
   {
     id: 'instagram-feed',
-    label: 'Instagram Feed',
+    label: 'Instagram — Feed (1:1)',
     aspect: '1:1',
     width: 1080,
     height: 1080,
-    copy: { headlineMaxWords: 8, bodyMaxWords: 30, ctaMaxWords: 3, tone: 'visual, energetic', imageHint: 'bold color block, lifestyle shot' },
+    // Copy caps, tone and image hint are Open-Pomelli's own values (src/lib/platforms.ts).
+    copy: { headlineMaxWords: 8, bodyMaxWords: 25, ctaMaxWords: 3, tone: 'casual, scroll-stopping, lower-case', imageHint: 'Bold focal subject, mobile-thumb readable, generous safe area for text, social-feed scroll-stopping.' },
   },
   {
     id: 'instagram-story',
-    label: 'Instagram Story',
+    label: 'Instagram — Story (9:16)',
     aspect: '9:16',
     width: 1080,
     height: 1920,
-    copy: { headlineMaxWords: 6, bodyMaxWords: 20, ctaMaxWords: 3, tone: 'snappy, immersive', imageHint: 'vertical cinematic, full-bleed' },
+    // Copy caps, tone and image hint are Open-Pomelli's own values (src/lib/platforms.ts).
+    copy: { headlineMaxWords: 6, bodyMaxWords: 0, ctaMaxWords: 3, tone: 'punchy, single-line hook', imageHint: 'Vertical composition, primary subject upper-third, bottom 20% reserved for app UI, vivid lighting.' },
   },
   {
     id: 'linkedin',
-    label: 'LinkedIn',
+    label: 'LinkedIn — Feed (1:1)',
     aspect: '1:1',
     width: 1200,
-    height: 627,
-    copy: { headlineMaxWords: 10, bodyMaxWords: 50, ctaMaxWords: 4, tone: 'professional, authoritative', imageHint: 'clean corporate, thought-leadership' },
+    height: 1200,
+    // Copy caps, tone and image hint are Open-Pomelli's own values (src/lib/platforms.ts).
+    copy: { headlineMaxWords: 10, bodyMaxWords: 35, ctaMaxWords: 3, tone: 'professional, declarative, no hashtags in copy', imageHint: 'Editorial, polished, subtle gradient or clean photography, professional palette emphasis.' },
   },
   {
     id: 'facebook',
-    label: 'Facebook Ad',
+    label: 'Facebook — Feed Ad (1:1)',
     aspect: '1:1',
     width: 1200,
-    height: 628,
-    copy: { headlineMaxWords: 8, bodyMaxWords: 40, ctaMaxWords: 3, tone: 'friendly, benefit-driven', imageHint: 'warm, social proof, people' },
+    height: 1200,
+    // Copy caps, tone and image hint are Open-Pomelli's own values (src/lib/platforms.ts).
+    copy: { headlineMaxWords: 7, bodyMaxWords: 25, ctaMaxWords: 3, tone: 'benefit-led, conversational, direct', imageHint: 'Single clear value prop visual, high-contrast subject, minimal text-in-image (Meta ad guideline).' },
   },
   {
     id: 'twitter',
-    label: 'X / Twitter',
+    label: 'X / Twitter — Post (16:9)',
     aspect: '16:9',
     width: 1200,
     height: 675,
-    copy: { headlineMaxWords: 6, bodyMaxWords: 20, ctaMaxWords: 2, tone: 'concise, provocative', imageHint: 'bold typography, minimal' },
+    // Copy caps, tone and image hint are Open-Pomelli's own values (src/lib/platforms.ts).
+    copy: { headlineMaxWords: 6, bodyMaxWords: 30, ctaMaxWords: 3, tone: 'sharp, opinionated, one-liner energy', imageHint: 'Wide cinematic crop, single focal element, readable on mobile timeline at small size.' },
   },
   {
     id: 'web-banner',
-    label: 'Web Banner',
+    label: 'Web — Hero Banner (16:9)',
     aspect: '16:9',
-    width: 1200,
-    height: 628,
-    copy: { headlineMaxWords: 8, bodyMaxWords: 30, ctaMaxWords: 3, tone: 'clean, conversion-focused', imageHint: 'hero shot, brand-aligned' },
+    width: 1920,
+    height: 1080,
+    // Copy caps, tone and image hint are Open-Pomelli's own values (src/lib/platforms.ts).
+    copy: { headlineMaxWords: 6, bodyMaxWords: 20, ctaMaxWords: 3, tone: 'confident, brand-led, marketing-site voice', imageHint: 'Cinematic hero composition, breathing room for overlaid headline, palette-led background.' },
   },
   {
     id: 'email',
-    label: 'Email Header',
+    label: 'Email — Header (16:9)',
     aspect: '16:9',
-    width: 600,
-    height: 300,
-    copy: { headlineMaxWords: 6, bodyMaxWords: 20, ctaMaxWords: 3, tone: 'clear, actionable', imageHint: 'simple header, brand accent' },
+    width: 1200,
+    height: 675,
+    // Copy caps, tone and image hint are Open-Pomelli's own values (src/lib/platforms.ts).
+    copy: { headlineMaxWords: 7, bodyMaxWords: 20, ctaMaxWords: 3, tone: 'warm, direct, like a subject line', imageHint: 'Clean horizontal banner, subject framed left or right with negative space for headline overlay.' },
   },
   {
     id: 'youtube',
-    label: 'YouTube Thumbnail',
+    label: 'YouTube — Thumbnail (16:9)',
     aspect: '16:9',
     width: 1280,
     height: 720,
-    copy: { headlineMaxWords: 5, bodyMaxWords: 0, ctaMaxWords: 2, tone: 'bold, clickable', imageHint: 'high-contrast, expressive face' },
+    // Copy caps, tone and image hint are Open-Pomelli's own values (src/lib/platforms.ts).
+    copy: { headlineMaxWords: 5, bodyMaxWords: 0, ctaMaxWords: 0, tone: 'ultra-bold curiosity hook, all-caps energy', imageHint: 'High-contrast face or single object, oversized bold text overlay (3-5 words), saturated palette, click-worthy.' },
   },
 ];
 

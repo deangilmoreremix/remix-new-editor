@@ -4,7 +4,6 @@
 
 import { muapi } from './muapi.js';
 import { generateId } from './brandStore.js';
-import { usableImageRefs } from './imageRefs.js';
 
 export const PHOTO_CATEGORIES = [
   {
@@ -151,15 +150,22 @@ export async function generateProductPhoto({ productImageUrl, logoUrl, brand = n
   const prompt = buildPhotoshootPrompt(styleMeta, brand, direction);
   const aspectRatio = aspect || styleMeta.aspect;
 
-  // The logo is a bonus reference: an SVG/ICO logo would make the edit model reject the whole job.
-  const refs = [productImageUrl, ...usableImageRefs([logoUrl])];
-
-  // nano-banana-2-edit with the product photo (and brand logo) as references.
-  const imageUrl = await muapi.imageEdit2(prompt, refs, {
+  // nano-banana-2-edit with the product photo and the brand logo as references (as Open-Pomelli does). It accepted
+  // an SVG logo in a live run, but a logo it cannot read must never cost the shot, so retry with the product alone.
+  const edit = (refs) => muapi.imageEdit2(prompt, refs, {
     aspectRatio,
     resolution: ['1k', '2k', '4k'].includes(resolution) ? resolution : '2k',
     outputFormat: 'png',
   });
+  const withLogo = typeof logoUrl === 'string' && /^https?:\/\//i.test(logoUrl) ? [productImageUrl, logoUrl] : [productImageUrl];
+  let imageUrl;
+  try {
+    imageUrl = await edit(withLogo);
+  } catch (e) {
+    if (withLogo.length === 1) throw e;
+    console.warn('[photoStudio] logo reference rejected, retrying with the product alone:', e?.message || e);
+    imageUrl = await edit([productImageUrl]);
+  }
   if (!imageUrl) throw new Error('Photo studio returned no image');
 
   return {

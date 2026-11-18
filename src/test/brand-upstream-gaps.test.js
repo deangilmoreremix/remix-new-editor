@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-const muapiMock = vi.hoisted(() => ({ text: vi.fn(), image: vi.fn(), imageEdit: vi.fn(), imageEdit2: vi.fn(), videoI2V: vi.fn(), generateI2V: vi.fn(), uploadBrandAsset: vi.fn() }));
+const muapiMock = vi.hoisted(() => ({ text: vi.fn(), vision: vi.fn(), image: vi.fn(), imageEdit: vi.fn(), imageEdit2: vi.fn(), videoI2V: vi.fn(), generateI2V: vi.fn(), uploadBrandAsset: vi.fn() }));
 vi.mock('../lib/muapi.js', () => ({ muapi: muapiMock, MuapiClient: class {} }));
 
 const BRAND = { id: 'b1', brandName: 'Acme <b>Co</b>', industry: 'x', logoUrl: 'https://x/logo.png', primaryColors: ['#112233'], toneOfVoice: [], brandPersonality: [], keyMessages: [] };
@@ -31,7 +31,7 @@ describe('campaign wizard', () => {
     muapiMock.text.mockResolvedValue(JSON.stringify({ concepts: [concept] }));
     const { CampaignWizard } = await import('../components/CampaignWizard.js');
     const el = CampaignWizard();
-    [...el.querySelectorAll('div.cursor-pointer')].find((d) => d.textContent.includes('Product Launch')).click();
+    [...el.querySelectorAll('div.cursor-pointer')].find((d) => d.textContent.includes('Product launch')).click();
     el.querySelector('button[data-action="generate-concepts"]').click();
     await vi.waitFor(() => expect(el.querySelector('button[data-action="select-concept"]')).toBeTruthy());
     return el;
@@ -131,5 +131,70 @@ describe('Animate: duration slider and deep links', () => {
       at('?image=' + encodeURIComponent(bad));
       expect((await mount()).querySelector('img[alt="Source image"]')).toBeNull();
     }
+  });
+});
+
+describe('parity with upstream Open-Pomelli (found by running both side by side)', () => {
+  it('platform specs match upstream: labels, copy caps, tone and image hints', async () => {
+    const { PLATFORMS } = await import('../lib/platforms.js');
+    const by = Object.fromEntries(PLATFORMS.map((p) => [p.id, p]));
+    expect(by['instagram-feed']).toMatchObject({ label: 'Instagram — Feed (1:1)', aspect: '1:1' });
+    expect(by['instagram-feed'].copy).toMatchObject({ headlineMaxWords: 8, bodyMaxWords: 25, ctaMaxWords: 3, tone: 'casual, scroll-stopping, lower-case' });
+    expect(by['instagram-story'].copy).toMatchObject({ headlineMaxWords: 6, bodyMaxWords: 0, tone: 'punchy, single-line hook' }); // story has no body copy
+    expect(by.youtube.copy).toMatchObject({ headlineMaxWords: 5, bodyMaxWords: 0, ctaMaxWords: 0 }); // thumbnail: headline only
+    expect(by.linkedin.copy.bodyMaxWords).toBe(35);
+    expect(by['web-banner'].label).toBe('Web — Hero Banner (16:9)');
+    expect(by.twitter.copy.tone).toBe('sharp, opinionated, one-liner energy');
+    for (const p of PLATFORMS) expect(p.copy.imageHint.length).toBeGreaterThan(30);
+    expect(PLATFORMS).toHaveLength(8);
+  });
+  it('goals are labelled like upstream and each card shows its description', async () => {
+    const { CAMPAIGN_GOALS } = await import('../lib/campaignGenerator.js');
+    expect(CAMPAIGN_GOALS.map((g) => g.label)).toEqual(['Product launch', 'Lead generation', 'Brand awareness', 'Engagement', 'Thought leadership', 'Direct sales']);
+    const { CampaignWizard } = await import('../components/CampaignWizard.js');
+    const el = CampaignWizard();
+    const card = el.querySelector('[data-goal="product-launch"]');
+    expect(card.textContent).toContain('Product launch');
+    expect(card.textContent).toContain('Announce a new product or feature');
+    expect(el.querySelectorAll('[data-goal]')).toHaveLength(6);
+  });
+  it('the concept prompt asks for a bare array like upstream and reads either an array or {concepts}', async () => {
+    const { generateCampaignConcepts } = await import('../lib/campaignGenerator.js');
+    muapiMock.text.mockResolvedValueOnce('```json\n[{"title":"A","recommended_platforms":["instagram"]},{"title":"B"}]\n```');
+    const concepts = await generateCampaignConcepts(BRAND, 'sales', 'be bold');
+    expect(concepts.map((c) => c.title)).toEqual(['A', 'B']);
+    const prompt = muapiMock.text.mock.calls.at(-1)[0];
+    expect(prompt).toContain('Return STRICT JSON only — an array of 4 objects');
+    expect(prompt).toContain('"recommended_platforms": ["instagram","linkedin","facebook","twitter","email","banner","youtube_thumb","google_ad"]');
+    expect(prompt).toContain('USER DIRECTION: be bold');
+    muapiMock.text.mockResolvedValueOnce('{"concepts":[{"title":"C"}]}');
+    expect((await generateCampaignConcepts(BRAND, 'sales')).map((c) => c.title)).toEqual(['C']);
+    muapiMock.text.mockResolvedValueOnce('not json at all');
+    await expect(generateCampaignConcepts(BRAND, 'sales')).rejects.toThrow();
+  });
+  it('the model\'s screenshot colours come first, then the site\'s CSS colours (upstream order)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ ok: true, data: { title: 'T', bodyText: 'B', screenshot: 'abc', rawColors: ['rgb(0, 117, 222)', 'rgb(0, 117, 222)', 'rgb(255, 0, 0)'], logoCandidates: [] } }) })));
+    muapiMock.uploadBrandAsset.mockResolvedValue('https://img/shot.png');
+    muapiMock.text.mockResolvedValue('{"brand_name":"B"}');
+    muapiMock.vision.mockResolvedValue('{"primary_colors":["#abcdef"],"secondary_colors":["#123456"]}');
+    const { analyzeBrand } = await import('../lib/brandAnalyzer.js');
+    const dna = await analyzeBrand('https://acme.test');
+    expect(dna.primaryColors).toEqual(['#abcdef', '#0075de', '#ff0000']); // vision first, then CSS by frequency
+    expect(dna.secondaryColors[0]).toBe('#123456');
+    vi.unstubAllGlobals();
+  });
+  it('photo studio sends the logo (even an SVG) as a reference, and retries without it if rejected', async () => {
+    const { generateProductPhoto } = await import('../lib/photoStudio.js');
+    muapiMock.imageEdit2.mockResolvedValueOnce('https://img/ok.png');
+    await generateProductPhoto({ productImageUrl: 'https://x/p.png', logoUrl: 'https://x/logo.svg', category: 'home', style: 'scandi_living' });
+    expect(muapiMock.imageEdit2.mock.calls.at(-1)[1]).toEqual(['https://x/p.png', 'https://x/logo.svg']);
+    muapiMock.imageEdit2.mockClear();
+    muapiMock.imageEdit2.mockRejectedValueOnce(new Error('Generation failed: The file format is not supported')).mockResolvedValueOnce('https://img/retry.png');
+    const r = await generateProductPhoto({ productImageUrl: 'https://x/p.png', logoUrl: 'https://x/logo.svg', category: 'home', style: 'scandi_living' });
+    expect(muapiMock.imageEdit2.mock.calls.map((c) => c[1])).toEqual([['https://x/p.png', 'https://x/logo.svg'], ['https://x/p.png']]);
+    expect(r.imageUrl).toBe('https://img/retry.png');
+    muapiMock.imageEdit2.mockClear(); muapiMock.imageEdit2.mockRejectedValue(new Error('boom'));
+    await expect(generateProductPhoto({ productImageUrl: 'https://x/p.png', logoUrl: null, category: 'home', style: 'scandi_living' })).rejects.toThrow('boom'); // no logo: nothing to retry without
+    expect(muapiMock.imageEdit2).toHaveBeenCalledTimes(1);
   });
 });

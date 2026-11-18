@@ -85,8 +85,10 @@ export function CampaignWizard(params = {}) {
   CAMPAIGN_GOALS.forEach(g => {
     const card = document.createElement('div');
     card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
+    card.dataset.goal = g.value;
     card.innerHTML = `
-      <div class="text-sm font-bold text-white">${g.label}</div>
+      <div class="text-sm font-bold text-white">${escapeHtml(g.label)}</div>
+      <div class="text-xs text-muted mt-0.5">${escapeHtml(g.description || '')}</div>
     `;
     card.onclick = () => {
       state.goal = g.value;

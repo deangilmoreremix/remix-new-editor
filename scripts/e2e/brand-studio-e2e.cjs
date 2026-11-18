@@ -102,7 +102,7 @@ const concepts = { concepts: [1, 2, 3, 4, 5].map((i) => ({ title: `Concept ${i}`
   await page.waitForTimeout(2500); console.log('  3s later body tail:', (await page.innerText('body')).slice(-300).replace(/\n+/g,' | '));
   await page.waitForSelector('button[data-action="select-concept"]', { timeout: 60000 });
   const conceptCall = calls.muapi.filter((c) => c.endpoint === 'gpt-5-nano' && /senior brand strategist/.test(c.params.prompt || '')).pop();
-  ok('3. goal + direction + brand DNA reach the concept prompt', conceptCall && /Product Launch/.test(conceptCall.params.prompt) && /USER DIRECTION: playful, about moon landings/.test(conceptCall.params.prompt) && /Orbit for everyone/.test(conceptCall.params.prompt));
+  ok('3. goal + direction + brand DNA reach the concept prompt', conceptCall && /Product launch/.test(conceptCall.params.prompt) && /USER DIRECTION: playful, about moon landings/.test(conceptCall.params.prompt) && /Orbit for everyone/.test(conceptCall.params.prompt));
   ok('3. exactly 4 concepts shown (model returned 5)', (await page.locator('button[data-action="select-concept"]').count()) === 4);
   const campaign = await page.evaluate(() => JSON.parse(localStorage.getItem('brand_campaigns') || '[]'));
   ok('3. campaign persisted with concepts', campaign.length === 1 && campaign[0].concepts.length === 4 && campaign[0].brandId === saved.id);

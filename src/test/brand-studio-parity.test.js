@@ -192,11 +192,6 @@ describe('MuAPI failure handling (found by the real-API run)', () => {
     expect(muapiMock.image).toHaveBeenCalledTimes(1);
     expect(asset.imageUrl).toBe('https://img/new.png');
   });
-  it('photo studio drops an SVG logo from the references', async () => {
-    const { generateProductPhoto } = await import('../lib/photoStudio.js');
-    await generateProductPhoto({ productImageUrl: 'https://x/p.png', logoUrl: 'https://x/logo.svg', category: 'home', style: 'scandi_living' });
-    expect(muapiMock.imageEdit2.mock.calls[0][1]).toEqual(['https://x/p.png']);
-  });
 });
 
 describe('image helpers never return an empty URL', () => {
