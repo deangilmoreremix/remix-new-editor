@@ -10,6 +10,7 @@ import { PUCK_TEMPLATES } from './designs.js';
 import { slotFields, SLOT_DEFAULTS } from './slotFields.js';
 import { ThanksContext, FormSettingsContext } from './context.js';
 import { choicesField } from './choicesField.jsx';
+import { ListBuilderForm, OptinGate, PixelLoader, optinConfigField, defaultListBuilder, publicOptinConfig } from './optinForm.jsx';
 
 // Designs may ship extra components (puck/extensions/NN-name.jsx exporting `components`), merged in automatically.
 const EXT = Object.entries(import.meta.glob('./extensions/*.jsx', { eager: true })).sort(([a], [b]) => a.localeCompare(b)).map(([, m]) => m);
@@ -56,7 +57,7 @@ export const puckConfig = {
     },
   },
   categories: {
-    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Showcase', 'Footer', 'PageImage'] },
+    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'ListBuilderForm', 'LeadGeneratorForm', 'CtaBar', 'Showcase', 'Footer', 'PageImage'] },
     extras: { title: 'Design extras', components: Object.keys(EXT_COMPONENTS), defaultExpanded: false },
     cards: { title: 'Cards (drop into a Grid)', components: ['LeadMagnetCard', 'TableCard', 'StatsCard', 'ChecklistCard', 'QuoteCard', 'StepsCard', 'FeaturesCard', 'FaqCard', 'KpiCard', 'ScheduleCard', 'ButtonCard'] },
   },
@@ -125,6 +126,18 @@ export const puckConfig = {
       fields: { eyebrow: T('Small label'), title: T('Headline'), text: A('Text'), fields: formFieldArray, submitLabel: T('Button text'), successMessage: T('Thank-you message') },
       defaultProps: { eyebrow: "Let's talk", title: 'Ready to get started?', text: 'Tell us a little about your team and we will get back to you.', fields: [{ key: 'name', label: 'Name', type: 'text', required: true }, { key: 'email', label: 'Work email', type: 'email', required: true }, { key: 'message', label: 'How can we help?', type: 'textarea', required: false }], submitLabel: 'Contact us', successMessage: 'Thanks! We will be in touch.' },
       render: (p) => <C.ContactBand {...p} />,
+    },
+    ListBuilderForm: {
+      label: 'Sign-up form (List Builder)',
+      fields: { config: optinConfigField('List Builder settings', 'list-builder') },
+      defaultProps: { config: publicOptinConfig(defaultListBuilder('list-builder')) },
+      render: (p) => <><ListBuilderForm {...p} /><OptinGate config={p.config} /><PixelLoader config={p.config} /></>,
+    },
+    LeadGeneratorForm: {
+      label: 'Lead form (Lead Generator)',
+      fields: { config: optinConfigField('Lead Generator settings', 'lead-generator') },
+      defaultProps: { config: publicOptinConfig(defaultListBuilder('lead-generator')) },
+      render: (p) => <><ListBuilderForm {...p} kind="lead-generator" /><OptinGate config={p.config} /><PixelLoader config={p.config} /></>,
     },
     CtaBar: { label: 'Bottom button bar', fields: { text: T('Text beside the button (empty = button only)'), label: T('Button text'), url: T('Link (https, mailto:, tel: or #lead)'), icon: iconField, icons: { type: 'array', label: 'Social icons (button-only bar)', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { text: '', label: 'Book a Free Consultation', url: '#lead', icon: 'calendar', icons: [] }, render: (p) => <C.CtaBar {...p} /> },
     Footer: { label: 'Footer', fields: { text: T('Footer text'), links: linkArray('Footer links') }, defaultProps: { text: 'Sent by {{sender|us}} · {{brand|your brand}}', links: [] }, render: (p) => <C.Footer {...p} /> },
