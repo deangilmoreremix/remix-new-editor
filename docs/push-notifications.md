@@ -34,7 +34,7 @@ covers lead-generator / list-builder leads (`new_lead`), the retarget feature (`
 The in-app bell also receives the row live: `owner_notifications` is added to the `supabase_realtime` publication
 (RLS limits events to the owner).
 
-## Database (migration `20261118200000_web_push_notifications.sql`)
+## Database (migration `20261118210000_web_push_notifications.sql`)
 
 - `push_subscriptions`: `id`, `clerk_user_id` (default `auth.jwt()->>'sub'`), `endpoint` (unique, https, <= 2048),
   `p256dh`, `auth`, `user_agent` (<= 300), `created_at`, `last_success_at`, `failure_count`. Owners can select, insert
