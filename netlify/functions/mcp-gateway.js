@@ -5,12 +5,26 @@
 //   POST /api/mcp-gateway/estimate        { endpoint, payload }  -> { cost }
 //   POST /api/mcp-gateway/upload          { source_url }         -> { url }
 //   GET  /api/mcp-gateway/balance                                -> { balance }
-// BYOK, like every other function here: the caller's SmartVid key arrives as
-// `Authorization: Bearer <key>` and is used for this request only; it is never
-// logged or stored, and there is no platform-key fallback. The generation backend
-// is never named in a response.
+//   POST /api/mcp-gateway/studio/{name}   { ...body }            -> the studio function's own response
+// Auth: `Authorization: Bearer sv_live_…` (a SmartVid MCP key, see mcp-keys.js). The key resolves to a signed-in user and
+// to that user's own stored upstream keys; studio routes run the app's own function handlers in-process as that user.
+// There is no platform-key fallback. Local development may set MCP_ALLOW_BYOK=1 to pass an upstream key directly as the
+// bearer token. The generation backend is never named in a response.
+
+import { createSupabaseStore, resolveMcpKey, isMcpKey } from './_shared/mcpKeys.js';
+import { handle as zackdHandle } from './zackd.js';
+import { handle as agentAudioHandle } from './agent-audio.js';
+import { handle as cinegenHandle } from './cinegen.js';
 
 const UPSTREAM = 'https://api.muapi.ai/api/v1';
+
+// Studio functions the MCP may call, by name. Each runs the app's own handler as the key's user.
+// (timeline-ai's generation actions are covered by /generate with the same request builders.)
+export const STUDIOS = {
+  zackd: (body, who) => zackdHandle(body, who.userId, { keys: who.keys }),
+  'agent-audio': (body, who) => agentAudioHandle(body, who.userId, { keys: who.keys }),
+  cinegen: (body, who) => cinegenHandle(body, who.userId, { key: who.keys.muapi }),
+};
 const BRAND = 'SmartVid';
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
@@ -19,9 +33,21 @@ const fail = (statusCode, message) => json(statusCode, { error: { message } });
 const brandText = (s) => String(s ?? '').replace(/mu-?api(?:\.ai|app)?/gi, BRAND);
 
 const header = (h = {}, name) => Object.entries(h).find(([k]) => k.toLowerCase() === name)?.[1];
-function bearerKey(headers) {
+function bearerToken(headers) {
   const m = /^Bearer\s+(\S+)$/i.exec(String(header(headers, 'authorization') || ''));
-  return m && /^[A-Za-z0-9._-]{16,200}$/.test(m[1]) ? m[1] : null;
+  return m ? m[1] : null;
+}
+
+/**
+ * Who is calling: { userId, keys: { muapi, openai } } from an MCP key, or null.
+ * MCP_ALLOW_BYOK=1 (local development only) lets the bearer token itself be an upstream key.
+ */
+async function authenticate(event, { store, env }) {
+  const token = bearerToken(event.headers);
+  if (!token) return null;
+  if (isMcpKey(token)) return resolveMcpKey(store(), token);
+  if (env.MCP_ALLOW_BYOK === '1' && /^[A-Za-z0-9._-]{16,200}$/.test(token)) return { id: null, userId: 'byok', workspaceId: 'personal', keys: { muapi: token, openai: null } };
+  return null;
 }
 
 // Endpoint names are model slugs: letters, digits, dot, dash, underscore, slash. No traversal, scheme or host.
@@ -54,9 +80,15 @@ function upstreamError(res, data) {
   return fail(res.status >= 500 ? 502 : res.status, brandText(typeof detail === 'string' ? detail : JSON.stringify(detail)));
 }
 
-export async function handler(event) {
-  const key = bearerKey(event.headers);
-  if (!key) return fail(401, 'Missing or malformed SmartVid API key. Send it as "Authorization: Bearer <key>".');
+export function createHandler({ store = () => createSupabaseStore(), studios = STUDIOS, env = process.env } = {}) {
+  return async function gateway(event) {
+  let who;
+  try { who = await authenticate(event, { store, env }); } catch (err) {
+    console.error('[mcp-gateway] auth failed:', err?.message || 'error');
+    return fail(503, `${BRAND} MCP access is temporarily unavailable.`);
+  }
+  if (!who) return fail(401, 'Missing, invalid or revoked SmartVid MCP key. Create one in Settings → MCP access and send it as "Authorization: Bearer <key>".');
+  const key = who.keys.muapi;
 
   const route = String(event.path || '').replace(/^.*\/(?:api\/mcp-gateway|mcp-gateway)/, '').replace(/\/+$/, '') || '/';
   const method = event.httpMethod;
@@ -113,8 +145,20 @@ export async function handler(event) {
       return json(200, { url: data.url || data.file_url || data.data?.url });
     }
 
+    const studioMatch = /^\/studio\/([a-z0-9-]{1,40})$/.exec(route);
+    if (studioMatch && method === 'POST') {
+      const run = Object.hasOwn(studios, studioMatch[1]) ? studios[studioMatch[1]] : null;
+      if (!run) return fail(404, 'Unknown studio.');
+      const out = await run(input, who);
+      // The studios' own messages may name the generation provider; scrub the body before it leaves.
+      return { statusCode: out.statusCode || 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: brandText(out.body ?? '{}') };
+    }
+
     return fail(404, 'Unknown route.');
   } catch (err) {
     return fail(502, `${BRAND} gateway error: ${brandText(err?.message)}`);
   }
+  };
 }
+
+export const handler = createHandler();

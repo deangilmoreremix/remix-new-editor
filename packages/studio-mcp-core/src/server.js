@@ -108,8 +108,10 @@ export function createBrandedServer({ brand, catalog, client }) {
     server.registerTool(p(tool.name), {
       title: `${brand.name}: ${tool.name.replace(/_/g, ' ')}`,
       description: tool.description,
-      inputSchema: { ...tool.input, wait: z.boolean().optional().describe('Wait for the result (default true). If false, or on timeout, returns a request_id for get_result.') },
+      inputSchema: tool.run ? tool.input : { ...tool.input, wait: z.boolean().optional().describe('Wait for the result (default true). If false, or on timeout, returns a request_id for get_result.') },
     }, guard(async ({ wait = true, ...args }) => {
+      // `run` tools drive a studio function themselves (several calls, own status protocol).
+      if (tool.run) return json(await tool.run({ ...args, wait }, client));
       const { endpoint, payload } = tool.build(args);
       const submitted = await client.submit(endpoint, payload);
       const id = submitted.request_id || submitted.id;

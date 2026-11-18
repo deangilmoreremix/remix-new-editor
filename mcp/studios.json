@@ -271,6 +271,24 @@
    "kinds": [
     "i2v"
    ]
+  },
+  "zackd": {
+   "tools": [
+    "zackd_trends",
+    "zackd_script",
+    "zackd_submit",
+    "zackd_status"
+   ],
+   "kinds": []
+  },
+  "zackd-studio": {
+   "tools": [
+    "zackd_trends",
+    "zackd_script",
+    "zackd_submit",
+    "zackd_status"
+   ],
+   "kinds": []
   }
  },
  "unsupported": {
@@ -297,10 +315,8 @@
   "video-pages": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
   "website-builder": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
   "render": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
-  "video-agent": "Own backend that requires a signed-in SmartVid session; not reachable with a bring-your-own-key MCP key.",
-  "video-agent-studio": "Own backend that requires a signed-in SmartVid session; not reachable with a bring-your-own-key MCP key.",
-  "zackd": "Media steps (image, clip, speech, music, captions) are already available through the generic tools; its script/trends steps need a signed-in SmartVid session plus an OpenAI key.",
-  "zackd-studio": "Media steps (image, clip, speech, music, captions) are already available through the generic tools; its script/trends steps need a signed-in SmartVid session plus an OpenAI key.",
+  "video-agent": "Each step runs a tool loop inside the browser against the user's own timeline; there is nothing to do without that editor open.",
+  "video-agent-studio": "Each step runs a tool loop inside the browser against the user's own timeline; there is nothing to do without that editor open.",
   "director": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
   "workbench": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
   "cinegen": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",

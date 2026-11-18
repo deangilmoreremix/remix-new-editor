@@ -44,3 +44,55 @@ export const customTools = [
     build: (a) => buildMusicPayload({ model: a.model, prompt: a.prompt, lyrics: a.lyrics, style: a.style, title: a.title, duration: a.duration, instrumental: !a.lyrics }),
   },
 ];
+
+// ── Zack D studio (netlify/functions/zackd.js, run as the key's owner) ──────────────────────────────
+// The studio function speaks { action: 'trends' | 'script' | 'submit' | 'status' }; the gateway returns its own JSON.
+async function zackdWait(client, requestId, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const r = await client.studio('zackd', { action: 'status', requestId });
+    if (r.status === 'done') return { status: 'completed', request_id: requestId, url: r.url };
+    if (r.status === 'failed') return { status: 'failed', request_id: requestId, error: r.error };
+    if (Date.now() >= deadline) return { status: 'processing', request_id: requestId };
+    await client.sleep(4000);
+  }
+}
+
+customTools.push(
+  {
+    name: 'zackd_trends',
+    description: 'Zack D studio: suggest trending topics for a curiosity-loop short (needs your OpenAI key saved in Settings).',
+    input: { query: z.string().max(200).optional().describe('Niche or keyword') },
+    run: (a, client) => client.studio('zackd', { action: 'trends', query: a.query }),
+  },
+  {
+    name: 'zackd_script',
+    description: 'Zack D studio: turn a topic into a beat map (script with visual and narration per beat).',
+    input: { topic: z.string().min(1).max(200), max_beats: z.number().int().min(2).max(12).optional() },
+    run: (a, client) => client.studio('zackd', { action: 'script', topic: a.topic, maxBeats: a.max_beats }),
+  },
+  {
+    name: 'zackd_submit',
+    description: 'Zack D studio: make one media asset. kind=image (prompt), clip (image_url + prompt), tts (text), music (prompt or mood), captions (video_url). Waits for the result unless wait=false.',
+    input: {
+      kind: z.enum(['image', 'clip', 'tts', 'music', 'captions']),
+      prompt: z.string().optional(), text: z.string().optional(), mood: z.string().optional(), voice: z.string().optional(),
+      image_url: z.string().url().optional(), video_url: z.string().url().optional(),
+      aspect: z.enum(['9:16', '16:9', '1:1']).optional(), duration: z.number().optional(), language: z.string().optional(), theme: z.string().optional(),
+      wait: z.boolean().optional().describe('Wait for the result (default true)'),
+    },
+    run: async (a, client) => {
+      const body = { action: 'submit', kind: a.kind, prompt: a.prompt, text: a.text, mood: a.mood, voice: a.voice, imageUrl: a.image_url, videoUrl: a.video_url, aspect: a.aspect, duration: a.duration, language: a.language, theme: a.theme };
+      const r = await client.studio('zackd', body);
+      if (r.status === 'done') return { status: 'completed', url: r.url };
+      if (!r.requestId) return r;
+      return a.wait === false ? { status: 'processing', request_id: r.requestId } : zackdWait(client, r.requestId, 600_000);
+    },
+  },
+  {
+    name: 'zackd_status',
+    description: 'Zack D studio: check a media job started with zackd_submit.',
+    input: { request_id: z.string().min(4).max(128) },
+    run: (a, client) => zackdWait(client, a.request_id, 0),
+  },
+);

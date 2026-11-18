@@ -56,6 +56,9 @@ export function createGatewayClient({ gatewayUrl, apiKey, brandName, fetchImpl =
     result: (id) => call(`/result/${encodeURIComponent(id)}`),
     estimate: (endpoint, payload) => call('/estimate', { method: 'POST', body: { endpoint, payload } }),
     balance: () => call('/balance'),
+    /** Run one of the brand's studio functions (as the signed-in key owner). Returns the function's own JSON. */
+    studio: (name, body) => call(`/studio/${encodeURIComponent(name)}`, { method: 'POST', body }),
+    sleep,
     async upload({ url, filePath }) {
       if (url) return call('/upload', { method: 'POST', body: { source_url: url } });
       const buf = await readFile(filePath);
