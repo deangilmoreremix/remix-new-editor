@@ -122,24 +122,22 @@ revoke all on function public.record_page_heat(text, text, jsonb, text) from pub
 grant execute on function public.record_page_heat(text, text, jsonb, text) to anon, authenticated;
 
 -- ------------------------------------------------------------------ owner reads (aggregated)
+-- Each read exists twice: page_heat_x_for(owner, ...) does the work and is callable only by the service role (the Next.js
+-- app checks the Clerk user and passes it in); page_heat_x(...) is the browser-facing wrapper that takes the owner from
+-- the caller's own JWT. Both only ever return rows of pages that owner owns.
+
 -- Click map: 25-permille cells (40 x 40 grid). A cell is returned only when 3 or more distinct sessions clicked in it.
-create or replace function public.page_heat_clicks(
-  p_page_id text,
-  p_from timestamptz default (now() - interval '30 days'),
-  p_to timestamptz default now(),
-  p_viewport text default null
+create or replace function public.page_heat_clicks_for(
+  p_owner text, p_page_id text,
+  p_from timestamptz default (now() - interval '30 days'), p_to timestamptz default now(), p_viewport text default null
 )
 returns table (cx integer, cy integer, clicks bigint, sessions bigint)
-language sql
-stable
-security definer
-set search_path = ''
+language sql stable security definer set search_path = ''
 as $$
   select (h.x / 25)::int as cx, (h.y / 25)::int as cy, count(*) as clicks, count(distinct h.session) as sessions
     from public.landing_page_heat h
     join public.landing_pages p on p.id = h.page_id
-   where h.page_id = p_page_id
-     and p.clerk_user_id = (select auth.jwt() ->> 'sub')
+   where h.page_id = p_page_id and p.clerk_user_id = p_owner and p_owner is not null
      and h.type = 'click'
      and h.created_at >= p_from and h.created_at <= p_to
      and (p_viewport is null or h.viewport = p_viewport)
@@ -150,24 +148,18 @@ as $$
 $$;
 
 -- Scroll depth: how many sessions reached each 10% step (empty until 3 sessions exist).
-create or replace function public.page_heat_scroll(
-  p_page_id text,
-  p_from timestamptz default (now() - interval '30 days'),
-  p_to timestamptz default now(),
-  p_viewport text default null
+create or replace function public.page_heat_scroll_for(
+  p_owner text, p_page_id text,
+  p_from timestamptz default (now() - interval '30 days'), p_to timestamptz default now(), p_viewport text default null
 )
 returns table (depth integer, sessions bigint, total_sessions bigint)
-language sql
-stable
-security definer
-set search_path = ''
+language sql stable security definer set search_path = ''
 as $$
   with m as (
     select h.session, max(h.depth) as d
       from public.landing_page_heat h
       join public.landing_pages p on p.id = h.page_id
-     where h.page_id = p_page_id
-       and p.clerk_user_id = (select auth.jwt() ->> 'sub')
+     where h.page_id = p_page_id and p.clerk_user_id = p_owner and p_owner is not null
        and h.type = 'scroll'
        and h.created_at >= p_from and h.created_at <= p_to
        and (p_viewport is null or h.viewport = p_viewport)
@@ -182,23 +174,17 @@ as $$
 $$;
 
 -- Watch time: per video second, how many sessions watched it (a second needs 3 sessions).
-create or replace function public.page_heat_watch(
-  p_page_id text,
-  p_from timestamptz default (now() - interval '30 days'),
-  p_to timestamptz default now(),
-  p_viewport text default null
+create or replace function public.page_heat_watch_for(
+  p_owner text, p_page_id text,
+  p_from timestamptz default (now() - interval '30 days'), p_to timestamptz default now(), p_viewport text default null
 )
 returns table (sec integer, plays bigint, sessions bigint)
-language sql
-stable
-security definer
-set search_path = ''
+language sql stable security definer set search_path = ''
 as $$
   select h.sec, count(*) as plays, count(distinct h.session) as sessions
     from public.landing_page_heat h
     join public.landing_pages p on p.id = h.page_id
-   where h.page_id = p_page_id
-     and p.clerk_user_id = (select auth.jwt() ->> 'sub')
+   where h.page_id = p_page_id and p.clerk_user_id = p_owner and p_owner is not null
      and h.type = 'watch'
      and h.created_at >= p_from and h.created_at <= p_to
      and (p_viewport is null or h.viewport = p_viewport)
@@ -209,12 +195,9 @@ as $$
 $$;
 
 -- The owner's own personal links: one row per contact (their recipients), so no suppression.
-create or replace function public.page_heat_by_contact(p_page_id text)
+create or replace function public.page_heat_by_contact_for(p_owner text, p_page_id text)
 returns table (contact_id text, sessions bigint, clicks bigint, max_scroll integer, watched_seconds bigint, last_seen timestamptz)
-language sql
-stable
-security definer
-set search_path = ''
+language sql stable security definer set search_path = ''
 as $$
   select h.contact_id,
          count(distinct h.session) as sessions,
@@ -224,13 +207,48 @@ as $$
          max(h.created_at) as last_seen
     from public.landing_page_heat h
     join public.landing_pages p on p.id = h.page_id
-   where h.page_id = p_page_id
-     and p.clerk_user_id = (select auth.jwt() ->> 'sub')
+   where h.page_id = p_page_id and p.clerk_user_id = p_owner and p_owner is not null
      and h.contact_id is not null
    group by h.contact_id
    order by max(h.created_at) desc
    limit 1000;
 $$;
+
+-- Browser-facing wrappers: the owner is the caller's own JWT subject.
+create or replace function public.page_heat_clicks(
+  p_page_id text, p_from timestamptz default (now() - interval '30 days'), p_to timestamptz default now(), p_viewport text default null
+)
+returns table (cx integer, cy integer, clicks bigint, sessions bigint)
+language sql stable security definer set search_path = ''
+as $$ select * from public.page_heat_clicks_for((select auth.jwt() ->> 'sub'), p_page_id, p_from, p_to, p_viewport); $$;
+
+create or replace function public.page_heat_scroll(
+  p_page_id text, p_from timestamptz default (now() - interval '30 days'), p_to timestamptz default now(), p_viewport text default null
+)
+returns table (depth integer, sessions bigint, total_sessions bigint)
+language sql stable security definer set search_path = ''
+as $$ select * from public.page_heat_scroll_for((select auth.jwt() ->> 'sub'), p_page_id, p_from, p_to, p_viewport); $$;
+
+create or replace function public.page_heat_watch(
+  p_page_id text, p_from timestamptz default (now() - interval '30 days'), p_to timestamptz default now(), p_viewport text default null
+)
+returns table (sec integer, plays bigint, sessions bigint)
+language sql stable security definer set search_path = ''
+as $$ select * from public.page_heat_watch_for((select auth.jwt() ->> 'sub'), p_page_id, p_from, p_to, p_viewport); $$;
+
+create or replace function public.page_heat_by_contact(p_page_id text)
+returns table (contact_id text, sessions bigint, clicks bigint, max_scroll integer, watched_seconds bigint, last_seen timestamptz)
+language sql stable security definer set search_path = ''
+as $$ select * from public.page_heat_by_contact_for((select auth.jwt() ->> 'sub'), p_page_id); $$;
+
+revoke all on function public.page_heat_clicks_for(text, text, timestamptz, timestamptz, text) from public, anon, authenticated;
+revoke all on function public.page_heat_scroll_for(text, text, timestamptz, timestamptz, text) from public, anon, authenticated;
+revoke all on function public.page_heat_watch_for(text, text, timestamptz, timestamptz, text) from public, anon, authenticated;
+revoke all on function public.page_heat_by_contact_for(text, text) from public, anon, authenticated;
+grant execute on function public.page_heat_clicks_for(text, text, timestamptz, timestamptz, text) to service_role;
+grant execute on function public.page_heat_scroll_for(text, text, timestamptz, timestamptz, text) to service_role;
+grant execute on function public.page_heat_watch_for(text, text, timestamptz, timestamptz, text) to service_role;
+grant execute on function public.page_heat_by_contact_for(text, text) to service_role;
 
 revoke all on function public.page_heat_clicks(text, timestamptz, timestamptz, text) from public, anon;
 revoke all on function public.page_heat_scroll(text, timestamptz, timestamptz, text) from public, anon;
@@ -240,3 +258,6 @@ grant execute on function public.page_heat_clicks(text, timestamptz, timestamptz
 grant execute on function public.page_heat_scroll(text, timestamptz, timestamptz, text) to authenticated;
 grant execute on function public.page_heat_watch(text, timestamptz, timestamptz, text) to authenticated;
 grant execute on function public.page_heat_by_contact(text) to authenticated;
+
+-- The OpenHiggsBolt app writes through the service role too (it has no browser session), so it may call the writer.
+grant execute on function public.record_page_heat(text, text, jsonb, text) to service_role;
