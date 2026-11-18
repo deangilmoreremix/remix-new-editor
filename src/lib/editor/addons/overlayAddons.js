@@ -17,6 +17,8 @@ import { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, VIDEO_TRANSITIONS } fro
 import { TRANSITION_CATEGORIES } from './stockMedia.js';
 import { mapVideoTransition, presentationLabel } from '../remotion/transitionMap.js';
 import { CTA_LINK_FIELDS, CTA_LINK_DEFAULTS } from './ctaLink.js';
+import { TEXT_ANIMATIONS } from './textEffects.js';
+import { TEXT_STYLE_PRESETS } from './textStylePresets.js';
 
 /**
  * Video Transitions picker: Remotion's own transitions first (they look the
@@ -126,7 +128,8 @@ export const SMART_TEXT = registerAddon({
     { key: 'position', label: 'Text Position', type: 'position', tab: 'Basic' },
     ...LINK_FIELDS('Basic'),
     { key: 'rotation', label: 'Rotation', type: 'range', min: -180, max: 180, tab: 'Basic' },
-    ANIMATION_FIELD('Basic'),
+    { ...ANIMATION_FIELD('Basic'), animations: TEXT_ANIMATIONS }, // + Typing, Blur In, Flicker, Blink
+    { key: 'style', label: 'Style presets', type: 'stylePresets', presets: TEXT_STYLE_PRESETS, tab: 'Advanced' },
     { key: 'fontFamily', label: 'Font', type: 'font', options: fontOptions, preview: true, tab: 'Advanced' },
     // upstream Advanced tab: size slider (greyed out while Scale To Fit is on), bold / italic buttons, alignment icons, colours
     { key: 'fontSize', label: 'Font Size', type: 'range', min: 1, max: 40, tab: 'Advanced', disabledIf: (o) => !!o.fontDecorations?.responsive },

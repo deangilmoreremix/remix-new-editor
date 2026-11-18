@@ -151,7 +151,7 @@ function Animated({ o, durationInFrames, children, fullFrame = false }) {
   const anim = animationStyle(o, frame, durationInFrames, fps, Number(o.rotation) || 0);
   const base = fullFrame ? { position: 'absolute', inset: 0, opacity: (o.opacity ?? 100) / 100 } : boxStyle(o);
   return (
-    <div style={{ ...base, opacity: base.opacity * anim.opacity, transform: anim.transform, mixBlendMode: base.mixBlendMode || (o.blendMode !== 'normal' ? o.blendMode : undefined) }}>
+    <div style={{ ...base, opacity: base.opacity * anim.opacity, transform: anim.transform, filter: anim.filter, clipPath: anim.clipPath, mixBlendMode: base.mixBlendMode || (o.blendMode !== 'normal' ? o.blendMode : undefined) }}>
       {children}
     </div>
   );

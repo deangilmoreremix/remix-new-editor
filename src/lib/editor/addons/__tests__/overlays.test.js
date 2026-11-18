@@ -273,6 +273,29 @@ describe('overlay settings form', () => {
     expect(onChange.mock.calls.at(-1)[0]).toMatchObject({ src: 'https://x.test/party.json', kind: 'lottie', name: 'party' });
   });
 
+  it('Smart Text style presets set the whole look at once; Typing / Blur In / Flicker / Blink are offered', () => {
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const onChange = vi.fn();
+    const d = getAddon('overlay-text');
+    renderAddonEditor(box, { fields: d.fields, options: d.defaults(), onChange, services, onFieldChange: d.onFieldChange });
+    box.querySelector('[data-addon-tab="Advanced"]').click();
+    expect(box.querySelectorAll('.addon-style-tile').length).toBe(10);
+    box.querySelector('[data-style-preset="typewriter"]').click();
+    expect(onChange).toHaveBeenCalledTimes(1); // one edit, not one per setting
+    expect(onChange.mock.calls.at(-1)[0]).toMatchObject({ fontFamily: 'Special Elite', background: true, backgroundColor: '#222222', animation: { in: 'typing' } });
+    box.querySelector('[data-style-preset="retro"]').click();
+    const retro = onChange.mock.calls.at(-1)[0];
+    expect(retro).toMatchObject({ fontFamily: 'Luckiest Guy', fontColor: '#FFCC00', stroke: true, strokeColor: '#FF3B30', shadow: true });
+    expect(retro.animation.in).toBe('typing'); // a look without an animation keeps the one already set
+    box.querySelector('[data-addon-tab="Basic"]').click();
+    box.querySelector('[data-anim-open="animation.in"]').click();
+    const names = [...box.querySelectorAll('.addon-anim-tile')].map((t) => t.dataset.animValue);
+    expect(names).toEqual(expect.arrayContaining(['typing', 'blurIn', 'bounceIn']));
+    box.querySelector('[data-anim-open="animation.idle"]').click();
+    expect([...box.querySelectorAll('.addon-anim-tile')].map((t) => t.dataset.animValue)).toEqual(expect.arrayContaining(['flicker', 'blink', 'pulse']));
+  });
+
   it('Animation picker: browse effects as tiles, pick one, pick None', () => {
     const box = document.createElement('div');
     document.body.appendChild(box);

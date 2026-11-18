@@ -1478,3 +1478,20 @@
 .addon-anim-sample.animated { animation-duration: 0.8s; animation-fill-mode: both; }
 .addon-anim-sample.animated.infinite { animation-iteration-count: infinite; }
 .addon-anim-name { font-size: 10px; line-height: 1.2; text-align: center; color: var(--text-dim, rgba(255, 255, 255, 0.7)); }
+
+/* Smart Text effects that Animate.css does not have (src/lib/editor/addons/textEffects.js; the export draws the same motion) */
+@keyframes typing { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes blurIn { from { opacity: 0; filter: blur(14px); } to { opacity: 1; filter: blur(0); } }
+@keyframes flicker { 0%, 8%, 10%, 42%, 44%, 70%, 72%, 100% { opacity: 1; } 8.5% { opacity: 0.3; } 43% { opacity: 0.3; } 71% { opacity: 0.3; } }
+@keyframes blink { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0.15; } }
+.addon-overlay-layer .animated.typing, .addon-anim-sample.animated.typing { animation-name: typing; animation-timing-function: steps(20, end); }
+.addon-overlay-layer .animated.blurIn, .addon-anim-sample.animated.blurIn { animation-name: blurIn; }
+.addon-overlay-layer .animated.flicker, .addon-anim-sample.animated.flicker { animation-name: flicker; animation-duration: 2s; }
+.addon-overlay-layer .animated.blink, .addon-anim-sample.animated.blink { animation-name: blink; animation-duration: 1s; animation-timing-function: step-end; }
+
+/* Smart Text style presets */
+.addon-style-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.addon-style-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px 6px; border-radius: 8px; border: 1px solid var(--border, rgba(255, 255, 255, 0.12)); background: rgba(255, 255, 255, 0.04); color: inherit; cursor: pointer; overflow: hidden; }
+.addon-style-tile:hover, .addon-style-tile:focus-visible { border-color: var(--cyan, #22d3ee); }
+.addon-style-sample { font-size: 24px; line-height: 1.2; }
+.addon-style-name { font-size: 10px; color: var(--text-dim, rgba(255, 255, 255, 0.7)); }

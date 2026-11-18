@@ -37,6 +37,7 @@ function slugify(label, existing) {
 
 import { tokensToHtml, htmlToTokens, tokenChip } from './tokenChips.js';
 import { ensureFormFont } from './addonOverlay.js';
+import { presetSampleStyle } from './textStylePresets.js';
 
 const ANIM_PHASES = [['in', 'In'], ['idle', 'Idle'], ['out', 'Out']];
 // Upstream's Text Position icons (public/static/svgImages/text/basic_group).
@@ -300,6 +301,9 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
       const swatches = (field.swatches || []).map((c) => `<button type="button" class="addon-swatch${String(value).toLowerCase() === c.toLowerCase() ? ' is-on' : ''}" data-swatch-key="${esc(field.key)}" data-swatch-value="${esc(c)}" style="background:${esc(c)}" title="${esc(c)}" aria-label="Colour ${esc(c)}"></button>`).join('');
       return `<div class="clip-editor__field addon-field addon-field--color">${label}<div class="addon-colorrow"><input id="${id}" type="color" data-key="${field.key}" data-kind="text" value="${esc(value || '#000000')}"/>${field.swatches ? `<input type="text" class="addon-hex" data-key="${field.key}" data-kind="hex" value="${esc(value || '#000000')}" maxlength="7" spellcheck="false" aria-label="${esc(field.label)} (hex)"/>` : ''}</div>${swatches ? `<div class="addon-swatches" role="group" aria-label="${esc(field.label)} presets">${swatches}</div>` : ''}</div>`;
     }
+    case 'stylePresets':
+      // ready-made looks: one click sets font, colours, effects and animation together
+      return `<div class="clip-editor__field addon-field addon-field--styles"><label>${esc(field.label)}</label><div class="addon-style-grid" role="group" aria-label="${esc(field.label)}">${(field.presets || []).map((pr) => { ensureFormFont(pr.patch.fontFamily); return `<button type="button" class="addon-style-tile" data-style-preset="${esc(pr.id)}" data-style-field="${esc(field.key)}" title="${esc(pr.label)}" aria-label="${esc(pr.label)} style"><span class="addon-style-sample" style="${esc(presetSampleStyle(pr.patch))}">Aa</span><span class="addon-style-name">${esc(pr.label)}</span></button>`; }).join('')}</div></div>`;
     case 'toggleBtn':
       // a B / I style button that stays pressed (upstream's Bold and Italic)
       return `<div class="clip-editor__field addon-field addon-field--togglebtn"><button type="button" class="mini-btn addon-togglebtn${value ? ' is-on' : ''}" aria-pressed="${!!value}" data-toggle-btn="${esc(field.key)}" title="${esc(field.title || field.label)}" aria-label="${esc(field.title || field.label)}" style="${esc(field.style || '')}">${esc(field.label)}</button></div>`;
@@ -508,6 +512,16 @@ export function renderAddonEditor(container, {
       if (btn?.dataset.animPick) {
         ui.animOpen = null;
         setAndEmit(btn.dataset.animPick, btn.dataset.animValue || null);
+        return;
+      }
+      if (btn?.dataset.stylePreset) {
+        const field = drawnFields.find((f) => f.key === btn.dataset.styleField);
+        const preset = (field?.presets || []).find((pr) => pr.id === btn.dataset.stylePreset);
+        if (preset) {
+          // the whole look is one edit: set every key, then report once
+          Object.entries(preset.patch).forEach(([k, v]) => setPath(current, k, v));
+          emit(true, Object.keys(preset.patch).at(-1));
+        }
         return;
       }
       if (btn?.dataset.toggleBtn) {
