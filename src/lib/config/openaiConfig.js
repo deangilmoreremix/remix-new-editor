@@ -119,6 +119,22 @@ export const STUDIO_COLOR_SCHEMES = Object.freeze(
   }, {})
 );
 
+/**
+ * Per-studio accent overrides for the hover-help cards (see components/studio/tooltipLayer.js).
+ *
+ * Empty on purpose: every studio here renders in the brand lime (STUDIO_SCHEME.primary), so its tooltips do too. The Apps hub tints
+ * (blue, amber, purple...) are card decoration, not the studios' look, and cyan / purple belong to the other repo's palette.
+ * To give one studio its own accent, add `route: '#rrggbb'` here; it must stay readable (4.5:1) on the #0a0a0a card.
+ * Kept separate from STUDIO_COLOR_SCHEMES, whose `primary` the modals use for their buttons.
+ */
+export const STUDIO_TIP_ACCENTS = Object.freeze({});
+
+/** Accent for a route id (or a STUDIO_THEME_KEYS key like 'cinema-studio'); the brand lime when the studio has none. */
+export function getStudioTipAccent(route) {
+  const key = String(route || '').replace(/-(page|studio)$/, '');
+  return STUDIO_TIP_ACCENTS[route] || STUDIO_TIP_ACCENTS[key] || STUDIO_SCHEME.primary;
+}
+
 class OpenAIConfig {
   constructor() {
     this.defaultConfig = {

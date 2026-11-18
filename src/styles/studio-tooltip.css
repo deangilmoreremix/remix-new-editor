@@ -26,6 +26,7 @@
 }
 .studio-tip__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .studio-tip__name { font-size: 13px; font-weight: 600; color: var(--tip-accent); }
+.studio-tip--plain .studio-tip__name { color: var(--tip-text); font-weight: 500; }
 .studio-tip__key {
   font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   padding: 3px 6px; border-radius: 5px;

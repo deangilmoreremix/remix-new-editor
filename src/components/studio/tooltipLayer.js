@@ -5,8 +5,8 @@
 // Theming: the card reads --tip-* from CSS. A studio root can opt into a palette with data-studio-theme="<key>" (see STUDIO_COLOR_SCHEMES).
 // The Timeline Editor (.cinegen-root) has its own help layer and is skipped here.
 
-import { resolveStudioHelp } from '../../lib/help/studioHelp.js';
-import openaiConfig from '../../lib/config/openaiConfig.js';
+import { resolveStudioHelp, idLabels } from '../../lib/help/studioHelp.js';
+import { getStudioTipAccent } from '../../lib/config/openaiConfig.js';
 
 const SHOW_DELAY_MS = 350;
 const EXPAND_DELAY_MS = 900;
@@ -16,16 +16,32 @@ const SKIP = '.cinegen-root, .help-tip, .studio-tip';
 
 let mounted = false;
 
+/** The short caption beside a form field ("Duration", "Resolution"), for selects and inputs that carry no label of their own. */
+function fieldLabel(el) {
+  if (!(el instanceof HTMLSelectElement || el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return '';
+  const own = (n) => (n?.textContent || '').trim().replace(/\s+/g, ' ');
+  const wrap = el.closest('label');
+  const span = wrap?.querySelector(':scope > span, :scope > div');
+  const first = el instanceof HTMLSelectElement ? (el.options[0]?.text || '').trim() : '';
+  return [own(span), own(el.previousElementSibling), own(wrap), first].find((c) => c && c.length <= 28) || '';
+}
+
 /** Find the control under the pointer and the text it is known by. */
 export function findHelp(start) {
   let el = start instanceof HTMLElement ? start : start && start.parentElement;
   for (let i = 0; el && i < 6; i++, el = el.parentElement) {
     if (el.closest(SKIP)) return null;
     const plain = el.dataset.tooltip || el.dataset.helpTitle || el.getAttribute('title') || '';
-    const label = el.dataset.help || plain || el.getAttribute('aria-label')
-      || (el.tagName === 'BUTTON' ? (el.textContent || '').trim().replace(/\s+/g, ' ') : '');
-    const entry = label && label.length <= 80 ? resolveStudioHelp(label) : null;
-    if (entry) return { el, entry };
+    const text = (el.tagName === 'BUTTON' || el.tagName === 'SUMMARY' || el.getAttribute('role') === 'button')
+      ? (el.textContent || '').trim().replace(/\s+/g, ' ') : '';
+    // Try every label the control carries against the copy before settling for plain text: a long tooltip sentence
+    // ("Show advanced options") must not shadow the visible name ("Advanced") that has an entry.
+    const candidates = [el.dataset.help, text, el.getAttribute('aria-label'), ...idLabels(el.id), el.getAttribute('placeholder'), fieldLabel(el),
+      el.dataset.helpTitle, el.getAttribute('title'), el.dataset.tooltip];
+    for (const c of candidates) {
+      const entry = c && c.length <= 80 ? resolveStudioHelp(c) : null;
+      if (entry) return { el, entry };
+    }
     // No copy yet: still theme the control's own title / data-tooltip text.
     if (plain && plain.length <= 160) return { el, entry: { name: plain } };
   }
@@ -47,7 +63,8 @@ export function place(rect, w, h, vw = window.innerWidth, vh = window.innerHeigh
 function buildCard(entry) {
   const card = document.createElement('div');
   card.id = CARD_ID;
-  card.className = 'studio-tip';
+  // A card with no written summary is just a studio's own title / data-tooltip text: it keeps the light text color, not the accent title.
+  card.className = entry.summary ? 'studio-tip' : 'studio-tip studio-tip--plain';
   card.setAttribute('role', 'tooltip');
   const head = document.createElement('div');
   head.className = 'studio-tip__head';
@@ -74,8 +91,7 @@ function buildCard(entry) {
 function applyTheme(card, el) {
   const root = el.closest('[data-studio-theme]');
   if (!root) return;
-  const scheme = openaiConfig.getStudioColorScheme(root.dataset.studioTheme);
-  card.style.setProperty('--tip-accent', scheme.primary);
+  card.style.setProperty('--tip-accent', getStudioTipAccent(root.dataset.studioTheme));
 }
 
 export function mountStudioTooltips() {

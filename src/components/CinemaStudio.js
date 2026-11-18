@@ -184,6 +184,7 @@ export function CinemaStudio() {
     cineBuilderWrapper.style.animationDelay = '0.15s';
 
     const cineBuilderToggle = document.createElement('button');
+    cineBuilderToggle.dataset.help = 'builder';
     cineBuilderToggle.className = 'w-full flex items-center justify-between bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3.5 text-left hover:bg-white/[0.04] transition-all';
     cineBuilderToggle.innerHTML = `
         <div class="flex items-center gap-3">
@@ -264,7 +265,7 @@ export function CinemaStudio() {
 
     const overlayContent = document.createElement('div');
     // Reduced padding for mobile (p-4) and added max-height/overflow handling
-    overlayContent.className = 'w-full max-w-5xl bg-[#111] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto';
+    overlayContent.className = 'w-full max-w-5xl bg-(--bg-cinema-panel) border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto';
     overlayBackdrop.appendChild(overlayContent);
 
     // Header for Overlay
@@ -319,7 +320,7 @@ export function CinemaStudio() {
     promptBarWrapper.style.animationDelay = '0.2s';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
+    promptBar.className = 'w-full bg-(--bg-cinema-panel)/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
 
     // --- INPUT AREA (Prompt + Upload) ---
     const inputArea = document.createElement('div');
@@ -629,6 +630,7 @@ export function CinemaStudio() {
 
     // Model picker — same catalog-driven dropdown used by Video Studio.
     const modelBtn = document.createElement('button');
+    modelBtn.dataset.help = 'model';
     modelBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     const updateModelBtn = () => {
         const m = (currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model)
@@ -741,6 +743,7 @@ export function CinemaStudio() {
 
     // Aspect Ratio
     const arBtn = document.createElement('button');
+    arBtn.dataset.help = 'aspect ratio';
     arBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     const updateArBtn = () => {
         arBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="2" ry="2"/></svg> ${currentSettings.aspect_ratio}`;
@@ -757,6 +760,7 @@ export function CinemaStudio() {
 
     // Resolution
     const resBtn = document.createElement('button');
+    resBtn.dataset.help = 'resolution';
     resBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     const updateResBtn = (val) => {
         resBtn.dataset.value = val || '2K';
@@ -773,7 +777,7 @@ export function CinemaStudio() {
     let outputMode = 'video';
     try { if (localStorage.getItem('cinema_output_mode') === 'image') outputMode = 'image'; } catch { /* ignore */ }
     const modeSeg = createSegmented(
-        [{ value: 'video', label: 'Video' }, { value: 'image', label: 'Image' }],
+        [{ value: 'video', label: 'Video', help: 'video mode' }, { value: 'image', label: 'Image', help: 'image mode' }],
         outputMode,
         (value) => {
             outputMode = value;
@@ -875,6 +879,7 @@ export function CinemaStudio() {
     const summaryCard = document.createElement('button');
     // Removed 'hidden' class, added 'flex' and refined width constraints for mobile
     summaryCard.className = 'flex flex-col items-start justify-center px-4 py-2 bg-white/[0.04] rounded-xl border border-white/5 hover:border-white/20 transition-colors text-left flex-1 min-w-[100px] md:min-w-[140px] max-w-[240px] h-[56px] relative group overflow-hidden';
+    summaryCard.dataset.help = 'quick camera builder';
     summaryCard.setAttribute('data-tooltip', 'Open camera settings');
 
     // Dot indicator
@@ -1289,7 +1294,7 @@ export function CinemaStudio() {
 
     const publishBtn = document.createElement('button');
     publishBtn.type = 'button';
-    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all hover:shadow-glow';
+    publishBtn.className = 'bg-gradient-to-r from-(--publish-from) to-(--publish-to) text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all hover:shadow-glow';
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);

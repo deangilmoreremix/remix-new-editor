@@ -177,6 +177,8 @@ export async function navigate(page, params = {}) {
 
   isNavigating = true;
   currentPage = page;
+  // Lets the hover-help layer (components/studio/tooltipLayer.js) tint its cards with this studio's accent; no per-studio wiring needed.
+  contentArea.dataset.studioTheme = page;
 
   // Update URL with params so components can read them via URLSearchParams
   const searchParams = new URLSearchParams(params).toString();

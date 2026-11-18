@@ -104,16 +104,226 @@ export const STUDIO_HELP = {
   'lyrics': h('Lyrics / Prompt', 'Words to sing, or a style description.'),
   'max highlights': h('Max Highlights', 'Upper limit of clips to pull out.'),
   'coordinates only': h('Coordinates Only', 'Return timestamps without cutting the video.'),
+
+  // ── Composer and studio chrome (shared by most studios) ─────────────────────
+  'pexels': h('Stock photos', 'Browse free stock photos from Pexels.', 'Pick one to use as a reference image.'),
+  'thumbnail': h('Thumbnail', 'Generate a custom thumbnail.', 'Creates a thumbnail from your prompt for this result.'),
+  'tools': h('Quick starters', 'Starter ideas and the prompt enhancer.', 'Pick a starter prompt, or let AI expand a short one into a detailed prompt.'),
+  'more tools': h('More tools', 'Shortcuts to other studios.', 'Send this to Edit, Upscale and other studios.'),
+  'prompt gallery': h('Prompt gallery', 'Browse ready-made prompts.'),
+  'quick tips': h('Quick tips', 'Show or hide short how-to tips.'),
+  'regenerate': h('Regenerate', 'Run it again for a new result.', 'Uses the same prompt and settings.'),
+  'new': h('New', 'Start a fresh generation.'),
+  'new shot': h('New shot', 'Start a fresh shot.'),
+  'publish to social': h('Publish to Social', 'Share the result to your social accounts.'),
+  'open in render': h('Open in Render', 'Send this video to the Render studio for final export.'),
+  'copy image': h('Copy image', 'Copy the image to your clipboard.'),
+  'ask smartvideo': h('Ask SmartVideo', 'Chat with the assistant about this studio.'),
+  'start frame': h('Start frame', 'The first frame of the video.'),
+  'end frame': h('End frame', 'The last frame of the video.', 'Needs a start frame.'),
+  'builder': h('Prompt builder', 'Build a cinematic prompt step by step.'),
+  'character lock': h('Character lock', 'Keep the same character across shots.'),
+  'character description': h('Character description', 'Describe who the character is.', 'Look, outfit, age and style all help.'),
+
+  'reference media': h('Reference media', 'Upload a reference image or clip.', 'It guides the look, subject or motion of the result.'),
+  'reference videos': h('Reference videos', 'Add reference clips.'),
+  'reference audios': h('Reference audio', 'Add reference audio.'),
+  'upload portrait image': h('Portrait image', 'Upload the photo to make talk.'),
+  'image mode': h('Image mode', 'Make a still image.'),
+  'video mode': h('Video mode', 'Make a moving shot.'),
+
+  // ── Studio actions ──────────────────────────────────────────────────────────
+  'generate character': h('Generate Character', 'Create the character.'),
+  'upscale image': h('Upscale Image', 'Enlarge the image and sharpen detail.'),
+  'generate product shot': h('Generate Product Shot', 'Create the product photo.'),
+  'ad video': h('Ad video', 'Animate the shot into a short ad.'),
+  'generate storyboard': h('Generate storyboard', 'Plan the video shot by shot from your idea.'),
+  'analyze': h('Analyze', 'Read the website and extract its brand.'),
+  'website url': h('Website URL', 'The site to read your brand from.'),
+
+  // ── Effects Studio ──────────────────────────────────────────────────────────
+  'effects': h('Effects', 'Browse every effect.'),
+  'image effects': h('Image effects', 'One-click effects for still images.'),
+  'nano banana': h('Nano Banana', 'Fast image effects.'),
+  'kontext effects': h('Kontext effects', 'Context-aware image edits.'),
+  'video effects': h('Video effects', 'One-click effects for video clips.'),
+  'motion controls': h('Motion controls', 'Camera and subject motion presets.'),
+  'video fx v2': h('Video FX v2', 'The second-generation video effects.'),
+  'motion graphics': h('Motion graphics', 'Animated titles, shapes and overlays.'),
+  'search effects': h('Search effects', 'Filter the effects by name.'),
+  'compare': h('Compare', 'View before and after side by side.'),
+  'add to library': h('Add to Library', 'Save this to your library.'),
+  'insert into timeline': h('Insert into Timeline', 'Add this to the Timeline Editor.'),
+  'add layer': h('Add layer', 'Stack another effect on top.'),
+
+  // ── Cinema Templates ────────────────────────────────────────────────────────
+  'favorites': h('Favorites', 'Templates you have starred.'),
+  'recent': h('Recent', 'Templates you used lately.'),
+  'my templates': h('My Templates', 'Templates you created or saved.'),
+  'back': h('Back', 'Return to the previous screen.'),
+
+  // ── Option lists and card grids (data-help on the list container or on each option) ──
+  'option': h('Option', 'Choose this setting.'),
+  'example prompt': h('Example prompt', 'Click to fill the prompt with this example.'),
+  'trait option': h('Trait', 'Click to choose this trait.', 'Click again to clear it. Chosen traits feed the generated character.'),
+  'trait tag': h('Trait tag', 'A trait you picked.', 'Hover for a preview.'),
+  'show more tags': h('Show more', 'Show or hide the rest of the tags.'),
+  'builder tab': h('Builder tab', 'Group traits by area.', 'Face, body or style traits.'),
+  'content format': h('Content format', 'Size and shape for the platform.', 'Picks the aspect ratio for Instagram, Stories, YouTube or Pinterest.'),
+  'scene preset': h('Scene preset', 'The setting for the product shot.', 'Click one to place your product in that scene.'),
+  'ad format': h('Ad format', 'Size and shape for the placement.', 'Banner, social post, story or billboard.'),
+  'motion idea': h('Motion idea', 'Click to use this motion prompt.'),
+  'video source': h('Video source', 'Use a video as the lip sync source.'),
+  'shuffle': h('Shuffle', 'Randomize the traits for ideas.'),
+  'reset': h('Reset', 'Clear every choice and start over.'),
+  'brand tool brand-dna': h('Brand DNA', 'Review and edit your brand identity.', 'Colors, fonts, voice and imagery style the AI follows.'),
+  'brand tool campaign': h('Campaigns', 'Create on-brand campaigns.', 'Group assets for one launch.'),
+  'brand tool asset-edit': h('Asset Editor', 'Edit campaign assets.'),
+  'brand tool photo-studio': h('Photo Studio', 'Create branded photos.'),
+  'brand tool animate': h('Animate', 'Animate branded creative assets.'),
+
+  // ── AI VFX ──────────────────────────────────────────────────────────────────
+  'vfx effect': h('Effect', 'One-click transformation for your image.', 'Pick an effect, add an image, then press Generate.'),
+  'vfx effect group': h('Effect group', 'Switch between AI effects, motion controls and VFX.'),
+  'vfx add image': h('Add image', 'Upload the image to transform.', 'Or paste an image URL below.'),
+
+  // ── Plain-text actions found in the studios ─────────────────────────────────
+  'process video': h('Process Video', 'Run the selected video tool.'),
+  'generate avatar video': h('Generate Avatar Video', 'Create the talking avatar video.'),
+  'generate content': h('Generate Content', 'Create the content with this character.'),
+  'generate audio': h('Generate Audio', 'Create the audio.'),
+  'upload audio': h('Upload audio', 'Use your own audio file.'),
+  'find businesses': h('Find businesses', 'Search for prospects to send videos to.'),
+  'find my brand': h('Find My Brand', 'Detect your brand from your website.'),
+  'refresh': h('Refresh', 'Reload the latest results.'),
+  'recast': h('Recast', 'Replace the person in a video with your character.'),
+  'motion control': h('Motion control', 'Copy movement from a reference video onto your character.'),
+  'upload image': h('Upload image', 'Use your own image.'),
+  'from photo studio': h('From Photo Studio', 'Pick an image you made in Photo Studio.'),
+  'from campaign asset': h('From campaign asset', 'Pick an asset from one of your campaigns.'),
+  'connect personalization': h('Connect Personalization', 'Use your saved brand and contact details.'),
+  'animate': h('Animate', 'Bring the image to life.'),
+
+  // ── Viral prompt browser and Storyboard intake (labelled by their control ids) ──
+  'viral search': h('Search', 'Find prompts by text, tag or author.', undefined, '/'),
+  'viral category': h('Category', 'Filter prompts by category.'),
+  'viral model': h('Model', 'Filter prompts by the model they were made with.'),
+  'viral sort': h('Sort', 'Order by newest, most popular or most liked.'),
+  'viral lang toggle': h('Exclude Chinese', 'Hide prompts written in Chinese.'),
+  'viral mobile filters': h('Filters', 'Open the filter panel.'),
+  'viral refresh': h('Refresh', 'Reload the prompt list.'),
+  'viral export': h('Export', 'Download the prompts you are viewing.'),
+  'sheet lang toggle': h('Exclude Chinese', 'Hide prompts written in Chinese.'),
+  'sheet apply': h('Apply filters', 'Show the prompts that match.'),
+  'personalize this demo': h('Personalize This Demo', 'Make a personalized version of this example.'),
+  'create this style': h('Create This Style', 'Open the studio with this prompt and style loaded.'),
+  'premise': h('Premise', 'Describe the video idea.', 'The storyboard is planned from this.'),
+  'with images': h('With images', 'Also generate a picture for each frame.'),
+  'video intent': h('Customize', 'Set type, tone, length and frames.'),
+  'start blank': h('Build by hand', 'Skip the plan and add the frames yourself.'),
+  'close overlay': h('Close', 'Close this panel.'),
+  'sheet model': h('Model', 'Filter prompts by the model they were made with.'),
+
+  // ── One-offs ────────────────────────────────────────────────────────────────
+  'quick camera builder': h('Camera builder', 'Pick the camera, lens, focal length and aperture.'),
+  'set custom thumbnail': h('Custom thumbnail', 'Upload your own cover image.'),
+  'toggle favorite': h('Favorite', 'Star or unstar this template.'),
+  'character & reference': h('Character & Reference', 'Keep a character consistent using reference images.'),
+  'ai video upscaler': h('AI Video Upscaler', 'Increase video resolution and detail.'),
+  'ltltx lipsync': h('Lip sync model', 'The model that syncs the avatar\'s lips to the audio.'),
+  'motion prompt': h('Motion prompt', 'Describe the motion or effect.', 'Optional. Leave it blank for automatic motion.'),
+  'vfx subject': h('Subject', 'Describe the subject in the image.', 'Optional. It helps the effect target the right thing.'),
+  'vfx image url': h('Image URL', 'Paste a link to the image instead of uploading.'),
+  'use last frame of a video as i2v source': h('Last frame as source', 'Use the final frame of a video as the starting image.'),
+  'upload end frame image for i2v': h('End frame image', 'Upload the image the video should end on.', 'Needs a start frame.'),
+  'voice': h('Voice', 'Choose the voice.'),
+  'scroll left': h('Scroll left', 'Show earlier items.'),
+  'scroll right': h('Scroll right', 'Show more items.'),
 };
 
 const SHORTCUT = /\s*\((?:ctrl|cmd|alt|shift|⌘|⌥|⇧)[^)]*\)\s*$/i;
 
-/** Normalize a control label into a STUDIO_HELP key. */
+/**
+ * Normalize a control label into a STUDIO_HELP key: shortcut suffix "(Ctrl+S)", count badge "(18)", and any leading / trailing
+ * icon, emoji or punctuation ("↻ Regenerate", "Generate ✨", "Advanced…") are dropped; case is folded.
+ */
 export function helpKey(label) {
-  return String(label || '').replace(/\s+/g, ' ').trim().replace(SHORTCUT, '').replace(/[….:]+$/, '').trim().toLowerCase();
+  return String(label || '')
+    .replace(/\s+/g, ' ').trim()
+    .replace(SHORTCUT, '')
+    .replace(/\s*\(\d+\)$/, '')
+    .replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
+    .toLowerCase();
 }
+
+/**
+ * Candidate labels derived from a control id. Studios name their pill buttons consistently ("v-duration-btn", "advanced-btn"), and
+ * those buttons show their current value ("5s", "Seedance Lite"), so the id is the only stable name they carry.
+ * "v-duration-btn" -> ["v duration", "duration"].
+ */
+export function idLabels(id) {
+  const raw = String(id || '').toLowerCase();
+  const base = raw.replace(/-(btn|button|toggle|trigger|pill)$/, '');
+  if (!base) return [];
+  const full = base.replace(/-/g, ' ');
+  const bare = base.replace(/^[a-z]{1,3}-/, '').replace(/-/g, ' ');
+  // Also the id with its suffix kept ("viral-lang-toggle"), for entries that name the control exactly.
+  return [...new Set([bare, full, raw.replace(/-/g, ' ')])];
+}
+
+// Placeholder text is the only label some inputs have. Matched by prefix, since the text is long and sometimes truncated.
+const PLACEHOLDERS = [
+  [/^describe the motion/, 'motion prompt'],
+  [/^optional: describe the subject/, 'vfx subject'],
+  [/^…?or paste an image url/, 'vfx image url'],
+  [/^influencer prompt/, 'prompt'],
+  [/^search prompts/, 'viral search'],
+  [/^show all \d+/, 'prompt gallery'], // "Show all 272 image prompts"
+];
+
+// Descriptive tooltip sentences the studios already use, mapped to the entry they describe.
+export const ALIASES = {
+  'select ai generation model': 'model',
+  'select model': 'model',
+  'generate ai image from prompt': 'generate',
+  'generate a custom thumbnail': 'thumbnail',
+  'sketch a reference for the model to follow': 'draw',
+  'quick starters & prompt enhancer': 'tools',
+  'personalize with a discovered contact': 'personalize',
+  'more enhancement tools': 'more tools',
+  'browse stock photos from pexels': 'pexels',
+  'browse stock photos for i2v reference': 'pexels',
+  'browse stock videos for v2v input': 'pexels',
+  'browse reference scene from pexels': 'pexels',
+  'browse prompt gallery': 'prompt gallery',
+  'browse ai recipes': 'recipes',
+  'image prompt': 'prompt',
+  'video prompt': 'prompt',
+  'cinema prompt': 'prompt',
+  'effect prompt': 'prompt',
+  'start f': 'start frame',
+  'end f': 'end frame',
+  'ar': 'aspect ratio',
+  'aspect': 'aspect ratio',
+  'aspect_ratio': 'aspect ratio',
+  'lip sync prompt': 'prompt',
+  'audio prompt': 'prompt',
+  'upload audio file': 'upload audio',
+};
+
+// "Select / Change / Show ..." prefixes and a trailing "options" are dropped, so "Show advanced options" finds "Advanced".
+const VERB = /^(?:select|change|choose|pick|show|hide|open|toggle|set)\s+(?:the\s+|a\s+|an\s+|your\s+)?/;
+
+const lookup = (key) => STUDIO_HELP[key] || STUDIO_HELP[ALIASES[key]] || null;
 
 /** Help entry for a control label, or null. */
 export function resolveStudioHelp(label) {
-  return STUDIO_HELP[helpKey(label)] || null;
+  const key = helpKey(label);
+  const direct = lookup(key);
+  if (direct) return direct;
+  if (/\bpexels\b/.test(key)) return STUDIO_HELP.pexels; // "Browse stock photos / videos / reference scene from Pexels"
+  const ph = PLACEHOLDERS.find(([re]) => re.test(key));
+  if (ph) return STUDIO_HELP[ph[1]] || null;
+  const stripped = key.replace(VERB, '').replace(/\s+options?$/, '');
+  return stripped !== key ? lookup(stripped) : null;
 }
