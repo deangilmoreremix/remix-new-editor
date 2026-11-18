@@ -78,8 +78,8 @@ function CardVideo({ src, poster, title, ratio }: { src: string; poster: string 
 
 /** The browsable content: category chips, subcategory chips, filters and the grid. The window around it is TemplateVideosModal; the
  *  same panel can also be a tab inside a larger "Add to timeline" window (same Panel/Modal split as HyperframesPanel / MgTemplatesPanel). */
-export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) => void }) {
-  const [q, setQ] = useState('');
+export function TemplateVideosPanel({ onPick, initialQuery }: { onPick: (item: TemplateVideo) => void; initialQuery?: string }) {
+  const [q, setQ] = useState(initialQuery ?? '');
   const [group, setGroup] = useState('all');
   const [type, setType] = useState('all');
   const [ratio, setRatio] = useState('all');
@@ -126,7 +126,7 @@ export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) 
         <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>Showing {visible.length} of {list.length} videos</div>
         <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0 }}>
           {visible.map((i) => (
-            <button key={i.id} className="tv-card" onClick={() => onPick(i)} aria-label={i.title} data-testid={`template-video-${i.id}`}
+            <button key={i.id} className="tv-card" onClick={() => onPick(i)} aria-label={i.title} data-card-title={i.title} data-testid={`template-video-${i.id}`}
               style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' }}>
               <div style={{ position: 'relative' }}>
                 <CardVideo src={i.videoSrc} poster={i.posterSrc} title={i.title} ratio={ratioNumber(i.aspectRatio)} />

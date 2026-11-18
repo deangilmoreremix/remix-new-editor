@@ -18,6 +18,7 @@
  * runtime and never pull the package into a bundle.
  */
 
+import { ensureMasks } from './preview/cutout/maskStore'
 import type {
   CanRenderMediaOnWebOptions,
   CanRenderMediaOnWebResult,
@@ -263,6 +264,22 @@ export async function exportPersonalizedVideo(
   const height = evenDimension(settings?.height ?? 0)
   const fps = settings?.fps && settings.fps > 0 ? settings.fps : 30
   const durationInFrames = Math.max(1, Math.round(settings?.durationInFrames ?? 1))
+
+  // Background removal: the export draws the presenter from measured masks. If this page does not have them
+  // yet (for example the project was just reopened), measure them first rather than exporting the original
+  // background by mistake.
+  if (settings?.cutout?.enabled && inputProps.videoUrl && !inputProps.isImageSource) {
+    try {
+      await ensureMasks(inputProps.videoUrl, { signal })
+    } catch (error) {
+      if (signal?.aborted) return { ok: false, reason: 'cancelled', error: 'Render cancelled.' }
+      return {
+        ok: false,
+        reason: 'render-failed',
+        error: `Background removal could not be prepared: ${error instanceof Error ? error.message : String(error)}`,
+      }
+    }
+  }
 
   let renderer: LoadedWebRenderer
   try {

@@ -20,6 +20,15 @@ export function isPermanentUrl(url) {
   return s.includes(STORAGE_PUBLIC);
 }
 
+const PICTURE_EXT = /\.(png|jpe?g|webp|gif|avif)(\?|#|$)/i;
+
+/** A picture (generated image, uploaded photo). Only offered when a caller asks for pictures too. */
+export function isPictureLike({ type, url, mime } = {}) {
+  if (type) return type === 'image' || String(type).startsWith('image/');
+  if (String(mime || '').startsWith('image/')) return true;
+  return PICTURE_EXT.test(String(url || ''));
+}
+
 export function isVideoLike({ type, url, mime } = {}) {
   if (type === 'video') return true;
   if (type && type !== 'video') return false;
@@ -31,10 +40,13 @@ function titleFrom(item, fallback) {
   return clip(item.title || item.name || item.filename || item.prompt, 80) || fallback;
 }
 
-function build(item, { kind, studio = '', id = '', fallbackTitle, createdAt }) {
+function build(item, { kind, studio = '', id = '', fallbackTitle, createdAt, pictures = false }) {
   const url = String(item.url || '').trim();
-  if (!url || !isVideoLike({ type: item.type, url, mime: item.mime_type || item.mime })) return null;
+  const probe = { type: item.type, url, mime: item.mime_type || item.mime };
+  const picture = !isVideoLike(probe) && pictures && isPictureLike(probe);
+  if (!url || (!picture && !isVideoLike(probe))) return null;
   return {
+    ...(picture ? { isPicture: true } : {}),
     key: `${kind}:${id || url}`,
     url,
     posterUrl: item.thumbnail_url || item.thumbnailUrl || item.poster_url || null,
@@ -47,16 +59,16 @@ function build(item, { kind, studio = '', id = '', fallbackTitle, createdAt }) {
 }
 
 /** generation_history / video_history entry written by saveGeneration(). */
-export const fromGeneration = (h) =>
-  build(h, { kind: 'generation', studio: h.studio || h.studio_type, id: String(h.id || h.request_id || ''), fallbackTitle: 'AI video', createdAt: h.timestamp || h.created_at });
+export const fromGeneration = (h, o) =>
+  build(h, { kind: 'generation', studio: h.studio || h.studio_type, id: String(h.id || h.request_id || ''), fallbackTitle: h.type === 'image' ? 'AI picture' : 'AI video', createdAt: h.timestamp || h.created_at, pictures: o?.pictures });
 
 /** sv_saved_content / content_library row. */
-export const fromContent = (c) =>
-  build(c, { kind: 'content', studio: c.studio, id: String(c.id || ''), fallbackTitle: 'Saved video', createdAt: c.created_at });
+export const fromContent = (c, o) =>
+  build(c, { kind: 'content', studio: c.studio, id: String(c.id || ''), fallbackTitle: 'Saved video', createdAt: c.created_at, pictures: o?.pictures });
 
 /** public.media row from the permanent Asset Library. */
-export const fromAsset = (a) =>
-  build({ ...a, type: a.type && a.type.includes('/') ? (a.type.startsWith('video/') ? 'video' : a.type) : a.type, mime: a.type }, { kind: 'asset', id: String(a.id || ''), fallbackTitle: 'Uploaded video', createdAt: a.created_at });
+export const fromAsset = (a, o) =>
+  build({ ...a, type: a.type && a.type.includes('/') ? (a.type.startsWith('video/') ? 'video' : a.type) : a.type, mime: a.type }, { kind: 'asset', id: String(a.id || ''), fallbackTitle: a.type && String(a.type).startsWith('image/') ? 'Uploaded picture' : 'Uploaded video', createdAt: a.created_at, pictures: o?.pictures });
 
 /** OpenMontage / Remotion render result (data.renders[] or data.renderOutputs[]). */
 export function fromRender(r, projectId = '') {
@@ -99,7 +111,7 @@ export function mergeSources(...lists) {
  * Gather videos from every store. Loaders are injectable for tests; by default
  * they lazy-import the real modules. One failing store never hides the rest.
  */
-export async function loadVideoSources({ loaders } = {}) {
+export async function loadVideoSources({ loaders, pictures = false } = {}) {
   const l = loaders || {
     generations: async () => (await import('../generationHistory.js')).loadGenerationHistory(),
     content: async () => (await import('../contentLibrary.js')).listContentLibrary(),
@@ -108,7 +120,7 @@ export async function loadVideoSources({ loaders } = {}) {
   const safe = async (fn, map) => {
     try {
       const rows = await fn?.();
-      return (Array.isArray(rows) ? rows : []).map(map);
+      return (Array.isArray(rows) ? rows : []).map((row) => map(row, { pictures }));
     } catch {
       return [];
     }

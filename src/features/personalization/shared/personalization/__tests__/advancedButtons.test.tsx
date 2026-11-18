@@ -8,7 +8,7 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DemoPersonalizeProvider, useDemoPersonalize } from '../DemoPersonalizeProvider';
 
-vi.mock('next/navigation', () => ({
+vi.mock('@ohb/lib/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),

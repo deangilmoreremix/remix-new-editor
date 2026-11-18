@@ -18,6 +18,11 @@ export function templateVideoAsset(item: Pick<TemplateVideo, 'id' | 'title' | 'v
     name: item.title,
     type: 'video',
     url: item.videoSrc,
+    // [remix] `fileRef` is what the workspace's media backfill looks for (use-asset-media-backfill.ts): without it a template video never got
+    // a filmstrip, a first-frame thumbnail or an audio waveform in its clip. The clip host sends `access-control-allow-origin: *`, so the
+    // browser can read frames and sound from it. `status` says the clip is usable now; the picture and waveform fill in as the jobs finish.
+    fileRef: item.videoSrc,
+    status: 'online',
     thumbnailUrl: item.posterSrc ?? undefined,
     duration: item.duration && item.duration > 0 ? item.duration : DEFAULT_DURATION,
     width: ratio >= 1 ? 1920 : Math.round(1920 * ratio),
@@ -45,15 +50,20 @@ export function placeTemplateVideo(timeline: Timeline, asset: Asset, at: number)
 }
 
 /** The editor's "pick a template video" handler: asset into the media pool, clip at the playhead (kept here so timeline-editor.tsx stays close to CineGen). */
-export function usePickTemplateVideo({ dispatch, setTimeline, timelineRef, currentTime }: {
+export function usePickTemplateVideo({ dispatch, setTimeline, timelineRef, currentTime, onPlaced }: {
   dispatch: (action: { type: 'ADD_ASSET'; asset: Asset }) => void;
   setTimeline: (timeline: Timeline) => void;
   timelineRef: MutableRefObject<Timeline>;
   currentTime: number;
+  /** Called with the new video clip's id (so the editor can select it and show it in the inspector). */
+  onPlaced?: (clipId: string) => void;
 }) {
   return useCallback((item: TemplateVideo) => {
     const asset = templateVideoAsset(item);
     dispatch({ type: 'ADD_ASSET', asset });
-    setTimeline(placeTemplateVideo(timelineRef.current, asset, currentTime));
-  }, [dispatch, setTimeline, timelineRef, currentTime]);
+    const next = placeTemplateVideo(timelineRef.current, asset, currentTime);
+    setTimeline(next);
+    const placed = next.clips.find((c) => c.assetId === asset.id && next.tracks.find((t) => t.id === c.trackId)?.kind === 'video');
+    if (placed) onPlaced?.(placed.id);
+  }, [dispatch, setTimeline, timelineRef, currentTime, onPlaced]);
 }

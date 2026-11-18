@@ -8,6 +8,8 @@ import { FONT_OPTIONS, fontStack } from './fontChoices.js';
 import { ICON_KEYS } from '../siteIcons.js';
 import { PUCK_TEMPLATES } from './designs.js';
 import { slotFields, SLOT_DEFAULTS } from './slotFields.js';
+import { ThanksContext, AfterSubmitContext } from './context.js';
+import { AFTER_SUBMIT_OPTIONS } from '../afterSubmit.js';
 
 // Designs may ship extra components (puck/extensions/NN-name.jsx exporting `components`), merged in automatically.
 const EXT = Object.entries(import.meta.glob('./extensions/*.jsx', { eager: true })).sort(([a], [b]) => a.localeCompare(b)).map(([, m]) => m);
@@ -33,9 +35,14 @@ export const puckConfig = {
       surface: T('Card colour (#hex)'),
       headingFont: { type: 'select', label: 'Heading font', options: FONT_OPTIONS },
       bodyFont: { type: 'select', label: 'Body font', options: FONT_OPTIONS },
+      thanks: T('Thank-you message after an email sign-up'),
+      afterSubmitAction: { type: 'select', label: 'After the form is sent', options: AFTER_SUBMIT_OPTIONS.map(([value, label]) => ({ label, value })) },
+      afterSubmitUrl: T('Button / redirect link (https, mailto: or tel:)'),
+      afterSubmitButtonText: T('Button text (for "Show a button")'),
+      greeting: T('Greeting strip shown only on a personal link (e.g. "A personal video for {{firstname|you}}"; empty = none)'),
     },
-    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '' },
-    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont }) => {
+    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '', thanks: 'Thanks! Check your inbox.', afterSubmitAction: 'message', afterSubmitUrl: '', afterSubmitButtonText: '', greeting: '' },
+    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont, thanks, greeting, afterSubmitAction, afterSubmitUrl, afterSubmitButtonText }) => {
       const ok = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? v : d);
       const acc = ok(accent, '#2563eb');
       // Button text: white on dark accents, near-black on light ones, so every accent stays readable.
@@ -46,7 +53,7 @@ export const puckConfig = {
       const fh = fontStack(headingFont); const fb = fontStack(bodyFont);
       if (fh) style['--pk-fh'] = fh;
       if (fb) style['--pk-fb'] = fb;
-      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}>{children}</div>;
+      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}><ThanksContext.Provider value={thanks || 'Thanks! Check your inbox.'}><AfterSubmitContext.Provider value={{ afterSubmitAction, afterSubmitUrl, afterSubmitButtonText }}><C.LeadAnchorFallback /><C.PersonalGreeting text={greeting} />{children}</AfterSubmitContext.Provider></ThanksContext.Provider></div>;
     },
   },
   categories: {
@@ -92,7 +99,7 @@ export const puckConfig = {
     },
     Strip: {
       label: 'Strip (logos, icons or numbers)',
-      fields: { kind: { type: 'radio', label: 'Style', options: [{ label: 'Company names', value: 'logos' }, { label: 'Icons with text', value: 'benefits' }, { label: 'Big numbers', value: 'stats' }] }, title: T('Heading (optional)'), items: { type: 'array', label: 'Items', arrayFields: { title: T('Title / name'), text: T('Short text (icons style)'), value: T('Number (numbers style)'), icon: iconField }, getItemSummary: (i) => i.title || i.value || 'Item', defaultItemProps: { title: 'Item', text: '', value: '', icon: 'check' } } },
+      fields: { kind: { type: 'radio', label: 'Style', options: [{ label: 'Company names', value: 'logos' }, { label: 'Icons with text', value: 'benefits' }, { label: 'Big numbers', value: 'stats' }] }, title: T('Heading (optional)'), items: { type: 'array', label: 'Items', arrayFields: { title: T('Title / name'), text: T('Short text (icons style)'), value: T('Number (numbers style)'), icon: iconField, image: T('Small picture (icons style; https link)') }, getItemSummary: (i) => i.title || i.value || 'Item', defaultItemProps: { title: 'Item', text: '', value: '', icon: 'check', image: '' } } },
       defaultProps: { kind: 'logos', title: 'Trusted by growth-focused teams', items: [{ title: 'Acme', text: '', value: '', icon: '' }, { title: 'Globex', text: '', value: '', icon: '' }, { title: 'Initech', text: '', value: '', icon: '' }] },
       render: (p) => <C.Strip {...p} />,
     },
@@ -151,7 +158,7 @@ export const puckConfig = {
     FeaturesCard: { label: 'Feature list card', fields: { columns: cols, title: T('Title'), items: { type: 'array', label: 'Features', arrayFields: { icon: iconField, title: T('Title'), text: T('Text') }, getItemSummary: (i) => i.title || 'Feature', defaultItemProps: { icon: 'check', title: 'Feature', text: '' } } }, defaultProps: { columns: 2, title: 'Key features', items: [{ icon: 'video', title: 'Personalized video', text: 'One-to-one videos in minutes.' }, { icon: 'chart', title: 'Insights', text: 'Track views and replies.' }] }, render: (p) => <C.FeaturesCard {...p} /> },
     FaqCard: { label: 'Questions card', fields: { columns: cols, title: T('Title'), items: { type: 'array', label: 'Questions', arrayFields: { q: T('Question'), a: A('Answer') }, getItemSummary: (i) => i.q || 'Question', defaultItemProps: { q: 'Question?', a: 'Answer.' } } }, defaultProps: { columns: 2, title: 'Frequently asked questions', items: [{ q: 'Is there a free trial?', a: 'Add your answer here.' }] }, render: (p) => <C.FaqCard {...p} /> },
     KpiCard: { label: 'Single big number card', fields: { columns: cols, title: T('Title'), value: T('Number'), note: T('Note') }, defaultProps: { columns: 1, title: 'Leads captured', value: '128,349', note: '+37% in the last 30 days' }, render: (p) => <C.KpiCard {...p} /> },
-    ScheduleCard: { label: 'Date-picker card', fields: { columns: cols, title: T('Title'), text: T('Text'), month: T('Month label'), days: T('Days, comma separated (start the selected one with *)'), time: T('Time line'), buttonLabel: T('Button text (scrolls to the form)') }, defaultProps: { columns: 1, title: 'Book a demo', text: 'Pick a time that works for you.', month: 'Mar 2025', days: '9, 10, 11, *12, 13, 14, 15', time: '10:00 AM (30 min)', buttonLabel: 'Confirm demo' }, render: (p) => <C.ScheduleCard {...p} /> },
+    ScheduleCard: { label: 'Date-picker card', fields: { columns: cols, title: T('Title'), text: T('Text'), month: T('Month label'), weekdays: T('Weekday labels, comma separated (7)'), days: T('Days, comma separated (start the selected one with *)'), time: T('Time line'), buttonLabel: T('Button text (scrolls to the form)') }, defaultProps: { columns: 1, title: 'Book a demo', text: 'Pick a time that works for you.', month: 'Mar 2025', weekdays: 'Sun, Mon, Tue, Wed, Thu, Fri, Sat', days: '9, 10, 11, *12, 13, 14, 15', time: '10:00 AM (30 min)', buttonLabel: 'Confirm demo' }, render: (p) => <C.ScheduleCard {...p} /> },
     ButtonCard: { label: 'Text and buttons card', fields: { columns: cols, eyebrow: T('Small label'), title: T('Title'), text: A('Text'), buttons: buttonArray }, defaultProps: { columns: 2, eyebrow: 'Have a question?', title: "Let's connect", text: 'Our team is here to help.', buttons: [{ label: 'Contact our team', url: 'mailto:hello@example.com', style: 'secondary' }] }, render: (p) => <C.ButtonCard {...p} /> },
   },
 };

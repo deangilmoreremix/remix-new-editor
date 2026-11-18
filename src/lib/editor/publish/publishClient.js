@@ -276,7 +276,7 @@ export async function fetchVideoStats(client, id) {
 }
 
 /** Submit a viewer's lead for a published video (stored for its owner). */
-export async function submitViewerLead({ publishedId, clipId, kind, data, attribution = {} }, { url, key, fetchImpl = fetch } = env()) {
+export async function submitViewerLead({ publishedId, clipId, kind, data, attribution = {}, signals = null, variant = '' }, { url, key, fetchImpl = fetch } = env()) {
   if (!url || !key) return { stored: false, error: 'Lead service is not configured' };
   try {
     const res = await fetchImpl(`${url}/functions/v1/lead-capture`, {
@@ -284,16 +284,19 @@ export async function submitViewerLead({ publishedId, clipId, kind, data, attrib
       headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         publishedId, clipId: clipId != null ? String(clipId) : null, kind, data,
+        ...(signals && typeof signals.turnstile === 'string' && signals.turnstile ? { 'cf-turnstile-response': signals.turnstile.slice(0, 2048) } : {}),
+        ...(signals && typeof signals === 'object' ? { signals: { hp: String(signals.hp ?? ''), ...(Number.isFinite(Number(signals.ms)) && signals.ms !== undefined ? { ms: Number(signals.ms) } : {}) } } : {}),
         source: {
           page: globalThis.location?.href || null,
           userAgent: globalThis.navigator?.userAgent || null,
           ...(attribution.utm ? { utm: attribution.utm } : {}),
           ...(attribution.referrer ? { referrer: attribution.referrer } : {}),
+          ...(variant === 'A' || variant === 'B' ? { variant } : {}),
         },
       }),
     });
     const body = await res.json().catch(() => ({}));
-    return res.ok && body.ok ? { stored: !!body.stored, error: null } : { stored: false, error: body.error || `HTTP ${res.status}` };
+    return res.ok && body.ok ? { stored: !!body.stored, ...(body.duplicate ? { duplicate: true } : {}), error: null } : { stored: false, error: body.error || `HTTP ${res.status}`, fix: res.status === 400 && body.error ? String(body.error) : null }; // `fix`: a short message the viewer can act on
   } catch (err) {
     return { stored: false, error: err?.message || String(err) };
   }

@@ -15,6 +15,12 @@ describe('templateVideoAsset', () => {
     expect(a).toMatchObject({ type: 'video', name: 'Clip A', url: item.videoSrc, thumbnailUrl: item.posterSrc, duration: 10, width: 1920, height: 1080 });
     expect(a.metadata).toMatchObject({ source: 'template-videos', templateId: 'sd25:a' });
   });
+  it('is readable by the media backfill, so the clip gets frames, a first-frame thumbnail and a waveform', () => {
+    const a = templateVideoAsset(item);
+    expect(a.fileRef).toBe(item.videoSrc); // use-asset-media-backfill skips assets without a fileRef
+    expect(a.status).toBe('online');
+    expect(templateVideoAsset({ ...item, posterSrc: null }).thumbnailUrl).toBeUndefined(); // the backfill's generate_thumbnail fills this in
+  });
   it('sizes portrait clips by their ratio and falls back to 5s when the duration is unknown', () => {
     const a = templateVideoAsset({ ...item, aspectRatio: '9:16', duration: null, posterSrc: null });
     expect(a).toMatchObject({ width: 1080, height: 1920, duration: 5 });
@@ -69,5 +75,22 @@ describe('placeTemplateVideo', () => {
     const tl = placeTemplateVideo(timeline([]), templateVideoAsset(item), 0);
     const video = tl.clips.find((c) => kindOf(tl, c.trackId) === 'video');
     expect(video).toBeTruthy();
+  });
+});
+
+describe('usePickTemplateVideo', () => {
+  it('reports the new VIDEO clip (not its linked audio) so the editor can select it', async () => {
+    const { renderHook, act } = await import('@testing-library/react');
+    const { usePickTemplateVideo } = await import('@cinegen/components/edit/template-video-placement');
+    let tl = timeline([track('v1', 'video'), track('a1', 'audio')]);
+    const placedIds: string[] = [];
+    const dispatch = () => undefined;
+    const ref = { current: tl };
+    const { result } = renderHook(() => usePickTemplateVideo({ dispatch, setTimeline: (t) => { tl = t; ref.current = t; }, timelineRef: ref, currentTime: 2, onPlaced: (id) => placedIds.push(id) }));
+    act(() => { result.current(item); });
+    expect(placedIds).toHaveLength(1);
+    const clip = tl.clips.find((c) => c.id === placedIds[0])!;
+    expect(kindOf(tl, clip.trackId)).toBe('video');
+    expect(clip.startTime).toBe(2);
   });
 });

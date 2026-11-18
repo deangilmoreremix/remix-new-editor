@@ -48,4 +48,15 @@ describe('<SocialIcons />', () => {
     render(<SocialIcons links={{ facebook: 'a1' }} />)
     expect(document.querySelector('svg')!.getAttribute('width')).toBe('14')
   })
+  it('shows a remove button per icon only when onRemove is given, and reports which network', () => {
+    const removed: string[] = []
+    const { container, rerender } = render(<SocialIcons links={{ instagram: 'a1', facebook: 'a1' }} />)
+    expect(container.querySelectorAll('button')).toHaveLength(0)
+    rerender(<SocialIcons links={{ instagram: 'a1', facebook: 'a1' }} onRemove={(n) => removed.push(n)} />)
+    expect(container.querySelectorAll('button')).toHaveLength(2)
+    ;(container.querySelector('button[aria-label="Remove Instagram"]') as HTMLButtonElement).click()
+    expect(removed).toEqual(['instagram'])
+    // the icon itself is still a link to the profile
+    expect(container.querySelector('a[data-network="instagram"]')!.getAttribute('href')).toBe('https://www.instagram.com/a1')
+  })
 })

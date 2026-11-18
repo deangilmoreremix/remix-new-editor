@@ -4,7 +4,7 @@ export { AddonRuntime } from './runtime.js';
 export { renderAddonEditor, getPath, setPath } from './addonEditor.js';
 export { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, showOptinOverlay, showThanks, safeWebUrl, AFTER_SUBMIT_ACTIONS, backdropStyle, buildOptinForm, buildArrowHint, startPointer, formBackground } from './addonOverlay.js';
 export {
-  defaultOptin, defaultListBuilder, normalizeListBuilder, listBuilderFields, leadFormToOptin, applyOptinToLeadForm, LEAD_FIELD_TYPES, OPTIN_KINDS, POINTER_DEFAULTS, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile, LIST_BUILDER_KINDS, FORM_FIELD_TYPES, FORM_TRANSITIONS, fieldToken,
+  defaultOptin, defaultListBuilder, normalizeListBuilder, listBuilderFields, leadFormToOptin, applyOptinToLeadForm, LEAD_FIELD_TYPES, OPTIN_KINDS, POINTER_DEFAULTS, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile, LIST_BUILDER_KINDS, FORM_FIELD_TYPES, LEAD_TRIGGERS, FORM_TRANSITIONS, fieldToken,
 } from './listBuilder.js';
 export {
   submitLead, leadNotifyEmails, MAX_NOTIFY_EMAILS, fetchLeads, fetchLeadRows, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, removeIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
@@ -30,3 +30,4 @@ export { BLEND_CATEGORIES, BLEND_ITEMS, blendItemToAddon, getBlendItem, blendThu
 export { END_SCREENS, CONNECT_FORMS, TEMPLATE_LIBRARIES, getTemplate, templateToPreset, templateStart, templatePreviewProject, unknownTemplateTypes } from './templateLibrary.js';
 export { openTemplateWindow } from './templateWindow.js';
 export { POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, getPointerDesign, isTargetDesign } from './pointerDesigns.js';
+export { pickVariant, applyVariant, hasVariantB, variantFor } from './abTest.js';

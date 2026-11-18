@@ -2,6 +2,8 @@
 // move it, drag its edges to trim, click to select (opens its settings), and add new ones at the playhead from the lane header.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
+import { LiveStage, STAGE_BG, useInView, useLiveSlot } from './preview-card';
+import type { CardPreview } from './preview-types';
 import { isGateOverlay } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
 // @ts-expect-error plain JS add-on modules (the same Lottie builder the viewer uses)
@@ -136,6 +138,7 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
                 style={{ left: o.start * pxPerSecond, width: w, top: 4 + row * rowH, height: rowH - 6, bottom: 'auto' }}>
                 {!gate && <span className="overlay-card__handle overlay-card__handle--start" onPointerDown={(e) => begin(e, o, 'start')} />}
                 {open && o.type === ('overlay-lower-third' as OverlayKind) && <LowerThirdThumb clip={o} />}
+                {open && !thumb && o.type !== ('overlay-lower-third' as OverlayKind) && <OverlayStill clip={o} />}
                 {open && thumb && <img className="overlay-card__thumb" src={thumb} alt="" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
                 <span className="overlay-card__body">
                   <span className="overlay-card__name">{gate ? `🔒 ${o.name}` : o.name}</span>
@@ -154,6 +157,18 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
       </div>
     </div>
   );
+}
+
+/** A small still of an overlay that ships no thumbnail (lead form, list builder, call-to-action, text, stickers, end screens...), drawn
+ *  with the same live renderer as the Add window's cards. Only drawn while on screen, and from a shared pool, so a long lane stays cheap. */
+function OverlayStill({ clip }: { clip: OverlayClip }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const visible = useInView(ref);
+  const slot = useLiveSlot(visible);
+  const span = Math.max(1, clip.end - clip.start);
+  const form = clip.type === ('lead-form' as OverlayKind) || clip.type === ('list-builder' as OverlayKind);
+  const preview = useMemo<CardPreview>(() => ({ kind: 'overlay', build: () => [{ ...clip, start: 0, end: span }], duration: span, still: form ? 0.2 : Math.min(span * 0.5, 2.5) }), [clip, span, form]);
+  return <div ref={ref} className="overlay-card__thumb" aria-hidden="true" style={{ position: 'relative', background: STAGE_BG, overflow: 'hidden' }}>{visible && slot && <LiveStage preview={preview} playing={false} />}</div>;
 }
 
 /** A small picture of the lower third (its template, text and colours) at its fully-in frame, so the block shows the animation itself. */

@@ -113,7 +113,7 @@ export function ReadinessChecklist({
                     padding: '3px 9px',
                     borderRadius: 999,
                     border: `1px solid ${C.cyanBorder}`,
-                    background: C.cyanSoft,
+                    background: 'transparent',
                     color: C.cyan,
                     fontSize: 10,
                     fontWeight: 800,

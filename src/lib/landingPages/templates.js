@@ -628,6 +628,10 @@ export function sanitizeConfig(input) {
       subtitle: clip(form.subtitle, 200),
       submitLabel: clip(form.submitLabel, 40) || 'Send',
       successMessage: clip(form.successMessage, 200),
+      // "After the form is sent": the thank-you message (default), a button with a link, or a redirect. http(s)/mailto/tel only.
+      afterSubmitAction: form.afterSubmitAction === 'button' || form.afterSubmitAction === 'redirect' ? form.afterSubmitAction : 'message',
+      afterSubmitUrl: safeUrl(form.afterSubmitUrl),
+      afterSubmitButtonText: clip(form.afterSubmitButtonText, 40),
       privacy: clip(form.privacy, 200),
       fields,
     },

@@ -25,12 +25,15 @@ const INPUT = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 tex
 const BTN = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:border-primary/60 hover:text-primary transition-colors disabled:opacity-50';
 const BTN_PRIMARY = 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-black hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50';
 
+/** How long a design chosen by the caller waits for the customer list before the editor opens anyway. */
+export const CUSTOMER_LOAD_LIMIT_MS = 5000;
+
 export const CHIPS = Object.freeze([
   { id: 'all', label: 'All', match: () => true },
   { id: 'saas', label: 'SaaS & outreach', match: (id) => /^puck-(starter|leadiq|lead|reach|mono|poster|enterprise|neon|pb-(pro|agency|enterprise|analytics|creator))$/.test(id) },
-  { id: 'local', label: 'Local business', match: (id) => /^puck-(local|persona|spark|pb-(eats|auto|health|shop)|pa-(bistro|motors|local|spa|fitness)|pd-restaurant)$/.test(id) },
-  { id: 'real', label: 'Property & travel', match: (id) => /^puck-(pb-agent|pa-(estate|travel)|realtor|dreamhome)$/.test(id) },
-  { id: 'trades', label: 'Home services', match: (id) => /^puck-pc-(plumbing|pest|landscape|cleaning|moving|solar)$/.test(id) },
+  { id: 'local', label: 'Local business', match: (id) => /^puck-(local|persona|spark|pb-(eats|auto|health|shop)|pa-(bistro|motors|local|spa|fitness)|pc-gym|pc-(grooming|drone)-short|pd-(grooming|drone|bees)-long|pd-restaurant)$/.test(id) },
+  { id: 'real', label: 'Property & travel', match: (id) => /^puck-(pb-agent|pa-(estate|travel)|pc-realestate|realtor|dreamhome)$/.test(id) },
+  { id: 'trades', label: 'Home services', match: (id) => /^puck-pc-(plumbing|pest|landscape|cleaning|moving|solar|roofing|hvac|detailing|(septic|radon|crawl|tub|pool)-(long|short))$|^puck-pd-(grease-long|backflow-long|septic-pumping|crawl-worker|crawl-neon)$|^puck-pc-(crawl-beforeafter|septic-elite)$/.test(id) },
   { id: 'care', label: 'Health, beauty & kids', match: (id) => /^puck-pc-(vet|vision|preschool)$/.test(id) || /^puck-pd-(dental|chiro|medspa|salon)$/.test(id) },
   { id: 'more', label: 'Other', match: (id) => /^puck-(pa-(business|learn|creative)|results|pc-insurance)$/.test(id) },
 ]);
@@ -43,6 +46,8 @@ export function filterTemplates(list, { q = '', chip = 'all' } = {}) {
 }
 
 /** Pure: accept a loose {url, title|name, posterUrl|thumbnail_url, studio, file} or a normalized source; null when unusable. */
+const isPicture = (input) => input.type === 'image' || input.kind === 'image' || /\.(png|jpe?g|webp|gif|avif)$/i.test(String(input.url || '').split(/[?#]/)[0]);
+
 export function toPickerVideo(input) {
   if (!input || typeof input !== 'object') return null;
   const url = String(input.url || '');
@@ -52,9 +57,9 @@ export function toPickerVideo(input) {
     key: input.key || `picker:${url}`,
     url,
     posterUrl: typeof poster === 'string' && /^https:\/\//i.test(poster) && poster !== url ? poster : null,
-    title: String(input.title || input.name || input.prompt || '').replace(/\s+/g, ' ').trim().slice(0, 120) || 'My video',
+    title: String(input.title || input.name || input.prompt || '').replace(/\s+/g, ' ').trim().slice(0, 120) || (isPicture(input) ? 'My picture' : 'My video'),
     duration: Number.isFinite(Number(input.duration)) ? Number(input.duration) : null,
-    source: input.source && typeof input.source === 'object' ? input.source : { kind: 'video', studio: String(input.studio || '').slice(0, 40) },
+    source: input.source && typeof input.source === 'object' ? input.source : { kind: isPicture(input) ? 'image' : 'video', studio: String(input.studio || '').slice(0, 40) },
     permanent: isPermanentUrl(url),
     ...(input.file ? { file: input.file } : {}),
   };
@@ -272,10 +277,11 @@ export function openLandingPagePicker({ video = null, template = null, customers
     const sel = selected();
     const one = sel.length === 1 ? sel[0] : null;
     const withBrand = !!one && cp.brand() && !plain;
+    const withImage = !!one && cp.useImage() && !plain; // the picture option works even with the brand option off
     let applied = [];
-    if (withBrand) {
-      const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: brandForConfig(one) });
-      const r = applyCustomerToPuck(cfg.puck, one);
+    if (withBrand || withImage) {
+      const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: withBrand ? brandForConfig(one) : brandDefaults() });
+      const r = applyCustomerToPuck(cfg.puck, one, { useImage: cp.useImage(), brand: withBrand });
       data = r.data; applied = r.applied;
     } else {
       data = defaultConfig(chosen.id, { title: src?.title || '', brand: brandDefaults() }).puck;
@@ -293,10 +299,10 @@ export function openLandingPagePicker({ video = null, template = null, customers
       const note = el('div', 'px-4 md:px-6 pt-1 text-xs');
       note.dataset.personalizedNote = '';
       note.style.cssText = 'color:#d9ff00;display:flex;gap:10px;align-items:center;flex-wrap:wrap';
-      note.appendChild(el('span', '', withBrand
+      note.appendChild(el('span', '', (withBrand || withImage)
         ? `Personalized for ${one.label}${applied.length ? `: ${applied.join(', ')} filled in` : ''}. Previewing as ${sel[0].label}.`
         : sel.length === 1 ? `Plain design. Previewing as ${sel[0].label}.` : `${sel.length} personal links will be made when you save. Previewing as ${sel[0].label}.`));
-      if (withBrand) {
+      if (withBrand || withImage) {
         const undo = el('button', '', 'Use the plain design'); undo.type = 'button';
         undo.style.cssText = 'background:none;border:0;color:#fff;text-decoration:underline;cursor:pointer;font-size:12px';
         undo.addEventListener('click', () => showEdit(templateId, { plain: true }));
@@ -401,8 +407,18 @@ export function openLandingPagePicker({ video = null, template = null, customers
     body.replaceChildren(box);
   }
 
-  void cp.load();
-  if (template && TEMPLATES.some((t) => t.puck && t.id === template)) showEdit(template); else showGrid();
+  // A design chosen by the caller opens the editor right away, but only after the customers are loaded,
+  // so the first draft already has the customer's brand and personalized picture.
+  if (template && TEMPLATES.some((t) => t.puck && t.id === template)) {
+    // Wait for the customers, but never more than a few seconds: a stalled request must not keep the editor closed.
+    const loaded = Promise.resolve(cp.load()).catch(() => {});
+    let timer;
+    const limit = new Promise((resolve) => { timer = setTimeout(resolve, CUSTOMER_LOAD_LIMIT_MS); });
+    Promise.race([loaded, limit]).then(() => { clearTimeout(timer); if (overlay.isConnected) showEdit(template); });
+  } else {
+    void cp.load();
+    showGrid();
+  }
   dialog.focus();
   return { close, element: overlay };
 }

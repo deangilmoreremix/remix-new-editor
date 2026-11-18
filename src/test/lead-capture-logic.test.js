@@ -5,7 +5,7 @@ import {
   isValidEmail, savedNotifyEmail, savedNotifyEmails, uniqueEmails, buildLeadEmail,
   isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, MAX_ATTEMPTS,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret,
-  sanitizeSource, attributionOf,
+  sanitizeSource, attributionOf, looksAutomated, MIN_FILL_MS, isDisposableEmail, emailProblem,
 } from '../../supabase/functions/lead-capture/logic.ts';
 
 describe('lead-capture webhook safety', () => {
@@ -223,5 +223,42 @@ describe('lead-capture source / UTM', () => {
     expect(withSrc.html).not.toContain('<b>x</b>');
     expect(withSrc.text).toContain('utm_campaign: <b>x</b>');
     expect(withSrc.text).toContain('Referrer: https://r.test/p');
+  });
+});
+
+describe('lead-capture spam signals', () => {
+  it('flags a filled honeypot or a form finished faster than a person can', () => {
+    expect(looksAutomated({ hp: 'http://spam' })).toBe(true);
+    expect(looksAutomated({ ms: 300 })).toBe(true);
+    expect(looksAutomated({ ms: MIN_FILL_MS })).toBe(false);
+    expect(looksAutomated({ ms: 8000, hp: '' })).toBe(false);
+  });
+  it('lets old clients and prefilled forms through (no signals, or no timing)', () => {
+    expect(looksAutomated(undefined)).toBe(false);
+    expect(looksAutomated(null)).toBe(false);
+    expect(looksAutomated([])).toBe(false);
+    expect(looksAutomated({ hp: '' })).toBe(false); // prefilled form: honeypot only, no timing
+  });
+  it('recognises throwaway inboxes, including subdomains', () => {
+    expect(isDisposableEmail('x@mailinator.com')).toBe(true);
+    expect(isDisposableEmail('X@Mailinator.COM')).toBe(true);
+    expect(isDisposableEmail('x@mail.mailinator.com')).toBe(true);
+    expect(isDisposableEmail('x@gmail.com')).toBe(false);
+    expect(isDisposableEmail('nope')).toBe(false);
+  });
+  it('emailProblem: bad format always; throwaway only when the owner turned it on', () => {
+    expect(emailProblem({ EMAIL: 'not-an-email' })).toMatch(/valid email/i);
+    expect(emailProblem({ EMAIL: 'x@mailinator.com' })).toBe('');
+    expect(emailProblem({ EMAIL: 'x@mailinator.com' }, { blockDisposable: true })).toMatch(/permanent/i);
+    expect(emailProblem({ 'FIRST NAME': 'Ann', EMAIL: 'ann@gmail.com' }, { blockDisposable: true })).toBe('');
+    expect(emailProblem({ PHONE: '555' })).toBe('');
+  });
+});
+
+describe('lead-capture A/B version', () => {
+  it('keeps A or B in the stored source and nothing else', () => {
+    expect(sanitizeSource({ page: 'https://x/watch/Abc', variant: 'B' }).variant).toBe('B');
+    expect(sanitizeSource({ variant: 'A' }).variant).toBe('A');
+    for (const bad of ['C', 'b', 1, null, { x: 1 }]) expect(sanitizeSource({ variant: bad })).not.toHaveProperty('variant');
   });
 });

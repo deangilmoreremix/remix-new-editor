@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { cutoutAssetIds } from '../backgroundRemoval/useAutoCutout'
 import { Building2, Globe, MapPin, Search, Star } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { BUSINESS_NICHES } from '../businessNiches'
@@ -9,6 +10,8 @@ import { isOwnedWebsite, nonOwnedWebsiteMessage } from '../websiteClassification
 import type { BusinessOwnership, DiscoveredAsset } from '../types'
 import { DiscoveredAssetGrid, type DiscoveredAssetDropZone } from '../DiscoveredAssetGrid'
 import { ResumeProjectBanner } from '../ResumeProjectBanner'
+import { SocialIcons } from '../SocialIcons'
+import { foundSocialLinks } from './foundSocialLinks'
 
 // Simple mode has no client-asset section cards on screen, so the grid shows
 // its own drop zones; dropping an asset imports it into that section.
@@ -60,6 +63,7 @@ export function StepFindBusiness({
     businessSearchError,
     selectedBusiness,
     businessResearch,
+    contactSources,
     findBusinesses,
     selectBusiness,
     researchBusiness,
@@ -99,6 +103,8 @@ export function StepFindBusiness({
     ? websiteLookup
     : null
   const research = businessResearch
+  const foundSocial = foundSocialLinks({ research: research?.status === 'done' ? research.result : null, clientForm, contactSources })
+  const hasFoundSocial = Object.keys(foundSocial.links).length > 0
   const discoveredCount = discoveredAssets.filter((asset) => !asset.rejected).length
   // "Logo found" must reflect the DISCOVERED assets: a discovery run that
   // found logos reports them here, and this step is exactly where the
@@ -108,6 +114,7 @@ export function StepFindBusiness({
     (asset) => !asset.rejected && asset.category === 'logo'
   )
   const logoCount = discoveredLogos.length
+  const cutoutIds = cutoutAssetIds(discoveredAssets)
   const selectedDiscoveredCount = discoveredAssets.filter(
     (asset) => asset.selected && !asset.rejected
   ).length
@@ -222,7 +229,7 @@ export function StepFindBusiness({
                     padding: '0 12px',
                     borderRadius: 999,
                     border: `1px solid ${searchRadius === radius ? C.cyanBorder : C.border}`,
-                    background: searchRadius === radius ? C.cyanSoft : 'transparent',
+                    background: searchRadius === radius ? 'transparent' : 'transparent',
                     color: searchRadius === radius ? C.cyan : C.muted,
                     fontSize: 11,
                     fontWeight: 700,
@@ -482,6 +489,13 @@ export function StepFindBusiness({
             </div>
           )}
 
+          {hasFoundSocial && (
+            <div data-testid="pz-found-social" style={{ ...softPanelStyle, marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={labelStyle}>Social media found</span>
+              <SocialIcons size={18} name={businessName} links={foundSocial.links} titles={foundSocial.titles} />
+            </div>
+          )}
+
           {/* ── Inline discovery review ────────────────────────────────────
               The customer reviews and imports the discovered assets HERE,
               without being sent to Advanced Editing. This is the same
@@ -554,6 +568,25 @@ export function StepFindBusiness({
                 >
                   {discoveryStatus === 'importing' ? 'Importing…' : `Use ${selectedDiscoveredCount || 'selected'} asset${selectedDiscoveredCount === 1 ? '' : 's'}`}
                 </button>
+                {!isAnonymous && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idSet = new Set(cutoutIds)
+                      setDiscoveredAssets((prev) => prev.map((a) => (idSet.has(a.id) ? { ...a, selected: true } : a)))
+                      void importDiscoveredAssets({ ids: cutoutIds })
+                    }}
+                    disabled={cutoutIds.length === 0 || discoveryStatus === 'importing'}
+                    title={cutoutIds.length === 0 ? 'No cutouts are ready yet' : 'Adds every cutout to your assets. The video uses your logo and first 2 products.'}
+                    style={{
+                      ...secondaryButtonStyle,
+                      minHeight: 34,
+                      opacity: cutoutIds.length === 0 || discoveryStatus === 'importing' ? 0.5 : 1,
+                    }}
+                  >
+                    {`Add all cutouts to assets (${cutoutIds.length})`}
+                  </button>
+                )}
               </div>
             </div>
           )}

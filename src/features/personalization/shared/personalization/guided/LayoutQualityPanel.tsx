@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { AlertTriangle, CheckCircle2, Eye, HelpCircle, Loader2, Wand2 } from 'lucide-react'
 import { Tip } from './editor/Tip'
+import { LocalAINotice } from './LocalAINotice'
 import { C, badgeStyle, hintStyle, panelStyle, secondaryButtonStyle } from './tokens'
 import type { LayoutQualityState } from './useLayoutQuality'
 import type { QualityIssue, QualityStatus } from '../preview/placement'
@@ -167,9 +168,34 @@ function FullPanel({ quality, layers }: { quality: LayoutQualityState; layers: P
         ))}
         <button type="button" data-testid="layout-quality-subject-clear" onClick={() => quality.markSubject('clear')} style={{ ...secondaryButtonStyle, minHeight: 28, padding: '0 10px', fontSize: 10 }}>Clear</button>
       </div>
+      {quality.subjectFinder && <SubjectFinderRow finder={quality.subjectFinder} />}
       <p style={{ ...hintStyle, marginTop: 8 }}>
         Recommendations never move a layer you placed by hand or locked; “Restore” replaces hand placement (locked layers stay).
       </p>
+    </div>
+  )
+}
+
+/** "Find it for me": free object detection on this device, with a one-time model download the person agrees to first. */
+function SubjectFinderRow({ finder }: { finder: NonNullable<LayoutQualityState['subjectFinder']> }): React.JSX.Element {
+  const busy = finder.ai.phase !== 'idle'
+  return (
+    <div data-testid="subject-finder" style={{ marginTop: 8 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button
+          type="button" data-testid="subject-find" disabled={busy || finder.hasCustomerMark} onClick={() => void finder.find()}
+          title={finder.hasCustomerMark ? 'You marked the subject by hand. Clear that first to let it be found automatically.' : 'Looks for a person, animal, vehicle or product in the footage, on this device'}
+          style={{ ...secondaryButtonStyle, minHeight: 28, padding: '0 10px', fontSize: 10, opacity: busy || finder.hasCustomerMark ? 0.5 : 1 }}
+        >
+          Find the subject for me
+        </button>
+        {finder.hasAuto && (
+          <button type="button" data-testid="subject-find-clear" onClick={finder.clear} style={{ ...secondaryButtonStyle, minHeight: 28, padding: '0 10px', fontSize: 10 }}>Clear found subject</button>
+        )}
+        <span style={{ ...hintStyle, margin: 0 }}>Free, on this device.</span>
+      </div>
+      <LocalAINotice ai={finder.ai} doing="looks for the main subject in your footage" />
+      {finder.message && <p data-testid="subject-find-message" style={{ ...hintStyle, margin: '6px 0 0', color: C.text }}>{finder.message}</p>}
     </div>
   )
 }
