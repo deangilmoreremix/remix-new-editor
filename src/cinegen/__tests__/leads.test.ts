@@ -164,6 +164,10 @@ describe('lead follow-up (status, notes, tags)', () => {
     expect(res.rows[0]).toMatchObject({ status: 'contacted', notes: '', tags: ['a'] });
     expect(res.rows[1]).not.toHaveProperty('status');
   });
+  it('fetchLeadRows carries updatedAt when the hardening migration is applied', async () => {
+    const client = { functions: { invoke: async () => ({ data: { ok: true, leads: [{ id: '1', data: {}, created_at: 't', clip_id: 'c', kind: 'lead-form', status: 'new', tags: [], updated_at: '2026-11-18T10:00:00Z' }] }, error: null }) } };
+    expect((await fetchLeadRows(client, {})).rows[0]).toMatchObject({ updatedAt: '2026-11-18T10:00:00Z' });
+  });
 });
 
 describe('A/B versions', () => {

@@ -1,9 +1,19 @@
-// [remix] Right column of the Leads tab: KPIs, filter chips, search, CSV, table, delete.
+// [remix] Right column of the Leads tab: KPIs, filter chips, search, CSV / Excel, table, score, follow-up, delete.
 import { useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
-import { LEAD_STATUSES, hasFollowUp, answerColumns, collapseRepeats, countsByForm, leadsPerDay, filterRows, fromMp4, variantCounts, variantOf, leadForms, rowFormKey, rowsToCsv, sourceLabel, whenLabel, LEAD_RANGES, type LeadRange, type LeadRow } from '@cinegen/lib/leads/leads';
+import { LEAD_STATUSES, hasFollowUp, answerColumns, collapseRepeats, countsByForm, leadsPerDay, filterRows, fromMp4, variantCounts, variantOf, leadForms, rowFormKey, rowsToCsv, exportRecords, scoreLead, sortRows, statusCounts, sourceLabel, whenLabel, LEAD_RANGES, type LeadRange, type LeadRow, type LeadSort } from '@cinegen/lib/leads/leads';
+import { downloadLeadsXlsx } from '@cinegen/lib/leads/leads-xlsx';
 import { setLeadsForm, useLeadsForm } from '@cinegen/lib/leads/leads-filter';
+import { FollowUpCell } from './lead-followup';
 import type { LeadsData } from './use-leads';
+
+const NEXT_SORT: Record<LeadSort, LeadSort> = { newest: 'score-desc', 'score-desc': 'score-asc', 'score-asc': 'newest' };
+const SORT_ARIA: Record<LeadSort, 'none' | 'ascending' | 'descending'> = { newest: 'none', 'score-desc': 'descending', 'score-asc': 'ascending' };
+
+function ScorePill({ row }: { row: LeadRow }) {
+  const s = scoreLead(row);
+  return <span className={`leads-score leads-score--${s.label.toLowerCase()}`} data-testid="lead-score" title={s.reasons.join(' · ') || 'No signals yet'}>{s.score} · {s.label}</span>;
+}
 
 export function LeadsCard({ data, published, views }: { data: LeadsData; published: boolean; views: number }) {
   const { state } = useWorkspace();
@@ -14,11 +24,16 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
   const counts = countsByForm(data.rows);
   const [merge, setMerge] = useState(false);
   const [status, setStatus] = useState('all');
+  const [sort, setSort] = useState<LeadSort>('newest');
+  const [xlsxError, setXlsxError] = useState('');
+  const [xlsxBusy, setXlsxBusy] = useState(false);
   const followUp = hasFollowUp(data.rows);
-  const filtered = filterRows(data.rows, { form, query, range, status: followUp ? status : 'all' });
+  const inScope = filterRows(data.rows, { form, query, range }); // the status chips count within this
+  const byStatus = statusCounts(inScope);
+  const filtered = followUp && status !== 'all' ? inScope.filter((r) => (r.status ?? 'new') === status) : inScope;
   const repeats = collapseRepeats(filtered);
   const hasRepeats = repeats.rows.length < filtered.length;
-  const shown = merge ? repeats.rows : filtered;
+  const shown = sortRows(merge ? repeats.rows : filtered, sort);
   const perDay = leadsPerDay(data.rows);
   const peak = Math.max(1, ...perDay.map((d) => d.n));
   const cols = answerColumns(shown);
@@ -32,6 +47,12 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
   const download = () => {
     const url = URL.createObjectURL(new Blob([rowsToCsv(shown, forms)], { type: 'text/csv' }));
     const a = document.createElement('a'); a.href = url; a.download = 'leads.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 5000);
+  };
+  const downloadExcel = async () => {
+    setXlsxBusy(true); setXlsxError('');
+    try { await downloadLeadsXlsx(exportRecords(shown, forms, { escape: false })); }
+    catch (e) { setXlsxError((e as Error).message || 'Could not create the Excel file'); }
+    setXlsxBusy(false);
   };
   return (
     <section className="leads-card" data-testid="leads-card">
@@ -55,41 +76,42 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
             <button type="button" className={`leads-chip${form === 'all' ? ' is-on' : ''}`} onClick={() => setLeadsForm('all')}>All {total}</button>
             {forms.map((f) => <button key={f.key} type="button" className={`leads-chip${form === f.key ? ' is-on' : ''}`} onClick={() => setLeadsForm(f.key)}>{f.label} {counts[f.key] ?? 0}</button>)}
           </div>
+          {followUp && (
+            <div className="leads-chips" role="group" aria-label="Filter by status" data-testid="leads-status-filter">
+              <button type="button" className={`leads-chip${status === 'all' ? ' is-on' : ''}`} aria-pressed={status === 'all'} onClick={() => setStatus('all')} data-testid="status-chip-all">Any status {inScope.length}</button>
+              {LEAD_STATUSES.map(([id, label]) => (
+                <button key={id} type="button" className={`leads-chip leads-chip--${id}${status === id ? ' is-on' : ''}`} aria-pressed={status === id} onClick={() => setStatus(status === id ? 'all' : id)} data-testid={`status-chip-${id}`}>{label} {byStatus[id] ?? 0}</button>
+              ))}
+            </div>
+          )}
           <div className="leads-row">
             <input className="leads-input" placeholder="Search leads…" value={query} onChange={(e) => setQuery(e.target.value)} data-testid="leads-search" />
             <select className="leads-input leads-select" aria-label="Date range" value={range} onChange={(e) => setRange(e.target.value as LeadRange)} data-testid="leads-range">
               {LEAD_RANGES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
             </select>
-            {followUp && (
-              <select className="leads-input leads-select" aria-label="Status" value={status} onChange={(e) => setStatus(e.target.value)} data-testid="leads-status-filter">
-                <option value="all">Any status</option>
-                {LEAD_STATUSES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-              </select>
-            )}
             <button type="button" className="leads-btn" onClick={() => void data.reload()} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
             <button type="button" className="leads-btn" onClick={download} disabled={!shown.length} data-testid="leads-csv">Download CSV</button>
+            <button type="button" className="leads-btn" onClick={() => void downloadExcel()} disabled={!shown.length || xlsxBusy} data-testid="leads-xlsx">{xlsxBusy ? 'Preparing…' : 'Download Excel'}</button>
           </div>
           {hasRepeats && (
             <label className="leads-note leads-merge"><input type="checkbox" checked={merge} onChange={(e) => setMerge(e.target.checked)} data-testid="leads-merge" /> Merge repeat sign-ups (same email on the same form) — {filtered.length - repeats.rows.length} repeat{filtered.length - repeats.rows.length === 1 ? '' : 's'} hidden when on</label>
           )}
           {data.error && <p className="leads-error" role="alert">{data.error}</p>}
+          {xlsxError && <p className="leads-error" role="alert" data-testid="leads-xlsx-error">{xlsxError}</p>}
           {!data.error && !data.loading && shown.length === 0 && <p className="leads-note" data-testid="leads-empty">{total ? 'No leads match.' : 'No leads yet. They appear here when viewers fill out a form on your published link.'}</p>}
           {shown.length > 0 && (
             <div className="leads-tablewrap"><table className="leads-table" data-testid="leads-table">
-              <thead><tr><th>When</th><th>Form</th>{cols.map((c) => <th key={c.key}>{c.label}</th>)}{showSource && <th>Source</th>}{followUp && <th>Follow-up</th>}<th /></tr></thead>
+              <thead><tr>
+                <th>When</th><th>Form</th>
+                <th aria-sort={SORT_ARIA[sort]}><button type="button" className="leads-sort" onClick={() => setSort(NEXT_SORT[sort])} data-testid="leads-sort-score" title="Sort by lead score">Score{sort === 'score-desc' ? ' ↓' : sort === 'score-asc' ? ' ↑' : ''}</button></th>
+                {cols.map((c) => <th key={c.key}>{c.label}</th>)}{showSource && <th>Source</th>}{followUp && <th>Follow-up</th>}<th />
+              </tr></thead>
               <tbody>{shown.map((r) => (
                 <tr key={r.id}><td>{whenLabel(r.createdAt)}{merge && (repeats.counts[r.id] ?? 1) > 1 && <span className="leads-tag leads-tag--rep" data-testid="repeat-tag" title="Times this email signed up on this form">×{repeats.counts[r.id]}</span>}</td><td><span className={`leads-tag leads-tag--${tag(r)?.tone ?? 'lead'}`}>{tag(r)?.short ?? 'Form'}</span>{fromMp4(r) && <span className="leads-tag leads-tag--mp4" data-testid="mp4-tag">MP4</span>}{variantOf(r) && <span className="leads-tag leads-tag--ab" data-testid="ab-tag">{variantOf(r)}</span>}</td>
+                  <td><ScorePill row={r} /></td>
                   {cols.map((c) => <td key={c.key}>{r.data[c.key] ?? ''}</td>)}
-                  {followUp && (
-                    <td className="leads-followup" data-testid="lead-followup">
-                      <select aria-label="Status" value={r.status ?? 'new'} onChange={(e) => void data.update(r.id, { status: e.target.value })}>
-                        {LEAD_STATUSES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-                      </select>
-                      <input key={`n-${r.id}-${r.notes ?? ''}`} placeholder="Note" defaultValue={r.notes ?? ''} maxLength={2000} aria-label="Note" onBlur={(e) => { if (e.target.value !== (r.notes ?? '')) void data.update(r.id, { notes: e.target.value }); }} />
-                      <input key={`t-${r.id}-${(r.tags ?? []).join(',')}`} placeholder="tags, comma separated" defaultValue={(r.tags ?? []).join(', ')} aria-label="Tags" onBlur={(e) => { const next = e.target.value; if (next !== (r.tags ?? []).join(', ')) void data.update(r.id, { tags: next }); }} />
-                    </td>
-                  )}
                   {showSource && <td data-testid="lead-source" title={r.source?.referrer ?? ''}>{sourceLabel(r)}</td>}
+                  {followUp && <FollowUpCell row={r} onUpdate={(patch) => void data.update(r.id, patch)} />}
                   <td><button type="button" className="leads-x" aria-label="Delete lead" onClick={() => { if (window.confirm('Delete this lead?')) void data.remove(r.id); }}>✕</button></td></tr>
               ))}</tbody>
             </table></div>

@@ -377,8 +377,10 @@ Deno.serve(async (req: Request) => {
       if (clipId) q = q.eq("clip_id", clipId);
       return q;
     };
-    // The follow-up columns (status, notes, tags) exist once 20261118120000_video_leads_followup.sql is applied; until then fall back.
-    let { data, error } = await load(`${base}, status, notes, tags`);
+    // The follow-up columns exist once 20261118120000_video_leads_followup.sql (status, notes, tags) and
+    // 20261118131000_video_leads_followup_hardening.sql (updated_at) are applied; until then fall back a step at a time.
+    let { data, error } = await load(`${base}, status, notes, tags, updated_at`);
+    if (error) ({ data, error } = await load(`${base}, status, notes, tags`));
     if (error) ({ data, error } = await load(base));
     if (error) return json(req, { ok: false, error: "Could not load leads" }, 500);
     return json(req, { ok: true, leads: data ?? [] });
