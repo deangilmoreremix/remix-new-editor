@@ -26,10 +26,12 @@ Four one-click layouts from the contact being previewed, all built from tokens s
 ## Make all Video Ready
 A "✨ Make all Video Ready" button at the bottom of the Personalized layouts tab (and in the Personalized Image settings) cleans up every contact's picture for the slots this video's Personalized Images use, one at a time, with live progress (`makeAllVideoReady` in `src/cinegen/lib/personalize/contact-image-services.ts`). Pictures already Video Ready or missing are skipped; each call is a paid AI cleanup on the user's own OpenAI key; failures are counted and the reason is shown.
 
+## Check contacts (Add to timeline, Personalized layouts tab, "Check contacts")
+A table of every contact's picture for the slots this video's Personalized Images use (or the four main pictures when there are none), with chips "⚠ Missing", "AI", "AI · review", "✓ Ready" (`src/cinegen/lib/personalize/contact-check.ts`, `contact-check-panel.tsx`). Click a name to preview the video as that contact. AI pictures awaiting review have **Approve** and **Remove**. **Fill N with AI** makes the missing product / brand / opening / closing pictures from each contact's business details, one at a time, on the user's OpenAI key; they are saved marked "AI · review". Logos, photos and call-to-action graphics are never made with AI. A sign-in or key problem stops the run at once. The Export tab's Personalized output lists "AI picture needs review" for a contact until it is approved.
+
 ## Overlays lane
 Lane blocks follow "Preview as": the text line under a block, the small picture of Smart Text and Personalized Image, and a lower third's name and title all use the previewed contact. The Add window's catalogue cards stay generic.
 
 ## Still missing in CineGen (found, not built)
-- The classic "Check contacts" table (every contact's images for this video, with "Fill with AI" for missing ones).
-- Stock search needs network access to Pixabay / Pexels; it was not run in the sandbox. Video Ready needs the user's OpenAI key; only its failure path was run here.
+- Stock search needs network access to Pixabay / Pexels; it was not run in the sandbox. Video Ready and Fill with AI need the user's OpenAI key and sign-in; only their failure paths were run here (Fill with AI reported "Image generation failed (500)" because the sandbox has no image service).
 - Contacts and their pictures are stored in this browser only (localStorage).

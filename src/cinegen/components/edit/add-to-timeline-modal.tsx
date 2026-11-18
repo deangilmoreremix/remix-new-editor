@@ -168,7 +168,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
         <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
           {tab === 'animations' && hasAnimations && <HyperframesPanel onPick={(i) => { actions.onPickAnimation?.(i); onClose(); }} />}
           {tab === 'videos' && hasVideos && <TemplateVideosPanel initialQuery={requestedQuery} onPick={(v) => { actions.onPickTemplateVideo?.(v); onClose(); }} />}
-          {tab === 'layouts' && actions.onAddLayout && <PersonalizedLayoutsPanel onMakeAllVideoReady={actions.onMakeAllVideoReady} onPick={(id) => { const r = actions.onAddLayout!(id); if (r.ok) onClose(); return r; }} />}
+          {tab === 'layouts' && actions.onAddLayout && <PersonalizedLayoutsPanel getOverlays={actions.getOverlays} onMakeAllVideoReady={actions.onMakeAllVideoReady} onPick={(id) => { const r = actions.onAddLayout!(id); if (r.ok) onClose(); return r; }} />}
           {tab === 'presets' && actions.onPickPreset && <MyPresetsPanel onPick={(p) => { actions.onPickPreset?.(p); onClose(); }} />}
           {tab === 'landing' && hasLanding && <LandingPagesPanel onPick={(id) => { actions.onPickLandingPage?.(id); onClose(); }} />}
           {tab === 'motion' && <MgTemplatesPanel templates={mg} error={mgError} onRetry={loadMg} onPick={(t) => { actions.onPickMotion(t); onClose(); }} />}

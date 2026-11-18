@@ -3250,6 +3250,7 @@ export function TimelineEditor({
             },
             onPickTemplateVideo: handlePickTemplateVideo, // Template videos tab
             onPickLandingPage: handlePickLandingPage, // Landing pages tab
+            getOverlays: () => state.overlays ?? [],
             onMakeAllVideoReady: (h) => makeAllVideoReady(state.overlays ?? [], h), // the images this video's Personalized Images use, for every contact
             onAddLayout: (layoutId) => { // Personalized layouts tab: logo + CTA end card, presenter intro, product spotlight, opening frame
               const r = createLayoutOverlays(layoutId, currentTime, Math.max(sequenceDuration, 10));

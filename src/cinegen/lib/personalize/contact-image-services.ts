@@ -21,9 +21,9 @@ export interface ImageHost { notify: (message: string, kind?: 'info' | 'error' |
 
 const active = (): Profile | null => contactStore.getActiveProfile() as Profile | null;
 /** Saved contact data changed: the preview (and any other listener) redraws. */
-const announce = (id: string) => { try { window.dispatchEvent(new CustomEvent('remix:contact-changed', { detail: { contactId: id } })); } catch { /* no window */ } };
+export const announce = (id: string) => { try { window.dispatchEvent(new CustomEvent('remix:contact-changed', { detail: { contactId: id } })); } catch { /* no window */ } };
 
-function saveContactAsset(profile: Profile, assetId: string, updater: (a: Record<string, unknown>) => Record<string, unknown>) {
+export function saveContactAsset(profile: Profile, assetId: string, updater: (a: Record<string, unknown>) => Record<string, unknown>) {
   if (!profile || !assetId) return null;
   const saved = contactStore.saveProfile(updatePersonalizationAsset(profile, assetId, updater));
   announce(profile.id);
