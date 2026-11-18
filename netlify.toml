@@ -296,16 +296,16 @@ force = false
   status = 200
   force = false
 
-# Outreach Studio (Warmbly, warmbly/web) is served from /outreach-app/ and falls back to its own shell.
+# Warmbly Studio (Warmbly, warmbly/web) is served from /warmbly-app/ and falls back to its own shell.
 [[redirects]]
-  from = "/outreach-app"
-  to = "/outreach-app/index.html"
+  from = "/warmbly-app"
+  to = "/warmbly-app/index.html"
   status = 200
   force = false
 
 [[redirects]]
-  from = "/outreach-app/*"
-  to = "/outreach-app/index.html"
+  from = "/warmbly-app/*"
+  to = "/warmbly-app/index.html"
   status = 200
   force = false
 

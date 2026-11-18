@@ -490,7 +490,7 @@ export function createAppRouter(queryClient: QueryClient, history?: RouterHistor
         routeTree,
         history,
         context: { queryClient },
-        // Served from a sub-path when it runs inside a host app as a studio (vite --base=/outreach-app/).
+        // Served from a sub-path when it runs inside a host app as a studio (vite --base=/warmbly-app/).
         basepath: import.meta.env.BASE_URL.replace(/\/$/, "") || undefined,
         parseSearch,
         stringifySearch,
