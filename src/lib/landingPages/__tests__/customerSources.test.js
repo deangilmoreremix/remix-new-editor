@@ -35,3 +35,13 @@ describe('loadCustomers', () => {
     expect(customers.length).toBe(4);
   });
 });
+
+describe('saved Personalization projects request', () => {
+  it('asks the listing endpoint (?list=true), which would otherwise answer 400', async () => {
+    const { fetchSavedProjects } = await import('../customerSources.js');
+    const calls = [];
+    const out = await fetchSavedProjects(async (url) => { calls.push(url); return { ok: true, json: async () => ({ projects: [{ client: { clientId: 'c1' } }] }) }; });
+    expect(calls[0]).toBe('/api/personalization/project?list=true');
+    expect(out).toHaveLength(1);
+  });
+});

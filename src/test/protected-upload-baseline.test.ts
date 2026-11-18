@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', '7c00f6614c38f5259d6a0b4611f87380e464d60c5f4a27dbb5a1b8b003c7dd84'], // re-recorded after the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels). Semantic coverage in section 5.
+        ['src/components/TimelineEditorPage.jsx', '07994fb3cd74a575a5af03f6890a5f54a2f2ba2fc07f60dfe99a82988f5c494e'], // re-recorded after the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels), then (approved by the repo owner) for the personalized-videos work: Studio design clips (overlay-studio-design) with a design picker, hotspot clips (isEditorOverlay), the Personalized output panel (personalVariables, stored personal links) and a guest identity for publishing without an account. Semantic coverage in section 5.
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -999,6 +999,24 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain("value=\"${escapeHtml(clip.successMessage || '')}\"");
     expect(source).toContain("value=\"${escapeHtml(clip.afterSubmitUrl || '')}\"");
     expect(source).toContain("value=\"${escapeHtml(clip.notificationEmail2 || '')}\"");
+  });
+
+  it('TimelineEditorPage.jsx adds Studio design / hotspot / personal-link wiring without a new upload or provider path', () => {
+    // Re-recorded for the approved personalized-videos work: Studio design clips with a design picker, hotspot
+    // clips, the Personalized output panel (one MP4 and one stored personal link per contact) and a guest identity.
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    // The existing upload entry points are untouched and still used.
+    expect(source).toContain("import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';");
+    expect(source).toContain('uploadFileToStorage');
+    // The new editor wiring is present.
+    for (const name of ['overlay-studio-design', 'isEditorOverlay', 'switchDesignOptions', 'studioLayersToPlan', 'personalVariables', 'Personalized output']) {
+      expect(source, `TimelineEditorPage.jsx lost the personalized-videos wiring "${name}"`).toContain(name);
+    }
+    // The guest identity lives in its own module, loaded on demand: the page itself adds no endpoint, no key and no provider call.
+    expect(source).toContain("import('../lib/guestIdentity.js')");
+    expect(source).not.toMatch(/guest-token/);
+    expect(source).not.toMatch(/import\.meta\.env\.VITE_[A-Z0-9_]*(KEY|SECRET|TOKEN)/);
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
   });
 
   it('TimelineEditorPage.jsx keeps the image-finder personalization wiring', () => {

@@ -1,7 +1,7 @@
 /** Design 08 (Local business) extras: industry tiles, follow-up flow card, service-area map card, video note and name+email newsletter band. Sample copy only. */
 import { useState } from 'react';
 import { AccentText, CardShell, Icon, SafeLink, useTokens } from '../components.jsx';
-import { usePage } from '../context.js';
+import { usePage, useThanks } from '../context.js';
 import { ICON_KEYS } from '../../siteIcons.js';
 import { safeImageUrl } from '../../templates.js';
 
@@ -67,6 +67,7 @@ function LocalVideoNote({ text }) {
 function LocalNewsletter({ title, text, nameLabel, emailLabel, buttonLabel, social, links }) {
   const { handlers, preview } = usePage();
   const t = useTokens();
+  const thanks = useThanks();
   const [state, setState] = useState({ status: 'idle', error: '' });
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -81,7 +82,7 @@ function LocalNewsletter({ title, text, nameLabel, emailLabel, buttonLabel, soci
     <section className="lc-news">
       <div className="lc-news-in">
         <div className="lc-news-text"><b>{t(title)}</b>{text ? <span>{t(text)}</span> : null}</div>
-        {state.status === 'done' ? <p className="pk-thanks lc-news-form">Thanks! Check your inbox.</p> : (
+        {state.status === 'done' ? <p className="pk-thanks lc-news-form">{t(thanks) || 'Thanks!'}</p> : (
           <form className="lc-news-form" onSubmit={onSubmit}>
             <label><span className="pk-sr">Name</span><input name="name" type="text" required maxLength={120} placeholder={t(nameLabel)} autoComplete="name" /></label>
             <label><span className="pk-sr">Email</span><input name="email" type="email" required maxLength={200} placeholder={t(emailLabel)} autoComplete="email" /></label>

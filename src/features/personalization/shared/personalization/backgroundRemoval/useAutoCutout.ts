@@ -100,6 +100,20 @@ export function isCutoutPending(a: DiscoveredAsset): boolean {
   return isAutoEligible(a)
 }
 
+/** Ids of the found assets that now hold a finished on-device cutout (what "Add all cutouts" places). */
+export function cutoutAssetIds(assets: DiscoveredAsset[]): string[] {
+  return assets
+    .filter(
+      (a) =>
+        !a.rejected &&
+        a.category !== 'irrelevant' &&
+        Boolean(a.editedDataUrl) &&
+        a.hasTransparency === true &&
+        a.editMetadata?.engine === 'bg0',
+    )
+    .map((a) => a.id)
+}
+
 /** Longest the automatic placement of found assets waits for their cutouts. */
 export const AUTO_IMPORT_CUTOUT_WAIT_MS = 30_000
 

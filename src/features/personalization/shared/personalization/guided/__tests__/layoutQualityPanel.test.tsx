@@ -116,3 +116,32 @@ describe('LayoutQualityPanel', () => {
     })
   })
 })
+
+describe('LayoutQualityPanel subject finder', () => {
+  const finder = (over: Record<string, unknown> = {}) => ({
+    ai: { phase: 'idle', info: null, progress: null, message: null, error: null, request: vi.fn(), confirm: vi.fn(), cancel: vi.fn(), dismiss: vi.fn() },
+    hasAuto: false, hasCustomerMark: false, message: null, find: vi.fn(async () => {}), clear: vi.fn(), ...over,
+  }) as unknown as NonNullable<LayoutQualityState['subjectFinder']>
+  const open = (f: ReturnType<typeof finder>) => mount(quality(report({ status: 'review-required' }), { subjectFinder: f }))
+
+  it('offers "Find the subject for me" and starts it on click', () => {
+    const f = finder(); const el = open(f)
+    click(el.querySelector('[data-testid="subject-find"]'))
+    expect(f.find).toHaveBeenCalledTimes(1)
+    expect(el.textContent).toMatch(/Free, on this device/)
+  })
+  it('is not shown when the host provides no finder', () => {
+    expect(mount(quality(report({ status: 'review-required' }))).querySelector('[data-testid="subject-finder"]')).toBeNull()
+  })
+  it('is disabled while the customer\'s own mark is set, and while it is working', () => {
+    expect((open(finder({ hasCustomerMark: true })).querySelector('[data-testid="subject-find"]') as HTMLButtonElement).disabled).toBe(true)
+    const busy = finder(); (busy.ai as { phase: string }).phase = 'running'
+    expect((open(busy).querySelector('[data-testid="subject-find"]') as HTMLButtonElement).disabled).toBe(true)
+  })
+  it('shows the result, and lets the person clear a found subject', () => {
+    const f = finder({ hasAuto: true, message: 'Found a person (92% sure, in 4 of 5 frames).' }); const el = open(f)
+    expect(el.querySelector('[data-testid="subject-find-message"]')!.textContent).toContain('Found a person')
+    click(el.querySelector('[data-testid="subject-find-clear"]'))
+    expect(f.clear).toHaveBeenCalled()
+  })
+})

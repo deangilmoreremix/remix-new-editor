@@ -12,6 +12,7 @@ import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
 import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizePuck, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
+import { AFTER_SUBMIT_OPTIONS } from '../lib/landingPages/afterSubmit.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
 import { sampleSections } from '../lib/landingPages/sampleContent.js';
 import { templateCards } from './landing/TemplateChooser.js';
@@ -106,7 +107,7 @@ export function LandingPagesStudio() {
     titleWrap.append(
       el('div', 'text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary mb-1', 'Video Pages'),
       el('h1', 'text-2xl md:text-3xl font-black', 'Landing pages for your videos'),
-      el('p', 'text-sm text-secondary mt-1 max-w-xl', 'Turn any generated or uploaded video into a branded page with a call to action, a lead form and view analytics.'),
+      el('p', 'text-sm text-secondary mt-1 max-w-xl', 'Turn any generated or uploaded video or picture into a branded page with a call to action, a lead form and view analytics. Free for everything you create.'),
     );
     const newBtn = el('button', BTN_PRIMARY, '+ New page');
     newBtn.type = 'button';
@@ -208,17 +209,17 @@ export function LandingPagesStudio() {
       tile.classList.toggle('ring-2', sel.video?.key === key);
       tile.classList.toggle('ring-primary', sel.video?.key === key);
     });
-    (state.sources ? Promise.resolve(state.sources) : loadVideoSources()).then((list) => {
+    (state.sources ? Promise.resolve(state.sources) : loadVideoSources({ pictures: true })).then((list) => {
       state.sources = list;
       grid.replaceChildren();
-      if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'No videos found yet. Generate one in any studio, or upload an MP4 above.'));
+      if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'Nothing found yet. Make a video or picture in any studio, or upload an MP4 above.'));
       list.slice(0, 60).forEach((v) => {
         const tile = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
         tile.type = 'button';
         const media = el('div', 'aspect-video bg-black');
-        if (v.posterUrl) {
+        if (v.posterUrl || v.isPicture) {
           const img = el('img', 'w-full h-full object-cover');
-          img.src = v.posterUrl; img.alt = ''; img.loading = 'lazy';
+          img.src = v.posterUrl || v.url; img.alt = ''; img.loading = 'lazy';
           media.appendChild(img);
         } else {
           const vid = el('video', 'w-full h-full object-cover');
@@ -228,7 +229,15 @@ export function LandingPagesStudio() {
         const cap = el('div', 'p-2');
         cap.append(el('div', 'text-xs font-bold truncate', v.title), el('div', 'text-[11px] text-secondary truncate', [v.source.studio || v.source.kind, v.permanent ? '' : 'will be copied'].filter(Boolean).join(' · ')));
         tile.append(media, cap);
-        tile.addEventListener('click', () => { sel.video = v; status.textContent = `Selected: ${v.title}`; markSelected(); });
+        tile.addEventListener('click', async () => {
+          if (v.isPicture) {
+            // A picture becomes a page through the design picker (it fills the video slot as a still).
+            const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
+            openLandingPagePicker({ video: { url: v.url, title: v.title, type: 'image', studio: v.source?.studio || '' } });
+            return;
+          }
+          sel.video = v; status.textContent = `Selected: ${v.title}`; markSelected();
+        });
         tiles.set(v.key, tile);
         grid.appendChild(tile);
       });
@@ -252,6 +261,7 @@ export function LandingPagesStudio() {
         const chosen = cp.selected();
         const one = chosen.length === 1 ? chosen[0] : null;
         const withBrand = !!one && cp.brand();
+        const withImage = !!one && cp.useImage();
         const client = await ownerClient();
         let page = await createPageFromVideo(client, sel.video, {
           template: sel.template,
@@ -259,8 +269,8 @@ export function LandingPagesStudio() {
           deps: { upload },
           onStep: (label) => { status.textContent = `${label}…`; },
         });
-        if (withBrand && page.config?.puck) {
-          const applied = applyCustomerToPuck(page.config.puck, one);
+        if ((withBrand || withImage) && page.config?.puck) {
+          const applied = applyCustomerToPuck(page.config.puck, one, { useImage: withImage, brand: withBrand });
           page = await updatePage(client, page.id, { config: { ...page.config, puck: applied.data } });
         }
         const rows = chosen.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
@@ -939,6 +949,9 @@ export function LandingPagesStudio() {
           text('subtitle', 'Form subtitle', { path: ['form'] }),
           text('privacy', 'Line under the button', { path: ['form'] }),
           text('successMessage', 'Thank-you message', { path: ['form'] }),
+          select('After the form is sent', AFTER_SUBMIT_OPTIONS, () => current.config.form.afterSubmitAction || 'message', (c, v) => { c.form.afterSubmitAction = v; }),
+          text('afterSubmitUrl', 'Button / redirect link (https, mailto: or tel:)', { path: ['form'] }),
+          text('afterSubmitButtonText', 'Button text (for "Show a button")', { path: ['form'] }),
         ),
         group('Social proof & footer', false,
           text('quote', 'Testimonial quote (only add one you have permission to use)', { path: ['testimonial'], area: true }),

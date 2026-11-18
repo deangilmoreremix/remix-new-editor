@@ -14,7 +14,7 @@ function el(tag, className, text) {
 }
 
 export function createCustomerPanel({ loadCustomers = defaultLoad, onChange, preselect = 'active' } = {}) {
-  const cust = { list: [], chosen: new Set(), brand: true, loaded: false };
+  const cust = { list: [], chosen: new Set(), brand: true, image: true, loaded: false };
   const panel = el('div');
   panel.dataset.customerPanel = '';
   const selected = () => cust.list.filter((c) => cust.chosen.has(c.id));
@@ -53,6 +53,15 @@ export function createCustomerPanel({ loadCustomers = defaultLoad, onChange, pre
     brandBox.addEventListener('change', () => { cust.brand = brandBox.checked; changed(); });
     brandRow.append(brandBox, el('span', '', 'Write their logo, colour, name and details into the page'));
     panel.appendChild(brandRow);
+    const only = n === 1 ? selected()[0] : null;
+    if (only?.image) {
+      const imgRow = el('label'); imgRow.style.cssText = 'display:flex;gap:8px;align-items:center;font-size:12px;margin-top:6px;cursor:pointer';
+      const imgBox = el('input'); imgBox.type = 'checkbox'; imgBox.checked = cust.image; imgBox.dataset.customerImage = '';
+      imgBox.addEventListener('change', () => { cust.image = imgBox.checked; changed(); });
+      const thumb = el('img'); thumb.src = only.image; thumb.alt = ''; thumb.style.cssText = 'width:28px;height:28px;border-radius:6px;object-fit:cover';
+      imgRow.append(imgBox, thumb, el('span', '', 'Use their personalized image in the video slot'));
+      panel.appendChild(imgRow);
+    }
     panel.appendChild(el('div', 'text-xs text-secondary', n === 0 ? 'The design is used as is.' : n === 1 ? 'A personal link is made for them, so their name, company and city fill in on the page.' : `One page, ${n} personal links (their own name, company and city on each). The page itself stays generic.`));
   }
 
@@ -63,5 +72,5 @@ export function createCustomerPanel({ loadCustomers = defaultLoad, onChange, pre
   }).catch(() => { cust.list = []; }).finally(() => { cust.loaded = true; if (panel.isConnected) fill(); changed(); });
 
   fill();
-  return { el: panel, load, selected, brand: () => cust.brand && cust.chosen.size === 1, fill };
+  return { el: panel, load, selected, brand: () => cust.brand && cust.chosen.size === 1, useImage: () => cust.image, fill };
 }

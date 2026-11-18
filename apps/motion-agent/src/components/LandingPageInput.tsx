@@ -102,7 +102,7 @@ export function LandingPageInput({
       <form onSubmit={handleSubmit} className="w-full max-w-3xl">
         <div
           className={`bg-background-elevated rounded-xl border p-4 transition-colors ${
-            isDragging ? "border-blue-500 bg-blue-500/10" : "border-border"
+            isDragging ? "border-primary bg-primary/10" : "border-border"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -173,7 +173,7 @@ export function LandingPageInput({
               onValueChange={(value) => setModel(value as ModelId)}
               disabled={isNavigating}
             >
-              <SelectTrigger className="w-auto bg-transparent border-none text-muted-foreground hover:text-foreground transition-colors">
+              <SelectTrigger className="w-auto bg-transparent border border-primary/25 hover:border-primary/50 text-foreground/85 hover:text-foreground transition-colors">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-background-elevated border-border">
@@ -207,7 +207,6 @@ export function LandingPageInput({
                 size="icon-sm"
                 disabled={!prompt.trim() || isNavigating}
                 loading={isNavigating}
-                className="bg-foreground text-background hover:bg-gray-200"
               >
                 <ArrowUp className="w-5 h-5" />
               </Button>
@@ -226,11 +225,7 @@ export function LandingPageInput({
                 key={example.id}
                 type="button"
                 onClick={() => setPrompt(example.prompt)}
-                style={{
-                  borderColor: `${example.color}40`,
-                  color: example.color,
-                }}
-                className="rounded-full bg-background-elevated border hover:brightness-125 transition-all flex items-center gap-1 px-1.5 py-0.5 text-[11px]"
+                className="rounded-full bg-transparent border border-primary/30 text-foreground/85 hover:border-primary/60 hover:bg-primary/5 transition-all flex items-center gap-1 px-2 py-0.5 text-[11px]"
               >
                 <Icon className="w-3 h-3" />
                 {example.headline}

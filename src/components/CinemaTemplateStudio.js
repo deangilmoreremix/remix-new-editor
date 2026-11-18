@@ -6,7 +6,7 @@
 import { showToast } from '../lib/loading.js';
 import { createTemplateCost } from '../lib/templateCost.js';
 import { formatActualCost } from '../lib/templateUx.js';
-import { createPresetsControl, createTipStrip, savePreset, buildExampleValues, saveTemplateInputs, loadTemplateInputs, applyValuesToForm, cssEscape, setFieldInvalid, isGenerateShortcut } from '../lib/templateUx.js';
+import { createPresetsControl, createTipStrip, savePreset, buildExampleValues, saveTemplateInputs, loadTemplateInputs, applyValuesToForm, cssEscape, setFieldInvalid, isGenerateShortcut, buildCinemaShareUrl, decodeShareValues } from '../lib/templateUx.js';
 import { escapeHtml } from '../lib/security.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { createActionRow, createAdvancedButton, setActionPillLabel, styleThumbnailButton, arrangeActionRow } from './studio/actionRow.js';
@@ -199,6 +199,14 @@ export function CinemaTemplateStudio() {
   } catch { /* storage unavailable */ }
 
   render();
+
+  // A share link (`?template=<id>&fill=<values>`) opens that template with the
+  // shared inputs filled in. Plain `?template=` links keep their old behaviour.
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const sharedTemplate = q.get('fill') && q.get('template') ? registry.get(q.get('template')) : null;
+    if (sharedTemplate) selectTemplate(sharedTemplate);
+  } catch { /* ignore malformed links */ }
 
   function render() {
     container.innerHTML = '';
@@ -1039,7 +1047,26 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       };
       formContainer.appendChild(exampleBtn);
     }
-    const remembered = loadTemplateInputs(currentTemplate.id, schema);
+    // Copy a link that reopens this template with the current text / select values.
+    const shareBtn = document.createElement('button');
+    shareBtn.type = 'button';
+    shareBtn.dataset.action = 'copy-link';
+    shareBtn.className = 'w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-2 text-xs font-semibold text-zinc-400 transition hover:bg-white/[0.06] hover:text-white';
+    shareBtn.textContent = '🔗 Copy link with these inputs';
+    shareBtn.onclick = async () => {
+      const url = buildCinemaShareUrl(currentTemplate.id, schema, currentInputs);
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast('Link copied. Anyone who opens it gets these inputs filled in.', 'success');
+      } catch {
+        window.prompt('Copy this link', url);
+      }
+    };
+    formContainer.appendChild(shareBtn);
+    // A shared link's values win over what this browser remembered.
+    let sharedFill = '';
+    try { sharedFill = new URLSearchParams(window.location.search).get('fill') || ''; } catch { /* no window */ }
+    const remembered = { ...loadTemplateInputs(currentTemplate.id, schema), ...decodeShareValues(sharedFill, schema) };
     Object.keys(remembered).forEach((name) => { if (currentInputs[name]) delete remembered[name]; });
     if (Object.keys(remembered).length) {
       applyValuesToForm(formContainer, remembered);

@@ -240,7 +240,7 @@ describe('List Builder / Personalizer (upstream retarget form)', () => {
     expect(el.querySelector('.overlay-arrow.on .container-hint .title-hint').textContent).toBe('Create your very own personalized video');
     el.querySelector('input[name="EMAIL"]').value = 'v@x.io';
     el.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
-    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ EMAIL: 'v@x.io' }));
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ EMAIL: 'v@x.io' }, expect.objectContaining({ hp: '' })));
     await vi.waitFor(() => expect(layer.querySelector('[data-overlay="list-builder"]')).toBeNull());
   });
 
@@ -401,6 +401,43 @@ describe('after-submit actions', () => {
     await flush(); await flush();
     expect(layer.querySelector('[data-overlay="thanks"]')).toBeNull();
     expect(layer.querySelector('.addon-optin__status').textContent).toBe('nope');
+  });
+
+  it('adds a hidden honeypot and reports how long the form was open, apart from the answers', async () => {
+    const layer = layerOf();
+    const onSubmit = vi.fn().mockResolvedValue('');
+    const el = showOptinOverlay(layer, defaultListBuilder(), { onSubmit });
+    const trap = el.querySelector('input[data-trap]');
+    expect(trap).toBeTruthy();
+    expect(trap.tabIndex).toBe(-1);
+    expect(trap.getAttribute('aria-hidden')).toBe('true');
+    expect(trap.getAttribute('name')).toBeNull(); // not part of the answers
+    el.querySelector('input[name="EMAIL"]').value = 'v@x.io';
+    el.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+    await flush();
+    const [data, signals] = onSubmit.mock.calls[0];
+    expect(data).toEqual({ EMAIL: 'v@x.io' });
+    expect(signals.hp).toBe('');
+    expect(signals.ms).toBeGreaterThanOrEqual(0);
+  });
+
+  it('reports a filled honeypot, and leaves out the fill time when answers were prefilled', async () => {
+    const layer = layerOf();
+    const onSubmit = vi.fn().mockResolvedValue('');
+    const el = showOptinOverlay(layer, defaultListBuilder(), { onSubmit, prefill: { EMAIL: 'known@x.io' } });
+    el.querySelector('input[data-trap]').value = 'http://spam';
+    el.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+    await flush();
+    const [, signals] = onSubmit.mock.calls[0];
+    expect(signals).toEqual({ hp: 'http://spam' });
+  });
+
+  it('offers the throwaway-email switch on both forms', () => {
+    const lb = listBuilderFields(defaultListBuilder()).map((f) => f.key);
+    expect(lb).toContain('blockDisposableEmails');
+    expect(leadFormToOptin({ fields: [], blockDisposableEmails: true }).blockDisposableEmails).toBe(true);
+    const clip = { fields: [] }; applyOptinToLeadForm(clip, { blockDisposableEmails: true });
+    expect(clip.blockDisposableEmails).toBe(true);
   });
 
   it('carries the settings between a Lead Generator clip and the form, and offers them on the List Builder tab', () => {

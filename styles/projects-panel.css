@@ -125,3 +125,12 @@
   #projectsPanel .pz-table th, #projectsPanel .pz-table td { padding: 8px 4px; }
   #projectsPanel .pz-table td:first-child { max-width: 96px; overflow-wrap: anywhere; }
 }
+
+/* Heatmap strip on a card: where viewers stay across the video (taller bar = more viewers still watching). */
+.prj-heat-slot:empty { display: none; }
+.prj-heat-cap { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 3px; }
+.prj-heat { display: flex; align-items: flex-end; gap: 1px; height: 24px; }
+.prj-heat span { flex: 1; min-width: 0; background: var(--cyan); opacity: .8; border-radius: 1px 1px 0 0; }
+/* No viewer data yet: a muted, flat strip plus a short note instead of bars. */
+.prj-heat-empty span { height: 7%; background: var(--text-dim); opacity: .25; }
+.prj-heat-note { display: block; font-size: 11px; color: var(--text-dim); margin-top: 3px; }
