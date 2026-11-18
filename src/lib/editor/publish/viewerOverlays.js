@@ -6,6 +6,7 @@
  */
 import { showOptinOverlay } from '../addons/addonOverlay.js';
 import { leadFormToOptin } from '../addons/listBuilder.js';
+import { applyVariant } from '../addons/abTest.js';
 import { resolveOverlayText } from '../addons/overlayRender.js';
 import { getAddon, addonOptions } from '../addons/registry.js';
 import { ctaTarget } from '../addons/ctaLink.js';
@@ -34,8 +35,8 @@ export function isSafeLink(v) {
  * @param {object} o         { profile, onSubmit(data) → Promise<{ ok, message? }>, onSkip() }
  * @returns {HTMLElement}
  */
-export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditText, preview = false, allowRedirect = false, isActive = () => true } = {}) {
-  const cfg = leadFormToOptin(clip);
+export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditText, preview = false, allowRedirect = false, isActive = () => true, variant = 'A' } = {}) {
+  const cfg = applyVariant(leadFormToOptin(clip), variant);
   cfg.caption = personalize(cfg.caption, profile);
   cfg.btnText = personalize(cfg.btnText, profile) || 'Submit';
   cfg.privacyDisclaimer = personalize(cfg.privacyDisclaimer, profile);
@@ -55,9 +56,9 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditTex
     isActive,
     onEditText,
     onSkip,
-    onSubmit: async (data) => {
+    onSubmit: async (data, signals) => {
       if (!Object.values(data).some((v) => String(v).trim())) throw new Error('Please fill in the form.');
-      const res = await onSubmit?.(data);
+      const res = await onSubmit?.(data, signals);
       if (res && res.ok === false) throw new Error(res.message || 'Something went wrong — please try again.');
       return '';
     },
@@ -111,4 +112,46 @@ export function linkBoxElement(clip, { onCall } = {}) {
   Object.assign(a.style, { left: `${g.left}%`, top: `${g.top}%`, width: `${g.width}%`, height: `${g.height}%` });
   a.dataset.clipId = String(clip.id);
   return a;
+}
+
+/**
+ * Hotspot: an invisible clickable area over the video (addon-hotspot). A link or
+ * call hotspot is an <a>; a jump hotspot is a <button> that asks the player to seek.
+ * `onClick({ clip, action, label })` reports the click for analytics (overlay_click);
+ * data-hotspot keeps the page's generic link tracking from counting it a second time.
+ * Returns null when it has nothing to do (no valid link/number).
+ */
+export function hotspotElement(clip, { onSeek, onCall, onClick } = {}) {
+  const o = addonOptions(clip);
+  const g = { left: 35, top: 35, width: 30, height: 30, ...(o.geometry || {}) };
+  const label = String(o.label || '').trim().slice(0, 60);
+  const seek = o.action === 'seek';
+  let el;
+  if (seek) {
+    const to = Number(o.seekTime);
+    if (!Number.isFinite(to) || to < 0) return null;
+    el = document.createElement('button');
+    el.type = 'button';
+    el.addEventListener('click', () => { onClick?.({ clip, action: 'seek', label }); onSeek?.(to); });
+    el.setAttribute('aria-label', label || `Jump to ${Math.round(to)} seconds`);
+  } else {
+    const target = ctaTarget(o);
+    if (!target) return null;
+    el = document.createElement('a');
+    el.href = target.href;
+    if (target.kind === 'url') {
+      el.target = o.linkTarget === '_parent' ? '_top' : '_blank';
+      el.rel = 'noopener noreferrer';
+    }
+    el.addEventListener('click', () => {
+      onClick?.({ clip, action: target.kind === 'phone' ? 'phone' : 'link', label });
+      if (target.kind === 'phone') onCall?.({ clip, phone: target.phone, notify: o.callNotifyAddress || '' });
+    });
+    el.setAttribute('aria-label', label || (target.kind === 'phone' ? `Call ${target.phone}` : 'Open link'));
+  }
+  el.className = `wf-hotspot${o.highlight ? ' wf-hotspot--hint' : ''}`;
+  el.dataset.hotspot = '1';
+  el.dataset.clipId = String(clip.id);
+  Object.assign(el.style, { left: `${g.left}%`, top: `${g.top}%`, width: `${g.width}%`, height: `${g.height}%` });
+  return el;
 }

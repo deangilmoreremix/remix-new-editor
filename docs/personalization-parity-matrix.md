@@ -204,6 +204,11 @@ after the person agrees, and reuse the Timeline Editor's local AI (`src/lib/edit
   Timeline Editor (`src/lib/editor/remotion/captions.js`). Personalization draws every look fully; the Timeline Editor maps scale/pop/bounce/glow to a plain
   word highlight. Personalization uses only its bundled font (no network), so a look's own font shows only if installed. SRT/VTT parser in
   `captions/captionCues.ts` (`parseCaptionFile`).
+- Languages and more downloads for captions (`captions/scripts.ts`, `captions/assExport.ts`, `captions/textTools.ts`, `captions/captionAss.ts`): a language
+  picker (Detect automatically + Whisper's languages) is passed to the on-device transcription and saved with the captions (`settings.captions.language`);
+  Arabic and Hebrew are set right to left, other scripts get their font stack and a size for wide letters (read from the letters when no language is saved);
+  `.txt` and `.ass` downloads next to `.srt`/`.vtt`. The three shared files are identical in OpenHiggsBolt, where the language is chosen by hand (no speech
+  engine there). The Timeline Editor's language list is the same full list. The script table follows ai-video-captions (MIT).
 - **Also in OpenHiggsBolt (ported):** the burned-in captions layer, 27 looks, editable lines and SRT/VTT export. OpenHiggsBolt has no speech engine, so its
   captions come from a loaded .srt/.vtt file or typed lines instead of "write captions from the video's sound". `capiteStyles.ts`, `captionStyle.ts` and
   `CaptionsLayer.tsx` are byte-identical in both repos; keep them in sync.

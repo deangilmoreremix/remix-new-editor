@@ -19,6 +19,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -410,6 +411,7 @@ const COMMERCIAL_MODELS = [
           <div class="flex gap-3">
             <a download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
             <button type="button" class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
+            <button type="button" class="caption-studio-btn flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all">💬 Free Captions</button>
             <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           </div>
         </div>
@@ -417,6 +419,11 @@ const COMMERCIAL_MODELS = [
       resultArea.querySelector('video').src = res.url;
       resultArea.querySelector('a[download]').href = res.url;
       resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
+      resultArea.querySelector('.caption-studio-btn').onclick = () => addCaptionButton({
+        videoUrl: res.url, appTheme: 'commercial-studio',
+        onComplete: (captionedUrl) => { resultArea.querySelector('video').src = captionedUrl; resultArea.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions'); },
+        onError: (err) => showToast(err?.message || 'Captions failed'),
+      });
       resultArea.querySelector('.publish-social-btn').onclick = () => openSocialPublish({ mediaUrl: res.url, mediaType: 'video' });
       saveGeneration({
         studio: 'commercial', type: 'video', url: res.url, prompt: script, model: 'seedance-2-vip-omni-reference',

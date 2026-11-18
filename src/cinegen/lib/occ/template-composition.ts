@@ -18,12 +18,13 @@ export interface Composition { name?: string; captionTrack?: CompositionCaptions
 
 export interface AppliedComposition { timeline: Timeline; assets: Asset[]; overlays: OverlayClip[]; clipIds: string[] }
 
-export function applyComposition(timeline: Timeline, comp: Composition): AppliedComposition {
+/** `at` = where the composition starts (the playhead); when absent it goes after everything already on the timeline, as before. */
+export function applyComposition(timeline: Timeline, comp: Composition, at?: number): AppliedComposition {
   let tl = timeline;
   const assets: Asset[] = [];
   const overlays: OverlayClip[] = [];
   const placed = new Map<number, string[]>(); // composition track index → timeline clip ids in order
-  const base = Math.max(0, tl.duration || 0);
+  const base = typeof at === 'number' && Number.isFinite(at) ? Math.max(0, at) : Math.max(0, tl.duration || 0);
   const T = Math.max(10, base + 1);
   // where the generated cut ends on this timeline (end screens are anchored there)
   const compEnd = base + Math.max(1, ...(comp.tracks ?? []).flatMap((t) => (t.clips ?? []).map((c) => (c.startTime ?? 0) + (c.duration ?? 0))));

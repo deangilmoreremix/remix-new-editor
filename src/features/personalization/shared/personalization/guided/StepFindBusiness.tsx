@@ -10,6 +10,8 @@ import { isOwnedWebsite, nonOwnedWebsiteMessage } from '../websiteClassification
 import type { BusinessOwnership, DiscoveredAsset } from '../types'
 import { DiscoveredAssetGrid, type DiscoveredAssetDropZone } from '../DiscoveredAssetGrid'
 import { ResumeProjectBanner } from '../ResumeProjectBanner'
+import { SocialIcons } from '../SocialIcons'
+import { foundSocialLinks } from './foundSocialLinks'
 
 // Simple mode has no client-asset section cards on screen, so the grid shows
 // its own drop zones; dropping an asset imports it into that section.
@@ -61,6 +63,7 @@ export function StepFindBusiness({
     businessSearchError,
     selectedBusiness,
     businessResearch,
+    contactSources,
     findBusinesses,
     selectBusiness,
     researchBusiness,
@@ -100,6 +103,8 @@ export function StepFindBusiness({
     ? websiteLookup
     : null
   const research = businessResearch
+  const foundSocial = foundSocialLinks({ research: research?.status === 'done' ? research.result : null, clientForm, contactSources })
+  const hasFoundSocial = Object.keys(foundSocial.links).length > 0
   const discoveredCount = discoveredAssets.filter((asset) => !asset.rejected).length
   // "Logo found" must reflect the DISCOVERED assets: a discovery run that
   // found logos reports them here, and this step is exactly where the
@@ -224,7 +229,7 @@ export function StepFindBusiness({
                     padding: '0 12px',
                     borderRadius: 999,
                     border: `1px solid ${searchRadius === radius ? C.cyanBorder : C.border}`,
-                    background: searchRadius === radius ? C.cyanSoft : 'transparent',
+                    background: searchRadius === radius ? 'transparent' : 'transparent',
                     color: searchRadius === radius ? C.cyan : C.muted,
                     fontSize: 11,
                     fontWeight: 700,
@@ -481,6 +486,13 @@ export function StepFindBusiness({
               {researchSummary.description && (
                 <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 12, lineHeight: 1.55 }}>{researchSummary.description}</p>
               )}
+            </div>
+          )}
+
+          {hasFoundSocial && (
+            <div data-testid="pz-found-social" style={{ ...softPanelStyle, marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={labelStyle}>Social media found</span>
+              <SocialIcons size={18} name={businessName} links={foundSocial.links} titles={foundSocial.titles} />
             </div>
           )}
 

@@ -27,10 +27,10 @@ function missingFields(item, path = '') {
   return out;
 }
 
-describe('the 19 new industry designs are fully editable', () => {
-  it('there are 19 of them (14 one-screen pc-* + 5 full-page pd-*)', () => {
-    expect(NEW.filter((t) => t.id.startsWith('editable-pc-')).length).toBe(14);
-    expect(NEW.filter((t) => t.id.startsWith('editable-pd-')).length).toBe(5);
+describe('the 42 new industry designs are fully editable', () => {
+  it('there are 42 of them (29 one-screen pc-* + 13 full-page pd-*)', () => {
+    expect(NEW.filter((t) => t.id.startsWith('editable-pc-')).length).toBe(29);
+    expect(NEW.filter((t) => t.id.startsWith('editable-pd-')).length).toBe(13);
   });
 
   NEW.forEach((t) => {
@@ -55,7 +55,7 @@ describe('the 19 new industry designs are fully editable', () => {
         strip.items.forEach((it) => { expect(has(it.title)).toBe(true); if (it.text) expect(has(it.text)).toBe(true); });
         const band = t.editorData.content.find((c) => c.type === 'ContactBand').props;
         expect(has(band.title)).toBe(true);
-        const grid = t.editorData.content.find((c) => c.type === 'Grid').props.items;
+        const grid = t.editorData.content.find((c) => c.type === 'Grid' && c.props.items.some((i) => i.type === 'QuoteCard')).props.items;
         grid.forEach((g) => g.props.quotes.forEach((q) => { expect(has(q.text)).toBe(true); expect(has(q.name)).toBe(true); }));
         const cta = t.editorData.content.filter((c) => c.type === 'CtaBar' || (c.type === 'Showcase' && c.props.variant === 'band'));
         expect(cta.length).toBe(1);

@@ -2,145 +2,227 @@
   "id": "zackd",
   "name": "Zack D Studio",
   "route": "#/zackd",
-  "description": "Zack D Studio turns one question into a short, curiosity-driven video: it writes a beat-by-beat script, makes 3D character sheets, draws a keyframe for every shot, animates each keyframe into a clip, and puts the clips together into a final cut in your browser.",
-  "shortDescription": "Turn one question into a short explainer video with a script, characters, keyframes and clips.",
-  "fullDescription": "Zack D Studio is a step-by-step video pipeline built around one question or topic (for example 'What happens when you swallow gum?'). One button drives the whole flow and its label changes with the stage: 'Write script', 'Approve script', 'Generate N character sheets', then keyframes, then clips, then the final cut. After the script is written you review it first (this is the approval step): every beat has an editable narration and every shot has an editable scene description. Approving the script unlocks the character sheets, the keyframes and the clips. Narration and music are optional extras, and the final cut is assembled in your browser, so nothing is rendered on a server. You can also start from a template: a finished demo you can edit, or an example script.",
-  "bestFor": "Faceless explainer and curiosity-style shorts: 'what happens if...' topics, science and body facts, history snippets and other short educational videos with a consistent cartoon-style character.",
+  "description": "Zack D Studio turns one question into a short curiosity-loop video: it writes a script, makes 3D character sheets, keyframe images and Veo video clips, and assembles a final cut with optional voice-over, music and burned-in captions.",
+  "shortDescription": "One question to a finished short video: script, characters, keyframes, clips and final cut.",
+  "fullDescription": "You type a topic or question (or pick one of the seed ideas or a template). The action button then follows the pipeline step by step: Write script, Approve script, Generate character sheets, Generate keyframes, Animate clips, and Render final cut. You can edit the script beats before approving. Each paid step asks for confirmation first and any failed item can be retried with Redo. The final cut is assembled in your browser, and you can add a voice-over, background music and AI captions, then download the MP4 or the captions as an .srt file. Finished work is kept in a History sidebar.",
+  "bestFor": "Creators who want a short explainer or story video from a single question without writing a script or storyboard themselves.",
   "whenToUse": [
-    "You have one question or topic and want a complete short video with a script, characters and animated shots.",
-    "You want to review and edit the script and each shot before any images or video are generated.",
-    "You want the same characters to appear in every shot of a short.",
-    "You want to start from a ready-made template and change the words."
+    "You have a question or topic and want a short narrated-style video about it.",
+    "You want consistent 3D-style characters across the shots of a video.",
+    "You want to start from a ready-made template instead of a blank project.",
+    "You want captions burned into a finished video."
   ],
   "whenToUseAnother": [
-    "Use Video Studio (#/video) when you only want one clip from a prompt or an image.",
-    "Use Storyboard Studio (#/storyboard) when you want to plan and share a shot list without making the final video.",
-    "Use Character Studio (#/character) when you only need a reusable character image."
+    "Use Video Studio (#/video) to generate a single clip from a prompt.",
+    "Use Storyboard (#/storyboard) to plan shots without generating the whole video.",
+    "Use Timeline (#/timeline) to edit footage you already have."
   ],
   "keyFeatures": [
-    "One question in, a full beat map out: hook, beats and shots with editable narration and scene text.",
-    "An approval step before anything is generated, so you do not pay for the wrong script.",
-    "3D character sheets that keep the characters consistent across shots.",
-    "A keyframe image for every shot, then an animated clip for every keyframe.",
-    "Optional narration and music, with an option to mix them into the cut.",
-    "Optional burned-in captions made from the spoken narration.",
-    "Templates: a finished demo and example scripts that load without calling a paid service.",
-    "A final cut rendered in your browser, with Download on every image and clip and Redo to regenerate one."
+    "Pipeline button that changes with the step: Write script, Approve script, Generate character sheets, Generate keyframes, Animate clips, Render final cut.",
+    "Editable script beats with an approval step before anything paid is generated.",
+    "Look picker, voice picker and extras such as a consistency boost, voice-over and music.",
+    "Templates: one tap loads an upstream template; loading one never calls a paid API.",
+    "Redo on any character sheet, keyframe or clip, and a message when part of a batch fails.",
+    "Final cut assembled in the browser; Download MP4 and Download captions (.srt).",
+    "Burn captions with a chosen language and theme (asks for confirmation about the cost).",
+    "History sidebar and a New project button."
   ],
   "featureExplanations": [
     {
-      "feature": "Write script and Approve script",
-      "explanation": "Type your question, then press 'Write script'. The studio shows the beat map (the hook plus the beats and their shots). You can edit every narration and scene description, or press 'Rewrite script'. Pressing 'Approve script' locks the plan in.",
-      "whyToUse": "It is the cheapest place to fix the story, before any image or video is generated.",
-      "inputRequired": "A topic or question. 'Write script' stays disabled while the topic is empty.",
-      "restrictions": "Narration and scene boxes are limited to 400 characters each."
+      "feature": "Pipeline button",
+      "explanation": "One button whose label shows the next step. Click it to run that step; it shows Working while a step runs.",
+      "whyToUse": "You do not need to find the next step yourself.",
+      "inputRequired": "A topic before Write script."
     },
     {
-      "feature": "Character sheets",
-      "explanation": "After approval the studio lists the characters the script needs and generates one 3D character sheet image for each. A consistency boost option in Advanced adds the character descriptions to the image prompts.",
-      "whyToUse": "The sheets are the reference that keeps every character looking the same in every shot.",
-      "inputRequired": "An approved script.",
-      "restrictions": "The button reads 'Generate N character sheets' and asks you to confirm because each image is a paid generation."
-    },
-    {
-      "feature": "Keyframes and clips",
-      "explanation": "Each shot gets a keyframe image first and then a video clip made from it. Hover a card to play it. Each card has Download, Copy prompt and Redo.",
-      "whyToUse": "Generate keyframes first, check them, then spend on clips.",
-      "inputRequired": "Character sheets for the characters in the shot.",
-      "restrictions": "If part of a batch fails, the error appears under the prompt bar with how many failed, and the same button retries the failed ones. Use Redo on a single card to regenerate just that one."
-    },
-    {
-      "feature": "Narration and music",
-      "explanation": "In 'Voice and music' you can generate a narration of the script and a music track. They are optional. By default the final cut keeps each clip's own sound; turn on 'Mix in the narration and music I generated' in Advanced to use them in the cut.",
-      "whyToUse": "Adds a voice and a soundtrack to the short.",
-      "inputRequired": "An approved script for narration.",
-      "restrictions": "Editing the narration text after a voiceover was generated drops that voiceover, because it no longer matches."
-    },
-    {
-      "feature": "Captions",
-      "explanation": "Captions are transcribed from the spoken narration and burned into the video.",
-      "whyToUse": "Short videos are often watched without sound.",
-      "inputRequired": "A generated narration. The studio says 'Generate narration first' when there is none.",
-      "restrictions": "Captions follow the audio, so regenerate them after you regenerate the narration."
+      "feature": "Approve script",
+      "explanation": "The script is shown as editable beat cards. Approving it locks in the plan so character sheets, keyframes and clips can be generated.",
+      "whyToUse": "Fix the story before paying for images and video.",
+      "inputRequired": "A written script."
     },
     {
       "feature": "Templates",
-      "explanation": "The template list has a finished demo ('Use as template') and example scripts ('Use script'). Loading a template never calls a paid service.",
-      "whyToUse": "A fast way to see the whole flow or to start from working text.",
-      "inputRequired": "None.",
-      "restrictions": "The finished demo reuses sample keyframes and clips from the upstream open-source project."
+      "explanation": "Loads an upstream template: a script only, or a finished project with script, keyframes and clips.",
+      "whyToUse": "Start quickly or see how a finished project looks.",
+      "inputRequired": "None."
+    },
+    {
+      "feature": "Burn captions",
+      "explanation": "Adds AI captions to the final video after you confirm a cost warning (about $0.20 minimum, $0.005 per second).",
+      "whyToUse": "Silent autoplay on social platforms.",
+      "inputRequired": "A rendered final cut."
     }
   ],
-  "howToUse": "1. Open Zack D Studio from the side menu (#/zackd). 2. Type your question or topic in the prompt bar, or pick a template and press 'Use as template' or 'Use script'. 3. Press 'Write script' and read the beat map. 4. Edit any narration or scene text, or press 'Rewrite script'. 5. Press 'Approve script'. 6. Press 'Generate N character sheets' and confirm. 7. Generate the keyframes, check them, then generate the clips. 8. Optionally generate narration and music and, in Advanced, turn on mixing. 9. Optionally generate captions. 10. Make the final cut and press Download.",
+  "howToUse": "1. Open Zack D Studio from the side menu (#/zackd). 2. Type a question or topic, or pick a seed idea or template. 3. Click 'Write script' and edit the beats if you like. 4. Click 'Approve script'. 5. Click the next button to generate character sheets, then keyframes, then 'Animate clips' (the most expensive step, it asks first). 6. Optionally add voice-over and music. 7. Click 'Render final cut'. 8. Download the MP4, download the .srt, or burn captions. Use Redo to retry any failed item and New project to start again.",
   "howToSteps": [
-    "Open Zack D Studio from the side menu.",
-    "Type a question or pick a template.",
-    "Write the script and review the beats.",
-    "Approve the script.",
-    "Generate the character sheets.",
-    "Generate and check the keyframes.",
-    "Generate the clips.",
-    "Optionally add narration, music and captions.",
-    "Make the final cut and download it."
+    "Type a topic or pick a template.",
+    "Click Write script.",
+    "Edit the beats and click Approve script.",
+    "Generate character sheets (when needed), then keyframes.",
+    "Click Animate clips.",
+    "Click Render final cut.",
+    "Download the MP4 or captions, or burn captions into the video."
+  ],
+  "gettingStarted": [
+    "Start from a template to see the whole flow without paying for generation.",
+    "Keep your first topic short and specific.",
+    "Approve the script only when you are happy with it."
   ],
   "inputs": [
-    "A question or topic",
-    "Editable narration and scene text per beat and shot"
+    "Topic or question",
+    "Script beats (editable)",
+    "Look",
+    "Voice",
+    "Music (optional)",
+    "Caption language and theme (optional)"
   ],
   "requiredInputs": [
-    "A question or topic (or a template)"
+    "Topic or question"
   ],
   "optionalInputs": [
-    "Narration",
+    "Look",
+    "Voice",
     "Music",
-    "Captions",
-    "Consistency boost and mixing options in Advanced"
+    "Consistency boost",
+    "Caption language",
+    "Caption theme"
   ],
+  "inputDetails": [
+    {
+      "name": "Topic",
+      "description": "The question or subject of the video.",
+      "required": true,
+      "whenToUse": "Always, unless you load a template.",
+      "restrictions": "None confirmed."
+    }
+  ],
+  "generationModes": [
+    "Pipeline (script, character sheets, keyframes, clips, final cut)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Pipeline",
+      "description": "Each step runs only when you click the action button and confirm paid steps.",
+      "useCase": "Controlled, step-by-step video creation."
+    }
+  ],
+  "modelCapabilities": "Images and clips are generated through the app's video and image models (clips use Veo 3.1 according to the confirmation text). Exact model options per step are not listed here.",
   "outputs": [
-    "Beat map script",
-    "3D character sheet images",
-    "Keyframe images",
-    "Video clips",
-    "A final cut video (rendered in your browser)",
-    "Optional narration, music and captions"
+    "A final cut video (MP4)",
+    "Captions as an .srt file",
+    "Optional captioned video saved to the library",
+    "A History entry"
   ],
   "limitations": [
-    "Each image, clip, narration and music track is a paid generation and asks you to confirm first.",
-    "The final cut is assembled in your browser, so a very long video needs a computer with enough memory.",
-    "Narration and music are not mixed into the cut unless you turn that option on."
+    "Clip generation is the most expensive step and asks for confirmation.",
+    "A step with failures can be retried with Redo; the project keeps what succeeded.",
+    "The final cut is assembled in the browser, so very long projects depend on your device."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Paid steps",
+      "impact": "Character sheets, keyframes, clips and caption burning use credits.",
+      "workaround": "Use a template or Redo only what failed."
+    }
   ],
   "troubleshooting": [
-    "Write script is greyed out: type a topic first.",
-    "A batch shows 'N of M failed': use the same button, or Redo on a card, to retry only the failed ones.",
-    "Captions say 'Generate narration first': generate the narration, then the captions.",
-    "The voiceover disappeared: it is dropped when you edit the narration text it was made from; generate it again."
+    "Message like '1 of 2 failed: ... Use Redo to retry them.': click Redo on the failed items.",
+    "Generate stays disabled: type a topic first."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Part of a batch failed",
+      "steps": [
+        "Read the message under the prompt bar.",
+        "Click Redo on the failed character sheet, keyframe or clip.",
+        "Click the action button again."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "The button says Approve script",
+      "whyItHappens": "The script has not been approved yet.",
+      "howToFix": "Review the beats and click Approve script."
+    }
   ],
   "exampleWorkflows": [
-    "Ask 'What happens when you swallow gum?', approve the script, generate the characters, keyframes and clips, add narration and captions, then download the final cut.",
-    "Load the finished demo with 'Use as template', change a few narration lines, add your own narration and make a new cut without generating images."
+    {
+      "title": "A short explainer from one question",
+      "steps": [
+        "Type the question.",
+        "Write script, then Approve script.",
+        "Generate character sheets and keyframes.",
+        "Animate clips.",
+        "Render final cut and download the MP4."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Curiosity-loop explainer",
+      "description": "A short video that answers a question with a hook and a loop.",
+      "steps": [
+        "Type a question.",
+        "Run the pipeline.",
+        "Download the MP4."
+      ],
+      "expectedOutput": "A short MP4."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What does Zack D Studio make?",
+      "answer": "A short video built from one question: script, 3D characters, keyframes, clips and a final cut."
+    },
+    {
+      "question": "Can I try it without paying?",
+      "answer": "Loading a template never calls a paid API, so you can explore the flow first."
+    }
+  ],
+  "glossary": {
+    "Keyframe": "The still image a clip starts from.",
+    "Character sheet": "A reference image that keeps a character consistent across shots.",
+    "Beat": "One step of the script."
+  },
+  "tips": [
+    "Edit the script before approving it.",
+    "Use Redo instead of restarting.",
+    "Download the final cut right away."
+  ],
+  "bestPractices": [
+    "Check the script, then generate images, then clips, so the costly step comes last."
   ],
   "relatedStudios": [
-    "storyboard",
     "video",
-    "character"
+    "storyboard",
+    "timeline",
+    "video-agent"
   ],
   "relatedStudioGuidance": [
-    "Use Storyboard Studio to plan shots without generating the final video.",
-    "Use Video Studio for a single clip from a prompt or image."
+    {
+      "studio": "storyboard",
+      "relationship": "Plans shots without generating the full video.",
+      "whenMove": "When you only need a plan.",
+      "whenToMove": "When you only need a plan.",
+      "why": "Cheaper for planning."
+    }
   ],
   "notConfirmed": [
-    "Exact per-generation costs and the models used behind each step are not stated in the studio itself."
+    "Exact credit prices of each generation step.",
+    "Maximum video length."
   ],
   "sourceFiles": [
     "src/components/studios/ZackDStudio/ZackDStudio.js",
-    "src/lib/zackd/templates.js",
+    "src/lib/zackd/api.js",
     "src/lib/zackd/assemble.js",
-    "netlify/functions/zackd.js"
+    "src/lib/zackd/templates.js",
+    "netlify/functions/_shared/zackdPrompts.js"
   ],
   "verification": {
     "status": "code-review",
-    "evidence": "Read ZackDStudio.js (pipeline stages, button labels, approval step, batches and errors, narration, music, captions, templates, final cut) and its tests.",
-    "verifiedAt": "2026-11-15",
+    "evidence": "Read ZackDStudio.js (pipeline labels, confirmations, templates, captions) and the zackd library files.",
+    "verifiedAt": "2026-11-17",
     "verifiedBy": "Code review (LLM-assisted)"
   }
 }

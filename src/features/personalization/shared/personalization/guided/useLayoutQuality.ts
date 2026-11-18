@@ -1,11 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { getMediaFacts } from '@ohb/data/demoLibraryRegistry'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { getRemotionDesignTemplate, isRemotionDesignTemplateSupported } from '../templates/registry'
 import type { PreviewInputProps } from '../preview/types'
 import { seekPreviewTo } from '../preview/PreviewControls'
+import { getPresenterBounds, masksVersion, subscribeMasks } from '../preview/cutout/maskStore'
+import { presenterZone } from '../preview/cutout/presenterZone'
 import {
   buildPlacementInput,
   evaluateLayoutQuality,
@@ -126,11 +128,24 @@ export function useLayoutQuality(inputProps: PreviewInputProps): LayoutQualitySt
     return profileForSource({ videoSrc: sourcePath, title: source?.title, width: facts?.width, height: facts?.height })
   }, [sourcePath, source?.title])
 
+  // With the presenter cut out, the person is a known subject: keep the logo and text off them. The zone follows the presenter's
+  // size and position, is recomputed (never saved), and appears once their masks are measured.
+  const masksTick = useSyncExternalStore(subscribeMasks, masksVersion, masksVersion)
+  const cutout = settings.cutout
+  const presenterZones = useMemo(() => {
+    if (!cutout?.enabled || !videoUrl) return []
+    const found = getPresenterBounds(videoUrl)
+    if (!found) return []
+    const z = presenterZone(found.bounds, found.aspect, cutout.presenter, settings.width, settings.height)
+    return z.w > 0.02 && z.h > 0.02 ? [{ id: 'cutout-presenter', label: 'Presenter', source: 'template' as const, ...z }] : []
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cutout?.enabled, cutout?.presenter, videoUrl, settings.width, settings.height, masksTick])
+
   const zones = useMemo(
     // 'cover': PersonalizationComposition fills the frame with the footage (objectFit: 'cover'), so the
     // subject zones must be mapped with the same crop, not the letterboxed 'contain' default.
-    () => [...compositionZones(profile, settings.width, settings.height, 'cover'), ...(settings.protectedZones ?? [])],
-    [profile, settings.width, settings.height, settings.protectedZones],
+    () => [...compositionZones(profile, settings.width, settings.height, 'cover'), ...(settings.protectedZones ?? []), ...presenterZones],
+    [profile, settings.width, settings.height, settings.protectedZones, presenterZones],
   )
 
   const input: PlacementInput = useMemo(

@@ -17,6 +17,9 @@ import { getAddon, clipTimeRange, addonOptions } from './registry.js';
 
 const SEEK_TOLERANCE = 0.75; // seconds of drift treated as a user seek
 
+/** A form triggered 'at the end' appears this many seconds before the last frame. */
+export const END_GATE_LEAD = 0.25;
+
 export class AddonRuntime {
   constructor() {
     this.reset();
@@ -121,12 +124,15 @@ export class AddonRuntime {
         break;
       }
 
-      if (behavior === 'gate' && crossed(start) && !clip._submitted && !this.firedGates.has(id)) {
+      // A Lead Generator's trigger: its place on the timeline (default), the very end, or an event ('pause' / 'exit') that the player handles.
+      const trigger = clip.trigger || 'time';
+      const gateAt = trigger === 'end' ? Math.max(0, timelineSeconds - END_GATE_LEAD) : start;
+      if (behavior === 'gate' && (trigger === 'time' || trigger === 'end') && crossed(gateAt) && !clip._submitted && !this.firedGates.has(id)) {
         this.firedGates.add(id);
-        actions.push({ type: 'seek', time: start, clip });
+        actions.push({ type: 'seek', time: gateAt, clip });
         actions.push({ type: 'pause', clip });
         actions.push({ type: 'show', overlay: 'lead-form', clip });
-        position = start;
+        position = gateAt;
         break;
       }
     }

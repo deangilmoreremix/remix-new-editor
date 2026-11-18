@@ -3,6 +3,7 @@
  * sanitise captions read back from a saved project. No browser or Remotion code here, so it is fully testable.
  */
 import { isCapiteStyleId } from './capiteStyles'
+import { cleanStudioCaptions } from './studioCaptions'
 import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptionWord, PreviewCaptions } from '../preview/types'
 
 export const CAPTION_STYLES: readonly { id: CaptionStyleId; label: string; hint: string }[] = Object.freeze([
@@ -60,6 +61,8 @@ export function captionLayout(style: CaptionStyleId, position: CaptionPosition, 
   return { fontSizePx, maxWidthPx: Math.round(w * 0.86), marginPx, anchor: position }
 }
 
+/** `es`, `haw`, `pt-BR`: a two or three letter code with an optional region. */
+const LANGUAGE_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$/
 const isStyle = (v: unknown): v is CaptionStyleId => v === 'bold' || v === 'bar' || v === 'clean' || isCapiteStyleId(v)
 const isPosition = (v: unknown): v is CaptionPosition => v === 'bottom' || v === 'middle' || v === 'top'
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
@@ -97,6 +100,7 @@ export function normalizeCaptions(raw: unknown): PreviewCaptions | undefined {
   const r = raw as Partial<PreviewCaptions> | null
   if (!r || typeof r !== 'object') return undefined
   const cues = cleanCues(r.cues)
+  const studio = cleanStudioCaptions(r.studio)
   if (!cues.length || typeof r.forUrl !== 'string' || !r.forUrl) return undefined
   return {
     enabled: r.enabled !== false,
@@ -104,6 +108,8 @@ export function normalizeCaptions(raw: unknown): PreviewCaptions | undefined {
     style: isStyle(r.style) ? r.style : 'bold',
     position: isPosition(r.position) ? r.position : 'bottom',
     cues,
+    ...(studio ? { studio } : {}),
+    ...(typeof r.language === 'string' && LANGUAGE_CODE.test(r.language) ? { language: r.language } : {}),
   }
 }
 

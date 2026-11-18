@@ -1,0 +1,51 @@
+/* Ported from Recorder src/App.css and src/index.css, scoped to the recorder view. */
+.remotion-recorder {
+  color: #fff;
+  background: #000;
+  height: 100%;
+  min-height: 0;
+}
+.remotion-recorder * {
+  box-sizing: border-box;
+  border-color: var(--color-rr-border);
+}
+.remotion-recorder .spinner {
+  display: flex;
+  position: absolute;
+}
+.remotion-recorder .spinner-item {
+  width: 5px;
+  height: 5px;
+  background-color: white;
+  border-radius: 50%;
+  margin: 0 5px;
+  animation: rr-bounce 1.4s infinite ease-in-out;
+}
+@keyframes rr-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.remotion-recorder .loader {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rr-rotation 1.3s linear infinite;
+  margin-left: 4px;
+}
+@keyframes rr-rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

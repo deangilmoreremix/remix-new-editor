@@ -1,5 +1,7 @@
 'use client'
 
+import { SavedStylesBar } from './SavedStylesBar'
+import { applyTextStyle, captureTextStyle } from '../preview/textStyles'
 import { Fragment, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, Eye, EyeOff, Lock, Move, Pause, Play, RotateCcw, Unlock } from 'lucide-react'
 import { ImageCollage, SplitPanel, StyledBusinessImage } from '../preview/StyledBusinessImage'
@@ -14,6 +16,14 @@ import { PersonalizationPlayer } from '../preview/PersonalizationPlayer'
 import type { PlayerRef } from '@remotion/player'
 import { Timeline } from './editor/Timeline'
 import { EditorTour } from './editor/EditorTour'
+import { KeyframePanel } from './editor/KeyframePanel'
+import { moveKeyframe } from '../preview/keyframes'
+import { NEUTRAL_KEYFRAME_STATE, keyframeStateFor, keyframeTransformParts } from '../preview/keyframes'
+import { lookFilter, lookOverlays, vignetteStops } from '../preview/effects'
+import { LookPanel } from './LookPanel'
+import { AudioPanel } from './AudioPanel'
+import { LayerEffectsControls } from './editor/LayerEffectsControls'
+import { CutoutPanel } from './CutoutPanel'
 import { HANDLES, cursorForHandle, resizeFromHandle, rotationFromPointer, type HandleId, type TransformBox } from './editor/transform'
 import { isRotated, normalizeAngle, rotateCss, rotatedExtent } from '../preview/rotation'
 import type { EditorTipId } from './editor/editorTips'
@@ -645,13 +655,17 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
             <img
               src={inputProps.posterUrl}
               alt=""
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, filter: lookFilter(settings.look) }}
             />
           ) : (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, fontSize: 12 }}>
               Your video
             </div>
           )}
+          {lookOverlays(settings.look).map((o) => <div key={o.key} aria-hidden style={{ position: 'absolute', inset: 0, background: o.color, pointerEvents: 'none' }} />)}
+          {settings.look && settings.look.vignette > 0 ? (
+            <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: `radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,${vignetteStops(settings.look.vignette)[2].alpha}) 100%)` }} />
+          ) : null}
           <div style={{ position: 'absolute', inset: 0, background: '#000', opacity: settings.brandColors.backgroundDim, pointerEvents: 'none' }} />
             </>
           )}
@@ -793,6 +807,8 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                 </>
               )
 
+              const kfState = isDesign ? NEUTRAL_KEYFRAME_STATE : keyframeStateFor(layer.keyframes, playFrame)
+              const boxTransform = [...keyframeTransformParts(kfState, compW * factor, compH * factor), rotateCss(layer.rotation)].filter(Boolean).join(' ')
               let toolbarTop = 0
               let rotateInside = false
               if (isSelected) {
@@ -831,10 +847,10 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                     outlineOffset: 2,
                     // The selected layer's handles must stay grabbable even where another layer's box overlaps them.
                     ...(isSelected ? { zIndex: 3 } : {}),
-                    opacity: layer.opacity,
+                    opacity: layer.opacity * kfState.opacity,
                     userSelect: 'none',
-                    // The box turns with the layer (about its own center), and so do its handles.
-                    ...(isDesign || !rotateCss(layer.rotation) ? {} : { transform: rotateCss(layer.rotation), transformOrigin: 'center center' }),
+                    // The box follows the layer's keyframes at the playhead and turns with the layer (about its own center), and so do its handles.
+                    ...(isDesign || !boxTransform ? {} : { transform: boxTransform, transformOrigin: 'center center' }),
                   }}
                 >
                   {liveOn ? (
@@ -937,7 +953,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                           onClick={a.run}
                           style={{
                             width: 26, height: 24, display: 'grid', placeItems: 'center', borderRadius: 6, border: 'none', cursor: a.disabled ? 'default' : 'pointer',
-                            background: a.pressed ? C.cyanSoft : 'transparent', color: a.disabled ? C.muted2 : a.pressed ? C.cyan : C.text, opacity: a.disabled ? 0.5 : 1,
+                            background: a.pressed ? 'transparent' : 'transparent', color: a.disabled ? C.muted2 : a.pressed ? C.cyan : C.text, opacity: a.disabled ? 0.5 : 1,
                           }}
                         >
                           {a.icon}
@@ -1004,12 +1020,21 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
           onSelect={setSelectedId}
           onChange={(id, patch) => updatePreviewLayer(id, patch)}
           playheadFrame={liveOn ? playFrame : undefined}
+          audio={(settings.audioTracks ?? []).map((t) => ({ id: t.id, name: t.name, start: t.start, length: t.length, muted: t.muted }))}
+          onAudioChange={(id, patch) => updatePreviewComposition({ audioTracks: (settings.audioTracks ?? []).map((t) => (t.id === id ? { ...t, start: patch.start, length: patch.length } : t)) })}
+          onKeyframeMove={(id, from, to) => {
+            const layer = settings.layers.find((l) => l.id === id)
+            if (layer) updatePreviewLayer(id, { keyframes: moveKeyframe(layer.keyframes, from, to, settings.durationInFrames) })
+          }}
           onSeek={liveOn ? (f) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(f) } catch { /* no player */ } } : undefined}
         />
         </div>
 
         {/* ── Layer list + controls ─────────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+          <LookPanel inputProps={inputProps} />
+          <AudioPanel />
+          <CutoutPanel inputProps={inputProps} />
           <div style={labelStyle}>Layers</div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onReorderEnd}>
           <SortableContext items={[...settings.layers].reverse().map((l) => l.id)} strategy={verticalListSortingStrategy}>
@@ -1218,6 +1243,19 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                 </>
               )}
 
+              {TEXT_KINDS.includes(selected.kind) && selected.kind !== 'design' && (
+                <SavedStylesBar
+                  kind="text"
+                  idPrefix="layer"
+                  styles={settings.textStyles ?? []}
+                  onStylesChange={(next) => updatePreviewComposition({ textStyles: next.length ? next : undefined })}
+                  capture={() => captureTextStyle(selected, settings.brandColors)}
+                  applyDisabled={Boolean(selected.locked)}
+                  defaultName={`${LAYER_LABELS[selected.kind]} style`}
+                  onApply={(s) => { if (s.kind === 'text') updatePreviewLayer(selected.id, applyTextStyle(s.style, settings.brandColors)) }}
+                />
+              )}
+
               {isImageLayerKind(selected.kind) && (
                 <div>
                   <label style={labelStyle} htmlFor={controlId('image')}>Image</label>
@@ -1299,6 +1337,15 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   style={{ width: '100%', accentColor: C.cyan }}
                 />
               </div>
+
+              {selected.kind !== 'design' && (
+                <LayerEffectsControls
+                  layer={selected}
+                  onChange={(effects) => updatePreviewLayer(selected.id, { effects })}
+                  brand={settings.brandColors}
+                  posterUrl={inputProps.posterUrl}
+                />
+              )}
 
               {contractOf(selected).userRotatable && selected.kind !== 'design' && (
                 <div>
@@ -1387,6 +1434,17 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   />
                 </div>
               </div>
+
+              {selected.kind !== 'design' && contractOf(selected).userMovable && (
+                <KeyframePanel
+                  layer={selected}
+                  playFrame={playFrame}
+                  fps={settings.fps}
+                  durationInFrames={settings.durationInFrames}
+                  onChange={(keyframes) => updatePreviewLayer(selected.id, { keyframes })}
+                  onSeek={liveOn ? (f) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(f) } catch { /* no player */ } } : undefined}
+                />
+              )}
 
               </div>
 

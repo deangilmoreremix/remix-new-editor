@@ -76,7 +76,7 @@ describe('dedupe keeps distinct people', () => {
 describe('tokens and contact row', () => {
   const c = normalizeCustomer(CLIENT, 'client', { assets: ASSETS });
   it('customerTokens only returns the public page tokens', () => {
-    expect(Object.keys(customerTokens(c)).sort()).toEqual(['city', 'company', 'companylogo', 'firstname', 'lastname']);
+    expect(Object.keys(customerTokens(c)).sort()).toEqual(['city', 'company', 'companylogo', 'custom1', 'custom2', 'firstname', 'lastname']); // custom1/custom2 = city / the person, for designs that read those
   });
   it('toContactFields keeps the email (owner only) and skips customers with nothing to personalize', () => {
     expect(toContactFields(c).email).toBe('dana@riversideplumbing.com');
@@ -95,10 +95,10 @@ describe('applyCustomerToEditor on every design', () => {
       expect(data.content.map((x) => x.type)).toEqual(t.editorData.content.map((x) => x.type));
       expect(data.root.props.accent).toBe('#ff8a1f');
       expect(applied).toContain('page colour');
-      const nav = data.content.find((x) => x.type === 'NavBar');
+      const nav = data.content.find((x) => /Nav(Bar)?$/.test(x.type));
       if (nav) { expect(nav.props.brand).toBe('Riverside Plumbing'); expect(nav.props.logo).toBe('https://cdn.test/logo.png'); }
       // everything except the brand slots is untouched
-      const strip = (d) => JSON.stringify(d.content.map((x) => (x.type === 'NavBar' || x.type === 'Footer' ? { type: x.type } : x)));
+      const strip = (d) => JSON.stringify(d.content.map((x) => (/Nav(Bar)?$/.test(x.type) || x.type === 'Footer' ? { type: x.type } : x)));
       expect(strip(data)).toBe(strip(t.editorData));
     });
   });
@@ -181,5 +181,23 @@ describe('personal image from a saved project that only has client.clientId', ()
     const c = normalizeCustomer(CLIENT, 'client');
     const out = attachPersonalImages([c], [{ client: { clientId: c.id }, generation: { outputUrls: ['https://cdn.test/p.png'] }, output_type: 'image', updated_at: '2026-01-01' }]);
     expect(out[0].image).toBe('https://cdn.test/p.png');
+  });
+});
+
+describe('personal image ordering', () => {
+  const row = (clientId, url, saved, generated) => ({ client: { clientId }, output_type: 'image', updated_at: saved, generation: { outputUrls: [url], ...(generated ? { outputGeneratedAt: generated } : {}) } });
+  it('picks the newest generated picture, not the most recently saved project', () => {
+    const { byId } = personalImagesFromProjects([
+      row('c1', 'https://cdn.test/older-generation.png', '2026-11-16T00:00:00Z', '2026-11-01T00:00:00Z'), // saved again later by an unrelated edit
+      row('c1', 'https://cdn.test/newer-generation.png', '2026-11-10T00:00:00Z', '2026-11-09T00:00:00Z'),
+    ]);
+    expect(byId.c1).toBe('https://cdn.test/newer-generation.png');
+  });
+  it('still orders older rows (no generation stamp) by when they were saved', () => {
+    const { byId } = personalImagesFromProjects([
+      row('c2', 'https://cdn.test/a.png', '2026-11-01T00:00:00Z'),
+      row('c2', 'https://cdn.test/b.png', '2026-11-05T00:00:00Z'),
+    ]);
+    expect(byId.c2).toBe('https://cdn.test/b.png');
   });
 });

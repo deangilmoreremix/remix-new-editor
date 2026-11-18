@@ -20,7 +20,7 @@ export default {
         subhead: 'A done-for-you personalized video platform that helps agencies and growth teams start more conversations, book more meetings, and build predictable pipeline.',
         bullets: [{ text: 'Personalized at scale' }, { text: 'Higher response rates' }, { text: 'More booked meetings' }],
         buttons: [{ label: 'Get Started Free', url: '#lead', style: 'primary' }, { label: 'Book a Strategy Call', url: '#lead', style: 'secondary' }],
-        chip: 'Hey {First Name}!', photo: '/landing-art/07/presenter.webp', showForm: 'yes',
+        chip: 'Hey {{firstname|there}}!', photo: '/landing-art/07/presenter.webp', showForm: 'yes',
         formTitle: 'See How Personalized Video Can Fill [[Your Pipeline]]', formSubtitle: 'Get a 2-minute custom video example and a plan for your business.',
         formFields: [f('name', 'Your Name'), f('email', 'Work Email', 'email'), f('company', 'Company Name'), { ...f('goal', 'Monthly Lead Goal?', 'select', false), options: 'Under 50 leads, 50 to 200 leads, 200 to 1000 leads, 1000+ leads' }],
         submitLabel: 'Send My Personalized Video', privacy: 'We’ll only use your info to send your video and relevant resources. No spam, ever.',

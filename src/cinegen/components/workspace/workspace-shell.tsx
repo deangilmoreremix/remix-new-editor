@@ -1,7 +1,7 @@
 import { useAssetMediaBackfill } from './use-asset-media-backfill';
 import { registerMcpCommands } from '@cinegen/lib/mcp/app-commands';
 
-import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import type { WorkflowSpace, WorkspaceState } from '@cinegen/types/workspace';
 import type { ProjectTab } from '@cinegen/types/workspace';
@@ -16,6 +16,7 @@ import { directorFromSnapshot, directorFromWorkflow } from '@cinegen/lib/directo
 import { DirectorTab } from '@cinegen/components/director/director-tab';
 import { createDefaultTimeline } from '@cinegen/lib/editor/timeline-operations';
 import { migrateSequenceToTimelines } from '@cinegen/lib/editor/timeline-migration';
+import { migrateLoadedTimelines, PROJECT_SCHEMA_VERSION } from '@cinegen/lib/editor/project-migrations'; // [remix] Fix E: versioned load migrations
 import { TopTabs, type LlmCopilotNavStatus } from './top-tabs';
 import { WorkspaceLoadingState } from './workspace-loading-state';
 import { useCloudAuthRecovery } from './use-cloud-auth-recovery';
@@ -32,7 +33,7 @@ import {
   resolveExistingLocalPath,
 } from '@cinegen/lib/media/asset-local-storage';
 import { ExportTab } from '@cinegen/components/export/export-tab';
-import { LeadsTab } from '@cinegen/components/leads/leads-tab';
+import { PublishTab } from '@cinegen/components/publish/publish-tab'; // [remix] the Leads tab, now with Social (and later Contacts and Email) next to Share & Leads
 import { AnalyticsTab } from '@cinegen/components/analytics/analytics-tab'; // [remix]
 import { SettingsPage } from '@cinegen/components/settings/settings-page';
 import { AppToastHost, type AppToast } from '@cinegen/components/ui/app-toast';
@@ -48,6 +49,7 @@ import {
   clipToRow,
   transitionToRow,
 } from '@cinegen/lib/db-converters';
+import { restoreLocalMedia } from '@cinegen/adapters/local-media-restore'; // [remix] Fix B1
 import { mediaDebug, mediaDebugError } from '@cinegen/lib/debug/media-debug';
 import { generateId, timestamp } from '@cinegen/lib/utils/ids';
 import { loadAvailableProject, saveAvailableProject, watchCloudProject } from '@cinegen/lib/cloud/projects';
@@ -73,7 +75,9 @@ import {
   getMaxConcurrentVisionJobs,
 } from '@cinegen/lib/utils/api-key';
 import { markWorkspaceSavePending } from './workspace-persistence';
+import { historyReducer } from './workspace-history';
 import { useMcpBridge } from './use-mcp-bridge';
+import { useCrashRecovery, recoverySliceFromState } from './use-crash-recovery'; // [remix] Stage 11 (+ Fix N: full slice)
 import { HelpTooltipLayer } from '@cinegen/components/ui/help-tooltip-layer'; // [remix] hover help for every control
 
 /* ------------------------------------------------------------------
@@ -188,95 +192,6 @@ function findTimelineMomentForAssetSource(params: {
    ------------------------------------------------------------------ */
 
 const initialState = createInitialWorkspaceState();
-const MAX_HISTORY = 50;
-const UNDOABLE_ACTIONS: WorkspaceAction['type'][] = [
-  'SET_NODES', 'SET_EDGES', 'UPDATE_NODE_CONFIG', 'APPLY_ELEMENT_MENTION',
-  'ADD_SPACE', 'RENAME_SPACE', 'REMOVE_SPACE', 'CLOSE_SPACE', 'OPEN_SPACE', 'SET_ACTIVE_SPACE',
-  'ADD_ASSET', 'UPDATE_ASSET', 'REMOVE_ASSET', 'REMOVE_ASSETS',
-  'ADD_FOLDER', 'UPDATE_FOLDER', 'REMOVE_FOLDER',
-  'SET_TIMELINE', 'ADD_TIMELINE', 'REMOVE_TIMELINE', 'CLOSE_TIMELINE', 'OPEN_TIMELINE',
-  'ADD_ELEMENT', 'UPDATE_ELEMENT', 'REMOVE_ELEMENT', 'REMOVE_ELEMENTS',
-  'MOVE_ELEMENTS', 'ADD_ELEMENT_FOLDER', 'UPDATE_ELEMENT_FOLDER', 'REMOVE_ELEMENT_FOLDER',
-  'SET_DIRECTOR',
-  'ADD_SET', 'UPDATE_SET', 'REMOVE_SET',
-  'ADD_OVERLAY', 'REMOVE_OVERLAY', // [remix] adding / removing an overlay can be undone (moving one is not pushed per pixel)
-];
-
-interface HistoryState {
-  current: WorkspaceState;
-  past: WorkspaceState[];
-  future: WorkspaceState[];
-  /** Timestamp of last undoable push — used to debounce rapid SET_NODES (drag) */
-  lastPushTime: number;
-  lastPushType: WorkspaceAction['type'] | null;
-}
-
-const DRAG_DEBOUNCE_MS = 300;
-
-function historyReducer(history: HistoryState, action: WorkspaceAction): HistoryState {
-  if (action.type === 'HYDRATE' || action.type === 'SYNC_CLOUD_PROJECT') {
-    return { current: workspaceReducer(history.current, action), past: [], future: [], lastPushTime: 0, lastPushType: null };
-  }
-  if (action.type === 'UNDO') {
-    if (history.past.length === 0) return history;
-    const prev = history.past[history.past.length - 1];
-    return {
-      past: history.past.slice(0, -1),
-      current: {
-        ...prev,
-        activeTab: history.current.activeTab,
-        runningNodeIds: history.current.runningNodeIds,
-        currentRun: history.current.currentRun,
-      },
-      future: [history.current, ...history.future].slice(0, MAX_HISTORY),
-      lastPushTime: history.lastPushTime,
-      lastPushType: history.lastPushType,
-    };
-  }
-
-  if (action.type === 'REDO') {
-    if (history.future.length === 0) return history;
-    const next = history.future[0];
-    return {
-      past: [...history.past, history.current].slice(-MAX_HISTORY),
-      current: {
-        ...next,
-        activeTab: history.current.activeTab,
-        runningNodeIds: history.current.runningNodeIds,
-        currentRun: history.current.currentRun,
-      },
-      future: history.future.slice(1),
-      lastPushTime: history.lastPushTime,
-      lastPushType: history.lastPushType,
-    };
-  }
-
-  const next = workspaceReducer(history.current, action);
-
-  if (UNDOABLE_ACTIONS.includes(action.type)) {
-    const now = Date.now();
-    // Debounce rapid dispatches during drag operations (node dragging, clip move/trim/roll)
-    const isDrag =
-      (action.type === 'SET_NODES' && history.lastPushType === 'SET_NODES' && now - history.lastPushTime < DRAG_DEBOUNCE_MS) ||
-      (action.type === 'SET_TIMELINE' && history.lastPushType === 'SET_TIMELINE' && now - history.lastPushTime < DRAG_DEBOUNCE_MS);
-
-    if (isDrag) {
-      // Replace the current state without pushing to undo stack
-      return { ...history, current: next };
-    }
-
-    return {
-      past: [...history.past, history.current].slice(-MAX_HISTORY),
-      current: next,
-      future: [],
-      lastPushTime: now,
-      lastPushType: action.type,
-    };
-  }
-
-  return { ...history, current: next };
-}
-
 /* ------------------------------------------------------------------
    Context
    ------------------------------------------------------------------ */
@@ -387,6 +302,10 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
     savePendingRef.current = markWorkspaceSavePending(savePendingRef.current, action.type);
     historyDispatch(action);
   }, []);
+  // [remix] Stage 11: crash recovery (snapshot while a save is pending, prompt on the next open)
+  // memoised on exactly the persisted slices so its identity tracks them
+  const recoverySlice = useMemo(() => recoverySliceFromState(state), [state.timelines, state.activeTimelineId, state.assets, state.overlays, state.spaces, state.activeSpaceId, state.openSpaceIds, state.nodes, state.edges, state.mediaFolders, state.director, state.sets]);
+  const crashRecovery = useCrashRecovery({ projectId, slice: recoverySlice, hydrated: hydrationComplete && !hydrationError, savePendingRef, dispatch: wrappedDispatch as never });
 
   const directorMounted = useRef(false);
   if (state.activeTab === 'director') directorMounted.current = true;
@@ -405,8 +324,8 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
   }, [wrappedDispatch]);
 
   const undoVoiceDirector = useCallback(() => {
-    historyDispatch({ type: 'UNDO' });
-  }, []);
+    wrappedDispatch({ type: 'UNDO' }); // [remix] Stage 11: through wrappedDispatch so the undo is saved (a bare historyDispatch never marks a save pending)
+  }, [wrappedDispatch]);
 
   const handleTabChange = useCallback((tab: ProjectTab) => {
     if (tab === 'llm') {
@@ -642,11 +561,11 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
       const tag = (e.target as HTMLElement).tagName.toLowerCase();
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
       e.preventDefault();
-      historyDispatch({ type: e.shiftKey ? 'REDO' : 'UNDO' });
+      wrappedDispatch({ type: e.shiftKey ? 'REDO' : 'UNDO' }); // [remix] Stage 11: undo / redo must mark a save pending or the old state stays on disk
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [wrappedDispatch]);
 
   // Voice Director — available from every project tab while CineGen is focused.
   useEffect(() => {
@@ -1169,7 +1088,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
           const providerUsage = normalizeProjectProviderUsage(workflowState.providerUsage);
           const sets = normalizeProjectSets(workflowState.sets);
           const overlays = normalizeOverlays(workflowState.overlays);
-          const assets = (dbState.assets as Record<string, unknown>[]).map(assetFromRow);
+          const assets = await restoreLocalMedia((dbState.assets as Record<string, unknown>[]).map(assetFromRow), projectId); // [remix] Fix B1
           const mediaFolders = (dbState.mediaFolders as Record<string, unknown>[]).map(folderFromRow);
 
           const rawTimelines = dbState.timelines as Array<
@@ -1179,9 +1098,9 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
               transitions: Record<string, unknown>[];
             }
           >;
-          const timelines = rawTimelines.length > 0
+          const timelines = migrateLoadedTimelines(rawTimelines.length > 0
             ? rawTimelines.map((tl) => timelineFromRows(tl, tl.tracks, tl.clips, tl.transitions))
-            : [createDefaultTimeline('Timeline 1')];
+            : [createDefaultTimeline('Timeline 1')], workflowState.projectSchemaVersion).timelines; // [remix] Fix E
 
           const activeTimelineId = (dbState.activeTimelineId as string) ?? timelines[0]?.id ?? '';
           const exports = (dbState.exports as Record<string, unknown>[]).map(exportFromRow);
@@ -1225,15 +1144,15 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
             : [];
           const providerUsage = normalizeProjectProviderUsage(snapshot.providerUsage);
           const sets = normalizeProjectSets(snapshot.sets);
-          const overlays = normalizeOverlays(snapshot.overlays);
+          const overlays = normalizeOverlays((snapshot as { overlays?: unknown }).overlays);
           const AUDIO_EXTS = /\.(mp3|wav|ogg|aac|m4a|flac|webm)(\?|$)/i;
           const rawAssets = (snapshot.assets ?? []) as Asset[];
           // Migrate: fix audio assets that were saved as 'image' before audio type support
-          const assets = rawAssets.map((a) =>
+          const assets = await restoreLocalMedia(rawAssets.map((a) =>
             a.type === 'image' && AUDIO_EXTS.test(a.url) ? { ...a, type: 'audio' as const } : a,
-          );
+          ), projectId); // [remix] Fix B1
           const migrated = migrateSequenceToTimelines(snapshot);
-          const timelines = (migrated.timelines ?? [createDefaultTimeline('Timeline 1')]) as Timeline[];
+          const timelines = migrateLoadedTimelines((migrated.timelines ?? [createDefaultTimeline('Timeline 1')]) as Timeline[], (snapshot as { projectSchemaVersion?: unknown }).projectSchemaVersion).timelines; // [remix] Fix E
           const activeTimelineId = migrated.activeTimelineId ?? timelines[0]?.id ?? '';
           const exports = (snapshot.exports ?? []) as ExportJob[];
           const mediaFolders = (snapshot.mediaFolders ?? []) as MediaFolder[];
@@ -1272,9 +1191,10 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         const spaces = ((useSqlite ? workflow.spaces : raw.spaces) ?? []) as WorkflowSpace[];
         const activeSpaceId = spaces.some(space => space.id === current.activeSpaceId)
           ? current.activeSpaceId : String((useSqlite ? workflow.activeSpaceId : raw.activeSpaceId) ?? '');
-        const timelines = useSqlite
+        const timelines0 = useSqlite
           ? (raw.timelines as Array<Record<string, unknown> & { tracks: Record<string, unknown>[]; clips: Array<Record<string, unknown> & { keyframes?: Record<string, unknown>[] }>; transitions: Record<string, unknown>[] }>).map(tl => timelineFromRows(tl, tl.tracks, tl.clips, tl.transitions))
           : (migrateSequenceToTimelines(raw as unknown as ProjectSnapshot).timelines ?? []) as Timeline[];
+        const timelines = migrateLoadedTimelines(timelines0, useSqlite ? workflow.projectSchemaVersion : raw.projectSchemaVersion).timelines; // [remix] Fix E
         return {
           nodes: (workflow.nodes ?? []) as Node<WorkflowNodeData>[],
           edges: (workflow.edges ?? []) as Edge[],
@@ -1338,6 +1258,8 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         }),
         transitions: tl.transitions.map((tr) => transitionToRow(tr, tl.id)),
         markers: JSON.stringify(tl.markers ?? []),
+        master_volume: tl.masterVolume ?? null, // [remix] Stage 4
+        range_in: tl.range?.in ?? null, range_out: tl.range?.out ?? null, // [remix] Fix B2
       }));
 
       const dbState = {
@@ -1353,6 +1275,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         timelines: dbTimelines,
         activeTimelineId: state.activeTimelineId,
         workflow: {
+          projectSchemaVersion: PROJECT_SCHEMA_VERSION, // [remix] Fix E
           nodes: serializableNodes,
           edges: state.edges,
           spaces: serializableSpaces,
@@ -1383,6 +1306,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
     } else {
       // ---------- JSON file save path ----------
       await saveAvailableProject(projectId, {
+        projectSchemaVersion: PROJECT_SCHEMA_VERSION, // [remix] Fix E: legacy-layout migrations never re-apply
         workflow: { nodes: serializableNodes, edges: state.edges },
         spaces: serializableSpaces,
         activeSpaceId: state.activeSpaceId,
@@ -1417,7 +1341,8 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
       // before this timer fires; keeping the flag set lets that render reschedule
       // the same save instead of cancelling the completed generation result.
       savePendingRef.current = false;
-      void persistWorkspace().catch((error) => {
+      const savedSlice = recoverySlice; // [remix] Stage 11
+      void persistWorkspace().then(() => crashRecovery.markSaved(savedSlice)).catch((error) => {
         savePendingRef.current = true;
         console.error('[workspace] Failed to save project:', error);
       });
@@ -1532,7 +1457,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
               />
             </div>
             {state.activeTab === 'export' && <ExportTab />}
-            {state.activeTab === 'leads' && <LeadsTab />}
+            {state.activeTab === 'leads' && <PublishTab />}
             {state.activeTab === 'analytics' && <AnalyticsTab />} {/* [remix] */}
             {state.activeTab === 'settings' && (
               <SettingsPage
@@ -1544,6 +1469,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
           </>
         )}
       </main>
+      {crashRecovery.banner}
       <AppToastHost
         toast={appToast}
         onDismiss={dismissCopilotToast}

@@ -18,6 +18,25 @@
     --shadow-glow: 0 0 20px rgba(217, 255, 0, 0.4);
     --shadow-glow-accent: 0 0 20px rgba(196, 230, 0, 0.4);
     --shadow-3xl: 0 35px 60px -15px rgba(0, 0, 0, 0.8);
+
+    /* Remotion Recorder UI (src/features/recorder): its shadcn colour names, prefixed rr-. */
+    --color-rr-background: #0a0a0a;
+    --color-rr-foreground: #fafafa;
+    --color-rr-popover: #141414;
+    --color-rr-popover-foreground: #fafafa;
+    --color-rr-primary: #d9ff00;
+    --color-rr-primary-foreground: #0a0a0a;
+    --color-rr-secondary: #27272a;
+    --color-rr-secondary-foreground: #fafafa;
+    --color-rr-muted: #27272a;
+    --color-rr-muted-foreground: #a1a1aa;
+    --color-rr-accent: #27272a;
+    --color-rr-accent-foreground: #fafafa;
+    --color-rr-destructive: #b91c1c;
+    --color-rr-destructive-foreground: #fafafa;
+    --color-rr-border: #27272a;
+    --color-rr-input: #3f3f46;
+    --color-rr-ring: #d9ff00;
 }
 
 @layer base {
@@ -332,8 +351,8 @@
   font-size: 11px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.85);
-  background: rgba(217, 255, 0, 0.08);
-  border: 1px solid rgba(217, 255, 0, 0.25);
+  background: transparent;
+  border: 1px solid rgba(217, 255, 0, 0.45);
   border-radius: 10px;
   cursor: pointer;
   white-space: nowrap;
@@ -342,8 +361,8 @@
 }
 .btn-personalize:hover {
   color: #ffffff;
-  background: rgba(217, 255, 0, 0.14);
-  border-color: rgba(217, 255, 0, 0.45);
+  background: transparent;
+  border-color: #d9ff00;
   box-shadow: 0 0 14px rgba(217, 255, 0, 0.08);
 }
 .btn-personalize:active {
@@ -380,8 +399,8 @@
 }
 .btn-action-secondary:hover {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.32);
 }
 .btn-action-secondary:active {
   transform: translateY(0) scale(0.98);

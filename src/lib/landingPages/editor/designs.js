@@ -59,4 +59,13 @@ const EXTRA = Object.entries(import.meta.glob('./designs/*.js', { eager: true })
   .map(([, m]) => m.default)
   .filter(Boolean);
 
-export const EDITABLE_TEMPLATES = [...STARTER, ...EXTRA];
+// A design that never mentions the person gets the greeting strip, so a personal link is always visibly personal
+// (generic visitors never see it). Designs that already greet by name are left alone.
+const DEFAULT_GREETING = 'A personal video for {{firstname|you}}';
+const greets = (data) => /\{\{\s*(firstname|company|custom[12])\b/.test(JSON.stringify(data));
+const withGreeting = (t) => {
+  if (!t?.editorData?.root || greets(t.editorData)) return t;
+  return { ...t, editorData: { ...t.editorData, root: { ...t.editorData.root, props: { ...(t.editorData.root.props || {}), greeting: t.editorData.root.props?.greeting || DEFAULT_GREETING } } } };
+};
+
+export const EDITABLE_TEMPLATES = [...STARTER, ...EXTRA].map(withGreeting);

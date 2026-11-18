@@ -53,6 +53,11 @@ import { isMediaDebugEnabled, mediaDebug, mediaDebugError } from '@cinegen/lib/d
 import type { Asset } from '@cinegen/types/project';
 import { directorPoolRelabel } from '@cinegen/lib/director/folders';
 import type { Clip, ToolType, TrackKind, Keyframe, TimelineMarker } from '@cinegen/types/timeline';
+import { findFreeTrack } from '@cinegen/lib/editor/free-track';
+import { placeTemplateVideo, templateVideoAsset } from './template-video-placement';
+import { flattenCompounds, expandSelectionWithGroups } from '@cinegen/lib/editor/stage1'; // [remix] Stage 1
+import { useStage1Editing } from './use-stage1-editing';
+import { Stage4Dock } from './stage4/stage4-dock'; // [remix] Stage 4: audio / scenes / media health
 
 const PROXY_MODE_STORAGE_KEY = 'cinegen_proxy_mode';
 const EDIT_VIEW_STORAGE_PREFIX = 'cinegen_edit_view_v1';
@@ -201,6 +206,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [state.assets]);
 
   // Playback engine (replaces inline RAF loop, video pool, audio mixer)
+  const playTimeline = useMemo(() => flattenCompounds(timeline), [timeline]); // [remix] Stage 1: compound clips play as their content
   const {
     currentTime,
     isPlaying,
@@ -208,11 +214,13 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     proxyMode,
     setProxyMode,
     togglePlayPause,
+    play, pause, setSpeed,
     seek,
     setVideoContainer,
     setMetadataPreloadEnabled,
     handleSystemWake,
-  } = usePlaybackEngine(timeline, state.assets, {
+    engine, // [remix] Stage 4
+  } = usePlaybackEngine(playTimeline, state.assets, {
     initialProxyMode,
     onProxyFallbackRequest: handleProxyFallbackRequest,
   });
@@ -363,7 +371,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   const [selectedClipIds, setSelectedClipIdsRaw] = useState<Set<string>>(new Set());
   const setSelectedClipIds = useCallback((ids: Set<string>) => {
     if (ids.size === 0) { setSelectedClipIdsRaw(ids); return; }
-    const expanded = new Set(ids);
+    const expanded = expandSelectionWithGroups(timeline.clips, ids); // [remix] Stage 1: groups select together
     for (const id of ids) {
       const clip = timeline.clips.find((c) => c.id === id);
       if (clip?.linkedClipIds) {
@@ -730,6 +738,10 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     if (!sourceViewerEntry) return null;
     return state.assets.find((asset) => asset.id === sourceViewerEntry.asset.id) ?? null;
   }, [sourceViewerEntry, state.assets]);
+  const stage1 = useStage1Editing({
+    timeline, dispatch, selectedClipIds, setSelectedClipIds, currentTime, seek, isPlaying, play, pause, setSpeed,
+    sourceAsset: sourceViewerEntry && !sourceViewerEntry.clip ? resolvedSourceViewerAsset : null, sourceVisible: layout.sourceViewerVisible,
+  });
   const sourceViewerNativeVideoEnabled = nativeVideoAvailable
     && activeTool !== 'mask'
     && !isHtmlOnlyAsset(resolvedSourceViewerAsset);
@@ -911,26 +923,22 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     try { const ac = new AudioContext(); seconds = (await ac.decodeAudioData(await blob.arrayBuffer())).duration; void ac.close(); } catch { /* duration is refreshed by the metadata job */ }
     const asset: Asset = { id: imported.assetId, name, type: 'audio', url: imported.filePath, fileRef: imported.filePath, duration: seconds, createdAt: new Date().toISOString(), status: 'processing', metadata: { source: 'openchatcut-recorder', processingJobs: ['extract_metadata', 'compute_waveform'] } };
     dispatch({ type: 'ADD_ASSET', asset });
-    let tl = timeline;
-    let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
-    if (!track) {
-      track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
-      tl = { ...tl, tracks: [...tl.tracks, track] };
-    }
-    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, recordStartRef.current) });
+    const spot = findFreeTrack(timeline, 'audio', recordStartRef.current, seconds); // [remix] a free audio track, never on top of audio already there
+    if (!spot.trackId) return;
+    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(spot.timeline, spot.trackId, asset, recordStartRef.current) });
   }, [dispatch, timeline]);
   const recorder = useRecorder((blob) => { void handleRecorded(blob); });
   const handleAddSound = useCallback((effect: { id: string; name: string; seconds: number }, ctx?: LibraryDropCtx) => {
     const asset: Asset = { id: generateId(), name: effect.name, type: 'audio', url: soundEffectSrc(effect.id), fileRef: soundEffectSrc(effect.id), duration: effect.seconds, createdAt: new Date().toISOString(), status: 'online', metadata: { source: 'openchatcut-sound-library', soundId: effect.id } };
     dispatch({ type: 'ADD_ASSET', asset });
-    let tl = timeline;
-    let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
-    if (!track) {
-      track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
-      tl = { ...tl, tracks: [...tl.tracks, track] };
-    }
-    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, ctx?.time ?? currentTime)) });
-  }, [dispatch, timeline, currentTime]);
+    const at = Math.max(0, ctx?.time ?? currentTime);
+    const spot = findFreeTrack(timeline, 'audio', at, effect.seconds); // [remix] a free audio track, never on top of audio already there
+    if (!spot.trackId) return;
+    const withSound = addClipToTrack(spot.timeline, spot.trackId, asset, at);
+    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: withSound });
+    const added = withSound.clips.find((c) => c.assetId === asset.id); // [remix] select it so its properties show and it is clear where it went
+    if (added) setSelectedClipIds(new Set([added.id]));
+  }, [dispatch, timeline, currentTime, setSelectedClipIds]);
 
   // [remix] AI & stock media browser (see use-media-browser.ts)
   const mediaBrowser = useMediaBrowser({ timeline, currentTime, projectId, dispatch });
@@ -941,7 +949,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [selectedClip, state.assets]);
 
   const handleUpdateClipProps = useCallback(
-    (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>) => {
+    (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions' | 'anim' | 'keyframes'>>) => {
       const updated = updateClipProperties(timeline, clipId, updates);
       dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: updated });
     },
@@ -962,7 +970,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         return `Added ${overlay.name} ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}. Remove it with the × on the Overlays lane.`;
       },
       onAddTemplate: (templateId, ctx) => {
-        const phone = isConnectTemplate(templateId) ? (window.prompt('Phone number to call (with area code, e.g. 212 555 0147)', '') ?? '').trim() : '';
+        const phone = isConnectTemplate(templateId) ? (ctx?.phone ?? '').trim() : ''; // the Library asks for it in its own inline field; a drop leaves it blank to fill in later
         const made = createTemplateOverlays(templateId, ctx?.time ?? currentTime, Math.max(sequenceDuration, 10), phone ? { phone } : undefined);
         made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
         if (made.length) selectOverlay(made[made.length - 1].id);
@@ -1012,9 +1020,20 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addGlTransition(timeline, selectedClip, next, id, Math.min(0.5, handle), snap) });
         return 'Added the transition to the cut after this clip.';
       },
+      // [remix] a template video: asset into the pool, clip on a free video track at the playhead (or drop point), selected; its audio goes with it
+      onAddTemplateVideo: (item, ctx) => {
+        const asset = templateVideoAsset(item);
+        dispatch({ type: 'ADD_ASSET', asset });
+        const next = placeTemplateVideo(timeline, asset, Math.max(0, ctx?.time ?? currentTime));
+        dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: next });
+        const placed = next.clips.find((c) => c.assetId === asset.id && next.tracks.find((t) => t.id === c.trackId)?.kind === 'video');
+        if (placed) setSelectedClipIds(new Set([placed.id]));
+        return `Added “${item.title}” ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}.`;
+      },
       onAddSound: (effect, ctx) => { handleAddSound(effect, ctx); return `Added ${effect.name} ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}.`; },
+      onOpenStock: () => mediaBrowser.setOpen(true),
     };
-  }, [currentTime, sequenceDuration, dispatch, selectedClip, timeline, handleUpdateClipProps, handleAddSound]);
+  }, [mediaBrowser.setOpen, currentTime, sequenceDuration, dispatch, selectedClip, timeline, handleUpdateClipProps, handleAddSound, setSelectedClipIds]);
 
   // [remix] A Library card dropped on the timeline: what it does depends on where it lands (overlay row, track, clip, or cut).
   const [dropNote, setDropNote] = useState('');
@@ -1136,6 +1155,8 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         className="edit-tab__left-resize"
       />
 
+      {stage1.bar}
+      <Stage4Dock engine={engine} timeline={timeline} dispatch={dispatch} assets={state.assets} selectedClipIds={selectedClipIds} currentTime={currentTime} seek={seek} isPlaying={isPlaying} proxyMode={proxyMode} setProxyMode={setProxyMode} />
       {/* Viewers */}
       <div className="edit-tab__viewers">
         {layout.sourceViewerVisible && (
@@ -1150,6 +1171,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
               proxyMode={proxyMode}
               activeTool={activeTool}
               onAcceptMaskedVideo={handleAcceptMaskedVideo}
+              {...stage1.sourceProps}
             />
             <div className="edit-tab__viewer-divider" />
           </>
@@ -1164,13 +1186,14 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           nativeVideoEnabled={timelineNativeVideoEnabled}
           activeAsset={activeAsset}
           glTransition={activeGlTransition(timeline, currentTime)}
+          compoundGroups={playTimeline.groups}
+          playClips={playTimeline.clips}
           activeClip={activeClip ? (timeline.clips.find((c) => c.id === activeClip.id) ?? activeClip) : null}
           currentTime={currentTime}
           onSeek={seek}
           duration={sequenceDuration}
           isPlaying={isPlaying}
           onPlayPause={togglePlayPause}
-          onSeek={seek}
           proxyMode={proxyMode}
           onProxyModeChange={setProxyMode}
           sourceViewerVisible={layout.sourceViewerVisible}
@@ -1201,7 +1224,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       {/* Timeline area */}
       <div className="edit-tab__timeline-area">
         <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} onOpenSounds={() => setSoundLibrary(true)} onOpenStock={() => mediaBrowser.setOpen(true)} recording={recorder.recording} onToggleRecording={() => { if (!recorder.recording) recordStartRef.current = Math.max(0, currentTime); recorder.toggle(); }} />
-        {dropNote && <div role="status" data-testid="library-drop-note" style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: 'rgba(8,12,18,.92)', border: '1px solid var(--accent, #22d3ee)', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 12 }}>{dropNote}</div>}
+        {dropNote && <div role="status" data-testid="library-drop-note" style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: 'rgba(8,12,18,.92)', border: '1px solid var(--accent, #d9ff00)', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 12 }}>{dropNote}</div>}
         {recorder.error && <div role="alert" data-testid="record-error" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#7f1d1d', color: '#fff', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>{recorder.error}</div>}
         {recorder.recording && <div role="status" data-testid="recording-chip" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#0b1016', color: '#f87171', border: '1px solid #f87171', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>● Recording voice-over… click the mic to stop</div>}
         <LiveCaptionStrip recording={recorder.recording} />
@@ -1290,6 +1313,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           timeline={timeline}
           syncTarget={syncTarget}
           currentTime={currentTime}
+          onSeek={seek} /* [remix] caption cue timecodes in the Inspector move the playhead */
           onTimelineEdit={(edit) => dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: edit(timeline) })}
         />
       )}

@@ -67,6 +67,20 @@ describe('batching and delivery', () => {
     expect(b.owner_id).toBeUndefined();
   });
 
+  it('carries a well-formed campaign recipient token and drops malformed ones (the server still validates ownership)', async () => {
+    const good = make({ recipientToken: 'Zk3-abcdefghijklmnopqrstuv' });
+    await good.t.run();
+    expect(bodyOf(good.fetchImpl).recipient).toBe('Zk3-abcdefghijklmnopqrstuv');
+    for (const bad of ['short', 'has space inside token!!', '../../etc/passwd-aaaaaaaa', 'x'.repeat(65), 42, null]) {
+      const m = make({ recipientToken: bad });
+      await m.t.run();
+      expect(bodyOf(m.fetchImpl)).not.toHaveProperty('recipient');
+    }
+    const none = make();
+    await none.t.run();
+    expect(bodyOf(none.fetchImpl)).not.toHaveProperty('recipient');
+  });
+
   it('never sends a server-derived event type and caps batch size', async () => {
     const { a, fetchImpl, t } = make();
     for (let i = 0; i < 30; i += 1) a.track('pause', { t: i });

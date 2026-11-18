@@ -13,12 +13,12 @@ import { LandingPagesPanel } from './landing-pages-panel';
 // @ts-expect-error plain JS data module
 import { templateVideos } from '../../../data/templateVideoLibrary.js';
 import { PreviewCard, CARD_CSS } from './preview-card';
-import { buildCatalog, hfEntries, mgEntries, type AddToTimelineActions, type CatalogEntry, type CatalogTab } from './add-to-timeline-registry';
+import { buildCatalog, clearPendingAddTab, hfEntries, mgEntries, peekPendingAddFocus, peekPendingAddQuery, peekPendingAddTab, type AddModalTab, type AddToTimelineActions, type CatalogEntry, type CatalogTab } from './add-to-timeline-registry';
 
 export type { AddToTimelineActions } from './add-to-timeline-registry';
 
 // 'videos' is a panel tab like Animations / Motion graphics, but its 184 live clips are not mixed into the All tab
-type Tab = 'all' | CatalogTab | 'videos' | 'landing';
+type Tab = AddModalTab;
 
 // The hover-help layer also opens a card when a field gets keyboard focus. These two fields are focused automatically, so a help card would pop up
 // over the cards every time a tab opens; their labels are constants (not literals) so no help entry is looked up for them.
@@ -39,8 +39,14 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const hasAnimations = !!actions.onPickAnimation;
   const hasVideos = !!actions.onPickTemplateVideo;
   const hasLanding = !!actions.onPickLandingPage;
-  const [tab, setTab] = useState<Tab>(hasAnimations ? 'animations' : 'motion');
-  const [q, setQ] = useState('');
+  // [remix] the Library can open this window on a given tab (ignored when that tab is not available); read without clearing so a double render keeps it
+  const [requested] = useState(peekPendingAddTab);
+  const [requestedQuery] = useState(peekPendingAddQuery);
+  const [focusTitle] = useState(peekPendingAddFocus); // the exact card the user clicked in the Library
+  useEffect(() => { clearPendingAddTab(); }, []);
+  const startTab: Tab = requested && (requested !== 'videos' || hasVideos) && (requested !== 'landing' || hasLanding) && (requested !== 'animations' || hasAnimations) ? requested : hasAnimations ? 'animations' : 'motion';
+  const [tab, setTab] = useState<Tab>(startTab);
+  const [q, setQ] = useState(requestedQuery ?? '');
   const [connect, setConnect] = useState<string | null>(null); // Connect Form template waiting for its phone number
   const [phone, setPhone] = useState('');
   // The motion graphics are loaded once here and shared by the Motion graphics tab and the All tab (null while loading)
@@ -107,6 +113,18 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
     { id: 'landing', label: 'Landing pages', glyph: '▤', count: 34, hidden: !hasLanding },
   ];
 
+  // Scroll to and ring the exact card that was clicked (cards render lazily, so keep looking until it shows up)
+  useEffect(() => {
+    if (!focusTitle) return undefined;
+    let tries = 0;
+    const find = () => {
+      const el = Array.from(panelRef.current?.querySelectorAll<HTMLElement>('[data-card-title]') ?? []).find((n) => n.dataset.cardTitle === focusTitle);
+      if (el) { el.scrollIntoView?.({ block: 'center' }); el.style.outline = '2px solid var(--accent)'; el.style.outlineOffset = '2px'; el.dataset.focused = 'true'; return; }
+      if (tries++ < 20) timer = window.setTimeout(find, 150);
+    };
+    let timer = window.setTimeout(find, 0);
+    return () => window.clearTimeout(timer);
+  }, [focusTitle, tab, mg]);
   const needle = q.trim().toLowerCase();
   const shown = entries.filter((e) => (tab === 'all' || e.tab === tab) && (!needle || `${e.label} ${e.blurb} ${e.keywords ?? ''}`.toLowerCase().includes(needle)));
   // Animations and Motion graphics have their own tabs with category chips and filters; every other tab is a search + grid
@@ -142,7 +160,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
         </div>
         <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
           {tab === 'animations' && hasAnimations && <HyperframesPanel onPick={(i) => { actions.onPickAnimation?.(i); onClose(); }} />}
-          {tab === 'videos' && hasVideos && <TemplateVideosPanel onPick={(v) => { actions.onPickTemplateVideo?.(v); onClose(); }} />}
+          {tab === 'videos' && hasVideos && <TemplateVideosPanel initialQuery={requestedQuery} onPick={(v) => { actions.onPickTemplateVideo?.(v); onClose(); }} />}
           {tab === 'landing' && hasLanding && <LandingPagesPanel onPick={(id) => { actions.onPickLandingPage?.(id); onClose(); }} />}
           {tab === 'motion' && <MgTemplatesPanel templates={mg} error={mgError} onRetry={loadMg} onPick={(t) => { actions.onPickMotion(t); onClose(); }} />}
           {!isPanel && (
@@ -154,7 +172,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
                   style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12, padding: 12, border: '1px solid var(--accent)', borderRadius: 12, background: 'var(--accent-dim)' }}>
                   <span style={{ fontSize: 13, flex: '0 0 auto' }}>Phone number the buttons should dial</span>
                   <input type="tel" autoFocus placeholder="212 555 0147" aria-label={PHONE_LABEL} value={phone} onChange={(e) => setPhone(e.target.value)} style={{ ...field, flex: 1, padding: '8px 10px' }} />
-                  <button type="submit" style={{ padding: '8px 14px', borderRadius: 10, border: 0, background: 'var(--accent)', color: '#000', fontWeight: 700, cursor: 'pointer' }}>Add</button>
+                  <button type="submit" style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,.12)', borderLeft: '2px solid var(--accent)', background: 'transparent', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Add</button>
                   <button type="button" onClick={() => setConnect(null)} style={{ background: 'transparent', border: 0, color: 'inherit', cursor: 'pointer' }}>Cancel</button>
                 </form>
               )}

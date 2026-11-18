@@ -64,4 +64,12 @@ describe('DesignRecommendations', () => {
     expect(onAddDesign).toHaveBeenCalledWith(first.getAttribute('data-testid')!.replace('design-rec-', ''))
     expect(onSelectDesign).not.toHaveBeenCalled()
   })
+  it('preselects the suggested goal with its reason until the customer picks one', () => {
+    const { el } = mount({ suggestion: { goal: 'promote-offer', reason: 'Their website has online booking.' } })
+    expect(q(el, 'design-goal-promote-offer')!.getAttribute('aria-pressed')).toBe('true')
+    expect(q(el, 'design-goal-reason')!.textContent).toContain('online booking')
+    act(() => { q(el, 'design-goal-brand-moment')!.click() })
+    expect(q(el, 'design-goal-brand-moment')!.getAttribute('aria-pressed')).toBe('true')
+    expect(q(el, 'design-goal-reason')).toBeNull()
+  })
 })

@@ -12,15 +12,16 @@ import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
 import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizeEditorData, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
+import { AFTER_SUBMIT_OPTIONS } from '../lib/landingPages/afterSubmit.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
 import { sampleSections } from '../lib/landingPages/sampleContent.js';
-import { wireframeSvg } from '../lib/landingPages/wireframes.js';
+import { templateCards } from './landing/TemplateChooser.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
 import { createCustomerPanel } from '../lib/landingPages/customerPanel.js';
 import { applyCustomerToEditor, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
 import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
-import { attachDesignPreview } from '../lib/landingPages/designPreview.js';
+import { ownPages } from '../lib/outreach/landingPage.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
 import {
   listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts, addContacts,
@@ -95,7 +96,8 @@ export function LandingPagesStudio() {
     if (!guard()) return;
     inner.replaceChildren(el('p', 'text-sm text-secondary', 'Loading your pages…'));
     try {
-      state.pages = await listPages(await ownerClient());
+      // A Video Outreach campaign's page belongs to that video (edited in Video Outreach), so it is not listed here.
+      state.pages = ownPages(await listPages(await ownerClient()));
     } catch (err) {
       inner.replaceChildren(el('p', 'text-sm text-red-300', err.message || 'Could not load your pages.'));
       return;
@@ -105,7 +107,7 @@ export function LandingPagesStudio() {
     titleWrap.append(
       el('div', 'text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary mb-1', 'Video Pages'),
       el('h1', 'text-2xl md:text-3xl font-black', 'Landing pages for your videos'),
-      el('p', 'text-sm text-secondary mt-1 max-w-xl', 'Turn any generated or uploaded video into a branded page with a call to action, a lead form and view analytics.'),
+      el('p', 'text-sm text-secondary mt-1 max-w-xl', 'Turn any generated or uploaded video or picture into a branded page with a call to action, a lead form and view analytics. Free for everything you create.'),
     );
     const newBtn = el('button', BTN_PRIMARY, '+ New page');
     newBtn.type = 'button';
@@ -207,17 +209,17 @@ export function LandingPagesStudio() {
       tile.classList.toggle('ring-2', sel.video?.key === key);
       tile.classList.toggle('ring-primary', sel.video?.key === key);
     });
-    (state.sources ? Promise.resolve(state.sources) : loadVideoSources()).then((list) => {
+    (state.sources ? Promise.resolve(state.sources) : loadVideoSources({ pictures: true })).then((list) => {
       state.sources = list;
       grid.replaceChildren();
-      if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'No videos found yet. Generate one in any studio, or upload an MP4 above.'));
+      if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'Nothing found yet. Make a video or picture in any studio, or upload an MP4 above.'));
       list.slice(0, 60).forEach((v) => {
         const tile = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
         tile.type = 'button';
         const media = el('div', 'aspect-video bg-black');
-        if (v.posterUrl) {
+        if (v.posterUrl || v.isPicture) {
           const img = el('img', 'w-full h-full object-cover');
-          img.src = v.posterUrl; img.alt = ''; img.loading = 'lazy';
+          img.src = v.posterUrl || v.url; img.alt = ''; img.loading = 'lazy';
           media.appendChild(img);
         } else {
           const vid = el('video', 'w-full h-full object-cover');
@@ -227,7 +229,15 @@ export function LandingPagesStudio() {
         const cap = el('div', 'p-2');
         cap.append(el('div', 'text-xs font-bold truncate', v.title), el('div', 'text-[11px] text-secondary truncate', [v.source.studio || v.source.kind, v.permanent ? '' : 'will be copied'].filter(Boolean).join(' · ')));
         tile.append(media, cap);
-        tile.addEventListener('click', () => { sel.video = v; status.textContent = `Selected: ${v.title}`; markSelected(); });
+        tile.addEventListener('click', async () => {
+          if (v.isPicture) {
+            // A picture becomes a page through the design picker (it fills the video slot as a still).
+            const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
+            openLandingPagePicker({ video: { url: v.url, title: v.title, type: 'image', studio: v.source?.studio || '' } });
+            return;
+          }
+          sel.video = v; status.textContent = `Selected: ${v.title}`; markSelected();
+        });
         tiles.set(v.key, tile);
         grid.appendChild(tile);
       });
@@ -235,58 +245,10 @@ export function LandingPagesStudio() {
 
     // Template
     const tplHead = el('h2', 'text-sm font-extrabold uppercase tracking-wide', 'Template');
-    const tplRow = el('div', 'flex flex-col gap-4');
-    const cards = new Map();
-    const paintCards = () => cards.forEach((c, id) => {
-      const on = id === sel.template;
-      c.classList.toggle('border-primary', on);
-      c.classList.toggle('ring-2', on);
-      c.classList.toggle('ring-primary', on);
-      c.setAttribute('aria-pressed', String(on));
-    });
     // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.editable)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.editable)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
-      const grp = el('div', 'flex flex-col gap-2');
-      grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
-      const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
-      list.forEach((t) => {
-        const b = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
-        b.type = 'button';
-        b.title = t.description;
-        let sw;
-        if (t.editable && t.editorData) {
-          // Editable landing pages: a LIVE, scaled picture of the real page (drawn when it scrolls into view).
-          sw = el('div', '');
-          sw.style.margin = '8px 8px 0';
-          const handle = attachDesignPreview(sw, t.editorData);
-          const prev = sel.previewHandles || (sel.previewHandles = []);
-          prev.push(handle);
-        } else {
-          // Every other design: a real picture of it (public/landing-previews, made by scripts/generate-landing-design-previews.mjs).
-          // If it cannot load, the page's SHAPE (a wireframe) tinted with its colours stands in, so a card is never blank.
-          sw = el('div', 'overflow-hidden flex items-center justify-center');
-          sw.style.aspectRatio = '8 / 5';
-          sw.style.background = t.theme.bg;
-          sw.style.color = t.theme.accent;
-          const shot = el('img', 'w-full h-full object-cover');
-          shot.alt = '';
-          shot.loading = 'lazy';
-          shot.dataset.designPreview = t.id;
-          shot.addEventListener('error', () => { sw.classList.add('p-2'); sw.innerHTML = wireframeSvg(t.layout); }, { once: true });
-          shot.src = `/landing-previews/${encodeURIComponent(t.id)}.jpg`;
-          sw.appendChild(shot);
-        }
-        const cap = el('div', 'p-2');
-        cap.append(el('div', 'text-xs font-bold truncate', t.name), el('div', 'text-[11px] text-secondary line-clamp-2', t.description));
-        b.append(sw, cap);
-        b.addEventListener('click', () => { sel.template = t.id; paintCards(); });
-        cards.set(t.id, b);
-        row.appendChild(b);
-      });
-      grp.appendChild(row);
-      tplRow.appendChild(grp);
-    });
-    paintCards();
+    const tplCards = templateCards({ groups: [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.editable)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.editable)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]], selected: sel.template, onPick: (id) => { sel.template = id; } });
+    sel.previewHandles = [tplCards];
+    const tplRow = tplCards.node;
 
     const cp = createCustomerPanel();
     void cp.load();
@@ -308,7 +270,7 @@ export function LandingPagesStudio() {
           onStep: (label) => { status.textContent = `${label}…`; },
         });
         if ((withBrand || withImage) && page.config?.editor) {
-          const applied = applyCustomerToEditor(page.config.editor, one, { useImage: cp.useImage(), brand: withBrand });
+          const applied = applyCustomerToEditor(page.config.editor, one, { useImage: withImage, brand: withBrand });
           page = await updatePage(client, page.id, { config: { ...page.config, editor: applied.data } });
         }
         const rows = chosen.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
@@ -987,6 +949,9 @@ export function LandingPagesStudio() {
           text('subtitle', 'Form subtitle', { path: ['form'] }),
           text('privacy', 'Line under the button', { path: ['form'] }),
           text('successMessage', 'Thank-you message', { path: ['form'] }),
+          select('After the form is sent', AFTER_SUBMIT_OPTIONS, () => current.config.form.afterSubmitAction || 'message', (c, v) => { c.form.afterSubmitAction = v; }),
+          text('afterSubmitUrl', 'Button / redirect link (https, mailto: or tel:)', { path: ['form'] }),
+          text('afterSubmitButtonText', 'Button text (for "Show a button")', { path: ['form'] }),
         ),
         group('Social proof & footer', false,
           text('quote', 'Testimonial quote (only add one you have permission to use)', { path: ['testimonial'], area: true }),

@@ -6,7 +6,7 @@ import { join, relative } from 'node:path';
 // The landing-page editor library used to be called by its vendor name all over this code. It is now "editor" everywhere (folders, ids,
 // the page-data key, identifiers), and the dependency is installed under a neutral name. This keeps the old word out of source.
 // Allowed, because they are not ours to rename:
-//   - Google's Gemini voice id/enum (a value the API needs) in the voice list, its test and the generated model catalogs
+//   - Google's Gemini voice id/enum and Kokoro's am_puck voice id (values the speech APIs need) in the voice lists, their tests and the generated model catalogs
 //   - the unrelated SVG "pucker and bloat" effect
 //   - the one import of the library's own export name (mount.jsx)
 const WORD = new RegExp(['pu', 'ck'].join(''), 'i');
@@ -14,6 +14,7 @@ const SELF = 'src/test/no-old-editor-name.test.js';
 const ALLOWED_FILES = new Set([
   'src/lib/models.js', 'src/lib/muapi/liveModels.json', 'src/features/personalization/packages/studio/src/models.js',
   'src/cinegen/adapters/web-elevenlabs.ts', 'src/cinegen/__tests__/adapters/elevenlabs.test.ts', SELF,
+  'src/cinegen/components/edit/stage4/local-audio-panel.tsx', // Kokoro's own voice id (am_puck), a value the speech model needs
 ]);
 const TEXT = /\.(js|jsx|ts|tsx|mjs|cjs|css|json|md|html)$/;
 const ROOTS = ['src', 'styles', 'scripts', 'docs', 'netlify', 'public'];

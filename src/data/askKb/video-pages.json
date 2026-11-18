@@ -2,147 +2,214 @@
   "id": "video-pages",
   "name": "Video Pages",
   "route": "#/video-pages",
-  "description": "Video Pages turns a video you made, or uploaded, into a branded landing page with a public link. The page has a call to action, an optional lead form, and a view and play counter. You can send each contact a personal link that greets them by name.",
-  "shortDescription": "Turn any video into a branded landing page with a button, a lead form and view analytics.",
-  "fullDescription": "Video Pages is for putting a video in front of people on a page of its own. You pick a video (one you generated in any studio, an MP4 you upload, or an https link), pick a template, and press 'Create page'. The page opens in an editor with a live preview: you change the headline, the buttons, extra sections, a lead form and the colours, and click any text on the page to edit it. A page starts as a Draft that only you can see. 'Publish' makes it live at a public link of the form /p/<page id> and gives you 'Copy link' and 'Copy embed' buttons. Three tabs sit above the editor: Design, Contacts and Analytics. In Contacts you import a CSV of people and get a personal link for each one, so a headline written as 'Hi {{firstname|there}}' shows each person their own name. Analytics counts views, plays, how many watched to the end, button clicks, likes and leads. You need to be signed in, because pages and contacts are saved to your account.",
-  "bestFor": "Sending one video to a prospect, a client or a list of leads on a branded page instead of a bare file link: sales outreach, offers, product demos, event invitations and lead capture.",
+  "description": "Video Pages turns a generated or uploaded video into a branded landing page with a call to action, a lead form and analytics. The page is public at /p/<slug>.",
+  "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
+  "fullDescription": "In Video Pages you pick a video (one you generated, one from your library, or a file you upload), pick a page design, and the studio builds a landing page around it. You can edit the page sections, apply your brand, add a call to action and a lead form, and attach a customer so the page is personalised with tokens such as the first name and company. Pages are published at /p/<slug>; you can copy the link or an embed code, view page statistics, and manage the contacts collected. An AI rewrite option proposes new copy for the page sections that you can accept or reject.",
+  "bestFor": "Creators and agencies who want a shareable page around a video, with a lead form and basic analytics, without building a website.",
   "whenToUse": [
-    "You want a shareable page around a video, with a button and a lead form.",
-    "You want to greet each recipient by name or company with a personal link.",
-    "You want to see who watched, whether they clicked the button and how many leads came in.",
-    "You want an embed code to place the page on another site."
+    "You have a finished video and want a page you can send or embed.",
+    "You want to collect leads (name, email) next to a video.",
+    "You want a page personalised for one customer using tokens like first name and company.",
+    "You want to see how many people viewed a page."
   ],
   "whenToUseAnother": [
-    "Use Website Builder (#/website-builder) when you need a whole website, not one page around one video.",
-    "Use Personalizer (#/personalizer) when you want the same image or design made many times with different names on it.",
-    "Use Lead Finder (#/leadfinder) when you still need to find businesses to send the page to."
+    "Use Website Builder (#/website-builder) when you need a full multi-page website.",
+    "Use Timeline (#/timeline) to edit the video itself before publishing.",
+    "Use Personalizer (#/personalizer) to generate one video per contact."
   ],
   "keyFeatures": [
-    "Three ways to bring a video: pick one you already made, upload an MP4, or paste an https link.",
-    "Many templates, in three groups: Editable landing pages, Page structures and Layouts.",
-    "Click-to-edit text on the page, with a side panel to add, remove and reorder sections.",
-    "A call-to-action button that plays the video or opens a link, plus extra buttons that can open a calendar, call, text, download a file or scroll to the form.",
-    "A lead form whose fields, wording and thank-you message you control.",
-    "Personal links from a CSV, with tokens such as {{firstname|there}} and {{company|your team}}.",
-    "Rewrite with AI, which changes only the words on the page and can be undone.",
-    "Analytics (views, plays, play rate, watched to the end, button clicks, likes, leads) and an optional MailerLite send."
+    "Page designs (templates) with a live preview.",
+    "Video from your library, from generated videos, or uploaded from your computer.",
+    "Brand styling from your saved brands.",
+    "Call to action and lead form on the page.",
+    "Customer panel: personalise the page for one customer with tokens such as first name and company.",
+    "Public link at /p/<slug> and an embed code.",
+    "Page statistics and a contacts list (CSV import).",
+    "AI copy rewrite for page sections with accept or reject."
   ],
   "featureExplanations": [
     {
-      "feature": "Create a page",
-      "explanation": "Press '+ New page'. Choose a video (the grid under 'Or pick a video you already made', the 'Upload an MP4' box, or a pasted https link and 'Use link'), choose a template, then press 'Create page'. The editor opens with your video in place.",
-      "whyToUse": "It is the quickest way to a finished page: the template supplies the layout and sample wording, and you only change what you want."
+      "feature": "Page design",
+      "explanation": "Choose a template; the preview shows how your video and sections look.",
+      "whyToUse": "Start from a layout instead of a blank page.",
+      "inputRequired": "A video."
     },
     {
-      "feature": "Design tab",
-      "explanation": "Change the template, headline and subheadline, the accent and highlight colours, the action buttons, a Like button, extra sections, a calendar, a transcript panel, a countdown, header and branding, the call to action, the lead form, social proof and footer, and a privacy notice. Which groups are open depends on the template. 'Preview as' shows the page as a sample person, as one of your contacts, or with no contact.",
-      "whyToUse": "Everything on the page is edited in one place, and the preview shows the result as you type."
+      "feature": "Customer personalisation",
+      "explanation": "Attach a customer so tokens in the page text are replaced with that customer's details.",
+      "whyToUse": "Send one page per prospect.",
+      "inputRequired": "Customer details."
     },
     {
-      "feature": "Save and Publish",
-      "explanation": "'Save' stores your changes ('Unsaved changes' appears next to it until you do). 'Publish' makes the page live and shows its link; 'Unpublish' takes it back to Draft. While it is a Draft only you can see it.",
-      "whyToUse": "You can build and check a page privately, and only share the link when it is ready."
-    },
-    {
-      "feature": "Contacts and personal links",
-      "explanation": "Open the Contacts tab and use 'Import CSV' (a file with a name, company or email column, up to 5MB). Each row gets a personal link; 'Copy link' copies it and 'Export CSV with links' gives you the whole list. The list shows whether each person has not viewed the page yet, watched without clicking, or clicked. Personal links only work once the page is published.",
-      "whyToUse": "A greeting with the person's own name gets more attention than a generic page, and you can see who actually watched."
-    },
-    {
-      "feature": "Rewrite with AI",
-      "explanation": "Open 'Rewrite with AI', choose 'Whole page' or one section, type an instruction, and press 'Rewrite'. You see the proposed changes and press 'Apply' (it shows how many) or 'Discard'; 'Undo last rewrite' restores the earlier text. Only the words are sent and changed: layout, links, images, form fields and settings are never touched, and tokens like {{company}} must survive or the change is refused. It uses your own OpenAI key.",
-      "whyToUse": "It lets you retune the tone or the offer quickly without risking the structure of the page."
-    },
-    {
-      "feature": "Analytics and sending",
-      "explanation": "The Analytics tab shows Views, Plays, Play rate, Watched to end, CTA clicks, Likes and Leads. Contacts can also be sent, with their personal link, to a MailerLite group ('Send to MailerLite'), and so can leads from the lead form. You paste your own MailerLite API token, which stays in this browser until you press 'Forget token'.",
-      "whyToUse": "You can see what is working and put the personal links straight into your own email tool."
+      "feature": "Lead form",
+      "explanation": "Visitors can leave their details next to the video; they show up in your contacts.",
+      "whyToUse": "Collect leads from a video.",
+      "inputRequired": "None."
     }
   ],
-  "howToUse": "1. Sign in, then open Video Pages from the side menu (#/video-pages). 2. Press '+ New page'. 3. Pick a video you made, upload an MP4, or paste an https link and press 'Use link'. 4. Pick a template. 5. Press 'Create page'. 6. In the Design tab, edit the headline, the button, the lead form and any sections; click text on the page to edit it. 7. Press 'Save'. 8. Press 'Publish' and copy the link, or the embed code. 9. For personal links, open Contacts, import a CSV, and copy or export the links. 10. Check the Analytics tab to see views, plays, clicks and leads.",
+  "howToUse": "1. Open Video Pages from the side menu (#/video-pages). 2. Choose a video: from your library, a generated video, or upload one. 3. Pick a page design. 4. Edit the sections, add your call to action and lead form, and apply a brand if you want one. 5. Optionally attach a customer to personalise the page. 6. Publish, then copy the page link (/p/<slug>) or the embed code. 7. Open the page statistics and contacts to see views and leads.",
   "howToSteps": [
-    "Sign in and open Video Pages from the side menu.",
-    "Press '+ New page'.",
-    "Choose a video: one you made, an uploaded MP4, or a pasted https link.",
-    "Choose a template and press 'Create page'.",
-    "Edit the page in the Design tab and press 'Save'.",
-    "Press 'Publish', then 'Copy link' or 'Copy embed'.",
-    "Optional: import contacts in the Contacts tab and share each personal link.",
-    "Check the Analytics tab."
+    "Choose or upload a video.",
+    "Pick a page design.",
+    "Edit sections, CTA and lead form.",
+    "Publish the page.",
+    "Copy the link or embed code.",
+    "Check statistics and contacts."
+  ],
+  "gettingStarted": [
+    "Start with a short video from your library.",
+    "Use a design preview to compare layouts before editing.",
+    "Publish, then open the public link in a private window to see what visitors see."
   ],
   "inputs": [
-    "A video (made in the app, uploaded, or an https link)",
-    "A template",
-    "Your wording, button and form choices",
-    "Optional: a CSV of contacts"
+    "Video",
+    "Page design",
+    "Page text and sections",
+    "Call to action",
+    "Brand (optional)",
+    "Customer (optional)"
   ],
   "requiredInputs": [
-    "A video",
-    "A signed-in account"
+    "Video",
+    "Page design"
   ],
   "optionalInputs": [
-    "A CSV of contacts for personal links",
-    "A calendar link, a transcript, a countdown",
-    "Your logo, brand name and colours",
-    "A MailerLite API token to send contacts and leads",
-    "Your OpenAI key for 'Rewrite with AI'"
+    "Brand",
+    "Customer",
+    "Lead form settings",
+    "AI rewrite"
   ],
+  "inputDetails": [
+    {
+      "name": "Video",
+      "description": "The video the page is built around.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "Uploaded files are limited in size; very large files are rejected."
+    }
+  ],
+  "generationModes": [
+    "Page from a video"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Page from a video",
+      "description": "Builds a landing page from one video and a design.",
+      "useCase": "Share or embed a video with a lead form."
+    }
+  ],
+  "modelCapabilities": "The AI rewrite proposes copy changes for page sections. Which model is used is not described here.",
   "outputs": [
-    "A landing page at a public link (/p/<page id>) once published",
-    "An embed code for the page",
-    "Personal links for each imported contact, and a CSV export of them",
-    "Lead form submissions and view analytics",
-    "Contacts and leads in MailerLite, if you send them"
+    "A public landing page at /p/<slug>",
+    "An embed code",
+    "Page statistics",
+    "A contacts list"
   ],
   "limitations": [
-    "You must be signed in, and the account connection must be set up; otherwise the studio only shows a message.",
-    "Uploaded videos can be up to 100MB. A video that is not already stored permanently is copied when the page is created.",
-    "A pasted video link must start with https://.",
-    "Only calendar links from Calendly, Cal.com, HubSpot Meetings, TidyCal, YouCanBookMe, SavvyCal, Google, Zcal, Chili Piper, Acuity and Outlook can be embedded.",
-    "A contacts CSV can be up to 5MB.",
-    "Personal links work only after the page is published.",
-    "Deleting a page also deletes its analytics, and its link stops working."
+    "Uploaded video files have a maximum size.",
+    "Statistics depend on visitors loading the public page."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Video size",
+      "impact": "Files over the limit are rejected.",
+      "workaround": "Compress or trim the video first."
+    }
   ],
   "troubleshooting": [
-    "The studio only shows 'Sign in to create and manage video landing pages': sign in first.",
-    "A pasted link is rejected: it must be a full https:// video link.",
-    "A calendar link is not embedded: only the listed calendar services are allowed.",
-    "Personal links do not open the page: publish the page first.",
-    "'Rewrite with AI' returns nothing usable: try a different instruction. The change is refused if it would remove a token such as {{company}}.",
-    "Analytics show nothing: publish the page, because views are counted only on a live page."
+    "The page does not show a video: check that the video has a public https link.",
+    "No statistics yet: share the public link and open it, then refresh."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Upload fails",
+      "steps": [
+        "Check the file size.",
+        "Try a smaller or compressed file.",
+        "Upload again."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "My page link does not open",
+      "whyItHappens": "The page may not be published yet.",
+      "howToFix": "Publish the page, then copy its link again."
+    }
   ],
   "exampleWorkflows": [
-    "Generate a product video in Video Studio, press 'Create landing page' on it in the Library, pick a template, add a lead form, publish, and share the link.",
-    "Upload an MP4, write the headline as 'Hi {{firstname|there}}, a quick idea for {{company|your team}}', publish, import a CSV of prospects, and send each person their personal link."
+    {
+      "title": "A landing page for a sales video",
+      "steps": [
+        "Pick the video.",
+        "Choose a design.",
+        "Add the CTA and lead form.",
+        "Publish and send the link."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Video lead page",
+      "description": "A page with your video and a form to capture leads.",
+      "steps": [
+        "Choose a video.",
+        "Add the lead form.",
+        "Publish."
+      ],
+      "expectedOutput": "A public page that collects contacts."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Where is my page published?",
+      "answer": "At /p/<slug> on your site; copy the link from the studio."
+    },
+    {
+      "question": "Can I personalise a page for one customer?",
+      "answer": "Yes, attach a customer and tokens such as first name and company are filled in."
+    }
+  ],
+  "glossary": {
+    "Slug": "The last part of the page address.",
+    "CTA": "Call to action: the button or message that tells the viewer what to do next.",
+    "Token": "A placeholder such as the first name that is replaced for each customer."
+  },
+  "tips": [
+    "Keep the CTA to one clear action.",
+    "Preview as a customer before sending."
+  ],
+  "bestPractices": [
+    "Publish, then test the public link yourself before sharing."
   ],
   "relatedStudios": [
+    "timeline",
     "personalizer",
-    "leadfinder",
-    "website-builder"
+    "website-builder",
+    "library"
   ],
   "relatedStudioGuidance": [
-    "Use Lead Finder to find the businesses, then Video Pages to give each one a personal link.",
-    "Use Website Builder when you need more than one page."
+    {
+      "studio": "timeline",
+      "relationship": "Edit the video before building a page.",
+      "whenToMove": "When the video needs changes.",
+      "why": "The page uses the finished video."
+    }
   ],
   "notConfirmed": [
-    "The exact number of templates in each group was not counted for this guide.",
-    "How leads from the form are delivered to you beyond the Contacts list and the MailerLite send was not checked here.",
-    "Limits on the number of pages per account were not found in the studio code."
+    "Maximum upload size.",
+    "Which AI model writes the copy rewrite."
   ],
   "sourceFiles": [
     "src/components/LandingPagesStudio.js",
-    "src/components/landingPages/contactsPanel.js",
-    "src/components/landingPages/syncPanel.js",
-    "src/lib/landingPages/templates.js",
     "src/lib/landingPages/ingest.js",
-    "src/lib/landingPages/rewrite.js",
-    "src/lib/landingPages/handoff.js",
-    "netlify/functions/landing-sync.js"
+    "src/lib/landingPages/client.js",
+    "src/pages/VideoPage.jsx"
   ],
   "verification": {
     "status": "code-review",
-    "evidence": "Read LandingPagesStudio.js (list, new page, Design, Contacts and Analytics tabs, labels and limits), contactsPanel.js, syncPanel.js, ingest.js, rewrite.js, handoff.js and the landing-sync function header.",
-    "verifiedAt": "2026-11-16",
+    "evidence": "Read the header and imports of LandingPagesStudio.js and the landingPages library file names.",
+    "verifiedAt": "2026-11-17",
     "verifiedBy": "Code review (LLM-assisted)"
   }
 }

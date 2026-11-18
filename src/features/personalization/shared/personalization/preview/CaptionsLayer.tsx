@@ -1,8 +1,10 @@
 import React from 'react'
 import { AbsoluteFill, useCurrentFrame } from 'remotion'
 import { capiteStyleById, capiteTextCss, capiteWordCss } from '../captions/capiteStyles'
+import { displayScale, scriptFor, withScriptFonts } from '../captions/scripts'
 import { activeCueAt, activeWordIndex, captionLayout } from '../captions/captionStyle'
 import { endCardFrames } from './endCard'
+import { StudioCaptionLine } from './StudioCaptionLine'
 import { fontStackById } from './presets'
 import type { PersonalizationPreviewSettings, PreviewCaptions } from './types'
 
@@ -32,33 +34,40 @@ export const CaptionsLayer: React.FC<{
   const fps = settings.fps > 0 ? settings.fps : 30
   if (settings.showEndCard && frame >= endCardFrames(settings.durationInFrames).start) return null
   const ms = (frame / fps) * 1000
+  // Captions designed in the Caption Studio: drawn from its own pages and full style, so colours, font and height carry over.
+  if (captions.studio) return <StudioCaptionLine studio={captions.studio} ms={ms} width={width} height={height} fallbackStack={fontStackById(undefined)} zIndex={CAPTIONS_Z_INDEX} />
   const cue = activeCueAt(captions.cues, ms)
   if (!cue) return null
 
   const layout = captionLayout(captions.style, captions.position, width, height)
-  const font = fontStackById(undefined)
+  // Other writing systems: its fonts after the look's own, a smaller size for wide letters, and right-to-left for Arabic and Hebrew.
+  // The language is the saved one, or read from the letters when there is none.
+  const script = scriptFor(captions.language, cue.text)
+  const fs = Math.max(10, Math.round(layout.fontSizePx * displayScale(captions.language, cue.text)))
+  const font = withScriptFonts(fontStackById(undefined), script)
   const capite = capiteStyleById(captions.style)
   const wordIdx = captions.style === 'bold' || capite ? activeWordIndex(cue, ms) : -1
   const justify = layout.anchor === 'bottom' ? 'flex-end' : layout.anchor === 'top' ? 'flex-start' : 'center'
 
   const text: React.CSSProperties = capite ? {
-    ...(capiteTextCss(capite, layout.fontSizePx, font) as React.CSSProperties),
-    lineHeight: 1.18, maxWidth: layout.maxWidthPx, textAlign: 'center',
+    ...(capiteTextCss(capite, fs, font) as React.CSSProperties),
+    lineHeight: 1.18, maxWidth: layout.maxWidthPx, textAlign: 'center', ...(script.rtl ? { direction: 'rtl' as const } : {}),
   } : {
     fontFamily: font,
-    fontSize: layout.fontSizePx,
+    fontSize: fs,
     lineHeight: 1.18,
     maxWidth: layout.maxWidthPx,
     textAlign: 'center',
+    ...(script.rtl ? { direction: 'rtl' as const } : {}),
     color: '#ffffff',
     fontWeight: captions.style === 'bold' ? 900 : 700,
     ...(captions.style === 'bar'
-      ? { background: 'rgba(0,0,0,0.68)', padding: `${Math.round(layout.fontSizePx * 0.28)}px ${Math.round(layout.fontSizePx * 0.55)}px`, borderRadius: Math.round(layout.fontSizePx * 0.28) }
+      ? { background: 'rgba(0,0,0,0.68)', padding: `${Math.round(fs * 0.28)}px ${Math.round(fs * 0.55)}px`, borderRadius: Math.round(fs * 0.28) }
       : captions.style === 'bold'
-        ? { textShadow: outline(layout.fontSizePx * 0.07, '#000000'), letterSpacing: '0.01em' }
+        ? { textShadow: outline(fs * 0.07, '#000000'), letterSpacing: '0.01em' }
         // Plain look: white text with a THIN dark outline (about half Bold's) and a soft shadow. The shadow alone vanished on
         // light footage; the outline keeps it readable on any background while it still looks lighter than Bold.
-        : { textShadow: `${outline(layout.fontSizePx * 0.035, 'rgba(0,0,0,0.85)')}, 0 ${Math.round(layout.fontSizePx * 0.06)}px ${Math.round(layout.fontSizePx * 0.2)}px rgba(0,0,0,0.75)` }),
+        : { textShadow: `${outline(fs * 0.035, 'rgba(0,0,0,0.85)')}, 0 ${Math.round(fs * 0.06)}px ${Math.round(fs * 0.2)}px rgba(0,0,0,0.75)` }),
   }
   const accent = settings.brandColors.accent
 
@@ -69,7 +78,7 @@ export const CaptionsLayer: React.FC<{
       <div data-testid="captions-layer" data-caption-text={cue.text} style={text}>
         {wordIdx >= 0 && cue.words && capite
           ? cue.words.map((w, i) => (
-              <span key={`${w.startMs}-${i}`} style={capiteWordCss(capite, i === wordIdx ? 'active' : i < wordIdx ? 'spoken' : 'idle', layout.fontSizePx) as React.CSSProperties}>{i > 0 ? ' ' : ''}{w.text}</span>
+              <span key={`${w.startMs}-${i}`} style={capiteWordCss(capite, i === wordIdx ? 'active' : i < wordIdx ? 'spoken' : 'idle', fs) as React.CSSProperties}>{i > 0 ? ' ' : ''}{w.text}</span>
             ))
           : wordIdx >= 0 && cue.words
           ? cue.words.map((w, i) => (

@@ -14,6 +14,14 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+// Hermetic DNS: the SSRF guard resolves host names (networkSafety uses dns.promises.resolve4/resolve6). Without this the tests needed real
+// DNS and failed offline with "host name example.com could not be resolved". Every name resolves to a public documentation address.
+vi.mock('node:dns', async (importOriginal) => {
+  const actual = (await importOriginal()) as typeof import('dns') & { default: { promises: Record<string, unknown> } }
+  const promises = { ...actual.default.promises, resolve4: async () => ['93.184.216.34'], resolve6: async () => [] }
+  return { ...actual, default: { ...actual.default, promises } }
+})
+
 vi.mock('studio/src/muapi', () => ({
   uploadFile: vi.fn(),
 }))

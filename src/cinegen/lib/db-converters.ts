@@ -15,6 +15,9 @@ import type { Asset, MediaFolder } from '../types/project';
 import type { Timeline, Track, Clip, Keyframe, Transition } from '../types/timeline';
 import type { Element, ElementImage } from '../types/elements';
 import type { ExportJob, ExportPreset, ExportStatus } from '../types/export';
+import { normalizeAnim } from './editor/stage2/anim';
+import { normalizeClipPitch } from './audio/pitch'; // [remix] Stage 11
+import { normalizeClipSpeedCurve } from './editor/stage11/speed-group'; // [remix] Fix M
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -192,6 +195,23 @@ export function clipFromRow(
       if (zoom && typeof zoom === 'object') out.zoom = zoom;
       const captions = json<Clip['captions']>(row['captions_json']);
       if (captions && typeof captions === 'object') out.captions = captions;
+      // [remix] Stage 1: group id + compound content (one JSON column; absent on rows saved before they existed)
+      const s1 = json<{ groupId?: string; compound?: Clip['compound']; anim?: unknown; speedCurve?: unknown }>(row['stage1_json']);
+      if (s1 && typeof s1 === 'object') {
+        if (typeof s1.groupId === 'string' && s1.groupId) out.groupId = s1.groupId;
+        if (s1.compound && Array.isArray(s1.compound.clips)) out.compound = s1.compound;
+        // [remix] Stage 2: unified keyframes + motion modifiers travel in the same JSON column (no schema change)
+        const anim = normalizeAnim(s1.anim);
+        if (anim) out.anim = anim;
+        // [remix] Fix M: speed-curve group info (re-editable speed curves), same column
+        const sc = normalizeClipSpeedCurve(s1.speedCurve);
+        if (sc) out.speedCurve = sc;
+      }
+      // [remix] Stage 4: clip EQ
+      const s4 = json<{ eq?: Clip['eq']; pitch?: Clip['pitch'] }>(row['stage4_json']);
+      if (s4 && typeof s4 === 'object' && s4.eq && Array.isArray(s4.eq.bands)) out.eq = s4.eq;
+      const pitch = s4 && typeof s4 === 'object' ? normalizeClipPitch(s4.pitch) : undefined; // [remix] Stage 11: rides in the same JSON column
+      if (pitch) out.pitch = pitch;
       return out;
     })(),
   };
@@ -207,6 +227,8 @@ export function transitionFromRow(row: Record<string, unknown>): Transition {
     clipBId: optStr(row['clip_b_id']),
     ...(typeof row['gl_type'] === 'string' && row['gl_type'] ? { glType: row['gl_type'] as string } : {}),
     ...(typeof row['gl_def_json'] === 'string' && row['gl_def_json'] ? { glDef: JSON.parse(row['gl_def_json'] as string) } : {}),
+    // [remix] Stage 6: one JSON column; absent on rows saved before it existed
+    ...(typeof row['gl_params_json'] === 'string' && row['gl_params_json'] ? { glParams: JSON.parse(row['gl_params_json'] as string) } : {}),
   };
 }
 
@@ -259,6 +281,8 @@ export function timelineFromRows(
     markers,
     ...(tlRow['fit'] === 'contain' || tlRow['fit'] === 'cover' ? { fit: tlRow['fit'] as 'contain' | 'cover' } : {}),
     ...(typeof tlRow['aspect'] === 'string' ? { aspect: tlRow['aspect'] as string } : {}),
+    ...(typeof tlRow['master_volume'] === 'number' ? { masterVolume: tlRow['master_volume'] as number } : {}), // [remix] Stage 4
+    ...(typeof tlRow['range_in'] === 'number' || typeof tlRow['range_out'] === 'number' ? { range: { in: typeof tlRow['range_in'] === 'number' ? tlRow['range_in'] as number : null, out: typeof tlRow['range_out'] === 'number' ? tlRow['range_out'] as number : null } } : {}), // [remix] Fix B2
   };
 }
 
@@ -395,6 +419,9 @@ export function clipToRow(clip: Clip, timelineId: string): Record<string, unknow
     zoom_json: clip.zoom ? JSON.stringify(clip.zoom) : null,
     transform_json: clip.transform ? JSON.stringify(clip.transform) : null,
     captions_json: clip.captions ? JSON.stringify(clip.captions) : null,
+    // [remix] Stage 1: group id + compound content
+    stage4_json: clip.eq || clip.pitch ? JSON.stringify({ ...(clip.eq ? { eq: clip.eq } : {}), ...(clip.pitch ? { pitch: clip.pitch } : {}) }) : null,
+    stage1_json: clip.groupId || clip.compound || clip.anim || clip.speedCurve ? JSON.stringify({ groupId: clip.groupId, compound: clip.compound, anim: clip.anim, speedCurve: clip.speedCurve }) : null,
   };
 }
 
@@ -412,5 +439,6 @@ export function transitionToRow(
     clip_b_id: transition.clipBId ?? null,
     gl_type: transition.glType ?? null, // [remix] OpenChatCut GL transition
     gl_def_json: transition.glDef ? JSON.stringify(transition.glDef) : null,
+    gl_params_json: transition.glParams ? JSON.stringify(transition.glParams) : null,
   };
 }
