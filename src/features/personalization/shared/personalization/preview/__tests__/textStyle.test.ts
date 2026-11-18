@@ -33,16 +33,16 @@ describe('layerTextStyle', () => {
 
 describe('ctaPillStyle', () => {
   it('is a rounded pill in the layer color with a soft shadow', () => {
-    const s = ctaPillStyle({ fontSizePx: 30, background: '#28c98b', color: '#000000' })
+    const s = ctaPillStyle({ fontSizePx: 30, background: '#28c98b', color: '#041014' })
     expect(s.background).toMatch(/^linear-gradient\(to bottom, #[0-9a-f]{6}, #28c98b\)$/)
-    expect(s.color).toBe('#000000')
+    expect(s.color).toBe('#041014')
     expect(s.borderRadius).toBe('0.975em')
     expect(s.boxShadow).toBe(PILL_SHADOW)
     expect(s.fontSize).toBe(30)
   })
 
   it('never wraps its label (the box width is only an estimate)', () => {
-    expect(ctaPillStyle({ fontSizePx: 30, background: '#28c98b', color: '#000000' }).whiteSpace).toBe('nowrap')
+    expect(ctaPillStyle({ fontSizePx: 30, background: '#28c98b', color: '#041014' }).whiteSpace).toBe('nowrap')
   })
 })
 
@@ -119,7 +119,7 @@ describe('CTA pill highlight', () => {
   })
 
   it('is an opaque gradient ending in the exact color, so the exporter keeps the color', () => {
-    const s = ctaPillStyle({ fontSizePx: 30, background: '#28c98b', color: '#000000' })
+    const s = ctaPillStyle({ fontSizePx: 30, background: '#28c98b', color: '#041014' })
     const stops = String(s.background).match(/#[0-9a-f]{6}/g)!
     expect(stops[stops.length - 1]).toBe('#28c98b')
     expect(String(s.background)).not.toMatch(/rgba|transparent/i)
@@ -132,8 +132,8 @@ describe('CTA pill highlight', () => {
 
 describe('end card background', () => {
   it('is an opaque diagonal linear-gradient built around the brand color', () => {
-    const css = endCardBackground('#d9ff00')
-    expect(css).toMatch(/^linear-gradient\(155deg, #[0-9a-f]{6} 0%, #d9ff00 55%, #[0-9a-f]{6} 100%\)$/)
+    const css = endCardBackground('#29d3f2')
+    expect(css).toMatch(/^linear-gradient\(155deg, #[0-9a-f]{6} 0%, #29d3f2 55%, #[0-9a-f]{6} 100%\)$/)
     expect(css).not.toMatch(/rgba|radial|transparent/i)
   })
   it('darkens toward black and falls back to the plain color for non-hex input', () => {
@@ -190,10 +190,10 @@ describe('rotation in the shared styles', () => {
   })
 
   it('rotates the CTA pill about its center', () => {
-    const s = ctaPillStyle({ fontSizePx: 30, background: '#28c98b', color: '#000000', rotation: -8 })
+    const s = ctaPillStyle({ fontSizePx: 30, background: '#28c98b', color: '#041014', rotation: -8 })
     expect(s.transform).toBe('rotate(-8deg)')
     expect(s.transformOrigin).toBe('center center')
-    expect(ctaPillStyle({ fontSizePx: 30, background: '#28c98b', color: '#000000' }).transform).toBeUndefined()
+    expect(ctaPillStyle({ fontSizePx: 30, background: '#28c98b', color: '#041014' }).transform).toBeUndefined()
   })
 })
 
