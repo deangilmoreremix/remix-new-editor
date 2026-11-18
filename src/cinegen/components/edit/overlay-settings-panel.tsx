@@ -13,6 +13,7 @@ import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
 import { LottieEditSection } from './lottie-edit-section';
 import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
+import { SavePresetRow } from './save-preset-row';
 import { OPEN_SPEECH_EVENT } from '@cinegen/lib/occ/smart-speech';
 import { hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers
@@ -171,6 +172,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
         </label>
       </div>
       )}
+      {isRegistryOverlay(overlay.type) && <SavePresetRow overlay={overlay} />}
       {overlay.type === 'hyperframes' && <HfPlacementControls overlay={overlay} duration={duration} onUpdate={onUpdate} />}
       {overlay.type === 'mg-template' || overlay.type === 'hyperframes' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
       {overlay.type === 'overlay-sticker' && (overlay.addon as { kind?: string } | undefined)?.kind === 'lottie' && <LottieEditSection addon={overlay.addon as never} onChange={(next) => onUpdate({ addon: next })} />}

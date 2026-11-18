@@ -7,6 +7,7 @@ import { OverlayLane } from './overlay-lane';
 import { type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 import { CaptionLane } from './caption-lane';
 import { createOverlay, createStudioDesignOverlay, createTemplateOverlays, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
+import { presetOverlays } from '@cinegen/lib/overlays/overlay-presets';
 import { selectOverlay, getSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
@@ -3247,6 +3248,11 @@ export function TimelineEditor({
             },
             onPickTemplateVideo: handlePickTemplateVideo, // Template videos tab
             onPickLandingPage: handlePickLandingPage, // Landing pages tab
+            onPickPreset: (preset) => { // My presets tab
+              const made = presetOverlays(preset, currentTime, Math.max(sequenceDuration, 10));
+              made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
+              if (made.length) selectOverlay(made[made.length - 1].id);
+            },
             onAddTemplate: (templateId, phone) => {
               const made = createTemplateOverlays(templateId, currentTime, Math.max(sequenceDuration, 10), phone ? { phone } : undefined);
               made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));

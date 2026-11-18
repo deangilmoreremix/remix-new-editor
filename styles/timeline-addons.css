@@ -1466,3 +1466,15 @@
 .addon-field--togglecolor input[type="color"] { width: 56px; height: 28px; padding: 0; }
 .addon-field--togglecolor input[type="color"]:disabled { opacity: 0.35; }
 .addon-font-preview { margin-top: 6px; padding: 8px 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); font-size: 20px; line-height: 1.2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* Animation picker: effect tiles that play on hover (upstream's "Add Animation" window) */
+.addon-anim-phase { margin-top: 6px; }
+.addon-anim-browse { margin-top: 4px; width: 100%; }
+.addon-anim-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-height: 280px; overflow-y: auto; margin-top: 6px; padding: 2px; }
+.addon-anim-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 4px; border-radius: 8px; border: 1px solid var(--border, rgba(255, 255, 255, 0.12)); background: rgba(255, 255, 255, 0.04); color: inherit; cursor: pointer; overflow: hidden; }
+.addon-anim-tile:hover, .addon-anim-tile:focus-visible { border-color: var(--cyan, #22d3ee); }
+.addon-anim-tile.is-on { border-color: var(--cyan, #22d3ee); background: rgba(34, 211, 238, 0.16); box-shadow: inset 0 0 0 1px var(--cyan, #22d3ee); }
+.addon-anim-sample { display: block; font-weight: 700; font-size: 18px; line-height: 1.2; }
+.addon-anim-sample.animated { animation-duration: 0.8s; animation-fill-mode: both; }
+.addon-anim-sample.animated.infinite { animation-iteration-count: infinite; }
+.addon-anim-name { font-size: 10px; line-height: 1.2; text-align: center; color: var(--text-dim, rgba(255, 255, 255, 0.7)); }

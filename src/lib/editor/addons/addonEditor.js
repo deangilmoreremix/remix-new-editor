@@ -202,11 +202,18 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
     case 'animation': {
       const a = value || {};
       return `<div class="clip-editor__field addon-field addon-field--animation"><label>${esc(field.label)}</label>
-        ${ANIM_PHASES.map(([phase, phaseLabel]) => `<label class="addon-anim-row">${phaseLabel}
+        ${ANIM_PHASES.map(([phase, phaseLabel]) => {
+          const list = (field.animations || {})[phase] || [];
+          const open = ui.animOpen === `${field.key}.${phase}`;
+          return `<div class="addon-anim-phase"><label class="addon-anim-row">${phaseLabel}
           <select data-key="${field.key}.${phase}" data-kind="select-null">
             <option value="">None</option>
-            ${((field.animations || {})[phase] || []).map(([v, l]) => `<option value="${esc(v)}" ${a[phase] === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}
-          </select></label>`).join('')}
+            ${list.map(([v, l]) => `<option value="${esc(v)}" ${a[phase] === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}
+          </select></label>
+          <button type="button" class="mini-btn addon-anim-browse" data-anim-open="${field.key}.${phase}" aria-expanded="${open}">${open ? 'Close' : 'Browse effects'}</button>
+          ${open ? `<div class="addon-anim-grid" role="listbox" aria-label="${esc(phaseLabel)} effects">${[['', 'None'], ...list].map(([v, l]) => `<button type="button" role="option" aria-selected="${(a[phase] || '') === v}" class="addon-anim-tile${(a[phase] || '') === v ? ' is-on' : ''}" data-anim-pick="${field.key}.${phase}" data-anim-value="${esc(v)}" data-anim-phase="${phase}"><span class="addon-anim-sample">Aa</span><span class="addon-anim-name">${esc(l)}</span></button>`).join('')}</div>` : ''}
+          </div>`;
+        }).join('')}
       </div>`;
     }
     case 'position':
@@ -493,6 +500,16 @@ export function renderAddonEditor(container, {
         draw();
         return;
       }
+      if (btn?.dataset.animOpen) {
+        ui.animOpen = ui.animOpen === btn.dataset.animOpen ? null : btn.dataset.animOpen;
+        draw();
+        return;
+      }
+      if (btn?.dataset.animPick) {
+        ui.animOpen = null;
+        setAndEmit(btn.dataset.animPick, btn.dataset.animValue || null);
+        return;
+      }
       if (btn?.dataset.toggleBtn) {
         setAndEmit(btn.dataset.toggleBtn, !getPath(current, btn.dataset.toggleBtn));
         return;
@@ -723,6 +740,26 @@ export function renderAddonEditor(container, {
   };
   // Typing must not reach the editor's global shortcuts (Space = play, E / V / B = tools, Backspace = delete clip): they only skip input / textarea.
   const stopKeys = (e) => { if (e.target.closest?.('.addon-rich')) e.stopPropagation(); };
+  // Effect tiles play their effect while hovered / focused (Animate.css classes, like the editor preview)
+  const playTile = (e) => {
+    const tile = e.target.closest?.('.addon-anim-tile');
+    const sample = tile?.querySelector('.addon-anim-sample');
+    if (!sample || !tile.dataset.animValue) return;
+    const name = tile.dataset.animValue;
+    sample.className = 'addon-anim-sample';
+    void sample.offsetWidth; // restart
+    sample.classList.add('animated', name);
+    if (tile.dataset.animPhase === 'idle') sample.classList.add('infinite');
+    else sample.addEventListener('animationend', () => sample.classList.remove('animated', name), { once: true });
+  };
+  const stopTile = (e) => {
+    const sample = e.target.closest?.('.addon-anim-tile')?.querySelector('.addon-anim-sample');
+    if (sample) sample.className = 'addon-anim-sample';
+  };
+  container.addEventListener('mouseover', playTile);
+  container.addEventListener('focusin', playTile);
+  container.addEventListener('mouseout', stopTile);
+  container.addEventListener('focusout', stopTile);
   container.addEventListener('keydown', stopKeys);
   container.addEventListener('keyup', trackRange);
   container.addEventListener('mouseup', trackRange);
@@ -738,6 +775,10 @@ export function renderAddonEditor(container, {
       container.removeEventListener('change', handle);
       container.removeEventListener('click', handle);
       container.removeEventListener('keydown', stopKeys);
+      container.removeEventListener('mouseover', playTile);
+      container.removeEventListener('focusin', playTile);
+      container.removeEventListener('mouseout', stopTile);
+      container.removeEventListener('focusout', stopTile);
       container.removeEventListener('keyup', trackRange);
       container.removeEventListener('mouseup', trackRange);
       container.removeEventListener('focusout', trackRange);

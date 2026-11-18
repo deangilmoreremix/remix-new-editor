@@ -273,6 +273,32 @@ describe('overlay settings form', () => {
     expect(onChange.mock.calls.at(-1)[0]).toMatchObject({ src: 'https://x.test/party.json', kind: 'lottie', name: 'party' });
   });
 
+  it('Animation picker: browse effects as tiles, pick one, pick None', () => {
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const onChange = vi.fn();
+    const d = getAddon('overlay-text');
+    renderAddonEditor(box, { fields: d.fields, options: d.defaults(), onChange, services, onFieldChange: d.onFieldChange });
+    expect(box.querySelector('.addon-anim-grid')).toBeNull();
+    box.querySelector('[data-anim-open="animation.in"]').click();
+    const tiles = [...box.querySelectorAll('.addon-anim-grid .addon-anim-tile')];
+    expect(tiles.length).toBeGreaterThan(20); // None + every In effect
+    expect(tiles[0].dataset.animValue).toBe('');
+    box.querySelector('[data-anim-pick="animation.in"][data-anim-value="bounceIn"]').click();
+    expect(onChange.mock.calls.at(-1)[0].animation.in).toBe('bounceIn');
+    expect(box.querySelector('.addon-anim-grid')).toBeNull(); // closes after a pick
+    expect(box.querySelector('select[data-key="animation.in"]').value).toBe('bounceIn');
+    box.querySelector('[data-anim-open="animation.in"]').click();
+    expect(box.querySelector('.addon-anim-tile.is-on').dataset.animValue).toBe('bounceIn');
+    box.querySelector('[data-anim-pick="animation.in"][data-anim-value=""]').click();
+    expect(onChange.mock.calls.at(-1)[0].animation.in).toBeNull();
+    // hovering a tile plays the effect on its sample
+    box.querySelector('[data-anim-open="animation.out"]').click();
+    const tile = box.querySelector('.addon-anim-tile[data-anim-value="fadeOut"]');
+    tile.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    expect(tile.querySelector('.addon-anim-sample').classList.contains('fadeOut')).toBe(true);
+  });
+
   it('Image picker lists media library images and animations accept None', () => {
     const box = document.createElement('div');
     document.body.appendChild(box);
