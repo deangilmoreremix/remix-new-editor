@@ -41,11 +41,14 @@ const ids = (h: HTMLElement) => Array.from(h.querySelectorAll('tbody tr')).map((
 beforeEach(() => { update = vi.fn(); xlsx.download.mockReset(); setLeadsForm('all'); });
 
 describe('LeadsCard', () => {
-  it('says to publish first when the video is not published (no table, no buttons)', () => {
+  it('says to publish first when not published, and previews the layout as inert, labelled sample data', () => {
     const { host, cleanup } = mount([], false);
     expect(q(host, 'leads-unpublished')).toBeTruthy();
-    expect(q(host, 'leads-table')).toBeNull();
-    expect(q(host, 'leads-xlsx')).toBeNull();
+    expect(q(host, 'leads-sample-badge')?.textContent).toBe('Sample data');
+    const preview = host.querySelector('.leads-preview');
+    expect(preview?.getAttribute('aria-hidden')).toBe('true');
+    expect(preview?.hasAttribute('inert')).toBe(true);
+    expect(preview?.contains(q(host, 'leads-table') as Node)).toBe(true); // the table only exists inside the inert preview
     cleanup();
   });
 

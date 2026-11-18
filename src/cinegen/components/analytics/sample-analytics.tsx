@@ -10,7 +10,7 @@ export function SampleAnalytics() {
   const y = (v: number) => h - (v / 100) * h;
   const line = pts.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
   return (
-    <div className="cg-sample" data-testid="analytics-sample" aria-hidden="true" {...{ inert: '' }}>
+    <div className="cg-sample" data-testid="analytics-sample" aria-hidden="true" inert>
       <div className="cg-sample__head"><span className="cg-sample__badge">Sample data</span><span>What you will see once your video is published and viewed</span></div>
       <div className="cg-sample__tabs">{VIEWS.map((v, i) => <span key={v} className={`cg-analytics__tab${i === 0 ? ' is-active' : ''}`}>{v}</span>)}</div>
       <div className="cg-sample__cards">

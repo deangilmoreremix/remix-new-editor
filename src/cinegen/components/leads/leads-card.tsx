@@ -132,7 +132,7 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
     <section className="leads-card" data-testid="leads-card">
       <h3 className="leads-card__title">Leads<span className="leads-sample-badge" data-testid="leads-sample-badge">Sample data</span></h3>
       <p className="leads-note" data-testid="leads-unpublished">Publish this video to start collecting leads. This is a preview of what you will see here.</p>
-      <div className="leads-preview" aria-hidden="true" {...{ inert: '' }}>
+      <div className="leads-preview" aria-hidden="true" inert>
         <LeadsCardView data={NOOP_DATA} published views={SAMPLE_VIEWS} formsOverride={SAMPLE_FORMS} />
       </div>
     </section>
