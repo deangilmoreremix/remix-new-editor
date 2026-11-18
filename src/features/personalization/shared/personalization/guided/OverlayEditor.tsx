@@ -12,6 +12,7 @@ import { SortableRow } from './editor/SortableRow'
 import { Tip } from './editor/Tip'
 import { PLAYBACK_RATES } from '../preview/playbackRate'
 import { CaptionDragHandle } from './CaptionDragHandle'
+import { captionAvoid, clearOf } from './captionAvoid'
 import { liveBridge } from '../preview/liveBridge'
 import { PersonalizationPlayer } from '../preview/PersonalizationPlayer'
 import type { PlayerRef } from '@remotion/player'
@@ -660,6 +661,14 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   position={ctx.previewSettings.captions.position}
                   offsetY={ctx.previewSettings.captions.custom?.offsetY}
                   onChange={(offsetY) => { const c = ctx.previewSettings.captions; if (c) ctx.updatePreviewCaptions({ custom: { ...c.custom, offsetY } }) }}
+                  // Let go over other text and the captions stop short of it (unless "Keep clear of text" is off).
+                  onRelease={() => {
+                    const c = ctx.previewSettings.captions
+                    if (!c || c.custom?.keepClear === false) return
+                    const a = captionAvoid(ctx.previewSettings, inputProps.brand)
+                    const out = a ? clearOf(a) : null
+                    if (out?.overlapped && out.cleared) ctx.updatePreviewCaptions({ custom: { ...c.custom, offsetY: out.offsetY } })
+                  }}
                 />
               )}
             </>

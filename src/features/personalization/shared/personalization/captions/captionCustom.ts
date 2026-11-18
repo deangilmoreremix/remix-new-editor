@@ -18,6 +18,8 @@ export interface CaptionCustom {
   casing?: CaptionCasing
   /** Fraction of the frame height, -0.4..0.4, positive = up. Absent = the look's place. */
   offsetY?: number
+  /** Keep the captions off other text when they are moved. On unless this is false (only `false` is stored). */
+  keepClear?: false
 }
 
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
@@ -30,6 +32,7 @@ export function normalizeCustom(raw: unknown): CaptionCustom {
   if (font) out.fontFamily = font
   if (isCaptionWeight(r.weight)) out.weight = r.weight
   if (isCaptionCasing(r.casing)) out.casing = r.casing
+  if (r.keepClear === false) out.keepClear = false
   if (finite(r.offsetY)) {
     const o = Math.round(Math.min(MAX_CAPTION_OFFSET, Math.max(-MAX_CAPTION_OFFSET, r.offsetY)) * 1000) / 1000
     if (o !== 0) out.offsetY = o

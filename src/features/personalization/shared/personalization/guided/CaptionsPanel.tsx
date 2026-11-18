@@ -14,6 +14,8 @@ import { CAPTION_POSITIONS, CAPTION_STYLES } from '../captions/captionStyle'
 import { useCaptions } from '../captions/useCaptions'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { useLiveState } from '../preview/liveBridge'
+import { captionAvoid, clearOf, coveredNow } from './captionAvoid'
+import type { PreviewInputProps } from '../preview/types'
 import { LocalAINotice } from './LocalAINotice'
 import { C, chipStyle, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens'
 
@@ -32,7 +34,7 @@ const smallButton = { ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padd
  * the preview and in every export, including the extra shapes), and can also be downloaded as SRT/VTT files for
  * platforms that take a separate caption file. Lines can be corrected; the speech recogniser is not perfect.
  */
-export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null; disabled?: boolean }): React.JSX.Element | null {
+export function CaptionsPanel({ videoUrl, disabled, brand }: { videoUrl: string | null; disabled?: boolean; /** The business's own words, to find the text layers the captions could cover. */ brand?: PreviewInputProps['brand'] }): React.JSX.Element | null {
   const c = useCaptions(videoUrl)
   const { previewSettings } = useDemoPersonalize()
   const [copied, setCopied] = useState<'copied' | 'failed' | null>(null)
@@ -60,6 +62,10 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
     else if (row.offsetTop + row.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = row.offsetTop + row.offsetHeight - list.clientHeight + 4
   }, [playing])
   if (!videoUrl) return null
+  // What the captions cover: other layers that are on screen while a caption is.
+  const avoid = c.captions ? captionAvoid({ layers: previewSettings.layers, width: previewSettings.width, height: previewSettings.height, fps: previewSettings.fps, captions: c.captions }, brand) : null
+  const covered = avoid ? coveredNow(avoid) : 0
+  const clear = avoid && covered > 0 ? clearOf(avoid) : null
   const busy = c.ai.phase !== 'idle'
   const cues = c.captions?.cues ?? []
   const copy = async () => {
@@ -171,6 +177,19 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
               </label>
               <button type="button" data-testid="captions-bg-clear" disabled={!chosen?.backgroundColor} onClick={() => c.setCustom({ backgroundColor: undefined })} style={smallButton}>Clear</button>
             </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button type="button" data-testid="captions-keep-clear" aria-pressed={chosen?.keepClear !== false} onClick={() => c.setCustom({ keepClear: chosen?.keepClear === false ? undefined : false })} style={chipStyle(chosen?.keepClear !== false)}>Keep clear of text</button>
+              <span style={{ ...hintStyle, margin: 0 }}>When you drag the captions, they stop short of other text and logos.</span>
+            </div>
+            {covered > 0 && (
+              <div role="status" data-testid="captions-overlap-warning" style={{ ...hintStyle, margin: 0, color: C.text, border: `1px solid ${C.cyan}`, borderRadius: 8, padding: '6px 8px', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span>
+                  The captions cover {covered === 1 ? 'other text or a logo' : `${covered} other layers`} while they show.
+                  {chosen?.keepClear === false ? ' Switch on Keep clear of text to move them off automatically.' : clear && !clear.cleared ? ' There is no clear spot on this frame: shorten the lines or move the other text.' : ''}
+                </span>
+                {clear?.cleared && <button type="button" data-testid="captions-clear-now" onClick={() => c.setCustom({ offsetY: clear.offsetY })} style={smallButton}>Move them clear</button>}
+              </div>
+            )}
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: C.text }}>
               <span style={{ ...hintStyle, margin: 0 }}>Move up or down</span>
               <input type="range" data-testid="captions-offset" aria-label="Caption vertical position" min={-MAX_CAPTION_OFFSET} max={MAX_CAPTION_OFFSET} step={0.01} value={chosen?.offsetY ?? 0} onChange={(e) => c.setCustom({ offsetY: Number(e.target.value) || undefined })} style={{ flex: 1, accentColor: C.cyan }} />

@@ -9,7 +9,13 @@ import { MAX_CAPTION_OFFSET } from '../captions/captionCustom'
  * A grip at the left edge of the live preview, level with the captions: drag it up or down to move them (or use the arrow keys, Home to put them back).
  * Small on purpose, so it never covers a layer's own handles. Must be a child of the stage (its parent is measured). Identical in both repos.
  */
-export function CaptionDragHandle({ position, offsetY, onChange }: { position: DragPosition; offsetY: number | undefined; onChange: (offsetY: number | undefined) => void }): React.JSX.Element {
+export function CaptionDragHandle({ position, offsetY, onChange, onRelease }: {
+  position: DragPosition
+  offsetY: number | undefined
+  onChange: (offsetY: number | undefined) => void
+  /** Called when a drag ends (not for a click or a key press): the place to keep the captions clear of other text. */
+  onRelease?: () => void
+}): React.JSX.Element {
   const drag = useRef<{ startY: number; startOffset: number | undefined; stageH: number } | null>(null)
   const set = (v: number | undefined) => onChange(v === undefined || Math.abs(v) < 0.005 ? undefined : v)
   const pct = Math.round((offsetY ?? 0) * 100)
@@ -33,7 +39,7 @@ export function CaptionDragHandle({ position, offsetY, onChange }: { position: D
         try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* not capturable: moves still arrive while the pointer stays over the grip */ }
       }}
       onPointerMove={(e) => { const d = drag.current; if (d) set(offsetFromDrag(d.startOffset, e.clientY - d.startY, d.stageH)) }}
-      onPointerUp={(e) => { drag.current = null; try { e.currentTarget.releasePointerCapture(e.pointerId) } catch { /* nothing held */ } }}
+      onPointerUp={(e) => { const was = drag.current !== null; drag.current = null; try { e.currentTarget.releasePointerCapture(e.pointerId) } catch { /* nothing held */ } if (was) onRelease?.() }}
       onPointerCancel={() => { drag.current = null }}
       onDoubleClick={() => onChange(undefined)}
       onKeyDown={(e) => {

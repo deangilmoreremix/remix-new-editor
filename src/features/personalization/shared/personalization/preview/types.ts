@@ -202,6 +202,8 @@ export interface PreviewCaptionCustom {
   outlineColor?: string
   backgroundColor?: string
   offsetY?: number
+  /** Keep the captions off other text when they are moved. On unless false. */
+  keepClear?: false
 }
 
 export interface PersonalizationPreviewSettings {

@@ -5,9 +5,9 @@ import { CaptionDragHandle } from '../CaptionDragHandle'
 
 afterEach(cleanup)
 
-function mount(props: { position?: 'top' | 'middle' | 'bottom'; offsetY?: number; onChange?: (v: number | undefined) => void } = {}) {
+function mount(props: { position?: 'top' | 'middle' | 'bottom'; offsetY?: number; onChange?: (v: number | undefined) => void; onRelease?: () => void } = {}) {
   const onChange = (props.onChange ?? vi.fn()) as ReturnType<typeof vi.fn>
-  render(<div data-testid="stage" style={{ position: 'relative' }}><CaptionDragHandle position={props.position ?? 'bottom'} offsetY={props.offsetY} onChange={onChange} /></div>)
+  render(<div data-testid="stage" style={{ position: 'relative' }}><CaptionDragHandle position={props.position ?? 'bottom'} offsetY={props.offsetY} onChange={onChange} onRelease={props.onRelease} /></div>)
   const stage = screen.getByTestId('stage')
   stage.getBoundingClientRect = () => ({ height: 1000, width: 500, top: 0, left: 0, bottom: 1000, right: 500, x: 0, y: 0, toJSON: () => ({}) })
   const handle = screen.getByTestId('caption-drag-handle')
@@ -56,5 +56,16 @@ describe('CaptionDragHandle', () => {
     expect(onChange).toHaveBeenLastCalledWith(undefined)
     fireEvent.keyDown(handle, { key: 'a' })
     expect(onChange).toHaveBeenCalledTimes(1)
+  })
+  it('tells the editor when a drag ends, but not for a plain click or a key press', () => {
+    const onRelease = vi.fn()
+    const { handle } = mount({ onRelease })
+    fireEvent.pointerUp(handle, { clientY: 10, pointerId: 1 }) // no drag was started
+    fireEvent.keyDown(handle, { key: 'ArrowUp' })
+    expect(onRelease).not.toHaveBeenCalled()
+    fireEvent.pointerDown(handle, { clientY: 800, pointerId: 1 })
+    fireEvent.pointerMove(handle, { clientY: 700, pointerId: 1 })
+    fireEvent.pointerUp(handle, { clientY: 700, pointerId: 1 })
+    expect(onRelease).toHaveBeenCalledTimes(1)
   })
 })

@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import { CaptionsPanel } from '../CaptionsPanel'
 import { applyCaptionsPatch } from '../../captions/captionStyle'
 import { liveBridge } from '../../preview/liveBridge'
+import { createDefaultPreviewSettings } from '../../preview/presets'
 
 const engine = vi.hoisted(() => ({ isModelCached: vi.fn(), modelInfo: vi.fn(), cancelLocalAI: vi.fn(), transcribeVideo: vi.fn() }))
 vi.mock('../../localAI/engine', () => engine)
@@ -38,10 +39,10 @@ beforeEach(() => {
 })
 afterEach(() => { vi.clearAllMocks(); document.body.innerHTML = ''; liveBridge.publish({ frame: null, seek: null }) })
 
-function mount() {
+function mount(brand?: unknown) {
   const el = document.body.appendChild(document.createElement('div'))
   root = createRoot(el)
-  rerender = () => act(() => { root.render(<CaptionsPanel videoUrl={VIDEO} />) })
+  rerender = () => act(() => { root.render(<CaptionsPanel videoUrl={VIDEO} brand={brand as never} />) })
   rerender()
   return el
 }
@@ -157,5 +158,44 @@ describe('captions customizer (remix)', () => {
     await change(q(el, 'captions-offset'), '0.2')
     await click(q(el, 'captions-position-top'))
     expect(custom()).toBeUndefined()
+  })
+})
+
+describe('captions keeping clear of other text (remix)', () => {
+  const brand = { businessName: 'Rascop And Associates LLC', headline: 'Call us today', offer: '10% off', cta: 'Book now' }
+  const nameLayer = (y: number) => ({ ...createDefaultPreviewSettings().layers.find((l) => l.kind === 'businessName')!, visible: true, opacity: 1, startFrame: 0, endFrame: undefined, x: 0.05, y })
+  const custom = () => (ctx.previewSettings.captions as { custom?: Record<string, unknown> }).custom
+  const withLayer = (y: number, customStyle?: Record<string, unknown>) => {
+    ctx.previewSettings = { ...ctx.previewSettings, width: 1920, height: 1080, layers: [nameLayer(y)], captions: { ...(ctx.previewSettings.captions as object), custom: customStyle } } as never
+  }
+  it('warns when the captions cover another layer, and is quiet when they do not', async () => {
+    withLayer(0.84)
+    const el = mount(brand)
+    expect(q(el, 'captions-overlap-warning')?.textContent).toMatch(/cover/i)
+    document.body.innerHTML = ''
+    withLayer(0.1)
+    expect(q(mount(brand), 'captions-overlap-warning')).toBeNull()
+  })
+  it('moves the captions clear with one click', async () => {
+    withLayer(0.84)
+    const el = mount(brand)
+    await click(q(el, 'captions-clear-now'))
+    expect(typeof custom()?.offsetY).toBe('number')
+    expect(Math.abs(custom()!.offsetY as number)).toBeGreaterThan(0.01)
+    expect(q(el, 'captions-overlap-warning')).toBeNull() // clear now
+  })
+  it('has a "keep clear of text" setting that is on until it is switched off', async () => {
+    withLayer(0.1)
+    const el = mount(brand)
+    expect(q(el, 'captions-keep-clear')?.getAttribute('aria-pressed')).toBe('true')
+    await click(q(el, 'captions-keep-clear'))
+    expect(custom()).toEqual({ keepClear: false })
+    expect(q(el, 'captions-keep-clear')?.getAttribute('aria-pressed')).toBe('false')
+    await click(q(el, 'captions-keep-clear'))
+    expect(custom()).toBeUndefined()
+  })
+  it('suggests switching it on when it is off and the captions cover something', async () => {
+    withLayer(0.84, { keepClear: false })
+    expect(q(mount(brand), 'captions-overlap-warning')?.textContent).toMatch(/keep clear/i)
   })
 })

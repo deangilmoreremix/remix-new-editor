@@ -372,7 +372,7 @@ export function StepPreviewApprove(): React.JSX.Element {
             </div>
           )}
         </div>
-        {isBrandedPath && !inputProps.isImageSource && <CaptionsPanel videoUrl={inputProps.videoUrl} disabled={generating} />}
+        {isBrandedPath && !inputProps.isImageSource && <CaptionsPanel videoUrl={inputProps.videoUrl} brand={inputProps.brand} disabled={generating} />}
         {isBrandedPath && previewApproved && (
           <>
             {/* Two free ways to export other shapes. They share one renderer, so each is disabled while the other runs. */}

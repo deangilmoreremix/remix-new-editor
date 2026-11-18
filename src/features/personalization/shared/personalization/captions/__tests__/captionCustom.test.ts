@@ -10,6 +10,10 @@ describe('normalizeCustom', () => {
     for (const junk of [undefined, null, 5, 'x', []]) expect(normalizeCustom(junk), String(junk)).toEqual({})
     expect(normalizeCustom({ offsetY: NaN })).toEqual({})
   })
+  it('stores keepClear only when it is off, and drops anything else', () => {
+    expect(normalizeCustom({ keepClear: false })).toEqual({ keepClear: false })
+    for (const v of [true, 'no', 0, null, undefined]) expect(normalizeCustom({ keepClear: v }), String(v)).toEqual({})
+  })
   it('keeps the offset within 0.4 of the frame, and treats 0 as not moved', () => {
     expect(normalizeCustom({ offsetY: 9 }).offsetY).toBe(0.4)
     expect(normalizeCustom({ offsetY: -9 }).offsetY).toBe(-0.4)
