@@ -35,7 +35,7 @@ describe('interest mapping', () => {
   });
   it('cleans notification preferences', () => {
     expect(cleanPreferences({ enabled_types: ['new_lead', 'hack'], in_app: 1, email: 1, digest_frequency: 'hourly', interest_threshold: '9999', quiet_hours: { start: '22:00', end: 'x' } }))
-      .toEqual({ enabled_types: ['new_lead'], in_app: true, email: true, digest_frequency: 'daily', interest_threshold: 500, quiet_hours: null });
+      .toEqual({ enabled_types: ['new_lead'], in_app: true, email: true, digest_frequency: 'daily', interest_threshold: 500, quiet_hours: null, push: false });
     expect(cleanPreferences({ ...DEFAULT_PREFERENCES, quiet_hours: { start: '22:00', end: '07:00' } }).quiet_hours).toEqual({ start: '22:00', end: '07:00' });
   });
 });

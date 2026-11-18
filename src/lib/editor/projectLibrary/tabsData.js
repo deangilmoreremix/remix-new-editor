@@ -110,8 +110,32 @@ export async function unreadCount(client) {
   return Number(data) || 0;
 }
 
+/** Plain-language groups over `enabled_types`, by the feature that creates the alert. Types outside every group (daily_digest) are left alone. */
+export const NOTIFICATION_GROUPS = Object.freeze([
+  { id: 'leads', label: 'New leads', detail: 'Lead Generator & List Builder', types: Object.freeze(['new_lead']) },
+  { id: 'retarget', label: 'Retarget', detail: 'High interest, follow-up opportunities, rising interests, returning viewers', types: Object.freeze(['high_interest', 'followup_opportunity', 'interest_surge', 'returning_engagement']) },
+  { id: 'activity', label: 'Video activity', detail: 'Milestones, pricing & contact clicks', types: Object.freeze(['milestone', 'pricing_cta', 'contact_cta']) },
+]);
+
+/** 'all' | 'some' | 'none' for one group. */
+export function groupState(enabledTypes, groupId) {
+  const g = NOTIFICATION_GROUPS.find((x) => x.id === groupId);
+  if (!g) return 'none';
+  const on = g.types.filter((t) => (enabledTypes || []).includes(t)).length;
+  return on === 0 ? 'none' : on === g.types.length ? 'all' : 'some';
+}
+
+/** New enabled_types with the whole group switched on/off; every other type (including daily_digest) is preserved. */
+export function setGroup(enabledTypes, groupId, on) {
+  const g = NOTIFICATION_GROUPS.find((x) => x.id === groupId);
+  const current = Array.isArray(enabledTypes) ? enabledTypes : [];
+  if (!g) return [...current];
+  const rest = current.filter((t) => !g.types.includes(t));
+  return on ? [...rest, ...g.types] : rest;
+}
+
 export const DEFAULT_PREFERENCES = Object.freeze({
-  enabled_types: NOTIFICATION_TYPES.map(([k]) => k), in_app: true, email: false, digest_frequency: 'daily', interest_threshold: 60, quiet_hours: null,
+  enabled_types: NOTIFICATION_TYPES.map(([k]) => k), in_app: true, email: false, digest_frequency: 'daily', interest_threshold: 60, quiet_hours: null, push: false,
 });
 
 export async function loadPreferences(client) {
@@ -129,6 +153,7 @@ export function cleanPreferences(p) {
     digest_frequency: ['off', 'daily', 'weekly'].includes(p.digest_frequency) ? p.digest_frequency : 'daily',
     interest_threshold: Math.min(500, Math.max(10, Math.round(Number(p.interest_threshold) || 60))),
     quiet_hours: q,
+    push: !!p.push,
   };
 }
 
