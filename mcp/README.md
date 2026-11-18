@@ -1,30 +1,41 @@
 # SmartVid MCP server
 
-Use every SmartVid studio (image, video, edit, effects, lip sync, cinema, audio, avatar, video tools, training, chat) from Claude, Cursor or any MCP client.
+Use SmartVid from Claude, Cursor or any MCP client: image, video, edit, effects, lip sync, cinema, commercial ads, audio, avatars, video tools, Timeline AI (fill gap, extend, watermark removal, layers, music), Zack D, text and vision, and the brand scraper.
 
-## Install (Claude Code)
+## 1. Get a key
+In SmartVid open **Settings → MCP access → Create MCP key**. First save your API keys in the same Settings screen: the key uses them. The key is shown once; revoke it there any time.
+
+## 2. Install
+Claude Code:
 ```bash
-claude mcp add smartvid -e SMARTVID_API_KEY=your_key -- node /path/to/remix-new-editor/mcp/index.js
+claude mcp add smartvid -e SMARTVID_API_KEY=sv_live_... -- node /path/to/remix-new-editor/mcp/index.js
 ```
-
-## Claude Desktop / Cursor
+Claude Desktop / Cursor:
 ```json
 {
   "mcpServers": {
     "smartvid": {
       "command": "node",
       "args": ["/path/to/remix-new-editor/mcp/index.js"],
-      "env": { "SMARTVID_API_KEY": "your_key" }
+      "env": { "SMARTVID_API_KEY": "sv_live_..." }
     }
   }
 }
 ```
-Run `npm --prefix packages/studio-mcp-core install --workspaces=false` once to install the server's dependencies.
+Run `npm --prefix packages/studio-mcp-core install --workspaces=false` once to install the server's dependencies. Set `SMARTVID_API_URL` to point at a deploy preview.
 
 ## Tools
-`smartvid_list_studios`, `_search_models`, `_get_model`, `_estimate_cost`, `_image_generate`, `_image_edit`, `_video_generate`, `_video_from_image`, `_video_to_video`, `_lipsync`, `_audio_generate`, `_video_tool`, `_avatar_generate`, `_model_train`, `_text_generate`, `_get_result`, `_upload_file`, `_account_balance`.
+Discovery: `smartvid_list_studios`, `_search_models`, `_get_model`, `_estimate_cost`.
+Generation: `_image_generate`, `_image_edit`, `_video_generate`, `_video_from_image`, `_video_to_video`, `_lipsync`, `_audio_generate`, `_video_tool`, `_avatar_generate`, `_motion_control`, `_recast`, `_motion_graphics`, `_marketing_ad`, `_text_generate`, `_vision_describe`.
+Timeline AI: `_video_fill_gap`, `_video_extend`, `_video_remove_watermark`, `_image_layers`, `_music_create`.
+Zack D: `_zackd_trends`, `_zackd_script`, `_zackd_submit`, `_zackd_status`. Brand: `_brand_scrape`.
+Jobs and account: `_get_result`, `_upload_file`, `_account_balance`.
 
-Flow: `search_models` → `get_model` (see the exact fields) → a generation tool with `{ model, inputs }`. Media inputs are public https URLs; `upload_file` re-hosts a URL. Long jobs return a `request_id` for `get_result`.
+Flow: `search_models` → `get_model` (exact fields) → a generation tool with `{ model, inputs }`. Media inputs are public https URLs; `upload_file` re-hosts a URL. Long jobs return a `request_id` for `get_result`.
+
+## Which studios are covered
+`mcp/studios.json` classifies every studio in the app: the tools that serve it, or the reason it is not exposed. A test (`tests/mcp/studio-coverage.test.js`) fails when a studio is added to the app without being classified.
 
 ## How it works
-`mcp/index.js` (brand: `mcp/brand.js`) uses `packages/studio-mcp-core`, which calls the gateway `netlify/functions/mcp-gateway.js` (`/api/mcp-gateway`). The key is bring-your-own and used per request only. Regenerate the catalog after model changes: `npm run mcp:catalog`. Tests: `npm run test:mcp`.
+`mcp/index.js` (brand: `mcp/brand.js`) uses `packages/studio-mcp-core`, which calls the gateway `netlify/functions/mcp-gateway.js` (`/api/mcp-gateway`). The gateway checks the MCP key (`netlify/functions/mcp-keys.js`, table `mcp_keys`: hash only; your saved API keys are stored encrypted with `MCP_KEY_SECRET`), then calls the same functions the app uses, as you.
+Regenerate the catalog after model changes: `npm run mcp:catalog`. Tests: `npm run test:mcp`.

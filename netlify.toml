@@ -76,6 +76,13 @@
   force = true
 
 # Branded gateway for the SmartVid MCP server (mcp/). BYOK: the caller's key is used per request.
+# Create / list / revoke SmartVid MCP keys (Clerk session required).
+[[redirects]]
+  from = "/api/mcp-keys"
+  to = "/.netlify/functions/mcp-keys"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/mcp-gateway/*"
   to = "/.netlify/functions/mcp-gateway/:splat"
