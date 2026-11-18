@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
 
 vi.mock('../components/modals/template-generator/captions.js', async (orig) => ({
   ...(await orig()),
-  transcribeCaptions: vi.fn(async () => ({
+  transcribeLong: vi.fn(async () => ({
     words: [['this', 0, 300], ['is', 300, 500], ['Muneeb.', 500, 900], ['So', 1900, 2100], ['Edvay', 2100, 2500], ['rocks', 2500, 3000]].map(([text, start, end]) => ({ text, start, end })),
     engine: 'whisper-webgpu', model: 'base',
   })),
@@ -20,7 +20,7 @@ vi.mock('../lib/muapi.js', () => ({ muapi: { processVideoTool: (...a) => process
 
 import { AICaptionsModal } from '../components/modals/AICaptionsModal.jsx';
 import { burnInCaptions } from '../components/modals/ai-captions/burnIn.js';
-import { transcribeCaptions } from '../components/modals/template-generator/captions.js';
+import { transcribeLong as transcribeCaptions } from '../components/modals/template-generator/captions.js';
 import { clearJobs } from '../components/modals/ai-captions/history.js';
 import { clearSessionVideos } from '../components/modals/ai-captions/library.js';
 

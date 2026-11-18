@@ -1,7 +1,8 @@
 import { BaseModal } from './BaseModal.jsx';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
-import { CAPTION_MODELS, DEFAULT_CAPTION_ENGINE, transcribeCaptions } from './template-generator/captions.js';
+import { CAPTION_MODELS, DEFAULT_CAPTION_ENGINE, transcribeLong } from './template-generator/captions.js';
 import { captionPages, captionAt, captionPageHTML, captionTextCss, captionSampleHTML } from './template-generator/captionPreview.js';
+import { languageLabel } from './ai-captions/language.js';
 import { segmentWords, flattenSegments, nudgeSegment, editWord, splitSegment, mergeSegments, deleteSegment, addSegment, replaceAll, countMatches, convertCase, segmentsToSrt, segmentsToVtt, segmentsToTxt, segmentStart, segmentEnd, NUDGE_MS } from './ai-captions/scriptOps.js';
 import { POSITION_PERCENT, clampPos } from './ai-captions/phonePreview.js';
 import { saveJob, listJobs, getJob, deleteJob, clearJobs } from './ai-captions/history.js';
@@ -753,15 +754,20 @@ export class AICaptionsModal extends BaseModal {
       this.sourceBlob = blob;
       this.sourceUrl = /^blob:/.test(this.selectedUrl || this.videoUrl) || this.uploadedFile ? '' : (this.selectedUrl || this.videoUrl);
       this.currentStep = 1; this.refreshBody();
-      const result = await transcribeCaptions(src, {
-        engine: this.captionEngine, model: this.model, language: this.deviceLang,
-        onProgress: (p) => { this.deviceProgress = Math.min(0.95, Number(p?.progress) || 0); const bar = this.overlay?.querySelector('.progress-fill'); if (bar) bar.style.width = `${Math.round(this.deviceProgress * 100)}%`; },
+      const length = await AICaptionsModal.videoDuration(src, []);
+      const result = await transcribeLong(src, {
+        durationSec: length, engine: this.captionEngine, model: this.model, language: this.deviceLang,
+        onProgress: (p) => {
+          this.deviceProgress = Math.min(0.95, Number(p?.progress) || 0);
+          const bar = this.overlay?.querySelector('.progress-fill'); if (bar) bar.style.width = `${Math.round(this.deviceProgress * 100)}%`;
+          const status = this.overlay?.querySelector('.ai-captions-status'); if (status && p?.chunks > 1) status.textContent = `Listening (Whisper on this device)… part ${p.chunk} of ${p.chunks}`;
+        },
       });
       this.currentStep = 2; this.refreshBody();
       this.segments = segmentWords(result.words);
-      this.detectedLang = this.deviceLang === 'auto' ? 'auto' : this.deviceLang;
+      this.detectedLang = languageLabel(this.deviceLang, flattenSegments(this.segments).map((w) => w.text).join(' '));
       this.processingMs = Date.now() - t0;
-      this.durationSec = await AICaptionsModal.videoDuration(src, this.segments);
+      this.durationSec = length || (this.segments.length ? segmentEnd(this.segments[this.segments.length - 1]) / 1000 : 0);
       this.videoUrl = src; this.outputUrl = ''; this.jobId = ''; this.renderNote = result.note || '';
       this.isGenerating = false; this.deviceProgress = null; this.tab = 'script';
       await this.saveCurrentJob();

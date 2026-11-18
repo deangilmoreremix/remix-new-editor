@@ -197,3 +197,32 @@ export async function transcribeCaptions(src, { engine = DEFAULT_CAPTION_ENGINE,
   if (!out.words.length) throw new Error('No speech was found to caption.');
   return { words: out.words, engine: use, model: mdl, ...(note || out.note ? { note: [note, out.note].filter(Boolean).join(' ') } : {}) };
 }
+
+/**
+ * Transcribe a clip of any length: the audio is cut into `chunkSec` pieces (the engines cap one run at MAX_CAPTION_AUDIO_SEC), each piece is
+ * transcribed, and the words are joined with their real times. A piece with no speech is skipped. `onProgress` gets `{ progress, chunk, chunks }`.
+ */
+export async function transcribeLong(src, { durationSec, chunkSec = MAX_CAPTION_AUDIO_SEC, onProgress, signal, ...opts } = {}) {
+  const total = Number.isFinite(durationSec) && durationSec > 0 ? durationSec : chunkSec;
+  const chunks = Math.max(1, Math.ceil(total / chunkSec));
+  const words = [];
+  let last = null;
+  const notes = new Set();
+  let firstErr = null;
+  for (let i = 0; i < chunks; i += 1) {
+    if (signal?.aborted) throw Object.assign(new Error('Transcription cancelled'), { name: 'AbortError' });
+    const from = i * chunkSec;
+    try {
+      const out = await transcribeCaptions(src, { ...opts, signal, fromSec: from, toSec: Math.min(total, from + chunkSec), onProgress: (p) => onProgress?.({ ...p, chunk: i + 1, chunks, progress: (i + (Number(p?.progress) || 0)) / chunks }) });
+      for (const w of out.words) words.push({ ...w, start: w.start + from * 1000, end: w.end + from * 1000 });
+      last = out;
+      if (out.note) notes.add(out.note);
+    } catch (err) {
+      if (err?.name === 'AbortError') throw err;
+      firstErr = firstErr || err;                    // a silent piece is skipped; a broken one shows if nothing at all was found
+    }
+  }
+  if (!words.length) throw firstErr || new Error('No speech was found to caption.');
+  words.sort((a, b) => a.start - b.start);
+  return { words, engine: last.engine, model: last.model, chunks, ...(notes.size ? { note: [...notes].join(' ') } : {}) };
+}

@@ -3,6 +3,7 @@ import { segmentWords, flattenSegments, nudgeSegment, editWord, splitSegment, me
 import { phonePreviewHTML, presetFor, clampPos, positionStyle, screenBackground, FALLBACK_FRAME } from '../components/modals/ai-captions/phonePreview.js';
 import { saveJob, listJobs, getJob, deleteJob, clearJobs, MAX_JOBS } from '../components/modals/ai-captions/history.js';
 import { drawCaption, layoutLines } from '../components/modals/ai-captions/burnIn.js';
+import { guessLanguage, languageLabel } from '../components/modals/ai-captions/language.js';
 import { captionStyleFor } from '../openchatcut/captions/styles';
 
 const W = (text, start, end) => ({ text, start, end });
@@ -141,5 +142,41 @@ describe('AI Captions — burn-in drawing', () => {
     expect(drawCaption(c, 1080, 1920, { style, pages, ms: 100, percent: 8 })).toBe(true);
     expect(c.calls.filter((x) => x.startsWith('text:')).map((x) => x.slice(5))).toEqual(['HELLO', 'WORLD']);
     expect(drawCaption(c, 1080, 1920, { style, pages, ms: 5000, percent: 8 })).toBe(false);
+  });
+});
+
+describe('AI Captions — language shown when Detect was chosen', () => {
+  it('reads the language from the text', () => {
+    expect(guessLanguage('Welcome to the dental office, book your cleaning today and smile with confidence')).toBe('en');
+    expect(guessLanguage('Bienvenidos a la clínica, reserve su limpieza para sonreír con confianza en el día')).toBe('es');
+    expect(guessLanguage('Bienvenue dans notre cabinet, réservez votre nettoyage pour les dents et le sourire')).toBe('fr');
+    expect(guessLanguage('Willkommen in der Praxis, buchen Sie Ihre Reinigung und lächeln Sie mit uns')).toBe('de');
+    expect(guessLanguage('ようこそ歯科医院へ。今日クリーニングを予約してください')).toBe('ja');
+    expect(guessLanguage('Добро пожаловать в нашу клинику, запишитесь на чистку')).toBe('ru');
+    expect(guessLanguage('hi')).toBe('');
+  });
+  it('labels the job', () => {
+    expect(languageLabel('es', 'whatever')).toBe('es');
+    expect(languageLabel('auto', 'Welcome to the dental office, book your cleaning today and smile')).toBe('auto · en');
+    expect(languageLabel('auto', '')).toBe('auto');
+  });
+});
+
+describe('AI Captions — clips longer than one run', () => {
+  it('transcribes in 180 s pieces and joins the words at their real times', async () => {
+    // the real transcribeCaptions is used: drive it with a worker that answers each piece
+    const calls = [];
+    const workerFactory = () => {
+      const l = {};
+      return { addEventListener: (t, f) => { l[t] = f; }, removeEventListener() {}, terminate() {}, postMessage: () => setTimeout(() => l.message({ data: { type: 'done', words: [{ text: 'hi', startInSeconds: 1, endInSeconds: 1.4 }] } }), 0) };
+    };
+    vi.doMock('../lib/editor/remotion/transcribe.js', () => ({ decodeAudio: async (_s, o) => { calls.push([o.fromSec, o.toSec]); return new Float32Array(16000); }, transcribeInBrowser: async () => ({ captions: [] }) }));
+    vi.resetModules();
+    const { transcribeLong: tl } = await import('../components/modals/template-generator/captions.js');
+    const out = await tl('blob:x', { durationSec: 400, workerFactory, model: 'base', language: 'en' });
+    expect(calls).toEqual([[0, 180], [180, 360], [360, 400]]);
+    expect(out.words.map((w) => w.start)).toEqual([1000, 181000, 361000]);
+    expect(out.chunks).toBe(3);
+    vi.doUnmock('../lib/editor/remotion/transcribe.js');
   });
 });
