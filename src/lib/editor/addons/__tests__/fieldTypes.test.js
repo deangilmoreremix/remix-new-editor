@@ -135,3 +135,17 @@ describe('editor and Lead Generator clip', () => {
     expect(back).toMatchObject({ requireConsent: true, consentText: 'OK to email?' });
   });
 });
+
+describe('auto-reply settings', () => {
+  it('are offered on the Integrations tab once switched on, and kept on the Lead Generator clip', async () => {
+    const { listBuilderFields: fields, defaultListBuilder: dflt, applyOptinToLeadForm: apply, leadFormToOptin: back } = await import('../index.js');
+    const shown = (o) => fields(o).filter((f) => !f.showIf || f.showIf(o)).map((f) => f.key);
+    expect(shown(dflt())).toContain('autoReplyEnabled');
+    expect(shown(dflt())).not.toContain('autoReplyBody');
+    expect(shown({ ...dflt(), autoReplyEnabled: true })).toEqual(expect.arrayContaining(['autoReplySubject', 'autoReplyBody']));
+    const clip = { fields: [] };
+    apply(clip, { elements: [{ id: 'e', type: 'email', label: 'Email' }], autoReplyEnabled: true, autoReplySubject: 'Thanks', autoReplyBody: 'Hi {{first_name}}' });
+    expect(clip).toMatchObject({ autoReplyEnabled: true, autoReplySubject: 'Thanks', autoReplyBody: 'Hi {{first_name}}' }); // flat on the clip, where the server reads it
+    expect(back(clip)).toMatchObject({ autoReplyEnabled: true });
+  });
+});
