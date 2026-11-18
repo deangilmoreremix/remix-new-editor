@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { C, hintStyle } from '../tokens'
 import { Tip } from './Tip'
 import {
-  applyTimelineEdit, formatSeconds, fractionToFrame, frameToFraction, layerSpan, rulerTicks, type TimelineEdit,
+  applyAudioEdit, applyTimelineEdit, audioSpan, formatSeconds, fractionToFrame, frameToFraction, layerSpan, rulerTicks, type TimelineEdit,
 } from './timeline'
 import type { PreviewLayer } from '../../preview/types'
 
@@ -23,6 +23,8 @@ export function Timeline({
   playheadFrame,
   onSeek,
   onKeyframeMove,
+  audio,
+  onAudioChange,
 }: {
   layers: PreviewLayer[]
   labels: Record<string, string>
@@ -37,6 +39,10 @@ export function Timeline({
   onSeek?: (frame: number) => void
   /** When given, keyframes show as diamonds on the layer's track and can be dragged to another moment. */
   onKeyframeMove?: (layerId: string, fromFrame: number, toFrame: number) => void
+  /** Audio tracks, shown as lanes under the layers: a bar from where the track starts for as long as it plays. */
+  audio?: { id: string; name: string; start: number; length?: number; muted: boolean }[]
+  /** Dragging a lane's bar moves its start; dragging its right edge sets how long it plays. */
+  onAudioChange?: (id: string, patch: { start: number; length: number | undefined }) => void
 }): React.JSX.Element | null {
   const trackRef = useRef<HTMLDivElement>(null)
   const drag = useRef<{ id: string; part: TimelineEdit; startX: number; origin: Pick<PreviewLayer, 'startFrame' | 'endFrame'>; pointerId: number | null } | null>(null)
@@ -44,10 +50,20 @@ export function Timeline({
   onChangeRef.current = onChange
   const kfMoveRef = useRef(onKeyframeMove)
   kfMoveRef.current = onKeyframeMove
+  const audioChangeRef = useRef(onAudioChange)
+  audioChangeRef.current = onAudioChange
+  const audioDrag = useRef<{ id: string; part: TimelineEdit; startX: number; origin: { start: number; length?: number } } | null>(null)
   const kfDrag = useRef<{ id: string; frame: number; startX: number; startFrame: number } | null>(null)
   const duration = Math.max(1, Math.round(durationInFrames))
 
   const onMove = useCallback((e: PointerEvent) => {
+    const ad = audioDrag.current
+    const at = trackRef.current
+    if (ad && at) {
+      const w = at.getBoundingClientRect().width
+      if (w > 0) audioChangeRef.current?.(ad.id, applyAudioEdit(ad.origin, ad.part, ((e.clientX - ad.startX) / w) * (duration - 1), fps, duration))
+      return
+    }
     const k = kfDrag.current
     const kt = trackRef.current
     if (k && kt) {
@@ -66,8 +82,8 @@ export function Timeline({
     if (width <= 0) return
     const deltaFrames = ((e.clientX - d.startX) / width) * (duration - 1)
     onChangeRef.current(d.id, applyTimelineEdit(d.origin, d.part, deltaFrames, duration))
-  }, [duration])
-  const onUp = useCallback(() => { drag.current = null; kfDrag.current = null }, [])
+  }, [duration, fps])
+  const onUp = useCallback(() => { drag.current = null; kfDrag.current = null; audioDrag.current = null }, [])
   useEffect(() => {
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
@@ -76,7 +92,7 @@ export function Timeline({
   }, [onMove, onUp])
 
   const rows = layers.filter((l) => l.kind !== 'endCard' && l.visible)
-  if (rows.length === 0 || duration < 2) return null
+  if ((rows.length === 0 && !(audio?.length)) || duration < 2) return null
   const ticks = rulerTicks(duration, fps)
 
   const begin = (e: React.PointerEvent, layer: PreviewLayer, part: TimelineEdit) => {
@@ -140,28 +156,61 @@ export function Timeline({
                     onPointerDown={(e) => begin(e, layer, 'end')} onKeyDown={(e) => key(e, layer, 'end')} style={{ ...handle, right: 0 }} />
                 </div>
                 {(layer.keyframes ?? []).map((k) => (
-                  <Tip key={k.frame} id="keyframeDiamond" side="top">
-                    <button
-                      type="button"
-                      data-testid="timeline-keyframe"
-                      data-frame={k.frame}
-                      aria-label={`${name} keyframe at ${formatSeconds(k.frame, fps)}`}
-                      onPointerDown={(e) => {
-                        e.preventDefault(); e.stopPropagation()
-                        onSelect(layer.id)
-                        onSeek?.(k.frame)
-                        if (onKeyframeMove) kfDrag.current = { id: layer.id, frame: k.frame, startX: e.clientX, startFrame: k.frame }
-                      }}
-                      onKeyDown={(e) => {
-                        if (!onKeyframeMove || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
-                        e.preventDefault()
-                        onKeyframeMove(layer.id, k.frame, k.frame + (e.shiftKey ? 10 : 1) * (e.key === 'ArrowLeft' ? -1 : 1))
-                      }}
-                      style={{ position: 'absolute', top: 4, left: `${frameToFraction(k.frame, duration) * 100}%`, width: 12, height: 12, marginLeft: -6, padding: 0, background: '#facc15', border: '1px solid #422006', transform: 'rotate(45deg)', cursor: 'grab', zIndex: 4, touchAction: 'none' }}
-                    />
-                  </Tip>
+                  // The absolutely positioned wrapper must be OUTSIDE the tooltip: Tip wraps its child in its own relatively
+                  // positioned span, so a positioned child inside it would be placed against that span, not the track.
+                  <span key={k.frame} style={{ position: 'absolute', top: 4, left: `${frameToFraction(k.frame, duration) * 100}%`, width: 12, height: 12, marginLeft: -6, zIndex: 4 }}>
+                    <Tip id="keyframeDiamond" side="top">
+                      <button
+                        type="button"
+                        data-testid="timeline-keyframe"
+                        data-frame={k.frame}
+                        aria-label={`${name} keyframe at ${formatSeconds(k.frame, fps)}`}
+                        onPointerDown={(e) => {
+                          e.preventDefault(); e.stopPropagation()
+                          onSelect(layer.id)
+                          onSeek?.(k.frame)
+                          if (onKeyframeMove) kfDrag.current = { id: layer.id, frame: k.frame, startX: e.clientX, startFrame: k.frame }
+                        }}
+                        onKeyDown={(e) => {
+                          if (!onKeyframeMove || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
+                          e.preventDefault()
+                          onKeyframeMove(layer.id, k.frame, k.frame + (e.shiftKey ? 10 : 1) * (e.key === 'ArrowLeft' ? -1 : 1))
+                        }}
+                        style={{ display: 'block', width: 12, height: 12, padding: 0, background: '#facc15', border: '1px solid #422006', transform: 'rotate(45deg)', cursor: 'grab', touchAction: 'none' }}
+                      />
+                    </Tip>
+                  </span>
                 ))}
                 {playheadFrame !== undefined && <div aria-hidden data-testid="timeline-playhead" style={{ position: 'absolute', top: 0, bottom: 0, left: `${frameToFraction(playheadFrame, duration) * 100}%`, width: 2, marginLeft: -1, background: '#ff4fd8', pointerEvents: 'none', zIndex: 3 }} />}
+              </div>
+            </div>
+          )
+        })}
+        {(audio ?? []).map((t) => {
+          const span = audioSpan(t, fps, duration)
+          const left = frameToFraction(span.start, duration) * 100
+          const width = Math.max(1.5, (frameToFraction(span.end, duration) - frameToFraction(span.start, duration)) * 100)
+          const beginAudio = (e: React.PointerEvent, part: TimelineEdit) => {
+            e.preventDefault(); e.stopPropagation()
+            audioDrag.current = { id: t.id, part, startX: e.clientX, origin: { start: t.start, length: t.length } }
+          }
+          const keyAudio = (e: React.KeyboardEvent, part: TimelineEdit) => {
+            if (!onAudioChange || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
+            e.preventDefault()
+            onAudioChange(t.id, applyAudioEdit({ start: t.start, length: t.length }, part, (e.shiftKey ? 10 : 1) * (e.key === 'ArrowLeft' ? -1 : 1), fps, duration))
+          }
+          return (
+            <div key={`audio-${t.id}`} style={{ display: 'contents' }}>
+              <span data-testid="timeline-audio-label" title={t.name} style={{ color: t.muted ? C.muted2 : C.text, fontSize: 11, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>♪ {t.name}</span>
+              <div data-testid="timeline-audio-track" style={{ position: 'relative', height: 22, background: 'rgba(255,255,255,.04)', borderRadius: 6 }}>
+                <div data-testid="timeline-audio-bar" data-track-id={t.id} data-start={span.start} data-end={t.length === undefined ? '' : span.end}
+                  style={{ position: 'absolute', top: 0, bottom: 0, left: `${left}%`, width: `${width}%`, borderRadius: 6, background: t.muted ? 'rgba(255,255,255,.1)' : 'rgba(250,204,21,.28)', border: `1px solid ${t.muted ? C.borderStrong : '#facc15'}`, boxSizing: 'border-box', overflow: 'hidden' }}>
+                  <button type="button" aria-label={`Move ${t.name} on the timeline`} data-testid="timeline-audio-move" onPointerDown={(e) => beginAudio(e, 'move')} onKeyDown={(e) => keyAudio(e, 'move')}
+                    style={{ position: 'absolute', left: 0, right: 8, top: 0, bottom: 0, background: 'transparent', border: 'none', cursor: onAudioChange ? 'grab' : 'default', touchAction: 'none' }} />
+                  <button type="button" role="slider" aria-label={`${t.name} plays until ${t.length === undefined ? 'the end' : formatSeconds(span.end + 1, fps)}`} aria-valuemin={0} aria-valuemax={duration - 1} aria-valuenow={span.end}
+                    data-testid="timeline-audio-end" onPointerDown={(e) => beginAudio(e, 'end')} onKeyDown={(e) => keyAudio(e, 'end')} style={{ ...handle, right: 0 }} />
+                </div>
+                {playheadFrame !== undefined && <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: `${frameToFraction(playheadFrame, duration) * 100}%`, width: 2, marginLeft: -1, background: '#ff4fd8', pointerEvents: 'none', zIndex: 3 }} />}
               </div>
             </div>
           )

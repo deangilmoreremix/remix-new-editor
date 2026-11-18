@@ -1,5 +1,7 @@
 'use client'
 
+import { SavedStylesBar } from './SavedStylesBar'
+import { applyTextStyle, captureTextStyle } from '../preview/textStyles'
 import { Fragment, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, Eye, EyeOff, Lock, Move, Pause, Play, RotateCcw, Unlock } from 'lucide-react'
 import { ImageCollage, SplitPanel, StyledBusinessImage } from '../preview/StyledBusinessImage'
@@ -19,6 +21,7 @@ import { moveKeyframe } from '../preview/keyframes'
 import { NEUTRAL_KEYFRAME_STATE, keyframeStateFor, keyframeTransformParts } from '../preview/keyframes'
 import { lookFilter, lookOverlays, vignetteStops } from '../preview/effects'
 import { LookPanel } from './LookPanel'
+import { AudioPanel } from './AudioPanel'
 import { LayerEffectsControls } from './editor/LayerEffectsControls'
 import { CutoutPanel } from './CutoutPanel'
 import { HANDLES, cursorForHandle, resizeFromHandle, rotationFromPointer, type HandleId, type TransformBox } from './editor/transform'
@@ -1017,6 +1020,8 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
           onSelect={setSelectedId}
           onChange={(id, patch) => updatePreviewLayer(id, patch)}
           playheadFrame={liveOn ? playFrame : undefined}
+          audio={(settings.audioTracks ?? []).map((t) => ({ id: t.id, name: t.name, start: t.start, length: t.length, muted: t.muted }))}
+          onAudioChange={(id, patch) => updatePreviewComposition({ audioTracks: (settings.audioTracks ?? []).map((t) => (t.id === id ? { ...t, start: patch.start, length: patch.length } : t)) })}
           onKeyframeMove={(id, from, to) => {
             const layer = settings.layers.find((l) => l.id === id)
             if (layer) updatePreviewLayer(id, { keyframes: moveKeyframe(layer.keyframes, from, to, settings.durationInFrames) })
@@ -1028,6 +1033,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
         {/* ── Layer list + controls ─────────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
           <LookPanel inputProps={inputProps} />
+          <AudioPanel />
           <CutoutPanel inputProps={inputProps} />
           <div style={labelStyle}>Layers</div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onReorderEnd}>
@@ -1235,6 +1241,19 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   </div>
                   )}
                 </>
+              )}
+
+              {TEXT_KINDS.includes(selected.kind) && selected.kind !== 'design' && (
+                <SavedStylesBar
+                  kind="text"
+                  idPrefix="layer"
+                  styles={settings.textStyles ?? []}
+                  onStylesChange={(next) => updatePreviewComposition({ textStyles: next.length ? next : undefined })}
+                  capture={() => captureTextStyle(selected, settings.brandColors)}
+                  applyDisabled={Boolean(selected.locked)}
+                  defaultName={`${LAYER_LABELS[selected.kind]} style`}
+                  onApply={(s) => { if (s.kind === 'text') updatePreviewLayer(selected.id, applyTextStyle(s.style, settings.brandColors)) }}
+                />
               )}
 
               {isImageLayerKind(selected.kind) && (

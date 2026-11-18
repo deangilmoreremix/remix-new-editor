@@ -66,9 +66,19 @@ export const EDITOR_TIPS = {
   cutoutEdge: { text: 'Clean up the outline. Soften blends the edge; Edge shrinks it to remove a halo or grows it to bring back hair.' },
   cutoutColor: { text: 'Pick the background color.' },
 
+  // ── audio mix ────────────────────────────────────────────────────────
+  audioVideoSound: { text: 'The sound that is already in your video. Turn it down to let music or a voiceover come through, mute it, or solo it to hear only the video.' },
+  audioAdd: { text: 'Add your own music or a voiceover. Each track has its own volume, fades, start time and mute and solo. Free, no credits.', free: true },
+
+  // ── captions ─────────────────────────────────────────────────────────
+
   // ── layout quality check ─────────────────────────────────────────────
   qualityReview: { text: 'Open the full layout check: every problem found, with buttons to show it on the video or fix it.' },
   qualityFixAll: { text: 'Apply the recommended placement. Layers you placed by hand or locked are never moved.', free: true },
+
+  // ── saved styles ─────────────────────────────────────────────────────
+  savedStyles: { text: 'Save how this text looks (color, font, size, effects, animation) under a name and apply it to other text in one click. The words and position are never changed.', free: true },
+  savedStylesBrowser: { text: 'Styles saved in this browser from other projects. Add one to this project to use it here. Brand colors follow this project.' },
 
   // ── making the video ─────────────────────────────────────────────────
   renderBranded: { text: 'Burns your approved overlays (logo, text, call to action, end card) onto the selected video in your browser.', free: true },
