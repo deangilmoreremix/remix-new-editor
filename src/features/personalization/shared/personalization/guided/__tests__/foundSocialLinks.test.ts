@@ -12,7 +12,7 @@ describe('foundSocialLinks', () => {
 
   it('keeps a contact-lookup value only while the profile still holds it', () => {
     const sources = { instagram: { value: '@joes', sourceUrl: 'https://joes.example/contact', method: 'link' } }
-    expect(foundSocialLinks({ clientForm: { instagram: '@joes' }, contactSources: sources }).links.instagram).toBe('@joes')
+    expect(foundSocialLinks({ clientForm: { instagram: '@joes' }, contactSources: sources }).links.instagram).toBe('https://www.instagram.com/joes')
     // the user typed over it: no longer "found"
     expect(foundSocialLinks({ clientForm: { instagram: '@other' }, contactSources: sources }).links.instagram).toBeUndefined()
   })
@@ -30,5 +30,41 @@ describe('foundSocialLinks', () => {
   it('returns nothing when nothing was found or inputs are missing', () => {
     expect(foundSocialLinks({}).links).toEqual({})
     expect(foundSocialLinks({ research: null, clientForm: null, contactSources: null }).links).toEqual({})
+  })
+
+  it('keeps a good research link when the lookup value is unusable (a share link)', () => {
+    const r = foundSocialLinks({
+      research: { finalUrl: 'https://a.example', socialLinks: { facebook: 'https://www.facebook.com/joes' } },
+      clientForm: { facebook: 'https://www.facebook.com/sharer/sharer.php?u=x' },
+      contactSources: { facebook: { value: 'https://www.facebook.com/sharer/sharer.php?u=x', sourceUrl: 'https://a.example/p' } },
+    })
+    expect(r.links.facebook).toBe('https://www.facebook.com/joes')
+    expect(r.titles.facebook).toBe('found on https://a.example')
+  })
+
+  it('returns only links that can be shown: unusable ones leave nothing to count', () => {
+    const r = foundSocialLinks({
+      research: { finalUrl: 'https://a.example', socialLinks: { facebook: 'https://www.facebook.com/', instagram: 'https://evil.example/joes', youtube: 'https://www.facebook.com/joes' } },
+    })
+    expect(r.links).toEqual({})
+    expect(Object.keys(r.titles)).toEqual([])
+  })
+
+  it('uses a neutral title when the lookup value has no source page', () => {
+    const r = foundSocialLinks({
+      research: { finalUrl: 'https://a.example', socialLinks: { instagram: 'https://www.instagram.com/old' } },
+      clientForm: { instagram: 'https://www.instagram.com/new' },
+      contactSources: { instagram: { value: 'https://www.instagram.com/new' } },
+    })
+    expect(r.links.instagram).toBe('https://www.instagram.com/new')
+    expect(r.titles.instagram).toBe('found by the contact lookup')
+  })
+
+  it('matches the lookup value ignoring case and surrounding spaces', () => {
+    const r = foundSocialLinks({
+      clientForm: { instagram: '  @JoesPizza ' },
+      contactSources: { instagram: { value: '@joespizza', sourceUrl: 'https://a.example/c' } },
+    })
+    expect(r.links.instagram).toBe('https://www.instagram.com/JoesPizza')
   })
 })

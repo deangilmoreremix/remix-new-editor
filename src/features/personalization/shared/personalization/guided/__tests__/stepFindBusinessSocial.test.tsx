@@ -70,4 +70,9 @@ describe('StepFindBusiness: social media found', () => {
     const view = await render({ businessResearch: research({}) })
     expect(view.querySelector('[data-testid="pz-found-social"]')).toBeNull()
   })
+
+  it('shows no empty panel when every found link is unusable', async () => {
+    const view = await render({ businessResearch: research({ facebook: 'https://www.facebook.com/', instagram: 'https://www.facebook.com/sharer/sharer.php?u=x' }) })
+    expect(view.querySelector('[data-testid="pz-found-social"]')).toBeNull()
+  })
 })
