@@ -8,7 +8,7 @@ import {
   getProjectVideo, loadAudience, seedInterestMap, saveInterestMap, INTEREST_TYPES, loadFollowupComparison,
   listNotifications, markRead, NOTIFICATION_TYPES, NOTIFICATION_GROUPS, groupState, loadPreferences, savePreferences, effectivePushTypes, pushGroupState,
 } from './tabsData.js';
-import { quietToForm, quietFromForm, timeZoneOptions, browserTimeZone } from './quietHours.js';
+import { quietToForm, quietFromForm, timeZoneOptions, browserTimeZone, QUIET_NOTE_SUMMARY, QUIET_NOTE_DROPPED } from './quietHours.js';
 import { recommend, SEGMENT_LABELS, SCORE_EXPLANATION } from './retarget/recommendations.js';
 import { listFollowups, loadProject } from './projectStore.js';
 import { launchFollowup } from './retarget/followup.js';
@@ -163,13 +163,15 @@ export function notificationsTab(deps) {
               <div class="sv-custom-range"><label>From<input type="time" name="quiet-start" value="${esc(quiet.start)}" ${quiet.enabled ? '' : 'disabled'}/></label>
                 <label>Until<input type="time" name="quiet-end" value="${esc(quiet.end)}" ${quiet.enabled ? '' : 'disabled'}/></label>
                 <label>Time zone<select name="quiet-zone" ${quiet.enabled ? '' : 'disabled'}>${timeZoneOptions([quiet.timeZone, zoneNow]).map((z) => `<option value="${esc(z)}" ${z === quiet.timeZone ? 'selected' : ''}>${esc(z.replace(/_/g, ' '))}</option>`).join('')}</select></label></div>
+              <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="quiet-summary" ${quiet.summary ? 'checked' : ''} ${quiet.enabled ? '' : 'disabled'}/> Send me one summary push when quiet hours end</label>
               <p class="sv-hint" data-quiet-hint role="status"></p>
-              <p class="sv-hint">During quiet hours push notifications are not sent. Alerts still appear in the app.</p></fieldset>`;
-        const readQuiet = (form) => quietFromForm({ enabled: form.querySelector('[name=quiet]').checked, start: form.querySelector('[name=quiet-start]').value, end: form.querySelector('[name=quiet-end]').value, timeZone: form.querySelector('[name=quiet-zone]').value }, deps.now?.());
+              <p class="sv-hint" data-quiet-note></p></fieldset>`;
+        const readQuiet = (form) => quietFromForm({ enabled: form.querySelector('[name=quiet]').checked, start: form.querySelector('[name=quiet-start]').value, end: form.querySelector('[name=quiet-end]').value, timeZone: form.querySelector('[name=quiet-zone]').value, summary: form.querySelector('[name=quiet-summary]').checked }, deps.now?.());
         const syncQuiet = (form) => {
           const on = form.querySelector('[name=quiet]').checked;
-          ['quiet-start', 'quiet-end', 'quiet-zone'].forEach((n) => { form.querySelector(`[name=${n}]`).disabled = !on; });
+          ['quiet-start', 'quiet-end', 'quiet-zone', 'quiet-summary'].forEach((n) => { form.querySelector(`[name=${n}]`).disabled = !on; });
           const r = readQuiet(form);
+          form.querySelector('[data-quiet-note]').textContent = form.querySelector('[name=quiet-summary]').checked ? QUIET_NOTE_SUMMARY : QUIET_NOTE_DROPPED;
           form.querySelector('[data-quiet-hint]').textContent = r.error || (r.same ? 'From and Until are the same time, so quiet hours are off.' : '');
         };
         const draw = () => {
@@ -188,8 +190,8 @@ export function notificationsTab(deps) {
               <div class="sv-custom-range"><label>High-interest threshold<input type="number" name="threshold" min="10" max="500" value="${esc(prefs.interest_threshold)}"/></label>
                 <label>Digest<select name="digest"><option value="off">Off</option><option value="daily" ${prefs.digest_frequency === 'daily' ? 'selected' : ''}>Daily</option><option value="weekly" ${prefs.digest_frequency === 'weekly' ? 'selected' : ''}>Weekly</option></select></label></div>
               <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="inapp" ${prefs.in_app ? 'checked' : ''}/> In-app alerts</label>
-              <label style="display:flex;gap:8px;align-items:center;margin:8px 0;opacity:.6"><input type="checkbox" name="email" disabled/> Email alerts</label>
-              <p class="sv-hint">Email delivery requires configuration: no email provider is connected, so alerts stay in the app and no email is sent. Quiet hours already apply to push notifications; email will follow them once a provider is connected.</p>
+              <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="email" ${prefs.email ? 'checked' : ''}/> Email alerts</label>
+              <p class="sv-hint">Email alerts go to the address on your account. Pushes and email follow the same quiet hours.</p>
               <button type="submit" class="sv-primary-btn">Save preferences</button> <span class="sv-hint" data-prefs-msg role="status"></span></form>`);
           root.querySelectorAll('[data-n]').forEach((el) => {
             const n = notes.find((x) => x.id === el.dataset.n);
@@ -234,7 +236,7 @@ export function notificationsTab(deps) {
               let columnMissing = false;
               prefs = await savePreferences(client, {
                 ...prefs, enabled_types: [...f.querySelectorAll('[name=type]:checked')].map((x) => x.value), push_types: [...f.querySelectorAll('[name=pushtype]:checked')].map((x) => x.value),
-                interest_threshold: f.querySelector('[name=threshold]').value, digest_frequency: f.querySelector('[name=digest]').value, in_app: f.querySelector('[name=inapp]').checked, email: false, quiet_hours: q.value,
+                interest_threshold: f.querySelector('[name=threshold]').value, digest_frequency: f.querySelector('[name=digest]').value, in_app: f.querySelector('[name=inapp]').checked, email: f.querySelector('[name=email]').checked, quiet_hours: q.value,
               }, { onPushTypesMissing: () => { columnMissing = true; } });
               msg.textContent = columnMissing ? 'Saved. Per-type push choices need a database update, so push still follows your alert selection.' : 'Saved.';
             } catch (err) { msg.textContent = err.message; }

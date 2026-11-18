@@ -2,7 +2,8 @@
  * Quiet-hours form <-> retarget_preferences.quiet_hours jsonb.
  * Stored shape: { start: 'HH:MM', end: 'HH:MM', timeZone: IANA, utcOffsetMinutes }. `timeZone` is what the server
  * uses (DST-aware); `utcOffsetMinutes` (the zone's offset at save time) is kept for older readers.
- * Quiet hours only affect push: alerts always appear in the app. start === end means "off".
+ * `summary` (boolean, absent = true): send one summary push when quiet hours end instead of dropping what was held.
+ * Quiet hours affect push and e-mail: alerts always appear in the app. start === end means "off".
  */
 export const QUIET_DEFAULTS = Object.freeze({ start: '22:00', end: '07:00' });
 export const COMMON_TIME_ZONES = Object.freeze([
@@ -10,6 +11,8 @@ export const COMMON_TIME_ZONES = Object.freeze([
   'America/Toronto', 'America/Mexico_City', 'America/Sao_Paulo', 'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid', 'Europe/Moscow',
   'Africa/Cairo', 'Africa/Johannesburg', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok', 'Asia/Singapore', 'Asia/Shanghai', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland',
 ]);
+export const QUIET_NOTE_SUMMARY = 'During quiet hours push notifications are held and sent as one summary when quiet hours end. Alerts still appear in the app right away.';
+export const QUIET_NOTE_DROPPED = 'During quiet hours push notifications are not sent and no summary follows. Alerts still appear in the app right away.';
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export const isHHMM = (s) => typeof s === 'string' && HHMM.test(s);
@@ -49,15 +52,16 @@ export function quietToForm(quiet, zone = browserTimeZone()) {
     start: q ? q.start : QUIET_DEFAULTS.start,
     end: q ? q.end : QUIET_DEFAULTS.end,
     timeZone: q && isValidTimeZone(q.timeZone) ? q.timeZone : zone,
+    summary: !q || q.summary !== false, // old rows have no key: treated as true
   };
 }
 
 /** Form values -> { value, error, same }. Unchecked -> value null. start === end is kept but flagged (it never mutes anything). */
-export function quietFromForm({ enabled, start, end, timeZone } = {}, now = new Date()) {
+export function quietFromForm({ enabled, start, end, timeZone, summary = true } = {}, now = new Date()) {
   if (!enabled) return { value: null, error: null, same: false };
   if (!isHHMM(start) || !isHHMM(end)) return { value: null, error: 'Enter quiet hours as times like 22:00.', same: false };
   const tz = isValidTimeZone(timeZone) ? timeZone : browserTimeZone();
-  return { value: { start, end, timeZone: tz, utcOffsetMinutes: zoneOffsetMinutes(tz, now) }, error: null, same: start === end };
+  return { value: { start, end, timeZone: tz, utcOffsetMinutes: zoneOffsetMinutes(tz, now), summary: summary !== false }, error: null, same: start === end };
 }
 
 /** Normalise quiet_hours for saving: drops anything malformed; keeps timeZone / utcOffsetMinutes only when valid. */
@@ -66,5 +70,6 @@ export function cleanQuietHours(q) {
   const out = { start: q.start, end: q.end };
   if (isValidTimeZone(q.timeZone)) out.timeZone = q.timeZone;
   if (q.utcOffsetMinutes !== null && q.utcOffsetMinutes !== '' && Number.isFinite(Number(q.utcOffsetMinutes))) out.utcOffsetMinutes = Math.round(Number(q.utcOffsetMinutes));
+  if (typeof q.summary === 'boolean') out.summary = q.summary;
   return out;
 }

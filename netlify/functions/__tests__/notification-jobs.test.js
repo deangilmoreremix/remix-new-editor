@@ -91,11 +91,13 @@ describe('drain', () => {
       mark: async (id, patch) => { marks.push([id, patch]); },
     };
   };
-  it('sends, marks sent, and includes the suggestion', async () => {
+  it('sends, marks sent, and includes the suggestion (the e-mail now also carries html, the Open alerts link and the footer)', async () => {
     const a = fake();
     const db = mkdb([{ id: 'q1', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 }]);
     expect(await drainEmailQueue({ adapter: a, db, now: NOW })).toMatchObject({ sent: 1, failed: 0 });
-    expect(a.send).toHaveBeenCalledWith({ to: 'owner@example.test', subject: 'New lead captured', text: 'A viewer submitted a form.\n\nReview it.' });
+    expect(a.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'owner@example.test', subject: 'New lead captured', idempotencyKey: 'n1', html: expect.stringContaining('Open alerts') }));
+    const { text } = a.send.mock.calls[0][0];
+    expect(text.startsWith('New lead captured\n\nA viewer submitted a form.\n\nReview it.\n\nOpen alerts: https://smartvid.app/#/timeline')).toBe(true);
     expect(db.marks[0][1]).toMatchObject({ status: 'sent', attempts: 1 });
   });
   it('retries a failure with backoff, then fails permanently after the attempt limit', async () => {
@@ -171,10 +173,11 @@ describe('scheduled job', () => {
     const f = vi.fn(async (url, init) => {
       const name = url.split('/rest/v1/')[1]; calls.push([name, init.method]);
       let data = [];
-      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) data = [{ id: 'n1', clerk_user_id: 'u1', type: 'new_lead' }];
+      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) data = [{ id: 'n1', clerk_user_id: 'u1', type: 'daily_digest' }, { id: 'n2', clerk_user_id: 'u1', type: 'new_lead' }]; // alerts are e-mailed right away, the daily sweep only queues digests
       if (name.startsWith('retarget_preferences')) data = [{ clerk_user_id: 'u1', email: true, digest_frequency: 'daily' }];
       if (name.startsWith('notification_email_queue?select=*')) data = [{ id: 'q1', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 }];
-      if (name.startsWith('owner_notifications?select=id,title')) data = [{ id: 'n1', title: 'T', summary: 'S' }];
+      if (name.startsWith('notification_email_queue?id=eq.q1') && init.method === 'PATCH') data = [{ id: 'q1' }]; // the lease claim succeeds
+      if (name.startsWith('owner_notifications?select=id,type,title')) data = [{ id: 'n1', type: 'daily_digest', title: 'T', summary: 'S' }];
       if (name.startsWith('rpc/')) data = 0;
       return { ok: true, status: 200, text: async () => JSON.stringify(data) };
     });

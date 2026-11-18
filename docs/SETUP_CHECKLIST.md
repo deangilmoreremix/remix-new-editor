@@ -27,10 +27,12 @@ Prerequisites that should already be applied (check the Migrations list): `20261
 | 4 | `20261118200000_video_audience_country_versions.sql` | Country capture, "Where your viewers come from", "Compare versions" |
 | 5 | `20261118210000_web_push_notifications.sql` | `owner_push_subscriptions`, `retarget_preferences.push`, `push_dispatch_config`, push trigger, Realtime on `owner_notifications` |
 | 6 | `20261119090000_push_types.sql` | Optional: `retarget_preferences.push_types` (per-alert-type push choice). Everything works without it; per-type choices are only saved once it is applied |
+| 7 | `20261119120000_push_deferred.sql` | Optional: `owner_push_deferred` (service role only), so pushes held by quiet hours become one "While you were away" summary push when quiet hours end. Without it they are dropped, as before |
 
 - [ ] 1–3 applied (Leads)
 - [ ] 4 applied (Analytics)
 - [ ] 5 applied (Push). **Apply 4 before or together with the Netlify deploy**: the ingest function falls back safely if it is missing, but country data is lost until then.
+- [ ] 7 applied (optional: quiet-hours summary push)
 - [ ] Saving notification preferences now writes a `push` column, so apply **5 before** anyone saves preferences.
 
 Note: three older migrations already share a version number (`20261013000000`, `20261104120000`,
@@ -51,6 +53,14 @@ Note: three older migrations already share a version number (`20261013000000`, `
 - [ ] `VAPID_PRIVATE_KEY`: the private key (server only, never commit)
 - [ ] `VAPID_SUBJECT`: `mailto:you@yourdomain.com`
 - [ ] `PUSH_DISPATCH_SECRET`: any long random string (must match step 4)
+
+**Owner e-mail alerts (optional; Netlify, Functions scope; owner e-mails stay off without both)**
+
+- [ ] `RESEND_API_KEY`: Resend API key (secret, server only, never commit)
+- [ ] `ALERT_EMAIL_FROM`: sender on a domain verified in Resend, e.g. `SmartVideo Alerts <alerts@smartvid.app>`
+- [ ] `CLERK_SECRET_KEY`: already required above; it is also used to look up the owner's primary verified e-mail address (Clerk Backend API)
+- [ ] Optional: `APP_URL`: the site URL used for the "Open alerts" link (default `https://smartvid.app`)
+- [ ] E-mails go out through the same database trigger as push, so the `pg_net` and `push_dispatch_config` steps in section 4 are needed too, and `VAPID_*` is not required for e-mail alone.
 
 **Push notifications (build-time, exposed to the browser)**
 
@@ -92,11 +102,13 @@ on conflict (id) do update set url = excluded.url, secret = excluded.secret;
 - [ ] Notifications view → **Browser push notifications** → Enable on this device → "Send test notification".
 - [ ] Turn on "Send me push notifications", submit a lead on the published page, and confirm a push arrives with the site closed.
 - [ ] iPhone/iPad: add the site to the Home Screen first, or push is not available.
+- [ ] E-mail (only if `RESEND_API_KEY` and `ALERT_EMAIL_FROM` are set): tick "Email alerts", save, submit a lead, and confirm an e-mail arrives at your account address. Check the `email` field of the `push-dispatch` function response or the `notification_email_queue` row if it does not.
+- [ ] Quiet hours summary (only if migration 7 is applied): enable quiet hours covering the current time, submit a lead (no push), then wait until quiet hours end: one "While you were away" push arrives within about 15 minutes (function `push-quiet-flush`).
 
 ## 6. Known limits and risks
 
 - Real push delivery, the `pg_net` call and Realtime were **not tested against live services**. The `net.http_post` call was written from memory; it is the most likely thing to need a small fix. Check Supabase logs and the Netlify function log if no push arrives.
-- Quiet hours skip a push; they do not delay it. There is no quiet-hours control in the UI yet.
+- Quiet hours hold a push for one summary push when they end (migration 7 applied and "Send me one summary push" checked); otherwise the push is dropped. Real Resend delivery, the Clerk e-mail lookup and the 15-minute scheduled function were **not tested against live services**.
 - Lead dedupe and disposable-email blocking: dedupe is forward-only; disposable blocking is an owner opt-in per form.
 - Lead score uses only the lead's own answers and source, not watch time.
 - No chart library was added (deliberate). The weekly digest, owner emails and Kit/MailerLite sync already existed and are unchanged.

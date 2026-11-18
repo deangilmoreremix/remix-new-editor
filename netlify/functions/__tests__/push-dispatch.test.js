@@ -14,11 +14,12 @@ const NOTE = { id: ID, clerk_user_id: 'user_1', video_id: 'vid12345', type: 'new
 const PREFS = { push: true, enabled_types: ['new_lead', 'milestone', 'high_interest'], quiet_hours: null };
 const SUB = { id: 's1', endpoint: 'https://push.example/1', p256dh: 'k', auth: 'a', failure_count: 0 };
 
-function setup({ note = NOTE, prefs = PREFS, subs = [SUB], send } = {}) {
+function setup({ note = NOTE, prefs = PREFS, subs = [SUB], send, noDeferredTable = false } = {}) {
   const calls = [];
   const fetchImpl = vi.fn(async (url, init = {}) => {
     const u = String(url); const method = init.method || 'GET';
     calls.push({ u, method, body: init.body ? JSON.parse(init.body) : undefined });
+    if (noDeferredTable && u.includes('owner_push_deferred')) return { ok: false, status: 404, text: async () => '' };
     let data = null;
     if (u.includes('owner_notifications')) data = note ? [note] : [];
     else if (u.includes('retarget_preferences')) data = prefs ? [prefs] : [];
@@ -61,8 +62,9 @@ describe('gating', () => {
     ['push off', { prefs: { ...PREFS, push: false } }, 'push_disabled'],
     ['type not enabled', { prefs: { ...PREFS, enabled_types: ['milestone'] } }, 'type_disabled'],
     ['daily_digest', { note: { ...NOTE, type: 'daily_digest' } }, 'type_not_pushed'],
-    ['quiet hours', { prefs: { ...PREFS, quiet_hours: { start: '11:00', end: '13:00' } } }, 'quiet_hours'],
-    ['quiet hours by timeZone', { prefs: { ...PREFS, quiet_hours: { start: '07:00', end: '08:00', timeZone: 'America/New_York' } } }, 'quiet_hours'], // 12:00Z = 07:00 EST
+    ['quiet hours (summary off: dropped)', { prefs: { ...PREFS, quiet_hours: { start: '11:00', end: '13:00', summary: false } } }, 'quiet_hours'],
+    ['quiet hours (no deferred table yet: old skip behaviour)', { prefs: { ...PREFS, quiet_hours: { start: '11:00', end: '13:00' } }, noDeferredTable: true }, 'quiet_hours'],
+    ['quiet hours by timeZone (summary off)', { prefs: { ...PREFS, quiet_hours: { start: '07:00', end: '08:00', timeZone: 'America/New_York', summary: false } } }, 'quiet_hours'], // 12:00Z = 07:00 EST
     ['enabled but not selected for push', { prefs: { ...PREFS, push_types: ['milestone'] } }, 'type_push_disabled'],
     ['empty push_types', { prefs: { ...PREFS, push_types: [] } }, 'type_push_disabled'],
     ['no prefs row', { prefs: null }, 'no_preferences'],

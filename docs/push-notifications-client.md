@@ -26,9 +26,16 @@ is documented separately; this page covers what runs in the browser.
    without it and the form says per-type push choices need a database update; everything else is still saved.
 7. **Quiet hours** card in Preferences: "Enable quiet hours", From / Until (defaults 22:00 and 07:00 when first enabled) and a
    time zone (defaults to the browser's; all supported zones when `Intl.supportedValuesOf` exists, else a short list plus
-   the browser zone). Stored as `quiet_hours = {start, end, timeZone, utcOffsetMinutes}`; unchecking stores `null`.
-   Invalid times are rejected; From equal to Until means off (an inline hint says so). During quiet hours pushes are
-   skipped (not delayed) and alerts still appear in the app. Email still needs a provider, which is not connected.
+   the browser zone). Stored as `quiet_hours = {start, end, timeZone, utcOffsetMinutes, summary}`; unchecking stores `null`.
+   Invalid times are rejected; From equal to Until means off (an inline hint says so). The checkbox "Send me one summary
+   push when quiet hours end" (default checked; enabled only while quiet hours are on) is stored as `quiet_hours.summary`
+   (boolean; rows without the key read as checked, see `quietHours.js`). The helper text under the card follows it: checked,
+   "During quiet hours push notifications are held and sent as one summary when quiet hours end. Alerts still appear in the
+   app right away."; unchecked, the pushes are not sent and no summary follows. Alerts always appear in the app.
+8. **Email alerts** checkbox (saves `retarget_preferences.email`; it was disabled and always saved `false` before). The helper
+   text is neutral because the browser cannot know whether the site has an e-mail provider: "Email alerts go to the address on
+   your account. Pushes and email follow the same quiet hours." Nothing in the UI claims an e-mail was sent. See
+   `docs/push-notifications.md` for how e-mail is delivered.
 
 Clicking a notification focuses an open tab (service worker posts `remix:open-alerts`) or opens `/?alerts=1#/timeline`;
 the page then does what the header bell does (sets `remix_open_projects` / dispatches `remix:open-projects`).
