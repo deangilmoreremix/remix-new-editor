@@ -1,5 +1,6 @@
 import type { PreviewCaptions } from '../preview/types'
 import { generateAss, cuesToWords, type AssAnimation, type AssStyle, type AssWord } from './assExport'
+import { CUSTOM_BACKGROUND_OPACITY, assBoldOf, assCasingOf, offsetPositionPct, resolveCasing, resolveWeight } from './captionCustom'
 import { capiteStyleById } from './capiteStyles'
 import { inferLanguage } from './scripts'
 
@@ -48,5 +49,13 @@ export function captionsToAss(c: PreviewCaptions, o: { width: number; height: nu
         // The Bar look: white text on a dark bar behind the whole caption.
         ...(c.style === 'bar' ? { background: { color: '#000000', opacity: 0.68 } } : {}),
       }
-  return generateAss({ words, width: o.width, height: o.height, style, language, positionPct: POSITION_PCT[c.position], sizing: 'preview', casing: look ? 'uppercase' : 'original' })
+  // The customizer: what the person chose over the look.
+  const cu = c.custom ?? {}
+  if (cu.fontFamily) style.fontName = cu.fontFamily
+  style.bold = assBoldOf(resolveWeight(cu.weight, style.bold))
+  if (cu.italic !== undefined) style.italic = cu.italic
+  if (cu.outlineColor) style.outlineColor = cu.outlineColor
+  if (cu.backgroundColor) style.background = { color: cu.backgroundColor, opacity: CUSTOM_BACKGROUND_OPACITY }
+  const casing = resolveCasing(cu.casing, !!look)
+  return generateAss({ words, width: o.width, height: o.height, style, language, positionPct: offsetPositionPct(POSITION_PCT[c.position], cu.offsetY), sizing: 'preview', casing: assCasingOf(casing) })
 }

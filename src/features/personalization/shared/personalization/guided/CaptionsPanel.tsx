@@ -6,6 +6,9 @@ import { captionsToAss } from '../captions/captionAss'
 import { clockLabel, cuesToSrt, cuesToText, cuesToVtt } from '../captions/captionCues'
 import { LANGUAGES } from '../captions/scripts'
 import { transcriptText, type Casing } from '../captions/textTools'
+import { CAPTION_FONTS, CAPTION_FONT_CATEGORIES, CAPTION_WEIGHTS, captionFontStack, type CaptionWeight } from '../captions/capiteFonts'
+import { loadCaptionFont } from '../captions/capiteFontLoader'
+import { CAPTION_CASINGS, MAX_CAPTION_OFFSET } from '../captions/captionCustom'
 import { CAPITE_CAPTION_STYLES, CAPITE_CATEGORIES, capiteStyleById } from '../captions/capiteStyles'
 import { CAPTION_POSITIONS, CAPTION_STYLES } from '../captions/captionStyle'
 import { useCaptions } from '../captions/useCaptions'
@@ -40,6 +43,9 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
   const [wholeWord, setWholeWord] = useState(false)
   const [editNotice, setEditNotice] = useState<string | null>(null)
   const listRef = useRef<HTMLOListElement | null>(null)
+  // The chosen font is embedded; load it so the sample line and the preview show it.
+  const chosen = c.captions?.custom
+  useEffect(() => { if (chosen?.fontFamily) void loadCaptionFont(chosen.fontFamily, { weight: chosen.weight ? CAPTION_WEIGHTS[chosen.weight] : 800, italic: chosen.italic }) }, [chosen?.fontFamily, chosen?.weight, chosen?.italic])
   const live = useLiveState()
   const fps = previewSettings.fps > 0 ? previewSettings.fps : 30
   // The line that is playing in the live preview: marked, and scrolled into view inside the list (never the page).
@@ -124,7 +130,53 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
               ))}
             </select>
           </label>
-          {capiteStyleById(c.captions!.style) && <p data-testid="captions-capite-hint" style={{ ...hintStyle, margin: 0 }}>{capiteStyleById(c.captions!.style)!.description}. Fonts that are not on this device fall back to the studio font.</p>}
+          {capiteStyleById(c.captions!.style) && <p data-testid="captions-capite-hint" style={{ ...hintStyle, margin: 0 }}>{capiteStyleById(c.captions!.style)!.description}. Its font is included, so it looks the same in the preview and the video.</p>}
+
+          <div data-testid="captions-customize" style={{ display: 'grid', gap: 6 }}>
+            <div style={{ ...labelStyle, margin: 0 }}>Make it yours</div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 12, color: C.text }}>
+              <span style={{ ...hintStyle, margin: 0 }}>Font</span>
+              <select data-testid="captions-font" aria-label="Caption font" value={chosen?.fontFamily ?? ''} onChange={(e) => c.setCustom({ fontFamily: e.target.value || undefined })} style={{ ...inputStyle, width: 'auto', minHeight: 30, fontSize: 11 }}>
+                <option value="">The look’s own</option>
+                {CAPTION_FONT_CATEGORIES.map((cat) => (
+                  <optgroup key={cat.id} label={cat.label}>
+                    {CAPTION_FONTS.filter((f) => f.category === cat.id).map((f) => <option key={f.name} value={f.name}>{f.name}</option>)}
+                  </optgroup>
+                ))}
+              </select>
+              {chosen?.fontFamily && <span data-testid="captions-font-sample" style={{ fontFamily: captionFontStack(chosen.fontFamily, 'sans-serif'), fontSize: 16 }}>Aa Hello</span>}
+            </label>
+            <div role="group" aria-label="Caption weight" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ ...hintStyle, margin: 0 }}>Weight</span>
+              <button type="button" data-testid="captions-weight-default" aria-pressed={!chosen?.weight} onClick={() => c.setCustom({ weight: undefined })} style={chipStyle(!chosen?.weight)}>Look’s</button>
+              {(Object.keys(CAPTION_WEIGHTS) as CaptionWeight[]).map((w) => (
+                <button key={w} type="button" data-testid={`captions-weight-${w}`} aria-pressed={chosen?.weight === w} onClick={() => c.setCustom({ weight: w })} style={chipStyle(chosen?.weight === w)}>{w === 'extra-bold' ? 'Extra bold' : w[0].toUpperCase() + w.slice(1)}</button>
+              ))}
+              <button type="button" data-testid="captions-italic" aria-pressed={chosen?.italic === true} onClick={() => c.setCustom({ italic: chosen?.italic ? undefined : true })} style={{ ...chipStyle(chosen?.italic === true), fontStyle: 'italic' }}>Italic</button>
+            </div>
+            <div role="group" aria-label="Caption casing" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ ...hintStyle, margin: 0 }}>Letters</span>
+              <button type="button" data-testid="captions-casing-default" aria-pressed={!chosen?.casing} onClick={() => c.setCustom({ casing: undefined })} style={chipStyle(!chosen?.casing)}>Look’s</button>
+              {CAPTION_CASINGS.map((k) => (
+                <button key={k} type="button" data-testid={`captions-casing-${k}`} aria-pressed={chosen?.casing === k} onClick={() => c.setCustom({ casing: k })} style={chipStyle(chosen?.casing === k)}>{k === 'upper' ? 'UPPER' : k === 'title' ? 'Title Case' : 'As written'}</button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', fontSize: 12, color: C.text }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ ...hintStyle, margin: 0 }}>Outline</span>
+                <input type="color" data-testid="captions-outline-color" aria-label="Caption outline color" value={chosen?.outlineColor ?? '#000000'} onChange={(e) => c.setCustom({ outlineColor: e.target.value })} />
+              </label>
+              <button type="button" data-testid="captions-outline-clear" disabled={!chosen?.outlineColor} onClick={() => c.setCustom({ outlineColor: undefined })} style={smallButton}>Clear</button>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ ...hintStyle, margin: 0 }}>Background</span>
+                <input type="color" data-testid="captions-bg-color" aria-label="Caption background color" value={chosen?.backgroundColor ?? '#000000'} onChange={(e) => c.setCustom({ backgroundColor: e.target.value })} />
+              </label>
+              <button type="button" data-testid="captions-bg-clear" disabled={!chosen?.backgroundColor} onClick={() => c.setCustom({ backgroundColor: undefined })} style={smallButton}>Clear</button>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: C.text }}>
+              <span style={{ ...hintStyle, margin: 0 }}>Move up or down</span>
+              <input type="range" data-testid="captions-offset" aria-label="Caption vertical position" min={-MAX_CAPTION_OFFSET} max={MAX_CAPTION_OFFSET} step={0.01} value={chosen?.offsetY ?? 0} onChange={(e) => c.setCustom({ offsetY: Number(e.target.value) || undefined })} style={{ flex: 1, accentColor: C.cyan }} />
+              <button type="button" data-testid="captions-offset-reset" disabled={!chosen?.offsetY} onClick={() => c.setCustom({ offsetY: undefined })} style={smallButton}>Reset</button>
+            </label>
+          </div>
 
           <p data-testid="captions-look-hint" style={{ ...hintStyle, margin: 0 }}>Bold stands out most; Bar is the safest on very busy footage; Clean is the plainest.</p>
 

@@ -127,3 +127,23 @@ describe('caption language', () => {
     expect(applyCaptionsPatch(a, { language: undefined })?.language).toBeUndefined()
   })
 })
+
+describe('captions: the customizer', () => {
+  const baseCaps = { enabled: true, forUrl: 'https://x/v.mp4', style: 'bold', position: 'bottom', cues: [{ startMs: 0, endMs: 1000, text: 'Hi' }] }
+  it('keeps valid custom values: font, weight, italic, casing, colours and offset', () => {
+    const c = normalizeCaptions({ ...baseCaps, custom: { fontFamily: 'bebas neue', weight: 'light', italic: true, casing: 'title', outlineColor: '#112233', backgroundColor: '#ABC', offsetY: 0.1 } })!
+    expect(c.custom).toEqual({ fontFamily: 'Bebas Neue', weight: 'light', italic: true, casing: 'title', outlineColor: '#112233', backgroundColor: '#aabbcc', offsetY: 0.1 })
+  })
+  it('drops what is not valid, and leaves no custom at all when nothing is left', () => {
+    expect(normalizeCaptions({ ...baseCaps, custom: { fontFamily: 'Comic Sans', weight: 'heavy', casing: 'shout', outlineColor: 'red', backgroundColor: 'url(x)', offsetY: 'up', italic: 'yes' } })!.custom).toBeUndefined()
+    expect(normalizeCaptions({ ...baseCaps, custom: 'nope' })!.custom).toBeUndefined()
+    expect(normalizeCaptions({ ...baseCaps, custom: { offsetY: 9 } })!.custom).toEqual({ offsetY: 0.4 })
+  })
+  it('is set and cleared by a patch, and kept by the project settings', () => {
+    const a = applyCaptionsPatch(undefined, { ...baseCaps, custom: { fontFamily: 'Anton' } } as never)
+    expect(a?.custom).toEqual({ fontFamily: 'Anton' })
+    expect(applyCaptionsPatch(a, { custom: undefined })?.custom).toBeUndefined()
+    const settings = normalizePreviewSettings({ ...createDefaultPreviewSettings(), captions: { ...baseCaps, custom: { casing: 'original' } } } as never)
+    expect(settings.captions?.custom).toEqual({ casing: 'original' })
+  })
+})

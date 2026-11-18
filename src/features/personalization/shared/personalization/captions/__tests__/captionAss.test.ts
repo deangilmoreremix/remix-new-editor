@@ -84,4 +84,27 @@ describe('captionsToAss', () => {
     const ass = captionsToAss(caps({ style: 'bar' }), opts)
     expect(ass).toMatch(/,100,100,[^,]*,0,3,/) // BorderStyle 3: a box behind the whole caption
   })
+  describe('the customizer', () => {
+    const o = { width: 1920, height: 1080, accent: '#facc15' }
+    const styleLine = (ass: string) => ass.split('\n').find((l) => l.startsWith('Style: '))!.split(',')
+    const text = (ass: string) => ass.split('\n').filter((l) => l.startsWith('Dialogue:')).map((l) => l.replace(/^Dialogue:(?:[^,]*,){9}/, '').replace(/\{[^}]*\}/g, '')).join(' ')
+    it('uses the chosen font, weight, italic and casing', () => {
+      const ass = captionsToAss(caps({ custom: { fontFamily: 'Anton', weight: 'light', italic: true, casing: 'title' } }), o)
+      expect(styleLine(ass).slice(1, 2)).toEqual(['Anton'])
+      expect(styleLine(ass)[7]).toBe('0') // Bold off
+      expect(styleLine(ass)[8]).toBe('-1') // Italic on
+      expect(text(ass)).toMatch(/Call/)
+      expect(styleLine(captionsToAss(caps({ custom: { weight: 'extra-bold' } }), o))[7]).toBe('-1')
+    })
+    it('uses the chosen outline and background colours', () => {
+      const ass = captionsToAss(caps({ custom: { outlineColor: '#ff0000', backgroundColor: '#00ff00' } }), o)
+      expect(styleLine(ass)[5]).toBe('&H4000FF00') // a boxed style's outline colour is the background: green (BGR), 75 % opaque
+      expect(styleLine(ass)[15]).toBe('3') // BorderStyle 3: a box behind the text
+      expect(styleLine(captionsToAss(caps({ custom: { outlineColor: '#ff0000' } }), o))[5]).toBe('&H000000FF')
+    })
+    it('moves the caption up for a positive offset', () => {
+      const marginV = (ass: string) => Number(styleLine(ass)[21])
+      expect(marginV(captionsToAss(caps({ custom: { offsetY: 0.2 } }), o))).toBeGreaterThan(marginV(captionsToAss(caps(), o)))
+    })
+  })
 })

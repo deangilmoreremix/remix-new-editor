@@ -3,7 +3,8 @@
  * sanitise captions read back from a saved project. No browser or Remotion code here, so it is fully testable.
  */
 import { isCapiteStyleId } from './capiteStyles'
-import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptionWord, PreviewCaptions } from '../preview/types'
+import { normalizeCustom } from './captionCustom'
+import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptionCustom, PreviewCaptionWord, PreviewCaptions } from '../preview/types'
 
 export const CAPTION_STYLES: readonly { id: CaptionStyleId; label: string; hint: string }[] = Object.freeze([
   { id: 'bold', label: 'Bold', hint: 'Big, with the spoken word picked out' },
@@ -95,11 +96,31 @@ export function cleanCues(raw: unknown): PreviewCaptionCue[] {
 }
 
 /** Captions from a saved project, or undefined when there is nothing valid to keep. */
+const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i
+const fullHex = (v: unknown): string | undefined => {
+  if (typeof v !== 'string' || !HEX.test(v.trim())) return undefined
+  const h = v.trim().toLowerCase()
+  return h.length === 4 ? `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}` : h
+}
+
+/** The customizer values that are valid; undefined when none are. */
+export function normalizeCaptionCustom(raw: unknown): PreviewCaptionCustom | undefined {
+  const r = typeof raw === 'object' && raw !== null ? (raw as Record<string, unknown>) : {}
+  const out: PreviewCaptionCustom = { ...normalizeCustom(r) }
+  if (r.italic === true || r.italic === false) out.italic = r.italic
+  const outline = fullHex(r.outlineColor)
+  if (outline) out.outlineColor = outline
+  const background = fullHex(r.backgroundColor)
+  if (background) out.backgroundColor = background
+  return Object.keys(out).length ? out : undefined
+}
+
 export function normalizeCaptions(raw: unknown): PreviewCaptions | undefined {
   const r = raw as Partial<PreviewCaptions> | null
   if (!r || typeof r !== 'object') return undefined
   const cues = cleanCues(r.cues)
   if (!cues.length || typeof r.forUrl !== 'string' || !r.forUrl) return undefined
+  const custom = normalizeCaptionCustom(r.custom)
   return {
     enabled: r.enabled !== false,
     forUrl: r.forUrl,
@@ -107,6 +128,7 @@ export function normalizeCaptions(raw: unknown): PreviewCaptions | undefined {
     position: isPosition(r.position) ? r.position : 'bottom',
     cues,
     ...(typeof r.language === 'string' && LANGUAGE_CODE.test(r.language) ? { language: r.language } : {}),
+    ...(custom ? { custom } : {}),
   }
 }
 

@@ -336,6 +336,34 @@ describe('burned-in captions', () => {
     expect(layer(container)?.getAttribute('data-caption-text')).toBe('Call us today')
   })
 
+  describe('the customizer', () => {
+    const line = (c: HTMLElement) => layer(c) as HTMLElement
+    const custom = (c: Record<string, unknown>, style = 'bold') => line(mountComposition(withCaptions({ style, custom: c }, 30)).container)
+    it('draws in the chosen font: its embedded copy, then the fallback, then the app\'s stack', () => {
+      const stack = custom({ fontFamily: 'Montserrat' }).style.fontFamily
+      expect(stack.startsWith('"Capite Montserrat", "Capite IBM Plex Sans"')).toBe(true)
+      expect(stack.indexOf('Capite Montserrat')).toBeLessThan(stack.indexOf('ui-sans-serif'))
+    })
+    it('uses the chosen weight and italic', () => {
+      expect(custom({ weight: 'light' }).style.fontWeight).toBe('300')
+      expect(custom({ italic: true }).style.fontStyle).toBe('italic')
+    })
+    it('uses the chosen casing, over a look that upper-cases', () => {
+      expect(custom({ casing: 'original' }, 'hormozi').style.textTransform).toBe('none')
+      expect(custom({ casing: 'title' }).style.textTransform).toBe('capitalize')
+    })
+    it('uses the chosen outline colour and puts a background behind the text', () => {
+      expect(custom({ outlineColor: '#ff0000' }, 'hormozi').style.textShadow).toContain('#ff0000')
+      expect(custom({ outlineColor: '#ff0000' }).style.textShadow).toContain('#ff0000')
+      expect(custom({ backgroundColor: '#00ff00' }).style.background).toContain('rgba(0, 255, 0')
+    })
+    it('moves the caption up for a positive offset', () => {
+      expect(custom({ offsetY: 0.1 }).style.transform).toBe('translateY(-108px)')
+      expect(custom({ offsetY: -0.05 }).style.transform).toBe('translateY(54px)')
+      expect(custom({}).style.transform).toBe('')
+    })
+  })
+
   describe('other languages and scripts', () => {
     const line = (c: HTMLElement) => layer(c) as HTMLElement
     const one = (text: string, over: Record<string, unknown> = {}) => withCaptions({ cues: [{ startMs: 500, endMs: 1500, text }], ...over }, 30)

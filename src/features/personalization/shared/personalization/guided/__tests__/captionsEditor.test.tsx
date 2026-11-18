@@ -10,6 +10,7 @@ const engine = vi.hoisted(() => ({ isModelCached: vi.fn(), modelInfo: vi.fn(), c
 vi.mock('../../localAI/engine', () => engine)
 const ctx: { previewSettings: { captions?: unknown; audio: unknown; fps: number; durationInFrames: number }; updatePreviewCaptions: (p: unknown) => void } = vi.hoisted(() => ({ previewSettings: { audio: null, fps: 30, durationInFrames: 150 }, updatePreviewCaptions: () => {} }))
 vi.mock('../../DemoPersonalizeProvider', () => ({ useDemoPersonalize: () => ctx }))
+vi.mock('../../captions/capiteFontLoader', () => ({ loadCaptionFont: vi.fn(async () => ({ loaded: true })) }))
 
 beforeAll(() => { (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true })
 
@@ -107,5 +108,54 @@ describe('transcript editor (remix)', () => {
     expect(seek).toHaveBeenCalledWith(60) // 2 s at 30 fps
     expect(q(el, 'captions-line-0')?.getAttribute('data-active')).toBe('false')
     expect(q(el, 'captions-line-1')?.getAttribute('data-active')).toBe('true')
+  })
+})
+
+describe('captions customizer (remix)', () => {
+  const custom = () => (ctx.previewSettings.captions as { custom?: Record<string, unknown> }).custom
+  const change = (el: Element | null, value: string) => act(async () => {
+    const proto = el instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype
+    Object.getOwnPropertyDescriptor(proto, 'value')!.set!.call(el, value)
+    el!.dispatchEvent(new Event(el instanceof HTMLSelectElement ? 'change' : 'input', { bubbles: true }))
+  })
+  it('offers Capite\'s 16 fonts, grouped, and a way back to the look\'s own', async () => {
+    const el = mount()
+    const select = q(el, 'captions-font') as HTMLSelectElement
+    expect(select.querySelectorAll('option[value]:not([value=""])')).toHaveLength(16)
+    expect(select.querySelectorAll('optgroup').length).toBeGreaterThanOrEqual(3)
+    await change(select, 'Bebas Neue')
+    expect(custom()).toEqual({ fontFamily: 'Bebas Neue' })
+    await change(select, '')
+    expect(custom()).toBeUndefined()
+  })
+  it('sets the weight, italic and casing, and goes back to the look\'s own', async () => {
+    const el = mount()
+    await click(q(el, 'captions-weight-light'))
+    await click(q(el, 'captions-italic'))
+    await click(q(el, 'captions-casing-title'))
+    expect(custom()).toEqual({ weight: 'light', italic: true, casing: 'title' })
+    await click(q(el, 'captions-weight-default'))
+    await click(q(el, 'captions-italic'))
+    await click(q(el, 'captions-casing-default'))
+    expect(custom()).toBeUndefined()
+  })
+  it('sets the outline and background colours, each with a clear button', async () => {
+    const el = mount()
+    await change(q(el, 'captions-outline-color'), '#ff0000')
+    await change(q(el, 'captions-bg-color'), '#00ff00')
+    expect(custom()).toEqual({ outlineColor: '#ff0000', backgroundColor: '#00ff00' })
+    await click(q(el, 'captions-outline-clear'))
+    await click(q(el, 'captions-bg-clear'))
+    expect(custom()).toBeUndefined()
+  })
+  it('moves the caption with a vertical offset slider, Reset puts it back, and a position chip does too', async () => {
+    const el = mount()
+    await change(q(el, 'captions-offset'), '-0.2')
+    expect(custom()).toEqual({ offsetY: -0.2 })
+    await click(q(el, 'captions-offset-reset'))
+    expect(custom()).toBeUndefined()
+    await change(q(el, 'captions-offset'), '0.2')
+    await click(q(el, 'captions-position-top'))
+    expect(custom()).toBeUndefined()
   })
 })

@@ -11,6 +11,7 @@ import { ColorField } from './editor/ColorField'
 import { SortableRow } from './editor/SortableRow'
 import { Tip } from './editor/Tip'
 import { PLAYBACK_RATES } from '../preview/playbackRate'
+import { CaptionDragHandle } from './CaptionDragHandle'
 import { liveBridge } from '../preview/liveBridge'
 import { PersonalizationPlayer } from '../preview/PersonalizationPlayer'
 import type { PlayerRef } from '@remotion/player'
@@ -653,6 +654,14 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
               </div>
               {/* Shield: clicks on empty stage must not reach the Player (it would toggle play). Layers sit above it. */}
               <div aria-hidden data-testid="editor-live-shield" style={{ position: 'absolute', inset: 0 }} />
+              {/* Captions: a grip level with them, to drag them up or down (saved as the captions' vertical offset). */}
+              {ctx.previewSettings.captions?.enabled && ctx.previewSettings.captions.forUrl === inputProps.videoUrl && (
+                <CaptionDragHandle
+                  position={ctx.previewSettings.captions.position}
+                  offsetY={ctx.previewSettings.captions.custom?.offsetY}
+                  onChange={(offsetY) => { const c = ctx.previewSettings.captions; if (c) ctx.updatePreviewCaptions({ custom: { ...c.custom, offsetY } }) }}
+                />
+              )}
             </>
           ) : (
             <>

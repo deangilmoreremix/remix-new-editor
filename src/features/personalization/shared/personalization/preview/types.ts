@@ -189,6 +189,19 @@ export interface PreviewCaptions {
   cues: PreviewCaptionCue[]
   /** Language of the words (ISO code such as `es` or `pt-BR`), when known: sets the font fallback, size and reading direction. Absent = work it out from the text. */
   language?: string
+  /** The customizer: what the person chose over the look. Every field is optional; absent = the look's own. */
+  custom?: PreviewCaptionCustom
+}
+
+/** One of Capite's 16 fonts, a weight, italic, a casing, an outline and a background colour (hex), and a vertical offset (fraction of the frame height, positive = up). */
+export interface PreviewCaptionCustom {
+  fontFamily?: string
+  weight?: 'light' | 'regular' | 'medium' | 'bold' | 'extra-bold'
+  italic?: boolean
+  casing?: 'upper' | 'title' | 'original'
+  outlineColor?: string
+  backgroundColor?: string
+  offsetY?: number
 }
 
 export interface PersonalizationPreviewSettings {

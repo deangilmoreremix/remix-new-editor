@@ -99,3 +99,9 @@ export function useCaptionFont(name: string | undefined, opts: { weight?: number
     return done
   }, [known, weight, italic, delayRender, continueRender])
 }
+
+/** Renders nothing; holds the render until the caption font is ready. Mount it only when a caption uses one of the 16 fonts. */
+export function CaptionFontGate({ name, weight, italic }: { name: string | undefined; weight?: number; italic?: boolean }): null {
+  useCaptionFont(name, { weight, italic })
+  return null
+}

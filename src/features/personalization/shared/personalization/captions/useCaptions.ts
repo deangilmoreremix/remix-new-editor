@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { transcribeVideo } from '../localAI/engine'
 import { useLocalAI, type LocalAI } from '../localAI/useLocalAI'
-import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptions } from '../preview/types'
+import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptionCustom, PreviewCaptions } from '../preview/types'
 import { groupCaptionCues } from './captionCues'
 import { nudgeCue, retimeCue } from './cueEdit'
 import { applyCasing, findReplace, type Casing, type FindOptions } from './textTools'
@@ -21,7 +21,10 @@ export interface Captions {
   setLanguage: (language: string) => void
   setEnabled: (enabled: boolean) => void
   setStyle: (style: CaptionStyleId) => void
+  /** Moving to another place also puts the caption back in it (no vertical offset). */
   setPosition: (position: CaptionPosition) => void
+  /** Sets or clears (undefined) customizer values: font, weight, italic, casing, outline and background colour, offset. */
+  setCustom: (patch: Partial<PreviewCaptionCustom>) => void
   /** Replaces a line's text. Clearing it deletes the line. Word-by-word timing is dropped for an edited line. */
   editCue: (index: number, text: string) => void
   /** Sets a line's start and end (ms). Word times that still fit are kept. */
@@ -76,7 +79,10 @@ export function useCaptions(videoUrl: string | null): Captions {
 
   const setEnabled = useCallback((enabled: boolean) => updatePreviewCaptions({ enabled }), [updatePreviewCaptions])
   const setStyle = useCallback((style: CaptionStyleId) => updatePreviewCaptions({ style }), [updatePreviewCaptions])
-  const setPosition = useCallback((position: CaptionPosition) => updatePreviewCaptions({ position }), [updatePreviewCaptions])
+  const setCustom = useCallback((patch: Partial<PreviewCaptionCustom>) => {
+    if (captions) updatePreviewCaptions({ custom: { ...captions.custom, ...patch } })
+  }, [captions, updatePreviewCaptions])
+  const setPosition = useCallback((position: CaptionPosition) => updatePreviewCaptions({ position, custom: captions?.custom ? { ...captions.custom, offsetY: undefined } : undefined }), [captions, updatePreviewCaptions])
   const editCue = useCallback((index: number, text: string) => {
     if (!captions) return
     const next: PreviewCaptionCue[] = captions.cues.map((c, i) => {
@@ -111,5 +117,5 @@ export function useCaptions(videoUrl: string | null): Captions {
   }, [captions, updatePreviewCaptions])
   const remove = useCallback(() => { updatePreviewCaptions(null); setNote(null) }, [updatePreviewCaptions])
 
-  return { ai, captions, note, generate, language, setLanguage, setEnabled, setStyle, setPosition, editCue, setCueTimes, nudgeCue: nudge, replaceAll, recase, remove }
+  return { ai, captions, note, generate, language, setLanguage, setEnabled, setStyle, setPosition, setCustom, editCue, setCueTimes, nudgeCue: nudge, replaceAll, recase, remove }
 }
