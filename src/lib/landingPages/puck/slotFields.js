@@ -7,7 +7,7 @@
  * Labels contain "picture" / "video you made" so withImagePickers() swaps in the library-aware fields.
  */
 export const slotFields = () => ({
-  slotImage: { type: 'text', label: 'Picture in the video slot (e.g. a personalized image)' },
+  slotImage: { type: 'text', label: 'Picture in the video slot (e.g. a personalized image; use {{custom3}} to show each contact\'s own picture)' },
   slotVideo: { type: 'text', label: 'Video in the video slot (a video you made)' },
   bakedPlay: { type: 'radio', label: "The design's picture already shows a play button", options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] },
 });

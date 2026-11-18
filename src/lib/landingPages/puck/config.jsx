@@ -75,7 +75,7 @@ export const puckConfig = {
         subhead: A('Sub-headline'),
         bullets: { type: 'array', label: 'Tick list', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Item', defaultItemProps: { text: 'New point' } },
         buttons: buttonArray,
-        chip: T('Label on the video'),
+        chip: T("Label on the video (your own words over the picture; text inside a photo can't be edited, so swap the picture)"),
         photo: T('Placeholder image before the video plays (https link)'),
         ...slotFields(),
         showForm: { type: 'radio', label: 'Lead form', options: [{ label: 'Show', value: 'yes' }, { label: 'Hide', value: 'no' }] },

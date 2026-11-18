@@ -58,7 +58,9 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
   const pageVideo = isPlayableVideo(page?.video_url) ? page.video_url : '';
   const src = (isPlayableVideo(slotVideo) ? httpsMedia(slotVideo) : '') || pageVideo;
   const pageImage = !pageVideo && httpsMedia(page?.video_url) && IMAGE_PATH.test(pathOf(page.video_url)) ? httpsMedia(page.video_url) : '';
-  const userImage = safeImageUrl(slotImage) || pageImage;
+  // A picture can carry a token ({{custom3}}), so every contact's personal link shows their own picture.
+  const fill = useTokens();
+  const userImage = safeImageUrl(fill(slotImage)) || pageImage;
   const designPoster = safeImageUrl(poster) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(poster) ? poster : '');
   const posterUrl = userImage || safeImageUrl(page?.poster_url) || designPoster;
   const ownPicture = !!(userImage || safeImageUrl(page?.poster_url));

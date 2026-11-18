@@ -20,7 +20,7 @@ const FIELD_LABELS = {
   email: 'Email (kept private)',
   custom1: 'Custom 1',
   custom2: 'Custom 2',
-  custom3: 'Custom 3',
+  custom3: 'Custom 3 (or a personal picture link)',
 };
 
 const FILTERS = [

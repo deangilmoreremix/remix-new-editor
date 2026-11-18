@@ -34,6 +34,14 @@ describe('the video slot', () => {
     expect(attr(out, 'src')).toBe(VIDEO);
     expect(attr(out, 'poster')).toBe('https://x.supabase.co/storage/v1/object/public/uploads/u/p.jpg'); // the page's own poster beats the design's
   });
+  it('a token in the slot picture shows each contact\'s own picture, and falls back without one', () => {
+    const page = { video_url: VIDEO, poster_url: 'https://cdn.test/page.jpg' };
+    const own = html({ slotImage: '{{custom3}}' }, page, { tokens: { custom3: 'https://cdn.test/dana.png' } });
+    expect(attr(own, 'poster')).toBe('https://cdn.test/dana.png');
+    expect(attr(html({ slotImage: '{{custom3}}' }, page), 'poster')).toBe('https://cdn.test/page.jpg');
+    expect(attr(html({ slotImage: '{{custom3}}' }, page, { tokens: { custom3: 'javascript:alert(1)' } }), 'poster')).toBe('https://cdn.test/page.jpg');
+    expect(attr(html({ slotImage: '{{custom3}}' }, page, { tokens: { custom3: 'http://insecure.test/a.png' } }), 'poster')).toBe('https://cdn.test/page.jpg');
+  });
   it('slot picture beats the page poster, slot video beats the page video', () => {
     const img = 'https://cdn.test/personal.png'; const vid = 'https://cdn.test/mine.mp4';
     const out = html({ poster: '/landing-art/x/p.webp', slotImage: img, slotVideo: vid }, { video_url: VIDEO, poster_url: 'https://cdn.test/page.jpg' });
