@@ -130,8 +130,8 @@ export async function mountWatchPage(container, ref, deps = {}) {
     rememberKey: video.id,
     fps: FPS,
     voiceFor: (clip, profile) => (deps.voiceFor || fetchPersonalVoice)({ publishedId: video.id, clip, profile }),
-    onLead: async ({ clipId, kind, data }) => {
-      const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data, attribution });
+    onLead: async ({ clipId, kind, data, signals }) => {
+      const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data, attribution, signals });
       if (kind !== 'call-attempt' && res?.stored !== false) {
         analytics.track('lead_submit', { clip: clipId, props: labelFor(clipId) ? { label: labelFor(clipId) } : undefined });
         if (!deps.onLead) fireLeadTrackers(trackersFor(video.project, kind, clipId));

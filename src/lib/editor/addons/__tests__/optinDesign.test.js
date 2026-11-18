@@ -85,7 +85,7 @@ describe('everything is editable (one design for all kinds)', () => {
     form.querySelector('input').value = 'a@b.co';
     form.dispatchEvent(new Event('submit', { cancelable: true }));
     await new Promise((r) => setTimeout(r, 0));
-    expect(onSubmit).toHaveBeenCalledWith({ EMAIL: 'a@b.co' });
+    expect(onSubmit).toHaveBeenCalledWith({ EMAIL: 'a@b.co' }, expect.objectContaining({ hp: '' }));
     expect(layer.querySelector('.addon-overlay--optin')).toBeNull();
   });
 

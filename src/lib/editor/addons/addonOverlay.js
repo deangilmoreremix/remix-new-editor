@@ -647,6 +647,14 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
   wrap.style.background = backdropStyle(config, { preview });
   const compact = (layer.clientWidth || 1000) < 480;
   const form = buildOptinForm(config, { prefill, compact });
+  // Bot traps: a hidden field people never see or fill, and how long the form was open. They go to onSubmit as `signals`
+  // (not as answers): the server drops submissions that fill the trap or finish faster than a person can.
+  const trap = document.createElement('input');
+  trap.type = 'text'; trap.dataset.trap = ''; trap.tabIndex = -1; trap.autocomplete = 'off'; trap.setAttribute('aria-hidden', 'true');
+  trap.style.cssText = 'position:absolute;left:-9999px;top:auto;width:1px;height:1px;opacity:0;pointer-events:none';
+  form.appendChild(trap);
+  const openedAt = Date.now();
+  const prefilled = Object.values(prefill || {}).some((v) => String(v || '').trim());
   wrap.appendChild(form);
 
   const hint = buildArrowHint(config);
@@ -681,10 +689,11 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
       return;
     }
     const data = Object.fromEntries(new FormData(form).entries());
+    const signals = { hp: trap.value, ...(prefilled ? {} : { ms: Date.now() - openedAt }) }; // prefilled answers can be sent at once
     const btn = form.querySelector('button[type="submit"]');
     btn.disabled = true;
     try {
-      const message = await onSubmit?.(data);
+      const message = await onSubmit?.(data, signals);
       status.textContent = message || '';
       clearTimeout(hintTimer);
       wrap.remove();

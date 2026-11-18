@@ -55,9 +55,9 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditTex
     isActive,
     onEditText,
     onSkip,
-    onSubmit: async (data) => {
+    onSubmit: async (data, signals) => {
       if (!Object.values(data).some((v) => String(v).trim())) throw new Error('Please fill in the form.');
-      const res = await onSubmit?.(data);
+      const res = await onSubmit?.(data, signals);
       if (res && res.ok === false) throw new Error(res.message || 'Something went wrong — please try again.');
       return '';
     },

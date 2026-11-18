@@ -187,9 +187,9 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       allowRedirect: true,
       isActive: () => !destroyed,
       profile: currentProfile,
-      onSubmit: async (data) => {
-        const res = await onLead?.({ clipId: clip.id, kind: 'lead-form', data });
-        if (res?.error && !res.stored) return { ok: false, message: 'Sorry, that didn’t go through — please try again.' };
+      onSubmit: async (data, signals) => {
+        const res = await onLead?.({ clipId: clip.id, kind: 'lead-form', data, signals });
+        if (res?.error && !res.stored) return { ok: false, message: res.fix || 'Sorry, that didn’t go through — please try again.' };
         clip._submitted = true;
         runtime.markSubmitted(clip.id);
         applyAnswers(data);
@@ -210,11 +210,11 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       isActive: () => !destroyed,
       prefill,
       onSkip: () => { gateOpen = false; ensureEngine(); play(); },
-      onSubmit: async (data) => {
-        const res = await onLead?.({ clipId: 'list-builder', kind: listBuilder.kind === 'personalizer' ? 'personalizer' : 'list-builder', data });
+      onSubmit: async (data, signals) => {
+        const res = await onLead?.({ clipId: 'list-builder', kind: listBuilder.kind === 'personalizer' ? 'personalizer' : 'list-builder', data, signals });
         // Like the Lead Generator: if the lead was not saved, keep the form open for a retry instead of
         // marking it done (which would also suppress it on return and send the viewer away on a redirect).
-        if (res?.error && !res.stored) throw new Error('Sorry, that didn\u2019t go through \u2014 please try again.');
+        if (res?.error && !res.stored) throw new Error(res.fix || 'Sorry, that didn\u2019t go through \u2014 please try again.');
         listBuilder._submitted = true;
         if (storeKey) { try { globalThis.localStorage?.setItem(storeKey, '1'); } catch { /* storage blocked */ } }
         applyAnswers(data);

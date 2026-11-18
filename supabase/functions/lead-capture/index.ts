@@ -27,7 +27,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
-  isForwardableWebhook, isPrivateAddress, sanitizeData, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
+  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
   isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, hostOf, deriveSigningSecret,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, deliverWebhook, type Delivery, type DeliverDeps, type HttpCall, type Json,
 } from "./logic.ts";
@@ -286,6 +286,8 @@ Deno.serve(async (req: Request) => {
     const publishedId = String(body.publishedId);
     if (!PUBLISHED_ID.test(publishedId)) return json(req, { ok: false, error: "Unknown video" }, 404);
     if (!SUPABASE_SERVICE_ROLE_KEY) return json(req, { ok: false, error: "Lead backend not configured" }, 500);
+    // Bots get the same answer a real viewer gets, but nothing is stored or forwarded.
+    if (looksAutomated(body.signals)) return json(req, { ok: true, stored: true });
     const leadData = sanitizeData(body.data);
     if (!Object.keys(leadData).length) return json(req, { ok: false, error: "Empty submission" }, 400);
     // Shared (database) limits survive across function instances: per video
@@ -305,6 +307,8 @@ Deno.serve(async (req: Request) => {
     if (videoError || !video) return json(req, { ok: false, error: "Unknown video" }, 404);
     const { config, listBuilder } = leadConfigFor(video.project as Json, leadKind, clipId);
     if (!config) return json(req, { ok: false, error: "This video has no such form" }, 400);
+    const emailIssue = emailProblem(leadData, { blockDisposable: config.blockDisposableEmails === true });
+    if (emailIssue) return json(req, { ok: false, error: emailIssue }, 400);
     const src = sanitizeSource(body.source);
     const attribution = attributionOf(src);
     const { error: insertError } = await admin.from("video_leads").insert({
