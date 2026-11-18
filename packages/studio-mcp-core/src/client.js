@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
-import { sanitizeText, sanitizeDeep, extractOutputs, DONE, FAILED } from './sanitize.js';
+import { sanitizeText, sanitizeDeep, extractOutputs, extractText, DONE, FAILED } from './sanitize.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -76,7 +76,11 @@ export function createGatewayClient({ gatewayUrl, apiKey, brandName, fetchImpl =
       for (;;) {
         const r = await call(`/result/${encodeURIComponent(requestId)}`);
         const status = String(r.status || '').toLowerCase();
-        if (DONE.has(status)) return { status: 'completed', request_id: requestId, outputs: extractOutputs(r) };
+        if (DONE.has(status)) {
+          const outputs = extractOutputs(r);
+          const text = extractText(r);
+          return { status: 'completed', request_id: requestId, outputs, ...(text !== undefined && !outputs.length ? { text } : {}) };
+        }
         if (FAILED.has(status)) return { status: 'failed', request_id: requestId, error: sanitizeText(r.error || r.detail || 'Generation failed', brandName) };
         if (Date.now() >= deadline) return { status: 'processing', request_id: requestId };
         await sleep(pollIntervalMs);

@@ -38,3 +38,14 @@ export function extractOutputs(result) {
 
 export const DONE = new Set(['completed', 'succeeded', 'success']);
 export const FAILED = new Set(['failed', 'error', 'cancelled', 'canceled']);
+
+/** Text from an LLM-style result (`result` | `text` | `content` | `output.text` | `outputs[0]` when not a URL). */
+export function extractText(result) {
+  if (!result || typeof result !== 'object') return typeof result === 'string' ? result : undefined;
+  for (const k of ['result', 'text', 'content']) if (typeof result[k] === 'string' && result[k]) return result[k];
+  if (typeof result.output === 'string' && !/^https?:\/\//.test(result.output)) return result.output;
+  if (typeof result.output?.text === 'string') return result.output.text;
+  const first = Array.isArray(result.outputs) ? result.outputs[0] : undefined;
+  if (typeof first === 'string' && !/^https?:\/\//.test(first)) return first;
+  return undefined;
+}

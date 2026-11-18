@@ -31,7 +31,7 @@ for (const [kind, [list, studios]] of Object.entries(KINDS)) {
   for (const model of list || []) {
     const key = seen.has(model.id) ? `${model.id}:${kind}` : model.id;
     seen.add(model.id);
-    const entryStudios = EFFECT_MODEL_IDS.has(model.id) ? [...studios, 'effects'] : studios;
+    const entryStudios = EFFECT_MODEL_IDS.has(model.id) ? [...studios, 'effects', 'ai-vfx'] : studios;
     const inputs = {};
     for (const [name, def] of Object.entries(model.inputs || {})) {
       inputs[name] = {};
@@ -58,6 +58,16 @@ for (const [kind, [list, studios]] of Object.entries(KINDS)) {
     });
   }
 }
+// Text and vision models the Brand and Campaign studios call through muapi.text / muapi.vision (src/lib/muapi.js).
+const T = (title, description) => ({ type: 'string', title, description });
+for (const [id, name, vision] of [['gpt-5-mini', 'GPT-5 mini (text)', false], ['gpt-5-nano', 'GPT-5 nano (text)', false], ['openrouter-vision', 'Vision (describe an image)', true]]) {
+  entries.push({ key: id, kind: vision ? 'vision' : 'text', studios: ['brand', 'campaign', 'campaign-page', 'asset-edit'], id, name, endpoint: id, hasPrompt: true,
+    inputs: { prompt: { ...T('Prompt', 'What to write or ask.'), required: true }, ...(vision ? { image_url: { ...T('Image', 'Public https image URL.'), required: true } } : {}) } });
+}
+const grok = m.textModels.find((x) => x.id === 'grok-imagine-text');
+if (grok) entries.push({ key: grok.id, kind: 'text', studios: ['brand', 'campaign', 'campaign-page', 'asset-edit'], id: grok.id, name: strip(grok.name) || 'Grok text', endpoint: grok.endpoint, hasPrompt: true,
+  inputs: Object.fromEntries(Object.entries(grok.inputs || {}).map(([n, d]) => [n, Object.fromEntries(['type', 'title', 'description', 'default', 'minimum', 'maximum'].filter((k) => d[k] !== undefined).map((k) => [k, k === 'description' ? strip(d[k]) : d[k]]))])) });
+
 // Fixed-route studios (src/lib/muapi.js). Input contracts mirror the client functions.
 const S = (title, description) => ({ type: 'string', title, description });
 const AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9'];

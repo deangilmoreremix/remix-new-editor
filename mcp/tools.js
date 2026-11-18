@@ -96,3 +96,16 @@ customTools.push(
     run: (a, client) => zackdWait(client, a.request_id, 0),
   },
 );
+
+// ── Brand Studio site scraper (netlify/functions/brand-scrape.mts) ───────────────────────────────────
+// Returns the scraped brand data (text, colours, images). The base64 screenshot is dropped unless asked for.
+customTools.push({
+  name: 'brand_scrape',
+  description: 'Scrape a public website for brand information (copy, colours, logos, images) to feed brand and campaign writing. Pair with text_generate or vision_describe to analyse it.',
+  input: { url: z.string().url().describe('Public website address'), include_screenshot: z.boolean().optional().describe('Include the page screenshot as base64 (large)') },
+  run: async (a, client) => {
+    const r = await client.studio('brand-scrape', { url: a.url });
+    if (r?.data && !a.include_screenshot) { const { screenshot, ...rest } = r.data; return { ok: r.ok, data: { ...rest, screenshot: screenshot ? '(omitted; pass include_screenshot=true)' : undefined } }; }
+    return r;
+  },
+});

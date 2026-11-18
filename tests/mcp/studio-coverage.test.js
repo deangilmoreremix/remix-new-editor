@@ -34,7 +34,8 @@ describe('every studio in the app is classified', () => {
     expect(retired).toContain('training');
     for (const r of retired) expect(manifest.supported[r]).toBeUndefined();
     expect(kindsInCatalog.has('training')).toBe(false);
-    expect(kindsInCatalog.has('text')).toBe(false);
+    // text models stay: Brand and Campaign call them. Only the retired Chat studio's tag must be gone.
+    for (const e of catalog) for (const r of retired) expect(e.studios, `${e.key} tagged with retired studio ${r}`).not.toContain(r);
   });
 });
 

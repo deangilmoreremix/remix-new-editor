@@ -60,3 +60,15 @@ describe('zackd tools', () => {
     expect(r).toEqual({ status: 'processing', request_id: 'req12345' });
   });
 });
+
+describe('brand_scrape', () => {
+  it('calls the scraper studio and drops the screenshot unless asked', async () => {
+    const { mcp, calls } = await setup(() => ({ ok: true, data: { title: 'Acme', colors: ['#fff'], screenshot: 'AAAA' } }));
+    const r = text(await mcp.callTool({ name: 'smartvid_brand_scrape', arguments: { url: 'https://acme.example.com' } }));
+    expect(calls[0]).toEqual({ path: '/studio/brand-scrape', body: { url: 'https://acme.example.com' } });
+    expect(r.data.title).toBe('Acme');
+    expect(JSON.stringify(r)).not.toContain('AAAA');
+    const full = text(await mcp.callTool({ name: 'smartvid_brand_scrape', arguments: { url: 'https://acme.example.com', include_screenshot: true } }));
+    expect(full.data.screenshot).toBe('AAAA');
+  });
+});

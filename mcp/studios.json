@@ -289,6 +289,81 @@
     "zackd_status"
    ],
    "kinds": []
+  },
+  "brand": {
+   "tools": [
+    "text_generate",
+    "vision_describe",
+    "image_generate",
+    "image_edit",
+    "brand_scrape"
+   ],
+   "kinds": [
+    "text",
+    "vision",
+    "t2i",
+    "i2i"
+   ]
+  },
+  "campaign": {
+   "tools": [
+    "text_generate",
+    "image_generate",
+    "image_edit"
+   ],
+   "kinds": [
+    "text",
+    "t2i",
+    "i2i"
+   ]
+  },
+  "campaign-page": {
+   "tools": [
+    "text_generate",
+    "image_generate",
+    "image_edit"
+   ],
+   "kinds": [
+    "text",
+    "t2i",
+    "i2i"
+   ]
+  },
+  "asset-edit": {
+   "tools": [
+    "text_generate",
+    "image_generate",
+    "image_edit"
+   ],
+   "kinds": [
+    "text",
+    "t2i",
+    "i2i"
+   ]
+  },
+  "ai-vfx": {
+   "tools": [
+    "video_from_image"
+   ],
+   "kinds": [
+    "i2v"
+   ]
+  },
+  "smart-video-studio": {
+   "tools": [
+    "image_generate",
+    "image_edit",
+    "video_generate",
+    "video_from_image",
+    "video_to_video"
+   ],
+   "kinds": [
+    "t2i",
+    "i2i",
+    "t2v",
+    "i2v",
+    "v2v"
+   ]
   }
  },
  "unsupported": {
@@ -299,17 +374,12 @@
   "templates": "Non-generative UI (browsing, learning or navigation).",
   "academy": "Non-generative UI (browsing, learning or navigation).",
   "timeline-iframe-warning": "Non-generative UI (browsing, learning or navigation).",
-  "smart-video-scheduler": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
-  "brightbean": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
-  "leadfinder": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
-  "find-my-brand": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
-  "personalizer": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
-  "brand": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
-  "brand-dna": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
-  "campaign": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
-  "campaign-page": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
-  "asset-edit": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
-  "smart-video-studio": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "smart-video-scheduler": "A calendar UI with state kept in the browser; there is no scheduling backend to call.",
+  "brightbean": "A calendar UI with state kept in the browser; there is no scheduling backend to call.",
+  "leadfinder": "Read-only list of captured leads (/api/personalization/leads); a list_leads tool is not built yet.",
+  "find-my-brand": "Runs the free /api/demo/discover discovery inside the personalization modal; brand_scrape covers the website-analysis part, discovery itself is not exposed yet.",
+  "personalizer": "Contact and token state lives in the browser; its generation goes through the image/video tools already available.",
+  "brand-dna": "Edits brand data held in the browser; brand_scrape plus text_generate cover the analysis.",
   "motion-director": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
   "motion-director/workbench": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
   "video-pages": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
@@ -322,7 +392,6 @@
   "cinegen": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
   "timeline": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
   "timeline-classic": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
-  "ai-vfx": "Own backend that requires a signed-in SmartVid session; not reachable with a bring-your-own-key MCP key.",
-  "viral": "Own backend that requires a signed-in SmartVid session; not reachable with a bring-your-own-key MCP key."
+  "viral": "A static gallery of example videos; nothing to generate."
  }
 }

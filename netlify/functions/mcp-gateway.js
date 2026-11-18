@@ -24,6 +24,16 @@ export const STUDIOS = {
   zackd: (body, who) => zackdHandle(body, who.userId, { keys: who.keys }),
   'agent-audio': (body, who) => agentAudioHandle(body, who.userId, { keys: who.keys }),
   cinegen: (body, who) => cinegenHandle(body, who.userId, { key: who.keys.muapi }),
+  // Brand Studio's site scraper (headless browser, SSRF-guarded). Loaded on demand: it pulls in the browser tooling.
+  'brand-scrape': async (body, who) => {
+    const { default: scrape } = await import('./brand-scrape.mts');
+    const res = await scrape(new Request('https://gateway.invalid/api/scrape', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-forwarded-for': `mcp:${who.userId}` },
+      body: JSON.stringify({ url: body?.url }),
+    }));
+    return { statusCode: res.status, body: await res.text() };
+  },
 };
 const BRAND = 'SmartVid';
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;

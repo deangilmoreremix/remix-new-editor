@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { InputError } from './catalog.js';
-import { sanitizeText } from './sanitize.js';
+import { sanitizeText, extractOutputs, extractText } from './sanitize.js';
 
 /** Generation tools, one per capability. Registered only when the brand's catalog has models of that kind. */
 export const GENERATION_TOOLS = [
@@ -15,6 +15,7 @@ export const GENERATION_TOOLS = [
   { name: 'video_tool', kinds: ['tools'], timeoutMs: 600_000, description: 'Video utilities: captions, clipping, upscaling, background removal and similar.' },
   { name: 'avatar_generate', kinds: ['avatar'], timeoutMs: 600_000, description: 'Create a talking avatar / presenter video.' },
   { name: 'model_train', kinds: ['training'], timeoutMs: 120_000, description: 'Start training a custom model (e.g. a LoRA) from your images. Returns a request_id; training runs long.' },
+  { name: 'vision_describe', kinds: ['vision'], timeoutMs: 120_000, description: 'Describe or analyse an image with a vision model.' },
   { name: 'text_generate', kinds: ['text'], timeoutMs: 120_000, description: 'Generate text with an LLM (scripts, prompts, captions).' },
   { name: 'motion_control', kinds: ['motion'], timeoutMs: 600_000, description: 'Drive an image/character with the motion of a reference video.' },
   { name: 'motion_graphics', kinds: ['graphics'], timeoutMs: 300_000, description: 'Generate or edit an animated motion-graphics clip from a prompt.' },
@@ -96,7 +97,7 @@ export function createBrandedServer({ brand, catalog, client }) {
       const { endpoint, payload } = catalog.buildRequest(model, inputs, tool.kinds);
       const submitted = await client.submit(endpoint, payload);
       const id = submitted.request_id || submitted.id;
-      if (!id) return json({ status: 'completed', outputs: submitted.outputs || submitted.output || [], raw: undefined });
+      if (!id) { const text = extractText(submitted); return json({ status: 'completed', outputs: extractOutputs(submitted), ...(text !== undefined ? { text } : {}) }); }
       if (!wait) return json({ status: 'processing', request_id: id });
       return json(await client.wait(id, { timeoutMs: tool.timeoutMs }));
     }));
