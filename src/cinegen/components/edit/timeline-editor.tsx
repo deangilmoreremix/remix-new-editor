@@ -60,7 +60,7 @@ import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_
 const LABEL_WIDTH = 150;
 const FPS = 24; // assumed frame rate for snap-to-frame grid
 
-const DEFAULT_TRACK_HEIGHT = 110; // [remix] was 80
+const DEFAULT_TRACK_HEIGHT = 80; // same as CineGen upstream
 
 
 interface TimelineEditorProps {
@@ -3212,6 +3212,20 @@ export function TimelineEditor({
       {/* [remix] Overlays lane: Lead Generator, List Builder, CTA drawn over the video */}
       <OverlayLane
         onLibraryDrop={onLibraryDrop}
+        onAssetDrop={(assetId, ctx) => {
+          // a picture from the Media pool dropped on the Overlays lane becomes an Image overlay showing that picture
+          const asset = assetsRef.current.find((a) => a.id === assetId);
+          if (!asset || asset.type !== 'image' || !asset.url) return;
+          const base = createOverlay('overlay-image', startAfterGate(state.overlays, ctx.time), Math.max(sequenceDuration, 10));
+          const overlay = {
+            ...base,
+            ...(typeof ctx.row === 'number' ? { row: ctx.row } : {}),
+            name: asset.name || base.name,
+            addon: { ...((base.addon as Record<string, unknown> | undefined) ?? {}), src: asset.url },
+          };
+          dispatch({ type: 'ADD_OVERLAY', overlay });
+          selectOverlay(overlay.id);
+        }}
         overlays={state.overlays}
         pxPerSecond={pxPerSecond}
         scrollLeft={Math.max(0, rulerScrollLeft)}
