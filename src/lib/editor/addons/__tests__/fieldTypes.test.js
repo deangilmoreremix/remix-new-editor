@@ -142,7 +142,7 @@ describe('auto-reply settings', () => {
     const shown = (o) => fields(o).filter((f) => !f.showIf || f.showIf(o)).map((f) => f.key);
     expect(shown(dflt())).toContain('autoReplyEnabled');
     expect(shown(dflt())).not.toContain('autoReplyBody');
-    expect(shown({ ...dflt(), autoReplyEnabled: true })).toEqual(expect.arrayContaining(['autoReplySubject', 'autoReplyBody']));
+    expect(shown({ ...dflt(), autoReplyEnabled: true })).toEqual(expect.arrayContaining(['autoReplySubject', 'autoReplyBody', 'autoReplyReplyTo']));
     const clip = { fields: [] };
     apply(clip, { elements: [{ id: 'e', type: 'email', label: 'Email' }], autoReplyEnabled: true, autoReplySubject: 'Thanks', autoReplyBody: 'Hi {{first_name}}' });
     expect(clip).toMatchObject({ autoReplyEnabled: true, autoReplySubject: 'Thanks', autoReplyBody: 'Hi {{first_name}}' }); // flat on the clip, where the server reads it
@@ -160,5 +160,14 @@ describe('form ids for view counting', () => {
     expect(bare.querySelector('form').dataset.ctaId).toBeUndefined();
     const preview = showOptinOverlay(layerOf(), cfg([{ id: 0, label: 'Email', token: 'EMAIL', type: 'email' }]), { onSubmit: vi.fn(), preview: true });
     expect(preview.querySelector('form').dataset.ctaId).toBeUndefined();
+  });
+});
+
+describe('submit button keeps the creator\'s colour', () => {
+  it('opts out of the app-wide outline-only button rule (data-keep-fill) and carries the chosen background', () => {
+    const el = showOptinOverlay(layerOf(), cfg([{ id: 0, label: 'Email', token: 'EMAIL', type: 'email' }], { buttonBackground: '#12a150' }), { onSubmit: vi.fn() });
+    const btn = el.querySelector('button[type="submit"]');
+    expect(btn.hasAttribute('data-keep-fill')).toBe(true);
+    expect(btn.style.background).toMatch(/rgb\(18, 161, 80\)|#12a150/i);
   });
 });

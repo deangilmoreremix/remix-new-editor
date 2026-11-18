@@ -5,7 +5,7 @@ import {
   isValidEmail, savedNotifyEmail, savedNotifyEmails, uniqueEmails, buildLeadEmail,
   isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, MAX_ATTEMPTS,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret,
-  sanitizeSource, attributionOf, looksAutomated, MIN_FILL_MS, isDisposableEmail, emailProblem, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, AUTO_REPLY_DEFAULT_SUBJECT,
+  sanitizeSource, attributionOf, looksAutomated, MIN_FILL_MS, isDisposableEmail, emailProblem, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, AUTO_REPLY_DEFAULT_SUBJECT, declaredEmailKeys, autoReplyReplyTo,
 } from '../../supabase/functions/lead-capture/logic.ts';
 
 describe('lead-capture webhook safety', () => {
@@ -350,5 +350,64 @@ describe('lead-capture viewing session', () => {
   it('keeps only a well-formed session id', () => {
     expect(sanitizeSource({ session: 'abcDEF1234567890abcd' }).session).toBe('abcDEF1234567890abcd');
     for (const bad of ['short', 'has spaces in it 1234567890', 'x'.repeat(65), 12345, null, { a: 1 }]) expect(sanitizeSource({ session: bad })).not.toHaveProperty('session');
+  });
+});
+
+describe('lead-capture email checks follow the declared field types', () => {
+  const lb = { elements: [{ label: 'Email', token: 'EMAIL', type: 'email' }, { label: 'Email me updates', token: 'EMAIL ME UPDATES', type: 'checkbox' }, { label: 'Preferred email frequency', token: 'PREFERRED EMAIL FREQUENCY', type: 'select' }, { label: 'Work contact', token: 'WORK CONTACT', type: 'email' }] };
+  it('finds the email fields of a List Builder', () => {
+    expect([...declaredEmailKeys(lb)].sort()).toEqual(['EMAIL', 'WORK CONTACT']);
+  });
+  it('finds the email fields of a Lead Generator clip (label keys, duplicates numbered)', () => {
+    const lg = { fields: [{ id: 'a', type: 'email', label: 'Email' }, { id: 'b', type: 'email', label: 'Email' }, { id: 'c', type: 'checkbox', label: 'Email me updates' }] };
+    expect([...declaredEmailKeys(lg)].sort()).toEqual(['EMAIL', 'EMAIL_2']);
+  });
+  it('is null when the field types are not known, so the name check still applies', () => {
+    expect(declaredEmailKeys(null)).toBeNull(); expect(declaredEmailKeys({})).toBeNull();
+  });
+  it('a checkbox or dropdown whose label mentions email is not rejected', () => {
+    const emailKeys = declaredEmailKeys(lb);
+    const data = { EMAIL: 'ann@x.co', 'EMAIL ME UPDATES': 'Yes', 'PREFERRED EMAIL FREQUENCY': 'Weekly' };
+    expect(emailProblem(data, { emailKeys })).toBe('');
+    expect(emailProblem(data)).toMatch(/valid email/i); // the old name check would have rejected it
+  });
+  it('still rejects a bad real email, and throwaway ones when switched on', () => {
+    const emailKeys = declaredEmailKeys(lb);
+    expect(emailProblem({ EMAIL: 'nope', 'EMAIL ME UPDATES': 'Yes' }, { emailKeys })).toMatch(/valid email/i);
+    expect(emailProblem({ 'WORK CONTACT': 'x@mailinator.com' }, { emailKeys, blockDisposable: true })).toMatch(/permanent/i);
+    expect(emailProblem({ EMAIL: 'x@mailinator.com' }, { emailKeys })).toBe('');
+  });
+  it('a form with no email field accepts whatever the other fields say', () => {
+    expect(emailProblem({ NAME: 'Ann', 'EMAIL ME': 'Yes' }, { emailKeys: new Set() })).toBe('');
+  });
+});
+
+describe('lead-capture auto-reply reply-to', () => {
+  it('uses the owner\'s address, then the first notification address, then none', () => {
+    expect(autoReplyReplyTo({ autoReplyReplyTo: ' me@x.co ' }, ['n@x.co'])).toBe('me@x.co');
+    expect(autoReplyReplyTo({ autoReplyReplyTo: 'not an email' }, ['n@x.co'])).toBe('n@x.co');
+    expect(autoReplyReplyTo({}, ['n@x.co', 'm@x.co'])).toBe('n@x.co');
+    expect(autoReplyReplyTo({}, [])).toBe('');
+    expect(autoReplyReplyTo(null)).toBe('');
+    expect(autoReplyReplyTo({ autoReplyReplyTo: 'a@b.co\r\nBcc: x@y.co' }, [])).toBe(''); // no header injection
+  });
+});
+
+describe('lead-capture Teams Workflows alerts', () => {
+  const wf = 'https://prod-12.westus.logic.azure.com:443/workflows/abc123/triggers/manual/paths/invoke?api-version=2016-06-01&sig=x';
+  it('recognises Workflows URLs (and keeps the legacy connector)', () => {
+    expect(chatPreset(wf)).toBe('teams-workflow');
+    expect(chatPreset('https://default1234.12.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/abc/triggers/manual/paths/invoke')).toBe('teams-workflow');
+    expect(chatPreset('https://contoso.webhook.office.com/webhookb2/abc/IncomingWebhook/d/e')).toBe('teams');
+    for (const other of ['https://logic.azure.com.evil.com/workflows/abc', 'https://prod-1.logic.azure.com/other/path', 'http://prod-1.logic.azure.com/workflows/a']) expect(chatPreset(other)).toBeNull();
+  });
+  it('sends a message with an Adaptive Card, title first, one block per line, pings defused', () => {
+    const body = chatBody('teams-workflow', { title: 'New lead', lines: ['EMAIL: ann@x.co', 'NOTE: hi @everyone'] });
+    expect(body.type).toBe('message');
+    const card = body.attachments[0];
+    expect(card.contentType).toBe('application/vnd.microsoft.card.adaptive');
+    expect(card.content.type).toBe('AdaptiveCard');
+    expect(card.content.body.map((b) => b.text)).toEqual(['New lead', 'EMAIL: ann@x.co', 'NOTE: hi @\u200beveryone']);
+    expect(card.content.body[0].weight).toBe('Bolder');
   });
 });

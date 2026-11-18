@@ -331,6 +331,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   buttonsInner.className = 'buttons-inner';
   const submitButton = document.createElement('button');
   submitButton.type = 'submit';
+  submitButton.setAttribute('data-keep-fill', ''); // the creator chooses this button's colour; the app-wide outline-only rule must not strip it
   submitButton.textContent = config.btnText ?? 'Play';
   submitButton.dataset.editKey = 'btnText';
   Object.assign(submitButton.style, {

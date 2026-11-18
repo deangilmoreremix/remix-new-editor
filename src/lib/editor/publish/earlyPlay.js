@@ -43,8 +43,10 @@ export function captureEarlyPlay(container) {
       container.removeEventListener('keydown', onKey, true);
       const go = want;
       want = false;
-      show(); // clears the pending state; the player's own onChange takes over the UI
-      if (go) player.play();
+      // Clear only OUR pending state. The big-play button and control icon are left as the player already set them: a
+      // registration wall (List Builder) hides the big-play button, and showing it again here would cover the form.
+      stage?.removeAttribute('data-play-pending');
+      if (go) player.play(); // the player's own onChange then takes over the UI
       return go;
     },
   };
