@@ -1,6 +1,6 @@
 // [remix] Inspector for the selected overlay. The fields are drawn by the old editor's settings renderer (`renderAddonEditor`),
 // so Lead Generator / List Builder / CTA have the same Basic / Style / Fields / Integrations tabs as before.
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { OverlayClip } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS settings renderer from the main app
 import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
@@ -14,6 +14,8 @@ import { LottieEditSection } from './lottie-edit-section';
 import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 import { SavePresetRow } from './save-preset-row';
+import { contactImageServices, measureLogoFor } from '@cinegen/lib/personalize/contact-image-services';
+import { usePreviewContact } from '@cinegen/lib/personalize/preview-contact';
 import { OPEN_SPEECH_EVENT } from '@cinegen/lib/occ/smart-speech';
 import { importFontFile, loadUserFonts, userFontFamilies } from '@cinegen/lib/occ/user-fonts';
 import { CAPTION_FONT_FAMILIES } from '@cinegen/lib/occ/design-style';
@@ -89,6 +91,8 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
   const editorRef = useRef<{ setOptions?: (o: Record<string, unknown>) => void } | null>(null);
   // true while a change came from this panel itself (so its own echo doesn't redraw the form under the caret)
   const ownEdit = useRef(false);
+  const [note, setNote] = useState(''); // outcome of a picture action (saved to the contact, Video Ready ...)
+  const contact = usePreviewContact(); // the contact whose pictures the settings show
 
   useEffect(() => {
     if (!box.current || latest.current.type === 'mg-template' || latest.current.type === 'hyperframes') return;
@@ -99,6 +103,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       services: {
         tokens: (TOKEN_DEFS as Array<{ key: string; label: string }>).map((d) => [d.key, d.label]),
         // the same font import the captions have: the Font list then includes what was imported (stored in this browser)
+        ...contactImageServices({ notify: (m) => setNote(m) }), // Personalized Image: the contact's pictures, image finder, crop focus, Make Video Ready
         extraFonts: CAPTION_FONT_FAMILIES,
         userFonts: userFontFamilies,
         systemFonts: systemFontFamilies,
@@ -151,6 +156,10 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay]);
 
+  // the contact (or its pictures) changed: the picture buttons redraw; a logo gets measured once so "Backing: Auto" suits it
+  useEffect(() => { if (contact.version) editorRef.current?.setOptions?.(overlaySchema(latest.current).options); }, [contact.version]);
+  useEffect(() => { void measureLogoFor(contact.profile as never); }, [contact.profile]);
+
   const num = (v: string, fallback: number) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
   return (
     <aside className="clip-properties-panel addon-panel" style={{ overflow: 'auto' }}>
@@ -186,6 +195,12 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       </div>
       )}
       {isRegistryOverlay(overlay.type) && <SavePresetRow overlay={overlay} />}
+      {note && <p role="status" data-testid="overlay-note" style={{ fontSize: 11, margin: '0 12px 8px', color: 'var(--text-secondary)' }}>{note}</p>}
+      {overlay.type === 'overlay-personalized-image' && !contact.profiles.length && (
+        <p data-testid="no-contacts-hint" style={{ fontSize: 11, margin: '0 12px 8px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          No contacts yet, so this shows a grey placeholder. Make one with the <strong>Personalization</strong> button on the Overlays lane: their logo and photo then appear here, and each contact gets their own picture in the video.
+        </p>
+      )}
       {overlay.type === 'hyperframes' && <HfPlacementControls overlay={overlay} duration={duration} onUpdate={onUpdate} />}
       {overlay.type === 'mg-template' || overlay.type === 'hyperframes' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
       {overlay.type === 'overlay-sticker' && (overlay.addon as { kind?: string } | undefined)?.kind === 'lottie' && <LottieEditSection addon={overlay.addon as never} onChange={(next) => onUpdate({ addon: next })} />}

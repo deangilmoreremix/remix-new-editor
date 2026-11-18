@@ -27,7 +27,7 @@ import { beginInlineTextEdit } from '@cinegen/lib/overlays/inline-text-edit';
 import '../../../../styles/timeline-addons.css';
 import '../../../../styles/watch.css';
 
-interface Props { overlays: OverlayClip[]; currentTime: number; isPlaying: boolean; /** play animated add-ons (stickers, lottie, media) without making forms interactive: used by thumbnails */ previewPlaying?: boolean; onPause: () => void; /** play again once the form that held the video is submitted or skipped */ onResume?: () => void; /** click-to-edit text on the form while stopped: the option key and its new text */ onEditText?: (id: string, key: string, value: string) => void; onGeometry?: (id: string, geometry: Record<string, number>) => void; frame?: { width: number; height: number } }
+interface Props { overlays: OverlayClip[]; /** [remix] the contact being previewed (Smart Text tokens, Personalized Image); null = none */ profile?: Record<string, unknown> | null; /** changes whenever that contact's data changes, so the previews redraw */ profileVersion?: number; currentTime: number; isPlaying: boolean; /** play animated add-ons (stickers, lottie, media) without making forms interactive: used by thumbnails */ previewPlaying?: boolean; onPause: () => void; /** play again once the form that held the video is submitted or skipped */ onResume?: () => void; /** click-to-edit text on the form while stopped: the option key and its new text */ onEditText?: (id: string, key: string, value: string) => void; onGeometry?: (id: string, geometry: Record<string, number>) => void; frame?: { width: number; height: number } }
 
 const GATES = new Set(['lead-form', 'list-builder']);
 
@@ -77,7 +77,7 @@ function HfHandle({ overlay, frame, onGeometry }: { overlay: OverlayClip; frame:
   );
 }
 
-export function OverlayLayer({ overlays, currentTime, isPlaying, previewPlaying, onPause, onResume, onEditText, onGeometry, frame = { width: 1280, height: 720 } }: Props) {
+export function OverlayLayer({ overlays, profile = null, profileVersion = 0, currentTime, isPlaying, previewPlaying, onPause, onResume, onEditText, onGeometry, frame = { width: 1280, height: 720 } }: Props) {
   const currentTimeRef = useRef(currentTime); currentTimeRef.current = currentTime;
   const hostRef = useRef<HTMLDivElement>(null);
   const addonRef = useRef<HTMLDivElement>(null);
@@ -148,7 +148,7 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, previewPlaying,
   // drag / resize handles when selected, and the geometry is saved back (kept in % of the frame).
   // [remix] id -> animation of the add-ons shown last time: an overlay that has just appeared while playing, or whose animation was just changed, plays its In / Idle effect (as the old editor did)
   const lastAnimations = useRef(new Map<string, string>());
-  const addonSignature = active.filter((o) => isRegistryOverlay(o.type)).map((o) => `${o.id}:${JSON.stringify(o.addon)}:${selected === o.id}`).join('|');
+  const addonSignature = `${String(profile?.id ?? '')}#${profileVersion}|` + active.filter((o) => isRegistryOverlay(o.type)).map((o) => `${o.id}:${JSON.stringify(o.addon)}:${selected === o.id}`).join('|');
   useEffect(() => {
     const layer = addonRef.current;
     if (!layer) return;
@@ -158,7 +158,7 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, previewPlaying,
     const cleanups: Array<() => void> = [];
     const shown = new Map<string, string>();
     for (const o of active.filter((x) => isRegistryOverlay(x.type))) {
-      const el = buildOverlayElement(o, { editor: true }) as HTMLElement | null;
+      const el = buildOverlayElement(o, { editor: true, profile }) as HTMLElement | null;
       if (!el) continue;
       layer.appendChild(el);
       void finishOverlayElement(el, { playing: addonPlaying });
