@@ -11,6 +11,16 @@ interface FoundSource {
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
 
 /**
+ * A profile link only when `SocialIcons` will really render it. A bare handle is turned into a URL by
+ * `socialHref`, and that URL is checked again when the icon is drawn (share/login paths are refused), so a
+ * handle like `@login` (-> facebook.com/login) passes the first check but not the second.
+ */
+function usable(n: SocialNetwork, raw: string): string | null {
+  const href = socialHref(n, raw)
+  return href && socialHref(n, href) ? href : null
+}
+
+/**
  * Social profiles to show in the simple "Find your business" step: the links the website research found
  * (`research.socialLinks`), plus values the contact lookup found that the profile STILL holds (a value the
  * user typed over is never labelled as found). Only links `socialHref` accepts are returned (host allowlist,
@@ -26,13 +36,13 @@ export function foundSocialLinks(input: {
   const titles: Partial<Record<SocialNetwork, string>> = {}
   for (const n of NETWORKS) {
     const research = input.research?.socialLinks?.[n]
-    const researchHref = typeof research === 'string' ? socialHref(n, research) : null
+    const researchHref = typeof research === 'string' ? usable(n, research) : null
 
     const source = input.contactSources?.[n]
     const value = input.clientForm?.[n]
     const lookupHref =
       source && typeof source.value === 'string' && typeof value === 'string' && value && same(value, source.value)
-        ? socialHref(n, value)
+        ? usable(n, value)
         : null
 
     if (lookupHref) {
