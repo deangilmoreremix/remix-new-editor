@@ -8,7 +8,8 @@ import { FONT_OPTIONS, fontStack } from './fontChoices.js';
 import { ICON_KEYS } from '../siteIcons.js';
 import { PUCK_TEMPLATES } from './designs.js';
 import { slotFields, SLOT_DEFAULTS } from './slotFields.js';
-import { ThanksContext } from './context.js';
+import { ThanksContext, FormSettingsContext } from './context.js';
+import { choicesField } from './choicesField.jsx';
 
 // Designs may ship extra components (puck/extensions/NN-name.jsx exporting `components`), merged in automatically.
 const EXT = Object.entries(import.meta.glob('./extensions/*.jsx', { eager: true })).sort(([a], [b]) => a.localeCompare(b)).map(([, m]) => m);
@@ -20,7 +21,7 @@ const iconField = { type: 'select', label: 'Icon', options: [{ label: 'None', va
 const cols = { type: 'select', label: 'Width (grid columns)', options: [1, 2, 3, 4, 5, 6].map((n) => ({ label: `${n}`, value: n })) };
 const buttonArray = { type: 'array', label: 'Buttons', arrayFields: { label: T('Text'), url: T('Link (https, mailto: or tel:)'), style: { type: 'radio', label: 'Style', options: [{ label: 'Primary', value: 'primary' }, { label: 'Secondary', value: 'secondary' }] } }, getItemSummary: (i) => i.label || 'Button', defaultItemProps: { label: 'Button', url: '', style: 'secondary' } };
 const linkArray = (label) => ({ type: 'array', label, arrayFields: { label: T('Text'), url: T('Link (optional)') }, getItemSummary: (i) => i.label || 'Link', defaultItemProps: { label: 'Link', url: '' } });
-const formFieldArray = { type: 'array', label: 'Form fields', arrayFields: { key: T('Field name (a-z)'), label: T('Label / placeholder'), type: { type: 'select', label: 'Type', options: ['text', 'email', 'tel', 'textarea', 'select'].map((v) => ({ label: v === 'select' ? 'dropdown' : v, value: v })) }, options: T('Dropdown choices (comma separated)'), required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, getItemSummary: (i) => i.label || 'Field', defaultItemProps: { key: 'name', label: 'Name', type: 'text', required: true } };
+const formFieldArray = { type: 'array', label: 'Form fields', arrayFields: { key: T('Field name (a-z)'), label: T('Label / placeholder'), type: { type: 'select', label: 'Type', options: ['text', 'email', 'tel', 'number', 'date', 'textarea', 'select'].map((v) => ({ label: v === 'select' ? 'dropdown' : v === 'tel' ? 'phone' : v, value: v })) }, options: choicesField('Dropdown choices'), placeholder: T('Placeholder (shown before a choice is picked)'), required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, getItemSummary: (i) => i.label || 'Field', defaultItemProps: { key: 'name', label: 'Name', type: 'text', required: true } };
 
 const HERO_FIELDS = [{ key: 'name', label: 'Your Name', type: 'text', required: true }, { key: 'email', label: 'Your Email', type: 'email', required: true }, { key: 'company', label: 'Your Company', type: 'text', required: false }];
 
@@ -35,10 +36,12 @@ export const puckConfig = {
       headingFont: { type: 'select', label: 'Heading font', options: FONT_OPTIONS },
       bodyFont: { type: 'select', label: 'Body font', options: FONT_OPTIONS },
       thanks: T('Thank-you message after an email sign-up'),
+      afterSubmit: { type: 'radio', label: 'After a form is sent', options: [{ label: 'Show the thank-you message', value: 'message' }, { label: 'Open another page (https link)', value: 'redirect' }] },
+      afterSubmitUrl: T('Page to open after a form is sent (https link)'),
       greeting: T('Greeting strip shown only on a personal link (e.g. "A personal video for {{firstname|you}}"; empty = none)'),
     },
-    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '', thanks: 'Thanks! Check your inbox.', greeting: '' },
-    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont, thanks, greeting }) => {
+    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '', thanks: 'Thanks! Check your inbox.', greeting: '', afterSubmit: 'message', afterSubmitUrl: '' },
+    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont, thanks, greeting, afterSubmit, afterSubmitUrl }) => {
       const ok = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? v : d);
       const acc = ok(accent, '#2563eb');
       // Button text: white on dark accents, near-black on light ones, so every accent stays readable.
@@ -49,7 +52,7 @@ export const puckConfig = {
       const fh = fontStack(headingFont); const fb = fontStack(bodyFont);
       if (fh) style['--pk-fh'] = fh;
       if (fb) style['--pk-fb'] = fb;
-      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}><ThanksContext.Provider value={thanks || 'Thanks! Check your inbox.'}><C.LeadAnchorFallback /><C.PersonalGreeting text={greeting} />{children}</ThanksContext.Provider></div>;
+      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}><ThanksContext.Provider value={thanks || 'Thanks! Check your inbox.'}><FormSettingsContext.Provider value={{ action: afterSubmit === 'redirect' ? 'redirect' : 'message', url: afterSubmitUrl || '' }}><C.LeadAnchorFallback /><C.PersonalGreeting text={greeting} />{children}</FormSettingsContext.Provider></ThanksContext.Provider></div>;
     },
   },
   categories: {

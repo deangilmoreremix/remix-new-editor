@@ -7,3 +7,7 @@ export const usePage = () => useContext(PageContext);
 /** The message shown after a visitor signs up with an email box (edited on the page settings, "Thank-you message"). */
 export const ThanksContext = createContext('Thanks! Check your inbox.');
 export const useThanks = () => useContext(ThanksContext);
+
+/** What happens after a form is sent: the thank-you message (default) or a redirect to an https page. Set on the page settings. */
+export const FormSettingsContext = createContext({ action: 'message', url: '' });
+export const useFormSettings = () => useContext(FormSettingsContext);

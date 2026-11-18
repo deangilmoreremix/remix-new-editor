@@ -3,9 +3,10 @@
  * (escaped), links/images go through safeUrl/safeImageUrl, and the video / lead form keep the same tracking
  * events and token rules as the classic renderer.
  */
+import { parseChoices } from './choicesField.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { fillTokens, splitAccent, prefillFor, safeUrl, safeImageUrl } from '../templates.js';
-import { usePage, useThanks } from './context.js';
+import { usePage, useThanks, useFormSettings } from './context.js';
 import { ICON_PATHS } from '../siteIcons.js';
 
 const MARKS = [{ at: 0.25, kind: 'progress_25' }, { at: 0.5, kind: 'progress_50' }, { at: 0.75, kind: 'progress_75' }];
@@ -102,6 +103,7 @@ export function LeadForm({ title, subtitle, submitLabel = 'Send', successMessage
   const { handlers, preview, tokens } = usePage();
   const t = useTokens();
   const [state, setState] = useState({ status: 'idle', error: '' });
+  const form = useFormSettings();
   if (state.status === 'done') return <div className="pk-form pk-form--done"><p className="pk-thanks">{t(successMessage) || 'Thanks!'}</p></div>;
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -111,7 +113,11 @@ export function LeadForm({ title, subtitle, submitLabel = 'Send', successMessage
     setState({ status: 'sending', error: '' });
     const res = await (handlers.onLead?.(data) ?? { error: 'Form is not available' });
     if (res?.error) setState({ status: 'idle', error: 'Could not send. Please try again.' });
-    else setState({ status: 'done', error: '' });
+    else {
+      setState({ status: 'done', error: '' });
+      const go = form.action === 'redirect' ? safeUrl(form.url) : '';
+      if (go && /^https:/i.test(go)) setTimeout(() => { try { window.location.assign(go); } catch { /* the thank-you message stays */ } }, 1500);
+    }
   };
   return (
     <form className="pk-form" onSubmit={onSubmit}>
@@ -124,12 +130,12 @@ export function LeadForm({ title, subtitle, submitLabel = 'Send', successMessage
             ? (
               <select name={f.key} required={!!f.required} defaultValue="">
                 <option value="" disabled>{t(f.placeholder || f.label)}</option>
-                {String(f.options || '').split(',').map((o) => o.trim()).filter(Boolean).map((o) => <option key={o} value={o}>{o}</option>)}
+                {parseChoices(f.options).map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
             )
             : f.type === 'textarea'
             ? <textarea name={f.key} rows={3} required={!!f.required} placeholder={t(f.placeholder || f.label)} defaultValue={prefillFor(f.key, tokens) || ''} maxLength={2000} />
-            : <input name={f.key} type={['text', 'email', 'tel'].includes(f.type) ? f.type : 'text'} required={!!f.required} placeholder={t(f.placeholder || f.label)} defaultValue={prefillFor(f.key, tokens) || ''} maxLength={2000} />}
+            : <input name={f.key} type={['text', 'email', 'tel', 'number', 'date'].includes(f.type) ? f.type : 'text'} required={!!f.required} placeholder={t(f.placeholder || f.label)} defaultValue={prefillFor(f.key, tokens) || ''} maxLength={2000} />}
         </label>
       ))}
       <button type="submit" className="pk-btn pk-btn--primary" disabled={state.status === 'sending'}>{t(submitLabel)}</button>
