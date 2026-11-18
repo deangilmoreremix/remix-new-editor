@@ -70,8 +70,8 @@ export function SpeedCurveEditor({ sourceSeconds, initial, initialSteps, note, o
       </select>
       <svg ref={svg} viewBox={`0 0 ${W} ${H}`} width="100%" data-testid="speed-curve-svg" style={{ background: 'rgba(0,0,0,.25)', borderRadius: 6, touchAction: 'none', display: 'block' }} onDoubleClick={addPoint}>
         {[0.25, 0.5, 1, 2, 4, 8].map((s) => <g key={s}><line x1={PAD} x2={W - PAD} y1={py(s)} y2={py(s)} stroke={s === 1 ? 'rgba(255,255,255,.3)' : 'rgba(255,255,255,.1)'} /><text x={W - PAD} y={py(s) - 2} fontSize={8} textAnchor="end" fill="rgba(255,255,255,.5)">{s}x</text></g>)}
-        <polyline points={line} fill="none" stroke="#22d3ee" strokeWidth={2} data-testid="speed-curve-path" />
-        {pts.map((p, i) => <circle key={i} cx={px(p.at)} cy={py(p.speed)} r={sel === i ? 7 : 5.5} fill={sel === i ? '#f59e0b' : '#22d3ee'} stroke="#000" style={{ cursor: 'grab' }} data-testid={`speed-point-${i}`} onPointerDown={dragPoint(i)} onDoubleClick={(e) => { e.stopPropagation(); removePoint(i); }} />)}
+        <polyline points={line} fill="none" stroke="#d9ff00" strokeWidth={2} data-testid="speed-curve-path" />
+        {pts.map((p, i) => <circle key={i} cx={px(p.at)} cy={py(p.speed)} r={sel === i ? 7 : 5.5} fill={sel === i ? '#f59e0b' : '#d9ff00'} stroke="#000" style={{ cursor: 'grab' }} data-testid={`speed-point-${i}`} onPointerDown={dragPoint(i)} onDoubleClick={(e) => { e.stopPropagation(); removePoint(i); }} />)}
       </svg>
       <div style={{ opacity: 0.7, margin: '4px 0' }}>Double-click the graph to add a point, double-click a point to remove it. Horizontal = position in the clip, vertical = speed.</div>
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>

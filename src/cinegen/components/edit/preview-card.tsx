@@ -15,7 +15,7 @@ export const CARD_CSS = [
   '.add-card:hover{border-color:var(--accent)!important}',
   '.add-card [data-preview-stage],.add-card [data-preview-stage] *{pointer-events:none!important}',
   // the "+" on every card, with a tooltip that shows at once on hover and keyboard focus
-  '.add-card-plus{position:absolute;top:20px;right:20px;z-index:25;width:30px;height:30px;border-radius:999px;border:0;background:var(--accent,#22d3ee);color:#04121a;font-size:20px;font-weight:700;line-height:1;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.45);transition:transform .12s}',
+  '.add-card-plus{position:absolute;top:20px;right:20px;z-index:25;width:30px;height:30px;border-radius:999px;border:1px solid rgba(217,255,0,.45);background:rgba(10,12,16,.7);color:var(--accent,#d9ff00);font-size:20px;font-weight:700;line-height:1;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.45);transition:transform .12s}',
   '.add-card-plus:hover,.add-card-plus:focus-visible{transform:scale(1.12)}',
   '.add-card-plus::after{content:attr(data-tip);position:absolute;top:calc(100% + 6px);right:0;white-space:nowrap;background:#000;color:#fff;font-size:11px;font-weight:600;line-height:1;padding:6px 8px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .12s}',
   '.add-card-plus:hover::after,.add-card-plus:focus-visible::after{opacity:1}',

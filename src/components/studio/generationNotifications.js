@@ -67,7 +67,7 @@ function card(c) {
     const edit = document.createElement('button');
     edit.type = 'button';
     edit.dataset.action = 'edit-in-workbench';
-    edit.className = 'text-xs font-bold shrink-0 self-center rounded-lg bg-black text-primary px-2 py-1';
+    edit.className = 'text-xs font-bold shrink-0 self-center rounded-lg bg-transparent text-black border border-black/60 hover:bg-black/10 px-2 py-1 transition-colors';
     edit.textContent = 'Edit in Workbench';
     edit.onclick = () => { dismiss(c.id); openInWorkbench([c.workbench], { navigate: navigateFn || undefined }); };
     el.appendChild(edit);

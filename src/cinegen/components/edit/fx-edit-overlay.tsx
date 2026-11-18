@@ -22,7 +22,7 @@ export function frameRect(v: Pick<View, 'cw' | 'ch' | 'aspect' | 'fit'>): { x: n
 }
 
 const HANDLE = 5.5;
-const col = { path: '#22d3ee', pt: '#ffffff', sel: '#facc15', handle: '#f472b6', quad: '#22d3ee' };
+const col = { path: '#d9ff00', pt: '#ffffff', sel: '#facc15', handle: '#f472b6', quad: '#d9ff00' };
 
 export function FxEditOverlay({ canvasRef, clipId }: { canvasRef: RefObject<HTMLCanvasElement | null>; clipId?: string | null }) {
   const { session, tool, selected } = useFxEdit();
@@ -161,7 +161,7 @@ export function FxEditOverlay({ canvasRef, clipId }: { canvasRef: RefObject<HTML
       <rect x={fr.x} y={fr.y} width={fr.w} height={fr.h} fill="none" stroke="rgba(255,255,255,.25)" strokeDasharray="4 4" pointerEvents="none" />
       {kind === 'cornerpin' && (
         <>
-          <path data-quad="1" d={toD(quad, true)} fill="rgba(34,211,238,.08)" stroke={col.quad} strokeWidth={1.5} style={{ pointerEvents: 'all', cursor: 'move' }} />
+          <path data-quad="1" d={toD(quad, true)} fill="rgba(217,255,0,.08)" stroke={col.quad} strokeWidth={1.5} style={{ pointerEvents: 'all', cursor: 'move' }} />
           {quad.map((q, i) => { const [x, y] = toSvg(q[0], q[1]); return (
             <g key={i} style={{ pointerEvents: 'all', cursor: 'move' }}>
               <circle data-corner={i} data-testid={`corner-${i}`} cx={x} cy={y} r={HANDLE + 1.5} fill={col.pt} stroke={col.quad} strokeWidth={2} />
@@ -170,7 +170,7 @@ export function FxEditOverlay({ canvasRef, clipId }: { canvasRef: RefObject<HTML
       )}
       {kind === 'mask' && (
         <>
-          {poly.length > 1 && <path d={toD(poly, path.length >= 3)} fill={path.length >= 3 ? 'rgba(34,211,238,.10)' : 'none'} stroke={col.path} strokeWidth={1.5} pointerEvents="none" />}
+          {poly.length > 1 && <path d={toD(poly, path.length >= 3)} fill={path.length >= 3 ? 'rgba(217,255,0,.10)' : 'none'} stroke={col.path} strokeWidth={1.5} pointerEvents="none" />}
           {poly.length > 1 && <path d={toD(poly, path.length >= 3)} fill="none" stroke="transparent" strokeWidth={10} style={{ pointerEvents: tool === 'edit' ? 'stroke' : 'none' }} />}
           {selected >= 0 && path[selected] && (() => {
             const a = path[selected];

@@ -27,7 +27,7 @@ export function Dopesheet({ anim, duration, time, selected, onSelect, onMove, on
               const on = selected?.prop === prop && selected.index === i;
               return (
                 <button key={i} type="button" data-testid={`dopesheet-key-${prop}-${i}`} aria-label={`${labelOf(prop)} key ${i + 1} at ${k.t.toFixed(2)}s`} aria-pressed={on}
-                  style={{ position: 'absolute', left: `${(k.t / dur) * 100}%`, top: 2, width: 11, height: 11, marginLeft: -5, padding: 0, border: 0, transform: 'rotate(45deg)', background: on ? '#22d3ee' : k.ease === 'hold' ? '#a3a3a3' : '#f59e0b', cursor: 'grab' }}
+                  style={{ position: 'absolute', left: `${(k.t / dur) * 100}%`, top: 2, width: 11, height: 11, marginLeft: -5, padding: 0, border: 0, transform: 'rotate(45deg)', background: on ? '#d9ff00' : k.ease === 'hold' ? '#a3a3a3' : '#f59e0b', cursor: 'grab' }}
                   onPointerDown={(e) => {
                     e.stopPropagation(); onSelect({ prop, index: i }); onSeek(k.t);
                     const row = e.currentTarget.parentElement as HTMLElement; let moved = false; let idx = i;
