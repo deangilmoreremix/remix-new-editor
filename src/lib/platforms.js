@@ -67,3 +67,14 @@ export const PLATFORMS = [
     copy: { headlineMaxWords: 5, bodyMaxWords: 0, ctaMaxWords: 2, tone: 'bold, clickable', imageHint: 'high-contrast, expressive face' },
   },
 ];
+
+// The model names platforms loosely ("instagram", "banner", "youtube_thumb", or our own ids).
+const FAMILY = (id) => id.split('-')[0]; // instagram-feed / instagram-story -> instagram
+const ALIASES = { banner: 'web-banner', web_banner: 'web-banner', 'youtube-thumb': 'youtube', youtube_thumb: 'youtube', 'email-banner': 'email', x: 'twitter' };
+
+/** True when a concept's `recommended_platforms` names this platform (by id, by family, or by a known alias). */
+export function isRecommendedPlatform(platform, recommended) {
+  const norm = (v) => String(v || '').trim().toLowerCase().replace(/_/g, '-');
+  const wanted = new Set((recommended || []).map((r) => ALIASES[norm(r)] || ALIASES[String(r).trim().toLowerCase()] || norm(r)));
+  return wanted.has(platform.id) || wanted.has(FAMILY(platform.id));
+}

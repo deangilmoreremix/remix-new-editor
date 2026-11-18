@@ -3,7 +3,7 @@
 // Follows the exact pattern of existing studios (vanilla DOM + mountStudioChrome).
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { listBrands, savePhotoshoot, resolveBrandId } from '../lib/brandStore.js';
+import { listBrands, savePhotoshoot, listPhotoshoots, resolveBrandId } from '../lib/brandStore.js';
 import { navigate } from '../lib/brandNavigation.js';
 import { PHOTO_CATEGORIES, findStyle, generateProductPhoto } from '../lib/photoStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -84,14 +84,22 @@ export function PhotoStudioPage() {
   if (brands.length > 0) {
     const brandSelect = document.createElement('select');
     brandSelect.className = 'bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
-    brandSelect.innerHTML = `
-      <option value="">No brand logo</option>
-      ${brands.map(b => `<option value="${b.id}" ${b.id === selectedBrand?.id ? 'selected' : ''}>${b.brandName}</option>`).join('')}
-    `;
+    const none = document.createElement('option');
+    none.value = '';
+    none.textContent = 'No brand logo';
+    brandSelect.appendChild(none);
+    brands.forEach((b) => {
+      const o = document.createElement('option');
+      o.value = b.id;
+      o.textContent = b.brandName; // scraped text: set as text, not markup
+      o.selected = b.id === selectedBrand?.id;
+      brandSelect.appendChild(o);
+    });
     brandSelect.onchange = () => {
       const b = brands.find(x => x.id === brandSelect.value);
       selectedBrand = b || null; // generation and saved photoshoots follow the dropdown
       state.logoUrl = b?.logoUrl || null;
+      renderHistory();
     };
     uploadRow.appendChild(brandSelect);
   }
@@ -469,15 +477,74 @@ export function PhotoStudioPage() {
   resultSection.id = 'photo-result';
   root.appendChild(resultSection);
 
+  // ---- Recent photoshoots for the selected brand (what the brand has made before) ----
+  const historySection = document.createElement('div');
+  historySection.className = 'mb-8';
+  historySection.dataset.photoHistory = '';
+  root.appendChild(historySection);
+
   container.appendChild(root);
+  renderHistory();
 
   function renderSelectors() {
     selectorRow.innerHTML = '';
     selectorRow.appendChild(createPresetPicker());
   }
 
+  // Animate Studio reads this key on load and clears it. A plain /animate href would reload the SPA at the root.
+  function animateFrom(imageUrl, source = {}) {
+    if (!imageUrl) return;
+    try { sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl, ...source })); } catch { /* storage unavailable */ }
+    navigate('animate', selectedBrand ? { brandId: selectedBrand.id } : {});
+  }
+
+  function renderHistory() {
+    historySection.innerHTML = '';
+    const shown = new Set(state.results.map((r) => r.id));
+    const past = selectedBrand ? listPhotoshoots(selectedBrand.id).filter((p) => p.imageUrl && !shown.has(p.id)).slice(0, 12) : [];
+    if (past.length === 0) return;
+    const title = document.createElement('div');
+    title.className = 'text-xs font-bold text-secondary uppercase tracking-wider mb-3';
+    title.textContent = 'Recent photoshoots';
+    historySection.appendChild(title);
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3';
+    past.forEach((p) => {
+      const card = document.createElement('div');
+      card.dataset.photoshootId = p.id;
+      card.className = 'bg-[#111]/90 border border-white/10 rounded-xl overflow-hidden';
+      card.appendChild(createSafeImage(p.imageUrl, p.styleLabel || 'Photoshoot', 'w-full h-32 object-cover'));
+      const body = document.createElement('div');
+      body.className = 'p-2 flex flex-col gap-1';
+      const label = document.createElement('div');
+      label.className = 'text-[10px] font-bold text-white truncate';
+      label.textContent = `${p.styleLabel || p.styleId || 'Photo'}${p.aspect ? ` · ${p.aspect}` : ''}`;
+      const actions = document.createElement('div');
+      actions.className = 'flex gap-1';
+      const open = document.createElement('a');
+      open.href = p.imageUrl;
+      open.target = '_blank';
+      open.rel = 'noreferrer noopener';
+      open.className = 'btn-secondary-modern text-[10px] flex-1 text-center';
+      open.textContent = 'Open';
+      const anim = document.createElement('button');
+      anim.type = 'button';
+      anim.className = 'btn-secondary-modern text-[10px] flex-1';
+      anim.textContent = 'Animate';
+      anim.onclick = () => animateFrom(p.imageUrl, { sourceType: 'photoshoot', sourceId: p.id });
+      actions.appendChild(open);
+      actions.appendChild(anim);
+      body.appendChild(label);
+      body.appendChild(actions);
+      card.appendChild(body);
+      grid.appendChild(card);
+    });
+    historySection.appendChild(grid);
+  }
+
   function renderResults() {
     resultSection.innerHTML = '';
+    renderHistory();
 
     state.results.forEach((result, idx) => {
       const card = document.createElement('div');
@@ -492,11 +559,12 @@ export function PhotoStudioPage() {
       meta.className = 'p-4 flex items-center justify-between';
       meta.innerHTML = `
         <div>
-          <div class="text-xs font-bold text-white">${result.styleLabel || result.styleId} · ${result.category}</div>
-          <div class="text-[10px] text-muted uppercase tracking-wider">${result.aspect} · ${result.resolution || state.resolution}</div>
+          <div class="text-xs font-bold text-white">${escapeHtml(result.styleLabel || result.styleId)} · ${escapeHtml(result.category)}</div>
+          <div class="text-[10px] text-muted uppercase tracking-wider">${escapeHtml(result.aspect)} · ${escapeHtml(result.resolution || state.resolution)}</div>
         </div>
         <div class="flex gap-2">
-          <a href="${result.imageUrl}" download class="btn-secondary-modern text-xs">Download</a>
+          <a href="${escapeHtml(result.imageUrl)}" target="_blank" rel="noreferrer noopener" data-photo-open class="btn-secondary-modern text-xs">Open</a>
+          <a href="${escapeHtml(result.imageUrl)}" download class="btn-secondary-modern text-xs">Download</a>
           <button type="button" data-photo-personalize class="btn-secondary-modern text-xs" aria-haspopup="dialog">Personalize</button>
           <button type="button" data-photo-animate class="btn-primary-modern text-xs">Animate →</button>
         </div>
@@ -505,11 +573,7 @@ export function PhotoStudioPage() {
       // A plain /animate href would reload the SPA at the root and never reach #/animate.
       const animateBtn = meta.querySelector('[data-photo-animate]');
       if (animateBtn) {
-        animateBtn.addEventListener('click', () => {
-          if (!result.imageUrl) return;
-          try { sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: result.imageUrl })); } catch { /* storage unavailable */ }
-          navigate('animate');
-        });
+        animateBtn.addEventListener('click', () => animateFrom(result.imageUrl, { sourceType: 'photoshoot', sourceId: result.id }));
       }
       // Personalize (OpenHiggsBolt photo-studio page): this photo, 1:1.
       const personalizeBtn = meta.querySelector('[data-photo-personalize]');

@@ -98,7 +98,7 @@ describe('Photo Studio', () => {
     expect(src).not.toMatch(/href="\/animate/);
     expect(src).toContain('data-photo-animate');
     expect(src).toContain("sessionStorage.setItem('storyboard_animate_frame'");
-    expect(src).toContain("navigate('animate')");
+    expect(src).toMatch(/navigate\('animate'/); // with the brand: navigate('animate', { brandId })
   });
   it('the Animate hand-off key is the one Animate Studio reads', () => {
     expect(fs.readFileSync('src/components/AnimatePage.js', 'utf8')).toContain("sessionStorage.getItem('storyboard_animate_frame')");

@@ -113,7 +113,10 @@ const concepts = { concepts: [1, 2, 3, 4, 5].map((i) => ({ title: `Concept ${i}`
   const chips = page.locator('button.px-3.py-1\\.5');
   const nChips = await chips.count();
   ok('4. 8 platform formats offered', nChips >= 8, String(nChips));
-  for (let i = 0; i < 8; i++) await chips.nth(i).click();
+  // The concept recommended instagram-feed, so it starts ticked (upstream behaviour); tick the other seven.
+  ok('4. recommended platform is pre-ticked, with a live count and "Generate N" label', (await page.locator('button[data-platform="instagram-feed"].bg-primary').count()) === 1 && (await page.locator('[data-selected-count]').innerText()) === '1 selected' && (await page.locator('button[data-action="generate-assets"]').innerText()) === 'Generate 1');
+  for (let i = 0; i < 8; i++) { if (!(await chips.nth(i).evaluate((e) => e.className.includes('bg-primary')))) await chips.nth(i).click(); }
+  ok('4. ticking the rest updates the label to Generate 8', (await page.locator('button[data-action="generate-assets"]').innerText()) === 'Generate 8');
   const imgCallsBefore = calls.muapi.filter((c) => /nano-banana/.test(c.endpoint)).length;
   await page.click('button[data-action="generate-assets"]');
   await page.waitForSelector('[data-asset-edit]', { timeout: 90000 });
@@ -133,6 +136,7 @@ const concepts = { concepts: [1, 2, 3, 4, 5].map((i) => ({ title: `Concept ${i}`
   // ===== 5. Canvas editor =====
   await page.locator('[data-asset-edit]').nth(1).click();
   await page.waitForSelector('#asset-canvas', { timeout: 30000 });
+  const editorUrl = page.url();
   ok('5. editor loads the asset (headline on canvas)', (await page.locator('[data-block="headline"]').textContent()).length > 3);
   ok('5. 9 position buttons', (await page.locator('[data-choice^="top-"],[data-choice^="middle-"],[data-choice^="bottom-"]').count()) === 9);
   const box0 = await page.locator('[data-block="headline"]').boundingBox();
@@ -161,7 +165,8 @@ const concepts = { concepts: [1, 2, 3, 4, 5].map((i) => ({ title: `Concept ${i}`
   await chooser.setFiles({ name: 'mine.png', mimeType: 'image/png', buffer: PNG });
   await page.waitForFunction(() => document.querySelector('#asset-canvas img')?.getAttribute('src')?.includes('cdn.test/upload-'), null, { timeout: 30000 });
   ok('5. "Upload image" hosts the file and shows it', true);
-  const editedId = storedAssets[1].id;
+  // Assets finish in a different order each run, so take the id of the asset the editor actually opened.
+  const editedId = new URL(editorUrl).searchParams.get('id');
   await page.click('[data-action="save"]');
   const after = await page.evaluate((id) => JSON.parse(localStorage.getItem('brand_assets')).find((a) => a.id === id), editedId);
   ok('5. save persists text + position + uploaded image', after.headline === 'Edited headline' && after.layout.headline.position === 'top-right' && after.layout.headline.size === 'small' && after.imageUrl.includes('upload-'), JSON.stringify({ h: after.headline, p: after.layout.headline.position, i: after.imageUrl }));
@@ -185,7 +190,8 @@ const concepts = { concepts: [1, 2, 3, 4, 5].map((i) => ({ title: `Concept ${i}`
   await page.locator('[data-asset-animate]').first().click();
   await page.waitForSelector('textarea', { timeout: 30000 });
   await page.waitForTimeout(500);
-  ok('7. Animate opens with the asset image + asset motion prompt', /push-in toward the focal subject/.test(await page.locator('textarea').first().inputValue()) && (await page.locator('img[alt="Source image"]').count()) === 1);
+  { const prompt = await page.locator('textarea').first().inputValue(); const imgs = await page.locator('img[alt="Source image"]').count();
+    ok('7. Animate opens with the asset image + asset motion prompt', /push-in toward the focal subject/.test(prompt) && imgs === 1, `url=${page.url()} imgs=${imgs} prompt=${prompt.slice(0, 40)}`); }
   await page.selectOption('select:has(option:has-text("720p"))', '720p').catch(() => {});
   await page.click('button:text-is("Animate")');
   await page.waitForSelector('video', { timeout: 60000 });
@@ -223,12 +229,20 @@ const concepts = { concepts: [1, 2, 3, 4, 5].map((i) => ({ title: `Concept ${i}`
   ok('8. photoshoots saved to the brand', shoots.length === 3 && shoots.every((p) => p.brandId));
   await page.screenshot({ path: shot('photo-results.png'), fullPage: true });
 
+  ok('8. generated shots also appear under "Recent photoshoots" after a reload', await (async () => { await page.reload({ waitUntil: 'domcontentloaded' }); await page.waitForSelector('[data-photo-preset]', { timeout: 60000 }); return (await page.locator('[data-photoshoot-id]').count()) >= 3 && (await page.locator('[data-photoshoot-id] a:has-text("Open")').first().getAttribute('target')) === '_blank'; })());
   // ===== 9. Animate from a Photo Studio shot =====
   await page.goto(BASE + '/?brandId=' + saved.id + '#/animate', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('button:has-text("From Photo Studio")', { timeout: 60000 });
   await page.click('button:has-text("From Photo Studio")');
   await page.locator('select:has(option:has-text("Select a photoshoot"))').selectOption({ index: 1 });
   ok('9. photoshoot source picks the shot + photoshoot motion prompt', /Slow rotational camera move/.test(await page.locator('aside textarea, textarea').first().inputValue()));
+  const slider = page.locator('[data-duration-slider]');
+  await slider.fill('9');
+  ok('9. duration is a 3-12 s slider', (await page.locator('[data-duration-value]').innerText()) === '9s');
+  const firstShot = (await page.evaluate(() => JSON.parse(localStorage.getItem('brand_photoshoots'))[0])).imageUrl;
+  await page.goto(BASE + '/?brandId=' + saved.id + '&image=' + encodeURIComponent(firstShot) + '&sourceType=photoshoot#/animate', { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('img[alt="Source image"]', { timeout: 60000 });
+  ok('9. /animate?image=&sourceType=photoshoot deep link preloads the shot and prompt', (await page.locator('img[alt="Source image"]').getAttribute('src')) === firstShot && /Slow rotational camera move/.test(await page.locator('textarea').first().inputValue()));
   await page.click('button:has-text("From campaign asset")');
   ok('9. campaign-asset source lists this brand\'s assets', (await page.locator('select[data-asset-source] option').count()) === 9);
 

@@ -7,7 +7,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { getBrand, resolveBrandId, rememberBrandId, saveCampaign, saveAsset } from '../lib/brandStore.js';
 import { CAMPAIGN_GOALS, generateCampaignConcepts, generateAssetForConcept } from '../lib/campaignGenerator.js';
 import { generateId } from '../lib/brandStore.js';
-import { PLATFORMS } from '../lib/platforms.js';
+import { PLATFORMS, isRecommendedPlatform } from '../lib/platforms.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
 import { saveGeneration } from '../lib/generationHistory.js';
@@ -286,9 +286,8 @@ export function CampaignWizard(params = {}) {
       showToast(state.error, 'error');
     } finally {
       state.loading = false;
-      assetHeader.querySelector('button[data-action="generate-assets"]').disabled = false;
-      assetHeader.querySelector('button[data-action="generate-assets"]').textContent = 'Generate Assets';
       overlay.remove();
+      updateGenerateLabel(); // "Generate N" again, disabled when nothing is ticked
     }
   };
 
@@ -297,16 +296,19 @@ export function CampaignWizard(params = {}) {
     state.concepts.forEach((concept, idx) => {
       const card = document.createElement('div');
       card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-5 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
+      const row = (label, value, valueCls = 'text-secondary') => (value
+        ? `<div class="text-[10px] text-muted uppercase tracking-wider mb-1">${label}</div><div class="text-xs ${valueCls} mb-3">${escapeHtml(value)}</div>`
+        : '');
       card.innerHTML = `
         <div class="flex items-start justify-between mb-2">
-          <div class="text-sm font-bold text-white">${concept.title || `Concept ${idx + 1}`}</div>
+          <div class="text-sm font-bold text-white">${escapeHtml(concept.title || `Concept ${idx + 1}`)}</div>
           <button class="text-[10px] font-bold text-primary uppercase tracking-wider" data-action="select-concept" data-index="${idx}">Select</button>
         </div>
-        <div class="text-xs text-secondary mb-2">${concept.key_message || concept.body || ''}</div>
-        <div class="text-[10px] text-muted uppercase tracking-wider mb-2">CTA</div>
-        <div class="text-xs text-white mb-3">${concept.cta || ''}</div>
-        <div class="text-[10px] text-muted uppercase tracking-wider mb-1">Tone Notes</div>
-        <div class="text-xs text-secondary">${concept.tone_notes || concept.rationale || ''}</div>
+        ${row('Hook', concept.hook, 'text-white italic')}
+        ${row('Key message', concept.key_message || concept.body)}
+        ${row('CTA', concept.cta, 'text-white')}
+        ${row('Tone', concept.tone_notes || concept.rationale)}
+        ${row('Visual', concept.visual_direction)}
       `;
       conceptList.appendChild(card);
     });
@@ -326,28 +328,47 @@ export function CampaignWizard(params = {}) {
     });
   }
 
+  function updateGenerateLabel() {
+    const btn = assetHeader.querySelector('button[data-action="generate-assets"]');
+    if (!btn || state.loading) return;
+    const n = state.selectedPlatforms.length;
+    btn.textContent = n > 0 ? `Generate ${n}` : 'Generate Assets';
+    btn.disabled = n === 0;
+    const count = assetSection.querySelector('[data-selected-count]');
+    if (count) count.textContent = `${n} selected`;
+  }
+
   function renderPlatforms() {
     platformRow.innerHTML = '';
-    state.selectedPlatforms = [];
+    // The platforms the model recommended for this concept start ticked (the rest are one click away).
+    const recommended = state.selectedConcept?.recommended_platforms || [];
+    state.selectedPlatforms = PLATFORMS.filter((p) => isRecommendedPlatform(p, recommended)).map((p) => p.id);
     PLATFORMS.forEach(p => {
       const chip = document.createElement('button');
       chip.type = 'button';
-      chip.className = 'px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs font-bold text-white hover:bg-white/10 transition-colors';
+      chip.dataset.platform = p.id;
+      const paint = () => {
+        const on = state.selectedPlatforms.includes(p.id);
+        chip.className = `px-3 py-1.5 border rounded-lg text-xs font-bold transition-colors ${on ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+      };
       chip.textContent = p.label;
       chip.onclick = () => {
         const idx = state.selectedPlatforms.indexOf(p.id);
-        if (idx >= 0) {
-          state.selectedPlatforms.splice(idx, 1);
-          chip.classList.remove('bg-primary', 'text-black', 'border-primary');
-          chip.classList.add('bg-white/5', 'text-white', 'border-white/10');
-        } else {
-          state.selectedPlatforms.push(p.id);
-          chip.classList.remove('bg-white/5', 'text-white', 'border-white/10');
-          chip.classList.add('bg-primary', 'text-black', 'border-primary');
-        }
+        if (idx >= 0) state.selectedPlatforms.splice(idx, 1);
+        else state.selectedPlatforms.push(p.id);
+        paint();
+        updateGenerateLabel();
       };
+      paint();
       platformRow.appendChild(chip);
     });
+    if (!assetSection.querySelector('[data-selected-count]')) {
+      const count = document.createElement('div');
+      count.dataset.selectedCount = '';
+      count.className = 'text-xs text-muted mb-4';
+      platformRow.after(count);
+    }
+    updateGenerateLabel();
   }
 
   function renderAssetStatus() {

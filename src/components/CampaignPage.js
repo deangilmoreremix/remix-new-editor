@@ -92,7 +92,8 @@ export function CampaignPage(params = {}) {
         ${concept.hook ? `<div class="text-xs text-secondary italic mb-2">“${esc(concept.hook)}”</div>` : ''}
         ${concept.cta ? `<div class="text-[10px] text-primary font-bold uppercase tracking-wider mb-2">${esc(concept.cta)}</div>` : ''}
         <div class="text-[10px] text-muted uppercase tracking-wider mb-1">Tone notes</div>
-        <div class="text-xs text-secondary">${esc(concept.tone_notes || concept.rationale)}</div>
+        <div class="text-xs text-secondary mb-2">${esc(concept.tone_notes || concept.rationale)}</div>
+        ${concept.visual_direction ? `<div class="text-[10px] text-muted uppercase tracking-wider mb-1">Visual</div><div class="text-xs text-secondary">${esc(concept.visual_direction)}</div>` : ''}
       `;
       conceptGrid.appendChild(card);
     });

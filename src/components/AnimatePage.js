@@ -15,7 +15,6 @@ import { i2vModels } from '../lib/models.js';
 
 
 const RESOLUTIONS = ['480p', '720p', '1080p'];
-const DURATIONS = ['3', '5', '10', '12'];
 const SOURCE_TYPES = [
   { id: 'image', label: 'Upload image' },
   { id: 'photoshoot', label: 'From Photo Studio' },
@@ -65,16 +64,30 @@ export function AnimatePage() {
       const frame = JSON.parse(raw);
       if (frame?.imageUrl) {
         state.sourceImageUrl = frame.imageUrl;
-        if (frame.sourceType === 'asset') {
-          state.sourceType = 'asset';
+        if (frame.sourceType === 'asset' || frame.sourceType === 'photoshoot') {
+          state.sourceType = frame.sourceType;
           state.sourceId = frame.sourceId || null;
-          state.prompt = SOURCE_PROMPTS.asset;
+          state.prompt = SOURCE_PROMPTS[frame.sourceType];
         }
         if (frame.prompt) state.prompt = frame.prompt;
         if (frame.duration) state.duration = Math.min(12, Math.max(3, Math.round(frame.duration)));
       }
     }
   } catch { /* storage unavailable or bad payload */ }
+
+  // Deep link: /?image=<https url>&sourceType=asset|photoshoot|upload&sourceId=<id> (upstream Open-Pomelli's format).
+  // Only http(s) addresses are accepted, so a link can never put a javascript: URL into the page.
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const image = q.get('image');
+    if (image && /^https?:\/\//i.test(image)) {
+      const type = { asset: 'asset', photoshoot: 'photoshoot', upload: 'image', image: 'image' }[q.get('sourceType')] || 'image';
+      state.sourceImageUrl = image;
+      state.sourceType = type;
+      state.sourceId = q.get('sourceId') || null;
+      state.prompt = SOURCE_PROMPTS[type];
+    }
+  } catch { /* no usable query string */ }
 
   const root = document.createElement('div');
   root.className = 'w-full max-w-4xl mx-auto px-4 pb-8 animate-fade-in-up';
@@ -137,6 +150,7 @@ export function AnimatePage() {
         select.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer mb-2';
         select.innerHTML = '<option value="">Select a photoshoot...</option>' +
           photoshoots.map(p => `<option value="${p.id}">${p.category} · ${p.styleLabel || p.styleId}</option>`).join('');
+        select.value = state.sourceId && photoshoots.some((p) => p.id === state.sourceId) ? state.sourceId : '';
         select.onchange = () => {
           const photoshoot = photoshoots.find(p => p.id === select.value);
           if (photoshoot) {
@@ -146,6 +160,20 @@ export function AnimatePage() {
           }
         };
         uploadSection.appendChild(select);
+        if (state.sourceImageUrl) {
+          const preview = document.createElement('img');
+          preview.src = state.sourceImageUrl;
+          preview.alt = 'Source image';
+          preview.className = 'mt-2 h-24 rounded-lg border border-white/10 object-cover';
+          uploadSection.appendChild(preview);
+        }
+      } else if (state.sourceImageUrl) {
+        // A shot arrived by link or hand-off even though this brand has none saved: still show and use it.
+        const preview = document.createElement('img');
+        preview.src = state.sourceImageUrl;
+        preview.alt = 'Source image';
+        preview.className = 'mt-2 h-24 rounded-lg border border-white/10 object-cover';
+        uploadSection.appendChild(preview);
       } else {
         const empty = document.createElement('div');
         empty.className = 'text-xs text-muted mb-2';
@@ -309,7 +337,17 @@ export function AnimatePage() {
     return wrapper;
   };
 
-  optionRow.appendChild(createSelect('Duration', String(state.duration), DURATIONS, (v) => { state.duration = parseInt(v, 10); }));
+  const durationWrap = document.createElement('div');
+  durationWrap.innerHTML = `
+    <label class="text-[10px] font-bold text-secondary uppercase tracking-wider block mb-1">Duration <span data-duration-value class="font-mono text-white normal-case">${state.duration}s</span></label>
+    <input type="range" min="3" max="12" step="1" value="${state.duration}" data-duration-slider class="w-full accent-[#d9ff00] cursor-pointer" aria-label="Duration in seconds">
+  `;
+  const durationSlider = durationWrap.querySelector('[data-duration-slider]');
+  durationSlider.oninput = () => {
+    state.duration = Math.min(12, Math.max(3, parseInt(durationSlider.value, 10) || 5));
+    durationWrap.querySelector('[data-duration-value]').textContent = `${state.duration}s`;
+  };
+  optionRow.appendChild(durationWrap);
   optionRow.appendChild(createSelect('Resolution', state.resolution, RESOLUTIONS, (v) => { state.resolution = v; }));
   controls.appendChild(optionRow);
 
