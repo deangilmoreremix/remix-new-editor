@@ -67,6 +67,20 @@ describe('viewer-safe lead errors', () => {
   });
 });
 
+describe('viewer lead: A/B version', () => {
+  it('sends the version inside source, only when it is A or B', async () => {
+    const fetchImpl = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ ok: true, stored: true }) }));
+    const base = { publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'a@b.co' } };
+    const env = { url: 'https://x.supabase.co', key: 'k', fetchImpl };
+    await submitViewerLead({ ...base, variant: 'B' }, env);
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).source.variant).toBe('B');
+    await submitViewerLead({ ...base, variant: '' }, env);
+    expect(JSON.parse(fetchImpl.mock.calls[1][1].body).source).not.toHaveProperty('variant');
+    await submitViewerLead({ ...base, variant: 'Z' }, env);
+    expect(JSON.parse(fetchImpl.mock.calls[2][1].body).source).not.toHaveProperty('variant');
+  });
+});
+
 describe('publish client', () => {
   it('makes unguessable slugs and share links', () => {
     const s = makeSlug();

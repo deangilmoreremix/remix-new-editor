@@ -6,6 +6,7 @@
  */
 import { showOptinOverlay } from '../addons/addonOverlay.js';
 import { leadFormToOptin } from '../addons/listBuilder.js';
+import { applyVariant } from '../addons/abTest.js';
 import { resolveOverlayText } from '../addons/overlayRender.js';
 import { getAddon, addonOptions } from '../addons/registry.js';
 import { ctaTarget } from '../addons/ctaLink.js';
@@ -34,8 +35,8 @@ export function isSafeLink(v) {
  * @param {object} o         { profile, onSubmit(data) → Promise<{ ok, message? }>, onSkip() }
  * @returns {HTMLElement}
  */
-export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditText, preview = false, allowRedirect = false, isActive = () => true } = {}) {
-  const cfg = leadFormToOptin(clip);
+export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditText, preview = false, allowRedirect = false, isActive = () => true, variant = 'A' } = {}) {
+  const cfg = applyVariant(leadFormToOptin(clip), variant);
   cfg.caption = personalize(cfg.caption, profile);
   cfg.btnText = personalize(cfg.btnText, profile) || 'Submit';
   cfg.privacyDisclaimer = personalize(cfg.privacyDisclaimer, profile);

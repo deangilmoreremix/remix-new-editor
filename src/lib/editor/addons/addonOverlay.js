@@ -316,11 +316,16 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   const inputWrapper = document.createElement('div');
   inputWrapper.className = 'input-wrapper';
   const elements = (config.elements || []).slice(0, 5);
+  // Multi-step: the boxes are shown `stepSize` at a time (Next / Back, progress dots); everything is still sent once at the end.
+  const stepSize = config.multiStep ? Math.max(1, Math.min(3, Number(config.stepSize) || 1)) : 0;
+  const stepCount = stepSize ? Math.ceil(elements.length / stepSize) : 1;
   elements.forEach((d, i) => {
     const input = buildInput(d, prefill, config);
     input.dataset.editKey = d.type === 'checkbox' ? `elements.${i}.label` : `elements.${i}.placeholder`;
+    if (stepCount > 1) input.dataset.step = String(Math.floor(i / stepSize));
     inputWrapper.appendChild(input);
   });
+  if (stepCount > 1) { form.dataset.steps = String(stepCount); form.noValidate = true; } // each step is checked as you go
 
   const buttonsInner = document.createElement('div');
   buttonsInner.className = 'buttons-inner';
@@ -340,12 +345,22 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   form.style.setProperty('--optin-btn-hover', config.buttonHoverColor || config.buttonBackground || '#eb5054');
   form.style.setProperty('--optin-placeholder', config.placeholderColor || '#6b7280');
   buttonsInner.appendChild(submitButton);
+  if (stepCount > 1) {
+    const back = document.createElement('button');
+    back.type = 'button'; back.className = 'optin-back'; back.textContent = 'Back'; back.hidden = true;
+    buttonsInner.insertBefore(back, submitButton);
+    const dots = document.createElement('div');
+    dots.className = 'optin-steps'; dots.setAttribute('aria-hidden', 'true');
+    for (let n = 0; n < stepCount; n += 1) { const d = document.createElement('span'); d.className = n === 0 ? 'on' : ''; dots.appendChild(d); }
+    buttonsInner.appendChild(dots);
+  }
 
   const wrapperContainer = document.createElement('div');
   wrapperContainer.className = 'input-wrapper-container';
-  const layout = resolveFieldLayout(elements.length, config.fieldLayout);
+  const visibleBoxes = stepCount > 1 ? Math.min(stepSize, elements.length) : elements.length; // one step's worth at a time
+  const layout = resolveFieldLayout(visibleBoxes, config.fieldLayout);
   wrapperContainer.dataset.layout = layout;
-  wrapperContainer.dataset.count = String(elements.length);
+  wrapperContainer.dataset.count = String(visibleBoxes);
   wrapperContainer.dataset.align = config.fieldAlign === 'left' ? 'left' : 'center';
   // fieldWidth = % of the form the boxes (and Play) take; fieldGap in tenths of an em
   const w = Math.max(30, Math.min(100, Number(config.fieldWidth) || 70));
@@ -368,6 +383,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     words.textContent = config.consentText;
     words.dataset.editKey = 'consentText';
     consent.append(box, words);
+    if (stepCount > 1) consent.dataset.step = String(stepCount - 1);
     scrollInner.appendChild(consent);
   }
 
@@ -730,9 +746,35 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
     onSkip?.();
   });
 
+  // ---- multi-step: show one group of boxes at a time
+  const stepsTotal = Number(form.dataset.steps || 0);
+  let step = 0;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const finalLabel = submitBtn?.textContent;
+  const paintStep = () => {
+    form.querySelectorAll('[data-step]').forEach((n) => { n.hidden = Number(n.dataset.step) !== step; });
+    form.querySelectorAll('.optin-steps span').forEach((d, n) => d.classList.toggle('on', n === step));
+    const back = form.querySelector('.optin-back');
+    if (back) back.hidden = step === 0;
+    if (submitBtn) submitBtn.textContent = step < stepsTotal - 1 ? (config.nextText || 'Next') : finalLabel;
+    form.querySelector('[data-step]:not([hidden]) input, [data-step]:not([hidden]) select, [data-step]:not([hidden]) textarea')?.focus?.({ preventScroll: true });
+  };
+  const stepControls = (n) => Array.from(form.querySelectorAll(`[data-step="${n}"]`)).flatMap((node) => (node.matches('input,select,textarea') ? [node] : [...node.querySelectorAll('input,select,textarea')]));
+  if (stepsTotal > 1) {
+    paintStep();
+    form.querySelector('.optin-back')?.addEventListener('click', () => { if (step > 0) { step -= 1; form.querySelector('.addon-optin__status').textContent = ''; paintStep(); } });
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const status = form.querySelector('.addon-optin__status');
+    if (stepsTotal > 1) {
+      const bad = stepControls(step).find((el) => !el.checkValidity());
+      if (bad) { status.textContent = 'Please complete this step.'; bad.reportValidity?.(); return; }
+      if (step < stepsTotal - 1) { step += 1; status.textContent = ''; paintStep(); return; }
+      const anyBad = Array.from(form.elements).find((el) => el.willValidate && !el.checkValidity());
+      if (anyBad) { step = Number(anyBad.closest('[data-step]')?.dataset.step ?? step); paintStep(); status.textContent = 'Please complete all fields.'; return; }
+    }
     // Whitespace-only answers don't count for required fields.
     const blank = Array.from(form.elements).find((el) => el.required && (el.type === 'checkbox' ? !el.checked : !String(el.value || '').trim()));
     if (blank) {

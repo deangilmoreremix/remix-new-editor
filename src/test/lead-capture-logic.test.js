@@ -254,3 +254,11 @@ describe('lead-capture spam signals', () => {
     expect(emailProblem({ PHONE: '555' })).toBe('');
   });
 });
+
+describe('lead-capture A/B version', () => {
+  it('keeps A or B in the stored source and nothing else', () => {
+    expect(sanitizeSource({ page: 'https://x/watch/Abc', variant: 'B' }).variant).toBe('B');
+    expect(sanitizeSource({ variant: 'A' }).variant).toBe('A');
+    for (const bad of ['C', 'b', 1, null, { x: 1 }]) expect(sanitizeSource({ variant: bad })).not.toHaveProperty('variant');
+  });
+});
