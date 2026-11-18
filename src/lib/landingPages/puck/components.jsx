@@ -4,9 +4,10 @@
  * events and token rules as the classic renderer.
  */
 import { outreachPlayerSrc } from '../../outreach/landingPage.js';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fillTokens, splitAccent, prefillFor, safeUrl, safeImageUrl } from '../templates.js';
-import { usePage } from './context.js';
+import { usePage, useThanks, useAfterSubmit } from './context.js';
+import { resolveAfterSubmit, scheduleRedirect, linkTarget } from '../afterSubmit.js';
 import { ICON_PATHS } from '../siteIcons.js';
 
 const MARKS = [{ at: 0.25, kind: 'progress_25' }, { at: 0.5, kind: 'progress_50' }, { at: 0.75, kind: 'progress_75' }];
@@ -109,11 +110,24 @@ const DEFAULT_FIELDS = [
   { key: 'email', label: 'Email', type: 'email', required: true },
 ];
 
+/** "After the form is sent" for this page: resolves the setting and, once `done`, starts a redirect (never in the editor preview). */
+function useAfterSubmitFlow(done) {
+  const { preview } = usePage();
+  const after = resolveAfterSubmit(useAfterSubmit());
+  useEffect(() => {
+    if (!done || preview || after.action !== 'redirect') return undefined;
+    return scheduleRedirect(after.url);
+  }, [done, preview, after.action, after.url]);
+  return after;
+}
+const AfterButton = ({ after }) => (after.action === 'button' ? <a className="pk-btn pk-btn--primary pk-after" href={after.url} {...linkTarget(after.url)}>{after.buttonText}</a> : null);
+
 export function LeadForm({ title, subtitle, submitLabel = 'Send', successMessage = 'Thanks!', privacy, fields = DEFAULT_FIELDS }) {
   const { handlers, preview, tokens } = usePage();
   const t = useTokens();
   const [state, setState] = useState({ status: 'idle', error: '' });
-  if (state.status === 'done') return <div className="pk-form pk-form--done"><p className="pk-thanks">{t(successMessage) || 'Thanks!'}</p></div>;
+  const after = useAfterSubmitFlow(state.status === 'done');
+  if (state.status === 'done') return <div className="pk-form pk-form--done"><p className="pk-thanks">{t(successMessage) || 'Thanks!'}</p><AfterButton after={after} /></div>;
   const onSubmit = async (e) => {
     e.preventDefault();
     if (preview) { setState({ status: 'idle', error: 'Preview only: nothing is sent.' }); return; }
@@ -175,8 +189,10 @@ const split = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Bool
 export function EmailSignup({ placeholder = 'Enter your email', label = 'Subscribe', source = '', className = '' }) {
   const { handlers, preview } = usePage();
   const t = useTokens();
+  const thanks = useThanks();
   const [state, setState] = useState({ status: 'idle', error: '' });
-  if (state.status === 'done') return <p className="pk-thanks">Thanks! Check your inbox.</p>;
+  const after = useAfterSubmitFlow(state.status === 'done');
+  if (state.status === 'done') return <><p className="pk-thanks">{t(thanks) || 'Thanks!'}</p><AfterButton after={after} /></>;
   const onSubmit = async (e) => {
     e.preventDefault();
     if (preview) { setState({ status: 'idle', error: 'Preview only: nothing is sent.' }); return; }
@@ -250,7 +266,7 @@ export function Strip({ kind = 'logos', title, items }) {
       <ul className="pk-strip-row">
         {asList(items).map((it, i) => (
           <li key={i} className="pk-strip-item">
-            {kind === 'benefits' ? <><Icon name={it.icon} className="pk-ico pk-ico--lg" /><span><b>{t(it.title)}</b>{it.text ? <small>{t(it.text)}</small> : null}</span></>
+            {kind === 'benefits' ? <>{imgUrl(it.image) ? <img className="pk-strip-photo" src={imgUrl(it.image)} alt="" loading="lazy" /> : null}<Icon name={it.icon} className="pk-ico pk-ico--lg" /><span><b>{t(it.title)}</b>{it.text ? <small>{t(it.text)}</small> : null}</span></>
               : kind === 'stats' ? <><b className="pk-stat-value">{t(it.value)}</b><span>{t(it.title)}</span></>
                 : <span className="pk-logo-word">{t(it.title)}</span>}
           </li>
@@ -444,14 +460,14 @@ export function KpiCard({ columns, title, value, note }) {
   );
 }
 
-export function ScheduleCard({ columns, title, text, month, days, time, buttonLabel }) {
+export function ScheduleCard({ columns, title, text, month, days, time, buttonLabel , weekdays }) {
   const t = useTokens();
   return (
     <CardShell columns={columns}>
       <h3 className="pk-card-title">{t(title)}</h3>
       {text ? <p className="pk-card-text">{t(text)}</p> : null}
       {month ? <div className="pk-cal-month">{t(month)}</div> : null}
-      <div className="pk-cal-grid pk-cal-head">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => <span key={d}>{d}</span>)}</div>
+      <div className="pk-cal-grid pk-cal-head">{(split(weekdays).length === 7 ? split(weekdays) : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => <span key={i}>{d}</span>)}</div>
       <div className="pk-cal-grid">{split(days).map((d, i) => <span key={i} className={`pk-cal-day${d.startsWith('*') ? ' is-on' : ''}`}>{d.replace(/^\*/, '')}</span>)}</div>
       {time ? <div className="pk-cal-time">{t(time)}</div> : null}
       {buttonLabel ? <a className="pk-btn pk-btn--primary" href="#lead">{t(buttonLabel)}</a> : null}
@@ -565,4 +581,37 @@ export function OutreachActions({ senderName, senderTitle, senderPhoto, like = '
       ) : null}
     </section>
   );
+}
+
+/**
+ * "#lead" buttons scroll to the hero form. Designs without a hero form keep their form in the contact band
+ * (id="contact"), so those buttons fall back to it. Done on click, so no element needs a duplicate id.
+ */
+export function LeadAnchorFallback() {
+  useEffect(() => {
+    const onClick = (e) => {
+      const a = e.target?.closest?.('a[href="#lead"]');
+      if (!a || document.getElementById('lead')) return;
+      const target = document.getElementById('contact');
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, []);
+  return null;
+}
+
+/**
+ * A slim strip shown ONLY to someone who opened a personal link (the page knows their name or company):
+ * "A personal video for Dana". Generic visitors see nothing, so a design looks exactly as designed for them.
+ */
+export function PersonalGreeting({ text }) {
+  const t = useTokens();
+  const { tokens } = usePage();
+  const known = ['firstname', 'company'].some((k) => String(tokens?.[k] ?? '').trim());
+  const out = known && String(text || '').trim() ? t(text) : '';
+  if (!out) return null;
+  return <div className="pk-greeting" role="note">{out}</div>;
 }

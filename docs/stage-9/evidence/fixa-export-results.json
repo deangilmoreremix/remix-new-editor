@@ -1,0 +1,277 @@
+{
+ "assertions": {
+  "gl-new: A keeps its keyed x position before, at the start of and inside the transition window (within 32 px of the key, expected 230,243,252,256,260,265,269)": true,
+  "gl-new: no jump of A's position across the window start (max frame step 12 px)": true,
+  "gl-new: A keeps its exposure +1.5 effect (mean luma x1.15 or more vs the source) before and inside the window (luma ratios over the shared columns 1.27,1.26,1.26,1.26,1.26,1.26,1.25)": true,
+  "gl-new: A's brightness is continuous across the window start (largest step of the luma ratio 0.01)": true,
+  "gl-new: B keeps its keyed x position at the end of and after the window (expected -269,-265,-260,-256,-252,-243, got -268,-264,-260,-256,-252,-244)": true,
+  "gl-legacy (raw frames, the old behaviour): the discontinuity is measurable (A position jump 252 px, luma ratio jump 0.26)": true,
+  "compound: the compound clip's own keyed x applies to both children in the exported frames (continuous across the A|B cut at 3 s)": true,
+  "compound: the compound clip's own exposure effect brightens both children vs the same timeline without the look": true,
+  "compound baseline (no look) is not shifted": true
+ },
+ "report": {
+  "gl-new": {
+   "a": [
+    {
+     "t": 1.8,
+     "px": 232,
+     "ncc": 0.9414137393075854,
+     "luma": 1.2697138163300048,
+     "expect": 230.4
+    },
+    {
+     "t": 1.9,
+     "px": 244,
+     "ncc": 0.9453050991908218,
+     "luma": 1.263935500218253,
+     "expect": 243.20000000000002
+    },
+    {
+     "t": 1.9667,
+     "px": 252,
+     "ncc": 0.9484312219150274,
+     "luma": 1.260255855775113,
+     "expect": 251.7376
+    },
+    {
+     "t": 2,
+     "px": 256,
+     "ncc": 0.950093829561265,
+     "luma": 1.2583580249011865,
+     "expect": 256
+    },
+    {
+     "t": 2.0333,
+     "px": 260,
+     "ncc": 0.9479869725215548,
+     "luma": 1.2588705803611064,
+     "expect": 260.2624
+    },
+    {
+     "t": 2.0667,
+     "px": 268,
+     "ncc": 0.9468906037169933,
+     "luma": 1.2590831291143831,
+     "expect": 264.53760000000005
+    },
+    {
+     "t": 2.1,
+     "px": 272,
+     "ncc": 0.9503665673898015,
+     "luma": 1.2517233843319897,
+     "expect": 268.8
+    }
+   ],
+   "b": [
+    {
+     "t": 2.9,
+     "px": -268,
+     "ncc": 0.9912961004238642,
+     "luma": 0.9970469404342279,
+     "expect": -268.8
+    },
+    {
+     "t": 2.9333,
+     "px": -264,
+     "ncc": 0.9972414036938991,
+     "luma": 0.999286080065998,
+     "expect": -264.53760000000005
+    },
+    {
+     "t": 2.9667,
+     "px": -260,
+     "ncc": 0.9966962881033755,
+     "luma": 0.9999172677941962,
+     "expect": -260.2624
+    },
+    {
+     "t": 3,
+     "px": -256,
+     "ncc": 0.9973156893247566,
+     "luma": 0.9999548864196397,
+     "expect": -256
+    },
+    {
+     "t": 3.0333,
+     "px": -252,
+     "ncc": 0.9973821972174052,
+     "luma": 1.000018512636336,
+     "expect": -251.7376
+    },
+    {
+     "t": 3.1,
+     "px": -244,
+     "ncc": 0.9962687230466073,
+     "luma": 1.0003156966712672,
+     "expect": -243.20000000000002
+    }
+   ],
+   "jumpA": 12,
+   "jumpB": 8,
+   "lumaJumpA": 0.007359744782393429
+  },
+  "gl-legacy": {
+   "a": [
+    {
+     "t": 1.8,
+     "px": 232,
+     "ncc": 0.9415192984417458,
+     "luma": 1.2695916380521197,
+     "expect": 230.4
+    },
+    {
+     "t": 1.9,
+     "px": 244,
+     "ncc": 0.9453700761302873,
+     "luma": 1.2637878803733624,
+     "expect": 243.20000000000002
+    },
+    {
+     "t": 1.9667,
+     "px": 252,
+     "ncc": 0.9485267206395132,
+     "luma": 1.2602441819764456,
+     "expect": 251.7376
+    },
+    {
+     "t": 2,
+     "px": 0,
+     "ncc": 0.9982593884257349,
+     "luma": 1.0018386806710793,
+     "expect": 256
+    },
+    {
+     "t": 2.0333,
+     "px": 0,
+     "ncc": 0.9982176418437937,
+     "luma": 1.001961711424201,
+     "expect": 260.2624
+    },
+    {
+     "t": 2.0667,
+     "px": 0,
+     "ncc": 0.9982466321302281,
+     "luma": 1.0039493556185561,
+     "expect": 264.53760000000005
+    },
+    {
+     "t": 2.1,
+     "px": 0,
+     "ncc": 0.9980792211839946,
+     "luma": 1.0052954756091532,
+     "expect": 268.8
+    }
+   ],
+   "b": [
+    {
+     "t": 2.9,
+     "px": 0,
+     "ncc": 0.9958991608482598,
+     "luma": 0.9972478000141934,
+     "expect": -268.8
+    },
+    {
+     "t": 2.9333,
+     "px": 0,
+     "ncc": 0.9963252810008975,
+     "luma": 0.9994929643716466,
+     "expect": -264.53760000000005
+    },
+    {
+     "t": 2.9667,
+     "px": 0,
+     "ncc": 0.9967832061083296,
+     "luma": 0.9998295694211701,
+     "expect": -260.2624
+    },
+    {
+     "t": 3,
+     "px": -256,
+     "ncc": 0.9991167205961348,
+     "luma": 1.0005377799362807,
+     "expect": -256
+    },
+    {
+     "t": 3.0333,
+     "px": -252,
+     "ncc": 0.9978336817512189,
+     "luma": 1.0001305628036317,
+     "expect": -251.7376
+    },
+    {
+     "t": 3.1,
+     "px": -244,
+     "ncc": 0.996807490163571,
+     "luma": 1.0004789601827775,
+     "expect": -243.20000000000002
+    }
+   ],
+   "jumpA": 252,
+   "jumpB": 256,
+   "lumaJumpA": 0.2584055013053663
+  },
+  "compound": [
+   {
+    "t": 0.5,
+    "src": "A",
+    "px": -320,
+    "expect": -320,
+    "ncc": 0.9277338011123042,
+    "luma": 1.23231020058698,
+    "baseLuma": 1.0019765455338407,
+    "basePx": 0
+   },
+   {
+    "t": 1.5,
+    "src": "A",
+    "px": -192,
+    "expect": -192,
+    "ncc": 0.9168950108706773,
+    "luma": 1.240334764292283,
+    "baseLuma": 1.001406194878968,
+    "basePx": 0
+   },
+   {
+    "t": 2.5,
+    "src": "A",
+    "px": -64,
+    "expect": -64,
+    "ncc": 0.9159877100426184,
+    "luma": 1.2595939908078038,
+    "baseLuma": 1.0013589500780613,
+    "basePx": 0
+   },
+   {
+    "t": 3.5,
+    "src": "B",
+    "px": 64,
+    "expect": 64,
+    "ncc": 0.8599287940756204,
+    "luma": 1.6102710626126733,
+    "baseLuma": 0.9994204589044478,
+    "basePx": 0
+   },
+   {
+    "t": 4.5,
+    "src": "B",
+    "px": 192,
+    "expect": 192,
+    "ncc": 0.8767511434152498,
+    "luma": 1.641035163025719,
+    "baseLuma": 0.999979038926289,
+    "basePx": 0
+   },
+   {
+    "t": 5.4,
+    "src": "B",
+    "px": 308,
+    "expect": 307.20000000000005,
+    "ncc": 0.8892542765654167,
+    "luma": 1.6535672655715528,
+    "baseLuma": 1.0011169668723447,
+    "basePx": 0
+   }
+  ]
+ }
+}

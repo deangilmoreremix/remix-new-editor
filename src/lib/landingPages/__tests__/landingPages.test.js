@@ -113,6 +113,20 @@ describe('sourceRegistry', () => {
     });
     expect(out).toHaveLength(1);
   });
+
+  it('lists pictures only when asked, and marks them', async () => {
+    const loaders = {
+      generations: async () => [{ id: 'g1', type: 'image', url: 'https://cdn.test/a.png', timestamp: '2026-02-01' }, { id: 'g2', type: 'video', url: 'https://cdn.test/b.mp4', timestamp: '2026-01-01' }],
+      content: async () => [],
+      assets: async () => [{ id: 'a1', type: 'image/webp', url: 'https://cdn.test/c.webp', created_at: '2026-03-01' }, { id: 'a2', type: 'audio/mpeg', url: 'https://cdn.test/d.mp3' }],
+    };
+    const videosOnly = await loadVideoSources({ loaders });
+    expect(videosOnly.map((v) => v.url)).toEqual(['https://cdn.test/b.mp4']);
+    const both = await loadVideoSources({ loaders, pictures: true });
+    expect(both.map((v) => v.url)).toEqual(['https://cdn.test/c.webp', 'https://cdn.test/a.png', 'https://cdn.test/b.mp4']);
+    expect(both.filter((v) => v.isPicture).length).toBe(2);
+    expect(both.find((v) => v.url.endsWith('b.mp4')).isPicture).toBeUndefined();
+  });
 });
 
 describe('ingest', () => {
@@ -129,6 +143,15 @@ describe('ingest', () => {
     const file = upload.mock.calls[0][0];
     expect(file.type).toBe('video/mp4');
     expect(file.name).toBe('My-video.mp4');
+  });
+
+  it('keeps an image an image when rehosting (png stays image/png, not video/mp4)', async () => {
+    const upload = vi.fn(async () => ({ url: PERM }));
+    const fetchImpl = vi.fn(async () => ({ ok: true, blob: async () => new Blob(['img'], { type: 'image/png' }) }));
+    await ensurePermanent({ url: 'https://cdn/pic', title: 'My pic' }, { upload, fetchImpl });
+    const file = upload.mock.calls[0][0];
+    expect(file.type).toBe('image/png');
+    expect(file.name).toBe('My-pic.png');
   });
 
   it('uploads a picked File directly', async () => {
@@ -170,6 +193,26 @@ describe('ingest', () => {
     expect(page.config.template).toBe('personal');
     expect(page.config.headline).toContain('{{firstname|there}}');
     expect(page.id).toMatch(/^[A-Za-z0-9_-]{8,32}$/);
+  });
+});
+
+describe('image items (Library "Create landing page")', () => {
+  const IMG_PERM = 'https://x.supabase.co/storage/v1/object/public/uploads/u/pic.png';
+  it('an image hosted elsewhere is rehosted as an image and the page keeps an image URL', async () => {
+    const uploaded = [];
+    const upload = vi.fn(async (file) => { uploaded.push(file); return { url: `https://x.supabase.co/storage/v1/object/public/uploads/u/${file.name}` }; });
+    const fetchImpl = vi.fn(async () => ({ ok: true, blob: async () => new Blob(['img'], { type: 'image/png' }) }));
+    const inserted = [];
+    const client = { from: () => ({ insert: (row) => { inserted.push(row); return { select: () => ({ single: async () => ({ data: { ...row, view_count: 0 }, error: null }) }) }; } }) };
+    const page = await createPageFromVideo(client, { url: 'https://cdn.other/pic', title: 'Hero', source: { kind: 'image' } }, { template: 'clean', deps: { upload, fetchImpl } });
+    expect(uploaded[0].type).toBe('image/png');
+    expect(page.video_url).toMatch(/\.png$/); // a URL the landing-page player shows as a still picture
+    expect(page.video_url).not.toMatch(/\.mp4$/);
+  });
+  it('an image already on permanent storage is used as is', async () => {
+    const upload = vi.fn();
+    expect(await ensurePermanent({ url: IMG_PERM }, { upload })).toBe(IMG_PERM);
+    expect(upload).not.toHaveBeenCalled();
   });
 });
 

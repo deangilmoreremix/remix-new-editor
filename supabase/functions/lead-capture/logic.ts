@@ -83,6 +83,7 @@ export function sanitizeSource(raw: unknown): Record<string, unknown> {
     if (Object.keys(utm).length) out.utm = utm;
   }
   if (typeof src.referrer === "string" && /^https?:\/\//i.test(src.referrer.trim())) out.referrer = cleanText(src.referrer, 300);
+  if (src.variant === "A" || src.variant === "B") out.variant = src.variant; // which version of an A/B-tested form the viewer saw
   return out;
 }
 
@@ -307,6 +308,55 @@ export function isValidEmail(raw: unknown): raw is string {
 
 export const MAX_NOTIFY_EMAILS = 3;
 
+// ---------------------------------------------------------------------------------------------------- spam signals
+/** A person needs longer than this to fill in a form; scripts finish almost instantly. */
+export const MIN_FILL_MS = 1500;
+
+/**
+ * True when a submission looks automated. `signals` is what the form sends next to the answers: `hp`, the hidden honeypot
+ * field's value (people never fill it), and `ms`, how long the form was open (left out when answers were prefilled).
+ * Old clients send no signals, so they are never flagged.
+ */
+export function looksAutomated(signals: unknown): boolean {
+  if (!signals || typeof signals !== "object" || Array.isArray(signals)) return false;
+  const d = signals as Record<string, unknown>;
+  if (typeof d.hp === "string" && d.hp.trim()) return true;
+  if (d.ms === undefined || d.ms === null || d.ms === "") return false;
+  const ms = Number(d.ms);
+  return Number.isFinite(ms) && ms >= 0 && ms < MIN_FILL_MS;
+}
+
+/** Throwaway-inbox domains. Kept short and static (no paid lookup); owners switch the check on per form. */
+const DISPOSABLE_DOMAINS = new Set([
+  "mailinator.com", "guerrillamail.com", "guerrillamail.net", "guerrillamail.org", "sharklasers.com", "grr.la", "10minutemail.com",
+  "10minutemail.net", "temp-mail.org", "tempmail.com", "tempmail.net", "tempmailo.com", "throwawaymail.com", "yopmail.com", "yopmail.net",
+  "trashmail.com", "trashmail.net", "getnada.com", "nada.email", "maildrop.cc", "dispostable.com", "fakeinbox.com", "mailnesia.com",
+  "mintemail.com", "mohmal.com", "emailondeck.com", "burnermail.io", "spamgourmet.com", "mytemp.email", "tmpmail.org", "tmpmail.net",
+  "discard.email", "spambox.us", "moakt.com", "inboxkitten.com", "temp-mail.io", "tempinbox.com", "mail.tm", "harakirimail.com",
+  "33mail.com", "anonbox.net", "getairmail.com", "jetable.org", "meltmail.com", "mailcatch.com", "mailnull.com", "trbvm.com",
+]);
+
+export function isDisposableEmail(raw: unknown): boolean {
+  if (typeof raw !== "string") return false;
+  const at = raw.trim().toLowerCase().lastIndexOf("@");
+  if (at < 0) return false;
+  const domain = raw.trim().toLowerCase().slice(at + 1);
+  return DISPOSABLE_DOMAINS.has(domain) || [...DISPOSABLE_DOMAINS].some((d) => domain.endsWith(`.${d}`));
+}
+
+/**
+ * A short, viewer-safe message when an email answer is not acceptable, else "". Every answer whose field name contains "email"
+ * must be a valid address; with `blockDisposable` (an owner setting) throwaway inboxes are refused too.
+ */
+export function emailProblem(data: Record<string, string>, opts: { blockDisposable?: boolean } = {}): string {
+  for (const [key, value] of Object.entries(data)) {
+    if (!/e-?mail/i.test(key)) continue;
+    if (!isValidEmail(value)) return "Please enter a valid email address.";
+    if (opts.blockDisposable && isDisposableEmail(value)) return "Please use a permanent email address.";
+  }
+  return "";
+}
+
 /** Valid addresses only, trimmed, de-duplicated ignoring case, at most MAX_NOTIFY_EMAILS. */
 export function uniqueEmails(list: unknown[]): string[] {
   const seen = new Set<string>();
@@ -341,6 +391,86 @@ export function savedNotifyEmails(config: Json | null | undefined, listBuilder =
 /** The first recipient ("" when none). */
 export function savedNotifyEmail(config: Json | null | undefined, listBuilder = false): string {
   return savedNotifyEmails(config, listBuilder)[0] ?? "";
+}
+
+// ------------------------------------------------------------------------------------------------ chat alert presets
+export type ChatPreset = "slack" | "discord" | "teams";
+
+/** Which chat app a webhook URL belongs to (so the alert is shaped the way that app needs), or null for a normal webhook. */
+export function chatPreset(url: string): ChatPreset | null {
+  let u: URL;
+  try { u = new URL(url); } catch { return null; }
+  if (u.protocol !== "https:") return null;
+  const host = u.hostname.toLowerCase();
+  if (host === "hooks.slack.com" && u.pathname.startsWith("/services/")) return "slack";
+  if ((host === "discord.com" || host === "discordapp.com" || host === "canary.discord.com" || host === "ptb.discord.com") && u.pathname.startsWith("/api/webhooks/")) return "discord";
+  if ((host.endsWith(".webhook.office.com") || host === "outlook.office.com") && u.pathname.includes("/webhook")) return "teams";
+  return null;
+}
+
+const clip = (v: string, n: number) => (v.length > n ? `${v.slice(0, n - 1)}…` : v);
+
+/** The words of a new-lead alert: a title, the answers (first 10) and where the lead came from. Plain text, no markup. */
+export function leadAlertText(
+  kind: string,
+  data: Record<string, string>,
+  attribution: { utm?: Record<string, string>; referrer?: string } = {},
+): { title: string; lines: string[] } {
+  const title = kind === "call-attempt" ? "Someone tried to call you" : kind === "list-builder" || kind === "personalizer" ? "New List Builder sign-up" : "New lead";
+  const lines = Object.entries(data).slice(0, 10).map(([k, v]) => `${clip(k, 40)}: ${clip(String(v), 200)}`);
+  const from = [attribution.utm?.source, attribution.utm?.campaign].filter(Boolean).join(" / ") || (attribution.referrer ? hostOf(attribution.referrer) : "");
+  if (from) lines.push(`Came from: ${clip(from, 120)}`);
+  return { title, lines };
+}
+
+/**
+ * The JSON body for a chat preset. Slack needs `text` (with & < > escaped), Discord needs `content` (2,000 characters, no pings),
+ * Teams needs a MessageCard. Every value is data from a viewer, so mentions are defused and nothing is treated as markup.
+ */
+export function chatBody(preset: ChatPreset, alert: { title: string; lines: string[] }): Record<string, unknown> {
+  const safe = (t: string) => t.replace(/@(everyone|here|channel)\b/gi, "@\u200b$1"); // email addresses stay intact; only the ping words are defused
+  if (preset === "slack") {
+    const esc = (t: string) => safe(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return { text: [`*${esc(alert.title)}*`, ...alert.lines.map(esc)].join("\n") };
+  }
+  if (preset === "discord") {
+    return { content: clip([`**${safe(alert.title)}**`, ...alert.lines.map(safe)].join("\n"), 2000), allowed_mentions: { parse: [] } };
+  }
+  return {
+    "@type": "MessageCard", "@context": "https://schema.org/extensions", summary: safe(alert.title), themeColor: "22D3EE",
+    title: safe(alert.title), text: alert.lines.map(safe).join("\n\n"),
+  };
+}
+
+// ------------------------------------------------------------------------------------------------ auto-reply to the lead
+export const AUTO_REPLY_DEFAULT_SUBJECT = "Thanks for signing up";
+export const AUTO_REPLY_DEFAULT_BODY = "Hi {{first_name}}, thanks for signing up! Here is your video: {{video_link}}";
+
+/** The owner's auto-reply, from the saved form: only when switched on; subject and body are plain text and capped. */
+export function autoReplySettings(config: Json | null | undefined): { subject: string; body: string } | null {
+  if (!config || config.autoReplyEnabled !== true) return null;
+  const clean = (v: unknown, max: number, fallback: string) => {
+    const t = typeof v === "string" ? v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").trim().slice(0, max) : "";
+    return t || fallback;
+  };
+  return { subject: oneLine(clean(config.autoReplySubject, 120, AUTO_REPLY_DEFAULT_SUBJECT)), body: clean(config.autoReplyBody, 1000, AUTO_REPLY_DEFAULT_BODY) };
+}
+
+/**
+ * The email itself. Only two things from outside the owner's words are put in: the lead's first name and the video link
+ * (which we build). The name is escaped and capped; nothing the viewer typed can add links or markup. Plain, transactional.
+ */
+export function buildAutoReply(
+  settings: { subject: string; body: string },
+  { firstName = "", videoUrl = "" }: { firstName?: string; videoUrl?: string },
+): { subject: string; html: string; text: string } {
+  const name = oneLine(firstName.trim().split(/\s+/)[0] ?? "").slice(0, 40);
+  const fill = (t: string, esc: (v: string) => string) =>
+    t.replace(/\{\{\s*first_name\s*\}\}/gi, esc(name || "there")).replace(/\{\{\s*video_link\s*\}\}/gi, esc(videoUrl));
+  const text = fill(settings.body, (v) => v);
+  const html = `<div style="font-family:system-ui,sans-serif;white-space:pre-wrap">${fill(escHtml(settings.body), (v) => escHtml(v))}</div>`;
+  const subject = oneLine(fill(settings.subject, (v) => v).replace(/\{\{[^}]*\}\}/g, "").trim()) || AUTO_REPLY_DEFAULT_SUBJECT;
+  return { subject, html, text };
 }
 
 const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

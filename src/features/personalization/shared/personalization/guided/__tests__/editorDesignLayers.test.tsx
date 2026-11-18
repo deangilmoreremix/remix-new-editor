@@ -21,7 +21,7 @@ function renderEditor(layers: PreviewLayer[]) {
   const settings = { ...createDefaultPreviewSettings(), layers }
   vi.mocked(useDemoPersonalize).mockImplementation(() => ({
     previewSettings: settings, updatePreviewLayer: update, updatePreviewComposition: vi.fn(), resetPreviewLayout: vi.fn(),
-    setPreviewLayerLocked: vi.fn(), setRemotionDesign: removeDesign, assets: {},
+    setPreviewLayerLocked: vi.fn(), removePreviewDesignLayer: removeDesign, assets: {},
   }) as unknown as ReturnType<typeof useDemoPersonalize>)
   return render(<OverlayEditor inputProps={{ videoUrl: null, posterUrl: null, isImageSource: false, audioUrl: null, settings, brand: BRAND }} />)
 }
@@ -49,7 +49,7 @@ describe('design layers in the editor', () => {
     expect(screen.queryByLabelText('Text color')).toBeNull()
     expect(screen.queryByLabelText('Font')).toBeNull()
   })
-  it('Restore design defaults keeps the design; Remove design asks first and then removes it', () => {
+  it('Restore design defaults keeps the design; Remove design asks first and then removes only that layer', () => {
     const layer = createLayer('design', { designId: 'starfield-warp', color: '#ff0000' })
     renderEditor([layer])
     act(() => { screen.getByTestId('design-restore-defaults').click() })
@@ -58,7 +58,7 @@ describe('design layers in the editor', () => {
     act(() => { screen.getByTestId('design-remove').click() })
     expect(removeDesign).not.toHaveBeenCalled() // asks first
     act(() => { screen.getByTestId('design-remove-confirm').click() })
-    expect(removeDesign).toHaveBeenCalledWith(null)
+    expect(removeDesign).toHaveBeenCalledWith(layer.id) // removes only this layer, never resets the layout
   })
 })
 

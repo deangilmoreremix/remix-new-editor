@@ -19,6 +19,8 @@ const PREFIXES = [
   '/api/demo/download-image',
   '/api/video/record',
   '/api/proxy/openai-enhance',
+  // Social Publish thumbnails (OpenAI Images): needs the signed-in user and their own OpenAI key.
+  '/api/proxy/thumbnail-generate',
   // OpenHiggsBolt's MuAPI proxy and upload route (generation + uploads).
   '/api/api/v1/',
   '/api/v1/upload_file',
@@ -31,6 +33,7 @@ const OPENAI_KEY_ROUTES = [
   '/api/personalization/image-edit',
   '/api/personalization/image-smart-edit',
   '/api/proxy/openai-enhance',
+  '/api/proxy/thumbnail-generate',
   // The Motion Director's AI director runs on the user's own OpenAI key.
   '/api/motion-studio/director',
 ]

@@ -33,6 +33,18 @@ describe('formats', () => {
   })
 })
 
+describe('exportFormats keeps burned-in captions', () => {
+  it('carries the captions into every extra shape, so they are drawn in each exported file', async () => {
+    const captions = { enabled: true, forUrl: 'https://x/clip.mp4', style: 'bold' as const, position: 'bottom' as const, cues: [{ startMs: 0, endMs: 900, text: 'Hi' }] }
+    const seen: unknown[] = []
+    const exporter = vi.fn(async (o: any) => { seen.push(o.inputProps.settings.captions); return ok() })
+    const props = { settings: { ...createDefaultPreviewSettings(), captions } } as unknown as PreviewInputProps
+    await exportFormats({ inputProps: props, aspects: ['9:16', '1:1'], exporter })
+    expect(seen).toEqual([captions, captions])
+    expect(settingsForAspect(props.settings, '9:16').captions).toEqual(captions)
+  })
+})
+
 describe('exportFormats luma samples', () => {
   const sample = [{ t: 1, cols: 2, rows: 2, luma: [0, 0, 0, 0] }]
   it('keeps the footage brightness samples only for a frame of the same size', async () => {

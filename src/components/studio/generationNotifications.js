@@ -67,7 +67,7 @@ function card(c) {
     const edit = document.createElement('button');
     edit.type = 'button';
     edit.dataset.action = 'edit-in-workbench';
-    edit.className = 'text-xs font-bold shrink-0 self-center rounded-lg bg-black text-primary px-2 py-1';
+    edit.className = 'text-xs font-bold shrink-0 self-center rounded-lg bg-transparent text-black border border-black/60 hover:bg-black/10 px-2 py-1 transition-colors';
     edit.textContent = 'Edit in Workbench';
     edit.onclick = () => { dismiss(c.id); openInWorkbench([c.workbench], { navigate: navigateFn || undefined }); };
     el.appendChild(edit);
@@ -79,8 +79,11 @@ function card(c) {
     lp.className = 'text-xs font-bold shrink-0 self-center rounded-lg border border-black/30 px-2 py-1';
     lp.textContent = 'Create landing page';
     lp.onclick = async () => {
-      const { openVideoPageFor } = await import('../../lib/landingPages/handoff.js');
-      if (await openVideoPageFor(c.landing)) dismiss(c.id);
+      // The same design picker as the library's "Create landing page": every design, the editor, then "Save as my page".
+      const { openLandingPagePicker, toPickerVideo } = await import('../../lib/landingPages/pickerModal.js');
+      if (!toPickerVideo(c.landing)) return;
+      openLandingPagePicker({ video: c.landing });
+      dismiss(c.id);
     };
     el.appendChild(lp);
   }
@@ -130,8 +133,8 @@ function handle({ phase, id, studio, label, url, message }) {
  *  or add one. Director / Timeline / Video Agent keep their own editors. */
 function handleSaved({ entry, studio } = {}) {
   if (!entry?.url) return;
-  // Any studio's finished video can become a landing page (the studios all save through saveGeneration()).
-  const landing = entry.type === 'video' && /^https:\/\//i.test(entry.url) ? { url: entry.url, type: 'video', prompt: entry.prompt || '', studio: entry.studio || '', thumbnail_url: entry.thumbnail_url || '' } : null;
+  // Any studio's finished video or picture can become a landing page (the studios all save through saveGeneration()).
+  const landing = (entry.type === 'video' || entry.type === 'image') && /^https:\/\//i.test(entry.url) ? { url: entry.url, type: entry.type, prompt: entry.prompt || '', studio: entry.studio || '', thumbnail_url: entry.thumbnail_url || '' } : null;
   const eligible = isWorkbenchEligible(studio);
   if (!eligible && !landing) return;
   const workbench = eligible ? { url: entry.url, type: entry.type, prompt: entry.prompt || '', parameters: entry.parameters || {} } : null;

@@ -8,13 +8,15 @@
  */
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
-import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery } from '../lib/editor/publish/publishClient.js';
+import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery, profileFromLink, personalLinkIdFromQuery, fetchPersonalization } from '../lib/editor/publish/publishClient.js';
 import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
+import { createHeatmapCapture, singleLeadClipId } from '../lib/editor/publish/heatmapCapture.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 import { fillTemplate, calendarEmbedUrl } from '../lib/outreach/draft.js';
 import { cleanTranscript, clock } from '../lib/outreach/transcript.js';
+import { captureEarlyPlay } from '../lib/editor/publish/earlyPlay.js';
 import { trackersFor, fireLeadTrackers } from '../lib/editor/publish/pixel.js';
 import { captureAttribution } from '../lib/editor/publish/attribution.js';
 
@@ -58,6 +60,27 @@ export async function mountWatchPage(container, ref, deps = {}) {
   if (!video?.project?.tracks) {
     message(container, 'Video not found', 'This video was removed or is no longer shared.');
     return null;
+  }
+  // The viewer's details: a stored personal link (?p=<id>, values kept on the server and not editable in the
+  // address), else the details carried in the address (?c=…&firstname=…). A personal link that is unknown,
+  // revoked or for another video is not played unpersonalized — the sender gave it to someone specific.
+  const linkId = personalLinkIdFromQuery();
+  let viewerProfile;
+  if (linkId) {
+    let stored;
+    try {
+      stored = await (deps.fetchPersonalization || fetchPersonalization)(linkId);
+    } catch (err) {
+      message(container, 'Video unavailable', err?.message || 'Please try again later.');
+      return null;
+    }
+    if (!stored || stored.videoId !== video.id) {
+      message(container, 'This link is no longer active', 'Ask the person who sent it for a new link.');
+      return null;
+    }
+    viewerProfile = profileFromLink(stored);
+  } else {
+    viewerProfile = profileFromQuery();
   }
   const title = video.title || video.project.title || 'Video';
   document.title = title;
@@ -138,6 +161,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
     </main>`;
   const $ = (s) => container.querySelector(s);
   const frame = $('[data-frame]');
+  const early = captureEarlyPlay(container); // a Play pressed before the player is wired is kept and released below
 
   const createEngine = deps.createEngine || await (async () => {
     const { createPreviewEngine } = await import('../lib/editor/remotion/previewEngine.jsx');
@@ -146,8 +170,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
 
   let codePreview = null;
   let scrubbing = false;
-  // Per-contact analytics (personal links carry ?c=<contactId>).
-  const viewerProfile = profileFromQuery();
+  // Per-contact analytics (a personal link knows its contact).
   // Campaign tags + referrer, captured once when the page loads (first touch) and sent with each lead.
   const attribution = deps.attribution ?? captureAttribution();
   // First-party analytics (netlify/functions/video-events.js): batched, idempotent,
@@ -155,10 +178,13 @@ export async function mountWatchPage(container, ref, deps = {}) {
   const analytics = deps.analytics || createAnalytics({
     videoId: video.id,
     contactId: viewerProfile?.id || null,
+    recipientToken: params.get('cr') || null, // campaign recipient link (?cr=<public_token>), validated server-side
     sections: projectSections(video.project).map((x) => ({ id: x.id, start: x.start, end: x.end })),
   });
   const labels = ctaLabels(video.project);
   const labelFor = (clipId) => (clipId != null ? labels[String(clipId)] || null : null);
+  // Stage 7 heatmap capture (clicks, CTA impressions, scroll depth, per-second watch buckets); inert when analytics is off.
+  const heat = deps.heatmap || createHeatmapCapture({ analytics, container, frame, labelFor, leadClipId: singleLeadClipId(video.project) });
   const player = createInteractivePlayer({
     project: video.project,
     stage: $('[data-stage]'),
@@ -168,17 +194,20 @@ export async function mountWatchPage(container, ref, deps = {}) {
     rememberKey: video.id,
     fps: FPS,
     voiceFor: (clip, profile) => (deps.voiceFor || fetchPersonalVoice)({ publishedId: video.id, clip, profile }),
-    onLead: async ({ clipId, kind, data }) => {
-      const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data, attribution });
+    onLead: async ({ clipId, kind, data, signals, variant }) => {
+      const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data, attribution, signals, variant });
       if (kind !== 'call-attempt' && res?.stored !== false) {
         analytics.track('lead_submit', { clip: clipId, props: labelFor(clipId) ? { label: labelFor(clipId) } : undefined });
         if (!deps.onLead) fireLeadTrackers(trackersFor(video.project, kind, clipId));
       }
       return res;
     },
+    // A viewer clicked a hotspot: its own event type (not a CTA click), labelled with the owner's text.
+    onHotspot: ({ clip, label, time }) => analytics.track('overlay_click', { clip: String(clip.id), t: time, props: (label || labelFor(String(clip.id))) ? { label: label || labelFor(String(clip.id)) } : undefined }),
     onChange: ({ playing, time, duration, gating }) => {
       analytics.onPlayerChange({ playing, time, duration });
       $('.watch-player')?.toggleAttribute('data-playing', !!playing);
+      heat.onPlayerChange({ playing, time, duration });
       $('[data-play]').textContent = playing ? '❚❚' : '▶';
       $('[data-play]').setAttribute('aria-label', playing ? 'Pause' : 'Play');
       // The big play button never covers a form the viewer must fill in.
@@ -260,7 +289,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
   // CTA buttons and links in the video (click-to-call, Smart Text links…).
   frame.addEventListener('click', (e) => {
     const a = e.target.closest('a[href]');
-    if (!a || !frame.contains(a)) return;
+    if (!a || !frame.contains(a) || a.dataset.hotspot) return; // hotspots report overlay_click themselves
     const clip = a.closest('[data-clip-id]')?.dataset.clipId || null;
     const label = labelFor(clip) || String(a.textContent || '').trim().slice(0, 60) || null;
     const isCall = /^tel:/i.test(a.getAttribute('href') || '');
@@ -273,7 +302,8 @@ export async function mountWatchPage(container, ref, deps = {}) {
   });
   // Playback errors are measured too (the viewer sees the player's own message).
   frame.addEventListener('error', (e) => { if (e.target?.tagName === 'VIDEO' || e.target?.tagName === 'AUDIO') analytics.track('error', { props: { reason: 'media' } }); }, true);
-  globalThis.addEventListener?.('pagehide', () => analytics.destroy(), { once: true });
+  globalThis.addEventListener?.('pagehide', () => { heat.destroy(); analytics.destroy(); }, { once: true });
 
+  early.release(player);
   return player;
 }

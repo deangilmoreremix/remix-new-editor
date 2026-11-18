@@ -9,12 +9,16 @@ import { snapshotFor } from '@cinegen/lib/occ/plugins';
 import { OccLibraryModal } from './occ-library-modal';
 import { importCubeFile, loadUserLuts, userLutIds } from '@cinegen/lib/occ/user-luts';
 import { t } from '../../../openchatcut/i18n/t';
+import { ColorScopesPanel } from './color-scopes-panel';
+import { FxEditorControls } from './fx-editor-controls'; // [remix] Fix C: curves editor, path mask / corner pin controls
+import { FxColorField, FxHsvColorField } from './fx-color-field';
+import { getFxEditSession, setFxEditSession } from '@cinegen/lib/occ/fx-edit-store';
 
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12, fontFamily: 'inherit' } as const;
 
 import { BLEND_MODES } from '@cinegen/lib/occ/blend';
 
-type Updates = Partial<Pick<Clip, 'fx' | 'lut' | 'blendMode'>>;
+type Updates = Partial<Pick<Clip, 'fx' | 'lut' | 'blendMode' | 'anim' | 'transform' | 'keyframes'>>; // [remix] Fix C: unified keys can be written (path points, corners)
 interface Props { clip: Clip; currentTime?: number; onUpdate: (updates: Updates) => void }
 
 export function ClipEffectsSection({ clip, currentTime = 0, onUpdate }: Props) {
@@ -25,9 +29,17 @@ export function ClipEffectsSection({ clip, currentTime = 0, onUpdate }: Props) {
   const [, bump] = useState(0);
   const [lutError, setLutError] = useState('');
   const [library, setLibrary] = useState(false);
+  const [scopes, setScopes] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   useEffect(() => { void loadUserLuts().then((l) => l.length && bump((n) => n + 1)); }, []);
   const fx = clip.fx ?? [];
+  // [remix] Fix C: which effect's preview handles are active (path mask / corner pin); the overlay reads the session
+  const [editIdx, setEditIdx] = useState<number | null>(null);
+  useEffect(() => {
+    if (editIdx != null && ALL_FX[fx[editIdx]?.id ?? '']?.editor) setFxEditSession({ clip, fxIndex: editIdx, clipT, apply: (p) => onUpdate(p) });
+    else if (getFxEditSession()) setFxEditSession(null);
+  });
+  useEffect(() => () => setFxEditSession(null), []);
   const setFx = (next: ClipFx[]) => onUpdate({ fx: next.length ? next : undefined });
   const setLut = async (id: string) => {
     if (!id) return onUpdate({ lut: undefined });
@@ -49,10 +61,22 @@ export function ClipEffectsSection({ clip, currentTime = 0, onUpdate }: Props) {
             <div className="clip-properties-panel__row">
               <button className="clip-properties-panel__toggle-btn" onClick={() => setOpen(open === i ? null : i)} title={t(def.desc)} style={{ flex: 1, textAlign: 'left' }}>{t(def.name)}</button>
               <button className="clip-properties-panel__toggle-btn" aria-label={`${f.enabled === false ? 'Enable' : 'Disable'} ${def.name}`} onClick={() => setFx(fx.map((x, j) => (j === i ? { ...x, enabled: x.enabled === false } : x)))}>{f.enabled === false ? 'Off' : 'On'}</button>
-              <button className="clip-properties-panel__toggle-btn" aria-label={`Remove ${def.name}`} onClick={() => setFx(fx.filter((_, j) => j !== i))}>×</button>
+              <button className="clip-properties-panel__toggle-btn" aria-label={`Remove ${def.name}`} onClick={() => { if (editIdx === i) setEditIdx(null); setFx(fx.filter((_, j) => j !== i)); }}>×</button>
             </div>
+            {open === i && <FxEditorControls clip={clip} index={i} fx={f} def={def} clipT={clipT} editing={editIdx === i} onToggleEdit={() => setEditIdx(editIdx === i ? null : i)} onPatch={(p) => onUpdate(p)} />}
+            {open === i && def.colorPicks?.map((c) => {
+              const cur = sampledFxProps(f.props, f.keys, clipT); const g = (k: string, d: number) => (typeof cur[k] === 'number' ? (cur[k] as number) : d);
+              const dflt = (k: string) => (def.props.find((q) => q.key === k && q.kind !== 'color') as { default: number } | undefined)?.default ?? 0;
+              const keyedAny = [c.h, c.s, c.v].some((k) => f.keys?.[k]?.length);
+              return <FxHsvColorField key={c.label} label={c.label} testId={`fx-colour-${c.h}`} h={g(c.h, dflt(c.h))} s={g(c.s, dflt(c.s))} v={g(c.v, dflt(c.v))}
+                onChange={(hsv) => setFx(fx.map((x, j) => { if (j !== i) return x; const vals = { [c.h]: hsv.h, [c.s]: hsv.s, [c.v]: hsv.v }; return keyedAny ? { ...x, keys: Object.fromEntries(Object.entries({ ...(x.keys ?? {}), ...Object.fromEntries(Object.entries(vals).map(([k, val]) => [k, upsertKeyframe(x.keys?.[k], frameNow, val)])) })) } : { ...x, props: { ...x.props, ...vals } }; }))} />;
+            })}
             {open === i && def.props.map((p) => {
-              if (p.kind === 'color') return null;
+              if (p.kind === 'color') {
+                const shown = f.props[p.key]; const rgb = (Array.isArray(shown) && shown.length === 3 ? shown : p.default) as [number, number, number];
+                return <FxColorField key={p.key} label={t(p.label)} rgb={rgb} testId={`fx-colour-${p.key}`} onChange={(c) => setFx(fx.map((x, j) => (j === i ? { ...x, props: { ...x.props, [p.key]: c } } : x)))} />;
+              }
+              if (def.hiddenProps?.includes(p.key)) return null;
               const keyed = !!f.keys?.[p.key]?.length;
               const shown = sampledFxProps(f.props, f.keys, clipT)[p.key];
               const value = typeof shown === 'number' ? shown : p.default;
@@ -64,7 +88,7 @@ export function ClipEffectsSection({ clip, currentTime = 0, onUpdate }: Props) {
                   <input type="range" className="clip-properties-panel__slider" min={p.min} max={p.max} step={p.step ?? 0.01} value={value}
                     onChange={(e) => { const v = parseFloat(e.target.value); if (keyed) setKey(v); else setFx(fx.map((x, j) => (j === i ? { ...x, props: { ...x.props, [p.key]: v } } : x))); }} />
                   <span className="clip-properties-panel__value">{value.toFixed(2)}</span>
-                  <button className="clip-properties-panel__toggle-btn" data-testid={`fx-key-${p.key}`} aria-label={`${atKey ? 'Update' : 'Add'} keyframe for ${p.label}`} title={atKey ? 'Update the keyframe at the playhead' : 'Add a keyframe at the playhead'} style={{ padding: '0 5px', color: keyed ? '#22d3ee' : undefined }} onClick={() => setKey(value)}>{atKey ? '◆' : '◇'}</button>
+                  <button className="clip-properties-panel__toggle-btn" data-testid={`fx-key-${p.key}`} aria-label={`${atKey ? 'Update' : 'Add'} keyframe for ${p.label}`} title={atKey ? 'Update the keyframe at the playhead' : 'Add a keyframe at the playhead'} style={{ padding: '0 5px', color: keyed ? '#d9ff00' : undefined }} onClick={() => setKey(value)}>{atKey ? '◆' : '◇'}</button>
                   {keyed && <button className="clip-properties-panel__toggle-btn" aria-label={`Clear keyframes for ${p.label}`} title="Clear all keyframes of this property (keeps the value at the playhead)" style={{ padding: '0 5px' }} onClick={() => setFx(fx.map((x, j) => { if (j !== i) return x; const { [p.key]: _drop, ...rest } = x.keys ?? {}; return { ...x, props: { ...x.props, [p.key]: value }, keys: Object.keys(rest).length ? rest : undefined }; }))}>✕</button>}
                 </div>
               );
@@ -107,6 +131,10 @@ export function ClipEffectsSection({ clip, currentTime = 0, onUpdate }: Props) {
           <span className="clip-properties-panel__value">{Math.round(clip.lut.intensity * 100)}%</span>
         </div>
       )}
+      <div className="clip-properties-panel__row">
+        <button className="clip-properties-panel__toggle-btn" data-testid="toggle-scopes" aria-pressed={scopes} onClick={() => setScopes((v) => !v)}>{scopes ? 'Hide color scopes' : 'Color scopes…'}</button>
+      </div>
+      {scopes && <ColorScopesPanel />}
       <div className="clip-properties-panel__section-title" style={{ marginTop: 8 }}>Blend</div>
       <div className="clip-properties-panel__row">
         <select aria-label="Blend mode" style={selectStyle} value={clip.blendMode ?? 'normal'} onChange={(e) => onUpdate({ blendMode: e.target.value === 'normal' ? undefined : e.target.value })}>

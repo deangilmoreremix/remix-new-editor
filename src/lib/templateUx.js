@@ -216,6 +216,15 @@ export function buildShareUrl(templateId, inputs, values, loc = (typeof window !
   return `${base}${fill ? `?fill=${fill}` : ''}#/template/${templateId}`;
 }
 
+/** Share link for a Cinema template: `/?template=<id>&fill=<values>#/cinema-template`. */
+export function buildCinemaShareUrl(templateId, inputs, values, loc = (typeof window !== 'undefined' ? window.location : null)) {
+  const base = loc ? `${loc.origin}${loc.pathname}` : '';
+  const params = new URLSearchParams({ template: String(templateId) });
+  const fill = encodeShareValues(inputs, values);
+  if (fill) params.set('fill', fill);
+  return `${base}?${params.toString()}#/cinema-template`;
+}
+
 // ---------------------------------------------------------------------------
 // Named presets: "My restaurant brand" -> saved text / select values.
 // ---------------------------------------------------------------------------

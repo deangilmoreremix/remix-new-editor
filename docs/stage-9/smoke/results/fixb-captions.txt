@@ -1,0 +1,16 @@
+PASS preview: before the first line nothing is visible
+PASS preview: 33 ms into line 0 its two words share one partial opacity 0.4216,0.4216
+PASS preview: line 0 words rise (translateY) while animating
+PASS preview: line 0 settled (opacity 1, no transform)
+PASS preview: line 1 still hidden while line 0 is settled
+PASS preview: line 1 rises from its own start
+PASS preview: all lines settled (opacity 1)
+PASS preview: deterministic (frame 16 revisited out of order is identical)
+PASS preview: line-fade changes opacity only
+export mp4 bytes 32601 ms 2005
+PASS export: mp4 of 3 s (3 s)
+bright pixels in caption area {"t0_30":0,"t0_90":965,"t1_60":1831,"t2_50":1819}
+PASS export: nothing drawn before the first line starts
+PASS export: line 0 visible at 0.9 s
+PASS export: line 1 adds text by 1.6 s (1831 vs 965)
+done

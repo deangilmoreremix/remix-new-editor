@@ -81,7 +81,7 @@ export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, 
             const r = await A.beatThisOf(src, (p) => setLines([`Beat This: ${p < 0.4 ? 'downloading model' : 'analyzing'} ${Math.round(p * 100)}%`]), ac.signal);
             const toTl = (ms: number[]) => ms.map((m) => A.sourceToTimeline(clip, m / 1000)).filter((t): t is number => t != null);
             const downs = toTl(r.downbeatsMs); const beats = toTl(r.beatsMs);
-            onTimelineEdit((tl) => A.addMarkers(A.addMarkers(tl, beats, 'beat', '#22d3ee'), downs, 'downbeat', '#34d399'));
+            onTimelineEdit((tl) => A.addMarkers(A.addMarkers(tl, beats, 'beat', '#d9ff00'), downs, 'downbeat', '#34d399'));
             setLines([`${r.bpm ? r.bpm.toFixed(0) : '?'} BPM · ${r.meter ?? '?'}/4 · ${beats.length} beats, ${downs.length} downbeats added as markers`]);
           });
         }}>{busy === 'beatthis' ? 'Beat This…' : 'Beat This (neural, optional)'}</button>
@@ -98,7 +98,7 @@ export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, 
           const b = await A.beatsOf(src);
           if (!b.bpm) { setLines(['No steady beat found.']); return; }
           const times = b.downbeats.map((s) => A.sourceToTimeline(clip, s)).filter((t): t is number => t != null);
-          onTimelineEdit((tl) => A.addMarkers(tl, times, 'beat', '#22d3ee'));
+          onTimelineEdit((tl) => A.addMarkers(tl, times, 'beat', '#d9ff00'));
           setLines([`${b.bpm.toFixed(0)} BPM (confidence ${b.confidence.toFixed(1)}) · ${times.length} bar markers added`]);
         })}>{busy === 'beats' ? 'Analyzing…' : 'Beat markers'}</button>
       </div>
@@ -107,10 +107,9 @@ export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, 
           {TRANSLATION_LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}
         </select>
         <button className="clip-properties-panel__toggle-btn" disabled={!!busy} onClick={() => run('captions', async () => {
-          setLines(['Transcribing (first run downloads the speech model)…']);
-          const { transcribeInBrowser, WHISPER_MODELS } = await import('../../../lib/editor/remotion/transcribe.js');
-          const model = (navigator as Navigator & { gpu?: unknown }).gpu ? WHISPER_MODELS[0][0] : WHISPER_MODELS[1][0];
-          const out = await transcribeInBrowser(src, { model, onProgress: () => {} });
+          setLines(['Transcribing on this device (needs a speech model from Media tools > Local AI)…']);
+          const { transcribeAsset } = await import('@cinegen/lib/local-ai/clip-transcribe');
+          const out = await transcribeAsset(src);
           const cues = phrasesFromWords(out.captions as Array<{ text: string; startMs: number; endMs: number }>);
           if (!cues.length) { setLines(['No speech found to caption.']); return; }
           setLines([`Translating ${cues.length} caption lines to ${lang}…`]);

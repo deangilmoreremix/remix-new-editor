@@ -6,6 +6,15 @@
 
 import '../../../styles/personalization-hub.css';
 import { BaseModal } from './BaseModal.jsx';
+import { analyticsHtml, loadHubAnalytics } from './hubAnalytics.js';
+
+// Same owner client the Share panel uses; null when signed out.
+async function defaultOwnerClient() {
+  if (typeof window === 'undefined' || !window.Clerk?.user) return null;
+  const { supabase } = await import('../../lib/hybrid-supabase.js');
+  await supabase.refreshUserHeader?.();
+  return supabase.supabase || null;
+}
 
 export class VideoPersonalizationHub extends BaseModal {
   constructor(options = {}) {
@@ -22,6 +31,9 @@ export class VideoPersonalizationHub extends BaseModal {
     this.templates = [];
     this.generations = [];
     this.analytics = {};
+    this.analyticsState = null;
+    this.getClient = options.getClient || null;
+    this.analyticsRun = 0;
 
     // Check for pre-loaded video from timeline editor
     if (options.preloadedVideo) {
@@ -409,68 +421,24 @@ export class VideoPersonalizationHub extends BaseModal {
   }
 
   renderAnalyticsTab() {
-    return `
-      <div class="tab-content analytics-tab">
-        <div class="analytics-dashboard">
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <div class="metric-icon">👁️</div>
-              <div class="metric-value">${this.analytics.views || 0}</div>
-              <div class="metric-label">Total Views</div>
-              <div class="metric-change positive">+12.5%</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-icon">❤️</div>
-              <div class="metric-value">${this.analytics.engagement || 0}%</div>
-              <div class="metric-label">Engagement</div>
-              <div class="metric-change positive">+8.3%</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-icon">📊</div>
-              <div class="metric-value">${this.analytics.retention || 0}%</div>
-              <div class="metric-label">Retention</div>
-              <div class="metric-change negative">-2.1%</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-icon">🔗</div>
-              <div class="metric-value">${this.analytics.shares || 0}</div>
-              <div class="metric-label">Shares</div>
-              <div class="metric-change positive">+15.7%</div>
-            </div>
-          </div>
+    return analyticsHtml(this.analyticsState);
+  }
 
-          <div class="chart-section">
-            <h4>Performance Over Time</h4>
-            <div class="chart-placeholder">
-              <div class="chart-bars">
-                ${[40, 65, 45, 80, 55, 90, 70].map((h, i) => `
-                  <div class="chart-bar" style="height: ${h}%"></div>
-                `).join('')}
-              </div>
-              <div class="chart-labels">
-                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="insights-section">
-            <h4>AI Insights</h4>
-            <div class="insight-card">
-              <span class="insight-icon">💡</span>
-              <div class="insight-text">
-                <strong>Best time to post:</strong> Tuesday and Thursday between 2-4 PM
-              </div>
-            </div>
-            <div class="insight-card">
-              <span class="insight-icon">📈</span>
-              <div class="insight-text">
-                <strong>Audience retention:</strong> Peak at 0:15-0:30 mark
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
+  async ensureAnalytics() {
+    if (this.analyticsState && ['loading', 'ok', 'empty'].includes(this.analyticsState.status)) return;
+    this.analyticsState = { status: 'loading' };
+    const run = ++this.analyticsRun;
+    let next;
+    try {
+      const getClient = this.getClient || defaultOwnerClient;
+      const client = await getClient();
+      next = client ? await loadHubAnalytics(client) : { status: 'signed-out' };
+    } catch (e) {
+      next = { status: e?.code === 'SIGNED_OUT' ? 'signed-out' : 'error' };
+    }
+    if (run !== this.analyticsRun) return;
+    this.analyticsState = next;
+    if (this.activeTab === 'analytics' && this.state !== 'closed') this.refresh();
   }
 
   getStepStatus(stepId) {
@@ -489,8 +457,8 @@ export class VideoPersonalizationHub extends BaseModal {
     this.content.querySelectorAll('.hub-tab').forEach(tab => {
       tab.addEventListener('click', (e) => {
         this.activeTab = e.currentTarget.dataset.tab;
-        this.render();
-        this.setupEventListeners();
+        if (this.activeTab === 'analytics') this.ensureAnalytics();
+        this.refresh();
       });
     });
 

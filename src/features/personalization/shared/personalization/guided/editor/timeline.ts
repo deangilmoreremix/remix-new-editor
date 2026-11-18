@@ -69,3 +69,29 @@ export function rulerTicks(durationInFrames: number, fps: number): number[] {
   for (let f = 0; f <= lastFrame(durationInFrames); f += step) ticks.push(f)
   return ticks
 }
+
+// ── Audio lanes ───────────────────────────────────────────────────────────────────────────────────────────────
+// A track is on the timeline from `start` seconds for `length` seconds (or until the video ends). These reuse the layer math by
+// treating the track as a bar of frames, so dragging and trimming behave the same everywhere.
+export interface AudioBarInput { start: number; length?: number }
+
+const audioAsBar = (t: AudioBarInput, fps: number): Pick<PreviewLayer, 'startFrame' | 'endFrame'> => {
+  const f = Math.max(1, fps)
+  const startFrame = Math.max(0, Math.round(t.start * f))
+  return { startFrame, endFrame: t.length === undefined ? undefined : startFrame + Math.max(1, Math.round(t.length * f)) - 1 }
+}
+
+/** The frames a track occupies on the timeline (inclusive), clamped into the video. */
+export function audioSpan(t: AudioBarInput, fps: number, durationInFrames: number): Span {
+  return layerSpan(audioAsBar(t, fps), durationInFrames)
+}
+
+/** The track settings after dragging one part of its bar by `deltaFrames`. Dragging the right end to the last frame makes it open-ended. */
+export function applyAudioEdit(t: AudioBarInput, edit: TimelineEdit, deltaFrames: number, fps: number, durationInFrames: number): { start: number; length: number | undefined } {
+  const f = Math.max(1, fps)
+  const next = applyTimelineEdit(audioAsBar(t, f), edit, deltaFrames, durationInFrames)
+  return {
+    start: Math.round((next.startFrame / f) * 100) / 100,
+    length: next.endFrame === undefined ? undefined : Math.round(((next.endFrame + 1 - next.startFrame) / f) * 100) / 100,
+  }
+}

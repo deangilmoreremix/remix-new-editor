@@ -8,6 +8,7 @@
  * same static fallback used when no video is selected — never throwing, and
  * never dropping the branding overlays rendered on top of the background.
  */
+import { CAPITE_CAPTION_STYLES } from '../../captions/capiteStyles'
 import React from 'react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { act } from 'react'
@@ -17,7 +18,7 @@ import { createDefaultPreviewSettings, createLayer } from '../presets'
 import type { PreviewInputProps, PreviewLayer } from '../types'
 
 /** Deterministic frame: every startFrame-0 layer is visible, end card faded in. */
-const FRAME = 30
+let FRAME = 30
 
 const REMOTE_BAD_VIDEO = 'https://cdn.example.com/bad-video.mp4'
 const REMOTE_GOOD_VIDEO = 'https://cdn.example.com/good-video.mp4'
@@ -246,5 +247,135 @@ describe('layer rotation in the composition', () => {
   it('draws nothing rotated when no layer is rotated', () => {
     const { container } = mountComposition(withLayers([{ ...createLayer('headline'), text: 'Plain' }, createLayer('cta', { text: 'Go' })]))
     expect(container.innerHTML).not.toContain('rotate(')
+  })
+})
+
+describe('burned-in captions', () => {
+  const cues = [
+    { startMs: 500, endMs: 1500, text: 'Call us today', words: [{ text: 'Call', startMs: 500, endMs: 800 }, { text: 'us', startMs: 800, endMs: 1100 }, { text: 'today', startMs: 1100, endMs: 1500 }] },
+  ]
+  const withCaptions = (over: Record<string, unknown> = {}, frame = 30) => {
+    FRAME = frame
+    const settings = { ...createDefaultPreviewSettings(), fps: 30, durationInFrames: 150, captions: { enabled: true, forUrl: REMOTE_GOOD_VIDEO, style: 'bold' as const, position: 'bottom' as const, cues, ...over } }
+    return makeInputProps({ videoUrl: REMOTE_GOOD_VIDEO, settings })
+  }
+  const layer = (c: HTMLElement) => c.querySelector('[data-testid="captions-layer"]')
+  afterEach(() => { FRAME = 30 })
+
+  it('draws the line being spoken, with the current word picked out', () => {
+    const { container } = mountComposition(withCaptions({}, 30)) // 1000 ms: "us" is being spoken
+    expect(layer(container)?.getAttribute('data-caption-text')).toBe('Call us today')
+    const spans = [...layer(container)!.querySelectorAll('span')]
+    expect(spans.map((s) => s.textContent?.trim())).toEqual(['Call', 'us', 'today'])
+    expect(spans[1].style.color).not.toBe(spans[0].style.color)
+  })
+  it('draws nothing between lines, when switched off, or before they start', () => {
+    expect(layer(mountComposition(withCaptions({}, 90)).container)).toBeNull() // 3000 ms: after the cue
+    expect(layer(mountComposition(withCaptions({}, 3)).container)).toBeNull() // 100 ms: before it
+    expect(layer(mountComposition(withCaptions({ enabled: false }, 30)).container)).toBeNull()
+  })
+  it('never draws over a different video than the one they were written for', () => {
+    expect(layer(mountComposition(withCaptions({ forUrl: 'https://cdn.example.com/other.mp4' }, 30)).container)).toBeNull()
+  })
+  it('hides during the end card', () => {
+    const input = withCaptions({ cues: [{ startMs: 0, endMs: 9000, text: 'Long line' }] }, 120) // end card starts at frame 105 of 150
+    expect(layer(mountComposition(input).container)).toBeNull()
+    const early = withCaptions({ cues: [{ startMs: 0, endMs: 9000, text: 'Long line' }] }, 60)
+    expect(layer(mountComposition(early).container)?.getAttribute('data-caption-text')).toBe('Long line')
+  })
+  it('works in the plain styles too (no per-word colouring)', () => {
+    const { container } = mountComposition(withCaptions({ style: 'bar' }, 30))
+    expect(layer(container)?.querySelectorAll('span').length).toBe(0)
+    expect(layer(container)?.textContent).toBe('Call us today')
+  })
+
+  // The text-shadow of the caption text, split into its parts.
+  const shadows = (c: HTMLElement) => {
+    const raw = (layer(c) as HTMLElement).style.textShadow
+    const parts = [...raw.matchAll(/((?:-?\d+(?:px)?\s+){2,3})(?:rgba?\([^)]*\)|#[0-9a-f]{3,8})/gi)]
+    return parts.map((m) => {
+      const n = m[1].match(/-?\d+/g)!.map(Number)
+      return { x: n[0], y: n[1], blur: n[2] ?? 0 }
+    })
+  }
+  it('Clean has a dark outline as well as a soft shadow, so it stays readable on light footage', () => {
+    const parts = shadows(mountComposition(withCaptions({ style: 'clean' }, 30)).container)
+    const outline = parts.filter((p) => p.blur === 0)
+    expect(outline).toHaveLength(8) // all eight directions around the letters
+    expect(parts.some((p) => p.blur > 0)).toBe(true) // and the soft shadow is still there
+  })
+  it('Clean\'s outline is thinner than Bold\'s, so it still looks plainer', () => {
+    const outlineSize = (style: string) => Math.max(...shadows(mountComposition(withCaptions({ style }, 30)).container).filter((p) => p.blur === 0).map((p) => Math.abs(p.x)))
+    expect(outlineSize('clean')).toBeGreaterThan(0)
+    expect(outlineSize('clean')).toBeLessThan(outlineSize('bold'))
+  })
+
+  it('draws every Capite look with its own colours and picks out the spoken word the way that look says', () => {
+    for (const st of CAPITE_CAPTION_STYLES) {
+      const { container } = mountComposition(withCaptions({ style: st.id }, 30))
+      const el = layer(container) as HTMLElement
+      expect(el, st.id).toBeTruthy()
+      expect(el.style.fontFamily, st.id).toContain(st.fontName)
+      const spans = [...el.querySelectorAll('span')]
+      expect(spans.map((x) => x.textContent?.trim()), st.id).toEqual(['Call', 'us', 'today'])
+      // "us" is spoken at 1000 ms: it must differ from the not-yet-spoken "today" in colour, background or size.
+      const sig = (x: HTMLElement) => [x.style.color, x.style.background, x.style.transform].join('|')
+      expect(sig(spans[1]), st.id).not.toBe(sig(spans[2]))
+    }
+  })
+  it('karaoke keeps already-spoken words lit, a highlight look does not', () => {
+    const color = (id: string, i: number) => ([...(layer(mountComposition(withCaptions({ style: id }, 42)).container) as HTMLElement).querySelectorAll('span')][i]).style.color // 1400 ms, inside the cue
+    const karaoke = CAPITE_CAPTION_STYLES.find((s) => s.animationType === 'karaoke')!.id
+    const highlight = CAPITE_CAPTION_STYLES.find((s) => s.animationType === 'highlight')!.id
+    expect(color(karaoke, 0)).toBe(color(karaoke, 2))
+    expect(color(highlight, 0)).not.toBe(color(highlight, 2))
+  })
+  it('an unknown look id draws nothing special and does not crash', () => {
+    const { container } = mountComposition(withCaptions({ style: 'does-not-exist' }, 30))
+    expect(layer(container)?.getAttribute('data-caption-text')).toBe('Call us today')
+  })
+
+  describe('other languages and scripts', () => {
+    const line = (c: HTMLElement) => layer(c) as HTMLElement
+    const one = (text: string, over: Record<string, unknown> = {}) => withCaptions({ cues: [{ startMs: 500, endMs: 1500, text }], ...over }, 30)
+    it('sets right-to-left languages right to left, from the saved language or from the text itself', () => {
+      expect(line(mountComposition(one('مرحبا بالعالم', { language: 'ar' })).container).style.direction).toBe('rtl')
+      expect(line(mountComposition(one('שלום עולם')).container).style.direction).toBe('rtl') // no language saved: read from the letters
+      expect(line(mountComposition(one('Call us today')).container).style.direction).toBe('')
+      expect(line(mountComposition(one('Call us today', { language: 'es' })).container).style.direction).toBe('')
+    })
+    it('adds the script\'s fonts after the look\'s own and keeps Latin text as it was', () => {
+      expect(line(mountComposition(one('مرحبا', { language: 'ar' })).container).style.fontFamily).toContain('Noto Sans Arabic')
+      expect(line(mountComposition(one('こんにちは', { language: 'ja' })).container).style.fontFamily).toContain('Noto Sans')
+      expect(line(mountComposition(one('Call us today')).container).style.fontFamily).not.toContain('Noto Sans Arabic')
+    })
+    it('puts the script\'s fonts BEFORE the generic families, so an installed Arabic or CJK font is used instead of whatever the system font happens to cover', () => {
+      for (const [text, language, font] of [['مرحبا', 'ar', 'Noto Sans Arabic'], ['שלום', 'he', 'Noto Sans Hebrew'], ['こんにちは', 'ja', 'Noto Sans JP']] as const) {
+        const stack = line(mountComposition(one(text, { language })).container).style.fontFamily
+        expect(stack.indexOf(font), language).toBeGreaterThan(-1)
+        expect(stack.indexOf(font), language).toBeLessThan(stack.indexOf('system-ui'))
+        expect(stack.indexOf(font), language).toBeLessThan(stack.indexOf('ui-sans-serif'))
+      }
+      const capite = line(mountComposition(one('مرحبا', { language: 'ar', style: 'hormozi' })).container).style.fontFamily
+      expect(capite.indexOf('Noto Sans Arabic')).toBeLessThan(capite.indexOf('system-ui'))
+    })
+    it('keeps the look\'s own named fonts ahead of the script\'s, so Latin letters in a mixed line keep the look\'s face', () => {
+      const stack = line(mountComposition(one('مرحبا', { language: 'ar' })).container).style.fontFamily
+      expect(stack.indexOf('Personalization Sans')).toBeGreaterThan(-1)
+      expect(stack.indexOf('Personalization Sans')).toBeLessThan(stack.indexOf('Noto Sans Arabic'))
+      expect(stack.indexOf('Inter')).toBeLessThan(stack.indexOf('Noto Sans Arabic'))
+    })
+    it('sets wide scripts a little smaller so a line holds about as many letters, never below 60 %', () => {
+      const size = (el: HTMLElement) => parseFloat(el.style.fontSize)
+      const latin = size(line(mountComposition(one('Call us today')).container))
+      const cjk = size(line(mountComposition(one('今日は電話してください', { language: 'ja' })).container))
+      expect(cjk).toBeLessThan(latin)
+      expect(cjk).toBeGreaterThanOrEqual(latin * 0.6 - 1)
+    })
+    it('does the same for the Capite looks', () => {
+      const hormozi = { style: 'hormozi' }
+      expect(line(mountComposition(one('مرحبا', { ...hormozi, language: 'ar' })).container).style.direction).toBe('rtl')
+      expect(line(mountComposition(one('Call us today', hormozi)).container).style.direction).toBe('')
+    })
   })
 })

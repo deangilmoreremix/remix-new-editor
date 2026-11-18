@@ -41,6 +41,7 @@ const empty = () => ({
   id: '', label: '', source: '',
   tokens: { firstname: '', lastname: '', company: '', companylogo: '', role: '', city: '' },
   email: '',
+  image: '', // the customer's personalized picture (from their saved Personalization projects), https only
   business: { name: '', industry: '', phone: '', website: '', offer: '', cta: '', ctaHeadline: '', description: '', location: '', tagline: '' },
   brand: { accent: '', logoUrl: '' },
 });
@@ -134,17 +135,27 @@ export function mergeCustomer(a, b) {
   const out = JSON.parse(JSON.stringify(a));
   ['tokens', 'business', 'brand'].forEach((k) => Object.keys(out[k]).forEach((f) => { if (!out[k][f] && b[k]?.[f]) out[k][f] = b[k][f]; }));
   if (!out.email && b.email) out.email = b.email;
+  if (!out.image && b.image) out.image = b.image;
   out.label = out.business.name || `${out.tokens.firstname} ${out.tokens.lastname}`.trim() || out.email || out.label;
   return out;
 }
 
 const key = (c) => c.id || '';
 const nameKey = (c) => (c.business.name || `${c.tokens.firstname} ${c.tokens.lastname}`).toLowerCase().replace(/[^a-z0-9]+/g, '');
-/** Same id or same business/person name => one customer (the first one's values win). Keeps order. */
+/** Who the person is (email, else first + last name); '' for a business-only record. */
+const personKey = (c) => (c.email || '').trim().toLowerCase() || `${c.tokens.firstname || ''} ${c.tokens.lastname || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '');
+/** The same customer: same id; or, when both are named people, the same person; else (a business-only record) the same business name. */
+const sameCustomer = (a, b) => {
+  if (key(a) && key(a) === key(b)) return true;
+  const pa = personKey(a); const pb = personKey(b);
+  if (pa && pb) return pa === pb; // Ann and Bob at Acme are two recipients, not one
+  return !!nameKey(a) && nameKey(a) === nameKey(b);
+};
+/** Same id, same person, or (for business-only records) same business name => one customer (the first one's values win). Keeps order. */
 export function dedupeCustomers(list) {
   const out = [];
   (list || []).filter(Boolean).forEach((c) => {
-    const i = out.findIndex((o) => (key(c) && key(o) === key(c)) || (nameKey(c) && nameKey(o) === nameKey(c)));
+    const i = out.findIndex((o) => sameCustomer(o, c));
     if (i === -1) out.push(c); else out[i] = mergeCustomer(out[i], c);
   });
   return out;
@@ -154,6 +165,9 @@ export function dedupeCustomers(list) {
 export function customerTokens(c) {
   if (!c) return {};
   const t = { ...c.tokens, company: c.tokens.company || c.business.name, companylogo: httpsUrl(c.tokens.companylogo || c.brand.logoUrl) };
+  // The industry designs read their city from {{custom1}} and the person's name from {{custom2}} (e.g. a pet owner).
+  if (!t.custom1 && t.city) t.custom1 = t.city;
+  if (!t.custom2 && t.firstname) t.custom2 = t.firstname;
   return Object.fromEntries(Object.entries(t).filter(([, v]) => v));
 }
 
@@ -167,27 +181,74 @@ export function toContactFields(c) {
 /** The brand object defaultConfig() understands. */
 export const brandForConfig = (c) => (c ? { accent: c.brand.accent || '', logoUrl: c.brand.logoUrl || '', name: c.business.name || '' } : {});
 
+const IMAGE_PATH = /\.(png|jpe?g|webp|gif|avif)$/i;
+const isImageOutput = (url, outputType) => {
+  const u = httpsUrl(url);
+  if (!u) return false;
+  const path = u.split(/[?#]/)[0];
+  if (/\.(mp4|webm|mov|m4v)$/i.test(path)) return false;
+  return IMAGE_PATH.test(path) || String(outputType || '').toLowerCase() === 'image';
+};
+
+/**
+ * The newest personalized picture per customer, taken from saved Personalization projects (rows as
+ * /api/personalization/project returns them: { client, generation: { outputUrls }, output_type, updated_at }).
+ * Matched by client id first, then by business name. Only https pictures; videos and blob: urls are ignored.
+ */
+/** When a project's picture was generated: its own stamp, else (older rows) the last time the project was saved. */
+const generatedAt = (r) => String(r?.generation?.outputGeneratedAt || r?.outputGeneratedAt || r?.updated_at || r?.updatedAt || '');
+
+export function personalImagesFromProjects(projects) {
+  const rows = (Array.isArray(projects) ? projects : []).filter((r) => r && typeof r === 'object')
+    .sort((a, b) => generatedAt(b).localeCompare(generatedAt(a)));
+  const byId = Object.create(null); const byName = Object.create(null); // no inherited keys like "constructor"
+  rows.forEach((r) => {
+    const gen = r.generation && typeof r.generation === 'object' ? r.generation : {};
+    const urls = [...(Array.isArray(gen.outputUrls) ? gen.outputUrls : []), ...(Array.isArray(r.outputUrls) ? r.outputUrls : [])];
+    const img = urls.find((u) => isImageOutput(u, r.output_type || r.outputType));
+    if (!img) return;
+    // saved projects persist the customer as client.clientId
+    const id = clip(r.client?.id || r.client?.clientId || r.clientId, 80); const name = clip(r.client?.businessName || r.client?.name, 120).toLowerCase().replace(/[^a-z0-9]+/g, '');
+    if (id && !byId[id]) byId[id] = httpsUrl(img);
+    if (name && !byName[name]) byName[name] = httpsUrl(img);
+  });
+  return { byId, byName };
+}
+
+/** Customers with `image` filled in from saved projects (never replaces a picture they already have). */
+export function attachPersonalImages(customers, projects) {
+  const { byId, byName } = personalImagesFromProjects(projects);
+  return (customers || []).map((c) => {
+    if (!c || c.image) return c;
+    const nm = (c.business.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    const image = byId[c.id] || (nm && byName[nm]) || '';
+    return image ? { ...c, image } : c;
+  });
+}
+
 const DEFAULT_FOOTER = /^Sent by \{\{sender\|us\}\}/;
 
 /**
  * Write one customer's brand into a page's Puck data. Pure: returns { data, applied }.
  * Only brand slots change (page colour, menu-bar name and logo, the default footer line, empty links); no other copy.
  */
-export function applyCustomerToPuck(puckData, customer) {
+export function applyCustomerToPuck(puckData, customer, { useImage = true, brand: writeBrand = true } = {}) {
   const data = JSON.parse(JSON.stringify(puckData || {}));
   const applied = [];
   if (!customer || !Array.isArray(data.content)) return { data, applied };
   const { business, brand } = customer;
-  const accent = hexColor(brand.accent);
+  const accent = writeBrand ? hexColor(brand.accent) : '';
   if (accent && data.root?.props) { data.root.props.accent = accent; applied.push('page colour'); }
+  const image = useImage ? httpsUrl(customer.image) : '';
   data.content.forEach((item) => {
     const p = item.props || {};
-    if (item.type === 'NavBar') {
+    if (image && /Hero|VideoSection/.test(item.type) && ('slotImage' in p || 'photo' in p || 'poster' in p || item.type === 'Hero')) { p.slotImage = image; applied.push('personalized image'); }
+    if (/Nav(Bar)?$/.test(item.type) && writeBrand) {
       if (business.name) { p.brand = business.name; applied.push('business name'); }
       if (httpsUrl(brand.logoUrl)) { p.logo = brand.logoUrl; applied.push('logo'); }
       if (!p.loginUrl && business.website) p.loginUrl = business.website;
     }
-    if (item.type === 'Footer' && business.name && (!p.text || DEFAULT_FOOTER.test(p.text))) {
+    if (item.type === 'Footer' && writeBrand && business.name && (!p.text || DEFAULT_FOOTER.test(p.text))) {
       p.text = [business.name, business.phone, business.website && business.website.replace(/^https:\/\//, '')].filter(Boolean).join(' · ');
       applied.push('footer');
     }

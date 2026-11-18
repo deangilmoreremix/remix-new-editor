@@ -103,3 +103,24 @@ export function recommendDesigns(input: RecommendInput): DesignRecommendation[] 
   scored.sort((a, b) => b.score - a.score || a.design.name.localeCompare(b.design.name) || a.design.id.localeCompare(b.design.id))
   return scored.slice(0, limit)
 }
+
+export interface GoalSuggestion { goal: DesignGoalId; reason: string }
+
+/**
+ * Which goal to preselect, and why. Uses only what is really known: an offer the customer entered,
+ * a booking link the business's own site publishes, product pictures the customer assigned.
+ * With none of those it falls back to "introduce" with no claim.
+ */
+export function suggestGoal(input: {
+  hasOffer: boolean
+  hasProductImages: boolean
+  booking?: { sourceUrl: string; provider?: string } | null
+}): GoalSuggestion {
+  if (input.hasOffer) return { goal: 'promote-offer', reason: 'You added an offer, so a clear call to action fits.' }
+  if (input.booking) {
+    const via = input.booking.provider ? ` (${input.booking.provider})` : ''
+    return { goal: 'promote-offer', reason: `Their website has online booking${via}, so a "book now" call to action fits.` }
+  }
+  if (input.hasProductImages) return { goal: 'show-product', reason: 'You have product pictures to show.' }
+  return { goal: 'introduce', reason: 'A good first video: who you are and what you do.' }
+}

@@ -45,11 +45,14 @@ import invertFrag from './invert.frag?raw';
 import halftoneFrag from './halftone.frag?raw';
 import motionBlurFrag from './motion-blur.frag?raw';
 import type { FxDef } from './uniforms';
+import { S35_EFFECTS } from './s35Effects'; // [remix] Stage 3/5 additions
+import { S9_EFFECTS } from './s9/s9Effects'; // [remix] Fix C: path mask, corner pin
+import { PIXEL_SORT_FX } from './s10/pixelSort'; // [remix] Fix G: pixel sort
 import type { FxPass } from '../runtime';
 
 const INVERT = { key: 'invert', label: '反转', default: 0, min: 0, max: 1, step: 1 };
 
-export const FX_EFFECTS: Record<string, FxDef> = {
+const BASE_FX: Record<string, FxDef> = {
   'builtin:fx-luma-key': {
     id: 'builtin:fx-luma-key',
     name: '黑底叠加',
@@ -445,6 +448,9 @@ export const FX_EFFECTS: Record<string, FxDef> = {
     ],
   },
 };
+
+// [remix] Stage 3/5: 21 added effects (src/openchatcut/gl/fx/s35Effects.ts); FX_IDS appends ids missing from FX_ORDER.
+export const FX_EFFECTS: Record<string, FxDef> = { ...BASE_FX, ...S35_EFFECTS, ...S9_EFFECTS, [PIXEL_SORT_FX.id]: PIXEL_SORT_FX };
 
 /** Core library order first, followed by extended effects. */
 export const FX_ORDER = [
