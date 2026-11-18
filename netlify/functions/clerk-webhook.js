@@ -91,6 +91,9 @@ async function syncUser(eventType, data) {
   if (eventType === 'user.deleted') {
     const { error } = await supabase.from('users').delete().eq('clerk_id', clerkId);
     if (error) console.error('[clerk-webhook] delete failed:', error.message);
+    // A deleted account must not keep working through the MCP: revoke every key (their stored API keys are then unreachable).
+    const revoked = await supabase.from('mcp_keys').update({ revoked_at: new Date().toISOString() }).eq('clerk_user_id', clerkId).is('revoked_at', null);
+    if (revoked.error) console.error('[clerk-webhook] mcp key revoke failed:', revoked.error.message);
     return;
   }
 
