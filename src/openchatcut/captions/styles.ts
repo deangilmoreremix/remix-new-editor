@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
 import type { CaptionTemplate } from './types.js';
+import { CAPITE_STYLES } from './capiteStyles';
 
 export interface CaptionStyle {
   id: CaptionTemplate;
@@ -78,7 +79,9 @@ export const CAPTION_STYLES: CaptionStyle[] = [
   { id: 'deyi-card', label: 'Deyi Card', labelZh: '得意黑', hint: '中文展示字体', fontFamily: 'Smiley Sans', fontSize: .042, fontWeight: 400, color: '#fff', highlightColor: '#fff', strokeColor: '#000', strokeWidth: 0, textShadow: 'none' },
 ];
 
-export const CAPTION_STYLE_BY_ID = Object.fromEntries(CAPTION_STYLES.map((style) => [style.id, style])) as Record<CaptionTemplate, CaptionStyle>;
+/** [remix] The vendored presets plus Capite's 27 looks (capiteStyles.ts), for pickers that offer both. */
+export const ALL_CAPTION_STYLES: CaptionStyle[] = [...CAPTION_STYLES, ...CAPITE_STYLES];
+export const CAPTION_STYLE_BY_ID = Object.fromEntries(ALL_CAPTION_STYLES.map((style) => [style.id, style])) as Record<CaptionTemplate, CaptionStyle>;
 
 /** Template id used when a stored one is unknown to this build. */
 export const FALLBACK_CAPTION_TEMPLATE: CaptionTemplate = 'plain';

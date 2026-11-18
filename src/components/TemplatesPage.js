@@ -271,7 +271,7 @@ function createTemplateSection(category, catTemplates, isNiche) {
     card.className = `backdrop-blur-xl border rounded-xl cursor-pointer transition-all group overflow-hidden ${
       isNiche 
         ? 'bg-[#0a1628]/80 border-cyan-500/20 hover:bg-cyan-900/20 hover:border-cyan-400/40' 
-        : 'bg-[#111]/90 border-white/10 hover:bg-white/[0.06] hover:border-white/10'
+        : 'bg-card-bg/90 border-white/10 hover:bg-white/[0.06] hover:border-white/10'
     }`;
     card.dataset.searchable = `${t.name} ${t.description || ''} ${category} ${t.outputType} ${t.niche || ''}`;
     card.setAttribute('role', 'button');

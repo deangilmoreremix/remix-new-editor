@@ -69,7 +69,7 @@ export function ImageToVideoPage() {
 
   contentWrapper.innerHTML = `
     <!-- CTA + Features Panel -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
         <div>
           <h2 class="text-xl font-black text-white">Animate Any Image</h2>
@@ -94,7 +94,7 @@ export function ImageToVideoPage() {
     </div>
 
     <!-- Models Panel -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
       <div class="mb-6">
         <h2 class="text-xl font-black text-white mb-1">Available Models</h2>
         <p class="text-sm text-muted">Choose from ${IMAGE_TO_VIDEO_MODELS.length}+ powerful animation models</p>
@@ -113,7 +113,7 @@ export function ImageToVideoPage() {
     </div>
 
     <!-- Example Prompts Panel -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
       <div class="mb-6">
         <h2 class="text-xl font-black text-white mb-1">Example Animations</h2>
         <p class="text-sm text-muted">Get inspired by these animation effects</p>
@@ -132,7 +132,7 @@ export function ImageToVideoPage() {
     </div>
 
     <!-- CTA Panel -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-8 md:p-10 shadow-3xl text-center">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-8 md:p-10 shadow-3xl text-center">
       <h2 class="text-2xl font-black text-white mb-2">Bring Images to Life</h2>
       <p class="text-muted mb-6 max-w-md mx-auto">Start animating your images with powerful AI models</p>
       <button class="cta-btn btn-primary-modern">

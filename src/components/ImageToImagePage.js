@@ -69,14 +69,14 @@ export function ImageToImagePage() {
 
   contentWrapper.innerHTML = `
     <!-- CTA Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6 text-center">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6 text-center">
       <h2 class="text-2xl font-black text-white mb-2">Ready to Transform?</h2>
       <p class="text-white/60 text-sm mb-5">Start editing your images with powerful AI models</p>
       <button class="cta-btn btn-primary-modern">Get Started Free</button>
     </div>
 
     <!-- Features Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Powerful Image Editing</h2>
       <p class="text-sm text-white/60 mb-6">Everything you need to transform your images</p>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -91,7 +91,7 @@ export function ImageToImagePage() {
     </div>
 
     <!-- Models Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Available Models</h2>
       <p class="text-sm text-white/60 mb-6">Choose from ${IMAGE_TO_IMAGE_MODELS.length}+ powerful editing models</p>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -108,7 +108,7 @@ export function ImageToImagePage() {
     </div>
 
     <!-- Example Prompts Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Example Transformations</h2>
       <p class="text-sm text-white/60 mb-6">Get inspired by these creative transformations</p>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -125,7 +125,7 @@ export function ImageToImagePage() {
     </div>
 
     <!-- Start Editing CTA -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
       <h2 class="text-xl font-black text-white mb-2">Start Editing Now</h2>
       <p class="text-sm text-white/60 mb-5">Upload an image and let AI transform it</p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3">

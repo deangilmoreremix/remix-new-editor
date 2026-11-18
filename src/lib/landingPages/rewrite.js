@@ -1,6 +1,6 @@
 /**
  * AI rewrite for landing pages, built so it can only change WORDS:
- *   collectTexts  walks the Puck data and lists every human-readable string (with its path)
+ *   collectTexts  walks the page data and lists every human-readable string (with its path)
  *   rewriteTexts  sends just {id, role, text} to /api/landing-rewrite (user's own OpenAI key)
  *   checkRewrite  accepts an answer only if its {{tokens}}, [[markers]] and line breaks survive
  *   applyChanges  writes accepted strings back at their exact paths into a copy of the data
@@ -47,12 +47,12 @@ export function sectionLabel(item) {
   return `${item?.type || 'Section'}${clean ? `: ${clean.slice(0, 40)}` : ''}`;
 }
 
-export function sectionList(puckData) {
-  return (puckData?.content || []).map((item, index) => ({ index, label: sectionLabel(item), count: collectTexts(puckData, { section: index }).length }));
+export function sectionList(editorData) {
+  return (editorData?.content || []).map((item, index) => ({ index, label: sectionLabel(item), count: collectTexts(editorData, { section: index }).length }));
 }
 
 /** Every rewritable text: [{id, path, section, role, text}]. `section` limits to one top-level item. */
-export function collectTexts(puckData, { section = null } = {}) {
+export function collectTexts(editorData, { section = null } = {}) {
   const out = [];
   const walk = (node, path, top, key) => {
     if (typeof node === 'string') {
@@ -71,7 +71,7 @@ export function collectTexts(puckData, { section = null } = {}) {
       }
     }
   };
-  (puckData?.content || []).forEach((item, i) => {
+  (editorData?.content || []).forEach((item, i) => {
     if (section != null && i !== section) return;
     walk(item?.props || {}, ['content', i, 'props'], i, '');
   });
@@ -120,8 +120,8 @@ export async function rewriteBatch(items, { instruction = '', context = '', fetc
  * Rewrite a page (or one section). Returns the proposed changes WITHOUT applying them:
  *   { changes: [{ ...item, after }], skipped: n }
  */
-export async function proposeRewrite(puckData, { section = null, instruction, context, fetchImpl, headers, signal } = {}) {
-  const items = collectTexts(puckData, { section });
+export async function proposeRewrite(editorData, { section = null, instruction, context, fetchImpl, headers, signal } = {}) {
+  const items = collectTexts(editorData, { section });
   if (!items.length) return { changes: [], skipped: 0 };
   const changes = [];
   let skipped = 0;
@@ -137,9 +137,9 @@ export async function proposeRewrite(puckData, { section = null, instruction, co
   return { changes, skipped };
 }
 
-/** Copy of puckData with the chosen changes written at their paths. Only strings are replaced. */
-export function applyChanges(puckData, changes) {
-  const next = JSON.parse(JSON.stringify(puckData));
+/** Copy of editorData with the chosen changes written at their paths. Only strings are replaced. */
+export function applyChanges(editorData, changes) {
+  const next = JSON.parse(JSON.stringify(editorData));
   for (const c of changes) {
     let node = next;
     for (let i = 0; i < c.path.length - 1; i += 1) node = node?.[c.path[i]];
