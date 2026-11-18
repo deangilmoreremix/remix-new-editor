@@ -6,12 +6,13 @@
  */
 import {
   getProjectVideo, loadAudience, seedInterestMap, saveInterestMap, INTEREST_TYPES, loadFollowupComparison,
-  listNotifications, markRead, NOTIFICATION_TYPES, loadPreferences, savePreferences,
+  listNotifications, markRead, NOTIFICATION_TYPES, NOTIFICATION_GROUPS, groupState, loadPreferences, savePreferences,
 } from './tabsData.js';
 import { recommend, SEGMENT_LABELS, SCORE_EXPLANATION } from './retarget/recommendations.js';
 import { listFollowups, loadProject } from './projectStore.js';
 import { launchFollowup } from './retarget/followup.js';
 import { canonicalUrl, setPublished } from '../publish/publishClient.js';
+import { mountPushCard } from '../../push/pushCard.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
@@ -111,10 +112,21 @@ export function notificationsTab(deps) {
       try {
         const client = await deps.getClient();
         const [page, loadedPrefs] = await Promise.all([listNotifications(client, ctx.project.id), loadPreferences(client)]); let prefs = loadedPrefs;
-        let notes = page.rows; let hasMore = page.hasMore;
+        let notes = page.rows; let hasMore = page.hasMore; let pushCard = null;
         if (!alive) return;
+        const typeLabel = Object.fromEntries(NOTIFICATION_TYPES);
+        const grouped = new Set(NOTIFICATION_GROUPS.flatMap((g) => g.types));
+        const typeBox = (k, l) => `<label style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" name="type" value="${k}" ${prefs.enabled_types.includes(k) ? 'checked' : ''}/> ${esc(l)}</label>`;
+        const groupsHtml = () => NOTIFICATION_GROUPS.map((g) => `<fieldset style="border:0;padding:0;margin:0 0 8px" data-group-box="${g.id}">
+              <label style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" data-group="${g.id}" aria-label="${esc(g.label)}: all alert types" ${groupState(prefs.enabled_types, g.id) === 'all' ? 'checked' : ''}/> <strong>${esc(g.label)}</strong> <span class="sv-hint">(${esc(g.detail)})</span></label>
+              <div style="display:flex;flex-direction:column;gap:4px;margin:4px 0 0 24px">${g.types.map((k) => typeBox(k, typeLabel[k] || k)).join('')}</div></fieldset>`).join('')
+          + NOTIFICATION_TYPES.filter(([k]) => !grouped.has(k)).map(([k, l]) => typeBox(k, l)).join('');
+        const syncGroups = (form) => NOTIFICATION_GROUPS.forEach((g) => {
+          const box = form.querySelector(`[data-group="${g.id}"]`); if (!box) return;
+          const kids = [...form.querySelectorAll(`[data-group-box="${g.id}"] [name=type]`)]; const n = kids.filter((k) => k.checked).length;
+          box.checked = n === kids.length; box.indeterminate = n > 0 && n < kids.length;
+        });
         const draw = () => {
-          const typeLabel = Object.fromEntries(NOTIFICATION_TYPES);
           const root = wrap(panel, `
             <div class="sv-heading"><div><div class="sv-breadcrumb">Owner alerts</div><h1>Notifications</h1></div>${notes.some((n) => !n.read_at) ? '<button type="button" class="sv-secondary-btn" data-read-all>Mark all as read</button>' : ''}</div>
             <div class="sv-card"><h3>History</h3>
@@ -125,7 +137,7 @@ export function notificationsTab(deps) {
             </div>
             <form class="sv-card" data-prefs aria-label="Notification preferences"><h3>Preferences</h3>
               <p class="sv-subtitle">Applies to all of your videos.</p>
-              <div class="sv-custom-range" style="flex-direction:column">${NOTIFICATION_TYPES.map(([k, l]) => `<label style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" name="type" value="${k}" ${prefs.enabled_types.includes(k) ? 'checked' : ''}/> ${esc(l)}</label>`).join('')}</div>
+              <div class="sv-custom-range" style="flex-direction:column;align-items:stretch" data-groups>${groupsHtml()}</div>
               <div class="sv-custom-range"><label>High-interest threshold<input type="number" name="threshold" min="10" max="500" value="${esc(prefs.interest_threshold)}"/></label>
                 <label>Digest<select name="digest"><option value="off">Off</option><option value="daily" ${prefs.digest_frequency === 'daily' ? 'selected' : ''}>Daily</option><option value="weekly" ${prefs.digest_frequency === 'weekly' ? 'selected' : ''}>Weekly</option></select></label></div>
               <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="inapp" ${prefs.in_app ? 'checked' : ''}/> In-app alerts</label>
@@ -151,6 +163,16 @@ export function notificationsTab(deps) {
               await markRead(client, notes.filter((n) => !n.read_at).map((n) => n.id));
               notes.forEach((n) => { n.read_at = n.read_at || new Date().toISOString(); }); deps.onUnreadChanged?.(); draw();
             } catch (err) { deps.onToast?.(err.message || 'Could not mark alerts as read', 'error'); }
+          });
+          const prefsForm = root.querySelector('[data-prefs]'); syncGroups(prefsForm);
+          prefsForm.addEventListener('change', (e) => {
+            const g = e.target?.dataset?.group;
+            if (g) prefsForm.querySelectorAll(`[data-group-box="${g}"] [name=type]`).forEach((k) => { k.checked = e.target.checked; });
+            syncGroups(prefsForm);
+          });
+          pushCard?.destroy(); pushCard = mountPushCard(root, {
+            getClient: () => deps.getClient(), pushEnabled: prefs.push, onToast: deps.onToast, ...(deps.push || {}),
+            onPushPref: async (v) => { prefs = await savePreferences(client, { ...prefs, push: v }); },
           });
           root.querySelector('[data-prefs]').addEventListener('submit', async (e) => {
             e.preventDefault();

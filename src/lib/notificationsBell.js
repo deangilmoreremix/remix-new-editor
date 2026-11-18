@@ -3,10 +3,15 @@
  * Counts come from the owner-only RPC (row-level security), refreshed on load, when the tab regains focus and
  * every few minutes while visible. Nothing is shown for signed-out visitors. Clicking opens the Timeline Editor's
  * Projects panel on the project with the most unread alerts.
+ *
+ * Live updates: when `getRealtime` is supplied the bell also listens for new rows on owner_notifications over
+ * Supabase Realtime (authenticated with the same verified token as the REST client). It bumps the badge at once and,
+ * only while the page is visible, shows a small toast; a hidden page relies on Web Push. Any Realtime failure is
+ * silent: the polling above keeps working and the channel is retried on the next check.
  */
 export const OPEN_FLAG = 'remix_open_projects';
 
-export function createNotificationsBell({ getClient, isSignedIn = () => !!globalThis.window?.Clerk?.user, navigate, intervalMs = 180000, doc = globalThis.document }) {
+export function createNotificationsBell({ getClient, isSignedIn = () => !!globalThis.window?.Clerk?.user, navigate, intervalMs = 180000, doc = globalThis.document, getRealtime = null, realtimeCheckMs = 300000, toastMs = 6000 }) {
   const btn = doc.createElement('button');
   btn.type = 'button';
   btn.className = 'hidden relative p-2 text-secondary hover:text-white transition-colors';
@@ -44,13 +49,64 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
     else if (/^#\/timeline(?![-\w])/.test(hash)) globalThis.dispatchEvent(new CustomEvent('remix:open-projects')); // the new editor listens too
     else navigate?.('timeline'); // opens the editor; its Analytics tab reads the flag and shows the alerts
   });
-  const onFocus = () => refresh();
+
+  // ---- Realtime (optional) ----
+  // getRealtime() -> { client, userId, token } | null. A different token/user (refresh, sign-in, sign-out) re-subscribes.
+  let rt = null; let rtBusy = false; let toastEl = null; let toastTimer = null;
+  const showToast = (text) => {
+    if (!alive || !doc.body) return;
+    toastEl?.remove(); clearTimeout(toastTimer);
+    toastEl = doc.createElement('div');
+    toastEl.className = 'fixed bottom-4 right-4 z-50 max-w-sm rounded-lg bg-zinc-900 text-white text-sm px-4 py-3 shadow-lg flex items-center gap-3';
+    toastEl.setAttribute('role', 'status'); toastEl.setAttribute('aria-live', 'polite');
+    const msg = doc.createElement('span'); msg.textContent = text;
+    const view = doc.createElement('button'); view.type = 'button'; view.className = 'underline font-semibold'; view.textContent = 'View';
+    view.addEventListener('click', () => { toastEl?.remove(); btn.click(); });
+    toastEl.append(msg, view);
+    doc.body.appendChild(toastEl);
+    toastTimer = setTimeout(() => { toastEl?.remove(); toastEl = null; }, toastMs);
+  };
+  const onInsert = (payload) => {
+    const row = payload?.new || {};
+    if (!alive || row.read_at) return;
+    count += 1; draw();                                    // immediate; the event below triggers the authoritative refresh
+    globalThis.dispatchEvent?.(new CustomEvent('remix:notifications-changed'));
+    if (doc.visibilityState === 'visible') {
+      const title = String(row.title || row.summary || 'New alert').slice(0, 140);
+      showToast(row.type === 'new_lead' && !/^new lead/i.test(title) ? `New lead: ${title}` : title);
+    }
+  };
+  async function stopRealtime() {
+    const cur = rt; rt = null;
+    try { if (cur?.client && cur.channel) await cur.client.removeChannel(cur.channel); } catch { /* already closed */ }
+  }
+  async function ensureRealtime() {
+    if (!getRealtime || !alive || rtBusy) return;
+    rtBusy = true;
+    try {
+      const info = isSignedIn() ? await getRealtime() : null;
+      if (!alive) return;
+      if (!info?.client || !info.userId) { await stopRealtime(); return; }
+      if (rt && rt.userId === info.userId && rt.token === info.token) return;
+      await stopRealtime();
+      const channel = info.client.channel(`owner-notifications-${info.userId}`);
+      const mine = { client: info.client, channel, userId: info.userId, token: info.token };
+      rt = mine;
+      channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'owner_notifications', filter: `clerk_user_id=eq.${info.userId}` }, onInsert)
+        .subscribe((status) => {
+          // Unauthorised / unavailable: drop the channel and let polling carry on; the next check retries.
+          if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') && rt === mine) stopRealtime();
+        });
+    } catch { await stopRealtime(); /* polling keeps working */ } finally { rtBusy = false; }
+  }
+  const onFocus = () => { refresh(); ensureRealtime(); };
   const onRead = () => refresh(true);
   globalThis.addEventListener?.('focus', onFocus);
   globalThis.addEventListener?.('remix:notifications-changed', onRead);
   timer = setInterval(() => { if (!doc.hidden) refresh(true); }, intervalMs);
-  refresh(true);
+  const rtTimer = getRealtime ? setInterval(ensureRealtime, realtimeCheckMs) : null;
+  refresh(true); ensureRealtime();
   // Clerk usually finishes loading after the header is created: re-check a few times so a signed-in owner sees the bell soon.
-  [1500, 4000, 9000].forEach((ms) => setTimeout(() => { if (alive && !isSignedIn()) return; refresh(true); }, ms));
-  return { element: btn, refresh: () => refresh(true), destroy() { alive = false; clearInterval(timer); globalThis.removeEventListener?.('focus', onFocus); globalThis.removeEventListener?.('remix:notifications-changed', onRead); }, _count: () => count };
+  [1500, 4000, 9000].forEach((ms) => setTimeout(() => { if (alive && !isSignedIn()) return; refresh(true); ensureRealtime(); }, ms));
+  return { element: btn, refresh: () => refresh(true), destroy() { alive = false; clearInterval(timer); clearInterval(rtTimer); clearTimeout(toastTimer); toastEl?.remove(); stopRealtime(); globalThis.removeEventListener?.('focus', onFocus); globalThis.removeEventListener?.('remix:notifications-changed', onRead); }, _count: () => count };
 }
