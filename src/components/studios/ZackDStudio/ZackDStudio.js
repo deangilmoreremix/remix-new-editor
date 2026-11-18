@@ -104,7 +104,7 @@ export function ZackDStudio() {
 
   const promptWrapper = el('div', 'w-full relative z-40 animate-fade-in-up');
   promptWrapper.style.animationDelay = '0.2s';
-  const bar = el('div', 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl');
+  const bar = el('div', 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl');
 
   const topRow = el('div', 'flex items-start gap-5 px-2');
   const textarea = el('textarea', 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar');

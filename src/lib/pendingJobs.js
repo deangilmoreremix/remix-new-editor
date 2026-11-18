@@ -85,7 +85,7 @@ export function resumePendingJobs(studioType, { poll, onResult, now = Date.now()
     let banner = null;
     if (typeof document !== 'undefined') {
         banner = document.createElement('div');
-        banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-[#111] border border-white/10 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3';
+        banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-card-bg border border-white/10 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3';
         banner.innerHTML = '<span class="animate-spin text-primary">◌</span> <span class="banner-text"></span>';
         document.body.appendChild(banner);
     }

@@ -2,7 +2,7 @@
 // opens the full page with its editor (the shared picker modal) with this project's video attached.
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 
-type Design = { id: string; name: string; description: string; theme?: { bg?: string; accent?: string }; puck?: unknown; puckData?: unknown };
+type Design = { id: string; name: string; description: string; theme?: { bg?: string; accent?: string }; editable?: unknown; editorData?: unknown };
 
 /** Live, scaled picture of the real page (drawn when the card scrolls into view). */
 function DesignThumb({ data }: { data: unknown }) {
@@ -35,7 +35,7 @@ export function LandingPagesPanel({ onPick }: { onPick: (designId: string) => vo
   useEffect(() => {
     let live = true;
     // @ts-expect-error plain JS module
-    void import('../../../lib/landingPages/templates.js').then((m: { TEMPLATES: Design[] }) => { if (live) setAll(m.TEMPLATES.filter((t) => t.puck)); });
+    void import('../../../lib/landingPages/templates.js').then((m: { TEMPLATES: Design[] }) => { if (live) setAll(m.TEMPLATES.filter((t) => t.editable)); });
     return () => { live = false; };
   }, []);
   const shown = useMemo(() => searchDesigns(all ?? [], q), [all, q]);
@@ -49,7 +49,7 @@ export function LandingPagesPanel({ onPick }: { onPick: (designId: string) => vo
         {shown.map((d) => (
           <button key={d.id} type="button" data-testid={`landing-design-${d.id}`} onClick={() => onPick(d.id)}
             style={{ textAlign: 'left', cursor: 'pointer', color: 'inherit', background: 'var(--bg-elevated)', border: '1px solid var(--border-medium)', borderRadius: 14, padding: 12 }}>
-            <DesignThumb data={d.puckData} />
+            <DesignThumb data={d.editorData} />
             <div style={{ fontSize: 13, fontWeight: 700 }}>{d.name}</div>
             <div style={{ fontSize: 11.5, opacity: 0.7, marginTop: 4 }}>{d.description}</div>
           </button>

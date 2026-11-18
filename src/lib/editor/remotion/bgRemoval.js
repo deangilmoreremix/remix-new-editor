@@ -118,10 +118,13 @@ export async function removeImageBackground(src, { onProgress, signal, edge = 0,
 /**
  * @param {string} src
  * @param {object} opts { fromSec, toSec, maxSize=1280, edge, maskEvery=1 (reuse each matte for N frames: faster),
- *                        onProgress({stage, progress, frame, frames, etaSec}), signal }
+ *                        onProgress({stage, progress, frame, frames, etaSec}), signal,
+ *                        maskFn(imageData) → alpha  (another matting engine; default: MODNet),
+ *                        prepare({onProgress}) → Promise  (loads that engine; default: MODNet),
+ *                        maskBudgetSec  (when > 0, choose maskEvery so the masks take about this long: a slow engine is sampled) }
  * @returns {Promise<Blob>} transparent WebM (VP9 + alpha)
  */
-export async function removeVideoBackground(src, { fromSec = 0, toSec = Infinity, maxSize = 1280, edge = 0, maskEvery = 1, onProgress, signal } = {}) {
+export async function removeVideoBackground(src, { fromSec = 0, toSec = Infinity, maxSize = 1280, edge = 0, maskEvery = 1, onProgress, signal, maskFn = maskFor, prepare = prepareModel, maskBudgetSec = 0 } = {}) {
   const mb = await import('mediabunny');
   const {
     Input, BlobSource, ALL_FORMATS, CanvasSink, Output, WebMOutputFormat, BufferTarget, CanvasSource,
@@ -129,7 +132,7 @@ export async function removeVideoBackground(src, { fromSec = 0, toSec = Infinity
   } = mb;
   if (typeof VideoEncoder === 'undefined') throw new Error('This browser cannot encode video. Use Chrome or Edge.');
   onProgress?.({ stage: 'download', progress: 0 });
-  await prepareModel({ onProgress: (p) => onProgress?.({ stage: 'download', progress: p }) });
+  await prepare({ onProgress: (p) => onProgress?.({ stage: 'download', progress: typeof p === 'number' ? p : (p?.progress ?? 0) }) });
   const blob = await fetchBlob(src, signal);
   const input = new Input({ source: new BlobSource(blob), formats: ALL_FORMATS });
   const vt = await input.getPrimaryVideoTrack();
@@ -176,13 +179,19 @@ export async function removeVideoBackground(src, { fromSec = 0, toSec = Infinity
     const sink = new CanvasSink(vt, { width: w, height: h, fit: 'fill', poolSize: 2 });
     let frame = 0;
     let matte = null;
+    let every = Math.max(1, Math.round(maskEvery));
     const t0 = performance.now();
     for await (const { canvas, timestamp, duration: dur } of sink.canvases(start, end)) {
       if (signal?.aborted) throw abortError();
       wctx.clearRect(0, 0, w, h);
       wctx.drawImage(canvas, 0, 0, w, h);
       const img = wctx.getImageData(0, 0, w, h);
-      if (!matte || frame % Math.max(1, Math.round(maskEvery)) === 0) matte = await maskFor(img);
+      if (!matte || frame % every === 0) {
+        const m0 = performance.now();
+        matte = await maskFn(img);
+        // a slow engine (a big model on the CPU) is sampled: the spacing comes from the first mask's time, so all masks take about the budget
+        if (maskBudgetSec > 0 && frame === 0) every = Math.min(30, Math.max(1, Math.ceil((frames * (performance.now() - m0)) / (maskBudgetSec * 1000))));
+      }
       applyAlpha(img, matte, { edge });
       octx.clearRect(0, 0, w, h);
       octx.putImageData(img, 0, 0);

@@ -1,7 +1,7 @@
 // src/components/landing/TemplateChooser.js
 //
 // The landing page chooser from Video Pages ("New video page"): picture cards of the landing page
-// designs, grouped: a live picture of each editable design's real page, a tinted wireframe for the older layouts. Used inline by
+// designs, grouped: a live picture of each editable design's real page, a real preview picture for the older layouts (a tinted wireframe stands in if it cannot load). Used inline by
 // Video Pages and as a modal by Video Outreach (the page each prospect lands on).
 
 import { wireframeSvg } from '../../lib/landingPages/wireframes.js';
@@ -17,7 +17,7 @@ const el = (tag, cls = '', text = '') => {
 /**
  * Grouped template cards. `groups` is [[label, items]], an item a template (or any
  * { id, name, description, theme?, layout? }). Clicking a card selects it and calls onPick(id).
- * An item with `puckData` gets a live preview of the real page. Returns { node, select(id), destroy() }.
+ * An item with `editorData` gets a live preview of the real page. Returns { node, select(id), destroy() }.
  */
 export function templateCards({ groups = [], selected = '', onPick = () => {}, deps = {} } = {}) {
   const node = el('div', 'flex flex-col gap-4');
@@ -42,14 +42,28 @@ export function templateCards({ groups = [], selected = '', onPick = () => {}, d
       b.title = t.description || '';
       b.setAttribute('data-template-card', t.id);
       let sw;
-      if (t.puckData) {
+      if (t.editorData) {
         // Editable landing pages: a live, scaled picture of the real page (drawn when it scrolls into view).
         sw = el('div');
         sw.style.margin = '8px 8px 0';
         sw.setAttribute('aria-label', `Preview of ${t.name}`);
-        previews.push(attachDesignPreview(sw, t.puckData, { deps }));
+        previews.push(attachDesignPreview(sw, t.editorData, { deps }));
+      } else if (t.id) {
+        // Every other design: a real picture of it (public/landing-previews, made by scripts/generate-landing-design-previews.mjs).
+        // If it cannot load, the page's SHAPE (a wireframe) tinted with its colours stands in, so a card is never blank.
+        sw = el('div', 'overflow-hidden flex items-center justify-center');
+        sw.style.aspectRatio = '8 / 5';
+        sw.style.background = t.theme?.bg || '#111';
+        sw.style.color = t.theme?.accent || '#d9ff00';
+        const shot = el('img', 'w-full h-full object-cover');
+        shot.alt = '';
+        shot.loading = 'lazy';
+        shot.dataset.designPreview = t.id;
+        shot.addEventListener('error', () => { sw.classList.add('p-2'); sw.innerHTML = wireframeSvg(t.layout); }, { once: true });
+        shot.src = `/landing-previews/${encodeURIComponent(t.id)}.jpg`;
+        sw.appendChild(shot);
       } else {
-        // The page's SHAPE (a wireframe) tinted with its colours, so layouts are told apart by structure.
+        // The plain video page (no design): its SHAPE (a wireframe), so layouts are told apart by structure.
         sw = el('div', 'h-20 p-2 flex items-center justify-center');
         sw.style.background = t.theme?.bg || '#111';
         sw.style.color = t.theme?.accent || '#d9ff00';

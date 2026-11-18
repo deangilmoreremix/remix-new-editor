@@ -27,13 +27,13 @@ export function VideoToVideoPage() {
   promptWrapper.style.animationDelay = '0.2s';
 
   const bar = document.createElement('div');
-  bar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
+  bar.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
 
   const topRow = document.createElement('div');
   topRow.className = 'flex items-start gap-5 px-2';
 
   const ctaSection = document.createElement('div');
-  ctaSection.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center';
+  ctaSection.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center';
   ctaSection.innerHTML = `
     <h2 class="text-2xl md:text-3xl font-black text-white mb-2">Transform Your Videos</h2>
     <p class="text-sm text-muted mb-6 max-w-md mx-auto">Start editing your videos with powerful AI tools</p>
