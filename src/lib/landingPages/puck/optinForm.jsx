@@ -104,7 +104,7 @@ function wireSubmit(form, { cfg, page, handlers, layer, onDone, preview }) {
 function trackLayerSize(layer) {
   const set = () => { layer.style.setProperty('--ovl-w', `${layer.clientWidth || globalThis.innerWidth || 800}px`); layer.style.setProperty('--ovl-h', `${layer.clientHeight || globalThis.innerHeight || 450}px`); };
   set();
-  const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(set) : null;
+  const ro = typeof globalThis.ResizeObserver === 'function' ? new globalThis.ResizeObserver(set) : null;
   ro?.observe(layer);
   globalThis.addEventListener?.('resize', set);
   return () => { ro?.disconnect(); globalThis.removeEventListener?.('resize', set); };
