@@ -13,8 +13,8 @@ export function RenderProgress({ job, onCancel }: RenderProgressProps) {
       <div className="render-progress__header">
         <span className="render-progress__status">
           {job.status === 'queued' && 'Queued...'}
-          {job.status === 'rendering' && 'Rendering...'}
-          {job.status === 'complete' && 'Complete'}
+          {job.status === 'rendering' && (job.label || 'Rendering...')}
+          {job.status === 'complete' && (job.total ? `Done: ${job.done ?? 0} of ${job.total} videos downloaded` : 'Complete')}
           {job.status === 'failed' && 'Failed'}
         </span>
         {job.status === 'complete' && job.fileSize && (
@@ -31,6 +31,7 @@ export function RenderProgress({ job, onCancel }: RenderProgressProps) {
         />
       </div>
 
+      {job.failures?.length ? <p className="export-tab__hint" role="alert" data-testid="render-failures">{job.failures.length} video{job.failures.length === 1 ? '' : 's'} could not be made: {job.failures[0]}</p> : null}
       <div className="render-progress__footer">
         <span className="render-progress__percent">{Math.round(job.progress)}%</span>
 

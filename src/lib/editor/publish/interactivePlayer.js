@@ -15,7 +15,7 @@ import { normalizeListBuilder, leadFormToOptin } from '../addons/listBuilder.js'
 import { pickVariant, applyVariant, hasVariantB } from '../addons/abTest.js';
 import { addonOptions } from '../addons/registry.js';
 import { timelineToComposition } from '../remotion/timelineToComposition.js';
-import { showLeadForm, ctaElement, linkBoxElement } from './viewerOverlays.js';
+import { showLeadForm, ctaElement, linkBoxElement, hotspotElement } from './viewerOverlays.js';
 import { ctaTarget } from '../addons/ctaLink.js';
 import { profileWithAnswers } from '../personalize/perContact.js';
 
@@ -34,7 +34,7 @@ export function stripUnresolvedTokens(value, key = '') {
 }
 
 export function buildViewerModel(project, profile, { fps = 30, quality = '1080p' } = {}) {
-  const model = timelineToComposition(project, { fps, quality, profile });
+  const model = timelineToComposition(project, { fps, quality, profile, ...(project?.aspect ? { aspect: project.aspect } : {}) });
   return { ...model, layers: stripUnresolvedTokens(model.layers) };
 }
 
@@ -49,12 +49,13 @@ export { profileWithAnswers };
  *   profile        token profile from the link (?firstname=…)
  *   onLead({ clipId, kind, data }) → Promise<{ stored, error }>
  *   onChange({ playing, time, duration })
+ *   onHotspot({ clip, action, label, time })   a viewer clicked a hotspot (for analytics)
  *   voiceFor(clip, profile) → Promise<url|null>   personalized Smart Speech audio
  *   rememberKey    id used to remember (in this browser) that the viewer already
  *                  filled in the List Builder, so they aren't asked again
  *   fps
  */
-export function createInteractivePlayer({ project, stage, frame, createEngine, profile = null, onLead, onChange, voiceFor, rememberKey = null, fps = 30 }) {
+export function createInteractivePlayer({ project, stage, frame, createEngine, profile = null, onLead, onChange, onHotspot, voiceFor, rememberKey = null, fps = 30 }) {
   const T = Number(project.timelineSeconds) || 60;
   const clips = (project.tracks || []).flatMap((t) => t.items || t.clips || []);
   const listBuilder = project.listBuilder ? normalizeListBuilder({ ...project.listBuilder }) : null;
@@ -94,7 +95,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
 
   const emit = () => onChange?.({ playing, time, duration: model.durationInFrames / fps, gating: gateOpen });
 
-  const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || ctaTarget(addonOptions(c)));
+  const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || c.type === 'addon-hotspot' || ctaTarget(addonOptions(c)));
   const onCall = ({ clip, phone }) => {
     // Upstream "Email to notify about call attempt": recorded as a lead for the owner.
     onLead?.({ clipId: clip.id, kind: 'call-attempt', data: { PHONE: phone, CALLED_AT: new Date().toISOString() } });
@@ -106,7 +107,9 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       const on = sec >= start && sec < end;
       const id = String(clip.id);
       if (on && !live.has(id)) {
-        const el = clip.type === 'click-to-call' ? ctaElement(clip, { onCall, frameAspect: model.width / model.height }) : linkBoxElement(clip, { onCall });
+        const el = clip.type === 'click-to-call' ? ctaElement(clip, { onCall, frameAspect: model.width / model.height })
+          : clip.type === 'addon-hotspot' ? hotspotElement(clip, { onCall, onSeek: jumpTo, onClick: (h) => onHotspot?.({ ...h, time }) })
+            : linkBoxElement(clip, { onCall });
         if (el) { layer.appendChild(el); live.set(id, el); }
       } else if (!on && live.has(id)) {
         live.get(id).remove();
@@ -142,6 +145,13 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     time = Math.max(0, Math.min(T, sec));
     engine?.seekToFrame(Math.round(time * fps));
     updateInteractive(time);
+  }
+
+  // A hotspot's "jump to" action: go there and keep playing (a form that is open blocks it, as scrubbing does).
+  function jumpTo(sec) {
+    if (gateOpen) return;
+    seek(sec);
+    play();
   }
 
   function pauseInternal() {

@@ -3,6 +3,7 @@ import { sharedFrameSource } from './frameSource'
 import { createMediaPipeSegmenter, type Segmenter } from './segmenter'
 import { SegmentationCancelled, segmentVideo, type SegmentOptions, type SegmentResult } from './segmentVideo'
 import { toPlayablePreviewMediaUrl } from '../remoteMedia'
+import { presenterBounds, type Rect01 } from './presenterZone'
 
 /**
  * Measured presenter masks, kept in memory per video URL. They are measured once and then reused by every
@@ -19,6 +20,8 @@ export interface CutoutStatus {
 
 interface Entry extends CutoutStatus {
   result: SegmentResult | null
+  /** Where the presenter is across the whole clip (0..1 of the frame the masks cover). */
+  bounds: Rect01 | null
   controller: AbortController | null
   promise: Promise<void> | null
 }
@@ -61,6 +64,13 @@ export function getMaskAt(url: string | null | undefined, timeSec: number): { ma
   return { mask: lerpMask(r.masks[i0], r.masks[i1], t), width: r.width, height: r.height }
 }
 
+/** The presenter's bounds over the whole clip and the source aspect the masks cover; null until measured. */
+export function getPresenterBounds(url: string | null | undefined): { bounds: Rect01; aspect: number } | null {
+  const e = url ? entries.get(url) : undefined
+  if (!e?.result || !e.bounds) return null
+  return { bounds: e.bounds, aspect: e.result.width / Math.max(1, e.result.height) }
+}
+
 export interface EnsureOptions {
   signal?: AbortSignal
   /** Test hooks. */
@@ -76,7 +86,7 @@ export function ensureMasks(url: string, options: EnsureOptions = {}): Promise<v
   if (existing?.promise) return existing.promise
 
   const controller = new AbortController()
-  const entry: Entry = { state: 'processing', progress: 0, result: null, controller, promise: null }
+  const entry: Entry = { state: 'processing', progress: 0, result: null, bounds: null, controller, promise: null }
   entries.set(url, entry)
   options.signal?.addEventListener('abort', () => controller.abort(), { once: true })
 
@@ -92,6 +102,7 @@ export function ensureMasks(url: string, options: EnsureOptions = {}): Promise<v
         onProgress: (p) => { entry.progress = p; notify() },
       })
       entry.result = result
+      entry.bounds = presenterBounds(result.masks)
       entry.state = 'ready'
       entry.progress = 1
     } catch (error) {

@@ -22,6 +22,7 @@ import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
 import { defaultCaptionStyle } from './captions.js';
 import { buildCtaLottie } from '../addons/ctaLottie.js';
+import { resolveStudioDesignOptions } from '../addons/studioDesignAddon.js';
 
 function ctaOptions(clip, profile) {
   const style = clip.style || {};
@@ -89,6 +90,9 @@ function overlayLayer(clip, opts, profile, base) {
     case 'overlay-sticker':
     case 'overlay-transition':
       o.resolvedSrc = safeImageUrl(o.src);
+      break;
+    case 'overlay-studio-design':
+      Object.assign(o, resolveStudioDesignOptions(o, profile));
       break;
     case 'overlay-background':
       o.resolvedStyles = sanitizeWrapperStyles(o.styles);
@@ -223,7 +227,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         return;
       }
       if (clip.type === 'image' && src) {
-        const layer = { ...base, kind: 'image', src, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
+        // A personalized image clip ({{websiteShotUrl}}, {{logoUrl}}, …): this contact's image, else
+        // the clip's fallback (Video Outreach website backgrounds). Same rule as personalized overlays.
+        const personal = /\{\{/.test(src);
+        const resolved = personal ? safeImageUrl(resolveOverlayText(src, profile)) : src;
+        const imageSrc = personal ? ((resolved && !/\{\{/.test(resolved) ? resolved : null) || safeImageUrl(clip.fallbackSrc)) : src;
+        if (!imageSrc) return;
+        const layer = { ...base, kind: 'image', src: imageSrc, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', ...(clip.scroll ? { scroll: true } : {}), ...(clip.cursor ? { cursor: true } : {}), ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
         layers.push(layer);
         if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;

@@ -9,6 +9,8 @@ import * as pub from '../../../lib/editor/publish/publishClient.js';
 // @ts-expect-error plain JS
 import { supabase, uploadFileToStorage } from '../../../lib/hybrid-supabase.js';
 // @ts-expect-error plain JS
+import { friendlyPublishError } from '../../../lib/editor/publish/guestMessages.js';
+// @ts-expect-error plain JS
 import { getSupabaseAccessToken, getTokenExchangeFailure, primeSupabaseIdentity } from '../../../lib/supabase.js';
 
 const KEY = 'remix.cinegen.published.v1';
@@ -17,8 +19,12 @@ const signedIn = () => !!(window as unknown as { Clerk?: { user?: unknown } }).C
 
 export interface PublishInfo { id: string; title: string; published: boolean; view_count: number; updated_at?: string }
 
+/**
+ * The client that owns the published video: the account's when signed in, otherwise a private guest identity
+ * (lib/guestIdentity.js), so publishing, personal links and leads work without an account.
+ */
 export async function getClient() {
-  if (!signedIn()) throw new Error('Sign in to publish videos');
+  if (!signedIn()) return (await import('../../../lib/guestIdentity.js')).getGuestOwnerClient();
   await supabase.refreshUserHeader?.();
   // Signed in but no verified database token: every owner-only query would be rejected by row-level security with
   // a generic "sign in" error. Stop here and say what is actually wrong.
@@ -39,6 +45,29 @@ export async function withAuthRetry<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
+let guestClaimAsked = false;
+/**
+ * After signing in: offer to move what this browser published as a guest into the account (asked once per page load).
+ * Resolves with how much moved, or null when nothing was asked or the person declined.
+ */
+export async function offerGuestClaim(): Promise<{ videos: number; links: number; leads: number } | null> {
+  const w = window as unknown as { Clerk?: { user?: unknown; session?: { getToken?: () => Promise<string | null> } } };
+  if (guestClaimAsked || !w.Clerk?.user) return null;
+  try {
+    const guest = await import('../../../lib/guestIdentity.js');
+    if (!guest.hasGuestIdentity()) return null;
+    guestClaimAsked = true;
+    if (!window.confirm('Videos and links you published without an account are still in this browser. Move them to your account so you keep them?')) return null;
+    const token = await w.Clerk.session?.getToken?.();
+    if (!token) throw new Error('Please try again in a moment.');
+    return (await guest.claimGuestContent(token)).moved;
+  } catch (err) {
+    guestClaimAsked = false;
+    console.warn('Could not move guest content:', (err as Error)?.message);
+    return null;
+  }
+}
+
 /** The published id for the active timeline of this project (stored per project + timeline). */
 export function usePublished() {
   const { state, projectId } = useWorkspace();
@@ -53,13 +82,14 @@ export function usePublished() {
 
   const reload = useCallback(async () => {
     const vid = readIds()[key];
-    if (!vid || !signedIn()) { setInfo(null); setLoaded(true); return; }
-    try { setInfo(await pub.getMyVideo(await getClient(), vid)); setError(''); } catch (e) { setError((e as Error).message); }
+    if (!vid) { setInfo(null); setLoaded(true); return; }
+    try { setInfo(await pub.getMyVideo(await getClient(), vid)); setError(''); } catch (e) { setError(friendlyPublishError(e)); }
     setLoaded(true);
   }, [key]);
   useEffect(() => { setLoaded(false); void reload(); }, [reload]);
+  useEffect(() => { void offerGuestClaim().then((moved) => { if (moved) void reload(); }); }, [reload]);
 
-  const run = async (fn: () => Promise<void>) => { setBusy(true); setError(''); try { await fn(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } };
+  const run = async (fn: () => Promise<void>) => { setBusy(true); setError(''); try { await fn(); } catch (e) { setError(friendlyPublishError(e)); } finally { setBusy(false); } };
   const publish = (title: string) => run(async () => {
     const c = await getClient();
     const { tl: t, state: s } = latest.current;
@@ -69,7 +99,8 @@ export function usePublished() {
     // interest mapping on republish. Linking is best-effort: publishing itself must never fail because of it.
     let linked: string | null = null;
     let rowId: string | null = null;
-    if (projectId && t?.id) {
+    // Cloud project rows (Analytics / Retarget / Alerts) belong to accounts; a guest publishes without one.
+    if (projectId && t?.id && signedIn()) {
       rowId = await linkedProjectId(projectId, t.id);
       // The owner's saved audience mapping travels with every republish. If it cannot be read, stop rather than
       // publish a version that silently loses it (a failed read is different from "nothing saved yet").
@@ -90,5 +121,5 @@ export function usePublished() {
     if (linked) void captureRowThumbnail(c, linked, built, { aspect: t?.aspect ?? null, force: true });
   });
   const setLive = (on: boolean) => run(async () => { await pub.setPublished(await getClient(), id, on); setInfo((i) => (i ? { ...i, published: on } : i)); });
-  return { id, info, busy, error, loaded, publish, setLive, reload, title: tl?.name || 'Untitled video', signedIn: signedIn() };
+  return { id, info, busy, error, loaded, publish, setLive, reload, title: tl?.name || 'Untitled video', signedIn: signedIn(), guest: !signedIn() };
 }

@@ -27,7 +27,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
-  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, verifyTurnstile, parseExtraDomains, emailKeyOf, emailDomain, domainAcceptsMail, isDuplicateError, isMissingColumnError, type DnsResolver, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
+  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, verifyTurnstile, parseExtraDomains, emailKeyOf, emailDomain, domainAcceptsMail, isDuplicateError, isMissingColumnError, type DnsResolver, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
   isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, hostOf, deriveSigningSecret,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, deliverWebhook, type Delivery, type DeliverDeps, type HttpCall, type Json,
 } from "./logic.ts";
@@ -36,6 +36,16 @@ export { isForwardableWebhook, savedWebhooks, isCallClip, leadConfigFor };
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+/** True when a bearer token's subject is a guest id. Only used to take privileges away, never to grant them. */
+function isGuestToken(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof payload?.sub === "string" && payload.sub.startsWith("guest_");
+  } catch {
+    return false;
+  }
+}
+
 const PUBLISHED_ID = /^[A-Za-z0-9_-]{8,32}$/;
 const ALLOWED_ORIGINS = (Deno.env.get("LEAD_CAPTURE_ALLOWED_ORIGINS") ?? "*")
   .split(",").map((s) => s.trim()).filter(Boolean);
@@ -44,6 +54,8 @@ const ALLOWED_ORIGINS = (Deno.env.get("LEAD_CAPTURE_ALLOWED_ORIGINS") ?? "*")
 // domain verified in Resend, e.g. "Leads <leads@yourdomain.com>") as edge function secrets.
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const LEAD_EMAIL_FROM = Deno.env.get("LEAD_EMAIL_FROM") ?? "";
+// Public site address, used for the video link in the auto-reply email (e.g. https://app.example.com).
+const PUBLIC_APP_URL = (Deno.env.get("PUBLIC_APP_URL") ?? "").replace(/\/+$/, "");
 
 // Webhook signing: every delivery carries X-Remix-Signature, an HMAC with a per-owner secret
 // derived from this master secret (set WEBHOOK_SIGNING_SECRET to any long random string).
@@ -145,9 +157,15 @@ async function forward(
   payload: Record<string, unknown>,
   { secret = "", maxAttempts = MAX_ATTEMPTS }: { secret?: string; maxAttempts?: number } = {},
 ): Promise<{ forwarded: number; failed: number; deliveries: Delivery[] }> {
-  const body = JSON.stringify(payload);
+  const plain = JSON.stringify(payload);
   const event = typeof payload.event === "string" ? payload.event : "video_opted_in";
-  const deliveries = await Promise.all(urls.map((url) => deliverWebhook({ url, body, event, secret, maxAttempts }, realDeliverDeps)));
+  // Slack / Discord / Teams webhook URLs get the alert shaped for that app; everything else gets the normal JSON payload.
+  const alert = payload.data && typeof payload.data === "object"
+    ? leadAlertText(String(payload.kind ?? ""), payload.data as Record<string, string>, (payload.source ?? {}) as { utm?: Record<string, string>; referrer?: string })
+    : null;
+  if (alert && payload.test === true) alert.title = `Test alert: ${alert.title}`;
+  const bodyFor = (url: string) => { const preset = alert ? chatPreset(url) : null; return preset && alert ? JSON.stringify(chatBody(preset, alert)) : plain; };
+  const deliveries = await Promise.all(urls.map((url) => deliverWebhook({ url, body: bodyFor(url), event, secret, maxAttempts }, realDeliverDeps)));
   const failed = deliveries.filter((d) => !d.ok).length;
   return { forwarded: urls.length - failed, failed, deliveries };
 }
@@ -237,6 +255,41 @@ async function notify(to: string[], kind: string, data: Record<string, string>, 
   }
 }
 
+/**
+ * Auto-reply to the lead (owner switch, off by default). Safeguards: needs Resend + a site address configured; at most ONE
+ * reply per email address per video per 24 hours (so nobody can use a form to mail someone repeatedly); a busy video
+ * (hundreds of leads a day) sends none; replies go to the owner's notification address so a lead can answer them.
+ */
+async function sendAutoReply(
+  admin: Db, { publishedId, config, data, replyTo }: { publishedId: string; config: Record<string, unknown>; data: Record<string, string>; replyTo: string },
+): Promise<void> {
+  const settings = autoReplySettings(config);
+  const contact = leadContact(data);
+  if (!settings || !contact || !RESEND_API_KEY || !LEAD_EMAIL_FROM || !PUBLIC_APP_URL) return;
+  const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const { data: recent, error } = await admin.from("video_leads").select("data").eq("project_id", publishedId).gte("created_at", since).limit(500);
+  if (error || !Array.isArray(recent) || recent.length >= 500) return;
+  const same = recent.filter((r: { data: Record<string, string> }) => leadContact(sanitizeData(r.data))?.email.toLowerCase() === contact.email.toLowerCase()).length;
+  if (same > 1) return; // this lead's own row counts as one; more means they already had a reply today
+  const { subject, html, text } = buildAutoReply(settings, { firstName: contact.name, videoUrl: `${PUBLIC_APP_URL}/watch/${encodeURIComponent(publishedId)}` });
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), WEBHOOK_TIMEOUT_MS);
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+      body: JSON.stringify({ from: LEAD_EMAIL_FROM, to: [contact.email], subject, html, text, ...(replyTo ? { reply_to: replyTo } : {}) }),
+      signal: ctrl.signal,
+    });
+    await res.body?.cancel();
+    if (!res.ok) console.warn("[lead-capture] auto-reply failed:", res.status);
+  } catch (err) {
+    console.warn("[lead-capture] auto-reply error:", (err as Error)?.name);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
   if (req.method !== "POST") return json(req, { ok: false, error: "Method not allowed" }, 405);
@@ -250,6 +303,9 @@ Deno.serve(async (req: Request) => {
   // The anon key is sent as a Bearer token when nobody is signed in; only a
   // different token is a user session.
   const hasSession = authHeader.startsWith("Bearer ") && authHeader.slice(7) !== SUPABASE_ANON_KEY;
+  // Guests (no account, see netlify/functions/guest-token.js) get a token whose subject starts with "guest_".
+  // They keep their leads, but this function never relays webhooks on their behalf.
+  const callerIsGuest = hasSession && isGuestToken(authHeader.slice(7));
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: hasSession ? { Authorization: authHeader } : {} },
     auth: { persistSession: false, autoRefreshToken: false },
@@ -347,7 +403,9 @@ Deno.serve(async (req: Request) => {
     const callNotify = leadKind === "call-attempt"
       ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "").trim()
       : "";
-    const hooks = leadKind === "call-attempt" ? [] : savedWebhooks(config, listBuilder);
+    // Guest-owned videos (no account) never have webhooks relayed on their behalf.
+    const guestOwned = String(video.clerk_user_id ?? "").startsWith("guest_");
+    const hooks = leadKind === "call-attempt" || guestOwned ? [] : savedWebhooks(config, listBuilder);
     // The recipients always come from the saved project, never from the request.
     const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? [callNotify] : []) : savedNotifyEmails(config, listBuilder);
     const ownerId = String(video.clerk_user_id ?? "");
@@ -360,6 +418,7 @@ Deno.serve(async (req: Request) => {
           ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
           : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
         notify(notifyTo, leadKind, leadData, attribution),
+        leadKind === "call-attempt" ? Promise.resolve() : sendAutoReply(admin, { publishedId, config, data: leadData, replyTo: notifyTo[0] ?? "" }),
         leadKind === "call-attempt" ? Promise.resolve(null) : pushToEsp(admin, ownerId, savedEsp(config), leadData),
       ]);
       await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);
@@ -465,7 +524,7 @@ Deno.serve(async (req: Request) => {
   const kind = typeof body.kind === "string" && KINDS.has(body.kind) ? body.kind : "lead-form";
   // Caller-supplied webhook URLs are only relayed for a signed-in editor session
   // (preview). Anonymous callers could otherwise use this as an open relay.
-  const webhooks = !hasSession ? [] : (Array.isArray(body.webhooks) ? body.webhooks : [])
+  const webhooks = !hasSession || callerIsGuest ? [] : (Array.isArray(body.webhooks) ? body.webhooks : [])
     .filter(isForwardableWebhook).slice(0, MAX_WEBHOOKS);
   const source = sanitizeSource(body.source);
   const createdAt = new Date().toISOString();

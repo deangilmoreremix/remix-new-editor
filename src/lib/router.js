@@ -85,6 +85,8 @@ const pageLoaders = {
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
   leadfinder: () => import('../components/LeadFinderStudio.js').then(m => m.LeadFinderStudio()),
+  outreach: () => import('../components/OutreachStudio.js').then(m => m.OutreachStudio()),
+  recorder: () => import('../components/RecorderStudioPage.js').then(m => m.RecorderStudioPage()),
   'find-my-brand': () => import('../components/FindMyBrandPage.js').then(m => m.FindMyBrandPage()),
   // Motion Director (ported from OpenHiggsBolt): the chat and its Motion Workbench editor.
   'motion-director': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),

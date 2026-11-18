@@ -129,6 +129,12 @@ export const puckConfig = {
     },
     CtaBar: { label: 'Bottom button bar', fields: { text: T('Text beside the button (empty = button only)'), label: T('Button text'), url: T('Link (https, mailto:, tel: or #lead)'), icon: iconField, icons: { type: 'array', label: 'Social icons (button-only bar)', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { text: '', label: 'Book a Free Consultation', url: '#lead', icon: 'calendar', icons: [] }, render: (p) => <C.CtaBar {...p} /> },
     Footer: { label: 'Footer', fields: { text: T('Footer text'), links: linkArray('Footer links') }, defaultProps: { text: 'Sent by {{sender|us}} · {{brand|your brand}}', links: [] }, render: (p) => <C.Footer {...p} /> },
+    OutreachActions: {
+      label: 'Video outreach: sender, Like, booking',
+      fields: { senderName: T('Your name'), senderTitle: T('Your title and company'), senderPhoto: T('Your photo (https link)'), like: { type: 'radio', label: 'Like button', options: [{ label: 'Show', value: 'yes' }, { label: 'Hide', value: 'no' }] }, ctaLabel: T('Button text'), ctaUrl: T('Button link (https)'), calendarUrl: T('Booking calendar to embed (https, empty = none)'), calendarTitle: T('Calendar heading') },
+      defaultProps: { senderName: '{{sender|}}', senderTitle: '', senderPhoto: '', like: 'yes', ctaLabel: 'Book a call', ctaUrl: '', calendarUrl: '', calendarTitle: 'Pick a time that works for you' },
+      render: (p) => <C.OutreachActions {...p} />,
+    },
     Showcase: {
       label: 'Text + picture (or photo banner)',
       fields: {

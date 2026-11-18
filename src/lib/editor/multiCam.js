@@ -5,7 +5,7 @@
  *   state.multiCam = {
  *     mode: 'single' | 'pip' | 'split',
  *     mainTrackId, secondTrackId,              // two video tracks
- *     pip:   { corner: 'bottom-right' | …, size: 15–60 },   // % of the frame width
+ *     pip:   { corner: 'bottom-right' | …, size: 15–60, shape?: 'rect' | 'circle' },   // % of the frame width
  *     split: { orientation: 'vertical' | 'horizontal', ratio: 0.2–0.8 },
  *   }
  *
@@ -16,7 +16,7 @@ export const PIP_CORNERS = [['top-left', 'Top left'], ['top-right', 'Top right']
 
 export const DEFAULT_MULTICAM = {
   mode: 'single', mainTrackId: null, secondTrackId: null,
-  pip: { corner: 'bottom-right', size: 30 },
+  pip: { corner: 'bottom-right', size: 30, shape: 'rect' },
   split: { orientation: 'vertical', ratio: 0.5 },
 };
 
@@ -28,7 +28,11 @@ export function normalizeMultiCam(mc) {
     mode: MULTICAM_MODES.includes(m.mode) ? m.mode : 'single',
     mainTrackId: m.mainTrackId || null,
     secondTrackId: m.secondTrackId || null,
-    pip: { corner: PIP_CORNERS.some(([c]) => c === m.pip?.corner) ? m.pip.corner : 'bottom-right', size: clamp(m.pip?.size, 15, 60, 30) },
+    pip: {
+      corner: PIP_CORNERS.some(([c]) => c === m.pip?.corner) ? m.pip.corner : 'bottom-right',
+      size: clamp(m.pip?.size, 15, 60, 30),
+      shape: m.pip?.shape === 'circle' ? 'circle' : 'rect',
+    },
     split: { orientation: m.split?.orientation === 'horizontal' ? 'horizontal' : 'vertical', ratio: clamp(m.split?.ratio, 0.2, 0.8, 0.5) },
   };
 }
@@ -38,11 +42,14 @@ export function multiCamBox(mc, role) {
   const m = normalizeMultiCam(mc);
   if (m.mode === 'pip') {
     if (role === 'main') return null;
-    const w = m.pip.size; const h = w; // the frame is 16:9, so a 16:9 window has equal % width and height
+    const circle = m.pip.shape === 'circle';
+    const w = m.pip.size;
+    // The frame is 16:9: a 16:9 window has equal % width and height; a round (square) one is 16/9 taller in %.
+    const h = circle ? Math.min(100, w * (16 / 9)) : w;
     const margin = 3;
     const left = m.pip.corner.endsWith('left') ? margin : 100 - w - margin;
     const top = m.pip.corner.startsWith('top') ? margin * 1.8 : 100 - h - margin * 1.8;
-    return { left, top, width: w, height: h, radius: 10, border: 3 };
+    return { left, top, width: w, height: h, radius: circle ? '50%' : 10, border: 3 };
   }
   if (m.mode === 'split') {
     const r = m.split.ratio * 100;

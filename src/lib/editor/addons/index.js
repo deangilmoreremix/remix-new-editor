@@ -1,5 +1,5 @@
 export { registerAddon, getAddon, isAddonType, listAddons, createAddonClip, clipTimeRange, addonOptions } from './registry.js';
-export { INTERACTIVE_ADDONS, PROJECT_FORMS, PAUSE, LOOP, SKIP, LEAD_FORM, CTA_BUTTON } from './interactiveAddons.js';
+export { INTERACTIVE_ADDONS, PROJECT_FORMS, PAUSE, LOOP, SKIP, HOTSPOT, LEAD_FORM, CTA_BUTTON } from './interactiveAddons.js';
 export { AddonRuntime } from './runtime.js';
 export { renderAddonEditor, getPath, setPath } from './addonEditor.js';
 export { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, showOptinOverlay, showThanks, safeWebUrl, AFTER_SUBMIT_ACTIONS, backdropStyle, buildOptinForm, buildArrowHint, startPointer, formBackground } from './addonOverlay.js';
@@ -10,10 +10,11 @@ export {
   submitLead, leadNotifyEmails, MAX_NOTIFY_EMAILS, fetchLeads, fetchLeadRows, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, removeIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
 } from './leadClient.js';
 export { OVERLAY_ADDONS, SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD, OVERLAY_TRANSITION, VIDEO_TRANSITION, applyPositionPreset } from './overlayAddons.js';
+export { STUDIO_DESIGN, FIELD_TOKEN, ROLE_TOKEN, DEFAULT_DESIGN_COLORS, slotsForDesign, defaultStudioDesignOptions, resolveStudioDesignOptions, studioDesignFields, switchDesignOptions, geometryFromPlacement } from './studioDesignAddon.js';
 export { buildLowerThirdLottie, lowerThirdFrame, LOWER_THIRD_TEMPLATES, LOWER_THIRD_DEFAULTS } from './lowerThirds.js';
 export {
   buildOverlayElement, finishOverlayElement, destroyOverlayElement, setOverlayPlaying, playInAnimation, playOutAndRemove,
-  activeOverlays, syncOverlayTime, resolveOverlayText, sanitizeWrapperStyles, safeHref, safeImageUrl, OVERLAY_TAG,
+  activeOverlays, isEditorOverlay, syncOverlayTime, resolveOverlayText, sanitizeWrapperStyles, safeHref, safeImageUrl, OVERLAY_TAG,
 } from './overlayRender.js';
 export { attachDragResize, dragGeometry, clampGeometry } from './dragResize.js';
 export { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, STICKER_LIBRARY, ANIMATED_EMOJI, VIDEO_TRANSITIONS } from './overlayData.js';

@@ -69,7 +69,7 @@ export function retentionPoints(rows) {
 export function conversionRows(rows, labels = {}) {
   return (rows || []).map((r) => {
     const label = r.label || labels[String(r.clip_id)] || TYPE_LABEL[r.type] || 'Interaction';
-    return { label: r.type === 'lead_submit' ? `Lead: ${label}` : r.type === 'call_click' ? `Call: ${label}` : label, clicks: Number(r.sessions) || 0, uniqueSessions: Number(r.sessions) || 0 };
+    return { label: r.type === 'lead_submit' ? `Lead: ${label}` : r.type === 'call_click' ? `Call: ${label}` : r.type === 'overlay_click' && (r.label || labels[String(r.clip_id)]) ? `Hotspot: ${r.label || labels[String(r.clip_id)]}` : label, clicks: Number(r.sessions) || 0, uniqueSessions: Number(r.sessions) || 0 };
   });
 }
 

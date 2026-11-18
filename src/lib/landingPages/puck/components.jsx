@@ -3,6 +3,7 @@
  * (escaped), links/images go through safeUrl/safeImageUrl, and the video / lead form keep the same tracking
  * events and token rules as the classic renderer.
  */
+import { outreachPlayerSrc } from '../../outreach/landingPage.js';
 import { useEffect, useRef, useState } from 'react';
 import { fillTokens, splitAccent, prefillFor, safeUrl, safeImageUrl } from '../templates.js';
 import { usePage, useThanks, useAfterSubmit } from './context.js';
@@ -56,7 +57,19 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
     fired.current.add(kind);
     fn?.(kind);
   };
-  const pageVideo = isPlayableVideo(page?.video_url) ? page.video_url : '';
+  // A Video Outreach campaign plays its personal player (each contact's greeting) here.
+  const outreachSrc = preview ? null : outreachPlayerSrc(page?.video_url);
+  if (outreachSrc) {
+    return (
+      <div className="pk-video">
+        <iframe className="pk-video-frame" src={outreachSrc} title={page?.title || 'Video'} allow="autoplay; fullscreen; clipboard-write" allowFullScreen />
+      </div>
+    );
+  }
+  // Published pages play https videos only; the editor and previews also play a just-picked local file (blob:),
+  // which "Save as my page" uploads before the page is stored.
+  const blobPreview = preview && /^blob:/i.test(String(page?.video_url || '')) ? String(page.video_url) : '';
+  const pageVideo = isPlayableVideo(page?.video_url) ? page.video_url : blobPreview;
   const src = (isPlayableVideo(slotVideo) ? httpsMedia(slotVideo) : '') || pageVideo;
   const pageImage = !pageVideo && httpsMedia(page?.video_url) && IMAGE_PATH.test(pathOf(page.video_url)) ? httpsMedia(page.video_url) : '';
   const userImage = safeImageUrl(slotImage) || pageImage;
@@ -228,7 +241,7 @@ export function Hero({ variant = 'copy-video-form', background, eyebrow, headlin
   const t = useTokens();
   const fields = asList(formFields).filter((f) => f.key && f.label).map((f) => ({ ...f, key: String(f.key).replace(/[^a-z0-9_]/gi, '').toLowerCase() }));
   return (
-    <header className={`pk-hero pk-hero--${variant}`} id="top" style={cssImage(background) ? { '--pk-hero-bg': cssImage(background) } : undefined}>
+    <header className={`pk-hero pk-hero--${variant}${showForm === 'yes' ? '' : ' pk-hero--noform'}`} id="top" style={cssImage(background) ? { '--pk-hero-bg': cssImage(background) } : undefined}>
       <div className="pk-hero-copy">
         {eyebrow ? <span className="pk-eyebrow">{t(eyebrow)}</span> : null}
         <AccentText as="h1" className="pk-headline" text={headline} />
@@ -520,6 +533,52 @@ export function CtaBar({ text, label, url, icon, icons }) {
       {icon ? <Icon name={icon} className="pk-ico pk-ico--lg" /> : null}
       <p>{t(text)}</p>
       <a className="pk-btn pk-btn--cta" href={href} {...ext}>{t(label)}</a>
+    </section>
+  );
+}
+
+/**
+ * Video Outreach (Sendspark-style) block under the video: who sent it, Like, the booking button
+ * and the booking calendar embedded on the page. The button scrolls to the calendar when there
+ * is one, else opens the link.
+ */
+export function OutreachActions({ senderName, senderTitle, senderPhoto, like = 'yes', ctaLabel, ctaUrl, calendarUrl, calendarTitle }) {
+  const t = useTokens();
+  const { handlers, preview } = usePage();
+  const [liked, setLiked] = useState(false);
+  const cal = /^https:\/\//i.test(String(calendarUrl || '')) ? safeUrl(calendarUrl) : '';
+  const href = safeUrl(ctaUrl);
+  const photo = imgUrl(senderPhoto);
+  const name = t(senderName);
+  const cta = () => { if (!preview) handlers.onCta?.(); };
+  return (
+    <section className="pk-outreach" id="lead">
+      <div className="pk-outreach-row">
+        {name ? (
+          <div className="pk-outreach-sender">
+            {photo ? <img src={photo} alt="" width="48" height="48" /> : <span className="pk-outreach-initial" aria-hidden="true">{name.slice(0, 1)}</span>}
+            <div><strong>{name}</strong>{senderTitle ? <span>{t(senderTitle)}</span> : null}</div>
+          </div>
+        ) : null}
+        <div className="pk-outreach-buttons">
+          {like === 'yes' ? (
+            <button type="button" className={`pk-btn pk-btn--secondary pk-like${liked ? ' is-liked' : ''}`} aria-pressed={liked} onClick={() => { if (liked) return; setLiked(true); if (!preview) handlers.onLike?.(); }}>
+              <span aria-hidden="true">{liked ? '♥' : '♡'}</span> {liked ? 'Liked' : 'Like'}
+            </button>
+          ) : null}
+          {ctaLabel && cal ? (
+            <button type="button" className="pk-btn pk-btn--primary" onClick={() => { document.getElementById('pk-outreach-calendar')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); cta(); }}>{t(ctaLabel)}</button>
+          ) : ctaLabel && href ? (
+            <SafeLink className="pk-btn pk-btn--primary" href={href}><span onClick={cta}>{t(ctaLabel)}</span></SafeLink>
+          ) : null}
+        </div>
+      </div>
+      {cal ? (
+        <div className="pk-outreach-calendar" id="pk-outreach-calendar">
+          {calendarTitle ? <h2 className="pk-h2">{t(calendarTitle)}</h2> : null}
+          <iframe src={cal} title={t(calendarTitle) || 'Book a time'} loading="lazy" referrerPolicy="no-referrer-when-downgrade" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" />
+        </div>
+      ) : null}
     </section>
   );
 }
