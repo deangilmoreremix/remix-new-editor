@@ -438,14 +438,15 @@ export function LibraryPage() {
           onClick: () => downloadItem(item),
         },
         // Any generated video can become a landing page (public link, CTA, lead form, analytics).
-        ...(item.type === 'video' ? [{
+        ...(item.type === 'video' || item.type === 'image' ? [{
           id: 'landing-page',
           label: 'Create landing page',
           onClick: async () => {
-            const { openVideoPageFor } = await import('../lib/landingPages/handoff.js');
-            const opened = await openVideoPageFor(item);
-            if (opened) detailView.hide();
-            else showToast('This video has no shareable link yet.', 'warning', 3000);
+            // Opens the landing page picker (all designs, full view + editor) with this video attached.
+            const { openLandingPagePicker, toPickerVideo } = await import('../lib/landingPages/pickerModal.js');
+            if (!toPickerVideo(item)) { showToast('This video has no shareable link yet.', 'warning', 3000); return; }
+            detailView.hide();
+            openLandingPagePicker({ video: item });
           },
         }] : []),
       ],

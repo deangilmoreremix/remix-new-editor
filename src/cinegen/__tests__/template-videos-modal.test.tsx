@@ -11,8 +11,8 @@ const cards = () => screen.queryAllByTestId(/^template-video-/);
 const tab = (name: RegExp) => screen.getByRole('tab', { name });
 
 describe('TemplateVideosModal', () => {
-  let onClose: ReturnType<typeof vi.fn>;
-  let onPick: ReturnType<typeof vi.fn>;
+  let onClose: any;
+  let onPick: any;
   beforeEach(() => {
     onClose = vi.fn();
     onPick = vi.fn();

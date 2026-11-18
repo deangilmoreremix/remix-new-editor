@@ -9,7 +9,7 @@ const hero = {
     subhead: 'Turn personalized videos into qualified leads, bigger lists, and more conversations — automatically.',
     bullets: [{ text: 'Build your list' }, { text: 'Qualify leads' }, { text: 'Book more calls' }],
     buttons: [{ label: 'Get My Personalized Video →', url: '#lead', style: 'primary' }, { label: 'Book a Call', url: '#lead', style: 'secondary' }],
-    greeting1: 'Hi [[Alex]],', greeting2: 'I made this just for you.', photo: `${a}presenter.webp`,
+    greeting1: 'Hi [[{{firstname|there}}]],', greeting2: 'I made this just for you.', photo: `${a}presenter.webp`,
     formTitle: 'Get Your Personalized Video', formSubtitle: 'See how personalized video can help you grow your list and generate more qualified leads.',
     formFields: [{ key: 'name', label: 'First name', type: 'text', required: true }, { key: 'email', label: 'Work email', type: 'email', required: true }, { key: 'company', label: 'Company (optional)', type: 'text', required: false }],
     submitLabel: 'Get My Video →', privacy: "We'll only use your info to send your personalized video.",

@@ -16,15 +16,25 @@ import { deleteCaptionPreset, listCaptionPresets, saveCaptionPreset, type Captio
 import { importFontFile, loadUserFonts, userFontFamilies } from '@cinegen/lib/occ/user-fonts';
 import { CaptionCueEditor } from '../../../openchatcut/captions/CaptionCueEditor';
 import '../../../openchatcut/captions/captionEditor.css';
+import { MODEL_CATALOG } from '@cinegen/lib/local-ai/catalog';
+import { localAi } from '@cinegen/lib/local-ai/runtime';
 import { phrasesFromWords, translateCues, toSrt, TRANSLATION_LANGUAGES } from '@cinegen/lib/occ/translate';
 
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12 } as const;
-const MOTIONS: CaptionMotionPreset[] = ['none', 'fade-up', 'pop', 'word-pop', 'karaoke-pulse'];
+const MOTIONS: CaptionMotionPreset[] = ['none', 'fade-up', 'pop', 'word-pop', 'karaoke-pulse', 'char-rise', 'char-pop', 'char-wave', 'word-rise', 'line-rise', 'line-fade'];
+
+// Whisper language codes offered for the spoken language (English-only models accept only English)
+const SPOKEN_LANGUAGES: ReadonlyArray<readonly [string, string]> = [['auto', 'Auto'], ['en', 'English'], ['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['pt', 'Portuguese'], ['it', 'Italian'], ['nl', 'Dutch'], ['ja', 'Japanese'], ['ko', 'Korean'], ['zh', 'Chinese'], ['hi', 'Hindi'], ['ar', 'Arabic'], ['ru', 'Russian'], ['tr', 'Turkish']];
 
 export function ClipCaptionsSection({ clip, asset, onUpdate, onSeek }: { clip: Clip; asset: Asset | null; onUpdate: (u: { captions?: CaptionsData }) => void; onSeek?: (time: number) => void }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [lang, setLang] = useState('Spanish');
+  // [remix] Stage 11: spoken language and speech model for Generate captions (default: auto-detect with the best installed model)
+  const [spoken, setSpoken] = useState('auto');
+  const [asrModel, setAsrModel] = useState('');
+  const [installedAsr, setInstalledAsr] = useState<string[]>([]);
+  useEffect(() => { let live = true; const { manager } = localAi(); void manager.refresh().then(() => { if (live) setInstalledAsr(MODEL_CATALOG.filter((m) => m.kind === 'asr' && manager.isInstalled(m.id)).map((m) => m.id)); }).catch(() => undefined); return () => { live = false; }; }, []);
   const c = useMemo(() => {
     const cur = clip.captions;
     if (!cur?.words?.length) return cur;
@@ -37,16 +47,18 @@ export function ClipCaptionsSection({ clip, asset, onUpdate, onSeek }: { clip: C
   const [, bumpFonts] = useState(0);
   const srtRef = useRef<HTMLInputElement>(null);
   const fontRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
   useEffect(() => { void listCaptionPresets().then(setPresets); void loadUserFonts().then((f) => f.length && bumpFonts((n) => n + 1)); }, []);
   const download = (name: string, text: string, type: string) => { const u = URL.createObjectURL(new Blob([text], { type })); const a = document.createElement('a'); a.href = u; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(u), 4000); };
   const patch = (p: Partial<CaptionsData>) => c && onUpdate({ captions: { ...c, ...p } });
   const generate = async () => {
     if (!asset) return;
-    setBusy(true); setMsg('Transcribing (the first run downloads the speech model)…');
+    setBusy(true); setMsg('Transcribing on this device…');
     try {
-      const { transcribeInBrowser, WHISPER_MODELS } = await import('../../../lib/editor/remotion/transcribe.js');
-      const model = (navigator as Navigator & { gpu?: unknown }).gpu ? WHISPER_MODELS[0][0] : WHISPER_MODELS[1][0];
-      const out = await transcribeInBrowser(toFileUrl(asset.fileRef || asset.url), { model, onProgress: () => {} });
+      // [remix] Port I1: on-device Whisper from the Local AI model manager (Media tools > Local AI); cancellable, with real progress
+      const { transcribeAsset } = await import('@cinegen/lib/local-ai/clip-transcribe');
+      abortRef.current = new AbortController();
+      const out = await transcribeAsset(toFileUrl(asset.fileRef || asset.url), { signal: abortRef.current.signal, language: spoken === 'auto' ? undefined : spoken, modelId: asrModel || undefined, onProgress: (p) => setMsg(p.stage === 'decode' ? 'Reading audio…' : `Transcribing… ${Math.round(p.progress * 100)}%`) });
       const sp = clip.speed || 1;
       const words = (out.captions as Array<{ text: string; startMs: number; endMs: number }>)
         .map((w) => ({ text: w.text, start: Math.round(clip.startTime * 1000 + (w.startMs - clip.trimStart * 1000) / sp), end: Math.round(clip.startTime * 1000 + (w.endMs - clip.trimStart * 1000) / sp) }))
@@ -80,7 +92,18 @@ export function ClipCaptionsSection({ clip, asset, onUpdate, onSeek }: { clip: C
       <div className="clip-properties-panel__section-title">Captions</div>
       <input ref={srtRef} type="file" accept=".srt,text/plain" hidden data-testid="caption-srt-file" onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; const words = parseSrt(await f.text()); if (!words.length) { setMsg('No cues found in that .srt file.'); return; } const off = Math.round(clip.startTime * 1000); onUpdate({ captions: { ...(c ?? { enabled: true, template: 'tiktok', pacing: 'phrase', motionPreset: 'pop', offsetFrames: 0 }), words: backfillCueIdentities(words.map((w) => ({ ...w, start: w.start + off, end: w.end + off })), clip.id), wordOverrides: undefined, translation: undefined, bilingual: undefined } as CaptionsData }); setMsg(`${words.length} cue${words.length === 1 ? '' : 's'} imported from ${f.name}.`); }} />
       {!c ? (
-        <div className="clip-properties-panel__row"><button className="clip-properties-panel__toggle-btn" disabled={busy || !asset} onClick={generate}>{busy ? 'Working…' : 'Generate captions'}</button><button className="clip-properties-panel__toggle-btn" onClick={() => srtRef.current?.click()}>Import .srt</button></div>
+        <>
+        <div className="clip-properties-panel__row">
+          <select aria-label="Spoken language" data-testid="caption-spoken-language" style={selectStyle} value={spoken} onChange={(e) => setSpoken(e.target.value)}>
+            {SPOKEN_LANGUAGES.map(([code, name]) => <option key={code} value={code}>{code === 'auto' ? 'Language: auto-detect' : name}</option>)}
+          </select>
+          <select aria-label="Speech model" data-testid="caption-speech-model" style={selectStyle} value={asrModel} onChange={(e) => setAsrModel(e.target.value)}>
+            <option value="">Model: best installed</option>
+            {installedAsr.map((id) => <option key={id} value={id}>{MODEL_CATALOG.find((m) => m.id === id)?.name ?? id}</option>)}
+          </select>
+        </div>
+        <div className="clip-properties-panel__row"><button className="clip-properties-panel__toggle-btn" disabled={busy || !asset} onClick={generate}>{busy ? 'Working…' : 'Generate captions'}</button>{busy && <button className="clip-properties-panel__toggle-btn" aria-label="Cancel transcription" onClick={() => abortRef.current?.abort()}>Cancel</button>}<button className="clip-properties-panel__toggle-btn" onClick={() => srtRef.current?.click()}>Import .srt</button></div>
+        </>
       ) : (
         <>
           <div className="clip-properties-panel__row">

@@ -848,6 +848,8 @@ export function LeftPanel({
           status: getAssetTranscriptionState(asset).status,
         }))
         .filter((entry) => entry.status === 'failed')
+        // [remix] Stage 11: "no speech model installed" is not an error worth a modal on every import: the asset keeps its badge and the Local AI tab explains
+        .filter((entry) => !/No speech model is installed/i.test(entry.error ?? ''))
         .map(({ id, name, error }) => ({ id, name, error }));
 
       if (failed.length > 0) {

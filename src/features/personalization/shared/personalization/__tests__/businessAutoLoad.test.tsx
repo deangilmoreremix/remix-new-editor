@@ -20,7 +20,7 @@ beforeAll(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
 })
 
-vi.mock('next/navigation', () => ({
+vi.mock('@ohb/lib/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),

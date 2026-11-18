@@ -3,9 +3,9 @@
  * (escaped), links/images go through safeUrl/safeImageUrl, and the video / lead form keep the same tracking
  * events and token rules as the classic renderer.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fillTokens, splitAccent, prefillFor, safeUrl, safeImageUrl } from '../templates.js';
-import { usePage } from './context.js';
+import { usePage, useThanks } from './context.js';
 import { ICON_PATHS } from '../siteIcons.js';
 
 const MARKS = [{ at: 0.25, kind: 'progress_25' }, { at: 0.5, kind: 'progress_50' }, { at: 0.75, kind: 'progress_75' }];
@@ -31,26 +31,53 @@ export function AccentText({ text, as: Tag = 'span', className }) {
   );
 }
 
-export function VideoPlayer({ poster = '' }) {
+const IMAGE_PATH = /\.(png|jpe?g|webp|gif|avif|svg)$/i;
+const pathOf = (u) => String(u || '').split(/[?#]/)[0];
+const httpsMedia = (v) => (/^https:\/\/[^\s"'<>()\\]+$/i.test(String(v || '').trim()) ? String(v).trim() : '');
+/** A page "video" that is really a picture (an image-only page keeps its image there) is not played. */
+export const isPlayableVideo = (u) => !!httpsMedia(u) && !IMAGE_PATH.test(pathOf(u));
+
+/**
+ * The video slot. Always shows a round play button over the picture so people know a video goes here:
+ *   - a video exists (slotVideo, else the page's video): the picture is its poster; the button starts it
+ *   - no video yet: the design's mock picture (or a neutral mock) + play button + "Your video goes here" in the editor
+ *   - only a picture (slotImage, or an image-only page): shown as a still, no play button
+ * The user's own picture (slotImage, then the page poster) beats the design's picture. `bakedPlay` says the design's
+ * picture already draws a play button, so the overlay is only added over the user's own pictures.
+ */
+export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', bakedPlay = '' }) {
   const { page, handlers, preview } = usePage();
   const fired = useRef(new Set());
+  const ref = useRef(null);
+  const [started, setStarted] = useState(false);
   const once = (kind, fn) => {
     if (preview || fired.current.has(kind)) return;
     fired.current.add(kind);
     fn?.(kind);
   };
-  const src = /^https:\/\//i.test(page?.video_url || '') ? page.video_url : '';
-  const posterUrl = safeImageUrl(page?.poster_url) || safeImageUrl(poster) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(poster) ? poster : '');
+  const pageVideo = isPlayableVideo(page?.video_url) ? page.video_url : '';
+  const src = (isPlayableVideo(slotVideo) ? httpsMedia(slotVideo) : '') || pageVideo;
+  const pageImage = !pageVideo && httpsMedia(page?.video_url) && IMAGE_PATH.test(pathOf(page.video_url)) ? httpsMedia(page.video_url) : '';
+  const userImage = safeImageUrl(slotImage) || pageImage;
+  const designPoster = safeImageUrl(poster) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(poster) ? poster : '');
+  const posterUrl = userImage || safeImageUrl(page?.poster_url) || designPoster;
+  const ownPicture = !!(userImage || safeImageUrl(page?.poster_url));
+  const still = !src && !!userImage;
+  const baked = bakedPlay === true || bakedPlay === 'yes';
+  const showPlay = !started && !still && (!baked || ownPicture);
+  const mock = !src && !userImage;
+  const play = () => { const v = ref.current; if (v && src) { void v.play?.(); } };
   return (
-    <div className="pk-video">
+    <div className={`pk-video${mock ? ' pk-video--mock' : ''}${still ? ' pk-video--still' : ''}`}>
       <video
-        controls
+        ref={ref}
+        controls={!!src}
         playsInline
         preload="metadata"
         src={src || undefined}
         poster={posterUrl || undefined}
-        aria-label={page?.title || 'Video'}
-        onPlay={() => once('play', () => handlers.onPlay?.())}
+        aria-label={still || mock ? (page?.title ? `Picture for ${page.title}` : 'Video placeholder') : (page?.title || 'Video')}
+        onPlay={() => { setStarted(true); once('play', () => handlers.onPlay?.()); }}
         onTimeUpdate={(e) => {
           const v = e.currentTarget;
           if (!v.duration || !Number.isFinite(v.duration)) return;
@@ -58,6 +85,8 @@ export function VideoPlayer({ poster = '' }) {
         }}
         onEnded={() => once('complete', () => handlers.onComplete?.())}
       />
+      {showPlay ? <button type="button" className="pk-video-play" aria-label={src ? 'Play video' : 'Video placeholder: your video goes here'} onClick={play} tabIndex={src ? 0 : -1} /> : null}
+      {mock && preview ? <span className="pk-video-label">Your video goes here</span> : null}
     </div>
   );
 }
@@ -133,8 +162,9 @@ const split = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Bool
 export function EmailSignup({ placeholder = 'Enter your email', label = 'Subscribe', source = '', className = '' }) {
   const { handlers, preview } = usePage();
   const t = useTokens();
+  const thanks = useThanks();
   const [state, setState] = useState({ status: 'idle', error: '' });
-  if (state.status === 'done') return <p className="pk-thanks">Thanks! Check your inbox.</p>;
+  if (state.status === 'done') return <p className="pk-thanks">{t(thanks) || 'Thanks!'}</p>;
   const onSubmit = async (e) => {
     e.preventDefault();
     if (preview) { setState({ status: 'idle', error: 'Preview only: nothing is sent.' }); return; }
@@ -179,7 +209,7 @@ const cssImage = (v) => {
   return u && !/["'()\\\s<>]/.test(u) ? `url(${JSON.stringify(u)})` : '';
 };
 
-export function Hero({ variant = 'copy-video-form', background, eyebrow, headline, subhead, bullets, chip, photo, formTitle, formSubtitle, submitLabel, formFields, privacy, buttons, showForm = 'yes' }) {
+export function Hero({ variant = 'copy-video-form', background, eyebrow, headline, subhead, bullets, chip, photo, slotImage, slotVideo, bakedPlay, formTitle, formSubtitle, submitLabel, formFields, privacy, buttons, showForm = 'yes' }) {
   const t = useTokens();
   const fields = asList(formFields).filter((f) => f.key && f.label).map((f) => ({ ...f, key: String(f.key).replace(/[^a-z0-9_]/gi, '').toLowerCase() }));
   return (
@@ -192,7 +222,7 @@ export function Hero({ variant = 'copy-video-form', background, eyebrow, headlin
         {asList(buttons).length ? <div className="pk-actions">{asList(buttons).map((b, i) => <SafeLink key={i} className={`pk-btn pk-btn--${b.style === 'primary' ? 'primary' : 'secondary'}`} href={b.url}>{t(b.label)}</SafeLink>)}</div> : null}
       </div>
       <div className="pk-hero-video" id="video">
-        <VideoPlayer poster={photo} />
+        <VideoPlayer poster={photo} slotImage={slotImage} slotVideo={slotVideo} bakedPlay={bakedPlay} />
         {chip ? <div className="pk-chip">{t(chip)}</div> : null}
       </div>
       {showForm === 'yes' ? <div className="pk-hero-form" id="lead"><LeadForm title={formTitle} subtitle={formSubtitle} submitLabel={submitLabel} privacy={privacy} fields={fields.length ? fields : undefined} /></div> : null}
@@ -208,7 +238,7 @@ export function Strip({ kind = 'logos', title, items }) {
       <ul className="pk-strip-row">
         {asList(items).map((it, i) => (
           <li key={i} className="pk-strip-item">
-            {kind === 'benefits' ? <><Icon name={it.icon} className="pk-ico pk-ico--lg" /><span><b>{t(it.title)}</b>{it.text ? <small>{t(it.text)}</small> : null}</span></>
+            {kind === 'benefits' ? <>{imgUrl(it.image) ? <img className="pk-strip-photo" src={imgUrl(it.image)} alt="" loading="lazy" /> : null}<Icon name={it.icon} className="pk-ico pk-ico--lg" /><span><b>{t(it.title)}</b>{it.text ? <small>{t(it.text)}</small> : null}</span></>
               : kind === 'stats' ? <><b className="pk-stat-value">{t(it.value)}</b><span>{t(it.title)}</span></>
                 : <span className="pk-logo-word">{t(it.title)}</span>}
           </li>
@@ -402,14 +432,14 @@ export function KpiCard({ columns, title, value, note }) {
   );
 }
 
-export function ScheduleCard({ columns, title, text, month, days, time, buttonLabel }) {
+export function ScheduleCard({ columns, title, text, month, days, time, buttonLabel , weekdays }) {
   const t = useTokens();
   return (
     <CardShell columns={columns}>
       <h3 className="pk-card-title">{t(title)}</h3>
       {text ? <p className="pk-card-text">{t(text)}</p> : null}
       {month ? <div className="pk-cal-month">{t(month)}</div> : null}
-      <div className="pk-cal-grid pk-cal-head">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => <span key={d}>{d}</span>)}</div>
+      <div className="pk-cal-grid pk-cal-head">{(split(weekdays).length === 7 ? split(weekdays) : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => <span key={i}>{d}</span>)}</div>
       <div className="pk-cal-grid">{split(days).map((d, i) => <span key={i} className={`pk-cal-day${d.startsWith('*') ? ' is-on' : ''}`}>{d.replace(/^\*/, '')}</span>)}</div>
       {time ? <div className="pk-cal-time">{t(time)}</div> : null}
       {buttonLabel ? <a className="pk-btn pk-btn--primary" href="#lead">{t(buttonLabel)}</a> : null}
@@ -435,6 +465,25 @@ export function PageImage({ src, alt, rounded = 'yes' }) {
   return <img className={`pk-image${rounded === 'yes' ? ' pk-image--round' : ''}`} src={url} alt={alt || ''} loading="lazy" />;
 }
 
+/** Text with a tick list and a button next to a picture (e.g. "See it in action" with a laptop mock-up), or a banner with a photo behind it. */
+export function Showcase({ variant = 'split', title, text, bullets, buttonLabel, buttonUrl, image, imageAlt, background, side = 'right', points }) {
+  const t = useTokens();
+  const img = safeImageUrl(image) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(image || '')) ? image : '');
+  return (
+    <section className={`pk-showcase pk-showcase--${variant === 'band' ? 'band' : 'split'} pk-showcase--${side === 'left' ? 'left' : 'right'}`} style={cssImage(background) ? { '--pk-showcase-bg': cssImage(background) } : undefined}>
+      <div className="pk-showcase-copy">
+        {title ? <AccentText as="h2" className="pk-showcase-title" text={title} /> : null}
+        {text ? <p className="pk-showcase-text">{t(text)}</p> : null}
+        {asList(bullets).length ? <ul className="pk-bullets">{asList(bullets).map((b, i) => <li key={i}>{t(b.text)}</li>)}</ul> : null}
+        {buttonLabel ? <SafeLink className="pk-btn pk-btn--primary pk-showcase-btn" href={buttonUrl || '#video'}>{t(buttonLabel)}</SafeLink> : null}
+      </div>
+      {variant === 'band' ? (
+        asList(points).length ? <ul className="pk-showcase-points">{asList(points).map((b, i) => <li key={i}>{t(b.text)}</li>)}</ul> : null
+      ) : img ? <div className="pk-showcase-art"><img src={img} alt={imageAlt || ''} loading="lazy" /></div> : null}
+    </section>
+  );
+}
+
 /** A full-width button bar (usually the last thing on a phone-style page). */
 export function CtaBar({ text, label, url, icon, icons }) {
   const t = useTokens();
@@ -458,4 +507,37 @@ export function CtaBar({ text, label, url, icon, icons }) {
       <a className="pk-btn pk-btn--cta" href={href} {...ext}>{t(label)}</a>
     </section>
   );
+}
+
+/**
+ * "#lead" buttons scroll to the hero form. Designs without a hero form keep their form in the contact band
+ * (id="contact"), so those buttons fall back to it. Done on click, so no element needs a duplicate id.
+ */
+export function LeadAnchorFallback() {
+  useEffect(() => {
+    const onClick = (e) => {
+      const a = e.target?.closest?.('a[href="#lead"]');
+      if (!a || document.getElementById('lead')) return;
+      const target = document.getElementById('contact');
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, []);
+  return null;
+}
+
+/**
+ * A slim strip shown ONLY to someone who opened a personal link (the page knows their name or company):
+ * "A personal video for Dana". Generic visitors see nothing, so a design looks exactly as designed for them.
+ */
+export function PersonalGreeting({ text }) {
+  const t = useTokens();
+  const { tokens } = usePage();
+  const known = ['firstname', 'company'].some((k) => String(tokens?.[k] ?? '').trim());
+  const out = known && String(text || '').trim() ? t(text) : '';
+  if (!out) return null;
+  return <div className="pk-greeting" role="note">{out}</div>;
 }

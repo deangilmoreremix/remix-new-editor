@@ -54,6 +54,9 @@ import { directorPoolRelabel } from '@cinegen/lib/director/folders';
 import type { Clip, ToolType, TrackKind, Keyframe, TimelineMarker } from '@cinegen/types/timeline';
 import { findFreeTrack } from '@cinegen/lib/editor/free-track';
 import { placeTemplateVideo, templateVideoAsset } from './template-video-placement';
+import { flattenCompounds, expandSelectionWithGroups } from '@cinegen/lib/editor/stage1'; // [remix] Stage 1
+import { useStage1Editing } from './use-stage1-editing';
+import { Stage4Dock } from './stage4/stage4-dock'; // [remix] Stage 4: audio / scenes / media health
 
 const PROXY_MODE_STORAGE_KEY = 'cinegen_proxy_mode';
 const EDIT_VIEW_STORAGE_PREFIX = 'cinegen_edit_view_v1';
@@ -202,6 +205,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [state.assets]);
 
   // Playback engine (replaces inline RAF loop, video pool, audio mixer)
+  const playTimeline = useMemo(() => flattenCompounds(timeline), [timeline]); // [remix] Stage 1: compound clips play as their content
   const {
     currentTime,
     isPlaying,
@@ -209,11 +213,13 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     proxyMode,
     setProxyMode,
     togglePlayPause,
+    play, pause, setSpeed,
     seek,
     setVideoContainer,
     setMetadataPreloadEnabled,
     handleSystemWake,
-  } = usePlaybackEngine(timeline, state.assets, {
+    engine, // [remix] Stage 4
+  } = usePlaybackEngine(playTimeline, state.assets, {
     initialProxyMode,
     onProxyFallbackRequest: handleProxyFallbackRequest,
   });
@@ -364,7 +370,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   const [selectedClipIds, setSelectedClipIdsRaw] = useState<Set<string>>(new Set());
   const setSelectedClipIds = useCallback((ids: Set<string>) => {
     if (ids.size === 0) { setSelectedClipIdsRaw(ids); return; }
-    const expanded = new Set(ids);
+    const expanded = expandSelectionWithGroups(timeline.clips, ids); // [remix] Stage 1: groups select together
     for (const id of ids) {
       const clip = timeline.clips.find((c) => c.id === id);
       if (clip?.linkedClipIds) {
@@ -731,6 +737,10 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     if (!sourceViewerEntry) return null;
     return state.assets.find((asset) => asset.id === sourceViewerEntry.asset.id) ?? null;
   }, [sourceViewerEntry, state.assets]);
+  const stage1 = useStage1Editing({
+    timeline, dispatch, selectedClipIds, setSelectedClipIds, currentTime, seek, isPlaying, play, pause, setSpeed,
+    sourceAsset: sourceViewerEntry && !sourceViewerEntry.clip ? resolvedSourceViewerAsset : null, sourceVisible: layout.sourceViewerVisible,
+  });
   const sourceViewerNativeVideoEnabled = nativeVideoAvailable
     && activeTool !== 'mask'
     && !isHtmlOnlyAsset(resolvedSourceViewerAsset);
@@ -938,7 +948,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [selectedClip, state.assets]);
 
   const handleUpdateClipProps = useCallback(
-    (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>) => {
+    (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions' | 'anim' | 'keyframes'>>) => {
       const updated = updateClipProperties(timeline, clipId, updates);
       dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: updated });
     },
@@ -1144,6 +1154,8 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         className="edit-tab__left-resize"
       />
 
+      {stage1.bar}
+      <Stage4Dock engine={engine} timeline={timeline} dispatch={dispatch} assets={state.assets} selectedClipIds={selectedClipIds} currentTime={currentTime} seek={seek} isPlaying={isPlaying} proxyMode={proxyMode} setProxyMode={setProxyMode} />
       {/* Viewers */}
       <div className="edit-tab__viewers">
         {layout.sourceViewerVisible && (
@@ -1158,6 +1170,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
               proxyMode={proxyMode}
               activeTool={activeTool}
               onAcceptMaskedVideo={handleAcceptMaskedVideo}
+              {...stage1.sourceProps}
             />
             <div className="edit-tab__viewer-divider" />
           </>
@@ -1172,6 +1185,8 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           nativeVideoEnabled={timelineNativeVideoEnabled}
           activeAsset={activeAsset}
           glTransition={activeGlTransition(timeline, currentTime)}
+          compoundGroups={playTimeline.groups}
+          playClips={playTimeline.clips}
           activeClip={activeClip ? (timeline.clips.find((c) => c.id === activeClip.id) ?? activeClip) : null}
           currentTime={currentTime}
           onSeek={seek}
@@ -1208,7 +1223,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       {/* Timeline area */}
       <div className="edit-tab__timeline-area">
         <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} onOpenSounds={() => setSoundLibrary(true)} onOpenStock={() => mediaBrowser.setOpen(true)} recording={recorder.recording} onToggleRecording={() => { if (!recorder.recording) recordStartRef.current = Math.max(0, currentTime); recorder.toggle(); }} />
-        {dropNote && <div role="status" data-testid="library-drop-note" style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: 'rgba(8,12,18,.92)', border: '1px solid var(--accent, #22d3ee)', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 12 }}>{dropNote}</div>}
+        {dropNote && <div role="status" data-testid="library-drop-note" style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: 'rgba(8,12,18,.92)', border: '1px solid var(--accent, #d9ff00)', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 12 }}>{dropNote}</div>}
         {recorder.error && <div role="alert" data-testid="record-error" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#7f1d1d', color: '#fff', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>{recorder.error}</div>}
         {recorder.recording && <div role="status" data-testid="recording-chip" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#0b1016', color: '#f87171', border: '1px solid #f87171', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>● Recording voice-over… click the mic to stop</div>}
         {soundLibrary && <SoundLibraryPopup onClose={() => setSoundLibrary(false)} onAdd={handleAddSound} />}

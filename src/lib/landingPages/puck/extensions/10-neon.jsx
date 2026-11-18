@@ -4,6 +4,11 @@
  */
 import { useEffect, useRef } from 'react';
 import { AccentText, VideoPlayer, LeadForm, EmailSignup, Icon, SafeLink, useTokens } from '../components.jsx';
+import { slotFields, SLOT_DEFAULTS } from '../slotFields.js';
+import { safeImageUrl } from '../../templates.js';
+
+// https pictures, or the design's own art under /landing-art/ (same rule as the other Puck components).
+const artUrl = (v) => safeImageUrl(v) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(v || '')) ? String(v) : '');
 
 const T = (label) => ({ type: 'text', label });
 const A = (label) => ({ type: 'textarea', label });
@@ -40,7 +45,7 @@ function NeonHero(p) {
         {asList(p.bullets).length ? <ul className="pk-bullets">{asList(p.bullets).map((b, i) => <li key={i}>{t(b.text)}</li>)}</ul> : null}
       </div>
       <div className="pk-hero-video">
-        <VideoPlayer poster={p.photo} />
+        <VideoPlayer poster={p.photo} slotImage={p.slotImage} slotVideo={p.slotVideo} bakedPlay={p.bakedPlay} />
         {p.chip ? <div className="pk-chip">{t(p.chip)}</div> : null}
       </div>
       <div className="pk-hero-form" id="lead" ref={formRef}>
@@ -66,11 +71,11 @@ function NeonHero(p) {
         </section>
         <section className="pk-neon-gift">
           <div className="pk-neon-gift-body">
-            <img className="pk-neon-giftico" src="/landing-art/10/gift.webp" alt="" />
+            {artUrl(p.giftIcon ?? '/landing-art/10/gift.webp') ? <img className="pk-neon-giftico" src={artUrl(p.giftIcon ?? '/landing-art/10/gift.webp')} alt="" /> : null}
             <h2 className="pk-neon-gift-title">{t(p.giftTitle)}</h2>
             <EmailSignup className="pk-neon-signup" placeholder={p.giftPlaceholder} label={p.giftButton} source={p.giftTitle} />
           </div>
-          <div className="pk-neon-book"><img src="/landing-art/10/book.webp" alt="" /><b className="pk-sr">{t(p.giftCover)}</b></div>
+          <div className="pk-neon-book">{artUrl(p.giftBook ?? '/landing-art/10/book.webp') ? <img src={artUrl(p.giftBook ?? '/landing-art/10/book.webp')} alt="" /> : null}<b className="pk-sr">{t(p.giftCover)}</b></div>
         </section>
       </aside>
     </header>
@@ -87,6 +92,7 @@ export const components = {
       bullets: { type: 'array', label: 'Tick list', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Item', defaultItemProps: { text: 'New point' } },
       chip: T('Label on the video'),
       photo: T('Placeholder image before the video plays'),
+      ...slotFields(),
       formTitle: T('Form title'),
       formFields: { type: 'array', label: 'Form fields', arrayFields: { key: T('Field name (a-z)'), label: T('Label / placeholder'), type: { type: 'select', label: 'Type', options: ['text', 'email', 'tel'].map((v) => ({ label: v, value: v })) }, required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, getItemSummary: (i) => i.label || 'Field', defaultItemProps: { key: 'field', label: 'Field', type: 'text', required: false } },
       submitLabel: T('Form button text'),
@@ -100,17 +106,19 @@ export const components = {
       giftPlaceholder: T('Gift email box hint'),
       giftButton: T('Gift button text'),
       giftCover: T('Text on the gift book cover'),
+      giftIcon: T('Gift icon picture (https link or /landing-art path)'),
+      giftBook: T('Gift book picture (https link or /landing-art path)'),
     },
     defaultProps: {
       eyebrow: 'Personalized Video Lead Generation',
       headline: 'Turn Every Prospect Into a Warm Lead With [[Personalized Video]]',
       subhead: 'Create, send, and track AI-personalized videos at scale. Build your email list, capture more leads, and grow revenue, all in one platform.',
       bullets: [{ text: 'AI-powered video personalization' }, { text: 'Built-in lead capture & list building' }, { text: 'Automated follow-ups & nurturing' }],
-      chip: '\u{1F44B} Hi {{firstname|there}}, this video is just for you!', photo: '/landing-art/10/presenter.webp',
+      chip: '\u{1F44B} Hi {{firstname|there}}, this video is just for you!', ...SLOT_DEFAULTS, photo: '/landing-art/10/presenter.webp',
       formTitle: 'Get Your Personalized Video & Grow Your Lead List', formFields: FORM_FIELDS, submitLabel: 'Create My Personalized Video', privacy: '',
       orLabel: 'or', buttons: [{ label: 'Book a Live Walkthrough', url: '#lead' }],
       kpiTitle: 'Leads Captured (All Time)', kpiValue: '128,349', kpiBadge: '+37% (Last 30 days)',
-      giftTitle: 'Join Our Insider List & Get a Free "Personalized Video Playbook"', giftPlaceholder: 'Enter your email', giftButton: 'Get the Free Playbook', giftCover: 'The Personalized Video Playbook',
+      giftTitle: 'Join Our Insider List & Get a Free "Personalized Video Playbook"', giftPlaceholder: 'Enter your email', giftButton: 'Get the Free Playbook', giftCover: 'The Personalized Video Playbook', giftIcon: '/landing-art/10/gift.webp', giftBook: '/landing-art/10/book.webp',
     },
     render: (p) => <NeonHero {...p} />,
   },

@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { extractWebsiteAndSocial } from '../websiteTags'
-import { discoverBusinesses, __resetOverpassCircuitBreakerForTests } from '../overpassProvider'
+import { discoverBusinesses, overpassHealth, __resetOverpassCircuitBreakerForTests } from '../overpassProvider'
 import { businessDiscoveryCache } from '../businessCache'
 
 describe('extractWebsiteAndSocial', () => {
@@ -82,5 +82,18 @@ describe('Overpass normalizer', () => {
     expect(record.website).toBeUndefined()
     expect(record.websiteStatus).toBe('unknown')
     expect(record.facebook).toBe('https://www.facebook.com/joespizza')
+  })
+})
+
+describe('Overpass health counts mirrors that work', () => {
+  beforeEach(() => { businessDiscoveryCache.clear(); __resetOverpassCircuitBreakerForTests() })
+  afterEach(() => { vi.restoreAllMocks() })
+  it('tracks a successful mirror (and none is cooling down)', async () => {
+    expect(overpassHealth()).toEqual({ tracked: 0, coolingDown: 0 })
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, status: 200, json: async () => ({ elements: [] }) } as Response)
+    await discoverBusinesses({ lat: 30.2, lon: -97.7, radiusMiles: 5, niche: 'restaurants-food' } as never).catch(() => undefined)
+    const health = overpassHealth()
+    expect(health.tracked).toBeGreaterThan(0)
+    expect(health.coolingDown).toBe(0)
   })
 })

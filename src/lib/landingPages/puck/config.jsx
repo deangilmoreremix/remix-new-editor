@@ -7,6 +7,8 @@ import { withImagePickers } from './ImageField.jsx';
 import { FONT_OPTIONS, fontStack } from './fontChoices.js';
 import { ICON_KEYS } from '../siteIcons.js';
 import { PUCK_TEMPLATES } from './designs.js';
+import { slotFields, SLOT_DEFAULTS } from './slotFields.js';
+import { ThanksContext } from './context.js';
 
 // Designs may ship extra components (puck/extensions/NN-name.jsx exporting `components`), merged in automatically.
 const EXT = Object.entries(import.meta.glob('./extensions/*.jsx', { eager: true })).sort(([a], [b]) => a.localeCompare(b)).map(([, m]) => m);
@@ -32,9 +34,11 @@ export const puckConfig = {
       surface: T('Card colour (#hex)'),
       headingFont: { type: 'select', label: 'Heading font', options: FONT_OPTIONS },
       bodyFont: { type: 'select', label: 'Body font', options: FONT_OPTIONS },
+      thanks: T('Thank-you message after an email sign-up'),
+      greeting: T('Greeting strip shown only on a personal link (e.g. "A personal video for {{firstname|you}}"; empty = none)'),
     },
-    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '' },
-    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont }) => {
+    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '', thanks: 'Thanks! Check your inbox.', greeting: '' },
+    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont, thanks, greeting }) => {
       const ok = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? v : d);
       const acc = ok(accent, '#2563eb');
       // Button text: white on dark accents, near-black on light ones, so every accent stays readable.
@@ -45,11 +49,11 @@ export const puckConfig = {
       const fh = fontStack(headingFont); const fb = fontStack(bodyFont);
       if (fh) style['--pk-fh'] = fh;
       if (fb) style['--pk-fb'] = fb;
-      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}>{children}</div>;
+      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}><ThanksContext.Provider value={thanks || 'Thanks! Check your inbox.'}><C.LeadAnchorFallback /><C.PersonalGreeting text={greeting} />{children}</ThanksContext.Provider></div>;
     },
   },
   categories: {
-    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Footer', 'PageImage'] },
+    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Showcase', 'Footer', 'PageImage'] },
     extras: { title: 'Design extras', components: Object.keys(EXT_COMPONENTS), defaultExpanded: false },
     cards: { title: 'Cards (drop into a Grid)', components: ['LeadMagnetCard', 'TableCard', 'StatsCard', 'ChecklistCard', 'QuoteCard', 'StepsCard', 'FeaturesCard', 'FaqCard', 'KpiCard', 'ScheduleCard', 'ButtonCard'] },
   },
@@ -73,6 +77,7 @@ export const puckConfig = {
         buttons: buttonArray,
         chip: T('Label on the video'),
         photo: T('Placeholder image before the video plays (https link)'),
+        ...slotFields(),
         showForm: { type: 'radio', label: 'Lead form', options: [{ label: 'Show', value: 'yes' }, { label: 'Hide', value: 'no' }] },
         formTitle: T('Form title'),
         formSubtitle: T('Form subtitle'),
@@ -83,14 +88,14 @@ export const puckConfig = {
       defaultProps: {
         variant: 'copy-video-form', eyebrow: 'A video made for you', headline: 'Hi {{firstname|there}}, here is a smarter way to [[grow your business.]]',
         subhead: 'Press play for a short video, then tell us what you think.', bullets: [{ text: 'Made for {{company|your team}}' }, { text: 'Takes two minutes' }],
-        buttons: [], chip: 'Hi {{firstname|there}}!', photo: '', showForm: 'yes', formTitle: 'Want to talk it through?', formSubtitle: 'Leave your details and we will be in touch.',
+        buttons: [], chip: 'Hi {{firstname|there}}!', photo: '', ...SLOT_DEFAULTS, showForm: 'yes', formTitle: 'Want to talk it through?', formSubtitle: 'Leave your details and we will be in touch.',
         formFields: HERO_FIELDS, submitLabel: 'Send', privacy: '',
       },
       render: (p) => <C.Hero {...p} />,
     },
     Strip: {
       label: 'Strip (logos, icons or numbers)',
-      fields: { kind: { type: 'radio', label: 'Style', options: [{ label: 'Company names', value: 'logos' }, { label: 'Icons with text', value: 'benefits' }, { label: 'Big numbers', value: 'stats' }] }, title: T('Heading (optional)'), items: { type: 'array', label: 'Items', arrayFields: { title: T('Title / name'), text: T('Short text (icons style)'), value: T('Number (numbers style)'), icon: iconField }, getItemSummary: (i) => i.title || i.value || 'Item', defaultItemProps: { title: 'Item', text: '', value: '', icon: 'check' } } },
+      fields: { kind: { type: 'radio', label: 'Style', options: [{ label: 'Company names', value: 'logos' }, { label: 'Icons with text', value: 'benefits' }, { label: 'Big numbers', value: 'stats' }] }, title: T('Heading (optional)'), items: { type: 'array', label: 'Items', arrayFields: { title: T('Title / name'), text: T('Short text (icons style)'), value: T('Number (numbers style)'), icon: iconField, image: T('Small picture (icons style; https link)') }, getItemSummary: (i) => i.title || i.value || 'Item', defaultItemProps: { title: 'Item', text: '', value: '', icon: 'check', image: '' } } },
       defaultProps: { kind: 'logos', title: 'Trusted by growth-focused teams', items: [{ title: 'Acme', text: '', value: '', icon: '' }, { title: 'Globex', text: '', value: '', icon: '' }, { title: 'Initech', text: '', value: '', icon: '' }] },
       render: (p) => <C.Strip {...p} />,
     },
@@ -120,6 +125,24 @@ export const puckConfig = {
     },
     CtaBar: { label: 'Bottom button bar', fields: { text: T('Text beside the button (empty = button only)'), label: T('Button text'), url: T('Link (https, mailto:, tel: or #lead)'), icon: iconField, icons: { type: 'array', label: 'Social icons (button-only bar)', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { text: '', label: 'Book a Free Consultation', url: '#lead', icon: 'calendar', icons: [] }, render: (p) => <C.CtaBar {...p} /> },
     Footer: { label: 'Footer', fields: { text: T('Footer text'), links: linkArray('Footer links') }, defaultProps: { text: 'Sent by {{sender|us}} · {{brand|your brand}}', links: [] }, render: (p) => <C.Footer {...p} /> },
+    Showcase: {
+      label: 'Text + picture (or photo banner)',
+      fields: {
+        variant: { type: 'radio', label: 'Style', options: [{ label: 'Text next to a picture', value: 'split' }, { label: 'Banner with a photo behind', value: 'band' }] },
+        side: { type: 'radio', label: 'Picture side', options: [{ label: 'Right', value: 'right' }, { label: 'Left', value: 'left' }] },
+        title: A('Heading (wrap words in [[double brackets]] to highlight)'),
+        text: A('Text'),
+        bullets: { type: 'array', label: 'Tick list', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Item', defaultItemProps: { text: 'New point' } },
+        buttonLabel: T('Button text'),
+        buttonUrl: T('Button link (https, mailto:, tel: or #video / #lead)'),
+        image: T('Picture (https link)'),
+        imageAlt: T('Picture description for screen readers'),
+        background: T('Banner photo (https link)'),
+        points: { type: 'array', label: 'Points beside a banner', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Point', defaultItemProps: { text: 'New point' } },
+      },
+      defaultProps: { variant: 'split', side: 'right', title: 'See it in [[action]]', text: 'Say what the picture shows in a sentence or two.', bullets: [{ text: 'First point' }, { text: 'Second point' }], buttonLabel: 'Watch the demo video', buttonUrl: '#video', image: '', imageAlt: '', background: '', points: [] },
+      render: (p) => <C.Showcase {...p} />,
+    },
     PageImage: { label: 'Image', fields: { src: T('Image link (https)'), alt: T('Description for screen readers'), rounded: { type: 'radio', label: 'Rounded corners', options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] } }, defaultProps: { src: '', alt: '', rounded: 'yes' }, render: (p) => <C.PageImage {...p} /> },
 
     LeadMagnetCard: { label: 'Download / sign-up card', fields: { columns: cols, tag: T('Small label'), title: T('Title'), cover: T('Text on the book cover'), text: A('Text'), placeholder: T('Email box hint'), buttonLabel: T('Button text') }, defaultProps: { columns: 2, tag: 'FREE RESOURCE', title: 'Get the free playbook', cover: 'The Personalized Video Playbook', text: 'A short guide with templates and scripts.', placeholder: 'Enter your email', buttonLabel: 'Send me the playbook' }, render: (p) => <C.LeadMagnetCard {...p} /> },
@@ -131,7 +154,7 @@ export const puckConfig = {
     FeaturesCard: { label: 'Feature list card', fields: { columns: cols, title: T('Title'), items: { type: 'array', label: 'Features', arrayFields: { icon: iconField, title: T('Title'), text: T('Text') }, getItemSummary: (i) => i.title || 'Feature', defaultItemProps: { icon: 'check', title: 'Feature', text: '' } } }, defaultProps: { columns: 2, title: 'Key features', items: [{ icon: 'video', title: 'Personalized video', text: 'One-to-one videos in minutes.' }, { icon: 'chart', title: 'Insights', text: 'Track views and replies.' }] }, render: (p) => <C.FeaturesCard {...p} /> },
     FaqCard: { label: 'Questions card', fields: { columns: cols, title: T('Title'), items: { type: 'array', label: 'Questions', arrayFields: { q: T('Question'), a: A('Answer') }, getItemSummary: (i) => i.q || 'Question', defaultItemProps: { q: 'Question?', a: 'Answer.' } } }, defaultProps: { columns: 2, title: 'Frequently asked questions', items: [{ q: 'Is there a free trial?', a: 'Add your answer here.' }] }, render: (p) => <C.FaqCard {...p} /> },
     KpiCard: { label: 'Single big number card', fields: { columns: cols, title: T('Title'), value: T('Number'), note: T('Note') }, defaultProps: { columns: 1, title: 'Leads captured', value: '128,349', note: '+37% in the last 30 days' }, render: (p) => <C.KpiCard {...p} /> },
-    ScheduleCard: { label: 'Date-picker card', fields: { columns: cols, title: T('Title'), text: T('Text'), month: T('Month label'), days: T('Days, comma separated (start the selected one with *)'), time: T('Time line'), buttonLabel: T('Button text (scrolls to the form)') }, defaultProps: { columns: 1, title: 'Book a demo', text: 'Pick a time that works for you.', month: 'Mar 2025', days: '9, 10, 11, *12, 13, 14, 15', time: '10:00 AM (30 min)', buttonLabel: 'Confirm demo' }, render: (p) => <C.ScheduleCard {...p} /> },
+    ScheduleCard: { label: 'Date-picker card', fields: { columns: cols, title: T('Title'), text: T('Text'), month: T('Month label'), weekdays: T('Weekday labels, comma separated (7)'), days: T('Days, comma separated (start the selected one with *)'), time: T('Time line'), buttonLabel: T('Button text (scrolls to the form)') }, defaultProps: { columns: 1, title: 'Book a demo', text: 'Pick a time that works for you.', month: 'Mar 2025', weekdays: 'Sun, Mon, Tue, Wed, Thu, Fri, Sat', days: '9, 10, 11, *12, 13, 14, 15', time: '10:00 AM (30 min)', buttonLabel: 'Confirm demo' }, render: (p) => <C.ScheduleCard {...p} /> },
     ButtonCard: { label: 'Text and buttons card', fields: { columns: cols, eyebrow: T('Small label'), title: T('Title'), text: A('Text'), buttons: buttonArray }, defaultProps: { columns: 2, eyebrow: 'Have a question?', title: "Let's connect", text: 'Our team is here to help.', buttons: [{ label: 'Contact our team', url: 'mailto:hello@example.com', style: 'secondary' }] }, render: (p) => <C.ButtonCard {...p} /> },
   },
 };

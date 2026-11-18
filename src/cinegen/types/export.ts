@@ -13,6 +13,8 @@ export interface ExportJob {
   qa?: import('../../openchatcut/export/quality').ExportQaReport;
   qaStatus?: string;
   videoBitrateBps?: number;
+  /** [remix] export notes, e.g. volume boosts above 100% are exported at 100% */
+  warnings?: string[];
   error?: string;
   createdAt: string;
   completedAt?: string;

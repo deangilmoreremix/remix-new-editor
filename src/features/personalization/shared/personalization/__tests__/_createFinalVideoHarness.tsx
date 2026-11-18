@@ -98,6 +98,8 @@ export function configureCapableBrowser() {
 }
 
 export function resetRendererMocks() {
+  // These tests start renders that are never resolved; forget them so the next test is not refused as "busy".
+  webExportModule.resetActiveExport()
   vi.clearAllMocks()
   configureCapableBrowser()
 }

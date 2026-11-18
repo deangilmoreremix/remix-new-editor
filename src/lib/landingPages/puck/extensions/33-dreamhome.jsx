@@ -4,6 +4,7 @@
  * field; images are decorative artwork picked by path. All sample copy.
  */
 import { AccentText, VideoPlayer, LeadForm, Icon, SafeLink, useTokens } from '../components.jsx';
+import { slotFields, SLOT_DEFAULTS } from '../slotFields.js';
 import { safeImageUrl } from '../../templates.js';
 
 const T = (label) => ({ type: 'text', label });
@@ -24,7 +25,7 @@ function DreamHero(p) {
         {p.subhead ? <p className="pk-subhead dh-sub">{t(p.subhead)}</p> : null}
       </div>
       <div className="pk-hero-video dh-video" id="video">
-        <VideoPlayer poster={p.photo} />
+        <VideoPlayer poster={p.photo} slotImage={p.slotImage} slotVideo={p.slotVideo} bakedPlay={p.bakedPlay} />
         {p.chip ? <div className="pk-chip dh-chip">{t(p.chip)}</div> : null}
       </div>
       <div className="pk-hero-form dh-form" id="lead">
@@ -105,6 +106,7 @@ export const components = {
       background: T('Background photo (path or https image)'),
       chip: T('Caption on the video'),
       photo: T('Placeholder image before the video plays'),
+      ...slotFields(),
       formTitle: T('Form title'),
       formSubtitle: A('Form text'),
       formFields: arr('Form fields', { key: T('Field name (a-z)'), label: T('Label / placeholder'), type: { type: 'select', label: 'Type', options: ['text', 'email', 'tel'].map((v) => ({ label: v, value: v })) }, required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, { key: 'field', label: 'Field', type: 'text', required: false }, 'label'),
@@ -118,7 +120,7 @@ export const components = {
       subhead: 'Record once. Personalize for every prospect. Grow your business with SmartVideo AI.',
       background: '/landing-art/dreamhome/bg.webp',
       chip: 'Your Dream Home is Closer Than You Think',
-      photo: '/landing-art/dreamhome/poster.webp',
+      ...SLOT_DEFAULTS, photo: '/landing-art/dreamhome/poster.webp',
       formTitle: 'Get Your Free Personalized Video',
       formSubtitle: 'Enter your name and email to see how easy it is to create stunning, personalized videos.',
       formFields: FORM_FIELDS, submitLabel: 'Watch My Video', privacy: '',

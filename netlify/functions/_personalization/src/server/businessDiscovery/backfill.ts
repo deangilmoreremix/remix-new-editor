@@ -91,7 +91,7 @@ export function normalizeBusinessName(name: string): string {
 function normalizeAddress(r: BusinessDiscoveryRecord): string {
   return [r.address, r.city, r.postalCode].filter(Boolean).join(' ').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
 }
-function phoneDigits(p: string | undefined): string | null {
+export function phoneDigits(p: string | undefined): string | null {
   const d = (p ?? '').replace(/\D/g, '')
   return d.length >= 10 ? d.slice(-10) : null
 }

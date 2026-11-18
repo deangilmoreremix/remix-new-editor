@@ -50,7 +50,7 @@ type LocalPrompt =
     };
 
 const SEGMENT_COLORS = [
-  'rgba(34, 211, 238, 0.45)',   // gold
+  'rgba(217, 255, 0, 0.45)',   // gold
   'rgba(91, 143, 212, 0.45)',   // blue
   'rgba(92, 184, 122, 0.45)',   // green
   'rgba(207, 125, 96, 0.45)',   // coral
@@ -59,7 +59,7 @@ const SEGMENT_COLORS = [
 ];
 
 const SEGMENT_SOLID_COLORS = [
-  '#22d3ee',
+  '#d9ff00',
   '#5b8fd4',
   '#5cb87a',
   '#cf7d60',

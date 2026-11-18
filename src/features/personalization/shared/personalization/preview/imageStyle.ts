@@ -128,6 +128,11 @@ export interface ImageHints {
   isHeadshot?: boolean
   /** The explicit role of this image (from the customer's assignment or the discovery category). */
   role?: ImageRole
+  /**
+   * A derived copy of a TRANSPARENT logo with its empty padding cropped away (a PNG data URL). The original file is
+   * never changed; the preview, the gallery and the export all read this same URL, so they stay identical.
+   */
+  trimmedUrl?: string
 }
 
 export const ROUNDED_RECT_DEFAULT: ImageStyle = Object.freeze({

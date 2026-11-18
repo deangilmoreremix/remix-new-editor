@@ -9,6 +9,7 @@ import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates'
 import { HyperframesPanel } from './hyperframes-modal';
 import { MgTemplatesPanel, MgLoadError } from './mg-templates-modal';
 import { TemplateVideosPanel } from './template-videos-modal';
+import { LandingPagesPanel } from './landing-pages-panel';
 // @ts-expect-error plain JS data module
 import { templateVideos } from '../../../data/templateVideoLibrary.js';
 import { PreviewCard, CARD_CSS } from './preview-card';
@@ -37,12 +38,13 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const titleId = useId();
   const hasAnimations = !!actions.onPickAnimation;
   const hasVideos = !!actions.onPickTemplateVideo;
+  const hasLanding = !!actions.onPickLandingPage;
   // [remix] the Library can open this window on a given tab (ignored when that tab is not available); read without clearing so a double render keeps it
   const [requested] = useState(peekPendingAddTab);
   const [requestedQuery] = useState(peekPendingAddQuery);
   const [focusTitle] = useState(peekPendingAddFocus); // the exact card the user clicked in the Library
   useEffect(() => { clearPendingAddTab(); }, []);
-  const startTab: Tab = requested && (requested !== 'videos' || hasVideos) && (requested !== 'animations' || hasAnimations) ? requested : hasAnimations ? 'animations' : 'motion';
+  const startTab: Tab = requested && (requested !== 'videos' || hasVideos) && (requested !== 'landing' || hasLanding) && (requested !== 'animations' || hasAnimations) ? requested : hasAnimations ? 'animations' : 'motion';
   const [tab, setTab] = useState<Tab>(startTab);
   const [q, setQ] = useState(requestedQuery ?? '');
   const [connect, setConnect] = useState<string | null>(null); // Connect Form template waiting for its phone number
@@ -108,6 +110,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
     { id: 'overlays', label: 'Overlays & forms', glyph: '▭', count: count('overlays') },
     { id: 'endscreens', label: 'End screens & connect forms', glyph: '▶', count: count('endscreens') },
     { id: 'videos', label: 'Template videos', glyph: '🎬', count: (templateVideos as unknown[]).length, hidden: !hasVideos },
+    { id: 'landing', label: 'Landing pages', glyph: '▤', count: 34, hidden: !hasLanding },
   ];
 
   // Scroll to and ring the exact card that was clicked (cards render lazily, so keep looking until it shows up)
@@ -125,7 +128,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const needle = q.trim().toLowerCase();
   const shown = entries.filter((e) => (tab === 'all' || e.tab === tab) && (!needle || `${e.label} ${e.blurb} ${e.keywords ?? ''}`.toLowerCase().includes(needle)));
   // Animations and Motion graphics have their own tabs with category chips and filters; every other tab is a search + grid
-  const isPanel = tab === 'animations' || tab === 'motion' || tab === 'videos';
+  const isPanel = tab === 'animations' || tab === 'motion' || tab === 'videos' || tab === 'landing';
   const pending = connect ? entries.find((e) => e.id === `tpl:${connect}`) : undefined;
   const renderCard = (e: CatalogEntry) => <PreviewCard key={e.id} preview={e.preview} title={e.label} sub={e.blurb} badge={e.badge} onClick={e.run} testId={e.testId} />;
 
@@ -158,6 +161,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
         <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
           {tab === 'animations' && hasAnimations && <HyperframesPanel onPick={(i) => { actions.onPickAnimation?.(i); onClose(); }} />}
           {tab === 'videos' && hasVideos && <TemplateVideosPanel initialQuery={requestedQuery} onPick={(v) => { actions.onPickTemplateVideo?.(v); onClose(); }} />}
+          {tab === 'landing' && hasLanding && <LandingPagesPanel onPick={(id) => { actions.onPickLandingPage?.(id); onClose(); }} />}
           {tab === 'motion' && <MgTemplatesPanel templates={mg} error={mgError} onRetry={loadMg} onPick={(t) => { actions.onPickMotion(t); onClose(); }} />}
           {!isPanel && (
             <>
@@ -168,7 +172,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
                   style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12, padding: 12, border: '1px solid var(--accent)', borderRadius: 12, background: 'var(--accent-dim)' }}>
                   <span style={{ fontSize: 13, flex: '0 0 auto' }}>Phone number the buttons should dial</span>
                   <input type="tel" autoFocus placeholder="212 555 0147" aria-label={PHONE_LABEL} value={phone} onChange={(e) => setPhone(e.target.value)} style={{ ...field, flex: 1, padding: '8px 10px' }} />
-                  <button type="submit" style={{ padding: '8px 14px', borderRadius: 10, border: 0, background: 'var(--accent)', color: '#000', fontWeight: 700, cursor: 'pointer' }}>Add</button>
+                  <button type="submit" style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,.12)', borderLeft: '2px solid var(--accent)', background: 'transparent', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Add</button>
                   <button type="button" onClick={() => setConnect(null)} style={{ background: 'transparent', border: 0, color: 'inherit', cursor: 'pointer' }}>Cancel</button>
                 </form>
               )}

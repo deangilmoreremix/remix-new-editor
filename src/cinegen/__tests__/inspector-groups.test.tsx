@@ -7,6 +7,9 @@ import type { Asset } from '@cinegen/types/project';
 import { ClipPropertiesPanel } from '../components/edit/clip-properties-panel';
 import { DEFAULT_OPEN, INSPECTOR_KEY, readOpenGroups } from '../components/edit/use-inspector-groups';
 
+// [remix] the Animation section (added on develop) pulls in lottie-web, which draws to a canvas at import time; jsdom has none, so give it a blank 2D context first
+vi.hoisted(() => { (HTMLCanvasElement.prototype as unknown as { getContext: () => object }).getContext = () => ({ fillRect: () => undefined }); });
+
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 beforeEach(() => { window.localStorage.clear(); vi.stubGlobal('fetch', vi.fn(async () => new Response('[]', { status: 200 }))); });
 
