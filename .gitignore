@@ -183,3 +183,4 @@ public/motion-agent/
 !warmbly/internal/
 !warmbly/**/package-lock.json
 !warmbly/ios/**/*.jpg
+!warmbly/internal/cli/output/
