@@ -13,6 +13,7 @@ import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
 import { LottieEditSection } from './lottie-edit-section';
 import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
+import { OPEN_SPEECH_EVENT } from '@cinegen/lib/occ/smart-speech';
 import { hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers
 import { HF_FITS, HF_FIT_LABELS, normalizeGeom, isReactItem } from '../../../lib/hyperframes/placement.js';
@@ -90,7 +91,11 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
     const editor = renderAddonEditor(box.current, {
       fields: schema.fields, fieldsFor: schema.fieldsFor, options: schema.options, onFieldChange: schema.onFieldChange, idPrefix: `ov-${overlay.id}`,
       // [remix] the Personalize menu of Smart Text / Text Mask (the old editor passed the same token list)
-      services: { tokens: (TOKEN_DEFS as Array<{ key: string; label: string }>).map((d) => [d.key, d.label]) },
+      services: {
+        tokens: (TOKEN_DEFS as Array<{ key: string; label: string }>).map((d) => [d.key, d.label]),
+        // Smart Text: "Convert to Smart Speech" opens the Smart Speech window with this text
+        fieldAction: (action: string, opts: { text?: string }) => { if (action === 'speech') window.dispatchEvent(new CustomEvent(OPEN_SPEECH_EVENT, { detail: { text: String(opts.text ?? '') } })); },
+      },
       onChange: (next: Record<string, unknown>) => {
         ownEdit.current = true;
         const cur = latest.current;

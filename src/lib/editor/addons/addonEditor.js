@@ -36,6 +36,7 @@ function slugify(label, existing) {
 }
 
 import { tokensToHtml, htmlToTokens, tokenChip } from './tokenChips.js';
+import { ensureFormFont } from './addonOverlay.js';
 
 const ANIM_PHASES = [['in', 'In'], ['idle', 'Idle'], ['out', 'Out']];
 // Upstream's Text Position icons (public/static/svgImages/text/basic_group).
@@ -126,6 +127,13 @@ function renderFinderImages(field, services) {
   </div>`;
 }
 
+/** "Aa" sample in the chosen font (the font is loaded the same way the overlay loads it). */
+function fontPreview(family) {
+  if (!family) return '';
+  ensureFormFont(family);
+  return `<div class="addon-font-preview" style="font-family:&quot;${esc(family)}&quot;, sans-serif" aria-hidden="true">Aa — The quick brown fox 123</div>`;
+}
+
 function renderField(field, options, idPrefix, ui = {}, services = {}) {
   const value = getPath(options, field.key);
   const id = `${idPrefix}-${field.key.replace(/\./g, '-')}`;
@@ -136,7 +144,7 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
     case 'toggle':
       return `<div class="clip-editor__field addon-field addon-field--toggle"><label><input id="${id}" type="checkbox" data-key="${field.key}" data-kind="toggle" ${value ? 'checked' : ''}/> ${esc(field.label)}</label></div>`;
     case 'range':
-      return `<div class="clip-editor__field addon-field">${label}<div class="addon-field__range"><input id="${id}" type="range" data-key="${field.key}" data-kind="number" value="${esc(value ?? 0)}" min="${field.min ?? 0}" max="${field.max ?? 100}" step="${field.step ?? 1}"/><output>${esc(value ?? 0)}</output></div></div>`;
+      return `<div class="clip-editor__field addon-field${field.disabledIf?.(options) ? ' is-disabled' : ''}">${label}<div class="addon-field__range"><input id="${id}" type="range" data-key="${field.key}" data-kind="number" value="${esc(value ?? 0)}" min="${field.min ?? 0}" max="${field.max ?? 100}" step="${field.step ?? 1}"${field.disabledIf?.(options) ? ' disabled' : ''}/><output>${esc(value ?? 0)}</output></div></div>`;
     case 'number':
       return `<div class="clip-editor__field addon-field">${label}<input id="${id}" type="number" data-key="${field.key}" data-kind="number" value="${esc(value ?? 0)}"${field.min != null ? ` min="${field.min}"` : ''}${field.max != null ? ` max="${field.max}"` : ''}${field.step != null ? ` step="${field.step}"` : ''}/></div>`;
     case 'textarea':
@@ -160,7 +168,7 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
     }
     case 'font':
       return `<div class="clip-editor__field addon-field">${label}<select id="${id}" data-key="${field.key}" data-kind="select" class="addon-font-select">${(field.options || [])
-        .map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(value) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>`;
+        .map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(value) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>${field.preview ? fontPreview(value) : ''}</div>`;
     case 'tokens': {
       // Text with personalization tokens; the select inserts {{token}} at
       // the cursor (upstream's Personalize button).
@@ -278,10 +286,24 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
       return `<div class="clip-editor__field addon-field addon-field--themes"><label>${esc(field.label)}</label><div class="addon-themes" role="group" aria-label="${esc(field.label)}">${tiles}</div></div>`;
     }
     case 'action':
+      if (field.hostOnly && !services.fieldAction) return ''; // only offered where the host can do it (Smart Text: Convert to Smart Speech)
       // A button that runs services.fieldAction(field.action, options, { setResult }).
       return `<div class="clip-editor__field addon-field addon-field--action"><button type="button" class="mini-btn" style="width:100%" data-field-action="${esc(field.action)}">${esc(field.label)}</button><span class="addon-field__hint addon-action-result" role="status" style="font-size:11px;color:var(--text-dim)"></span></div>`;
-    case 'color':
-      return `<div class="clip-editor__field addon-field">${label}<input id="${id}" type="color" data-key="${field.key}" data-kind="text" value="${esc(value || '#000000')}"/></div>`;
+    case 'color': {
+      const swatches = (field.swatches || []).map((c) => `<button type="button" class="addon-swatch${String(value).toLowerCase() === c.toLowerCase() ? ' is-on' : ''}" data-swatch-key="${esc(field.key)}" data-swatch-value="${esc(c)}" style="background:${esc(c)}" title="${esc(c)}" aria-label="Colour ${esc(c)}"></button>`).join('');
+      return `<div class="clip-editor__field addon-field addon-field--color">${label}<div class="addon-colorrow"><input id="${id}" type="color" data-key="${field.key}" data-kind="text" value="${esc(value || '#000000')}"/>${field.swatches ? `<input type="text" class="addon-hex" data-key="${field.key}" data-kind="hex" value="${esc(value || '#000000')}" maxlength="7" spellcheck="false" aria-label="${esc(field.label)} (hex)"/>` : ''}</div>${swatches ? `<div class="addon-swatches" role="group" aria-label="${esc(field.label)} presets">${swatches}</div>` : ''}</div>`;
+    }
+    case 'toggleBtn':
+      // a B / I style button that stays pressed (upstream's Bold and Italic)
+      return `<div class="clip-editor__field addon-field addon-field--togglebtn"><button type="button" class="mini-btn addon-togglebtn${value ? ' is-on' : ''}" aria-pressed="${!!value}" data-toggle-btn="${esc(field.key)}" title="${esc(field.title || field.label)}" aria-label="${esc(field.title || field.label)}" style="${esc(field.style || '')}">${esc(field.label)}</button></div>`;
+    case 'align':
+      // left / centre / right as upstream's icon buttons
+      return `<div class="clip-editor__field addon-field addon-field--align"><div class="addon-position-grid" role="group" aria-label="${esc(field.label)}">${['left', 'center', 'right'].map((v) => `<button type="button" class="mini-btn${value === v ? ' is-on' : ''}" data-position-key="${esc(field.key)}" data-position-value="${v}" title="Align ${v}" aria-label="Align ${v}" aria-pressed="${value === v}"><img src="/static/svgImages/text/advanced/text-align-${v}.svg" alt="" width="14" height="14" draggable="false"/></button>`).join('')}</div></div>`;
+    case 'toggleColor': {
+      // a switch with its colour beside it; the colour is greyed out while the switch is off (upstream's Shadow / Stroke / Background)
+      const on = !!value;
+      return `<div class="clip-editor__field addon-field addon-field--togglecolor"><label><input id="${id}" type="checkbox" data-key="${field.key}" data-kind="toggle" ${on ? 'checked' : ''}/> ${esc(field.label)}</label><input type="color" data-key="${field.colorKey}" data-kind="text" value="${esc(getPath(options, field.colorKey) || '#000000')}" ${on ? '' : 'disabled'} aria-label="${esc(field.label)} colour"/></div>`;
+    }
     case 'url':
       return `<div class="clip-editor__field addon-field">${label}<input id="${id}" type="url" placeholder="https://" data-key="${field.key}" data-kind="text" value="${esc(value)}"/></div>`;
     case 'select':
@@ -471,6 +493,14 @@ export function renderAddonEditor(container, {
         draw();
         return;
       }
+      if (btn?.dataset.toggleBtn) {
+        setAndEmit(btn.dataset.toggleBtn, !getPath(current, btn.dataset.toggleBtn));
+        return;
+      }
+      if (btn?.dataset.swatchValue) {
+        setAndEmit(btn.dataset.swatchKey, btn.dataset.swatchValue);
+        return;
+      }
       if (btn?.dataset.positionValue) {
         setAndEmit(btn.dataset.positionKey, btn.dataset.positionValue);
         return;
@@ -658,6 +688,15 @@ export function renderAddonEditor(container, {
     const key = el.dataset?.key;
     if (!key || e.type === 'click') return;
     const kind = el.dataset.kind;
+    if (kind === 'hex') {
+      if (e.type !== 'change') return;
+      let v = el.value.trim();
+      if (v && v[0] !== '#') v = `#${v}`;
+      if (/^#[0-9a-f]{3}$/i.test(v)) v = `#${v[1]}${v[1]}${v[2]}${v[2]}${v[3]}${v[3]}`;
+      if (/^#[0-9a-f]{6}$/i.test(v)) setAndEmit(key, v.toUpperCase());
+      else el.value = getPath(current, key) || ''; // not a colour: keep the old one
+      return;
+    }
     if (kind === 'rich-tokens') { setPath(current, key, htmlToTokens(el)); emit(false, key); return; }
     if (kind === 'points') return; // committed on change (above)
     if (kind === 'toggle') setPath(current, key, el.checked);

@@ -21,8 +21,12 @@ export interface SmartSpeechHost {
   toast?: (message: string, kind?: string) => void;
 }
 
-export function openSmartSpeech(host: SmartSpeechHost) {
+/** Window event that opens the Smart Speech window (from a Smart Text's "Convert to Smart Speech" button); `detail.text` pre-fills it. */
+export const OPEN_SPEECH_EVENT = 'cinegen:open-smart-speech';
+
+export function openSmartSpeech(host: SmartSpeechHost, initialText = '') {
   return openSmartSpeechModal({
+    initialText,
     hasKey: (provider: string) => {
       const key = provider === 'openai' ? apiKeyManager.getOpenAIKey?.() : apiKeyManager.getMuapiKey?.();
       return !!key && key !== 'dev';

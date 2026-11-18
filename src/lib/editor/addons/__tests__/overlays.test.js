@@ -207,10 +207,56 @@ describe('overlay settings form', () => {
     rich.dispatchEvent(new Event('input', { bubbles: true })); // typing
     expect(onChange.mock.calls.at(-1)[0].text).toBe('Hi {{lastName}}');
     expect(box.querySelectorAll('.addon-position-grid img').length).toBe(6); // upstream position icons
+    // Convert to Smart Speech: only when the host can open it, and it hands over the current text
+    expect(box.querySelector('[data-field-action="speech"]')).toBeNull();
+    const onAction = vi.fn();
+    const box2 = document.createElement('div');
+    document.body.appendChild(box2);
+    renderAddonEditor(box2, { fields: d.fields, options: { ...d.defaults(), text: 'Hello {{firstName}}' }, onChange: vi.fn(), services: { ...services, fieldAction: onAction }, onFieldChange: d.onFieldChange });
+    box2.querySelector('[data-field-action="speech"]').click();
+    expect(onAction).toHaveBeenCalledWith('speech', expect.objectContaining({ text: 'Hello {{firstName}}' }), expect.anything());
+    const box3 = document.createElement('div');
+    renderAddonEditor(box3, { fields: d.fields, options: { ...d.defaults(), text: '  ' }, onChange: vi.fn(), services: { ...services, fieldAction: onAction }, onFieldChange: d.onFieldChange });
+    expect(box3.querySelector('[data-field-action="speech"]')).toBeNull(); // nothing to speak
     box.querySelector('[data-position-value="right"]').click();
     expect(onChange.mock.calls.at(-1)[0].geometry.left).toBe(75);
     box.querySelector('[data-addon-tab="Advanced"]').click();
     expect(box.querySelector('select.addon-font-select').value).toBe('Anton');
+  });
+
+  it('Smart Text Advanced tab: B / I, alignment icons, colour presets and hex, switch + colour rows', () => {
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const onChange = vi.fn();
+    const d = getAddon('overlay-text');
+    renderAddonEditor(box, { fields: d.fields, options: d.defaults(), onChange, services, onFieldChange: d.onFieldChange });
+    box.querySelector('[data-addon-tab="Advanced"]').click();
+    // size slider is there but greyed out while Scale To Fit is on
+    expect(box.querySelector('input[data-key="fontSize"]').disabled).toBe(true);
+    box.querySelector('input[data-key="fontDecorations.responsive"]').click();
+    expect(onChange.mock.calls.at(-1)[0].fontDecorations.responsive).toBe(false);
+    expect(box.querySelector('input[data-key="fontSize"]').disabled).toBe(false);
+    box.querySelector('[data-toggle-btn="fontDecorations.bold"]').click();
+    expect(onChange.mock.calls.at(-1)[0].fontDecorations.bold).toBe(true);
+    expect(box.querySelector('[data-toggle-btn="fontDecorations.bold"]').getAttribute('aria-pressed')).toBe('true');
+    box.querySelector('[data-position-key="alignment"][data-position-value="right"]').click();
+    expect(onChange.mock.calls.at(-1)[0].alignment).toBe('right');
+    box.querySelector('[data-swatch-value="#FF3B30"]').click();
+    expect(onChange.mock.calls.at(-1)[0].fontColor).toBe('#FF3B30');
+    const hex = box.querySelector('.addon-hex');
+    hex.value = '0af';
+    hex.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(onChange.mock.calls.at(-1)[0].fontColor).toBe('#00AAFF');
+    hex.value = 'nope';
+    hex.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(onChange.mock.calls.at(-1)[0].fontColor).toBe('#00AAFF'); // not a colour: unchanged
+    // shadow / stroke / background: colour is disabled until the switch is on
+    const shadowColor = () => box.querySelector('input[type="color"][data-key="shadowColor"]');
+    expect(shadowColor().disabled).toBe(true);
+    box.querySelector('input[data-key="shadow"]').click();
+    expect(onChange.mock.calls.at(-1)[0].shadow).toBe(true);
+    expect(shadowColor().disabled).toBe(false);
+    expect(box.querySelector('.addon-font-preview')).not.toBeNull();
   });
 
   it('Stickers picker sets src/kind/name; animated tab takes a Lottie URL', () => {

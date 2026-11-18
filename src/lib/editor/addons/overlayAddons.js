@@ -86,6 +86,9 @@ const BASE = {
   timing: ['start', 'end'],
 };
 
+// quick colours for text (the hex box takes any other)
+const TEXT_SWATCHES = ['#FFFFFF', '#000000', '#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#00C7BE', '#007AFF', '#AF52DE', '#FF2D95'];
+
 export const SMART_TEXT = registerAddon({
   ...BASE,
   type: 'overlay-text',
@@ -119,23 +122,22 @@ export const SMART_TEXT = registerAddon({
   }),
   fields: [
     { key: 'text', label: 'Text', type: 'tokens', chips: true, tab: 'Basic' },
+    { key: 'speech', label: 'Convert to Smart Speech', type: 'action', action: 'speech', hostOnly: true, tab: 'Basic', showIf: (o) => !!String(o.text || '').trim() },
     { key: 'position', label: 'Text Position', type: 'position', tab: 'Basic' },
     ...LINK_FIELDS('Basic'),
     { key: 'rotation', label: 'Rotation', type: 'range', min: -180, max: 180, tab: 'Basic' },
     ANIMATION_FIELD('Basic'),
-    { key: 'fontFamily', label: 'Font', type: 'font', options: fontOptions, tab: 'Advanced' },
+    { key: 'fontFamily', label: 'Font', type: 'font', options: fontOptions, preview: true, tab: 'Advanced' },
+    // upstream Advanced tab: size slider (greyed out while Scale To Fit is on), bold / italic buttons, alignment icons, colours
+    { key: 'fontSize', label: 'Font Size', type: 'range', min: 1, max: 40, tab: 'Advanced', disabledIf: (o) => !!o.fontDecorations?.responsive },
     { key: 'fontDecorations.responsive', label: 'Scale To Fit', type: 'toggle', tab: 'Advanced' },
-    { key: 'fontSize', label: 'Font Size', type: 'range', min: 1, max: 40, tab: 'Advanced', showIf: (o) => !o.fontDecorations?.responsive },
-    { key: 'fontDecorations.bold', label: 'Bold', type: 'toggle', tab: 'Advanced' },
-    { key: 'fontDecorations.italics', label: 'Italic', type: 'toggle', tab: 'Advanced' },
-    { key: 'alignment', label: 'Alignment', type: 'select', options: [['left', 'Left'], ['center', 'Center'], ['right', 'Right']], tab: 'Advanced' },
-    { key: 'fontColor', label: 'Font color', type: 'color', tab: 'Advanced' },
-    { key: 'shadow', label: 'Shadow', type: 'toggle', tab: 'Advanced' },
-    { key: 'shadowColor', label: 'Shadow color', type: 'color', tab: 'Advanced', showIf: (o) => o.shadow },
-    { key: 'stroke', label: 'Stroke', type: 'toggle', tab: 'Advanced' },
-    { key: 'strokeColor', label: 'Stroke color', type: 'color', tab: 'Advanced', showIf: (o) => o.stroke },
-    { key: 'background', label: 'Background', type: 'toggle', tab: 'Advanced' },
-    { key: 'backgroundColor', label: 'Background color', type: 'color', tab: 'Advanced', showIf: (o) => o.background },
+    { key: 'fontDecorations.bold', label: 'B', title: 'Bold', style: 'font-weight:700', type: 'toggleBtn', tab: 'Advanced' },
+    { key: 'fontDecorations.italics', label: 'I', title: 'Italic', style: 'font-style:italic', type: 'toggleBtn', tab: 'Advanced' },
+    { key: 'alignment', label: 'Alignment', type: 'align', tab: 'Advanced' },
+    { key: 'fontColor', label: 'Font color', type: 'color', swatches: TEXT_SWATCHES, tab: 'Advanced' },
+    { key: 'shadow', label: 'Shadow', type: 'toggleColor', colorKey: 'shadowColor', tab: 'Advanced' },
+    { key: 'stroke', label: 'Stroke', type: 'toggleColor', colorKey: 'strokeColor', tab: 'Advanced' },
+    { key: 'background', label: 'Background', type: 'toggleColor', colorKey: 'backgroundColor', tab: 'Advanced' },
     ...LOOK_FIELDS('Advanced'),
   ],
   // Upstream "Text Position" icon groups: place the box with 3% padding.

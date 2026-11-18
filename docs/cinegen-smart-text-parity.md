@@ -12,13 +12,14 @@ Method: code comparison plus the real CineGen editor in a browser (screenshots i
 | Personalize menu | yes | **added** (CineGen's inspector never passed the token list) |
 | Text Position icons | upstream SVGs | **added** (were text glyphs) |
 | Edit text on the video | no (upstream edits in the panel) | **added**: double-click; Enter keeps, Shift+Enter new line, Esc cancels |
+| "Convert to Smart Speech" button | yes | **added**: opens the Smart Speech window with this text (only where the host can open it) |
+| Advanced tab: font with preview, size slider (greyed out while Scale To Fit is on), B / I buttons, alignment icons, font colour with presets and hex, Shadow / Stroke / Background with their colours | yes | **rebuilt to match upstream's layout**; colour presets and hex box are extras |
 | Unfilled token in the editor preview | chip | **added** (player and export keep the plain text) |
 | Typing vs editor shortcuts | n/a | **fixed** for the new boxes: Space / E / V / B / Backspace no longer fire shortcuts |
 | Export: size fit, bold, italic, alignment, shadow, stroke, background, animations | n/a | already covered by `SmartText` in the Remotion composition |
 
 ## Still different (not changed)
 - **Stroke width.** Upstream uses `fontSize * 0.2` px centred on the glyph edge; CineGen uses `0.04em` drawn outside the glyph (viewer) and an 8-direction shadow of the same width (export). Close, not identical.
-- **"Convert to Smart Speech" button** in upstream's Basic tab is not in CineGen's Smart Text panel (Smart Speech is reached from the Overlays lane header).
 - **Upstream `scripts` hook** (per-element custom code) is not ported.
 - Fixed-size text uses a share of the frame height in CineGen; upstream uses a percentage of its own base font. Compare visually if exact sizes matter.
 - Published player and export were checked by code and unit tests only, not by viewing a published page or an exported MP4.
