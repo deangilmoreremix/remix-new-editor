@@ -506,9 +506,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     updatePersistedTimelineView(timeline.id, { vaSplit: Math.max(0.15, Math.min(0.85, vaSplit)) });
   }, [timeline.id, updatePersistedTimelineView]);
 
-  // [remix] fonts imported earlier (captions, Smart Text) are registered when the editor opens, so the preview draws them
-  useEffect(() => { void loadUserFonts(); }, []);
-
+  useEffect(() => { void loadUserFonts(); }, []); // [remix] fonts imported earlier (captions, Smart Text) are registered when the editor opens
   // Spacebar / Arrow keys / Tool shortcuts
   useEffect(() => {
     const FRAME_DURATION = 1 / 24;
