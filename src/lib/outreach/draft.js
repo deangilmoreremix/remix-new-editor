@@ -19,6 +19,8 @@
  * server.
  */
 
+import { cardDetails, cardKey } from './profileCard.js';
+
 export const DRAFT_KEY = 'outreach-draft-v1';
 // Sendspark-style: record, the AI intro (voice + greeting), the page, prospects, then generate and
 // share; Videos is the library of dynamic videos (campaigns).
@@ -78,6 +80,8 @@ export function defaultDraft() {
     background: { mode: 'recording', fallbackSite: '', image: '' },
     // Map captures during Generate: { [normalized address]: image URL }.
     mapShots: {},
+    // Profile cards drawn during Generate (src/lib/outreach/profileCard.js): { [card key]: image URL }.
+    profileShots: {},
     // Screenshots captured during Generate: { [site home page]: image URL }.
     siteShots: {},
     // Company logos found while capturing websites: { [site home page]: image URL }.
@@ -122,6 +126,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       background: { ...base.background, ...(saved.background || {}) },
       siteShots: saved.siteShots && typeof saved.siteShots === 'object' ? saved.siteShots : {},
       mapShots: saved.mapShots && typeof saved.mapShots === 'object' ? saved.mapShots : {},
+      profileShots: saved.profileShots && typeof saved.profileShots === 'object' ? saved.profileShots : {},
       siteLogos: saved.siteLogos && typeof saved.siteLogos === 'object' ? saved.siteLogos : {},
       lipsyncCache: saved.lipsyncCache && typeof saved.lipsyncCache === 'object' ? saved.lipsyncCache : {},
       chapters: Array.isArray(saved.chapters) ? saved.chapters : [],
@@ -441,8 +446,8 @@ export function sitesToCapture(draft) {
   return [...sites];
 }
 
-export const BACKGROUND_MODES = ['recording', 'website', 'image', 'map'];
-export const usesBackground = (draft) => ['website', 'image', 'map'].includes(draft.background?.mode);
+export const BACKGROUND_MODES = ['recording', 'website', 'image', 'map', 'profile'];
+export const usesBackground = (draft) => ['website', 'image', 'map', 'profile'].includes(draft.background?.mode);
 
 /** A contact's address as a cache key (lower-case, single spaces). '' when there is none. */
 export const mapKey = (address) => String(address || '').trim().replace(/\s+/g, ' ').toLowerCase().slice(0, 200);
@@ -458,6 +463,7 @@ export function backgroundShotFor(draft, c) {
   if (mode === 'website') return draft.siteShots?.[siteKey(c.website)] || '';
   if (mode === 'image') return c.backgroundImage || '';
   if (mode === 'map') return draft.mapShots?.[mapKey(c.address)] || '';
+  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails(c, draft.fallbacks))] || '';
   return '';
 }
 
@@ -466,6 +472,7 @@ export function fallbackShotFor(draft) {
   const mode = draft.background?.mode;
   if (mode === 'website') return draft.siteShots?.[siteKey(draft.background.fallbackSite)] || '';
   if (mode === 'image' || mode === 'map') return /^https:\/\//i.test(String(draft.background.image || '')) ? draft.background.image : '';
+  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails({}, draft.fallbacks))] || '';
   return '';
 }
 

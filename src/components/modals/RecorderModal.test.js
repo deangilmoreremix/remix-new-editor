@@ -180,4 +180,24 @@ describe('RecorderModal on the Remotion Recorder engine', () => {
     expect(args.spotlights).toHaveLength(2);
     expect(args.spotlights[1].end).not.toBeNull();
   });
+
+  test('the teleprompter works in Screen mode too, and can float over other windows', async () => {
+    const { modal } = makeModal('screen');
+    modal.prompter = { ...modal.prompter, on: true, script: 'Hi there\nThis is the demo' };
+    const html = modal.renderBody();
+    expect(html).toContain('data-action="toggle-prompter"');
+    expect(html).toContain('data-teleprompter');
+    const doc = document.implementation.createHTMLDocument('pip');
+    const win = { document: doc, addEventListener: vi.fn(), close: vi.fn() };
+    window.documentPictureInPicture = { requestWindow: vi.fn(async () => win) };
+    try {
+      modal.rerender = () => {};
+      await modal.openPrompterWindow();
+      expect(window.documentPictureInPicture.requestWindow).toHaveBeenCalled();
+      expect(doc.querySelector('[data-teleprompter-window] .tp-line').textContent).toBe('Hi there');
+      modal.closePrompterWindow();
+      expect(win.close).toHaveBeenCalled();
+      expect(modal.pipWin).toBeNull();
+    } finally { delete window.documentPictureInPicture; }
+  });
 });

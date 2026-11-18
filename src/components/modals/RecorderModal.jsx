@@ -183,7 +183,7 @@ export class RecorderModal extends BaseModal {
             `}
 
             ${this.isRecording && this.annotator ? this.renderDrawLayer() : ''}
-            ${this.prompter.on && this.prompter.script.trim() && this.recordingType !== 'screen' && !this.recordedBlob ? this.renderPrompterOverlay() : ''}
+            ${this.prompter.on && this.prompter.script.trim() && this.recordingType !== 'audio' && !this.recordedBlob ? this.renderPrompterOverlay() : ''}
             ${this.isRecording ? `
               <div class="recording-status">
                 <div class="rec-indicator">
@@ -201,7 +201,7 @@ export class RecorderModal extends BaseModal {
                 <span>🎤</span> Mic ${this.micEnabled ? 'on' : 'off'}
               </button>
             ` : ''}
-            ${this.recordingType !== 'screen' ? `
+            ${this.recordingType !== 'audio' ? `
               <button class="preview-toggle ${this.prompter.on ? 'active' : ''}" data-action="toggle-prompter" data-tooltip="Show your script over the preview while you record">📜 Teleprompter</button>
             ` : ''}
             ${(this.recordingType === 'camera' || this.recordingType === 'both') && !this.isRecording ? `
@@ -213,7 +213,7 @@ export class RecorderModal extends BaseModal {
             ` : ''}
           </div>
           ${this.isRecording && this.annotator ? this.renderDrawTools() : ''}
-          ${this.showPrompterPanel && this.recordingType !== 'screen' && !this.recordedBlob ? this.renderPrompterPanel() : ''}
+          ${this.showPrompterPanel && this.recordingType !== 'audio' && !this.recordedBlob ? this.renderPrompterPanel() : ''}
           ${this.showEffects && (this.recordingType === 'camera' || this.recordingType === 'both') && !this.isRecording ? this.renderEffectsPanel() : ''}
           ${this.notice ? `<div class="recorder-notice" style="font-size:12px;opacity:.8;margin-top:6px;">${this.notice}</div>` : ''}
         </div>
@@ -415,19 +415,48 @@ export class RecorderModal extends BaseModal {
         <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><span style="opacity:.7;width:84px;">Speed</span><input type="range" min="60" max="260" step="10" value="${p.wpm}" data-tp-wpm style="flex:1;"><span data-tp-wpm-label style="width:70px;text-align:right;opacity:.7;">${p.wpm} wpm</span></label>
         <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><span style="opacity:.7;width:84px;">Font size</span><input type="range" min="14" max="48" step="1" value="${p.fontSize}" data-tp-size style="flex:1;"><span style="width:70px;text-align:right;opacity:.7;">${p.fontSize}px</span></label>
         <label style="display:flex;gap:8px;align-items:center;font-size:12px;"><input type="checkbox" data-tp-follow ${p.follow ? 'checked' : ''}> Follow my voice: scroll as I speak (speech is recognised on this device; the model downloads once, about 50 MB)</label>
-        ${this.followStatus ? `<span style="font-size:11px;opacity:.6;">${this.followStatus}</span>` : ''}
-        <div style="display:flex;gap:6px;">
+        <span data-tp-follow-status style="font-size:11px;opacity:.6;">${this.followStatus || ''}</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;white-space:nowrap;">
           <button class="preview-toggle" data-tp-practice>${this.prompterRunning ? 'Pause scrolling' : 'Practice'}</button>
           <button class="preview-toggle" data-tp-reset>Back to start</button>
-          <span style="font-size:11px;opacity:.5;align-self:center;">Scrolls on its own when you start recording; pauses with the recording.</span>
+          ${typeof window !== 'undefined' && 'documentPictureInPicture' in window ? `<button class="preview-toggle" data-tp-popout>${this.pipWin ? 'Close floating script' : 'Float over other windows'}</button>` : ''}
         </div>
+        <span style="font-size:11px;opacity:.5;">Scrolls on its own when you start recording; pauses with the recording.${this.recordingType === 'screen' || this.recordingType === 'both' ? ' Sharing another window? Float the script so it stays on top while you record.' : ''}</span>
       </div>`;
+  }
+
+  // The script in a small always-on-top window (Document Picture-in-Picture, Chrome and Edge), for recording
+  // another window or the whole screen: it stays visible over whatever you are showing.
+  async openPrompterWindow() {
+    const api = globalThis.window?.documentPictureInPicture;
+    if (!api || this.pipWin) return;
+    try {
+      const w = await api.requestWindow({ width: 520, height: 240 });
+      w.document.title = 'Teleprompter';
+      w.document.body.style.cssText = 'margin:0;background:#000;color:#fff;font-family:Inter,Arial,sans-serif;overflow:hidden;';
+      w.document.body.innerHTML = this.renderPrompterOverlay().replace('height:42%', 'height:100%').replace('top:30%', 'top:38%');
+      w.document.body.firstElementChild?.setAttribute('data-teleprompter-window', '');
+      w.addEventListener('pagehide', () => { this.pipWin = null; this.rerender(); });
+      this.pipWin = w;
+      this.paintPrompter(this.prompterClock.elapsed());
+      this.rerender();
+    } catch { /* the browser refused (no user gesture, or unsupported) */ }
+  }
+
+  closePrompterWindow() {
+    try { this.pipWin?.close(); } catch { /* gone */ }
+    this.pipWin = null;
+    this.rerender();
   }
 
   // Highlight and scroll to the line being read.
   paintPrompter(ms) {
-    const box = this.overlay?.querySelector('.tp-lines');
-    if (!box) return;
+    // The overlay on the preview and, when floated, the same script in its own window.
+    const boxes = [this.overlay?.querySelector('.tp-lines'), this.pipWin?.document?.querySelector('.tp-lines')].filter(Boolean);
+    boxes.forEach((box) => this.paintPrompterBox(box, ms));
+  }
+
+  paintPrompterBox(box, ms) {
     const lines = scriptLines(this.prompter.script);
     let { index, progress } = readingPosition(lines, ms, this.prompter.wpm);
     if (this.prompter.follow) {
@@ -456,7 +485,7 @@ export class RecorderModal extends BaseModal {
         onHeard: (text) => { this.followAt = advance(words, this.followAt || 0, text); this.paintPrompter(this.prompterClock.elapsed()); },
         onStatus: (st) => {
           this.followStatus = st.stage === 'download' ? `Loading speech recognition… ${Math.round((st.progress || 0) * 100)}%` : st.stage === 'error' ? `Follow my voice is unavailable: ${st.message}` : '';
-          const el = this.overlay?.querySelector('[data-teleprompter-panel] span');
+          const el = this.overlay?.querySelector('[data-tp-follow-status]');
           if (el && this.followStatus) el.textContent = this.followStatus;
         },
       });
@@ -518,6 +547,7 @@ export class RecorderModal extends BaseModal {
       if (this.prompterRunning) { this.prompterClock.pause(); this.prompterRunning = false; this.stopFollowing(); } else { this.prompterClock.start(); this.prompterRunning = true; this.startFollowing(); }
       this.rerender();
     });
+    this.overlay.querySelector('[data-tp-popout]')?.addEventListener('click', () => (this.pipWin ? this.closePrompterWindow() : this.openPrompterWindow()));
     this.overlay.querySelector('[data-tp-reset]')?.addEventListener('click', () => { this.prompterClock.reset(); this.prompterRunning = false; this.followAt = 0; this.stopFollowing(); this.rerender(); });
 
     this.overlay.querySelector('[data-action="toggle-effects"]')?.addEventListener('click', () => {
@@ -871,6 +901,8 @@ export class RecorderModal extends BaseModal {
   // screen capture, otherwise the browser's recording indicators stay on.
   destroy() {
     clearInterval(this.recordingInterval);
+    try { this.pipWin?.close(); } catch { /* gone */ }
+    this.pipWin = null;
     this.prompterClock.reset();
     this.stopFollowing();
     const session = this.session;

@@ -10,7 +10,7 @@
 // fills the landing text. The logic lives in src/lib/outreach/draft.js.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, linkedinMessage } from '../lib/outreach/email.js';
+import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, outlookUrl, linkedinMessage } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
 
@@ -442,6 +442,14 @@ export function OutreachStudio() {
     persist();
     notice = blob ? 'Edits applied. Check the voice step: the voice sample comes from the new video.' : 'Back to your original recording.';
     render();
+  }
+
+  // What a preview can't show: the per-prospect greeting (and lips) are made when you generate.
+  function finalNotice({ light = false } = {}) {
+    if (draft.kind === 'same' || !tokensIn(draft.greeting || '').length) return null;
+    const p = el('p', `text-[11px] ${light ? 'text-black/50' : 'text-white/50'}`, `Preview: in the final videos each prospect hears their own greeting in your voice${draft.voice.lipsync ? ', and your lips move with it' : ''}.`);
+    p.setAttribute('data-outreach-final-notice', '');
+    return p;
   }
 
   // ---- The editor's other tools (src/components/outreach/EditorTools.js) -------------------------
@@ -916,6 +924,8 @@ export function OutreachStudio() {
       const t = el('span', 'tabular-nums', fmtS(previewTime())); t.setAttribute('data-edit-time', '');
       ctl.append(pp, t, el('span', 'text-white/40', '· preview of your edits (personal text shows for your first prospect)'));
       main.appendChild(ctl);
+      const fin = finalNotice();
+      if (fin) main.appendChild(fin);
     }
     if (has) main.appendChild(el('p', 'text-xs text-white/45', `${fmtTime(draft.video.duration)} · ${draft.video.hasAudio ? 'with sound' : 'no sound'}${draft.kind !== 'same' ? ' · the greeting plays over the first seconds' : ''}`));
     const brand = el('p', 'flex items-center gap-1.5 text-xs text-white/40');
@@ -1161,7 +1171,7 @@ export function OutreachStudio() {
     const bg = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
     bg.appendChild(el('div', 'text-sm font-bold', 'Video background'));
     const bgModes = el('div', 'flex flex-wrap gap-2');
-    for (const [mode, label] of [['recording', 'My recording'], ['website', 'Each contact\u2019s website'], ['image', 'An image'], ['map', 'A map of their address']]) {
+    for (const [mode, label] of [['recording', 'My recording'], ['website', 'Each contact\u2019s website'], ['image', 'An image'], ['map', 'A map of their address'], ['profile', 'Their profile card']]) {
       const b = button(label, { selected: draft.background.mode === mode, small: true });
       b.setAttribute('data-bg-mode', mode);
       b.addEventListener('click', () => { draft.background = { ...draft.background, mode }; draft.campaign = null; persist(); render(); });
@@ -1178,6 +1188,11 @@ export function OutreachStudio() {
       curOn.addEventListener('change', () => { draft.background = { ...draft.background, cursor: curOn.checked }; draft.campaign = null; persist(); });
       const curRow = el('label', 'flex items-center gap-2 text-xs'); curRow.append(curOn, el('span', '', 'Show a pointer moving over their website, as if you were pointing things out'));
       bg.appendChild(curRow);
+    }
+    if (draft.background.mode === 'profile') {
+      const p = el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a card with each contact\u2019s name, job title, company, their logo (or initials) and their LinkedIn address, from your prospect list. Cards are drawn when you generate the campaign. (LinkedIn pages themselves can\u2019t be captured: they need a login.)');
+      p.setAttribute('data-bg-profile-note', '');
+      bg.appendChild(p);
     }
     if (draft.background.mode === 'image' || draft.background.mode === 'map') {
       bg.appendChild(el('p', 'text-xs text-secondary', draft.background.mode === 'image'
@@ -1244,6 +1259,8 @@ export function OutreachStudio() {
         preview.appendChild(cal);
       }
       if (draft.voice.mode === 'clone') preview.appendChild(el('p', 'text-[11px] text-black/45', 'AI-personalized voice'));
+      const fin = finalNotice({ light: true });
+      if (fin) preview.appendChild(fin);
     };
     updatePreview();
     grid.append(main, preview);
@@ -1479,6 +1496,30 @@ export function OutreachStudio() {
     }
   }
 
+  // Profile-card backgrounds: one card per prospect (and one for the fallbacks), drawn in the browser and stored.
+  async function captureProfiles() {
+    const { cardDetails, cardKey, renderProfileCard } = await import('../lib/outreach/profileCard.js');
+    const people = [...draft.contacts, {}];
+    const todo = [];
+    const seen = new Set();
+    for (const c of people) {
+      const d = cardDetails(c, draft.fallbacks);
+      const k = cardKey(d);
+      if (seen.has(k) || draft.profileShots?.[k]) continue;
+      seen.add(k); todo.push({ c, d, k });
+    }
+    for (let i = 0; i < todo.length; i++) {
+      if (abort?.signal.aborted) throw Object.assign(new Error('Stopped'), { name: 'AbortError' });
+      setBusy(`Drawing profile cards: ${i + 1} of ${todo.length}…`);
+      const { c, d, k } = todo[i];
+      const logoUrl = c.website ? draft.siteLogos?.[siteKey(c.website)] || '' : '';
+      const blob = await renderProfileCard(d, { logoUrl });
+      const url = await uploadToStorage(new File([blob], 'profile-card.jpg', { type: 'image/jpeg' }));
+      draft.profileShots = { ...(draft.profileShots || {}), [k]: url };
+      persist();
+    }
+  }
+
   // Returns true when the campaign is published. `confirmed` skips the cost question (the caller asked already);
   // onStage(stage, part) follows the real work, part = 0..1 of that stage: 'site' (website screenshots), 'voice'
   // (greetings), 'render' (publishing the personal videos and rendering their thumbnails), 'page' (the landing
@@ -1489,7 +1530,7 @@ export function OutreachStudio() {
     const n = draft.contacts.length;
     const wantSync = personal && !!draft.voice.lipsync;
     // Lip-sync is cut from the uploaded video: edits not applied yet would not be in the lips.
-    if (wantSync && editModule && !editSegmentsInfo().unchanged) {
+    if (wantSync && editModule && tools && editSegmentsInfo().changed) {
       notice = 'Apply your edits first (Trim, then Apply edits): lip-sync uses the finished video.';
       render();
       return false;
@@ -1502,6 +1543,7 @@ export function OutreachStudio() {
       onStage('site');
       if (draft.background.mode === 'website') await captureSites({ onProgress: (part) => onStage('site', part) });
       if (draft.background.mode === 'map') await captureMaps();
+      if (draft.background.mode === 'profile') await captureProfiles();
       let variants = {};
       if (personal) {
         const [{ voiceForContacts }, audio] = await Promise.all([
@@ -1572,6 +1614,9 @@ export function OutreachStudio() {
       const project = preparePublishProject(built, { title: built.title });
       const id = draft.campaign?.id || makeSlug();
       await publishVideo(await ownerClient(), { id, project });
+      // Who each link belongs to, kept in your own account, so a "watched" alert can name them.
+      saveProspects(id).catch(() => {});
+      alerts.loaded = false;
       const url = watchUrl(id);
       // A landing page chosen earlier keeps showing the campaign; its contact links are rebuilt.
       const page = draft.campaign?.id === id ? draft.campaign.page : null;
@@ -1693,16 +1738,35 @@ export function OutreachStudio() {
       const rows = el('div', 'flex flex-col divide-y divide-white/5');
       if (linkStats.id !== draft.campaign.id && !linkStats.loading) setTimeout(loadLinkStats, 0);
       draft.campaign.links.forEach((l, i) => {
-        const row = el('div', 'flex flex-wrap items-center gap-3 py-2.5 text-sm');
-        row.append(el('span', 'w-8 text-white/40 tabular-nums', String(i + 1).padStart(2, '0')));
-        const who = el('div', 'min-w-0 flex-1');
-        who.append(el('div', 'truncate font-semibold', l.name || '(no name)'), el('div', 'truncate text-xs text-white/50', l.email || ''));
-        const state = el('span', `text-xs ${l.voiced ? 'text-emerald-300' : 'text-white/50'}`, l.voiced ? (l.lipsynced ? '● Greeted by name, lip-synced' : l.lipsyncError ? `● Greeted by name (no lip-sync: ${l.lipsyncError})` : '● Greeted by name') : '● Fallback greeting');
-        const siteState = l.site ? el('span', `text-xs ${l.site === 'own' ? 'text-emerald-300' : 'text-white/50'}`, l.site === 'own' ? '● Their website' : '● Fallback website') : null;
-        const copy = button('Copy link', { small: true });
-        copy.addEventListener('click', async () => {
-          try { await navigator.clipboard.writeText(linkOf(l)); copy.textContent = 'Copied'; } catch { window.prompt('Copy this link:', linkOf(l)); }
-        });
+        // Like Sendspark's prospect list: their thumbnail, who they are, what they hear, how much they watched.
+        const row = el('div', 'flex flex-wrap items-center gap-3 py-3 text-sm');
+        row.setAttribute('data-outreach-link-row', l.contactId || String(i));
+        const c = contactOf(l);
+        const thumb = el('div', 'h-[54px] w-24 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]');
+        thumb.setAttribute('data-outreach-row-thumb', '');
+        if (l.thumbnailUrl) { const img = el('img', 'h-full w-full object-cover'); img.src = l.thumbnailUrl; img.alt = `Thumbnail for ${l.name || 'this prospect'}`; img.loading = 'lazy'; thumb.appendChild(img); }
+        else thumb.appendChild(el('span', 'grid h-full place-items-center text-[10px] text-white/35', 'No thumbnail'));
+        const who = el('div', 'min-w-[150px] flex-1');
+        who.append(
+          el('div', 'truncate font-semibold', l.name || '(no name)'),
+          el('div', 'truncate text-xs text-white/55', [c.company, l.email].filter(Boolean).join(' · ')),
+        );
+        const heard = l.voiced ? fillTemplate(draft.greeting, contactValues(c), draft.fallbacks).trim() : '';
+        if (heard) { const q = el('div', 'truncate text-[11px] text-white/45', `Hears: “${heard}”`); q.setAttribute('data-outreach-heard', ''); who.appendChild(q); }
+        const status = el('div', 'flex flex-col gap-0.5');
+        status.appendChild(el('span', `text-xs ${l.voiced ? 'text-emerald-300' : 'text-white/50'}`, l.voiced ? (l.lipsynced ? '● Greeted by name, lip-synced' : l.lipsyncError ? `● Greeted by name (no lip-sync: ${l.lipsyncError})` : '● Greeted by name') : '● Fallback greeting'));
+        if (l.site) status.appendChild(el('span', `text-xs ${l.site === 'own' ? 'text-emerald-300' : 'text-white/50'}`, l.site === 'own' ? '● Their website' : '● Fallback website'));
+        const st = linkStats.byContact ? (linkStats.byContact[l.contactId] || { views: 0, plays: 0, ctaClicks: 0, progress: 0 }) : null;
+        if (st) {
+          const pct = Math.max(st.progress || 0, st.completes ? 100 : 0);
+          const watch = el('span', `text-xs ${st.ctaClicks ? 'text-primary' : st.plays ? 'text-emerald-300' : 'text-white/40'}`,
+            st.ctaClicks ? `● Clicked${pct ? ` · watched ${pct}%` : ''}` : st.plays ? `● Watched ${pct ? `${pct}%` : ''}`.trim() : st.views ? '● Opened' : '● Not opened');
+          watch.setAttribute('data-outreach-watch', String(pct));
+          status.appendChild(watch);
+        }
+        const share = button('Share', { primary: true, small: true });
+        share.setAttribute('data-outreach-share', '');
+        share.addEventListener('click', () => openShare(l));
         const mailBtn = button('Copy email', { small: true });
         mailBtn.setAttribute('data-outreach-copy-email', '');
         mailBtn.addEventListener('click', () => copyEmail(l, mailBtn));
@@ -1711,44 +1775,34 @@ export function OutreachStudio() {
         mp4.title = 'Download this contact\u2019s video as a file';
         mp4.disabled = !!busy;
         mp4.addEventListener('click', () => downloadContactVideo(l));
-        const mailto = el('a', 'text-xs font-bold text-white/70 hover:text-white', 'Email');
-        if (l.email) { mailto.href = mailtoUrl(emailOf(l)); } else { mailto.classList.add('hidden'); }
-        const gmail = el('a', 'text-xs font-bold text-white/70 hover:text-white', 'Gmail');
+        const linkCls = 'text-xs font-bold text-white/70 hover:text-white';
+        const gmail = el('a', linkCls, 'Gmail');
         gmail.setAttribute('data-outreach-gmail', '');
         gmail.href = gmailUrl(emailOf(l)); gmail.target = '_blank'; gmail.rel = 'noopener noreferrer';
+        const outlook = el('a', linkCls, 'Outlook');
+        outlook.setAttribute('data-outreach-outlook', '');
+        outlook.href = outlookUrl(emailOf(l)); outlook.target = '_blank'; outlook.rel = 'noopener noreferrer';
+        outlook.title = 'Outlook on the web (plain text with their link; for the thumbnail, use Copy email and paste)';
+        const mailto = el('a', linkCls, 'Email');
+        if (l.email) { mailto.href = mailtoUrl(emailOf(l)); } else { mailto.classList.add('hidden'); }
         const li = button('LinkedIn', { small: true });
         li.setAttribute('data-outreach-linkedin', '');
         li.title = 'Copies a short message with their link and opens LinkedIn so you can paste it';
         li.addEventListener('click', async () => {
-          const c = contactOf(l);
           const msg = linkedinMessage({ contact: c, link: linkOf(l), fallbacks: draft.fallbacks });
           window.open(c.linkedin || 'https://www.linkedin.com/messaging/', '_blank', 'noopener');
           try { await navigator.clipboard.writeText(msg); li.textContent = 'Message copied'; } catch { window.prompt('Copy this message:', msg); }
         });
-        const extra = [];
-        if (l.thumbnailUrl) {
-          const gifBtn = button(/\.gif(\?|$)/i.test(l.thumbnailUrl) ? 'Copy GIF' : 'Copy thumbnail', { small: true });
-          gifBtn.setAttribute('data-outreach-copy-gif', '');
-          gifBtn.addEventListener('click', () => copyGif(l, gifBtn));
-          // Download it (Sendspark's Share -> Download GIF), to attach or upload in any email tool.
-          const isGif = /\.gif(\?|$)/i.test(l.thumbnailUrl);
-          const dl = button(isGif ? 'Download GIF' : 'Download image', { small: true });
-          dl.setAttribute('data-outreach-download-gif', '');
-          dl.addEventListener('click', () => downloadThumbnail(l, dl, isGif));
-          const embed = button('Embed', { small: true });
-          embed.setAttribute('data-outreach-embed', '');
-          embed.addEventListener('click', () => copyEmbed(l, embed));
-          extra.push(gifBtn, dl, embed);
-        }
-        const st = linkStats.byContact ? (linkStats.byContact[l.contactId] || { views: 0, plays: 0, ctaClicks: 0 }) : null;
-        const watch = st ? el('span', `text-xs ${st.ctaClicks ? 'text-primary' : st.plays ? 'text-emerald-300' : 'text-white/40'}`, st.ctaClicks ? '● Clicked' : st.plays ? '● Watched' : st.views ? '● Opened' : '● Not opened') : null;
-        row.append(who, state, ...(siteState ? [siteState] : []), ...(watch ? [watch] : []), copy, mailBtn, li, ...extra, mp4, mailto, gmail);
+        const acts = el('div', 'flex flex-wrap items-center gap-2');
+        acts.append(share, mailBtn, li, mp4, gmail, outlook, mailto);
+        row.append(el('span', 'w-6 text-white/40 tabular-nums', String(i + 1).padStart(2, '0')), thumb, who, status, acts);
         rows.appendChild(row);
       });
       list.appendChild(rows);
       wrap.appendChild(list);
       wrap.appendChild(renderLandingCard());
       wrap.appendChild(renderEmailCard());
+      wrap.appendChild(renderAlertsCard());
     }
     return wrap;
   }
@@ -2061,37 +2115,33 @@ export function OutreachStudio() {
     }
   }
 
-  async function downloadThumbnail(l, btn, isGif) {
+  async function downloadThumbnail(l, btn, isGif, url = l.thumbnailUrl, suffix = 'thumbnail') {
     const label = btn.textContent;
     btn.disabled = true; btn.textContent = 'Downloading\u2026';
     try {
-      const res = await fetch(l.thumbnailUrl);
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const name = `${String(l.name || 'prospect').replace(/[^\w-]+/g, '_')}-thumbnail.${isGif ? 'gif' : 'jpg'}`;
+      const name = `${String(l.name || 'prospect').replace(/[^\w-]+/g, '_')}-${suffix}.${isGif ? 'gif' : 'jpg'}`;
       const { downloadBlob } = await import('../lib/editor/remotion/exportClient.js');
       downloadBlob(await res.blob(), name);
       btn.textContent = label;
-    } catch { window.open(l.thumbnailUrl, '_blank', 'noopener'); btn.textContent = label; }
+    } catch { window.open(url, '_blank', 'noopener'); btn.textContent = label; }
     btn.disabled = false;
   }
 
-  async function copyGif(l, btn) {
-    const { thumbnailHtml } = await import('../lib/outreach/email.js');
-    try {
-      await navigator.clipboard.write([new ClipboardItem({
-        'text/html': new Blob([thumbnailHtml({ link: linkOf(l), thumbnailUrl: l.thumbnailUrl })], { type: 'text/html' }),
-        'text/plain': new Blob([l.thumbnailUrl], { type: 'text/plain' }),
-      })]);
-      btn.textContent = 'Copied: paste into your email';
-    } catch {
-      window.prompt('Copy this thumbnail address:', l.thumbnailUrl);
-    }
-  }
-
-  async function copyEmbed(l, btn) {
-    const { embedSnippet } = await import('../lib/outreach/email.js');
-    const code = embedSnippet({ link: linkOf(l), thumbnailUrl: l.thumbnailUrl, name: l.name });
-    try { await navigator.clipboard.writeText(code); btn.textContent = 'Copied'; } catch { window.prompt('Copy this embed code:', code); }
+  // Share one prospect's video: Link, GIF and Embed (src/components/outreach/ShareModal.js).
+  async function openShare(l, tab = 'link') {
+    const { openShareModal } = await import('./outreach/ShareModal.js');
+    openShareModal({
+      name: l.name || '', link: linkOf(l), thumbnailUrl: l.thumbnailUrl || '', stillUrl: l.stillUrl || '', tab,
+      // The embed's muted preview: the campaign video (the GIF stays the poster and the fallback).
+      videoUrl: draft.video?.url || '',
+      actions: {
+        download: (kind, btn) => (kind === 'still'
+          ? downloadThumbnail(l, btn, false, l.stillUrl, 'outlook-still')
+          : downloadThumbnail(l, btn, /\.gif(\?|$)/i.test(l.thumbnailUrl))),
+      },
+    });
   }
 
   // The thumbnail designer (src/components/outreach/ThumbnailDesigner.js): from the editor toolbar and the Email card.
@@ -2118,6 +2168,88 @@ export function OutreachStudio() {
       makeLabel: links.some((l) => l.thumbnailUrl) ? 'Remake thumbnails' : `Make thumbnails for ${links.length} prospect${links.length === 1 ? '' : 's'}`,
       onClose: () => render(),
     });
+  }
+
+  async function saveProspects(videoId) {
+    const db = await ownerClient();
+    const rows = draft.contacts.map((c) => ({
+      video_id: videoId, contact_id: String(c.id),
+      name: [c.firstName, c.lastName].filter(Boolean).join(' ').slice(0, 120) || null,
+      company: String(c.company || '').slice(0, 120) || null, email: String(c.email || '').slice(0, 200) || null,
+    })).filter((r) => /^[A-Za-z0-9_-]{1,80}$/.test(r.contact_id));
+    for (let i = 0; i < rows.length; i += 200) {
+      const { error } = await db.from('outreach_prospects').upsert(rows.slice(i, i + 200), { onConflict: 'video_id,contact_id' });
+      if (error) throw error;
+    }
+  }
+
+  // Alerts when a prospect watches or clicks (supabase/functions/outreach-alerts): always in the notification bell,
+  // and by email and Slack when set here.
+  const alerts = { loaded: false, loading: false, row: null, error: '', saved: false, activity: [] };
+  async function loadAlerts() {
+    alerts.loading = true;
+    try {
+      const db = await ownerClient();
+      // Recent activity on this campaign (the same alerts the bell counts).
+      if (draft.campaign?.id) {
+        const act = await db.from('owner_notifications').select('id, title, created_at, read_at').eq('video_id', draft.campaign.id)
+          .in('type', ['prospect_watched', 'prospect_clicked']).order('created_at', { ascending: false }).limit(10);
+        alerts.activity = act.error ? [] : act.data || [];
+      }
+      const { data, error } = await db.from('outreach_alert_settings').select('enabled, on_watch, on_click, email, slack_webhook').maybeSingle();
+      if (error) throw error;
+      alerts.row = data || null; alerts.error = '';
+    } catch (err) { alerts.error = err?.message || 'Could not load your alert settings.'; }
+    alerts.loaded = true; alerts.loading = false;
+    if (step === 5 && !busy) render();
+  }
+
+  function renderAlertsCard() {
+    const box = card('Alerts', 'Know the moment a prospect watches or clicks. Alerts always show in the bell at the top; add your email or a Slack channel to get them there too.');
+    box.setAttribute('data-outreach-alerts', '');
+    if (!alerts.loaded && !alerts.loading) setTimeout(loadAlerts, 0);
+    if (!alerts.loaded) { box.appendChild(el('p', 'text-xs text-white/50', 'Loading…')); return box; }
+    const r = alerts.row || { enabled: true, on_watch: true, on_click: true, email: '', slack_webhook: '' };
+    const on = el('input'); on.type = 'checkbox'; on.checked = r.enabled !== false; on.setAttribute('data-alerts-enabled', '');
+    const onRow = el('label', 'flex items-center gap-2 text-sm'); onRow.append(on, el('span', '', 'Send alerts by email or Slack'));
+    const watch = el('input'); watch.type = 'checkbox'; watch.checked = r.on_watch !== false;
+    const click = el('input'); click.type = 'checkbox'; click.checked = r.on_click !== false;
+    const which = el('div', 'flex flex-wrap gap-4 text-xs text-white/75');
+    const lab = (i, t) => { const l = el('label', 'flex items-center gap-2'); l.append(i, el('span', '', t)); return l; };
+    which.append(lab(watch, 'When they watch (starts, and 75%)'), lab(click, 'When they click your button'));
+    const email = textInput(r.email || '', 'you@company.com'); email.type = 'email'; email.setAttribute('data-alerts-email', '');
+    const slack = textInput(r.slack_webhook || '', 'https://hooks.slack.com/services/…'); slack.setAttribute('data-alerts-slack', '');
+    const save = button(alerts.saved ? 'Saved' : 'Save alerts', { primary: true, small: true });
+    save.setAttribute('data-alerts-save', '');
+    const msg = el('p', 'text-xs text-amber-300');
+    if (alerts.error) msg.textContent = /outreach_alert_settings|relation|schema cache/i.test(alerts.error) ? 'Email and Slack alerts aren\u2019t switched on for this account yet. The bell still shows who watched.' : alerts.error;
+    save.addEventListener('click', async () => {
+      const e = email.value.trim(); const sl = slack.value.trim();
+      if (e && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) { msg.textContent = 'That email address doesn\u2019t look right.'; return; }
+      if (sl && !/^https:\/\/hooks\.slack\.com\/services\/[A-Za-z0-9/_-]{10,200}$/.test(sl)) { msg.textContent = 'Paste a Slack incoming-webhook link (https://hooks.slack.com/services/…).'; return; }
+      save.disabled = true; msg.textContent = '';
+      try {
+        const db = await ownerClient();
+        const row = { clerk_user_id: globalThis.window?.Clerk?.user?.id, enabled: on.checked, on_watch: watch.checked, on_click: click.checked, email: e || null, slack_webhook: sl || null, updated_at: new Date().toISOString() };
+        const { error } = await db.from('outreach_alert_settings').upsert(row, { onConflict: 'clerk_user_id' });
+        if (error) throw error;
+        alerts.row = row; alerts.saved = true; alerts.error = '';
+        render();
+        setTimeout(() => { alerts.saved = false; }, 2000);
+      } catch (err) { save.disabled = false; msg.textContent = /outreach_alert_settings|relation|schema cache/i.test(err?.message || '') ? 'Email and Slack alerts aren\u2019t switched on for this account yet.' : (err?.message || 'Could not save.'); }
+    });
+    box.append(onRow, which, field('Email me at', email), field('Slack', slack, 'In Slack: Apps → Incoming Webhooks → add to a channel, then paste the link here.'), save, msg);
+    if (alerts.activity?.length) {
+      const list = el('div', 'flex flex-col gap-1 border-t border-white/10 pt-3');
+      list.setAttribute('data-alerts-activity', '');
+      list.appendChild(el('div', 'text-xs font-bold text-white/70', 'Recent activity'));
+      alerts.activity.forEach((a) => {
+        const when = new Date(a.created_at);
+        list.appendChild(el('div', `text-xs ${a.read_at ? 'text-white/50' : 'text-white/85'}`, `${a.title} · ${when.toLocaleDateString()} ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`));
+      });
+      box.appendChild(list);
+    }
+    return box;
   }
 
   function renderEmailCard() {
@@ -2229,7 +2361,7 @@ export function OutreachStudio() {
       downloadText(`${(draft.name || 'campaign').replace(/[^\w-]+/g, '_')}-emails.csv`, mailMergeCsv(rows));
     });
     actions.appendChild(merge);
-    box.append(actions, el('p', 'text-[11px] text-white/45', 'Copy email puts the finished email (with the thumbnail) on your clipboard to paste into Gmail or Outlook. Copy GIF copies just the clickable thumbnail; Download GIF saves it; Embed gives HTML for email tools. GIFs play in Gmail, Apple Mail and Outlook on the web and Mac; Outlook on Windows shows the first frame, so for Outlook-heavy lists use Still image or the .csv\u2019s Outlook still URL. The .csv works with mail-merge tools.'));
+    box.append(actions, el('p', 'text-[11px] text-white/45', 'Copy email puts the finished email (with the thumbnail) on your clipboard to paste into Gmail or Outlook. Share opens each prospect\u2019s Link, GIF (Copy GIF, Download GIF, Outlook still) and Embed code for email tools. GIFs play in Gmail, Apple Mail and Outlook on the web and Mac; Outlook on Windows shows the first frame, so for Outlook-heavy lists use Still image or the .csv\u2019s Outlook still URL. The .csv works with mail-merge tools.'));
     return box;
   }
 

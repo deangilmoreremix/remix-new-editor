@@ -132,4 +132,14 @@ describe('thumbnail share snippets', () => {
     expect(embed).toContain('Watch the video for Mike &lt;M&gt;');
     expect(embed).toContain('<img src="https://cdn.x/t.gif"');
   });
+
+  it('Embed plays a muted video where the inbox allows it, with the GIF as poster and fallback', async () => {
+    const { embedSnippet, outlookUrl } = await import('../email.js');
+    const embed = embedSnippet({ link, thumbnailUrl: 'https://cdn.x/t.gif', videoUrl: 'https://cdn.x/v.mp4' });
+    expect(embed).toMatch(/<a href="https:\/\/smartvid\.app[^"]*"><video src="https:\/\/cdn\.x\/v\.mp4" poster="https:\/\/cdn\.x\/t\.gif"[^>]*muted[^>]*playsinline[^>]*><img src="https:\/\/cdn\.x\/t\.gif"/);
+    expect(embedSnippet({ link, thumbnailUrl: 'https://cdn.x/t.gif', videoUrl: 'javascript:x' })).not.toContain('<video');
+    const o = new URL(outlookUrl({ to: 'mike@x.co', subject: 'Hi Mike', text: `Watch: ${link}` }));
+    expect(o.origin + o.pathname).toBe('https://outlook.office.com/mail/deeplink/compose');
+    expect(Object.fromEntries(o.searchParams)).toEqual({ to: 'mike@x.co', subject: 'Hi Mike', body: `Watch: ${link}` });
+  });
 });

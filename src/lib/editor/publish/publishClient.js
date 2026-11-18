@@ -311,6 +311,9 @@ export async function fetchVideoStats(client, id) {
     completes: Number(r.completes) || 0,
     ctaClicks: Number(r.cta_clicks) || 0,
     leads: Number(r.leads) || 0,
+    // Furthest point reached, 0-100 (from the viewing sessions; older databases don't return it).
+    progress: Math.max(0, Math.min(100, Math.round(Number(r.max_progress) || 0))),
+    watchSeconds: Math.max(0, Math.round(Number(r.watch_seconds) || 0)),
     lastSeen: r.last_seen || null,
   }));
 }
