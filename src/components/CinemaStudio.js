@@ -1,5 +1,6 @@
 
 import { showToast } from '../lib/loading.js';
+import { navigate } from '../lib/router.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
 import { confirmDeleteGeneration, registerGeneration } from '../lib/generationHistory.js';
@@ -37,6 +38,8 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
+import { mountStoryboardFirstBanner } from './storyboardTools.js';
+import { handoffToVideoJobs } from '../lib/storyboardPipeline.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 
 // Camera movements promised by the Cinema Studio intro copy
@@ -1795,6 +1798,20 @@ export function CinemaStudio() {
       const gallery = ExampleGallery({ studioId: 'cinema', assets: galleryAssets, maxCards: 28 });
       container.appendChild(gallery);
     }
+
+    // Storyboard-first: load the approved storyboard's shots one at a time into the prompt.
+    let shotCursor = 0;
+    mountStoryboardFirstBanner(container, {
+        onStoryboard: () => navigate('storyboard'),
+        onUse: (handoff) => {
+            const jobs = handoffToVideoJobs(handoff);
+            const job = jobs[shotCursor % jobs.length];
+            textarea.value = job.prompt;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            showToast(`Shot ${(shotCursor % jobs.length) + 1} of ${jobs.length} loaded (${job.duration}s). Click again for the next shot.`, 'success');
+            shotCursor += 1;
+        },
+    });
 
     return container;
 }

@@ -28,6 +28,8 @@ import {
   MIN_FRAMES,
   MAX_FRAMES,
 } from '../lib/storyboardEngine.js';
+import { openScriptImport, openAnimatic, openPitchDeck } from './storyboardTools.js';
+import { saveStoryboardHandoff } from '../lib/storyboardPipeline.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -530,8 +532,31 @@ export function StoryboardStudio(options = {}) {
     { id: 'pdf', label: 'PDF shot sheet', run: needFrames(() => exportPdf()) },
     { id: 'csv', label: 'CSV shot list', run: needFrames(() => downloadText('storyboard-shot-list.csv', buildCsv(), 'text/csv')) },
     { id: 'json', label: 'JSON', run: needFrames(() => downloadText('storyboard.json', JSON.stringify(buildStoryboardPayload(), null, 2), 'application/json')) },
+    { id: 'deck', label: 'Pitch deck', run: needFrames(() => openPitchDeck({ title: projectName || 'Untitled storyboard', frames })) },
   ]);
-  projectRow.append(projectInput, projectList, saveBtn, loadBtn, exportMenu);
+  const importBtn = makeBtn('Import script', { title: 'Build a shot list from a script (.fdx, .fountain, .txt) or a shot-list CSV' });
+  importBtn.addEventListener('click', () => openScriptImport({
+    look: { style: selectedStyle, lighting: selectedLighting, color: selectedColor },
+    onImport: (imported) => {
+      pushUndo();
+      frames.length = 0;
+      frames.push(...imported);
+      setStage('board');
+      renderFrames();
+      showToast(`Imported ${imported.length} shots`, 'success');
+    },
+  }));
+  const animaticBtn = makeBtn('Animatic', { title: 'Play the storyboard as a timed animatic' });
+  animaticBtn.addEventListener('click', needFrames(() => openAnimatic(frames)));
+  const toVideoBtn = makeBtn('Create video ▸', { title: 'Send this storyboard to the video studio' });
+  toVideoBtn.addEventListener('click', needFrames(() => {
+    if (!saveStoryboardHandoff({ title: projectName, frames, aspectRatio: selectedAr })) {
+      showToast('Could not hand off the storyboard (browser storage is blocked).', 'error');
+      return;
+    }
+    navigate('video');
+  }));
+  projectRow.append(projectInput, projectList, saveBtn, loadBtn, importBtn, animaticBtn, exportMenu, toVideoBtn);
 
   // --- Row B: edit + generate ---
   const editRow = makeRow();
