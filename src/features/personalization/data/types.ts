@@ -44,6 +44,8 @@ export type VideoDemo = {
   model?: string;
   /** Optional display name for the model. */
   modelName?: string;
+  /** `none` = reviewed, no visible logo / watermark / credit; `logo` = has one. Unset only for demos outside the registry. */
+  branding?: 'none' | 'logo';
 };
 
 /**

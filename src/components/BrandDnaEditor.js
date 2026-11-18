@@ -9,7 +9,7 @@
 
 import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { getBrand, saveBrand, resolveBrandId, rememberBrandId } from '../lib/brandStore.js';
+import { getBrand, saveBrand, resolveBrandId, rememberBrandId, listCampaigns, listAssets } from '../lib/brandStore.js';
 import { createSafeImage } from '../lib/security.js';
 
 export function BrandDnaEditor(params = {}) {
@@ -61,18 +61,19 @@ export function BrandDnaEditor(params = {}) {
   header.className = 'flex items-start gap-4 mb-8';
   header.innerHTML = `
     <div class="flex-1">
-      <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">${state.brandName || 'Untitled Brand'}</h1>
-      <p class="text-secondary text-sm">${state.industry || 'No industry set'}</p>
+      <h1 data-brand-title class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1"></h1>
+      <p data-brand-industry class="text-secondary text-sm"></p>
     </div>
     <div class="flex flex-wrap gap-2">
-      <button class="btn-secondary-modern" data-action="campaigns">Campaigns</button>
-      <button class="btn-secondary-modern" data-action="asset-edit">Asset Editor</button>
+      <button class="btn-secondary-modern" data-action="campaigns">New campaign</button>
       <button class="btn-secondary-modern" data-action="photo-studio">Photo Studio</button>
-      <button class="btn-secondary-modern" data-action="brand-photo-studio">Photo Studio</button>
       <button class="btn-secondary-modern" data-action="animate">Animate</button>
       <button class="btn-primary-modern" data-action="save">Save</button>
     </div>
   `;
+  // Scraped / model-written text goes in as text, never as markup.
+  header.querySelector('[data-brand-title]').textContent = state.brandName || 'Untitled Brand';
+  header.querySelector('[data-brand-industry]').textContent = state.industry || 'No industry set';
   root.appendChild(header);
 
   // ---- Screenshot / Logo ----
@@ -122,6 +123,7 @@ export function BrandDnaEditor(params = {}) {
     { key: 'targetAudience', label: 'Target Audience', type: 'textarea' },
     { key: 'imageryStyle', label: 'Imagery Style', type: 'text' },
     { key: 'layoutStyle', label: 'Layout Style', type: 'text' },
+    { key: 'logoUrl', label: 'Logo URL', type: 'text' },
   ];
 
   const form = document.createElement('div');
@@ -219,6 +221,7 @@ export function BrandDnaEditor(params = {}) {
   chipSection.appendChild(createChipEditor('Tone of Voice', state.toneOfVoice, (v) => { state.toneOfVoice = v; }));
   chipSection.appendChild(createChipEditor('Brand Personality', state.brandPersonality, (v) => { state.brandPersonality = v; }));
   chipSection.appendChild(createChipEditor('Key Messages', state.keyMessages, (v) => { state.keyMessages = v; }));
+  chipSection.appendChild(createChipEditor('Detected Fonts', state.fonts, (v) => { state.fonts = v; }));
   root.appendChild(chipSection);
 
   // ---- Color Pickers ----
@@ -232,22 +235,52 @@ export function BrandDnaEditor(params = {}) {
   const colorRow = document.createElement('div');
   colorRow.className = 'flex flex-wrap gap-4';
 
+  // Full palette editor (upstream "Swatches"): edit any swatch, remove it, or add a new one.
+  const HEX = /^#[0-9a-f]{6}$/i;
   const createColorPicker = (label, colors, onUpdate) => {
     const wrap = document.createElement('div');
-    wrap.className = 'flex flex-col gap-1';
+    wrap.className = 'flex flex-col gap-2';
+    wrap.dataset.palette = label.toLowerCase();
     const lbl = document.createElement('span');
     lbl.className = 'text-[10px] text-muted uppercase';
     lbl.textContent = label;
     wrap.appendChild(lbl);
-    const input = document.createElement('input');
-    input.type = 'color';
-    input.value = colors[0] || '#000000';
-    input.className = 'w-10 h-10 rounded-lg border border-white/10 cursor-pointer bg-transparent';
-    input.oninput = () => {
-      colors[0] = input.value;
-      onUpdate(colors);
+
+    const row = document.createElement('div');
+    row.className = 'flex flex-wrap items-center gap-2';
+    const render = () => {
+      row.innerHTML = '';
+      colors.forEach((color, idx) => {
+        const cell = document.createElement('div');
+        cell.className = 'relative';
+        const input = document.createElement('input');
+        input.type = 'color';
+        input.value = HEX.test(color) ? color : '#000000';
+        input.title = color;
+        input.setAttribute('aria-label', `Edit ${color}`);
+        input.className = 'w-10 h-10 rounded-lg border border-white/10 cursor-pointer bg-transparent';
+        input.oninput = () => { colors[idx] = input.value; onUpdate(colors); };
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.textContent = '×';
+        remove.setAttribute('aria-label', `Remove ${color}`);
+        remove.className = 'absolute -top-1 -right-1 w-4 h-4 rounded-full bg-black text-white/70 hover:text-white text-[10px] leading-none border border-white/20';
+        remove.onclick = () => { colors.splice(idx, 1); onUpdate(colors); render(); };
+        cell.appendChild(input);
+        cell.appendChild(remove);
+        row.appendChild(cell);
+      });
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.dataset.addColor = label.toLowerCase();
+      add.textContent = '+';
+      add.setAttribute('aria-label', `Add ${label.toLowerCase()} color`);
+      add.className = 'w-10 h-10 rounded-lg border border-dashed border-white/20 text-white/60 hover:text-white';
+      add.onclick = () => { colors.push('#3366ff'); onUpdate(colors); render(); };
+      row.appendChild(add);
     };
-    wrap.appendChild(input);
+    render();
+    wrap.appendChild(row);
     return wrap;
   };
 
@@ -255,6 +288,40 @@ export function BrandDnaEditor(params = {}) {
   colorRow.appendChild(createColorPicker('Secondary', state.secondaryColors, (v) => { state.secondaryColors = v; }));
   colorSection.appendChild(colorRow);
   root.appendChild(colorSection);
+
+  // ---- Past campaigns ----
+  const campaigns = listCampaigns(brand.id);
+  if (campaigns.length > 0) {
+    const pastSection = document.createElement('div');
+    pastSection.className = 'mb-8';
+    pastSection.dataset.pastCampaigns = '';
+    const pastLabel = document.createElement('label');
+    pastLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider block mb-2';
+    pastLabel.textContent = 'Past campaigns';
+    pastSection.appendChild(pastLabel);
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3';
+    [...campaigns].reverse().forEach((c) => {
+      const goal = c.goal || 'Campaign';
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.dataset.campaignId = c.id;
+      card.className = 'text-left bg-[#111]/90 border border-white/10 rounded-xl p-4 hover:bg-white/[0.06] transition-all';
+      const title = document.createElement('div');
+      title.className = 'text-sm font-bold text-white';
+      title.textContent = goal;
+      const meta = document.createElement('div');
+      meta.className = 'text-[10px] text-muted uppercase tracking-wider mt-1';
+      const assets = listAssets(c.id).length;
+      meta.textContent = `${(c.concepts || []).length} concepts · ${assets} assets${c.createdAt ? ` · ${new Date(c.createdAt).toLocaleDateString()}` : ''}`;
+      card.appendChild(title);
+      card.appendChild(meta);
+      card.onclick = () => navigate('campaign-page', { campaignId: c.id });
+      grid.appendChild(card);
+    });
+    pastSection.appendChild(grid);
+    root.appendChild(pastSection);
+  }
 
   container.appendChild(root);
 
@@ -288,20 +355,12 @@ export function BrandDnaEditor(params = {}) {
     navigate('campaign', { brandId: state.id || brand.id });
   };
 
-  header.querySelector('button[data-action="asset-edit"]').onclick = () => {
-    navigate('asset-edit', { brandId: state.id || brand.id });
-  };
-
   header.querySelector('button[data-action="photo-studio"]').onclick = () => {
     navigate('photo-studio', { brandId: state.id || brand.id });
   };
 
   header.querySelector('button[data-action="animate"]').onclick = () => {
     navigate('animate', { brandId: state.id || brand.id });
-  };
-
-  header.querySelector('button[data-action="brand-photo-studio"]').onclick = () => {
-    navigate('brand-photo-studio', { brandId: state.id || brand.id });
   };
 
   return container;

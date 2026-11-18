@@ -15,7 +15,7 @@ export const PROJECT_TABS: { id: ProjectTab; label: string }[] = [
   { id: 'edit', label: 'Edit' },
   { id: 'llm', label: 'LLM' },
   { id: 'export', label: 'Export' },
-  { id: 'leads', label: 'Leads' }, // [remix] publish an interactive version + collect the leads from its forms
+  { id: 'leads', label: 'Publish' }, // [remix] share, post to social networks, contacts and email; the interactive video and its leads are under Share & Leads (the id stays `leads` so saved state keeps working)
   { id: 'analytics', label: 'Analytics' }, // [remix] plays, watch time, clicks, audience, Retarget and alerts for the published video
 ];
 
@@ -26,7 +26,7 @@ const PAGE_PRESENTATION = {
   edit: { icon: MixerHorizontalIcon, detail: 'Shape the story' },
   llm: { icon: ChatBubbleIcon, detail: 'Your AI workspace' },
   export: { icon: UploadIcon, detail: 'Finish & deliver' },
-  leads: { icon: EnvelopeClosedIcon, detail: 'Publish & collect leads' },
+  leads: { icon: EnvelopeClosedIcon, detail: 'Share, social & leads' },
   analytics: { icon: BarChartIcon, detail: 'Plays, audience & alerts' },
   settings: { icon: GearIcon, detail: 'Preferences & connections' },
 };
@@ -121,7 +121,7 @@ export function TopTabs({
           return (
             <button
               key={id}
-              className={`top-nav__tab${id === activeTab ? ' top-nav__tab--active' : ''}${showReady ? ' top-nav__tab--unread' : ''}`}
+              className={`top-nav__tab${id === activeTab ? ' top-nav__tab--active' : ''}${id === 'leads' && id === activeTab ? ' top-nav__tab--publish' : ''}${showReady ? ' top-nav__tab--unread' : ''}`}
               onClick={() => onTabChange(id)}
             >
               <span className="top-nav__tab-label">{label}</span>

@@ -25,10 +25,10 @@ import {
   INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
-  submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
+  submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, AFTER_SUBMIT_ACTIONS, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
-  createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
+  createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, isEditorOverlay, attachDragResize,
   OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT, CTA_COLOR_THEMES, ctaColorParts,
   BLEND_CATEGORIES, blendItemToAddon, getBlendItem, blendThumbStyle,
   openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES, resolveOverlayText,
@@ -38,6 +38,8 @@ import { openSmartSpeechModal } from '../lib/editor/agent/smartSpeechModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import * as contactStore from '../lib/contactStore.js';
 import { PERSONALIZED_LAYOUTS, assetForImageToken, buildLayoutPlan, imageTokenChoices, imageTokenOf, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
+import { studioLayersToPlan } from '../lib/editor/personalize/studioLayers.js';
+import { defaultStudioDesignOptions, switchDesignOptions } from '../lib/editor/addons/studioDesignAddon.js';
 import { measureImageLuminance } from '../lib/personalization/imageStyle.js';
 import { AI_FILLABLE, describeUnreviewed, markAiGenerated, planAiImages, unreviewedAiImages } from '../lib/personalization/aiContactImages.js';
 import { AI_CLIP_MODELS, CLIP_IMAGE_SLOTS, aiClipConfig, clipSrcFor, describeClipGaps, planClipJobs } from '../lib/personalization/aiContactClips.js';
@@ -49,7 +51,7 @@ import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryServ
 import { addPersonalizationAsset, createPersonalizationAsset, removePersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
 import { createContactSync } from '../lib/editor/personalize/clientSync.js';
 import { renderPersonalizationPanel, renderPersonalizationEditor, renderTokenEditor, renderBatchHub } from '../lib/editor/panels/personalPanels.js';
-import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
+import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalVariables, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
 import { setKeyframe } from '../lib/editor/remotion/keyframes.js';
@@ -663,7 +665,7 @@ export function TimelineEditorPage() {
         <div class="card-title">📊 Color Scopes</div><div id="colorScopesContainer"></div>
       </aside>
       <aside class="side-card" id="tokenEditorPanel" hidden data-tooltip="Token editor"><div class="card-title">🏷️ Token Editor</div><div id="tokenEditorContainer"></div></aside>
-      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Batch generator"><div class="card-title">📦 Batch Generator</div><div id="batchGeneratorContainer"></div></aside>
+      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Personalized output"><div class="card-title">📦 Personalized output</div><div id="batchGeneratorContainer"></div></aside>
       <aside class="side-card" id="personalizationPanel" hidden data-tooltip="Personalization"><div class="card-title">👤 Personalization</div><div id="personalizationContainer"></div></aside>
       <aside class="side-card" id="personalizationEditorPanel" hidden data-tooltip="Personalization editor"><div class="card-title">✏️ Personalization Editor</div><div id="personalizationEditorContainer"></div></aside>
     </div>
@@ -1623,7 +1625,7 @@ export function TimelineEditorPage() {
       // Overlays (Smart Text, Image, Stickers, ...) are drawn by the overlay
       // compositor on top of the video, so selecting one shows the video
       // clip under the playhead rather than replacing it.
-      if (getAddon(selected.type)?.category === 'overlay') {
+      if (isEditorOverlay(getAddon(selected.type))) {
         const base = findBaseClipAtPlayhead();
         if (base) renderPreviewAsset(base);
         else if (!els.previewStage.firstElementChild) els.previewEmpty.style.display = 'none';
@@ -1894,12 +1896,12 @@ export function TimelineEditorPage() {
             kind: 'lead-form',
             data,
             config: selected,
-            notificationEmail: selected.emailNotificationEnabled ? selected.notificationEmail : '',
+            notificationEmails: leadNotifyEmails(selected.emailNotificationEnabled, [selected.notificationEmail, selected.notificationEmail2, selected.notificationEmail3]),
           });
           const lastLead = selected._submittedLeads[selected._submittedLeads.length - 1];
           if (lastLead) lastLead._stored = !!res.stored;
           showToast(
-            leadResultMessage(res, selected.emailNotificationEnabled && selected.notificationEmail),
+            leadResultMessage(res, leadNotifyEmails(selected.emailNotificationEnabled, [selected.notificationEmail, selected.notificationEmail2, selected.notificationEmail3]).length > 0),
             res.failed ? 'error' : 'success',
           );
 
@@ -3210,7 +3212,18 @@ export function TimelineEditorPage() {
             webhookUrl3: clip.webhookUrl3,
             emailNotificationEnabled: clip.emailNotificationEnabled,
             notificationEmail: clip.notificationEmail,
+            notificationEmail2: clip.notificationEmail2,
+            notificationEmail3: clip.notificationEmail3,
             fbPixelId: clip.fbPixelId,
+            gaMeasurementId: clip.gaMeasurementId,
+            tiktokPixelId: clip.tiktokPixelId,
+            gtmId: clip.gtmId,
+            espProvider: clip.espProvider,
+            espListId: clip.espListId,
+            successMessage: clip.successMessage,
+            afterSubmitAction: clip.afterSubmitAction,
+            afterSubmitUrl: clip.afterSubmitUrl,
+            afterSubmitButtonText: clip.afterSubmitButtonText,
             _submittedLeads: clip._submittedLeads,
             style: clip.style,
             phoneNumber: clip.phoneNumber,
@@ -3661,6 +3674,22 @@ export function TimelineEditorPage() {
             <div class="clip-editor__field">
               <label for="lf-skip-enabled"><input id="lf-skip-enabled" type="checkbox" ${clip.skipButtonEnabled ? 'checked' : ''} /> Show Skip button (dismiss form, resume video)</label>
             </div>
+            <div class="clip-editor__field">
+              <label for="lf-success-msg">Message after the form is sent</label>
+              <input id="lf-success-msg" type="text" value="${escapeHtml(clip.successMessage || '')}" placeholder="Thanks!" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-after-action">After the form is sent</label>
+              <select id="lf-after-action">${AFTER_SUBMIT_ACTIONS.map(([v, l]) => `<option value="${v}" ${(clip.afterSubmitAction || 'continue') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+            </div>
+            <div class="clip-editor__field" id="lf-after-extra" ${clip.afterSubmitAction === 'button' || clip.afterSubmitAction === 'redirect' ? '' : 'hidden'}>
+              <label for="lf-after-url">Thank-you button / redirect link</label>
+              <input id="lf-after-url" type="url" value="${escapeHtml(clip.afterSubmitUrl || '')}" placeholder="https://example.com/thanks" />
+              <div id="lf-after-btn-wrap" ${clip.afterSubmitAction === 'button' ? '' : 'hidden'}>
+                <label for="lf-after-btn">Thank-you button text</label>
+                <input id="lf-after-btn" type="text" value="${escapeHtml(clip.afterSubmitButtonText || '')}" placeholder="Book a call" />
+              </div>
+            </div>
           </div>
           <div class="clip-editor__section">
             <h3>Fields</h3>
@@ -3798,15 +3827,54 @@ export function TimelineEditorPage() {
               <span id="lf-webhook-test-result" style="font-size:11px;color:var(--text-dim)"></span>
             </div>
             <div class="clip-editor__field">
+              <button id="lf-webhook-log" type="button" class="mini-btn" style="width:100%">Recent webhook deliveries</button>
+              <span id="lf-webhook-log-result" role="status" style="font-size:11px;color:var(--text-dim)"></span>
+            </div>
+            <div class="clip-editor__field">
+              <button id="lf-webhook-secret" type="button" class="mini-btn" style="width:100%">Show webhook signing secret</button>
+              <span id="lf-webhook-secret-result" role="status" style="font-size:11px;color:var(--text-dim);word-break:break-all"></span>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-esp-provider">Add leads to an email list (published videos)</label>
+              <select id="lf-esp-provider">${ESP_PROVIDERS.map(([v, l]) => `<option value="${v}" ${(clip.espProvider || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+            </div>
+            <div class="clip-editor__field" id="lf-esp-extra" ${clip.espProvider ? '' : 'hidden'}>
+              <label for="lf-esp-list" id="lf-esp-list-label">${espListLabel(clip.espProvider)}</label>
+              <input id="lf-esp-list" type="text" value="${escapeHtml(clip.espListId || '')}" placeholder="1234567" />
+              <button id="lf-esp-connect" type="button" class="mini-btn" style="width:100%;margin-top:6px">Connect ${espName(clip.espProvider) || 'account'}</button>
+              <span id="lf-esp-status" role="status" style="font-size:11px;color:var(--text-dim)"></span>
+            </div>
+            <div class="clip-editor__field">
               <label for="lf-email-enabled"><input id="lf-email-enabled" type="checkbox" ${clip.emailNotificationEnabled ? 'checked' : ''} /> Email notification on submit</label>
             </div>
             <div class="clip-editor__field">
-              <label for="lf-email-address">Notification Address</label>
-              <input id="lf-email-address" type="email" value="${clip.notificationEmail || ''}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+              <label for="lf-email-address">Notification Address (person 1)</label>
+              <input id="lf-email-address" type="email" value="${escapeHtml(clip.notificationEmail || '')}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-address2">Notification Address (person 2, optional)</label>
+              <input id="lf-email-address2" type="email" value="${escapeHtml(clip.notificationEmail2 || '')}" placeholder="teammate@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-address3">Notification Address (person 3, optional)</label>
+              <input id="lf-email-address3" type="email" value="${escapeHtml(clip.notificationEmail3 || '')}" placeholder="partner@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
             </div>
             <div class="clip-editor__field">
               <label for="lf-fb-pixel">Facebook Pixel ID</label>
               <input id="lf-fb-pixel" type="text" value="${clip.fbPixelId || ''}" placeholder="1234567890" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-ga-id">Google Analytics 4 Measurement ID</label>
+              <input id="lf-ga-id" type="text" value="${escapeHtml(clip.gaMeasurementId || '')}" placeholder="G-XXXXXXXXXX" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-tiktok-pixel">TikTok Pixel ID</label>
+              <input id="lf-tiktok-pixel" type="text" value="${escapeHtml(clip.tiktokPixelId || '')}" placeholder="C1A2B3C4D5E6F7G8H9" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-gtm-id">Google Tag Manager ID</label>
+              <input id="lf-gtm-id" type="text" value="${escapeHtml(clip.gtmId || '')}" placeholder="GTM-XXXXXXX" />
+              <span style="font-size:11px;color:var(--text-dim)">These fire a lead event on published videos only (not in the editor preview). If your Tag Manager already sends leads to Google Analytics, use one or the other so leads aren't counted twice.</span>
             </div>
             <div class="clip-editor__field">
               <button id="lf-download-leads" class="mini-btn" style="width:100%" >Download leads${(clip._submittedLeads || []).length ? ` (${(clip._submittedLeads || []).length} this session)` : ''}</button>
@@ -3852,6 +3920,14 @@ export function TimelineEditorPage() {
         clip.privacyPolicyLink = e.target.value;
         updatePreview(clip);
       });
+      els.clipEditorContainer.querySelector('#lf-success-msg').addEventListener('input', (e) => { clip.successMessage = e.target.value; });
+      els.clipEditorContainer.querySelector('#lf-after-action').addEventListener('change', (e) => {
+        clip.afterSubmitAction = e.target.value;
+        els.clipEditorContainer.querySelector('#lf-after-extra').hidden = clip.afterSubmitAction !== 'button' && clip.afterSubmitAction !== 'redirect';
+        els.clipEditorContainer.querySelector('#lf-after-btn-wrap').hidden = clip.afterSubmitAction !== 'button';
+      });
+      els.clipEditorContainer.querySelector('#lf-after-url').addEventListener('input', (e) => { clip.afterSubmitUrl = e.target.value.trim(); });
+      els.clipEditorContainer.querySelector('#lf-after-btn').addEventListener('input', (e) => { clip.afterSubmitButtonText = e.target.value; });
       els.clipEditorContainer.querySelector('#lf-skip-enabled').addEventListener('change', (e) => {
         clip.skipButtonEnabled = e.target.checked;
         updatePreview(clip);
@@ -4024,36 +4100,71 @@ export function TimelineEditorPage() {
         });
       });
       els.clipEditorContainer.querySelector('#lf-webhook-test').addEventListener('click', async () => {
-        const urls = [clip.webhookUrl, clip.webhookUrl2, clip.webhookUrl3].filter(Boolean);
+        const urls = webhookUrlsFor({ webhookEnabled: true, webhookUrl: clip.webhookUrl, webhookUrl2: clip.webhookUrl2, webhookUrl3: clip.webhookUrl3 });
         const resultEl = els.clipEditorContainer.querySelector('#lf-webhook-test-result');
         if (!urls.length) {
-          resultEl.textContent = 'No webhook URL configured';
+          resultEl.textContent = 'No valid https webhook URL configured';
           return;
         }
         resultEl.textContent = 'Testing...';
-        const results = await Promise.allSettled(urls.map((url) => fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ test: true, source: 'lead-form-test', clipId: clip.id }),
-        })));
-        const failures = results.filter((r) => r.status === 'rejected' || (r.value && !r.value.ok));
-        if (failures.length) {
-          resultEl.textContent = `${failures.length}/${urls.length} failed`;
-          showToast('Webhook test failed for one or more URLs', 'error');
-        } else {
-          resultEl.textContent = `${urls.length}/${urls.length} succeeded`;
-          showToast('Webhook test succeeded', 'success');
-        }
+        const sample = Object.fromEntries(leadFieldTokens(clip.fields || []).map((t) => [t, /MAIL/.test(t) ? 'test@example.com' : 'Test']));
+        const res = await runWebhookTest(supabase, urls, {
+          kind: 'lead-form', projectId: state.projectId || null, clipId: clip.id, data: sample, submittedAt: new Date().toISOString(),
+        });
+        resultEl.textContent = webhookTestMessage(res);
+        showToast(res.failed ? 'Webhook test failed for one or more URLs' : 'Webhook test succeeded', res.failed ? 'error' : 'success');
       });
+      els.clipEditorContainer.querySelector('#lf-webhook-log').addEventListener('click', async () => {
+        const out = els.clipEditorContainer.querySelector('#lf-webhook-log-result');
+        out.textContent = 'Loading...';
+        const r = await fetchDeliveries(supabase);
+        out.textContent = r.ok ? deliveriesSummary(r.rows) : `${r.error} (sign in to see deliveries)`;
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-secret').addEventListener('click', async () => {
+        const out = els.clipEditorContainer.querySelector('#lf-webhook-secret-result');
+        out.textContent = 'Loading...';
+        const r = await fetchSigningSecret(supabase);
+        if (!r.ok) out.textContent = r.error;
+        else if (!r.secret) out.textContent = 'Signing is not set up on the server yet';
+        else out.textContent = `${r.secret} — verify X-Remix-Signature (t=…,v1=HMAC-SHA256 of "t.body")`;
+      });
+      {
+        const espStatus = els.clipEditorContainer.querySelector('#lf-esp-status');
+        const showEsp = async () => { espStatus.textContent = integrationStatusText(clip.espProvider, await fetchIntegrations(supabase)); };
+        els.clipEditorContainer.querySelector('#lf-esp-provider').addEventListener('change', (e) => {
+          clip.espProvider = e.target.value;
+          els.clipEditorContainer.querySelector('#lf-esp-extra').hidden = !clip.espProvider;
+          els.clipEditorContainer.querySelector('#lf-esp-list-label').textContent = espListLabel(clip.espProvider);
+          els.clipEditorContainer.querySelector('#lf-esp-connect').textContent = `Connect ${espName(clip.espProvider) || 'account'}`;
+          if (clip.espProvider) showEsp(); else espStatus.textContent = '';
+        });
+        els.clipEditorContainer.querySelector('#lf-esp-list').addEventListener('input', (e) => { clip.espListId = e.target.value.trim(); });
+        els.clipEditorContainer.querySelector('#lf-esp-connect').addEventListener('click', async () => {
+          const provider = clip.espProvider;
+          if (!provider) return;
+          const key = window.prompt(`Paste your ${espName(provider)} API key (it is verified, then stored encrypted and never shown again)`);
+          if (!key) { showEsp(); return; }
+          espStatus.textContent = 'Checking...';
+          const r = await saveIntegration(supabase, provider, key);
+          if (r.ok) await showEsp(); else espStatus.textContent = r.error;
+          showToast(r.ok ? `${espName(provider)} connected` : r.error, r.ok ? 'success' : 'error');
+        });
+        if (clip.espProvider) showEsp();
+      }
       els.clipEditorContainer.querySelector('#lf-email-enabled').addEventListener('change', (e) => {
         clip.emailNotificationEnabled = e.target.checked;
-        els.clipEditorContainer.querySelector('#lf-email-address').disabled = !e.target.checked;
+        ['', '2', '3'].forEach((n) => { els.clipEditorContainer.querySelector(`#lf-email-address${n}`).disabled = !e.target.checked; });
       });
-      els.clipEditorContainer.querySelector('#lf-email-address').addEventListener('input', (e) => {
-        clip.notificationEmail = e.target.value;
+      [['', 'notificationEmail'], ['2', 'notificationEmail2'], ['3', 'notificationEmail3']].forEach(([n, key]) => {
+        els.clipEditorContainer.querySelector(`#lf-email-address${n}`).addEventListener('input', (e) => {
+          clip[key] = e.target.value;
+        });
       });
       els.clipEditorContainer.querySelector('#lf-fb-pixel').addEventListener('input', (e) => {
         clip.fbPixelId = e.target.value;
+      });
+      [['#lf-ga-id', 'gaMeasurementId'], ['#lf-tiktok-pixel', 'tiktokPixelId'], ['#lf-gtm-id', 'gtmId']].forEach(([sel, key]) => {
+        els.clipEditorContainer.querySelector(sel).addEventListener('input', (e) => { clip[key] = e.target.value.trim(); });
       });
       els.clipEditorContainer.querySelector('#lf-download-leads').addEventListener('click', () => {
         // Stored leads (lead-capture backend) merged with this session's.
@@ -5250,6 +5361,13 @@ export function TimelineEditorPage() {
     function renderSchemaAddonEditor(clip) {
       const addon = getAddon(clip.type);
       clip.addon = addonOptions(clip);
+      // A design clip's settings offer a picker of designs: load the catalog once, then redraw with it.
+      if (clip.type === 'overlay-studio-design' && studioDesignChoices === null) {
+        studioDesignChoices = []; // placeholder while loading (and if it fails): the form falls back to a plain id field
+        listStudioDesigns().catch(() => { studioDesignChoices = []; }).then(() => {
+          if (state.selectedClipId === clip.id) renderSchemaAddonEditor(clip);
+        });
+      }
       const T = state.timelineSeconds || 60;
       const { start, end } = clipTimeRange(clip, T);
       const timing = addon.timing || ['start', 'end'];
@@ -5297,10 +5415,14 @@ export function TimelineEditorPage() {
       activeAddonEditor?.destroy();
       activeAddonEditor = renderAddonEditor(els.clipEditorContainer.querySelector('#addonOptionsForm'), {
         fields: addon.fields,
-        options: clip.addon,
+        fieldsFor: addon.fieldsFor ? (o) => addon.fieldsFor(o, { designs: studioDesignChoices || [] }) : undefined,
+        options: addonOptions(clip),
         idPrefix: `addon-${clip.id}`,
         services: addonEditorServices,
-        onFieldChange: addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined,
+        onFieldChange: clip.type === 'overlay-studio-design'
+          // Choosing another design resets its text slots to that design's own (the place, size and opacity stay).
+          ? (key, next) => (key === 'designId' && studioDesignMap.get(next.designId) ? switchDesignOptions(next, studioDesignMap.get(next.designId)) : next)
+          : (addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined),
         onChange: (next) => {
           const prevDuration = clip.addon?.durationSec;
           clip.addon = next;
@@ -5311,7 +5433,8 @@ export function TimelineEditorPage() {
             clip.width = Math.min(100 - clip.left, (next.durationSec / T) * 100);
           }
           renderTracks();
-          if (addon.category !== 'overlay') updatePreview(clip);
+          if (!isEditorOverlay(addon)) updatePreview(clip);
+          else renderOverlayLayer();
           debouncedSave();
         },
       });
@@ -5370,6 +5493,47 @@ export function TimelineEditorPage() {
         options: lb,
         fieldsFor: (o) => listBuilderFields(o),
         idPrefix: 'listbuilder',
+        services: {
+          fieldAction: async (action, config, { setResult }) => {
+            if (action === 'webhookLog') {
+              setResult('Loading...');
+              const r = await fetchDeliveries(supabase);
+              setResult(r.ok ? deliveriesSummary(r.rows) : `${r.error} (sign in to see deliveries)`);
+              return;
+            }
+            if (action === 'signingSecret') {
+              setResult('Loading...');
+              const r = await fetchSigningSecret(supabase);
+              if (!r.ok) setResult(r.error);
+              else if (!r.secret) setResult('Signing is not set up on the server yet');
+              else setResult(`${r.secret} — verify X-Remix-Signature (t=…,v1=HMAC-SHA256 of "t.body")`);
+              return;
+            }
+            if (action === 'connectEsp') {
+              const provider = config.espProvider;
+              if (!provider) return;
+              const key = window.prompt(`Paste your ${espName(provider)} API key (it is verified, then stored encrypted and never shown again)`);
+              if (!key) { setResult(integrationStatusText(provider, await fetchIntegrations(supabase))); return; }
+              setResult('Checking...');
+              const r = await saveIntegration(supabase, provider, key);
+              setResult(r.ok ? integrationStatusText(provider, await fetchIntegrations(supabase)) : r.error);
+              showToast(r.ok ? `${espName(provider)} connected` : r.error, r.ok ? 'success' : 'error');
+              return;
+            }
+            if (action !== 'testWebhooks') return;
+            const urls = webhookUrlsFor(listBuilderWebhookConfig(config));
+            if (!urls.length) { setResult('No valid https webhook URL configured'); return; }
+            setResult('Testing...');
+            const tokens = leadFieldTokens(config.elements);
+            const sample = Object.fromEntries(tokens.map((t) => [t, /MAIL/.test(t) ? 'test@example.com' : 'Test']));
+            const res = await runWebhookTest(supabase, urls, {
+              kind: config.kind || 'list-builder', projectId: state.projectId || null, clipId: 'list-builder', data: sample,
+              submittedAt: new Date().toISOString(),
+            });
+            setResult(webhookTestMessage(res));
+            showToast(res.failed ? 'Webhook test failed for one or more URLs' : 'Webhook test succeeded', res.failed ? 'error' : 'success');
+          },
+        },
         onChange: (next) => {
           const kindChanged = next.kind !== state.listBuilder.kind;
           state.listBuilder = kindChanged ? switchListBuilderKind(next, next.kind) : next;
@@ -5446,7 +5610,7 @@ export function TimelineEditorPage() {
     // Shared lead capture: stores via the lead-capture edge function, which
     // also forwards webhooks server-side; falls back to posting webhooks from
     // the browser if the backend is unreachable.
-    async function captureLead({ clipId, kind, data, config, notificationEmail }) {
+    async function captureLead({ clipId, kind, data, config, notificationEmails = [] }) {
       const webhooks = webhookUrlsFor(config);
       const result = await submitLead(supabase, {
         projectId: state.projectId || currentTimelineId(state) || null,
@@ -5454,7 +5618,7 @@ export function TimelineEditorPage() {
         kind,
         data,
         webhooks,
-        notificationEmail,
+        notificationEmails,
         preview: true,
       });
       if (result.error) {
@@ -5469,7 +5633,10 @@ export function TimelineEditorPage() {
       if (res.forwarded || res.failed) {
         parts.push(res.failed ? `${res.failed} webhook(s) failed` : `sent to ${res.forwarded} webhook(s)`);
       }
-      if (emailConfigured) parts.push('email notifications need an email provider (not connected yet)');
+      if (res.email === 'sent') parts.push(res.emailCount > 1 ? `notification email sent to ${res.emailCount} people` : 'notification email sent');
+      else if (res.email === 'failed') parts.push('notification email failed');
+      else if (res.email === 'not_configured') parts.push('notification email not set up on the server yet');
+      else if (emailConfigured) parts.push('notification email not sent — check the address');
       return parts.join(' · ');
     }
 
@@ -5517,7 +5684,7 @@ export function TimelineEditorPage() {
             kind: lb.kind,
             data,
             config: lb.kind === 'personalizer' ? null : listBuilderWebhookConfig(lb),
-            notificationEmail: lb.emailEnabled ? lb.emailAddress : '',
+            notificationEmails: leadNotifyEmails(lb.emailEnabled, [lb.emailAddress, lb.emailAddress2, lb.emailAddress3]),
           });
           lb._localLeads = [...(lb._localLeads || []), { ...data, submittedAt: new Date().toISOString(), _stored: !!res.stored }];
           if (lb.kind === 'personalizer') {
@@ -5529,7 +5696,7 @@ export function TimelineEditorPage() {
             window.fbq('trackSingle', lb.fbPixelId, 'Lead', data);
           }
           if (!preview) lb._submitted = true;
-          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : `${leadResultMessage(res, lb.emailEnabled && lb.emailAddress)} — {{tokens}} in the video now use these answers`, res.failed ? 'error' : 'success');
+          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : `${leadResultMessage(res, leadNotifyEmails(lb.emailEnabled, [lb.emailAddress, lb.emailAddress2, lb.emailAddress3]).length > 0)} — {{tokens}} in the video now use these answers`, res.failed ? 'error' : 'success');
           resume();
           return '';
         },
@@ -6077,12 +6244,36 @@ export function TimelineEditorPage() {
     // Share: publish the timeline as an interactive video (/watch/<id>).
     // eslint-disable-next-line no-var -- created on first open
     var sharePanel = null;
+    // Signed in: the account's client. Signed out: a private guest identity (lib/guestIdentity.js), so publishing,
+    // personal links and lead lists work without an account. Cloud projects and thumbnails stay signed-in only.
+    const isGuest = () => !window.Clerk?.user;
     async function publishOwnerClient() {
-      if (!window.Clerk?.user) throw new Error('Sign in to publish videos');
+      if (isGuest()) return (await import('../lib/guestIdentity.js')).getGuestOwnerClient();
       await supabase.refreshUserHeader?.();
       if (!supabase.supabase) throw new Error('The video service is unavailable — check your connection');
       return supabase.supabase;
     }
+    // After signing in: offer to move what this browser published as a guest into the account (asked once per page load).
+    let guestClaimAsked = false;
+    async function offerGuestClaim() {
+      if (guestClaimAsked || !window.Clerk?.user) return;
+      try {
+        const guest = await import('../lib/guestIdentity.js');
+        if (!guest.hasGuestIdentity()) return;
+        guestClaimAsked = true;
+        if (!window.confirm('Videos and links you published without an account are still in this browser. Move them to your account so you keep them?')) return;
+        const token = await window.Clerk.session?.getToken?.();
+        if (!token) throw new Error('Please try again in a moment.');
+        const { moved } = await guest.claimGuestContent(token);
+        showToast(`Moved ${moved.videos} video${moved.videos === 1 ? '' : 's'} and ${moved.links} link${moved.links === 1 ? '' : 's'} to your account`, 'success');
+        sharePanel?.refresh?.();
+      } catch (err) {
+        guestClaimAsked = false;
+        showToast(err?.message || 'Could not move your videos to your account', 'error');
+      }
+    }
+    cleanup.addTimer(setTimeout(offerGuestClaim, 2500));
+    cleanup.addTimer(setTimeout(offerGuestClaim, 9000));
     const publishedKey = () => String(currentTimelineId(state) || 'default');
     let scopesMounted = null;
     async function mountColorScopesPanel() {
@@ -6114,8 +6305,14 @@ export function TimelineEditorPage() {
       sharePanel = await createSharePanel(host);
     }
     // Builds the Share panel in any host: the rail panel, or the open project's "Publish & Share" tab.
+    // What each contact's stored personal link holds (see lib/editor/publish/personalLinksClient.js).
+    function personalLinkItems(contacts) {
+      const tokens = projectTokens(state.tracks);
+      return contacts.map((p) => ({ contactId: String(p.id), name: contactName(p), variables: personalVariables(p, tokens, { maxLength: 500 }) }));
+    }
     async function createSharePanel(host) {
       const pub = await import('../lib/editor/publish/publishClient.js');
+      const pl = await import('../lib/editor/publish/personalLinksClient.js');
       const { renderSharePanel } = await import('../lib/editor/publish/sharePanel.js');
       const { localMediaBlob } = await import('../lib/editor/remotion/localMedia.js');
       const videoId = () => (state.publishedVideos || {})[publishedKey()] || null;
@@ -6123,7 +6320,7 @@ export function TimelineEditorPage() {
         defaultTitle: state.projectTitle || 'Untitled video',
         async getInfo() {
           const id = videoId();
-          if (!id || !window.Clerk?.user) return null;
+          if (!id) return null;
           return pub.getMyVideo(await publishOwnerClient(), id);
         },
         async publish({ title }) {
@@ -6157,6 +6354,7 @@ export function TimelineEditorPage() {
           captureProjectThumbnail();
           return { ...(await pub.getMyVideo(client, id).catch(() => info)), published: true };
         },
+        guest: isGuest,
         async saveLink({ business, slug }) {
           const client = await publishOwnerClient();
           if (business) await pub.claimBusinessSlug(client, business);
@@ -6188,6 +6386,20 @@ export function TimelineEditorPage() {
             missing: gaps.get(p.id) || [],
             localImages: personalLinkIssues(p, tokens),
           }));
+        },
+        // Stored personal links (?p=<id>): one per contact; the owner can edit, renew, turn off or remove each.
+        links: {
+          list: async () => pl.listPersonalLinks(await publishOwnerClient(), videoId()),
+          sync: async () => pl.syncPersonalLinks(await publishOwnerClient(), videoId(), personalLinkItems(listContactProfiles(contactStore))),
+          update: async (id, patch) => pl.updatePersonalLink(await publishOwnerClient(), id, patch),
+          regenerate: async (id) => pl.regeneratePersonalLink(await publishOwnerClient(), id),
+          remove: async (id) => pl.deletePersonalLink(await publishOwnerClient(), id),
+          tokens: () => projectTokens(state.tracks),
+          label: (key) => TOKEN_DEFS.find((d) => d.key === key)?.label || key,
+          contact: (contactId) => {
+            const p = contactStore.getProfile?.(contactId);
+            return p ? { name: contactName(p), email: contactEmail(p), company: p?.contact?.company || p?.personalization?.business?.businessName || '' } : {};
+          },
         },
         // Views / plays / finishes / CTA clicks / leads per contact.
         fetchStats: async () => pub.fetchVideoStats(await publishOwnerClient(), videoId()),
@@ -8123,7 +8335,7 @@ export function TimelineEditorPage() {
         'Media': 'Media - Your media library: upload or drag clips onto the timeline',
         'AI Animation': 'AI Animation - Ask the AI Agent to build an animation, with starter ideas',
         'Token Editor': 'Token editor - Create and manage personalization tokens',
-        'Batch Generator': 'Batch generation - Generate multiple videos at once',
+        'Batch Generator': 'Personalized output - MP4s and links for each contact',
         'Personalization': 'Personalization - Add dynamic content for different viewers',
         'Personalization Editor': 'Personalization editor - Advanced personalization settings',
         'Personalization Suite': 'Personalization suite - Complete video personalization workflow',
@@ -8377,7 +8589,7 @@ export function TimelineEditorPage() {
       cleanup.addDocumentListener('keydown', handleModalKeydown);
     }
 
-    function openExportModal(state, showToast) {
+    function openExportModal(state, showToast, { contactIds = null } = {}) {
       // Remotion web renderer (in-browser, sandboxed runner). The previous
       // ExportPipeline stays available as "Basic export".
       const content = `
@@ -8404,6 +8616,13 @@ export function TimelineEditorPage() {
               <option value="one">One video${getActivePersonalizationProfile() ? ` (for ${escapeHtml(contactName(getActivePersonalizationProfile()))})` : ''}</option>
               <option value="each"${listContactProfiles(contactStore).length ? '' : ' disabled'}>One video per contact (${listContactProfiles(contactStore).length} in Personalization Studio)</option>
             </select>
+          </div>
+          <div class="form-group" id="exportContactsBox" hidden>
+            <label>Contacts to export</label>
+            <div class="export-contacts-actions"><button type="button" class="mini-btn" id="exportContactsAll">All</button> <button type="button" class="mini-btn" id="exportContactsNone">None</button> <span id="exportContactsCount" class="pz-hint"></span></div>
+            <ul id="exportContactsList" class="export-contacts" style="max-height:180px;overflow:auto;list-style:none;margin:6px 0;padding:0">
+              ${listContactProfiles(contactStore).map((p) => `<li><label><input type="checkbox" data-export-contact value="${escapeHtml(String(p.id))}" checked /> ${escapeHtml(contactName(p))}</label></li>`).join('')}
+            </ul>
           </div>
           <ul id="exportWarnings" class="export-warnings"></ul>
           <button class="primary-btn" id="startExportBtn">Start Export</button>
@@ -8439,10 +8658,23 @@ export function TimelineEditorPage() {
         return timelineToComposition(state, { quality, profile });
       };
 
-      // Contacts the export covers (one = the selected contact).
-      const exportContacts = () => (q('#exportFor')?.value === 'each'
-        ? listContactProfiles(contactStore)
-        : [getActivePersonalizationProfile()].filter(Boolean));
+      // Contacts the export covers (one = the selected contact; each = the ticked ones).
+      const pickedIds = () => new Set([...els.modalBody.querySelectorAll('[data-export-contact]:checked')].map((i) => i.value));
+      const exportContacts = () => {
+        if (q('#exportFor')?.value !== 'each') return [getActivePersonalizationProfile()].filter(Boolean);
+        const picked = pickedIds();
+        return listContactProfiles(contactStore).filter((p) => picked.has(String(p.id)));
+      };
+      const syncContactsBox = () => {
+        const each = q('#exportFor')?.value === 'each';
+        const box = q('#exportContactsBox');
+        if (box) box.hidden = !each;
+        const count = q('#exportContactsCount');
+        if (count) count.textContent = `${pickedIds().size} of ${listContactProfiles(contactStore).length} selected`;
+      };
+      q('#exportContactsAll')?.addEventListener('click', () => { els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = true; }); syncContactsBox(); refreshWarnings(); });
+      q('#exportContactsNone')?.addEventListener('click', () => { els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = false; }); syncContactsBox(); refreshWarnings(); });
+      q('#exportContactsList')?.addEventListener('change', () => { syncContactsBox(); refreshWarnings(); });
       let warningsRun = 0;
       const refreshWarnings = async () => {
         const run = ++warningsRun;
@@ -8472,7 +8704,15 @@ export function TimelineEditorPage() {
         warningsList.insertAdjacentHTML('beforeend', describeBrokenImages(broken).map(imageItem).join(''));
       };
       q('#exportQuality')?.addEventListener('change', refreshWarnings);
-      q('#exportFor')?.addEventListener('change', refreshWarnings);
+      q('#exportFor')?.addEventListener('change', () => { syncContactsBox(); refreshWarnings(); });
+      // Opened from Personalized output with a chosen set of contacts: render exactly those.
+      if (contactIds) {
+        const chosen = new Set(contactIds.map(String));
+        const sel = q('#exportFor');
+        if (sel && !sel.disabled) sel.value = 'each';
+        els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = chosen.has(i.value); });
+      }
+      syncContactsBox();
       refreshWarnings();
 
       const doExport = async () => {
@@ -8490,20 +8730,36 @@ export function TimelineEditorPage() {
           // One video per Personalization Studio contact: their details fill
           // the text and their own Smart Speech line plays.
           if (q('#exportFor')?.value === 'each') {
-            const contacts = listContactProfiles(contactStore);
+            const contacts = exportContacts();
+            if (!contacts.length) throw new Error('Tick at least one contact');
+            const used = new Set();
+            const failed = [];
+            let done = 0;
             for (let i = 0; i < contacts.length; i += 1) {
               if (abort.signal.aborted) throw new Error('Cancelled');
               const who = contactName(contacts[i]);
-              const part = await exportModel(await buildModel(quality, contacts[i]), {
-                container,
-                quality,
-                signal: abort.signal,
-                onProgress: (p) => setProgress(((i + p) / contacts.length) * 100, `Video ${i + 1} of ${contacts.length} · ${who} · ${Math.round(p * 100)}%`),
-              });
-              downloadBlob(part, `${name} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || contacts[i].id}.${EXTENSIONS[container] || 'mp4'}`);
+              try {
+                const part = await exportModel(await buildModel(quality, contacts[i]), {
+                  container,
+                  quality,
+                  signal: abort.signal,
+                  onProgress: (p) => setProgress(((i + p) / contacts.length) * 100, `Video ${i + 1} of ${contacts.length} · ${who} · ${Math.round(p * 100)}%`),
+                });
+                // Two contacts can share a name: add the id so no file overwrites another.
+                let base = `${name} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || contacts[i].id}`;
+                if (used.has(base.toLowerCase())) base = `${base} (${String(contacts[i].id).slice(0, 8)})`;
+                used.add(base.toLowerCase());
+                downloadBlob(part, `${base}.${EXTENSIONS[container] || 'mp4'}`);
+                done += 1;
+              } catch (err) {
+                if (abort.signal.aborted || /cancel/i.test(err?.message || '')) throw err;
+                // One contact's video failing must not lose the rest.
+                failed.push(`${who}: ${err?.message || err}`);
+              }
             }
-            setProgress(100, `Done: ${contacts.length} videos downloaded`);
-            showToast(`Exported ${contacts.length} personalized videos`, 'success');
+            setProgress(100, failed.length ? `Done: ${done} of ${contacts.length} videos downloaded` : `Done: ${done} videos downloaded`);
+            if (failed.length) showToast(`${failed.length} video${failed.length === 1 ? '' : 's'} could not be made — ${failed[0]}`, 'error');
+            else showToast(`Exported ${done} personalized videos`, 'success');
             return;
           }
           const model = await buildModel(quality);
@@ -8776,15 +9032,80 @@ export function TimelineEditorPage() {
           active: activeContact,
           select: (id) => contactStore.selectContact(id),
           addText: addSmartText,
+          loadDesigns: listStudioDesigns,
+          addDesign: addStudioDesign,
           openPersonalize: () => import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
             studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
-            onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); panel.redraw(); },
+            onComplete: (completion) => {
+              contactSync.run({ leads: true }).catch(() => {});
+              renderContactSwitcher();
+              panel.redraw();
+              addStudioLayers(completion?.overlay);
+            },
           })),
         });
         window.addEventListener('remix:contact-changed', panel.redraw);
         return panel;
       });
     }
+
+    // The Personalization Studio's approved layers as token-based overlay
+    // clips (logo, business name, CTA ... resolve per contact), placed at the
+    // playhead. Only a branded render carries layers; AI runs hand back media.
+    const studioTemplates = () => import('../features/personalization/shared/personalization/templates/index');
+    // Studio designs the timeline can draw (they must preview and export in the browser).
+    // Loaded once: the picker list, and the templates themselves (to reset a clip's slots when its design changes).
+    let studioDesignChoices = null;
+    let studioDesignMap = new Map();
+    async function listStudioDesigns() {
+      const { listRemotionDesignTemplates } = await studioTemplates();
+      const usable = listRemotionDesignTemplates().filter((d) => d.previewCompatible !== false && d.capabilities?.browserExport);
+      studioDesignMap = new Map(usable.map((d) => [d.id, d]));
+      studioDesignChoices = usable.map((d) => ({ id: d.id, name: d.name, category: d.category, description: d.description || '' }));
+      return studioDesignChoices;
+    }
+    async function addStudioDesign(designId) {
+      const { getRemotionDesignTemplate } = await studioTemplates();
+      const design = getRemotionDesignTemplate(designId);
+      if (!design) { showToast('That design is not available', 'info'); return; }
+      const T = state.timelineSeconds || 60;
+      saveStateSnapshot(state);
+      const clip = createAddonClip('overlay-studio-design', { startSec: (state.playheadPercent / 100) * T, timelineSeconds: T });
+      clip.addon = { ...clip.addon, ...defaultStudioDesignOptions(design) };
+      clip.name = design.name;
+      insertClipIntoTrack(clip, getAddon('overlay-studio-design')?.track || 'Text');
+      showClipEditor(clip.id);
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added ${design.name}`, 'success');
+    }
+
+    async function addStudioLayers(overlay) {
+      if (!overlay?.layers?.length) return;
+      const T = state.timelineSeconds || 60;
+      let designFor;
+      try { const { getRemotionDesignTemplate } = await studioTemplates(); designFor = getRemotionDesignTemplate; } catch { /* designs unavailable: layers keep their overrides only */ }
+      const plan = studioLayersToPlan(overlay.layers, {
+        fps: overlay.fps, durationInFrames: overlay.durationInFrames, timelineSeconds: T,
+        startSec: (state.playheadPercent / 100) * T, brand: overlay.brand, designFor,
+      });
+      if (!plan.length) return;
+      saveStateSnapshot(state);
+      plan.forEach((item) => {
+        const clip = createAddonClip(item.type, { startSec: item.startSec, timelineSeconds: T });
+        clip.start = item.startSec;
+        clip.end = item.endSec;
+        clip.addon = { ...clip.addon, ...item.addon };
+        clip.name = item.name;
+        insertClipIntoTrack(clip, getAddon(item.type)?.track || 'Text');
+      });
+      if (plan.some((i) => i.addon?.plate === 'auto')) measureLogos();
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added ${plan.length} Studio layer${plan.length === 1 ? '' : 's'} to the timeline`, 'success');
+    }
+    // The "AI Personalizer" rail action fires this event.
+    cleanup.addWindowListener('open-personalizer', () => showPersonalizationPanel());
 
     function showPersonalizationEditorPanel() {
       openPanel('personalizationEditorPanel');
@@ -8810,10 +9131,62 @@ export function TimelineEditorPage() {
       mountRailPanel('batch', els.batchGeneratorContainer, (el) => renderBatchHub(el, {
         contacts: () => listContactProfiles(contactStore),
         tokensUsed: () => projectTokens(state.tracks),
+        // Things that would leave a contact's video or link with a blank: no image in a slot, a clip with no
+        // video for them yet, or an image that exists only in this browser (a link cannot carry it).
+        issues: (p) => {
+          const tokens = projectTokens(state.tracks);
+          return [
+            ...(contactImageGaps(state, [p])[0]?.missing || []).map((m) => `no ${m}`),
+            ...(personalLinkIssues(p, tokens).length ? ['image only in this browser (links)'] : []),
+          ];
+        },
         exportEach: () => {
           openExportModal(state, showToast);
           const sel = els.modalBody.querySelector('#exportFor');
           if (sel && !sel.disabled) sel.value = 'each';
+        },
+        exportSelected: (ids) => openExportModal(state, showToast, { contactIds: ids }),
+        // Links for the chosen contacts, for the published video. Stored links when the database has them,
+        // otherwise the older links that carry the details in the address.
+        guest: isGuest,
+        createLinks: async (ids) => {
+          const pub = await import('../lib/editor/publish/publishClient.js');
+          const pl = await import('../lib/editor/publish/personalLinksClient.js');
+          const client = await publishOwnerClient();
+          const id = (state.publishedVideos || {})[publishedKey()] || null;
+          const info = id ? await pub.getMyVideo(client, id).catch(() => null) : null;
+          if (!info?.published) throw Object.assign(new Error('Publish the video first: personal links open the published version.'), { code: 'not_published' });
+          const picked = new Set((ids || []).map(String));
+          const contacts = listContactProfiles(contactStore).filter((p) => picked.has(String(p.id)));
+          const describe = (p) => ({ name: contactName(p), email: contactEmail(p), company: p?.contact?.company || p?.personalization?.business?.businessName || '' });
+          try {
+            const r = await pl.syncPersonalLinks(client, id, personalLinkItems(contacts));
+            const byContact = new Map(r.links.map((l) => [l.contactId, l]));
+            return {
+              rows: contacts.map((p) => {
+                const l = byContact.get(String(p.id));
+                return { ...describe(p), link: l && !l.revoked ? pub.personalizedUrl(info, l.id) : '', note: l?.revoked ? 'link is turned off' : '' };
+              }),
+              notice: r.created || r.updated ? `${r.created} new, ${r.updated} refreshed.` : '',
+            };
+          } catch (err) {
+            if (err?.code !== 'links_unavailable') throw err;
+            const tokens = projectTokens(state.tracks);
+            const base = pub.canonicalUrl(info);
+            return {
+              rows: contacts.map((p) => ({ ...describe(p), link: personalLink(base, p, tokens), note: '' })),
+              notice: 'Saved links turn on once the database update is installed; these links carry the details in the address.',
+            };
+          }
+        },
+        copy: (text) => navigator.clipboard.writeText(text),
+        downloadCsv: (rows) => {
+          const blob = new Blob([linksCsv(rows)], { type: 'text/csv' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${String(state.projectTitle || 'video').replace(/[^\w-]+/g, '_')}-personal-links.csv`;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 2000);
         },
         openShare: () => openPanel('sharePanel'),
       }));

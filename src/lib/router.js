@@ -17,6 +17,7 @@ const ROUTE_MAP = {
   'Smart Video Scheduler': 'smart-video-scheduler',
 
   'Personalizer': 'personalizer',
+  'Video Pages': 'video-pages',
   'Contacts': 'contacts',
   'Social': 'social',
   'Landing': 'landing',
@@ -24,6 +25,7 @@ const ROUTE_MAP = {
   'Lip Sync': 'lipsync',
   'Video Agent': 'video-agent',
   'Video Agent Studio': 'video-agent-studio',
+  'Zack D Studio': 'zackd',
   'AI VFX': 'ai-vfx',
   'Brand Studio': 'brand',
   'Brand DNA': 'brand-dna',
@@ -88,6 +90,8 @@ const pageLoaders = {
   'motion-director': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   'motion-director/workbench': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   personalizer: () => import('../components/Personalizer.js').then(m => m.Personalizer()),
+  // Video landing pages (public pages live at /p/<slug>, mounted from main.js).
+  'video-pages': () => import('../components/LandingPagesStudio.js').then(m => m.LandingPagesStudio()),
   'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
@@ -109,6 +113,8 @@ const pageLoaders = {
   // Video Agent = port of Remotion's prompt-to-motion-graphics (apps/motion-agent).
   'video-agent': () => import('../components/studios/VideoAgentStudio/VideoAgentStudio.js').then(m => m.VideoAgentStudio()),
   'video-agent-studio': () => import('../components/studios/VideoAgentStudio/VideoAgentStudio.js').then(m => m.VideoAgentStudio()),
+  zackd: () => import('../components/studios/ZackDStudio/ZackDStudio.js').then(m => m.ZackDStudio()),
+  'zackd-studio': () => import('../components/studios/ZackDStudio/ZackDStudio.js').then(m => m.ZackDStudio()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   workbench: () => import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio()),
   // CineGen Studio was replaced by the Workbench; keep old links working.
@@ -117,9 +123,10 @@ const pageLoaders = {
     return import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio());
   },
   // The Timeline Editor is CineGen's workspace (vendored in src/cinegen, our colours + features). The unmodified clone can still be shown
-  // in an iframe via components/CineGenFramePage.js (VITE_CINEGEN_URL); the previous editor stays at #/timeline-classic.
+  // in an iframe via components/CineGenFramePage.js (VITE_CINEGEN_URL); #/timeline-classic now redirects here.
   timeline: () => import('../cinegen/mount.tsx').then(m => m.CineGenEditorPage()),
-  'timeline-classic': () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
+  // Old links/bookmarks to the previous editor open the new one (the classic page is no longer reachable from the app).
+  'timeline-classic': () => import('../cinegen/mount.tsx').then(m => m.CineGenEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),

@@ -112,4 +112,25 @@ describe('Step 4: approve, render and AI', () => {
     expect(ctx.setAdvancedTab).toHaveBeenCalledWith('create')
     expect(ctx.setAdvancedSection).toHaveBeenCalledWith('create', 'output')
   })
+
+  // Changing captions changes the project, which clears the approval. The panel must stay so the person can keep working on them.
+  describe('captions panel', () => {
+    const video = { url: 'https://cdn.example.com/clip.mp4', name: 'clip' }
+    const panel = () => document.querySelector('[data-testid="captions-panel"]')
+    it('is there before the preview is approved', () => {
+      previewCtx({ previewVideo: video, updatePreviewCaptions: vi.fn() })
+      render(<StepPreviewApprove />)
+      expect(panel()).toBeTruthy()
+    })
+    it('stays when a caption change has just cleared the approval', () => {
+      previewCtx({ previewVideo: video, approvalStale: true, previewApproved: false, updatePreviewCaptions: vi.fn() })
+      render(<StepPreviewApprove />)
+      expect(panel()).toBeTruthy()
+    })
+    it('is there after approval too', () => {
+      previewCtx({ previewVideo: video, previewApproved: true, updatePreviewCaptions: vi.fn() })
+      render(<StepPreviewApprove />)
+      expect(panel()).toBeTruthy()
+    })
+  })
 })

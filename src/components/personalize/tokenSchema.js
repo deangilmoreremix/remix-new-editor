@@ -83,6 +83,7 @@ export const TOKEN_DEFS = [
     aliases: ['summary'],
   },
   { key: 'brandColor', label: 'Brand Color', paths: ['brand.colors.primary'], aliases: ['primaryColor'] },
+  { key: 'accentColor', label: 'Accent Color', paths: ['brand.colors.accent'], aliases: ['secondaryColor'] },
   // Image tokens. `resolve` reads the images saved by the Personalize
   // window's image finder (profile.personalization.assets) live, so a logo
   // replaced or edited there shows up immediately; `paths` keep older

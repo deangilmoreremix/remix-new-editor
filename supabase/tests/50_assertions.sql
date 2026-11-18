@@ -32,7 +32,7 @@ insert into timeline_projects(id,name,data) values ('11111111-1111-1111-1111-111
 select t.ok('owner id is taken from the token', (select clerk_user_id from timeline_projects) = 'userA');
 select t.fails('forged clerk_user_id on insert is rejected', $q$insert into timeline_projects(clerk_user_id,name) values ('userB','forged')$q$);
 insert into published_videos(id,title,project,project_id) values
-  ('vidA000001','Promo','{"timelineSeconds":20,"tracks":[{"items":[{"id":"lf","type":"lead-form","webhookUrl":"https://hook.example/a","notificationEmail":"owner@x.com"}]}]}','11111111-1111-1111-1111-111111111111');
+  ('vidA000001','Promo','{"timelineSeconds":20,"tracks":[{"items":[{"id":"lf","type":"lead-form","webhookUrl":"https://hook.example/a","notificationEmail":"owner@x.com","notificationEmail2":"two@x.com"}]}],"listBuilder":{"enabled":true,"emailAddress":"lb@x.com","emailAddress2":"lb2@x.com"}}','11111111-1111-1111-1111-111111111111');
 select t.ok('claim business slug', claim_business_slug('acme-roofing','Acme') is not null);
 select t.ok('set video slug', set_video_slug('vidA000001','spring-promo') is not null);
 
@@ -69,7 +69,7 @@ select t.sees_nothing('anon cannot read notifications','owner_notifications');
 select t.fails('anon cannot call ingest_video_events', $q$select ingest_video_events('vidA000001','sess-aaaaaaaaaaaaaaaa',null,null,null,null,'[]')$q$);
 select t.ok('public read returns the video', (get_published_video(null,'acme-roofing','spring-promo')->>'id') = 'vidA000001');
 select t.ok('public payload has no owner id', not (get_published_video('vidA000001') ? 'clerk_user_id'));
-select t.ok('public payload has no webhook / email secrets', get_published_video('vidA000001')::text !~* 'hook\.example|owner@x');
+select t.ok('public payload has no webhook / email secrets', get_published_video('vidA000001')::text !~* 'hook\.example|owner@x|two@x|lb@x|lb2@x');
 select t.ok('unknown url is null', get_published_video(null,'acme-roofing','nope') is null);
 
 -- ===== signed-in users also cannot ingest (service role only)

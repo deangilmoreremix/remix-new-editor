@@ -161,3 +161,54 @@ Pre-existing failure: `apps/motion-director/__tests__/legacyCards.test.ts` (reti
 - Verification: personalization suite 2128 tests (2117 pass, 10 skipped, 1 pre-existing `legacyCards` failure); server suite
   572/572; `vite build` succeeds; scoped `tsc` at baseline (+3 `.js` declaration warnings).
 - Skipped tests (documented in-file): jsdom 27 limits (image load, Blob/Response, computed CSS) - re-enable after a jsdom upgrade.
+
+## Sync 2: OpenHiggsBolt `main` @ `cc01e08d` (14 Nov)
+
+The first port (PR #120) was made from an OpenHiggsBolt checkout dated 11 Nov. `main` was then 101 commits ahead; this sync ports the
+changes since, by three-way merging each file (base = the 11 Nov file, theirs = `main`, ours = remix `develop`) after the same remix
+rewrites (`@ohb/` aliases, remix palette, server shims). Remix `develop` had meanwhile ported part of Asset Finder background removal
+itself; those hunks merged without conflict.
+
+**Ported**
+- Overlay editor: eight resize handles, rotation handle and field, layer rotation in the composition, timeline, undo/redo and shortcuts,
+  inspector tabs, first-run tour, edit on the live animated video (`guided/editor/*`, `preview/rotation.ts`, `layerOrder.ts`, `motion.ts`,
+  `scrim.ts`, `textStyle.ts`, shared luma-sample cache).
+- Asset Finder background removal for signed-out visitors (public image route `POST /api/demo/download-image`, `BeforeAfterSlider`).
+- "Remove branding (AI)" (`guided/RemoveBrandingControl.tsx`, `useBrandingRemoval.ts`, `brandingRemoval.ts`) - a paid, confirm-first action.
+- Business Finder: enrichment (`POST /api/personalization/enrich-business`, `useBusinessEnrichment`, `SocialIcons`), backfill with per-stage
+  timeouts and resume, client-IP rate-limit key, chain registry additions, streaming byte limit for `download-image`, with their tests.
+
+**Not ported on purpose**
+- Academy (course player, progress API, `academy_progress` migrations) - excluded by request.
+- Social publishing / thumbnail designer (`components/social-publishing`, `thumbnail-generate`, `socialPayloads`, `src/lib/thumbnailUpload`,
+  `openaiImage*`) and the social-connect change in `src/lib/muapi.js` - OpenHiggsBolt's own publish dialog; remix publishes through
+  `src/lib/socialPublishHelpers.js`.
+
+**Remix-specific adjustments kept**: still-image sources stay out of `videoUrl`; footage is measured on the cover crop of the frame shape
+(`sampleCacheKey`); `enrich-business` and `demo/download-image` are registered in `personalization-api.mts`, the Vite proxy and the auth prefix
+list; the enrichment integration test reads its local fixture with `node:http` because remix's test setup mocks global `fetch`.
+
+## Remix-only additions (captions layer also ported to OpenHiggsBolt, see below)
+
+Free, in-browser tools added on top of the port. They need no server and no paid API; the on-device AI ones download their model once, only
+after the person agrees, and reuse the Timeline Editor's local AI (`src/lib/editor/ml`, `src/lib/editor/remotion`).
+
+- Brand kit, wording ideas, saved looks ("My templates"), readability checks with one-click fixes, design ranking with reasons, extra export
+  shapes, logo tracing (`brand/`, `copy/`, `guided/editor/savedTemplates.ts`, `preview/placement/a11y.ts`, `templates/recommendations.ts`,
+  `preview/exportFormats.ts`, `preview/logoVectorize.ts`).
+- On-device AI: find the subject (`preview/placement/subjectDetect.ts`), sharpen small pictures 2x (`preview/imageUpscale.ts`), captions
+  (`captions/`, `guided/CaptionsPanel.tsx`): written from the video's speech, editable, drawn INTO the video (`preview/CaptionsLayer.tsx`,
+  `settings.captions`, so they appear in the preview and in every export) and downloadable as SRT/VTT. Shared consent/progress control:
+  `localAI/`.
+- Caption looks: 27 extra looks (`captions/capiteStyles.ts`, pure data + CSS builders) in the personalization captions layer and as presets in the
+  Timeline Editor (`src/lib/editor/remotion/captions.js`). Personalization draws every look fully; the Timeline Editor maps scale/pop/bounce/glow to a plain
+  word highlight. Personalization uses only its bundled font (no network), so a look's own font shows only if installed. SRT/VTT parser in
+  `captions/captionCues.ts` (`parseCaptionFile`).
+- Languages and more downloads for captions (`captions/scripts.ts`, `captions/assExport.ts`, `captions/textTools.ts`, `captions/captionAss.ts`): a language
+  picker (Detect automatically + Whisper's languages) is passed to the on-device transcription and saved with the captions (`settings.captions.language`);
+  Arabic and Hebrew are set right to left, other scripts get their font stack and a size for wide letters (read from the letters when no language is saved);
+  `.txt` and `.ass` downloads next to `.srt`/`.vtt`. The three shared files are identical in OpenHiggsBolt, where the language is chosen by hand (no speech
+  engine there). The Timeline Editor's language list is the same full list. The script table follows ai-video-captions (MIT).
+- **Also in OpenHiggsBolt (ported):** the burned-in captions layer, 27 looks, editable lines and SRT/VTT export. OpenHiggsBolt has no speech engine, so its
+  captions come from a loaded .srt/.vtt file or typed lines instead of "write captions from the video's sound". `capiteStyles.ts`, `captionStyle.ts` and
+  `CaptionsLayer.tsx` are byte-identical in both repos; keep them in sync.

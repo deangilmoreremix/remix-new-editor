@@ -1,0 +1,3 @@
+{ "name": "@collab/shell", "version": "0.1.0", "private": true,
+  "scripts": { "dev": "vite --config ../../vite.app.config.ts --port 3200", "build": "vite build --config ../../vite.app.config.ts" },
+  "dependencies": { "@collab/core": "*", "@collab/contacts": "*", "@collab/calendar": "*", "@collab/teamchat": "*", "@collab/signatures": "*", "@collab/meetings": "*", "@collab/email": "*" } }

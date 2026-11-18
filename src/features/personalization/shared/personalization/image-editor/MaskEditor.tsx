@@ -237,7 +237,7 @@ export default function MaskEditor({ imageUrl, active, onMaskChange }: Props) {
       type="button"
       onClick={() => setTool(id)}
       className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-semibold"
-      style={{ background: tool === id ? C.cyanSoft : 'transparent', color: tool === id ? C.cyan : C.muted }}
+      style={{ background: tool === id ? 'transparent' : 'transparent', color: tool === id ? C.cyan : C.muted }}
     >
       {icon} {label}
     </button>

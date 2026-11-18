@@ -47,6 +47,40 @@ function fakeEngine() {
   return { e, create };
 }
 
+describe('viewer-safe lead errors', () => {
+  it('returns the server message as `fix` only for a 400', async () => {
+    const mk = (status, body) => vi.fn(async () => ({ ok: status < 300, status, json: async () => body }));
+    const cfg = { url: 'https://x.supabase.co', key: 'k' };
+    const bad = await submitViewerLead({ publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'x@mailinator.com' } }, { ...cfg, fetchImpl: mk(400, { ok: false, error: 'Please use a permanent email address.' }) });
+    expect(bad).toMatchObject({ stored: false, fix: 'Please use a permanent email address.' });
+    const down = await submitViewerLead({ publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'a@b.co' } }, { ...cfg, fetchImpl: mk(500, { ok: false, error: 'Boom' }) });
+    expect(down.fix).toBeNull();
+  });
+  it('sends the bot signals next to the answers, not inside them', async () => {
+    const fetchImpl = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ ok: true, stored: true }) }));
+    await submitViewerLead({ publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'a@b.co' }, signals: { hp: '', ms: 4200 } }, { url: 'https://x.supabase.co', key: 'k', fetchImpl });
+    const sent = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(sent.data).toEqual({ EMAIL: 'a@b.co' });
+    expect(sent.signals).toEqual({ hp: '', ms: 4200 });
+    await submitViewerLead({ publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'a@b.co' }, signals: { hp: '' } }, { url: 'https://x.supabase.co', key: 'k', fetchImpl });
+    expect(JSON.parse(fetchImpl.mock.calls[1][1].body).signals).toEqual({ hp: '' }); // prefilled: no timing
+  });
+});
+
+describe('viewer lead: A/B version', () => {
+  it('sends the version inside source, only when it is A or B', async () => {
+    const fetchImpl = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ ok: true, stored: true }) }));
+    const base = { publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'a@b.co' } };
+    const env = { url: 'https://x.supabase.co', key: 'k', fetchImpl };
+    await submitViewerLead({ ...base, variant: 'B' }, env);
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).source.variant).toBe('B');
+    await submitViewerLead({ ...base, variant: '' }, env);
+    expect(JSON.parse(fetchImpl.mock.calls[1][1].body).source).not.toHaveProperty('variant');
+    await submitViewerLead({ ...base, variant: 'Z' }, env);
+    expect(JSON.parse(fetchImpl.mock.calls[2][1].body).source).not.toHaveProperty('variant');
+  });
+});
+
 describe('publish client', () => {
   it('makes unguessable slugs and share links', () => {
     const s = makeSlug();
@@ -108,6 +142,7 @@ describe('publish client', () => {
   it('reads personalization from the link', () => {
     expect(profileFromQuery('?firstname=Ann&embed=1&company=Acme')).toEqual({ variables: { firstname: 'Ann', company: 'Acme' } });
     expect(profileFromQuery('?embed=1')).toBeNull();
+    expect(profileFromQuery('?src=mp4')).toBeNull();
     expect(personalize('Hi {{firstname}}!', null)).toBe('Hi !');
     expect(stripUnresolvedTokens({ text: 'A {{x}} B', src: '{{keep}}' })).toEqual({ text: 'A B', src: '{{keep}}' });
     expect(profileWithAnswers(null, { 'FIRST NAME': 'Zoe' }).variables.firstname).toBe('Zoe');
@@ -147,7 +182,7 @@ describe('interactive player', () => {
     form.querySelector('input').value = 'ann@example.com';
     form.dispatchEvent(new Event('submit', { cancelable: true }));
     await new Promise((r) => setTimeout(r, 0));
-    expect(onLead).toHaveBeenCalledWith({ clipId: 'lf', kind: 'lead-form', data: { EMAIL: 'ann@example.com' } });
+    expect(onLead).toHaveBeenCalledWith({ clipId: 'lf', kind: 'lead-form', data: { EMAIL: 'ann@example.com' }, signals: expect.objectContaining({ hp: '' }) });
     expect(player.playing).toBe(true);
     expect(frame.querySelector('.addon-overlay--optin')).toBeNull();
     e.advance(8.5);
@@ -218,6 +253,50 @@ describe('form answers go into the video', () => {
     await submit('Zoe');
     expect(e.model.layers.find((l) => l.id === 'txt').options.text).toBe('Hello Zoe');
     expect(e.playing).toBe(true);
+  });
+
+  it('List Builder: a lead that was not saved keeps the form open for a retry (no redirect, not remembered)', async () => {
+    const store = new Map();
+    vi.stubGlobal('localStorage', { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) });
+    try {
+      const { e, create } = fakeEngine();
+      const p = project();
+      p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'email', type: 'email', label: 'Email' }], afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+      let ok = false;
+      const onLead = vi.fn(async () => (ok ? { stored: true, error: null } : { stored: false, error: 'offline' }));
+      createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, rememberKey: 'vid9', onLead });
+      await submit('a@b.co');
+      expect(frame.querySelector('.addon-overlay--optin')).not.toBeNull(); // still there
+      expect(frame.querySelector('.addon-optin__status').textContent).toMatch(/try again/i);
+      expect(frame.querySelector('[data-overlay="thanks"]')).toBeNull();
+      expect(store.size).toBe(0); // not marked as done, so it asks again on return
+      expect(e.model).toBeNull(); // the video is still behind the wall
+      ok = true;
+      await submit('a@b.co'); // retry succeeds
+      expect(frame.querySelector('.addon-overlay--optin')).toBeNull();
+      expect(store.size).toBe(1);
+      expect(e.model).not.toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('a submission that finishes after the player was destroyed shows no thank-you card or redirect', async () => {
+    const { create } = fakeEngine();
+    const p = project();
+    p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'email', type: 'email', label: 'Email' }], afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+    let finish;
+    const onLead = vi.fn(() => new Promise((resolve) => { finish = () => resolve({ stored: true, error: null }); }));
+    const player = createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, onLead });
+    const layer = frame.querySelector('.addon-overlay-layer');
+    const form = frame.querySelector('form');
+    form.querySelector('input').value = 'a@b.co';
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+    await new Promise((r) => setTimeout(r, 0)); // submit is now in flight
+    player.destroy(); // the viewer left the page
+    finish();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(layer.querySelector('[data-overlay="thanks"]')).toBeNull();
   });
 
   it('a viewer who already filled the List Builder in is not asked again (unless askEveryVisit)', () => {

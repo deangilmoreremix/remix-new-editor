@@ -14,7 +14,9 @@ import type {
   PersonalizationSource,
 } from '../types'
 import type { ImageHints } from '../preview/imageStyle'
+import { endCardExtraLine } from '../preview/ctaSuggestions'
 import { imageRoleFromCategory } from '../preview/imagePresets'
+import { getCachedSamples, sampleCacheKey } from '../preview/placement/frameSampler'
 import type {
   PersonalizationPreviewSettings,
   PreviewInputProps,
@@ -77,11 +79,23 @@ export function buildPreviewInput(
     imageHints[url] = { ...assetHints[url], ...measured }
   }
 
+  // A transparent logo's padding-trimmed copy (made once in the browser) replaces the original URL here, so every
+  // consumer — gallery, editor, preview and export — draws the same cropped logo.
+  const originalLogoUrl = firstUrl(assets.primaryLogo?.uploadedUrl, assets.primaryLogo?.url)
+  const logoUrl = (originalLogoUrl && imageHints[originalLogoUrl]?.trimmedUrl) || originalLogoUrl
+
+  const videoUrl = previewVideo?.url || (source?.mediaType === 'image' ? null : source?.sourceMedia) || null
+  // Measured on the cover crop of this frame shape (see useLayoutQuality), so read it the same way.
+  const lumaSamples = source?.mediaType === 'image'
+    ? null
+    : getCachedSamples(sampleCacheKey(videoUrl, previewSettings.width, previewSettings.height))
+
   return {
     // remix-new-editor: a still-image source is the background picture, not a video: keep it
     // out of `videoUrl` (the composition renders <Img> only when videoUrl is empty) and use it
     // as the poster. An explicitly selected preview video still wins.
-    videoUrl: previewVideo?.url || (source?.mediaType === 'image' ? null : source?.sourceMedia) || null,
+    videoUrl,
+    ...(lumaSamples && lumaSamples.length ? { lumaSamples } : {}),
     posterUrl: previewVideo?.poster || source?.poster || (source?.mediaType === 'image' ? source?.sourceMedia : null) || null,
     isImageSource: source?.mediaType === 'image',
     audioUrl: previewSettings.audio?.url ?? previewVideo?.audioUrl ?? null,
@@ -96,7 +110,10 @@ export function buildPreviewInput(
       cta: callToAction,
       phone: clientForm.phone || '',
       website,
-      logoUrl: firstUrl(assets.primaryLogo?.uploadedUrl, assets.primaryLogo?.url),
+      ...(endCardExtraLine({ email: clientForm.email, instagram: clientForm.instagram, cta: callToAction })
+        ? { contactExtra: endCardExtraLine({ email: clientForm.email, instagram: clientForm.instagram, cta: callToAction }) }
+        : {}),
+      logoUrl,
       productUrl: firstUrl(assets.products?.[0]?.uploadedUrl, assets.products?.[0]?.url),
       serviceUrl: firstUrl(
         assets.products?.[1]?.uploadedUrl,

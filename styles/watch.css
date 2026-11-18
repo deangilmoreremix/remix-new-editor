@@ -5,7 +5,7 @@ html.watch-embed, html.watch-embed body { background: #000; }
 .watch-embed .watch { padding: 0; min-height: 100vh; justify-content: center; }
 .watch-head { width: min(1100px, 100%); }
 .watch-head h1 { margin: 0; font-size: clamp(18px, 2.4vw, 26px); font-weight: 700; }
-.watch-player { width: min(1100px, 100%); background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+.watch-player { flex-shrink: 0; width: min(1100px, 100%); background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
 .watch-embed .watch-player { width: 100%; border-radius: 0; box-shadow: none; }
 /* Embedded: fit picture + controls inside the iframe's height. */
 .watch-embed .watch-frame { height: calc(100vh - 52px); width: auto; max-width: 100%; margin: 0 auto; }
@@ -49,6 +49,17 @@ html.watch-embed, html.watch-embed body { background: #000; }
 .wf-cta:focus-visible { outline: 3px solid #fff; }
 .wf-linkbox { position: absolute; display: block; cursor: pointer; }
 .wf-linkbox:focus-visible { outline: 2px dashed #fff; }
+/* Hotspot: invisible click area; "Show an outline" adds a pulsing hint. */
+.wf-hotspot { position: absolute; display: block; padding: 0; border: 0; background: transparent; cursor: pointer; font: inherit; }
+.wf-hotspot:focus-visible { outline: 3px solid #fff; }
+.wf-hotspot--hint { border: 2px solid rgba(255,255,255,.85); border-radius: 10px; box-shadow: 0 0 0 0 rgba(255,255,255,.5); animation: wf-hotspot-pulse 1.8s ease-out infinite; }
+@keyframes wf-hotspot-pulse { 0% { box-shadow: 0 0 0 0 rgba(255,255,255,.5); } 100% { box-shadow: 0 0 0 14px rgba(255,255,255,0); } }
+@media (prefers-reduced-motion: reduce) { .wf-hotspot--hint { animation: none; } }
 @media (max-width: 520px) { .wf-card--fields-4 .wf-fields, .wf-card--fields-5 .wf-fields { grid-template-columns: 1fr; } }
 /* OpenAI's usage policy: tell viewers the voice is AI-generated. */
 .watch-ai-voice { position: absolute; top: 10px; right: 10px; z-index: 4; padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.55); color: rgba(255,255,255,.85); font-size: 11px; pointer-events: none; }
+
+/* A Play pressed before the player has loaded is queued by the preview engine (data-play-pending on the stage): show a spinner meanwhile. */
+.watch-stage[data-play-pending]::after { content: ''; position: absolute; left: 50%; top: 50%; width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 3px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: watch-pending-spin .8s linear infinite; pointer-events: none; }
+@keyframes watch-pending-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .watch-stage[data-play-pending]::after { animation: none; } }

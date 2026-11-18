@@ -56,14 +56,33 @@ export function sanitizeLeadData(data) {
  * Submit a lead. Returns { stored, forwarded, failed, error }.
  * `supabase` is the page's hybrid client (functions.invoke).
  */
-export async function submitLead(supabase, { projectId, clipId, kind = 'lead-form', data, webhooks = [], notificationEmail = '', preview = true }) {
+export const MAX_NOTIFY_EMAILS = 3;
+
+/** The addresses to notify (max 3, trimmed, no blanks, no repeats ignoring case); [] when notifications are off. */
+export function leadNotifyEmails(enabled, addresses = []) {
+  if (!enabled) return [];
+  const seen = new Set();
+  const out = [];
+  for (const raw of addresses) {
+    const v = typeof raw === 'string' ? raw.trim() : '';
+    if (!v || seen.has(v.toLowerCase())) continue;
+    seen.add(v.toLowerCase());
+    out.push(v);
+  }
+  return out.slice(0, MAX_NOTIFY_EMAILS);
+}
+
+export async function submitLead(supabase, { projectId, clipId, kind = 'lead-form', data, webhooks = [], notificationEmail = '', notificationEmails = [], preview = true }) {
+  const emails = leadNotifyEmails(true, [...notificationEmails, notificationEmail]);
   const payload = {
     projectId: projectId ? String(projectId) : null,
     clipId: clipId != null ? String(clipId) : null,
     kind,
     data: sanitizeLeadData(data),
     webhooks: webhooks.filter(isValidWebhookUrl),
-    notificationEmail: notificationEmail || null,
+    // The first address also goes in the old single field so an older deployed function still notifies someone.
+    notificationEmail: emails[0] || null,
+    notificationEmails: emails,
     preview,
     source: {
       page: typeof location !== 'undefined' ? location.href : null,
@@ -73,11 +92,12 @@ export async function submitLead(supabase, { projectId, clipId, kind = 'lead-for
   try {
     const { data: result, error } = await supabase.functions.invoke('lead-capture', { body: payload });
     if (error || !result || result.ok !== true) {
-      return { stored: false, forwarded: 0, failed: 0, error: error?.message || result?.error || 'Lead backend unavailable' };
+      return { stored: false, forwarded: 0, failed: 0, email: null, error: error?.message || result?.error || 'Lead backend unavailable' };
     }
-    return { stored: !!result.stored, forwarded: result.forwarded || 0, failed: result.failed || 0, error: null };
+    // email: 'sent' | 'failed' | 'not_configured' | null (no notification address)
+    return { stored: !!result.stored, forwarded: result.forwarded || 0, failed: result.failed || 0, email: result.email ?? null, emailCount: result.emailCount || 0, error: null };
   } catch (err) {
-    return { stored: false, forwarded: 0, failed: 0, error: err?.message || String(err) };
+    return { stored: false, forwarded: 0, failed: 0, email: null, error: err?.message || String(err) };
   }
 }
 
@@ -90,6 +110,134 @@ export async function postWebhooksDirect(urls, data, fetchImpl = globalThis.fetc
   })));
   const failed = results.filter((r) => r.status === 'rejected' || (r.value && r.value.ok === false)).length;
   return { forwarded: urls.length - failed, failed };
+}
+
+/**
+ * "Test Webhook": POST a sample lead (flagged `test: true`) to each URL from
+ * the browser and report how many answered 2xx. Nothing is stored. Receivers
+ * that don't send CORS headers can report a false failure here.
+ */
+export async function testWebhooks(urls, payload, fetchImpl = globalThis.fetch) {
+  const results = await Promise.allSettled(urls.map((url) => fetchImpl(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event: 'video_opted_in', test: true, ...payload }),
+  })));
+  const failed = results.filter((r) => r.status === 'rejected' || (r.value && r.value.ok === false)).length;
+  return { total: urls.length, failed };
+}
+
+/**
+ * Server-side "Test Webhook" (lead-capture `test-webhooks`): no browser CORS limits,
+ * signed like a real delivery. Needs a signed-in session; { ok: false } otherwise.
+ */
+export async function testWebhooksViaServer(supabase, urls, { projectId, clipId, kind, data } = {}) {
+  try {
+    const { data: r, error } = await supabase.functions.invoke('lead-capture', {
+      body: {
+        action: 'test-webhooks',
+        webhooks: urls.filter(isValidWebhookUrl),
+        projectId: projectId ? String(projectId) : null,
+        clipId: clipId != null ? String(clipId) : null,
+        kind,
+        data: sanitizeLeadData(data),
+      },
+    });
+    if (error || !r || r.ok !== true || !Array.isArray(r.results)) return { ok: false, error: r?.error || error?.message || 'Lead backend unavailable' };
+    return { ok: true, total: r.results.length, failed: r.results.filter((x) => !x.ok).length, signed: !!r.signed, results: r.results };
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) };
+  }
+}
+
+/** Test via the server; fall back to posting from the browser when the backend is unreachable or signed out. */
+export async function runWebhookTest(supabase, urls, payload = {}) {
+  const server = await testWebhooksViaServer(supabase, urls, payload);
+  if (server.ok) return { total: server.total, failed: server.failed, via: 'server', signed: server.signed, results: server.results };
+  const direct = await testWebhooks(urls, payload);
+  return { ...direct, via: 'browser', signed: false, results: null };
+}
+
+/** One line for the Test Webhook result, e.g. "1/2 failed · example.com: HTTP 500 · signed". */
+export function webhookTestMessage(res) {
+  const head = res.failed ? `${res.failed}/${res.total} failed` : `${res.total}/${res.total} succeeded`;
+  const bad = (res.results || []).filter((r) => !r.ok).map((r) => `${r.host}: ${r.error || (r.status ? `HTTP ${r.status}` : 'failed')}`);
+  const tail = res.via === 'server'
+    ? (res.signed ? 'signed' : 'unsigned (signing not set up on the server)')
+    : 'tested from your browser — a CORS error can show a false failure';
+  return [head, ...bad, tail].join(' · ');
+}
+
+/** Recent webhook deliveries for the signed-in owner: [{ ok, url_host, http_status, attempts, error, created_at, kind }]. */
+export async function fetchDeliveries(supabase) {
+  try {
+    const { data, error } = await supabase.functions.invoke('lead-capture', { body: { action: 'deliveries' } });
+    if (error || !data?.ok || !Array.isArray(data.deliveries)) return { ok: false, rows: [], error: error?.message || data?.error || 'Could not load deliveries' };
+    return { ok: true, rows: data.deliveries };
+  } catch (err) {
+    return { ok: false, rows: [], error: err?.message || 'Could not load deliveries' };
+  }
+}
+
+/** "✓ hooks.zapier.com · ✗ example.com (HTTP 500, 3 tries)" for the newest `limit` deliveries. */
+export function deliveriesSummary(rows, limit = 5) {
+  if (!rows?.length) return 'No deliveries yet';
+  return rows.slice(0, limit).map((r) => (r.ok
+    ? `✓ ${r.url_host}`
+    : `✗ ${r.url_host} (${r.error || (r.http_status ? `HTTP ${r.http_status}` : 'failed')}${r.attempts > 1 ? `, ${r.attempts} tries` : ''})`)).join(' · ');
+}
+
+/** The owner's webhook signing secret, for their receiver: { ok, configured, secret, error }. */
+export async function fetchSigningSecret(supabase) {
+  try {
+    const { data, error } = await supabase.functions.invoke('lead-capture', { body: { action: 'signing-secret' } });
+    if (error || !data?.ok) return { ok: false, configured: false, secret: null, error: data?.error || error?.message || 'Sign in to view your signing secret' };
+    return { ok: true, configured: !!data.configured, secret: data.secret || null, error: null };
+  } catch (err) {
+    return { ok: false, configured: false, secret: null, error: err?.message || String(err) };
+  }
+}
+
+// ------------------------------------------------ email-list delivery (Kit / MailerLite)
+
+export const ESP_PROVIDERS = [['', 'None'], ['kit', 'Kit'], ['mailerlite', 'MailerLite']];
+export const espName = (provider) => (ESP_PROVIDERS.find(([id]) => id === provider) || ['', ''])[1];
+/** What the tag/group box is called for each provider. */
+export const espListLabel = (provider) => (provider === 'kit' ? 'Kit tag ID (optional)' : 'MailerLite group ID (optional)');
+
+async function integrationCall(supabase, body) {
+  try {
+    const { data, error } = await supabase.functions.invoke('lead-capture', { body });
+    if (error || !data) return { ok: false, error: data?.error || error?.message || 'Lead backend unavailable' };
+    return data.ok === true ? data : { ok: false, error: data.error || 'Request failed' };
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) };
+  }
+}
+
+/** { ok, configured, kit, mailerlite }: which accounts are connected (keys are never returned). */
+export async function fetchIntegrations(supabase) {
+  const r = await integrationCall(supabase, { action: 'integration-status' });
+  return r.ok ? { ok: true, configured: !!r.configured, kit: !!r.kit, mailerlite: !!r.mailerlite } : { ok: false, configured: false, kit: false, mailerlite: false, error: r.error };
+}
+
+/** Verify an API key with the provider and store it encrypted: { ok, error }. */
+export async function saveIntegration(supabase, provider, apiKey) {
+  const r = await integrationCall(supabase, { action: 'integration-save', provider, apiKey });
+  return { ok: !!r.ok, error: r.ok ? null : r.error };
+}
+
+export async function removeIntegration(supabase, provider) {
+  const r = await integrationCall(supabase, { action: 'integration-remove', provider });
+  return { ok: !!r.ok, error: r.ok ? null : r.error };
+}
+
+/** Status line under the provider box. */
+export function integrationStatusText(provider, status) {
+  if (!provider) return '';
+  if (!status?.ok) return status?.error ? `${status.error} (sign in to connect)` : '';
+  if (!status.configured) return 'Not set up on the server yet';
+  return status[provider] ? `${espName(provider)} connected ✓ — leads from published videos are added to your list` : `${espName(provider)} not connected yet`;
 }
 
 /**
@@ -120,7 +268,7 @@ export async function fetchLeadRows(supabase, { projectId, clipId } = {}) {
     if (error || !data?.ok || !Array.isArray(data.leads)) return { ok: false, rows: [], error: error?.message || data?.error || 'Could not load leads' };
     return {
       ok: true,
-      rows: data.leads.map((l) => ({ id: l.id, kind: l.kind || 'lead-form', clipId: l.clip_id ?? null, createdAt: l.created_at, data: l.data && typeof l.data === 'object' ? l.data : {} })),
+      rows: data.leads.map((l) => ({ id: l.id, kind: l.kind || 'lead-form', clipId: l.clip_id ?? null, createdAt: l.created_at, data: l.data && typeof l.data === 'object' ? l.data : {}, source: l.source && typeof l.source === 'object' ? l.source : {}, ...(l.status !== undefined ? { status: l.status, notes: l.notes ?? '', tags: Array.isArray(l.tags) ? l.tags : [] } : {}) })), // status/notes/tags only exist once the follow-up migration is applied
     };
   } catch (err) {
     return { ok: false, rows: [], error: err?.message || 'Could not load leads' };

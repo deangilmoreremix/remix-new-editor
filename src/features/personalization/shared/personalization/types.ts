@@ -2,6 +2,8 @@
  * Shared Personalization System — Types
  */
 
+import type { PreviewLayer, PreviewInputProps } from './preview/types'
+
 export type PersonalizationSourceType =
   | 'landing-demo'
   | 'go-ai-viral-prompt'
@@ -138,7 +140,19 @@ export interface ClientProfile {
   callToAction: string
   phone: string
   website: string
+  /**
+   * Contact details found on the business's OWN website by the finder's enrichment (never invented, never
+   * verified). Optional so older saved projects and every existing consumer keep working.
+   */
+  email?: string
+  facebook?: string
+  instagram?: string
+  linkedin?: string
+  youtube?: string
+  tiktok?: string
   brandDescription: string
+  /** The business's own brand colors (researched from its site, or chosen); lets the timeline editor tint designs per contact. */
+  brandColors?: { primary?: string; accent?: string }
   createdAt: string
   updatedAt: string
 }
@@ -357,6 +371,16 @@ export interface PersonalizationCompletion {
   originStudio?: string
   /** The source id the run was keyed on. */
   sourceId?: string
+  /**
+   * The approved overlay layers of a branded render (not set for AI-generated
+   * runs). Lets a studio such as the timeline place them as its own clips.
+   */
+  overlay?: {
+    layers: PreviewLayer[]
+    fps: number
+    durationInFrames: number
+    brand: PreviewInputProps['brand']
+  }
 }
 
 export interface ImageStudioHandoff {
@@ -568,12 +592,33 @@ export interface DiscoveredAsset {
     prompt?: string
     model?: string
     quality?: string
+    /** Set by on-device background removal (BG0). */
+    engine?: string
+    provider?: string
+    durationMs?: number
   }
+  /** On-device background removal state (auto cutout queue). */
+  bgRemoval?: DiscoveredAssetBgRemoval
+  /** The user restored the original: never auto-process this asset again. */
+  bgOptOut?: boolean
+  /** Show the original instead of the cutout (per-tile toggle). */
+  showOriginal?: boolean
   visionAnalysis?: PersonalizationVisionAnalysis
   visionValidation?: PersonalizationVisionValidation
 }
 
-// ── AI Assist Types (Phases 15-19) ─────────────────────────────────────────────
+export interface DiscoveredAssetBgRemoval {
+  /** `skipped` = nothing to do (already transparent / unsupported); `error` can be retried. */
+  status: 'idle' | 'queued' | 'running' | 'done' | 'skipped' | 'error'
+  /** 0..1 while running (model download, then inference). */
+  progress?: number
+  /** Short human note shown on the tile (why skipped / what failed). */
+  message?: string
+  /** True when the user asked for this asset explicitly (runs even with auto mode off). */
+  manual?: boolean
+}
+
+// ── AI Assist Types (Phases 15-19)─────────────────────────────────────────────
 
 export interface AIAssistReadiness {
   canGenerate: boolean

@@ -8,22 +8,19 @@
  *                  playhead, shift all, import SRT/VTT, export SRT/VTT
  */
 import {
-  CAPTION_PRESETS, CAPTION_POSITIONS, defaultCaptionStyle, sortCaptions, normalizeCaption,
+  CAPTION_PRESETS, CAPTION_POSITIONS, defaultCaptionStyle, CAPITE_PRESETS, CAPITE_PRESET_GROUPS, sortCaptions, normalizeCaption,
   splitCaption, mergeCaptions, shiftCaptions, captionsFromFile, captionsToSrt, captionsToVtt,
 } from './captions.js';
 import { WHISPER_MODELS } from './transcribe.js';
+import { LANGUAGES } from '../../../features/personalization/shared/personalization/captions/scripts';
 import { OVERLAY_FONTS } from '../addons/overlayData.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const sec = (ms) => (Math.round(ms / 10) / 100).toFixed(2);
 
-export const CAPTION_FONTS = [...new Set(['Montserrat', 'Inter', 'Poppins', 'Anton', 'Bebas Neue', 'Roboto', ...OVERLAY_FONTS])];
+export const CAPTION_FONTS = [...new Set(['Montserrat', 'Inter', 'Poppins', 'Anton', 'Bebas Neue', 'Roboto', ...OVERLAY_FONTS, ...Object.values(CAPITE_PRESETS).map((p) => p.fontFamily)])];
 
-export const CAPTION_LANGUAGES = [
-  ['auto', 'Detect language'], ['en', 'English'], ['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['pt', 'Portuguese'],
-  ['it', 'Italian'], ['nl', 'Dutch'], ['pl', 'Polish'], ['tr', 'Turkish'], ['ru', 'Russian'], ['ar', 'Arabic'], ['hi', 'Hindi'],
-  ['ja', 'Japanese'], ['ko', 'Korean'], ['zh', 'Chinese'],
-];
+export const CAPTION_LANGUAGES = [['auto', 'Detect language'], ...LANGUAGES];
 
 /**
  * @param {HTMLElement} container
@@ -59,6 +56,7 @@ export function renderCaptionsPanel(container, opts = {}) {
 
         <h4 class="addon-panel__heading">Style</h4>
         <div class="cap-presets">${Object.entries(CAPTION_PRESETS).map(([k, p]) => `<button type="button" class="mini-btn addon-tab${style.preset === k ? ' active' : ''}" data-cap-preset="${k}">${esc(p.label)}</button>`).join('')}</div>
+        <label class="cap-row"><span>Capite looks</span><select data-cap-preset-select aria-label="Capite caption looks"><option value="">${Object.keys(CAPITE_PRESETS).length} looks…</option>${CAPITE_PRESET_GROUPS.map((g) => `<optgroup label="${esc(g.label)}">${Object.entries(CAPITE_PRESETS).filter(([, p]) => p.group === g.id).map(([k, p]) => `<option value="${k}" ${style.preset === k ? 'selected' : ''}>${esc(p.label)}</option>`).join('')}</optgroup>`).join('')}</select></label>
         <label class="cap-row"><span>Font</span><select data-cap-style="fontFamily">${CAPTION_FONTS.map((f) => `<option ${f === style.fontFamily ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select></label>
         <label class="cap-row"><span>Size</span><input type="range" min="2" max="14" step="0.5" value="${esc(style.fontSize)}" data-cap-style="fontSize" data-num/></label>
         <label class="cap-row"><span>Position</span><select data-cap-style="position">${CAPTION_POSITIONS.map((p) => `<option value="${p}" ${p === style.position ? 'selected' : ''}>${p[0].toUpperCase()}${p.slice(1)}</option>`).join('')}</select></label>
@@ -136,7 +134,9 @@ export function renderCaptionsPanel(container, opts = {}) {
 
   const onChangeEvt = (e) => {
     const el = e.target;
-    if (el.dataset.capSource !== undefined) ui.source = el.value;
+    if (el.dataset.capPresetSelect !== undefined) {
+      if (el.value) { style = { ...defaultCaptionStyle(el.value), fontSize: style.fontSize, position: style.position }; emit(); }
+    } else if (el.dataset.capSource !== undefined) ui.source = el.value;
     else if (el.dataset.capLang !== undefined) ui.language = el.value;
     else if (el.dataset.capModel !== undefined) ui.model = el.value;
     else if (el.dataset.capStyle) {

@@ -49,6 +49,18 @@ export interface PreviewLayer {
   endFrame?: number
   /** 0..1 layer opacity. */
   opacity: number
+  /**
+   * Rotation in degrees, clockwise, about the center of the drawn box, normalized to (-180, 180]. Absent = not rotated.
+   * Only text, CTA and image layers rotate (see `userRotatable` in mediaRoles).
+   */
+  rotation?: number
+  /**
+   * Values the layer takes at chosen moments (move, size, fade, tilt). Changes to the layer's own values, not
+   * absolutes, so a layout change still applies. Optional so saved projects restore unchanged.
+   */
+  keyframes?: import('./keyframes').LayerKeyframe[]
+  /** Brightness, contrast, saturation, blur, glow and shadow for this layer. Optional so saved projects restore unchanged. */
+  effects?: import('./effects').LayerEffects
   /** Text content for text-bearing layers. */
   text?: string
   /** Accent/text color (hex). Falls back to brandColors.text. */
@@ -156,6 +168,29 @@ export interface PreviewAudioSelection {
   name: string
 }
 
+/** Look of burned-in captions. */
+export type BuiltInCaptionStyleId = 'bold' | 'bar' | 'clean'
+/** A built-in look, or the id of one of the 27 Capite looks (captions/capiteStyles.ts). Checked when a project is read back. */
+export type CaptionStyleId = BuiltInCaptionStyleId | (string & {})
+export type CaptionPosition = 'bottom' | 'middle' | 'top'
+
+export interface PreviewCaptionWord { text: string; startMs: number; endMs: number }
+export interface PreviewCaptionCue { startMs: number; endMs: number; text: string; words?: PreviewCaptionWord[] }
+
+/**
+ * Captions drawn INTO the video (preview and export), made on the customer's own device from the video's speech.
+ * `forUrl` is the video they were written for: they are drawn only over that video, never over a different one.
+ */
+export interface PreviewCaptions {
+  enabled: boolean
+  forUrl: string
+  style: CaptionStyleId
+  position: CaptionPosition
+  cues: PreviewCaptionCue[]
+  /** Language of the words (ISO code such as `es` or `pt-BR`), when known: sets the font fallback, size and reading direction. Absent = work it out from the text. */
+  language?: string
+}
+
 export interface PersonalizationPreviewSettings {
   layout: PreviewLayoutId
   layers: PreviewLayer[]
@@ -170,6 +205,14 @@ export interface PersonalizationPreviewSettings {
   height: number
   /** Customer-selected audio track, or null when none is chosen. */
   audio: PreviewAudioSelection | null
+  /**
+   * The audio mix: tracks (music, voiceover) with volume, fades, start and trim, plus the video's own sound.
+   * Optional so projects saved before the mix existed restore unchanged; `audio` above keeps working as one track.
+   */
+  audioTracks?: import('./audioMix').AudioTrack[]
+  videoVolume?: number
+  videoMuted?: boolean
+  audioSolo?: string
   /**
    * Id of the Remotion design currently applied to the preview, or null.
    *
@@ -188,6 +231,17 @@ export interface PersonalizationPreviewSettings {
    * editor, preview and export — style the same image the same way.
    */
   imageHints?: Record<string, ImageHints>
+  /** Burned-in captions (optional: absent = none). */
+  captions?: PreviewCaptions
+  /** A color and film look for the footage (not the brand overlays). Optional so saved projects restore unchanged. */
+  look?: import('./effects').LookSettings
+  /** Named looks for text layers and captions, saved with the project. Optional so saved projects restore unchanged. */
+  textStyles?: import('./textStyles').SavedTextStyle[]
+  /**
+   * Presenter background removal. Optional so projects saved before it existed restore unchanged.
+   * Settings only: the measured masks live in memory (preview/cutout/maskStore.ts), never in the project.
+   */
+  cutout?: import('./cutout/cutoutSettings').CutoutSettings
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */
@@ -204,12 +258,19 @@ export interface PreviewInputProps {
     cta: string
     phone: string
     website: string
+    /** Optional extra end-card line (email / @handle) built from found contact details. */
+    contactExtra?: string
     logoUrl: string | null
     productUrl: string | null
     serviceUrl: string | null
   }
   /** Durable audio track to mix into the composition, or null. */
   audioUrl: string | null
+  /**
+   * Measured luminance grids of the source footage (from the Layout Quality sampler), when known.
+   * Lets text scrims scale with how bright the footage is behind the text. Absent = default strength.
+   */
+  lumaSamples?: import('./placement/types').LumaSample[]
 }
 
 export const DEFAULT_PREVIEW_FPS = 30

@@ -1,13 +1,17 @@
 'use client'
 
 import { AssetUsagePanel } from './AssetUsagePanel'
+import { CopySuggestionsPanel } from './CopySuggestionsPanel'
 import { useEffect, useRef, useState } from 'react'
 import { LayoutTemplate, Palette } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
+import { layoutOnVideo } from '../preview/designAddons'
+import { buildCtaSuggestions, ratingLine } from '../preview/ctaSuggestions'
 import { designPrimarySlotUpdates } from '../preview/designSlots'
 import { C, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens'
-import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser'
+import { ColorField } from './editor/ColorField'
+import { LayoutThumbnails } from './LayoutThumbnails'
 import type { ClientProfile } from '../types'
 import type { PreviewLayerKind, PreviewLayoutId } from '../preview/types'
 
@@ -65,12 +69,11 @@ export function StepPersonalize({
   const ctx = useDemoPersonalize()
   const {
     clientForm = {},
+    selectedBusiness = null,
     updateClientForm,
     assets,
     previewSettings,
     setPreviewLayout,
-    setRemotionDesign,
-    activeRemotionDesignId = null,
     remotionDesignTemplates = [],
     updatePreviewLayer,
     updatePreviewBrandColors,
@@ -89,10 +92,14 @@ export function StepPersonalize({
   const productAvailable = (assets?.products?.length || 0) > 0
   const taglineLayer = layers.find((item) => item.kind === 'tagline')
   const activeLayout = PREVIEW_LAYOUTS.find((layout) => layout.id === previewSettings.layout) || PREVIEW_LAYOUTS[0]
-  const activeDesign = activeRemotionDesignId
-    ? remotionDesignTemplates.find((design) => design.id === activeRemotionDesignId) ?? null
+  // Read what is actually on the video, not the "main design" id. A design ADDED on top keeps the layout's own
+  // layers; only Replace leaves nothing but design layers.
+  const showingLayout = layoutOnVideo(previewSettings)
+  const designLayer = layers.find((item) => item.kind === 'design' && item.designId)
+  const designOnVideo = designLayer?.designId
+    ? remotionDesignTemplates.find((design) => design.id === designLayer.designId) ?? null
     : null
-  const activeTemplate = activeDesign ?? activeLayout
+  const activeTemplate = showingLayout ? activeLayout : (designOnVideo ?? activeLayout)
 
   // Auto-apply a compatible layout on mount, and again while nothing was chosen
   // explicitly (e.g. a product photo imported later). The ref guard keeps it to
@@ -127,6 +134,18 @@ export function StepPersonalize({
   }, [clientForm.brandDescription, taglineLayer?.id, taglineLayer?.text, updatePreviewLayer])
 
   /** Update a client field AND the matching layer text so both stay in sync. */
+  // Suggested call-to-action lines, built only from details the business really has.
+  const ctaSuggestions = buildCtaSuggestions({
+    phone: clientForm.phone || selectedBusiness?.phone,
+    website: clientForm.website || selectedBusiness?.website,
+    email: clientForm.email || selectedBusiness?.email,
+    instagram: clientForm.instagram || selectedBusiness?.instagram,
+    openingHours: selectedBusiness?.openingHours,
+  })
+
+  const foundRating = ctx.foundSignals?.rating
+  const foundRatingLine = ratingLine(foundRating)
+
   const setField = (field: keyof ClientProfile, value: string, layerKind: PreviewLayerKind) => {
     updateClientForm({ ...clientForm, [field]: value })
     const layer = layers.find((item) => item.kind === layerKind)
@@ -145,37 +164,6 @@ export function StepPersonalize({
         <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 12, lineHeight: 1.55 }}>
           SmartVideo GO AI places your real logo, photos and details on your video — edit anything you see.
         </p>
-      </div>
-
-      {/* ── Auto-applied layout (optional, never a step gate) ───────────── */}
-      <div style={softPanelStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <LayoutTemplate size={15} color={C.cyan} />
-          <span style={{ margin: 0, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
-            Template (optional)
-          </span>
-          <span style={{ marginLeft: 'auto', color: C.muted2, fontSize: 10 }}>
-            {layoutChosenByUser ? 'Your choice' : 'Chosen for you'}
-          </span>
-        </div>
-        <p style={{ ...hintStyle, marginTop: 6 }}>
-          {layoutChosenByUser ? 'You picked' : 'We applied'}{' '}
-          <strong style={{ color: C.text }}>{activeTemplate.name}</strong>
-          {layoutChosenByUser ? '' : ' for you'} — {activeTemplate.description} You can switch to any other template at any
-          time; nothing is required to continue.
-        </p>
-        <PersonalizationTemplateBrowser
-          onSelect={(layoutId) => {
-            setLocalChosenByUser(true)
-            onChooseLayout?.()
-            setPreviewLayout(layoutId)
-          }}
-          onSelectDesign={(designId) => {
-            setLocalChosenByUser(true)
-            onChooseLayout?.()
-            setRemotionDesign(designId)
-          }}
-        />
       </div>
 
       <AssetUsagePanel />
@@ -216,6 +204,17 @@ export function StepPersonalize({
               style={inputStyle}
             />
             <p style={hintStyle}>Optional — leave it empty if you would rather not show one.</p>
+            {foundRatingLine && foundRating && (
+              <button
+                type="button"
+                data-testid="pz-rating-chip"
+                title={`Published on ${foundRating.sourceUrl}`}
+                onClick={() => setField('brandDescription', foundRatingLine, 'tagline')}
+                style={{ ...softPanelStyle, cursor: 'pointer', padding: '3px 9px', fontSize: 11, color: C.text, marginTop: 4 }}
+              >
+                Use “{foundRatingLine}” — from their website
+              </button>
+            )}
           </div>
           <div>
             <label style={labelStyle} htmlFor="guided-offer">Offer (optional)</label>
@@ -237,6 +236,22 @@ export function StepPersonalize({
               placeholder={clientForm.website ? `Visit ${clientForm.website}` : clientForm.phone ? `Call ${clientForm.phone}` : 'e.g. Book a free quote'}
               style={inputStyle}
             />
+            {ctaSuggestions.length > 0 && (
+              <div data-testid="pz-cta-suggestions" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                {ctaSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.id}
+                    type="button"
+                    data-testid={`pz-cta-suggestion-${suggestion.id}`}
+                    title={`Built from the ${suggestion.source.toLowerCase()} on file`}
+                    onClick={() => setField('callToAction', suggestion.text, 'cta')}
+                    style={{ ...softPanelStyle, cursor: 'pointer', padding: '3px 9px', fontSize: 11, color: C.text }}
+                  >
+                    {suggestion.text}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label style={labelStyle} htmlFor="guided-phone">Phone</label>
@@ -250,6 +265,7 @@ export function StepPersonalize({
             <p style={hintStyle}>Shown on the branded end card.</p>
           </div>
         </div>
+        <CopySuggestionsPanel client={clientForm} onPick={(field, value, layer) => setField(field, value, layer)} />
       </div>
 
       {/* ── Brand colors ────────────────────────────────────────────────── */}
@@ -268,16 +284,16 @@ export function StepPersonalize({
               ['Text', 'text'],
             ] as const
           ).map(([label, key]) => (
-            <div key={key}>
-              <label style={labelStyle} htmlFor={`guided-color-${key}`}>{label}</label>
-              <input
-                id={`guided-color-${key}`}
-                type="color"
-                value={previewSettings.brandColors[key]}
-                onChange={(event) => updatePreviewBrandColors({ [key]: event.target.value })}
-                style={{ width: '100%', height: 40, borderRadius: 8, border: `1px solid ${C.border}`, background: C.field, padding: 3 }}
-              />
-            </div>
+            <ColorField
+              key={key}
+              id={`guided-color-${key}`}
+              label={label}
+              ariaLabel={`${label} brand color`}
+              value={previewSettings.brandColors[key]}
+              onChange={(hex) => updatePreviewBrandColors({ [key]: hex })}
+              brand={previewSettings.brandColors}
+              posterUrl={ctx.source?.poster ?? null}
+            />
           ))}
           <div>
             <label style={labelStyle} htmlFor="guided-dim">Shade behind text</label>
@@ -295,13 +311,41 @@ export function StepPersonalize({
         </div>
       </div>
 
+      {/* ── Layout (optional, never a step gate): where your branding sits ─ */}
+      <div style={softPanelStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <LayoutTemplate size={15} color={C.cyan} />
+          <span style={{ margin: 0, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
+            Layout (optional)
+          </span>
+          <span style={{ marginLeft: 'auto', color: C.muted2, fontSize: 10 }}>
+            {layoutChosenByUser ? 'Your choice' : 'Chosen for you'}
+          </span>
+        </div>
+        <p style={{ ...hintStyle, marginTop: 6 }}>
+          This decides where your logo, headline and call to action appear on the video.{' '}
+          {layoutChosenByUser ? 'You picked' : 'We applied'}{' '}
+          <strong style={{ color: C.text }}>{activeTemplate.name}</strong>
+          {layoutChosenByUser ? '' : ' for you'} — {activeTemplate.description} Nothing is required to continue. Animated
+          designs can be added in the next step.
+        </p>
+        <LayoutThumbnails
+          activeLayoutId={showingLayout ? previewSettings.layout : null}
+          onChoose={(layoutId) => {
+            setLocalChosenByUser(true)
+            onChooseLayout?.()
+            setPreviewLayout(layoutId)
+          }}
+        />
+      </div>
+
       {/* ── What will be placed ─────────────────────────────────────────── */}
       <div style={panelStyle}>
         <h3 style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
           What will be placed on your video
         </h3>
         <p style={{ ...hintStyle, marginTop: 0, marginBottom: 10 }}>
-          Based on the {activeTemplate.name} {activeDesign ? 'template' : 'layout'} — the preview updates as you edit.
+          Based on the {activeTemplate.name} {showingLayout ? 'layout' : 'design'} — the preview updates as you edit.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 8 }}>
           {layers.map((layer) => {

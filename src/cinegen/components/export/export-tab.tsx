@@ -8,39 +8,28 @@ import { RenderProgress } from './render-progress';
 import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
 import type { ExportPreset, ExportJob } from '@cinegen/types/export';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
+import { flattenCompounds } from '@cinegen/lib/editor/stage1'; // [remix] Stage 1: compound clips export as their content
+import { exportClipsFromTimeline, exportTracksFromTimeline, exportTransitionsFromTimeline } from '@cinegen/lib/editor/export-mapping';
+import { applyExportRange, applyRangeToOverlays, resolveTimelineRange } from '@cinegen/lib/editor/range/timeline-range'; // [remix] Fix B2: export range
+import { exportBlockers, describeBlockers } from '@cinegen/lib/export-blockers';
+import { PersonalizedOutput } from './personalized-output';
 
 export function ExportTab() {
   const { state, dispatch } = useWorkspace();
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  // [remix] set by ExportSettings: renders with the options chosen there (optionally one video per contact)
+  const renderRef = useRef<((contactIds?: string[]) => void) | null>(null);
 
   const activeTimeline = getActiveTimeline(state);
-  const exportClips = useMemo(() => {
-    const assetsById = new Map(state.assets.map((asset) => [asset.id, asset]));
-    return activeTimeline.clips.flatMap((clip) => {
-      const asset = assetsById.get(clip.assetId);
-      const inputPath = asset?.fileRef || asset?.url;
-      const duration = clipEffectiveDuration(clip);
-      if (!asset || !inputPath || duration <= 0) return [];
-      return [{
-        id: clip.id,
-        inputPath,
-        startTime: clip.startTime,
-        duration,
-        trimStart: clip.trimStart,
-        speed: clip.speed || 1,
-        volume: clip.volume ?? 1,
-        type: asset.type,
-        // [remix] a clip on an audio track plays sound only, even when its media file is a video
-        trackKind: activeTimeline.tracks.find((t) => t.id === clip.trackId)?.kind,
-        // [remix] OpenChatCut effects burned into the render
-        fadeIn: clip.fadeIn, fadeOut: clip.fadeOut, kf: clip.keyframes, transform: clip.transform, fit: resolveFit(clip, activeTimeline), fx: clip.fx, lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions,
-      }];
-    });
-  }, [activeTimeline.clips, activeTimeline.tracks, state.assets]);
+  const exportRange = useMemo(() => resolveTimelineRange(activeTimeline.range, activeTimeline.duration), [activeTimeline.range, activeTimeline.duration]); // [remix] Fix B2
+  const exportTimeline = useMemo(() => applyExportRange(flattenCompounds(activeTimeline, { bake: !!exportRange }), exportRange), [activeTimeline, exportRange]);
+  const exportClips = useMemo(() => exportClipsFromTimeline(exportTimeline, state.assets), [exportTimeline, state.assets]);
   const hasClips = exportClips.length > 0;
+  // Clips that were dropped from the render, and why (so a disabled Render button can explain itself).
+  const blockedReason = useMemo(() => describeBlockers(exportBlockers(activeTimeline.clips, state.assets)), [activeTimeline.clips, state.assets]);
   const totalDuration = Math.max(
-    activeTimeline.duration,
-    ...activeTimeline.clips.map(clipEndTime),
+    exportTimeline.duration,
+    ...exportTimeline.clips.map(clipEndTime),
   );
   const activeJob = state.exports.find(
     (e) => e.status === 'queued' || e.status === 'rendering'
@@ -53,23 +42,27 @@ export function ExportTab() {
         preset,
         fps,
         clips: exportClips,
+        tracks: exportTracksFromTimeline(exportTimeline),
+        masterVolume: exportTimeline.masterVolume ?? 1, // [remix] Stage 4
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
-        videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
+        videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect, container: extras?.container, // [remix] Stage 11
+        // [remix] Personalized output: one video per contact, named after the timeline
+        title: activeTimeline.name, ...(extras?.contactIds?.length ? { contactIds: extras.contactIds } : {}),
         // [remix] OpenChatCut motion-graphics templates on the overlay lane are rendered into the export
         // [remix] visual overlays (text, stickers, call buttons, End Screens, Connect Forms…) are drawn into the render; interactive forms stay player-only
-        overlays: (state.overlays ?? []).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
-        mgOverlays: (state.overlays ?? []).filter((o) => o.type === 'mg-template').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, code: o.code, props: o.props })),
+        overlays: applyRangeToOverlays(state.overlays ?? [], exportRange).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
+        mgOverlays: applyRangeToOverlays(state.overlays ?? [], exportRange).filter((o) => o.type === 'mg-template').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, code: o.code, props: o.props })),
         // [hyperframes] verified HyperFrames animations on the overlay lane (rendered by the sandboxed export runner)
-        hfOverlays: (state.overlays ?? []).filter((o) => o.type === 'hyperframes').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, blockId: o.blockId, props: o.props, blockWidth: o.blockWidth, blockHeight: o.blockHeight })),
+        hfOverlays: applyRangeToOverlays(state.overlays ?? [], exportRange).filter((o) => o.type === 'hyperframes').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, blockId: o.blockId, props: o.props, blockWidth: o.blockWidth, blockHeight: o.blockHeight })),
         // [remix] OpenChatCut GL transitions on dissolve cuts
-        transitions: (activeTimeline.transitions ?? []).filter((t) => t.glType && t.type === 'dissolve' && t.clipBId).map((t) => ({ glType: t.glType, glDef: t.glDef, clipAId: t.clipAId, clipBId: t.clipBId })),
+        transitions: exportTransitionsFromTimeline(exportTimeline),
       });
       dispatch({ type: 'ADD_EXPORT', exportJob: job });
     } catch (error) {
       console.error('Failed to start render:', error);
     }
-  }, [dispatch, exportClips, totalDuration, activeTimeline.transitions, state.overlays]);
+  }, [dispatch, exportClips, totalDuration, exportTimeline, state.overlays, exportRange, activeTimeline.name]);
 
   useEffect(() => {
     if (!activeJob) {
@@ -92,6 +85,10 @@ export function ExportTab() {
             completedAt: updated.completedAt,
             qa: updated.qa,
             qaStatus: updated.qaStatus,
+            done: updated.done,
+            total: updated.total,
+            label: updated.label,
+            failures: updated.failures,
           },
         });
       } catch {
@@ -112,11 +109,18 @@ export function ExportTab() {
           Render your timeline as an MP4 video
         </p>
 
-        <ExportSettings hasClips={hasClips} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
+        <div className="export-tab__cols" data-testid="export-columns">
+          <div className="export-tab__col" data-testid="export-col-settings">
+            <h3 className="export-tab__col-title">Render options</h3>
+            <ExportSettings renderRef={renderRef} hasClips={hasClips} blockedReason={blockedReason} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
+          </div>
+          <div className="export-tab__col" data-testid="export-col-output">
+            <h3 className="export-tab__col-title">Output</h3>
+            <PersonalizedOutput renderRef={renderRef} busy={!!activeJob} hasClips={hasClips} />
         {/* [remix] OpenChatCut FCPXML export (Final Cut Pro / Premiere / DaVinci Resolve) */}
         <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
           <button type="button" disabled={!hasClips} data-testid="export-fcpxml" onClick={() => {
-            const xml = cinegenFcpxml(activeTimeline, state.assets, { title: activeTimeline.name });
+            const xml = cinegenFcpxml(exportTimeline, state.assets, { title: activeTimeline.name });
             const url = URL.createObjectURL(new Blob([xml], { type: 'application/xml' }));
             const a = document.createElement('a'); a.href = url; a.download = `${activeTimeline.name || 'timeline'}.fcpxml`; a.click();
             setTimeout(() => URL.revokeObjectURL(url), 5000);
@@ -124,10 +128,13 @@ export function ExportTab() {
           <span style={{ fontSize: 11, opacity: 0.65 }}>For Final Cut Pro, Premiere and DaVinci Resolve. Relink the media after import.</span>
         </div>
 
-        {/* [remix] interactive sharing moved to the Leads tab */}
+        {/* [remix] sharing, social posting and leads live in the Publish tab (tab id `leads`) */}
         <p className="export-tab__hint" style={{ marginTop: 16 }}>
-          Publish an interactive version (forms, buttons) and collect leads in the <button type="button" className="mini-btn" data-testid="export-to-leads" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Leads</button> tab.
+          Publish an interactive version (forms, buttons), post to social networks and collect leads in the <button type="button" className="mini-btn" data-testid="export-to-leads" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Publish</button> tab. A plain MP4 can't hold a form, so add a QR end card there to send MP4 viewers to your published link.
         </p>
+
+          </div>
+        </div>
 
         {latestJob && (
           <div className="export-tab__progress">
@@ -136,8 +143,13 @@ export function ExportTab() {
         )}
 
         {!hasClips && (
-          <p className="export-tab__hint">
-            Add clips to the timeline in the Edit tab before exporting.
+          <p className="export-tab__hint" data-testid="export-blocked-hint">
+            {blockedReason || 'Add clips to the timeline in the Edit tab before exporting.'}
+          </p>
+        )}
+        {hasClips && blockedReason && (
+          <p className="export-tab__hint" data-testid="export-skipped-hint">
+            Some clips will be left out: {blockedReason}
           </p>
         )}
       </div>

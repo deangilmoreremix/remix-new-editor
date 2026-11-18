@@ -1,0 +1,73 @@
+{
+  "curves": {
+    "identityDiff": 0,
+    "legacyVsCpuRef": 0,
+    "legacyDiffFromInput": 25.715,
+    "newVsCpuRef": 0,
+    "newDiffFromInput": 13.431,
+    "flatRedVsCpuRef": 0,
+    "flatRedKillsRed": true,
+    "deterministic": true,
+    "ok": true
+  },
+  "cornerPin": {
+    "identityDiff": 0,
+    "halfSampleDiff": 1,
+    "halfOutsideAlpha": 0,
+    "halfInsideAlpha": 255,
+    "perspectiveMeanAbsVsCpuMap": 1.05,
+    "perspectiveInsidePixels": 17622,
+    "perspectiveAlphaErrors": 0,
+    "deterministic": true,
+    "degenerateTransparent": true,
+    "ok": true
+  },
+  "pathMask": {
+    "cases": {
+      "ellipseFeather": {
+        "maxAlphaErr": 0.002,
+        "meanAlphaErr": 0.00008,
+        "partialPixels": 2144,
+        "ok": true
+      },
+      "rectInvert": {
+        "maxAlphaErr": 0.0016,
+        "meanAlphaErr": 0.00003,
+        "partialPixels": 1370,
+        "ok": true
+      },
+      "starOpacity": {
+        "maxAlphaErr": 0.002,
+        "meanAlphaErr": 0.00004,
+        "partialPixels": 35200,
+        "ok": true
+      },
+      "transformed": {
+        "maxAlphaErr": 0.0027,
+        "meanAlphaErr": 0.00006,
+        "partialPixels": 1754,
+        "ok": true
+      },
+      "expanded": {
+        "maxAlphaErr": 0.002,
+        "meanAlphaErr": 0.00005,
+        "partialPixels": 1460,
+        "ok": true
+      },
+      "animatedAnchor": {
+        "maxAlphaErr": 0.002,
+        "meanAlphaErr": 0.00004,
+        "partialPixels": 1309,
+        "ok": true
+      }
+    },
+    "fewerThan3PointsIsPassThrough": true,
+    "deterministic": true,
+    "ok": true
+  },
+  "nightvisionTint": {
+    "defaultGreenDominant": true,
+    "redTintRedDominant": true,
+    "ok": true
+  }
+}

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from '../../../../shims/next-server'
 import { auth } from '../../../../shims/clerk-server'
 import { getOpenAiKeyForUser } from '../../../../src/lib/openaiKeyServer'
 import { rateLimit, rateLimit429 } from '../../../../lib/rateLimit'
+import { safetyIdentifier } from '../../../../src/lib/safetyIdentifier'
+import { moderationMessage, type ModerationDetails } from '../../../../src/lib/openaiImageApi'
 import { IMAGE_EDIT_OPERATIONS, type EditorOperationId } from '../../../../src/shared/personalization/image-editor/imageEditRegistry'
 
 export const dynamic = "force-dynamic";
@@ -9,7 +11,8 @@ export const dynamic = "force-dynamic";
 export const runtime = 'nodejs'
 
 const OPENAI_EDIT_URL = 'https://api.openai.com/v1/images/edits'
-const ALLOWED_MODELS = new Set(['gpt-image-2.5-flare', 'gpt-image-2.5-sunburst'])
+const ALLOWED_MODELS = new Set(['gpt-image-2.6-flare', 'gpt-image-2.6-sunburst', 'gpt-image-2.5-flare', 'gpt-image-2.5-sunburst'])
+const ALLOWED_COMPLEXITY = new Set(['low', 'medium', 'high'])
 const ALLOWED_QUALITIES = new Set(['low', 'medium', 'high', 'xhigh', 'max', 'auto'])
 const ALLOWED_FORMATS = new Set(['png', 'jpeg', 'webp'])
 const ALLOWED_BACKGROUNDS = new Set(['transparent', 'opaque', 'auto'])
@@ -139,6 +142,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const complexity = cleanString(incoming.get('complexity'))
+    if (complexity && !ALLOWED_COMPLEXITY.has(complexity)) {
+      return NextResponse.json({ error: 'Complexity must be low, medium or high.' }, { status: 400 })
+    }
+
     const upstream = new FormData()
     upstream.append('model', model)
     upstream.append('prompt', prompt)
@@ -147,10 +155,13 @@ export async function POST(req: NextRequest) {
     upstream.append('quality', quality)
     upstream.append('size', size)
     upstream.append('output_format', outputFormat)
+    upstream.append('safety_identifier', safetyIdentifier(userId))
     if (outputCompression !== undefined && outputFormat !== 'png') {
       upstream.append('output_compression', String(Math.round(outputCompression)))
     }
     upstream.append('background', background)
+    // Composition planning exists only on Images 2.6; older models would reject it.
+    if (complexity && model.startsWith('gpt-image-2.6-')) upstream.append('complexity', complexity)
     // input_fidelity is validated for compatibility but never forwarded: the
     // only allowed models (gpt-image-2.5) reject it.
 
@@ -167,6 +178,10 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
+      if (data?.error?.code === 'moderation_blocked') {
+        const details: ModerationDetails | undefined = data.error.moderation_details ?? data.moderation_details
+        return NextResponse.json({ error: moderationMessage(details), code: 'moderation_blocked', ...(details ? { moderation_details: details } : {}) }, { status: 400 })
+      }
       const message =
         data?.error?.message ||
         data?.message ||

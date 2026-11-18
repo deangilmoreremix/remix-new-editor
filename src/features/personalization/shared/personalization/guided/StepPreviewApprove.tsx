@@ -1,6 +1,7 @@
 'use client'
 
-import { DesignRecommendations } from './DesignRecommendations'
+import { AddDesignsPanel } from './AddDesignsPanel'
+import { ShapeExportPanel } from './ShapeExportPanel'
 import { useState } from 'react'
 import { CheckCircle2, Download, Loader2, PlayCircle, ShieldCheck, Sparkles, Upload, X } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
@@ -8,13 +9,17 @@ import { saveToRemixAssetLibrary } from '@ohb/lib/remixAssetLibrary'
 import { BeforeAfterPreview } from '../preview/BeforeAfterPreview'
 import { buildPreviewInput } from './buildPreviewInput'
 import { OverlayEditor } from './OverlayEditor'
+import { Tip } from './editor/Tip'
+import { RemoveBrandingControl } from './RemoveBrandingControl'
+import { videoBeforeRecast } from '../DemoPersonalizeProvider'
 import { LayoutQualityPanel } from './LayoutQualityPanel'
 import { useLayoutQuality } from './useLayoutQuality'
 import { C, badgeStyle, chipStyle, hintStyle, labelStyle, panelStyle, primaryButtonStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
 import { PREVIEW_ASPECT_RATIOS } from '../preview/types'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
-import { getRemotionDesignFixedSvgIdWarning } from '../templates/catalog'
 import { chooseFinalOutputPath } from '../finalOutput'
+import { ExtraFormatsExport } from './ExtraFormatsExport'
+import { CaptionsPanel } from './CaptionsPanel'
 
 /**
  * Simple Mode step 4 — free Before/After preview, direct on-video overlay
@@ -25,6 +30,9 @@ import { chooseFinalOutputPath } from '../finalOutput'
  * The branded render and AI generation are separate operations and the UI never
  * implies otherwise. Nothing in the preview itself calls MuAPI or OpenAI.
  */
+/** Title of the preview video produced by "Remove branding", so the original can be offered back. */
+const BRANDING_REMOVED_TITLE = 'Branding removed'
+
 export function StepPreviewApprove(): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const {
@@ -34,12 +42,10 @@ export function StepPreviewApprove(): React.JSX.Element {
     assets,
     previewSettings,
     previewVideo,
+    setPreviewVideo,
+    restoreOriginalVideo,
     updatePreviewComposition,
     setPreviewLayout,
-    remotionDesignTemplates = [],
-    activeRemotionDesignId = null,
-    setRemotionDesign = () => {},
-    remotionDesignError = null,
     previewApproved,
     approvalStale,
     approvePersonalization,
@@ -47,7 +53,11 @@ export function StepPreviewApprove(): React.JSX.Element {
     setAdvancedTab,
     setAdvancedSection,
     createFinalVideo,
+    shapeExport = { status: 'idle', items: [] },
+    exportAllShapes = async () => {},
+    cancelShapeExport = () => {},
     cancelExport,
+    apiKey,
     generation,
     result,
     mode,
@@ -61,18 +71,14 @@ export function StepPreviewApprove(): React.JSX.Element {
   // judgments (Needs adjustment / Review required) only warn.
   const exportBlocked = quality.report.blocksExport
   const [rightsConfirmed, setRightsConfirmed] = useState(false)
+  // True while "Also export other shapes" renders: the main render shares its renderer, so it waits.
+  const [extraRunning, setExtraRunning] = useState(false)
   const rightsGate = quality.rightsNeedConfirmation && !rightsConfirmed
   // Overlay-only personalizations render locally; AI modes keep the generation
   // pipeline. The active path is the primary action; the other stays visible
   // (and disabled) so the two operations are never conflated.
   const finalPath = chooseFinalOutputPath({ personalizationMode: mode || null })
   const isBrandedPath = finalPath === 'branded-render'
-  // Phase 3 item 13: some frozen upstream designs hardcode SVG `id`s, so a
-  // second instance of the same design is clipped by the first. The catalog
-  // declares which designs are constrained; Step 4 shows a non-blocking
-  // note next to the "Designs" chip row when the selected one is affected.
-  const fixedSvgIdWarning = getRemotionDesignFixedSvgIdWarning(activeRemotionDesignId)
-
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadSuccess, setUploadSuccess] = useState(false)
@@ -150,27 +156,7 @@ export function StepPreviewApprove(): React.JSX.Element {
             </button>
           ))}
         </div>
-        {remotionDesignTemplates.length > 0 && (
-          <div style={{ marginBottom: 12 }}>
-            <DesignRecommendations
-              designs={remotionDesignTemplates}
-              aspectRatio={previewSettings.aspectRatio}
-              activeDesignId={activeRemotionDesignId}
-              available={{ logo: Boolean(assets?.primaryLogo), product: (assets?.products?.length || 0) > 0, service: (assets?.products?.length || 0) > 0 }}
-              onSelectDesign={setRemotionDesign}
-              onAddDesign={ctx.addRemotionDesign}
-              onSelectLayout={setPreviewLayout}
-            />
-            {fixedSvgIdWarning ? (
-              <p role="note" style={{ ...hintStyle, marginTop: 8 }}>
-                {fixedSvgIdWarning}
-              </p>
-            ) : null}
-            {remotionDesignError ? (
-              <p style={{ ...hintStyle, color: C.danger, marginTop: 8 }}>{remotionDesignError}</p>
-            ) : null}
-          </div>
-        )}
+        <AddDesignsPanel />
         <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 12 }}>
           <div>
             <label style={labelStyle} htmlFor="guided-aspect">Video shape</label>
@@ -227,10 +213,12 @@ export function StepPreviewApprove(): React.JSX.Element {
       </div>
 
       {/* ── Direct on-video overlay editing ─────────────────────────────── */}
-      <OverlayEditor inputProps={inputProps} />
-
-      {/* ── Layout quality check ────────────────────────────────────────── */}
-      <LayoutQualityPanel quality={quality} layers={previewSettings.layers} />
+      {/* The layout quality check sits directly under the video (no scrolling). */}
+      <OverlayEditor
+        inputProps={inputProps}
+        liveStage
+        belowStage={<LayoutQualityPanel compact quality={quality} layers={previewSettings.layers} />}
+      />
 
       {/* ── Approve & create ────────────────────────────────────────────── */}
       <div style={{ ...panelStyle, border: `1px solid ${previewApproved ? 'rgba(34,197,94,.45)' : C.border}` }}>
@@ -267,11 +255,12 @@ export function StepPreviewApprove(): React.JSX.Element {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                <Tip id="renderBranded" side="top">
                 <button
                   type="button"
                   onClick={handleCreate}
                   // The render uses exactly what was approved.
-                  disabled={generating || !isBrandedPath || !previewApproved || exportBlocked || rightsGate}
+                  disabled={generating || extraRunning || shapeExport.status === 'running' || !isBrandedPath || !previewApproved || exportBlocked || rightsGate}
                   title={isBrandedPath && !previewApproved ? 'Approve the preview first' : exportBlocked ? 'Fix the critical layout problem first' : rightsGate ? 'Confirm you may use this clip' : undefined}
                   aria-pressed={isBrandedPath}
                   style={{
@@ -287,6 +276,8 @@ export function StepPreviewApprove(): React.JSX.Element {
                     ? `Rendering… ${generation?.progress || 0}%`
                     : 'Render branded video'}
                 </button>
+                </Tip>
+                <Tip id="generateAi" side="top">
                 <button
                   type="button"
                   onClick={handleCreate}
@@ -305,7 +296,16 @@ export function StepPreviewApprove(): React.JSX.Element {
                     ? `Generating… ${generation?.progress || 0}%`
                     : 'Generate with AI'}
                 </button>
+                </Tip>
               </div>
+              <RemoveBrandingControl
+                apiKey={apiKey}
+                videoUrl={inputProps.videoUrl}
+                blocked={rightsGate}
+                canRestore={previewVideo?.kind === 'recast' && previewVideo.title === BRANDING_REMOVED_TITLE}
+                onApply={(url) => setPreviewVideo?.({ url, poster: null, title: BRANDING_REMOVED_TITLE, kind: 'recast', beforeRecast: videoBeforeRecast(previewVideo) })}
+                onRestore={() => restoreOriginalVideo?.()}
+              />
               {quality.rightsNeedConfirmation && (
                 <label data-testid="guided-rights-confirm" style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: C.text, cursor: 'pointer' }}>
                   <input type="checkbox" checked={rightsConfirmed} onChange={(e) => setRightsConfirmed(e.target.checked)} style={{ marginTop: 2 }} />
@@ -372,6 +372,19 @@ export function StepPreviewApprove(): React.JSX.Element {
             </div>
           )}
         </div>
+        {isBrandedPath && !inputProps.isImageSource && <CaptionsPanel videoUrl={inputProps.videoUrl} disabled={generating} />}
+        {isBrandedPath && previewApproved && (
+          <>
+            {/* Two free ways to export other shapes. They share one renderer, so each is disabled while the other runs. */}
+            <ExtraFormatsExport inputProps={inputProps} disabled={generating || exportBlocked || rightsGate || shapeExport.status === 'running'} onRunningChange={setExtraRunning} />
+            <ShapeExportPanel
+              state={shapeExport}
+              disabled={generating || exportBlocked || rightsGate || extraRunning}
+              onStart={() => { void exportAllShapes() }}
+              onCancel={cancelShapeExport}
+            />
+          </>
+        )}
         {generating && generation?.progressMessage && (
           <p style={{ ...hintStyle, marginTop: 8, color: C.cyan }}>{generation.progressMessage}</p>
         )}

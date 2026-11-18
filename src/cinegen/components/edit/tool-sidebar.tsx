@@ -42,8 +42,8 @@ const TOOLS: ToolDef[] = [
   { id: 'roll', label: 'Roll Trim', shortcut: 'N', icon: <RollIcon />, group: 'trim' },
   { id: 'slip', label: 'Slip', shortcut: 'Y', icon: <SlipIcon />, group: 'trim' },
   { id: 'slide', label: 'Slide', shortcut: 'U', icon: <SlideIcon />, group: 'trim' },
-  { id: 'music', label: 'Music Tool', shortcut: 'M', icon: <MusicIcon />, group: 'generate' },
-  { id: 'fillGap', label: 'Fill Gap Tool', shortcut: '', icon: <FillGapIcon />, group: 'generate' },
+  { id: 'music', label: 'Music Tool', shortcut: '', icon: <MusicIcon />, group: 'generate' },
+  { id: 'fillGap', label: 'Fill Gap Tool', shortcut: 'G', icon: <FillGapIcon />, group: 'generate' },
   { id: 'extend', label: 'Extend Tool', shortcut: 'E', icon: <ExtendIcon />, group: 'generate' },
   { id: 'mask', label: 'Mask Tool', shortcut: 'X', icon: <MaskIcon />, group: 'generate' },
 ];

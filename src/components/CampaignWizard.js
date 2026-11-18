@@ -4,7 +4,7 @@
 
 import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { getBrand, resolveBrandId, rememberBrandId } from '../lib/brandStore.js';
+import { getBrand, resolveBrandId, rememberBrandId, saveCampaign, saveAsset } from '../lib/brandStore.js';
 import { CAMPAIGN_GOALS, generateCampaignConcepts, generateAssetForConcept } from '../lib/campaignGenerator.js';
 import { generateId } from '../lib/brandStore.js';
 import { PLATFORMS } from '../lib/platforms.js';
@@ -182,6 +182,15 @@ export function CampaignWizard(params = {}) {
       const concepts = await generateCampaignConcepts(brand, state.goal, state.direction || '');
       state.concepts = concepts.map((c, index) => ({ ...c, index }));
       state.campaignId = generateId();
+      // Persist the campaign so the campaign page and asset editor can open it later.
+      saveCampaign({
+        id: state.campaignId,
+        brandId: brand.id,
+        goal: state.goal,
+        direction: state.direction || '',
+        concepts: state.concepts,
+        createdAt: new Date().toISOString(),
+      });
       renderConcepts();
     } catch (err) {
       state.error = String(err);
@@ -222,6 +231,7 @@ export function CampaignWizard(params = {}) {
             try {
               const asset = await generateAssetForConcept(brand, state.selectedConcept, platform);
               asset.campaignId = state.campaignId || brand.id;
+              saveAsset(asset);
               state.assetStatus[platform] = { status: 'done', label: platformMeta.label };
               renderAssetStatus();
 
@@ -256,6 +266,14 @@ export function CampaignWizard(params = {}) {
 
       state.assets = results;
       renderAssets();
+      if (results.length > 0 && !assetSection.querySelector('[data-view-campaign]')) {
+        const view = document.createElement('button');
+        view.className = 'btn-secondary-modern mt-4';
+        view.dataset.viewCampaign = '';
+        view.textContent = 'View campaign';
+        view.onclick = () => navigate('campaign-page', { campaignId: state.campaignId });
+        assetSection.appendChild(view);
+      }
 
       if (errors.length > 0) {
         showToast(`${errors.length} platform(s) failed`, 'error');
@@ -299,6 +317,11 @@ export function CampaignWizard(params = {}) {
         state.selectedConcept = { ...state.concepts[index], index };
         state.step = 'assets';
         renderPlatforms();
+        render(); // reveal the platform + asset section
+        conceptList.querySelectorAll('button[data-action="select-concept"]').forEach((b, i) => {
+          b.textContent = i === index ? 'Selected' : 'Select';
+        });
+        assetSection.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
       };
     });
   }
@@ -364,6 +387,20 @@ export function CampaignWizard(params = {}) {
         ${asset.cta ? `<div class="text-[10px] text-primary font-bold uppercase tracking-wider">${escapeHtml(asset.cta)}</div>` : ''}
       `;
       card.appendChild(body);
+
+      const actions = document.createElement('div');
+      actions.className = 'flex gap-2 px-4 pb-4';
+      actions.innerHTML = `
+        <button class="btn-secondary-modern flex-1" data-asset-edit="${escapeHtml(asset.id)}">Edit</button>
+        <button class="btn-secondary-modern flex-1" data-asset-animate="${escapeHtml(asset.id)}">Animate</button>
+      `;
+      actions.querySelector('[data-asset-edit]').onclick = () => navigate('asset-edit', { id: asset.id, brandId: brand.id });
+      actions.querySelector('[data-asset-animate]').onclick = () => {
+        if (!asset.imageUrl) return showToast('This asset has no image to animate', 'error');
+        try { sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: asset.imageUrl, sourceType: 'asset', sourceId: asset.id })); } catch { /* storage unavailable */ }
+        navigate('animate');
+      };
+      card.appendChild(actions);
       assetGrid.appendChild(card);
     });
   }

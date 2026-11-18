@@ -50,7 +50,7 @@ export function ctaLabels(project) {
     for (const c of clipsOf(t)) {
       if (c?.id == null) continue;
       const o = c.addon && typeof c.addon === 'object' ? c.addon : {};
-      const label = clean(c.buttonText || c.ctaText || c.heading || o.buttonText || o.text || c.name, 60);
+      const label = clean(c.buttonText || c.ctaText || c.heading || o.buttonText || (c.type === 'addon-hotspot' && o.label) || o.text || c.name, 60);
       if (label) out[String(c.id)] = label;
     }
   }
