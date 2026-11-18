@@ -1,13 +1,11 @@
 /**
- * Storyboard pipeline: script -> scenes -> shot list -> frames -> animatic -> deck,
- * plus the hand-off a creation app reads so a storyboard exists before a video.
+ * Storyboard pipeline: script -> scenes -> shot list -> frames -> animatic -> deck.
  *
  * Pure functions only (no DOM, no network) so they are shared by the studio UI,
  * the creation apps and tests. Frames use the shape from storyboardEngine.createFrame.
  */
 import { createFrame, renumberFrames, totalDuration, SHOT_TYPES } from './storyboardEngine.js';
 
-const HANDOFF_KEY = 'smartvideo_storyboard_handoff';
 const SCENE_RE = /^\s*((?:INT|EXT|EST|INT\.?\/EXT|I\/E)[.\s].+|\.[A-Za-z0-9].+)$/i;
 
 /* ───────────────────────── script parsing ───────────────────────── */
@@ -323,53 +321,4 @@ figure{margin:0;background:${th.card};border-radius:10px;padding:10px;font-size:
 </style></head><body>
 ${slides}
 </body></html>`;
-}
-
-/* ───────────────────────── storyboard → video hand-off ───────────────────────── */
-
-/**
- * Persist the approved storyboard so a creation app can start from it
- * ("storyboard first, then video"). Images are kept as URLs only.
- */
-export function saveStoryboardHandoff({ title = '', frames = [], aspectRatio = '16:9', source = 'storyboard' } = {}, storage = globalThis.localStorage) {
-  const payload = {
-    version: 1,
-    savedAt: Date.now(),
-    source,
-    title,
-    aspectRatio,
-    totalDuration: totalDuration(frames),
-    shots: frames.map((f) => ({
-      id: f.id, sceneNumber: f.sceneNumber, shotNumber: f.shotNumber, shot: f.shot,
-      cameraMovement: f.cameraMovement, duration: f.duration, prompt: f.prompt,
-      narration: f.narration, imageUrl: /^https?:\/\//i.test(f.imageUrl || '') ? f.imageUrl : null,
-    })),
-  };
-  try { storage.setItem(HANDOFF_KEY, JSON.stringify(payload)); return payload; } catch { return null; }
-}
-
-export function loadStoryboardHandoff(storage = globalThis.localStorage) {
-  try {
-    const p = JSON.parse(storage.getItem(HANDOFF_KEY) || 'null');
-    return p && p.version === 1 && Array.isArray(p.shots) && p.shots.length ? p : null;
-  } catch { return null; }
-}
-
-export function clearStoryboardHandoff(storage = globalThis.localStorage) {
-  try { storage.removeItem(HANDOFF_KEY); } catch { /* ignore */ }
-}
-
-/**
- * Turn a hand-off into one video-model request per shot, preferring image-to-video
- * when the shot has an approved image. The caller picks the model/provider.
- */
-export function handoffToVideoJobs(handoff) {
-  return (handoff?.shots || []).map((s) => ({
-    shotId: s.id,
-    mode: s.imageUrl ? 'image-to-video' : 'text-to-video',
-    prompt: `${s.prompt}${s.cameraMovement && s.cameraMovement !== 'Static' ? `. Camera: ${s.cameraMovement.toLowerCase()}` : ''}`,
-    imageUrl: s.imageUrl,
-    duration: s.duration,
-    aspectRatio: handoff.aspectRatio,
-  }));
 }

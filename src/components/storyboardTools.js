@@ -1,12 +1,11 @@
 /**
- * DOM tools for the storyboard-first workflow: script import, animatic player,
- * pitch-deck export and the "storyboard ready" banner shown in creation apps.
+ * DOM tools for the Storyboard Studio: script import, animatic player and pitch-deck export.
  * Logic lives in lib/storyboardPipeline.js; this file only builds UI.
  */
 import {
   parseScript, buildShotList, shotsToFrames, csvToFrames, extractCharacters,
   buildAnimaticTimeline, cameraMoveTransform, animaticToVtt, buildPitchDeckHtml,
-  loadStoryboardHandoff, clearStoryboardHandoff, DECK_THEMES,
+  DECK_THEMES,
 } from '../lib/storyboardPipeline.js';
 import { buildLookSuffix } from '../lib/storyboardEngine.js';
 
@@ -233,34 +232,4 @@ export function openPitchDeck({ title, logline = '', frames, characters = [] }) 
   const row = el('div', 'flex gap-2');
   row.append(open, save);
   box.append(lbl, ll, row);
-}
-
-/* ───────────── storyboard-first banner for creation apps ───────────── */
-
-/**
- * Prepend a banner to a creation app's container. With an approved storyboard it offers
- * to start from it; without one it nudges the user to storyboard first.
- * `onUse(handoff)` receives the stored hand-off; `onStoryboard()` opens the storyboard studio.
- */
-export function mountStoryboardFirstBanner(container, { onUse, onStoryboard } = {}) {
-  if (!container) return null;
-  container.querySelector('[data-storyboard-banner]')?.remove();
-  const h = loadStoryboardHandoff();
-  const bar = el('div', 'flex items-center gap-3 flex-wrap rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white mb-3');
-  bar.dataset.storyboardBanner = '';
-  if (h) {
-    bar.append(el('span', 'flex-1', `Storyboard ready: “${h.title || 'Untitled'}” · ${h.shots.length} shots · ${h.totalDuration}s`));
-    const use = el('button', PRIMARY, 'Start from storyboard'); use.type = 'button';
-    use.onclick = () => onUse?.(h);
-    const dismiss = el('button', BTN, 'Dismiss'); dismiss.type = 'button';
-    dismiss.onclick = () => { clearStoryboardHandoff(); bar.remove(); };
-    bar.append(use, dismiss);
-  } else {
-    bar.append(el('span', 'flex-1', 'Plan your shots first: build a storyboard, then create the video from it.'));
-    const go = el('button', BTN, 'Open Storyboard'); go.type = 'button';
-    go.onclick = () => onStoryboard?.();
-    bar.append(go);
-  }
-  container.prepend(bar);
-  return bar;
 }

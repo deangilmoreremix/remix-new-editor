@@ -4,7 +4,7 @@ vi.mock('../editor/validateFile.js', () => ({}));
 import {
   parseScript, detectScriptFormat, buildShotList, shotsToFrames, shotListToCsv, csvToFrames,
   buildAnimaticTimeline, animaticToVtt, cameraMoveTransform, buildPitchDeckHtml,
-  saveStoryboardHandoff, loadStoryboardHandoff, handoffToVideoJobs, extractCharacters,
+  extractCharacters,
 } from '../storyboardPipeline.js';
 
 const FOUNTAIN = `Title: Test
@@ -87,7 +87,7 @@ describe('animatic', () => {
   });
 });
 
-describe('deck + handoff', () => {
+describe('deck', () => {
   const frames = shotsToFrames(buildShotList(parseScript(FOUNTAIN)));
   it('escapes user content and rejects unsafe image URLs', () => {
     frames[0].prompt = '<script>alert(1)</script>';
@@ -96,15 +96,5 @@ describe('deck + handoff', () => {
     expect(html).not.toContain('<script>alert');
     expect(html).not.toContain('javascript:');
     expect(html).toContain('&lt;b&gt;T&lt;/b&gt;');
-  });
-  it('saves, loads and converts a hand-off', () => {
-    const mem = { d: {}, setItem(k, v) { this.d[k] = v; }, getItem(k) { return this.d[k] ?? null; }, removeItem(k) { delete this.d[k]; } };
-    frames[1].imageUrl = 'https://x/y.png';
-    saveStoryboardHandoff({ title: 'T', frames }, mem);
-    const h = loadStoryboardHandoff(mem);
-    expect(h.shots).toHaveLength(frames.length);
-    const jobs = handoffToVideoJobs(h);
-    expect(jobs[1].mode).toBe('image-to-video');
-    expect(jobs[0].mode).toBe('text-to-video');
   });
 });

@@ -29,7 +29,6 @@ import {
   MAX_FRAMES,
 } from '../lib/storyboardEngine.js';
 import { openScriptImport, openAnimatic, openPitchDeck } from './storyboardTools.js';
-import { saveStoryboardHandoff } from '../lib/storyboardPipeline.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -548,15 +547,7 @@ export function StoryboardStudio(options = {}) {
   }));
   const animaticBtn = makeBtn('Animatic', { title: 'Play the storyboard as a timed animatic' });
   animaticBtn.addEventListener('click', needFrames(() => openAnimatic(frames)));
-  const toVideoBtn = makeBtn('Create video ▸', { title: 'Send this storyboard to the video studio' });
-  toVideoBtn.addEventListener('click', needFrames(() => {
-    if (!saveStoryboardHandoff({ title: projectName, frames, aspectRatio: selectedAr })) {
-      showToast('Could not hand off the storyboard (browser storage is blocked).', 'error');
-      return;
-    }
-    navigate('video');
-  }));
-  projectRow.append(projectInput, projectList, saveBtn, loadBtn, importBtn, animaticBtn, exportMenu, toVideoBtn);
+  projectRow.append(projectInput, projectList, saveBtn, loadBtn, importBtn, animaticBtn, exportMenu);
 
   // --- Row B: edit + generate ---
   const editRow = makeRow();
