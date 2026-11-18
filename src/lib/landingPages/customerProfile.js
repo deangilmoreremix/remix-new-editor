@@ -165,6 +165,9 @@ export function dedupeCustomers(list) {
 export function customerTokens(c) {
   if (!c) return {};
   const t = { ...c.tokens, company: c.tokens.company || c.business.name, companylogo: httpsUrl(c.tokens.companylogo || c.brand.logoUrl) };
+  // The industry designs read their city from {{custom1}} and the person's name from {{custom2}} (e.g. a pet owner).
+  if (!t.custom1 && t.city) t.custom1 = t.city;
+  if (!t.custom2 && t.firstname) t.custom2 = t.firstname;
   return Object.fromEntries(Object.entries(t).filter(([, v]) => v));
 }
 
@@ -192,9 +195,12 @@ const isImageOutput = (url, outputType) => {
  * /api/personalization/project returns them: { client, generation: { outputUrls }, output_type, updated_at }).
  * Matched by client id first, then by business name. Only https pictures; videos and blob: urls are ignored.
  */
+/** When a project's picture was generated: its own stamp, else (older rows) the last time the project was saved. */
+const generatedAt = (r) => String(r?.generation?.outputGeneratedAt || r?.outputGeneratedAt || r?.updated_at || r?.updatedAt || '');
+
 export function personalImagesFromProjects(projects) {
   const rows = (Array.isArray(projects) ? projects : []).filter((r) => r && typeof r === 'object')
-    .sort((a, b) => String(b.updated_at || b.updatedAt || '').localeCompare(String(a.updated_at || a.updatedAt || '')));
+    .sort((a, b) => generatedAt(b).localeCompare(generatedAt(a)));
   const byId = Object.create(null); const byName = Object.create(null); // no inherited keys like "constructor"
   rows.forEach((r) => {
     const gen = r.generation && typeof r.generation === 'object' ? r.generation : {};
@@ -237,7 +243,7 @@ export function applyCustomerToPuck(puckData, customer, { useImage = true, brand
   data.content.forEach((item) => {
     const p = item.props || {};
     if (image && /Hero|VideoSection/.test(item.type) && ('slotImage' in p || 'photo' in p || 'poster' in p || item.type === 'Hero')) { p.slotImage = image; applied.push('personalized image'); }
-    if (item.type === 'NavBar' && writeBrand) {
+    if (/Nav(Bar)?$/.test(item.type) && writeBrand) {
       if (business.name) { p.brand = business.name; applied.push('business name'); }
       if (httpsUrl(brand.logoUrl)) { p.logo = brand.logoUrl; applied.push('logo'); }
       if (!p.loginUrl && business.website) p.loginUrl = business.website;

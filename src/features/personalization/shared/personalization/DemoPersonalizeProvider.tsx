@@ -1485,6 +1485,16 @@ function brandColorsOf(value: unknown): { brandColors?: { primary?: string; acce
 /** Turns a shared research result into the business-record shape the mapping consumes. */
 // ── Provider ─────────────────────────────────────────────────────────────────
 
+/**
+ * When the current output was generated. The stamp is taken the first time an output appears and kept
+ * while the same output stays; a restored project brings its own stamp (see `restoreProject`).
+ */
+function stampOutput(ref: { current: { key: string; at: string } }, urls: string[]): string {
+  const key = urls.join('|')
+  if (key !== ref.current.key) ref.current = { key, at: key ? new Date().toISOString() : '' }
+  return ref.current.at
+}
+
 export function DemoPersonalizeProvider({ children, testMode, access: accessProp, userScope: userScopeProp }: DemoPersonalizeProviderProps) {
   // Navigation & publish integration
   const router = useRouter()
@@ -2002,6 +2012,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   // closed) is discarded, so a late source-A response can never apply A's data
   // to source B or point B's autosaves at A's row.
   const restoreSessionRef = useRef(0)
+  const outputStampRef = useRef({ key: '', at: '' })
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
@@ -2299,6 +2310,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // the stored copy (the blob would be stripped before saving).
     outputUrls: result?.urls || (projectOutputUrl(result) ? [projectOutputUrl(result)] : []),
     outputType,
+    outputGeneratedAt: stampOutput(outputStampRef, result?.urls || (projectOutputUrl(result) ? [projectOutputUrl(result) as string] : [])),
     clientId: selectedClientId || null,
     status: generation.status === 'complete' ? 'complete' : 'draft',
     ctaHeadline: clientForm.ctaHeadline || null,
@@ -2672,6 +2684,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     if (Array.isArray(entry.outputUrls) && entry.outputUrls.length > 0) {
       const durableUrls = entry.outputUrls.filter((u) => typeof u === 'string' && !u.startsWith('blob:'))
       if (durableUrls.length > 0) {
+        // The restored output keeps the stamp it was saved with (empty for rows saved before stamps existed).
+        outputStampRef.current = { key: durableUrls.join('|'), at: entry.outputGeneratedAt || '' }
         setResult({
           type: entry.outputType as GenerationResult['type'],
           urls: durableUrls,
@@ -2868,6 +2882,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setSelectedBusiness(null)
     setBusinessSearchMode((mode) => (mode === 'selected' || mode === 'searching' ? 'idle' : mode))
     setBusinessResearch({ status: 'idle' })
+    // The output on screen was made for the previous customer. Autosave writes it under the selected
+    // customer's id, so keep it only while the same customer stays selected.
+    if (id !== selectedClientId) setResult(null)
     setSelectedClientId(id)
     if (!id) {
       setCurrentClientId(null)
@@ -2879,7 +2896,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       setCurrentClientId(id)
       setClientForm({ ...found })
     }
-  }, [clients])
+  }, [clients, selectedClientId])
 
   const createClientRecord = useCallback((partial: Partial<ClientProfile>): ClientProfile => {
     return createClient(partial)

@@ -141,12 +141,14 @@ describe('workbench: "Edit in Workbench" notification', () => {
     expect(document.querySelector('[data-action="edit-in-workbench"]')).toBeNull();
   });
 
-  it('images and audio do not get the landing page button; non-https videos neither', () => {
+  it('a saved picture gets the landing page button too; audio and non-https files do not', () => {
     mountGenerationNotifications(vi.fn());
-    saveGeneration({ studio: 'image', type: 'image', url: 'https://x/a.png' });
     saveGeneration({ studio: 'audio', type: 'audio', url: 'https://x/a.mp3' });
     saveGeneration({ studio: 'video', type: 'video', url: 'blob:http://x/1' });
+    saveGeneration({ studio: 'image', type: 'image', url: 'blob:http://x/2.png' });
     expect(document.querySelector('[data-action="create-landing-page"]')).toBeNull();
+    saveGeneration({ studio: 'image', type: 'image', url: 'https://x/a.png' });
+    expect(document.querySelector('[data-action="create-landing-page"]')).toBeTruthy();
   });
 
   it('does not offer it for Video Agent output', () => {

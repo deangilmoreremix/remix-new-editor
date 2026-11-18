@@ -231,3 +231,14 @@ describe('#lead buttons on pages without a hero form', () => {
     host.remove();
   });
 });
+
+describe('calendar weekday labels', () => {
+  const card = (weekdays) => html({ root: { props: {} }, content: [{ type: 'ScheduleCard', props: { id: 'sc', columns: 1, title: 'Book', text: '', month: 'Mar', weekdays, days: '1,*2,3', time: '', buttonLabel: '' } }], zones: {} });
+  const heads = (out) => { const d = document.createElement('div'); d.innerHTML = out; return [...d.querySelectorAll('.pk-cal-head span')].map((s) => s.textContent); };
+  it('uses the labels when there are exactly seven', () => expect(heads(card('L, M, X, J, V, S, D'))).toEqual(['L', 'M', 'X', 'J', 'V', 'S', 'D']));
+  it('falls back to the seven defaults for six or eight labels', () => {
+    const defaults = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    expect(heads(card('a, b, c, d, e, f'))).toEqual(defaults);
+    expect(heads(card('a, b, c, d, e, f, g, h'))).toEqual(defaults);
+  });
+});
