@@ -41,7 +41,7 @@ export function htmlToTokens(root) {
   let fresh = -1;
   const walk = (node) => {
     for (const n of node.childNodes) {
-      if (n.nodeType === 3) push(String(n.nodeValue).replace(/ /g, ' '));
+      if (n.nodeType === 3) push(String(n.nodeValue).replace(/\u00a0/g, ' '));
       else if (n.nodeType === 1) {
         if (n.dataset && n.dataset.token != null) push(n.dataset.token);
         else if (n.tagName === 'BR') {
