@@ -14,7 +14,7 @@ import { LottieEditSection } from './lottie-edit-section';
 import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 import { SavePresetRow } from './save-preset-row';
-import { contactImageServices, measureLogoFor } from '@cinegen/lib/personalize/contact-image-services';
+import { contactImageServices, measureLogoFor, makeAllVideoReady } from '@cinegen/lib/personalize/contact-image-services';
 import { overlayMediaServices } from '@cinegen/lib/overlays/overlay-media-services';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { usePreviewContact } from '@cinegen/lib/personalize/preview-contact';
@@ -93,7 +93,8 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
   const editorRef = useRef<{ setOptions?: (o: Record<string, unknown>) => void } | null>(null);
   // true while a change came from this panel itself (so its own echo doesn't redraw the form under the caret)
   const ownEdit = useRef(false);
-  const [note, setNote] = useState(''); // outcome of a picture action (saved to the contact, Video Ready ...)
+  const [note, setNote] = useState('');
+  const [allBusy, setAllBusy] = useState(false); // outcome of a picture action (saved to the contact, Video Ready ...)
   const { state: workspace } = useWorkspace();
   const assetsRef = useRef(workspace.assets); assetsRef.current = workspace.assets;
   const contact = usePreviewContact(); // the contact whose pictures the settings show
@@ -201,6 +202,19 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       )}
       {isRegistryOverlay(overlay.type) && <SavePresetRow overlay={overlay} />}
       {note && <p role="status" data-testid="overlay-note" style={{ fontSize: 11, margin: '0 12px 8px', color: 'var(--text-secondary)' }}>{note}</p>}
+      {overlay.type === 'overlay-personalized-image' && contact.profiles.length > 0 && (
+        <div style={{ padding: '0 12px 8px' }}>
+          <button type="button" className="mini-btn" data-testid="all-video-ready" disabled={allBusy} style={{ width: '100%', padding: '5px 8px' }}
+            title="Make all Video Ready"
+            onClick={async () => {
+              setAllBusy(true);
+              try {
+                const r = await makeAllVideoReady(workspace.overlays ?? [], { notify: (m) => setNote(m), onProgress: (d, t, who) => { if (who) setNote(`Making images Video Ready: ${d + 1} of ${t} (${who})…`); } });
+                setNote(r.message);
+              } finally { setAllBusy(false); }
+            }}>{allBusy ? 'Working…' : '✨ Make all contacts’ images Video Ready'}</button>
+        </div>
+      )}
       {overlay.type === 'overlay-personalized-image' && !contact.profiles.length && (
         <p data-testid="no-contacts-hint" style={{ fontSize: 11, margin: '0 12px 8px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
           No contacts yet, so this shows a grey placeholder. Make one with the <strong>Personalization</strong> button on the Overlays lane: their logo and photo then appear here, and each contact gets their own picture in the video.

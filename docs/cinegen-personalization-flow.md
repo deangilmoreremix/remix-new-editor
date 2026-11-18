@@ -23,8 +23,13 @@ Four one-click layouts from the contact being previewed, all built from tokens s
 ## Image and Sticker overlay settings (ported from the classic editor)
 `src/cinegen/lib/overlays/overlay-media-services.ts`: **Upload** (project storage, else a local preview that is not saved with the project), the project's own images (Media pool), **Pixabay / Pexels search** (a picked Pixabay image is copied to storage because Pixabay forbids hotlinking), and the **sticker library**.
 
+## Make all Video Ready
+A "✨ Make all Video Ready" button at the bottom of the Personalized layouts tab (and in the Personalized Image settings) cleans up every contact's picture for the slots this video's Personalized Images use, one at a time, with live progress (`makeAllVideoReady` in `src/cinegen/lib/personalize/contact-image-services.ts`). Pictures already Video Ready or missing are skipped; each call is a paid AI cleanup on the user's own OpenAI key; failures are counted and the reason is shown.
+
+## Overlays lane
+Lane blocks follow "Preview as": the text line under a block, the small picture of Smart Text and Personalized Image, and a lower third's name and title all use the previewed contact. The Add window's catalogue cards stay generic.
+
 ## Still missing in CineGen (found, not built)
-- "Make all Video Ready" in one click (the classic editor's batch button); each picture still has its own button.
-- The overlay lane's small thumbnails draw overlays without a contact, so a greeting shows its fallback ("Hi there!") there while the video shows the contact's name.
-- Stock search needs network access to Pixabay / Pexels; it was not run in the sandbox.
+- The classic "Check contacts" table (every contact's images for this video, with "Fill with AI" for missing ones).
+- Stock search needs network access to Pixabay / Pexels; it was not run in the sandbox. Video Ready needs the user's OpenAI key; only its failure path was run here.
 - Contacts and their pictures are stored in this browser only (localStorage).

@@ -4,7 +4,7 @@
 // @ts-expect-error plain JS contact store (localStorage)
 import * as contactStore from '../../../lib/contactStore.js';
 // @ts-expect-error plain JS per-contact helpers
-import { contactName } from '../../../lib/editor/personalize/perContact.js';
+import { contactName, listContactProfiles } from '../../../lib/editor/personalize/perContact.js';
 // @ts-expect-error plain JS image helpers
 import { assetForImageToken, imageTokenChoices, imageTokenOf, listTimelineImageAssets } from '../../../lib/personalization/timelineAssets.js';
 // @ts-expect-error plain JS profile helpers
@@ -47,6 +47,57 @@ export async function measureLogoFor(profile: Profile | null): Promise<void> {
 /** Measure the logo of the contact being previewed (after a layout added a logo with an Auto backing). */
 export const measureActiveLogo = (): Promise<void> => measureLogoFor(active());
 
+/** "Make Video Ready" for one contact's picture: the image finder's cleanup (background removal, fixes, checked by Vision QA), on the
+ *  user's own OpenAI key. Resolves true when the picture is now Video Ready; says why in `notify` when it is not. */
+export async function makeContactImageVideoReady(profile: Profile, key: string, notify: ImageHost['notify'], redraw?: () => void): Promise<boolean> {
+  const asset = key ? assetForImageToken(profile, key) : null;
+  if (!profile || !asset?.url || asset.videoReady || busy.has(asset.id)) return false;
+  busy.add(asset.id); redraw?.();
+  const business = (profile as { personalization?: { business?: Record<string, string> } }).personalization?.business || {};
+  try {
+    const result = await makePersonalizationAssetVideoReady(asset, { businessContext: { businessName: business.businessName, industry: business.industry, productService: business.productService, brandDescription: business.brandDescription } });
+    const stored = await persistPersonalizationAssetVersion({ sourceUrl: result.url, role: asset.role, name: `${asset.name || asset.role} — Video Ready` });
+    const fresh = (contactStore.getProfile?.(profile.id) as Profile) || profile;
+    saveContactAsset(fresh, asset.id, (a) => ({
+      ...a, ...result, url: stored.url, originalUrl: (a as { originalUrl?: string }).originalUrl || asset.url, luminance: undefined,
+      versions: [...(Array.isArray((a as { versions?: unknown[] }).versions) ? (a as { versions: unknown[] }).versions : []), { id: `${a.id}:video-ready:${Date.now()}`, url: stored.url, type: 'video_ready', createdAt: new Date().toISOString() }],
+    }));
+    if (key === 'logoUrl') void measureLogoFor((contactStore.getProfile?.(profile.id) as Profile) || fresh);
+    notify(`${contactName(profile)}'s ${key === 'avatarUrl' ? 'photo' : 'image'} is Video Ready.`, 'success');
+    return true;
+  } catch (err) {
+    const e = err as { code?: string; message?: string };
+    notify(e?.code === 'VISION_QA_REVIEW_REQUIRED' ? `Video Ready needs a review for ${contactName(profile)}: open the Personalize window's image finder to check it.` : `Video Ready failed for ${contactName(profile)}: ${e?.message || err}`, 'error');
+    return false;
+  } finally { busy.delete(asset.id); redraw?.(); }
+}
+
+export interface AllVideoReadyResult { total: number; done: number; message: string }
+
+/** The image tokens the timeline's Personalized Images use (what "Make all Video Ready" works on). */
+export const personalizedImageKeys = (overlays: Array<{ type: string; addon?: unknown }>): string[] => [...new Set(
+  overlays.filter((o) => o.type === 'overlay-personalized-image').map((o) => imageTokenOf((o.addon as { src?: string } | undefined)?.src)).filter(Boolean),
+)] as string[];
+
+/** "Make all Video Ready": every contact's picture for the slots this video uses, one after the other (each call is a paid AI cleanup). */
+export async function makeAllVideoReady(overlays: Array<{ type: string; addon?: unknown }>, host: ImageHost & { onProgress?: (done: number, total: number, who: string) => void }): Promise<AllVideoReadyResult> {
+  const keys = personalizedImageKeys(overlays);
+  if (!keys.length) return { total: 0, done: 0, message: 'Add a Personalized Image (or a personalized layout) first.' };
+  const jobs: Array<[Profile, string]> = [];
+  (listContactProfiles(contactStore) as Profile[]).forEach((p) => keys.forEach((key) => {
+    const asset = assetForImageToken(p, key);
+    if (asset?.url && !asset.videoReady) jobs.push([p, key]);
+  }));
+  if (!jobs.length) return { total: 0, done: 0, message: 'Every contact image this video uses is already Video Ready.' };
+  let done = 0;
+  for (const [p, key] of jobs) {
+    host.onProgress?.(done, jobs.length, contactName(p));
+    if (await makeContactImageVideoReady((contactStore.getProfile?.(p.id) as Profile) || p, key, host.notify)) done += 1;
+  }
+  host.onProgress?.(done, jobs.length, '');
+  return { total: jobs.length, done, message: `${done} of ${jobs.length} images are now Video Ready${done < jobs.length ? '. The rest need a look in the image finder (or an OpenAI key in Settings).' : '.'}` };
+}
+
 export function contactImageServices(host: ImageHost) {
   return {
     imageTokens: () => imageTokenChoices(active()),
@@ -88,29 +139,10 @@ export function contactImageServices(host: ImageHost) {
       if (profile && asset?.id) saveContactAsset(profile, asset.id, (a) => ({ ...a, focus: { x, y } }));
     },
     // "Make Video Ready": the image finder's cleanup (background removal, fixes, checked by Vision QA), on the user's own OpenAI key.
-    makeVideoReady: async (src: string, redraw?: () => void) => {
+    makeVideoReady: (src: string, redraw?: () => void) => {
       const profile = active();
       const key = imageTokenOf(src);
-      const asset = profile && key ? assetForImageToken(profile, key) : null;
-      if (!profile || !asset?.url || asset.videoReady || busy.has(asset.id)) return false;
-      busy.add(asset.id); redraw?.();
-      const business = (profile as { personalization?: { business?: Record<string, string> } }).personalization?.business || {};
-      try {
-        const result = await makePersonalizationAssetVideoReady(asset, { businessContext: { businessName: business.businessName, industry: business.industry, productService: business.productService, brandDescription: business.brandDescription } });
-        const stored = await persistPersonalizationAssetVersion({ sourceUrl: result.url, role: asset.role, name: `${asset.name || asset.role} — Video Ready` });
-        const fresh = (contactStore.getProfile?.(profile.id) as Profile) || profile;
-        saveContactAsset(fresh, asset.id, (a) => ({
-          ...a, ...result, url: stored.url, originalUrl: (a as { originalUrl?: string }).originalUrl || asset.url, luminance: undefined,
-          versions: [...(Array.isArray((a as { versions?: unknown[] }).versions) ? (a as { versions: unknown[] }).versions : []), { id: `${a.id}:video-ready:${Date.now()}`, url: stored.url, type: 'video_ready', createdAt: new Date().toISOString() }],
-        }));
-        if (key === 'logoUrl') void measureLogoFor((contactStore.getProfile?.(profile.id) as Profile) || fresh);
-        host.notify(`${contactName(profile)}'s ${key === 'avatarUrl' ? 'photo' : 'image'} is Video Ready.`, 'success');
-        return true;
-      } catch (err) {
-        const e = err as { code?: string; message?: string };
-        host.notify(e?.code === 'VISION_QA_REVIEW_REQUIRED' ? `Video Ready needs a review for ${contactName(profile)}: open the Personalize window's image finder to check it.` : `Video Ready failed for ${contactName(profile)}: ${e?.message || err}`, 'error');
-        return false;
-      } finally { busy.delete(asset.id); redraw?.(); }
+      return profile && key ? makeContactImageVideoReady(profile, key, host.notify, redraw) : Promise.resolve(false);
     },
   };
 }

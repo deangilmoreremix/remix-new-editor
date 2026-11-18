@@ -16,6 +16,7 @@ export interface AddToTimelineActions {
   onPickLandingPage?: (designId: string) => void; // Landing pages tab (hidden when omitted)
   onPickPreset?: (preset: OverlayPreset) => void; // My presets tab (hidden when omitted)
   onAddLayout?: (layoutId: string) => { ok: boolean; message: string }; // Personalized layouts tab (hidden when omitted)
+  onMakeAllVideoReady?: (h: { onProgress: (done: number, total: number, who: string) => void; notify: (message: string, kind?: 'info' | 'error' | 'success') => void }) => Promise<{ total: number; done: number; message: string }>; // "Make all Video Ready" on the Personalized layouts tab
   onAddKind: (kind: OverlayKind) => void;
   onAddTemplate: (templateId: string, phone?: string) => void;
 }
