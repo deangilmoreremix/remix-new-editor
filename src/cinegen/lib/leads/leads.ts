@@ -10,7 +10,7 @@ import { leadsToCsv } from '../../../lib/editor/addons/leadClient.js';
 // @ts-expect-error plain JS attribution helpers
 import { sourceLabel as rawSourceLabel } from '../../../lib/editor/publish/attribution.js';
 
-export interface LeadSource { utm?: Record<string, string>; referrer?: string; page?: string | null; variant?: string }
+export interface LeadSource { utm?: Record<string, string>; referrer?: string; page?: string | null; variant?: string; session?: string }
 export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string>; source?: LeadSource; status?: string; notes?: string; tags?: string[] }
 
 /** "google / spring-sale", else the referring host, else "". */
@@ -71,6 +71,16 @@ export function variantCounts(rows: LeadRow[]): { A: number; B: number } | null 
   rows.forEach((r) => { const v = variantOf(r); if (v === 'A' || v === 'B') out[v] += 1; });
   return out.A + out.B ? out : null;
 }
+// ---------------------------------------------------------------------------------------------- how much a lead watched
+export interface WatchInfo { progress: number; completed: boolean }
+/** The viewing session a lead came from (sent with the lead when analytics was on), or ''. */
+export const sessionOf = (row: LeadRow): string => (typeof row.source?.session === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(row.source.session) ? row.source.session : '');
+/** Hot: finished or watched 75%+; Warm: 25%+; Cold: less. */
+export const watchTag = (w?: WatchInfo | null): '' | 'Hot' | 'Warm' | 'Cold' => (!w ? '' : w.completed || w.progress >= 0.75 ? 'Hot' : w.progress >= 0.25 ? 'Warm' : 'Cold');
+export const watchPercent = (w?: WatchInfo | null): string => (w ? `${Math.round(Math.max(0, Math.min(1, w.progress)) * 100)}%` : '');
+/** The distinct session ids to look up (most recent first, at most `max`). */
+export const sessionKeys = (rows: LeadRow[], max = 200): string[] => [...new Set(rows.map(sessionOf).filter(Boolean))].slice(0, max);
+
 export const fromMp4 = (row: LeadRow): boolean => rowSource(row) === 'mp4';
 
 /** Leads per day for the last `days` days (oldest first), zero-filled, in the viewer's local time. */
@@ -154,7 +164,7 @@ export function answerColumns(rows: LeadRow[]): Array<{ key: string; label: stri
 /** A viewer controls utm_* and the referrer; a leading = + - @ (or tab/CR) would be read as a formula by spreadsheets. */
 export const csvSafe = (v: string): string => (/^[=+\-@\t\r]/.test(v) ? `'${v}` : v);
 
-export function rowsToCsv(rows: LeadRow[], forms: LeadForm[]): string {
+export function rowsToCsv(rows: LeadRow[], forms: LeadForm[], watch: Record<string, WatchInfo> = {}): string {
   const name = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r))?.label ?? 'Form';
   // Source columns only appear when at least one lead has them, so older exports keep their shape.
   return leadsToCsv(rows.map((r) => {
@@ -168,6 +178,8 @@ export function rowsToCsv(rows: LeadRow[], forms: LeadForm[]): string {
     if (r.source?.referrer) src.Referrer = csvSafe(r.source.referrer);
     if (fromMp4(r)) src['From MP4'] = 'Yes';
     if (variantOf(r)) src.Version = variantOf(r);
+    const w = watch[sessionOf(r)];
+    if (w) { src['Watched %'] = watchPercent(w).replace('%', ''); src.Interest = watchTag(w); }
     if (r.status !== undefined) { src.Status = statusLabel(r.status); if (r.notes) src.Notes = csvSafe(r.notes); if (r.tags?.length) src.Tags = csvSafe(r.tags.join(', ')); }
     return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src };
   }));

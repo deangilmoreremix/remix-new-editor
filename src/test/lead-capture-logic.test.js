@@ -345,3 +345,10 @@ describe('lead-capture auto-reply', () => {
     expect(m.subject).toBe('Hi  there');
   });
 });
+
+describe('lead-capture viewing session', () => {
+  it('keeps only a well-formed session id', () => {
+    expect(sanitizeSource({ session: 'abcDEF1234567890abcd' }).session).toBe('abcDEF1234567890abcd');
+    for (const bad of ['short', 'has spaces in it 1234567890', 'x'.repeat(65), 12345, null, { a: 1 }]) expect(sanitizeSource({ session: bad })).not.toHaveProperty('session');
+  });
+});

@@ -84,6 +84,8 @@ export function sanitizeSource(raw: unknown): Record<string, unknown> {
   }
   if (typeof src.referrer === "string" && /^https?:\/\//i.test(src.referrer.trim())) out.referrer = cleanText(src.referrer, 300);
   if (src.variant === "A" || src.variant === "B") out.variant = src.variant; // which version of an A/B-tested form the viewer saw
+  // The viewer's analytics session (only sent when analytics is on), so the owner can see how much of the video the lead watched.
+  if (typeof src.session === "string" && /^[A-Za-z0-9_-]{16,64}$/.test(src.session)) out.session = src.session;
   return out;
 }
 

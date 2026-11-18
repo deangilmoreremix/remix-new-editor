@@ -81,6 +81,20 @@ describe('viewer lead: A/B version', () => {
   });
 });
 
+describe('viewer lead: viewing session', () => {
+  it('sends the session id inside source only when it is well formed', async () => {
+    const fetchImpl = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ ok: true, stored: true }) }));
+    const base = { publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'a@b.co' } };
+    const env = { url: 'https://x.supabase.co', key: 'k', fetchImpl };
+    await submitViewerLead({ ...base, session: 'abcDEF1234567890abcd' }, env);
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).source.session).toBe('abcDEF1234567890abcd');
+    for (const [i, bad] of [null, '', 'short', 'bad session id!!!!!!!!'].entries()) {
+      await submitViewerLead({ ...base, session: bad }, env);
+      expect(JSON.parse(fetchImpl.mock.calls[i + 1][1].body).source).not.toHaveProperty('session');
+    }
+  });
+});
+
 describe('publish client', () => {
   it('makes unguessable slugs and share links', () => {
     const s = makeSlug();

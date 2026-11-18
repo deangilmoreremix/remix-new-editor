@@ -149,3 +149,16 @@ describe('auto-reply settings', () => {
     expect(back(clip)).toMatchObject({ autoReplyEnabled: true });
   });
 });
+
+describe('form ids for view counting', () => {
+  it('the wall counts as "list-builder"; a Lead Generator uses its clip id; the editor preview is not counted', () => {
+    const wall = showOptinOverlay(layerOf(), cfg([{ id: 0, label: 'Email', token: 'EMAIL', type: 'email' }]), { onSubmit: vi.fn() });
+    expect(wall.querySelector('form').dataset.ctaId).toBe('list-builder');
+    const lg = showOptinOverlay(layerOf(), cfg([{ id: 0, label: 'Email', token: 'EMAIL', type: 'email' }]), { onSubmit: vi.fn(), name: 'lead-form', ctaId: 'ov-123' });
+    expect(lg.querySelector('form').dataset.ctaId).toBe('ov-123');
+    const bare = showOptinOverlay(layerOf(), cfg([{ id: 0, label: 'Email', token: 'EMAIL', type: 'email' }]), { onSubmit: vi.fn(), name: 'lead-form' });
+    expect(bare.querySelector('form').dataset.ctaId).toBeUndefined();
+    const preview = showOptinOverlay(layerOf(), cfg([{ id: 0, label: 'Email', token: 'EMAIL', type: 'email' }]), { onSubmit: vi.fn(), preview: true });
+    expect(preview.querySelector('form').dataset.ctaId).toBeUndefined();
+  });
+});
