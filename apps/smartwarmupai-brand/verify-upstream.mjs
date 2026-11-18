@@ -30,12 +30,17 @@ const checks = [
   { name: "documentation content (docs/content/docs)", ours: path.join(root, "apps/smartwarmupai-help/content/docs"), theirs: path.join(upstream, "docs/content/docs"), allowModified: [], allowAdded: [] },
   // Screenshots were re-captured from the rebranded dashboard on purpose; the OpenAPI files must match.
   { name: "documentation assets (docs/public)", ours: path.join(root, "apps/smartwarmupai-help/assets"), theirs: path.join(upstream, "docs/public"), allowModified: [/^guides\//, "dashboard-campaigns.png"].map(String), allowAdded: [], regexModified: [/^guides\//, /^dashboard-campaigns\.png$/], ignoreMissing: [/^_headers$/, /^logo\.svg$/] },
+  { name: "backend and services (cmd, internal, deploy, tracking, realtime, forms, portal, admin, ...)", ours: path.join(root, "apps/warmbly-server"), theirs: upstream,
+    include: ["cmd", "internal", "deploy", "tracking", "realtime", "forms", "portal", "admin", "scripts", "resources", "integrations", "hubspot-app", "pipedrive-app", "go.mod", "go.sum", "tools.go", "Makefile", "docker-compose.yml", "docker-compose.dev.yml", ".env.example", ".golangci.yml", ".dockerignore", ".gitignore", ".trivyignore", "LICENSE"],
+    allowAdded: ["UPSTREAM.md", "docs/", "bin/"] },
+  { name: "backend's embedded docs package (docs/embed.go, content, OpenAPI)", ours: path.join(root, "apps/warmbly-server/docs"), theirs: path.join(upstream, "docs"), include: ["embed.go", "content", "public/openapi.json"] },
   { name: "agent and contributor originals", ours: path.join(root, "apps/smartwarmupai-help/upstream"), theirs: upstream, only: ["README.md", "CONTRIBUTING.md", "AGENTS.md", "skills/warmbly-cli/SKILL.md", "skills/warmbly-ops/SKILL.md", "skills/warmbly-api/SKILL.md", "skills/warmbly-install/SKILL.md"] },
 ];
 
 let failed = false;
 for (const c of checks) {
-  const ours = c.only ?? walk(c.ours); const theirs = c.only ?? walk(c.theirs);
+  const inc = (f) => !c.include || c.include.some((i) => f === i || f.startsWith(`${i}/`));
+  const ours = c.only ?? walk(c.ours).filter(inc); const theirs = c.only ?? walk(c.theirs).filter(inc);
   const theirSet = new Set(theirs); const ourSet = new Set(ours);
   const identical = [], modified = [], added = [], missing = [];
   for (const f of ours) {
