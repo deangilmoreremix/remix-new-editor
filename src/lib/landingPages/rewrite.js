@@ -14,7 +14,7 @@ export const BATCH = 60;
 const MAX_TEXT = 700;
 
 // Keys that are settings, links, media or identifiers, not copy.
-const SKIP_KEYS = /^(id|type|key|kind|variant|layout|columns|cols|align|style|icon|design|url|href|src|image|img|photo|logo|avatar|background|bg|poster|arrow|accent|highlight|rounded|showForm|options|required|buttonUrl|loginUrl|days|month|time|date|zones|root)$/i;
+const SKIP_KEYS = /^(fbPixelId|gaMeasurementId|tiktokPixelId|gtmId|afterAction|afterUrl|privacyLink|buttonColor|id|type|key|kind|variant|layout|columns|cols|align|style|icon|design|url|href|src|image|img|photo|logo|avatar|background|bg|poster|arrow|accent|highlight|rounded|showForm|options|required|buttonUrl|loginUrl|days|month|time|date|zones|root)$/i;
 // Whole lists that hold form field definitions (names/placeholders must stay as built).
 const SKIP_LISTS = /^(formFields|fields)$/i;
 const URLISH = /^(https?:|mailto:|tel:|#|\/|data:|javascript:)/i;

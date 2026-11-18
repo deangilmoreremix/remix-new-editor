@@ -27,7 +27,7 @@ function Ico({ name }) {
   return <svg className="ps-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={ICONS[name]} /></svg>;
 }
 
-function PersonaHero({ eyebrow, headline, subhead, bullets, buttonLabel, buttonUrl, chipText, chipScript, photo, slotImage, slotVideo, bakedPlay, formTitle, formSubtitle, formFields, submitLabel, privacy }) {
+function PersonaHero({ eyebrow, headline, subhead, bullets, buttonLabel, buttonUrl, chipText, chipScript, photo, slotImage, slotVideo, bakedPlay, formOptions, formTitle, formSubtitle, formFields, submitLabel, privacy }) {
   const t = useTokens();
   const fields = asList(formFields).filter((f) => f.key && f.label).map((f) => ({ ...f, key: String(f.key).replace(/[^a-z0-9_]/gi, '').toLowerCase() }));
   return (
@@ -43,7 +43,7 @@ function PersonaHero({ eyebrow, headline, subhead, bullets, buttonLabel, buttonU
         <VideoPlayer poster={photo} slotImage={slotImage} slotVideo={slotVideo} bakedPlay={bakedPlay} />
         {chipText || chipScript ? <div className="pk-chip">{chipText ? <span>{t(chipText)} </span> : null}{chipScript ? <span className="ps-script">{t(chipScript)}</span> : null}</div> : null}
       </div>
-      <div className="pk-hero-form" id="lead"><LeadForm title={formTitle} subtitle={formSubtitle} submitLabel={submitLabel} privacy={privacy} fields={fields.length ? fields : undefined} /></div>
+      <div className="pk-hero-form" id="lead"><LeadForm options={formOptions} title={formTitle} subtitle={formSubtitle} submitLabel={submitLabel} privacy={privacy} fields={fields.length ? fields : undefined} /></div>
     </header>
   );
 }

@@ -50,7 +50,7 @@ function NeonHero(p) {
       </div>
       <div className="pk-hero-form" id="lead" ref={formRef}>
         <span hidden ref={iconsRef}>{['user', 'mail', 'building', 'phone'].map((n) => <span key={n} data-ico={n}><Icon name={n} /></span>)}</span>
-        <LeadForm title={p.formTitle} submitLabel={p.submitLabel} privacy={p.privacy} fields={fields.length ? fields : undefined} />
+        <LeadForm options={p.formOptions} title={p.formTitle} submitLabel={p.submitLabel} privacy={p.privacy} fields={fields.length ? fields : undefined} />
         {asList(p.buttons).length ? (
           <div className="pk-neon-or">
             {p.orLabel ? <span className="pk-neon-or-line">{t(p.orLabel)}</span> : null}

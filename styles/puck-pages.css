@@ -179,3 +179,12 @@
 
 /* Greeting strip: only rendered for a personal link (see PersonalGreeting). */
 .pk-greeting { text-align: center; padding: 8px 16px; font-size: 14px; font-weight: 700; letter-spacing: .01em; background: var(--pk-accent); color: var(--pk-on-accent, #fff); }
+
+/* Lead form options: the pointer (arrow + bubble) and the privacy link, in the design's own colours. */
+.pk-pointer { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0 auto 8px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: var(--pk-b1, var(--pk-accent, #2563eb)); }
+.pk-pointer-bubble { padding: 6px 14px; border-radius: 999px; background: var(--pk-b1, var(--pk-accent, #2563eb)); color: var(--pk-on-btn, #fff); font-size: 13px; font-weight: 800; line-height: 1.2; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+.pk-pointer-arrow { animation: pk-pointer-bob 1s ease-in-out infinite; }
+@keyframes pk-pointer-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .pk-pointer-arrow { animation: none; } }
+.pk-privacy a { color: inherit; text-decoration: underline; }
+.pk-gate-card .pk-form { margin: 0; }

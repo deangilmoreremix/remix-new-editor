@@ -10,6 +10,7 @@ import { PUCK_TEMPLATES } from './designs.js';
 import { slotFields, SLOT_DEFAULTS } from './slotFields.js';
 import { ThanksContext, FormSettingsContext } from './context.js';
 import { choicesField } from './choicesField.jsx';
+import { formOptionsField } from './formOptions.jsx';
 import { ListBuilderForm, OptinGate, PixelLoader, optinConfigField, defaultListBuilder, publicOptinConfig } from './optinForm.jsx';
 
 // Designs may ship extra components (puck/extensions/NN-name.jsx exporting `components`), merged in automatically.
@@ -23,6 +24,11 @@ const cols = { type: 'select', label: 'Width (grid columns)', options: [1, 2, 3,
 const buttonArray = { type: 'array', label: 'Buttons', arrayFields: { label: T('Text'), url: T('Link (https, mailto: or tel:)'), style: { type: 'radio', label: 'Style', options: [{ label: 'Primary', value: 'primary' }, { label: 'Secondary', value: 'secondary' }] } }, getItemSummary: (i) => i.label || 'Button', defaultItemProps: { label: 'Button', url: '', style: 'secondary' } };
 const linkArray = (label) => ({ type: 'array', label, arrayFields: { label: T('Text'), url: T('Link (optional)') }, getItemSummary: (i) => i.label || 'Link', defaultItemProps: { label: 'Link', url: '' } });
 const formFieldArray = { type: 'array', label: 'Form fields', arrayFields: { key: T('Field name (a-z)'), label: T('Label / placeholder'), type: { type: 'select', label: 'Type', options: ['text', 'email', 'tel', 'number', 'date', 'textarea', 'select'].map((v) => ({ label: v === 'select' ? 'dropdown' : v === 'tel' ? 'phone' : v, value: v })) }, options: choicesField('Dropdown choices'), placeholder: T('Placeholder (shown before a choice is picked)'), required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, getItemSummary: (i) => i.label || 'Field', defaultItemProps: { key: 'name', label: 'Name', type: 'text', required: true } };
+
+// Every design's form gets the same controls: the full box list and the List Builder / Lead Generator options.
+for (const c of Object.values(EXT_COMPONENTS)) {
+  if (c?.fields?.formFields) c.fields = { ...c.fields, formFields: formFieldArray, formOptions: formOptionsField() };
+}
 
 const HERO_FIELDS = [{ key: 'name', label: 'Your Name', type: 'text', required: true }, { key: 'email', label: 'Your Email', type: 'email', required: true }, { key: 'company', label: 'Your Company', type: 'text', required: false }];
 
@@ -57,7 +63,7 @@ export const puckConfig = {
     },
   },
   categories: {
-    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'ListBuilderForm', 'LeadGeneratorForm', 'CtaBar', 'Showcase', 'Footer', 'PageImage'] },
+    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Showcase', 'Footer', 'PageImage'] },
     extras: { title: 'Design extras', components: Object.keys(EXT_COMPONENTS), defaultExpanded: false },
     cards: { title: 'Cards (drop into a Grid)', components: ['LeadMagnetCard', 'TableCard', 'StatsCard', 'ChecklistCard', 'QuoteCard', 'StepsCard', 'FeaturesCard', 'FaqCard', 'KpiCard', 'ScheduleCard', 'ButtonCard'] },
   },
@@ -82,6 +88,7 @@ export const puckConfig = {
         chip: T("Label on the video (your own words over the picture; text inside a photo can't be edited, so swap the picture)"),
         photo: T('Placeholder image before the video plays (https link)'),
         ...slotFields(),
+        formOptions: formOptionsField(),
         showForm: { type: 'radio', label: 'Lead form', options: [{ label: 'Show', value: 'yes' }, { label: 'Hide', value: 'no' }] },
         formTitle: T('Form title'),
         formSubtitle: T('Form subtitle'),
@@ -123,7 +130,7 @@ export const puckConfig = {
     },
     ContactBand: {
       label: 'Contact form band',
-      fields: { eyebrow: T('Small label'), title: T('Headline'), text: A('Text'), fields: formFieldArray, submitLabel: T('Button text'), successMessage: T('Thank-you message') },
+      fields: { eyebrow: T('Small label'), title: T('Headline'), text: A('Text'), fields: formFieldArray, submitLabel: T('Button text'), successMessage: T('Thank-you message'), formOptions: formOptionsField() },
       defaultProps: { eyebrow: "Let's talk", title: 'Ready to get started?', text: 'Tell us a little about your team and we will get back to you.', fields: [{ key: 'name', label: 'Name', type: 'text', required: true }, { key: 'email', label: 'Work email', type: 'email', required: true }, { key: 'message', label: 'How can we help?', type: 'textarea', required: false }], submitLabel: 'Contact us', successMessage: 'Thanks! We will be in touch.' },
       render: (p) => <C.ContactBand {...p} />,
     },

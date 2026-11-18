@@ -29,7 +29,7 @@ function DreamHero(p) {
         {p.chip ? <div className="pk-chip dh-chip">{t(p.chip)}</div> : null}
       </div>
       <div className="pk-hero-form dh-form" id="lead">
-        <LeadForm title={p.formTitle} subtitle={p.formSubtitle} submitLabel={p.submitLabel} privacy={p.privacy} fields={fields.length ? fields : undefined} />
+        <LeadForm options={p.formOptions} title={p.formTitle} subtitle={p.formSubtitle} submitLabel={p.submitLabel} privacy={p.privacy} fields={fields.length ? fields : undefined} />
         {asList(p.buttons).length ? (
           <div className="dh-or">
             {p.orLabel ? <span className="dh-or-line">{t(p.orLabel)}</span> : null}

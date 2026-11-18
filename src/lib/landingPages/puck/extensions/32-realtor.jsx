@@ -30,7 +30,7 @@ function RealtorNav({ brand, tagline, logo, links, ctaLabel, ctaUrl }) {
 const cssBg = (v) => { const u = img(v); return u && !/["'()\\\s<>]/.test(u) ? `url(${JSON.stringify(u)})` : ''; };
 
 /** Hero without its own video (the page video lives in the section below): photo background, copy, tick list and the real lead form. */
-function RealtorHero({ background, eyebrow, headline, subhead, bullets, formTitle, formSubtitle, formFields, submitLabel, privacy }) {
+function RealtorHero({ background, eyebrow, headline, subhead, bullets, formOptions, formTitle, formSubtitle, formFields, submitLabel, privacy }) {
   const t = useTokens();
   const fields = list(formFields).filter((f) => f.key && f.label).map((f) => ({ ...f, key: String(f.key).replace(/[^a-z0-9_]/gi, '').toLowerCase() }));
   return (
@@ -41,7 +41,7 @@ function RealtorHero({ background, eyebrow, headline, subhead, bullets, formTitl
         {subhead ? <p className="pk-subhead">{t(subhead)}</p> : null}
         {list(bullets).length ? <ul className="pk-bullets">{list(bullets).map((b, i) => <li key={i}>{t(b.text)}</li>)}</ul> : null}
       </div>
-      <div className="pk-hero-form" id="lead"><LeadForm title={formTitle} subtitle={formSubtitle} submitLabel={submitLabel} privacy={privacy} fields={fields.length ? fields : undefined} /></div>
+      <div className="pk-hero-form" id="lead"><LeadForm options={formOptions} title={formTitle} subtitle={formSubtitle} submitLabel={submitLabel} privacy={privacy} fields={fields.length ? fields : undefined} /></div>
     </header>
   );
 }

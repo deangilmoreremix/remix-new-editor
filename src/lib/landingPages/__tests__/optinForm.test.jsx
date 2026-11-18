@@ -29,9 +29,10 @@ describe('List Builder / Lead Generator on a page', () => {
     ['webhook', 'webhookEnabled', 'emailEnabled', 'emailAddress', 'espProvider', 'espListId'].forEach((k) => expect(keys).not.toContain(k));
     expect(pageOptinFields(defaultListBuilder('lead-generator')).find((f) => f.key === 'elements').fieldTypes.map(([t]) => t)).toContain('phone');
   });
-  it('is available as two addable sections', () => {
+  it('the standalone sections stay registered for saved pages but are no longer offered as new designs', () => {
     expect(puckConfig.components.ListBuilderForm).toBeTruthy(); expect(puckConfig.components.LeadGeneratorForm).toBeTruthy();
-    expect(puckConfig.categories.sections.components).toEqual(expect.arrayContaining(['ListBuilderForm', 'LeadGeneratorForm']));
+    expect(puckConfig.categories.sections.components).not.toEqual(expect.arrayContaining(['ListBuilderForm']));
+    expect(puckConfig.categories.sections.components).not.toEqual(expect.arrayContaining(['LeadGeneratorForm']));
     expect(puckConfig.components.LeadGeneratorForm.defaultProps.config.kind).toBe('lead-generator');
   });
   it('renders the timeline form inline and sends the answers through the page lead pipeline', async () => {

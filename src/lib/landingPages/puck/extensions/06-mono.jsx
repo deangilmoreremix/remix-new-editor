@@ -51,7 +51,7 @@ function Hero(p) {
           <Sparkle />
         </div>
       </div>
-      <div className="pk-hero-form" id="lead"><LeadForm title={p.formTitle} subtitle={p.formSubtitle} submitLabel={p.submitLabel} privacy={p.privacy} fields={fields.length ? fields : undefined} /></div>
+      <div className="pk-hero-form" id="lead"><LeadForm options={p.formOptions} title={p.formTitle} subtitle={p.formSubtitle} submitLabel={p.submitLabel} privacy={p.privacy} fields={fields.length ? fields : undefined} /></div>
     </header>
   );
 }
