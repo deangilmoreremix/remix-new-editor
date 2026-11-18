@@ -27,7 +27,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
-  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
+  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, verifyTurnstile, parseExtraDomains, emailKeyOf, emailDomain, domainAcceptsMail, isDuplicateError, isMissingColumnError, type DnsResolver, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
   isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, hostOf, deriveSigningSecret,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, deliverWebhook, type Delivery, type DeliverDeps, type HttpCall, type Json,
 } from "./logic.ts";
@@ -50,6 +50,13 @@ const LEAD_EMAIL_FROM = Deno.env.get("LEAD_EMAIL_FROM") ?? "";
 const WEBHOOK_SIGNING_MASTER = Deno.env.get("WEBHOOK_SIGNING_SECRET") ?? "";
 // Kit / MailerLite API keys are stored AES-GCM encrypted with this key (any long random string).
 const INTEGRATIONS_KEY = Deno.env.get("INTEGRATIONS_ENCRYPTION_KEY") ?? "";
+
+// Optional Cloudflare Turnstile: with this secret set, published-video submissions must carry a valid `cf-turnstile-response`.
+const TURNSTILE_SECRET = Deno.env.get("TURNSTILE_SECRET_KEY") ?? "";
+// Optional: comma-separated extra throwaway domains for the "block throwaway emails" setting.
+const EXTRA_DISPOSABLE = parseExtraDomains(Deno.env.get("LEAD_EXTRA_DISPOSABLE_DOMAINS"));
+// The MX check on the lead's email domain is on unless LEAD_MX_CHECK=off. It only rejects a domain with no MX/A/AAAA records.
+const MX_CHECK = (Deno.env.get("LEAD_MX_CHECK") ?? "on").toLowerCase() !== "off";
 
 const KINDS = new Set(["lead-form", "list-builder", "personalizer", "call-attempt"]);
 const WEBHOOK_TIMEOUT_MS = 8000; // email requests
@@ -102,6 +109,12 @@ function clientKey(req: Request): string {
   return req.headers.get("cf-connecting-ip") ?? req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     req.headers.get("authorization")?.slice(-24) ?? "anonymous";
 }
+
+/** Deno's DNS resolver, or null where the runtime has none (the MX check is then skipped). */
+const dnsResolver = (): DnsResolver | null => {
+  const resolve = (Deno as unknown as { resolveDns?: DnsResolver }).resolveDns;
+  return resolve ? (name, type) => resolve(name, type) : null;
+};
 
 /** Best-effort DNS check: refuse hosts that resolve to private addresses (rebinding / split-horizon DNS). */
 async function resolvesPublic(url: string): Promise<boolean> {
@@ -288,6 +301,8 @@ Deno.serve(async (req: Request) => {
     if (!SUPABASE_SERVICE_ROLE_KEY) return json(req, { ok: false, error: "Lead backend not configured" }, 500);
     // Bots get the same answer a real viewer gets, but nothing is stored or forwarded.
     if (looksAutomated(body.signals)) return json(req, { ok: true, stored: true });
+    const human = await verifyTurnstile(TURNSTILE_SECRET, body["cf-turnstile-response"], clientKey(req), (url, init) => fetch(url, init));
+    if (!human.ok) return json(req, { ok: false, error: "Please complete the verification and try again." }, 400);
     const leadData = sanitizeData(body.data);
     if (!Object.keys(leadData).length) return json(req, { ok: false, error: "Empty submission" }, 400);
     // Shared (database) limits survive across function instances: per video
@@ -307,11 +322,15 @@ Deno.serve(async (req: Request) => {
     if (videoError || !video) return json(req, { ok: false, error: "Unknown video" }, 404);
     const { config, listBuilder } = leadConfigFor(video.project as Json, leadKind, clipId);
     if (!config) return json(req, { ok: false, error: "This video has no such form" }, 400);
-    const emailIssue = emailProblem(leadData, { blockDisposable: config.blockDisposableEmails === true });
+    const emailIssue = emailProblem(leadData, { blockDisposable: config.blockDisposableEmails === true, extraDisposable: EXTRA_DISPOSABLE });
     if (emailIssue) return json(req, { ok: false, error: emailIssue }, 400);
+    const emailKey = leadKind === "call-attempt" ? "" : emailKeyOf(leadData);
+    if (emailKey && MX_CHECK && !(await domainAcceptsMail(emailDomain(emailKey), dnsResolver()))) {
+      return json(req, { ok: false, error: "That email address doesn't look reachable. Please check it." }, 400);
+    }
     const src = sanitizeSource(body.source);
     const attribution = attributionOf(src);
-    const { error: insertError } = await admin.from("video_leads").insert({
+    const row = {
       clerk_user_id: video.clerk_user_id,
       project_id: publishedId,
       clip_id: leadKind === "list-builder" || leadKind === "personalizer" ? "list-builder" : clipId,
@@ -319,7 +338,11 @@ Deno.serve(async (req: Request) => {
       data: leadData,
       source: { ...src, published: true },
       preview: false,
-    });
+    };
+    // email_key + its unique index (migration 20261118130000) make a repeat sign-up (same email, same form) a no-op.
+    let { error: insertError } = await admin.from("video_leads").insert(emailKey ? { ...row, email_key: emailKey } : row);
+    if (isMissingColumnError(insertError)) ({ error: insertError } = await admin.from("video_leads").insert(row)); // migration not applied yet
+    if (isDuplicateError(insertError)) return json(req, { ok: true, stored: true, duplicate: true });
     if (insertError) console.warn("[lead-capture] published insert failed:", insertError.code);
     const callNotify = leadKind === "call-attempt"
       ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "").trim()
