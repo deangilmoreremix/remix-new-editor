@@ -334,4 +334,48 @@ describe('burned-in captions', () => {
     const { container } = mountComposition(withCaptions({ style: 'does-not-exist' }, 30))
     expect(layer(container)?.getAttribute('data-caption-text')).toBe('Call us today')
   })
+
+  describe('other languages and scripts', () => {
+    const line = (c: HTMLElement) => layer(c) as HTMLElement
+    const one = (text: string, over: Record<string, unknown> = {}) => withCaptions({ cues: [{ startMs: 500, endMs: 1500, text }], ...over }, 30)
+    it('sets right-to-left languages right to left, from the saved language or from the text itself', () => {
+      expect(line(mountComposition(one('مرحبا بالعالم', { language: 'ar' })).container).style.direction).toBe('rtl')
+      expect(line(mountComposition(one('שלום עולם')).container).style.direction).toBe('rtl') // no language saved: read from the letters
+      expect(line(mountComposition(one('Call us today')).container).style.direction).toBe('')
+      expect(line(mountComposition(one('Call us today', { language: 'es' })).container).style.direction).toBe('')
+    })
+    it('adds the script\'s fonts after the look\'s own and keeps Latin text as it was', () => {
+      expect(line(mountComposition(one('مرحبا', { language: 'ar' })).container).style.fontFamily).toContain('Noto Sans Arabic')
+      expect(line(mountComposition(one('こんにちは', { language: 'ja' })).container).style.fontFamily).toContain('Noto Sans')
+      expect(line(mountComposition(one('Call us today')).container).style.fontFamily).not.toContain('Noto Sans Arabic')
+    })
+    it('puts the script\'s fonts BEFORE the generic families, so an installed Arabic or CJK font is used instead of whatever the system font happens to cover', () => {
+      for (const [text, language, font] of [['مرحبا', 'ar', 'Noto Sans Arabic'], ['שלום', 'he', 'Noto Sans Hebrew'], ['こんにちは', 'ja', 'Noto Sans JP']] as const) {
+        const stack = line(mountComposition(one(text, { language })).container).style.fontFamily
+        expect(stack.indexOf(font), language).toBeGreaterThan(-1)
+        expect(stack.indexOf(font), language).toBeLessThan(stack.indexOf('system-ui'))
+        expect(stack.indexOf(font), language).toBeLessThan(stack.indexOf('ui-sans-serif'))
+      }
+      const capite = line(mountComposition(one('مرحبا', { language: 'ar', style: 'hormozi' })).container).style.fontFamily
+      expect(capite.indexOf('Noto Sans Arabic')).toBeLessThan(capite.indexOf('system-ui'))
+    })
+    it('keeps the look\'s own named fonts ahead of the script\'s, so Latin letters in a mixed line keep the look\'s face', () => {
+      const stack = line(mountComposition(one('مرحبا', { language: 'ar' })).container).style.fontFamily
+      expect(stack.indexOf('Personalization Sans')).toBeGreaterThan(-1)
+      expect(stack.indexOf('Personalization Sans')).toBeLessThan(stack.indexOf('Noto Sans Arabic'))
+      expect(stack.indexOf('Inter')).toBeLessThan(stack.indexOf('Noto Sans Arabic'))
+    })
+    it('sets wide scripts a little smaller so a line holds about as many letters, never below 60 %', () => {
+      const size = (el: HTMLElement) => parseFloat(el.style.fontSize)
+      const latin = size(line(mountComposition(one('Call us today')).container))
+      const cjk = size(line(mountComposition(one('今日は電話してください', { language: 'ja' })).container))
+      expect(cjk).toBeLessThan(latin)
+      expect(cjk).toBeGreaterThanOrEqual(latin * 0.6 - 1)
+    })
+    it('does the same for the Capite looks', () => {
+      const hormozi = { style: 'hormozi' }
+      expect(line(mountComposition(one('مرحبا', { ...hormozi, language: 'ar' })).container).style.direction).toBe('rtl')
+      expect(line(mountComposition(one('Call us today', hormozi)).container).style.direction).toBe('')
+    })
+  })
 })

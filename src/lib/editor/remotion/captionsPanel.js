@@ -12,6 +12,7 @@ import {
   splitCaption, mergeCaptions, shiftCaptions, captionsFromFile, captionsToSrt, captionsToVtt,
 } from './captions.js';
 import { WHISPER_MODELS } from './transcribe.js';
+import { LANGUAGES } from '../../../features/personalization/shared/personalization/captions/scripts';
 import { OVERLAY_FONTS } from '../addons/overlayData.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -19,11 +20,7 @@ const sec = (ms) => (Math.round(ms / 10) / 100).toFixed(2);
 
 export const CAPTION_FONTS = [...new Set(['Montserrat', 'Inter', 'Poppins', 'Anton', 'Bebas Neue', 'Roboto', ...OVERLAY_FONTS, ...Object.values(CAPITE_PRESETS).map((p) => p.fontFamily)])];
 
-export const CAPTION_LANGUAGES = [
-  ['auto', 'Detect language'], ['en', 'English'], ['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['pt', 'Portuguese'],
-  ['it', 'Italian'], ['nl', 'Dutch'], ['pl', 'Polish'], ['tr', 'Turkish'], ['ru', 'Russian'], ['ar', 'Arabic'], ['hi', 'Hindi'],
-  ['ja', 'Japanese'], ['ko', 'Korean'], ['zh', 'Chinese'],
-];
+export const CAPTION_LANGUAGES = [['auto', 'Detect language'], ...LANGUAGES];
 
 /**
  * @param {HTMLElement} container

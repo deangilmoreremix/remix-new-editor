@@ -104,7 +104,7 @@ export async function upscaleImage(src: string, opts: { onProgress?: (p: Progres
 }
 
 /** Speech to text for a video's audio. Cut into word-level captions (milliseconds from the start). */
-export async function transcribeVideo(src: string, opts: { onProgress?: (p: Progress) => void; signal?: AbortSignal } = {}): Promise<{ text: string; captions: CaptionLine[] }> {
+export async function transcribeVideo(src: string, opts: { onProgress?: (p: Progress) => void; signal?: AbortSignal; /** ISO code to transcribe in; leave out to detect it. */ language?: string } = {}): Promise<{ text: string; captions: CaptionLine[] }> {
   const { transcribeInBrowser } = await loadTranscribe()
   const out = await transcribeInBrowser(src, { model: WHISPER_MODEL_ID, ...opts })
   return { text: String(out.text || ''), captions: (out.captions as CaptionLine[]) ?? [] }
