@@ -6,6 +6,7 @@
 import { parseChoices } from './choicesField.jsx';
 import { normalizeOptions, fieldRequired, afterSubmitPlan, personalizePage, hasTracking, gateSeen, markGateSeen, PointerHint } from './formOptions.jsx';
 import { PixelLoader } from './optinForm.jsx';
+import { tokenAnswers, leadKindFor } from '../leadPipeline.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { fillTokens, splitAccent, prefillFor, safeUrl, safeImageUrl } from '../templates.js';
@@ -125,10 +126,11 @@ function LeadFormBody({ title, subtitle, submitLabel = 'Send', successMessage = 
     const data = {};
     new FormData(e.currentTarget).forEach((v, k) => { data[k] = String(v); });
     setState({ status: 'sending', error: '' });
-    const res = await (handlers.onLead?.(data) ?? { error: 'Form is not available' });
+    // Saved the way the timeline's List Builder / Lead Generator saves: answers keyed by the box tokens, with the form's kind.
+    const res = await (handlers.onLead?.(tokenAnswers(fields, data), { kind: leadKindFor(o.kind) }) ?? { error: 'Form is not available' });
     if (res?.error) { setState({ status: 'idle', error: 'Could not send. Please try again.' }); return; }
     setState({ status: 'done', error: '' });
-    if (o.kind === 'personalizer' && personalizePage(data)) return;
+    if (o.kind === 'personalizer' && personalizePage(tokenAnswers(fields, data))) return;
     const go = plan.action === 'redirect' ? safeUrl(plan.url) : '';
     if (go && /^https:/i.test(go)) setTimeout(() => { try { window.location.assign(go); } catch { /* the thank-you message stays */ } }, 1500);
     onDone?.(data);

@@ -12,7 +12,7 @@ describe('leads and heat panels', () => {
     expect(contactLabel('c2', byId)).toBe('Acme');
     expect(contactLabel('c3', byId)).toBe('Link c3');
     expect(contactLabel(null, byId)).toBe('Direct visit');
-    const rows = leadTableRows([{ id: 1, createdAt: 't', source: { contactId: 'c1', page: 'https://x/p/abc' }, data: { EMAIL: 'd@x.co' } }, { id: 2, createdAt: 't2', source: {}, data: { EMAIL: 'z@x.co' } }], byId);
+    const rows = leadTableRows([{ id: 1, createdAt: 't', kind: 'list-builder', source: { contactId: 'c1', page: 'https://x/p/abc' }, data: { EMAIL: 'd@x.co' } }, { id: 2, createdAt: 't2', source: {}, data: { EMAIL: 'z@x.co' } }], byId);
     expect(rows.map((r) => r.who)).toEqual(['Dana Whitfield', 'Direct visit']);
     expect(rows[0].answers).toEqual({ EMAIL: 'd@x.co' });
   });

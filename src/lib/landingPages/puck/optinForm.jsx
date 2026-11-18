@@ -19,6 +19,7 @@ import { defaultListBuilder, normalizeListBuilder, listBuilderFields } from '../
 import { buildOptinForm, buildArrowHint, startPointer, showOptinOverlay, showThanks, ensureFormFont } from '../optin/addonOverlay.js';
 import { renderAddonEditor } from '../optin/addonEditor.js';
 import { usePage } from './context.js';
+import { leadKindFor } from '../leadPipeline.js';
 
 /** Keys that must never be published with a page: delivery targets and any private/internal value. */
 const PRIVATE_KEY = /^(webhook|email|esp|_)/i;
@@ -38,7 +39,14 @@ export function publicOptinConfig(config) {
 /** An answer key the lead pipeline accepts and the e-mail-list step can read: "FIRST NAME" -> first_name. */
 export const answerKey = (token) => String(token || 'field').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40) || 'field';
 
-/** Form answers (keyed by the form's tokens) as the page's lead payload. */
+/** The answers exactly as the timeline saves them: keyed by the box tokens ("FIRST NAME"), empty ones dropped. */
+export function rawAnswers(data) {
+  const out = {};
+  for (const [k, v] of Object.entries(data || {})) { const val = String(v ?? '').trim().slice(0, 2000); if (val && k) out[String(k).slice(0, 64)] = val; }
+  return out;
+}
+
+/** Form answers keyed by lowercase names, used to map a Personalizer's answers to the page's tokens. */
 export function leadPayload(data) {
   const out = {};
   for (const [k, v] of Object.entries(data || {})) {
@@ -83,7 +91,7 @@ function wireSubmit(form, { cfg, page, handlers, layer, onDone, preview }) {
     if (preview) { if (status) status.textContent = 'Preview only: nothing is sent.'; return; }
     const data = Object.fromEntries(new FormData(form).entries());
     const btn = form.querySelector('button[type="submit"]'); if (btn) btn.disabled = true;
-    const res = await (handlers?.onLead?.(leadPayload(data)) ?? { error: 'Form is not available' });
+    const res = await (handlers?.onLead?.(rawAnswers(data), { kind: leadKindFor(cfg.kind) }) ?? { error: 'Form is not available' });
     if (res?.error) { if (btn) btn.disabled = false; if (status) status.textContent = 'Could not send. Please try again.'; return; }
     if (status) status.textContent = '';
     if (cfg.kind === 'personalizer') {
@@ -166,7 +174,7 @@ export function OptinGate({ config }) {
     wrap = showOptinOverlay(layer, cfg, {
       prefill: {}, allowRedirect: true, name: 'list-builder',
       onSubmit: async (data) => {
-        const res = await (handlers?.onLead?.(leadPayload(data)) ?? { error: 'Form is not available' });
+        const res = await (handlers?.onLead?.(rawAnswers(data), { kind: leadKindFor(cfg.kind) }) ?? { error: 'Form is not available' });
         if (res?.error) throw new Error('Could not send. Please try again.');
         finish();
         if (cfg.kind === 'personalizer') {

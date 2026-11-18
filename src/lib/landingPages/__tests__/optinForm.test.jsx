@@ -44,7 +44,7 @@ describe('List Builder / Lead Generator on a page', () => {
     const email = form.querySelector('input[type="email"]'); email.value = 'dana@example.com';
     const first = [...form.querySelectorAll('input')].find((i) => i !== email); first.value = 'Dana';
     await act(async () => { form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });
-    expect(onLead).toHaveBeenCalledWith({ email: 'dana@example.com', first_name: 'Dana' });
+    expect(onLead).toHaveBeenCalledWith({ EMAIL: 'dana@example.com', 'FIRST NAME': 'Dana' }, { kind: 'list-builder' });
   });
   it('requires required boxes and sends nothing in the editor preview', async () => {
     const onLead = vi.fn(async () => ({}));

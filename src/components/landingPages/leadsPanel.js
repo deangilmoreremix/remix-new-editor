@@ -24,10 +24,12 @@ export function contactLabel(contactId, byId) {
   return [f.firstname, f.lastname].filter(Boolean).join(' ') || f.company || `Link ${String(contactId).slice(0, 6)}`;
 }
 
-/** Rows for the table and the CSV: when, who, then every answer. */
+export const KIND_LABEL = { 'lead-form': 'Lead Generator', 'list-builder': 'List Builder', personalizer: 'Personalizer' };
+
+/** Rows for the table and the CSV: when, who, which form type, then every answer. */
 export function leadTableRows(rows, byId) {
   return rows.map((r) => ({
-    id: r.id, when: r.createdAt, contactId: r.source?.contactId || null, who: contactLabel(r.source?.contactId, byId),
+    id: r.id, when: r.createdAt, kind: r.kind || 'lead-form', contactId: r.source?.contactId || null, who: contactLabel(r.source?.contactId, byId),
     page: r.source?.page || '', answers: r.data || {},
   }));
 }
@@ -49,9 +51,10 @@ export function leadsPanel({ page, getClient, toast }) {
 
     // KPIs
     const views = stats?.views || 0;
-    const kpis = el('div', 'grid gap-3 grid-cols-2 md:grid-cols-4');
+    const kpis = el('div', 'grid gap-3 grid-cols-2 md:grid-cols-6');
     const personal = rows.filter((r) => r.contactId).length;
-    [['Leads', rows.length], ['From personal links', personal], ['Direct visits', rows.length - personal], ['Of viewers signed up', views ? `${Math.min(100, Math.round((rows.length / views) * 100))}%` : '—']].forEach(([k, v]) => {
+    const byKind = (k) => rows.filter((r) => r.kind === k).length;
+    [['Leads', rows.length], ['Lead Generator', byKind('lead-form')], ['List Builder', byKind('list-builder')], ['Personalizer', byKind('personalizer')], ['From personal links', personal], ['Of viewers signed up', views ? `${Math.min(100, Math.round((rows.length / views) * 100))}%` : '—']].forEach(([k, v]) => {
       const c = el('div', 'rounded-xl border border-white/10 bg-panel-bg p-4');
       c.append(el('div', 'text-[11px] uppercase tracking-wide text-secondary', k), el('div', 'text-2xl font-black', String(v)));
       kpis.appendChild(c);
@@ -75,13 +78,14 @@ export function leadsPanel({ page, getClient, toast }) {
       if (!shown.length) { table.replaceChildren(el('p', 'text-sm text-secondary', rows.length ? 'No leads match.' : 'No leads yet. Form answers appear here, matched to the personal link they came from.')); return; }
       const t = el('table', 'w-full text-sm text-left');
       const th = el('tr', 'text-[11px] uppercase tracking-wide text-secondary');
-      ['When', 'Who', ...cols].forEach((c) => th.appendChild(el('th', 'px-2 py-1 whitespace-nowrap', c)));
+      ['When', 'Who', 'Type', ...cols].forEach((c) => th.appendChild(el('th', 'px-2 py-1 whitespace-nowrap', c)));
       t.appendChild(el('thead')).appendChild(th);
       const tb = el('tbody');
       shown.forEach((r) => {
         const tr = el('tr', 'border-t border-white/5');
         tr.appendChild(el('td', 'px-2 py-1 whitespace-nowrap text-secondary', r.when ? new Date(r.when).toLocaleString() : ''));
         tr.appendChild(el('td', 'px-2 py-1 whitespace-nowrap', r.who));
+        tr.appendChild(el('td', 'px-2 py-1 whitespace-nowrap text-secondary', KIND_LABEL[r.kind] || r.kind));
         cols.forEach((c) => tr.appendChild(el('td', 'px-2 py-1', String(r.answers[c] ?? ''))));
         tb.appendChild(tr);
       });
@@ -89,7 +93,7 @@ export function leadsPanel({ page, getClient, toast }) {
     };
     search.addEventListener('input', draw); draw();
     csv.addEventListener('click', () => {
-      const out = leadsToCsv(rows.map((r) => ({ When: r.when, Who: r.who, 'Personal link': r.contactId || '', ...r.answers })));
+      const out = leadsToCsv(rows.map((r) => ({ When: r.when, Who: r.who, Type: KIND_LABEL[r.kind] || r.kind, 'Personal link': r.contactId || '', ...r.answers })));
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([out], { type: 'text/csv' })); a.download = `leads-${page.id}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     });
     card.append(head, table);

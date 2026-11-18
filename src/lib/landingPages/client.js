@@ -7,6 +7,7 @@
  * src/lib/editor/publish/publishClient.js, so the public page stays light.
  */
 import { sanitizeFormSettings } from './formSettings.js';
+import { safeLeadKind } from './leadPipeline.js';
 import { makeSlug } from '../editor/publish/publishClient.js';
 import { sanitizeConfig, safeImageUrl } from './templates.js';
 
@@ -182,14 +183,14 @@ export async function recordPageEvent(pageId, { kind, contactId = null } = {}, {
 }
 
 /** Send a lead-form submission to the page owner (lead-capture edge function). */
-export async function submitPageLead({ pageId, contactId = null, data }, { url, key, fetchImpl = fetch } = env()) {
+export async function submitPageLead({ pageId, contactId = null, data, kind = 'lead-form' }, { url, key, fetchImpl = fetch } = env()) {
   if (!url || !key) return { stored: false, error: 'Lead service is not configured' };
   try {
     const res = await fetchImpl(`${url}/functions/v1/lead-capture`, {
       method: 'POST',
       headers: anonHeaders(key, { 'Content-Type': 'application/json' }),
       body: JSON.stringify({
-        pageId, contactId, kind: 'lead-form', data,
+        pageId, contactId, kind: safeLeadKind(kind), data,
         source: { page: globalThis.location?.href || null, userAgent: globalThis.navigator?.userAgent || null },
       }),
     });

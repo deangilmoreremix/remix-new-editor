@@ -24,7 +24,20 @@ describe('List Builder / Lead Generator options on the design\'s own form', () =
     const { root } = mount(ctx({ handlers: { onLead } }), <LeadForm title="T" submitLabel="Send" fields={FIELDS} />);
     expect(root.querySelectorAll('input[required]').length).toBe(0); expect(document.querySelector('[data-pk-gate]')).toBeNull(); expect(root.querySelector('.pk-pointer')).toBeNull();
     root.querySelector('input[name=name]').value = 'Dana';
-    await submit(root); expect(onLead).toHaveBeenCalledWith({ name: 'Dana', email: '', phone: '' });
+    await submit(root); expect(onLead).toHaveBeenCalledWith({ NAME: 'Dana' }, { kind: 'lead-form' });
+  });
+  it('saves leads the way the timeline does: answers keyed by box tokens, with the form kind', async () => {
+    const calls = [];
+    const onLead = async (d, meta) => { calls.push([d, meta]); return {}; };
+    const f = [{ key: 'first', label: 'First Name', type: 'text' }, { key: 'mail', label: 'Email', type: 'email' }, { key: 'mail2', label: 'Email', type: 'email' }];
+    const fill = (root) => { root.querySelector('input[name=first]').value = 'Dana'; root.querySelector('input[name=mail]').value = 'dana@example.com'; root.querySelector('input[name=mail2]').value = 'd2@example.com'; };
+    for (const [type, kind] of [['lead-generator', 'lead-form'], ['list-builder', 'list-builder'], ['personalizer', 'personalizer']]) {
+      document.body.innerHTML = '';
+      const { root } = mount(ctx({ handlers: { onLead } }), <LeadForm fields={f} options={{ kind: type }} />);
+      fill(root); await submit(root);
+      expect(calls.at(-1)[0]).toEqual({ 'FIRST NAME': 'Dana', EMAIL: 'dana@example.com', EMAIL_2: 'd2@example.com' });
+      expect(calls.at(-1)[1]).toEqual({ kind });
+    }
   });
   it('List Builder makes every box required; Lead Generator keeps each box\'s own setting', () => {
     const lb = mount(ctx(), <LeadForm fields={FIELDS} options={{ kind: 'list-builder' }} />);
