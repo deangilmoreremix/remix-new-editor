@@ -1,6 +1,7 @@
 'use client'
 
 import { AddDesignsPanel } from './AddDesignsPanel'
+import { ShapeExportPanel } from './ShapeExportPanel'
 import { useState } from 'react'
 import { CheckCircle2, Download, Loader2, PlayCircle, ShieldCheck, Sparkles, Upload, X } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
@@ -52,6 +53,9 @@ export function StepPreviewApprove(): React.JSX.Element {
     setAdvancedTab,
     setAdvancedSection,
     createFinalVideo,
+    shapeExport = { status: 'idle', items: [] },
+    exportAllShapes = async () => {},
+    cancelShapeExport = () => {},
     cancelExport,
     apiKey,
     generation,
@@ -256,7 +260,7 @@ export function StepPreviewApprove(): React.JSX.Element {
                   type="button"
                   onClick={handleCreate}
                   // The render uses exactly what was approved.
-                  disabled={generating || extraRunning || !isBrandedPath || !previewApproved || exportBlocked || rightsGate}
+                  disabled={generating || extraRunning || shapeExport.status === 'running' || !isBrandedPath || !previewApproved || exportBlocked || rightsGate}
                   title={isBrandedPath && !previewApproved ? 'Approve the preview first' : exportBlocked ? 'Fix the critical layout problem first' : rightsGate ? 'Confirm you may use this clip' : undefined}
                   aria-pressed={isBrandedPath}
                   style={{
@@ -369,7 +373,18 @@ export function StepPreviewApprove(): React.JSX.Element {
           )}
         </div>
         {isBrandedPath && !inputProps.isImageSource && <CaptionsPanel videoUrl={inputProps.videoUrl} disabled={generating} />}
-        {isBrandedPath && previewApproved && <ExtraFormatsExport inputProps={inputProps} disabled={generating || exportBlocked || rightsGate} onRunningChange={setExtraRunning} />}
+        {isBrandedPath && previewApproved && (
+          <>
+            {/* Two free ways to export other shapes. They share one renderer, so each is disabled while the other runs. */}
+            <ExtraFormatsExport inputProps={inputProps} disabled={generating || exportBlocked || rightsGate || shapeExport.status === 'running'} onRunningChange={setExtraRunning} />
+            <ShapeExportPanel
+              state={shapeExport}
+              disabled={generating || exportBlocked || rightsGate || extraRunning}
+              onStart={() => { void exportAllShapes() }}
+              onCancel={cancelShapeExport}
+            />
+          </>
+        )}
         {generating && generation?.progressMessage && (
           <p style={{ ...hintStyle, marginTop: 8, color: C.cyan }}>{generation.progressMessage}</p>
         )}

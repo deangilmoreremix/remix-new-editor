@@ -1,3 +1,4 @@
+/* global AbortSignal */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   normalizeBeats, parseJsonLoose, keyframePrompt, characterSheetPrompt, clipPrompt, ttsPayload, narrationText, totalDuration, allShots,

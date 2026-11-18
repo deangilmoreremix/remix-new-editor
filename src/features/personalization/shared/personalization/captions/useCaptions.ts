@@ -20,6 +20,9 @@ export interface Captions {
   studioAvailable: boolean
   /** Opens the Caption Studio on this video (existing captions are carried in). */
   openStudio: () => void
+  /** The language to write captions in: an ISO code, or 'auto' to detect it. */
+  language: string
+  setLanguage: (language: string) => void
   setEnabled: (enabled: boolean) => void
   setStyle: (style: CaptionStyleId) => void
   setPosition: (position: CaptionPosition) => void
@@ -46,18 +49,26 @@ export function useCaptions(videoUrl: string | null): Captions {
 
   const stored = previewSettings.captions
   const captions = stored && videoUrl && stored.forUrl === videoUrl ? stored : null
+  // Before any captions exist the choice is kept here; afterwards it lives in the captions themselves.
+  const [pendingLanguage, setPendingLanguage] = useState('auto')
+  const language = captions ? captions.language ?? 'auto' : pendingLanguage
+  const setLanguage = useCallback((next: string) => {
+    setPendingLanguage(next)
+    if (captions) updatePreviewCaptions({ language: next === 'auto' ? undefined : next })
+  }, [captions, updatePreviewCaptions])
 
   const generate = useCallback(async () => {
     if (!videoUrl) return
     const startedFor = videoUrl
     setNote(null)
-    const out = await ai.request((helpers) => transcribeVideo(startedFor, helpers))
+    const chosen = language === 'auto' ? undefined : language
+    const out = await ai.request((helpers) => transcribeVideo(startedFor, chosen ? { ...helpers, language: chosen } : helpers))
     if (!out || latestUrl.current !== startedFor) return
     const cues = groupCaptionCues(out.captions)
     if (!cues.length) { setNote('No speech was found in this video, so there is nothing to caption.'); return }
     const keep = previewSettings.captions
-    updatePreviewCaptions({ enabled: true, forUrl: startedFor, style: keep?.style ?? 'bold', position: keep?.position ?? 'bottom', cues, studio: undefined })
-  }, [ai, videoUrl, previewSettings.captions, updatePreviewCaptions])
+    updatePreviewCaptions({ enabled: true, forUrl: startedFor, style: keep?.style ?? 'bold', position: keep?.position ?? 'bottom', cues, language: chosen, studio: undefined })
+  }, [ai, videoUrl, language, previewSettings.captions, updatePreviewCaptions])
 
   const setEnabled = useCallback((enabled: boolean) => updatePreviewCaptions({ enabled }), [updatePreviewCaptions])
   const setStyle = useCallback((style: CaptionStyleId) => updatePreviewCaptions({ style, studio: undefined }), [updatePreviewCaptions])
@@ -96,5 +107,5 @@ export function useCaptions(videoUrl: string | null): Captions {
     })
   }, [videoUrl, captions, updatePreviewCaptions])
 
-  return { ai, captions, note, generate, studioAvailable, openStudio, setEnabled, setStyle, setPosition, editCue, remove }
+  return { ai, captions, note, generate, language, setLanguage, studioAvailable, openStudio, setEnabled, setStyle, setPosition, editCue, remove }
 }

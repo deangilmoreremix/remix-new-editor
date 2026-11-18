@@ -29,6 +29,7 @@ html.vp-root, html.vp-root body { margin: 0; }
 .vp--light.vp .vp-cta { color: #fff; }
 .vp-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--vp-radius); overflow: hidden; background: #000; box-shadow: 0 20px 60px rgba(0,0,0,.28); }
 .vp-video { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; object-fit: contain; }
+.vp-video-frame { border: 0; }
 
 /* Layouts */
 .vp--stack .vp-main { max-width: 900px; justify-items: stretch; }

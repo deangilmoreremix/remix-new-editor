@@ -14,6 +14,7 @@ import type {
   PersonalizationSource,
 } from '../types'
 import type { ImageHints } from '../preview/imageStyle'
+import { endCardExtraLine } from '../preview/ctaSuggestions'
 import { imageRoleFromCategory } from '../preview/imagePresets'
 import { getCachedSamples, sampleCacheKey } from '../preview/placement/frameSampler'
 import type {
@@ -78,6 +79,11 @@ export function buildPreviewInput(
     imageHints[url] = { ...assetHints[url], ...measured }
   }
 
+  // A transparent logo's padding-trimmed copy (made once in the browser) replaces the original URL here, so every
+  // consumer — gallery, editor, preview and export — draws the same cropped logo.
+  const originalLogoUrl = firstUrl(assets.primaryLogo?.uploadedUrl, assets.primaryLogo?.url)
+  const logoUrl = (originalLogoUrl && imageHints[originalLogoUrl]?.trimmedUrl) || originalLogoUrl
+
   const videoUrl = previewVideo?.url || (source?.mediaType === 'image' ? null : source?.sourceMedia) || null
   // Measured on the cover crop of this frame shape (see useLayoutQuality), so read it the same way.
   const lumaSamples = source?.mediaType === 'image'
@@ -104,7 +110,10 @@ export function buildPreviewInput(
       cta: callToAction,
       phone: clientForm.phone || '',
       website,
-      logoUrl: firstUrl(assets.primaryLogo?.uploadedUrl, assets.primaryLogo?.url),
+      ...(endCardExtraLine({ email: clientForm.email, instagram: clientForm.instagram, cta: callToAction })
+        ? { contactExtra: endCardExtraLine({ email: clientForm.email, instagram: clientForm.instagram, cta: callToAction }) }
+        : {}),
+      logoUrl,
       productUrl: firstUrl(assets.products?.[0]?.uploadedUrl, assets.products?.[0]?.url),
       serviceUrl: firstUrl(
         assets.products?.[1]?.uploadedUrl,

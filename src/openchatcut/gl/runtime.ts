@@ -79,10 +79,11 @@ function makeTexture(gl: WebGL2RenderingContext): WebGLTexture {
 }
 
 /** create a runtime bound to (and sized like) the given canvas */
-export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
+export function createGlRuntime(canvas: HTMLCanvasElement, opts?: { /** [remix] Fix E: texture sources are uploaded premultiplied and the canvas is presented premultiplied, so a transition between translucent pictures keeps a correct alpha */ premultiplied?: boolean }): GlRuntime {
+  const premultiplied = !!opts?.premultiplied;
   // preserveDrawingBuffer: thumb previews copy via drawImage right after draw;
   // without it some GPUs present+clear before the 2D readback lands.
-  const gl = canvas.getContext('webgl2', { premultipliedAlpha: false, alpha: true, preserveDrawingBuffer: true });
+  const gl = canvas.getContext('webgl2', { premultipliedAlpha: premultiplied, alpha: true, preserveDrawingBuffer: true });
   if (!gl) throw new Error('WebGL2 not available');
   const colorManagedGl = gl as WebGL2RenderingContext & {
     drawingBufferColorSpace?: PredefinedColorSpace;
@@ -146,16 +147,39 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); // DOM sources are top-down
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
   };
 
+  // [remix] int/bool/ivec uniforms (vendored gl-transitions params) need uniform1i/2i; looked up once per program.
+  const intUniforms = new WeakMap<WebGLProgram, Map<string, number>>();
+  const intKind = (prog: WebGLProgram, name: string): number => {
+    let m = intUniforms.get(prog);
+    if (!m) {
+      m = new Map();
+      const n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS) as number;
+      for (let i = 0; i < n; i++) {
+        const u = gl.getActiveUniform(prog, i);
+        if (u && (u.type === gl.INT || u.type === gl.BOOL || u.type === gl.INT_VEC2)) m.set(u.name, u.type);
+      }
+      intUniforms.set(prog, m);
+    }
+    return m.get(name) ?? 0;
+  };
   const setUniform = (prog: WebGLProgram, name: string, v: UniformValue) => {
     const loc = gl.getUniformLocation(prog, name);
     if (!loc) return; // shader doesn't use it — fine
+    const ik = intKind(prog, name);
+    if (ik) {
+      if (typeof v === 'number') gl.uniform1i(loc, Math.round(v));
+      else if (v.length === 2) gl.uniform2i(loc, Math.round(v[0]), Math.round(v[1]));
+      return;
+    }
     if (typeof v === 'number') gl.uniform1f(loc, v);
     else if (v.length === 2) gl.uniform2f(loc, v[0], v[1]);
     else if (v.length === 3) gl.uniform3f(loc, v[0], v[1], v[2]);
     else if (v.length === 4) gl.uniform4f(loc, v[0], v[1], v[2], v[3]);
+    else if (v.length > 4 && v.length % 4 === 0) gl.uniform4fv(loc, v); // [remix] Fix C: vec4 arrays (curves LUT, mask polygon)
   };
 
   // ── 3D LUT texture (source $Ne/uJ): with OES_texture_float_linear using RGB32F+FLOAT,
@@ -253,17 +277,19 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
     offset: number,
   ): WebGLTexture => {
     if (passes.length === 0) return source;
-    const targets = ensureFbos(offset + passes.length);
+    // [remix] Fix G: FxPass.slot lets multi-pass effects (pixel sort) ping-pong between a few FBOs instead of keeping one per pass.
+    const slotOf = (i: number) => offset + (passes[i]?.slot ?? i);
+    const targets = ensureFbos(passes.reduce((m, _p, i) => Math.max(m, slotOf(i) + 1), offset));
     for (let index = 0; index < passes.length; index++) {
       const pass = passes[index];
-      gl.bindFramebuffer(gl.FRAMEBUFFER, targets[offset + index].fb);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, targets[slotOf(index)].fb);
       gl.viewport(0, 0, canvas.width, canvas.height);
       const prog = getProgram(pass.frag);
       gl.useProgram(prog);
       bindQuad(prog);
 
       const inputFrom = pass.inputFrom ?? index - 1;
-      const inputTexture = index === 0 ? source : targets[offset + inputFrom]?.tex;
+      const inputTexture = index === 0 ? source : targets[slotOf(inputFrom)]?.tex;
       if (!inputTexture) throw new Error(`invalid FX input pass ${inputFrom} at ${index}`);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, inputTexture);
@@ -272,7 +298,7 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
 
       let unit = 1;
       for (const [name, passIndex] of Object.entries(pass.samplers ?? {})) {
-        const texture = targets[offset + passIndex]?.tex;
+        const texture = targets[slotOf(passIndex)]?.tex;
         if (!texture || passIndex >= index) {
           throw new Error(`invalid FX sampler ${name}=${passIndex} at ${index}`);
         }
@@ -294,7 +320,7 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
-    return targets[offset + passes.length - 1].tex;
+    return targets[slotOf(passes.length - 1)].tex;
   };
 
   const applySourceOpacity = (
@@ -398,7 +424,9 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
     renderFxChain(passes, input) {
       assertContextAvailable();
       if (passes.length === 0) return;
-      const rt = ensureFbos(Math.max(0, passes.length - 1));
+      // [remix] Fix G: pass.slot (default = its index) picks the FBO an intermediate pass writes to / is read from.
+      const slotOf = (i: number) => passes[i]?.slot ?? i;
+      const rt = ensureFbos(passes.reduce((m, _p, i) => (i < passes.length - 1 ? Math.max(m, slotOf(i) + 1) : m), 0));
       // upload the source once (flip: DOM sources are top-down)
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texFx);
@@ -407,14 +435,14 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, input);
       for (let i = 0; i < passes.length; i++) {
         const last = i === passes.length - 1;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, last ? null : rt[i].fb);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, last ? null : rt[slotOf(i)].fb);
         gl.viewport(0, 0, canvas.width, canvas.height);
         const prog = getProgram(passes[i].frag);
         gl.useProgram(prog);
         bindQuad(prog);
         // Intermediate FBO textures are already GL-oriented — bind without re-upload/flip.
         const inputFrom = passes[i].inputFrom ?? i - 1;
-        const inputTex = i === 0 ? texFx : rt[inputFrom]?.tex;
+        const inputTex = i === 0 ? texFx : rt[slotOf(inputFrom)]?.tex;
         if (!inputTex) throw new Error(`invalid FX input pass ${inputFrom} at ${i}`);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, inputTex);
@@ -422,7 +450,7 @@ export function createGlRuntime(canvas: HTMLCanvasElement): GlRuntime {
         if (locIn) gl.uniform1i(locIn, 0);
         let unit = 1;
         for (const [name, passIndex] of Object.entries(passes[i].samplers ?? {})) {
-          const tex = rt[passIndex]?.tex;
+          const tex = rt[slotOf(passIndex)]?.tex;
           if (!tex || passIndex >= i) throw new Error(`invalid FX sampler ${name}=${passIndex} at ${i}`);
           gl.activeTexture(gl.TEXTURE0 + unit);
           gl.bindTexture(gl.TEXTURE_2D, tex);

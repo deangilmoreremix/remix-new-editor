@@ -4,7 +4,9 @@
  * is exactly what viewers get. All user text goes in through textContent, and
  * every URL passes safeUrl/safeImageUrl, so a hostile config can't inject markup.
  */
+import { outreachPlayerSrc } from '../outreach/landingPage.js';
 import { composeLayout } from './layouts.js';
+import { resolveAfterSubmit, scheduleRedirect, linkTarget } from './afterSubmit.js';
 import {
   getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, splitAccent, formatDuration, readableOn, ctaHref, prefillFor, FONTS,
 } from './templates.js';
@@ -153,7 +155,10 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   const player = h(doc, 'div', 'vp-player');
   const frame = h(doc, 'div', 'vp-frame');
   const video = h(doc, 'video', 'vp-video');
-  video.controls = !tpl.customPlayer;
+  // A Video Outreach campaign plays its personal player (each contact's greeting) in the frame.
+  const outreachSrc = preview ? null : outreachPlayerSrc(page?.video_url);
+  const customPlayer = tpl.customPlayer && !outreachSrc;
+  video.controls = !customPlayer;
   video.playsInline = true;
   video.preload = 'metadata';
   video.setAttribute('aria-label', page?.title || 'Video');
@@ -163,7 +168,14 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   const src = /^https:\/\//i.test(page?.video_url || '') ? page.video_url : '';
   if (src) video.src = src;
   if (config.autoplay && !preview) { video.muted = true; video.autoplay = true; }
-  frame.appendChild(video);
+  if (outreachSrc) {
+    const iframe = h(doc, 'iframe', 'vp-video vp-video-frame');
+    iframe.src = outreachSrc;
+    iframe.title = page?.title || 'Video';
+    iframe.allow = 'autoplay; fullscreen; clipboard-write';
+    iframe.setAttribute('allowfullscreen', '');
+    frame.appendChild(iframe);
+  } else frame.appendChild(video);
   player.appendChild(frame);
   media.appendChild(player);
   if (tpl.adaptive) {
@@ -182,7 +194,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   const cleanups = [];
   const listen = (target, type, fn) => { target.addEventListener(type, fn); cleanups.push(() => target.removeEventListener(type, fn)); };
 
-  if (tpl.customPlayer) {
+  if (customPlayer) {
     const bigPlay = h(doc, 'button', 'vp-bigplay');
     bigPlay.type = 'button';
     bigPlay.setAttribute('aria-label', 'Play video');
@@ -404,6 +416,15 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
         return;
       }
       form.replaceChildren(h(doc, 'p', 'vp-thanks', t(config.form.successMessage) || 'Thanks!'));
+      const after = resolveAfterSubmit(config.form);
+      if (after.action === 'button') {
+        const a = h(doc, 'a', 'vp-cta', after.buttonText);
+        a.href = after.url;
+        Object.entries(linkTarget(after.url)).forEach(([k, v]) => a.setAttribute(k, v));
+        form.appendChild(a);
+      } else if (after.action === 'redirect') {
+        scheduleRedirect(after.url, { navigate: (u) => (doc.defaultView || globalThis).location?.assign(u) });
+      }
     });
     formBox.appendChild(form);
     if (privacy) formBox.appendChild(h(doc, 'p', 'vp-privacy', privacy));

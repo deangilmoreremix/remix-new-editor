@@ -1,0 +1,121 @@
+{
+ "checks": [
+  {
+   "ok": true,
+   "msg": "exported file is h264 (h264) 1920x1080"
+  },
+  {
+   "ok": true,
+   "msg": "the saved project holds animated mask anchors in Clip.anim (8 keyed properties)"
+  },
+  {
+   "ok": true,
+   "msg": "t=1.0s: 100.0% of the pixels that should show the (mask + pin) region are visible"
+  },
+  {
+   "ok": true,
+   "msg": "t=1.0s: 100.0% of the pixels outside the masked / pinned region are black"
+  },
+  {
+   "ok": true,
+   "msg": "t=1.0s: curve killed the red channel inside the region (mean R 0.2)"
+  },
+  {
+   "ok": true,
+   "msg": "t=1.0s: green inside correlates with the source frame mapped through the inverse corner-pin homography (Pearson r 0.995)"
+  },
+  {
+   "ok": true,
+   "msg": "t=1.0s: horizontal extent of the visible region (0.334, 0.649) matches the expected (0.335, 0.648)"
+  },
+  {
+   "ok": true,
+   "msg": "t=4.4s: 100.0% of the pixels that should show the (mask + pin) region are visible"
+  },
+  {
+   "ok": true,
+   "msg": "t=4.4s: 100.0% of the pixels outside the masked / pinned region are black"
+  },
+  {
+   "ok": true,
+   "msg": "t=4.4s: curve killed the red channel inside the region (mean R 0.4)"
+  },
+  {
+   "ok": true,
+   "msg": "t=4.4s: green inside correlates with the source frame mapped through the inverse corner-pin homography (Pearson r 0.993)"
+  },
+  {
+   "ok": true,
+   "msg": "t=4.4s: horizontal extent of the visible region (0.334, 0.534) matches the expected (0.335, 0.533)"
+  },
+  {
+   "ok": true,
+   "msg": "the animated mask anchors move the right edge between the two exported frames (0.649 -> 0.534)"
+  }
+ ],
+ "numbers": {
+  "export_size": [
+   1920,
+   1080
+  ],
+  "codec": "h264",
+  "mask_keys": [
+   "fx:0:v0x",
+   "fx:0:v0y",
+   "fx:0:v1x",
+   "fx:0:v1y",
+   "fx:0:v2x",
+   "fx:0:v2y",
+   "fx:0:v3x",
+   "fx:0:v3y"
+  ],
+  "quad": [
+   [
+    0.20000002527989935,
+    0.1996549231894326
+   ],
+   [
+    0.8000001011195964,
+    0.1796319368155789
+   ],
+   [
+    0.8200000404478387,
+    0.8003450205700151
+   ],
+   [
+    0.1799999595521618,
+    0.7803220341961612
+   ]
+  ],
+  "t=1.0": {
+   "expected_x_extent": [
+    0.33541666666666664,
+    0.6484375
+   ],
+   "measured_x_extent": [
+    0.334375,
+    0.6494791666666667
+   ],
+   "confident_pixels": 152727,
+   "visible_fraction_inside": 1,
+   "black_fraction_outside": 1,
+   "red_mean_inside": 0.23860875942040372,
+   "green_correlation_with_mapped_source": 0.9947374073689715
+  },
+  "t=4.4": {
+   "expected_x_extent": [
+    0.33541666666666664,
+    0.5328125
+   ],
+   "measured_x_extent": [
+    0.334375,
+    0.5338541666666666
+   ],
+   "confident_pixels": 89957,
+   "visible_fraction_inside": 1,
+   "black_fraction_outside": 0.9999686693621288,
+   "red_mean_inside": 0.36386273441755507,
+   "green_correlation_with_mapped_source": 0.992551910380485
+  }
+ }
+}

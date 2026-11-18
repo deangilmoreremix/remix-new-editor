@@ -8,7 +8,8 @@ import { FONT_OPTIONS, fontStack } from './fontChoices.js';
 import { ICON_KEYS } from '../siteIcons.js';
 import { PUCK_TEMPLATES } from './designs.js';
 import { slotFields, SLOT_DEFAULTS } from './slotFields.js';
-import { ThanksContext } from './context.js';
+import { ThanksContext, AfterSubmitContext } from './context.js';
+import { AFTER_SUBMIT_OPTIONS } from '../afterSubmit.js';
 
 // Designs may ship extra components (puck/extensions/NN-name.jsx exporting `components`), merged in automatically.
 const EXT = Object.entries(import.meta.glob('./extensions/*.jsx', { eager: true })).sort(([a], [b]) => a.localeCompare(b)).map(([, m]) => m);
@@ -35,9 +36,13 @@ export const puckConfig = {
       headingFont: { type: 'select', label: 'Heading font', options: FONT_OPTIONS },
       bodyFont: { type: 'select', label: 'Body font', options: FONT_OPTIONS },
       thanks: T('Thank-you message after an email sign-up'),
+      afterSubmitAction: { type: 'select', label: 'After the form is sent', options: AFTER_SUBMIT_OPTIONS.map(([value, label]) => ({ label, value })) },
+      afterSubmitUrl: T('Button / redirect link (https, mailto: or tel:)'),
+      afterSubmitButtonText: T('Button text (for "Show a button")'),
+      greeting: T('Greeting strip shown only on a personal link (e.g. "A personal video for {{firstname|you}}"; empty = none)'),
     },
-    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '', thanks: 'Thanks! Check your inbox.' },
-    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont, thanks }) => {
+    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '', thanks: 'Thanks! Check your inbox.', afterSubmitAction: 'message', afterSubmitUrl: '', afterSubmitButtonText: '', greeting: '' },
+    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont, thanks, greeting, afterSubmitAction, afterSubmitUrl, afterSubmitButtonText }) => {
       const ok = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? v : d);
       const acc = ok(accent, '#2563eb');
       // Button text: white on dark accents, near-black on light ones, so every accent stays readable.
@@ -48,7 +53,7 @@ export const puckConfig = {
       const fh = fontStack(headingFont); const fb = fontStack(bodyFont);
       if (fh) style['--pk-fh'] = fh;
       if (fb) style['--pk-fb'] = fb;
-      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}><ThanksContext.Provider value={thanks || 'Thanks! Check your inbox.'}><C.LeadAnchorFallback />{children}</ThanksContext.Provider></div>;
+      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}><ThanksContext.Provider value={thanks || 'Thanks! Check your inbox.'}><AfterSubmitContext.Provider value={{ afterSubmitAction, afterSubmitUrl, afterSubmitButtonText }}><C.LeadAnchorFallback /><C.PersonalGreeting text={greeting} />{children}</AfterSubmitContext.Provider></ThanksContext.Provider></div>;
     },
   },
   categories: {
@@ -94,7 +99,7 @@ export const puckConfig = {
     },
     Strip: {
       label: 'Strip (logos, icons or numbers)',
-      fields: { kind: { type: 'radio', label: 'Style', options: [{ label: 'Company names', value: 'logos' }, { label: 'Icons with text', value: 'benefits' }, { label: 'Big numbers', value: 'stats' }] }, title: T('Heading (optional)'), items: { type: 'array', label: 'Items', arrayFields: { title: T('Title / name'), text: T('Short text (icons style)'), value: T('Number (numbers style)'), icon: iconField }, getItemSummary: (i) => i.title || i.value || 'Item', defaultItemProps: { title: 'Item', text: '', value: '', icon: 'check' } } },
+      fields: { kind: { type: 'radio', label: 'Style', options: [{ label: 'Company names', value: 'logos' }, { label: 'Icons with text', value: 'benefits' }, { label: 'Big numbers', value: 'stats' }] }, title: T('Heading (optional)'), items: { type: 'array', label: 'Items', arrayFields: { title: T('Title / name'), text: T('Short text (icons style)'), value: T('Number (numbers style)'), icon: iconField, image: T('Small picture (icons style; https link)') }, getItemSummary: (i) => i.title || i.value || 'Item', defaultItemProps: { title: 'Item', text: '', value: '', icon: 'check', image: '' } } },
       defaultProps: { kind: 'logos', title: 'Trusted by growth-focused teams', items: [{ title: 'Acme', text: '', value: '', icon: '' }, { title: 'Globex', text: '', value: '', icon: '' }, { title: 'Initech', text: '', value: '', icon: '' }] },
       render: (p) => <C.Strip {...p} />,
     },
@@ -124,6 +129,12 @@ export const puckConfig = {
     },
     CtaBar: { label: 'Bottom button bar', fields: { text: T('Text beside the button (empty = button only)'), label: T('Button text'), url: T('Link (https, mailto:, tel: or #lead)'), icon: iconField, icons: { type: 'array', label: 'Social icons (button-only bar)', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { text: '', label: 'Book a Free Consultation', url: '#lead', icon: 'calendar', icons: [] }, render: (p) => <C.CtaBar {...p} /> },
     Footer: { label: 'Footer', fields: { text: T('Footer text'), links: linkArray('Footer links') }, defaultProps: { text: 'Sent by {{sender|us}} · {{brand|your brand}}', links: [] }, render: (p) => <C.Footer {...p} /> },
+    OutreachActions: {
+      label: 'Video outreach: sender, Like, booking',
+      fields: { senderName: T('Your name'), senderTitle: T('Your title and company'), senderPhoto: T('Your photo (https link)'), like: { type: 'radio', label: 'Like button', options: [{ label: 'Show', value: 'yes' }, { label: 'Hide', value: 'no' }] }, ctaLabel: T('Button text'), ctaUrl: T('Button link (https)'), calendarUrl: T('Booking calendar to embed (https, empty = none)'), calendarTitle: T('Calendar heading') },
+      defaultProps: { senderName: '{{sender|}}', senderTitle: '', senderPhoto: '', like: 'yes', ctaLabel: 'Book a call', ctaUrl: '', calendarUrl: '', calendarTitle: 'Pick a time that works for you' },
+      render: (p) => <C.OutreachActions {...p} />,
+    },
     Showcase: {
       label: 'Text + picture (or photo banner)',
       fields: {

@@ -12,6 +12,7 @@ import {
   sectionHeading,
   createStyleLink,
   createViewPromptButton,
+  createPersonalizeButton,
   createStudioIcon,
   categoryBadge,
   metaPill,
@@ -87,6 +88,7 @@ function createReelCard(demo) {
     : loadDemoPromptMinimax;
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt));
+  primaryActions.appendChild(createPersonalizeButton(demo, { loadPrompt }));
   primaryActions.appendChild(createStyleLink(demo, {
     label: 'Create This Type of Video',
     getTarget,
@@ -102,6 +104,7 @@ function createReelCard(demo) {
       { route: 'cinema',                    label: 'F', title: 'Open in Cinema Studio',          params: { template: templateId } },
       { route: 'video',                     label: 'V', title: 'Open in Video Studio',           params: { template: templateId } },
       { route: 'image',                     label: 'I', title: 'Open in Image Studio',           params: { template: templateId } },
+      { route: 'personalize', label: 'P', title: 'Personalize this demo — preview it with your own brand', loadPrompt: loadPrompt },
     ];
     studioIcons.forEach((icon) => {
       studioIconsHost.appendChild(
@@ -110,6 +113,7 @@ function createReelCard(demo) {
           params: icon.params || {},
           label: icon.label,
           title: icon.title,
+          loadPrompt: icon.loadPrompt,
         })
       );
     });

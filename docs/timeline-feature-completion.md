@@ -1,30 +1,30 @@
 # Timeline Studio Editor — feature completion ledger
 
-Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs` (branch `claude/confident-fermi-3azaem`, OpenChatCut upstream `9242a95`).
+Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs` (branch `ccr-c5b3c675-lgaduo`, OpenChatCut upstream `9242a95`).
 
 **Never read PARTIAL / IMPLEMENTED_UNVERIFIED / BLOCKED as done.** Only VERIFIED rows have tests and evidence recorded.
 
 ## Regression record
 
-- **vitest:** 172 files passed (incl. 557 upstream CineGen tests), skipped tests documented
-- **viteBuild:** npx vite build exit 0 (1m55s) at commit 2a5dab7f
-- **classicEditor:** not browser-smoke-tested in this stage (no changes made under src/lib/editor/addons or the classic route; composition files shared with export were edited)
+- **vitest:** npx vitest run src netlify: 798 files passed, 9519 tests passed, 0 failed (42 skipped). Earlier the same run had 8 failures that also failed on a clean origin/develop; they are fixed here (Ask SmartVideo guides for zackd and video-pages, a Zack D test mock, and the two personalization discovery test files now stub DNS). src/cinegen: 215 files, 1510 tests passed
+- **viteBuild:** npx vite build exit 0 (2m59s) at commit 8f53c484; npm run lint exit 0 (0 errors)
+- **classicEditor:** #/timeline-classic now opens the CineGen editor (commit 642979f0); the old TimelineEditorPage.jsx is no longer reachable from the app
 - **tsc:** not run: repo-wide tsc aborts on unrelated syntax errors in apps/director; a scoped check needs @cinegen path mapping (done once, not repeated)
-- **liveProviders:** no OpenAI/MuAPI live calls in this stage
+- **liveProviders:** no live social, MailerLite, Kit, Supabase or Clerk calls (not available in the sandbox); covered by mocked clients and gate states
 - **upstreamCineGenTests:** CineGen tests/ ported to src/cinegen/__tests__/upstream: 557 passed, 27 skipped (documented), 0 failed; EXCLUDED.md lists every skipped/removed test with its reason
 
 ## Totals
 
 | Status | Count |
 |---|---|
-| NOT_STARTED | 4 |
+| NOT_STARTED | 1 |
 | SOURCE_FOUND | 0 |
-| PARTIAL | 21 |
-| IMPLEMENTED_UNVERIFIED | 11 |
-| VERIFIED | 20 |
+| PARTIAL | 23 |
+| IMPLEMENTED_UNVERIFIED | 15 |
+| VERIFIED | 24 |
 | BLOCKED | 2 |
 | NOT_APPLICABLE | 2 |
-| **All** | 60 |
+| **All** | 67 |
 
 ## Effects
 
@@ -89,16 +89,16 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Evidence: docs/evidence/plugins/ (3 screenshots, demo-pack.json, plug-frame.png). Export: exported MP4 mean RGB 150,147,149 vs 107,107,109 un-effected control (invert fx) with the pack DISABLED at export time (snapshot path)
 - **Missing:** mg-template items are skipped (their sandboxed template runtime is not part of the editor); pack-with-only-templates is rejected
 
-### occ.templates.mg — NOT_STARTED
+### occ.templates.mg — PARTIAL
 
 - Source (0xsline/OpenChatCut): src/template-host.ts, src/library/TemplateBrowser.tsx, assets/templates/*.json
 - Target: —
 - Original: Motion-graphics templates that run template code in a sandbox
 - Browser: iframe sandbox (browser) · Backend: none
-- UI: none · Persistence: — · Preview: — · Export: —
-- Tests: —
-- Evidence: —
-- **Missing:** Template runtime + template browser not integrated (3 template packs, 1.9 MB); the repo's classic editor has its own Remotion code layer (src/lib/editor/remotion/codeLayer.jsx) that could host them
+- UI: Edit → Library → Animations (motion graphics) and Add to timeline → Motion graphics; shown on the Overlays lane and in the viewer · Persistence: — · Preview: — · Export: —
+- Tests: library-panel.test.tsx; browser run adding a template and seeing it in the viewer
+- Evidence: docs/evidence/merge-check/20-left-library-tab.png, 24-add-to-timeline-menu.png, 81-everything-added-in-timeline.png; commits 24402eb7, 014616dc
+- **Missing:** Their sandboxed template-pack runtime / .json pack import is not integrated; only the shipped templates are offered
 
 ## Zoom
 
@@ -507,9 +507,9 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Target: src/lib/editor/addons/*, src/cinegen overlay lane
 - Original: Lead Generator overlay
 - Browser: yes · Backend: existing Netlify/Supabase
-- UI: — · Persistence: saved with project (overlays) · Preview: — · Export: —
+- UI: Edit → Library → Overlays & forms (click opens the Add window, + adds); Add to timeline → Overlays & forms; Overlays lane shows a live picture of each block · Persistence: saved with project (overlays) · Preview: — · Export: —
 - Tests: vitest overlays.test.ts
-- Evidence: commits a6065f71, f15abc1a, 49777772
+- Evidence: commits a6065f71, f15abc1a, 49777772; docs/evidence/merge-check/46-add-overlays-and-forms.png, 81-everything-added-in-timeline.png; commit 014616dc
 - **Missing:** overlay lane + renderer integrated (commit a6065f71); interactive publish path not re-verified
 
 ### rm.overlays.list-cta — PARTIAL
@@ -518,9 +518,9 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Target: src/lib/editor/addons/*
 - Original: List Builder / CTA overlays
 - Browser: yes · Backend: existing Netlify/Supabase
-- UI: — · Persistence: saved with project (overlays) · Preview: — · Export: —
+- UI: Edit → Library → Overlays & forms (click opens the Add window, + adds); Add to timeline → Overlays & forms; Overlays lane shows a live picture of each block · Persistence: saved with project (overlays) · Preview: — · Export: —
 - Tests: vitest overlays.test.ts
-- Evidence: commits a6065f71, f15abc1a, 49777772
+- Evidence: commits a6065f71, f15abc1a, 49777772; docs/evidence/merge-check/46-add-overlays-and-forms.png, 81-everything-added-in-timeline.png; commit 014616dc
 - **Missing:** as above
 
 ### rm.overlays.text-image — PARTIAL
@@ -529,32 +529,32 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Target: commit 49777772
 - Original: Smart Text, Text Mask, Image, Personalized Image, Stickers, Wrapper, Lower Thirds
 - Browser: yes · Backend: existing Netlify/Supabase
-- UI: — · Persistence: saved with project (overlays) · Preview: — · Export: —
+- UI: Edit → Library → Overlays & forms (click opens the Add window, + adds); Add to timeline → Overlays & forms; Overlays lane shows a live picture of each block · Persistence: saved with project (overlays) · Preview: — · Export: —
 - Tests: vitest overlays.test.ts
-- Evidence: commits a6065f71, f15abc1a, 49777772
+- Evidence: commits a6065f71, f15abc1a, 49777772; docs/evidence/merge-check/46-add-overlays-and-forms.png, 81-everything-added-in-timeline.png; commit 014616dc
 - **Missing:** on the overlay lane, viewer verified earlier; export of overlays not burned into MP4 (interactive publish only)
 
-### rm.end-screens — NOT_STARTED
+### rm.end-screens — IMPLEMENTED_UNVERIFIED
 
 - Source (deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)): src/components/modals/{EndScreen,Connect}*
 - Target: src/components/modals/{EndScreen,Connect}*
 - Original: End Screens / Connect Form
 - Browser: yes · Backend: existing Netlify/Supabase
-- UI: — · Persistence: — · Preview: — · Export: —
-- Tests: —
-- Evidence: —
-- **Missing:** not reconnected to the timeline
+- UI: Edit → Library → Overlays & forms; Add to timeline → "End screens & connect forms" (13 templates) · Persistence: — · Preview: — · Export: —
+- Tests: library-panel.test.tsx, add-to-timeline-registry tests
+- Evidence: docs/evidence/merge-check/20-left-library-tab.png, 47-add-end-screens-connect-forms.png; commits 24402eb7, 014616dc
+- **Missing:** The list and cards were seen in a browser run; adding an end screen and watching it render in the viewer was not driven
 
-### rm.personalization — NOT_STARTED
+### rm.personalization — IMPLEMENTED_UNVERIFIED
 
 - Source (deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)): src/components/personalize/*
 - Target: src/components/personalize/*
 - Original: Personalization / Tokens / Batch Generator
 - Browser: yes · Backend: existing Netlify/Supabase
-- UI: — · Persistence: — · Preview: — · Export: —
-- Tests: —
-- Evidence: —
-- **Missing:** not reconnected
+- UI: Edit → Overlays lane 👤 opens the Personalization Suite (Upload Video, Import Contacts, Configure Tokens, Generate Videos, Create Landing Pages, View Analytics); Publish → Contacts and Email · Persistence: — · Preview: — · Export: —
+- Tests: publish-contacts*.test, publish-email*.test
+- Evidence: docs/evidence/merge-check/27 (personalization suite, in 25-27 contact sheet), 94-publish-contacts-list.png; commits 843e3ff9, 43661fb1
+- **Missing:** Per-contact video generation and landing pages need sign-in and provider keys; not run here
 
 ### rm.end-screens-connect — IMPLEMENTED_UNVERIFIED
 
@@ -562,9 +562,9 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Target: src/cinegen/lib/overlays/overlays.ts createTemplateOverlays, overlay lane menu
 - Original: End Screens and Connect Form template libraries as overlays
 - Browser: yes · Backend: none
-- UI: — · Persistence: — · Preview: — · Export: —
+- UI: Edit → Library → Overlays & forms; Add to timeline → End screens & connect forms · Persistence: — · Preview: — · Export: —
 - Tests: compiled; unit tests where noted
-- Evidence: this branch (commits after d684a343)
+- Evidence: this branch (commits after d684a343); docs/evidence/merge-check/47-add-end-screens-connect-forms.png
 - **Missing:** Unit test only; not seen rendering in the viewer
 
 ### rm.share-publish — IMPLEMENTED_UNVERIFIED
@@ -573,9 +573,9 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Target: src/cinegen/components/export/share-panel.tsx
 - Original: Share / publish interactive video from the CineGen timeline + overlays
 - Browser: yes · Backend: none
-- UI: — · Persistence: — · Preview: — · Export: —
+- UI: Publish tab → Share & Leads (the old Leads tab, same tab id); Export tab hint points to Publish · Persistence: — · Preview: — · Export: —
 - Tests: compiled; unit tests where noted
-- Evidence: this branch (commits after d684a343)
+- Evidence: this branch (commits after d684a343); docs/evidence/merge-check/91-publish-tab-share-and-leads.png; commit 440b44bd
 - **Missing:** Snapshot builder unit-tested; publishing needs a signed-in session and the published_videos table — not run; personal links / contacts not wired
 
 ## CineGen Elements
@@ -743,3 +743,81 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Tests: occ-export-aspect.test.ts (2); browser export
 - Evidence: docs/evidence/export/aspect-selector.png; ffprobe 720,1280; commit of this stage
 - **Missing:** Clips use cover fit, so a 16:9 clip in a 9:16 frame is centre-cropped (reposition with Transform/zoom); viewer preview stays 16:9; no custom resolution entry
+
+## Discoverability
+
+### ux.library-pictures — VERIFIED
+
+- Source (deangilmoreremix/remix-new-editor (own code)): src/cinegen/components/edit/library-panel.tsx (text-only cards)
+- Target: src/cinegen/components/edit/library-panel.tsx, src/cinegen/components/edit/library-card.tsx, src/cinegen/lib/occ/library-memory.ts
+- Original: Library side panel was text; no cross-category search, no Template videos, no favorites
+- Browser: yes · Backend: none
+- UI: Edit → Library: picture cards, one search across every category, chips with counts, click opens the Add window on the item, + adds, ★ Favorites and Recent · Persistence: localStorage cinegen_library_memory · Preview: thumbnails, video posters (play on hover), live previews · Export: —
+- Tests: library-panel.test.tsx, library-memory.test.ts; real-browser runs (search, click-to-modal, favorites after reload)
+- Evidence: docs/evidence/merge-check/70-75, 87, 88; commits 24402eb7, a447776b
+- **Missing:** Effect/transition thumbnails render dark in headless Chromium (WebGL); not checked in a real browser
+
+### ux.add-shows-real-media — VERIFIED
+
+- Source (deangilmoreremix/remix-new-editor (own code)): 
+- Target: src/cinegen/components/edit/template-video-placement.ts, src/cinegen/lib/editor/free-track.ts, src/cinegen/components/edit/overlay-lane.tsx
+- Original: Template videos had no filmstrip/waveform; sounds could land on top of other audio; forms had no picture in the lane
+- Browser: yes · Backend: remote clip host sends CORS * (checked)
+- UI: Everything added from the Library shows real frames / waveform in its clip, a picture on the Overlays lane, is selected, and appears in the viewer · Persistence: project · Preview: filmstrip, waveform, live overlay stills · Export: —
+- Tests: template-video-placement.test.ts, free-track.test.ts; browser runs
+- Evidence: docs/evidence/merge-check/80, 81, 82; commits 014616dc, 287987be
+
+### ux.empty-start-and-generator — VERIFIED
+
+- Source (deangilmoreremix/remix-new-editor (own code)): 
+- Target: src/cinegen/components/edit/empty-start.tsx, src/cinegen/components/workspace/workspace-history.ts, src/cinegen/lib/occ/template-composition.ts
+- Original: Blank project showed a black viewer; Template Generator dropped content at the end and took many undo steps
+- Browser: yes · Backend: none
+- UI: Blank project → Start your video (Add your video / Pick a template video / Make a video for me); Template Generator inserts at the playhead as one undo step (BATCH action) · Persistence: project · Preview: — · Export: —
+- Tests: empty-start.test.tsx, template-composition-batch.test.ts
+- Evidence: docs/evidence/merge-check/83, 84, 85; commits 0b34ff51, a9df2993
+
+### ux.inspector-groups — VERIFIED
+
+- Source (deangilmoreremix/remix-new-editor (own code)): 
+- Target: src/cinegen/components/edit/clip-properties-panel.tsx, src/cinegen/components/edit/inspector-group.tsx, src/cinegen/components/edit/use-inspector-groups.ts
+- Original: 14 stacked Inspector sections in a 357px panel, two both titled Transform
+- Browser: yes · Backend: none
+- UI: Edit → Inspector: Basics / Look / Position and motion / Captions / Analyze groups, Find a setting, full-height panel; Flip renamed; Translated .srt next to Captions · Persistence: localStorage cinegen_inspector_groups · Preview: — · Export: —
+- Tests: inspector-groups.test.tsx, help-coverage.test.ts
+- Evidence: docs/evidence/merge-check/89, 90; commits 10e474e9, c05d4ab2
+
+## Publish
+
+### rm.publish.social — IMPLEMENTED_UNVERIFIED
+
+- Source (deangilmoreremix/remix-new-editor (own code)): components/modals/SocialPublishModal.jsx, src/lib/socialPublishing.js
+- Target: src/cinegen/components/publish/social-panel.tsx, src/cinegen/lib/publish/social-media.ts, components/modals/SocialPublishModal.jsx
+- Original: Classic Social chip opened the 5-step Publish to Social window (muapi: YouTube, TikTok, Instagram)
+- Browser: yes · Backend: muapi-proxy edge function (server key), Clerk, Supabase storage
+- UI: Publish → Social: pick an export / media-pool video / template video; opens the restyled Publish to Social window with a public link (local videos are uploaded first) · Persistence: — · Preview: picture cards · Export: posts to the user's connected accounts
+- Tests: social-media.test.ts, publish-tab.test.tsx; browser run (cards, click opens the window)
+- Evidence: docs/evidence/merge-check/92, 93, 96; commits 440b44bd, 164da418
+- **Missing:** Real posting, account connection and the upload step were not run (no keys / sign-in in the sandbox)
+
+### rm.publish.contacts — PARTIAL
+
+- Source (deangilmoreremix/remix-new-editor (own code)): src/components/modals/ContactImporterModal.jsx (mockup), src/lib/contactStore.js
+- Target: src/cinegen/components/publish/contacts-panel.tsx, src/cinegen/lib/publish/contacts.ts
+- Original: Classic Contacts modal was a mockup; real contacts live in the browser store, video leads and landing pages
+- Browser: yes · Backend: Supabase (video_leads, landing_page_contacts) for two of the three sources
+- UI: Publish → Contacts: one list (same email once), CSV import/export, search, filter by source, remove imported · Persistence: localStorage remix_contacts (imported) · Preview: table · Export: CSV
+- Tests: publish-contacts.test.ts, publish-contacts-panel.test.tsx; browser run: import, search, download, reload, remove
+- Evidence: docs/evidence/merge-check/94; commit 843e3ff9
+- **Missing:** Video-lead and landing-page sources need sign-in and Supabase; shown only through mocked tests and the "could not be loaded" state
+
+### rm.publish.email — IMPLEMENTED_UNVERIFIED
+
+- Source (deangilmoreremix/remix-new-editor (own code)): src/components/modals/EmailCampaignModal.jsx (mockup), netlify/functions/landing-sync.js
+- Target: src/cinegen/components/publish/email-panel.tsx, src/cinegen/lib/publish/email-sync.ts
+- Original: Classic Email Campaign modal was a mockup with a fake send
+- Browser: yes · Backend: /api/landing-sync (MailerLite, bring-your-own token)
+- UI: Publish → Email: connect MailerLite, choose who, video link, "Add to MailerLite" (does not send email; says so) · Persistence: token in localStorage sv_mailerlite_token · Preview: — · Export: adds contacts + video link to the user's MailerLite account
+- Tests: publish-email-sync.test.ts, publish-email-panel.test.tsx (mocked sync client); browser run of the gated states
+- Evidence: docs/evidence/merge-check/95; commit 43661fb1
+- **Missing:** A real MailerLite connect/push was not run; sending a list to Kit is not built (landing-sync omits Kit)

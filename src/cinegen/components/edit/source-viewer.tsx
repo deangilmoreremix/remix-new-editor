@@ -8,6 +8,7 @@ import { useNativeVideoSurface } from './use-native-video-surface';
 import { isHtmlOnlyAsset, resolveNativePlaybackSource } from '@cinegen/lib/editor/visual-playback-state';
 import type { PlaybackProxyMode } from '@cinegen/lib/editor/playback-engine';
 import { SourceViewerMaskTool } from './source-viewer-mask-tool';
+import { SourceMarkBar, type SourceMarksUi } from './source-marks'; // [remix] Stage 1
 
 interface SourceViewerProps {
   clip: Clip | null;
@@ -18,6 +19,9 @@ interface SourceViewerProps {
   nativeVideoEnabled?: boolean;
   proxyMode?: PlaybackProxyMode;
   activeTool?: ToolType;
+  /** [remix] Stage 1: mark in/out + insert/overwrite for a media-pool asset (no clip loaded) */
+  marksUi?: SourceMarksUi | null;
+  onSourceTime?: (time: number) => void;
   onAcceptMaskedVideo?: (result: {
     url: string;
     outputKind: 'image' | 'video';
@@ -52,6 +56,8 @@ export function SourceViewer({
   nativeVideoEnabled = false,
   proxyMode = 'off',
   activeTool = 'select',
+  marksUi = null,
+  onSourceTime,
   onAcceptMaskedVideo,
 }: SourceViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -79,6 +85,8 @@ export function SourceViewer({
   const effectiveDuration = clip ? clipEffectiveDuration(clip) : (asset?.duration ?? 0);
 
   void onClose;
+
+  useEffect(() => { onSourceTime?.(sourceTime); }, [sourceTime, onSourceTime]); // [remix] Stage 1
 
   useEffect(() => {
     setSourceTime(0);
@@ -375,6 +383,7 @@ export function SourceViewer({
               {formatTimecode(effectiveDuration)}
             </span>
           </div>
+          {marksUi && !clip && asset && <SourceMarkBar ui={marksUi} sourceTime={sourceTime} duration={effectiveDuration} />}
         </>
       )}
     </div>

@@ -51,10 +51,25 @@ const getWorker = () => {
   return worker;
 };
 
+// [remix] Stage 11: speech models are fetched from huggingface.co, so they are downloaded only after the user agrees once per model
+// (stored in localStorage); declining rejects with an AbortError so callers treat it as a cancel. Every caller goes through
+// transcribeInBrowser, including the Caption Studio.
+const consentKey = (model) => `remix-whisper-consent:${model || 'default'}`;
+export async function ensureModelConsent(model) {
+  try { if (globalThis.localStorage?.getItem(consentKey(model)) === '1') return; } catch { /* storage unavailable: ask every time */ }
+  const size = (WHISPER_MODELS.find(([id]) => id === model) || [])[1] || 'about 40-80 MB';
+  const ok = typeof globalThis.confirm === 'function'
+    ? globalThis.confirm(`Auto-captions run on this computer and need to download a speech model (${size}) from huggingface.co (Whisper, Apache-2.0 licence). Download it now?`)
+    : false;
+  if (!ok) throw Object.assign(new Error('Model download declined'), { name: 'AbortError' });
+  try { globalThis.localStorage?.setItem(consentKey(model), '1'); } catch { /* ignore */ }
+}
+
 /**
  * @returns {Promise<{ captions, text }>} captions in ms from `fromSec`
  */
 export async function transcribeInBrowser(src, { fromSec = 0, toSec = Infinity, model, language, device = 'auto', audio: preDecoded, onProgress, signal } = {}) {
+  await ensureModelConsent(model);
   onProgress?.({ stage: 'decode', progress: 0 });
   const audio = preDecoded || await decodeAudio(src, { fromSec, toSec, signal });
   if (!audio.length) throw new Error('The clip has no audio to transcribe');

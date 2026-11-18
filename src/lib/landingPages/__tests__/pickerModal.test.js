@@ -7,7 +7,7 @@ vi.mock('../../brandStore.js', () => ({ listBrands: () => [] }));
 vi.mock('../../loading.js', () => ({ showToast: vi.fn() }));
 const mountPage = vi.hoisted(() => vi.fn(() => ({ destroy: vi.fn() })));
 vi.mock('../puck/mount.jsx', () => ({ mountPuckPage: mountPage, mountPuckEditor: vi.fn(() => ({ destroy() {} })) }));
-import { openLandingPagePicker, filterTemplates, toPickerVideo, CHIPS } from '../pickerModal.js';
+import { openLandingPagePicker, filterTemplates, toPickerVideo, CHIPS, CUSTOMER_LOAD_LIMIT_MS } from '../pickerModal.js';
 import { TEMPLATES } from '../templates.js';
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -100,17 +100,83 @@ describe('openLandingPagePicker', () => {
     expect([...document.querySelectorAll('button')].find((b) => b.textContent === 'Save as my page').disabled).toBe(false);
   });
 
-  it('without a usable video it asks for a link and rejects non-https', () => {
-    openLandingPagePicker({ video: { url: 'http://x/a.mp4' } });
-    expect(document.body.textContent).toContain('Paste one below');
+  const btn = (text) => [...document.querySelectorAll('button')].find((b) => b.textContent === text);
+  const LIB = [{ key: 'gen:1', url: 'https://cdn.test/made.mp4', posterUrl: null, title: 'Made in Video', duration: 8, source: { kind: 'generation', studio: 'video' }, permanent: false }];
+
+  it('without a usable video it opens the video chooser; a link must be https', async () => {
+    openLandingPagePicker({ video: { url: 'http://x/a.mp4' }, deps: { loadVideoSources: async () => [] } });
+    expect(document.querySelector('[data-video-chooser]')).not.toBeNull();
+    expect(document.body.textContent).toContain('Choose a video first');
     const input = document.querySelector('input[aria-label="Video link"]');
     input.value = 'http://nope/a.mp4';
-    [...document.querySelectorAll('button')].find((b) => b.textContent === 'Use link').click();
+    btn('Use link').click();
     expect(document.body.textContent).toContain('full https://');
     input.value = 'https://cdn.test/ok.mp4';
-    [...document.querySelectorAll('button')].find((b) => b.textContent === 'Use link').click();
-    expect(document.querySelector('input[aria-label="Video link"]')).toBeNull();
+    btn('Use link').click();
+    expect(document.querySelector('[data-video-chooser]')).toBeNull();
     expect(grid()).not.toBeNull();
+    expect(document.querySelector('[data-picker-video]').textContent).toContain('ok');
+  });
+
+  it('pick a video you already made, then save: that video goes on the page', async () => {
+    const createPageFromVideo = vi.fn(async (_c, v, o) => ({ id: 'abcd123456', config: { template: o.template }, video_url: v.url }));
+    const mountPuckEditor = vi.fn(() => ({ destroy() {} }));
+    openLandingPagePicker({ deps: { loadVideoSources: async () => LIB, mountPuckEditor, createPageFromVideo, updatePage: async (_c, id) => ({ id, published: false }) } });
+    await vi.waitFor(() => expect(document.querySelector('[data-video-source="gen:1"]')).not.toBeNull());
+    expect(document.body.textContent).toContain('will be copied');
+    document.querySelector('[data-video-source="gen:1"]').click();
+    grid().querySelector('button').click();
+    await tick();
+    expect(mountPuckEditor.mock.calls[0][1].page.video_url).toBe('https://cdn.test/made.mp4');
+    btn('Save as my page').click();
+    await tick(); await tick();
+    expect(createPageFromVideo.mock.calls[0][1]).toMatchObject({ url: 'https://cdn.test/made.mp4', title: 'Made in Video' });
+  });
+
+  it('an uploaded file is previewed from the computer and handed to save as a file (it is uploaded then)', async () => {
+    globalThis.URL.createObjectURL = vi.fn(() => 'blob:local-1');
+    const createPageFromVideo = vi.fn(async () => ({ id: 'abcd123456', config: {} }));
+    const mountPuckEditor = vi.fn(() => ({ destroy() {} }));
+    openLandingPagePicker({ deps: { loadVideoSources: async () => [], mountPuckEditor, createPageFromVideo, updatePage: async (_c, id) => ({ id }) } });
+    const f = new File(['x'], 'My pitch.mp4', { type: 'video/mp4' });
+    const input = document.querySelector('input[type="file"]');
+    Object.defineProperty(input, 'files', { value: [f] });
+    input.dispatchEvent(new Event('change'));
+    expect(document.querySelector('[data-picker-video]').textContent).toContain('My pitch');
+    grid().querySelector('button').click();
+    await tick();
+    expect(mountPuckEditor.mock.calls[0][1].page.video_url).toBe('blob:local-1');
+    btn('Save as my page').click();
+    await tick(); await tick();
+    expect(createPageFromVideo.mock.calls[0][1].file).toBe(f);
+  });
+
+  it('Change video in the editor keeps the edits and shows the new video', async () => {
+    const mountPuckEditor = vi.fn(() => ({ destroy() {} }));
+    openLandingPagePicker({ video: VIDEO, deps: { loadVideoSources: async () => LIB, mountPuckEditor } });
+    grid().querySelector('button').click();
+    await tick();
+    const edited = { content: [{ type: 'Hero', props: { id: 'h', headline: 'My own words' } }], root: { props: {} } };
+    mountPuckEditor.mock.calls[0][1].onChange(edited);
+    btn('Change video').click();
+    expect(document.querySelector('[data-video-chooser]')).not.toBeNull();
+    await vi.waitFor(() => expect(document.querySelector('[data-video-source="gen:1"]')).not.toBeNull());
+    document.querySelector('[data-video-source="gen:1"]').click();
+    await tick();
+    const last = mountPuckEditor.mock.calls.at(-1)[1];
+    expect(last.page.video_url).toBe('https://cdn.test/made.mp4');
+    expect(JSON.stringify(last.data)).toContain('My own words');
+  });
+
+  it('`doneLabel` adds a closing button on the saved screen', async () => {
+    const onClose = vi.fn();
+    openLandingPagePicker({ video: VIDEO, doneLabel: 'Use this page', onClose, deps: { mountPuckEditor: () => ({ destroy() {} }), createPageFromVideo: async () => ({ id: 'abcd123456', config: {} }), updatePage: async (_c, id) => ({ id, published: false }) } });
+    grid().querySelector('button').click();
+    await tick();
+    btn('Save as my page').click();
+    await tick(); await tick();
+    btn('Use this page').click();
+    expect(onClose).toHaveBeenCalled();
   });
 
   it('opens straight on a chosen design when `template` is given', async () => {
@@ -120,6 +186,19 @@ describe('openLandingPagePicker', () => {
     await tick();
     expect(grid()).toBeNull();
     expect(mountPuckEditor).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the chosen design after at most 5 s even if the customers request never answers', async () => {
+    vi.useFakeTimers();
+    try {
+      const mountPuckEditor = vi.fn(() => ({ destroy() {} }));
+      const id = TEMPLATES.find((t) => t.puck).id;
+      openLandingPagePicker({ video: VIDEO, template: id, deps: { mountPuckEditor, loadCustomers: () => new Promise(() => {}) } });
+      await vi.advanceTimersByTimeAsync(CUSTOMER_LOAD_LIMIT_MS - 100);
+      expect(mountPuckEditor).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(200);
+      expect(mountPuckEditor).toHaveBeenCalledTimes(1);
+    } finally { vi.useRealTimers(); }
   });
 
   it('Escape goes back from the editor first, then closes', async () => {
@@ -133,6 +212,41 @@ describe('openLandingPagePicker', () => {
     expect(onClose).not.toHaveBeenCalled();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe('openLandingPagePicker: edit only (Video Outreach, the page belongs to the video)', () => {
+  beforeEach(() => { document.body.innerHTML = ''; document.body.style.overflow = ''; });
+  const btn = (text) => [...document.querySelectorAll('button')].find((b) => b.textContent === text);
+
+  it('opens in the editor with your page; Save page hands back the edits and saves nothing in Video Pages', async () => {
+    const id = TEMPLATES.find((t) => t.puck).id;
+    const start = { content: [{ type: 'Hero', props: { id: 'h', headline: 'Before' } }], root: { props: {} } };
+    const mountPuckEditor = vi.fn(() => ({ destroy() {} }));
+    const createPageFromVideo = vi.fn();
+    const onEdit = vi.fn();
+    openLandingPagePicker({ video: VIDEO, template: id, data: start, onEdit, deps: { mountPuckEditor, createPageFromVideo } });
+    await tick();
+    expect(document.querySelector('[data-design-grid]')).toBeNull();
+    expect(mountPuckEditor.mock.calls[0][1].data.content[0].props.headline).toBe('Before');
+    expect(mountPuckEditor.mock.calls[0][1].page.video_url).toBe(VIDEO.url);
+    expect(btn('Change video')).toBeUndefined();
+    expect(btn('← All pages')).toBeUndefined();
+    mountPuckEditor.mock.calls[0][1].onChange({ content: [{ type: 'Hero', props: { id: 'h', headline: 'After' } }], root: { props: {} } });
+    btn('Save page').click();
+    expect(onEdit).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(onEdit.mock.calls[0][0])).toContain('After');
+    expect(createPageFromVideo).not.toHaveBeenCalled();
+    expect(document.querySelector('[data-landing-picker]')).toBeNull();
+    expect(start.content[0].props.headline).toBe('Before');
+  });
+
+  it('works before there is a recording', async () => {
+    const id = TEMPLATES.find((t) => t.puck).id;
+    openLandingPagePicker({ template: id, onEdit: vi.fn(), deps: { mountPuckEditor: () => ({ destroy() {} }), loadVideoSources: async () => [] } });
+    await tick();
+    expect(document.querySelector('[data-video-chooser]')).toBeNull();
+    expect(btn('Save page').disabled).toBe(false);
   });
 });
 
@@ -231,5 +345,13 @@ describe('personalizing for a customer', () => {
     document.querySelector('[data-customer-image]').click(); await flushAll();
     document.querySelector('[data-template="puck-pc-plumbing"]').click(); await flushAll();
     expect(slot(1)).toBe(false);
+  });
+});
+
+describe('toPickerVideo with pictures', () => {
+  it('marks a picture as an image (by type or file extension) and names it as a picture', () => {
+    expect(toPickerVideo({ url: 'https://cdn.test/a.png', type: 'image' })).toMatchObject({ title: 'My picture', source: { kind: 'image' } });
+    expect(toPickerVideo({ url: 'https://cdn.test/b.webp?x=1' })).toMatchObject({ source: { kind: 'image' } });
+    expect(toPickerVideo({ url: 'https://cdn.test/c.mp4' })).toMatchObject({ title: 'My video', source: { kind: 'video' } });
   });
 });

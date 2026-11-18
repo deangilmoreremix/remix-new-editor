@@ -17,6 +17,13 @@ export const AUTO_FILL_KEYS = [
   'location',
   'phone',
   'website',
+  // Found on the business's own website by enrichment (see businessEnrichmentToClient.ts).
+  'email',
+  'facebook',
+  'instagram',
+  'linkedin',
+  'youtube',
+  'tiktok',
   'brandDescription',
   'productService',
   'offer',

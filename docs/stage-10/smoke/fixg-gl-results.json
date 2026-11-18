@@ -1,0 +1,150 @@
+{
+ "checks": [
+  {
+   "name": "compiles, links and renders at defaults (33 passes)",
+   "pass": true,
+   "info": 33
+  },
+  {
+   "name": "defaults change the picture",
+   "pass": true,
+   "info": 248
+  },
+  {
+   "name": "identity at neutral {\"length\":0} (passes 1)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "identity at neutral {\"low\":1,\"high\":0} (passes 33)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "identity at neutral {\"strength\":0} (passes 1)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "identity at neutral {\"low\":1,\"high\":0,\"length\":64} (passes 65)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "horizontal luma ascending, window 0.25..0.85, 64 passes: unmasked pixels bit-identical (4962 px)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "horizontal luma ascending, window 0.25..0.85, 64 passes: every line is a permutation of the input line",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "horizontal luma ascending, window 0.25..0.85, 64 passes: 1820 fully-reachable runs all monotone in the key (112 longer runs only partly sorted)",
+   "pass": true,
+   "info": "1820/1820"
+  },
+  {
+   "name": "horizontal luma ascending, window 0.25..0.85, 64 passes: GPU equals CPU reference (0 of 38807 px differ; allowed 0.1% for f32 vs f64 key ties)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "vertical hue descending inverted mask, 48 passes: unmasked pixels bit-identical (14545 px)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "vertical hue descending inverted mask, 48 passes: every line is a permutation of the input line",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "vertical hue descending inverted mask, 48 passes: 1710 fully-reachable runs all monotone in the key (137 longer runs only partly sorted)",
+   "pass": true,
+   "info": "1710/1710"
+  },
+  {
+   "name": "vertical hue descending inverted mask, 48 passes: GPU equals CPU reference (18 of 38807 px differ; allowed 0.1% for f32 vs f64 key ties)",
+   "pass": true,
+   "info": 18
+  },
+  {
+   "name": "horizontal saturation ascending, 20 passes: unmasked pixels bit-identical (393 px)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "horizontal saturation ascending, 20 passes: every line is a permutation of the input line",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "horizontal saturation ascending, 20 passes: 139 fully-reachable runs all monotone in the key (343 longer runs only partly sorted)",
+   "pass": true,
+   "info": "139/139"
+  },
+  {
+   "name": "horizontal saturation ascending, 20 passes: GPU equals CPU reference (10 of 38807 px differ; allowed 0.1% for f32 vs f64 key ties)",
+   "pass": true,
+   "info": 10
+  },
+  {
+   "name": "vertical brightness ascending, 64 passes: unmasked pixels bit-identical (5821 px)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "vertical brightness ascending, 64 passes: every line is a permutation of the input line",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "vertical brightness ascending, 64 passes: 2186 fully-reachable runs all monotone in the key (151 longer runs only partly sorted)",
+   "pass": true,
+   "info": "2186/2186"
+  },
+  {
+   "name": "vertical brightness ascending, 64 passes: GPU equals CPU reference (0 of 38807 px differ; allowed 0.1% for f32 vs f64 key ties)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "deterministic: same runtime twice (with another render in between)",
+   "pass": true
+  },
+  {
+   "name": "deterministic: fresh runtime",
+   "pass": true
+  },
+  {
+   "name": "strength 0.5 = mean of original and sorted (+1 mix pass = 66 passes), worst error in levels",
+   "pass": true,
+   "info": 0.5
+  },
+  {
+   "name": "chain [pixel sort, invert] equals invert(sorted) (passes 66)",
+   "pass": true,
+   "info": 0
+  },
+  {
+   "name": "chain [invert, pixel sort] equals CPU sort of inverted input (2 px differ)",
+   "pass": true,
+   "info": 2
+  },
+  {
+   "name": "every prop at min and max renders (16 renders)",
+   "pass": true,
+   "info": 0
+  }
+ ],
+ "size": [
+  257,
+  151
+ ],
+ "timing": {
+  "ms64passes_257x151_swiftshader": 53.5,
+  "ms0passes": 4
+ }
+}

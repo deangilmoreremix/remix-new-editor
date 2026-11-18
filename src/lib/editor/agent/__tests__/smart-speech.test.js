@@ -133,3 +133,17 @@ describe('personalized voice on /watch', () => {
     player.destroy();
   });
 });
+
+describe('Smart Speech with a cloned voice', () => {
+  it('keeps a valid cloned voice id for MiniMax, in the request and the clip metadata', () => {
+    const d = { provider: 'minimax', voice: 'Wise_Woman', cloneVoiceId: 'voice_abc123', speed: 1, text: 'Hi {{firstname}}', fallback: 'Hi there' };
+    expect(speechRequest(d, 'Hi Mike')).toMatchObject({ voice: 'voice_abc123', cloneVoiceId: 'voice_abc123', text: 'Hi Mike' });
+    expect(ttsMeta(d)).toMatchObject({ voice: 'voice_abc123', cloneVoiceId: 'voice_abc123', personalized: true });
+  });
+
+  it('ignores a malformed clone id, and clone ids on OpenAI voices', () => {
+    expect(speechRequest({ provider: 'minimax', voice: 'Calm_Woman', cloneVoiceId: '../x' }, 'Hi')).not.toHaveProperty('cloneVoiceId');
+    expect(speechRequest({ provider: 'minimax', voice: 'Calm_Woman', cloneVoiceId: '../x' }, 'Hi').voice).toBe('Calm_Woman');
+    expect(speechRequest({ provider: 'openai', voice: 'marin', cloneVoiceId: 'voice_abc123' }, 'Hi')).not.toHaveProperty('cloneVoiceId');
+  });
+});

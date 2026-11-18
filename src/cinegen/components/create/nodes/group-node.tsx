@@ -9,7 +9,7 @@ import type { WorkflowNodeData } from '@cinegen/types/workflow';
 type GroupNodeProps = NodeProps & { data: WorkflowNodeData };
 
 const PRESET_COLORS = [
-  '#22d3ee',
+  '#d9ff00',
   '#5b8def',
   '#e06c75',
   '#56b870',
@@ -32,7 +32,7 @@ function GroupNodeInner({ id, data, selected }: GroupNodeProps) {
 
   const config = data.config ?? {};
   const label = (config.groupLabel as string) || data.label || 'Group';
-  const color = (config.color as string) || '#22d3ee';
+  const color = (config.color as string) || '#d9ff00';
   const labelAlign = (config.labelAlign as 'left' | 'center' | 'right') || 'left';
   const labelPosition = (config.labelPosition as 'inside' | 'outside') || 'outside';
   const labelSize = (config.labelSize as number) || 16;

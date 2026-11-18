@@ -9,6 +9,10 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # onnxruntime-node (a nested dependency of @bg0/browser and kokoro-js) downloads a CUDA/GPU
+  # binary in its postinstall and the release asset now returns 404, which fails every fresh
+  # install ("Failed to download the binaries: 404"). Netlify has no GPU, so skip it.
+  ONNXRUNTIME_NODE_INSTALL_CUDA = "skip"
   # Server-only secrets that the Netlify functions read at runtime. Listing them
   # here keeps the build-time secrets scanner from failing a deploy when one of
   # them legitimately appears in a log line or build output. Every name below is
@@ -245,7 +249,8 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(self)"
+    # camera=(self): the Video Outreach studio and the recorders record the webcam (same origin only).
+    Permissions-Policy = "camera=(self), microphone=(self)"
 
 # Ensure the SPA fallback only fires when no file matches.
 # Netlify's default redirect behavior already skips existing files.

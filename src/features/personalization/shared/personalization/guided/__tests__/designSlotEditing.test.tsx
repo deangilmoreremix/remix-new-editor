@@ -288,7 +288,7 @@ describe('OverlayEditor design slots', () => {
   it('still shows a single text field for a plain text layer', () => {
     renderEditor([createLayer('headline', { text: 'Roofs that last' })])
 
-    expect(screen.getAllByRole('textbox').filter((el) => el.getAttribute('aria-label') !== 'Template name')).toHaveLength(1)
+    expect(screen.getAllByRole('textbox').filter((el) => el.getAttribute('aria-label') !== 'Template name' && el.getAttribute('aria-label') !== 'Name for this style')).toHaveLength(1)
     expect(textbox('Layer text').value).toBe('Roofs that last')
 
     act(() => {
@@ -300,7 +300,7 @@ describe('OverlayEditor design slots', () => {
   it('still shows a single text field for a design that is not registered', () => {
     renderEditor([designLayer('not-registered')])
 
-    expect(screen.getAllByRole('textbox').filter((el) => el.getAttribute('aria-label') !== 'Template name')).toHaveLength(1)
+    expect(screen.getAllByRole('textbox').filter((el) => el.getAttribute('aria-label') !== 'Template name' && el.getAttribute('aria-label') !== 'Name for this style')).toHaveLength(1)
     expect(textbox('Layer text')).toBeTruthy()
     expect(
       screen.getByText('This design is not registered, so it will not render.'),

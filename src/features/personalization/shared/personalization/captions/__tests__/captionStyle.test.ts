@@ -111,3 +111,19 @@ describe('Capite looks in saved projects', () => {
     expect(normalizeCaptions({ ...base, style: 'nope' })?.style).toBe('bold')
   })
 })
+
+describe('caption language', () => {
+  const base = { enabled: true, forUrl: 'https://x/v.mp4', style: 'bold', position: 'bottom', cues: [{ startMs: 0, endMs: 900, text: 'Hi' }] }
+  it('keeps a language code (with an optional region) and drops anything else', () => {
+    expect(normalizeCaptions({ ...base, language: 'es' })?.language).toBe('es')
+    expect(normalizeCaptions({ ...base, language: 'pt-BR' })?.language).toBe('pt-BR')
+    expect(normalizeCaptions({ ...base, language: 'haw' })?.language).toBe('haw')
+    for (const bad of ['', 'english', 'e', '12', 'es; drop', 42, null, {}]) expect(normalizeCaptions({ ...base, language: bad })?.language, String(bad)).toBeUndefined()
+    expect(normalizeCaptions(base)?.language).toBeUndefined()
+  })
+  it('can be set and cleared with a patch', () => {
+    const a = applyCaptionsPatch(undefined, { ...base, language: 'ja' } as never)
+    expect(a?.language).toBe('ja')
+    expect(applyCaptionsPatch(a, { language: undefined })?.language).toBeUndefined()
+  })
+})

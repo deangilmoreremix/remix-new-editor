@@ -22,6 +22,7 @@ import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
 import { defaultCaptionStyle } from './captions.js';
 import { buildCtaLottie } from '../addons/ctaLottie.js';
+import { resolveStudioDesignOptions } from '../addons/studioDesignAddon.js';
 
 function ctaOptions(clip, profile) {
   const style = clip.style || {};
@@ -90,6 +91,9 @@ function overlayLayer(clip, opts, profile, base) {
     case 'overlay-transition':
       o.resolvedSrc = safeImageUrl(o.src);
       break;
+    case 'overlay-studio-design':
+      Object.assign(o, resolveStudioDesignOptions(o, profile));
+      break;
     case 'overlay-background':
       o.resolvedStyles = sanitizeWrapperStyles(o.styles);
       break;
@@ -157,6 +161,7 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         ...(clip.blendMode && clip.blendMode !== 'normal' ? { clipBlend: clip.blendMode } : {}),
         ...(clip.zoom ? { clipZoom: clip.zoom } : {}),
         ...(clip.transform ? { clipTransform: clip.transform } : {}),
+        ...(clip.anim ? { clipAnim: clip.anim } : {}), // [remix] Stage 2 keyframes + motion modifiers
         keyframes: clip.keyframes || null,
         // [remix] OpenChatCut clip fades (seconds)
         ...(clip.fadeIn > 0 ? { fadeIn: clip.fadeIn } : {}),
@@ -164,6 +169,12 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
       };
       const addon = getAddon(clip.type);
 
+      // [remix] Fix E: a compound rendered as ONE group: its own look (fx, opacity, blend, transform, crop, fades, zoom, flip) applies to the offscreen
+      // render of its children (collected below); it sits at its own track's z position
+      if (clip.type === 'group') {
+        layers.push({ ...base, kind: 'group', groupKey: String(clip.groupKey || clip.id), ...(clip.flipH || clip.flipV ? { flip: { h: !!clip.flipH, v: !!clip.flipV } } : {}), children: [] });
+        return;
+      }
       // CTA buttons are drawn in the video (animated or plain); clicking them
       // works in the interactive player only.
       if (clip.type === 'click-to-call') {
@@ -210,13 +221,19 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         return;
       }
       if (clip.type === 'video' && src) {
-        const layer = { ...base, kind: 'video', src, trimBefore, ...speed, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0 };
+        const layer = { ...base, kind: 'video', src, trimBefore, ...speed, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0, ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
         layers.push(layer);
         if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;
       }
       if (clip.type === 'image' && src) {
-        const layer = { ...base, kind: 'image', src, ...flip, fit: clip.transform?.fit || clip.fit || 'cover' };
+        // A personalized image clip ({{websiteShotUrl}}, {{logoUrl}}, …): this contact's image, else
+        // the clip's fallback (Video Outreach website backgrounds). Same rule as personalized overlays.
+        const personal = /\{\{/.test(src);
+        const resolved = personal ? safeImageUrl(resolveOverlayText(src, profile)) : src;
+        const imageSrc = personal ? ((resolved && !/\{\{/.test(resolved) ? resolved : null) || safeImageUrl(clip.fallbackSrc)) : src;
+        if (!imageSrc) return;
+        const layer = { ...base, kind: 'image', src: imageSrc, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', ...(clip.scroll ? { scroll: true } : {}), ...(clip.cursor ? { cursor: true } : {}), ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
         layers.push(layer);
         if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;
@@ -237,6 +254,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
     tr.outgoingId = out?.id || null;
     tr.incomingId = into?.id || null;
   });
+
+  // [remix] Fix E: the picture children of a group are drawn by the group (in layer order = z order), not as layers of their own
+  const groupLayers = new Map(layers.filter((l) => l.kind === 'group').map((l) => [l.groupKey, l]));
+  if (groupLayers.size) {
+    for (const l of layers) if (l.compoundGroup && groupLayers.has(l.compoundGroup)) groupLayers.get(l.compoundGroup).children.push(l);
+    for (const l of [...layers]) if (l.compoundGroup && groupLayers.has(l.compoundGroup)) layers.splice(layers.indexOf(l), 1);
+  }
 
   const lastFrame = Math.max(
     toFrame(T),

@@ -1,11 +1,11 @@
 // [remix] Loads / deletes the lead rows of one published video.
 import { useCallback, useEffect, useState } from 'react';
-import type { LeadRow } from '@cinegen/lib/leads/leads';
+import { cleanFollowUp, type LeadRow } from '@cinegen/lib/leads/leads';
 // @ts-expect-error plain JS
 import { fetchLeadRows } from '../../../lib/editor/addons/leadClient.js';
 import { getClient } from './use-publish';
 
-export interface LeadsData { rows: LeadRow[]; loading: boolean; error: string; reload: () => Promise<void>; remove: (id: string) => Promise<void> }
+export interface LeadsData { rows: LeadRow[]; loading: boolean; error: string; reload: () => Promise<void>; remove: (id: string) => Promise<void>; update: (id: string, patch: { status?: string; notes?: string; tags?: string[] | string }) => Promise<void> }
 
 export function useLeads(publishedId: string | null, enabled: boolean, clientFactory: () => Promise<any> = getClient): LeadsData {
   const [rows, setRows] = useState<LeadRow[]>([]);
@@ -28,5 +28,19 @@ export function useLeads(publishedId: string | null, enabled: boolean, clientFac
       setRows((r) => r.filter((x) => x.id !== id));
     } catch (e) { setError((e as Error).message || 'Could not delete the lead'); }
   }, [clientFactory]);
-  return { rows, loading, error, reload, remove };
+  // Status / note / tags: shown at once, saved through the signed-in client (the owner-only policy decides); put back if it fails.
+  const update = useCallback(async (id: string, patch: { status?: string; notes?: string; tags?: string[] | string }) => {
+    const clean = cleanFollowUp(patch);
+    if (!Object.keys(clean).length) return;
+    let before: LeadRow | undefined;
+    setRows((all) => all.map((r) => { if (r.id !== id) return r; before = r; return { ...r, ...clean }; }));
+    try {
+      const { error: err } = await (await clientFactory()).from('video_leads').update(clean).eq('id', id);
+      if (err) throw new Error(err.message);
+    } catch (e) {
+      setRows((all) => all.map((r) => (r.id === id && before ? before : r)));
+      setError((e as Error).message || 'Could not save the change');
+    }
+  }, [clientFactory]);
+  return { rows, loading, error, reload, remove, update };
 }

@@ -1,6 +1,7 @@
 import { navigate } from '../lib/router.js';
 import { getStudioThumbnail, getHeroThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { NAV_GROUPS } from '../lib/studioRoutes.js';
+import { COLLAB_APPS } from '../lib/collabSuite.js';
 
 const CORE_STUDIOS = [
   { id: 'image', name: 'Image Studio', description: 'Generate images with 20+ AI models', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: '20+ models', color: 'bg-primary/10 text-primary border-primary/20' },
@@ -48,6 +49,8 @@ const pick = (ids) => ids.map((id) => ALL_APPS[id]).filter(Boolean);
 // Built from the side menu itself (NAV_GROUPS) so the two can't drift apart.
 // The first group (Apps / Explore / Templates) is navigation, not an app.
 const APP_SECTIONS = NAV_GROUPS.slice(1).map((g) => [`${g.title} apps`.replace('My Work apps', 'My Work'), pick(g.items.map((it) => it.id))]);
+
+if (COLLAB_APPS.length) APP_SECTIONS.push(['Collaboration apps', COLLAB_APPS]);
 
 export function AppsHub() {
   const container = document.createElement('div');
@@ -97,7 +100,7 @@ export function AppsHub() {
     inner.appendChild(createSection(title, apps.map(s => ({
       ...s,
       thumbnail: getStudioThumbnail(s.id) || getHeroThumbnail(s.id),
-      onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
+      onClick: () => (s.href ? window.open(s.href, '_blank', 'noopener') : (saveRecent(s.id, s.name), navigate(s.id))),
     })), true));
   });
 

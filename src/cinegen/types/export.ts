@@ -13,7 +13,14 @@ export interface ExportJob {
   qa?: import('../../openchatcut/export/quality').ExportQaReport;
   qaStatus?: string;
   videoBitrateBps?: number;
+  /** [remix] export notes, e.g. volume boosts above 100% are exported at 100% */
+  warnings?: string[];
   error?: string;
+  /** [remix] one video per contact: finished / total, the contact being rendered, and per-contact failures */
+  done?: number;
+  total?: number;
+  label?: string;
+  failures?: string[];
   createdAt: string;
   completedAt?: string;
 }
