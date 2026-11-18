@@ -227,8 +227,10 @@ export function optinConfigField(label, kind = 'list-builder') {
         return () => ed?.destroy?.();
       }, []); // the editor keeps its own state; Puck re-mounts the field when another section is selected
       return (
-        <div className="pk-optin-editor">
-          <p style={{ fontSize: 12, margin: '0 0 6px', opacity: 0.75 }}>{label}. Webhooks, e-mail notifications and your e-mail list are set in the Leads tab (they stay private).</p>
+        // The timeline's settings panel is built for a dark surface (light labels); Puck's sidebar is white, so it gets its own dark card.
+        <div className="pk-optin-editor" style={{ background: '#1b1d26', color: '#e8eaf2', borderRadius: 12, padding: 12, margin: '4px 0 12px' }}>
+          <p style={{ fontSize: 12, margin: '0 0 8px', opacity: 0.8, color: '#e8eaf2' }}>{label}. Webhooks, e-mail notifications and your e-mail list are set in the Leads tab (they stay private).</p>
+          <style>{'.pk-optin-editor .addon-tab{color:#e8eaf2;background:#2a2d3a;border:1px solid #3a3e50;border-radius:6px;padding:3px 8px;margin:0 3px 4px 0;cursor:pointer}.pk-optin-editor .addon-tab.active{background:#22d3ee;color:#04141a;border-color:#22d3ee;font-weight:700}'}</style>
           <div ref={box} />
         </div>
       );
