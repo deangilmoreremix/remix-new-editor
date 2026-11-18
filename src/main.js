@@ -1,6 +1,7 @@
 import './style.css';
 import './components/modals/modal-styles.css';
 import './styles/outline-buttons.css';
+import './styles/studio-tooltip.css';
 
 // Popcorn.JS — initialize as early as possible (ESM init replicating
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
@@ -20,6 +21,7 @@ import { Sidebar } from './components/Sidebar.js';
 import { initRouter, navigate, getCurrentPage } from './lib/router.js';
 import { mountAskSmartVideo } from './features/ask-smartvideo/AskSmartVideo.js';
 import { mountGenerationNotifications } from './components/studio/generationNotifications.js';
+import { mountStudioTooltips } from './components/studio/tooltipLayer.js';
 import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
@@ -205,6 +207,7 @@ try {
   const { header: headerEl, headerAuthSlot } = Header((page) => navigate(page));
   app.appendChild(headerEl);
   mountGenerationNotifications((page) => navigate(page));
+  mountStudioTooltips();
   mountAskSmartVideo({ navigate: (page) => navigate(page), getPage: () => getCurrentPage() || '' });
 
   const body = document.createElement('div');
