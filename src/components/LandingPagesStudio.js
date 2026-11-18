@@ -12,6 +12,7 @@ import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
 import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizePuck, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
+import { AFTER_SUBMIT_OPTIONS } from '../lib/landingPages/afterSubmit.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
 import { sampleSections } from '../lib/landingPages/sampleContent.js';
 import { wireframeSvg } from '../lib/landingPages/wireframes.js';
@@ -987,6 +988,9 @@ export function LandingPagesStudio() {
           text('subtitle', 'Form subtitle', { path: ['form'] }),
           text('privacy', 'Line under the button', { path: ['form'] }),
           text('successMessage', 'Thank-you message', { path: ['form'] }),
+          select('After the form is sent', AFTER_SUBMIT_OPTIONS, () => current.config.form.afterSubmitAction || 'message', (c, v) => { c.form.afterSubmitAction = v; }),
+          text('afterSubmitUrl', 'Button / redirect link (https, mailto: or tel:)', { path: ['form'] }),
+          text('afterSubmitButtonText', 'Button text (for "Show a button")', { path: ['form'] }),
         ),
         group('Social proof & footer', false,
           text('quote', 'Testimonial quote (only add one you have permission to use)', { path: ['testimonial'], area: true }),
