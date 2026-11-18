@@ -48,6 +48,34 @@ describe('/api/scrape fallback', () => {
     expect(r.status).toBe(200);
     expect(r.body.data).toMatchObject({ title: '', bodyText: '', screenshot: null, images: [], blocked: true });
   });
+  it('a blocked result carries nothing from the block page, not even its styling', async () => {
+    browser.scrapeBrandSite.mockResolvedValue(good({ title: 'Access Denied', bodyText: 'denied', fonts: ['BlockFont'], rawColors: ['#ff0000'], logoCandidates: ['https://s.test/wall-logo.png'], ogImage: 'https://s.test/wall.png', favicon: 'https://s.test/wall.ico' }));
+    stat.scrapeBrandStatic.mockResolvedValue(null);
+    const d = (await call()).body.data;
+    expect(d).toMatchObject({ fonts: [], rawColors: [], logoCandidates: [], ogImage: null, favicon: null, blocked: true });
+  });
+  it('the fallback shares one time budget with the browser stage (skipped when the browser used it up)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      browser.scrapeBrandSite.mockImplementation(async () => { vi.setSystemTime(Date.now() + 26_000); return good({ title: '', bodyText: '' }); });
+      stat.scrapeBrandStatic.mockResolvedValue(good({ title: 'Too late' }));
+      const r = await call();
+      expect(stat.scrapeBrandStatic).not.toHaveBeenCalled();
+      expect(r.body.data.blocked).toBe(true);
+    } finally { vi.useRealTimers(); }
+  });
+  it('the fallback deadline is capped by what is left of the budget', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      browser.scrapeBrandSite.mockImplementation(async () => { vi.setSystemTime(Date.now() + 22_000); return good({ title: '', bodyText: '' }); });
+      stat.scrapeBrandStatic.mockResolvedValue(good({ title: 'Quick' }));
+      const t = Date.now();
+      await call();
+      const deadline = stat.scrapeBrandStatic.mock.calls[0][1];
+      expect(deadline - Date.now()).toBeLessThanOrEqual(5_000); // 27s budget - 22s used = ~5s, never a fresh 8s
+      expect(t).toBeGreaterThan(0);
+    } finally { vi.useRealTimers(); }
+  });
   it('a browser crash still works through the static fallback', async () => {
     browser.scrapeBrandSite.mockRejectedValue(new Error('browser died'));
     stat.scrapeBrandStatic.mockResolvedValue(good({ title: 'Static Only' }));

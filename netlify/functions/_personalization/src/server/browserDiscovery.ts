@@ -2728,7 +2728,7 @@ export async function scrapeBrandSite(
             (document.querySelector(sel) as HTMLMetaElement | null)?.getAttribute('content') ?? ''
           const abs = (href: string | null) => {
             // A bare base64 blob used as a lazy-load placeholder is not an address.
-            if (href && /^[A-Za-z0-9+/=]{40,}$/.test(href.trim())) return null
+            if (href && /^(?:R0lGOD|iVBOR|\/9j\/|UklGR|PHN2Z)[A-Za-z0-9+/=]{30,}$/.test(href.trim())) return null
             if (!href) return null
             try {
               const u = new URL(href, location.href)

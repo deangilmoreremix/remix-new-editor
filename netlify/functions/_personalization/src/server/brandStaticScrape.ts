@@ -7,13 +7,16 @@
  * It also recognises block pages, so a "Robot Check" title is never mistaken for the brand's name.
  */
 import * as cheerio from 'cheerio'
-import { fetchPage } from './discoverAssets'
+import { fetchPageWithFinalUrl } from './discoverAssets'
 import type { BrandScrapeResult } from './browserDiscovery'
 
 const MAX_IMAGES = 30
 const MAX_VIDEOS = 10
 const BLOCK_TITLE =
-  /(robot|captcha|are you a human|verify you are|access denied|just a moment|attention required|unusual traffic|security check|blocked|forbidden|service unavailable|sorry!)/i
+  /(robot check|are you a robot|not a robot|captcha|are you a human|verify you are|access denied|just a moment|attention required|unusual traffic|security check|blocked|forbidden|service unavailable|sorry!)/i
+/** A lazy-load placeholder is an inline base64 image (GIF/PNG/JPEG/WebP/SVG magic), never a path like /images/a/b. */
+export const BASE64_PLACEHOLDER = /^(?:R0lGOD|iVBOR|\/9j\/|UklGR|PHN2Z)[A-Za-z0-9+/=]{30,}$/
+
 /** Beacons, pixels and analytics calls are requests, not site imagery. */
 const TRACKING = /(\/batch\/|beacon|pixel[._/-]|\/pixel|tracking|analytics|\/collect\b|\/log\b|doubleclick|googletagmanager|google-analytics|facebook\.com\/tr|\/1x1\b|spacer\.gif|\/ping\b|\/impression)/i
 const VIDEO_URL = /\.(mp4|webm|m3u8|mov|m4v)(?:[?#]|$)/i
@@ -33,7 +36,7 @@ export function looksBlocked(r: Pick<BrandScrapeResult, 'title' | 'bodyText'> | 
 const absolute = (value: string | undefined, base: string): string | null => {
   if (!value) return null
   // A bare base64 blob used as a lazy-load placeholder is not an address.
-  if (/^[A-Za-z0-9+/=]{40,}$/.test(value.trim())) return null
+  if (BASE64_PLACEHOLDER.test(value.trim())) return null
   try {
     const u = new URL(value.trim(), base)
     return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : null
@@ -69,6 +72,10 @@ const union = <T,>(a: T[] | undefined, b: T[] | undefined, max: number): T[] => 
 export function mergeScrapes(browser: BrandScrapeResult, fallback: BrandScrapeResult): BrandScrapeResult {
   return {
     ...fallback,
+    title: fallback.title || browser.title,
+    description: fallback.description || browser.description,
+    ogImage: fallback.ogImage || browser.ogImage,
+    favicon: fallback.favicon || browser.favicon,
     screenshot: browser.screenshot,
     logoCandidates: union(browser.logoCandidates, fallback.logoCandidates, 5),
     fonts: union(browser.fonts, fallback.fonts, 20),
@@ -155,7 +162,7 @@ export function parseBrandHtml(html: string, pageUrl: string): BrandScrapeResult
     description: meta('meta[name="description"]') || meta('meta[property="og:description"]'),
     bodyText,
     ogImage,
-    favicon: absolute(faviconHref || '/favicon.ico', pageUrl),
+    favicon: faviconHref ? absolute(faviconHref, pageUrl) : null,
     logoCandidates: Array.from(new Set(logos)).slice(0, 5),
     fonts: Array.from(fonts).slice(0, 20),
     rawColors: colors,
@@ -167,7 +174,8 @@ export function parseBrandHtml(html: string, pageUrl: string): BrandScrapeResult
 
 /** Fetches the page without a browser (SSRF-validated) and reads it; null when the site refuses or has no HTML. */
 export async function scrapeBrandStatic(rawUrl: string, deadlineAt?: number): Promise<BrandScrapeResult | null> {
-  const html = await fetchPage(rawUrl, deadlineAt)
-  if (!html) return null
-  return parseBrandHtml(html, rawUrl)
+  const page = await fetchPageWithFinalUrl(rawUrl, deadlineAt)
+  if (!page) return null
+  // Relative images, logos and videos belong to the page that answered, which may be elsewhere after a redirect.
+  return { ...parseBrandHtml(page.html, page.finalUrl), url: rawUrl }
 }

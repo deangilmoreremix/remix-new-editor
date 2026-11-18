@@ -52,6 +52,10 @@ export default async function handler(req: Request): Promise<Response> {
   const client = (req.headers.get('x-nf-client-connection-ip') || req.headers.get('x-forwarded-for') || 'unknown').split(',')[0].trim()
   if (rateLimited(client)) return json(429, { ok: false, error: 'Too many scrapes, try again in a minute' })
 
+  // One time budget for both stages: the platform cuts a synchronous function off at about 30 s, so the fallback
+  // only gets what the browser scrape left over.
+  const startedAt = Date.now()
+  const TOTAL_BUDGET_MS = 27_000
   let data: BrandScrapeResult | null = null
   let failure: unknown = null
   try {
@@ -67,14 +71,16 @@ export default async function handler(req: Request): Promise<Response> {
   // A page with a real title but almost no text (client-rendered shell, interstitial) gets the same second look.
   const blocked = looksBlocked(data)
   if (blocked || isThin(data)) {
-    const fallback = await scrapeBrandStatic(url, Date.now() + 8_000).catch(() => null)
+    const left = TOTAL_BUDGET_MS - (Date.now() - startedAt)
+    const fallback = left > 1_500 ? await scrapeBrandStatic(url, Date.now() + Math.min(8_000, left - 500)).catch(() => null) : null
     const usable = fallback && !looksBlocked(fallback)
     if (usable && (blocked || fallback.bodyText.length > (data?.bodyText.length ?? 0))) {
       console.warn(`[brand-scrape] used static fallback (${blocked ? 'blocked' : 'thin'})`)
       // Keep the browser's screenshot/colours/fonts only when it was a real page, never a block page's.
       data = blocked || !data ? fallback : mergeScrapes(data, fallback)
     } else if (blocked && data) {
-      data = { ...data, title: '', description: '', bodyText: '', screenshot: null, images: [], videos: [], blocked: true }
+      // Nothing from a block page is passed on: not its text, screenshot, media, nor its styling.
+      data = { ...data, title: '', description: '', bodyText: '', screenshot: null, images: [], videos: [], fonts: [], rawColors: [], logoCandidates: [], ogImage: null, favicon: null, blocked: true }
     }
   }
 
