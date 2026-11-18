@@ -7,9 +7,11 @@ import { DEFAULT_CUSTOM_BITRATE_MBPS, MAX_VIDEO_BITRATE_MBPS, MIN_VIDEO_BITRATE_
 // [remix] OpenChatCut master-quality policy (media/qualityPolicy.ts): master → high default bitrate
 import { ASPECTS } from '@cinegen/lib/occ/frame-geometry';
 import { defaultBitrateModeForQuality, getQualityMode, setQualityMode } from '../../../openchatcut/media/qualityPolicy';
+import { ExportFormatSelect } from './export-format-select'; // [remix] Stage 11
+import type { ExportContainer } from '@cinegen/lib/export/containers';
 import { loadExportAutoQaPreference, saveExportAutoQaPreference } from '../../../openchatcut/export/autoQa';
 
-export interface ExportExtras { videoBitrate?: number; qa: boolean; aspect?: string; /** one video per listed contact (Personalized output) */ contactIds?: string[] }
+export interface ExportExtras { videoBitrate?: number; qa: boolean; aspect?: string; container?: ExportContainer /* [remix] Stage 11 */; /** one video per listed contact (Personalized output) */ contactIds?: string[] }
 function aspectFrame(w: number, h: number, aspect: string): [number, number] {
   const [a, b] = aspect.split(':').map(Number); const r = a / b; const short = Math.min(w, h);
   const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
@@ -35,6 +37,7 @@ interface ExportSettingsProps {
 export function ExportSettings({ hasClips, blockedReason, onRender, aspect = '16:9', onAspect, fit = 'cover', onFit, renderRef }: ExportSettingsProps) {
   const [preset, setPreset] = useState<ExportPreset>('standard');
   const [fps, setFps] = useState<24 | 30 | 60>(30);
+  const [container, setContainer] = useState<ExportContainer>('mp4'); // [remix] Stage 11
   const setAspect = (a: string) => onAspect?.(a);
   const [bitrateMode, setBitrateMode] = useState<VideoBitrateMode>(() => defaultBitrateModeForQuality());
   const [master, setMaster] = useState(() => getQualityMode() === 'master');
@@ -69,6 +72,8 @@ export function ExportSettings({ hasClips, blockedReason, onRender, aspect = '16
           ))}
         </div>
       </div>
+
+      <ExportFormatSelect value={container} onChange={setContainer} />
 
       <div className="export-settings__section">
         <div className="export-settings__label">Frame Rate</div>
@@ -128,7 +133,7 @@ export function ExportSettings({ hasClips, blockedReason, onRender, aspect = '16
       <button
         className="export-settings__render-btn"
         disabled={!hasClips}
-        onClick={() => onRender(preset, fps, { videoBitrate: requested, qa, aspect })}
+        onClick={() => onRender(preset, fps, { videoBitrate: requested, qa, aspect, container })}
         title={hasClips ? undefined : (blockedReason || 'Add clips to the timeline first')}
       >
         Render

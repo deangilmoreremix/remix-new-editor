@@ -18,7 +18,7 @@ export type TemplateVideo = {
 const ALL = templateVideos as unknown as TemplateVideo[];
 const CATEGORIES = TEMPLATE_VIDEO_CATEGORIES as unknown as string[];
 const GROUPS = TEMPLATE_VIDEO_GROUPS as unknown as string[];
-const INITIAL = 24;
+const INITIAL = 12;
 const STEP = 24;
 
 const GLYPH: Record<string, string> = { All: '▦', 'Drama & Thriller': '◐', 'Fantasy & Surreal': '✧', 'Illustrated & Anime': '✎', 'Vlogs & UGC': '◎', 'Music & Dance': '♪', 'Fashion & Editorial': '✦', 'Food & Drink': '◔', 'Chases & Stunts': '⚡', 'Comedy & Pets': '☺', 'Products & Brands': '◈', '3D Animated': '◇', 'Cute & Kids': '❀', 'Fights & Battles': '⚔', 'Travel & Documentary': '⌖', 'Sci-Fi': '✺', 'Effects & Motion Graphics': '▨', 'Beauty & Fragrance': '✿', 'Titles & Typography': 'T', 'Fitness & Sports': '▲', 'Period & Historical': '♜', 'Cars & Vehicles': '▶', 'Creatures & Heroes': '☗', 'Lifestyle & Food': '☕', 'Aerial & FPV': '➤', More: '…' };
@@ -68,7 +68,7 @@ function CardVideo({ src, poster, title, ratio }: { src: string; poster: string 
     <div ref={wrap} style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
       {poster && <img src={poster} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />}
       {active && (
-        <video src={src} poster={poster ?? undefined} muted playsInline loop autoPlay preload="auto" aria-label={`Preview of ${title}`} data-ratio={ratio}
+        <video src={src} poster={poster ?? undefined} muted playsInline loop autoPlay preload="metadata" aria-label={`Preview of ${title}`} data-ratio={ratio}
           onLoadedData={() => setReady(true)} onError={() => setFailed(true)}
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000', pointerEvents: 'none', opacity: ready ? 1 : 0, transition: 'opacity .2s ease' }} />
       )}
@@ -78,8 +78,8 @@ function CardVideo({ src, poster, title, ratio }: { src: string; poster: string 
 
 /** The browsable content: category chips, subcategory chips, filters and the grid. The window around it is TemplateVideosModal; the
  *  same panel can also be a tab inside a larger "Add to timeline" window (same Panel/Modal split as HyperframesPanel / MgTemplatesPanel). */
-export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) => void }) {
-  const [q, setQ] = useState('');
+export function TemplateVideosPanel({ onPick, initialQuery }: { onPick: (item: TemplateVideo) => void; initialQuery?: string }) {
+  const [q, setQ] = useState(initialQuery ?? '');
   const [group, setGroup] = useState('all');
   const [type, setType] = useState('all');
   const [ratio, setRatio] = useState('all');
@@ -126,12 +126,12 @@ export function TemplateVideosPanel({ onPick }: { onPick: (item: TemplateVideo) 
         <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>Showing {visible.length} of {list.length} videos</div>
         <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0 }}>
           {visible.map((i) => (
-            <button key={i.id} className="tv-card" onClick={() => onPick(i)} aria-label={i.title} data-testid={`template-video-${i.id}`}
+            <button key={i.id} className="tv-card" onClick={() => onPick(i)} aria-label={i.title} data-card-title={i.title} data-testid={`template-video-${i.id}`}
               style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' }}>
               <div style={{ position: 'relative' }}>
                 <CardVideo src={i.videoSrc} poster={i.posterSrc} title={i.title} ratio={ratioNumber(i.aspectRatio)} />
                 <span style={{ position: 'absolute', left: 8, top: 8, maxWidth: 'calc(100% - 90px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{i.subcategory}</span>
-                <span data-branding={i.branding} title={i.marks ?? (i.branding === 'none' ? 'Reviewed: no visible logo, watermark or credit' : 'Has a visible logo, watermark or credit')} style={{ position: 'absolute', right: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: i.branding === 'none' ? 'rgba(16,120,70,.85)' : 'rgba(150,95,10,.9)', color: '#fff' }}>{i.branding === 'none' ? 'No logo' : 'Has logo'}</span>
+                <span data-branding={i.branding} role="img" aria-label={i.branding === 'none' ? 'No logo' : 'Has logo'} title={i.marks ?? (i.branding === 'none' ? 'Reviewed: no visible logo, watermark or credit' : 'Has a visible logo, watermark or credit')} style={{ position: 'absolute', right: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: i.branding === 'none' ? 'rgba(16,120,70,.85)' : 'rgba(150,95,10,.9)', color: '#fff' }}>{i.branding === 'none' ? 'No logo' : 'Has logo'}</span>
               </div>
               <div style={{ fontSize: 14, fontWeight: 700, marginTop: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.title}</div>
               <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{i.duration ? `${Math.round(i.duration)}s · ` : ''}{aspectBucket(i.aspectRatio)} · {i.source}</div>

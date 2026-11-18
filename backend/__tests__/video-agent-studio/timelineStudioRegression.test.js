@@ -33,10 +33,13 @@ describe('Timeline Studio regression (Video Agent integration must not touch)', 
     expect(src).toMatch(/export\s+class\s+TimelineFeatureApi\b/);
   });
 
-  it("the 'timeline' route in src/lib/router.js still loads TimelineEditorPage.jsx", () => {
+  it("the 'timeline' route in src/lib/router.js loads the CineGen editor (the classic page is only reachable through the old #/timeline-classic link, which now opens the same editor)", () => {
     const src = readFileSync(ROUTER, 'utf8');
     expect(src).toMatch(
-      /^\s*timeline\s*:\s*\(\)\s*=>\s*import\(['"]\.\.\/components\/TimelineEditorPage\.jsx['"]\)/m,
+      /^\s*timeline\s*:\s*\(\)\s*=>\s*import\(['"]\.\.\/cinegen\/mount\.tsx['"]\)/m,
+    );
+    expect(src).toMatch(
+      /^\s*['"]timeline-classic['"]\s*:\s*\(\)\s*=>\s*import\(['"]\.\.\/cinegen\/mount\.tsx['"]\)/m,
     );
   });
 

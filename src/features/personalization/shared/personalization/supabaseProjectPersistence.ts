@@ -47,6 +47,8 @@ export function stripSessionScopedUrls(state: PersonalizationProjectState): Pers
              isBlobUrl(state.previewSettings.audio.url)
                ? null
                : state.previewSettings.audio,
+           // A background picked from this computer only exists in this session; swap it for a color.
+           ...(state.previewSettings.cutout ? { cutout: cutoutForSave(state.previewSettings.cutout) } : {}),
          }
        : state.previewSettings,
   }
@@ -82,6 +84,7 @@ export function resolveRestoredAssetUrl(
   return isDurableMediaUrl(id) ? id : null
 }
 
+import { cutoutForSave } from './preview/cutout/cutoutSettings'
 import type { ClientProfile, AssetLibrary, PersonalizationSource, GenerationOptions, GenerationState, PromptState, OutputType, VideoPersonalizationMode, ImagePersonalizationMode, PersonalizationViewMode } from './types'
 import type { PersonalizationPreviewSettings, PreviewVideoRef } from './preview/types'
 
@@ -129,6 +132,8 @@ export interface PersonalizationProjectState {
   /** The saved output is the generated clip without the on-video layers the
    *  user approved (adding or storing them failed). */
   layersMissing?: boolean
+  /** When the saved output was generated (ISO). Lets other apps pick the newest generated picture instead of the most recently saved project. */
+  outputGeneratedAt?: string
 }
 
 const API_ROUTE = '/api/personalization/project'
@@ -240,6 +245,7 @@ export function projectStateFromRow(row: unknown): PersonalizationProjectState |
   const guidedStep = isEnvelope ? generation.guidedStep : undefined
   const viewMode = isEnvelope ? generation.viewMode : undefined
   const layersMissing = isEnvelope && generation.layersMissing === true
+  const outputGeneratedAt = isEnvelope && typeof generation.outputGeneratedAt === 'string' ? generation.outputGeneratedAt : ''
 
   return {
     id: asString(r.id) ?? undefined,
@@ -315,6 +321,7 @@ export function projectStateFromRow(row: unknown): PersonalizationProjectState |
     guidedStep: typeof guidedStep === 'number' ? guidedStep : undefined,
     viewMode: viewMode as PersonalizationViewMode | undefined,
     ...(layersMissing ? { layersMissing: true } : {}),
+    ...(outputGeneratedAt ? { outputGeneratedAt } : {}),
   }
 }
 
@@ -370,6 +377,7 @@ export function projectRowFromState(state: PersonalizationProjectState): SavedPr
       guidedStep: state.guidedStep ?? null,
       viewMode: state.viewMode ?? null,
       ...(state.layersMissing ? { layersMissing: true } : {}),
+      ...(state.outputGeneratedAt ? { outputGeneratedAt: state.outputGeneratedAt } : {}),
     },
     outputType: state.outputType ?? 'prompt',
     mode: state.personalizationMode ?? null,

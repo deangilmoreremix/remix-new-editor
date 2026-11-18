@@ -9,8 +9,8 @@ const clip = (over: Partial<Clip> = {}): Clip => ({ id: 'c1', assetId: 'a', trac
 const tl = (c: Clip): Timeline => ({ id: 'tl', name: 'T', tracks: [], clips: [c], duration: 4, transitions: [], markers: [] });
 
 describe('OpenChatCut effects on CineGen clips', () => {
-  it('ships 33 effects and 16 LUT/looks', () => {
-    expect(FX_IDS.length).toBe(33);
+  it('ships 57 effects (33 + 21 Stage 3/5 + 2 Fix C + 1 Fix G pixel sort) and 16 LUT/looks', () => {
+    expect(FX_IDS.length).toBe(57);
     expect(LUT_IDS.length).toBe(16);
   });
   it('a clip without fx has no passes', () => {
@@ -127,7 +127,7 @@ describe('clip fades', () => {
     const b = { ...clip, id: 'b', linkedClipIds: ['a'], fadeIn: undefined, fadeOut: undefined };
     const tl: any = { id: 't', clips: [a, b], tracks: [], duration: 10, markers: [], transitions: [] };
     const out = updateClipProperties(tl, 'a', { fadeIn: 1.5 });
-    expect(out.clips.find((c: any) => c.id === 'b').fadeIn).toBe(1.5);
+    expect(out.clips.find((c: any) => c.id === 'b')?.fadeIn).toBe(1.5);
   });
 });
 

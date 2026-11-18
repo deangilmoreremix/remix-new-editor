@@ -1,0 +1,48 @@
+{
+ "results": [
+  {
+   "ok": true,
+   "m": "unedited document renders both shape layers (2 paths)"
+  },
+  {
+   "ok": true,
+   "m": "hiding layer 1 removes its picture from the real lottie-web SVG (1 visible vs 2)"
+  },
+  {
+   "ok": true,
+   "m": "opacity slot 35 reaches the rendered SVG (opacity 0.35)"
+  },
+  {
+   "ok": true,
+   "m": "position slot moves the rendered layer (transform changed)"
+  }
+ ],
+ "plain": {
+  "opacity": [
+   "1",
+   "1",
+   "1",
+   "1"
+  ],
+  "transforms": [
+   "matrix(1,0,0,1,40,40)",
+   "matrix(1,0,0,1,0,0)",
+   "matrix(1,0,0,1,100,100)",
+   "matrix(1,0,0,1,0,0)"
+  ]
+ },
+ "edited": {
+  "opacity": [
+   "1",
+   "1",
+   "0.35000000000000003",
+   "1"
+  ],
+  "transforms": [
+   "matrix(1,0,0,1,40,40)",
+   "matrix(1,0,0,1,0,0)",
+   "matrix(1,0,0,1,20,30)",
+   "matrix(1,0,0,1,0,0)"
+  ]
+ }
+}

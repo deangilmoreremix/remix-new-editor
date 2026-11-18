@@ -7,8 +7,14 @@ import { leadFormToOptin, normalizeListBuilder } from '../../../lib/editor/addon
 import { getPointerDesign } from '../../../lib/editor/addons/pointerDesigns.js';
 // @ts-expect-error plain JS lead helpers
 import { leadsToCsv } from '../../../lib/editor/addons/leadClient.js';
+// @ts-expect-error plain JS attribution helpers
+import { sourceLabel as rawSourceLabel } from '../../../lib/editor/publish/attribution.js';
 
-export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string> }
+export interface LeadSource { utm?: Record<string, string>; referrer?: string; page?: string | null; variant?: string }
+export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string>; source?: LeadSource }
+
+/** "google / spring-sale", else the referring host, else "". */
+export const sourceLabel = (row: LeadRow): string => String(rawSourceLabel(row.source) || '');
 export interface LeadForm { key: string; label: string; short: string; tone: 'wall' | 'lead' }
 
 export const WALL_KEY = 'list-builder';
@@ -34,18 +40,50 @@ export function rowFormKey(row: LeadRow): string {
   return row.clipId ?? 'unknown';
 }
 
+/** Where the viewer came from: "mp4" when they followed the QR / link on an exported video (`?src=mp4` on the page they submitted from). */
+export function rowSource(row: LeadRow): string {
+  const page = row.source?.page;
+  if (!page) return '';
+  try { return new URL(page).searchParams.get('src') ?? ''; } catch { return ''; }
+}
+/** 'A' or 'B' when the viewer saw one version of an A/B-tested form, else ''. */
+export const variantOf = (row: LeadRow): string => (row.source?.variant === 'A' || row.source?.variant === 'B' ? row.source.variant : '');
+/** Leads per version, for forms being A/B tested (null when no lead carries a version). */
+export function variantCounts(rows: LeadRow[]): { A: number; B: number } | null {
+  const out = { A: 0, B: 0 };
+  rows.forEach((r) => { const v = variantOf(r); if (v === 'A' || v === 'B') out[v] += 1; });
+  return out.A + out.B ? out : null;
+}
+export const fromMp4 = (row: LeadRow): boolean => rowSource(row) === 'mp4';
+
 export function countsByForm(rows: LeadRow[]): Record<string, number> {
   const out: Record<string, number> = {};
   rows.forEach((r) => { const k = rowFormKey(r); out[k] = (out[k] ?? 0) + 1; });
   return out;
 }
 
-export function filterRows(rows: LeadRow[], { form = 'all', query = '' }: { form?: string; query?: string } = {}): LeadRow[] {
+export type LeadRange = 'all' | 'today' | '7d' | '30d';
+export const LEAD_RANGES: Array<[LeadRange, string]> = [['all', 'All time'], ['today', 'Today'], ['7d', 'Last 7 days'], ['30d', 'Last 30 days']];
+
+/** Earliest allowed timestamp (ms) for a range, or null for "all". "today" is since local midnight; N days is a rolling window. */
+function rangeStart(range: LeadRange, now: Date): number | null {
+  if (range === 'today') return new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  if (range === '7d') return now.getTime() - 7 * 86400000;
+  if (range === '30d') return now.getTime() - 30 * 86400000;
+  return null;
+}
+
+export function filterRows(rows: LeadRow[], { form = 'all', query = '', range = 'all', now = new Date() }: { form?: string; query?: string; range?: LeadRange; now?: Date } = {}): LeadRow[] {
   const q = query.trim().toLowerCase();
+  const since = rangeStart(range, now);
   return rows.filter((r) => {
     if (form !== 'all' && rowFormKey(r) !== form) return false;
+    if (since !== null) {
+      const t = new Date(r.createdAt).getTime();
+      if (Number.isNaN(t) || t < since) return false;
+    }
     if (!q) return true;
-    return Object.values(r.data).some((v) => String(v).toLowerCase().includes(q));
+    return Object.values(r.data).some((v) => String(v).toLowerCase().includes(q)) || sourceLabel(r).toLowerCase().includes(q);
   });
 }
 
@@ -56,9 +94,25 @@ export function answerColumns(rows: LeadRow[]): Array<{ key: string; label: stri
   return seen.map((key) => ({ key, label: key.replace(/_\d+$/, '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()) }));
 }
 
+/** A viewer controls utm_* and the referrer; a leading = + - @ (or tab/CR) would be read as a formula by spreadsheets. */
+export const csvSafe = (v: string): string => (/^[=+\-@\t\r]/.test(v) ? `'${v}` : v);
+
 export function rowsToCsv(rows: LeadRow[], forms: LeadForm[]): string {
   const name = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r))?.label ?? 'Form';
-  return leadsToCsv(rows.map((r) => ({ Submitted: r.createdAt, Form: name(r), ...r.data })));
+  // Source columns only appear when at least one lead has them, so older exports keep their shape.
+  return leadsToCsv(rows.map((r) => {
+    const utm = r.source?.utm ?? {};
+    const src: Record<string, string> = {};
+    if (utm.source) src['UTM Source'] = csvSafe(utm.source);
+    if (utm.medium) src['UTM Medium'] = csvSafe(utm.medium);
+    if (utm.campaign) src['UTM Campaign'] = csvSafe(utm.campaign);
+    if (utm.term) src['UTM Term'] = csvSafe(utm.term);
+    if (utm.content) src['UTM Content'] = csvSafe(utm.content);
+    if (r.source?.referrer) src.Referrer = csvSafe(r.source.referrer);
+    if (fromMp4(r)) src['From MP4'] = 'Yes';
+    if (variantOf(r)) src.Version = variantOf(r);
+    return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src };
+  }));
 }
 
 /** "Today 14:02" / "Yesterday 19:05" / "Nov 3 09:12" */

@@ -143,7 +143,8 @@ for (const id of order) {
   const suffix = n > 1 ? ` ${n}` : '';
   while (base.length + suffix.length > 36 && base.includes(' ')) base = base.slice(0, base.lastIndexOf(' '));
   const title = base + suffix;
-  const hosted = allowIds.includes(id) || isCdn(d.videoSrc);
+  // Every clip is hosted in the bucket (clips that live in the app repo under /media are copied there too, so catalog.json URLs work for other apps).
+  const hosted = true;
   const poster = posterOverride(set, slug) ?? (hosted ? same(d.posterSrc) : (usableLocalPoster(d.posterSrc) ? d.posterSrc : null)) ?? null;
   rows.push({
     id,

@@ -11,8 +11,8 @@ const cards = () => screen.queryAllByTestId(/^template-video-/);
 const tab = (name: RegExp) => screen.getByRole('tab', { name });
 
 describe('TemplateVideosModal', () => {
-  let onClose: ReturnType<typeof vi.fn>;
-  let onPick: ReturnType<typeof vi.fn>;
+  let onClose: any;
+  let onPick: any;
   beforeEach(() => {
     onClose = vi.fn();
     onPick = vi.fn();
@@ -28,19 +28,19 @@ describe('TemplateVideosModal', () => {
     expect(sum).toBe(ALL.length);
   });
 
-  it('starts with a window of 24 cards and "Show more" reveals the next batch', () => {
-    expect(cards()).toHaveLength(24);
-    expect(screen.getByText(new RegExp(`Showing 24 of ${ALL.length} videos`))).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: new RegExp(`Show more \\(${ALL.length - 24} left\\)`) }));
-    expect(cards()).toHaveLength(48);
+  it('starts with a window of 12 cards and "Show more" reveals the next batch', () => {
+    expect(cards()).toHaveLength(12);
+    expect(screen.getByText(new RegExp(`Showing 12 of ${ALL.length} videos`))).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`Show more \\(${ALL.length - 12} left\\)`) }));
+    expect(cards()).toHaveLength(36);
   });
 
   it('filters by group chip', () => {
     fireEvent.click(tab(/Food & Drink/));
     const expected = ALL.filter((v) => v.group === 'Food & Drink').length;
     expect(expected).toBeGreaterThan(5);
-    expect(cards()).toHaveLength(Math.min(24, expected));
-    expect(screen.getByText(new RegExp(`Showing ${Math.min(24, expected)} of ${expected} videos`))).toBeTruthy();
+    expect(cards()).toHaveLength(Math.min(12, expected));
+    expect(screen.getByText(new RegExp(`Showing ${Math.min(12, expected)} of ${expected} videos`))).toBeTruthy();
   });
 
   it('filters by Type and keeps the chip counts in step with it', () => {
@@ -55,7 +55,7 @@ describe('TemplateVideosModal', () => {
   it('searches titles, and shows an empty state when nothing matches', () => {
     const word = ALL[0].title.split(/\s+/)[0];
     fireEvent.change(screen.getByLabelText('Search template videos'), { target: { value: word } });
-    expect(cards().length).toBe(Math.min(24, searchTemplateVideos(ALL, word).length));
+    expect(cards().length).toBe(Math.min(12, searchTemplateVideos(ALL, word).length));
     fireEvent.change(screen.getByLabelText('Search template videos'), { target: { value: 'zzzz-no-such-clip' } });
     expect(cards()).toHaveLength(0);
     expect(screen.getByText(/No template videos match your search/)).toBeTruthy();

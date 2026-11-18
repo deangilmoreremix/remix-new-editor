@@ -29,8 +29,8 @@
 import {
   POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, isTargetDesign,
 } from './pointerDesigns.js';
-import { leadFieldTokens } from './leadClient.js';
-import { FIELD_LAYOUTS } from './addonOverlay.js';
+import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
+import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS } from './addonOverlay.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -43,16 +43,28 @@ export const OPTIN_KINDS = {
 };
 
 // Upstream ARRAY_ELEMENTS_RETARGET
+/** When a Lead Generator appears in a published video (the List Builder is always a wall at the start). */
+export const LEAD_TRIGGERS = [
+  ['time', 'At its place on the timeline'],
+  ['end', 'At the end of the video'],
+  ['pause', 'When the viewer pauses the video'],
+  ['exit', 'When the viewer is about to leave (desktop)'],
+];
+
 export const FORM_FIELD_TYPES = [
   ['singleline', 'Singleline'],
   ['multiline', 'Multiline'],
   ['email', 'Email'],
+  ['phone', 'Phone'],
+  ['url', 'Website (URL)'],
   ['number', 'Number'],
   ['date', 'Date'],
+  ['select', 'Dropdown'],
+  ['checkbox', 'Checkbox'],
 ];
 
-/** The Lead Generator clip also offered a Phone field. */
-export const LEAD_FIELD_TYPES = [...FORM_FIELD_TYPES, ['phone', 'Phone']];
+/** The Lead Generator offers the same field types (Phone used to be Lead-Generator-only). */
+export const LEAD_FIELD_TYPES = FORM_FIELD_TYPES;
 
 // Upstream ARRAY_TRANSITIONS (full list).
 export const FORM_TRANSITIONS = [
@@ -159,6 +171,9 @@ export function defaultOptin(kind = 'list-builder') {
     btnText: 'Play',
     skipText: 'Skip',
     successMessage: 'Thanks!',
+    afterSubmitAction: 'continue',
+    afterSubmitUrl: '',
+    afterSubmitButtonText: '',
     // text styling
     captionColor: '', // '' = the form font colour
     captionBold: true,
@@ -182,7 +197,24 @@ export function defaultOptin(kind = 'list-builder') {
     webhook3: '',
     emailEnabled: false,
     emailAddress: '',
+    emailAddress2: '',
+    emailAddress3: '',
     fbPixelId: '',
+    gaMeasurementId: '',
+    tiktokPixelId: '',
+    gtmId: '',
+    espProvider: '',
+    espListId: '',
+    blockDisposableEmails: false,
+    requireConsent: false,
+    consentText: 'I agree to receive emails and updates.',
+    trigger: 'time',
+    abTest: false,
+    variantBCaption: '',
+    variantBBtnText: '',
+    multiStep: false,
+    stepSize: 1,
+    nextText: 'Next',
     transition: 'popcorn-none',
     ...POINTER_DEFAULTS,
     pointerEnabled: !lead, // upstream only showed the arrow on the List Builder
@@ -254,6 +286,14 @@ const TEXT_FIELDS = (personalizer) => [
   { key: 'btnText', label: 'Play button text', type: 'text' },
   { key: 'skipText', label: 'Skip button text', type: 'text', showIf: (o) => o.enableSkipButton },
   { key: 'successMessage', label: 'Message after the form is sent', type: 'text' },
+  { key: 'afterSubmitAction', label: 'After the form is sent', type: 'select', options: AFTER_SUBMIT_ACTIONS },
+  { key: 'afterSubmitUrl', label: 'Thank-you button / redirect link (https://…)', type: 'url', showIf: (o) => o.afterSubmitAction === 'button' || o.afterSubmitAction === 'redirect' },
+  { key: 'afterSubmitButtonText', label: 'Thank-you button text', type: 'text', showIf: (o) => o.afterSubmitAction === 'button' },
+  { key: 'abTest', label: 'A/B test: also show a second version of the caption and button (published videos)', type: 'toggle' },
+  { key: 'variantBCaption', label: 'Version B caption (empty = same as A)', type: 'textarea', rows: 2, showIf: (o) => o.abTest },
+  { key: 'variantBBtnText', label: 'Version B button text (empty = same as A)', type: 'text', showIf: (o) => o.abTest },
+  { key: 'nextText', label: 'Next button text', type: 'text', showIf: (o) => o.multiStep },
+  { key: 'consentText', label: 'Consent checkbox wording', type: 'text', showIf: (o) => o.requireConsent },
   { key: 'privacyDisclaimer', label: 'Privacy text', type: 'textarea', showIf: () => !personalizer },
   { key: 'privacyPolicyCaption', label: 'Privacy policy link text', type: 'text' },
   { key: 'privacyPolicyLink', label: 'Privacy policy link (URL)', type: 'url' },
@@ -296,6 +336,10 @@ export function listBuilderFields(config) {
     ...TEXT_FIELDS(personalizer).map((f) => ({ ...f, tab: 'Text' })),
     ...STYLE_FIELDS.map((f) => ({ ...f, tab: 'Styles' })),
     { key: 'elements', label: lead ? 'Form boxes (1–5)' : 'Form boxes (1–5, required)', type: 'fieldList', min: 1, max: 5, placeholders: true, fieldTypes: lead ? LEAD_FIELD_TYPES : FORM_FIELD_TYPES, tab: 'Fields' },
+    { key: 'trigger', label: 'When it appears (published video)', type: 'select', options: LEAD_TRIGGERS, tab: 'Fields', showIf: (o) => o.kind === 'lead-generator' },
+    { key: 'multiStep', label: 'Split the boxes into steps (Next / Back, progress dots)', type: 'toggle', tab: 'Fields' },
+    { key: 'stepSize', label: 'Boxes per step', type: 'select', options: [[1, '1'], [2, '2'], [3, '3']], tab: 'Fields', showIf: (o) => o.multiStep },
+    { key: 'requireConsent', label: 'Add a consent checkbox viewers must tick (wording on the Text tab)', type: 'toggle', tab: 'Fields' },
     ...LAYOUT_FIELDS.map((f) => ({ ...f, tab: 'Fields' })),
     ...POINTER_FIELDS.map((f) => ({ ...f, tab: 'Pointer', ...(f.optionsFor ? { options: f.optionsFor(config || {}) } : {}) })),
   ];
@@ -306,9 +350,21 @@ export function listBuilderFields(config) {
       { key: 'webhook', label: 'Webhook Address', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'webhook2', label: 'Webhook Address 2', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'webhook3', label: 'Webhook Address 3', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookTest', label: 'Test Webhook', type: 'action', action: 'testWebhooks', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookLog', label: 'Recent webhook deliveries', type: 'action', action: 'webhookLog', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookSecret', label: 'Show webhook signing secret', type: 'action', action: 'signingSecret', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'emailEnabled', label: 'Email Notification', type: 'toggle', tab: 'Integrations' },
-      { key: 'emailAddress', label: 'Notification Address', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
+      { key: 'emailAddress', label: 'Notification Address (person 1)', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
+      { key: 'emailAddress2', label: 'Notification Address (person 2, optional)', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
+      { key: 'emailAddress3', label: 'Notification Address (person 3, optional)', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
       { key: 'fbPixelId', label: 'Facebook Pixel ID', type: 'text', tab: 'Integrations' },
+      { key: 'gaMeasurementId', label: 'Google Analytics 4 Measurement ID (G-XXXXXXXXXX)', type: 'text', tab: 'Integrations' },
+      { key: 'tiktokPixelId', label: 'TikTok Pixel ID', type: 'text', tab: 'Integrations' },
+      { key: 'gtmId', label: 'Google Tag Manager ID (GTM-XXXXXXX)', type: 'text', tab: 'Integrations' },
+      { key: 'blockDisposableEmails', label: 'Block throwaway email addresses (published videos)', type: 'toggle', tab: 'Integrations' },
+      { key: 'espProvider', label: 'Add leads to an email list (published videos)', type: 'select', options: ESP_PROVIDERS, tab: 'Integrations' },
+      { key: 'espListId', label: espListLabel(config?.espProvider), type: 'text', tab: 'Integrations', showIf: (o) => !!o.espProvider },
+      { key: '_espConnect', label: `Connect ${espName(config?.espProvider) || 'account'}`, type: 'action', action: 'connectEsp', tab: 'Integrations', showIf: (o) => !!o.espProvider },
     );
   }
   return fields;
@@ -341,6 +397,10 @@ const CLIP_KEYS = {
   privacyDisclaimer: 'privacyText',
   privacyPolicyCaption: 'privacyPolicyCaption',
   privacyPolicyLink: 'privacyPolicyLink',
+  successMessage: 'successMessage',
+  afterSubmitAction: 'afterSubmitAction',
+  afterSubmitUrl: 'afterSubmitUrl',
+  afterSubmitButtonText: 'afterSubmitButtonText',
   brandLogoSrc: 'brandLogoUrl',
   enableSkipButton: 'skipButtonEnabled',
   webhookEnabled: 'webhookEnabled',
@@ -349,7 +409,16 @@ const CLIP_KEYS = {
   webhook3: 'webhookUrl3',
   emailEnabled: 'emailNotificationEnabled',
   emailAddress: 'notificationEmail',
+  emailAddress2: 'notificationEmail2',
+  emailAddress3: 'notificationEmail3',
   fbPixelId: 'fbPixelId',
+  gaMeasurementId: 'gaMeasurementId',
+  tiktokPixelId: 'tiktokPixelId',
+  gtmId: 'gtmId',
+  espProvider: 'espProvider',
+  espListId: 'espListId',
+  blockDisposableEmails: 'blockDisposableEmails',
+  trigger: 'trigger',
 };
 
 // opt-in option → clip.style key.
@@ -401,6 +470,7 @@ export function leadFormToOptin(clip) {
     token: tokens[i],
     required: !!f.required,
     placeholder: f.placeholder || '',
+    ...(f.options ? { options: f.options } : {}),
   }));
   Object.assign(out, clip?.design || {});
   out.kind = 'lead-generator';
@@ -417,7 +487,7 @@ export function applyOptinToLeadForm(clip, next) {
   clip.design = clip.design || {};
   for (const [key, value] of Object.entries(next)) {
     if (OWN_KEYS.has(key)) continue;
-    if (CLIP_KEYS[key]) clip[CLIP_KEYS[key]] = value;
+    if (CLIP_KEYS[key]) { clip[CLIP_KEYS[key]] = value; delete clip.design[key]; } // an older design.<key> would win on read
     else if (STYLE_KEYS[key]) clip.style[STYLE_KEYS[key]] = value;
     else clip.design[key] = value;
   }
@@ -426,7 +496,7 @@ export function applyOptinToLeadForm(clip, next) {
     let id = (typeof e.id === 'string' && e.id) ? e.id : slug(e.label);
     if (used.has(id)) id = `${id}_${i + 1}`;
     used.add(id);
-    return { id, type: e.type === 'singleline' ? 'text' : e.type, label: e.label, required: !!e.required, ...(e.placeholder ? { placeholder: e.placeholder } : {}) };
+    return { id, type: e.type === 'singleline' ? 'text' : e.type, label: e.label, required: !!e.required, ...(e.placeholder ? { placeholder: e.placeholder } : {}), ...(e.options ? { options: e.options } : {}) };
   });
   if (!clip.fields.length) clip.fields = [{ id: 'email', type: 'email', label: 'Email' }];
   return clip;

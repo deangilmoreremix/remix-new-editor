@@ -307,7 +307,7 @@ export async function fetchVideoStats(client, id) {
 }
 
 /** Submit a viewer's lead for a published video (stored for its owner). */
-export async function submitViewerLead({ publishedId, clipId, kind, data }, { url, key, fetchImpl = fetch } = env()) {
+export async function submitViewerLead({ publishedId, clipId, kind, data, attribution = {}, signals = null, variant = '' }, { url, key, fetchImpl = fetch } = env()) {
   if (!url || !key) return { stored: false, error: 'Lead service is not configured' };
   try {
     const res = await fetchImpl(`${url}/functions/v1/lead-capture`, {
@@ -315,11 +315,18 @@ export async function submitViewerLead({ publishedId, clipId, kind, data }, { ur
       headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         publishedId, clipId: clipId != null ? String(clipId) : null, kind, data,
-        source: { page: globalThis.location?.href || null, userAgent: globalThis.navigator?.userAgent || null },
+        ...(signals && typeof signals === 'object' ? { signals: { hp: String(signals.hp ?? ''), ...(Number.isFinite(Number(signals.ms)) && signals.ms !== undefined ? { ms: Number(signals.ms) } : {}) } } : {}),
+        source: {
+          page: globalThis.location?.href || null,
+          userAgent: globalThis.navigator?.userAgent || null,
+          ...(attribution.utm ? { utm: attribution.utm } : {}),
+          ...(attribution.referrer ? { referrer: attribution.referrer } : {}),
+          ...(variant === 'A' || variant === 'B' ? { variant } : {}),
+        },
       }),
     });
     const body = await res.json().catch(() => ({}));
-    return res.ok && body.ok ? { stored: !!body.stored, error: null } : { stored: false, error: body.error || `HTTP ${res.status}` };
+    return res.ok && body.ok ? { stored: !!body.stored, error: null } : { stored: false, error: body.error || `HTTP ${res.status}`, fix: res.status === 400 && body.error ? String(body.error) : null }; // `fix`: a short message the viewer can act on
   } catch (err) {
     return { stored: false, error: err?.message || String(err) };
   }
@@ -351,7 +358,7 @@ function profileFromParams(params, { maxText = 200 } = {}) {
     (style[m[1]] ||= {})[m[2]] = v;
   });
   params.forEach((v, k) => {
-    if (['embed', 'autoplay', 't', 'c', 'p'].includes(k) || k.length > 40) return;
+    if (['embed', 'autoplay', 't', 'c', 'p', 'src'].includes(k) || k.length > 40) return;
     if (/__(f|l)$/.test(k) && isImageTokenKey(k.replace(/__(f|l)$/, ''))) return;
     // Image URLs from personal links ({{logoUrl}}, …) are kept whole — a cut
     // URL is a broken image — but only http(s) ones of sane length.

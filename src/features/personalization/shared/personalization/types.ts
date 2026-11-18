@@ -140,6 +140,16 @@ export interface ClientProfile {
   callToAction: string
   phone: string
   website: string
+  /**
+   * Contact details found on the business's OWN website by the finder's enrichment (never invented, never
+   * verified). Optional so older saved projects and every existing consumer keep working.
+   */
+  email?: string
+  facebook?: string
+  instagram?: string
+  linkedin?: string
+  youtube?: string
+  tiktok?: string
   brandDescription: string
   /** The business's own brand colors (researched from its site, or chosen); lets the timeline editor tint designs per contact. */
   brandColors?: { primary?: string; accent?: string }

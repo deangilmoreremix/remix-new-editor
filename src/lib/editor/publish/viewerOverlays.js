@@ -6,6 +6,7 @@
  */
 import { showOptinOverlay } from '../addons/addonOverlay.js';
 import { leadFormToOptin } from '../addons/listBuilder.js';
+import { applyVariant } from '../addons/abTest.js';
 import { resolveOverlayText } from '../addons/overlayRender.js';
 import { getAddon, addonOptions } from '../addons/registry.js';
 import { ctaTarget } from '../addons/ctaLink.js';
@@ -34,8 +35,8 @@ export function isSafeLink(v) {
  * @param {object} o         { profile, onSubmit(data) → Promise<{ ok, message? }>, onSkip() }
  * @returns {HTMLElement}
  */
-export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditText, preview = false } = {}) {
-  const cfg = leadFormToOptin(clip);
+export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditText, preview = false, allowRedirect = false, isActive = () => true, variant = 'A' } = {}) {
+  const cfg = applyVariant(leadFormToOptin(clip), variant);
   cfg.caption = personalize(cfg.caption, profile);
   cfg.btnText = personalize(cfg.btnText, profile) || 'Submit';
   cfg.privacyDisclaimer = personalize(cfg.privacyDisclaimer, profile);
@@ -51,11 +52,13 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditTex
     name: 'lead-form',
     prefill,
     preview,
+    allowRedirect,
+    isActive,
     onEditText,
     onSkip,
-    onSubmit: async (data) => {
+    onSubmit: async (data, signals) => {
       if (!Object.values(data).some((v) => String(v).trim())) throw new Error('Please fill in the form.');
-      const res = await onSubmit?.(data);
+      const res = await onSubmit?.(data, signals);
       if (res && res.ok === false) throw new Error(res.message || 'Something went wrong — please try again.');
       return '';
     },

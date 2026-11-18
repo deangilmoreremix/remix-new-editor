@@ -41,12 +41,30 @@ export const EDITOR_TIPS = {
   layerLock: { text: 'Lock the position so dragging, resizing and automatic placement leave it alone.' },
   layerHide: { text: 'Hide this layer from the video. You can show it again from the layers list.', shortcut: 'Delete' },
 
+  keyframes: { text: 'Keyframes change a layer over time: move, resize, fade or tilt it between moments you choose. Add one at the playhead, add another later, and change a value. Your layer\'s own position and animation stay as they are.' },
+  keyframeDiamond: { text: 'A keyframe. Click to jump to it, drag to move it in time.', shortcut: 'Arrow keys: 1 frame · Shift: 10' },
+
   // ── timeline ─────────────────────────────────────────────────────────
   timelineBar: { text: 'Drag the bar to change when this layer is on screen. Drag an edge to trim it.', shortcut: 'Arrow keys: 1 frame · Shift: 10' },
 
   // ── inspector ────────────────────────────────────────────────────────
   textColor: { text: 'Pick the text color. The picker shows how readable it is on your video and can choose white or dark for you.' },
   buttonColor: { text: 'Pick the button color. The label switches between dark and white so it stays readable.' },
+
+  // ── color and look ───────────────────────────────────────────────────
+  lookPresets: { text: 'One-click film looks. They only set the sliders below, so you can keep adjusting. Reset look puts the video back to normal.', free: true },
+  lookLight: { text: 'Exposure makes the video brighter or darker (in camera stops), contrast separates light from dark, and the vignette darkens the corners.' },
+  lookColor: { text: 'Saturation sets how colorful the video is (0 is black and white). Temperature and tint shift it warmer or cooler, greener or pinker.' },
+  lookOverlay: { text: 'Pick a color and a strength to wash over the video, or use it for a glow around a layer.' },
+  lookBlur: { text: 'Softens the whole video, for example behind a busy headline.' },
+  layerEffects: { text: 'Effects for this layer only: brighten, darken, recolor, blur, or add a drop shadow or colored glow. Reset effects removes them.' },
+  // ── presenter background ─────────────────────────────────────────────
+  cutoutRemove: { text: 'Cut the person out of your video so they can stand on a different background. It runs in your browser, uses no credits, and your original video is kept.', free: true },
+  cutoutRestore: { text: 'Go back to your original video, background included. Your background choices are kept if you turn it on again.' },
+  cutoutBackground: { text: 'What appears behind the presenter: nothing, a color, a blurred copy of the video, one of your images, or another video.' },
+  cutoutPresenter: { text: 'Where the presenter stands in the frame and how big they are. Use a preset or fine-tune the size, position and tilt.' },
+  cutoutEdge: { text: 'Clean up the outline. Soften blends the edge; Edge shrinks it to remove a halo or grows it to bring back hair.' },
+  cutoutColor: { text: 'Pick the background color.' },
 
   // ── layout quality check ─────────────────────────────────────────────
   qualityReview: { text: 'Open the full layout check: every problem found, with buttons to show it on the video or fix it.' },
