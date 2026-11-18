@@ -8,7 +8,7 @@
  */
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
-import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery } from '../lib/editor/publish/publishClient.js';
+import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery, profileFromLink, personalLinkIdFromQuery, fetchPersonalization } from '../lib/editor/publish/publishClient.js';
 import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
@@ -59,6 +59,27 @@ export async function mountWatchPage(container, ref, deps = {}) {
     message(container, 'Video not found', 'This video was removed or is no longer shared.');
     return null;
   }
+  // The viewer's details: a stored personal link (?p=<id>, values kept on the server and not editable in the
+  // address), else the details carried in the address (?c=…&firstname=…). A personal link that is unknown,
+  // revoked or for another video is not played unpersonalized — the sender gave it to someone specific.
+  const linkId = personalLinkIdFromQuery();
+  let viewerProfile;
+  if (linkId) {
+    let stored;
+    try {
+      stored = await (deps.fetchPersonalization || fetchPersonalization)(linkId);
+    } catch (err) {
+      message(container, 'Video unavailable', err?.message || 'Please try again later.');
+      return null;
+    }
+    if (!stored || stored.videoId !== video.id) {
+      message(container, 'This link is no longer active', 'Ask the person who sent it for a new link.');
+      return null;
+    }
+    viewerProfile = profileFromLink(stored);
+  } else {
+    viewerProfile = profileFromQuery();
+  }
   const title = video.title || video.project.title || 'Video';
   document.title = title;
   // Unlisted videos are reachable by link only: keep them out of search results.
@@ -105,8 +126,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
 
   let codePreview = null;
   let scrubbing = false;
-  // Per-contact analytics (personal links carry ?c=<contactId>).
-  const viewerProfile = profileFromQuery();
+  // Per-contact analytics (a personal link knows its contact).
   // Campaign tags + referrer, captured once when the page loads (first touch) and sent with each lead.
   const attribution = deps.attribution ?? captureAttribution();
   // First-party analytics (netlify/functions/video-events.js): batched, idempotent,
@@ -138,6 +158,8 @@ export async function mountWatchPage(container, ref, deps = {}) {
       }
       return res;
     },
+    // A viewer clicked a hotspot: its own event type (not a CTA click), labelled with the owner's text.
+    onHotspot: ({ clip, label, time }) => analytics.track('overlay_click', { clip: String(clip.id), t: time, props: (label || labelFor(String(clip.id))) ? { label: label || labelFor(String(clip.id)) } : undefined }),
     onChange: ({ playing, time, duration, gating }) => {
       analytics.onPlayerChange({ playing, time, duration });
       heat.onPlayerChange({ playing, time, duration });
@@ -190,7 +212,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
   // CTA buttons and links in the video (click-to-call, Smart Text links…).
   frame.addEventListener('click', (e) => {
     const a = e.target.closest('a[href]');
-    if (!a || !frame.contains(a)) return;
+    if (!a || !frame.contains(a) || a.dataset.hotspot) return; // hotspots report overlay_click themselves
     const clip = a.closest('[data-clip-id]')?.dataset.clipId || null;
     const label = labelFor(clip) || String(a.textContent || '').trim().slice(0, 60) || null;
     const isCall = /^tel:/i.test(a.getAttribute('href') || '');

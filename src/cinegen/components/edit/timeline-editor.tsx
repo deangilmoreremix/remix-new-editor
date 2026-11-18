@@ -6,7 +6,7 @@ import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/w
 import { OverlayLane } from './overlay-lane';
 import { type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 import { CaptionLane } from './caption-lane';
-import { createOverlay, createTemplateOverlays, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, createStudioDesignOverlay, createTemplateOverlays, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay, getSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
@@ -3235,7 +3235,13 @@ export function TimelineEditor({
               // one List Builder per video: open the one that is there
               const gate = kind === 'list-builder' ? findGate(state.overlays) : undefined;
               if (gate) { selectOverlay(gate.id); return; }
-              const overlay = createOverlay(kind, kind === 'list-builder' ? currentTime : startAfterGate(state.overlays, currentTime), Math.max(sequenceDuration, 10));
+              const at = kind === 'list-builder' ? currentTime : startAfterGate(state.overlays, currentTime);
+              // A Studio design starts with a design chosen, so it shows something straight away.
+              if (kind === 'overlay-studio-design') {
+                void createStudioDesignOverlay(at, Math.max(sequenceDuration, 10)).then((overlay) => { dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); });
+                return;
+              }
+              const overlay = createOverlay(kind, at, Math.max(sequenceDuration, 10));
               dispatch({ type: 'ADD_OVERLAY', overlay });
               selectOverlay(overlay.id);
             },

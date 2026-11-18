@@ -363,7 +363,28 @@ function CtaButton({ o }) {
   );
 }
 
+/**
+ * A Personalization Studio design. The design catalog is loaded on demand, and
+ * the render is held (delayRender) until it has, so an export never captures a
+ * frame before the design exists.
+ */
+function StudioDesign({ o, durationInFrames }) {
+  const [mod, setMod] = useState(null);
+  const [handle] = useState(() => delayRender('Loading Studio design'));
+  useEffect(() => {
+    let alive = true;
+    import('./StudioDesignOverlay.jsx')
+      .then((m) => { if (alive) setMod(m); })
+      .catch((err) => { console.warn('[timeline] Studio design failed to load', err); if (alive) setMod({}); });
+    return () => { alive = false; };
+  }, []);
+  useEffect(() => { if (mod) continueRender(handle); }, [mod, handle]);
+  const Inner = mod?.StudioDesignOverlay;
+  return Inner ? <Inner o={o} durationInFrames={durationInFrames} /> : null;
+}
+
 const OVERLAYS = {
+  'overlay-studio-design': StudioDesign,
   'cta-button': CtaButton,
   'overlay-text': SmartText,
   'overlay-image': (p) => <ImageOverlay {...p} />,

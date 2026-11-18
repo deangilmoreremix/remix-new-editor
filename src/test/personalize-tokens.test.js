@@ -46,7 +46,7 @@ function makeProfile(overrides = {}) {
       industry: 'Computing',
       summary: 'Builds programmable engines.',
     },
-    brand: { colors: { primary: '#d9ff00', secondary: '#111111' } },
+    brand: { colors: { primary: '#d9ff00', secondary: '#111111', accent: '#ff5a00' } },
     social: {
       github: 'https://github.com/ada',
       linkedin: 'https://linkedin.com/in/ada',

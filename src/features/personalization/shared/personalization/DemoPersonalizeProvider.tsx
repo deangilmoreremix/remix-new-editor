@@ -2980,6 +2980,11 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // picked colours (then theirs win). Colours auto-applied for an earlier
     // business are replaced, never mistaken for the visitor's choice.
     const researchedColors = researchBrandColors(research.brandColors)
+    // The same colours are kept on the client record (the form feeds both save paths and resets when the
+    // visitor switches client), so the timeline editor can tint designs for this business.
+    if (researchedColors) {
+      setClientForm((prev) => ({ ...prev, brandColors: { ...(prev.brandColors ?? {}), ...researchedColors } }))
+    }
     // Read once, outside the updater, so a re-run updater (StrictMode) sees
     // the same input and produces the same result.
     const previouslyAutoApplied = autoAppliedBrandColorsRef.current
@@ -5343,7 +5348,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
    * Both halves are opt-in: without an `onComplete` callback and without a
    * `returnTo` target this is a no-op, so the demo flow is unchanged.
    */
-  const completeRun = useCallback((result: GenerationResult, personalizedPrompt: string) => {
+  const completeRun = useCallback((result: GenerationResult, personalizedPrompt: string, overlay?: PersonalizationCompletion['overlay']) => {
     const callback = onCompleteRef.current
     const target = returnToRef.current
     if (!callback && !target) return
@@ -5363,6 +5368,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       projectId: loadedProjectIdRef.current,
       originStudio: originStudioRef.current || undefined,
       sourceId: source?.id,
+      ...(overlay ? { overlay } : {}),
     })
 
     if (!target) return
@@ -6415,7 +6421,12 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       })
       // Hand the rendered result back to whoever opened the modal (studio
       // hand-off) and, when a return destination was requested, to that studio.
-      completeRun(brandedResult, promptState.edited || promptState.personalized || promptState.original)
+      completeRun(brandedResult, promptState.edited || promptState.personalized || promptState.original, {
+        layers: inputProps.settings.layers,
+        fps: inputProps.settings.fps,
+        durationInFrames: inputProps.settings.durationInFrames,
+        brand: inputProps.brand,
+      })
     } catch (error) {
       if (stale()) return
       setGeneration({

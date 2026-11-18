@@ -73,31 +73,45 @@ export function projectTokens(project) {
 export function personalLink(baseUrl, profile, tokens = []) {
   const url = new URL(baseUrl);
   url.searchParams.set(CONTACT_PARAM, String(profile.id));
+  Object.entries(personalVariables(profile, tokens)).forEach(([k, v]) => url.searchParams.set(k, v));
+  return url.toString();
+}
+
+/**
+ * What a recipient's copy of the video is filled with, as a plain object: the
+ * contact's value for each token the video uses, plus an image's crop focus
+ * (`<token>__f`) and brightness (`<token>__l`). Used for the ?c= link and for
+ * the stored personal link (a row in video_personalizations).
+ * Text is cut at `maxLength`; image URLs are kept whole and only http(s) ones
+ * are added (data:/blob: images only exist in this browser).
+ */
+export function personalVariables(profile, tokens = [], { maxLength = 200 } = {}) {
+  const out = {};
   tokens.forEach((key) => {
     const value = resolveToken(profile, key);
     if (value == null || !String(value).trim()) return;
     if (isImageTokenKey(key)) {
       const href = shareableImageValue(value);
       if (href) {
-        url.searchParams.set(key, href);
+        out[key] = href;
         // The viewer has no saved assets, so carry what shapes the image:
         // its crop focus and (for logos) its measured brightness.
         const asset = assetForUrl(profile, value) || assetForUrl(profile, href);
         const fx = Number(asset?.focus?.x);
         const fy = Number(asset?.focus?.y);
         if (Number.isFinite(fx) && Number.isFinite(fy)) {
-          url.searchParams.set(`${key}${FOCUS_SUFFIX}`, `${Math.round(fx * 10) / 10},${Math.round(fy * 10) / 10}`);
+          out[`${key}${FOCUS_SUFFIX}`] = `${Math.round(fx * 10) / 10},${Math.round(fy * 10) / 10}`;
         }
         const lum = Number(asset?.luminance);
         if (asset?.luminance != null && Number.isFinite(lum)) {
-          url.searchParams.set(`${key}${LUMINANCE_SUFFIX}`, String(Math.round(lum * 1000) / 1000));
+          out[`${key}${LUMINANCE_SUFFIX}`] = String(Math.round(lum * 1000) / 1000);
         }
       }
       return;
     }
-    url.searchParams.set(key, String(value).slice(0, 200));
+    out[key] = String(value).slice(0, maxLength);
   });
-  return url.toString();
+  return out;
 }
 
 /** Image tokens whose value can't go in this contact's link (local or too long). */

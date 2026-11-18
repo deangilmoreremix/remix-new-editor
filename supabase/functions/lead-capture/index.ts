@@ -36,6 +36,16 @@ export { isForwardableWebhook, savedWebhooks, isCallClip, leadConfigFor };
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+/** True when a bearer token's subject is a guest id. Only used to take privileges away, never to grant them. */
+function isGuestToken(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof payload?.sub === "string" && payload.sub.startsWith("guest_");
+  } catch {
+    return false;
+  }
+}
+
 const PUBLISHED_ID = /^[A-Za-z0-9_-]{8,32}$/;
 const ALLOWED_ORIGINS = (Deno.env.get("LEAD_CAPTURE_ALLOWED_ORIGINS") ?? "*")
   .split(",").map((s) => s.trim()).filter(Boolean);
@@ -280,6 +290,9 @@ Deno.serve(async (req: Request) => {
   // The anon key is sent as a Bearer token when nobody is signed in; only a
   // different token is a user session.
   const hasSession = authHeader.startsWith("Bearer ") && authHeader.slice(7) !== SUPABASE_ANON_KEY;
+  // Guests (no account, see netlify/functions/guest-token.js) get a token whose subject starts with "guest_".
+  // They keep their leads, but this function never relays webhooks on their behalf.
+  const callerIsGuest = hasSession && isGuestToken(authHeader.slice(7));
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: hasSession ? { Authorization: authHeader } : {} },
     auth: { persistSession: false, autoRefreshToken: false },
@@ -367,7 +380,9 @@ Deno.serve(async (req: Request) => {
     const callNotify = leadKind === "call-attempt"
       ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "").trim()
       : "";
-    const hooks = leadKind === "call-attempt" ? [] : savedWebhooks(config, listBuilder);
+    // Guest-owned videos (no account) never have webhooks relayed on their behalf.
+    const guestOwned = String(video.clerk_user_id ?? "").startsWith("guest_");
+    const hooks = leadKind === "call-attempt" || guestOwned ? [] : savedWebhooks(config, listBuilder);
     // The recipients always come from the saved project, never from the request.
     const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? [callNotify] : []) : savedNotifyEmails(config, listBuilder);
     const ownerId = String(video.clerk_user_id ?? "");
@@ -484,7 +499,7 @@ Deno.serve(async (req: Request) => {
   const kind = typeof body.kind === "string" && KINDS.has(body.kind) ? body.kind : "lead-form";
   // Caller-supplied webhook URLs are only relayed for a signed-in editor session
   // (preview). Anonymous callers could otherwise use this as an open relay.
-  const webhooks = !hasSession ? [] : (Array.isArray(body.webhooks) ? body.webhooks : [])
+  const webhooks = !hasSession || callerIsGuest ? [] : (Array.isArray(body.webhooks) ? body.webhooks : [])
     .filter(isForwardableWebhook).slice(0, MAX_WEBHOOKS);
   const source = sanitizeSource(body.source);
   const createdAt = new Date().toISOString();
