@@ -247,6 +247,30 @@
     "video_remove_watermark"
    ],
    "kinds": []
+  },
+  "photo-studio": {
+   "tools": [
+    "image_edit"
+   ],
+   "kinds": [
+    "i2i"
+   ]
+  },
+  "brand-photo-studio": {
+   "tools": [
+    "image_edit"
+   ],
+   "kinds": [
+    "i2i"
+   ]
+  },
+  "animate": {
+   "tools": [
+    "video_from_image"
+   ],
+   "kinds": [
+    "i2v"
+   ]
   }
  },
  "unsupported": {
@@ -257,35 +281,32 @@
   "templates": "Non-generative UI (browsing, learning or navigation).",
   "academy": "Non-generative UI (browsing, learning or navigation).",
   "timeline-iframe-warning": "Non-generative UI (browsing, learning or navigation).",
-  "smart-video-scheduler": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "brightbean": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "leadfinder": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "find-my-brand": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "personalizer": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "brand": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "brand-dna": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "campaign": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "campaign-page": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "asset-edit": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "photo-studio": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "brand-photo-studio": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "animate": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "smart-video-studio": "Runs on Supabase/Netlify functions with its own contracts (brand, campaign, photo, scheduling); not exposed yet.",
-  "motion-director": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "motion-director/workbench": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "video-pages": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "website-builder": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "render": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "video-agent": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "video-agent-studio": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "zackd": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "zackd-studio": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "director": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "workbench": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "cinegen": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "timeline": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "timeline-classic": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "ai-vfx": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1.",
-  "viral": "Own backend or client-side render/editor (Remotion, Director, CineGen, Timeline); out of scope for v1."
+  "smart-video-scheduler": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "brightbean": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "leadfinder": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "find-my-brand": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "personalizer": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "brand": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "brand-dna": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "campaign": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "campaign-page": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "asset-edit": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "smart-video-studio": "Needs a signed-in SmartVid session (Clerk/Supabase functions), which a bring-your-own-key MCP key does not carry; exposing it means adding brand keys.",
+  "motion-director": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+  "motion-director/workbench": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+  "video-pages": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+  "website-builder": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+  "render": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+  "video-agent": "Own backend with its own job API; a start-job/get-job tool is planned (not built yet).",
+  "video-agent-studio": "Own backend with its own job API; a start-job/get-job tool is planned (not built yet).",
+  "zackd": "Own backend with its own job API; a start-job/get-job tool is planned (not built yet).",
+  "zackd-studio": "Own backend with its own job API; a start-job/get-job tool is planned (not built yet).",
+  "director": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+  "workbench": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
+  "cinegen": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
+  "timeline": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
+  "timeline-classic": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
+  "ai-vfx": "Own backend with its own job API; a start-job/get-job tool is planned (not built yet).",
+  "viral": "Own backend with its own job API; a start-job/get-job tool is planned (not built yet)."
  }
 }
