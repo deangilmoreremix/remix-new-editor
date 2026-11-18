@@ -15,8 +15,20 @@ is documented separately; this page covers what runs in the browser.
    settings without the server.
 4. **Disable on this device** deletes the row and unsubscribes the browser. The "Send me push notifications" checkbox
    (`retarget_preferences.push`) is the account-wide opt-in; the per-device button is separate.
-5. Alert types are grouped by feature (New leads, Retarget, Video activity) and map onto `enabled_types`;
-   `daily_digest` is preserved.
+5. Alert types are grouped by feature (New leads, Retarget, Video activity). Each type row has an **Alert** checkbox
+   (`enabled_types`: the alert exists and always shows in the app) and a **Push** checkbox (`push_types`: it also sends a
+   push). Group headers have a master for each, with an indeterminate state. Unchecking Alert unchecks and disables Push;
+   Push is also disabled while "Send me push notifications" is off or push is not set up on the site/browser.
+   `daily_digest` has only Alert (it never pushes) and is preserved.
+6. `push_types` semantics: `NULL` (legacy rows, or the column not migrated yet) shows Push checked for every enabled type;
+   saving always writes an explicit array. If the database does not have the column yet (optional migration
+   `20261119090000_push_types.sql`; PostgREST `PGRST204` / `42703` / an error naming `push_types`), the save is retried
+   without it and the form says per-type push choices need a database update; everything else is still saved.
+7. **Quiet hours** card in Preferences: "Enable quiet hours", From / Until (defaults 22:00 and 07:00 when first enabled) and a
+   time zone (defaults to the browser's; all supported zones when `Intl.supportedValuesOf` exists, else a short list plus
+   the browser zone). Stored as `quiet_hours = {start, end, timeZone, utcOffsetMinutes}`; unchecking stores `null`.
+   Invalid times are rejected; From equal to Until means off (an inline hint says so). During quiet hours pushes are
+   skipped (not delayed) and alerts still appear in the app. Email still needs a provider, which is not connected.
 
 Clicking a notification focuses an open tab (service worker posts `remix:open-alerts`) or opens `/?alerts=1#/timeline`;
 the page then does what the header bell does (sets `remix_open_projects` / dispatches `remix:open-projects`).

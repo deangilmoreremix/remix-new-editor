@@ -26,6 +26,7 @@ Prerequisites that should already be applied (check the Migrations list): `20261
 | 3 | `20261118131000_video_leads_followup_hardening.sql` | `updated_at`, tag length check, trigger bumping `updated_at` |
 | 4 | `20261118200000_video_audience_country_versions.sql` | Country capture, "Where your viewers come from", "Compare versions" |
 | 5 | `20261118210000_web_push_notifications.sql` | `owner_push_subscriptions`, `retarget_preferences.push`, `push_dispatch_config`, push trigger, Realtime on `owner_notifications` |
+| 6 | `20261119090000_push_types.sql` | Optional: `retarget_preferences.push_types` (per-alert-type push choice). Everything works without it; per-type choices are only saved once it is applied |
 
 - [ ] 1–3 applied (Leads)
 - [ ] 4 applied (Analytics)

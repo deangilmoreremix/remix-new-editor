@@ -88,10 +88,13 @@ export async function dispatchPush({ notificationId, env = process.env, fetchImp
   if (NO_PUSH_TYPES.includes(note.type) || !CATEGORY_BY_TYPE[note.type]) return { sent: 0, reason: 'type_not_pushed' };
 
   const owner = encodeURIComponent(note.clerk_user_id);
-  const prefs = (await call(`retarget_preferences?select=push,enabled_types,quiet_hours&clerk_user_id=eq.${owner}&limit=1`))?.[0];
+  // select=* on purpose: push_types may not exist until its (optional) migration is applied; an absent column reads as NULL.
+  const prefs = (await call(`retarget_preferences?select=*&clerk_user_id=eq.${owner}&limit=1`))?.[0];
   if (!prefs) return { sent: 0, reason: 'no_preferences' };
   if (prefs.push !== true) return { sent: 0, reason: 'push_disabled' };
   if (!Array.isArray(prefs.enabled_types) || !prefs.enabled_types.includes(note.type)) return { sent: 0, reason: 'type_disabled' };
+  // push_types: NULL/absent = push every enabled type (legacy); an array = only the types also listed there.
+  if (Array.isArray(prefs.push_types) && !prefs.push_types.includes(note.type)) return { sent: 0, reason: 'type_push_disabled' };
   if (inQuietHours(prefs.quiet_hours, now)) return { sent: 0, reason: 'quiet_hours' };
 
   const subs = await call(`owner_push_subscriptions?select=id,endpoint,p256dh,auth,failure_count&clerk_user_id=eq.${owner}&limit=50`);

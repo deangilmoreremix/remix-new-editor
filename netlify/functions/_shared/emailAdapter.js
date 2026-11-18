@@ -26,12 +26,29 @@ export function getEmailAdapter(/* env */) {
 export const MAX_ATTEMPTS = 5;
 export const backoffMs = (attempt) => Math.min(6 * 3600_000, 60_000 * 4 ** Math.max(0, attempt - 1)); // 1m, 4m, 16m, ~1h, 4h...
 
-/** Quiet hours { start: 'HH:MM', end: 'HH:MM', utcOffsetMinutes?: number } (overnight ranges allowed). */
+/** Minutes since local midnight in an IANA zone (DST-aware), or null when the zone is missing/invalid. Never throws. */
+function zoneMinutes(timeZone, now) {
+  if (typeof timeZone !== 'string' || !timeZone) return null;
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone, hourCycle: 'h23', hour: '2-digit', minute: '2-digit' }).formatToParts(now);
+    const h = Number(parts.find((p) => p.type === 'hour')?.value);
+    const m = Number(parts.find((p) => p.type === 'minute')?.value);
+    return Number.isFinite(h) && Number.isFinite(m) ? (h % 24) * 60 + m : null;
+  } catch { return null; }
+}
+
+/**
+ * Quiet hours { start: 'HH:MM', end: 'HH:MM', timeZone?: IANA, utcOffsetMinutes?: number } (overnight ranges allowed).
+ * Local time comes from `timeZone` when it is valid (so DST is right), else from the fixed `utcOffsetMinutes`, else UTC.
+ */
 export function inQuietHours(quiet, now = new Date()) {
   if (!quiet || !/^\d\d:\d\d$/.test(quiet.start || '') || !/^\d\d:\d\d$/.test(quiet.end || '')) return false;
-  const offset = Number(quiet.utcOffsetMinutes) || 0;
-  const local = new Date(now.getTime() + offset * 60_000);
-  const cur = local.getUTCHours() * 60 + local.getUTCMinutes();
+  let cur = zoneMinutes(quiet.timeZone, now);
+  if (cur === null) {
+    const offset = Number(quiet.utcOffsetMinutes) || 0;
+    const local = new Date(now.getTime() + offset * 60_000);
+    cur = local.getUTCHours() * 60 + local.getUTCMinutes();
+  }
   const toMin = (s) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
   const a = toMin(quiet.start);
   const b = toMin(quiet.end);

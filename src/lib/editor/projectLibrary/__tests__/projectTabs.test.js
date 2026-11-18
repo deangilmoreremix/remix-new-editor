@@ -35,7 +35,7 @@ describe('interest mapping', () => {
   });
   it('cleans notification preferences', () => {
     expect(cleanPreferences({ enabled_types: ['new_lead', 'hack'], in_app: 1, email: 1, digest_frequency: 'hourly', interest_threshold: '9999', quiet_hours: { start: '22:00', end: 'x' } }))
-      .toEqual({ enabled_types: ['new_lead'], in_app: true, email: true, digest_frequency: 'daily', interest_threshold: 500, quiet_hours: null, push: false });
+      .toEqual({ enabled_types: ['new_lead'], in_app: true, email: true, digest_frequency: 'daily', interest_threshold: 500, quiet_hours: null, push: false, push_types: ['new_lead'] });
     expect(cleanPreferences({ ...DEFAULT_PREFERENCES, quiet_hours: { start: '22:00', end: '07:00' } }).quiet_hours).toEqual({ start: '22:00', end: '07:00' });
   });
 });
@@ -48,7 +48,7 @@ function client(o = {}) {
     const q = { table, f: [] };
     const api = {
       select: () => api, eq: (c, v) => { q.f.push([c, v]); return api; }, is: () => api, or: () => api, order: () => api, limit: () => api, range: (a, b) => { q.range = [a, b]; return api; },
-      upsert: async (row) => { calls.push(['upsert', table, row]); state.prefs = row; return { error: null }; },
+      upsert: async (row) => { calls.push(['upsert', table, row]); const err = o.upsertError?.(row); if (err) return { error: err }; state.prefs = row; return { error: null }; },
       insert: (row) => { q.ins = row; return api; },
       single: async () => { const r = { id: 'new-proj', name: q.ins.name, ...q.ins }; state.inserted.push(r); return { data: r, error: null }; },
       maybeSingle: async () => {
@@ -228,6 +228,130 @@ describe('Notifications tab', () => {
     const saved = c.calls.find((x) => x[0] === 'upsert')[2];
     expect(saved).toMatchObject({ enabled_types: ['new_lead', 'high_interest'], interest_threshold: 80, digest_frequency: 'weekly', in_app: true, email: false });
     expect(panel.querySelector('[data-prefs-msg]').textContent).toBe('Saved.');
+  });
+});
+
+describe('Notifications preferences: per-type push and quiet hours', () => {
+  const KEY = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
+  const pushEnv = () => {
+    const reg = { pushManager: { getSubscription: async () => null }, showNotification: async () => {} };
+    return { navigator: { userAgent: 'Chrome', serviceWorker: { getRegistration: async () => reg } }, Notification: { permission: 'granted' }, PushManager: function PushManager() {} };
+  };
+  const usable = () => ({ push: { vapidKey: KEY, env: pushEnv() } });
+  const row = (panel, k) => ({ alert: panel.querySelector(`[name=type][value="${k}"]`), push: panel.querySelector(`[name=pushtype][value="${k}"]`) });
+  const submit = async (panel) => { panel.querySelector('[data-prefs]').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })); await tick(); };
+  const change = (el, checked) => { el.checked = checked; el.dispatchEvent(new Event('change', { bubbles: true })); };
+
+  it('shows the helper text, an Alert and a Push box per type, and no Push box for daily_digest', async () => {
+    const { panel } = mount(notificationsTab, client({ prefs: { ...DEFAULT_PREFERENCES, push: true } }), usable());
+    await tick(12);
+    expect(panel.querySelector('[data-prefs]').textContent).toContain('Alerts always appear in the app. Choose which ones also send a push to your devices.');
+    expect(panel.querySelectorAll('[name=pushtype]')).toHaveLength(8);
+    expect(row(panel, 'daily_digest').alert).toBeTruthy();
+    expect(row(panel, 'daily_digest').push).toBeNull();
+    expect(row(panel, 'new_lead').alert.getAttribute('aria-label')).toBe('New lead captured: Alert');
+  });
+  it('null push_types shows Push checked for every enabled type; an explicit array only those', async () => {
+    let { panel } = mount(notificationsTab, client({ prefs: { ...DEFAULT_PREFERENCES, enabled_types: ['new_lead', 'milestone'], push: true, push_types: null } }), usable());
+    await tick(12);
+    expect([...panel.querySelectorAll('[name=pushtype]:checked')].map((b) => b.value)).toEqual(['new_lead', 'milestone']);
+    ({ panel } = mount(notificationsTab, client({ prefs: { ...DEFAULT_PREFERENCES, push: true, push_types: ['milestone', 'daily_digest'] } }), usable()));
+    await tick(12);
+    expect([...panel.querySelectorAll('[name=pushtype]:checked')].map((b) => b.value)).toEqual(['milestone']);
+  });
+  it('Push is disabled while push is not set up or the master is off, and enabled when both are fine', async () => {
+    let { panel } = mount(notificationsTab, client({ prefs: { ...DEFAULT_PREFERENCES, push: true } })); // no VAPID key here
+    await tick(12);
+    expect(panel.querySelector('[name=pushtype]').disabled).toBe(true);
+    ({ panel } = mount(notificationsTab, client({ prefs: { ...DEFAULT_PREFERENCES, push: false } }), usable()));
+    await tick(12);
+    expect(panel.querySelector('[name=pushtype]').disabled).toBe(true);
+    expect(panel.querySelector('[data-group-push]').disabled).toBe(true);
+    ({ panel } = mount(notificationsTab, client({ prefs: { ...DEFAULT_PREFERENCES, push: true } }), usable()));
+    await tick(12);
+    expect(panel.querySelector('[name=pushtype]').disabled).toBe(false);
+  });
+  it('unchecking Alert unchecks and disables Push; the group masters show indeterminate', async () => {
+    const { panel } = mount(notificationsTab, client({ prefs: { ...DEFAULT_PREFERENCES, push: true } }), usable());
+    await tick(12);
+    const r = row(panel, 'high_interest');
+    change(r.push, false);
+    const master = panel.querySelector('[data-group-push="retarget"]');
+    expect(master.indeterminate).toBe(true);
+    expect(master.checked).toBe(false);
+    change(r.push, true);
+    change(r.alert, false);
+    expect(r.push.checked).toBe(false);
+    expect(r.push.disabled).toBe(true);
+    expect(panel.querySelector('[data-group="retarget"]').indeterminate).toBe(true);
+    expect(master.indeterminate).toBe(false); // the remaining three alerts all push
+    expect(master.checked).toBe(true);
+    change(master, false);
+    expect(panel.querySelectorAll('[data-group-box="retarget"] [name=pushtype]:checked')).toHaveLength(0);
+    expect(row(panel, 'new_lead').push.checked).toBe(true); // other groups untouched
+    change(panel.querySelector('[data-group="retarget"]'), false);
+    expect(master.disabled).toBe(true);
+  });
+  it('saves an explicit push_types array, and a legacy null becomes all enabled types', async () => {
+    const c = client({ prefs: { ...DEFAULT_PREFERENCES, push: true, enabled_types: ['new_lead', 'milestone', 'daily_digest'], push_types: null } });
+    const { panel } = mount(notificationsTab, c, usable());
+    await tick(12);
+    change(row(panel, 'milestone').push, false);
+    await submit(panel);
+    expect(c.calls.find((x) => x[0] === 'upsert')[2]).toMatchObject({ enabled_types: ['new_lead', 'milestone', 'daily_digest'], push_types: ['new_lead'] });
+  });
+  it('retries without push_types when the column is missing and says so', async () => {
+    const c = client({ prefs: { ...DEFAULT_PREFERENCES, push: true }, upsertError: (r) => ('push_types' in r ? { code: 'PGRST204', message: "Could not find the 'push_types' column of 'retarget_preferences' in the schema cache" } : null) });
+    const { panel } = mount(notificationsTab, c, usable());
+    await tick(12);
+    await submit(panel);
+    const ups = c.calls.filter((x) => x[0] === 'upsert');
+    expect(ups).toHaveLength(2);
+    expect('push_types' in ups[1][2]).toBe(false);
+    expect(panel.querySelector('[data-prefs-msg]').textContent).toMatch(/per-type push choices need a database update/i);
+  });
+  it('quiet hours: off by default, defaults 22:00-07:00 and the browser zone when enabled, saved as jsonb', async () => {
+    const c = client({ prefs: null });
+    const { panel } = mount(notificationsTab, c, usable());
+    await tick(12);
+    const box = panel.querySelector('[name=quiet]');
+    expect(box.checked).toBe(false);
+    expect(panel.querySelector('[name=quiet-start]').disabled).toBe(true);
+    expect(panel.querySelector('[data-prefs]').textContent).toContain('During quiet hours push notifications are not sent. Alerts still appear in the app.');
+    await submit(panel);
+    expect(c.calls.find((x) => x[0] === 'upsert')[2].quiet_hours).toBeNull();
+    change(box, true);
+    expect(panel.querySelector('[name=quiet-start]').value).toBe('22:00');
+    expect(panel.querySelector('[name=quiet-end]').value).toBe('07:00');
+    const zone = panel.querySelector('[name=quiet-zone]');
+    expect(zone.value).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    zone.value = 'America/New_York';
+    await submit(panel);
+    const q = c.calls.filter((x) => x[0] === 'upsert').pop()[2].quiet_hours;
+    expect(q).toEqual({ start: '22:00', end: '07:00', timeZone: 'America/New_York', utcOffsetMinutes: -300 }); // NOW is 11 Nov 2026 (EST)
+  });
+  it('quiet hours: reloads stored values, flags start == end and blocks invalid times', async () => {
+    const stored = { start: '23:00', end: '06:30', timeZone: 'Europe/Paris', utcOffsetMinutes: 60 };
+    const c = client({ prefs: { ...DEFAULT_PREFERENCES, quiet_hours: stored } });
+    const { panel } = mount(notificationsTab, c, usable());
+    await tick(12);
+    expect(panel.querySelector('[name=quiet]').checked).toBe(true);
+    expect(panel.querySelector('[name=quiet-start]').value).toBe('23:00');
+    expect(panel.querySelector('[name=quiet-zone]').value).toBe('Europe/Paris');
+    panel.querySelector('[name=quiet-end]').value = '23:00';
+    panel.querySelector('[name=quiet-end]').dispatchEvent(new Event('input', { bubbles: true }));
+    expect(panel.querySelector('[data-quiet-hint]').textContent).toMatch(/quiet hours are off/);
+    panel.querySelector('[name=quiet-end]').value = '';
+    panel.querySelector('[name=quiet-end]').dispatchEvent(new Event('input', { bubbles: true }));
+    await submit(panel);
+    expect(c.calls.some((x) => x[0] === 'upsert')).toBe(false);
+    expect(panel.querySelector('[data-prefs-msg]').textContent).toMatch(/Quiet hours/);
+  });
+  it('the email note is accurate: quiet hours apply to push, email still needs a provider', async () => {
+    const { panel } = mount(notificationsTab, client({}));
+    await tick(12);
+    expect(panel.textContent).toContain('Quiet hours already apply to push notifications');
+    expect(panel.textContent).not.toContain('take effect once one is');
   });
 });
 

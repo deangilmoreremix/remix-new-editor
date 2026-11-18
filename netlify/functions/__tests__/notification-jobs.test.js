@@ -28,6 +28,31 @@ describe('quiet hours and backoff', () => {
     expect(inQuietHours(null, NOW)).toBe(false);
     expect(inQuietHours({ start: 'x', end: 'y' }, NOW)).toBe(false);
   });
+  it('prefers timeZone (IANA): overnight range in New York', () => {
+    const q = { start: '22:00', end: '07:00', timeZone: 'America/New_York' };
+    expect(inQuietHours(q, new Date('2026-11-11T12:00:00Z'))).toBe(false); // 07:00 EST: ends exactly
+    expect(inQuietHours(q, new Date('2026-11-11T11:59:00Z'))).toBe(true);  // 06:59 EST
+    expect(inQuietHours(q, new Date('2026-11-12T03:30:00Z'))).toBe(true);  // 22:30 EST
+    expect(inQuietHours(q, new Date('2026-11-11T20:00:00Z'))).toBe(false); // 15:00 EST
+  });
+  it('timeZone is DST-correct where a fixed offset is not (America/New_York, 2026 spring forward on 8 March)', () => {
+    const q = { start: '22:00', end: '07:00', timeZone: 'America/New_York', utcOffsetMinutes: -300 }; // -300 is only right in winter
+    expect(inQuietHours(q, new Date('2026-03-07T11:59:00Z'))).toBe(true);   // 06:59 EST
+    expect(inQuietHours(q, new Date('2026-03-07T12:00:00Z'))).toBe(false);  // 07:00 EST
+    expect(inQuietHours(q, new Date('2026-03-09T10:59:00Z'))).toBe(true);   // 06:59 EDT
+    expect(inQuietHours(q, new Date('2026-03-09T11:00:00Z'))).toBe(false);  // 07:00 EDT (the stale -300 offset would still say 06:00 = quiet)
+    expect(inQuietHours({ start: q.start, end: q.end, utcOffsetMinutes: -300 }, new Date('2026-03-09T11:00:00Z'))).toBe(true); // old behaviour unchanged
+  });
+  it('invalid or missing timeZone falls back to utcOffsetMinutes, then UTC, and never throws', () => {
+    const base = { start: '22:00', end: '07:00' };
+    const noon = new Date('2026-11-11T12:00:00Z');
+    expect(() => inQuietHours({ ...base, timeZone: 'Not/AZone' }, noon)).not.toThrow();
+    expect(inQuietHours({ ...base, timeZone: 'Not/AZone', utcOffsetMinutes: -300 }, new Date('2026-11-11T11:59:00Z'))).toBe(true); // 06:59 at -5h
+    expect(inQuietHours({ ...base, timeZone: 'Not/AZone' }, new Date('2026-11-11T23:30:00Z'))).toBe(true); // UTC
+    expect(inQuietHours({ ...base, timeZone: '' }, noon)).toBe(false);
+    expect(inQuietHours({ ...base, timeZone: 42 }, noon)).toBe(false);
+    expect(inQuietHours({ start: '08:00', end: '08:00', timeZone: 'UTC' }, new Date('2026-11-11T08:00:00Z'))).toBe(false); // start == end is off
+  });
   it('backs off exponentially, capped', () => {
     expect(backoffMs(1)).toBe(60_000);
     expect(backoffMs(2)).toBe(240_000);

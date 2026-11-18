@@ -19,6 +19,21 @@ function setup({ vapidKey = KEY, permission = 'default', request = 'granted', wi
   return { host, card, reg, env, calls, onPushPref, Notification };
 }
 
+describe('push card onState', () => {
+  it('reports availability and the master value so the preferences form can enable its Push boxes', async () => {
+    const onState = vi.fn();
+    const reg = { pushManager: { getSubscription: vi.fn(async () => null) }, showNotification: vi.fn() };
+    const env = { navigator: { userAgent: 'Chrome', serviceWorker: { getRegistration: async () => reg } }, Notification: { permission: 'default' }, PushManager: function PushManager() {} };
+    const host = document.createElement('div'); document.body.appendChild(host);
+    const card = mountPushCard(host, { getClient: async () => ({}), pushEnabled: true, onPushPref: async () => {}, vapidKey: KEY, env, onState });
+    await card.ready;
+    expect(onState).toHaveBeenLastCalledWith({ available: true, on: true });
+    const none = mountPushCard(document.createElement('div').appendChild(document.createElement('i')).parentNode, { getClient: async () => ({}), vapidKey: '', env, onState });
+    await none.ready;
+    expect(onState).toHaveBeenLastCalledWith({ available: false, on: false });
+  });
+});
+
 describe('push card', () => {
   it('without a VAPID key it says push is not set up and shows no controls', async () => {
     const { host, card } = setup({ vapidKey: '' });

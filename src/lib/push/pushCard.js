@@ -5,13 +5,14 @@
  *   mountPushCard(host, { getClient, pushEnabled, onPushPref, vapidKey?, env?, onToast? }) -> { destroy, ready }
  *   getClient()          Supabase client (verified identity) used for the owner_push_subscriptions row
  *   pushEnabled          current retarget_preferences.push value
+ *   onState({ available, on })  called after every redraw: `available` = the push setup exists on this site and browser (the master checkbox is shown), `on` = its value
  *   onPushPref(boolean)  persists retarget_preferences.push (rejects -> the toggle is put back)
  */
 import { inspectPush, subscribe, unsubscribe, sendTestNotification, vapidKeyFromEnv } from './pushClient.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-export function mountPushCard(host, { getClient, pushEnabled = false, onPushPref, vapidKey = vapidKeyFromEnv(), env = globalThis, onToast } = {}) {
+export function mountPushCard(host, { getClient, pushEnabled = false, onPushPref, vapidKey = vapidKeyFromEnv(), env = globalThis, onToast, onState } = {}) {
   let alive = true; let busy = false; let info = null; let note = ''; let pref = !!pushEnabled;
   const card = host.ownerDocument.createElement('section');
   card.className = 'sv-card';
@@ -30,10 +31,11 @@ export function mountPushCard(host, { getClient, pushEnabled = false, onPushPref
       ${usable ? `<div class="sv-toolbar-actions" style="justify-content:flex-start;flex-wrap:wrap;gap:8px;margin:8px 0">
         <button type="button" class="${on ? 'sv-secondary-btn' : 'sv-primary-btn'}" data-push-toggle ${busy ? 'disabled' : ''}>${on ? 'Disable on this device' : 'Enable on this device'}</button>
         ${on ? `<button type="button" class="sv-secondary-btn" data-push-test ${busy ? 'disabled' : ''}>Send test notification</button>` : ''}</div>` : ''}
-      ${info.state === 'hidden' || info.state === 'unsupported' || info.state === 'no-service-worker' ? '' : `<label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="push" ${pref ? 'checked' : ''}/> Send me push notifications for the alerts selected above</label>`}`;
+      ${info.state === 'hidden' || info.state === 'unsupported' || info.state === 'no-service-worker' ? '' : `<label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="push" ${pref ? 'checked' : ''}/> Send me push notifications</label>`}`;
     card.querySelector('[data-push-toggle]')?.addEventListener('click', onToggle);
     card.querySelector('[data-push-test]')?.addEventListener('click', onTest);
     card.querySelector('[name=push]')?.addEventListener('change', onPref);
+    try { onState?.({ available: !!card.querySelector('[name=push]'), on: pref }); } catch { /* the host's callback must never break the card */ }
   };
 
   const refresh = async () => { try { info = await inspectPush({ vapidKey, env }); } catch { info = { state: 'unsupported', message: 'Push notifications are not available here.' }; } draw(); };
