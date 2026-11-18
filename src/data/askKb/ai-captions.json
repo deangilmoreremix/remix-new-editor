@@ -1,0 +1,129 @@
+{
+  "id": "ai-captions",
+  "name": "AI Captions",
+  "route": "(opens from the Add AI Captions button in Avatar, Cinema, Effects, Lip Sync, Video, Video Tools and Template studios)",
+  "description": "AI Captions adds animated word-by-word captions to a video. Pick any video you made, or upload one, choose a look, fix the words, then download the captioned MP4 or the .srt, .vtt or .txt files.",
+  "shortDescription": "Caption any video you made, edit the words, and download it with the captions burned in.",
+  "fullDescription": "AI Captions opens as a window from the '💬 Add AI Captions' button in the studios. It has four tabs: Create, Script & Words, Motion & Style and History. On Create, 'Your videos' lists every video you made in the app (newest first, with a first-frame picture, search, and studio filters); the one you opened it from is already picked. You can also upload a video or paste a video link. 'On this device' (default) listens to the audio with Whisper in your browser, so nothing is uploaded; 'AI themes (cloud)' sends the video to the caption service instead and returns a finished video. Pick one of 49 caption looks (the six popular ones are Hormozi, MrBeast, Karaoke, Minimal, Bounce and Classic), see it drawn over a real frame of your video, and move it Top, Middle or Bottom with the slider. Press 'Generate Captions'. Script & Words then shows each line with its time: click a word to fix it, use Find & Replace, change the casing, nudge a line by 0.1 s, split, merge, add or delete lines. 'Apply & Re-render' burns the edited captions into the video in your browser. Download the MP4, or the .srt, .vtt or .txt. History keeps your caption jobs in this browser only.",
+  "bestFor": "Adding captions to a video you already made without uploading it, then fixing wrong words before posting.",
+  "whenToUse": [
+    "You made a video and want animated captions on it.",
+    "You need a subtitle file (.srt or .vtt) or a plain transcript (.txt).",
+    "You want to correct spelling in the captions before you post."
+  ],
+  "whenToUseAnother": [
+    "Use the Timeline Editor (#/timeline) when you want captions as part of a bigger edit with music and other clips.",
+    "Use Template Generator when you want to build a short video from scratch with captions included."
+  ],
+  "keyFeatures": [
+    "'Your videos': every video made in the app, picked for you, no upload needed.",
+    "49 caption looks, previewed on a real frame of your video.",
+    "Top / Middle / Bottom and a 5 to 90 percent from-the-bottom slider.",
+    "Script & Words editor: fix words, find & replace, casing, nudge 0.1 s, split, merge, add, delete.",
+    "Captions made on this device with Whisper; clips longer than 3 minutes are done in pieces.",
+    "Download the burned-in MP4, or .srt, .vtt and .txt.",
+    "History of caption jobs with duration, language, style, position, processing time, size and date.",
+    "'AI themes (cloud)' keeps the original 18 cloud caption themes."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Your videos",
+      "explanation": "The Create tab lists the videos made in the app: from your history on this device (and the cloud copy when you are signed in) and any video finished during this visit. Click one to pick it.",
+      "whyToUse": "You do not have to upload anything to caption a video you just made."
+    },
+    {
+      "feature": "Script & Words",
+      "explanation": "After Generate Captions, each line of speech appears with its time. Click a word to correct it; use Find & Replace for repeated mistakes; AA / Aa / aa change the casing; -0.1s / +0.1s move a line; Split, Merge and the cross edit the lines.",
+      "whyToUse": "Whisper can mishear names and product words; fix them before you export."
+    },
+    {
+      "feature": "Apply & Re-render",
+      "explanation": "Burns the current words, look and position into the video in your browser and gives you 'Download Video (.mp4)'. After an edit the button says 'Apply & Re-render'.",
+      "whyToUse": "Your edits only reach the video when you re-render; the .srt, .vtt and .txt downloads always use the current words."
+    },
+    {
+      "feature": "History",
+      "explanation": "Keeps each job in this browser: title, duration, language, style, position, processing time, file size and date. 'Open & edit' reopens the script (and the video when it was kept).",
+      "whyToUse": "Come back to fix a word later without listening to the video again."
+    }
+  ],
+  "howToUse": "1. Press '💬 Add AI Captions' in a studio (or open the window from where you made the video). 2. On Create, check the video that is picked under 'Your videos', or choose another, upload one, or paste a link. 3. Choose the language (or Detect) and a caption look; move it with Top / Middle / Bottom. 4. Press 'Generate Captions' and wait; the first run downloads the Whisper model. 5. On Script & Words, correct any words. 6. Press 'Apply & Re-render' if needed, then 'Download Video (.mp4)', or download SRT, VTT or TXT.",
+  "howToSteps": [
+    "Open AI Captions from the Add AI Captions button.",
+    "Check or choose the video under 'Your videos'.",
+    "Choose language and a caption look, and the position.",
+    "Press Generate Captions.",
+    "Fix any wrong words on Script & Words.",
+    "Press Apply & Re-render.",
+    "Download the MP4, or SRT, VTT or TXT."
+  ],
+  "inputs": [
+    "A video (made in the app, uploaded, or an https link)",
+    "A language (or Detect)",
+    "A caption look and position"
+  ],
+  "requiredInputs": [
+    "A video"
+  ],
+  "optionalInputs": [
+    "Language",
+    "Accuracy (Whisper model size)",
+    "Caption look",
+    "Position",
+    "Source: on this device or AI themes (cloud)"
+  ],
+  "outputs": [
+    "A video with the captions burned in (MP4)",
+    "A .srt subtitle file",
+    "A .vtt subtitle file",
+    "A .txt transcript",
+    "A history entry in this browser"
+  ],
+  "limitations": [
+    "On this device, Whisper runs in the browser: the first run downloads a model and a long clip takes a while without a graphics card.",
+    "Burning the video needs a browser with video encoding (Chrome, Edge or Safari); otherwise only the .srt, .vtt and .txt downloads work.",
+    "A video from another website may not be readable by the browser; captions still work but the burned-in MP4 may not.",
+    "Videos made in this visit (such as an export) disappear from 'Your videos' when the page is closed.",
+    "History is kept in this browser only and keeps the 30 newest jobs; the video is kept only for clips up to 100 MB.",
+    "The language shown for Detect is read from the text, not reported by Whisper."
+  ],
+  "troubleshooting": [
+    "'No speech was found to caption': the clip has no clear speech; try another clip or language.",
+    "The window says the browser cannot export video: use Chrome, Edge or Safari, or download the .srt/.vtt/.txt.",
+    "Generate takes a long time: use a smaller Accuracy option, or the local Whisper.cpp server on your computer.",
+    "Your video is missing from the list: it may not have been saved to history; upload it or paste its link.",
+    "Words are wrong: click the word on Script & Words and fix it, then press Apply & Re-render."
+  ],
+  "exampleWorkflows": [
+    "Generate an avatar video, press 'Add AI Captions', keep the picked video, choose Hormozi, Generate, fix the product name, Re-render and download the MP4.",
+    "Open AI Captions, pick last week's video from 'Your videos', Generate, download the .srt and upload it to your video host."
+  ],
+  "relatedStudios": [
+    "timeline",
+    "avatar",
+    "videotools"
+  ],
+  "relatedStudioGuidance": [
+    "Use Avatar or Video Tools to make the video, then add captions here.",
+    "Use the Timeline Editor to add captions inside a larger edit."
+  ],
+  "notConfirmed": [
+    "Speed on a graphics card was not measured here.",
+    "The cloud 'AI themes' route was not run with a real key in this check."
+  ],
+  "sourceFiles": [
+    "src/components/modals/AICaptionsModal.jsx",
+    "src/components/modals/ai-captions/render.js",
+    "src/components/modals/ai-captions/library.js",
+    "src/components/modals/ai-captions/scriptOps.js",
+    "src/components/modals/ai-captions/burnIn.js",
+    "src/components/modals/ai-captions/history.js",
+    "src/lib/editor/captionActions.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the AI Captions modal and its helpers; ran it in a real browser (on-device transcription, picker, burn-in to MP4).",
+    "verifiedAt": "2026-11-18",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

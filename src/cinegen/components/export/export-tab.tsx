@@ -13,6 +13,7 @@ import { exportBlockers, describeBlockers } from '@cinegen/lib/export-blockers';
 export function ExportTab() {
   const { state, dispatch } = useWorkspace();
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const announced = useRef<Set<string>>(new Set());
 
   const activeTimeline = getActiveTimeline(state);
   const exportClips = useMemo(() => exportClipsOf(activeTimeline, state.assets), [activeTimeline.clips, activeTimeline.tracks, state.assets]);
@@ -68,6 +69,11 @@ export function ExportTab() {
             qaStatus: updated.qaStatus,
           },
         });
+        // a finished export is a video the user made: offer it in AI Captions' "Your videos" (a blob: file, so only for this visit)
+        if (updated.status === 'complete' && updated.outputUrl && !announced.current.has(activeJob.id)) {
+          announced.current.add(activeJob.id);
+          void import('../../../components/modals/ai-captions/library.js').then((m) => m.announceVideo({ url: updated.outputUrl, title: 'Timeline export', studio: 'cinegen' })).catch(() => {});
+        }
       } catch {
         /* polling failures are non-fatal */
       }
