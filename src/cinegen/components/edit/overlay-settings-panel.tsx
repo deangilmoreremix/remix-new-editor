@@ -127,7 +127,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
   // the form was edited by clicking its text: show the new text in the panel too
   useEffect(() => {
     if (ownEdit.current) { ownEdit.current = false; return; }
-    if (!box.current || overlay.type === 'mg-template' || isRegistryOverlay(overlay.type)) return;
+    if (!box.current || overlay.type === 'mg-template') return; // [remix] add-ons too: Smart Text can be edited on the video
     editorRef.current?.setOptions?.(overlaySchema(overlay).options);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay]);

@@ -67,7 +67,7 @@ export function htmlToTokens(root) {
 export function tokenChip(doc, key) {
   const span = doc.createElement('span');
   span.className = 'personalized-token';
-  span.contentEditable = 'false';
+  span.setAttribute('contenteditable', 'false');
   span.dataset.token = `{{${key}}}`;
   span.textContent = String(key).replace(/^(up|d) /, '').split(' ')[0];
   return span;

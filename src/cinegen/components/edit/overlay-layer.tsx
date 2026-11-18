@@ -23,6 +23,7 @@ import { hyperframesOverlayLayer, hyperframesItem, defaultFit } from '@cinegen/l
 // @ts-expect-error plain JS placement helpers (same math the renderer and the export use)
 import { hfPlacement, isReactItem } from '../../../lib/hyperframes/placement.js';
 import { useSelectedOverlay, selectOverlay } from '@cinegen/lib/overlays/selection';
+import { beginInlineTextEdit } from '@cinegen/lib/overlays/inline-text-edit';
 import '../../../../styles/timeline-addons.css';
 import '../../../../styles/watch.css';
 
@@ -214,7 +215,14 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, previewPlaying,
   void GATES;
   return (
     <>
-      <div ref={addonRef} className="addon-overlay-layer" style={{ zIndex: 5 }} />
+      <div ref={addonRef} className="addon-overlay-layer" style={{ zIndex: 5 }} onDoubleClick={(e) => {
+        // [remix] double-click Smart Text to edit it in place (same chips for tokens as the inspector)
+        const el = (e.target as HTMLElement).closest?.('[data-clip-id][data-type="overlay-text"]') as HTMLElement | null;
+        const o = el && active.find((x) => String(x.id) === el.dataset.clipId);
+        if (!el || !o || !onEditText) return;
+        selectOverlay(o.id);
+        beginInlineTextEdit(el, String((o.addon as { text?: unknown } | undefined)?.text ?? ''), (text) => onEditText(o.id, 'text', text));
+      }} />
       <div ref={mgRef} style={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }} />
       <div ref={hostRef} className="addon-overlay-layer wf-layer" style={{ zIndex: 6 }} />
       {active.filter((o) => o.type === 'hyperframes' && selected === o.id).map((o) => <HfHandle key={o.id} overlay={o} frame={frame} onGeometry={onGeometry} />)}
