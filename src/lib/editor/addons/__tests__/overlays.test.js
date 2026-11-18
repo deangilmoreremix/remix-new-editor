@@ -194,12 +194,19 @@ describe('overlay settings form', () => {
     const d = getAddon('overlay-text');
     renderAddonEditor(box, { fields: d.fields, options: d.defaults(), onChange, services, onFieldChange: d.onFieldChange });
     expect([...box.querySelectorAll('[data-addon-tab]')].map((b) => b.textContent)).toEqual(['Basic', 'Advanced']);
-    const ta = box.querySelector('textarea[data-key="text"]');
-    ta.setSelectionRange(0, 0);
+    // upstream-style editing box: tokens are chips, the stored text stays a plain {{token}} string
+    expect(box.querySelector('textarea[data-key="text"]')).toBeNull();
+    const rich = box.querySelector('.addon-rich[data-key="text"]');
+    expect(rich.textContent).toBe('Enter Text Here');
     const insert = box.querySelector('.addon-token-insert');
     insert.value = 'firstName';
-    insert.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(onChange.mock.calls.at(-1)[0].text).toBe('{{firstName}}Enter Text Here');
+    insert.dispatchEvent(new Event('change', { bubbles: true })); // no saved cursor: the chip goes at the end
+    expect(onChange.mock.calls.at(-1)[0].text).toBe('Enter Text Here{{firstName}}');
+    expect(rich.querySelector('.personalized-token').dataset.token).toBe('{{firstName}}');
+    rich.innerHTML = 'Hi <span class="personalized-token" contenteditable="false" data-token="{{lastName}}">lastName</span>';
+    rich.dispatchEvent(new Event('input', { bubbles: true })); // typing
+    expect(onChange.mock.calls.at(-1)[0].text).toBe('Hi {{lastName}}');
+    expect(box.querySelectorAll('.addon-position-grid img').length).toBe(6); // upstream position icons
     box.querySelector('[data-position-value="right"]').click();
     expect(onChange.mock.calls.at(-1)[0].geometry.left).toBe(75);
     box.querySelector('[data-addon-tab="Advanced"]').click();

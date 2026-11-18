@@ -4,6 +4,8 @@ import { useEffect, useRef, type CSSProperties } from 'react';
 import type { OverlayClip } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS settings renderer from the main app
 import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
+// @ts-expect-error plain JS personalization tokens (the same list the old editor's Personalize menu uses)
+import { TOKEN_DEFS } from '../../../components/personalize/tokenSchema.js';
 // @ts-expect-error plain JS opt-in form schema + the Lead Generator clip adapter
 import { applyOptinToLeadForm, switchListBuilderKind } from '../../../lib/editor/addons/listBuilder.js';
 import type { MgPropField } from '@cinegen/lib/occ/mg-templates';
@@ -87,6 +89,8 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
     const schema = overlaySchema(latest.current);
     const editor = renderAddonEditor(box.current, {
       fields: schema.fields, fieldsFor: schema.fieldsFor, options: schema.options, onFieldChange: schema.onFieldChange, idPrefix: `ov-${overlay.id}`,
+      // [remix] the Personalize menu of Smart Text / Text Mask (the old editor passed the same token list)
+      services: { tokens: (TOKEN_DEFS as Array<{ key: string; label: string }>).map((d) => [d.key, d.label]) },
       onChange: (next: Record<string, unknown>) => {
         ownEdit.current = true;
         const cur = latest.current;

@@ -510,6 +510,13 @@
 /* ---- Overlay settings controls (addonEditor.js) ---- */
 .addon-field--tokens textarea { width: 100%; }
 .addon-token-insert { margin-top: 4px; width: 100%; }
+/* Smart Text box: tokens as chips (upstream .personalized-token), plain text typed around them */
+.addon-rich { width: 100%; min-height: 4.2em; max-height: 14em; overflow-y: auto; box-sizing: border-box; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border, rgba(255, 255, 255, 0.14)); background: rgba(255, 255, 255, 0.04); color: inherit; font: inherit; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; outline: none; }
+.addon-rich:focus { border-color: var(--cyan, #22d3ee); }
+.addon-rich .personalized-token { display: inline-block; padding: 1px 7px; margin: 0 1px; border-radius: 4px; border: 1px solid var(--red, #ef4444); line-height: 1.2; font-size: 0.92em; user-select: all; cursor: default; }
+.addon-rich .personalized-token.token-uppercase { text-transform: uppercase; }
+.addon-position-grid .mini-btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px 0; }
+.addon-position-grid .mini-btn img { display: block; width: 14px; height: 14px; pointer-events: none; }
 .addon-image-preview { width: 100%; aspect-ratio: 16 / 9; background: rgba(255, 255, 255, 0.04) center / contain no-repeat; border-radius: 6px; margin-bottom: 6px; border: 1px solid var(--border, rgba(255, 255, 255, 0.1)); }
 .addon-image-actions { display: flex; gap: 6px; margin-top: 6px; }
 .addon-upload-btn { cursor: pointer; }

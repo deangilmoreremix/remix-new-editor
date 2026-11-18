@@ -35,10 +35,14 @@ function slugify(label, existing) {
   return id;
 }
 
+import { tokensToHtml, htmlToTokens, tokenChip } from './tokenChips.js';
+
 const ANIM_PHASES = [['in', 'In'], ['idle', 'Idle'], ['out', 'Out']];
+// Upstream's Text Position icons (public/static/svgImages/text/basic_group).
+const POSITION_ICON_DIR = '/static/svgImages/text/basic_group';
 const POSITION_PRESETS = [
-  ['left', '⇤', 'Align left'], ['center', '↔', 'Center horizontally'], ['right', '⇥', 'Align right'],
-  ['top', '⤒', 'Align top'], ['middle', '↕', 'Center vertically'], ['bottom', '⤓', 'Align bottom'],
+  ['left', 'text-icon-left', 'Align left'], ['center', 'text-icon-center', 'Center horizontally'], ['right', 'text-icon-right', 'Align right'],
+  ['top', 'text-position-top', 'Align top'], ['middle', 'text-position-center', 'Center vertically'], ['bottom', 'text-position-bottom', 'Align bottom'],
 ];
 const STICKER_TABS = [['emoticons', 'Emoticons'], ['shapes', 'Shapes'], ['animatedEmoji', 'Animated emoji'], ['animated', 'Your file']];
 
@@ -166,8 +170,11 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
       const tokens = field.tokenFilter === 'image'
         ? [['image', 'Image'], ['d image "https://"', 'Image with fallback URL']]
         : (services.tokens || []);
+      const box = field.chips && !field.maxLength
+        ? `<div id="${id}" class="addon-rich" contenteditable="true" role="textbox" aria-multiline="true" aria-label="${esc(field.label)}" data-key="${field.key}" data-kind="rich-tokens">${tokensToHtml(value)}</div>`
+        : null;
       return `<div class="clip-editor__field addon-field addon-field--tokens">${label}
-        <textarea id="${id}" rows="${field.rows || 3}" data-key="${field.key}" data-kind="text"${field.maxLength ? ` maxlength="${field.maxLength}"` : ''}>${esc(value)}</textarea>
+        ${box || `<textarea id="${id}" rows="${field.rows || 3}" data-key="${field.key}" data-kind="text"${field.maxLength ? ` maxlength="${field.maxLength}"` : ''}>${esc(value)}</textarea>`}
         ${tokens.length ? `<select class="addon-token-insert" data-token-for="${id}" aria-label="Insert personalization token"><option value="">+ Personalize: insert token…</option>${tokens.map(([k, l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join('')}</select>` : ''}
       </div>`;
     }
@@ -196,7 +203,7 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
     }
     case 'position':
       return `<div class="clip-editor__field addon-field addon-field--position"><label>${esc(field.label)}</label>
-        <div class="addon-position-grid">${POSITION_PRESETS.map(([v, icon, title]) => `<button type="button" class="mini-btn" data-position-key="${field.key}" data-position-value="${v}" title="${title}" aria-label="${title}">${icon}</button>`).join('')}</div>
+        <div class="addon-position-grid">${POSITION_PRESETS.map(([v, icon, title]) => `<button type="button" class="mini-btn" data-position-key="${field.key}" data-position-value="${v}" title="${title}" aria-label="${title}"><img src="${POSITION_ICON_DIR}/${icon}.svg" alt="" width="14" height="14" draggable="false"/></button>`).join('')}</div>
       </div>`;
     case 'videoPicker': {
       // Overlay transition videos from Pixabay / Pexels. Results load
@@ -537,6 +544,20 @@ export function renderAddonEditor(container, {
       return;
     }
     if (e.type === 'change' && el.classList?.contains('addon-token-insert')) {
+      const rich = el.closest('.addon-field--tokens')?.querySelector('.addon-rich');
+      if (rich) {
+        if (el.value) {
+          // insert a chip where the cursor was (the menu click moved focus away), else at the end
+          const doc = rich.ownerDocument;
+          const chip = tokenChip(doc, el.value);
+          const r = richRange && rich.contains(richRange.startContainer) ? richRange : null;
+          if (r) { r.deleteContents(); r.insertNode(chip); r.setStartAfter(chip); r.collapse(true); richRange = r.cloneRange(); } else rich.appendChild(chip);
+          setPath(current, rich.dataset.key, htmlToTokens(rich));
+          emit(false, rich.dataset.key);
+        }
+        el.value = '';
+        return;
+      }
       const ta = el.closest('.addon-field--tokens')?.querySelector('textarea');
       if (ta && el.value) {
         const token = `{{${el.value}}}`;
@@ -637,6 +658,7 @@ export function renderAddonEditor(container, {
     const key = el.dataset?.key;
     if (!key || e.type === 'click') return;
     const kind = el.dataset.kind;
+    if (kind === 'rich-tokens') { setPath(current, key, htmlToTokens(el)); emit(false, key); return; }
     if (kind === 'points') return; // committed on change (above)
     if (kind === 'toggle') setPath(current, key, el.checked);
     else if (kind === 'number') {
@@ -646,6 +668,27 @@ export function renderAddonEditor(container, {
     emit(kind === 'toggle' || kind === 'select', key);
   };
 
+  // Smart Text box: remember the cursor (choosing a token from the menu moves focus), and paste as plain text.
+  let richRange = null;
+  const trackRange = (e) => {
+    if (!e.target.closest?.('.addon-rich')) return;
+    const sel = e.target.ownerDocument.getSelection?.();
+    if (sel && sel.rangeCount && e.target.closest('.addon-rich').contains(sel.anchorNode)) richRange = sel.getRangeAt(0).cloneRange();
+  };
+  const onPaste = (e) => {
+    const rich = e.target.closest?.('.addon-rich');
+    if (!rich) return;
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData)?.getData('text/plain') || '';
+    e.target.ownerDocument.execCommand?.('insertText', false, text);
+  };
+  // Typing must not reach the editor's global shortcuts (Space = play, E / V / B = tools, Backspace = delete clip): they only skip input / textarea.
+  const stopKeys = (e) => { if (e.target.closest?.('.addon-rich')) e.stopPropagation(); };
+  container.addEventListener('keydown', stopKeys);
+  container.addEventListener('keyup', trackRange);
+  container.addEventListener('mouseup', trackRange);
+  container.addEventListener('focusout', trackRange);
+  container.addEventListener('paste', onPaste);
   container.addEventListener('input', handle);
   container.addEventListener('change', handle);
   container.addEventListener('click', handle);
@@ -655,6 +698,11 @@ export function renderAddonEditor(container, {
       container.removeEventListener('input', handle);
       container.removeEventListener('change', handle);
       container.removeEventListener('click', handle);
+      container.removeEventListener('keydown', stopKeys);
+      container.removeEventListener('keyup', trackRange);
+      container.removeEventListener('mouseup', trackRange);
+      container.removeEventListener('focusout', trackRange);
+      container.removeEventListener('paste', onPaste);
     },
     setOptions(next) {
       current = JSON.parse(JSON.stringify(next || {}));

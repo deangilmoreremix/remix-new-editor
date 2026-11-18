@@ -118,7 +118,7 @@ export const SMART_TEXT = registerAddon({
     animation: { in: null, idle: null, out: null },
   }),
   fields: [
-    { key: 'text', label: 'Text', type: 'tokens', tab: 'Basic' },
+    { key: 'text', label: 'Text', type: 'tokens', chips: true, tab: 'Basic' },
     { key: 'position', label: 'Text Position', type: 'position', tab: 'Basic' },
     ...LINK_FIELDS('Basic'),
     { key: 'rotation', label: 'Rotation', type: 'range', min: -180, max: 180, tab: 'Basic' },
