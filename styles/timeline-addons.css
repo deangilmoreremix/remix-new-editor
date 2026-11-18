@@ -1445,4 +1445,4 @@
 
 /* Smart Text edited in place on the video (double-click) */
 .addon-overlay-layer .popcorn-text .personalizer-input.is-editing { outline: 2px dashed var(--cyan, #22d3ee); outline-offset: 2px; cursor: text; min-width: 1ch; user-select: text; white-space: pre-wrap; }
-.addon-overlay-layer .popcorn-text .personalizer-input.is-editing .personalized-token { display: inline-block; padding: 0 5px; border: 1px solid var(--red, #ef4444); border-radius: 4px; font-size: 0.85em; }
+.addon-overlay-layer .popcorn-text .personalized-token { display: inline-block; padding: 0 5px; border: 1px solid var(--red, #ef4444); border-radius: 4px; font-size: 0.85em; }

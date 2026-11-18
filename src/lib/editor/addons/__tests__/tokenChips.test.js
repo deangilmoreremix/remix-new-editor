@@ -36,3 +36,20 @@ describe('Smart Text token chips', () => {
     expect(chip.textContent).toBe('lastName');
   });
 });
+
+describe('Smart Text preview in the editor', () => {
+  it('shows an unfilled token as a chip, and plain text elsewhere', async () => {
+    const { buildOverlayElement } = await import('../overlayRender.js');
+    const { createAddonClip } = await import('../registry.js');
+    await import('../overlayAddons.js');
+    const clip = createAddonClip('overlay-text', { startSec: 0, timelineSeconds: 10, id: 't' });
+    clip.addon.text = 'Hi {{firstName}}';
+    const editor = buildOverlayElement(clip, { editor: true });
+    expect(editor.querySelector('.personalized-token')?.textContent).toBe('firstName');
+    const player = buildOverlayElement(clip, {});
+    expect(player.querySelector('.personalized-token')).toBeNull();
+    expect(player.textContent).toBe('Hi {{firstName}}');
+    const filled = buildOverlayElement(clip, { editor: true, profile: { id: 'c-sam', contact: { firstName: 'Sam', name: 'Sam Lee' }, variables: {} } });
+    expect(filled.querySelector('.personalized-token')).toBeNull();
+  });
+});
