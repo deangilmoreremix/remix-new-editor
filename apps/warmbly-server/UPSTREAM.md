@@ -12,7 +12,7 @@ Licence: Apache License 2.0 (`LICENSE`). Source commit: `c2e36cc`. Nothing here 
 | `integrations/`, `hubspot-app/`, `pipedrive-app/`, `resources/` | Zapier/Make/HubSpot/Pipedrive integrations |
 | `docs/embed.go`, `docs/content/docs`, `docs/public/openapi.json` | The `docs` Go package the backend embeds (its AI assistant and API catalog read it); identical to the docs ported to the Help site |
 
-Left out on purpose: the dashboard (`../warmbly-web`), the docs site (`../smartwarmupai-help`), the marketing site, the iOS app, the QA harness, and upstream's `.github/` and `.greptile` (this repository does not use GitHub Actions). Add any of them by copying from the upstream commit.
+Also vendored byte-identical (`site/` Astro marketing site, `docs/` Fumadocs app source, `ios/` app, `qa/` harness, `skills/`, `.github/`, `.greptile/`): the full upstream tree is now present apart from the dashboard (`../warmbly-web`) and the docs content shown in the Help site (`../smartwarmupai-help`). `.github/` here is inert (GitHub only reads the repository root); the marketing site, docs app, iOS app and QA harness are source only and are not built or hosted by the studio. `npm run verify:upstream -- <upstream clone>` checks all of it.
 
 ## Run it
 
