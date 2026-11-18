@@ -38,7 +38,7 @@ export function createBrandedServer({ brand, catalog, client }) {
     try {
       return await fn(args);
     } catch (err) {
-      const msg = err instanceof InputError ? err.message : sanitizeText(err?.message || 'Request failed', brand.name);
+      const msg = err instanceof InputError || err?.code === 'BAD_INPUT' ? err.message : sanitizeText(err?.message || 'Request failed', brand.name);
       return json({ error: msg, ...(err?.status ? { status: err.status } : {}) }, true);
     }
   };
@@ -99,6 +99,23 @@ export function createBrandedServer({ brand, catalog, client }) {
       if (!id) return json({ status: 'completed', outputs: submitted.outputs || submitted.output || [], raw: undefined });
       if (!wait) return json({ status: 'processing', request_id: id });
       return json(await client.wait(id, { timeoutMs: tool.timeoutMs }));
+    }));
+  }
+
+  // ---- brand-defined tools: { name, description, input (zod shape), build(args) -> { endpoint, payload }, timeoutMs }
+  // The brand supplies the request builder (so it can reuse the app's own payload code); the core submits and waits.
+  for (const tool of brand.customTools || []) {
+    server.registerTool(p(tool.name), {
+      title: `${brand.name}: ${tool.name.replace(/_/g, ' ')}`,
+      description: tool.description,
+      inputSchema: { ...tool.input, wait: z.boolean().optional().describe('Wait for the result (default true). If false, or on timeout, returns a request_id for get_result.') },
+    }, guard(async ({ wait = true, ...args }) => {
+      const { endpoint, payload } = tool.build(args);
+      const submitted = await client.submit(endpoint, payload);
+      const id = submitted.request_id || submitted.id;
+      if (!id) return json({ status: 'completed', outputs: submitted.outputs || [] });
+      if (!wait) return json({ status: 'processing', request_id: id });
+      return json(await client.wait(id, { timeoutMs: tool.timeoutMs || 600_000 }));
     }));
   }
 

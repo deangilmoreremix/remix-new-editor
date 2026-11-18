@@ -244,11 +244,9 @@
   },
   "video-watermark": {
    "tools": [
-    "video_to_video"
+    "video_remove_watermark"
    ],
-   "kinds": [
-    "v2v"
-   ]
+   "kinds": []
   }
  },
  "unsupported": {
