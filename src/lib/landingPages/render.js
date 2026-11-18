@@ -5,6 +5,7 @@
  * every URL passes safeUrl/safeImageUrl, so a hostile config can't inject markup.
  */
 import { composeLayout } from './layouts.js';
+import { resolveAfterSubmit, scheduleRedirect, linkTarget } from './afterSubmit.js';
 import {
   getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, splitAccent, formatDuration, readableOn, ctaHref, prefillFor, FONTS,
 } from './templates.js';
@@ -404,6 +405,15 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
         return;
       }
       form.replaceChildren(h(doc, 'p', 'vp-thanks', t(config.form.successMessage) || 'Thanks!'));
+      const after = resolveAfterSubmit(config.form);
+      if (after.action === 'button') {
+        const a = h(doc, 'a', 'vp-cta', after.buttonText);
+        a.href = after.url;
+        Object.entries(linkTarget(after.url)).forEach(([k, v]) => a.setAttribute(k, v));
+        form.appendChild(a);
+      } else if (after.action === 'redirect') {
+        scheduleRedirect(after.url, { navigate: (u) => (doc.defaultView || globalThis).location?.assign(u) });
+      }
     });
     formBox.appendChild(form);
     if (privacy) formBox.appendChild(h(doc, 'p', 'vp-privacy', privacy));
