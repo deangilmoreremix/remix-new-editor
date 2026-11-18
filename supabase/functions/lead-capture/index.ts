@@ -347,10 +347,16 @@ Deno.serve(async (req: Request) => {
 
   if (body.action === "list") {
     if (!hasSession) return json(req, { ok: true, leads: [] });
-    let query = db.from("video_leads").select("id, data, created_at, clip_id, kind, source").order("created_at", { ascending: false }).limit(5000);
-    if (projectId) query = query.eq("project_id", projectId);
-    if (clipId) query = query.eq("clip_id", clipId);
-    const { data, error } = await query;
+    const base = "id, data, created_at, clip_id, kind, source";
+    const load = (cols: string) => {
+      let q = db.from("video_leads").select(cols).order("created_at", { ascending: false }).limit(5000);
+      if (projectId) q = q.eq("project_id", projectId);
+      if (clipId) q = q.eq("clip_id", clipId);
+      return q;
+    };
+    // The follow-up columns (status, notes, tags) exist once 20261118120000_video_leads_followup.sql is applied; until then fall back.
+    let { data, error } = await load(`${base}, status, notes, tags`);
+    if (error) ({ data, error } = await load(base));
     if (error) return json(req, { ok: false, error: "Could not load leads" }, 500);
     return json(req, { ok: true, leads: data ?? [] });
   }
