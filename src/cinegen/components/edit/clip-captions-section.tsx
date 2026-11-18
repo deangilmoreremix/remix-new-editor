@@ -18,7 +18,7 @@ import { CaptionCueEditor } from '../../../openchatcut/captions/CaptionCueEditor
 import '../../../openchatcut/captions/captionEditor.css';
 import { MODEL_CATALOG } from '@cinegen/lib/local-ai/catalog';
 import { localAi } from '@cinegen/lib/local-ai/runtime';
-import { phrasesFromWords, translateCues, TRANSLATION_LANGUAGES } from '@cinegen/lib/occ/translate';
+import { phrasesFromWords, translateCues, toSrt, TRANSLATION_LANGUAGES } from '@cinegen/lib/occ/translate';
 
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12 } as const;
 const MOTIONS: CaptionMotionPreset[] = ['none', 'fade-up', 'pop', 'word-pop', 'karaoke-pulse', 'char-rise', 'char-pop', 'char-wave', 'word-rise', 'line-rise', 'line-fade'];
@@ -77,6 +77,16 @@ export function ClipCaptionsSection({ clip, asset, onUpdate, onSeek }: { clip: C
       setMsg(`${cues.length} ${lang} lines added under the captions.`);
     } catch (e) { setMsg(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
   };
+  // [remix] same translated-.srt download as Analyze's "Translate captions (.srt)", but from the captions already on the clip (no re-transcribing)
+  const translateSrt = async () => {
+    if (!c?.words) return;
+    setBusy(true); setMsg(`Translating to ${lang}…`);
+    try {
+      const cues = await translateCues(phrasesFromWords(c.words.map((w) => ({ text: w.text, startMs: w.start, endMs: w.end }))), lang);
+      download(`${(clip.name || 'captions').replace(/\.[^.]+$/, '')}.${lang.split(' ')[0].toLowerCase()}.srt`, toSrt(cues), 'application/x-subrip');
+      setMsg(`${cues.length} ${lang} lines saved as .srt.`);
+    } catch (e) { setMsg(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
+  };
   return (
     <div className="clip-properties-panel__section" data-testid="clip-captions">
       <div className="clip-properties-panel__section-title">Captions</div>
@@ -122,6 +132,7 @@ export function ClipCaptionsSection({ clip, asset, onUpdate, onSeek }: { clip: C
           <div className="clip-properties-panel__row">
             <select aria-label="Bilingual language" style={selectStyle} value={lang} onChange={(e) => setLang(e.target.value)}>{TRANSLATION_LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}</select>
             <button className="clip-properties-panel__toggle-btn" disabled={busy} onClick={bilingual}>Add translation</button>
+            <button className="clip-properties-panel__toggle-btn" data-testid="caption-translate-srt" disabled={busy} title="Translate captions" onClick={translateSrt}>Translated .srt</button>
           </div>
           <div className="clip-properties-panel__row">
             <select aria-label="Caption preset" data-testid="caption-preset" style={selectStyle} value="" onChange={(e) => { const p = presets.find((x) => x.id === e.target.value); if (p) patch({ ...(p.template ? { template: p.template } : {}), ...(p.pacing ? { pacing: p.pacing } : {}), ...(p.motionPreset ? { motionPreset: p.motionPreset } : {}), styleOverride: p.styleOverride }); }}>

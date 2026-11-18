@@ -25,12 +25,12 @@ export const CARD_CSS = [
 export const ADD_TIP = 'Add to the timeline';
 
 const noop = () => undefined;
-const STAGE_BG = 'radial-gradient(120% 120% at 20% 10%, #243247 0%, #111827 55%, #0b1220 100%)';
+export const STAGE_BG = 'radial-gradient(120% 120% at 20% 10%, #243247 0%, #111827 55%, #0b1220 100%)';
 
 /** Live renders are heavy (some run in a sandboxed iframe), so only a handful exist at once; the rest wait for a free slot. */
 const MAX_LIVE = 20;
 const live = new Set<symbol>();
-function useLiveSlot(wanted: boolean): boolean {
+export function useLiveSlot(wanted: boolean): boolean {
   const [has, setHas] = useState(false);
   useEffect(() => {
     if (!wanted) return undefined;
@@ -59,7 +59,7 @@ function useAutoSlot(wanted: boolean): boolean {
   return has;
 }
 
-function useInView(ref: React.RefObject<Element | null>): boolean {
+export function useInView(ref: React.RefObject<Element | null>): boolean {
   const [seen, setSeen] = useState(false);
   useEffect(() => {
     const el = ref.current;
@@ -73,7 +73,7 @@ function useInView(ref: React.RefObject<Element | null>): boolean {
 }
 
 /** Steps `currentTime` through the overlay's duration while `playing`, otherwise holds the representative frame. */
-function LiveStage({ preview, playing }: { preview: Extract<CardPreview, { kind: 'overlay' }>; playing: boolean }) {
+export function LiveStage({ preview, playing }: { preview: Extract<CardPreview, { kind: 'overlay' }>; playing: boolean }) {
   const overlays = useMemo(() => preview.build(), [preview]);
   const frame = preview.frame ?? { width: 1280, height: 720 };
   const dur = Math.max(0.5, preview.duration);
@@ -121,7 +121,7 @@ export function PreviewCard({ preview, title, sub, badge, onClick, testId, ariaL
   return (
     <div ref={ref} className="add-card-wrap" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)}
       style={{ position: 'relative', height: '100%', contentVisibility: 'auto', containIntrinsicSize: 'auto 260px' }}>
-      <button type="button" className="add-card" onClick={onClick} aria-label={ariaLabel ?? title} data-testid={testId}
+      <button type="button" className="add-card" onClick={onClick} aria-label={ariaLabel ?? title} data-testid={testId} data-card-title={title}
         style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', width: '100%', boxSizing: 'border-box', height: '100%' }}>
         <div data-live={slot ? 'true' : 'false'} data-playing={wantLive && slot && playing ? 'true' : 'false'} style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: STAGE_BG }}>
           {showImage && <img src={image} alt="" loading="lazy" onError={() => setImgOk(false)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />}

@@ -1,3 +1,4 @@
+import { IMPORT_MEDIA_EVENT } from './start-events';
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import type { Asset, MediaFolder } from '@cinegen/types/project';
 import type { Timeline } from '@cinegen/types/timeline';
@@ -450,6 +451,7 @@ export function LeftPanel({
     }
     return createdAssets;
   }, [projectId, currentFolderId, onAddAsset]);
+  useEffect(() => { const go = () => { if (projectId && onAddAsset) void handleImport(); }; window.addEventListener(IMPORT_MEDIA_EVENT, go); return () => window.removeEventListener(IMPORT_MEDIA_EVENT, go); }, [projectId, onAddAsset, handleImport]); // [remix] the empty-project start screen's "Add your video"
 
   useDesktopImport(handleImport); // [remix] timeline / media-pool drops of desktop files
 
@@ -1460,7 +1462,6 @@ export function LeftPanel({
             </button>
           )}
           {projectId && onAddAsset && <AddVideoControl handleImport={handleImport} />}{/* [remix] */}
-=======
           {onOpenStock && (
             <button className="mp__tool-btn" onClick={onOpenStock} title="AI & stock media (Pexels, Pixabay)" aria-label="AI and stock media" data-testid="open-stock-media-panel">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.5" /><path d="m21 16-5-5-8 8" /></svg>

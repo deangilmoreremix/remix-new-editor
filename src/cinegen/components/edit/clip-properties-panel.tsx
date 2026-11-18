@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 // [remix] OpenChatCut speed range 0.1–8×.
 import { MIN_RATE as OCC_MIN_RATE, MAX_RATE as OCC_MAX_RATE } from '../../../openchatcut/editor/rateStretch';
 import type { Clip } from '@cinegen/types/timeline';
@@ -14,6 +14,8 @@ import { ClipZoomSection } from './clip-zoom-section';
 import { ClipAnimationSection } from './clip-animation-section';
 import { ClipTransitionSection } from './clip-transition-section';
 import type { Timeline } from '@cinegen/types/timeline';
+import { InspectorGroup } from './inspector-group';
+import { useInspectorGroups } from './use-inspector-groups';
 
 interface ClipPropertiesPanelProps {
   clip: Clip | null;
@@ -46,6 +48,33 @@ export function ClipPropertiesPanel({
   onSeek,
 }: ClipPropertiesPanelProps) {
   const isAudio = asset?.type === 'audio';
+  const groups = useInspectorGroups();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [query, setQuery] = useState('');
+  const searching = query.trim().length > 0;
+
+  // [remix] After every render: hide sections that do not match the "Find a setting" text, hide a group when none of its sections show (a clip
+  // with no next clip has no Transition, an audio clip has no Look...), and show the "when do Transition / Layout / Multicam appear" hint.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const needle = query.trim().toLowerCase();
+    root.querySelectorAll<HTMLElement>('.inspector-group').forEach((g) => {
+      const sections = g.querySelectorAll<HTMLElement>(':scope > .inspector-group__body > .clip-properties-panel__section');
+      let visible = 0;
+      let conditional = 0;
+      sections.forEach((sec) => {
+        const labels = Array.from(sec.querySelectorAll('[aria-label],[title]')).map((e) => `${e.getAttribute('aria-label') ?? ''} ${e.getAttribute('title') ?? ''}`).join(' ');
+        const show = !needle || `${sec.textContent ?? ''} ${labels}`.toLowerCase().includes(needle);
+        sec.hidden = !show;
+        if (show) visible += 1;
+        if (/^(transition|layout|multicam)/i.test(sec.querySelector('.clip-properties-panel__section-title')?.textContent?.trim() ?? '')) conditional += 1;
+      });
+      g.hidden = visible === 0;
+      const hint = g.querySelector<HTMLElement>('[data-motion-hint]');
+      if (hint) hint.hidden = isAudio || !!needle || conditional >= 3;
+    });
+  });
 
   const handleSpeedChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +139,7 @@ export function ClipPropertiesPanel({
   }
 
   return (
-    <div className="clip-properties-panel">
+    <div className="clip-properties-panel" ref={rootRef}>
       <div className="clip-properties-panel__header">
         <span className="clip-properties-panel__title">{clip.name}</span>
         <button className="clip-properties-panel__close" onClick={onClose}>
@@ -120,9 +149,15 @@ export function ClipPropertiesPanel({
         </button>
       </div>
 
-      {/* Transform */}
+      <div className="inspector-find">
+        <input type="search" placeholder="Find a setting…" aria-label="Find a setting" data-testid="inspector-find" value={query} onChange={(e) => setQuery(e.target.value)} />
+      </div>
+
+      {/* [remix] the sections are gathered into groups you can fold; each section is unchanged */}
+      <InspectorGroup id="basics" label="Basics" open={groups.open.basics} forceOpen={searching} onToggle={() => groups.toggle('basics')}>
+      {/* Flip ([remix] renamed from "Transform" so it no longer clashes with the position/scale/rotation Transform section below) */}
       <div className="clip-properties-panel__section">
-        <div className="clip-properties-panel__section-title">Transform</div>
+        <div className="clip-properties-panel__section-title">Flip</div>
         <div className="clip-properties-panel__toggle-row">
           <button
             className={`clip-properties-panel__toggle-btn${clip.flipH ? ' clip-properties-panel__toggle-btn--active' : ''}`}
@@ -138,7 +173,6 @@ export function ClipPropertiesPanel({
           </button>
         </div>
       </div>
-
       {/* Speed */}
       <div className="clip-properties-panel__section">
         <div className="clip-properties-panel__section-title">Speed</div>
@@ -156,7 +190,6 @@ export function ClipPropertiesPanel({
           <span className="clip-properties-panel__value">{clip.speed.toFixed(2)}x</span>
         </div>
       </div>
-
       {/* Opacity */}
       <div className="clip-properties-panel__section">
         <div className="clip-properties-panel__section-title">Opacity</div>
@@ -174,7 +207,6 @@ export function ClipPropertiesPanel({
           <span className="clip-properties-panel__value">{Math.round(clip.opacity * 100)}%</span>
         </div>
       </div>
-
       {/* [remix] OpenChatCut clip fades (editor/clipFade.ts): opacity on video, volume on audio */}
       <div className="clip-properties-panel__section">
         <div className="clip-properties-panel__section-title">Fade</div>
@@ -200,26 +232,6 @@ export function ClipPropertiesPanel({
           );
         })}
       </div>
-
-      {/* [remix] OpenChatCut effects / LUT / blend */}
-      {!isAudio && <ClipEffectsSection clip={clip} currentTime={currentTime} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
-
-      {!isAudio && <ClipCaptionsSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} onSeek={onSeek} />}
-
-      {!isAudio && <ClipTransformSection clip={clip} currentTime={currentTime} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
-
-      {!isAudio && <ClipAnimationSection clip={clip} currentTime={currentTime} onSeek={onSeek} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
-
-      {!isAudio && <ClipZoomSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
-
-      {onTimelineEdit && timeline && !isAudio && <ClipTransitionSection clip={clip} timeline={timeline} onTimelineEdit={onTimelineEdit} />}
-
-      {onTimelineEdit && timeline && !isAudio && currentTime !== undefined && <ClipLayoutSection clip={clip} timeline={timeline} currentTime={currentTime} onTimelineEdit={onTimelineEdit} />}
-
-      {onTimelineEdit && timeline && !isAudio && currentTime !== undefined && <ClipMulticamSection clip={clip} timeline={timeline} currentTime={currentTime} onTimelineEdit={onTimelineEdit} />}
-
-      {onTimelineEdit && <ClipAnalyzeSection syncTarget={syncTarget} clip={clip} asset={asset} onTimelineEdit={onTimelineEdit} onUpdateClip={(u) => onUpdateClip(clip.id, u)} />}
-
       {/* Volume (audio only) */}
       {isAudio && (
         <div className="clip-properties-panel__section">
@@ -239,7 +251,20 @@ export function ClipPropertiesPanel({
           </div>
         </div>
       )}
+      </InspectorGroup>
 
+      <InspectorGroup id="look" label="Look" open={groups.open.look} forceOpen={searching} onToggle={() => groups.toggle('look')}>
+      {/* [remix] OpenChatCut effects / LUT / blend */}
+      {!isAudio && <ClipEffectsSection clip={clip} currentTime={currentTime} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      </InspectorGroup>
+
+      <InspectorGroup id="motion" label="Position and motion" open={groups.open.motion} forceOpen={searching} onToggle={() => groups.toggle('motion')}>
+      {!isAudio && <ClipTransformSection clip={clip} currentTime={currentTime} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      {!isAudio && <ClipAnimationSection clip={clip} currentTime={currentTime} onSeek={onSeek} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      {!isAudio && <ClipZoomSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      {onTimelineEdit && timeline && !isAudio && <ClipTransitionSection clip={clip} timeline={timeline} onTimelineEdit={onTimelineEdit} />}
+      {onTimelineEdit && timeline && !isAudio && currentTime !== undefined && <ClipLayoutSection clip={clip} timeline={timeline} currentTime={currentTime} onTimelineEdit={onTimelineEdit} />}
+      {onTimelineEdit && timeline && !isAudio && currentTime !== undefined && <ClipMulticamSection clip={clip} timeline={timeline} currentTime={currentTime} onTimelineEdit={onTimelineEdit} />}
       {/* Keyframes */}
       <div className="clip-properties-panel__section">
         <div className="clip-properties-panel__section-title">Keyframes</div>
@@ -273,6 +298,16 @@ export function ClipPropertiesPanel({
           </button>
         )}
       </div>
+        <div className="inspector-group__hint" data-motion-hint>Transition, Layout and Multicam appear when this clip has another clip right after it, or overlapping it at the playhead.</div>
+      </InspectorGroup>
+
+      <InspectorGroup id="captions" label="Captions" open={groups.open.captions} forceOpen={searching} onToggle={() => groups.toggle('captions')}>
+      {!isAudio && <ClipCaptionsSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} onSeek={onSeek} />}
+      </InspectorGroup>
+
+      <InspectorGroup id="analyze" label="Analyze" open={groups.open.analyze} forceOpen={searching} onToggle={() => groups.toggle('analyze')}>
+      {onTimelineEdit && <ClipAnalyzeSection syncTarget={syncTarget} clip={clip} asset={asset} onTimelineEdit={onTimelineEdit} onUpdateClip={(u) => onUpdateClip(clip.id, u)} />}
+      </InspectorGroup>
     </div>
   );
 }

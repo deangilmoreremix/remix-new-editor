@@ -48,6 +48,7 @@ import type { WorkflowNodeData } from '@cinegen/types/workflow';
 import { useHostTimelineActions, libraryDropHandlers } from './timeline-host-actions';
 import { AddToTimelineModal } from './add-to-timeline-modal';
 import { OPEN_ADD_MODAL_EVENT } from './add-to-timeline-registry';
+import { OPEN_GENERATOR_EVENT } from './start-events';
 // [hyperframes] flag-gated library for verified HyperFrames animations
 import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS flag from the main app's lib
@@ -876,7 +877,7 @@ export function TimelineEditor({
     };
   }, []);
 
-  const handlePickTemplateVideo = usePickTemplateVideo({ dispatch, setTimeline, timelineRef, currentTime }); // Template videos tab of the Add modal
+  const handlePickTemplateVideo = usePickTemplateVideo({ dispatch, setTimeline, timelineRef, currentTime, onPlaced: (id) => onSelectClips(new Set([id])) }); // [remix] the new clip is selected // Template videos tab of the Add modal
 
   // [remix] Landing pages tab: open the shared picker on the chosen design, with this project's first https video attached
   const handlePickLandingPage = useCallback(async (designId: string) => {
@@ -884,6 +885,7 @@ export function TimelineEditor({
     const { openLandingPagePicker } = await import('../../../lib/landingPages/pickerModal.js');
     openLandingPagePicker({ template: designId, video: clip ? { url: clip.url, name: clip.name, thumbnail_url: clip.thumbnailUrl, studio: 'timeline' } : null });
   }, [state.assets]);
+  useEffect(() => { const go = () => { void handleOpenGenerator(); }; window.addEventListener(OPEN_GENERATOR_EVENT, go); return () => window.removeEventListener(OPEN_GENERATOR_EVENT, go); }, [handleOpenGenerator]);
 
   // Throttled trim
   const trimRafRef = useRef<number | null>(null);
