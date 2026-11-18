@@ -6,7 +6,8 @@
  * src/lib/brandAnalyzer.js `scrapeSite`; `data.screenshot` is a base64 PNG.
  */
 import './_personalization/shims/env'
-import { BrowserSsrfError, scrapeBrandSite } from './_personalization/src/server/browserDiscovery'
+import { BrowserSsrfError, scrapeBrandSite, type BrandScrapeResult } from './_personalization/src/server/browserDiscovery'
+import { isThin, looksBlocked, mergeScrapes, scrapeBrandStatic } from './_personalization/src/server/brandStaticScrape'
 
 type Config = {
   path: string | string[]
@@ -51,13 +52,37 @@ export default async function handler(req: Request): Promise<Response> {
   const client = (req.headers.get('x-nf-client-connection-ip') || req.headers.get('x-forwarded-for') || 'unknown').split(',')[0].trim()
   if (rateLimited(client)) return json(429, { ok: false, error: 'Too many scrapes, try again in a minute' })
 
+  let data: BrandScrapeResult | null = null
+  let failure: unknown = null
   try {
-    return json(200, { ok: true, data: await scrapeBrandSite(url) })
+    data = await scrapeBrandSite(url)
   } catch (error) {
     if (error instanceof BrowserSsrfError) return json(400, { ok: false, error: error.message })
-    console.warn('[brand-scrape] failed:', error instanceof Error ? error.message.split('\n')[0] : String(error))
+    failure = error
+    console.warn('[brand-scrape] browser scrape failed:', error instanceof Error ? error.message.split('\n')[0] : String(error))
+  }
+
+  // Some sites block headless Chromium (bot walls, captcha pages) but still answer a plain request. Try that, free
+  // and without a browser, before giving up. A block page's title ("Robot Check") is never passed on as the brand.
+  // A page with a real title but almost no text (client-rendered shell, interstitial) gets the same second look.
+  const blocked = looksBlocked(data)
+  if (blocked || isThin(data)) {
+    const fallback = await scrapeBrandStatic(url, Date.now() + 8_000).catch(() => null)
+    const usable = fallback && !looksBlocked(fallback)
+    if (usable && (blocked || fallback.bodyText.length > (data?.bodyText.length ?? 0))) {
+      console.warn(`[brand-scrape] used static fallback (${blocked ? 'blocked' : 'thin'})`)
+      // Keep the browser's screenshot/colours/fonts only when it was a real page, never a block page's.
+      data = blocked || !data ? fallback : mergeScrapes(data, fallback)
+    } else if (blocked && data) {
+      data = { ...data, title: '', description: '', bodyText: '', screenshot: null, images: [], videos: [], blocked: true }
+    }
+  }
+
+  if (!data) {
+    console.warn('[brand-scrape] failed:', failure instanceof Error ? failure.message.split('\n')[0] : String(failure))
     return json(502, { ok: false, error: 'Could not scrape that site' })
   }
+  return json(200, { ok: true, data })
 }
 
 // Every call can launch a headless browser, so the platform limits it per client IP before the function runs.

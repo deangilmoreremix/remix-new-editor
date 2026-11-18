@@ -2643,6 +2643,12 @@ export interface BrandScrapeResult {
   fonts: string[]
   rawColors: string[]
   screenshot: string | null
+  /** Image URLs found on the page (DOM, computed CSS backgrounds and the Performance API's resource list). */
+  images: string[]
+  /** Video URLs found on the page. */
+  videos: string[]
+  /** True when the site served a block / challenge page instead of its content (text is then left empty). */
+  blocked?: boolean
 }
 
 /**
@@ -2703,10 +2709,26 @@ export async function scrapeBrandSite(
           await page.waitForLoadState('networkidle', { timeout: Math.min(BRAND_SCRAPE_IDLE_TIMEOUT, Math.max(500, left() - 10_000)) }).catch(() => undefined)
         }
 
+        // Lazy-loaded images/videos only load when scrolled into view: one quick pass down the page and back.
+        if (left() > 12_000) {
+          await page
+            .evaluate(async () => {
+              const step = Math.max(400, Math.floor(window.innerHeight * 0.9))
+              for (let y = 0; y < Math.min(document.body.scrollHeight, step * 6); y += step) {
+                window.scrollTo(0, y)
+                await new Promise((r) => setTimeout(r, 120))
+              }
+              window.scrollTo(0, 0)
+            })
+            .catch(() => undefined)
+        }
+
         const data = await page.evaluate(() => {
           const meta = (sel: string) =>
             (document.querySelector(sel) as HTMLMetaElement | null)?.getAttribute('content') ?? ''
           const abs = (href: string | null) => {
+            // A bare base64 blob used as a lazy-load placeholder is not an address.
+            if (href && /^[A-Za-z0-9+/=]{40,}$/.test(href.trim())) return null
             if (!href) return null
             try {
               const u = new URL(href, location.href)
@@ -2735,7 +2757,57 @@ export async function scrapeBrandSite(
               if (cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)') colors.add(cs.backgroundColor)
             })
           const favHref = document.querySelector('link[rel~="icon"]')?.getAttribute('href') ?? null
+
+          // Media: the rendered DOM, computed CSS (CSSOM) backgrounds, and what the page actually loaded (Performance API).
+          const images = new Set<string>()
+          const videos = new Set<string>()
+          // Beacons, pixels and analytics calls are requests, not site imagery.
+          const tracking = /(\/batch\/|beacon|pixel[._/-]|\/pixel|tracking|analytics|\/collect\b|\/log\b|doubleclick|googletagmanager|google-analytics|facebook\.com\/tr|\/1x1\b|spacer\.gif|\/ping\b|\/impression)/i
+          const addImage = (u: string | null | undefined) => {
+            const a = u ? abs(u) : null
+            if (a && !tracking.test(a) && images.size < 30) images.add(a)
+          }
+          const addVideo = (u: string | null | undefined) => {
+            const a = u ? abs(u) : null
+            if (a && videos.size < 10) videos.add(a)
+          }
+          const widest = (srcset: string | null) => {
+            let best: { u: string; w: number } | null = null
+            ;(srcset || '').split(',').forEach((p) => {
+              const [u, d] = p.trim().split(/\s+/)
+              const w = d ? parseFloat(d) || 1 : 1
+              if (u && (!best || w >= best.w)) best = { u, w }
+            })
+            return (best as { u: string; w: number } | null)?.u ?? null
+          }
+          document.querySelectorAll('img').forEach((img) => {
+            // Skip tracking pixels and tiny icons.
+            if (img.complete && img.naturalWidth > 0 && img.naturalWidth < 48) return
+            addImage(widest(img.getAttribute('srcset')) || img.currentSrc || img.getAttribute('src'))
+          })
+          document.querySelectorAll('picture source[srcset]').forEach((s) => addImage(widest(s.getAttribute('srcset'))))
+          document.querySelectorAll('video').forEach((v) => {
+            addVideo(v.currentSrc || v.getAttribute('src'))
+            v.querySelectorAll('source').forEach((s) => addVideo(s.getAttribute('src')))
+            addImage(v.getAttribute('poster'))
+          })
+          ;['og:video', 'og:video:url', 'og:video:secure_url'].forEach((p) => addVideo(meta(`meta[property="${p}"]`) || null))
+          addImage(meta('meta[property="og:image"]') || null)
+          Array.from(document.querySelectorAll('body *'))
+            .slice(0, 1200)
+            .forEach((el) => {
+              const bg = getComputedStyle(el as Element).backgroundImage
+              if (bg && bg !== 'none') for (const m of bg.matchAll(/url\(["']?([^"')]+)["']?\)/g)) addImage(m[1])
+            })
+          performance.getEntriesByType('resource').forEach((entry) => {
+            const e = entry as PerformanceResourceTiming
+            if (/\.(mp4|webm|m3u8|mov|m4v)(?:[?#]|$)/i.test(e.name) || e.initiatorType === 'video') addVideo(e.name)
+            else if (e.initiatorType === 'img' && /\.(png|jpe?g|webp|avif|gif)(?:[?#]|$)/i.test(e.name)) addImage(e.name)
+          })
+
           return {
+            images: Array.from(images),
+            videos: Array.from(videos),
             title: document.title ?? '',
             description: meta('meta[name="description"]') || meta('meta[property="og:description"]') || '',
             bodyText: (document.body?.innerText ?? '').slice(0, 8000),
@@ -2758,6 +2830,8 @@ export async function scrapeBrandSite(
           fonts: data.fonts,
           rawColors: data.colors,
           screenshot: null,
+          images: data.images,
+          videos: data.videos,
         }
         partial = result
 
