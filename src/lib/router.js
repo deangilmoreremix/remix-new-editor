@@ -93,6 +93,7 @@ const pageLoaders = {
   // Video landing pages (public pages live at /p/<slug>, mounted from main.js).
   'video-pages': () => import('../components/LandingPagesStudio.js').then(m => m.LandingPagesStudio()),
   'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
+  outreach: () => import('../components/OutreachStudio.js').then(m => m.OutreachStudio()),
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
   storyboard: () => import('../components/StoryboardStudio.js').then(m => m.StoryboardStudio()),

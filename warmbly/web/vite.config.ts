@@ -42,9 +42,13 @@ const sentryPlugins = uploadToSentry
 
 // Requests the interface font from the head, in parallel with the scripts, not after the stylesheet parses.
 function preloadInterfaceFont(): Plugin {
+    let base = "/";
     return {
         name: "warmbly:preload-interface-font",
         apply: "build",
+        configResolved(config) {
+            base = config.base;
+        },
         transformIndexHtml: {
             order: "post",
             handler(_html, ctx) {
@@ -53,7 +57,7 @@ function preloadInterfaceFont(): Plugin {
                 return [
                     {
                         tag: "link",
-                        attrs: { rel: "preload", as: "font", type: "font/woff2", href: `/${file}`, crossorigin: "" },
+                        attrs: { rel: "preload", as: "font", type: "font/woff2", href: `${base}${file}`, crossorigin: "" },
                         injectTo: "head-prepend",
                     },
                 ];

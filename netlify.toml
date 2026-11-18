@@ -296,6 +296,19 @@ force = false
   status = 200
   force = false
 
+# Outreach Studio (Warmbly, warmbly/web) is served from /outreach-app/ and falls back to its own shell.
+[[redirects]]
+  from = "/outreach-app"
+  to = "/outreach-app/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/outreach-app/*"
+  to = "/outreach-app/index.html"
+  status = 200
+  force = false
+
 # SPA fallback for the embedded Website Builder.
 # Without this, /openthorn/* client-side routes would fall through to
 # the parent SPA shell. `force = false` keeps real files like

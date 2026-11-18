@@ -15,7 +15,7 @@
 
 import { currentPortal } from "./portal";
 
-const BASE_ICON = "/favicon-96x96.png";
+const BASE_ICON = `${import.meta.env.BASE_URL}favicon-96x96.png`;
 const LINK_ID = "favicon-badge";
 const BADGE_COLOR = "#ef4444"; // red-500 — universal "unread" affordance
 
