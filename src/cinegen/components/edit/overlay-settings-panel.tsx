@@ -17,6 +17,8 @@ import { SavePresetRow } from './save-preset-row';
 import { OPEN_SPEECH_EVENT } from '@cinegen/lib/occ/smart-speech';
 import { importFontFile, loadUserFonts, userFontFamilies } from '@cinegen/lib/occ/user-fonts';
 import { CAPTION_FONT_FAMILIES } from '@cinegen/lib/occ/design-style';
+// @ts-expect-error plain JS: fonts installed on this computer (Local Font Access API)
+import { supportsSystemFonts, systemFontFamilies, loadSystemFonts, refreshSystemFontsIfAllowed } from '../../../lib/editor/addons/systemFonts.js';
 import { hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers
 import { HF_FITS, HF_FIT_LABELS, normalizeGeom, isReactItem } from '../../../lib/hyperframes/placement.js';
@@ -99,6 +101,9 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
         // the same font import the captions have: the Font list then includes what was imported (stored in this browser)
         extraFonts: CAPTION_FONT_FAMILIES,
         userFonts: userFontFamilies,
+        systemFonts: systemFontFamilies,
+        canLoadSystemFonts: supportsSystemFonts,
+        loadSystemFonts,
         importFont: importFontFile,
         // Smart Text: "Convert to Smart Speech" opens the Smart Speech window with this text
         fieldAction: (action: string, opts: { text?: string }) => { if (action === 'speech') window.dispatchEvent(new CustomEvent(OPEN_SPEECH_EVENT, { detail: { text: String(opts.text ?? '') } })); },
@@ -132,6 +137,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       },
     });
     editorRef.current = editor;
+    void refreshSystemFontsIfAllowed().then((f: string[]) => { if (f.length) editor?.setOptions?.(overlaySchema(latest.current).options); }); // already allowed earlier: no prompt
     void loadUserFonts().then((f) => { if (f.length) editor?.setOptions?.(overlaySchema(latest.current).options); }); // fonts imported earlier appear in the list
     return () => { editor?.destroy?.(); editorRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps

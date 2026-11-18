@@ -20,6 +20,7 @@ Method: code comparison plus the real CineGen editor in a browser (screenshots i
 | Typing, Blur In (In), Flicker, Blink (Idle) | listed in upstream's manifest, switched off, no motion | **new**: editor, and export draws the same motion |
 | In / Idle effects playing in the CineGen preview | yes (classic page) | **fixed**: they never played in CineGen. They now play when an overlay appears during playback, and once as a preview when you change the effect |
 | Fonts: one shared list + Import font… | upstream list only | **added**: Smart Text, Text Mask and Lower Thirds now offer upstream's 134 fonts plus the 17 extra Google families the captions use (151 total), and the captions' "Import font…" (.ttf / .otf / .woff / .woff2, up to 8 MB, kept in this browser). Imported fonts show first, reload with the editor, and travel with an export |
+| Fonts installed on this computer | not in upstream's web editor | **added**: "Use fonts installed on this computer…" under the Font list (Chrome / Edge, asks permission once, names remembered). Listed as their own group. Names only: viewers on other devices see a default font, and the panel says so; import the file to include a font |
 | Unfilled token in the editor preview | chip | **added** (player and export keep the plain text) |
 | Typing vs editor shortcuts | n/a | **fixed** for the new boxes: Space / E / V / B / Backspace no longer fire shortcuts |
 | Export: size fit, bold, italic, alignment, shadow, stroke, background, animations | n/a | already covered by `SmartText` in the Remotion composition |

@@ -170,8 +170,18 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
     case 'font': {
       const options = typeof field.options === 'function' ? field.options(services) : (field.options || []);
       const imported = services.userFonts?.() ?? [];
-      return `<div class="clip-editor__field addon-field">${label}<select id="${id}" data-key="${field.key}" data-kind="select" class="addon-font-select">${options
-        .map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(value) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>${field.preview ? fontPreview(value, imported) : ''}${services.importFont ? `<div class="addon-font-import"><button type="button" class="mini-btn" data-font-import="${esc(field.key)}">Import font…</button><input type="file" accept=".ttf,.otf,.woff,.woff2" hidden data-font-file="${esc(field.key)}"/><span class="addon-field__hint">.ttf, .otf, .woff or .woff2 up to 8 MB. Kept in this browser.</span>${ui.fontError ? `<span class="addon-font-error" role="alert">${esc(ui.fontError)}</span>` : ''}</div>` : ''}</div>`;
+      const installed = services.systemFonts?.() ?? [];
+      const opt = ([v, l]) => `<option value="${esc(v)}" ${String(v) === String(value) ? 'selected' : ''}>${esc(l)}</option>`;
+      // options carry an optional group; consecutive options of one group share an <optgroup> (a plain list stays plain)
+      const grouped = options.some((o) => o[2]);
+      const list = grouped
+        ? [...new Set(options.map((o) => o[2] || 'Fonts'))].map((g) => `<optgroup label="${esc(g)}">${options.filter((o) => (o[2] || 'Fonts') === g).map(opt).join('')}</optgroup>`).join('')
+        : options.map(opt).join('');
+      const onThisComputer = installed.some((f) => f.toLowerCase() === String(value).toLowerCase()) && !imported.includes(value);
+      const systemUi = services.canLoadSystemFonts?.()
+        ? `<button type="button" class="mini-btn" data-system-fonts="${esc(field.key)}">${installed.length ? `Refresh fonts on this computer (${installed.length})` : 'Use fonts installed on this computer…'}</button>`
+        : '';
+      return `<div class="clip-editor__field addon-field">${label}<select id="${id}" data-key="${field.key}" data-kind="select" class="addon-font-select">${list}</select>${field.preview ? fontPreview(value, [...imported, ...installed]) : ''}${onThisComputer ? '<span class="addon-field__hint" data-system-font-note>This font is installed on your computer. Anyone watching on another device will see a default font instead; import the font file to include it.</span>' : ''}${services.importFont || systemUi ? `<div class="addon-font-import">${services.importFont ? `<button type="button" class="mini-btn" data-font-import="${esc(field.key)}">Import font…</button><input type="file" accept=".ttf,.otf,.woff,.woff2" hidden data-font-file="${esc(field.key)}"/><span class="addon-field__hint">.ttf, .otf, .woff or .woff2 up to 8 MB. Kept in this browser.</span>` : ''}${systemUi}${ui.fontError ? `<span class="addon-font-error" role="alert">${esc(ui.fontError)}</span>` : ''}</div>` : ''}</div>`;
     }
     case 'tokens': {
       // Text with personalization tokens; the select inserts {{token}} at
@@ -505,6 +515,13 @@ export function renderAddonEditor(container, {
       if (btn?.dataset.stickerTab) {
         ui.stickerTab = btn.dataset.stickerTab;
         draw();
+        return;
+      }
+      if (btn?.dataset.systemFonts) {
+        // the browser asks for permission here, from this click
+        Promise.resolve(services.loadSystemFonts?.())
+          .then(() => { ui.fontError = ''; draw(); })
+          .catch((err) => { ui.fontError = err?.message || 'Could not read the fonts on this computer.'; draw(); });
         return;
       }
       if (btn?.dataset.fontImport) {

@@ -55,7 +55,7 @@ export const IMAGE_TRANSITIONS = [
 ];
 
 // the shared font list (upstream's + the captions' Google families + fonts the user imported); a function so a newly imported font shows at once
-const fontOptions = (services) => overlayFontOptions(services?.userFonts?.() ?? [], services?.extraFonts ?? []);
+const fontOptions = (services) => overlayFontOptions(services?.userFonts?.() ?? [], services?.extraFonts ?? [], services?.systemFonts?.() ?? []);
 
 const PAD = 3;
 /** Upstream Basic tab position math (left/center/right × top/middle/bottom). */
