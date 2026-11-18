@@ -15,6 +15,8 @@ import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 import { SavePresetRow } from './save-preset-row';
 import { contactImageServices, measureLogoFor } from '@cinegen/lib/personalize/contact-image-services';
+import { overlayMediaServices } from '@cinegen/lib/overlays/overlay-media-services';
+import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { usePreviewContact } from '@cinegen/lib/personalize/preview-contact';
 import { OPEN_SPEECH_EVENT } from '@cinegen/lib/occ/smart-speech';
 import { importFontFile, loadUserFonts, userFontFamilies } from '@cinegen/lib/occ/user-fonts';
@@ -92,6 +94,8 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
   // true while a change came from this panel itself (so its own echo doesn't redraw the form under the caret)
   const ownEdit = useRef(false);
   const [note, setNote] = useState(''); // outcome of a picture action (saved to the contact, Video Ready ...)
+  const { state: workspace } = useWorkspace();
+  const assetsRef = useRef(workspace.assets); assetsRef.current = workspace.assets;
   const contact = usePreviewContact(); // the contact whose pictures the settings show
 
   useEffect(() => {
@@ -103,6 +107,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       services: {
         tokens: (TOKEN_DEFS as Array<{ key: string; label: string }>).map((d) => [d.key, d.label]),
         // the same font import the captions have: the Font list then includes what was imported (stored in this browser)
+        ...overlayMediaServices({ notify: (m) => setNote(m), assets: () => assetsRef.current }), // upload, project images, Pixabay / Pexels, stickers
         ...contactImageServices({ notify: (m) => setNote(m) }), // Personalized Image: the contact's pictures, image finder, crop focus, Make Video Ready
         extraFonts: CAPTION_FONT_FAMILIES,
         userFonts: userFontFamilies,

@@ -8,6 +8,8 @@ import { type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-
 import { CaptionLane } from './caption-lane';
 import { createOverlay, createStudioDesignOverlay, createTemplateOverlays, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
 import { presetOverlays } from '@cinegen/lib/overlays/overlay-presets';
+import { createLayoutOverlays } from '@cinegen/lib/overlays/personalized-layouts';
+import { measureActiveLogo } from '@cinegen/lib/personalize/contact-image-services';
 import { selectOverlay, getSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
@@ -3248,6 +3250,15 @@ export function TimelineEditor({
             },
             onPickTemplateVideo: handlePickTemplateVideo, // Template videos tab
             onPickLandingPage: handlePickLandingPage, // Landing pages tab
+            onAddLayout: (layoutId) => { // Personalized layouts tab: logo + CTA end card, presenter intro, product spotlight, opening frame
+              const r = createLayoutOverlays(layoutId, currentTime, Math.max(sequenceDuration, 10));
+              if (r.ok) {
+                r.overlays.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
+                if (r.overlays.length) selectOverlay(r.overlays[r.overlays.length - 1].id);
+                if (r.measureLogo) void measureActiveLogo();
+              }
+              return { ok: r.ok, message: r.message };
+            },
             onPickPreset: (preset) => { // My presets tab
               const made = presetOverlays(preset, currentTime, Math.max(sequenceDuration, 10));
               made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));

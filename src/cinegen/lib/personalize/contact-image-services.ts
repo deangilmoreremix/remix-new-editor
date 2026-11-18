@@ -44,6 +44,9 @@ export async function measureLogoFor(profile: Profile | null): Promise<void> {
   saveContactAsset((contactStore.getProfile?.(profile.id) as Profile) || profile, logo.id, (a) => ({ ...a, luminance: lum }));
 }
 
+/** Measure the logo of the contact being previewed (after a layout added a logo with an Auto backing). */
+export const measureActiveLogo = (): Promise<void> => measureLogoFor(active());
+
 export function contactImageServices(host: ImageHost) {
   return {
     imageTokens: () => imageTokenChoices(active()),

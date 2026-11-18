@@ -14,6 +14,8 @@ import { LandingPagesPanel } from './landing-pages-panel';
 import { templateVideos } from '../../../data/templateVideoLibrary.js';
 import { PreviewCard, CARD_CSS } from './preview-card';
 import { MyPresetsPanel } from './my-presets-panel';
+import { PersonalizedLayoutsPanel } from './personalized-layouts-panel';
+import { personalizedLayouts } from '@cinegen/lib/overlays/personalized-layouts';
 import { listOverlayPresets } from '@cinegen/lib/overlays/overlay-presets';
 import { buildCatalog, clearPendingAddTab, hfEntries, mgEntries, peekPendingAddFocus, peekPendingAddQuery, peekPendingAddTab, type AddModalTab, type AddToTimelineActions, type CatalogEntry, type CatalogTab } from './add-to-timeline-registry';
 
@@ -114,6 +116,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
     { id: 'endscreens', label: 'End screens & connect forms', glyph: '▶', count: count('endscreens') },
     { id: 'videos', label: 'Template videos', glyph: '🎬', count: (templateVideos as unknown[]).length, hidden: !hasVideos },
     { id: 'landing', label: 'Landing pages', glyph: '▤', count: 34, hidden: !hasLanding },
+    { id: 'layouts', label: 'Personalized layouts', glyph: '👤', count: personalizedLayouts().length, hidden: !actions.onAddLayout },
     { id: 'presets', label: 'My presets', glyph: '★', count: presetCount, hidden: !actions.onPickPreset },
   ];
 
@@ -132,7 +135,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const needle = q.trim().toLowerCase();
   const shown = entries.filter((e) => (tab === 'all' || e.tab === tab) && (!needle || `${e.label} ${e.blurb} ${e.keywords ?? ''}`.toLowerCase().includes(needle)));
   // Animations and Motion graphics have their own tabs with category chips and filters; every other tab is a search + grid
-  const isPanel = tab === 'animations' || tab === 'motion' || tab === 'videos' || tab === 'landing' || tab === 'presets';
+  const isPanel = tab === 'animations' || tab === 'motion' || tab === 'videos' || tab === 'landing' || tab === 'presets' || tab === 'layouts';
   const pending = connect ? entries.find((e) => e.id === `tpl:${connect}`) : undefined;
   const renderCard = (e: CatalogEntry) => <PreviewCard key={e.id} preview={e.preview} title={e.label} sub={e.blurb} badge={e.badge} onClick={e.run} testId={e.testId} />;
 
@@ -165,6 +168,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
         <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
           {tab === 'animations' && hasAnimations && <HyperframesPanel onPick={(i) => { actions.onPickAnimation?.(i); onClose(); }} />}
           {tab === 'videos' && hasVideos && <TemplateVideosPanel initialQuery={requestedQuery} onPick={(v) => { actions.onPickTemplateVideo?.(v); onClose(); }} />}
+          {tab === 'layouts' && actions.onAddLayout && <PersonalizedLayoutsPanel onPick={(id) => { const r = actions.onAddLayout!(id); if (r.ok) onClose(); return r; }} />}
           {tab === 'presets' && actions.onPickPreset && <MyPresetsPanel onPick={(p) => { actions.onPickPreset?.(p); onClose(); }} />}
           {tab === 'landing' && hasLanding && <LandingPagesPanel onPick={(id) => { actions.onPickLandingPage?.(id); onClose(); }} />}
           {tab === 'motion' && <MgTemplatesPanel templates={mg} error={mgError} onRetry={loadMg} onPick={(t) => { actions.onPickMotion(t); onClose(); }} />}

@@ -17,7 +17,14 @@ Add to timeline, Overlays & forms: **Smart Text** and **Personalized Image**. In
 ## What the CineGen settings now do (ported from the classic editor)
 `src/cinegen/lib/personalize/contact-image-services.ts`: the contact's pictures per token, the image finder's results as one-click picks, crop focus, "Make Video Ready" (needs the user's OpenAI key), and a one-time brightness check of the logo so "Backing: Auto" picks a light or dark plate.
 
+## Personalized layouts (Add to timeline, "Personalized layouts" tab)
+Four one-click layouts from the contact being previewed, all built from tokens so every contact gets their own (`src/cinegen/lib/overlays/personalized-layouts.ts`, plans from `buildLayoutPlan` in `src/lib/personalization/timelineAssets.js`): **Logo + CTA end card**, **Presenter intro** (photo circle + "Hi {{d firstName "there"}}!"), **Product spotlight**, **Opening frame**. With no contact selected, or a contact with nothing to show, the tab says why. After adding, it reports how many other contacts have no picture for that layout yet.
+
+## Image and Sticker overlay settings (ported from the classic editor)
+`src/cinegen/lib/overlays/overlay-media-services.ts`: **Upload** (project storage, else a local preview that is not saved with the project), the project's own images (Media pool), **Pixabay / Pexels search** (a picked Pixabay image is copied to storage because Pixabay forbids hotlinking), and the **sticker library**.
+
 ## Still missing in CineGen (found, not built)
-- The classic editor's one-click **personalized layouts** (Logo + CTA end card, presenter intro, product spotlight, opening frame: `PERSONALIZED_LAYOUTS` / `buildLayoutPlan` in `src/lib/personalization/timelineAssets.js`) and "Make all Video Ready".
-- The classic editor also gives the settings an **upload**, **media library**, **stock search** and **sticker library** (`TimelineEditorPage.jsx` `addonEditorServices`); CineGen's overlay settings pass none of these yet, so the Image overlay has no upload or stock picker.
+- "Make all Video Ready" in one click (the classic editor's batch button); each picture still has its own button.
+- The overlay lane's small thumbnails draw overlays without a contact, so a greeting shows its fallback ("Hi there!") there while the video shows the contact's name.
+- Stock search needs network access to Pixabay / Pexels; it was not run in the sandbox.
 - Contacts and their pictures are stored in this browser only (localStorage).
