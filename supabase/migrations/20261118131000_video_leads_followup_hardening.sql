@@ -26,6 +26,7 @@ create or replace function public.video_leads_tags_ok(tags text[])
 returns boolean
 language sql
 immutable
+set search_path = ''
 as $$
   select coalesce(cardinality(tags) <= 10, true)
     and not exists (select 1 from unnest(tags) as t where t is null or char_length(t) not between 1 and 30);
@@ -38,6 +39,7 @@ alter table public.video_leads add constraint video_leads_tags_item_size
 create or replace function public.video_leads_touch_updated_at()
 returns trigger
 language plpgsql
+set search_path = ''
 as $$
 begin
   if (new.status, new.notes, new.tags) is distinct from (old.status, old.notes, old.tags) then
