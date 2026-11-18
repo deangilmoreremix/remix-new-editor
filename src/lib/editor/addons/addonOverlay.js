@@ -145,6 +145,10 @@ export function formBackground(config) {
   return `radial-gradient(circle, ${hexToRgba(c, 0.07)} 10%, ${hexToRgba(c, 0.8)} 90%, ${hexToRgba(c, 1)} 100%)`;
 }
 
+const PHONE_PATTERN = '[0-9+\\(\\)\\-. ]{7,30}'; // valid under both the u and v regex flags browsers use for pattern=
+/** The choices of a dropdown field: "Small, Medium, Large" -> [...], at most 20, trimmed, no blanks or duplicates. */
+export const selectChoices = (raw) => [...new Set(String(raw ?? '').split(',').map((o) => o.trim()).filter(Boolean))].slice(0, 20);
+
 function buildInput(declaration, prefill, config = {}) {
   let input;
   switch (declaration.type) {
@@ -173,8 +177,43 @@ function buildInput(declaration, prefill, config = {}) {
     case 'phone':
       input = document.createElement('input');
       input.type = 'tel';
-      input.setAttribute('maxlength', '80');
+      input.setAttribute('maxlength', '30');
+      input.setAttribute('pattern', PHONE_PATTERN);
+      input.title = 'Enter a phone number (digits, spaces, + ( ) - .)';
       break;
+    case 'url':
+      input = document.createElement('input');
+      input.type = 'url';
+      input.setAttribute('maxlength', '300');
+      input.setAttribute('inputmode', 'url');
+      break;
+    case 'select': {
+      input = document.createElement('select');
+      const hint = declaration.placeholder != null && declaration.placeholder !== '' ? String(declaration.placeholder) : String(declaration.label || 'Choose');
+      const first = document.createElement('option');
+      first.value = ''; first.textContent = hint; first.disabled = true; first.selected = true;
+      input.appendChild(first);
+      selectChoices(declaration.options).forEach((choice) => {
+        const o = document.createElement('option');
+        o.value = choice; o.textContent = choice;
+        input.appendChild(o);
+      });
+      break;
+    }
+    case 'checkbox': {
+      // A tick box with its label; the answer is "Yes" when ticked (an unticked box sends nothing).
+      const token = declaration.token || String(declaration.label || '').toUpperCase();
+      const wrap = document.createElement('label');
+      wrap.className = 'optin-check';
+      const box = document.createElement('input');
+      box.type = 'checkbox'; box.name = token; box.value = 'Yes';
+      if (declaration.required) box.required = true;
+      if (prefill?.[token]) box.checked = true;
+      const text = document.createElement('span');
+      text.textContent = declaration.label || token;
+      wrap.append(box, text);
+      return wrap;
+    }
     default:
       input = document.createElement('input');
       input.type = 'text';
@@ -279,7 +318,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   const elements = (config.elements || []).slice(0, 5);
   elements.forEach((d, i) => {
     const input = buildInput(d, prefill, config);
-    input.dataset.editKey = `elements.${i}.placeholder`;
+    input.dataset.editKey = d.type === 'checkbox' ? `elements.${i}.label` : `elements.${i}.placeholder`;
     inputWrapper.appendChild(input);
   });
 
@@ -318,6 +357,19 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   wrapperContainer.appendChild(inputWrapper);
   wrapperContainer.appendChild(buttonsInner);
   scrollInner.appendChild(wrapperContainer);
+
+  // Consent checkbox (owner setting): must be ticked; the wording is stored with the lead as the CONSENT answer.
+  if (config.requireConsent && config.consentText) {
+    const consent = document.createElement('label');
+    consent.className = 'optin-consent';
+    const box = document.createElement('input');
+    box.type = 'checkbox'; box.name = 'CONSENT'; box.value = String(config.consentText).slice(0, 300); box.required = true;
+    const words = document.createElement('span');
+    words.textContent = config.consentText;
+    words.dataset.editKey = 'consentText';
+    consent.append(box, words);
+    scrollInner.appendChild(consent);
+  }
 
   if (config.privacyDisclaimer && !config.isPersonalizer) {
     const disclaimer = document.createElement('div');
@@ -682,7 +734,7 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
     e.preventDefault();
     const status = form.querySelector('.addon-optin__status');
     // Whitespace-only answers don't count for required fields.
-    const blank = Array.from(form.elements).find((el) => el.required && !String(el.value || '').trim());
+    const blank = Array.from(form.elements).find((el) => el.required && (el.type === 'checkbox' ? !el.checked : !String(el.value || '').trim()));
     if (blank) {
       status.textContent = 'Please complete all fields.';
       blank.focus?.({ preventScroll: true });

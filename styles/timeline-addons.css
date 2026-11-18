@@ -170,6 +170,7 @@
 .addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="inline"] .buttons-inner { width: auto; flex: 0 0 auto; }
 .addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="inline"] .buttons-inner button { padding: 0 1.2em; }
 .addon-overlay-layer .retarget-form textarea,
+.addon-overlay-layer .retarget-form select,
 .addon-overlay-layer .retarget-form input {
   box-sizing: border-box;
   width: 100%;
@@ -1392,3 +1393,13 @@
 .addon-overlay-layer .is-editable .overlay-arrow { background: transparent !important; pointer-events: none; }
 .addon-overlay-layer .is-editable .overlay-arrow .container-hint { pointer-events: auto; }
 .addon-overlay-layer .overlay-arrow .click-text { font-weight: 300 !important; }
+
+/* dropdown, checkbox field and consent checkbox (they sit with the other boxes) */
+.addon-overlay-layer .retarget-form select { cursor: pointer; }
+.addon-overlay-layer .retarget-form .optin-check,
+.addon-overlay-layer .retarget-form .optin-consent {
+  display: flex; align-items: center; gap: 0.5em; text-align: left; color: inherit; font-size: 0.85em; line-height: 1.3; cursor: pointer;
+}
+.addon-overlay-layer .retarget-form .optin-check input,
+.addon-overlay-layer .retarget-form .optin-consent input { width: 1.1em; height: 1.1em; flex: 0 0 auto; padding: 0; margin: 0; }
+.addon-overlay-layer .retarget-form .optin-consent { width: var(--field-w, 70%); margin: 0.4em auto 0; }
