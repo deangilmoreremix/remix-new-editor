@@ -30,7 +30,7 @@ None.
 
 ## Testing
 
-- `npx vitest run` over the whole repo on the final head: **902 files, 13,687 tests passed** (63 tests and 1 file skipped, none failing).
+- `npx vitest run` over the whole repo on the final head: **905 files, 13,728 tests passed** (63 tests and 1 file skipped, none failing).
 - `eslint src` clean; `npm run lint:cinema-hex` and `npm run check:ask-index` pass; `tsc --noEmit` shows only the errors that already exist in `apps/` and `packages/` (22 when last checked); `npm run build` completes.
 - Real browser checks (headless Chrome, GPU-less): every wizard step and source, GL transition and lower-third previews, real MP4 export, audio playback, BG0 cut-out on a photo and a video, the Whisper WebGPU package (software adapter) and its fallback, native Whisper.cpp and the local server (health, CORS, a real transcription), the landing design pictures.
 - Sync checked against the live database with simulated tokens: two devices (save, pull, edit, delete, no resurrection) and 13 security checks. All test rows were removed.
