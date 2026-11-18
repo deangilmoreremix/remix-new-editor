@@ -10,7 +10,7 @@ import { leadsToCsv } from '../../../lib/editor/addons/leadClient.js';
 // @ts-expect-error plain JS attribution helpers
 import { sourceLabel as rawSourceLabel } from '../../../lib/editor/publish/attribution.js';
 
-export interface LeadSource { utm?: Record<string, string>; referrer?: string; page?: string | null }
+export interface LeadSource { utm?: Record<string, string>; referrer?: string; page?: string | null; variant?: string }
 export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string>; source?: LeadSource }
 
 /** "google / spring-sale", else the referring host, else "". */
@@ -45,6 +45,14 @@ export function rowSource(row: LeadRow): string {
   const page = row.source?.page;
   if (!page) return '';
   try { return new URL(page).searchParams.get('src') ?? ''; } catch { return ''; }
+}
+/** 'A' or 'B' when the viewer saw one version of an A/B-tested form, else ''. */
+export const variantOf = (row: LeadRow): string => (row.source?.variant === 'A' || row.source?.variant === 'B' ? row.source.variant : '');
+/** Leads per version, for forms being A/B tested (null when no lead carries a version). */
+export function variantCounts(rows: LeadRow[]): { A: number; B: number } | null {
+  const out = { A: 0, B: 0 };
+  rows.forEach((r) => { const v = variantOf(r); if (v === 'A' || v === 'B') out[v] += 1; });
+  return out.A + out.B ? out : null;
 }
 export const fromMp4 = (row: LeadRow): boolean => rowSource(row) === 'mp4';
 
@@ -102,6 +110,7 @@ export function rowsToCsv(rows: LeadRow[], forms: LeadForm[]): string {
     if (utm.content) src['UTM Content'] = csvSafe(utm.content);
     if (r.source?.referrer) src.Referrer = csvSafe(r.source.referrer);
     if (fromMp4(r)) src['From MP4'] = 'Yes';
+    if (variantOf(r)) src.Version = variantOf(r);
     return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src };
   }));
 }

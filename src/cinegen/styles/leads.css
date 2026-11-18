@@ -38,3 +38,4 @@ a.leads-btn{text-decoration:none;display:inline-block}
 .leads-row .leads-select{flex:0 0 auto;width:auto}
 .leads-tag--mp4{background:rgba(250,204,21,.18);color:#fde047;margin-left:6px}
 .leads-kpis{grid-template-columns:repeat(5,1fr)}
+.leads-tag--ab{background:rgba(168,85,247,.2);color:#d8b4fe;margin-left:6px}

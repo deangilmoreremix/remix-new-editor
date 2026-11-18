@@ -1403,3 +1403,10 @@
 .addon-overlay-layer .retarget-form .optin-check input,
 .addon-overlay-layer .retarget-form .optin-consent input { width: 1.1em; height: 1.1em; flex: 0 0 auto; padding: 0; margin: 0; }
 .addon-overlay-layer .retarget-form .optin-consent { width: var(--field-w, 70%); margin: 0.4em auto 0; }
+
+/* multi-step forms */
+.addon-overlay-layer .retarget-form [hidden] { display: none !important; }
+.addon-overlay-layer .retarget-form .optin-back { background: transparent; border: 0; color: inherit; opacity: .75; cursor: pointer; font: inherit; font-size: .8em; text-decoration: underline; padding: .3em .6em; }
+.addon-overlay-layer .retarget-form .optin-steps { display: flex; justify-content: center; gap: .4em; margin-top: .6em; }
+.addon-overlay-layer .retarget-form .optin-steps span { width: .55em; height: .55em; border-radius: 50%; background: currentColor; opacity: .25; }
+.addon-overlay-layer .retarget-form .optin-steps span.on { opacity: .9; background: var(--optin-btn-bg, #eb5054); }

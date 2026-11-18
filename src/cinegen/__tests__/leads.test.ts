@@ -1,6 +1,6 @@
 // [remix] Leads tab logic: forms, counts, filter/search, columns, CSV, includes, delete/list via a fake client, tab registration.
 import { describe, it, expect } from 'vitest';
-import { answerColumns, fromMp4, rowSource, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, csvSafe, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
+import { answerColumns, fromMp4, rowSource, variantOf, variantCounts, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, csvSafe, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
 import { createOverlay } from '@cinegen/lib/overlays/overlays';
 import { setLeadsForm, getLeadsForm } from '@cinegen/lib/leads/leads-filter';
 // @ts-expect-error plain JS
@@ -101,6 +101,19 @@ describe('MP4 attribution', () => {
     const csv = rowsToCsv([r('https://x.app/watch/Abc123XyZ9?src=mp4')], []);
     expect(csv).toContain('"From MP4"'); expect(csv).toContain('"Yes"');
     expect(rowsToCsv([r('https://x.app/watch/Abc123XyZ9')], [])).not.toContain('From MP4');
+  });
+});
+
+describe('A/B versions', () => {
+  const r = (v?: string): LeadRow => ({ id: Math.random().toString(), kind: 'list-builder', clipId: 'list-builder', createdAt: 't', data: { EMAIL: 'a@b.c' }, source: v ? { page: 'https://x/watch/A', variant: v } : { page: 'https://x/watch/A' } });
+  it('reads the version and counts leads per version', () => {
+    expect(variantOf(r('B'))).toBe('B'); expect(variantOf(r())).toBe(''); expect(variantOf(r('Z'))).toBe('');
+    expect(variantCounts([r('A'), r('B'), r('B'), r()])).toEqual({ A: 1, B: 2 });
+    expect(variantCounts([r(), r()])).toBeNull();
+  });
+  it('adds a Version column to the CSV only when a lead has one', () => {
+    expect(rowsToCsv([r('B')], [])).toContain('"Version"');
+    expect(rowsToCsv([r()], [])).not.toContain('Version');
   });
 });
 

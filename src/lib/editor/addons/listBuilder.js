@@ -43,6 +43,14 @@ export const OPTIN_KINDS = {
 };
 
 // Upstream ARRAY_ELEMENTS_RETARGET
+/** When a Lead Generator appears in a published video (the List Builder is always a wall at the start). */
+export const LEAD_TRIGGERS = [
+  ['time', 'At its place on the timeline'],
+  ['end', 'At the end of the video'],
+  ['pause', 'When the viewer pauses the video'],
+  ['exit', 'When the viewer is about to leave (desktop)'],
+];
+
 export const FORM_FIELD_TYPES = [
   ['singleline', 'Singleline'],
   ['multiline', 'Multiline'],
@@ -200,6 +208,13 @@ export function defaultOptin(kind = 'list-builder') {
     blockDisposableEmails: false,
     requireConsent: false,
     consentText: 'I agree to receive emails and updates.',
+    trigger: 'time',
+    abTest: false,
+    variantBCaption: '',
+    variantBBtnText: '',
+    multiStep: false,
+    stepSize: 1,
+    nextText: 'Next',
     transition: 'popcorn-none',
     ...POINTER_DEFAULTS,
     pointerEnabled: !lead, // upstream only showed the arrow on the List Builder
@@ -274,6 +289,10 @@ const TEXT_FIELDS = (personalizer) => [
   { key: 'afterSubmitAction', label: 'After the form is sent', type: 'select', options: AFTER_SUBMIT_ACTIONS },
   { key: 'afterSubmitUrl', label: 'Thank-you button / redirect link (https://…)', type: 'url', showIf: (o) => o.afterSubmitAction === 'button' || o.afterSubmitAction === 'redirect' },
   { key: 'afterSubmitButtonText', label: 'Thank-you button text', type: 'text', showIf: (o) => o.afterSubmitAction === 'button' },
+  { key: 'abTest', label: 'A/B test: also show a second version of the caption and button (published videos)', type: 'toggle' },
+  { key: 'variantBCaption', label: 'Version B caption (empty = same as A)', type: 'textarea', rows: 2, showIf: (o) => o.abTest },
+  { key: 'variantBBtnText', label: 'Version B button text (empty = same as A)', type: 'text', showIf: (o) => o.abTest },
+  { key: 'nextText', label: 'Next button text', type: 'text', showIf: (o) => o.multiStep },
   { key: 'consentText', label: 'Consent checkbox wording', type: 'text', showIf: (o) => o.requireConsent },
   { key: 'privacyDisclaimer', label: 'Privacy text', type: 'textarea', showIf: () => !personalizer },
   { key: 'privacyPolicyCaption', label: 'Privacy policy link text', type: 'text' },
@@ -317,6 +336,9 @@ export function listBuilderFields(config) {
     ...TEXT_FIELDS(personalizer).map((f) => ({ ...f, tab: 'Text' })),
     ...STYLE_FIELDS.map((f) => ({ ...f, tab: 'Styles' })),
     { key: 'elements', label: lead ? 'Form boxes (1–5)' : 'Form boxes (1–5, required)', type: 'fieldList', min: 1, max: 5, placeholders: true, fieldTypes: lead ? LEAD_FIELD_TYPES : FORM_FIELD_TYPES, tab: 'Fields' },
+    { key: 'trigger', label: 'When it appears (published video)', type: 'select', options: LEAD_TRIGGERS, tab: 'Fields', showIf: (o) => o.kind === 'lead-generator' },
+    { key: 'multiStep', label: 'Split the boxes into steps (Next / Back, progress dots)', type: 'toggle', tab: 'Fields' },
+    { key: 'stepSize', label: 'Boxes per step', type: 'select', options: [[1, '1'], [2, '2'], [3, '3']], tab: 'Fields', showIf: (o) => o.multiStep },
     { key: 'requireConsent', label: 'Add a consent checkbox viewers must tick (wording on the Text tab)', type: 'toggle', tab: 'Fields' },
     ...LAYOUT_FIELDS.map((f) => ({ ...f, tab: 'Fields' })),
     ...POINTER_FIELDS.map((f) => ({ ...f, tab: 'Pointer', ...(f.optionsFor ? { options: f.optionsFor(config || {}) } : {}) })),
@@ -396,6 +418,7 @@ const CLIP_KEYS = {
   espProvider: 'espProvider',
   espListId: 'espListId',
   blockDisposableEmails: 'blockDisposableEmails',
+  trigger: 'trigger',
 };
 
 // opt-in option → clip.style key.
