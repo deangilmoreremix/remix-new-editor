@@ -119,25 +119,12 @@ describe('catalog-driven studios send what the MCP would send (every model)', ()
       if (f && inputs[f] !== undefined) appInputs.image_url = [].concat(inputs[f])[0];
       await call(e.id, appInputs);
       const got = sent();
-      const fixed = endpointFixes[e.id];
-      // Where the live catalog corrects a route the app's generic path still sends, the MCP's route wins (see known divergences).
-      if (!fixed) expect(got.endpoint).toBe(mcp.endpoint.replace(/^\//, ''));
+      expect(got.endpoint).toBe(mcp.endpoint.replace(/^\//, ''));
       const differing = Object.entries(mcp.payload).filter(([k, v]) => JSON.stringify(got.params[k]) !== JSON.stringify(v)).map(([k]) => k).sort();
       if (process.env.PARITY_PRINT && differing.length) process.stderr.write(`PARITY ${e.id} ${JSON.stringify(differing)}\n`);
       expect(differing, `fields the app client does not send as the MCP does for ${e.id}`).toEqual([...(APP_GAPS[e.key] || [])].sort());
     });
   }
-});
-
-describe('known divergences (MCP is correct per the live catalog)', () => {
-  test.each(Object.entries(endpointFixes))('%s: app sends the old route, MCP sends %s', async (id, fixed) => {
-    const e = entries.find((x) => x.id === id);
-    const kind = { i2i: 'generateI2I', t2i: 'generateImage' }[e.kind];
-    if (!kind) return;
-    await client[kind]({ model: id, prompt: 'x', ...mediaFor(e) });
-    expect(sent().endpoint).toBe(e.endpoint); // app: unfixed route
-    expect(catalog.buildRequest(e.key, { prompt: 'x', ...mediaFor(e) }).endpoint).toBe(`/${fixed}`);
-  });
 });
 
 describe('fixed-route studios', () => {

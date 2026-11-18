@@ -37,7 +37,7 @@ export function findCatalogModel(key) {
 }
 
 // Bundled snapshot entries whose endpoint differs from MuAPI's live catalog (found by a live route check: these 404'd).
-const ENDPOINT_FIXES = {
+export const ENDPOINT_FIXES = {
   'ai-image-upscaler': 'ai-image-upscale',
   'bytedance-seedream-5.0-pro-edit': 'seedream-5.0-pro-edit',
   'bytedance-seedream-5.0-pro': 'seedream-5.0-pro',

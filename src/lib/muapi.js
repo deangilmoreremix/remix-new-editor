@@ -5,6 +5,10 @@ import { uploadFileToStorage } from './supabase.js';
 import { validateMuAPIUpload, uploadImageToMuAPI, uploadVideoToMuAPI, uploadFileToMuapi } from './muapiUpload.js';
 import { analytics } from './analytics.js';
 import { rateLimiter } from './services/RateLimiter.js';
+import { ENDPOINT_FIXES } from './muapi/genericModels.js';
+
+// Bundled snapshot routes that 404 on the live API (see genericModels.js); every studio sends the corrected route.
+const fixEndpoint = (e) => ENDPOINT_FIXES[e] || e;
 import {
   validateEffectParams,
   validateEffectName,
@@ -397,7 +401,7 @@ export class MuapiClient {
         const effectiveSignal = signal ?? params?.signal;
         const { controllerRequestId, signal: controlledSignal } = this._createRequestController(effectiveSignal);
         const modelInfo = getModelById(params.model);
-        const endpoint = modelInfo?.endpoint || params.model;
+        const endpoint = fixEndpoint(modelInfo?.endpoint || params.model);
         analytics.trackGeneration(params.model, 'image', { endpoint, studioType: params.studioType });
 
         const finalPayload = {};
@@ -658,7 +662,7 @@ export class MuapiClient {
         const effectiveSignal = signal ?? params?.signal;
         const { controllerRequestId, signal: controlledSignal } = this._createRequestController(effectiveSignal);
         const modelInfo = getVideoModelById(params.model);
-        const endpoint = modelInfo?.endpoint || params.model;
+        const endpoint = fixEndpoint(modelInfo?.endpoint || params.model);
         analytics.trackGeneration(params.model, 'video', { endpoint, studioType: params.studioType });
 
         const finalPayload = {};
@@ -749,7 +753,7 @@ export class MuapiClient {
         const effectiveSignal = signal ?? params?.signal;
         const { controllerRequestId, signal: controlledSignal } = this._createRequestController(effectiveSignal);
         const modelInfo = getI2IModelById(params.model);
-        const endpoint = modelInfo?.endpoint || params.model;
+        const endpoint = fixEndpoint(modelInfo?.endpoint || params.model);
         analytics.trackGeneration(params.model, 'i2i', { endpoint, studioType: params.studioType });
 
         // ─── Validate & sanitize ─────────────────────────────────────────
@@ -905,7 +909,7 @@ export class MuapiClient {
         const effectiveSignal = signal ?? params?.signal;
         const { controllerRequestId, signal: controlledSignal } = this._createRequestController(effectiveSignal);
         const modelInfo = getI2VModelById(params.model);
-        const endpoint = modelInfo?.endpoint || params.model;
+        const endpoint = fixEndpoint(modelInfo?.endpoint || params.model);
         analytics.trackGeneration(params.model, 'i2v', { endpoint, studioType: params.studioType });
 
         // ─── Validate & sanitize ─────────────────────────────────────────
@@ -1138,7 +1142,7 @@ export class MuapiClient {
         await acquireRateLimitToken();
         const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getV2VModelById(params.model);
-        const endpoint = modelInfo?.endpoint || params.model;
+        const endpoint = fixEndpoint(modelInfo?.endpoint || params.model);
         analytics.trackGeneration(params.model, 'v2v', { endpoint, studioType: params.studioType });
 
         const videoField = modelInfo?.videoField || 'video_url';
@@ -2068,7 +2072,7 @@ export class MuapiClient {
         await acquireRateLimitToken();
         const effectiveSignal = signal ?? params?.signal;
         const modelInfo = getLipSyncModelById(params.model);
-        const endpoint = modelInfo?.endpoint || params.model;
+        const endpoint = fixEndpoint(modelInfo?.endpoint || params.model);
         analytics.trackGeneration(params.model, 'lipsync', { endpoint });
 
         if (signal?.aborted) {
