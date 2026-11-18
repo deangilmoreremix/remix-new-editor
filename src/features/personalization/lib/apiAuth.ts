@@ -26,6 +26,7 @@ const PREFIXES = [
   '/api/v1/upload_file',
   // Motion Director (director chat + page capture).
   '/api/motion-studio/',
+  '/api/outreach/',
 ]
 const OPENAI_KEY_ROUTES = [
   '/api/personalization/image-analyze',

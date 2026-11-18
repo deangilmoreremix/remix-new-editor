@@ -15,13 +15,13 @@ import { renderLandingPage } from '../lib/landingPages/render.js';
 import { AFTER_SUBMIT_OPTIONS } from '../lib/landingPages/afterSubmit.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
 import { sampleSections } from '../lib/landingPages/sampleContent.js';
-import { wireframeSvg } from '../lib/landingPages/wireframes.js';
+import { templateCards } from './landing/TemplateChooser.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
 import { createCustomerPanel } from '../lib/landingPages/customerPanel.js';
 import { applyCustomerToPuck, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
 import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
-import { attachDesignPreview } from '../lib/landingPages/designPreview.js';
+import { ownPages } from '../lib/outreach/landingPage.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
 import {
   listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts, addContacts,
@@ -96,7 +96,8 @@ export function LandingPagesStudio() {
     if (!guard()) return;
     inner.replaceChildren(el('p', 'text-sm text-secondary', 'Loading your pages…'));
     try {
-      state.pages = await listPages(await ownerClient());
+      // A Video Outreach campaign's page belongs to that video (edited in Video Outreach), so it is not listed here.
+      state.pages = ownPages(await listPages(await ownerClient()));
     } catch (err) {
       inner.replaceChildren(el('p', 'text-sm text-red-300', err.message || 'Could not load your pages.'));
       return;
@@ -244,50 +245,10 @@ export function LandingPagesStudio() {
 
     // Template
     const tplHead = el('h2', 'text-sm font-extrabold uppercase tracking-wide', 'Template');
-    const tplRow = el('div', 'flex flex-col gap-4');
-    const cards = new Map();
-    const paintCards = () => cards.forEach((c, id) => {
-      const on = id === sel.template;
-      c.classList.toggle('border-primary', on);
-      c.classList.toggle('ring-2', on);
-      c.classList.toggle('ring-primary', on);
-      c.setAttribute('aria-pressed', String(on));
-    });
     // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
-      const grp = el('div', 'flex flex-col gap-2');
-      grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
-      const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
-      list.forEach((t) => {
-        const b = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
-        b.type = 'button';
-        b.title = t.description;
-        // The thumbnail is the page's SHAPE (a wireframe) tinted with its colours, so layouts are told apart by structure.
-        let sw;
-        if (t.puck && t.puckData) {
-          // Editable landing pages: a LIVE, scaled picture of the real page (drawn when it scrolls into view).
-          sw = el('div', '');
-          sw.style.margin = '8px 8px 0';
-          const handle = attachDesignPreview(sw, t.puckData);
-          const prev = sel.previewHandles || (sel.previewHandles = []);
-          prev.push(handle);
-        } else {
-          sw = el('div', 'h-20 p-2 flex items-center justify-center');
-          sw.style.background = t.theme.bg;
-          sw.style.color = t.theme.accent;
-          sw.innerHTML = wireframeSvg(t.layout);
-        }
-        const cap = el('div', 'p-2');
-        cap.append(el('div', 'text-xs font-bold truncate', t.name), el('div', 'text-[11px] text-secondary line-clamp-2', t.description));
-        b.append(sw, cap);
-        b.addEventListener('click', () => { sel.template = t.id; paintCards(); });
-        cards.set(t.id, b);
-        row.appendChild(b);
-      });
-      grp.appendChild(row);
-      tplRow.appendChild(grp);
-    });
-    paintCards();
+    const tplCards = templateCards({ groups: [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]], selected: sel.template, onPick: (id) => { sel.template = id; } });
+    sel.previewHandles = [tplCards];
+    const tplRow = tplCards.node;
 
     const cp = createCustomerPanel();
     void cp.load();

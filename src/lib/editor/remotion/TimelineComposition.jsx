@@ -11,6 +11,7 @@
  * mix-blend-mode (Remotion ≥ 4.0.540). Things the renderer can't draw
  * directly (Text Mask's SVG mask) are pre-rendered to an image.
  */
+import { cursorAt, cursorStops } from './websiteCursor.js';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   AbsoluteFill, Sequence, Img, useCurrentFrame, useVideoConfig, delayRender, continueRender,
@@ -474,7 +475,7 @@ function KeyframeWrap({ layer, seqFrom, origin, children }) {
 function CameraBox({ box, children }) {
   const border = box.border ? `${box.border}px solid rgba(255,255,255,0.9)` : undefined;
   return (
-    <div style={{ position: 'absolute', left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%`, overflow: 'hidden', borderRadius: box.radius ? `${box.radius}px` : undefined, border, boxSizing: 'border-box', boxShadow: box.radius ? '0 6px 24px rgba(0,0,0,0.5)' : undefined }}>
+    <div style={{ position: 'absolute', left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%`, overflow: 'hidden', borderRadius: box.radius ? (typeof box.radius === 'string' ? box.radius : `${box.radius}px`) : undefined, border, boxSizing: 'border-box', boxShadow: box.radius ? '0 6px 24px rgba(0,0,0,0.5)' : undefined }}>
       <AbsoluteFill>{children}</AbsoluteFill>
     </div>
   );
@@ -552,7 +553,25 @@ function MediaLayerBody({ layer, seqFrom }) {
     const volume = fadedVolume(layer, fps, Math.max(0, Math.min(1, layer.volume ?? 1)), layer.keyframes?.volume);
     return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%', ...mirror }} />;
   }
-  return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...mirror }} />;
+  // A scrolling page (e.g. a website screenshot behind the presenter): top of the image at the start,
+  // bottom at the end of the clip.
+  const scroll = layer.scroll ? { objectPosition: `50% ${Math.round(Math.max(0, Math.min(1, t / Math.max(0.001, layer.durationInFrames / fps))) * 1000) / 10}%` } : {};
+  const img = <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...scroll, ...mirror }} />;
+  if (!layer.cursor) return img;
+  // A pointer moving over the page (src/lib/editor/remotion/websiteCursor.js).
+  const pos = cursorAt(t, cursorStops(layer.id));
+  const size = Math.round(H * 0.045);
+  return (
+    <AbsoluteFill>
+      {img}
+      <div style={{ position: 'absolute', left: `${pos.x * 100}%`, top: `${pos.y * 100}%`, width: 0, height: 0 }}>
+        {pos.click > 0 ? <div style={{ position: 'absolute', left: -size * 0.9, top: -size * 0.9, width: size * 1.8, height: size * 1.8, borderRadius: '50%', border: `${Math.max(2, size / 10)}px solid rgba(79,70,229,${0.8 * pos.click})`, transform: `scale(${1.6 - 0.6 * pos.click})` }} /> : null}
+        <svg width={size} height={size} viewBox="0 0 24 24" style={{ position: 'absolute', left: 0, top: 0, filter: 'drop-shadow(0 2px 3px rgba(0,0,0,.45))' }}>
+          <path d="M3 2l7.5 19 2.6-7.9L21 10.5z" fill="#fff" stroke="#111" strokeWidth="1.4" strokeLinejoin="round" />
+        </svg>
+      </div>
+    </AbsoluteFill>
+  );
 }
 
 function OverlayLayer({ layer, Comp }) {

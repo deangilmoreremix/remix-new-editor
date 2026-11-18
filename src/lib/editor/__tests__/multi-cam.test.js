@@ -79,3 +79,37 @@ describe('Multi-Cam panel', () => {
     expect(el.textContent).toMatch(/Choose a second camera/);
   });
 });
+
+describe('round camera bubble over a personalized background (Video Outreach)', () => {
+  it('makes a square, fully rounded picture-in-picture box', () => {
+    const box = multiCamBox({ mode: 'pip', secondTrackId: 'v2', pip: { corner: 'bottom-left', size: 22, shape: 'circle' } }, 'second');
+    expect(box.radius).toBe('50%');
+    expect(box.width).toBe(22);
+    expect(box.height).toBeCloseTo(22 * 16 / 9, 5); // square in a 16:9 frame
+    expect(box.left).toBe(3);
+    expect(box.top + box.height).toBeCloseTo(100 - 3 * 1.8, 5);
+    // Unknown shapes stay the classic rounded rectangle.
+    expect(multiCamBox({ mode: 'pip', secondTrackId: 'v2', pip: { shape: 'blob' } }, 'second').radius).toBe(10);
+  });
+
+  it('shows each contact their own website behind the bubble, the fallback otherwise', () => {
+    const state = {
+      timelineSeconds: 10,
+      multiCam: { mode: 'pip', mainTrackId: 'bg', secondTrackId: 'cam', pip: { corner: 'bottom-left', size: 22, shape: 'circle' } },
+      tracks: [
+        { id: 'bg', type: 'video', name: 'Background', items: [{ id: 'site', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: 'https://cdn/fallback.jpg', scroll: true, left: 0, width: 100 }] },
+        { id: 'cam', type: 'video', name: 'Camera', items: [{ id: 'me', type: 'video', src: 'https://cdn/me.mp4', left: 0, width: 100 }] },
+      ],
+    };
+    const mike = timelineToComposition(state, { profile: { id: 'c1', variables: { websiteShotUrl: 'https://cdn/acme.jpg' } } });
+    const bg = mike.layers.find((l) => l.id === 'site');
+    const cam = mike.layers.find((l) => l.id === 'me');
+    expect(bg.src).toBe('https://cdn/acme.jpg');
+    expect(bg.scroll).toBe(true);
+    expect(cam.box.radius).toBe('50%');
+    // The camera is drawn after (above) the background.
+    expect(mike.layers.indexOf(cam)).toBeGreaterThan(mike.layers.indexOf(bg));
+    expect(timelineToComposition(state, { profile: { id: 'c2', variables: {} } }).layers.find((l) => l.id === 'site').src).toBe('https://cdn/fallback.jpg');
+    expect(timelineToComposition(state, { profile: { variables: { websiteShotUrl: 'javascript:alert(1)' } } }).layers.find((l) => l.id === 'site').src).toBe('https://cdn/fallback.jpg');
+  });
+});

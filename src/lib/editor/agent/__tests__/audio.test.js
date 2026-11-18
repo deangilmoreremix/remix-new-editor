@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { generateAudio, duckingKeyframes, persistAudio } from '../audioGen.js';
+import { generateAudio, duckingKeyframes, persistAudio, cloneVoice } from '../audioGen.js';
 import { createAgentTools, toolDefinitions } from '../tools.js';
 import { valueAt } from '../../remotion/keyframes.js';
 import { timelineToComposition } from '../../remotion/timelineToComposition.js';
@@ -20,7 +20,7 @@ describe('audio generation client', () => {
     const url = await generateAudio('tts', { text: 'Hi' }, { fetchImpl, pollMs: 1, keyManager: KEYS });
     expect(url).toBe('https://cdn/a.mp3');
     expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toEqual({ action: 'submit', kind: 'tts', text: 'Hi' });
-    expect(JSON.parse(fetchImpl.mock.calls[2][1].body)).toEqual({ action: 'status', requestId: 'req1' });
+    expect(JSON.parse(fetchImpl.mock.calls[2][1].body)).toEqual({ action: 'status', requestId: 'req1', kind: 'tts' });
   });
 
   it('reports failures and missing config', async () => {
@@ -118,5 +118,28 @@ describe('voiceover and music tools', () => {
     const state = { timelineSeconds: 10, tracks: [{ id: 'm', type: 'audio', items: [{ id: 'mu', type: 'audio', src: 'https://x/m.mp3', left: 0, width: 100, volume: 0.25, keyframes: { volume: [{ t: 0, v: 0 }, { t: 1, v: 1 }] } }] }] };
     const m = timelineToComposition(state, { fps: 30 });
     expect(m.audio[0]).toMatchObject({ kind: 'audio', volume: 0.25, keyframes: { volume: [{ t: 0, v: 0 }, { t: 1, v: 1 }] } });
+  });
+});
+
+describe('voice cloning client', () => {
+  it('sends consent and resolves when the clone finishes without an audio file', async () => {
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(reply({ ok: true, requestId: 'clone1' }))
+      .mockResolvedValueOnce(reply({ ok: true, status: 'pending' }))
+      .mockResolvedValueOnce(reply({ ok: true, status: 'done' }));
+    await expect(cloneVoice({ audioUrl: 'https://store/s.wav', voiceId: 'voice_abc123' }, { fetchImpl, pollMs: 1, keyManager: KEYS })).resolves.toBe('');
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toEqual({ action: 'submit', kind: 'voice-clone', audioUrl: 'https://store/s.wav', voiceId: 'voice_abc123', consent: true });
+    expect(JSON.parse(fetchImpl.mock.calls[1][1].body)).toEqual({ action: 'status', requestId: 'clone1', kind: 'voice-clone' });
+  });
+
+  it('a speech job that finishes without audio still keeps polling until it fails or times out', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(reply({ ok: true, requestId: 'r' })).mockResolvedValue(reply({ ok: true, status: 'done' }));
+    await expect(generateAudio('tts', { text: 'x' }, { fetchImpl, pollMs: 1, timeoutMs: 20, keyManager: KEYS })).rejects.toThrow(/timed out/);
+  });
+
+  it('needs the MuAPI key before sending anything', async () => {
+    const never = vi.fn();
+    await expect(cloneVoice({ audioUrl: 'https://store/s.wav', voiceId: 'voice_abc123' }, { fetchImpl: never, keyManager: NO_KEYS })).rejects.toThrow(/MuAPI/);
+    expect(never).not.toHaveBeenCalled();
   });
 });
