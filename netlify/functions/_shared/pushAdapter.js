@@ -2,24 +2,19 @@
  * Web Push dispatch core (testable: `webpush`, `fetchImpl` and `env` are injected).
  *
  * Flow: owner_notifications INSERT -> DB trigger (pg_net) -> push-dispatch function
- * -> this module -> push service of each of the owner's subscribed devices.
- * Never logs endpoints, keys or payload bodies.
+ * -> this module -> push service of each of the owner's subscribed devices, and (independently)
+ * the owner's e-mail through the queue in ownerEmail.js.
+ * Never logs endpoints, keys, addresses or payload bodies.
  */
 import { timingSafeEqual, createHash } from 'node:crypto';
-import { inQuietHours } from './emailAdapter.js';
+import { inQuietHours, getEmailAdapter, alertsUrl } from './emailAdapter.js';
+import { sendAlertEmailNow } from './ownerEmail.js';
+import { rest, supabaseConfig } from './supabaseRest.js';
+import { CATEGORY_BY_TYPE } from './alertTypes.js';
 
+export { CATEGORY_BY_TYPE };
 export const MAX_FAILURES = 5;
 export const NO_PUSH_TYPES = Object.freeze(['daily_digest']);
-export const CATEGORY_BY_TYPE = Object.freeze({
-  new_lead: 'New lead',
-  high_interest: 'Retarget',
-  followup_opportunity: 'Retarget',
-  interest_surge: 'Retarget',
-  returning_engagement: 'Retarget',
-  milestone: 'Video',
-  pricing_cta: 'Video',
-  contact_cta: 'Video',
-});
 export const DEEP_LINK = '/#/timeline';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_PAYLOAD_BYTES = 3000;
@@ -54,57 +49,35 @@ export function buildPayload(note) {
   return payload;
 }
 
-const rest = (cfg, fetchImpl) => async (path, { method = 'GET', body } = {}) => {
-  const res = await fetchImpl(`${cfg.url}/rest/v1/${path}`, {
-    method,
-    headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}`, 'Content-Type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`${method} ${path.split('?')[0]} failed (HTTP ${res.status})`);
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
-};
-
 async function loadWebPush(injected) {
   if (injected) return injected;
   const mod = await import('web-push');
   return mod.default || mod;
 }
 
-/**
- * Dispatch one notification. Returns { sent, failed, removed, reason? }; never throws for
- * configuration or gating problems (only for database errors, so the caller can report 500).
- */
-export async function dispatchPush({ notificationId, env = process.env, fetchImpl = fetch, webpush, now = new Date() } = {}) {
-  const vapid = { pub: env.VAPID_PUBLIC_KEY, priv: env.VAPID_PRIVATE_KEY, subject: env.VAPID_SUBJECT };
-  if (!vapid.pub || !vapid.priv || !vapid.subject) return { sent: 0, reason: 'not_configured' };
-  const cfg = { url: String(env.SUPABASE_URL || env.VITE_SUPABASE_URL || '').replace(/\/$/, ''), key: env.SUPABASE_SERVICE_ROLE_KEY || '' };
-  if (!cfg.url || !cfg.key) return { sent: 0, reason: 'not_configured' };
-  if (!UUID.test(String(notificationId || ''))) return { sent: 0, reason: 'bad_notification_id' };
+export const vapidFrom = (env) => (env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY && env.VAPID_SUBJECT
+  ? { pub: env.VAPID_PUBLIC_KEY, priv: env.VAPID_PRIVATE_KEY, subject: env.VAPID_SUBJECT } : null);
 
-  const call = rest(cfg, fetchImpl);
-  const note = (await call(`owner_notifications?select=id,clerk_user_id,video_id,type,title,summary,dedupe_key&id=eq.${notificationId}&limit=1`))?.[0];
-  if (!note) return { sent: 0, reason: 'notification_not_found' };
-  if (NO_PUSH_TYPES.includes(note.type) || !CATEGORY_BY_TYPE[note.type]) return { sent: 0, reason: 'type_not_pushed' };
-
-  const owner = encodeURIComponent(note.clerk_user_id);
-  // select=* on purpose: push_types may not exist until its (optional) migration is applied; an absent column reads as NULL.
-  const prefs = (await call(`retarget_preferences?select=*&clerk_user_id=eq.${owner}&limit=1`))?.[0];
-  if (!prefs) return { sent: 0, reason: 'no_preferences' };
-  if (prefs.push !== true) return { sent: 0, reason: 'push_disabled' };
-  if (!Array.isArray(prefs.enabled_types) || !prefs.enabled_types.includes(note.type)) return { sent: 0, reason: 'type_disabled' };
-  // push_types: NULL/absent = push every enabled type (legacy); an array = only the types also listed there.
-  if (Array.isArray(prefs.push_types) && !prefs.push_types.includes(note.type)) return { sent: 0, reason: 'type_push_disabled' };
-  if (inQuietHours(prefs.quiet_hours, now)) return { sent: 0, reason: 'quiet_hours' };
-
-  const subs = await call(`owner_push_subscriptions?select=id,endpoint,p256dh,auth,failure_count&clerk_user_id=eq.${owner}&limit=50`);
-  if (!subs?.length) return { sent: 0, reason: 'no_subscriptions' };
-
-  const wp = await loadWebPush(webpush);
+/** A web-push client with the VAPID details set. */
+export async function prepareWebPush(vapid, injected) {
+  const wp = await loadWebPush(injected);
   wp.setVapidDetails(vapid.subject, vapid.pub, vapid.priv);
-  const body = JSON.stringify(buildPayload(note));
-  const out = { sent: 0, failed: 0, removed: 0 };
+  return wp;
+}
 
+/** Why this owner's push preferences block `type`, or null. push_types NULL/absent = push every enabled type (legacy). */
+export function pushTypeBlock(prefs, type) {
+  if (!Array.isArray(prefs.enabled_types) || !prefs.enabled_types.includes(type)) return 'type_disabled';
+  if (Array.isArray(prefs.push_types) && !prefs.push_types.includes(type)) return 'type_push_disabled';
+  return null;
+}
+
+export const loadSubscriptions = (call, ownerId) => call(`owner_push_subscriptions?select=id,endpoint,p256dh,auth,failure_count&clerk_user_id=eq.${encodeURIComponent(ownerId)}&limit=50`);
+
+/** Send one JSON payload to every subscription; prunes gone (404/410) endpoints and counts other failures. Returns { sent, failed, removed }. */
+export async function sendToSubscriptions({ call, wp, subs, payload, now = new Date() }) {
+  const body = JSON.stringify(payload);
+  const out = { sent: 0, failed: 0, removed: 0 };
   await Promise.all(subs.map(async (s) => {
     try {
       await wp.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, body, { TTL: 3600, urgency: 'normal' });
@@ -123,4 +96,73 @@ export async function dispatchPush({ notificationId, env = process.env, fetchImp
     }
   }));
   return out;
+}
+
+/**
+ * Remember a push that quiet hours held back, for the "while you were away" summary (push-quiet-flush).
+ * Returns false (and changes nothing) when the table is not there yet: the caller then keeps the old drop behaviour.
+ */
+export async function deferQuietPush(call, note) {
+  try {
+    await call('owner_push_deferred?on_conflict=notification_id', {
+      method: 'POST',
+      body: [{ clerk_user_id: note.clerk_user_id, notification_id: note.id, type: note.type }],
+      prefer: 'resolution=ignore-duplicates,return=minimal',
+    });
+    return true;
+  } catch { return false; }
+}
+
+/** Web Push half of a dispatch. Returns { sent, failed?, removed?, reason? }. */
+async function pushPart({ note, prefs, vapid, call, webpush, now }) {
+  if (!vapid) return { sent: 0, reason: 'not_configured' };
+  if (prefs.push !== true) return { sent: 0, reason: 'push_disabled' };
+  const blocked = pushTypeBlock(prefs, note.type);
+  if (blocked) return { sent: 0, reason: blocked };
+  if (inQuietHours(prefs.quiet_hours, now)) {
+    const held = prefs.quiet_hours?.summary !== false && await deferQuietPush(call, note);
+    return { sent: 0, reason: held ? 'quiet_hours_deferred' : 'quiet_hours' };
+  }
+  const subs = await loadSubscriptions(call, note.clerk_user_id);
+  if (!subs?.length) return { sent: 0, reason: 'no_subscriptions' };
+  return sendToSubscriptions({ call, wp: await prepareWebPush(vapid, webpush), subs, payload: buildPayload(note), now });
+}
+
+/** E-mail half of a dispatch: a status string, never an address. Errors are reported, not thrown. */
+async function emailPart({ note, prefs, adapter, call, env, now }) {
+  try { return await sendAlertEmailNow({ adapter, call, note, prefs, now, url: alertsUrl(env) }); } catch (err) {
+    console.error('[push-dispatch] email failed:', String(err?.message || err).slice(0, 120));
+    return 'error';
+  }
+}
+
+/**
+ * Dispatch one notification: Web Push and e-mail are independent (either can be off while the other is on).
+ * Returns { sent, failed?, removed?, reason?, email? }; never throws for configuration or gating problems
+ * (only for push database errors, so the caller can report 500 after the e-mail half has run).
+ */
+export async function dispatchPush({ notificationId, env = process.env, fetchImpl = fetch, webpush, now = new Date(), emailAdapter } = {}) {
+  const vapid = vapidFrom(env);
+  const adapter = emailAdapter || getEmailAdapter(env, { fetchImpl });
+  if (!vapid && !adapter.configured) return { sent: 0, reason: 'not_configured' };
+  const cfg = supabaseConfig(env);
+  if (!cfg.url || !cfg.key) return { sent: 0, reason: 'not_configured' };
+  if (!UUID.test(String(notificationId || ''))) return { sent: 0, reason: 'bad_notification_id' };
+  const skipEmail = (status) => (adapter.configured ? status : 'not_configured');
+
+  const call = rest(cfg, fetchImpl);
+  const note = (await call(`owner_notifications?select=id,clerk_user_id,video_id,type,title,summary,suggestion,dedupe_key&id=eq.${notificationId}&limit=1`))?.[0];
+  if (!note) return { sent: 0, reason: 'notification_not_found' };
+  if (NO_PUSH_TYPES.includes(note.type) || !CATEGORY_BY_TYPE[note.type]) return { sent: 0, reason: 'type_not_pushed', email: skipEmail(note.type === 'daily_digest' ? 'skipped_digest' : 'skipped_type') };
+
+  // select=* on purpose: push_types may not exist until its (optional) migration is applied; an absent column reads as NULL.
+  const prefs = (await call(`retarget_preferences?select=*&clerk_user_id=eq.${encodeURIComponent(note.clerk_user_id)}&limit=1`))?.[0];
+  if (!prefs) return { sent: 0, reason: 'no_preferences', email: skipEmail('skipped_no_preferences') };
+
+  const [push, email] = await Promise.allSettled([
+    pushPart({ note, prefs, vapid, call, webpush, now }),
+    emailPart({ note, prefs, adapter, call, env, now }),
+  ]);
+  if (push.status === 'rejected') throw push.reason;
+  return { ...push.value, email: email.value };
 }

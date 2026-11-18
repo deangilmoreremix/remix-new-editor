@@ -214,12 +214,14 @@ describe('Notifications tab', () => {
     expect(deps.navigate).toHaveBeenCalledWith('personalizer');
     expect(panel.querySelector('[data-n="n2"] [data-follow]')).toBeNull(); // no interest, no follow-up
   });
-  it('saves preferences and states honestly that email needs configuration', async () => {
+  it('saves preferences; the Email alerts box is usable and the note makes no delivery claim', async () => {
     const c = client({ notes: [] });
     const { panel } = mount(notificationsTab, c);
     await tick();
-    expect(panel.textContent).toContain('Email delivery requires configuration');
-    expect(panel.querySelector('[name=email]').disabled).toBe(true);
+    expect(panel.textContent).toContain('Email alerts go to the address on your account. Pushes and email follow the same quiet hours.');
+    expect(panel.textContent).not.toMatch(/requires configuration|no email provider/i);
+    expect(panel.querySelector('[name=email]').disabled).toBe(false);
+    expect(panel.querySelector('[name=email]').checked).toBe(false);
     panel.querySelectorAll('[name=type]').forEach((b) => { b.checked = b.value === 'new_lead' || b.value === 'high_interest'; });
     panel.querySelector('[name=threshold]').value = '80';
     panel.querySelector('[name=digest]').value = 'weekly';
@@ -228,6 +230,19 @@ describe('Notifications tab', () => {
     const saved = c.calls.find((x) => x[0] === 'upsert')[2];
     expect(saved).toMatchObject({ enabled_types: ['new_lead', 'high_interest'], interest_threshold: 80, digest_frequency: 'weekly', in_app: true, email: false });
     expect(panel.querySelector('[data-prefs-msg]').textContent).toBe('Saved.');
+  });
+  it('the Email alerts box reflects the saved value and is saved', async () => {
+    const c = client({ notes: [], prefs: { ...DEFAULT_PREFERENCES, email: true } });
+    const { panel } = mount(notificationsTab, c);
+    await tick();
+    const box = panel.querySelector('[name=email]');
+    expect(box.checked).toBe(true);
+    const send = async () => { panel.querySelector('[data-prefs]').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })); await tick(); };
+    await send();
+    expect(c.calls.find((x) => x[0] === 'upsert')[2].email).toBe(true);
+    box.checked = false;
+    await send();
+    expect(c.calls.filter((x) => x[0] === 'upsert').pop()[2].email).toBe(false);
   });
 });
 
@@ -317,7 +332,9 @@ describe('Notifications preferences: per-type push and quiet hours', () => {
     const box = panel.querySelector('[name=quiet]');
     expect(box.checked).toBe(false);
     expect(panel.querySelector('[name=quiet-start]').disabled).toBe(true);
-    expect(panel.querySelector('[data-prefs]').textContent).toContain('During quiet hours push notifications are not sent. Alerts still appear in the app.');
+    expect(panel.querySelector('[data-prefs]').textContent).toContain('During quiet hours push notifications are held and sent as one summary when quiet hours end. Alerts still appear in the app right away.');
+    expect(panel.querySelector('[name=quiet-summary]').checked).toBe(true);
+    expect(panel.querySelector('[name=quiet-summary]').disabled).toBe(true);
     await submit(panel);
     expect(c.calls.find((x) => x[0] === 'upsert')[2].quiet_hours).toBeNull();
     change(box, true);
@@ -328,7 +345,7 @@ describe('Notifications preferences: per-type push and quiet hours', () => {
     zone.value = 'America/New_York';
     await submit(panel);
     const q = c.calls.filter((x) => x[0] === 'upsert').pop()[2].quiet_hours;
-    expect(q).toEqual({ start: '22:00', end: '07:00', timeZone: 'America/New_York', utcOffsetMinutes: -300 }); // NOW is 11 Nov 2026 (EST)
+    expect(q).toEqual({ start: '22:00', end: '07:00', timeZone: 'America/New_York', utcOffsetMinutes: -300, summary: true }); // NOW is 11 Nov 2026 (EST)
   });
   it('quiet hours: reloads stored values, flags start == end and blocks invalid times', async () => {
     const stored = { start: '23:00', end: '06:30', timeZone: 'Europe/Paris', utcOffsetMinutes: 60 };
@@ -347,11 +364,27 @@ describe('Notifications preferences: per-type push and quiet hours', () => {
     expect(c.calls.some((x) => x[0] === 'upsert')).toBe(false);
     expect(panel.querySelector('[data-prefs-msg]').textContent).toMatch(/Quiet hours/);
   });
-  it('the email note is accurate: quiet hours apply to push, email still needs a provider', async () => {
-    const { panel } = mount(notificationsTab, client({}));
+  it('summary checkbox: stored false reloads unchecked, the note switches wording, and it is saved in quiet_hours', async () => {
+    const stored = { start: '23:00', end: '06:30', timeZone: 'Europe/Paris', utcOffsetMinutes: 60, summary: false };
+    const c = client({ prefs: { ...DEFAULT_PREFERENCES, quiet_hours: stored } });
+    const { panel } = mount(notificationsTab, c, usable());
     await tick(12);
-    expect(panel.textContent).toContain('Quiet hours already apply to push notifications');
-    expect(panel.textContent).not.toContain('take effect once one is');
+    const box = panel.querySelector('[name=quiet-summary]');
+    expect(box.checked).toBe(false);
+    expect(box.disabled).toBe(false);
+    expect(panel.querySelector('[data-quiet-note]').textContent).toContain('not sent and no summary follows');
+    await submit(panel);
+    expect(c.calls.filter((x) => x[0] === 'upsert').pop()[2].quiet_hours.summary).toBe(false);
+    change(box, true);
+    expect(panel.querySelector('[data-quiet-note]').textContent).toContain('sent as one summary when quiet hours end');
+    await submit(panel);
+    expect(c.calls.filter((x) => x[0] === 'upsert').pop()[2].quiet_hours.summary).toBe(true);
+  });
+  it('old stored quiet hours without the summary key load with the box checked', async () => {
+    const c = client({ prefs: { ...DEFAULT_PREFERENCES, quiet_hours: { start: '23:00', end: '06:30', timeZone: 'Europe/Paris' } } });
+    const { panel } = mount(notificationsTab, c, usable());
+    await tick(12);
+    expect(panel.querySelector('[name=quiet-summary]').checked).toBe(true);
   });
 });
 
