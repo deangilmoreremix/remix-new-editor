@@ -1,6 +1,7 @@
 import React from 'react'
 import { AbsoluteFill, useCurrentFrame } from 'remotion'
 import { capiteStyleById, capiteTextCss, capiteWordCss } from '../captions/capiteStyles'
+import { useCaptionFont } from '../captions/capiteFontLoader'
 import { displayScale, scriptFor, withScriptFonts } from '../captions/scripts'
 import { activeCueAt, activeWordIndex, captionLayout } from '../captions/captionStyle'
 import { endCardFrames } from './endCard'
@@ -29,6 +30,9 @@ export const CaptionsLayer: React.FC<{
   height: number
 }> = ({ captions, videoUrl, settings, width, height }) => {
   const frame = useCurrentFrame()
+  // A Capite look draws in its own embedded font: hold the preview and the export until it is ready.
+  const look = capiteStyleById(captions?.style)
+  useCaptionFont(look?.fontName, { weight: look?.bold ? 800 : 500, italic: look?.italic })
   if (!captions?.enabled || !captions.cues.length || !videoUrl || captions.forUrl !== videoUrl) return null
   const fps = settings.fps > 0 ? settings.fps : 30
   if (settings.showEndCard && frame >= endCardFrames(settings.durationInFrames).start) return null

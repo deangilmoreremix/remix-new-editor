@@ -83,6 +83,8 @@ function withAlpha(hex: string, alpha255: number): string {
  * CSS for the caption block. `fontSizePx` is what the HOST wants on screen (it knows the frame); the style only
  * contributes proportions: outline and shadow scale with the text, as in Capite.
  */
+import { captionFontByName, captionFontStack } from './capiteFonts'
+
 export function capiteTextCss(style: CapiteCaptionStyle, fontSizePx: number, fallbackStack: string): Css {
   const k = fontSizePx / Math.max(1, style.fontSize)
   const shadows: string[] = []
@@ -92,7 +94,8 @@ export function capiteTextCss(style: CapiteCaptionStyle, fontSizePx: number, fal
     shadows.push(`0 0 ${Math.max(8, Math.round(fontSizePx * 0.18))}px ${style.highlightColor}`, `0 0 ${Math.max(16, Math.round(fontSizePx * 0.36))}px ${style.highlightColor}`)
   }
   return {
-    fontFamily: `"${style.fontName}", "${style.fontNameFallback}", ${fallbackStack}`,
+    // The font is embedded and loaded on demand (capiteFontLoader); its CSS name is the alias "Capite <name>". An unknown name keeps the old stack.
+    fontFamily: captionFontByName(style.fontName) ? captionFontStack(style.fontName, fallbackStack) : `"${style.fontName}", "${style.fontNameFallback}", ${fallbackStack}`,
     fontSize: fontSizePx, fontWeight: style.bold ? 800 : 500, fontStyle: style.italic ? 'italic' : 'normal',
     letterSpacing: style.letterSpacing ? `${Math.round(style.letterSpacing * k * 10) / 10}px` : undefined,
     wordSpacing: style.wordSpacing !== 100 ? `${Math.round((style.wordSpacing - 100) * 0.01 * fontSizePx * 10) / 10}px` : undefined,

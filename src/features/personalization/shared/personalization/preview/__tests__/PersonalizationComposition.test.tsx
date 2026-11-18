@@ -64,6 +64,7 @@ vi.mock('remotion', async () => {
     ),
     Img: ({ src }: { src: string }) => <img src={src} alt="" />,
     Sequence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+    useDelayRender: () => ({ delayRender: () => 1, continueRender: () => {} }),
     Internals: {
       SequenceManager: {
         Provider: ({ children }: { children?: React.ReactNode }) => (

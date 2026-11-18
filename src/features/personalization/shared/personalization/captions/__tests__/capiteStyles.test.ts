@@ -19,10 +19,11 @@ describe('Capite caption styles', () => {
     expect(isCapiteStyleId(undefined)).toBe(false)
     expect(isCapiteStyleId('__proto__')).toBe(false)
   })
-  it('scales outline with the text and puts the font first, then the host stack', () => {
+  it('scales outline with the text and puts the embedded font first, then the fallback, then the host stack', () => {
     const s = capiteStyleById('hormozi')!
     const small = capiteTextCss(s, 20, 'sans-serif'), big = capiteTextCss(s, 80, 'sans-serif')
-    expect(String(small.fontFamily)).toMatch(/^"Montserrat", "IBM Plex Sans", sans-serif$/)
+    // The embedded copy of the font, under its alias, then Capite's fallback, then the host stack.
+    expect(String(small.fontFamily)).toBe('"Capite Montserrat", "Capite IBM Plex Sans", sans-serif')
     expect(String(small.textShadow)).not.toBe(String(big.textShadow))
     expect(String(big.textShadow)).toContain(s.outlineColor)
   })
