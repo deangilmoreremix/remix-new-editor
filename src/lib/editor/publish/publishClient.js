@@ -8,6 +8,7 @@
  * Clerk `sub`); public reads go straight to the REST API with the anon key.
  */
 
+import { cleanTranscript } from '../../outreach/transcript.js';
 import { isImageTokenKey, shareableImageValue } from '../../personalization/imageReadiness.js';
 
 export const PROJECT_VERSION = 1;
@@ -108,6 +109,16 @@ function clean(value) {
  * The JSON snapshot that gets published.
  * @throws when local (unsaved) media is still referenced
  */
+/** Chapters as plain data: up to 20, sorted, a time and a short title each. */
+export function cleanChapters(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((c) => c && Number.isFinite(Number(c.startMs)) && typeof c.title === 'string' && c.title.trim())
+    .slice(0, 20)
+    .map((c) => ({ startMs: Math.max(0, Math.round(Number(c.startMs))), title: c.title.trim().slice(0, 80) }))
+    .sort((a, b) => a.startMs - b.startMs);
+}
+
 export function preparePublishProject(state, { title } = {}) {
   const tracks = (state?.tracks || []).map((t) => ({
     id: t.id, name: t.name, type: t.type, muted: !!t.muted, solo: !!t.solo,
@@ -124,13 +135,42 @@ export function preparePublishProject(state, { title } = {}) {
     version: PROJECT_VERSION,
     title: String(title || state?.projectTitle || 'Untitled video').slice(0, 200),
     timelineSeconds: Number(state?.timelineSeconds) || 60,
+    // The frame's shape ("W:H"), when it isn't 16:9 (a square or vertical Video Outreach recording).
+    ...(/^\d{1,4}:\d{1,4}$/.test(String(state?.aspect || '')) && state.aspect !== '16:9' ? { aspect: state.aspect } : {}),
     tracks,
     listBuilder: state?.listBuilder ? clean(state.listBuilder) : null,
     multiCam: state?.multiCam ? clean(state.multiCam) : null,
     // The owner's mapping of sections to products/services (Projects > Retarget): lets the
     // server score viewer interest from observed behaviour. Absent when not mapped.
     ...(Array.isArray(state?.interestMap) && state.interestMap.length ? { interestMap: clean(state.interestMap.slice(0, 20)) } : {}),
+    // Video Outreach campaigns (src/lib/outreach/draft.js): the landing text shown around the
+    // player on /watch/<id>, and a marker so the studio can list its campaigns.
+    ...(state?.kind === 'outreach' ? { kind: 'outreach' } : {}),
+    ...(state?.campaign ? { campaign: { name: str(state.campaign.name, 120), contacts: Math.max(0, Math.min(100000, Number(state.campaign.contacts) || 0)) } } : {}),
+    ...(state?.landing ? { landing: cleanLanding(state.landing) } : {}),
+    // Its transcript (src/lib/outreach/transcript.js), shown under the video on the watch page.
+    ...(cleanTranscript(state?.transcript) ? { transcript: cleanTranscript(state.transcript) } : {}),
+    // Its chapters (Video Outreach editor), listed under the video: [{ startMs, title }].
+    ...(cleanChapters(state?.chapters).length > 1 ? { chapters: cleanChapters(state.chapters) } : {}),
   };
+}
+
+const str = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
+
+/** Landing text for a published video: plain strings, capped, and an https-only booking link. */
+export function cleanLanding(landing = {}) {
+  const fallbacks = {};
+  Object.entries(landing.fallbacks || {}).slice(0, 12).forEach(([k, v]) => {
+    if (/^[A-Za-z0-9_]{1,40}$/.test(k)) fallbacks[k] = str(v, 60);
+  });
+  let cta = null;
+  if (landing.cta && typeof landing.cta === 'object') {
+    let url = null;
+    try { const u = new URL(String(landing.cta.url)); if (u.protocol === 'https:') url = u.toString(); } catch { url = null; }
+    const label = str(landing.cta.label, 60);
+    if (url && label) cta = { label, url, ...(landing.cta.embed === true ? { embed: true } : {}) };
+  }
+  return { header: str(landing.header, 200), message: String(landing.message ?? '').trim().slice(0, 1000), fallbacks, cta };
 }
 
 /**

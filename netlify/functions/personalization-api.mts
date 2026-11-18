@@ -70,6 +70,7 @@ import * as shotcraftMedia from './_personalization/app/api/media/shotcraft/[sty
 import * as motionDirector from './_personalization/app/api/motion-studio/director/route'
 import * as motionCapture from './_personalization/app/api/motion-studio/capture/route'
 import * as motionCaptureStatus from './_personalization/app/api/motion-studio/capture/status/route'
+import * as outreachSiteShot from './_personalization/app/api/outreach/site-shot/route'
 
 type RouteParams = Record<string, string | string[]>
 type Handler = (req: NextRequest, ctx?: { params: Promise<RouteParams> }) => Promise<Response> | Response
@@ -104,6 +105,7 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/motion-studio/director': motionDirector as unknown as RouteModule,
   '/api/motion-studio/capture': motionCapture as unknown as RouteModule,
   '/api/motion-studio/capture/status': motionCaptureStatus as unknown as RouteModule,
+  '/api/outreach/site-shot': outreachSiteShot as unknown as RouteModule,
 }
 
 function resolve(pathname: string): { mod: RouteModule; params: RouteParams } | null {
@@ -184,5 +186,6 @@ export const config: Config = {
     '/api/media/shotcraft/*',
     '/api/media/remote',
     '/api/motion-studio/*',
+    '/api/outreach/*',
   ],
 }

@@ -84,7 +84,7 @@ export function CampaignWizard(params = {}) {
 
   CAMPAIGN_GOALS.forEach(g => {
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
     card.innerHTML = `
       <div class="text-sm font-bold text-white">${g.label}</div>
     `;
@@ -296,7 +296,7 @@ export function CampaignWizard(params = {}) {
     conceptList.innerHTML = '';
     state.concepts.forEach((concept, idx) => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-5 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-5 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
       card.innerHTML = `
         <div class="flex items-start justify-between mb-2">
           <div class="text-sm font-bold text-white">${concept.title || `Concept ${idx + 1}`}</div>
@@ -370,7 +370,7 @@ export function CampaignWizard(params = {}) {
     assetGrid.innerHTML = '';
     state.assets.forEach(asset => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden';
 
       if (asset.imageUrl) {
         const img = createSafeImage(asset.imageUrl, asset.format, 'w-full h-40 object-cover');

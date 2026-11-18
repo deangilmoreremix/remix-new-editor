@@ -565,8 +565,7 @@ describe('protected applications — upload import surface', () => {
       './dragDrop.js',
     ];
     // Files with live upload call sites. Superset of the byte baseline: it also
-    // covers non-byte-pinned upload call sites (the shared caption modal and
-    // its action wrapper), so a re-route there stays visible even though those
+    // covers non-byte-pinned upload call sites (the caption action wrapper), so a re-route there stays visible even though those
     // files are not protected application files.
     const uploadCallSiteFiles = [
       'src/components/TimelineEditorPage.jsx',
@@ -575,7 +574,6 @@ describe('protected applications — upload import surface', () => {
       'src/lib/editor/mediaLibrary.js',
       'src/lib/editor/aiTools.js',
       'src/lib/editor/captionActions.js',
-      'src/components/modals/AICaptionsModal.jsx',
       'src/components/ChatStudio.js',
       'src/components/chat/ChatStudio.jsx',
       'src/components/chat/ChatInput.jsx',
@@ -656,7 +654,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', '07994fb3cd74a575a5af03f6890a5f54a2f2ba2fc07f60dfe99a82988f5c494e'], // re-recorded after the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels), then (approved by the repo owner) for the personalized-videos work: Studio design clips (overlay-studio-design) with a design picker, hotspot clips (isEditorOverlay), the Personalized output panel (personalVariables, stored personal links) and a guest identity for publishing without an account. Semantic coverage in section 5.
+        ['src/components/TimelineEditorPage.jsx', '6b3fcef5f44af64da7540152c7f8524eaf9c6ef54fc4575aefed1255f07b8836'], // re-recorded after the approved free Caption Studio entry point (openCaptionStudio: on-device Whisper, no upload or provider call; the inline captions panel is now a summary that opens it and the unused cloud whisper-client import was removed), together with the approved personalized-videos work (Studio design clips, hotspot clips, the Personalized output panel, a guest identity) and, earlier, the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels). Semantic coverage in section 5.
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -969,6 +967,22 @@ describe('protected files — semantic integrity assertions', () => {
     // Opening a project must never silently replace an unsaved timeline.
     expect(source).toContain('is not saved as a project and will be replaced');
     // No browser-exposed provider key or direct provider fetch was introduced.
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+  });
+
+  it('TimelineEditorPage.jsx opens the free on-device Caption Studio without a new upload or provider path', () => {
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    // Subtitle entry points open the studio through the shared caption action (dynamic import, no static upload import).
+    expect(source).toContain('async function openCaptionStudio(source, existing)');
+    expect(source).toContain("import('../lib/editor/captionActions.js')");
+    // The result becomes a captions clip through the existing timeline helpers.
+    expect(source).toContain("insertClipIntoTrack(clip, textTrack?.name || 'Text')");
+    // Captions are made on the user's device: nothing here uploads media or calls a provider.
+    const block = source.slice(source.indexOf('async function openCaptionStudio'), source.indexOf('async function suggestBRoll'));
+    expect(block).not.toMatch(/uploadFileToStorage|supabase|muapi|fetch\(/);
+    // One captions window: the old cloud transcription client is gone and the inline panel only opens the studio.
+    expect(source).not.toContain('whisper-client');
+    expect(source).toContain('onOpenStudio: () => openCaptionStudio(');
     expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
   });
 

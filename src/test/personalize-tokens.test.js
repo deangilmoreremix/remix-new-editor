@@ -53,7 +53,7 @@ function makeProfile(overrides = {}) {
       twitter: 'https://x.com/ada',
       website: 'https://analytical.dev',
     },
-    website: { url: 'https://analytical.dev', title: 'Analytical Engines' },
+    website: { url: 'https://analytical.dev', title: 'Analytical Engines', screenshotUrl: 'https://cdn.example/site.jpg' },
     assets: { avatar: ['https://img.example/ada.png'], logos: ['https://img.example/logo.svg'] },
     intelligence: {
       summary: 'Pioneer of general-purpose computing.',

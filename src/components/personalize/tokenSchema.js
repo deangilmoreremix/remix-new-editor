@@ -111,6 +111,8 @@ export const TOKEN_DEFS = [
   { key: 'ctaImageUrl', label: 'CTA Graphic', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).ctaGraphic), aliases: ['ctaImage', 'ctaGraphic'] },
   { key: 'firstFrameUrl', label: 'Opening Frame', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).firstFrame), aliases: ['firstFrame'] },
   { key: 'lastFrameUrl', label: 'Closing Frame', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).lastFrame), aliases: ['lastFrame'] },
+  // A screenshot of the contact's website (Video Outreach studio: the background behind the presenter).
+  { key: 'websiteShotUrl', label: 'Website Screenshot', kind: 'image', paths: ['website.screenshotUrl'], aliases: ['websiteShot', 'websiteScreenshot', 'siteShot'] },
   { key: 'github', label: 'GitHub', paths: ['social.github'] },
   { key: 'linkedin', label: 'LinkedIn', paths: ['social.linkedin'] },
   { key: 'twitter', label: 'X / Twitter', paths: ['social.twitter'], aliases: ['x'] },
