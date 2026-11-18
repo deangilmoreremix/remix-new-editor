@@ -357,7 +357,7 @@ export function LandingPagesStudio() {
     const tabs = el('div', 'flex gap-1 border-b border-white/10');
     const body = el('div', '');
     const tabBtns = {};
-    const TAB_LABELS = { design: 'Design', contacts: 'Contacts', analytics: 'Analytics' };
+    const TAB_LABELS = { design: 'Design', contacts: 'Contacts', leads: 'Leads', analytics: 'Analytics' };
     Object.keys(TAB_LABELS).forEach((id) => {
       const b = el('button', 'px-4 py-2 text-sm font-bold border-b-2 -mb-px', TAB_LABELS[id]);
       b.type = 'button';
@@ -1036,6 +1036,7 @@ export function LandingPagesStudio() {
           });
           box.replaceChildren(grid);
           if (!current.published) box.appendChild(el('p', 'text-xs text-secondary', 'Publish the page to start collecting views.'));
+          import('./landingPages/heatPanel.js').then(({ heatPanel }) => box.appendChild(heatPanel({ page: current, getClient: ownerClient }))).catch(() => { /* heat maps are optional */ });
         } catch (err) {
           box.replaceChildren(el('p', 'text-sm text-red-300', err.message || 'Could not load analytics.'));
         }
@@ -1052,7 +1053,17 @@ export function LandingPagesStudio() {
       });
       if (tab === 'design') body.replaceChildren(designTab());
       else if (tab === 'analytics') body.replaceChildren(analyticsTab());
+      else if (tab === 'leads') body.replaceChildren(leadsTab());
       else body.replaceChildren(contactsTab());
+    }
+
+    function leadsTab() {
+      const holder = el('div');
+      holder.appendChild(el('p', 'text-sm text-secondary', 'Loading…'));
+      import('./landingPages/leadsPanel.js').then(({ leadsPanel }) => {
+        holder.replaceChildren(leadsPanel({ page: current, getClient: ownerClient, toast: showToast }));
+      }).catch((err) => holder.replaceChildren(el('p', 'text-sm text-red-300', err?.message || 'Could not load leads.')));
+      return holder;
     }
 
     function contactsTab() {

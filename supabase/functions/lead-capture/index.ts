@@ -246,9 +246,10 @@ Deno.serve(async (req: Request) => {
   const clipId = typeof body.clipId === "string" ? body.clipId.slice(0, 128) : null;
 
   // Video landing pages (/p/<slug>): the lead is stored for the page's OWNER
-  // when the page is published and its lead form is enabled. No webhooks here:
-  // page config is publicly readable, so it never holds forwarding URLs; CRM
-  // delivery (Kit / MailerLite) is a separate server-side sync.
+  // when the page is published and its lead form is enabled. Delivery (webhooks with
+  // retries and signing, notification emails, Kit / MailerLite, the delivery log) uses the
+  // owner-only landing_page_form_settings row, never the page config (which is public) and
+  // never the request body. It runs after the visitor has their answer, like published videos.
   if (body.pageId !== undefined) {
     const pageId = String(body.pageId);
     if (!PUBLISHED_ID.test(pageId)) return json(req, { ok: false, error: "Unknown page" }, 404);
@@ -261,8 +262,16 @@ Deno.serve(async (req: Request) => {
     if (pageError || !pageRow) return json(req, { ok: false, error: "Unknown page" }, 404);
     const form = ((pageRow.config as Json | null)?.form ?? null) as Json | null;
     if (!form || form.enabled !== true) return json(req, { ok: false, error: "This page has no form" }, 400);
+    const [perPage, perClient] = await Promise.all([
+      admin.rpc("rate_limit_check", { p_scope: "lead-page", p_key: pageId, p_limit: 60, p_window_seconds: 60 }),
+      admin.rpc("rate_limit_check", { p_scope: "lead-page-client", p_key: await hashKey(clientKey(req), pageId), p_limit: 8, p_window_seconds: 60 }),
+    ]);
+    if (perPage.data?.allowed === false || perClient.data?.allowed === false) {
+      return json(req, { ok: false, error: "Too many submissions — try again shortly" }, 429);
+    }
     const contactId = typeof body.contactId === "string" && /^[A-Za-z0-9_-]{6,40}$/.test(body.contactId) ? body.contactId : null;
     const src = body.source && typeof body.source === "object" ? body.source as Json : {};
+    const attribution = attributionOf(sanitizeSource(body.source));
     const { error: insertError } = await admin.from("video_leads").insert({
       clerk_user_id: pageRow.clerk_user_id,
       project_id: pageId,
@@ -279,7 +288,25 @@ Deno.serve(async (req: Request) => {
       preview: false,
     });
     if (insertError) console.warn("[lead-capture] landing page insert failed:", insertError.code);
-    return json(req, { ok: true, stored: !insertError, forwarded: 0, failed: 0, email: null });
+    const ownerId = String(pageRow.clerk_user_id ?? "");
+    const afterSave = (async () => {
+      const { data: row } = await admin.from("landing_page_form_settings").select("settings").eq("page_id", pageId).maybeSingle();
+      const settings = ((row?.settings ?? null) as Json | null);
+      if (!settings) return;
+      // The settings use the List Builder's shape (webhookEnabled/webhook..., emailEnabled/emailAddress..., espProvider/espListId).
+      const hooks = savedWebhooks(settings, true);
+      const notifyTo = savedNotifyEmails(settings, true);
+      const [sent] = await Promise.all([
+        hooks.length
+          ? forward(hooks, { event: "landing_page_lead", kind: "lead-form", pageId, contactId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
+          : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
+        notify(notifyTo, "lead-form", leadData, attribution),
+        pushToEsp(admin, ownerId, savedEsp(settings), leadData),
+      ]);
+      await logDeliveries(admin, ownerId, { projectId: pageId, clipId: "landing-page", kind: "lead-form" }, sent.deliveries);
+    })().catch((err) => console.warn("[lead-capture] landing page after-save work failed:", (err as Error)?.name));
+    await afterResponse(afterSave);
+    return json(req, { ok: true, stored: !insertError });
   }
 
   if (body.publishedId !== undefined) {

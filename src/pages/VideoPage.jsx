@@ -10,8 +10,9 @@
  */
 import '../../styles/video-page.css';
 import {
-  fetchPublicPage, fetchContactTokens, recordPageEvent, submitPageLead, CONTACT_ID_RE,
+  fetchPublicPage, fetchContactTokens, recordPageEvent, recordPageHeat, submitPageLead, CONTACT_ID_RE,
 } from '../lib/landingPages/client.js';
+import { createHeatCollector } from '../lib/landingPages/heat.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { tokensFromQuery, sanitizeConfig } from '../lib/landingPages/templates.js';
 
@@ -71,6 +72,12 @@ export async function mountVideoPage(container, id, deps = {}) {
       return res;
     },
   };
+  // Heat samples (clicks, scroll depth, watched seconds) for the owner's heat maps. Embeds and previews are skipped.
+  const startHeat = () => {
+    if (deps.noHeat || /(?:^|[?&])embed=1(?:&|$)/.test(globalThis.location?.search || '')) return;
+    const session = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`.slice(0, 24).padEnd(8, '0');
+    createHeatCollector({ send: (events) => (deps.recordHeat || recordPageHeat)(page.id, { session, events, contactId }) });
+  };
   const cfg = sanitizeConfig(page.config);
   if (cfg.puck) {
     // Editable (Puck) page: same video, tokens and tracking, rendered by the responsive component library.
@@ -80,11 +87,13 @@ export async function mountVideoPage(container, id, deps = {}) {
     container.appendChild(host);
     const view = mountPuckPage(host, { page, data: cfg.puck, tokens, handlers });
     track('view');
+    startHeat();
     return view;
   }
   const view = renderLandingPage({ page, tokens, handlers });
 
   container.replaceChildren(view.root);
   track('view');
+  startHeat();
   return view;
 }

@@ -6,6 +6,7 @@
  * Viewer calls use the REST API with the anon key and no SDK, like
  * src/lib/editor/publish/publishClient.js, so the public page stays light.
  */
+import { sanitizeFormSettings } from './formSettings.js';
 import { makeSlug } from '../editor/publish/publishClient.js';
 import { sanitizeConfig, safeImageUrl } from './templates.js';
 
@@ -197,4 +198,59 @@ export async function submitPageLead({ pageId, contactId = null, data }, { url, 
   } catch (err) {
     return { stored: false, error: err?.message || String(err) };
   }
+}
+
+// -------------------------------------------------------------------- form delivery settings (owner only)
+
+export async function loadFormSettings(client, pageId) {
+  const { data, error } = await client.from('landing_page_form_settings').select('settings').eq('page_id', pageId).maybeSingle();
+  if (error) throw error;
+  return sanitizeFormSettings(data?.settings);
+}
+
+export async function saveFormSettings(client, pageId, settings) {
+  const clean = sanitizeFormSettings(settings);
+  const { error } = await client.from('landing_page_form_settings')
+    .upsert({ page_id: pageId, settings: clean, updated_at: new Date().toISOString() }, { onConflict: 'page_id' });
+  if (error) throw error;
+  return clean;
+}
+
+// -------------------------------------------------------------------- heat maps
+
+/** Best-effort heat samples from the public page (record_page_heat); a failed send is dropped. */
+export async function recordPageHeat(pageId, { session, events, contactId = null } = {}, { url, key, fetchImpl = fetch } = env()) {
+  if (!url || !key || !Array.isArray(events) || !events.length || !/^[A-Za-z0-9_-]{8,40}$/.test(String(session || ''))) return;
+  try {
+    await fetchImpl(`${url}/rest/v1/rpc/record_page_heat`, {
+      method: 'POST',
+      keepalive: true,
+      headers: anonHeaders(key, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        p_page_id: pageId, p_session: String(session), p_events: events.slice(0, 40),
+        p_contact_id: contactId && /^[A-Za-z0-9_-]{1,80}$/.test(String(contactId)) ? String(contactId) : null,
+      }),
+    });
+  } catch { /* analytics is best-effort */ }
+}
+
+const rpcRows = async (client, name, args) => {
+  const { data, error } = await client.rpc(name, args);
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+};
+
+/** Everything behind the page's heat maps; rows below 3 sessions are never returned by the database. */
+export async function fetchPageHeat(client, pageId, { from, to, viewport = 'all' } = {}) {
+  const range = { ...(from ? { p_from: from } : {}), ...(to ? { p_to: to } : {}), p_viewport: viewport === 'all' ? null : viewport };
+  const [clicks, scroll, watch, contacts] = await Promise.all([
+    rpcRows(client, 'page_heat_clicks', { p_page_id: pageId, ...range }),
+    rpcRows(client, 'page_heat_scroll', { p_page_id: pageId, ...range }),
+    rpcRows(client, 'page_heat_watch', { p_page_id: pageId, ...range }),
+    rpcRows(client, 'page_heat_by_contact', { p_page_id: pageId }),
+  ]);
+  return {
+    clicks, scroll, watch,
+    contacts: contacts.map((r) => ({ contactId: r.contact_id, sessions: num(r.sessions), clicks: num(r.clicks), maxScroll: num(r.max_scroll), watchedSeconds: num(r.watched_seconds), lastSeen: r.last_seen || null })),
+  };
 }
