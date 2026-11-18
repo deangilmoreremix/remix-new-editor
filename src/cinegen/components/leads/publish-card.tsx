@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { publishIncludes } from '@cinegen/lib/leads/leads';
 import { createQrEndCard, mp4WatchLink } from '@cinegen/lib/leads/qr-end-card';
+import { LINK_PRESETS, trackedLink } from '@cinegen/lib/leads/share-links';
 // @ts-expect-error plain JS
 import { watchUrl, embedCode } from '../../../lib/editor/publish/publishClient.js';
 // @ts-expect-error plain JS
@@ -11,6 +12,8 @@ import type { usePublished } from './use-publish';
 
 export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePublished>; leadCount: number }) {
   const { state, dispatch } = useWorkspace();
+  const [preset, setPreset] = useState('email');
+  const [campaign, setCampaign] = useState('');
   const [qrBusy, setQrBusy] = useState(false);
   const [qrDone, setQrDone] = useState(false);
   const [title, setTitle] = useState(pub.title);
@@ -49,6 +52,18 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
         <div className="leads-links">
           <div className="leads-copy"><span className="leads-label">Link</span><input readOnly value={watchUrl(pub.id)} className="leads-input" /><button type="button" className="leads-btn" onClick={() => copy('link', watchUrl(pub.id!))}>{copied === 'link' ? 'Copied' : 'Copy'}</button></div>
           <div className="leads-copy"><span className="leads-label">Embed</span><input readOnly value={embedCode(pub.id)} className="leads-input" /><button type="button" className="leads-btn" onClick={() => copy('embed', embedCode(pub.id!))}>{copied === 'embed' ? 'Copied' : 'Copy'}</button></div>
+          <div className="leads-copy" data-testid="tracked-link">
+            <span className="leads-label">Tracked link</span>
+            <input readOnly value={trackedLink(watchUrl(pub.id), preset, campaign)} className="leads-input" aria-label="Tracked link" />
+            <button type="button" className="leads-btn" onClick={() => copy('tracked', trackedLink(watchUrl(pub.id!), preset, campaign))}>{copied === 'tracked' ? 'Copied' : 'Copy'}</button>
+          </div>
+          <div className="leads-row">
+            <select className="leads-input leads-select" aria-label="Where you will share it" value={preset} onChange={(e) => setPreset(e.target.value)} data-testid="link-preset">
+              {LINK_PRESETS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+            </select>
+            <input className="leads-input" placeholder="Campaign name (optional)" value={campaign} onChange={(e) => setCampaign(e.target.value)} maxLength={60} data-testid="link-campaign" />
+          </div>
+          <p className="leads-note">Share this version and each lead shows where it came from in the Leads tab (Source column).</p>
           <div className="leads-row">
             <button type="button" className="leads-btn" data-testid="preview-btn" disabled={!live} onClick={() => { setPreview(true); setNonce((n) => n + 1); }}>Preview as viewer</button>
             <a className="leads-btn" data-testid="view-link" href={watchUrl(pub.id)} target="_blank" rel="noreferrer">View published page ↗</a>

@@ -67,4 +67,20 @@ describe('foundSocialLinks', () => {
     })
     expect(r.links.instagram).toBe('https://www.instagram.com/JoesPizza')
   })
+
+  it('keeps the research link when the lookup handle builds a URL the icon would refuse (@login)', () => {
+    const r = foundSocialLinks({
+      research: { finalUrl: 'https://a.example', socialLinks: { facebook: 'https://www.facebook.com/joes' } },
+      clientForm: { facebook: '@login' },
+      contactSources: { facebook: { value: '@login', sourceUrl: 'https://a.example/c' } },
+    })
+    expect(r.links.facebook).toBe('https://www.facebook.com/joes')
+  })
+
+  it('returns nothing for a lone @login handle, but still accepts an ordinary handle', () => {
+    const bad = foundSocialLinks({ clientForm: { facebook: '@login' }, contactSources: { facebook: { value: '@login' } } })
+    expect(bad.links).toEqual({})
+    const ok = foundSocialLinks({ clientForm: { facebook: '@joes' }, contactSources: { facebook: { value: '@joes' } } })
+    expect(ok.links.facebook).toBe('https://www.facebook.com/joes')
+  })
 })

@@ -1,6 +1,6 @@
 // [remix] Leads tab logic: forms, counts, filter/search, columns, CSV, includes, delete/list via a fake client, tab registration.
 import { describe, it, expect } from 'vitest';
-import { answerColumns, fromMp4, rowSource, variantOf, variantCounts, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, csvSafe, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
+import { cleanFollowUp, hasFollowUp, statusLabel, LEAD_STATUSES, answerColumns, collapseRepeats, leadEmail, leadsPerDay, fromMp4, rowSource, variantOf, variantCounts, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, csvSafe, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
 import { createOverlay } from '@cinegen/lib/overlays/overlays';
 import { setLeadsForm, getLeadsForm } from '@cinegen/lib/leads/leads-filter';
 // @ts-expect-error plain JS
@@ -101,6 +101,68 @@ describe('MP4 attribution', () => {
     const csv = rowsToCsv([r('https://x.app/watch/Abc123XyZ9?src=mp4')], []);
     expect(csv).toContain('"From MP4"'); expect(csv).toContain('"Yes"');
     expect(rowsToCsv([r('https://x.app/watch/Abc123XyZ9')], [])).not.toContain('From MP4');
+  });
+});
+
+describe('leads per day and repeats', () => {
+  const at = (iso: string, email: string, kind = 'list-builder', clip = 'list-builder', id?: string): LeadRow => ({ id: id ?? `${iso}${email}`, kind, clipId: clip, createdAt: iso, data: email ? { EMAIL: email } : { NAME: 'x' } });
+  it('zero-fills the last days, oldest first, and counts per local day', () => {
+    const now = new Date(2026, 10, 18, 12, 0);
+    const rows = [at(new Date(2026, 10, 18, 9, 0).toISOString(), 'a@x.co'), at(new Date(2026, 10, 18, 10, 0).toISOString(), 'b@x.co'), at(new Date(2026, 10, 16, 8, 0).toISOString(), 'c@x.co'), at(new Date(2026, 9, 1).toISOString(), 'old@x.co')];
+    const days = leadsPerDay(rows, 7, now);
+    expect(days).toHaveLength(7);
+    expect(days[0].label).toBe('Nov 12'); expect(days[6].label).toBe('Nov 18');
+    expect(days.map((d) => d.n)).toEqual([0, 0, 0, 0, 1, 0, 2]); // the October lead is outside the window
+  });
+  it('reads the email from any answer named like email', () => {
+    expect(leadEmail({ ...at('t', ''), data: { 'Work Email': ' A@X.co ' } })).toBe('a@x.co');
+    expect(leadEmail(at('t', ''))).toBe('');
+  });
+  it('merges the same email on the same form, keeps the newest, counts repeats', () => {
+    const rows = [at('3', 'a@x.co', 'list-builder', 'list-builder', 'n'), at('2', 'A@x.co', 'list-builder', 'list-builder', 'm'), at('1', 'a@x.co', 'list-builder', 'list-builder', 'o')];
+    const out = collapseRepeats(rows);
+    expect(out.rows.map((r) => r.id)).toEqual(['n']); expect(out.counts.n).toBe(3);
+  });
+  it('does not merge across forms, or leads without an email', () => {
+    const rows = [at('3', 'a@x.co', 'lead-form', 'ov1', 'a'), at('2', 'a@x.co', 'list-builder', 'list-builder', 'b'), at('1', '', 'lead-form', 'ov1', 'c'), at('0', '', 'lead-form', 'ov1', 'd')];
+    expect(collapseRepeats(rows).rows.map((r) => r.id)).toEqual(['a', 'b', 'c', 'd']);
+  });
+});
+
+describe('lead follow-up (status, notes, tags)', () => {
+  const r = (id: string, extra: Partial<LeadRow> = {}): LeadRow => ({ id, kind: 'list-builder', clipId: 'list-builder', createdAt: '2026-11-10T10:00:00Z', data: { EMAIL: `${id}@x.co` }, ...extra });
+  it('is available only when rows carry a status (the migration is applied)', () => {
+    expect(hasFollowUp([r('a'), r('b')])).toBe(false);
+    expect(hasFollowUp([r('a', { status: 'new' })])).toBe(true);
+    expect(statusLabel('won')).toBe('Won'); expect(statusLabel(undefined)).toBe('New');
+    expect(LEAD_STATUSES.map(([k]) => k)).toEqual(['new', 'contacted', 'qualified', 'won', 'lost']);
+  });
+  it('cleans what is saved: known status, capped note, tidy tags, unknown keys dropped', () => {
+    expect(cleanFollowUp({ status: 'won' })).toEqual({ status: 'won' });
+    expect(cleanFollowUp({ status: 'hacked' } as never)).toEqual({});
+    expect(cleanFollowUp({ notes: 'x'.repeat(3000) }).notes).toHaveLength(2000);
+    expect(cleanFollowUp({ tags: ' VIP, Hot lead ,vip,,' }).tags).toEqual(['vip', 'hot-lead']);
+    expect(cleanFollowUp({ tags: Array.from({ length: 20 }, (_, i) => `t${i}`) }).tags).toHaveLength(10);
+    expect(cleanFollowUp({ tags: ['x'.repeat(50)] }).tags?.[0]).toHaveLength(30);
+    expect(cleanFollowUp({ clerk_user_id: 'someone-else', data: {} } as never)).toEqual({});
+  });
+  it('filters by status (a lead without one counts as new) and searches notes and tags', () => {
+    const rows = [r('a', { status: 'new' }), r('b', { status: 'won', notes: 'Called Tuesday', tags: ['vip'] }), r('c')];
+    expect(filterRows(rows, { status: 'won' }).map((x) => x.id)).toEqual(['b']);
+    expect(filterRows(rows, { status: 'new' }).map((x) => x.id)).toEqual(['a', 'c']);
+    expect(filterRows(rows, { query: 'tuesday' }).map((x) => x.id)).toEqual(['b']);
+    expect(filterRows(rows, { query: 'vip' }).map((x) => x.id)).toEqual(['b']);
+  });
+  it('adds Status / Notes / Tags to the CSV only when follow-up exists', () => {
+    const csv = rowsToCsv([r('b', { status: 'won', notes: '=SUM(1)', tags: ['vip', 'hot'] })], []);
+    expect(csv).toContain('"Status"'); expect(csv).toContain('"Won"'); expect(csv).toContain("\"'=SUM(1)\""); expect(csv).toContain('"vip, hot"');
+    expect(rowsToCsv([r('a')], [])).not.toContain('Status');
+  });
+  it('fetchLeadRows carries the follow-up columns when the server sends them', async () => {
+    const client = { functions: { invoke: async () => ({ data: { ok: true, leads: [{ id: '1', data: {}, created_at: 't', clip_id: 'c', kind: 'lead-form', status: 'contacted', notes: null, tags: ['a'] }, { id: '2', data: {}, created_at: 't', clip_id: 'c', kind: 'lead-form' }] }, error: null }) } };
+    const res = await fetchLeadRows(client, {});
+    expect(res.rows[0]).toMatchObject({ status: 'contacted', notes: '', tags: ['a'] });
+    expect(res.rows[1]).not.toHaveProperty('status');
   });
 });
 

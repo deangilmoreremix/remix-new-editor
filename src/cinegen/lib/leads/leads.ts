@@ -11,11 +11,28 @@ import { leadsToCsv } from '../../../lib/editor/addons/leadClient.js';
 import { sourceLabel as rawSourceLabel } from '../../../lib/editor/publish/attribution.js';
 
 export interface LeadSource { utm?: Record<string, string>; referrer?: string; page?: string | null; variant?: string }
-export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string>; source?: LeadSource }
+export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string>; source?: LeadSource; status?: string; notes?: string; tags?: string[] }
 
 /** "google / spring-sale", else the referring host, else "". */
 export const sourceLabel = (row: LeadRow): string => String(rawSourceLabel(row.source) || '');
 export interface LeadForm { key: string; label: string; short: string; tone: 'wall' | 'lead' }
+
+export const LEAD_STATUSES: Array<[string, string]> = [['new', 'New'], ['contacted', 'Contacted'], ['qualified', 'Qualified'], ['won', 'Won'], ['lost', 'Lost']];
+/** Follow-up (status, notes, tags) is available once the database has those columns, i.e. when rows carry a status. */
+export const hasFollowUp = (rows: LeadRow[]): boolean => rows.some((r) => r.status !== undefined);
+export const statusLabel = (status?: string): string => LEAD_STATUSES.find(([id]) => id === status)?.[1] ?? 'New';
+
+/** What the database accepts for follow-up: a known status, a note up to 2,000 characters, up to 10 tags of 30 characters. Unknown keys are dropped. */
+export function cleanFollowUp(patch: { status?: unknown; notes?: unknown; tags?: unknown }): { status?: string; notes?: string; tags?: string[] } {
+  const out: { status?: string; notes?: string; tags?: string[] } = {};
+  if (patch.status !== undefined && LEAD_STATUSES.some(([id]) => id === patch.status)) out.status = String(patch.status);
+  if (patch.notes !== undefined) out.notes = String(patch.notes ?? '').slice(0, 2000);
+  if (patch.tags !== undefined) {
+    const raw = Array.isArray(patch.tags) ? patch.tags : String(patch.tags ?? '').split(',');
+    out.tags = [...new Set(raw.map((t) => String(t).trim().toLowerCase().replace(/\s+/g, '-').slice(0, 30)).filter(Boolean))].slice(0, 10);
+  }
+  return out;
+}
 
 export const WALL_KEY = 'list-builder';
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
@@ -56,6 +73,44 @@ export function variantCounts(rows: LeadRow[]): { A: number; B: number } | null 
 }
 export const fromMp4 = (row: LeadRow): boolean => rowSource(row) === 'mp4';
 
+/** Leads per day for the last `days` days (oldest first), zero-filled, in the viewer's local time. */
+export function leadsPerDay(rows: LeadRow[], days = 14, now = new Date()): Array<{ day: string; label: string; n: number }> {
+  const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const out: Array<{ day: string; label: string; n: number }> = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    out.push({ day: key(d), label: `${d.toLocaleString('en', { month: 'short' })} ${d.getDate()}`, n: 0 });
+  }
+  const at = new Map(out.map((o) => [o.day, o]));
+  rows.forEach((r) => { const d = new Date(r.createdAt); if (!Number.isNaN(d.getTime())) { const slot = at.get(key(d)); if (slot) slot.n += 1; } });
+  return out;
+}
+
+/** The email a lead gave (any answer whose name contains "email"), lower-cased, or ''. */
+export const leadEmail = (row: LeadRow): string => {
+  const k = Object.keys(row.data).find((x) => /e-?mail/i.test(x));
+  return k ? String(row.data[k]).trim().toLowerCase() : '';
+};
+
+/**
+ * Repeat sign-ups (the same email on the same form) collapsed to one row, the newest, with how many times it came in.
+ * Rows without an email are never merged. Order is kept.
+ */
+export function collapseRepeats(rows: LeadRow[]): { rows: LeadRow[]; counts: Record<string, number> } {
+  const seen = new Map<string, LeadRow>();
+  const counts: Record<string, number> = {};
+  const out: LeadRow[] = [];
+  rows.forEach((r) => {
+    const email = leadEmail(r);
+    if (!email) { out.push(r); return; }
+    const key = `${rowFormKey(r)}|${email}`;
+    const first = seen.get(key);
+    if (!first) { seen.set(key, r); counts[r.id] = 1; out.push(r); return; }
+    counts[first.id] += 1;
+  });
+  return { rows: out, counts };
+}
+
 export function countsByForm(rows: LeadRow[]): Record<string, number> {
   const out: Record<string, number> = {};
   rows.forEach((r) => { const k = rowFormKey(r); out[k] = (out[k] ?? 0) + 1; });
@@ -73,17 +128,19 @@ function rangeStart(range: LeadRange, now: Date): number | null {
   return null;
 }
 
-export function filterRows(rows: LeadRow[], { form = 'all', query = '', range = 'all', now = new Date() }: { form?: string; query?: string; range?: LeadRange; now?: Date } = {}): LeadRow[] {
+export function filterRows(rows: LeadRow[], { form = 'all', query = '', range = 'all', status = 'all', now = new Date() }: { form?: string; query?: string; range?: LeadRange; status?: string; now?: Date } = {}): LeadRow[] {
   const q = query.trim().toLowerCase();
   const since = rangeStart(range, now);
   return rows.filter((r) => {
     if (form !== 'all' && rowFormKey(r) !== form) return false;
+    if (status !== 'all' && (r.status ?? 'new') !== status) return false;
     if (since !== null) {
       const t = new Date(r.createdAt).getTime();
       if (Number.isNaN(t) || t < since) return false;
     }
     if (!q) return true;
-    return Object.values(r.data).some((v) => String(v).toLowerCase().includes(q)) || sourceLabel(r).toLowerCase().includes(q);
+    return Object.values(r.data).some((v) => String(v).toLowerCase().includes(q)) || sourceLabel(r).toLowerCase().includes(q)
+      || String(r.notes ?? '').toLowerCase().includes(q) || (r.tags ?? []).some((t) => t.includes(q));
   });
 }
 
@@ -111,6 +168,7 @@ export function rowsToCsv(rows: LeadRow[], forms: LeadForm[]): string {
     if (r.source?.referrer) src.Referrer = csvSafe(r.source.referrer);
     if (fromMp4(r)) src['From MP4'] = 'Yes';
     if (variantOf(r)) src.Version = variantOf(r);
+    if (r.status !== undefined) { src.Status = statusLabel(r.status); if (r.notes) src.Notes = csvSafe(r.notes); if (r.tags?.length) src.Tags = csvSafe(r.tags.join(', ')); }
     return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src };
   }));
 }

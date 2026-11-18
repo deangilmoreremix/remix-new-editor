@@ -5,7 +5,7 @@ import {
   isValidEmail, savedNotifyEmail, savedNotifyEmails, uniqueEmails, buildLeadEmail,
   isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, MAX_ATTEMPTS,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret,
-  sanitizeSource, attributionOf, looksAutomated, MIN_FILL_MS, isDisposableEmail, emailProblem,
+  sanitizeSource, attributionOf, looksAutomated, MIN_FILL_MS, isDisposableEmail, emailProblem, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, AUTO_REPLY_DEFAULT_SUBJECT,
 } from '../../supabase/functions/lead-capture/logic.ts';
 
 describe('lead-capture webhook safety', () => {
@@ -260,5 +260,88 @@ describe('lead-capture A/B version', () => {
     expect(sanitizeSource({ page: 'https://x/watch/Abc', variant: 'B' }).variant).toBe('B');
     expect(sanitizeSource({ variant: 'A' }).variant).toBe('A');
     for (const bad of ['C', 'b', 1, null, { x: 1 }]) expect(sanitizeSource({ variant: bad })).not.toHaveProperty('variant');
+  });
+});
+
+describe('lead-capture chat alert presets', () => {
+  const slack = 'https://hooks.slack.com/services/T000/B000/XXXX';
+  const discord = 'https://discord.com/api/webhooks/123456/abcdef';
+  const teams = 'https://contoso.webhook.office.com/webhookb2/abc/IncomingWebhook/def/ghi';
+  it('recognises Slack, Discord and Teams webhook URLs and nothing else', () => {
+    expect(chatPreset(slack)).toBe('slack');
+    expect(chatPreset(discord)).toBe('discord');
+    expect(chatPreset('https://canary.discord.com/api/webhooks/1/x')).toBe('discord');
+    expect(chatPreset(teams)).toBe('teams');
+    expect(chatPreset('https://outlook.office.com/webhook/abc')).toBe('teams');
+    for (const other of ['https://example.com/hook', 'https://hooks.slack.com/other/path', 'https://evil.com/api/webhooks/1/x', 'https://discord.com/channels/1', 'http://hooks.slack.com/services/a/b/c', 'https://hooks.slack.com.evil.com/services/a', 'not a url', '']) {
+      expect(chatPreset(other)).toBeNull();
+    }
+  });
+  const alert = leadAlertText('lead-form', { EMAIL: 'ann@x.co', 'FIRST NAME': 'Ann' }, { utm: { source: 'newsletter', campaign: 'spring' } });
+  it('words the alert: a title, the answers and where it came from', () => {
+    expect(alert.title).toBe('New lead');
+    expect(alert.lines).toEqual(['EMAIL: ann@x.co', 'FIRST NAME: Ann', 'Came from: newsletter / spring']);
+    expect(leadAlertText('list-builder', {}).title).toBe('New List Builder sign-up');
+    expect(leadAlertText('call-attempt', {}).title).toBe('Someone tried to call you');
+    expect(leadAlertText('lead-form', { A: 'x' }, { referrer: 'https://news.example.org/post' }).lines.at(-1)).toBe('Came from: news.example.org');
+  });
+  it('limits what an alert carries', () => {
+    const many = Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`K${i}`, 'v'.repeat(500)]));
+    const { lines } = leadAlertText('lead-form', many);
+    expect(lines).toHaveLength(10);
+    expect(lines[0].length).toBeLessThanOrEqual(250);
+  });
+  it('shapes each app\'s body', () => {
+    expect(chatBody('slack', alert)).toEqual({ text: '*New lead*\nEMAIL: ann@x.co\nFIRST NAME: Ann\nCame from: newsletter / spring' });
+    const d = chatBody('discord', alert);
+    expect(d.content).toContain('**New lead**'); expect(d.allowed_mentions).toEqual({ parse: [] });
+    const t = chatBody('teams', alert);
+    expect(t['@type']).toBe('MessageCard'); expect(t.title).toBe('New lead'); expect(String(t.text)).toContain('EMAIL: ann@x.co');
+  });
+  it('treats viewer-supplied text as data: escapes Slack markup and defuses mentions', () => {
+    const evil = leadAlertText('lead-form', { NAME: '<!channel> & <https://evil.test|click> @everyone' });
+    const s = String(chatBody('slack', evil).text);
+    expect(s).not.toContain('<!channel>'); expect(s).toContain('&lt;!channel&gt;'); expect(s).toContain('&amp;'); expect(s).not.toContain('@everyone'); expect(s).toContain('@\u200beveryone');
+    expect(String(chatBody('slack', leadAlertText('lead-form', { EMAIL: 'ann@x.co' })).text)).toContain('ann@x.co'); // emails are left alone
+    const d = String(chatBody('discord', evil).content);
+    expect(d).not.toContain('@everyone');
+    expect(String(chatBody('teams', evil).text)).not.toContain('@everyone');
+  });
+  it('keeps a Discord message under its 2,000 character limit', () => {
+    const big = { title: 'x'.repeat(1500), lines: ['y'.repeat(1500)] };
+    expect(String(chatBody('discord', big).content).length).toBeLessThanOrEqual(2000);
+  });
+});
+
+describe('lead-capture auto-reply', () => {
+  it('is off unless the owner switched it on, and defaults the wording', () => {
+    expect(autoReplySettings(null)).toBeNull();
+    expect(autoReplySettings({})).toBeNull();
+    expect(autoReplySettings({ autoReplyEnabled: 'yes' })).toBeNull(); // only a real true
+    const on = autoReplySettings({ autoReplyEnabled: true });
+    expect(on.subject).toBe(AUTO_REPLY_DEFAULT_SUBJECT); expect(on.body).toContain('{{video_link}}');
+  });
+  it('caps and cleans the owner text', () => {
+    const s = autoReplySettings({ autoReplyEnabled: true, autoReplySubject: 'Hello\r\nBcc: spam@x.co', autoReplyBody: 'b'.repeat(5000) });
+    expect(s.subject).not.toMatch(/[\r\n]/); expect(s.body).toHaveLength(1000);
+  });
+  const s = { subject: 'Hi {{first_name}}', body: 'Hi {{first_name}}, watch: {{video_link}}' };
+  it('fills only the first name and the video link', () => {
+    const m = buildAutoReply(s, { firstName: 'Ann Lee', videoUrl: 'https://app.test/watch/Abc123XyZ9' });
+    expect(m.text).toBe('Hi Ann, watch: https://app.test/watch/Abc123XyZ9');
+    expect(m.subject).toBe('Hi Ann');
+    expect(m.html).toContain('https://app.test/watch/Abc123XyZ9');
+    expect(buildAutoReply(s, { videoUrl: 'https://app.test/watch/x' }).text).toBe('Hi there, watch: https://app.test/watch/x');
+  });
+  it('a name a viewer typed cannot add markup, links or extra headers', () => {
+    const m = buildAutoReply({ subject: 'Hi {{first_name}}', body: 'Hi {{first_name}}' }, { firstName: '<img src=x onerror=alert(1)>\r\nBcc: a@b.co http://evil.test', videoUrl: 'https://app.test/watch/x' });
+    expect(m.html).not.toContain('<img'); expect(m.html).toContain('&lt;img');
+    expect(m.subject).not.toMatch(/[\r\n]/);
+    expect(m.text).not.toContain('http://evil.test'); // only the first word of the name is used
+  });
+  it('escapes the owner body in HTML too, and drops unknown tokens from the subject', () => {
+    const m = buildAutoReply({ subject: 'Hi {{unknown}} there', body: '<b>Hi</b> & {{video_link}}' }, { videoUrl: 'https://app.test/watch/x' });
+    expect(m.html).toContain('&lt;b&gt;Hi&lt;/b&gt; &amp; https://app.test/watch/x');
+    expect(m.subject).toBe('Hi  there');
   });
 });

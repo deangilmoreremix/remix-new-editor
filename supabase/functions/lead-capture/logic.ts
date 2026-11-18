@@ -393,6 +393,86 @@ export function savedNotifyEmail(config: Json | null | undefined, listBuilder = 
   return savedNotifyEmails(config, listBuilder)[0] ?? "";
 }
 
+// ------------------------------------------------------------------------------------------------ chat alert presets
+export type ChatPreset = "slack" | "discord" | "teams";
+
+/** Which chat app a webhook URL belongs to (so the alert is shaped the way that app needs), or null for a normal webhook. */
+export function chatPreset(url: string): ChatPreset | null {
+  let u: URL;
+  try { u = new URL(url); } catch { return null; }
+  if (u.protocol !== "https:") return null;
+  const host = u.hostname.toLowerCase();
+  if (host === "hooks.slack.com" && u.pathname.startsWith("/services/")) return "slack";
+  if ((host === "discord.com" || host === "discordapp.com" || host === "canary.discord.com" || host === "ptb.discord.com") && u.pathname.startsWith("/api/webhooks/")) return "discord";
+  if ((host.endsWith(".webhook.office.com") || host === "outlook.office.com") && u.pathname.includes("/webhook")) return "teams";
+  return null;
+}
+
+const clip = (v: string, n: number) => (v.length > n ? `${v.slice(0, n - 1)}…` : v);
+
+/** The words of a new-lead alert: a title, the answers (first 10) and where the lead came from. Plain text, no markup. */
+export function leadAlertText(
+  kind: string,
+  data: Record<string, string>,
+  attribution: { utm?: Record<string, string>; referrer?: string } = {},
+): { title: string; lines: string[] } {
+  const title = kind === "call-attempt" ? "Someone tried to call you" : kind === "list-builder" || kind === "personalizer" ? "New List Builder sign-up" : "New lead";
+  const lines = Object.entries(data).slice(0, 10).map(([k, v]) => `${clip(k, 40)}: ${clip(String(v), 200)}`);
+  const from = [attribution.utm?.source, attribution.utm?.campaign].filter(Boolean).join(" / ") || (attribution.referrer ? hostOf(attribution.referrer) : "");
+  if (from) lines.push(`Came from: ${clip(from, 120)}`);
+  return { title, lines };
+}
+
+/**
+ * The JSON body for a chat preset. Slack needs `text` (with & < > escaped), Discord needs `content` (2,000 characters, no pings),
+ * Teams needs a MessageCard. Every value is data from a viewer, so mentions are defused and nothing is treated as markup.
+ */
+export function chatBody(preset: ChatPreset, alert: { title: string; lines: string[] }): Record<string, unknown> {
+  const safe = (t: string) => t.replace(/@(everyone|here|channel)\b/gi, "@\u200b$1"); // email addresses stay intact; only the ping words are defused
+  if (preset === "slack") {
+    const esc = (t: string) => safe(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return { text: [`*${esc(alert.title)}*`, ...alert.lines.map(esc)].join("\n") };
+  }
+  if (preset === "discord") {
+    return { content: clip([`**${safe(alert.title)}**`, ...alert.lines.map(safe)].join("\n"), 2000), allowed_mentions: { parse: [] } };
+  }
+  return {
+    "@type": "MessageCard", "@context": "https://schema.org/extensions", summary: safe(alert.title), themeColor: "22D3EE",
+    title: safe(alert.title), text: alert.lines.map(safe).join("\n\n"),
+  };
+}
+
+// ------------------------------------------------------------------------------------------------ auto-reply to the lead
+export const AUTO_REPLY_DEFAULT_SUBJECT = "Thanks for signing up";
+export const AUTO_REPLY_DEFAULT_BODY = "Hi {{first_name}}, thanks for signing up! Here is your video: {{video_link}}";
+
+/** The owner's auto-reply, from the saved form: only when switched on; subject and body are plain text and capped. */
+export function autoReplySettings(config: Json | null | undefined): { subject: string; body: string } | null {
+  if (!config || config.autoReplyEnabled !== true) return null;
+  const clean = (v: unknown, max: number, fallback: string) => {
+    const t = typeof v === "string" ? v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").trim().slice(0, max) : "";
+    return t || fallback;
+  };
+  return { subject: oneLine(clean(config.autoReplySubject, 120, AUTO_REPLY_DEFAULT_SUBJECT)), body: clean(config.autoReplyBody, 1000, AUTO_REPLY_DEFAULT_BODY) };
+}
+
+/**
+ * The email itself. Only two things from outside the owner's words are put in: the lead's first name and the video link
+ * (which we build). The name is escaped and capped; nothing the viewer typed can add links or markup. Plain, transactional.
+ */
+export function buildAutoReply(
+  settings: { subject: string; body: string },
+  { firstName = "", videoUrl = "" }: { firstName?: string; videoUrl?: string },
+): { subject: string; html: string; text: string } {
+  const name = oneLine(firstName.trim().split(/\s+/)[0] ?? "").slice(0, 40);
+  const fill = (t: string, esc: (v: string) => string) =>
+    t.replace(/\{\{\s*first_name\s*\}\}/gi, esc(name || "there")).replace(/\{\{\s*video_link\s*\}\}/gi, esc(videoUrl));
+  const text = fill(settings.body, (v) => v);
+  const html = `<div style="font-family:system-ui,sans-serif;white-space:pre-wrap">${fill(escHtml(settings.body), (v) => escHtml(v))}</div>`;
+  const subject = oneLine(fill(settings.subject, (v) => v).replace(/\{\{[^}]*\}\}/g, "").trim()) || AUTO_REPLY_DEFAULT_SUBJECT;
+  return { subject, html, text };
+}
+
 const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const oneLine = (s: string) => s.replace(/[\r\n]+/g, " ").slice(0, 200);
 

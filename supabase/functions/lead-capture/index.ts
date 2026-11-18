@@ -27,7 +27,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
-  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
+  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
   isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, hostOf, deriveSigningSecret,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, deliverWebhook, type Delivery, type DeliverDeps, type HttpCall, type Json,
 } from "./logic.ts";
@@ -54,6 +54,8 @@ const ALLOWED_ORIGINS = (Deno.env.get("LEAD_CAPTURE_ALLOWED_ORIGINS") ?? "*")
 // domain verified in Resend, e.g. "Leads <leads@yourdomain.com>") as edge function secrets.
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const LEAD_EMAIL_FROM = Deno.env.get("LEAD_EMAIL_FROM") ?? "";
+// Public site address, used for the video link in the auto-reply email (e.g. https://app.example.com).
+const PUBLIC_APP_URL = (Deno.env.get("PUBLIC_APP_URL") ?? "").replace(/\/+$/, "");
 
 // Webhook signing: every delivery carries X-Remix-Signature, an HMAC with a per-owner secret
 // derived from this master secret (set WEBHOOK_SIGNING_SECRET to any long random string).
@@ -142,9 +144,15 @@ async function forward(
   payload: Record<string, unknown>,
   { secret = "", maxAttempts = MAX_ATTEMPTS }: { secret?: string; maxAttempts?: number } = {},
 ): Promise<{ forwarded: number; failed: number; deliveries: Delivery[] }> {
-  const body = JSON.stringify(payload);
+  const plain = JSON.stringify(payload);
   const event = typeof payload.event === "string" ? payload.event : "video_opted_in";
-  const deliveries = await Promise.all(urls.map((url) => deliverWebhook({ url, body, event, secret, maxAttempts }, realDeliverDeps)));
+  // Slack / Discord / Teams webhook URLs get the alert shaped for that app; everything else gets the normal JSON payload.
+  const alert = payload.data && typeof payload.data === "object"
+    ? leadAlertText(String(payload.kind ?? ""), payload.data as Record<string, string>, (payload.source ?? {}) as { utm?: Record<string, string>; referrer?: string })
+    : null;
+  if (alert && payload.test === true) alert.title = `Test alert: ${alert.title}`;
+  const bodyFor = (url: string) => { const preset = alert ? chatPreset(url) : null; return preset && alert ? JSON.stringify(chatBody(preset, alert)) : plain; };
+  const deliveries = await Promise.all(urls.map((url) => deliverWebhook({ url, body: bodyFor(url), event, secret, maxAttempts }, realDeliverDeps)));
   const failed = deliveries.filter((d) => !d.ok).length;
   return { forwarded: urls.length - failed, failed, deliveries };
 }
@@ -229,6 +237,41 @@ async function notify(to: string[], kind: string, data: Record<string, string>, 
   } catch (err) {
     console.warn("[lead-capture] email error:", (err as Error)?.name);
     return { email: "failed", emailCount: 0 };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Auto-reply to the lead (owner switch, off by default). Safeguards: needs Resend + a site address configured; at most ONE
+ * reply per email address per video per 24 hours (so nobody can use a form to mail someone repeatedly); a busy video
+ * (hundreds of leads a day) sends none; replies go to the owner's notification address so a lead can answer them.
+ */
+async function sendAutoReply(
+  admin: Db, { publishedId, config, data, replyTo }: { publishedId: string; config: Record<string, unknown>; data: Record<string, string>; replyTo: string },
+): Promise<void> {
+  const settings = autoReplySettings(config);
+  const contact = leadContact(data);
+  if (!settings || !contact || !RESEND_API_KEY || !LEAD_EMAIL_FROM || !PUBLIC_APP_URL) return;
+  const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const { data: recent, error } = await admin.from("video_leads").select("data").eq("project_id", publishedId).gte("created_at", since).limit(500);
+  if (error || !Array.isArray(recent) || recent.length >= 500) return;
+  const same = recent.filter((r: { data: Record<string, string> }) => leadContact(sanitizeData(r.data))?.email.toLowerCase() === contact.email.toLowerCase()).length;
+  if (same > 1) return; // this lead's own row counts as one; more means they already had a reply today
+  const { subject, html, text } = buildAutoReply(settings, { firstName: contact.name, videoUrl: `${PUBLIC_APP_URL}/watch/${encodeURIComponent(publishedId)}` });
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), WEBHOOK_TIMEOUT_MS);
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+      body: JSON.stringify({ from: LEAD_EMAIL_FROM, to: [contact.email], subject, html, text, ...(replyTo ? { reply_to: replyTo } : {}) }),
+      signal: ctrl.signal,
+    });
+    await res.body?.cancel();
+    if (!res.ok) console.warn("[lead-capture] auto-reply failed:", res.status);
+  } catch (err) {
+    console.warn("[lead-capture] auto-reply error:", (err as Error)?.name);
   } finally {
     clearTimeout(timer);
   }
@@ -352,6 +395,7 @@ Deno.serve(async (req: Request) => {
           ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
           : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
         notify(notifyTo, leadKind, leadData, attribution),
+        leadKind === "call-attempt" ? Promise.resolve() : sendAutoReply(admin, { publishedId, config, data: leadData, replyTo: notifyTo[0] ?? "" }),
         leadKind === "call-attempt" ? Promise.resolve(null) : pushToEsp(admin, ownerId, savedEsp(config), leadData),
       ]);
       await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);
@@ -362,10 +406,16 @@ Deno.serve(async (req: Request) => {
 
   if (body.action === "list") {
     if (!hasSession) return json(req, { ok: true, leads: [] });
-    let query = db.from("video_leads").select("id, data, created_at, clip_id, kind, source").order("created_at", { ascending: false }).limit(5000);
-    if (projectId) query = query.eq("project_id", projectId);
-    if (clipId) query = query.eq("clip_id", clipId);
-    const { data, error } = await query;
+    const base = "id, data, created_at, clip_id, kind, source";
+    const load = (cols: string) => {
+      let q = db.from("video_leads").select(cols).order("created_at", { ascending: false }).limit(5000);
+      if (projectId) q = q.eq("project_id", projectId);
+      if (clipId) q = q.eq("clip_id", clipId);
+      return q;
+    };
+    // The follow-up columns (status, notes, tags) exist once 20261118120000_video_leads_followup.sql is applied; until then fall back.
+    let { data, error } = await load(`${base}, status, notes, tags`);
+    if (error) ({ data, error } = await load(base));
     if (error) return json(req, { ok: false, error: "Could not load leads" }, 500);
     return json(req, { ok: true, leads: data ?? [] });
   }

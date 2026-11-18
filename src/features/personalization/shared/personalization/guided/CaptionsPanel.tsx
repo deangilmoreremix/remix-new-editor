@@ -11,6 +11,8 @@ import { CAPTION_POSITIONS, CAPTION_STYLES } from '../captions/captionStyle'
 import { useCaptions } from '../captions/useCaptions'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { LocalAINotice } from './LocalAINotice'
+import { SavedStylesBar } from './SavedStylesBar'
+import { applyCaptionStyle, captureCaptionStyle } from '../preview/textStyles'
 import { C, chipStyle, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens'
 
 function saveText(text: string, fileName: string, mime: string) {
@@ -30,7 +32,7 @@ const smallButton = { ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padd
  */
 export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null; disabled?: boolean }): React.JSX.Element | null {
   const c = useCaptions(videoUrl)
-  const { previewSettings } = useDemoPersonalize()
+  const { previewSettings, updatePreviewComposition } = useDemoPersonalize()
   const [copied, setCopied] = useState<'copied' | 'failed' | null>(null)
   const [confirmRedo, setConfirmRedo] = useState(false)
   if (!videoUrl) return null
@@ -99,6 +101,16 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
             </select>
           </label>
           {capiteStyleById(c.captions!.style) && <p data-testid="captions-capite-hint" style={{ ...hintStyle, margin: 0 }}>{capiteStyleById(c.captions!.style)!.description}. Fonts that are not on this device fall back to the studio font.</p>}
+
+          <SavedStylesBar
+            kind="captions"
+            idPrefix="captions"
+            styles={previewSettings.textStyles ?? []}
+            onStylesChange={(next) => updatePreviewComposition({ textStyles: next.length ? next : undefined })}
+            capture={() => captureCaptionStyle(c.captions!)}
+            onApply={(st) => { if (st.kind === 'captions') { const look = applyCaptionStyle(st.style); c.setStyle(look.style); c.setPosition(look.position) } }}
+            defaultName="Caption style"
+          />
 
           <p data-testid="captions-look-hint" style={{ ...hintStyle, margin: 0 }}>Bold stands out most; Bar is the safest on very busy footage; Clean is the plainest.</p>
 
