@@ -288,6 +288,7 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
           <label class="addon-fieldlist__req" title="Required"><input type="checkbox" class="addon-fieldlist__required" ${f.required ? 'checked' : ''}/> req</label>
           <button type="button" class="mini-btn addon-fieldlist__up" ${i === 0 ? 'disabled' : ''} aria-label="Move up">↑</button>
           <button type="button" class="mini-btn addon-fieldlist__remove" ${list.length <= (field.min ?? 1) ? 'disabled' : ''} aria-label="Remove field">✕</button>
+          ${f.type === 'select' ? `<input type="text" class="addon-fieldlist__options" value="${esc(f.options ?? '')}" placeholder="Choices, separated by commas (e.g. Small, Medium, Large)" aria-label="Dropdown choices" />` : ''}
           ${field.placeholders ? `<input type="text" class="addon-fieldlist__placeholder" value="${esc(f.placeholder ?? '')}" placeholder="Hint shown inside the box (empty = the label)" aria-label="Box hint text" />` : ''}
         </div>`).join('');
       return `<div class="clip-editor__field addon-field addon-fieldlist" data-key="${field.key}" data-kind="fieldList">
@@ -620,13 +621,15 @@ export function renderAddonEditor(container, {
         list[i].token = String(el.value || '').trim().toUpperCase() || 'FIELD';
       } else if (el.classList.contains('addon-fieldlist__placeholder')) {
         list[i].placeholder = el.value;
+      } else if (el.classList.contains('addon-fieldlist__options')) {
+        list[i].options = el.value;
       } else if (el.classList.contains('addon-fieldlist__type')) {
         list[i].type = el.value;
       } else if (el.classList.contains('addon-fieldlist__required')) {
         list[i].required = el.checked;
       } else return;
       setPath(current, listWrap.dataset.key, list);
-      emit(false);
+      emit(el.classList.contains('addon-fieldlist__type')); // a type change redraws (a dropdown row gets its choices box)
       return;
     }
     const key = el.dataset?.key;
