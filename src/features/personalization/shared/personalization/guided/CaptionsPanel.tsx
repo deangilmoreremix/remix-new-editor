@@ -1,15 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { Captions as CaptionsIcon, Copy, Download, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Captions as CaptionsIcon, Copy, Crosshair, Download, Trash2 } from 'lucide-react'
 import { captionsToAss } from '../captions/captionAss'
 import { clockLabel, cuesToSrt, cuesToText, cuesToVtt } from '../captions/captionCues'
 import { LANGUAGES } from '../captions/scripts'
-import { transcriptText } from '../captions/textTools'
+import { transcriptText, type Casing } from '../captions/textTools'
 import { CAPITE_CAPTION_STYLES, CAPITE_CATEGORIES, capiteStyleById } from '../captions/capiteStyles'
 import { CAPTION_POSITIONS, CAPTION_STYLES } from '../captions/captionStyle'
 import { useCaptions } from '../captions/useCaptions'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
+import { useLiveState } from '../preview/liveBridge'
 import { LocalAINotice } from './LocalAINotice'
 import { C, chipStyle, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens'
 
@@ -33,6 +34,25 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
   const { previewSettings } = useDemoPersonalize()
   const [copied, setCopied] = useState<'copied' | 'failed' | null>(null)
   const [confirmRedo, setConfirmRedo] = useState(false)
+  const [find, setFind] = useState('')
+  const [replaceWith, setReplaceWith] = useState('')
+  const [matchCase, setMatchCase] = useState(false)
+  const [wholeWord, setWholeWord] = useState(false)
+  const [editNotice, setEditNotice] = useState<string | null>(null)
+  const listRef = useRef<HTMLOListElement | null>(null)
+  const live = useLiveState()
+  const fps = previewSettings.fps > 0 ? previewSettings.fps : 30
+  // The line that is playing in the live preview: marked, and scrolled into view inside the list (never the page).
+  const playingMs = live.frame === null ? null : (live.frame / fps) * 1000
+  const playing = playingMs === null ? -1 : (c.captions?.cues ?? []).findIndex((x) => playingMs >= x.startMs && playingMs < x.endMs)
+  useEffect(() => {
+    const list = listRef.current
+    if (playing < 0 || !list) return
+    const row = list.querySelector<HTMLElement>(`[data-testid="captions-line-${playing}"]`)
+    if (!row) return
+    if (row.offsetTop < list.scrollTop) list.scrollTop = Math.max(0, row.offsetTop - 4)
+    else if (row.offsetTop + row.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = row.offsetTop + row.offsetHeight - list.clientHeight + 4
+  }, [playing])
   if (!videoUrl) return null
   const busy = c.ai.phase !== 'idle'
   const cues = c.captions?.cues ?? []
@@ -40,6 +60,12 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
     try { await navigator.clipboard.writeText(cuesToText(cues)); setCopied('copied') } catch { setCopied('failed') }
   }
   const generate = () => { setConfirmRedo(false); void c.generate() }
+  const replaceAll = () => {
+    if (!find) return
+    const n = c.replaceAll(find, replaceWith, { matchCase, wholeWord })
+    setEditNotice(n ? `${n} replacement${n > 1 ? 's' : ''}.` : 'Nothing to replace.')
+  }
+  const seconds = (ms: number) => Math.round(ms / 10) / 100
   return (
     <div data-testid="captions-panel" style={{ marginTop: 12 }}>
       <div style={{ ...labelStyle, marginBottom: 6 }}>Captions</div>
@@ -102,16 +128,47 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
 
           <p data-testid="captions-look-hint" style={{ ...hintStyle, margin: 0 }}>Bold stands out most; Bar is the safest on very busy footage; Clean is the plainest.</p>
 
-          <ol data-testid="captions-list" style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 220, overflow: 'auto', display: 'grid', gap: 4 }}>
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
+            <input data-testid="captions-find" aria-label="Find in captions" placeholder="Find" value={find} onChange={(e) => { setFind(e.target.value); setEditNotice(null) }} style={{ ...inputStyle, width: 110, minHeight: 28, height: 28, padding: '0 8px', fontSize: 11 }} />
+            <input data-testid="captions-replace" aria-label="Replace with" placeholder="Replace with" value={replaceWith} onChange={(e) => setReplaceWith(e.target.value)} style={{ ...inputStyle, width: 110, minHeight: 28, height: 28, padding: '0 8px', fontSize: 11 }} />
+            <button type="button" data-testid="captions-find-case" aria-pressed={matchCase} onClick={() => setMatchCase((v) => !v)} style={chipStyle(matchCase)}>Aa</button>
+            <button type="button" data-testid="captions-find-word" aria-pressed={wholeWord} onClick={() => setWholeWord((v) => !v)} style={chipStyle(wholeWord)}>Whole word</button>
+            <button type="button" data-testid="captions-replace-all" onClick={replaceAll} style={smallButton}>Replace all</button>
+            <span style={{ width: 6 }} />
+            {(['upper', 'title', 'lower'] as Casing[]).map((k) => (
+              <button key={k} type="button" data-testid={`captions-case-${k}`} onClick={() => c.recase(k)} style={smallButton}>{k === 'upper' ? 'UPPER' : k === 'title' ? 'Title' : 'lower'}</button>
+            ))}
+          </div>
+          {editNotice && <p role="status" data-testid="captions-edit-notice" style={{ ...hintStyle, margin: 0 }}>{editNotice}</p>}
+
+          <ol ref={listRef} data-testid="captions-list" style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 320, overflow: 'auto', display: 'grid', gap: 6, position: 'relative' }}>
             {cues.map((cue, i) => (
-              <li key={`${cue.startMs}-${i}-${cue.text}`} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: C.text }}>
-                <span style={{ color: C.muted, minWidth: 34 }}>{clockLabel(cue.startMs)}</span>
-                <input
-                  data-testid={`captions-edit-${i}`} aria-label={`Caption at ${clockLabel(cue.startMs)}`} defaultValue={cue.text}
-                  onBlur={(e) => { if (e.target.value !== cue.text) c.editCue(i, e.target.value) }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-                  style={{ ...inputStyle, minHeight: 28, height: 28, fontSize: 11, padding: '0 8px', flex: 1 }}
-                />
+              <li key={i} data-testid={`captions-line-${i}`} data-active={String(i === playing)} style={{ display: 'grid', gap: 4, fontSize: 11, color: C.text, border: `1px solid ${i === playing ? C.cyan : 'transparent'}`, borderRadius: 8, padding: 2 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  {live.seek ? (
+                    <button type="button" data-testid={`captions-seek-${i}`} aria-label={`Jump to the caption at ${clockLabel(cue.startMs)}`} onClick={() => live.seek?.(Math.round((cue.startMs / 1000) * fps))} style={{ ...smallButton, minHeight: 26, padding: '0 6px' }}><Crosshair size={11} /> {clockLabel(cue.startMs)}</button>
+                  ) : (
+                    <span style={{ color: C.muted, minWidth: 34 }}>{clockLabel(cue.startMs)}</span>
+                  )}
+                  <input
+                    key={cue.text}
+                    data-testid={`captions-edit-${i}`} aria-label={`Caption at ${clockLabel(cue.startMs)}`} defaultValue={cue.text}
+                    onBlur={(e) => { if (e.target.value !== cue.text) c.editCue(i, e.target.value) }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                    style={{ ...inputStyle, minHeight: 28, height: 28, fontSize: 11, padding: '0 8px', flex: 1 }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: C.muted, fontSize: 10 }}>Starts
+                    <input type="number" data-testid={`captions-start-${i}`} aria-label={`Caption ${i + 1} starts (seconds)`} min={0} step={0.1} value={seconds(cue.startMs)} onChange={(e) => { if (e.target.value.trim() !== '') c.setCueTimes(i, Number(e.target.value) * 1000, cue.endMs) }} style={{ ...inputStyle, width: 64, minHeight: 24, height: 24, padding: '0 4px', fontSize: 10 }} />
+                  </label>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: C.muted, fontSize: 10 }}>Ends
+                    <input type="number" data-testid={`captions-end-${i}`} aria-label={`Caption ${i + 1} ends (seconds)`} min={0} step={0.1} value={seconds(cue.endMs)} onChange={(e) => { if (e.target.value.trim() !== '') c.setCueTimes(i, cue.startMs, Number(e.target.value) * 1000) }} style={{ ...inputStyle, width: 64, minHeight: 24, height: 24, padding: '0 4px', fontSize: 10 }} />
+                  </label>
+                  {([['start', 'minus', -100, 0], ['start', 'plus', 100, 0], ['end', 'minus', 0, -100], ['end', 'plus', 0, 100]] as const).map(([edge, dir, dS, dE]) => (
+                    <button key={`${edge}-${dir}`} type="button" data-testid={`captions-nudge-${i}-${edge}-${dir}`} aria-label={`${edge === 'start' ? 'Start' : 'End'} ${dir === 'minus' ? 'earlier' : 'later'} by 0.1 seconds, caption ${i + 1}`} onClick={() => c.nudgeCue(i, dS, dE)} style={{ ...smallButton, minHeight: 24, padding: '0 6px' }}>{edge === 'start' ? 'Start' : 'End'} {dir === 'minus' ? '−' : '+'}0.1</button>
+                  ))}
+                </div>
               </li>
             ))}
           </ol>

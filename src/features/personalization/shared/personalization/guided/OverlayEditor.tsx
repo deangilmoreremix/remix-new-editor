@@ -10,6 +10,8 @@ import { ImageStyleControls } from './ImageStyleControls'
 import { ColorField } from './editor/ColorField'
 import { SortableRow } from './editor/SortableRow'
 import { Tip } from './editor/Tip'
+import { PLAYBACK_RATES } from '../preview/playbackRate'
+import { liveBridge } from '../preview/liveBridge'
 import { PersonalizationPlayer } from '../preview/PersonalizationPlayer'
 import type { PlayerRef } from '@remotion/player'
 import { Timeline } from './editor/Timeline'
@@ -300,7 +302,12 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
   const playerRef = useRef<PlayerRef | null>(null)
   const [playFrame, setPlayFrame] = useState(0)
   const [playing, setPlaying] = useState(false)
+  const [playRate, setPlayRate] = useState<number>(1)
   const [guides, setGuides] = useState<{ x: number[]; y: number[] }>({ x: [], y: [] })
+  // Share the live playhead with panels outside the editor (the captions panel): current frame and a way to jump. Null while the live player is off.
+  const seekLive = useCallback((f: number) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(f) } catch { /* no player */ } }, [])
+  useEffect(() => { liveBridge.publish(liveOn ? { frame: playFrame, seek: seekLive } : { frame: null, seek: null }) }, [liveOn, playFrame, seekLive])
+  useEffect(() => () => liveBridge.publish({ frame: null, seek: null }), [])
   // Layers list reorder: top of the list = frontmost, so the list is the layer array reversed.
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -640,6 +647,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   playerRefOverride={playerRef}
                   onFrameChange={setPlayFrame}
                   onPlayingChange={setPlaying}
+                  playbackRate={playRate}
                   ariaLabel="Live preview of your video"
                 />
               </div>
@@ -991,6 +999,11 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                 <span data-testid="editor-timecode" style={{ ...hintStyle, margin: 0, fontVariantNumeric: 'tabular-nums', minWidth: 74, textAlign: 'right' }}>
                   {(playFrame / Math.max(1, settings.fps)).toFixed(1)} / {(settings.durationInFrames / Math.max(1, settings.fps)).toFixed(1)} s
                 </span>
+                <div role="group" aria-label="Preview speed" style={{ display: 'inline-flex', gap: 3 }}>
+                  {PLAYBACK_RATES.map((r) => (
+                    <button key={r} type="button" data-testid={`editor-speed-${r}`} aria-pressed={playRate === r} onClick={() => setPlayRate(r)} style={{ ...chipStyle(playRate === r), minHeight: 28, fontSize: 10, padding: '0 6px' }}>{r}×</button>
+                  ))}
+                </div>
               </>
             )}
             <span style={{ flex: liveOn ? undefined : 1 }} />

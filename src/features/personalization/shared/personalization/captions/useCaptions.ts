@@ -6,6 +6,8 @@ import { transcribeVideo } from '../localAI/engine'
 import { useLocalAI, type LocalAI } from '../localAI/useLocalAI'
 import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptions } from '../preview/types'
 import { groupCaptionCues } from './captionCues'
+import { nudgeCue, retimeCue } from './cueEdit'
+import { applyCasing, findReplace, type Casing, type FindOptions } from './textTools'
 
 export interface Captions {
   ai: LocalAI
@@ -22,6 +24,14 @@ export interface Captions {
   setPosition: (position: CaptionPosition) => void
   /** Replaces a line's text. Clearing it deletes the line. Word-by-word timing is dropped for an edited line. */
   editCue: (index: number, text: string) => void
+  /** Sets a line's start and end (ms). Word times that still fit are kept. */
+  setCueTimes: (index: number, startMs: number, endMs: number) => void
+  /** Moves a line's start and/or end by the given milliseconds, inside the video and at least 0.1 s long. */
+  nudgeCue: (index: number, dStartMs: number, dEndMs: number) => void
+  /** Replaces text in every line; returns how many replacements were made. Edited lines lose their word-by-word timing. */
+  replaceAll: (find: string, replacement: string, opts?: FindOptions) => number
+  /** Changes every line to UPPER, Title or lower case. */
+  recase: (casing: Casing) => void
   /** Takes the captions out of the video and the project. */
   remove: () => void
 }
@@ -77,7 +87,29 @@ export function useCaptions(videoUrl: string | null): Captions {
     })
     updatePreviewCaptions({ cues: next })
   }, [captions, updatePreviewCaptions])
+  const videoMs = Number.isFinite(previewSettings.durationInFrames) && previewSettings.fps > 0 ? (previewSettings.durationInFrames / previewSettings.fps) * 1000 : 3_600_000
+  const setCueTimes = useCallback((index: number, startMs: number, endMs: number) => {
+    if (!captions || !captions.cues[index]) return
+    updatePreviewCaptions({ cues: captions.cues.map((c, i) => (i === index ? retimeCue(c, startMs, Math.min(endMs, videoMs)) : c)) })
+  }, [captions, videoMs, updatePreviewCaptions])
+  const nudge = useCallback((index: number, dStartMs: number, dEndMs: number) => {
+    if (!captions || !captions.cues[index]) return
+    updatePreviewCaptions({ cues: captions.cues.map((c, i) => (i === index ? nudgeCue(c, dStartMs, dEndMs, videoMs) : c)) })
+  }, [captions, videoMs, updatePreviewCaptions])
+  // Text changes drop a line's word times (they would no longer match the words); lines that did not change keep theirs.
+  const withText = (changed: PreviewCaptionCue[], before: PreviewCaptionCue[]): PreviewCaptionCue[] =>
+    changed.map((c, i) => (c.text === before[i].text ? c : (({ words: _w, ...rest }) => rest)(c)))
+  const replaceAll = useCallback((find: string, replacement: string, opts?: FindOptions) => {
+    if (!captions || !find) return 0
+    const { items, count } = findReplace(captions.cues, find, replacement, opts)
+    if (count > 0) updatePreviewCaptions({ cues: withText(items, captions.cues) })
+    return count
+  }, [captions, updatePreviewCaptions])
+  const recase = useCallback((casing: Casing) => {
+    if (!captions) return
+    updatePreviewCaptions({ cues: withText(captions.cues.map((c) => ({ ...c, text: applyCasing(c.text, casing) })), captions.cues) })
+  }, [captions, updatePreviewCaptions])
   const remove = useCallback(() => { updatePreviewCaptions(null); setNote(null) }, [updatePreviewCaptions])
 
-  return { ai, captions, note, generate, language, setLanguage, setEnabled, setStyle, setPosition, editCue, remove }
+  return { ai, captions, note, generate, language, setLanguage, setEnabled, setStyle, setPosition, editCue, setCueTimes, nudgeCue: nudge, replaceAll, recase, remove }
 }

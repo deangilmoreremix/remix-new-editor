@@ -14,6 +14,8 @@ import {
 import type { PreviewMediaFailure } from './previewMediaEvents'
 import type { PreviewInputProps } from './types'
 
+import { clampPlaybackRate } from './playbackRate'
+
 export interface PersonalizationPlayerProps {
   inputProps: PreviewInputProps
   /** CSS width of the player element. Defaults to '100%'. */
@@ -30,6 +32,8 @@ export interface PersonalizationPlayerProps {
   playerRefOverride?: React.RefObject<PlayerRef | null>
   onFrameChange?: (frame: number) => void
   onPlayingChange?: (playing: boolean) => void
+  /** Preview speed (0.25x to 2x). Preview only: the export is unaffected. Default 1. */
+  playbackRate?: number
   /** Controlled mute state; uncontrolled internal state when undefined. */
   muted?: boolean
   onMutedChange?: (muted: boolean) => void
@@ -63,6 +67,7 @@ export function PersonalizationPlayer(
     playerRefOverride,
     onFrameChange,
     onPlayingChange,
+    playbackRate,
     muted,
     onMutedChange,
   } = props
@@ -359,6 +364,7 @@ export function PersonalizationPlayer(
           autoPlay={autoPlay}
           style={{ width: '100%', height: '100%' }}
           initiallyMuted={muted ?? true}
+          playbackRate={clampPlaybackRate(playbackRate)}
         />
         {/* Follower players have no transport bar; keep the error visible as an
             overlay pinned to the bottom of the stage instead. */}
