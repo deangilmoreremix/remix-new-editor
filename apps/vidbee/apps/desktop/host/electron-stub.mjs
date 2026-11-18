@@ -105,7 +105,17 @@ export const Menu = noop('Menu');
 export const Tray = noop('Tray');
 export const Notification = class { static isSupported() { return false; } show() {} on() {} };
 export const safeStorage = { isEncryptionAvailable: () => false, encryptString: (s) => Buffer.from(s), decryptString: (b) => b.toString() };
-export const protocol = { registerSchemesAsPrivileged() {}, handle() {}, unhandle() {}, registerFileProtocol() {}, registerStreamProtocol() {}, isProtocolHandled: () => false };
+// Upstream registers `vidbee://` (file protocol: thumbnail cache etc.) and `agent-artifact://` (protocol.handle). Keep the handlers so the host
+// server can serve them over HTTP (/protocol/<scheme>/…); the web shim rewrites those URLs in the page.
+export const __protocolHandlers = new Map();
+export const protocol = {
+  registerSchemesAsPrivileged() {},
+  handle: (scheme, fn) => { __protocolHandlers.set(scheme, { kind: 'handle', fn }); },
+  unhandle: (scheme) => { __protocolHandlers.delete(scheme); },
+  registerFileProtocol: (scheme, fn) => { __protocolHandlers.set(scheme, { kind: 'file', fn }); return true; },
+  registerStreamProtocol() {},
+  isProtocolHandled: (scheme) => __protocolHandlers.has(scheme),
+};
 export const session = noop('session');
 export const net = noop('net');
 export const nativeTheme = Object.assign(new EventEmitter(), { shouldUseDarkColors: true, themeSource: 'system' });

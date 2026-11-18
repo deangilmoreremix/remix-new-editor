@@ -11,18 +11,19 @@ So the screens, features, downloads, transcripts with speaker labels, AI prompts
 ## Host layer (new files, `apps/desktop/host/`)
 | File | Purpose |
 |---|---|
-| `server.ts` | Imports upstream's `main/index.ts`; HTTP bridge: `POST /ipc/invoke`, `POST /ipc/send`, `GET /ipc/events` (SSE), `GET /media` (Range, download folders only), static renderer, optional `VIDBEE_BASE_PATH` |
+| `server.ts` | Imports upstream's `main/index.ts`; HTTP bridge: `POST /ipc/invoke`, `POST /ipc/send`, `GET /ipc/events` (SSE), `GET /media` (Range, download folders only), `GET /protocol/<scheme>/…` (calls the `vidbee://` / `agent-artifact://` handlers upstream registered), static renderer, optional `VIDBEE_BASE_PATH`, optional `VIDBEE_CSP_IMG_SRC` |
 | `electron-stub.mjs` | `electron` stand-in (`ipcMain` handler map, fake window whose `webContents.send` feeds SSE, `app.getPath`, …) |
-| `web-shim.js` | Replaces the Electron preload in the browser: `window.electron.ipcRenderer` + `window.api` over HTTP/SSE |
+| `web-shim.js` | Replaces the Electron preload in the browser: `window.electron.ipcRenderer` + `window.api` over HTTP/SSE; rewrites `vidbee://` / `agent-artifact://` URLs to the host's `/protocol/…` route |
 | `electron-log-stub.mjs`, `electron-toolkit-stub.mjs`, `electron-updater-stub.mjs`, `better-auth-electron-stub.mjs`, `ga4-renderer-stub.js` | Inert stand-ins for Electron-only/telemetry modules (no analytics, crash reporting, auto-update or cloud sign-in) |
 | `build-host.mjs`, `vite.web.config.ts` | esbuild bundle of the main process + workers; Vite build of the renderer (mirrors upstream's electron-vite renderer config) |
+| `demo/` | Optional demo tooling for feature screenshots (seed data, throttled live downloads, local RSS feeds, a stand-in AI provider, `capture.cjs`); not used in normal operation |
 | `setup-binaries.mjs` | Links the server's yt-dlp / ffmpeg / ffprobe / node into `resources/` (upstream bundles them for Electron) |
 
 ## `[host patch]` edits to upstream files
 - `src/renderer/src/lib/local-file-src.ts`: media URLs use the host `/media` route instead of `file://`.
-- `src/renderer/src/assets/global.css` + new `host-theme.css`: SmartVideo (neon yellow-green) palette (dark).
-- `packages/ui/src/components/ui/{button,sonner}.tsx`, `agent-chat-composer.css`: outlined, transparent buttons (the host studios' button language) instead of solid fills.
-- `host/web-shim.js` keeps the `.dark` class on `<html>` (the palette is dark-only).
+- (only with `HOST_THEME=1`) `src/renderer/src/assets/global.css` + new `host-theme.css`: host palette (dark).
+- (only with `HOST_THEME=1`) `packages/ui/src/components/ui/{button,sonner}.tsx`, `agent-chat-composer.css`: outlined, transparent buttons.
+- (only with `HOST_THEME=1`) `host/web-shim.js` keeps the `.dark` class on `<html>`.
 - `package.json` (desktop): `electron-ga4-telemetry` removed (telemetry), scripts replaced; workspace files trimmed.
 
 ## Not available in the web port

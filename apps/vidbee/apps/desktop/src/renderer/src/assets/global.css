@@ -6,8 +6,6 @@
 @import "katex/dist/katex.min.css";
 @import "@vidbee/ui/agent-response.css";
 @import "./view-transitions.css";
-/* [host patch] host palette, imported last so it wins over upstream tokens */
-@import "./host-theme.css";
 
 /* Streamdown core + plugin utilities live in package JS, not this app tree. */
 @source "../../../../node_modules/streamdown/dist/*.js";

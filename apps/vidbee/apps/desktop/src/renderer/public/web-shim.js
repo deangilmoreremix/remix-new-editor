@@ -2,12 +2,6 @@
 // `window.electron.ipcRenderer` (electron-ipc-decorator proxies → invoke) and `window.api` (events); both are implemented here over
 // HTTP + server-sent events against the host server (host/server.ts). Loaded as a classic script before the app bundle.
 (() => {
-  // The host palette is dark-only: keep upstream's `.dark` class (used by its `dark:` utilities) on <html> whatever the theme setting says.
-  const root = document.documentElement;
-  const forceDark = () => { if (!root.classList.contains('dark') || root.classList.contains('light')) { root.classList.add('dark'); root.classList.remove('light'); } };
-  forceDark();
-  new MutationObserver(forceDark).observe(root, { attributes: true, attributeFilter: ['class'] });
-
   const script = document.currentScript;
   const base = new URL('.', script ? script.src : location.href).href;
   const post = (path, body) =>
@@ -46,6 +40,25 @@
   const send = (channel, ...args) => { void post('ipc/send', { channel, args }); };
 
   // 'darwin' selects upstream's mac chrome: no minimize/maximize/close buttons (Electron-only). Settings reads the real platform from main.
+  // Upstream loads thumbnails / chat artifacts through custom protocols (vidbee://, agent-artifact://). Browsers can't, so rewrite those URLs to
+  // the host server's /protocol/<scheme>/… route (which calls the very handlers upstream registered).
+  const customUrl = /^(vidbee|agent-artifact):\/\/(.*)$/i;
+  const rewrite = (value) => {
+    if (typeof value !== 'string') return value;
+    const match = customUrl.exec(value);
+    return match ? `${base}protocol/${match[1].toLowerCase()}/${match[2]}` : value;
+  };
+  for (const [proto, props] of [[HTMLImageElement.prototype, ['src']], [HTMLMediaElement.prototype, ['src']], [HTMLSourceElement.prototype, ['src']], [HTMLVideoElement.prototype, ['poster']]]) {
+    for (const prop of props) {
+      const desc = Object.getOwnPropertyDescriptor(proto, prop);
+      if (desc && desc.set) Object.defineProperty(proto, prop, { ...desc, set(value) { desc.set.call(this, rewrite(value)); } });
+    }
+  }
+  const nativeSetAttribute = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (name, value) {
+    return nativeSetAttribute.call(this, name, /^(src|poster)$/i.test(name) ? rewrite(value) : value);
+  };
+
   const platform = 'darwin';
   // Subscribers of ipcRenderer.on receive (event, ...args) in Electron.
   window.electron = {

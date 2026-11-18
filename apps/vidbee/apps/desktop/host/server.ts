@@ -6,7 +6,7 @@
 import http from 'node:http'
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { __invoke, hub, ipcMain } from 'electron'
+import { __invoke, __protocolHandlers, hub, ipcMain } from 'electron'
 import log from 'electron-log/main'
 import { realpathSync } from 'node:fs'
 import { settingsManager } from '../src/main/settings'
@@ -16,6 +16,7 @@ import '../src/main/index'
 const port = Number(process.env.VIDBEE_PORT || 3300)
 const host = process.env.VIDBEE_HOST || '127.0.0.1'
 const basePath = (process.env.VIDBEE_BASE_PATH ?? '').trim().replace(/\/+$/, '')
+const imgExtra = (process.env.VIDBEE_CSP_IMG_SRC ?? '').trim()
 const staticDir = process.env.VIDBEE_STATIC_DIR ? path.resolve(process.env.VIDBEE_STATIC_DIR) : ''
 const sender = { id: 1, send: (channel: string, ...args: unknown[]) => hub.emit(channel, args), isDestroyed: () => false }
 
@@ -36,13 +37,8 @@ const sse = (req: http.IncomingMessage, res: http.ServerResponse) => {
   req.on('close', () => { clearInterval(ping); hub.listeners.delete(listener) })
 }
 
-/** Stream a file from the configured download folders (Range supported) — replaces file:// URLs the desktop renderer used. */
-const serveMedia = (req: http.IncomingMessage, res: http.ServerResponse, rawPath: string): void => {
-  const roots = [settingsManager.get('downloadPath') as string, process.env.VIDBEE_DOWNLOAD_DIR].filter((r): r is string => Boolean(r))
-  let real = ''
-  try { real = realpathSync(path.resolve(rawPath)) } catch { res.writeHead(404); return void res.end('Not found') }
-  const allowed = roots.some((root) => { try { const r = realpathSync(root); return real === r || real.startsWith(r + path.sep) } catch { return false } })
-  if (!allowed || !statSync(real).isFile()) { res.writeHead(403); return void res.end('Forbidden') }
+/** Stream one file with HTTP Range support. */
+const serveFile = (req: http.IncomingMessage, res: http.ServerResponse, real: string): void => {
   const size = statSync(real).size
   const range = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range ?? ''))
   let start = 0, end = size - 1, status = 200
@@ -57,6 +53,39 @@ const serveMedia = (req: http.IncomingMessage, res: http.ServerResponse, rawPath
   res.writeHead(status, headers)
   createReadStream(real, { start, end }).pipe(res)
 }
+
+/** Stream a file from the configured download folders — replaces the file:// URLs the desktop renderer used. */
+const serveMedia = (req: http.IncomingMessage, res: http.ServerResponse, rawPath: string): void => {
+  const roots = [settingsManager.get('downloadPath') as string, process.env.VIDBEE_DOWNLOAD_DIR].filter((r): r is string => Boolean(r))
+  let real = ''
+  try { real = realpathSync(path.resolve(rawPath)) } catch { res.writeHead(404); return void res.end('Not found') }
+  const allowed = roots.some((root) => { try { const r = realpathSync(root); return real === r || real.startsWith(r + path.sep) } catch { return false } })
+  if (!allowed || !statSync(real).isFile()) { res.writeHead(403); return void res.end('Forbidden') }
+  serveFile(req, res, real)
+}
+
+/** Serve upstream's custom-protocol URLs (vidbee://…, agent-artifact://…) by calling the handlers upstream registered. */
+const serveProtocol = async (req: http.IncomingMessage, res: http.ServerResponse, scheme: string, rest: string, search: string): Promise<void> => {
+  const entry = __protocolHandlers.get(scheme)
+  if (!entry) { res.writeHead(404); return void res.end('Unknown protocol') }
+  const target = `${scheme}://${rest}${search}`
+  try {
+    if (entry.kind === 'file') {
+      const result = await new Promise<unknown>((resolve) => entry.fn({ url: target, method: 'GET', headers: {} }, resolve))
+      const filePath = typeof result === 'string' ? result : (result as { path?: string } | null)?.path
+      if (!filePath || !existsSync(filePath)) { res.writeHead(404); return void res.end('Not found') }
+      return serveFile(req, res, realpathSync(filePath))
+    }
+    const response = (await entry.fn(new Request(target, { method: 'GET' }))) as Response
+    const headers: Record<string, string> = {}
+    response.headers.forEach((value, key) => { headers[key] = value })
+    res.writeHead(response.status, headers)
+    res.end(Buffer.from(await response.arrayBuffer()))
+  } catch (error) {
+    log.error('protocol request failed', target, error)
+    res.writeHead(500); res.end('Protocol error')
+  }
+}
 const MEDIA_TYPES: Record<string, string> = { '.mp4': 'video/mp4', '.m4v': 'video/mp4', '.mkv': 'video/x-matroska', '.webm': 'video/webm', '.mov': 'video/quicktime', '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4', '.opus': 'audio/ogg', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.flac': 'audio/flac', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.vtt': 'text/vtt', '.srt': 'text/plain' }
 
 const serveStatic = (req: http.IncomingMessage, res: http.ServerResponse, pathname: string): boolean => {
@@ -65,9 +94,12 @@ const serveStatic = (req: http.IncomingMessage, res: http.ServerResponse, pathna
   if (!file.startsWith(staticDir)) return false
   if (!existsSync(file) || !statSync(file).isFile()) file = path.join(staticDir, 'index.html') // SPA fallback
   const type = MIME[path.extname(file)] ?? 'application/octet-stream'
-  if (basePath && path.basename(file) === 'index.html') {
+  if ((basePath || imgExtra) && path.basename(file) === 'index.html') {
     // Relative asset URLs (base './') must resolve against the sub-path even when the page URL has no trailing slash.
-    const html = readFileSync(file, 'utf8').replace('<head>', `<head><base href="${basePath}/">`)
+    // Upstream's CSP (Electron) allows images from a few https hosts only; VIDBEE_CSP_IMG_SRC adds more (e.g. a demo image host).
+    let html = readFileSync(file, 'utf8')
+    if (basePath) html = html.replace('<head>', `<head><base href="${basePath}/">`)
+    if (imgExtra) html = html.replace("img-src 'self'", `img-src 'self' ${imgExtra}`)
     res.writeHead(200, { 'content-type': type, 'cache-control': 'no-cache' })
     res.end(html)
     return true
@@ -100,6 +132,8 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(204); return res.end()
     }
     if (req.method === 'GET' && url.pathname === '/ipc/events') return sse(req, res)
+    const proto = /^\/protocol\/([a-z-]+)\/(.*)$/.exec(url.pathname)
+    if ((req.method === 'GET' || req.method === 'HEAD') && proto) return void (await serveProtocol(req, res, proto[1], decodeURIComponent(proto[2]), url.search))
     if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/media') return serveMedia(req, res, url.searchParams.get('path') ?? '')
     if (req.method === 'GET' && url.pathname === '/health') { res.writeHead(200); return res.end('{"ok":true}') }
     if (serveStatic(req, res, url.pathname)) return
