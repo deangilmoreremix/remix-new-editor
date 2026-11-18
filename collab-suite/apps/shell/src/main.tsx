@@ -1,12 +1,20 @@
+/// <reference types="vite/client" />
 import { Suspense, lazy, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "@collab/core";
 
+// Teamchat and Meetings are upstream's own apps (vendor/everything), built into public/ by
+// `npm run build:vendored` and embedded as-is.
+const Embed = ({ src, title }: { src: string; title: string }) => (
+  <iframe title={title} src={import.meta.env.BASE_URL + src} style={{ border: 0, width: "100%", height: "100%" }}
+    allow="camera; microphone; display-capture; fullscreen; clipboard-write; autoplay; notifications" />
+);
+
 const apps = {
-  teamchat: { label: "Teamchat", C: lazy(() => import("@collab/teamchat")) },
+  teamchat: { label: "Teamchat", C: () => <Embed title="Teamchat" src="teamchat/index.html" /> },
   calendar: { label: "Calendar", C: lazy(() => import("@collab/calendar")) },
   contacts: { label: "Contacts", C: lazy(() => import("@collab/contacts")) },
-  meetings: { label: "Meetings", C: lazy(() => import("@collab/meetings")) },
+  meetings: { label: "Meetings", C: () => <Embed title="Meetings" src="meetings/index.html" /> },
   email: { label: "Email", C: lazy(() => import("@collab/email")) },
   signatures: { label: "Signatures", C: lazy(() => import("@collab/signatures")) },
 };

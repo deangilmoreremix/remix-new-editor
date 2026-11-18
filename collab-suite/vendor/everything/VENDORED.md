@@ -11,9 +11,12 @@ these files in place. To update, re-copy from upstream and bump the commit above
 | Path | Upstream path |
 |---|---|
 | `src/teamchat/` | `src/teamchat/` |
-| `dev/puter-localhost.mjs` | `dev/puter-localhost.mjs` (imported by Teamchat's `vite.config.js`) |
+| `src/meetings/` | `src/meetings/` |
+| `dev/puter-localhost.mjs` | `dev/puter-localhost.mjs` (imported by both apps' `vite.config.js`) |
 
-Verified from this location: `npm ci`, `vite build`, and `vitest run` (172 files, 2525 tests passing).
+Verified from this location with `npm ci`, `vite build` and `vitest run`:
+- Teamchat: 172 files, 2525 tests passing.
+- Meetings: 45 files, 572 tests passing.
 
 Teamchat runs in two ways, both upstream's own:
 - `index.html` — the real app, backed by a Puter account (loads Puter.js).
