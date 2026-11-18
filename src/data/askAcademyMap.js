@@ -222,7 +222,6 @@ export const STUDIO_ACADEMY = {
       { track: T14, lesson: '03-finding-and-closing-clients', why: 'Turn a video into a page that brings in leads and clients.' },
     ],
   },
-  'ai-captions': { tracks: [], lessons: [] },
   'find-my-brand': { tracks: [], lessons: [] },
   'website-builder': { tracks: [], lessons: [] },
   render: { tracks: [], lessons: [] },
