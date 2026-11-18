@@ -340,7 +340,7 @@ export function AnimatePage() {
   const durationWrap = document.createElement('div');
   durationWrap.innerHTML = `
     <label class="text-[10px] font-bold text-secondary uppercase tracking-wider block mb-1">Duration <span data-duration-value class="font-mono text-white normal-case">${state.duration}s</span></label>
-    <input type="range" min="3" max="12" step="1" value="${state.duration}" data-duration-slider class="w-full accent-[#d9ff00] cursor-pointer" aria-label="Duration in seconds">
+    <input type="range" min="3" max="12" step="1" value="${state.duration}" data-duration-slider class="w-full accent-primary cursor-pointer" aria-label="Duration in seconds">
   `;
   const durationSlider = durationWrap.querySelector('[data-duration-slider]');
   durationSlider.oninput = () => {
