@@ -46,6 +46,7 @@ function navigateOrReload(route, params = {}) {
 // src/lib/router.js pageLoaders); `label` is the displayed text; `isNew`
 // adds the small "New" pill on the landing page header.
 const NAV_ITEMS = [
+  { label: 'Guides',        href: '/studios' },
   { label: 'Explore',       route: 'explore' },
   { label: 'Image',         route: 'image' },
   { label: 'Video',         route: 'video' },
@@ -87,6 +88,12 @@ const CTA_LINKS = [
 function buildNavLink(item) {
   const a = document.createElement('a');
   a.className = 'py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm whitespace-nowrap';
+  // Public pages with a real path (e.g. /studios guides) are plain links.
+  if (item.href) {
+    a.href = item.href;
+    a.textContent = item.label;
+    return a;
+  }
   a.href = `#/${item.route}`;
   a.textContent = item.label;
   if (item.isNew) {
