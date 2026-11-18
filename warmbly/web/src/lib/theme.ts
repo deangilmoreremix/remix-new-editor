@@ -15,7 +15,7 @@ const DARK_QUERY = "(prefers-color-scheme: dark)";
 export const isTheme = (v: unknown): v is Theme => v === "light" || v === "dark" || v === "system";
 
 // Light until someone picks otherwise; "system" is an explicit choice.
-export const DEFAULT_THEME: Theme = "dark";
+export const DEFAULT_THEME: Theme = "light";
 
 // A brand's own default for a viewer who has not chosen; index.html reads the same key before the first paint.
 export const THEME_DEFAULT_STORAGE_KEY = "theme-default";

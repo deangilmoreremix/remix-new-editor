@@ -14,6 +14,7 @@ import { installDomMutationGuard } from "@/lib/domGuard";
 import { queryClient } from "@/lib/queryClient";
 import { dashboardPages, router } from "./router";
 import { bootHostSession } from "@/lib/hostSession";
+import { setDefaultTheme } from "@/lib/theme";
 
 // Before the first render, so a translated page never commits unguarded.
 installDomMutationGuard();
@@ -27,6 +28,9 @@ initProductAnalytics();
 const logCaught = (error: unknown, info: { componentStack?: string }) => {
   if (import.meta.env.DEV || !reportsErrors()) console.error(error, info.componentStack)
 }
+
+// Dark unless the viewer picked a theme: Warmbly's own default-appearance hook, as a brand theme uses.
+setDefaultTheme("dark", true)
 
 // The host app's Clerk session is the sign-in; a signed-out visitor is sent to the host's own page.
 await bootHostSession()
