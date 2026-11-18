@@ -3,6 +3,7 @@ import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
 import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
+import { isTypingTarget } from '../lib/editor/keyboard.js';
 import { renderMediaGrid, addMediaToTimeline } from '../lib/editor/mediaLibrary.js';
 import { assetStore } from '../lib/assets/assetStore.js';
 import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, openGTMPromptModal } from '../lib/uiIntegration.js';
@@ -24,10 +25,10 @@ import {
   INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
-  submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
+  submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, AFTER_SUBMIT_ACTIONS, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
-  createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
+  createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, isEditorOverlay, attachDragResize,
   OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT, CTA_COLOR_THEMES, ctaColorParts,
   BLEND_CATEGORIES, blendItemToAddon, getBlendItem, blendThumbStyle,
   openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES, resolveOverlayText,
@@ -37,6 +38,8 @@ import { openSmartSpeechModal } from '../lib/editor/agent/smartSpeechModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import * as contactStore from '../lib/contactStore.js';
 import { PERSONALIZED_LAYOUTS, assetForImageToken, buildLayoutPlan, imageTokenChoices, imageTokenOf, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
+import { studioLayersToPlan } from '../lib/editor/personalize/studioLayers.js';
+import { defaultStudioDesignOptions, switchDesignOptions } from '../lib/editor/addons/studioDesignAddon.js';
 import { measureImageLuminance } from '../lib/personalization/imageStyle.js';
 import { AI_FILLABLE, describeUnreviewed, markAiGenerated, planAiImages, unreviewedAiImages } from '../lib/personalization/aiContactImages.js';
 import { AI_CLIP_MODELS, CLIP_IMAGE_SLOTS, aiClipConfig, clipSrcFor, describeClipGaps, planClipJobs } from '../lib/personalization/aiContactClips.js';
@@ -48,7 +51,7 @@ import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryServ
 import { addPersonalizationAsset, createPersonalizationAsset, removePersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
 import { createContactSync } from '../lib/editor/personalize/clientSync.js';
 import { renderPersonalizationPanel, renderPersonalizationEditor, renderTokenEditor, renderBatchHub } from '../lib/editor/panels/personalPanels.js';
-import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
+import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalVariables, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
 import { setKeyframe } from '../lib/editor/remotion/keyframes.js';
@@ -60,6 +63,7 @@ import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos 
 import '../../styles/timeline-tokens.css';
 import '../../styles/timeline-editor-page.css';
 import '../../styles/personalize-ui.css';
+import '../../styles/projects-panel.css';
 import '../../styles/timeline-addons.css';
 // Import rendiv animation primitives
 import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } from '../lib/editor/animationControls.jsx';
@@ -69,6 +73,8 @@ import { ColorCorrectionSystem } from '../lib/editor/colorCorrectionSystem.jsx';
 import { runTimelineAITool, AI_TOOL_INFO } from '../lib/editor/aiToolsClient.js';
 import { openAiToolsWindow, summarizeResult } from '../lib/editor/panels/aiTools.js';
 import { captureVideoFrame, sourceTimeFor } from '../lib/editor/panels/frameCapture.js';
+import * as editTools from '../lib/editor/editTools.js';
+import { decorateClip, proxyMap, makeProxy, clearProxies } from '../lib/editor/clipVisuals.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 // CutAI integration loaded dynamically to avoid syntax issues in AIStoryboardStudio.jsx
@@ -79,12 +85,12 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 // Subtitle system integration
 import { SubtitleTimeline } from '../lib/editor/subtitleTimeline.js';
-import { whisperService } from '../services/whisper-client.js';
 
 // Modal imports - these are vanilla JS modal implementations
 import { EndScreenModal } from './modals/EndScreenModal.jsx';
 import { SaveProjectModal } from './modals/SaveProjectModal.jsx';
 import { SettingsModal } from './modals/SettingsModal.jsx';
+import { endScreenClips } from '../lib/editor/addons/endScreenClips.js';
 import { ConnectModal } from './modals/ConnectModal.jsx';
 import { PreviewMediaModal } from './modals/PreviewMediaModal.jsx';
 import { VideoPlayerModal } from './modals/VideoPlayerModal.jsx';
@@ -506,7 +512,7 @@ export function TimelineEditorPage() {
             <button class="zoom-btn" data-action="zoom-in" data-tooltip="Zoom in - See timeline in more detail (Mouse wheel)" aria-label="Zoom in on the timeline">＋</button>
             <button class="zoom-btn" data-action="zoom-fit" aria-label="Fit to window" title="Fit" data-tooltip="Fit timeline to window">⤢</button>
           </div>
-          <div class="tool-group" id="toolGroup" hidden></div>
+          <div class="tool-group" id="toolGroup"></div>
           <div class="pill-row" id="pillRow" hidden></div>
         </div>
         <div class="timeline-shell">
@@ -592,6 +598,10 @@ export function TimelineEditorPage() {
         <div class="card-title">🎬 Stock Media</div>
         <div id="stockBrowser"></div>
       </aside>
+      <aside class="side-card" id="projectsPanel" hidden data-tooltip="Projects - every saved video, its status and performance">
+        <div class="card-title">📁 Projects</div>
+        <div id="projectsBody"></div>
+      </aside>
       <aside class="side-card" id="sharePanel" hidden data-tooltip="Share - publish an interactive video link and embed code">
         <div class="card-title">🔗 Share</div>
         <div id="shareBody"></div>
@@ -599,6 +609,18 @@ export function TimelineEditorPage() {
       <aside class="side-card" id="aiAgentPanel" hidden data-tooltip="AI Agent - describe a video or animation and the agent builds it">
         <div class="card-title">🤖 AI Agent</div>
         <div id="aiAgentChat"></div>
+      </aside>
+      <aside class="side-card" id="storyboardPanelCard" hidden data-tooltip="Storyboard - plan shots, Images 2.6 frames, Shot Board, Elements, script import">
+        <div class="card-title">🎞️ Storyboard</div>
+        <div id="storyboardHost"></div>
+      </aside>
+      <aside class="side-card" id="aiChatPanelCard" hidden data-tooltip="AI Chat - Ask, Search, Cut and Timeline modes (OpenAI, your key)">
+        <div class="card-title">💬 AI Chat</div>
+        <div id="aiChatContainer"></div>
+      </aside>
+      <aside class="side-card" id="localAIPanel" hidden data-tooltip="Free AI - search footage, free voiceover and on-device models (runs in your browser)">
+        <div class="card-title">🧠 Free AI</div>
+        <div id="localAIHost"></div>
       </aside>
       <aside class="side-card" id="cameraEffectsPanel" hidden>
         <div class="card-title">🎥 Camera FX</div>
@@ -642,7 +664,7 @@ export function TimelineEditorPage() {
         <div class="card-title">📊 Color Scopes</div><div id="colorScopesContainer"></div>
       </aside>
       <aside class="side-card" id="tokenEditorPanel" hidden data-tooltip="Token editor"><div class="card-title">🏷️ Token Editor</div><div id="tokenEditorContainer"></div></aside>
-      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Batch generator"><div class="card-title">📦 Batch Generator</div><div id="batchGeneratorContainer"></div></aside>
+      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Personalized output"><div class="card-title">📦 Personalized output</div><div id="batchGeneratorContainer"></div></aside>
       <aside class="side-card" id="personalizationPanel" hidden data-tooltip="Personalization"><div class="card-title">👤 Personalization</div><div id="personalizationContainer"></div></aside>
       <aside class="side-card" id="personalizationEditorPanel" hidden data-tooltip="Personalization editor"><div class="card-title">✏️ Personalization Editor</div><div id="personalizationEditorContainer"></div></aside>
     </div>
@@ -756,6 +778,7 @@ export function TimelineEditorPage() {
       quickCommands: ['⚡Generate','Retake','Extend','B-Roll','🎬 Detect Scenes'],
       railActions: [
         ['＋', 'Media'],
+        ['📁', 'Projects'],
         ['✨', 'Generate', true],
         ['⬆', 'Export'],
         ['⚡', 'Interactive'],
@@ -766,6 +789,9 @@ export function TimelineEditorPage() {
         ['🗣️', 'Smart Speech'],
         ['🎞️', 'Stock Media'],
         ['🤖', 'AI Agent'],
+        ['🧠', 'Free AI'],
+        ['💬', 'AI Chat'],
+        ['🎞️', 'Storyboard'],
         ['🔗', 'Share'],
         ['🎬', 'Scene Detector'],
         ['🎥', 'Camera FX'],
@@ -965,12 +991,6 @@ export function TimelineEditorPage() {
     });
   }
 
-  // Mask tool state for click/box capture on preview stage
-  let maskClickPoint = null;
-  let maskSelectionBox = null;
-  let normStartX = 0;
-  let normStartY = 0;
-
   // Enhanced state management with local storage persistence
   function loadProjectFromStorage() {
     try {
@@ -1136,13 +1156,16 @@ export function TimelineEditorPage() {
 
     // Keyboard shortcuts for undo/redo
     function handleKeyboardShortcuts(event) {
-      if (event.key === 'Delete' || event.key === 'Backspace') {
+      // Timeline-editing shortcuts never apply while the user is typing in a field
+      // (otherwise Backspace could not edit a text box and would delete a clip).
+      const typing = isTypingTarget(event.target);
+      if (!typing && (event.key === 'Delete' || event.key === 'Backspace')) {
         event.preventDefault();
         deleteSelectedClip();
         return;
       }
       
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd') {
+      if (!typing && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd') {
         event.preventDefault();
         duplicateSelectedClip();
         return;
@@ -1169,6 +1192,7 @@ export function TimelineEditorPage() {
       if (event.ctrlKey || event.metaKey) {
         switch (event.key) {
           case 'z':
+            if (typing) break; // native undo inside text fields
             if (event.shiftKey) {
               event.preventDefault();
               if (redo(state)) renderAll();
@@ -1178,6 +1202,7 @@ export function TimelineEditorPage() {
             }
             break;
           case 'y':
+            if (typing) break;
             event.preventDefault();
             if (redo(state)) renderAll();
             break;
@@ -1192,6 +1217,11 @@ export function TimelineEditorPage() {
 
     // Add keyboard event listeners
     cleanup.addDocumentListener('keydown', handleKeyboardShortcuts);
+
+    // Header bell -> open Projects on the project with the most unread alerts.
+    const openProjectsFromBell = async () => { openPanel('projectsPanel'); await mountProjectsPanel(); projectsPanel?.openMostUnread?.(); };
+    cleanup.addWindowListener('remix:open-projects', openProjectsFromBell);
+    try { if (sessionStorage.getItem('remix_open_projects')) { sessionStorage.removeItem('remix_open_projects'); cleanup.addTimer(setTimeout(openProjectsFromBell, 700)); } } catch { /* storage unavailable */ }
     // The Personalize window (OpenHiggsBolt) keeps its clients and saved Lead
     // Finder leads in its own storage. Copy them into the contact store the
     // editor reads, on load, on focus, and whenever the studio saves something.
@@ -1225,6 +1255,7 @@ export function TimelineEditorPage() {
         try {
           syncCurrentTimelineFromState(state);
           saveProjectToStorage(state);
+          scheduleCloudSave();
         } catch (err) {
           // QuotaExceededError or serialization failure: surface to user
           if (err && err.name === 'QuotaExceededError') {
@@ -1421,6 +1452,142 @@ export function TimelineEditorPage() {
       }, { tool });
     }
 
+    function applyCineGenResultToTimeline(result) {
+      if (!result || result.success === false) return;
+
+      const tool = result.tool || result.metadata?.tool;
+      const url = result.url || result.output?.url || result.video?.url;
+      const urls = Array.isArray(result.urls) ? result.urls : (url ? [url] : []);
+      const selectedClip = findSelectedClip();
+
+      if (tool === 'fill_gap' || tool === 'gap_fill') {
+        const targetTrack = state.tracks.find(t => ['video', 'image', 'b-roll', 'overlay'].includes(t.type)) || state.tracks[0];
+        if (!targetTrack) return;
+        const duration = result.duration || 5;
+        const startTime = selectedClip ? (selectedClip.end || selectedClip.start + duration) : 0;
+        const newClip = {
+          id: 'cinegen-' + Date.now(),
+          name: `AI Fill ${tool}`,
+          type: 'video',
+          src: url,
+          start: startTime,
+          end: startTime + duration,
+          duration,
+          sourceStart: 0,
+          sourceEnd: duration,
+          volume: 1,
+          opacity: 1,
+          playbackRate: 1,
+          effects: [],
+          transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+          metadata: { cinegenProcessed: true, tool, requestId: result.requestId }
+        };
+        if (!targetTrack.clips) targetTrack.clips = [];
+        targetTrack.clips.push(newClip);
+        renderAll();
+        debouncedSave(0);
+        showToast('Gap filled with AI-generated clip', 'success');
+        return;
+      }
+
+      if (tool === 'extend' || tool === 'extend_clip') {
+        const targetTrack = selectedClip ? state.tracks.find(t => t.clips?.includes(selectedClip)) : state.tracks.find(t => ['video', 'image', 'b-roll'].includes(t.type)) || state.tracks[0];
+        if (!targetTrack || !selectedClip) return;
+        const addedDuration = result.addedDuration || 5;
+        const newClip = {
+          id: 'cinegen-' + Date.now(),
+          name: `AI Extend ${result.direction || 'after'}`,
+          type: selectedClip.type || 'video',
+          src: url,
+          start: selectedClip.end,
+          end: selectedClip.end + addedDuration,
+          duration: addedDuration,
+          sourceStart: 0,
+          sourceEnd: addedDuration,
+          volume: selectedClip.volume ?? 1,
+          opacity: selectedClip.opacity ?? 1,
+          playbackRate: selectedClip.playbackRate ?? 1,
+          effects: selectedClip.effects ? [...selectedClip.effects] : [],
+          transform: { ...(selectedClip.transform || { x: 0, y: 0, scale: 1, rotation: 0 }) },
+          metadata: { cinegenProcessed: true, tool, requestId: result.requestId, parentClipId: selectedClip.id }
+        };
+        if (!targetTrack.clips) targetTrack.clips = [];
+        targetTrack.clips.push(newClip);
+        renderAll();
+        debouncedSave(0);
+        showToast('Clip extended with AI-generated media', 'success');
+        return;
+      }
+
+      if (tool === 'music_generation') {
+        const audioTrack = state.tracks.find(t => t.type === 'audio') || state.tracks.find(t => t.clips?.some(c => c.type === 'audio'));
+        if (!audioTrack) return;
+        const newClip = {
+          id: 'cinegen-' + Date.now(),
+          name: `AI Music: ${result.genre || 'Generated'}`,
+          type: 'audio',
+          src: url,
+          start: 0,
+          end: result.duration || 30,
+          duration: result.duration || 30,
+          volume: 0.8,
+          metadata: { cinegenProcessed: true, tool, requestId: result.requestId, genre: result.genre, mood: result.mood, instrumental: result.instrumental }
+        };
+        if (!audioTrack.clips) audioTrack.clips = [];
+        audioTrack.clips.push(newClip);
+        renderAll();
+        debouncedSave(0);
+        showToast('AI music added to audio track', 'success');
+        return;
+      }
+
+      if (tool === 'sam3_segment' && result.video?.url) {
+        if (selectedClip) {
+          selectedClip.metadata = selectedClip.metadata || {};
+          selectedClip.metadata.maskUrl = result.video.url;
+          selectedClip.metadata.maskContentType = result.video.contentType;
+          selectedClip.metadata.sam3Processed = true;
+          selectedClip.metadata.sam3RequestId = result.requestId;
+        }
+        renderAll();
+        debouncedSave(0);
+        showToast('SAM3 segmentation applied — mask stored on clip', 'success');
+        return;
+      }
+
+      // Generic fallback: add any media URL to the first compatible track
+      if (urls.length > 0) {
+        const targetTrack = state.tracks.find(t => ['video', 'image', 'b-roll'].includes(t.type)) || state.tracks[0];
+        if (targetTrack) {
+          const startTime = selectedClip ? (selectedClip.end || selectedClip.start + 5) : 0;
+          urls.forEach((mediaUrl, idx) => {
+            const newClip = {
+              id: 'cinegen-' + Date.now() + '-' + idx,
+              name: `AI ${tool || 'Generated'} ${idx + 1}`,
+              type: 'video',
+              src: mediaUrl,
+              start: startTime + idx * 5,
+              end: startTime + idx * 5 + 5,
+              duration: 5,
+              sourceStart: 0,
+              sourceEnd: 5,
+              volume: 1,
+              opacity: 1,
+              playbackRate: 1,
+              effects: [],
+              transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+              metadata: { cinegenProcessed: true, tool, requestId: result.requestId }
+            };
+            if (!targetTrack.clips) targetTrack.clips = [];
+            targetTrack.clips.push(newClip);
+          });
+          renderAll();
+          debouncedSave(0);
+          showToast(`Added ${urls.length} generated clip(s) to timeline`, 'success');
+        }
+      }
+    }
+
     function clearPreviewStage() {
       const nodes = els.previewStage.querySelectorAll('*');
       nodes.forEach((node) => {
@@ -1457,7 +1624,7 @@ export function TimelineEditorPage() {
       // Overlays (Smart Text, Image, Stickers, ...) are drawn by the overlay
       // compositor on top of the video, so selecting one shows the video
       // clip under the playhead rather than replacing it.
-      if (getAddon(selected.type)?.category === 'overlay') {
+      if (isEditorOverlay(getAddon(selected.type))) {
         const base = findBaseClipAtPlayhead();
         if (base) renderPreviewAsset(base);
         else if (!els.previewStage.firstElementChild) els.previewEmpty.style.display = 'none';
@@ -1728,12 +1895,12 @@ export function TimelineEditorPage() {
             kind: 'lead-form',
             data,
             config: selected,
-            notificationEmail: selected.emailNotificationEnabled ? selected.notificationEmail : '',
+            notificationEmails: leadNotifyEmails(selected.emailNotificationEnabled, [selected.notificationEmail, selected.notificationEmail2, selected.notificationEmail3]),
           });
           const lastLead = selected._submittedLeads[selected._submittedLeads.length - 1];
           if (lastLead) lastLead._stored = !!res.stored;
           showToast(
-            leadResultMessage(res, selected.emailNotificationEnabled && selected.notificationEmail),
+            leadResultMessage(res, leadNotifyEmails(selected.emailNotificationEnabled, [selected.notificationEmail, selected.notificationEmail2, selected.notificationEmail3]).length > 0),
             res.failed ? 'error' : 'success',
           );
 
@@ -2174,8 +2341,13 @@ export function TimelineEditorPage() {
       try {
         const modal = new SaveProjectModal({
           projectData: state,
-          onComplete: (result) => {
-            state.projectId = result.projectId;
+          projectName: state.projectTitle && state.projectTitle !== 'Untitled Sequence' ? state.projectTitle : '',
+          onComplete: async (result) => {
+            try {
+              await saveAsProject(result);
+            } catch (err) {
+              showToast(`Project save failed: ${err.message || err}`, 'error');
+            }
           },
           onError: (error) => console.log(`Project save failed: ${error}`, 'error')
         });
@@ -2257,20 +2429,16 @@ export function TimelineEditorPage() {
     }
 
     function addEndScreenToTimeline(endScreenData, state) {
-      // Classic End Screen modal result: its elements go on the Titles
-      // track, timed to finish at the end of the video.
+      // Classic End Screen modal result: its buttons AND its style (background, text colour, duration) become editable clips on the
+      // End Screen track, timed to finish at the end of the video (see addons/endScreenClips.js).
       const T = state.timelineSeconds || 60;
-      (endScreenData?.buttons || []).forEach((button, i) => {
-        const dur = Math.min(T, Math.max(1, Number(button.duration) || 5));
-        insertClipIntoTrack({
-          ...button,
-          id: Date.now() + i,
-          name: button.text || 'End Screen Element',
-          type: button.type || 'text',
-          start: T - dur,
-          end: T,
-        }, 'text');
-      });
+      const trackName = 'End Screen';
+      if (!state.tracks.some((t) => t.name === trackName)) {
+        state.tracks.push({ id: `track-endScreens-${Date.now().toString(36)}`, type: 'text', name: trackName, muted: false, solo: false, locked: false, items: [] });
+      }
+      saveStateSnapshot(state);
+      endScreenClips(endScreenData, T).forEach(({ trackName: _ignored, ...clip }) => insertClipIntoTrack(clip, trackName));
+      scheduleEngineUpdate();
       debouncedSave();
     }
 
@@ -2339,6 +2507,7 @@ export function TimelineEditorPage() {
       { id: 'fillGap', icon: '✨', label: 'Fill Gap', hint: '' },
       { id: 'extend', icon: '➡️', label: 'Extend', hint: 'E' },
       { id: 'mask', icon: '🎭', label: 'Mask', hint: 'X' },
+      { id: 'trackforward', icon: '⏭️', label: 'Track Forward', hint: 'A' },
     ];
 
     const toolMap = {
@@ -2351,16 +2520,47 @@ export function TimelineEditorPage() {
       'm': 'music',
       'e': 'extend',
       'x': 'mask',
+      'a': 'trackforward',
     };
+
+    /** Show the mask overlay only while the Mask tool is active. */
+    function syncMaskOverlay() {
+      const overlay = root.querySelector('#maskOverlay');
+      if (overlay) overlay.hidden = selectedToolLabel() !== 'Mask';
+    }
+
+    /** Mask tool: cut the clicked / boxed object out of the selected clip with the on-device SAM. */
+    async function runMaskTool({ point, box }) {
+      const clip = allClips().find((c) => c.id === state.selectedClipId);
+      if (!clip || !['video', 'image', 'overlay-image'].includes(clip.type)) { showToast('Select a video or image clip first, then use the Mask tool', 'info'); return; }
+      try {
+        const [{ confirmDownloads }, actions] = await Promise.all([import('../lib/editor/ml/aiClipPanel.js'), import('../lib/editor/ml/aiActions.js')]);
+        if (!(await confirmDownloads(['sam']))) return;
+        showToast('Masking on your device…', 'info');
+        const ed = localAIEditor();
+        const frame = await actions.frameAtPlayhead(ed, clip, { maxSize: 1024 });
+        const prompt = box
+          ? { box: [box[0] * frame.width, box[1] * frame.height, box[2] * frame.width, box[3] * frame.height] }
+          : { points: [[point[0] * frame.width, point[1] * frame.height]] };
+        await actions.maskObject(ed, clip, { prompt, mode: 'cutout', frame });
+      } catch (err) {
+        showToast(`Mask failed: ${err?.message || err}`, 'error');
+      }
+    }
 
     function selectTool(id) {
       const def = TOOL_DEFS.find(t => t.id === id);
       state.selectedTool = def ? def.label : id;
       renderTools();
+      syncMaskOverlay();
       updatePreview();
       if (id === 'mask') {
-        showToast('Mask tool active — select a clip and open AI Tools to segment');
+        showToast('Mask tool: click an object, or drag a box around it, on the preview');
       }
+      // CineGen AI tools open the features that do the work.
+      if (id === 'music') openPanel('localAIPanel');
+      if (id === 'fillGap') openMuapiTool('fill_gap');
+      if (id === 'extend') openMuapiTool('extend');
     }
 
     /**
@@ -2457,27 +2657,11 @@ export function TimelineEditorPage() {
 
     async function syncSelectedAudio() {
       const selectedClip = findSelectedClip();
-      if (!selectedClip || selectedClip.type !== 'video') {
-        showToast('Select a video clip to sync audio', 'info');
-        return;
-      }
-      const audioClip = state.tracks.find(t => t.type === 'audio')?.clips?.find(c => c.type === 'audio');
-      if (!audioClip) {
-        showToast('No audio clip found on audio track', 'info');
-        return;
-      }
+      const audioClip = selectedClip?.type === 'audio' ? selectedClip
+        : allClips().find((c) => c.type === 'audio' && c.src);
+      if (!audioClip) { showToast('Select an audio clip to sync', 'info'); return; }
       try {
-        const { computeAudioOffset } = await import('../lib/editor/audioSync.js');
-        showToast('Analyzing audio sync...', 'info');
-        const result = await computeAudioOffset(selectedClip.src, audioClip.src);
-        if (result && result.confidence > 0) {
-          showToast(`Audio sync offset: ${result.offsetSeconds.toFixed(2)}s (confidence: ${Math.round(result.confidence * 100)}%)`, 'success');
-          audioClip.start = (selectedClip.start || 0) + result.offsetSeconds;
-          renderAll();
-          debouncedSave(0);
-        } else {
-          showToast('Could not determine audio sync offset', 'error');
-        }
+        showToast(await syncAudioClip(audioClip), 'success');
       } catch (err) {
         showToast(`Audio sync failed: ${err.message}`, 'error');
       }
@@ -2731,9 +2915,17 @@ export function TimelineEditorPage() {
               <button class="track-toggle ${track.muted ? '' : 'on'}" data-toggle="mute" aria-label="${track.muted ? 'Unmute' : 'Mute'} ${track.name}" aria-pressed="${!track.muted}" title="${track.muted ? 'Unmute' : 'Mute'}">${track.muted ? '🔇' : '🔊'}</button>
               <button class="track-toggle ${track.solo ? 'on' : ''}" data-toggle="solo" aria-label="Solo ${track.name}" aria-pressed="${!!track.solo}" title="Solo">S</button>
               <button class="track-toggle ${track.locked ? 'locked' : ''}" data-toggle="lock" aria-label="${track.locked ? 'Unlock' : 'Lock'} ${track.name}" aria-pressed="${!!track.locked}" title="${track.locked ? 'Unlock' : 'Lock'}">${track.locked ? '🔒' : '🔓'}</button>
+              <button class="track-op" data-trk="up" aria-label="Move ${track.name} up" title="Move track up">▲</button>
+              <button class="track-op" data-trk="down" aria-label="Move ${track.name} down" title="Move track down">▼</button>
+              <button class="track-op" data-trk="remove" aria-label="Delete ${track.name}" title="Delete track">✕</button>
             </div>
             <span class="track-count">${seedCountText}</span>
           `;
+
+          meta.querySelectorAll('.track-op').forEach((btn) => {
+            btn.style.cssText = 'min-width:22px;padding:0 4px;font-size:10px;background:none;border:1px solid rgba(255,255,255,.15);border-radius:4px;color:inherit;cursor:pointer;';
+            btn.addEventListener('click', () => trackOp(track.id, btn.dataset.trk));
+          });
 
           meta.querySelectorAll('.track-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -2826,6 +3018,9 @@ export function TimelineEditorPage() {
               showClipEditor(clip.id);
             });
 
+            // Edit tools: trim handles (Select/Ripple/Roll) and Slip/Slide/Blade on the body.
+            clipEl.addEventListener('pointerdown', (e) => startClipToolEdit(e, clip.id, clipEl));
+
             clipEl.addEventListener('dragstart', (e) => {
               // Trim handles initiate a separate drag for trimming — never
               // start a move-drag from one. data-handle is set on .l/.r in
@@ -2874,6 +3069,7 @@ export function TimelineEditorPage() {
           }
 
           renderKeyframeDiamonds(clipEl, clip, clip.start || 0, Math.max(0, (clip.end || 0) - (clip.start || 0)));
+          decorateClipVisuals(clipEl, clip.id, widthPercent);
 
           cached.clipData.set(clip.id, {
             leftPercent, widthPercent,
@@ -2893,7 +3089,18 @@ export function TimelineEditorPage() {
         });
 
         // Prototype ornaments: transitions + scene markers (cheap rebuild per pass)
-        cached.lane.querySelectorAll('.timeline-transition, .scene-marker').forEach(el => el.remove());
+        cached.lane.querySelectorAll('.timeline-transition, .scene-marker, .timeline-marker').forEach(el => el.remove());
+        (state.markers || []).forEach((m) => {
+          const el = document.createElement('div');
+          el.className = 'timeline-marker';
+          el.style.cssText = `position:absolute;top:0;bottom:0;left:${(m.t / tlSec()) * 100}%;width:2px;margin-left:-1px;background:#facc15;opacity:.85;z-index:3;cursor:pointer;`;
+          el.title = `${m.label || 'Marker'} · ${m.t.toFixed(2)}s — click to jump, double-click to remove`;
+          el.setAttribute('role', 'button');
+          el.setAttribute('aria-label', `Marker at ${m.t.toFixed(1)} seconds`);
+          el.addEventListener('click', (ev) => { ev.stopPropagation(); seekToSeconds(m.t); });
+          el.addEventListener('dblclick', (ev) => { ev.stopPropagation(); removeMarker(m.id); });
+          cached.lane.appendChild(el);
+        });
         (track.transitions || []).forEach(tr => {
           const el = document.createElement('div');
           el.className = 'timeline-transition';
@@ -3004,7 +3211,18 @@ export function TimelineEditorPage() {
             webhookUrl3: clip.webhookUrl3,
             emailNotificationEnabled: clip.emailNotificationEnabled,
             notificationEmail: clip.notificationEmail,
+            notificationEmail2: clip.notificationEmail2,
+            notificationEmail3: clip.notificationEmail3,
             fbPixelId: clip.fbPixelId,
+            gaMeasurementId: clip.gaMeasurementId,
+            tiktokPixelId: clip.tiktokPixelId,
+            gtmId: clip.gtmId,
+            espProvider: clip.espProvider,
+            espListId: clip.espListId,
+            successMessage: clip.successMessage,
+            afterSubmitAction: clip.afterSubmitAction,
+            afterSubmitUrl: clip.afterSubmitUrl,
+            afterSubmitButtonText: clip.afterSubmitButtonText,
             _submittedLeads: clip._submittedLeads,
             style: clip.style,
             phoneNumber: clip.phoneNumber,
@@ -3125,6 +3343,7 @@ export function TimelineEditorPage() {
 
             const first = clips[0];
             const drift = percent - (first.left || 0);
+            const leftBeforeMove = first.left || 0;
 
             // Alt+drag duplicate: copy rather than move
             const isDuplicate = e.altKey;
@@ -3184,6 +3403,17 @@ export function TimelineEditorPage() {
               track.items.push(c);
             });
             track.items.sort((a, b) => (a.left || 0) - (b.left || 0));
+            // Linked clips (e.g. the audio of a video) move by the same amount on their own tracks.
+            if (data.type === 'clip' && first.linkId) {
+              const moved = (first.left || 0) - leftBeforeMove;
+              editTools.linkedPartners(allClips, first).forEach((p) => {
+                p.left = Math.max(0, Math.min(100 - (p.width || 0), (p.left || 0) + moved));
+                if (state.timelineSeconds) {
+                  p.start = (p.left / 100) * state.timelineSeconds;
+                  p.end = p.start + ((p.width || 0) / 100) * state.timelineSeconds;
+                }
+              });
+            }
             reAliasAllTracks(state);
 
             if (state.rippleMode) trimTailPastEnd(track, state.timelineSeconds || 60);
@@ -3443,6 +3673,22 @@ export function TimelineEditorPage() {
             <div class="clip-editor__field">
               <label for="lf-skip-enabled"><input id="lf-skip-enabled" type="checkbox" ${clip.skipButtonEnabled ? 'checked' : ''} /> Show Skip button (dismiss form, resume video)</label>
             </div>
+            <div class="clip-editor__field">
+              <label for="lf-success-msg">Message after the form is sent</label>
+              <input id="lf-success-msg" type="text" value="${escapeHtml(clip.successMessage || '')}" placeholder="Thanks!" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-after-action">After the form is sent</label>
+              <select id="lf-after-action">${AFTER_SUBMIT_ACTIONS.map(([v, l]) => `<option value="${v}" ${(clip.afterSubmitAction || 'continue') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+            </div>
+            <div class="clip-editor__field" id="lf-after-extra" ${clip.afterSubmitAction === 'button' || clip.afterSubmitAction === 'redirect' ? '' : 'hidden'}>
+              <label for="lf-after-url">Thank-you button / redirect link</label>
+              <input id="lf-after-url" type="url" value="${escapeHtml(clip.afterSubmitUrl || '')}" placeholder="https://example.com/thanks" />
+              <div id="lf-after-btn-wrap" ${clip.afterSubmitAction === 'button' ? '' : 'hidden'}>
+                <label for="lf-after-btn">Thank-you button text</label>
+                <input id="lf-after-btn" type="text" value="${escapeHtml(clip.afterSubmitButtonText || '')}" placeholder="Book a call" />
+              </div>
+            </div>
           </div>
           <div class="clip-editor__section">
             <h3>Fields</h3>
@@ -3580,15 +3826,54 @@ export function TimelineEditorPage() {
               <span id="lf-webhook-test-result" style="font-size:11px;color:var(--text-dim)"></span>
             </div>
             <div class="clip-editor__field">
+              <button id="lf-webhook-log" type="button" class="mini-btn" style="width:100%">Recent webhook deliveries</button>
+              <span id="lf-webhook-log-result" role="status" style="font-size:11px;color:var(--text-dim)"></span>
+            </div>
+            <div class="clip-editor__field">
+              <button id="lf-webhook-secret" type="button" class="mini-btn" style="width:100%">Show webhook signing secret</button>
+              <span id="lf-webhook-secret-result" role="status" style="font-size:11px;color:var(--text-dim);word-break:break-all"></span>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-esp-provider">Add leads to an email list (published videos)</label>
+              <select id="lf-esp-provider">${ESP_PROVIDERS.map(([v, l]) => `<option value="${v}" ${(clip.espProvider || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+            </div>
+            <div class="clip-editor__field" id="lf-esp-extra" ${clip.espProvider ? '' : 'hidden'}>
+              <label for="lf-esp-list" id="lf-esp-list-label">${espListLabel(clip.espProvider)}</label>
+              <input id="lf-esp-list" type="text" value="${escapeHtml(clip.espListId || '')}" placeholder="1234567" />
+              <button id="lf-esp-connect" type="button" class="mini-btn" style="width:100%;margin-top:6px">Connect ${espName(clip.espProvider) || 'account'}</button>
+              <span id="lf-esp-status" role="status" style="font-size:11px;color:var(--text-dim)"></span>
+            </div>
+            <div class="clip-editor__field">
               <label for="lf-email-enabled"><input id="lf-email-enabled" type="checkbox" ${clip.emailNotificationEnabled ? 'checked' : ''} /> Email notification on submit</label>
             </div>
             <div class="clip-editor__field">
-              <label for="lf-email-address">Notification Address</label>
-              <input id="lf-email-address" type="email" value="${clip.notificationEmail || ''}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+              <label for="lf-email-address">Notification Address (person 1)</label>
+              <input id="lf-email-address" type="email" value="${escapeHtml(clip.notificationEmail || '')}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-address2">Notification Address (person 2, optional)</label>
+              <input id="lf-email-address2" type="email" value="${escapeHtml(clip.notificationEmail2 || '')}" placeholder="teammate@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-address3">Notification Address (person 3, optional)</label>
+              <input id="lf-email-address3" type="email" value="${escapeHtml(clip.notificationEmail3 || '')}" placeholder="partner@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
             </div>
             <div class="clip-editor__field">
               <label for="lf-fb-pixel">Facebook Pixel ID</label>
               <input id="lf-fb-pixel" type="text" value="${clip.fbPixelId || ''}" placeholder="1234567890" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-ga-id">Google Analytics 4 Measurement ID</label>
+              <input id="lf-ga-id" type="text" value="${escapeHtml(clip.gaMeasurementId || '')}" placeholder="G-XXXXXXXXXX" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-tiktok-pixel">TikTok Pixel ID</label>
+              <input id="lf-tiktok-pixel" type="text" value="${escapeHtml(clip.tiktokPixelId || '')}" placeholder="C1A2B3C4D5E6F7G8H9" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-gtm-id">Google Tag Manager ID</label>
+              <input id="lf-gtm-id" type="text" value="${escapeHtml(clip.gtmId || '')}" placeholder="GTM-XXXXXXX" />
+              <span style="font-size:11px;color:var(--text-dim)">These fire a lead event on published videos only (not in the editor preview). If your Tag Manager already sends leads to Google Analytics, use one or the other so leads aren't counted twice.</span>
             </div>
             <div class="clip-editor__field">
               <button id="lf-download-leads" class="mini-btn" style="width:100%" >Download leads${(clip._submittedLeads || []).length ? ` (${(clip._submittedLeads || []).length} this session)` : ''}</button>
@@ -3634,6 +3919,14 @@ export function TimelineEditorPage() {
         clip.privacyPolicyLink = e.target.value;
         updatePreview(clip);
       });
+      els.clipEditorContainer.querySelector('#lf-success-msg').addEventListener('input', (e) => { clip.successMessage = e.target.value; });
+      els.clipEditorContainer.querySelector('#lf-after-action').addEventListener('change', (e) => {
+        clip.afterSubmitAction = e.target.value;
+        els.clipEditorContainer.querySelector('#lf-after-extra').hidden = clip.afterSubmitAction !== 'button' && clip.afterSubmitAction !== 'redirect';
+        els.clipEditorContainer.querySelector('#lf-after-btn-wrap').hidden = clip.afterSubmitAction !== 'button';
+      });
+      els.clipEditorContainer.querySelector('#lf-after-url').addEventListener('input', (e) => { clip.afterSubmitUrl = e.target.value.trim(); });
+      els.clipEditorContainer.querySelector('#lf-after-btn').addEventListener('input', (e) => { clip.afterSubmitButtonText = e.target.value; });
       els.clipEditorContainer.querySelector('#lf-skip-enabled').addEventListener('change', (e) => {
         clip.skipButtonEnabled = e.target.checked;
         updatePreview(clip);
@@ -3806,36 +4099,71 @@ export function TimelineEditorPage() {
         });
       });
       els.clipEditorContainer.querySelector('#lf-webhook-test').addEventListener('click', async () => {
-        const urls = [clip.webhookUrl, clip.webhookUrl2, clip.webhookUrl3].filter(Boolean);
+        const urls = webhookUrlsFor({ webhookEnabled: true, webhookUrl: clip.webhookUrl, webhookUrl2: clip.webhookUrl2, webhookUrl3: clip.webhookUrl3 });
         const resultEl = els.clipEditorContainer.querySelector('#lf-webhook-test-result');
         if (!urls.length) {
-          resultEl.textContent = 'No webhook URL configured';
+          resultEl.textContent = 'No valid https webhook URL configured';
           return;
         }
         resultEl.textContent = 'Testing...';
-        const results = await Promise.allSettled(urls.map((url) => fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ test: true, source: 'lead-form-test', clipId: clip.id }),
-        })));
-        const failures = results.filter((r) => r.status === 'rejected' || (r.value && !r.value.ok));
-        if (failures.length) {
-          resultEl.textContent = `${failures.length}/${urls.length} failed`;
-          showToast('Webhook test failed for one or more URLs', 'error');
-        } else {
-          resultEl.textContent = `${urls.length}/${urls.length} succeeded`;
-          showToast('Webhook test succeeded', 'success');
-        }
+        const sample = Object.fromEntries(leadFieldTokens(clip.fields || []).map((t) => [t, /MAIL/.test(t) ? 'test@example.com' : 'Test']));
+        const res = await runWebhookTest(supabase, urls, {
+          kind: 'lead-form', projectId: state.projectId || null, clipId: clip.id, data: sample, submittedAt: new Date().toISOString(),
+        });
+        resultEl.textContent = webhookTestMessage(res);
+        showToast(res.failed ? 'Webhook test failed for one or more URLs' : 'Webhook test succeeded', res.failed ? 'error' : 'success');
       });
+      els.clipEditorContainer.querySelector('#lf-webhook-log').addEventListener('click', async () => {
+        const out = els.clipEditorContainer.querySelector('#lf-webhook-log-result');
+        out.textContent = 'Loading...';
+        const r = await fetchDeliveries(supabase);
+        out.textContent = r.ok ? deliveriesSummary(r.rows) : `${r.error} (sign in to see deliveries)`;
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-secret').addEventListener('click', async () => {
+        const out = els.clipEditorContainer.querySelector('#lf-webhook-secret-result');
+        out.textContent = 'Loading...';
+        const r = await fetchSigningSecret(supabase);
+        if (!r.ok) out.textContent = r.error;
+        else if (!r.secret) out.textContent = 'Signing is not set up on the server yet';
+        else out.textContent = `${r.secret} — verify X-Remix-Signature (t=…,v1=HMAC-SHA256 of "t.body")`;
+      });
+      {
+        const espStatus = els.clipEditorContainer.querySelector('#lf-esp-status');
+        const showEsp = async () => { espStatus.textContent = integrationStatusText(clip.espProvider, await fetchIntegrations(supabase)); };
+        els.clipEditorContainer.querySelector('#lf-esp-provider').addEventListener('change', (e) => {
+          clip.espProvider = e.target.value;
+          els.clipEditorContainer.querySelector('#lf-esp-extra').hidden = !clip.espProvider;
+          els.clipEditorContainer.querySelector('#lf-esp-list-label').textContent = espListLabel(clip.espProvider);
+          els.clipEditorContainer.querySelector('#lf-esp-connect').textContent = `Connect ${espName(clip.espProvider) || 'account'}`;
+          if (clip.espProvider) showEsp(); else espStatus.textContent = '';
+        });
+        els.clipEditorContainer.querySelector('#lf-esp-list').addEventListener('input', (e) => { clip.espListId = e.target.value.trim(); });
+        els.clipEditorContainer.querySelector('#lf-esp-connect').addEventListener('click', async () => {
+          const provider = clip.espProvider;
+          if (!provider) return;
+          const key = window.prompt(`Paste your ${espName(provider)} API key (it is verified, then stored encrypted and never shown again)`);
+          if (!key) { showEsp(); return; }
+          espStatus.textContent = 'Checking...';
+          const r = await saveIntegration(supabase, provider, key);
+          if (r.ok) await showEsp(); else espStatus.textContent = r.error;
+          showToast(r.ok ? `${espName(provider)} connected` : r.error, r.ok ? 'success' : 'error');
+        });
+        if (clip.espProvider) showEsp();
+      }
       els.clipEditorContainer.querySelector('#lf-email-enabled').addEventListener('change', (e) => {
         clip.emailNotificationEnabled = e.target.checked;
-        els.clipEditorContainer.querySelector('#lf-email-address').disabled = !e.target.checked;
+        ['', '2', '3'].forEach((n) => { els.clipEditorContainer.querySelector(`#lf-email-address${n}`).disabled = !e.target.checked; });
       });
-      els.clipEditorContainer.querySelector('#lf-email-address').addEventListener('input', (e) => {
-        clip.notificationEmail = e.target.value;
+      [['', 'notificationEmail'], ['2', 'notificationEmail2'], ['3', 'notificationEmail3']].forEach(([n, key]) => {
+        els.clipEditorContainer.querySelector(`#lf-email-address${n}`).addEventListener('input', (e) => {
+          clip[key] = e.target.value;
+        });
       });
       els.clipEditorContainer.querySelector('#lf-fb-pixel').addEventListener('input', (e) => {
         clip.fbPixelId = e.target.value;
+      });
+      [['#lf-ga-id', 'gaMeasurementId'], ['#lf-tiktok-pixel', 'tiktokPixelId'], ['#lf-gtm-id', 'gtmId']].forEach(([sel, key]) => {
+        els.clipEditorContainer.querySelector(sel).addEventListener('input', (e) => { clip[key] = e.target.value.trim(); });
       });
       els.clipEditorContainer.querySelector('#lf-download-leads').addEventListener('click', () => {
         // Stored leads (lead-capture backend) merged with this session's.
@@ -4117,7 +4445,7 @@ export function TimelineEditorPage() {
       return !!remotionModel && (remotionModel.layers.length > 0 || remotionModel.audio.length > 0);
     }
     function buildEngineModel() {
-      return timelineToComposition(state, { fps: ENGINE_FPS, quality: '1080p', profile: getActivePersonalizationProfile() });
+      return timelineToComposition(state, { fps: ENGINE_FPS, quality: '1080p', profile: getActivePersonalizationProfile(), proxies: state.proxyEnabled ? proxyMap() : null });
     }
     function percentToFrame(p) {
       return Math.round(((p / 100) * (state.timelineSeconds || 60)) * ENGINE_FPS);
@@ -5032,6 +5360,13 @@ export function TimelineEditorPage() {
     function renderSchemaAddonEditor(clip) {
       const addon = getAddon(clip.type);
       clip.addon = addonOptions(clip);
+      // A design clip's settings offer a picker of designs: load the catalog once, then redraw with it.
+      if (clip.type === 'overlay-studio-design' && studioDesignChoices === null) {
+        studioDesignChoices = []; // placeholder while loading (and if it fails): the form falls back to a plain id field
+        listStudioDesigns().catch(() => { studioDesignChoices = []; }).then(() => {
+          if (state.selectedClipId === clip.id) renderSchemaAddonEditor(clip);
+        });
+      }
       const T = state.timelineSeconds || 60;
       const { start, end } = clipTimeRange(clip, T);
       const timing = addon.timing || ['start', 'end'];
@@ -5079,10 +5414,14 @@ export function TimelineEditorPage() {
       activeAddonEditor?.destroy();
       activeAddonEditor = renderAddonEditor(els.clipEditorContainer.querySelector('#addonOptionsForm'), {
         fields: addon.fields,
-        options: clip.addon,
+        fieldsFor: addon.fieldsFor ? (o) => addon.fieldsFor(o, { designs: studioDesignChoices || [] }) : undefined,
+        options: addonOptions(clip),
         idPrefix: `addon-${clip.id}`,
         services: addonEditorServices,
-        onFieldChange: addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined,
+        onFieldChange: clip.type === 'overlay-studio-design'
+          // Choosing another design resets its text slots to that design's own (the place, size and opacity stay).
+          ? (key, next) => (key === 'designId' && studioDesignMap.get(next.designId) ? switchDesignOptions(next, studioDesignMap.get(next.designId)) : next)
+          : (addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined),
         onChange: (next) => {
           const prevDuration = clip.addon?.durationSec;
           clip.addon = next;
@@ -5093,7 +5432,8 @@ export function TimelineEditorPage() {
             clip.width = Math.min(100 - clip.left, (next.durationSec / T) * 100);
           }
           renderTracks();
-          if (addon.category !== 'overlay') updatePreview(clip);
+          if (!isEditorOverlay(addon)) updatePreview(clip);
+          else renderOverlayLayer();
           debouncedSave();
         },
       });
@@ -5152,6 +5492,47 @@ export function TimelineEditorPage() {
         options: lb,
         fieldsFor: (o) => listBuilderFields(o),
         idPrefix: 'listbuilder',
+        services: {
+          fieldAction: async (action, config, { setResult }) => {
+            if (action === 'webhookLog') {
+              setResult('Loading...');
+              const r = await fetchDeliveries(supabase);
+              setResult(r.ok ? deliveriesSummary(r.rows) : `${r.error} (sign in to see deliveries)`);
+              return;
+            }
+            if (action === 'signingSecret') {
+              setResult('Loading...');
+              const r = await fetchSigningSecret(supabase);
+              if (!r.ok) setResult(r.error);
+              else if (!r.secret) setResult('Signing is not set up on the server yet');
+              else setResult(`${r.secret} — verify X-Remix-Signature (t=…,v1=HMAC-SHA256 of "t.body")`);
+              return;
+            }
+            if (action === 'connectEsp') {
+              const provider = config.espProvider;
+              if (!provider) return;
+              const key = window.prompt(`Paste your ${espName(provider)} API key (it is verified, then stored encrypted and never shown again)`);
+              if (!key) { setResult(integrationStatusText(provider, await fetchIntegrations(supabase))); return; }
+              setResult('Checking...');
+              const r = await saveIntegration(supabase, provider, key);
+              setResult(r.ok ? integrationStatusText(provider, await fetchIntegrations(supabase)) : r.error);
+              showToast(r.ok ? `${espName(provider)} connected` : r.error, r.ok ? 'success' : 'error');
+              return;
+            }
+            if (action !== 'testWebhooks') return;
+            const urls = webhookUrlsFor(listBuilderWebhookConfig(config));
+            if (!urls.length) { setResult('No valid https webhook URL configured'); return; }
+            setResult('Testing...');
+            const tokens = leadFieldTokens(config.elements);
+            const sample = Object.fromEntries(tokens.map((t) => [t, /MAIL/.test(t) ? 'test@example.com' : 'Test']));
+            const res = await runWebhookTest(supabase, urls, {
+              kind: config.kind || 'list-builder', projectId: state.projectId || null, clipId: 'list-builder', data: sample,
+              submittedAt: new Date().toISOString(),
+            });
+            setResult(webhookTestMessage(res));
+            showToast(res.failed ? 'Webhook test failed for one or more URLs' : 'Webhook test succeeded', res.failed ? 'error' : 'success');
+          },
+        },
         onChange: (next) => {
           const kindChanged = next.kind !== state.listBuilder.kind;
           state.listBuilder = kindChanged ? switchListBuilderKind(next, next.kind) : next;
@@ -5228,7 +5609,7 @@ export function TimelineEditorPage() {
     // Shared lead capture: stores via the lead-capture edge function, which
     // also forwards webhooks server-side; falls back to posting webhooks from
     // the browser if the backend is unreachable.
-    async function captureLead({ clipId, kind, data, config, notificationEmail }) {
+    async function captureLead({ clipId, kind, data, config, notificationEmails = [] }) {
       const webhooks = webhookUrlsFor(config);
       const result = await submitLead(supabase, {
         projectId: state.projectId || currentTimelineId(state) || null,
@@ -5236,7 +5617,7 @@ export function TimelineEditorPage() {
         kind,
         data,
         webhooks,
-        notificationEmail,
+        notificationEmails,
         preview: true,
       });
       if (result.error) {
@@ -5251,7 +5632,10 @@ export function TimelineEditorPage() {
       if (res.forwarded || res.failed) {
         parts.push(res.failed ? `${res.failed} webhook(s) failed` : `sent to ${res.forwarded} webhook(s)`);
       }
-      if (emailConfigured) parts.push('email notifications need an email provider (not connected yet)');
+      if (res.email === 'sent') parts.push(res.emailCount > 1 ? `notification email sent to ${res.emailCount} people` : 'notification email sent');
+      else if (res.email === 'failed') parts.push('notification email failed');
+      else if (res.email === 'not_configured') parts.push('notification email not set up on the server yet');
+      else if (emailConfigured) parts.push('notification email not sent — check the address');
       return parts.join(' · ');
     }
 
@@ -5299,7 +5683,7 @@ export function TimelineEditorPage() {
             kind: lb.kind,
             data,
             config: lb.kind === 'personalizer' ? null : listBuilderWebhookConfig(lb),
-            notificationEmail: lb.emailEnabled ? lb.emailAddress : '',
+            notificationEmails: leadNotifyEmails(lb.emailEnabled, [lb.emailAddress, lb.emailAddress2, lb.emailAddress3]),
           });
           lb._localLeads = [...(lb._localLeads || []), { ...data, submittedAt: new Date().toISOString(), _stored: !!res.stored }];
           if (lb.kind === 'personalizer') {
@@ -5311,7 +5695,7 @@ export function TimelineEditorPage() {
             window.fbq('trackSingle', lb.fbPixelId, 'Lead', data);
           }
           if (!preview) lb._submitted = true;
-          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : `${leadResultMessage(res, lb.emailEnabled && lb.emailAddress)} — {{tokens}} in the video now use these answers`, res.failed ? 'error' : 'success');
+          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : `${leadResultMessage(res, leadNotifyEmails(lb.emailEnabled, [lb.emailAddress, lb.emailAddress2, lb.emailAddress3]).length > 0)} — {{tokens}} in the video now use these answers`, res.failed ? 'error' : 'success');
           resume();
           return '';
         },
@@ -5329,11 +5713,22 @@ export function TimelineEditorPage() {
     // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
     var activeCaptionsPanel = null;
     // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
-    var pendingAutoCaptions = null;
     // eslint-disable-next-line no-var -- background-removal jobs outlive the clip editor
     var bgJobs = new Map();
     // eslint-disable-next-line no-var
     var activeBgPanel = null;
+    // eslint-disable-next-line no-var -- free (on-device) and MuAPI AI sections of the clip editor
+    var activeLocalAIPanel = null;
+    // eslint-disable-next-line no-var
+    var activeMuapiPanel = null;
+    // eslint-disable-next-line no-var -- which MuAPI tool to open next ('fill' | 'extend' | ...)
+    var pendingMuapiFocus = null;
+    // eslint-disable-next-line no-var -- clip editor "Edit" section (speed, flip, in/out, sync, proxies)
+    var activeEditPanel = null;
+    // eslint-disable-next-line no-var -- keyframe lanes under the Keyframes panel
+    var activeLanesPanel = null;
+    // eslint-disable-next-line no-var
+    var localAIPanel = null;
     // eslint-disable-next-line no-var
     var editorClipId = null;
     const BG_REMOVAL_TYPES = new Set(['video', 'image', 'overlay-image']);
@@ -5491,7 +5886,127 @@ export function TimelineEditorPage() {
           return { filename };
         },
         confirm: (message) => Promise.resolve(window.confirm(message)),
+        /** Free on-device AI + MuAPI generation (src/lib/editor/ml, src/lib/editor/ai). */
+        aiEditor: () => localAIEditor(),
       };
+    }
+
+    // ---------------------------------------------------------------
+    // Free (on-device) and MuAPI AI: the editor contract used by
+    // src/lib/editor/ml/aiActions.js and src/lib/editor/ai/timelineMuapi.js.
+    function localAIEditor() {
+      const T = () => state.timelineSeconds || 60;
+      const toLeftWidth = (clip) => {
+        if (clip.start !== undefined && clip.end !== undefined) {
+          clip.left = (Number(clip.start) / T()) * 100;
+          clip.width = ((Number(clip.end) - Number(clip.start)) / T()) * 100;
+          delete clip.start;
+          delete clip.end;
+        }
+        return clip;
+      };
+      return {
+        timelineSeconds: T,
+        playheadSec,
+        clipStart: clipStartSec,
+        clipDuration: clipDurationSec,
+        setClipTimes(c, start, end) {
+          c.left = (start / T()) * 100;
+          c.width = ((end - start) / T()) * 100;
+          delete c.start;
+          delete c.end;
+        },
+        allClips,
+        assets: () => [...(state.assets || []), ...(state.mediaLibrary || [])],
+        getClip: (id) => allClips().find((c) => String(c.id) === String(id)) || null,
+        trackOf: (clip) => state.tracks.find((t) => (t.items || t.clips || []).some((c) => c.id === clip?.id)) || null,
+        ensureTrack: (name, type) => agentEditor().ensureTrack(name, type),
+        insertClip(clip, kind) {
+          return agentEditor().insertClip(clip, kind);
+        },
+        addToTrack(track, clip) {
+          const target = track || state.tracks[0];
+          if (!target.items) target.items = target.clips || [];
+          if (!clip.id) clip.id = `clip-${Date.now().toString(36)}`;
+          target.items.push(toLeftWidth(clip));
+          return clip;
+        },
+        removeClip: (id) => removeClipById(id),
+        mediaSrc: (clip) => clipMediaSrc(clip),
+        setMediaSrc: (clip, url) => setClipMediaSrc(clip, url),
+        snapshot: () => saveStateSnapshot(state),
+        commit() {
+          renderTracks();
+          scheduleEngineUpdate();
+          debouncedSave();
+        },
+        refresh: (clipId) => { if (editorClipId === clipId) renderClipEditor(clipId); },
+        /** Store a processed file: Supabase Storage URL, or a session-only local URL. */
+        async storeBlob(blob, name, { requireRemote = false } = {}) {
+          const file = blob instanceof File ? blob : new File([blob], name || 'file', { type: blob.type || 'application/octet-stream' });
+          let url = null;
+          try {
+            const r = await uploadFileToStorage(file);
+            url = typeof r === 'string' ? r : r?.url || null;
+          } catch (err) {
+            console.warn('[Timeline AI] upload failed', err);
+          }
+          if (url) return url;
+          if (requireRemote) throw new Error('Sign in so frames can be uploaded for MuAPI to read');
+          const { localMediaUrl } = await import('../lib/editor/remotion/localMedia.js');
+          showToast('Kept for this session only (sign in to save the file with the project)', 'info');
+          return localMediaUrl(blob);
+        },
+        growTimeline(end) {
+          if (end > T()) agentEditor().setTimelineSeconds(Math.min(600, Math.ceil(end + 0.5)));
+        },
+        toast: (message, type) => showToast(message, type),
+      };
+    }
+
+    /** Fill Gap / Extend shortcuts: open the selected clip's "AI generate" section. */
+    function openMuapiTool(tool) {
+      const clip = allClips().find((c) => c.id === state.selectedClipId);
+      if (!clip || !['video', 'image', 'overlay-image'].includes(clip.type)) {
+        showToast('Select a video or image clip first, then use Fill Gap or Extend', 'info');
+        return Promise.resolve({ success: false, tool, error: 'Select a video or image clip first' });
+      }
+      pendingMuapiFocus = tool === 'extend' ? 'extend' : 'fill';
+      openPanel('clipSettingsPanel');
+      renderClipEditor(clip.id);
+      return Promise.resolve({ success: false, pending: true, tool, message: 'Opened in Clip Editor → AI generate' });
+    }
+
+    // eslint-disable-next-line no-var -- created on first open
+    var storyboardPanel = null;
+    async function mountStoryboardPanel() {
+      const host = root.querySelector('#storyboardHost');
+      if (storyboardPanel || !host) return;
+      const { renderStoryboardPanel } = await import('../lib/editor/ai/storyboardPanel.js');
+      if (storyboardPanel) return;
+      storyboardPanel = renderStoryboardPanel(host, { editor: { ...localAIEditor(), selectedClipId: () => state.selectedClipId } });
+    }
+
+    async function mountLocalAIPanel() {
+      const host = root.querySelector('#localAIHost');
+      if (localAIPanel || !host) return;
+      const { renderLocalAIPanel } = await import('../lib/editor/ml/localAIPanel.js');
+      if (localAIPanel) return;
+      localAIPanel = renderLocalAIPanel(host, {
+        editor: {
+          ...localAIEditor(),
+          seek: (sec) => seekToSeconds(sec),
+          // Music (presets, composition plan) is generated by src/lib/editor/ai/music.js on MuAPI.
+          generateMusic: true,
+          projectContext: () => buildChatContext(),
+          select: (id) => {
+            state.selectedClipId = id;
+            renderTracks();
+            openPanel('clipSettingsPanel');
+            renderClipEditor(id);
+          },
+        },
+      });
     }
 
     // eslint-disable-next-line no-var -- created on first use
@@ -5539,15 +6054,224 @@ export function TimelineEditorPage() {
     }
 
     // ---------------------------------------------------------------
+    // Projects: durable, per-owner project library (timeline_projects).
+    // The editor keeps working from localStorage; a project is that same state
+    // mirrored to Supabase under state.projectId. Publishing and rendering never
+    // overwrite the editable source.
+    // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
+    var projectsPanel = null;
+    // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
+    var cloudSaveTimer = null;
+    // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
+    var cloudSaveWarned = false;
+    async function projectStore() { return import('../lib/editor/projectLibrary/projectStore.js'); }
+    function scheduleCloudSave() {
+      if (!state.projectId || !window.Clerk?.user) return;
+      if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = setTimeout(async () => {
+        cloudSaveTimer = null;
+        try {
+          const store = await projectStore();
+          await store.saveProjectData(await publishOwnerClient(), state.projectId, state);
+          cloudSaveWarned = false;
+        } catch (err) {
+          if (!cloudSaveWarned) { cloudSaveWarned = true; showToast(`Cloud save failed (kept locally): ${err.message || err}`, 'error'); }
+        }
+      }, 3000);
+      cleanup.addTimer(cloudSaveTimer);
+    }
+    async function saveAsProject({ projectName, tags } = {}) {
+      const store = await projectStore();
+      const client = await publishOwnerClient();
+      syncCurrentTimelineFromState(state);
+      const name = store.cleanName(projectName, state.projectTitle);
+      if (state.projectId) {
+        await store.renameProject(client, state.projectId, name);
+        if (Array.isArray(tags)) await store.setProjectTags(client, state.projectId, tags);
+        await store.saveProjectData(client, state.projectId, state);
+      } else {
+        const row = await store.createProject(client, { name, state, tags });
+        state.projectId = row.id;
+        await store.saveProjectData(client, row.id, state); // persist projectId inside data
+      }
+      state.projectTitle = name;
+      if (els.projectTitle) els.projectTitle.textContent = name;
+      saveProjectToStorage(state);
+      projectsPanel?.refresh();
+      showToast(`Saved project "${name}"`, 'success');
+      captureProjectThumbnail();
+    }
+    async function openProjectRow(row) {
+      if (!row) return;
+      if (row.id === state.projectId) { showToast('This project is already open', 'info'); return; }
+      // Library rows are summaries without `data`; opening one without it would later cloud-save an empty timeline
+      // over the project's real source, so load the full project first.
+      if (!row.data) {
+        try { row = await (await projectStore()).loadProject(await publishOwnerClient(), row.id); } catch { row = null; }
+        if (!row?.data) { showToast('Could not load that project', 'error'); return; }
+      }
+      if (!state.projectId && !window.confirm('Your current timeline is not saved as a project and will be replaced. Open the selected project anyway?')) return;
+      // Flush the current project first so no edits are lost.
+      if (state.projectId) {
+        try { syncCurrentTimelineFromState(state); await (await projectStore()).saveProjectData(await publishOwnerClient(), state.projectId, state); } catch { /* local copy remains */ }
+      }
+      const data = { ...(row.data || {}), projectId: row.id, projectTitle: row.name };
+      localStorage.setItem('timeline-editor-project', JSON.stringify(data));
+      window.location.reload();
+    }
+    async function mountProjectsPanel() {
+      const host = root.querySelector('#projectsBody');
+      if (!host) return;
+      if (projectsPanel) { projectsPanel.refresh(); return; }
+      const { renderProjectsPanel } = await import('../lib/editor/projectLibrary/projectsPanel.js');
+      projectsPanel = renderProjectsPanel(host, {
+        getClient: publishOwnerClient,
+        getCurrentProjectId: () => state.projectId || null,
+        async getPublished(ids) {
+          if (!ids.length) return {};
+          const client = await publishOwnerClient();
+          const me = window.Clerk?.user?.id;
+          const { data } = await client.from('published_videos').select('id, published, project_id, clerk_user_id').in('project_id', ids);
+          const out = {};
+          for (const v of data || []) if (v.clerk_user_id === me && v.project_id) out[v.project_id] = v;
+          return out;
+        },
+        async onCreate() {
+          if (state.projectId) { showToast('The open timeline is already a project', 'info'); return; }
+          openSaveProjectModal(state, showToast);
+        },
+        onOpen: openProjectRow,
+        onPreview(row) { if (row?.id === state.projectId) { showToast('Use the player above to preview the open project', 'info'); } else { openProjectRow(row); } },
+        onExport(row) { if (row?.id === state.projectId) openExportModal(state, showToast); else showToast('Open the project, then choose Export', 'info'); },
+        onShare(row) { if (row?.id === state.projectId) openPanel('sharePanel'); else showToast('Open the project, then use Share to publish', 'info'); },
+        onToast: showToast,
+        // Card numbers come from the owner-only analytics RPCs; absent rows stay "unavailable".
+        async getStats(ids) {
+          const client = await publishOwnerClient();
+          const { periodRange } = await import('../lib/editor/projectLibrary/analytics/analyticsData.js');
+          const { from, to } = periodRange('30d');
+          const { data, error } = await client.rpc('owner_video_stats', { p_from: from, p_to: to });
+          if (error) throw error;
+          const notes = await client.from('owner_notifications').select('project_id, type').is('read_at', null).in('project_id', ids);
+          const unread = {}; const follow = {};
+          for (const n of notes.data || []) { unread[n.project_id] = (unread[n.project_id] || 0) + 1; if (['followup_opportunity', 'high_interest'].includes(n.type)) follow[n.project_id] = true; }
+          const out = {};
+          for (const r of data || []) {
+            if (!r.project_id) continue;
+            const plays = Number(r.plays) || 0; const uniq = Number(r.unique_viewers) || 0;
+            out[r.project_id] = {
+              plays, unique_viewers: plays > 0 && uniq === 0 ? null : uniq,
+              completion_pct: r.completion_pct == null ? null : Number(r.completion_pct),
+              cta_clicks: (Number(r.cta_clicks) || 0) + (Number(r.call_clicks) || 0), leads: Number(r.leads) || 0,
+              needs_follow_up: !!follow[r.project_id], unread_notifications: unread[r.project_id] || 0,
+            };
+          }
+          return out;
+        },
+        async getPortfolio() {
+          const client = await publishOwnerClient();
+          const { periodRange } = await import('../lib/editor/projectLibrary/analytics/analyticsData.js');
+          const { from, to } = periodRange('30d');
+          const { data, error } = await client.rpc('owner_portfolio_summary', { p_from: from, p_to: to });
+          if (error) throw error;
+          return data;
+        },
+        async getUnread() { return (await import('../lib/editor/projectLibrary/tabsData.js')).unreadCount(await publishOwnerClient()); },
+        tabs: await projectTabs(),
+      });
+    }
+    // Detail-tab renderers (Analytics = the supplied dashboard component; the rest share its look).
+    async function projectTabs() {
+      const [{ audienceTab, retargetTab, notificationsTab, shareTab }, { mountAnalyticsTab }] = await Promise.all([
+        import('../lib/editor/projectLibrary/projectTabs.js'),
+        import('../lib/editor/projectLibrary/analytics/mountAnalyticsTab.jsx'),
+      ]);
+      const tabDeps = {
+        getClient: publishOwnerClient,
+        navigate: (page) => import('../lib/router.js').then((m) => m.navigate(page)),
+        onToast: showToast,
+        onUnreadChanged: () => { projectsPanel?.refresh(); window.dispatchEvent(new Event('remix:notifications-changed')); },
+      };
+      return {
+        audience: audienceTab(tabDeps),
+        retarget: retargetTab(tabDeps),
+        notifications: notificationsTab(tabDeps),
+        share: shareTab({ ...tabDeps, getOpenProjectId: () => state.projectId || null, mountShare: (host) => createSharePanel(host) }),
+        analytics: (panel, ctx) => {
+          let stop = null; let cancelled = false;
+          publishOwnerClient().then((client) => {
+            if (cancelled) return;
+            stop = mountAnalyticsTab(panel, ctx, {
+              client,
+              onPublish: () => (ctx.project.id === state.projectId ? openPanel('sharePanel') : showToast('Open the project, then use Share to publish', 'info')),
+              onOpenOpportunity: (id) => ctx.openTab('notifications', { focusId: id }),
+              onCreateFollowup: () => ctx.openTab('retarget'),
+            });
+          }).catch((err) => { panel.textContent = err.message; });
+          return () => { cancelled = true; stop?.(); };
+        },
+      };
+    }
+    async function recordRender(info) {
+      if (!state.projectId || !window.Clerk?.user) return;
+      try { await (await projectStore()).setRenderInfo(await publishOwnerClient(), state.projectId, info); projectsPanel?.refresh(); } catch { /* non-fatal */ }
+    }
+    // One representative frame of the timeline becomes the project's thumbnail (best-effort, never blocks).
+    let thumbBusy = false;
+    async function captureProjectThumbnail() {
+      if (thumbBusy || !state.projectId || !window.Clerk?.user) return;
+      thumbBusy = true;
+      try {
+        const [{ captureThumbnail }, { renderStill }, { timelineToComposition }] = await Promise.all([
+          import('../lib/editor/projectLibrary/thumbnail.js'),
+          import('../lib/editor/remotion/exportClient.js'),
+          import('../lib/editor/remotion/timelineToComposition.js'),
+        ]);
+        syncCurrentTimelineFromState(state);
+        const url = await captureThumbnail(state, {
+          fps: ENGINE_FPS,
+          buildModel: (st) => timelineToComposition(st, { fps: ENGINE_FPS, quality: '720p', profile: getActivePersonalizationProfile() }),
+          renderStill,
+          upload: uploadFileToStorage,
+        });
+        if (url) { await (await projectStore()).setThumbnail(await publishOwnerClient(), state.projectId, url); projectsPanel?.refresh(); }
+      } catch { /* the card keeps its placeholder */ } finally { thumbBusy = false; }
+    }
+
+    // ---------------------------------------------------------------
     // Share: publish the timeline as an interactive video (/watch/<id>).
     // eslint-disable-next-line no-var -- created on first open
     var sharePanel = null;
+    // Signed in: the account's client. Signed out: a private guest identity (lib/guestIdentity.js), so publishing,
+    // personal links and lead lists work without an account. Cloud projects and thumbnails stay signed-in only.
+    const isGuest = () => !window.Clerk?.user;
     async function publishOwnerClient() {
-      if (!window.Clerk?.user) throw new Error('Sign in to publish videos');
+      if (isGuest()) return (await import('../lib/guestIdentity.js')).getGuestOwnerClient();
       await supabase.refreshUserHeader?.();
       if (!supabase.supabase) throw new Error('The video service is unavailable — check your connection');
       return supabase.supabase;
     }
+    // After signing in: offer to move what this browser published as a guest into the account (asked once per page load).
+    let guestClaimAsked = false;
+    async function offerGuestClaim() {
+      if (guestClaimAsked || !window.Clerk?.user) return;
+      try {
+        const guest = await import('../lib/guestIdentity.js');
+        if (!guest.hasGuestIdentity()) return;
+        guestClaimAsked = true;
+        if (!window.confirm('Videos and links you published without an account are still in this browser. Move them to your account so you keep them?')) return;
+        const token = await window.Clerk.session?.getToken?.();
+        if (!token) throw new Error('Please try again in a moment.');
+        const { moved } = await guest.claimGuestContent(token);
+        showToast(`Moved ${moved.videos} video${moved.videos === 1 ? '' : 's'} and ${moved.links} link${moved.links === 1 ? '' : 's'} to your account`, 'success');
+        sharePanel?.refresh?.();
+      } catch (err) {
+        guestClaimAsked = false;
+        showToast(err?.message || 'Could not move your videos to your account', 'error');
+      }
+    }
+    cleanup.addTimer(setTimeout(offerGuestClaim, 2500));
+    cleanup.addTimer(setTimeout(offerGuestClaim, 9000));
     const publishedKey = () => String(currentTimelineId(state) || 'default');
     let scopesMounted = null;
     async function mountColorScopesPanel() {
@@ -5576,15 +6300,25 @@ export function TimelineEditorPage() {
     async function mountSharePanel() {
       const host = root.querySelector('#shareBody');
       if (sharePanel || !host) return;
+      sharePanel = await createSharePanel(host);
+    }
+    // Builds the Share panel in any host: the rail panel, or the open project's "Publish & Share" tab.
+    // What each contact's stored personal link holds (see lib/editor/publish/personalLinksClient.js).
+    function personalLinkItems(contacts) {
+      const tokens = projectTokens(state.tracks);
+      return contacts.map((p) => ({ contactId: String(p.id), name: contactName(p), variables: personalVariables(p, tokens, { maxLength: 500 }) }));
+    }
+    async function createSharePanel(host) {
       const pub = await import('../lib/editor/publish/publishClient.js');
+      const pl = await import('../lib/editor/publish/personalLinksClient.js');
       const { renderSharePanel } = await import('../lib/editor/publish/sharePanel.js');
       const { localMediaBlob } = await import('../lib/editor/remotion/localMedia.js');
       const videoId = () => (state.publishedVideos || {})[publishedKey()] || null;
-      sharePanel = renderSharePanel(host, {
+      return renderSharePanel(host, {
         defaultTitle: state.projectTitle || 'Untitled video',
         async getInfo() {
           const id = videoId();
-          if (!id || !window.Clerk?.user) return null;
+          if (!id) return null;
           return pub.getMyVideo(await publishOwnerClient(), id);
         },
         async publish({ title }) {
@@ -5594,14 +6328,39 @@ export function TimelineEditorPage() {
             renderTracks();
             scheduleEngineUpdate();
           }
+          // Interest mapping lives with the project (Projects > Retarget); publishing carries it to viewers.
+          if (state.projectId) {
+            try { state.interestMap = (await (await projectStore()).loadProject(client, state.projectId))?.settings?.interestMap || undefined; } catch { /* publish without a mapping */ }
+          }
           const project = pub.preparePublishProject(state, { title });
           const id = videoId() || pub.makeSlug();
-          const info = await pub.publishVideo(client, { id, project });
+          const info = await pub.publishVideo(client, { id, project, projectId: state.projectId || null });
           state.publishedVideos = { ...(state.publishedVideos || {}), [publishedKey()]: id };
           debouncedSave();
+          // With a business name already chosen, give a new video a readable
+          // link automatically (suffix on collision); owners can rename it later.
+          try {
+            const mine = await pub.getMyBusiness(client);
+            if (mine.business && !info.slug) {
+              const base = pub.slugify(title, 'video');
+              for (let n = 1; n <= 5; n += 1) {
+                try { await pub.setVideoSlug(client, id, n === 1 ? base : `${base}-${n}`.slice(0, 48)); break; } catch (e) { if (!/already taken/i.test(e.message)) break; }
+              }
+            }
+          } catch { /* the /watch/<id> link always works */ }
           showToast('Published — copy the link to share it', 'success');
-          return { ...info, published: true };
+          captureProjectThumbnail();
+          return { ...(await pub.getMyVideo(client, id).catch(() => info)), published: true };
         },
+        guest: isGuest,
+        async saveLink({ business, slug }) {
+          const client = await publishOwnerClient();
+          if (business) await pub.claimBusinessSlug(client, business);
+          await pub.setVideoSlug(client, videoId(), slug);
+          return pub.getMyVideo(client, videoId());
+        },
+        async setPrivacy(privacy) { await pub.setVideoPrivacy(await publishOwnerClient(), videoId(), privacy); },
+        async listRevisions() { return pub.listRevisions(await publishOwnerClient(), videoId()); },
         async setPublished(on) {
           await pub.setPublished(await publishOwnerClient(), videoId(), on);
           showToast(on ? 'Published' : 'Unpublished — the link no longer works', 'success');
@@ -5625,6 +6384,20 @@ export function TimelineEditorPage() {
             missing: gaps.get(p.id) || [],
             localImages: personalLinkIssues(p, tokens),
           }));
+        },
+        // Stored personal links (?p=<id>): one per contact; the owner can edit, renew, turn off or remove each.
+        links: {
+          list: async () => pl.listPersonalLinks(await publishOwnerClient(), videoId()),
+          sync: async () => pl.syncPersonalLinks(await publishOwnerClient(), videoId(), personalLinkItems(listContactProfiles(contactStore))),
+          update: async (id, patch) => pl.updatePersonalLink(await publishOwnerClient(), id, patch),
+          regenerate: async (id) => pl.regeneratePersonalLink(await publishOwnerClient(), id),
+          remove: async (id) => pl.deletePersonalLink(await publishOwnerClient(), id),
+          tokens: () => projectTokens(state.tracks),
+          label: (key) => TOKEN_DEFS.find((d) => d.key === key)?.label || key,
+          contact: (contactId) => {
+            const p = contactStore.getProfile?.(contactId);
+            return p ? { name: contactName(p), email: contactEmail(p), company: p?.contact?.company || p?.personalization?.business?.businessName || '' } : {};
+          },
         },
         // Views / plays / finishes / CTA clicks / leads per contact.
         fetchStats: async () => pub.fetchVideoStats(await publishOwnerClient(), videoId()),
@@ -5827,8 +6600,8 @@ export function TimelineEditorPage() {
 
     function renderClipEditor(clipId) {
       renderClipEditorBase(clipId);
-      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel].forEach((p) => p?.destroy());
-      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = activeBgPanel = null;
+      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel, activeLocalAIPanel, activeMuapiPanel, activeEditPanel, activeLanesPanel].forEach((p) => p?.destroy());
+      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = activeBgPanel = activeLocalAIPanel = activeMuapiPanel = activeEditPanel = activeLanesPanel = null;
       editorClipId = clipId;
       const clip = allClips().find((c) => c.id === clipId);
       if (!clip) return;
@@ -5848,6 +6621,62 @@ export function TimelineEditorPage() {
               onRestore: () => restoreBgRemoval(clip),
             });
           });
+      }
+
+      // Edit tools for media clips: speed, flip, source In/Out, audio sync, proxies.
+      if (['video', 'audio', 'image', 'overlay-image'].includes(clip.type)) {
+        const host = editorSection('clip-edit-tools', 'Edit');
+        import('../lib/editor/editPanel.js').then(({ renderEditPanel }) => {
+          if (!host.isConnected) return;
+          activeEditPanel = renderEditPanel(host, {
+            clip,
+            durationSec: clipDurationSec(clip),
+            proxyOn: !!state.proxyEnabled,
+            ops: {
+              setSpeed: (rate) => setClipSpeed(clip, rate),
+              toggleFlip: (axis) => {
+                saveStateSnapshot(state);
+                const k = axis === 'v' ? 'flipV' : 'flipH';
+                if (clip[k]) delete clip[k]; else clip[k] = true;
+                commitEdit();
+              },
+              setInOut: (inSec, outSec) => {
+                saveStateSnapshot(state);
+                editTools.setInOut(clip, inSec, outSec, tlSec());
+                commitEdit();
+              },
+              syncAudio: () => syncAudioClip(clip),
+              syncAll: () => syncAllAudio(),
+              toggleLink: () => toggleClipLink(clip),
+              humanize: async () => {
+                const actions = await import('../lib/editor/ml/aiActions.js');
+                await actions.humanizeCut(localAIEditor(), clip);
+              },
+              setProxy: (on, onProgress) => setProxyPlayback(on, onProgress),
+              addMarker: () => addMarkerAtPlayhead(),
+            },
+          });
+        });
+      }
+
+      // Paid generation on MuAPI (Fill Gap, Extend, Layers, Remove watermark).
+      if (['video', 'image', 'overlay-image'].includes(clip.type)) {
+        const host = editorSection('clip-muapi-ai', 'AI generate');
+        const focus = pendingMuapiFocus;
+        pendingMuapiFocus = null;
+        import('../lib/editor/ai/aiGeneratePanel.js').then(({ renderMuapiClipPanel }) => {
+          if (!host.isConnected) return;
+          activeMuapiPanel = renderMuapiClipPanel(host, { editor: localAIEditor(), clip, focus });
+        });
+      }
+
+      // Free AI that runs on the user's device (masking, depth, tags, audio, captions…).
+      if (['video', 'image', 'overlay-image', 'audio', 'captions'].includes(clip.type)) {
+        const host = editorSection('clip-local-ai', 'Free AI');
+        import('../lib/editor/ml/aiClipPanel.js').then(({ renderAIClipPanel }) => {
+          if (!host.isConnected) return;
+          activeLocalAIPanel = renderAIClipPanel(host, { editor: localAIEditor(), clip });
+        });
       }
 
       if (clip.type === 'video') {
@@ -5888,44 +6717,12 @@ export function TimelineEditorPage() {
 
       if (clip.type === 'captions') {
         const host = editorSection('clip-captions', 'Captions');
-        const auto = pendingAutoCaptions === clip.id;
-        pendingAutoCaptions = null;
         import('../lib/editor/remotion/captionsPanel.js').then(({ renderCaptionsPanel }) => {
           if (!host.isConnected) return;
           activeCaptionsPanel = renderCaptionsPanel(host, {
             captions: clip.captions || [],
             style: clip.captionStyle,
-            sources: mediaSourcesForCaptions(),
-            selectedSource: clip.sourceClipId ? String(clip.sourceClipId) : undefined,
-            autoTranscribe: auto,
-            currentMs: () => Math.max(0, (playheadSec() - clipStartSec(clip)) * 1000),
-            onSeek: (ms) => seekToSeconds(clipStartSec(clip) + ms / 1000),
-            onDownload: (name, text, mime) => downloadText(`${(clip.name || 'captions').replace(/[^\w-]+/g, '_')}.${name.split('.').pop()}`, text, mime),
-            onError: (err) => showToast(err?.message || 'Captions error', 'error'),
-            onTranscribe: async ({ sourceId, model, language, onProgress, signal }) => {
-              const source = allClips().find((c) => String(c.id) === sourceId);
-              if (!source?.src) throw new Error('That clip has no media to transcribe');
-              const { transcribeInBrowser } = await import('../lib/editor/remotion/transcribe.js');
-              const fromSec = Number(source.trimIn ?? source.sourceStart ?? 0) || 0;
-              const { captions } = await transcribeInBrowser(source.src, { fromSec, toSec: fromSec + clipDurationSec(source), model, language, onProgress, signal });
-              if (!captions.length) throw new Error('No speech was found in that clip');
-              // Line the captions clip up with the clip it was made from.
-              saveStateSnapshot(state);
-              clip.left = source.left;
-              clip.width = source.width;
-              clip.sourceClipId = source.id;
-              renderTracks();
-              showToast(`${captions.length} words transcribed`, 'success');
-              return captions;
-            },
-            onChange: ({ captions, captionStyle }) => {
-              clip.captions = captions;
-              clip.captionStyle = captionStyle;
-              const first = captions.slice(0, 5).map((c) => c.text).join('').trim();
-              clip.name = first ? `Captions: ${first}${captions.length > 5 ? '…' : ''}` : 'Captions';
-              scheduleEngineUpdate();
-              debouncedSave();
-            },
+            onOpenStudio: () => openCaptionStudio(allClips().find((c) => String(c.id) === String(clip.sourceClipId)), clip),
           });
         });
       }
@@ -5969,6 +6766,26 @@ export function TimelineEditorPage() {
               renderTracks();
               scheduleEngineUpdate();
               debouncedSave();
+              activeLanesPanel?.refresh();
+            },
+          });
+        });
+        // Lanes with draggable diamonds, editing the same clip.keyframes.
+        const lanesHost = editorSection('clip-keyframe-lanes', 'Keyframe lanes');
+        import('../lib/editor/keyframeLanes.js').then(({ renderKeyframeLanes }) => {
+          if (!lanesHost.isConnected) return;
+          activeLanesPanel = renderKeyframeLanes(lanesHost, {
+            clip,
+            duration: clipDurationSec(clip),
+            getTime: () => Math.max(0, Math.min(clipDurationSec(clip), playheadSec() - clipStartSec(clip))),
+            onSeek: (t) => seekToSeconds(clipStartSec(clip) + t),
+            onChange: (keyframes) => {
+              saveStateSnapshot(state);
+              if (Object.keys(keyframes).length) clip.keyframes = keyframes; else delete clip.keyframes;
+              renderTracks();
+              scheduleEngineUpdate();
+              debouncedSave();
+              activeKeyframesPanel?.refresh();
             },
           });
         });
@@ -6255,27 +7072,80 @@ export function TimelineEditorPage() {
       }
     }
 
+    // ---------------------------------------------------------------- AI chat helpers
+    // eslint-disable-next-line no-var -- loaded on first chat message
+    var timelineLlmModule = null;
+    function buildChatContext() {
+      if (!timelineLlmModule) return '';
+      return timelineLlmModule.buildProjectContext(localAIEditor(), { selectedId: state.selectedClipId, markers: state.markers || [] });
+    }
+    import('../lib/editor/ai/timelineLlm.js').then((m) => { timelineLlmModule = m; }).catch(() => {});
+
+    /** CineGen "Cut" mode: lay the selects end to end in a new timeline tab. */
+    async function applyCutListAsNewTab(cuts) {
+      const m = timelineLlmModule || await import('../lib/editor/ai/timelineLlm.js');
+      const pieces = m.buildCutClips(cuts, (id) => allClips().find((c) => String(c.id) === id));
+      if (!pieces.length) throw new Error('None of the suggested selects match clips on this timeline');
+      const total = pieces[pieces.length - 1].end;
+      addNewTimeline(state);
+      const T = Math.max(10, Math.ceil(total + 1));
+      state.timelineSeconds = T;
+      state.projectTitle = `Rough cut ${timelineCount(state)}`;
+      const entry = timelineList(state).find((t) => t.id === currentTimelineId(state));
+      if (entry) { entry.projectTitle = state.projectTitle; entry.timelineSeconds = T; }
+      state.tracks.forEach((t) => { const empty = []; t.items = empty; t.clips = empty; });
+      const target = (type) => state.tracks.find((t) => (type === 'audio' ? t.type === 'audio' : t.type === 'video')) || state.tracks[0];
+      pieces.forEach(({ clip, start, end, type }) => {
+        clip.left = (start / T) * 100;
+        clip.width = ((end - start) / T) * 100;
+        target(type).items.push(clip);
+      });
+      renderAll();
+      scheduleEngineUpdate();
+      debouncedSave();
+      return `Built "${state.projectTitle}" with ${pieces.length} selects (${total.toFixed(1)}s) in a new tab. Your original timeline is unchanged in its own tab.`;
+    }
+
+    // eslint-disable-next-line no-var -- the live Voice Director connection, if any
+    var voiceSession = null;
+    /** Start or stop the Voice Director. Resolves true when it is now listening. */
+    async function toggleVoiceDirector(handlers = {}) {
+      if (voiceSession) { voiceSession.stop(); voiceSession = null; return false; }
+      const [{ startVoiceDirector }, tools] = await Promise.all([import('../lib/editor/ai/voiceDirector.js'), getAgentTools()]);
+      voiceSession = await startVoiceDirector({
+        definitions: tools.definitions,
+        run: async (name, args) => {
+          saveStateSnapshot(state);
+          const out = await tools.run(name, args);
+          renderTracks();
+          scheduleEngineUpdate();
+          return out;
+        },
+      }, { ...handlers, onStatus: (t) => { handlers.onStatus?.(t); if (t === 'Stopped') voiceSession = null; } });
+      return true;
+    }
+
+    async function sendToAgent(text) {
+      openPanel('aiAgentPanel');
+      await mountAgentPanel();
+      agentPanel?.send?.(text);
+    }
+
     function initializeAIChatPanel() {
       if (!aiChatPanel && els.aiChatContainer) {
         aiChatPanel = new AIChatPanel(els.aiChatContainer, state, {
+          getContext: () => buildChatContext(),
+          seekTo: (sec) => seekToSeconds(sec),
+          applyCuts: (cuts) => applyCutListAsNewTab(cuts),
+          sendToAgent: (text) => sendToAgent(text),
+          toggleVoice: (handlers) => toggleVoiceDirector(handlers),
           detectScenes: async () => {
             initializeSceneDetector();
             if (sceneDetector && sceneDetector.detectScenes) {
               await sceneDetector.detectScenes();
             }
           },
-          splitClipAtPlayhead: () => {
-            // Find selected clip and split it
-            const selectedTrack = state.tracks.find(t => t.id === state.selectedTrackId);
-            if (selectedTrack) {
-              const selectedClip = selectedTrack.clips.find(c => c.id === state.selectedClipId);
-              if (selectedClip) {
-                const splitTime = (state.playheadPercent / 100) * state.timelineSeconds;
-                // Implement split logic here
-                showToast('Clip split functionality to be implemented', 'info');
-              }
-            }
-          },
+          splitClipAtPlayhead: () => splitClipAtPlayhead(),
           trimSelectedClip: (start, end) => {
             // Implement trim logic
             showToast('Trim clip functionality to be implemented', 'info');
@@ -6443,42 +7313,202 @@ export function TimelineEditorPage() {
 
     function splitClipAtPlayhead() {
       const selectedClip = findSelectedClip();
-      if (!selectedClip) {
-        return;
-      }
+      if (!selectedClip) return;
+      splitClipAtPercent(selectedClip.id, state.playheadPercent || 0);
+    }
 
+    /** Blade: split a clip at a timeline position (%). The right half plays from the right source time. */
+    function splitClipAtPercent(clipId, atPct) {
+      const track = state.tracks.find((t) => (t.items || t.clips || []).some((c) => c.id === clipId));
+      if (!track) return false;
+      const items = track.items || track.clips;
+      const i = items.findIndex((c) => c.id === clipId);
+      const halves = editTools.splitClip(items[i], atPct, tlSec());
+      if (!halves) return false;
       saveStateSnapshot(state);
+      items.splice(i, 1, ...halves);
+      state.selectedClipId = halves[0].id;
+      commitEdit();
+      return true;
+    }
 
-      const track = state.tracks.find(t => t.clips.some(c => c.id === selectedClip.id));
-      if (!track) return;
+    // Hoisted helpers (safe to call from renderTracks at any time).
+    function tlSec() { return state.timelineSeconds || 60; }
+    function clipDurSec(c) { return ((Number(c.width) || 0) / 100) * tlSec(); }
+    function clipStartSecH(c) { return ((Number(c.left) || 0) / 100) * tlSec(); }
 
-      const clipIndex = track.clips.findIndex(c => c.id === selectedClip.id);
-      const splitPosition = (state.playheadPercent / 100) * 100; // Convert to clip width percentage
+    function commitEdit() {
+      renderTracks();
+      scheduleEngineUpdate();
+      debouncedSave();
+    }
 
-      if (splitPosition <= selectedClip.left || splitPosition >= selectedClip.left + selectedClip.width) {
+    /**
+     * Drag-to-edit on a timeline clip with the active tool:
+     *  - trim handles: Select = trim, Ripple = trim and close the gap, Roll = move the cut
+     *  - clip body: Slip = change the source range, Slide = move between neighbours,
+     *    Blade = split where you click. Other tools keep the normal move-drag.
+     */
+    function startClipToolEdit(e, clipId, clipEl) {
+      if (e.button !== 0) return;
+      const tool = (selectedToolLabel() || 'Select').toLowerCase();
+      const edge = e.target?.dataset?.handle || null;
+      const bodyTool = ['slip', 'slide', 'blade', 'track forward'].includes(tool);
+      if (!edge && !bodyTool) return;
+      const lane = clipEl.parentElement;
+      const laneWidth = lane?.getBoundingClientRect().width || 0;
+      if (!laneWidth) return;
+      const track = state.tracks.find((t) => (t.items || t.clips || []).some((c) => c.id === clipId));
+      const items = track ? (track.items || track.clips) : null;
+      const clip = items?.find((c) => c.id === clipId);
+      if (!clip || track.locked) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const T = tlSec();
+      if (!edge && tool === 'blade') {
+        const pct = ((e.clientX - lane.getBoundingClientRect().left) / laneWidth) * 100;
+        if (!splitClipAtPercent(clipId, pct)) showToast('Click inside the clip, away from its edges, to cut it', 'info');
         return;
       }
-
-      // Create two new clips from the split
-      const leftClip = {
-        ...selectedClip,
-        id: Date.now(),
-        width: splitPosition - selectedClip.left
+      saveStateSnapshot(state);
+      clipEl.draggable = false;
+      const x0 = e.clientX;
+      let applied = 0;
+      let frame = 0;
+      const apply = (ev) => {
+        const want = ((ev.clientX - x0) / laneWidth) * 100;
+        const delta = want - applied;
+        if (Math.abs(delta) < 1e-4) return;
+        let got = 0;
+        if (edge && tool === 'roll') got = editTools.rollEdit(items, clip, edge, delta, T);
+        else if (edge) got = editTools.trimEdge(items, clip, edge, delta, T, { ripple: tool === 'ripple' });
+        else if (tool === 'slip') { editTools.slipClip(clip, delta, T); got = delta; }
+        else if (tool === 'slide') got = editTools.slideClip(items, clip, delta, T);
+        else if (tool === 'track forward') got = editTools.shiftForward(state.tracks.map((t) => t.items || t.clips || []), clip, delta);
+        // Linked clips (audio + video) trim and slip together.
+        if (got && clip.linkId && tool !== 'roll' && tool !== 'slide' && tool !== 'track forward') {
+          editTools.linkedPartners(allClips(), clip).forEach((p) => {
+            if (edge) editTools.trimEdge([], p, edge, got, T);
+            else if (tool === 'slip') editTools.slipClip(p, got, T);
+          });
+        }
+        applied += got;
+        if (!frame) frame = requestAnimationFrame(() => { frame = 0; renderTracks(); });
       };
-
-      const rightClip = {
-        ...selectedClip,
-        id: Date.now() + 1,
-        left: splitPosition,
-        width: (selectedClip.left + selectedClip.width) - splitPosition
+      const done = () => {
+        window.removeEventListener('pointermove', apply);
+        window.removeEventListener('pointerup', done);
+        window.removeEventListener('pointercancel', done);
+        clipEl.draggable = true;
+        if (frame) cancelAnimationFrame(frame);
+        commitEdit();
+        if (editorClipId === clipId) renderClipEditor(clipId);
       };
+      window.addEventListener('pointermove', apply);
+      window.addEventListener('pointerup', done);
+      window.addEventListener('pointercancel', done);
+    }
 
-      // Replace the original clip with the two new ones
-      track.clips.splice(clipIndex, 1, leftClip, rightClip);
-      state.selectedClipId = leftClip.id;
-
+    // ---------------------------------------------------------------- markers
+    function addMarkerAtPlayhead(label = '') {
+      saveStateSnapshot(state);
+      state.markers = editTools.addMarker(state.markers, playheadSec(), label);
       renderTracks();
-      updatePreview();
+      renderMiniMap();
+      debouncedSave();
+      showToast(`Marker at ${playheadSec().toFixed(1)}s`, 'success');
+    }
+    function removeMarker(id) {
+      saveStateSnapshot(state);
+      state.markers = (state.markers || []).filter((m) => m.id !== id);
+      renderTracks();
+      renderMiniMap();
+      debouncedSave();
+    }
+    function jumpToMarker(dir) {
+      const m = dir > 0 ? editTools.nextMarker(state.markers, playheadSec()) : editTools.prevMarker(state.markers, playheadSec());
+      if (m) seekToSeconds(m.t);
+    }
+
+    // ---------------------------------------------------------------- clip visuals
+    function decorateClipVisuals(clipEl, clipId, widthPercent) {
+      const real = allClips().find((c) => c.id === clipId);
+      if (!real?.src || !['video', 'audio'].includes(real.type)) return;
+      const laneW = clipEl.parentElement?.clientWidth || 0;
+      if (!laneW) return;
+      const rate = editTools.speedOf(real);
+      const fromSec = Number(real.trimIn ?? real.sourceStart ?? 0) || 0;
+      const toSec = fromSec + clipDurSec(real) * rate;
+      decorateClip(clipEl, { src: real.src, type: real.type, fromSec, toSec, widthPx: (laneW * widthPercent) / 100 });
+    }
+
+    // ---------------------------------------------------------------- audio sync
+    /** Move an audio clip so its sound lines up with the video it overlaps (or the first video). */
+    async function syncAudioClip(audioClip) {
+      const videos = allClips().filter((c) => c.type === 'video' && c.src);
+      const overlap = (c) => Math.min(clipStartSecH(c) + clipDurSec(c), clipStartSecH(audioClip) + clipDurSec(audioClip)) - Math.max(clipStartSecH(c), clipStartSecH(audioClip));
+      const video = videos.sort((a, b) => overlap(b) - overlap(a))[0];
+      if (!video) throw new Error('Add the video clip this audio belongs to first');
+      const [{ decodeAudioAt, syncOffset }] = await Promise.all([import('../lib/editor/ml/audio.js')]);
+      const vIn = Number(video.trimIn ?? video.sourceStart ?? 0) || 0;
+      const aIn = Number(audioClip.trimIn ?? audioClip.sourceStart ?? 0) || 0;
+      const rate = 4000;
+      const [vp, ap] = await Promise.all([
+        decodeAudioAt(video.src, { sampleRate: rate, fromSec: vIn, toSec: vIn + clipDurSec(video) }),
+        decodeAudioAt(audioClip.src, { sampleRate: rate, fromSec: aIn, toSec: aIn + clipDurSec(audioClip) }),
+      ]);
+      const { offsetSec, confidence } = syncOffset(vp, ap, rate);
+      if (confidence < 0.2) throw new Error("Couldn't find matching sound in the two clips");
+      saveStateSnapshot(state);
+      audioClip.left = Math.max(0, ((clipStartSecH(video) + offsetSec) / tlSec()) * 100);
+      commitEdit();
+      return `Synced: audio starts ${offsetSec >= 0 ? offsetSec.toFixed(2) + 's after' : (-offsetSec).toFixed(2) + 's before'} the video (match ${Math.round(confidence * 100)}%)`;
+    }
+
+    /** Sync every audio clip against the video it overlaps; reports how many matched. */
+    async function syncAllAudio() {
+      const audios = allClips().filter((c) => c.type === 'audio' && c.src && c.role !== 'music');
+      if (!audios.length) throw new Error('No audio clips to sync');
+      let ok = 0;
+      const failed = [];
+      for (const a of audios) {
+        try { await syncAudioClip(a); ok += 1; } catch (err) { failed.push(`${a.name || 'audio'}: ${err.message}`); }
+      }
+      return `Synced ${ok} of ${audios.length} audio clip(s).${failed.length ? ` Skipped: ${failed.slice(0, 2).join('; ')}` : ''}`;
+    }
+
+    /** Link a clip with its audio/video partner (or unlink it) so they move and trim together. */
+    function toggleClipLink(clip) {
+      const all = allClips();
+      saveStateSnapshot(state);
+      if (clip.linkId) {
+        editTools.unlinkClips([clip, ...editTools.linkedPartners(all, clip)]);
+        showToast('Clips unlinked', 'success');
+      } else {
+        const mate = editTools.linkCandidate(clip, all);
+        if (!mate) { showToast('No clip on another track starts at the same time to link with', 'info'); return false; }
+        editTools.linkClips([clip, mate]);
+        showToast(`Linked with "${mate.name || mate.type}"`, 'success');
+      }
+      commitEdit();
+      return true;
+    }
+
+    // ---------------------------------------------------------------- proxies
+    async function setProxyPlayback(on, onProgress) {
+      state.proxyEnabled = !!on;
+      if (on) {
+        const vids = [...new Set(allClips().filter((c) => c.type === 'video' && c.src).map((c) => c.src))];
+        let done = 0;
+        for (const src of vids) {
+          await makeProxy(src, { onProgress: (p) => onProgress?.((done + p) / vids.length) }).catch((err) => console.warn('[proxy]', err?.message));
+          done += 1;
+        }
+      } else {
+        clearProxies();
+      }
+      scheduleEngineUpdate();
+      showToast(on ? 'Proxy playback on (preview only)' : 'Proxy playback off', 'info');
     }
 
     async function detectScenes() {
@@ -6498,31 +7528,61 @@ export function TimelineEditorPage() {
 
     renderTracks();
 
-    /** Captions: add a captions clip and transcribe the selected (or first) media clip in the browser. */
+    /**
+     * Captions: open the free Caption Studio (on-device Whisper, editable lines, 32 looks, SRT/VTT) on the selected (or first) media clip,
+     * then add its result as a captions clip — or update the one being edited. Times in the studio are source-file times; the clip's
+     * times start at the clip's own start, so the trim-in is subtracted/added on the way through.
+     */
+    async function openCaptionStudio(source, existing) {
+      const { addCaptionButton } = await import('../lib/editor/captionActions.js');
+      const { shiftCaptions, defaultCaptionStyle } = await import('../lib/editor/remotion/captions.js');
+      const fromSec = source ? (Number(source.trimIn ?? source.sourceStart ?? 0) || 0) : 0;
+      addCaptionButton({
+        videoUrl: source?.src,
+        appTheme: 'timeline-editor',
+        captions: existing?.captions?.length ? shiftCaptions(existing.captions, fromSec * 1000) : undefined,
+        style: existing?.captionStyle,
+        onError: (err) => showToast(err?.message || 'Captions error', 'error'),
+        onApply: ({ captions, captionStyle }) => {
+          const rel = shiftCaptions(captions, -fromSec * 1000);
+          const first = rel.slice(0, 5).map((c) => c.text).join('').trim();
+          const name = first ? `Captions: ${first}${rel.length > 5 ? '…' : ''}` : 'Captions';
+          saveStateSnapshot(state);
+          if (existing) {
+            existing.captions = rel;
+            existing.captionStyle = captionStyle;
+            existing.name = name;
+            scheduleEngineUpdate();
+            renderTracks();
+            showClipEditor(existing.id);
+          } else {
+            const startSec = source ? clipStartSec(source) : playheadSec();
+            const clip = {
+              id: `captions-${Date.now()}`,
+              type: 'captions',
+              name,
+              captions: rel,
+              captionStyle: { ...defaultCaptionStyle('tiktok'), ...captionStyle },
+              sourceClipId: source?.id ?? null,
+              start: startSec,
+              end: startSec + (source ? clipDurationSec(source) : Math.max(1, Math.min(timelineSec() - startSec, (rel[rel.length - 1]?.endMs || 10000) / 1000))),
+            };
+            const textTrack = state.tracks.find((t) => (t.type || '').toLowerCase() === 'text') || state.tracks.find((t) => t.name === 'Text');
+            insertClipIntoTrack(clip, textTrack?.name || 'Text');
+            showClipEditor(clip.id);
+          }
+          showToast(`${rel.length} caption words added`, 'success');
+          debouncedSave();
+        },
+      });
+    }
+
     async function generateSubtitles() {
       const selected = findSelectedClip();
       if (selected?.type === 'captions') { showClipEditor(selected.id); return; }
       const media = allClips().filter((c) => (c.type === 'video' || c.type === 'audio') && c.src);
       const source = selected && media.includes(selected) ? selected : media.sort((a, b) => (a.left || 0) - (b.left || 0))[0];
-      const { defaultCaptionStyle } = await import('../lib/editor/remotion/captions.js');
-      saveStateSnapshot(state);
-      const startSec = source ? clipStartSec(source) : playheadSec();
-      const clip = {
-        id: `captions-${Date.now()}`,
-        type: 'captions',
-        name: 'Captions',
-        captions: [],
-        captionStyle: defaultCaptionStyle('tiktok'),
-        sourceClipId: source?.id ?? null,
-        start: startSec,
-        end: startSec + (source ? clipDurationSec(source) : Math.min(10, timelineSec() - startSec)),
-      };
-      const textTrack = state.tracks.find((t) => (t.type || '').toLowerCase() === 'text') || state.tracks.find((t) => t.name === 'Text');
-      insertClipIntoTrack(clip, textTrack?.name || 'Text');
-      if (source) pendingAutoCaptions = clip.id;
-      else showToast('Captions added — import an SRT/VTT file or type captions in its settings', 'info');
-      showClipEditor(clip.id);
-      debouncedSave();
+      openCaptionStudio(source, null);
     }
 
     async function suggestBRoll() {
@@ -6550,16 +7610,16 @@ export function TimelineEditorPage() {
 
     function adjustSpeed() {
       const selectedClip = findSelectedClip();
-      if (!selectedClip) {
-        return;
-      }
+      if (!selectedClip) return;
+      const newSpeed = prompt('Playback speed (0.25–4):', String(editTools.speedOf(selectedClip)));
+      if (newSpeed && !isNaN(parseFloat(newSpeed))) setClipSpeed(selectedClip, parseFloat(newSpeed));
+    }
 
-      // Simple speed adjustment (could be enhanced with UI)
-      const newSpeed = prompt('Enter speed multiplier (0.25-4.0):', '1.0');
-      if (newSpeed && !isNaN(parseFloat(newSpeed))) {
-        saveStateSnapshot(state);
-        selectedClip.speed = parseFloat(newSpeed);
-      }
+    function setClipSpeed(clip, rate) {
+      saveStateSnapshot(state);
+      editTools.setSpeed(clip, rate);
+      commitEdit();
+      if (editorClipId === clip.id) renderClipEditor(clip.id);
     }
 
     async function stabilizeFootage() {
@@ -7129,7 +8189,10 @@ export function TimelineEditorPage() {
       }
       if (id === 'stockPanel') mountStockBrowser();
       if (id === 'aiAgentPanel') mountAgentPanel();
+      if (id === 'localAIPanel') mountLocalAIPanel();
+      if (id === 'storyboardPanelCard') mountStoryboardPanel();
       if (id === 'sharePanel') mountSharePanel();
+      if (id === 'projectsPanel') mountProjectsPanel();
       if (id === 'colorScopesPanel') mountColorScopesPanel();
       if (id === 'multiCameraPanel') renderMultiCamera();
       el.hidden = false;
@@ -7196,7 +8259,11 @@ export function TimelineEditorPage() {
       'Blend Modes': 'blendPanel',
       'Stock Media': 'stockPanel',
       'AI Agent': 'aiAgentPanel',
+      'Free AI': 'localAIPanel',
+      'AI Chat': 'aiChatPanelCard',
+      'Storyboard': 'storyboardPanelCard',
       'Share': 'sharePanel',
+      'Projects': 'projectsPanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
       'Color Scopes': 'colorScopesPanel',
@@ -7264,7 +8331,7 @@ export function TimelineEditorPage() {
         'Media': 'Media - Your media library: upload or drag clips onto the timeline',
         'AI Animation': 'AI Animation - Ask the AI Agent to build an animation, with starter ideas',
         'Token Editor': 'Token editor - Create and manage personalization tokens',
-        'Batch Generator': 'Batch generation - Generate multiple videos at once',
+        'Batch Generator': 'Personalized output - MP4s and links for each contact',
         'Personalization': 'Personalization - Add dynamic content for different viewers',
         'Personalization Editor': 'Personalization editor - Advanced personalization settings',
         'Personalization Suite': 'Personalization suite - Complete video personalization workflow',
@@ -7297,6 +8364,9 @@ export function TimelineEditorPage() {
         'Overlays': 'Overlays - Smart Text, Text Mask, Personalized Image, Image, Stickers, Wrapper, Lower Thirds, Transitions, Presets',
         'Stock Media': 'Stock Media - Pixabay and Pexels videos and images for the timeline',
         'AI Agent': 'AI Agent - describe a video or animation and the agent builds it on the timeline',
+        'Free AI': 'Free AI - search footage by description, free voiceover, on-device models (no API key)',
+        'AI Chat': 'AI Chat - ask about your footage, find moments, rough-cut into a new tab (OpenAI, your key)',
+        'Storyboard': 'Storyboard - plan shots, make frames with Images 2.6, Shot Board, Elements, import scripts',
         'Share': 'Share - publish an interactive video with a link and embed code'
       };
       state.railActions.forEach(([icon, label, active]) => {
@@ -7413,6 +8483,27 @@ export function TimelineEditorPage() {
              case 'Export':
                openExportModal(state, showToast);
                break;
+             case 'CineGen Tools':
+              openPanel('cinegenResultsPanel');
+              break;
+            case 'Gap Fill':
+              openMuapiTool('fill_gap');
+              break;
+            case 'Extend Clip':
+              openMuapiTool('extend');
+              break;
+            case 'Generate Music':
+            case 'Mask Tool':
+            case 'Element':
+            case 'Polish':
+            case 'Smart Subtitles':
+            case 'LLM Assistant':
+            case 'SAM3':
+            case 'Audio Sync':
+            case 'Layer Decomp':
+            case 'Shot Board':
+            case 'Proxy Play':
+            case 'Comp Plan':
             case 'AI Tools':
               openPanel('cinegenResultsPanel');
               openAiTools();
@@ -7428,8 +8519,29 @@ export function TimelineEditorPage() {
     }
 
     function addTrack(type) {
-      state.tracks.push({ id: `${type.toLowerCase()}-${Date.now()}`, name: type, muted: false, solo: false, locked: false, clips: [] });
+      const list = [];
+      state.tracks.push({ id: `${type.toLowerCase()}-${Date.now()}`, type: String(type).toLowerCase(), name: type, muted: false, solo: false, locked: false, clips: list, items: list });
       renderTracks();
+    }
+
+    /** Track header buttons: move up/down and delete. */
+    function trackOp(trackId, op) {
+      const track = state.tracks.find((t) => t.id === trackId);
+      if (!track) return;
+      if (op === 'remove') {
+        const count = (track.items || track.clips || []).length;
+        if (state.tracks.length <= 1) { showToast('A timeline needs at least one track', 'info'); return; }
+        if (count && !window.confirm(`Delete "${track.name}" and its ${count} clip(s)? You can undo this.`)) return;
+        saveStateSnapshot(state);
+        editTools.removeTrack(state.tracks, trackId);
+      } else {
+        saveStateSnapshot(state);
+        if (!editTools.moveTrack(state.tracks, trackId, op === 'up' ? -1 : 1)) return;
+      }
+      // Rows are built once per track; rebuild them all so the DOM follows the new order.
+      trackDomCache.forEach((c) => c.row?.remove());
+      trackDomCache.clear();
+      commitEdit();
     }
 
     function showClipEditor(clipId) {
@@ -7473,7 +8585,7 @@ export function TimelineEditorPage() {
       cleanup.addDocumentListener('keydown', handleModalKeydown);
     }
 
-    function openExportModal(state, showToast) {
+    function openExportModal(state, showToast, { contactIds = null } = {}) {
       // Remotion web renderer (in-browser, sandboxed runner). The previous
       // ExportPipeline stays available as "Basic export".
       const content = `
@@ -7500,6 +8612,13 @@ export function TimelineEditorPage() {
               <option value="one">One video${getActivePersonalizationProfile() ? ` (for ${escapeHtml(contactName(getActivePersonalizationProfile()))})` : ''}</option>
               <option value="each"${listContactProfiles(contactStore).length ? '' : ' disabled'}>One video per contact (${listContactProfiles(contactStore).length} in Personalization Studio)</option>
             </select>
+          </div>
+          <div class="form-group" id="exportContactsBox" hidden>
+            <label>Contacts to export</label>
+            <div class="export-contacts-actions"><button type="button" class="mini-btn" id="exportContactsAll">All</button> <button type="button" class="mini-btn" id="exportContactsNone">None</button> <span id="exportContactsCount" class="pz-hint"></span></div>
+            <ul id="exportContactsList" class="export-contacts" style="max-height:180px;overflow:auto;list-style:none;margin:6px 0;padding:0">
+              ${listContactProfiles(contactStore).map((p) => `<li><label><input type="checkbox" data-export-contact value="${escapeHtml(String(p.id))}" checked /> ${escapeHtml(contactName(p))}</label></li>`).join('')}
+            </ul>
           </div>
           <ul id="exportWarnings" class="export-warnings"></ul>
           <button class="primary-btn" id="startExportBtn">Start Export</button>
@@ -7535,10 +8654,23 @@ export function TimelineEditorPage() {
         return timelineToComposition(state, { quality, profile });
       };
 
-      // Contacts the export covers (one = the selected contact).
-      const exportContacts = () => (q('#exportFor')?.value === 'each'
-        ? listContactProfiles(contactStore)
-        : [getActivePersonalizationProfile()].filter(Boolean));
+      // Contacts the export covers (one = the selected contact; each = the ticked ones).
+      const pickedIds = () => new Set([...els.modalBody.querySelectorAll('[data-export-contact]:checked')].map((i) => i.value));
+      const exportContacts = () => {
+        if (q('#exportFor')?.value !== 'each') return [getActivePersonalizationProfile()].filter(Boolean);
+        const picked = pickedIds();
+        return listContactProfiles(contactStore).filter((p) => picked.has(String(p.id)));
+      };
+      const syncContactsBox = () => {
+        const each = q('#exportFor')?.value === 'each';
+        const box = q('#exportContactsBox');
+        if (box) box.hidden = !each;
+        const count = q('#exportContactsCount');
+        if (count) count.textContent = `${pickedIds().size} of ${listContactProfiles(contactStore).length} selected`;
+      };
+      q('#exportContactsAll')?.addEventListener('click', () => { els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = true; }); syncContactsBox(); refreshWarnings(); });
+      q('#exportContactsNone')?.addEventListener('click', () => { els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = false; }); syncContactsBox(); refreshWarnings(); });
+      q('#exportContactsList')?.addEventListener('change', () => { syncContactsBox(); refreshWarnings(); });
       let warningsRun = 0;
       const refreshWarnings = async () => {
         const run = ++warningsRun;
@@ -7568,7 +8700,15 @@ export function TimelineEditorPage() {
         warningsList.insertAdjacentHTML('beforeend', describeBrokenImages(broken).map(imageItem).join(''));
       };
       q('#exportQuality')?.addEventListener('change', refreshWarnings);
-      q('#exportFor')?.addEventListener('change', refreshWarnings);
+      q('#exportFor')?.addEventListener('change', () => { syncContactsBox(); refreshWarnings(); });
+      // Opened from Personalized output with a chosen set of contacts: render exactly those.
+      if (contactIds) {
+        const chosen = new Set(contactIds.map(String));
+        const sel = q('#exportFor');
+        if (sel && !sel.disabled) sel.value = 'each';
+        els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = chosen.has(i.value); });
+      }
+      syncContactsBox();
       refreshWarnings();
 
       const doExport = async () => {
@@ -7586,20 +8726,36 @@ export function TimelineEditorPage() {
           // One video per Personalization Studio contact: their details fill
           // the text and their own Smart Speech line plays.
           if (q('#exportFor')?.value === 'each') {
-            const contacts = listContactProfiles(contactStore);
+            const contacts = exportContacts();
+            if (!contacts.length) throw new Error('Tick at least one contact');
+            const used = new Set();
+            const failed = [];
+            let done = 0;
             for (let i = 0; i < contacts.length; i += 1) {
               if (abort.signal.aborted) throw new Error('Cancelled');
               const who = contactName(contacts[i]);
-              const part = await exportModel(await buildModel(quality, contacts[i]), {
-                container,
-                quality,
-                signal: abort.signal,
-                onProgress: (p) => setProgress(((i + p) / contacts.length) * 100, `Video ${i + 1} of ${contacts.length} · ${who} · ${Math.round(p * 100)}%`),
-              });
-              downloadBlob(part, `${name} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || contacts[i].id}.${EXTENSIONS[container] || 'mp4'}`);
+              try {
+                const part = await exportModel(await buildModel(quality, contacts[i]), {
+                  container,
+                  quality,
+                  signal: abort.signal,
+                  onProgress: (p) => setProgress(((i + p) / contacts.length) * 100, `Video ${i + 1} of ${contacts.length} · ${who} · ${Math.round(p * 100)}%`),
+                });
+                // Two contacts can share a name: add the id so no file overwrites another.
+                let base = `${name} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || contacts[i].id}`;
+                if (used.has(base.toLowerCase())) base = `${base} (${String(contacts[i].id).slice(0, 8)})`;
+                used.add(base.toLowerCase());
+                downloadBlob(part, `${base}.${EXTENSIONS[container] || 'mp4'}`);
+                done += 1;
+              } catch (err) {
+                if (abort.signal.aborted || /cancel/i.test(err?.message || '')) throw err;
+                // One contact's video failing must not lose the rest.
+                failed.push(`${who}: ${err?.message || err}`);
+              }
             }
-            setProgress(100, `Done: ${contacts.length} videos downloaded`);
-            showToast(`Exported ${contacts.length} personalized videos`, 'success');
+            setProgress(100, failed.length ? `Done: ${done} of ${contacts.length} videos downloaded` : `Done: ${done} videos downloaded`);
+            if (failed.length) showToast(`${failed.length} video${failed.length === 1 ? '' : 's'} could not be made — ${failed[0]}`, 'error');
+            else showToast(`Exported ${done} personalized videos`, 'success');
             return;
           }
           const model = await buildModel(quality);
@@ -7610,6 +8766,11 @@ export function TimelineEditorPage() {
             onProgress: (p) => setProgress(p * 100, `Rendering... ${Math.round(p * 100)}%`),
           });
           downloadBlob(blob, `${name}.${EXTENSIONS[container] || 'mp4'}`);
+          if (state.projectId && window.Clerk?.user) {
+            // Keep the rendered file with the project (upload is best-effort; the download above is unaffected).
+            import('../lib/editor/projectLibrary/thumbnail.js').then(({ storeRender }) => storeRender(blob, { container, quality, durationS: state.timelineSeconds, name, upload: uploadFileToStorage }))
+              .then((info) => { recordRender(info); if (info.stored) showToast('Export saved to your project', 'success'); captureProjectThumbnail(); });
+          }
           setProgress(100, `Export complete (${(blob.size / 1048576).toFixed(1)} MB)`);
           showToast('Export complete — your video is downloading', 'success');
           setTimeout(closeModal, 1500);
@@ -7867,15 +9028,80 @@ export function TimelineEditorPage() {
           active: activeContact,
           select: (id) => contactStore.selectContact(id),
           addText: addSmartText,
+          loadDesigns: listStudioDesigns,
+          addDesign: addStudioDesign,
           openPersonalize: () => import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
             studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
-            onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); panel.redraw(); },
+            onComplete: (completion) => {
+              contactSync.run({ leads: true }).catch(() => {});
+              renderContactSwitcher();
+              panel.redraw();
+              addStudioLayers(completion?.overlay);
+            },
           })),
         });
         window.addEventListener('remix:contact-changed', panel.redraw);
         return panel;
       });
     }
+
+    // The Personalization Studio's approved layers as token-based overlay
+    // clips (logo, business name, CTA ... resolve per contact), placed at the
+    // playhead. Only a branded render carries layers; AI runs hand back media.
+    const studioTemplates = () => import('../features/personalization/shared/personalization/templates/index');
+    // Studio designs the timeline can draw (they must preview and export in the browser).
+    // Loaded once: the picker list, and the templates themselves (to reset a clip's slots when its design changes).
+    let studioDesignChoices = null;
+    let studioDesignMap = new Map();
+    async function listStudioDesigns() {
+      const { listRemotionDesignTemplates } = await studioTemplates();
+      const usable = listRemotionDesignTemplates().filter((d) => d.previewCompatible !== false && d.capabilities?.browserExport);
+      studioDesignMap = new Map(usable.map((d) => [d.id, d]));
+      studioDesignChoices = usable.map((d) => ({ id: d.id, name: d.name, category: d.category, description: d.description || '' }));
+      return studioDesignChoices;
+    }
+    async function addStudioDesign(designId) {
+      const { getRemotionDesignTemplate } = await studioTemplates();
+      const design = getRemotionDesignTemplate(designId);
+      if (!design) { showToast('That design is not available', 'info'); return; }
+      const T = state.timelineSeconds || 60;
+      saveStateSnapshot(state);
+      const clip = createAddonClip('overlay-studio-design', { startSec: (state.playheadPercent / 100) * T, timelineSeconds: T });
+      clip.addon = { ...clip.addon, ...defaultStudioDesignOptions(design) };
+      clip.name = design.name;
+      insertClipIntoTrack(clip, getAddon('overlay-studio-design')?.track || 'Text');
+      showClipEditor(clip.id);
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added ${design.name}`, 'success');
+    }
+
+    async function addStudioLayers(overlay) {
+      if (!overlay?.layers?.length) return;
+      const T = state.timelineSeconds || 60;
+      let designFor;
+      try { const { getRemotionDesignTemplate } = await studioTemplates(); designFor = getRemotionDesignTemplate; } catch { /* designs unavailable: layers keep their overrides only */ }
+      const plan = studioLayersToPlan(overlay.layers, {
+        fps: overlay.fps, durationInFrames: overlay.durationInFrames, timelineSeconds: T,
+        startSec: (state.playheadPercent / 100) * T, brand: overlay.brand, designFor,
+      });
+      if (!plan.length) return;
+      saveStateSnapshot(state);
+      plan.forEach((item) => {
+        const clip = createAddonClip(item.type, { startSec: item.startSec, timelineSeconds: T });
+        clip.start = item.startSec;
+        clip.end = item.endSec;
+        clip.addon = { ...clip.addon, ...item.addon };
+        clip.name = item.name;
+        insertClipIntoTrack(clip, getAddon(item.type)?.track || 'Text');
+      });
+      if (plan.some((i) => i.addon?.plate === 'auto')) measureLogos();
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added ${plan.length} Studio layer${plan.length === 1 ? '' : 's'} to the timeline`, 'success');
+    }
+    // The "AI Personalizer" rail action fires this event.
+    cleanup.addWindowListener('open-personalizer', () => showPersonalizationPanel());
 
     function showPersonalizationEditorPanel() {
       openPanel('personalizationEditorPanel');
@@ -7901,10 +9127,62 @@ export function TimelineEditorPage() {
       mountRailPanel('batch', els.batchGeneratorContainer, (el) => renderBatchHub(el, {
         contacts: () => listContactProfiles(contactStore),
         tokensUsed: () => projectTokens(state.tracks),
+        // Things that would leave a contact's video or link with a blank: no image in a slot, a clip with no
+        // video for them yet, or an image that exists only in this browser (a link cannot carry it).
+        issues: (p) => {
+          const tokens = projectTokens(state.tracks);
+          return [
+            ...(contactImageGaps(state, [p])[0]?.missing || []).map((m) => `no ${m}`),
+            ...(personalLinkIssues(p, tokens).length ? ['image only in this browser (links)'] : []),
+          ];
+        },
         exportEach: () => {
           openExportModal(state, showToast);
           const sel = els.modalBody.querySelector('#exportFor');
           if (sel && !sel.disabled) sel.value = 'each';
+        },
+        exportSelected: (ids) => openExportModal(state, showToast, { contactIds: ids }),
+        // Links for the chosen contacts, for the published video. Stored links when the database has them,
+        // otherwise the older links that carry the details in the address.
+        guest: isGuest,
+        createLinks: async (ids) => {
+          const pub = await import('../lib/editor/publish/publishClient.js');
+          const pl = await import('../lib/editor/publish/personalLinksClient.js');
+          const client = await publishOwnerClient();
+          const id = (state.publishedVideos || {})[publishedKey()] || null;
+          const info = id ? await pub.getMyVideo(client, id).catch(() => null) : null;
+          if (!info?.published) throw Object.assign(new Error('Publish the video first: personal links open the published version.'), { code: 'not_published' });
+          const picked = new Set((ids || []).map(String));
+          const contacts = listContactProfiles(contactStore).filter((p) => picked.has(String(p.id)));
+          const describe = (p) => ({ name: contactName(p), email: contactEmail(p), company: p?.contact?.company || p?.personalization?.business?.businessName || '' });
+          try {
+            const r = await pl.syncPersonalLinks(client, id, personalLinkItems(contacts));
+            const byContact = new Map(r.links.map((l) => [l.contactId, l]));
+            return {
+              rows: contacts.map((p) => {
+                const l = byContact.get(String(p.id));
+                return { ...describe(p), link: l && !l.revoked ? pub.personalizedUrl(info, l.id) : '', note: l?.revoked ? 'link is turned off' : '' };
+              }),
+              notice: r.created || r.updated ? `${r.created} new, ${r.updated} refreshed.` : '',
+            };
+          } catch (err) {
+            if (err?.code !== 'links_unavailable') throw err;
+            const tokens = projectTokens(state.tracks);
+            const base = pub.canonicalUrl(info);
+            return {
+              rows: contacts.map((p) => ({ ...describe(p), link: personalLink(base, p, tokens), note: '' })),
+              notice: 'Saved links turn on once the database update is installed; these links carry the details in the address.',
+            };
+          }
+        },
+        copy: (text) => navigator.clipboard.writeText(text),
+        downloadCsv: (rows) => {
+          const blob = new Blob([linksCsv(rows)], { type: 'text/csv' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${String(state.projectTitle || 'video').replace(/[^\w-]+/g, '_')}-personal-links.csv`;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 2000);
         },
         openShare: () => openPanel('sharePanel'),
       }));
@@ -8019,7 +9297,7 @@ export function TimelineEditorPage() {
                 timelineData: prepareTimelineForVideoGeneration(),
                 cinegenTools: {
                   enabled: true,
-                  availableTools: ['gap_fill', 'extend', 'music_generation', 'mask_tool', 'element_create', 'llm_chat', 'fill_gap', 'extend_clip'],
+                  availableTools: ['gap_fill', 'extend', 'music_generation', 'mask_tool', 'llm_chat', 'fill_gap', 'extend_clip'],
                   structuredResults: true,
                   version: '1.1',
                   autoApply: true
@@ -8399,8 +9677,8 @@ export function TimelineEditorPage() {
         if (tag === 'input' || tag === 'textarea' || (ev.target && ev.target.isContentEditable)) return;
         const key = ev.key.toLowerCase();
         if (key === ' ' || key === 'spacebar') { ev.preventDefault(); togglePlayback(); }
-        else if (key === 'arrowleft') { ev.preventDefault(); state.playheadPercent = Math.max(0, (state.playheadPercent || 0) - 0.8); updatePlaybackUI(); }
-        else if (key === 'arrowright') { ev.preventDefault(); state.playheadPercent = Math.min(100, (state.playheadPercent || 0) + 0.8); updatePlaybackUI(); }
+        else if (key === 'arrowleft' && !ev.altKey) { ev.preventDefault(); state.playheadPercent = Math.max(0, (state.playheadPercent || 0) - 0.8); updatePlaybackUI(); }
+        else if (key === 'arrowright' && !ev.altKey) { ev.preventDefault(); state.playheadPercent = Math.min(100, (state.playheadPercent || 0) + 0.8); updatePlaybackUI(); }
         else if (key === 's' && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); splitClipAtPlayhead(); }
         else if (key === 'delete' || key === 'backspace') { ev.preventDefault(); deleteSelectedClip(); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'z' && !ev.shiftKey) { ev.preventDefault(); undo(state); }
@@ -8408,6 +9686,8 @@ export function TimelineEditorPage() {
         else if ((ev.ctrlKey || ev.metaKey) && key === 'd') { ev.preventDefault(); duplicateSelectedClip(); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'g') { ev.preventDefault(); groupSelectedClips(); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'shift' && ev.key.toLowerCase() === 'g') { ev.preventDefault(); ungroupSelectedClips(); }
+        else if (key === 'm' && ev.shiftKey && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); addMarkerAtPlayhead(); }
+        else if (ev.altKey && (key === 'arrowleft' || key === 'arrowright')) { ev.preventDefault(); jumpToMarker(key === 'arrowright' ? 1 : -1); }
         else if (key === '[') { nudgeSelectedClip(-0.5); }
         else if (key === ']') { nudgeSelectedClip(0.5); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'c') { ev.preventDefault(); copySelectedClip(); }
@@ -8417,9 +9697,10 @@ export function TimelineEditorPage() {
           const toolKey = key;
           state.selectedTool = toolMap[toolKey];
           renderTools();
+          syncMaskOverlay();
           updatePreview();
           if (toolMap[toolKey] === 'mask') {
-            showToast('Mask tool active — select a clip and open AI Tools to segment');
+            showToast('Mask tool: click an object, or drag a box around it, on the preview');
           }
         }
       });
@@ -8433,36 +9714,46 @@ export function TimelineEditorPage() {
       if (zoomInBtn) zoomInBtn.addEventListener('click', () => setZoom((state.zoom || 1) + 0.25));
       if (zoomFitBtn) zoomFitBtn.addEventListener('click', () => setZoom(1));
 
-      // Mask overlay click/box capture for AI segmentation
+      // Mask tool (X): click an object or drag a box on the preview; the
+      // on-device SAM cuts it out of the selected clip (no server, no fal).
       const maskOverlay = root.querySelector('#maskOverlay');
       if (maskOverlay) {
-        maskOverlay.addEventListener('click', (e) => {
+        maskOverlay.style.cssText = 'position:absolute;inset:0;z-index:6;cursor:crosshair;';
+        const rectOf = () => maskOverlay.getBoundingClientRect();
+        const norm = (e) => {
+          const r = rectOf();
+          return { x: Math.max(0, Math.min(1, (e.clientX - r.left) / (r.width || 1))), y: Math.max(0, Math.min(1, (e.clientY - r.top) / (r.height || 1))) };
+        };
+        const drawBox = (a, b) => {
+          let box = maskOverlay.querySelector('.mask-box');
+          if (!box) {
+            box = document.createElement('div');
+            box.className = 'mask-box';
+            box.style.cssText = 'position:absolute;border:2px solid #4da3ff;background:rgba(77,163,255,.15);pointer-events:none;';
+            maskOverlay.appendChild(box);
+          }
+          box.style.left = `${Math.min(a.x, b.x) * 100}%`;
+          box.style.top = `${Math.min(a.y, b.y) * 100}%`;
+          box.style.width = `${Math.abs(a.x - b.x) * 100}%`;
+          box.style.height = `${Math.abs(a.y - b.y) * 100}%`;
+        };
+        let start = null;
+        maskOverlay.addEventListener('pointerdown', (e) => {
           if (selectedToolLabel() !== 'Mask') return;
-          const rect = maskOverlay.getBoundingClientRect();
-          maskClickPoint = {
-            x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
-            y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
-          };
+          start = norm(e);
+          maskOverlay.setPointerCapture?.(e.pointerId);
         });
-        maskOverlay.addEventListener('mousedown', (e) => {
-          if (selectedToolLabel() !== 'Mask') return;
-          const rect = maskOverlay.getBoundingClientRect();
-          normStartX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-          normStartY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-          maskSelectionBox = null;
+        maskOverlay.addEventListener('pointermove', (e) => { if (start) drawBox(start, norm(e)); });
+        maskOverlay.addEventListener('pointerup', (e) => {
+          if (!start) return;
+          const end = norm(e);
+          const a = start;
+          start = null;
+          maskOverlay.querySelector('.mask-box')?.remove();
+          const drag = Math.hypot(end.x - a.x, end.y - a.y) > 0.02;
+          runMaskTool(drag ? { box: [Math.min(a.x, end.x), Math.min(a.y, end.y), Math.max(a.x, end.x), Math.max(a.y, end.y)] } : { point: [a.x, a.y] });
         });
-        maskOverlay.addEventListener('mouseup', (e) => {
-          if (selectedToolLabel() !== 'Mask') return;
-          const rect = maskOverlay.getBoundingClientRect();
-          const endX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-          const endY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-          maskSelectionBox = {
-            x: Math.min(normStartX, endX),
-            y: Math.min(normStartY, endY),
-            w: Math.abs(endX - normStartX),
-            h: Math.abs(endY - normStartY),
-          };
-        });
+        syncMaskOverlay();
       }
 
       // The preview is always edge-to-edge (see .preview-large CSS in
@@ -8689,6 +9980,17 @@ export function TimelineEditorPage() {
           }
           switchToTimeline(state, btn.dataset.timelineId);
           renderAll();
+        });
+        btn.title = `${btn.title} — double-click to rename`;
+        btn.addEventListener('dblclick', (e) => {
+          if (e.target.classList.contains('tab-close')) return;
+          const t = timelineList(state).find((x) => x.id === btn.dataset.timelineId);
+          const name = window.prompt('Timeline name', t?.projectTitle || 'Timeline');
+          if (!t || !name || !name.trim()) return;
+          t.projectTitle = name.trim().slice(0, 60);
+          if (currentTimelineId(state) === t.id) state.projectTitle = t.projectTitle;
+          renderTimelineTabs();
+          debouncedSave();
         });
       });
     }
@@ -9277,9 +10579,23 @@ export function TimelineEditorPage() {
           map.appendChild(el);
         });
       });
+      (state.markers || []).forEach((m) => {
+        const mk = document.createElement('div');
+        mk.style.cssText = `position:absolute;left:${(m.t / tlSec()) * 100}%;top:0;bottom:0;width:2px;background:#facc15;pointer-events:none;`;
+        map.appendChild(mk);
+      });
       const ph = document.createElement('div');
       ph.style.cssText = `position:absolute;left:${state.playheadPercent || 0}%;top:-2px;bottom:-2px;width:1px;background:#f87171;pointer-events:none;`;
       map.appendChild(ph);
+      if (!map.dataset.seek) {
+        map.dataset.seek = '1';
+        map.style.cursor = 'pointer';
+        map.title = 'Overview — click to jump';
+        map.addEventListener('click', (e) => {
+          const r = map.getBoundingClientRect();
+          if (r.width) seekToSeconds(((e.clientX - r.left) / r.width) * tlSec());
+        });
+      }
     }
 
     // --- track visibility controls ---

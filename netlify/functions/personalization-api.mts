@@ -17,12 +17,20 @@
  *   GET|POST|DELETE /api/personalization/project
  *   POST          /api/personalization/record
  *   POST          /api/personalization/persist-edited-asset
+ *   GET|POST|DELETE /api/personalization/saved-searches  (Lead Finder: remembered searches; needs the finder_continuity migration)
+ *   GET|POST|DELETE /api/personalization/lead-feedback   (Lead Finder: "not a fit" feedback that keeps leads out of later results)
+ *   GET           /api/personalization/provider-status   (which discovery providers are configured)
+ *   POST          /api/personalization/enrich-business (contact details from a business's own website)
+ *   POST          /api/personalization/resolve-website  (find a business's own site from its OSM listing)
+ *   GET           /api/media/remote            (same-origin proxy for remote preview videos)
  *   POST          /api/demo/discover           (anonymous "Find My Brand")
+ *   POST          /api/demo/download-image     (public image proxy for signed-out background removal)
  *   POST          /api/proxy/openai-enhance    (prompt personalizer / enhance text)
+ *   POST          /api/proxy/thumbnail-generate (Social Publish thumbnails: OpenAI Images 2.6)
  *   GET|POST      /api/api/v1/*                (OpenHiggsBolt MuAPI proxy: generation submit + poll)
  *   GET|POST      /api/v1/upload_file          (OpenHiggsBolt MuAPI upload + durable originals)
  *   GET           /api/media/shotcraft/:key    (motion-template preview clips)
- *   POST          /api/video/record            (accepted, not stored)
+ *   POST          /api/video/record            (generated-video history; needs the generated_videos migration)
  */
 import './_personalization/shims/env'
 import { requestContext } from './_personalization/shims/requestContext'
@@ -45,14 +53,24 @@ import * as downloadImage from './_personalization/app/api/personalization/downl
 import * as project from './_personalization/app/api/personalization/project/route'
 import * as record from './_personalization/app/api/personalization/record/route'
 import * as demoDiscover from './_personalization/app/api/demo/discover/route'
-import * as persistEditedAsset from './_personalization/extra/persistEditedAsset'
+import * as demoDownloadImage from './_personalization/app/api/demo/download-image/route'
+import * as persistEditedAsset from './_personalization/app/api/personalization/persist-edited-asset/route'
+import * as leadFeedback from './_personalization/app/api/personalization/lead-feedback/route'
+import * as savedSearches from './_personalization/app/api/personalization/saved-searches/route'
+import * as providerStatus from './_personalization/app/api/personalization/provider-status/route'
 import * as openaiEnhance from './_personalization/extra/openaiEnhance'
+import * as thumbnailGenerate from './_personalization/app/api/proxy/thumbnail-generate/route'
 import * as muapiProxy from './_personalization/app/api/api/v1/[[...path]]/route.js'
 import * as muapiUploadFile from './_personalization/app/api/v1/upload_file/route'
+import * as resolveWebsite from './_personalization/app/api/personalization/resolve-website/route'
+import * as enrichBusiness from './_personalization/app/api/personalization/enrich-business/route'
+import * as videoRecord from './_personalization/app/api/video/record/route'
+import * as remoteMedia from './_personalization/app/api/media/remote/route'
 import * as shotcraftMedia from './_personalization/app/api/media/shotcraft/[styleKey]/route'
 import * as motionDirector from './_personalization/app/api/motion-studio/director/route'
 import * as motionCapture from './_personalization/app/api/motion-studio/capture/route'
 import * as motionCaptureStatus from './_personalization/app/api/motion-studio/capture/status/route'
+import * as outreachSiteShot from './_personalization/app/api/outreach/site-shot/route'
 
 type RouteParams = Record<string, string | string[]>
 type Handler = (req: NextRequest, ctx?: { params: Promise<RouteParams> }) => Promise<Response> | Response
@@ -71,27 +89,28 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/personalization/project': project as RouteModule,
   '/api/personalization/record': record as RouteModule,
   '/api/personalization/persist-edited-asset': persistEditedAsset as unknown as RouteModule,
+  '/api/personalization/lead-feedback': leadFeedback as unknown as RouteModule,
+  '/api/personalization/saved-searches': savedSearches as unknown as RouteModule,
+  '/api/personalization/provider-status': providerStatus as unknown as RouteModule,
+  '/api/personalization/resolve-website': resolveWebsite as RouteModule,
+  '/api/personalization/enrich-business': enrichBusiness as RouteModule,
+  '/api/media/remote': remoteMedia as RouteModule,
+  '/api/video/record': videoRecord as RouteModule,
   '/api/demo/discover': demoDiscover as RouteModule,
+  '/api/demo/download-image': demoDownloadImage as RouteModule,
   '/api/proxy/openai-enhance': openaiEnhance as unknown as RouteModule,
+  '/api/proxy/thumbnail-generate': thumbnailGenerate as unknown as RouteModule,
   '/api/v1/upload_file': muapiUploadFile as unknown as RouteModule,
   // Motion Director (ported from OpenHiggsBolt app/api/motion-studio).
   '/api/motion-studio/director': motionDirector as unknown as RouteModule,
   '/api/motion-studio/capture': motionCapture as unknown as RouteModule,
   '/api/motion-studio/capture/status': motionCaptureStatus as unknown as RouteModule,
-}
-
-const videoRecord: RouteModule = {
-  // OpenHiggsBolt's client registers finished videos here but the route was
-  // never implemented there; remix acknowledges the call so the client's
-  // best-effort bookkeeping stays quiet. Outputs are recorded through
-  // /api/personalization/record.
-  POST: async () => NextResponse.json({ ok: true, recorded: false }),
+  '/api/outreach/site-shot': outreachSiteShot as unknown as RouteModule,
 }
 
 function resolve(pathname: string): { mod: RouteModule; params: RouteParams } | null {
   const path = pathname.replace(/\/+$/, '') || '/'
   if (STATIC_ROUTES[path]) return { mod: STATIC_ROUTES[path], params: {} }
-  if (path === '/api/video/record') return { mod: videoRecord, params: {} }
   // OpenHiggsBolt's MuAPI proxy: /api/api/v1/<path…> → api.muapi.ai/api/v1/<path…>
   const muapi = /^\/api\/api\/v1(?:\/(.*))?$/.exec(path)
   if (muapi) {
@@ -158,11 +177,15 @@ export const config: Config = {
   path: [
     '/api/personalization/*',
     '/api/demo/discover',
+    '/api/demo/download-image',
     '/api/video/record',
     '/api/proxy/openai-enhance',
+    '/api/proxy/thumbnail-generate',
     '/api/api/v1/*',
     '/api/v1/upload_file',
     '/api/media/shotcraft/*',
+    '/api/media/remote',
     '/api/motion-studio/*',
+    '/api/outreach/*',
   ],
 }

@@ -16,6 +16,7 @@ import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResol
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
+import { resolvePrefillModel, takePrefillModelName } from '../lib/prefillModel.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
@@ -47,7 +48,8 @@ export function VideoStudio() {
   mountStudioChrome(container, { currentRoute: 'video' });
 
     // --- State ---
-    const defaultModel = t2vModels[0];
+    // A model picked on the Text to Video page wins (key is always cleared; unknown names -> default).
+    const defaultModel = resolvePrefillModel(t2vModels, takePrefillModelName()) || t2vModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
     let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '16:9';
@@ -181,7 +183,7 @@ export function VideoStudio() {
     promptWrapper.style.animationDelay = '0.2s';
 
     const bar = document.createElement('div');
-    bar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
+    bar.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
 
     const topRow = document.createElement('div');
     topRow.className = 'flex items-start gap-5 px-2';
@@ -1004,7 +1006,7 @@ generateBtn.type = 'button';
     advancedPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
     advancedPanel.id = 'v-advanced-panel';
     advancedPanel.innerHTML = `
-        <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
+        <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
             <div class="flex items-center justify-between pb-3 border-b border-white/5">
                 <h3 class="text-sm font-bold text-white">Advanced Options</h3>
                 <button id="v-close-adv-btn" class="text-white/40 hover:text-white transition-colors">
@@ -1103,7 +1105,7 @@ generateBtn.type = 'button';
     motionStylePanel.className = 'w-full mt-4 animate-fade-in-up hidden';
     motionStylePanel.id = 'v-motion-style-panel';
     motionStylePanel.innerHTML = `
-        <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-5">
+        <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-5">
             <div class="flex items-center justify-between pb-3 border-b border-white/5">
                 <h3 class="text-sm font-bold text-white">Motion & Style</h3>
                 <button id="v-close-motion-btn" class="text-white/40 hover:text-white transition-colors">

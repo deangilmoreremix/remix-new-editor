@@ -133,7 +133,10 @@ class OpenAIConfig {
       supportedImageModels: [
         'gpt-image-2',
         'gpt-image-2.5-sunburst',
-        'gpt-image-2.5-flare'
+        'gpt-image-2.5-flare',
+        // Images 2.6 (Nov 2026): Flare = fast drafts, Sunburst = detail and precise edits.
+        'gpt-image-2.6-flare',
+        'gpt-image-2.6-sunburst'
       ],
       // Mainline model used by the Responses API image generation tool. The
       // tool selects the underlying GPT Image model; this is the conversational

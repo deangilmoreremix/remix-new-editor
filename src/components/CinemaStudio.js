@@ -51,7 +51,7 @@ const CAMERA_MOVEMENTS = {
   'Handheld': 'subtle handheld camera movement',
   'Pan': 'slow horizontal pan',
   'Tilt': 'vertical tilt movement',
-  'Dolly Zom': 'Hitchcock dolly zoom (vertigo effect)',
+  'Dolly Zoom': 'Hitchcock dolly zoom (vertigo effect)',
 };
 
 // Film looks promised by the intro copy ("Choose … film look to set the
@@ -264,7 +264,7 @@ export function CinemaStudio() {
 
     const overlayContent = document.createElement('div');
     // Reduced padding for mobile (p-4) and added max-height/overflow handling
-    overlayContent.className = 'w-full max-w-5xl bg-[#111] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto';
+    overlayContent.className = 'w-full max-w-5xl bg-card-bg border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto';
     overlayBackdrop.appendChild(overlayContent);
 
     // Header for Overlay
@@ -319,7 +319,7 @@ export function CinemaStudio() {
     promptBarWrapper.style.animationDelay = '0.2s';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
+    promptBar.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
 
     // --- INPUT AREA (Prompt + Upload) ---
     const inputArea = document.createElement('div');
@@ -1381,7 +1381,8 @@ export function CinemaStudio() {
             currentSettings.lens = entry.settings.lens;
             currentSettings.focal = entry.settings.focal;
             currentSettings.aperture = entry.settings.aperture;
-            currentSettings.movement = entry.settings.movement || 'Static';
+            // Saved projects from before the label was fixed ('Dolly Zom') keep their camera move.
+            currentSettings.movement = (entry.settings.movement === 'Dolly Zom' ? 'Dolly Zoom' : entry.settings.movement) || 'Static';
             currentSettings.look = entry.settings.look || 'Natural';
             currentSettings.aspect_ratio = entry.settings.aspect_ratio;
 

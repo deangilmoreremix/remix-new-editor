@@ -10,6 +10,7 @@ import { getModelMediaCapabilities, mapReferenceParams } from './modelCapabiliti
 import { buildSupplementalInputPayload } from './modelParameters.js';
 import { getGroupedVideoConfiguration } from './groupedVideoModels.js';
 import { getUploadLimit, isAllowedUploadMimeType, formatUploadLimit } from './uploadContract.js';
+import { saveUploadedFile, saveResultUrl } from './lib/assetStore.js';
 
 // In an http(s) browser we route through the host app's proxy (Next.js routes
 // under /api/* re-issue the call server-side) so api.muapi.ai CORS is bypassed.
@@ -42,7 +43,7 @@ function includeRequiredArrayDefaults(model, payload) {
     return Object.keys(defaults).length > 0 ? { ...defaults, ...payload } : payload;
 }
 
-async function pollForResult(requestId, key, maxAttempts = 900, interval = 2000) {
+async function pollForResult(requestId, key, maxAttempts = 900, interval = 2000, signal) {
     return pollForGenerationResult({
         baseUrl: BASE_URL,
         requestId,
@@ -50,7 +51,26 @@ async function pollForResult(requestId, key, maxAttempts = 900, interval = 2000)
         maxAttempts,
         interval,
         onAuthRequired: notifyAuthRequired,
+        signal,
     });
+}
+
+/**
+ * Resume polling a generation that was submitted earlier (e.g. before a page
+ * reload), by its request id. Optional `signal` stops waiting.
+ */
+/**
+ * @param {string} apiKey
+ * @param {string} requestId
+ * @param {{ maxAttempts?: number, signal?: AbortSignal }} [options]
+ */
+export async function resumeGeneration(apiKey, requestId, options = {}) {
+    const { maxAttempts = 900, signal } = options;
+    const result = await pollForResult(requestId, apiKey, maxAttempts, 2000, signal);
+    const outputUrl = result.outputs?.[0] || result.url || result.output?.url;
+    // A generation finished after a reload still belongs in the user's asset library.
+    if (outputUrl) void saveResultUrl(outputUrl);
+    return normalizePredictionResult({ request_id: requestId }, result, outputUrl);
 }
 
 function normalizePredictionResult(submitData, result, outputUrl) {
@@ -62,7 +82,7 @@ function normalizePredictionResult(submitData, result, outputUrl) {
     };
 }
 
-async function submitAndPoll(endpoint, payload, key, onRequestId, maxAttempts = 60) {
+async function submitAndPoll(endpoint, payload, key, onRequestId, maxAttempts = 60, signal) {
     const url = `${BASE_URL}/api/v1/${endpoint}`;
     const response = await fetch(url, {
         method: 'POST',
@@ -78,8 +98,10 @@ async function submitAndPoll(endpoint, payload, key, onRequestId, maxAttempts = 
     const requestId = submitData.request_id || submitData.id;
     if (!requestId) return submitData;
     if (onRequestId) onRequestId(requestId);
-    const result = await pollForResult(requestId, key, maxAttempts);
+    const result = await pollForResult(requestId, key, maxAttempts, 2000, signal);
     const outputUrl = result.outputs?.[0] || result.url || result.output?.url;
+    // Keep every finished generation in the user's asset library (best effort, never blocks the result).
+    if (outputUrl) void saveResultUrl(outputUrl);
     return normalizePredictionResult(submitData, result, outputUrl);
 }
 
@@ -222,8 +244,12 @@ export async function processV2V(apiKey, params) {
     if (modelInfo?.hasPrompt && params.prompt) {
         payload.prompt = params.prompt;
     }
-    if (getGroupedVideoConfiguration(modelInfo?.id)) {
-        for (const field of ['duration', 'aspect_ratio', 'resolution', 'quality']) {
+    // Grouped models, and callers that render every declared input (Edit
+    // Studio playgrounds), send the common fields the model declares.
+    if (getGroupedVideoConfiguration(modelInfo?.id) || params.includeDeclaredInputs) {
+        const fields = ['duration', 'aspect_ratio', 'resolution', 'quality'];
+        if (params.includeDeclaredInputs) fields.push('mode');
+        for (const field of fields) {
             if (modelInfo.inputs?.[field] && params[field] !== undefined) {
                 payload[field] = params[field];
             }
@@ -345,13 +371,14 @@ export async function processMotionControl(apiKey, params) {
         if (params.seed !== undefined && params.seed !== -1) payload.seed = Number(params.seed);
     }
 
-    return submitAndPoll(model, payload, apiKey, params.onRequestId, 900);
+    return submitAndPoll(model, payload, apiKey, params.onRequestId, 900, params.signal);
 }
 
 export async function processLipSync(apiKey, params) {
     const modelInfo = getLipSyncModelById(params.model);
     const endpoint = modelInfo?.endpoint || params.model;
-    const payload = {};
+    const payload = { ...buildSupplementalInputPayload(modelInfo, params) };
+    if (params.mode && modelInfo?.inputs?.mode) payload.mode = params.mode;
     if (params.audio_url) payload.audio_url = params.audio_url;
     if (params.image_url) payload.image_url = params.image_url;
     if (params.video_url) payload.video_url = params.video_url;
@@ -373,6 +400,22 @@ export async function generateAudio(apiKey, params) {
         }
     }
     return submitAndPoll(endpoint, payload, apiKey, params.onRequestId, 900);
+}
+
+/**
+ * Burn animated captions into a video (MuAPI `ai-captions`, Vadoo engine).
+ * Unlike processV2V this forwards `language` and `theme`, and reads the result's
+ * `video` field (the endpoint answers { video: <url> } rather than outputs[]).
+ * `video_url` must be a public URL (max 600 MB / 10 min): upload local files first.
+ */
+export async function generateCaptions(apiKey, params) {
+    if (!params?.video_url) throw new Error('video_url is required for captions.');
+    const payload = { video_url: params.video_url };
+    if (params.language) payload.language = params.language;
+    if (params.theme) payload.theme = params.theme;
+    const result = await submitAndPoll('ai-captions', payload, apiKey, params.onRequestId, 900, params.signal);
+    const url = result.url || (typeof result.video === 'string' ? result.video : result.video?.url);
+    return { ...result, url };
 }
 
 export function uploadFile(apiKey, file, onProgress) {
@@ -448,6 +491,8 @@ export function uploadFile(apiKey, file, onProgress) {
                         reject(new Error('No URL returned from file upload'));
                     } else {
                         onProgress?.(100);
+                        // Keep a lasting copy in the user's asset library (best effort, never blocks the upload).
+                        void saveUploadedFile(file);
                         resolve(fileUrl);
                     }
                 } catch (e) {
@@ -471,6 +516,11 @@ export function uploadFile(apiKey, file, onProgress) {
 }
 
 export async function getUserBalance(apiKey) {
+    // No key yet (e.g. still being restored after sign-in): don't call MuAPI,
+    // which would answer 401/403 and pop the Settings modal for no reason.
+    if (!String(apiKey || '').trim()) {
+        throw new Error('No MuAPI key');
+    }
     const response = await fetch(`${BASE_URL}/api/v1/account/balance`, {
         headers: {
             'Content-Type': 'application/json',

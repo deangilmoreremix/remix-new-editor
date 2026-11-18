@@ -1,0 +1,313 @@
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+// [remix] OpenChatCut speed range 0.1–8×.
+import { MIN_RATE as OCC_MIN_RATE, MAX_RATE as OCC_MAX_RATE } from '../../../openchatcut/editor/rateStretch';
+import type { Clip } from '@cinegen/types/timeline';
+import type { Asset } from '@cinegen/types/project';
+import { clipEffectiveDuration } from '@cinegen/types/timeline';
+import { ClipEffectsSection } from './clip-effects-section';
+import { ClipAnalyzeSection } from './clip-analyze-section';
+import { ClipCaptionsSection } from './clip-captions-section';
+import { ClipLayoutSection } from './clip-layout-section';
+import { ClipMulticamSection } from './clip-multicam-section';
+import { ClipTransformSection } from './clip-transform-section';
+import { ClipZoomSection } from './clip-zoom-section';
+import { ClipAnimationSection } from './clip-animation-section';
+import { ClipTransitionSection } from './clip-transition-section';
+import type { Timeline } from '@cinegen/types/timeline';
+import { InspectorGroup } from './inspector-group';
+import { useInspectorGroups } from './use-inspector-groups';
+
+interface ClipPropertiesPanelProps {
+  clip: Clip | null;
+  asset: Asset | null;
+  onUpdateClip: (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions' | 'anim' | 'keyframes'>>) => void;
+  onAddKeyframe: (clipId: string, property: 'opacity' | 'volume', time: number, value: number) => void;
+  onRemoveKeyframe: (clipId: string, index: number) => void;
+  onClose: () => void;
+  /** [remix] lets Analyze add markers / split the clip */
+  onTimelineEdit?: (edit: (tl: Timeline) => Timeline) => void;
+  timeline?: Timeline;
+  syncTarget?: { clip: Clip; asset: Asset | null } | null;
+  /** [remix] playhead, for camera switching */
+  currentTime?: number;
+  /** [remix] move the playhead (caption cue timecodes) */
+  onSeek?: (time: number) => void;
+}
+
+export function ClipPropertiesPanel({
+  clip,
+  asset,
+  onUpdateClip,
+  onAddKeyframe,
+  onRemoveKeyframe,
+  onClose,
+  onTimelineEdit,
+  timeline,
+  syncTarget,
+  currentTime,
+  onSeek,
+}: ClipPropertiesPanelProps) {
+  const isAudio = asset?.type === 'audio';
+  const groups = useInspectorGroups();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [query, setQuery] = useState('');
+  const searching = query.trim().length > 0;
+
+  // [remix] After every render: hide sections that do not match the "Find a setting" text, hide a group when none of its sections show (a clip
+  // with no next clip has no Transition, an audio clip has no Look...), and show the "when do Transition / Layout / Multicam appear" hint.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const needle = query.trim().toLowerCase();
+    root.querySelectorAll<HTMLElement>('.inspector-group').forEach((g) => {
+      const sections = g.querySelectorAll<HTMLElement>(':scope > .inspector-group__body > .clip-properties-panel__section');
+      let visible = 0;
+      let conditional = 0;
+      sections.forEach((sec) => {
+        const labels = Array.from(sec.querySelectorAll('[aria-label],[title]')).map((e) => `${e.getAttribute('aria-label') ?? ''} ${e.getAttribute('title') ?? ''}`).join(' ');
+        const show = !needle || `${sec.textContent ?? ''} ${labels}`.toLowerCase().includes(needle);
+        sec.hidden = !show;
+        if (show) visible += 1;
+        if (/^(transition|layout|multicam)/i.test(sec.querySelector('.clip-properties-panel__section-title')?.textContent?.trim() ?? '')) conditional += 1;
+      });
+      g.hidden = visible === 0;
+      const hint = g.querySelector<HTMLElement>('[data-motion-hint]');
+      if (hint) hint.hidden = isAudio || !!needle || conditional >= 3;
+    });
+  });
+
+  const handleSpeedChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!clip) return;
+      onUpdateClip(clip.id, { speed: parseFloat(e.target.value) });
+    },
+    [clip, onUpdateClip],
+  );
+
+  const handleOpacityChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!clip) return;
+      onUpdateClip(clip.id, { opacity: parseFloat(e.target.value) });
+    },
+    [clip, onUpdateClip],
+  );
+
+  const handleVolumeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!clip) return;
+      onUpdateClip(clip.id, { volume: parseFloat(e.target.value) });
+    },
+    [clip, onUpdateClip],
+  );
+
+  const handleFlipH = useCallback(() => {
+    if (!clip) return;
+    onUpdateClip(clip.id, { flipH: !clip.flipH });
+  }, [clip, onUpdateClip]);
+
+  const handleFlipV = useCallback(() => {
+    if (!clip) return;
+    onUpdateClip(clip.id, { flipV: !clip.flipV });
+  }, [clip, onUpdateClip]);
+
+  const handleAddKeyframe = useCallback(
+    (property: 'opacity' | 'volume') => {
+      if (!clip) return;
+      const midTime = clipEffectiveDuration(clip) / 2;
+      const value = clip[property];
+      onAddKeyframe(clip.id, property, midTime, value);
+    },
+    [clip, onAddKeyframe],
+  );
+
+  if (!clip) {
+    return (
+      <div className="clip-properties-panel">
+        <div className="clip-properties-panel__header">
+          <span className="clip-properties-panel__title">Inspector</span>
+          <button className="clip-properties-panel__close" onClick={onClose}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="m4.13 3.05a4.264 4.264 0 0 0 -1.08 1.08 6.143 6.143 0 0 0 -1.05 3.68v8.38c0 3.64 2.17 5.81 5.81 5.81h7.47v-20h-7.47a6.143 6.143 0 0 0 -3.68 1.05zm4.37 6.921a.75.75 0 1 1 1.056-1.061l2.56 2.56a.749.749 0 0 1 0 1.06l-2.56 2.56a.75.75 0 0 1 -1.056-1.061l2.025-2.029zm13.5-2.161v8.38a6.143 6.143 0 0 1 -1.05 3.68 4.264 4.264 0 0 1 -1.08 1.08 5.779 5.779 0 0 1 -3.09 1.03v-19.95c3.28.21 5.22 2.34 5.22 5.78z"/>
+            </svg>
+          </button>
+        </div>
+        <div className="clip-properties-panel__empty">
+          <span className="clip-properties-panel__empty-text">No clip selected</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="clip-properties-panel" ref={rootRef}>
+      <div className="clip-properties-panel__header">
+        <span className="clip-properties-panel__title">{clip.name}</span>
+        <button className="clip-properties-panel__close" onClick={onClose}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="m4.13 3.05a4.264 4.264 0 0 0 -1.08 1.08 6.143 6.143 0 0 0 -1.05 3.68v8.38c0 3.64 2.17 5.81 5.81 5.81h7.47v-20h-7.47a6.143 6.143 0 0 0 -3.68 1.05zm4.37 6.921a.75.75 0 1 1 1.056-1.061l2.56 2.56a.749.749 0 0 1 0 1.06l-2.56 2.56a.75.75 0 0 1 -1.056-1.061l2.025-2.029zm13.5-2.161v8.38a6.143 6.143 0 0 1 -1.05 3.68 4.264 4.264 0 0 1 -1.08 1.08 5.779 5.779 0 0 1 -3.09 1.03v-19.95c3.28.21 5.22 2.34 5.22 5.78z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div className="inspector-find">
+        <input type="search" placeholder="Find a setting…" aria-label="Find a setting" data-testid="inspector-find" value={query} onChange={(e) => setQuery(e.target.value)} />
+      </div>
+
+      {/* [remix] the sections are gathered into groups you can fold; each section is unchanged */}
+      <InspectorGroup id="basics" label="Basics" open={groups.open.basics} forceOpen={searching} onToggle={() => groups.toggle('basics')}>
+      {/* Flip ([remix] renamed from "Transform" so it no longer clashes with the position/scale/rotation Transform section below) */}
+      <div className="clip-properties-panel__section">
+        <div className="clip-properties-panel__section-title">Flip</div>
+        <div className="clip-properties-panel__toggle-row">
+          <button
+            className={`clip-properties-panel__toggle-btn${clip.flipH ? ' clip-properties-panel__toggle-btn--active' : ''}`}
+            onClick={handleFlipH}
+          >
+            Flip H
+          </button>
+          <button
+            className={`clip-properties-panel__toggle-btn${clip.flipV ? ' clip-properties-panel__toggle-btn--active' : ''}`}
+            onClick={handleFlipV}
+          >
+            Flip V
+          </button>
+        </div>
+      </div>
+      {/* Speed */}
+      <div className="clip-properties-panel__section">
+        <div className="clip-properties-panel__section-title">Speed</div>
+        <div className="clip-properties-panel__row">
+          <span className="clip-properties-panel__label">Rate</span>
+          <input
+            type="range"
+            className="clip-properties-panel__slider"
+            min={OCC_MIN_RATE}
+            max={OCC_MAX_RATE}
+            step={0.05}
+            value={clip.speed}
+            onChange={handleSpeedChange}
+          />
+          <span className="clip-properties-panel__value">{clip.speed.toFixed(2)}x</span>
+        </div>
+      </div>
+      {/* Opacity */}
+      <div className="clip-properties-panel__section">
+        <div className="clip-properties-panel__section-title">Opacity</div>
+        <div className="clip-properties-panel__row">
+          <span className="clip-properties-panel__label">Level</span>
+          <input
+            type="range"
+            className="clip-properties-panel__slider"
+            min={0}
+            max={1}
+            step={0.01}
+            value={clip.opacity}
+            onChange={handleOpacityChange}
+          />
+          <span className="clip-properties-panel__value">{Math.round(clip.opacity * 100)}%</span>
+        </div>
+      </div>
+      {/* [remix] OpenChatCut clip fades (editor/clipFade.ts): opacity on video, volume on audio */}
+      <div className="clip-properties-panel__section">
+        <div className="clip-properties-panel__section-title">Fade</div>
+        {(['fadeIn', 'fadeOut'] as const).map((key) => {
+          const len = Math.max(0.1, (clip.duration - clip.trimStart - clip.trimEnd) / (clip.speed || 1));
+          const other = key === 'fadeIn' ? (clip.fadeOut ?? 0) : (clip.fadeIn ?? 0);
+          const max = Math.max(0, Math.min(10, len - other));
+          return (
+            <div className="clip-properties-panel__row" key={key}>
+              <span className="clip-properties-panel__label">{key === 'fadeIn' ? 'In' : 'Out'}</span>
+              <input
+                type="range"
+                className="clip-properties-panel__slider"
+                data-testid={`clip-${key}`}
+                min={0}
+                max={max}
+                step={0.05}
+                value={Math.min(clip[key] ?? 0, max)}
+                onChange={(e) => onUpdateClip(clip.id, { [key]: Number(e.target.value) })}
+              />
+              <span className="clip-properties-panel__value">{(clip[key] ?? 0).toFixed(2)}s</span>
+            </div>
+          );
+        })}
+      </div>
+      {/* Volume (audio only) */}
+      {isAudio && (
+        <div className="clip-properties-panel__section">
+          <div className="clip-properties-panel__section-title">Volume</div>
+          <div className="clip-properties-panel__row">
+            <span className="clip-properties-panel__label">Level</span>
+            <input
+              type="range"
+              className="clip-properties-panel__slider"
+              min={0}
+              max={4}
+              step={0.01}
+              value={clip.volume}
+              onChange={handleVolumeChange}
+            />
+            <span className="clip-properties-panel__value">{clip.volume <= 0 ? '-\u221EdB' : `${clip.volume >= 1 ? '+' : ''}${(20 * Math.log10(clip.volume)).toFixed(1)}dB`}</span>
+          </div>
+        </div>
+      )}
+      </InspectorGroup>
+
+      <InspectorGroup id="look" label="Look" open={groups.open.look} forceOpen={searching} onToggle={() => groups.toggle('look')}>
+      {/* [remix] OpenChatCut effects / LUT / blend */}
+      {!isAudio && <ClipEffectsSection clip={clip} currentTime={currentTime} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      </InspectorGroup>
+
+      <InspectorGroup id="motion" label="Position and motion" open={groups.open.motion} forceOpen={searching} onToggle={() => groups.toggle('motion')}>
+      {!isAudio && <ClipTransformSection clip={clip} currentTime={currentTime} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      {!isAudio && <ClipAnimationSection clip={clip} currentTime={currentTime} onSeek={onSeek} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      {!isAudio && <ClipZoomSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      {onTimelineEdit && timeline && !isAudio && <ClipTransitionSection clip={clip} timeline={timeline} onTimelineEdit={onTimelineEdit} />}
+      {onTimelineEdit && timeline && !isAudio && currentTime !== undefined && <ClipLayoutSection clip={clip} timeline={timeline} currentTime={currentTime} onTimelineEdit={onTimelineEdit} />}
+      {onTimelineEdit && timeline && !isAudio && currentTime !== undefined && <ClipMulticamSection clip={clip} timeline={timeline} currentTime={currentTime} onTimelineEdit={onTimelineEdit} />}
+      {/* Keyframes */}
+      <div className="clip-properties-panel__section">
+        <div className="clip-properties-panel__section-title">Keyframes</div>
+        <div className="clip-properties-panel__kf-list">
+          {clip.keyframes.map((kf, i) => (
+            <div key={i} className="clip-properties-panel__kf-item">
+              <span>{kf.time.toFixed(2)}s</span>
+              <span>{kf.property}</span>
+              <span>{kf.property === 'opacity' ? `${Math.round(kf.value * 100)}%` : kf.value.toFixed(2)}</span>
+              <button
+                className="clip-properties-panel__kf-remove"
+                onClick={() => onRemoveKeyframe(clip.id, i)}
+              >
+                &times;
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          className="clip-properties-panel__add-kf"
+          onClick={() => handleAddKeyframe('opacity')}
+        >
+          + Add Opacity Keyframe
+        </button>
+        {isAudio && (
+          <button
+            className="clip-properties-panel__add-kf"
+            onClick={() => handleAddKeyframe('volume')}
+          >
+            + Add Volume Keyframe
+          </button>
+        )}
+      </div>
+        <div className="inspector-group__hint" data-motion-hint>Transition, Layout and Multicam appear when this clip has another clip right after it, or overlapping it at the playhead.</div>
+      </InspectorGroup>
+
+      <InspectorGroup id="captions" label="Captions" open={groups.open.captions} forceOpen={searching} onToggle={() => groups.toggle('captions')}>
+      {!isAudio && <ClipCaptionsSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} onSeek={onSeek} />}
+      </InspectorGroup>
+
+      <InspectorGroup id="analyze" label="Analyze" open={groups.open.analyze} forceOpen={searching} onToggle={() => groups.toggle('analyze')}>
+      {onTimelineEdit && <ClipAnalyzeSection syncTarget={syncTarget} clip={clip} asset={asset} onTimelineEdit={onTimelineEdit} onUpdateClip={(u) => onUpdateClip(clip.id, u)} />}
+      </InspectorGroup>
+    </div>
+  );
+}

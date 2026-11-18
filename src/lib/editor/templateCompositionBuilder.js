@@ -165,6 +165,7 @@ export function buildCompositionFromState(state) {
           type: m.type || 'video',
           name: m.name || s.sceneName,
           duration,
+          ...(state.footageVolume != null && state.footageVolume !== 1 ? { volume: state.footageVolume } : {}),
           startTime: undefined, // set sequentially below
           sceneIndex: s.sceneIndex,
           sceneName: s.sceneName,
@@ -265,7 +266,20 @@ export function buildCompositionFromState(state) {
   // 5. Add content overlays as dedicated tracks.
   if (state.overlays && state.overlays.length > 0) {
     const overlayTracks = new Map(); // type -> track
+    // Original Template Generator rule: a transition overlay (placement 'boundary') is centred on every cut between consecutive
+    // media clips (start = clip end − duration / 2), on its own layer above the footage; the last clip has no boundary.
+    const mediaClips = baseTracks[0]?.clips || [];
+    const expanded = [];
     for (const overlay of state.overlays) {
+      if (overlay.placement !== 'boundary' || overlay.startTime !== undefined) { expanded.push(overlay); continue; }
+      const dur = overlay.duration || DEFAULT_CLIP_DURATION;
+      mediaClips.forEach((clip, i) => {
+        if (i >= mediaClips.length - 1) return;
+        const end = clip.startTime + (clip.duration || DEFAULT_CLIP_DURATION);
+        expanded.push({ ...overlay, startTime: Math.max(0, end - dur / 2), duration: dur, trackName: overlay.trackName || 'Transitions' });
+      });
+    }
+    for (const overlay of expanded) {
       const kind = overlay.kind || 'overlay';
       const type = overlay.type || (kind === 'text' || kind === 'caption' ? 'caption' : 'overlay');
       const trackName = overlay.trackName || type.charAt(0).toUpperCase() + type.slice(1);
@@ -305,6 +319,7 @@ export function buildCompositionFromState(state) {
         duration: voiceDuration,
         startTime: 0,
         asset: state.voice.generatedAsset,
+        ...(state.voice.volume != null && state.voice.volume !== 1 ? { volume: state.voice.volume } : {}),
         // Voice metadata so it can be regenerated / re-edited later
         _voiceMeta: {
           provider: state.voice.provider,
@@ -315,6 +330,25 @@ export function buildCompositionFromState(state) {
       }],
     });
     maxDuration = Math.max(maxDuration, voiceDuration);
+  }
+
+  // 6b. Background music: the chosen track trimmed to the cut, with fade in/out and ducking under the voice (volume is baked into the keyframes).
+  if (state.music?.url) {
+    composition.tracks.push({
+      type: 'audio',
+      name: 'Music',
+      clips: [{
+        type: 'audio',
+        name: state.music.name || 'Music',
+        duration: state.music.duration,
+        startTime: state.music.start || 0,
+        asset: { id: `music-${state.music.trackId || 'track'}`, type: 'audio', name: state.music.name, url: state.music.url, duration: state.music.sourceDuration || state.music.duration },
+        volume: 1,
+        keyframes: { volume: state.music.keyframes || [] },
+        _musicMeta: { trackId: state.music.trackId, volume: state.music.volume },
+      }],
+    });
+    maxDuration = Math.max(maxDuration, (state.music.start || 0) + state.music.duration);
   }
 
   // 7. Append the base tracks.

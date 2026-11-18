@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
+  submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, deliveriesSummary, fetchSigningSecret, integrationStatusText, fetchIntegrations, saveIntegration, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   buildOptinForm, showListBuilderOverlay, showPauseOverlay, ensureOverlayLayer, formBackground,
-  renderAddonEditor, getAddon,
+  renderAddonEditor, getAddon, showThanks, safeWebUrl, showOptinOverlay, leadFormToOptin, applyOptinToLeadForm, AFTER_SUBMIT_ACTIONS,
 } from '../index.js';
 
 describe('lead client', () => {
@@ -31,7 +31,7 @@ describe('lead client', () => {
   it('submits through the lead-capture edge function', async () => {
     const supabase = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: true, stored: true, forwarded: 1, failed: 0 }, error: null }) } };
     const res = await submitLead(supabase, { projectId: 'p', clipId: 7, data: { EMAIL: 'a@b.c' }, webhooks: ['https://h.test'] });
-    expect(res).toEqual({ stored: true, forwarded: 1, failed: 0, error: null });
+    expect(res).toEqual({ stored: true, forwarded: 1, failed: 0, email: null, emailCount: 0, error: null });
     const [name, { body }] = supabase.functions.invoke.mock.calls[0];
     expect(name).toBe('lead-capture');
     expect(body).toMatchObject({ projectId: 'p', clipId: '7', kind: 'lead-form', data: { EMAIL: 'a@b.c' }, webhooks: ['https://h.test'] });
@@ -51,6 +51,98 @@ describe('lead client', () => {
       .mockResolvedValueOnce({ ok: false });
     expect(await postWebhooksDirect(['https://a', 'https://b'], { x: 1 }, fetchImpl)).toEqual({ forwarded: 1, failed: 1 });
   });
+
+  it('tests webhooks with a flagged sample payload', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce({ ok: true }).mockRejectedValueOnce(new Error('cors'));
+    expect(await testWebhooks(['https://a', 'https://b'], { kind: 'list-builder', data: { EMAIL: 'x' } }, fetchImpl)).toEqual({ total: 2, failed: 1 });
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toMatchObject({ event: 'video_opted_in', test: true, kind: 'list-builder' });
+  });
+
+  it('runs the webhook test on the server and falls back to the browser when signed out', async () => {
+    const ok = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: true, signed: true, results: [{ host: 'a.test', ok: true, status: 200, attempts: 1, error: null }, { host: 'b.test', ok: false, status: 500, attempts: 1, error: 'HTTP 500' }] }, error: null }) } };
+    const res = await runWebhookTest(ok, ['https://a.test/h', 'https://b.test/h'], { kind: 'lead-form' });
+    expect(ok.functions.invoke.mock.calls[0][1].body).toMatchObject({ action: 'test-webhooks', kind: 'lead-form' });
+    expect(res).toMatchObject({ via: 'server', total: 2, failed: 1, signed: true });
+    expect(webhookTestMessage(res)).toBe('1/2 failed · b.test: HTTP 500 · signed');
+
+    const signedOut = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: false, error: 'Sign in to test webhooks' }, error: null }) } };
+    const fetchImpl = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true });
+    const fb = await runWebhookTest(signedOut, ['https://a.test/h']);
+    fetchImpl.mockRestore();
+    expect(fb).toMatchObject({ via: 'browser', total: 1, failed: 0 });
+    expect(webhookTestMessage(fb)).toMatch(/^1\/1 succeeded · tested from your browser/);
+  });
+
+  it('summarizes recent deliveries and surfaces the signing secret state', async () => {
+    expect(deliveriesSummary([])).toBe('No deliveries yet');
+    expect(deliveriesSummary([
+      { ok: true, url_host: 'hooks.zapier.com' },
+      { ok: false, url_host: 'x.test', http_status: 500, error: 'HTTP 500', attempts: 3 },
+    ])).toBe('✓ hooks.zapier.com · ✗ x.test (HTTP 500, 3 tries)');
+    const supa = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: true, configured: true, secret: 'whsec_abc' }, error: null }) } };
+    expect(await fetchSigningSecret(supa)).toEqual({ ok: true, configured: true, secret: 'whsec_abc', error: null });
+  });
+
+  it('shows email-list status and talks to the integration actions', async () => {
+    expect(integrationStatusText('', { ok: true })).toBe('');
+    expect(integrationStatusText('kit', { ok: true, configured: false })).toMatch(/not set up on the server/i);
+    expect(integrationStatusText('kit', { ok: true, configured: true, kit: true })).toMatch(/^Kit connected/);
+    expect(integrationStatusText('mailerlite', { ok: true, configured: true, mailerlite: false })).toBe('MailerLite not connected yet');
+    const supa = { functions: { invoke: vi.fn()
+      .mockResolvedValueOnce({ data: { ok: true, configured: true, kit: true, mailerlite: false }, error: null })
+      .mockResolvedValueOnce({ data: { ok: false, error: 'Kit rejected that API key' }, error: null }) } };
+    expect(await fetchIntegrations(supa)).toEqual({ ok: true, configured: true, kit: true, mailerlite: false });
+    expect(await saveIntegration(supa, 'kit', 'bad')).toEqual({ ok: false, error: 'Kit rejected that API key' });
+    expect(supa.functions.invoke.mock.calls[1][1].body).toEqual({ action: 'integration-save', provider: 'kit', apiKey: 'bad' });
+  });
+
+  it('list builder Integrations tab offers an email-list provider, then its id and connect button', () => {
+    const tab = (cfg) => listBuilderFields(cfg).filter((f) => f.tab === 'Integrations' && (!f.showIf || f.showIf(cfg)));
+    expect(tab({ kind: 'list-builder' }).map((f) => f.key)).toContain('espProvider');
+    expect(tab({ kind: 'list-builder' }).map((f) => f.key)).not.toContain('espListId');
+    const on = tab({ kind: 'list-builder', espProvider: 'kit' });
+    expect(on.find((f) => f.key === 'espListId').label).toBe('Kit tag ID (optional)');
+    expect(on.find((f) => f.key === '_espConnect')).toMatchObject({ type: 'action', action: 'connectEsp', label: 'Connect Kit' });
+    expect(tab({ kind: 'personalizer', espProvider: 'kit' })).toHaveLength(0);
+  });
+
+  it('collects up to 3 notification addresses and sends them to the backend', async () => {
+    expect(leadNotifyEmails(false, ['a@x.com'])).toEqual([]);
+    expect(leadNotifyEmails(true, [' a@x.com ', '', 'A@x.com', 'b@x.com', 'c@x.com', 'd@x.com'])).toEqual(['a@x.com', 'b@x.com', 'c@x.com']);
+    const supabase = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: true, stored: true, email: 'sent', emailCount: 3 }, error: null }) } };
+    const res = await submitLead(supabase, { clipId: 1, data: { EMAIL: 'v@x.com' }, notificationEmails: ['a@x.com', 'b@x.com', 'c@x.com'] });
+    const { body } = supabase.functions.invoke.mock.calls[0][1];
+    expect(body.notificationEmails).toEqual(['a@x.com', 'b@x.com', 'c@x.com']);
+    expect(body.notificationEmail).toBe('a@x.com'); // older deployed function still notifies the first person
+    expect(res).toMatchObject({ email: 'sent', emailCount: 3 });
+  });
+
+  it('list builder offers three notification addresses while email is on', () => {
+    const keys = (cfg) => listBuilderFields(cfg).filter((f) => f.tab === 'Integrations' && (!f.showIf || f.showIf(cfg))).map((f) => f.key);
+    expect(keys({ kind: 'list-builder', emailEnabled: true })).toEqual(expect.arrayContaining(['emailAddress', 'emailAddress2', 'emailAddress3']));
+    expect(keys({ kind: 'list-builder', emailEnabled: false })).not.toContain('emailAddress2');
+  });
+
+  it('list builder Integrations tab has a Test Webhook action only while webhooks are on', () => {
+    const tab = (cfg) => listBuilderFields(cfg).filter((f) => f.tab === 'Integrations' && (!f.showIf || f.showIf(cfg)));
+    expect(tab({ kind: 'list-builder', webhookEnabled: false }).some((f) => f.type === 'action')).toBe(false);
+    expect(tab({ kind: 'list-builder', webhookEnabled: true }).find((f) => f.type === 'action')?.action).toBe('testWebhooks');
+    expect(tab({ kind: 'list-builder' }).some((f) => f.key === 'fbPixelId')).toBe(true);
+  });
+
+  it('renders the action button and runs services.fieldAction', async () => {
+    document.body.innerHTML = '<div id="c"></div>';
+    const container = document.getElementById('c');
+    const fieldAction = vi.fn(async (_a, _o, { setResult }) => setResult('2/2 succeeded'));
+    renderAddonEditor(container, {
+      options: { webhookEnabled: true }, services: { fieldAction },
+      fields: [{ key: '_t', label: 'Test Webhook', type: 'action', action: 'testWebhooks' }],
+    });
+    container.querySelector('[data-field-action]').click();
+    await Promise.resolve(); await Promise.resolve();
+    expect(fieldAction).toHaveBeenCalledWith('testWebhooks', { webhookEnabled: true }, expect.any(Object));
+    expect(container.querySelector('.addon-action-result').textContent).toBe('2/2 succeeded');
+  });
 });
 
 describe('List Builder / Personalizer (upstream retarget form)', () => {
@@ -61,7 +153,7 @@ describe('List Builder / Personalizer (upstream retarget form)', () => {
       btnBottomBorder: '#eb5054', innerWidth: 65, captionFontSize: 76, fontSize: 60,
       popupHeaderText: 'Create your very own personalized video', popupFillOutText: 'Fill out your',
     });
-    expect(lb.elements).toEqual([{ id: 0, label: 'Email', token: 'EMAIL', type: 'email' }]);
+    expect(lb.elements).toEqual([{ id: 0, label: 'Email', token: 'EMAIL', type: 'email', required: true }]);
   });
 
   it('Personalizer uses DEFAULT_OPTIONS_OPTIN and hides integrations / disclaimer', () => {
@@ -70,7 +162,7 @@ describe('List Builder / Personalizer (upstream retarget form)', () => {
     expect(p.elements.map((e) => e.token)).toEqual(['EMAIL', 'FIRST NAME', 'LAST NAME']);
     const tabs = new Set(listBuilderFields(p).map((f) => f.tab));
     expect(tabs.has('Integrations')).toBe(false);
-    expect(new Set(listBuilderFields(defaultListBuilder()).map((f) => f.tab))).toEqual(new Set(['Styles', 'Fields', 'Integrations']));
+    expect(new Set(listBuilderFields(defaultListBuilder()).map((f) => f.tab))).toEqual(new Set(['Text', 'Styles', 'Fields', 'Pointer', 'Integrations']));
   });
 
   it('switching kind keeps enabled and swaps defaults', () => {
@@ -107,13 +199,27 @@ describe('List Builder / Personalizer (upstream retarget form)', () => {
     expect(formBackground({ backgroundColor: '#000000' })).toMatch(/^radial-gradient\(circle, rgba\(0, 0, 0, 0.07\) 10%/);
   });
 
-  it('applies the per-field-count layout (3 fields → 49% / 49% / grow)', () => {
-    const lb = defaultListBuilder('personalizer');
-    const form = buildOptinForm(lb);
-    const inputs = form.querySelectorAll('.input-wrapper input');
-    expect(inputs[0].style.width).toBe('49%');
-    expect(inputs[2].style.flexGrow).toBe('5');
-    expect(form.querySelector('.input-wrapper .buttons-inner')).not.toBeNull();
+  it('lays 1-5 boxes out in one centred block, Play centred under them', () => {
+    const mk = (n, over = {}) => buildOptinForm({ ...defaultListBuilder(), elements: Array.from({ length: n }, (_, i) => ({ id: i, label: `Box ${i + 1}`, token: `BOX ${i + 1}`, type: 'singleline' })), ...over });
+    const layoutOf = (form) => form.querySelector('.input-wrapper-container').dataset.layout;
+    expect([1, 2, 3, 4, 5].map((n) => layoutOf(mk(n)))).toEqual(['inline', 'stacked', 'stacked', 'grid', 'stacked']);
+    // the Play button is always a child of the same container (never squeezed into the last row of the boxes)
+    for (const n of [1, 2, 3, 4, 5]) {
+      const form = mk(n);
+      expect(form.querySelector('.input-wrapper .buttons-inner')).toBeNull();
+      expect(form.querySelector('.input-wrapper-container > .buttons-inner button')).not.toBeNull();
+      expect(form.querySelectorAll('.input-wrapper > *')).toHaveLength(n);
+    }
+    // no per-box inline widths: every box is sized by the same rule
+    expect([...mk(3).querySelectorAll('.input-wrapper input')].every((i) => !i.style.width && !i.style.flexGrow)).toBe(true);
+    // options
+    const wide = mk(2, { fieldLayout: 'grid', fieldWidth: 90, fieldGap: 10, fieldAlign: 'left', buttonWidth: 'auto' });
+    const box = wide.querySelector('.input-wrapper-container');
+    expect(box.dataset).toMatchObject({ layout: 'grid', align: 'left', button: 'auto' });
+    expect(wide.querySelector('.form-scrollable-inner').style.getPropertyValue('--field-w')).toBe('90%');
+    expect(wide.querySelector('.form-scrollable-inner').style.getPropertyValue('--field-gap')).toBe('1em');
+    // inline only fits 1-2 boxes; more fall back to stacked
+    expect(layoutOf(mk(4, { fieldLayout: 'inline' }))).toBe('stacked');
   });
 
   it('personalizer omits the privacy disclaimer; number fields strip non-digits', () => {
@@ -134,7 +240,7 @@ describe('List Builder / Personalizer (upstream retarget form)', () => {
     expect(el.querySelector('.overlay-arrow.on .container-hint .title-hint').textContent).toBe('Create your very own personalized video');
     el.querySelector('input[name="EMAIL"]').value = 'v@x.io';
     el.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
-    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ EMAIL: 'v@x.io' }));
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ EMAIL: 'v@x.io' }, expect.objectContaining({ hp: '' })));
     await vi.waitFor(() => expect(layer.querySelector('[data-overlay="list-builder"]')).toBeNull());
   });
 
@@ -165,7 +271,7 @@ describe('schema settings editor', () => {
     const onChange = vi.fn();
     const lb = defaultListBuilder();
     renderAddonEditor(box, { options: lb, fieldsFor: listBuilderFields, onChange });
-    expect([...box.querySelectorAll('[data-addon-tab]')].map((b) => b.textContent)).toEqual(['Styles', 'Fields', 'Integrations']);
+    expect([...box.querySelectorAll('[data-addon-tab]')].map((b) => b.textContent)).toEqual(['Text', 'Styles', 'Fields', 'Pointer', 'Integrations']);
     box.querySelector('[data-addon-tab="Fields"]').click();
     box.querySelector('.addon-fieldlist__add').click();
     let next = onChange.mock.calls.at(-1)[0];
@@ -175,5 +281,173 @@ describe('schema settings editor', () => {
     label.dispatchEvent(new Event('input', { bubbles: true }));
     next = onChange.mock.calls.at(-1)[0];
     expect(next.elements[1]).toMatchObject({ label: 'Phone number', token: 'PHONE NUMBER', type: 'singleline' });
+  });
+});
+
+describe('after-submit actions', () => {
+  const layerOf = () => ensureOverlayLayer(document.createElement('div'));
+  const flush = () => new Promise((r) => setTimeout(r, 0));
+
+  it('only accepts http(s) links', () => {
+    expect(safeWebUrl('https://a.test/x')).toBe('https://a.test/x');
+    expect(safeWebUrl('a.test/thanks')).toBe('https://a.test/thanks');
+    for (const bad of ['javascript:alert(1)', 'data:text/html,hi', 'ftp://a.test', 'tel:+15550100100', '', null]) expect(safeWebUrl(bad)).toBeNull();
+  });
+
+  it('does nothing extra by default, or when the link is missing or unsafe', () => {
+    const layer = layerOf();
+    expect(showThanks(layer, { successMessage: 'Thanks!' })).toBeNull();
+    expect(showThanks(layer, { afterSubmitAction: 'continue', afterSubmitUrl: 'https://a.test' })).toBeNull();
+    expect(showThanks(layer, { afterSubmitAction: 'button', afterSubmitUrl: '' })).toBeNull();
+    expect(showThanks(layer, { afterSubmitAction: 'button', afterSubmitUrl: 'javascript:alert(1)' })).toBeNull();
+    expect(showThanks(layer, { afterSubmitAction: 'redirect', afterSubmitUrl: 'data:text/html,x' })).toBeNull();
+    expect(layer.children).toHaveLength(0);
+  });
+
+  it('shows a thank-you card with a safe link button that closes itself', () => {
+    const layer = layerOf();
+    let hide;
+    const card = showThanks(layer, { afterSubmitAction: 'button', afterSubmitUrl: 'https://a.test/book', afterSubmitButtonText: 'Book a call', successMessage: 'Got it <b>!</b>' }, { schedule: (fn) => { hide = fn; } });
+    expect(card.querySelector('.addon-thanks__msg').textContent).toBe('Got it <b>!</b>');
+    expect(card.querySelector('.addon-thanks__msg b')).toBeNull(); // text, never HTML
+    const a = card.querySelector('a.addon-thanks__btn');
+    expect(a.getAttribute('href')).toBe('https://a.test/book');
+    expect(a.target).toBe('_blank');
+    expect(a.rel).toBe('noopener noreferrer');
+    expect(a.textContent).toBe('Book a call');
+    hide();
+    expect(layer.querySelector('[data-overlay="thanks"]')).toBeNull();
+  });
+
+  it('never navigates away unless the published player allows it', () => {
+    const navigate = vi.fn();
+    const run = [];
+    const cfg = { afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+    const preview = showThanks(layerOf(), cfg, { navigate, schedule: (fn) => run.push(fn) });
+    run.forEach((fn) => fn());
+    expect(navigate).not.toHaveBeenCalled();
+    expect(preview.querySelector('.addon-thanks__note').textContent).toBe('Preview: viewers are sent to a.test');
+
+    const live = [];
+    showThanks(layerOf(), cfg, { allowRedirect: true, navigate, schedule: (fn) => live.push(fn) });
+    expect(navigate).not.toHaveBeenCalled(); // waits so the viewer sees the message first
+    live.forEach((fn) => fn());
+    expect(navigate).toHaveBeenCalledWith('https://a.test/thanks');
+  });
+
+  it('does not redirect if the player was torn down during the delay', () => {
+    const navigate = vi.fn();
+    const pending = [];
+    const layer = layerOf();
+    document.body.appendChild(layer); // a real page: the layer is in the document
+    showThanks(layer, { afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' }, { allowRedirect: true, navigate, schedule: (fn) => pending.push(fn) });
+    layer.remove(); // player.destroy() removes its layer
+    pending.forEach((fn) => fn());
+    expect(navigate).not.toHaveBeenCalled();
+    const live = layerOf();
+    document.body.appendChild(live);
+    showThanks(live, { afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' }, { allowRedirect: true, navigate, schedule: (fn) => pending.push(fn) });
+    pending.slice(1).forEach((fn) => fn());
+    expect(navigate).toHaveBeenCalledWith('https://a.test/thanks'); // still redirects when the page is still there
+  });
+
+  it('shows nothing and schedules nothing when the player is no longer active', () => {
+    const layer = layerOf();
+    const schedule = vi.fn();
+    const cfg = { afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test/thanks' };
+    expect(showThanks(layer, cfg, { allowRedirect: true, isActive: () => false, schedule })).toBeNull();
+    expect(showThanks(layer, { ...cfg, afterSubmitAction: 'button' }, { isActive: () => false, schedule })).toBeNull();
+    expect(schedule).not.toHaveBeenCalled();
+    expect(layer.children).toHaveLength(0);
+    // becomes inactive during the delay: the pending redirect is dropped
+    let active = true;
+    const navigate = vi.fn();
+    const pending = [];
+    showThanks(layer, cfg, { allowRedirect: true, isActive: () => active, navigate, schedule: (fn) => pending.push(fn) });
+    active = false;
+    pending.forEach((fn) => fn());
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('labels the default action honestly (it shows nothing extra)', () => {
+    expect(AFTER_SUBMIT_ACTIONS.find(([id]) => id === 'continue')[1]).toBe('Keep watching (nothing extra)');
+  });
+
+  it('saving the thank-you message also clears an older design.successMessage that would override it', () => {
+    const clip = { fields: [], design: { successMessage: 'Old thanks', other: 1 } };
+    applyOptinToLeadForm(clip, { ...leadFormToOptin(clip), successMessage: 'New thanks' });
+    expect(clip.successMessage).toBe('New thanks');
+    expect(clip.design).not.toHaveProperty('successMessage');
+    expect(clip.design.other).toBe(1);
+    expect(leadFormToOptin(clip).successMessage).toBe('New thanks');
+  });
+
+  it('shows after a successful form submit', async () => {
+    const layer = layerOf();
+    const cfg = { ...defaultListBuilder(), afterSubmitAction: 'button', afterSubmitUrl: 'https://a.test/book', afterSubmitButtonText: 'Book' };
+    const el = showOptinOverlay(layer, cfg, { onSubmit: vi.fn().mockResolvedValue('') });
+    el.querySelector('input[name="EMAIL"]').value = 'v@x.io';
+    el.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+    await vi.waitFor(() => expect(layer.querySelector('[data-overlay="thanks"] a')?.textContent).toBe('Book'));
+    expect(layer.querySelector('[data-overlay="list-builder"]')).toBeNull();
+  });
+
+  it('does not show it when the submit fails', async () => {
+    const layer = layerOf();
+    const cfg = { ...defaultListBuilder(), afterSubmitAction: 'button', afterSubmitUrl: 'https://a.test/book' };
+    const el = showOptinOverlay(layer, cfg, { onSubmit: vi.fn().mockRejectedValue(new Error('nope')) });
+    el.querySelector('input[name="EMAIL"]').value = 'v@x.io';
+    el.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+    await flush(); await flush();
+    expect(layer.querySelector('[data-overlay="thanks"]')).toBeNull();
+    expect(layer.querySelector('.addon-optin__status').textContent).toBe('nope');
+  });
+
+  it('adds a hidden honeypot and reports how long the form was open, apart from the answers', async () => {
+    const layer = layerOf();
+    const onSubmit = vi.fn().mockResolvedValue('');
+    const el = showOptinOverlay(layer, defaultListBuilder(), { onSubmit });
+    const trap = el.querySelector('input[data-trap]');
+    expect(trap).toBeTruthy();
+    expect(trap.tabIndex).toBe(-1);
+    expect(trap.getAttribute('aria-hidden')).toBe('true');
+    expect(trap.getAttribute('name')).toBeNull(); // not part of the answers
+    el.querySelector('input[name="EMAIL"]').value = 'v@x.io';
+    el.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+    await flush();
+    const [data, signals] = onSubmit.mock.calls[0];
+    expect(data).toEqual({ EMAIL: 'v@x.io' });
+    expect(signals.hp).toBe('');
+    expect(signals.ms).toBeGreaterThanOrEqual(0);
+  });
+
+  it('reports a filled honeypot, and leaves out the fill time when answers were prefilled', async () => {
+    const layer = layerOf();
+    const onSubmit = vi.fn().mockResolvedValue('');
+    const el = showOptinOverlay(layer, defaultListBuilder(), { onSubmit, prefill: { EMAIL: 'known@x.io' } });
+    el.querySelector('input[data-trap]').value = 'http://spam';
+    el.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+    await flush();
+    const [, signals] = onSubmit.mock.calls[0];
+    expect(signals).toEqual({ hp: 'http://spam' });
+  });
+
+  it('offers the throwaway-email switch on both forms', () => {
+    const lb = listBuilderFields(defaultListBuilder()).map((f) => f.key);
+    expect(lb).toContain('blockDisposableEmails');
+    expect(leadFormToOptin({ fields: [], blockDisposableEmails: true }).blockDisposableEmails).toBe(true);
+    const clip = { fields: [] }; applyOptinToLeadForm(clip, { blockDisposableEmails: true });
+    expect(clip.blockDisposableEmails).toBe(true);
+  });
+
+  it('carries the settings between a Lead Generator clip and the form, and offers them on the List Builder tab', () => {
+    const cfg = leadFormToOptin({ afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test', successMessage: 'Welcome', fields: [] });
+    expect(cfg).toMatchObject({ afterSubmitAction: 'redirect', afterSubmitUrl: 'https://a.test', successMessage: 'Welcome' });
+    expect(leadFormToOptin({ fields: [] })).toMatchObject({ afterSubmitAction: 'continue', successMessage: 'Thanks!' }); // older clips
+    const keys = (c) => listBuilderFields(c).filter((f) => !f.showIf || f.showIf(c)).map((f) => f.key);
+    expect(keys({ kind: 'list-builder' })).toContain('afterSubmitAction');
+    expect(keys({ kind: 'list-builder' })).not.toContain('afterSubmitUrl');
+    expect(keys({ kind: 'list-builder', afterSubmitAction: 'button' })).toEqual(expect.arrayContaining(['afterSubmitUrl', 'afterSubmitButtonText']));
+    expect(keys({ kind: 'list-builder', afterSubmitAction: 'redirect' })).not.toContain('afterSubmitButtonText');
   });
 });

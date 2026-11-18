@@ -198,7 +198,7 @@
  * @property {string[]} inputAssetIds - Input asset IDs
  * @property {string[]} outputAssetIds - Output asset IDs
  * @property {string} error - Error message if failed
- * @property {'ltx' | 'fal' | 'seedance' | 'veo'} provider - Generation provider
+ * @property {'ltx' | 'muapi' | 'seedance' | 'veo'} provider - Generation provider
  * @property {number} createdAt - Creation timestamp
  * @property {number} completedAt - Completion timestamp
  */
@@ -252,7 +252,7 @@
 export const TrackTypes = ['video', 'audio', 'overlay', 'titles', 'broll'];
 export const ClipTypes = ['video', 'image', 'audio', 'text', 'generated'];
 export const GenerationModes = ['text-to-video', 'image-to-video', 'audio-to-video', 'retake', 'extend', 'broll', 'variation'];
-export const GenerationProviders = ['ltx', 'fal', 'seedance', 'veo'];
+export const GenerationProviders = ['ltx', 'muapi', 'seedance', 'veo'];
 export const GenerationStatuses = ['queued', 'processing', 'completed', 'failed'];
 export const ElementTypes = ['character', 'location', 'prop', 'vehicle', 'style'];
 

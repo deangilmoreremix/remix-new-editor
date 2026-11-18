@@ -1,31 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { recordVideoEvent, fetchVideoStats } from '../lib/editor/publish/publishClient.js';
+import { fetchVideoStats } from '../lib/editor/publish/publishClient.js';
 import { renderSharePanel } from '../lib/editor/publish/sharePanel.js';
 import { mountWatchPage } from '../pages/WatchPage.jsx';
-
-const env = { url: 'https://db.example', key: 'anon' };
-
-describe('recordVideoEvent', () => {
-  it('posts the event with the contact from a personal link', async () => {
-    const fetchImpl = vi.fn(async () => ({ ok: true }));
-    await recordVideoEvent('abcdefgh12', { kind: 'play', contactId: 'c_acme', clipId: 42 }, { ...env, fetchImpl });
-    const [url, init] = fetchImpl.mock.calls[0];
-    expect(url).toBe('https://db.example/rest/v1/rpc/record_video_event');
-    expect(JSON.parse(init.body)).toEqual({ video_id: 'abcdefgh12', kind: 'play', contact_id: 'c_acme', clip_id: '42' });
-  });
-
-  it('ignores unknown kinds and drops malformed contact ids', async () => {
-    const fetchImpl = vi.fn(async () => ({ ok: true }));
-    await recordVideoEvent('abcdefgh12', { kind: 'hack' }, { ...env, fetchImpl });
-    expect(fetchImpl).not.toHaveBeenCalled();
-    await recordVideoEvent('abcdefgh12', { kind: 'view', contactId: "x'; drop" }, { ...env, fetchImpl });
-    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).contact_id).toBeNull();
-  });
-
-  it('never throws (best-effort)', async () => {
-    await expect(recordVideoEvent('abcdefgh12', { kind: 'view' }, { ...env, fetchImpl: async () => { throw new Error('offline'); } })).resolves.toBeUndefined();
-  });
-});
 
 describe('fetchVideoStats', () => {
   it('maps per-contact totals', async () => {
@@ -58,30 +34,66 @@ function fakeEngine() {
   return { e, create };
 }
 
-describe('watch page records per-contact events', () => {
-  it('view, play, CTA click and finish, attributed to ?c=', async () => {
+describe('watch page records first-party analytics', () => {
+  it('page_open, play, CTA click (with label) and finish flow through the analytics client', async () => {
     window.history.replaceState(null, '', '/watch/abcdefgh12?c=c_acme&firstName=Ann');
     const box = document.createElement('div');
     document.body.appendChild(box);
     const { e, create } = fakeEngine();
-    const recordEvent = vi.fn();
+    const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+    const p = project();
+    p.tracks[1].items[0].buttonText = 'Get a quote';
     const player = await mountWatchPage(box, 'abcdefgh12', {
-      fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }),
-      createEngine: create, countView: vi.fn(), onLead: vi.fn(), recordEvent,
+      fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: p }),
+      createEngine: create, onLead: vi.fn(), analytics,
     });
-    expect(recordEvent).toHaveBeenCalledWith('abcdefgh12', { kind: 'view', contactId: 'c_acme', clipId: null });
     box.querySelector('[data-bigplay]').click();
     e.advance(1);
-    expect(recordEvent.mock.calls.filter(([, ev]) => ev.kind === 'play')).toHaveLength(1);
+    expect(analytics.onPlayerChange).toHaveBeenCalledWith(expect.objectContaining({ playing: true }));
     const cta = box.querySelector('a[href="https://example.com/buy"]');
     expect(cta).toBeTruthy();
     cta.addEventListener('click', (ev) => ev.preventDefault());
     cta.click();
-    expect(recordEvent).toHaveBeenCalledWith('abcdefgh12', { kind: 'cta_click', contactId: 'c_acme', clipId: 'cta' });
+    expect(analytics.track).toHaveBeenCalledWith('cta_click', expect.objectContaining({ clip: 'cta', props: { label: 'Get a quote', pricing: true } }));
     e.advance(T);
-    expect(recordEvent.mock.calls.filter(([, ev]) => ev.kind === 'complete')).toHaveLength(1);
+    expect(analytics.onPlayerChange).toHaveBeenLastCalledWith(expect.objectContaining({ time: expect.any(Number), duration: T }));
     player.destroy();
     window.history.replaceState(null, '', '/');
+  });
+
+  it('opens real analytics (with the personal-link contact) when no override is given', async () => {
+    window.history.replaceState(null, '', '/watch/abcdefgh12?c=c_acme');
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const { create } = fakeEngine();
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, status: 200 });
+    Object.defineProperty(navigator, 'doNotTrack', { value: '0', configurable: true });
+    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, onLead: vi.fn() });
+    player.destroy();
+    window.dispatchEvent(new Event('pagehide'));
+    await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalled());
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe('/api/video-events');
+    const body = JSON.parse(init.body);
+    expect(body).toMatchObject({ video: 'abcdefgh12', contact: 'c_acme' });
+    expect(body.events[0].type).toBe('page_open');
+    expect(body.owner_id).toBeUndefined();
+    fetchSpy.mockRestore();
+    window.history.replaceState(null, '', '/');
+  });
+
+  it('respects Do-Not-Track: nothing is sent', async () => {
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const { create } = fakeEngine();
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, status: 200 });
+    Object.defineProperty(navigator, 'doNotTrack', { value: '1', configurable: true });
+    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, onLead: vi.fn() });
+    player.destroy();
+    window.dispatchEvent(new Event('pagehide'));
+    expect(fetchSpy).not.toHaveBeenCalled();
+    Object.defineProperty(navigator, 'doNotTrack', { value: '0', configurable: true });
+    fetchSpy.mockRestore();
   });
 });
 

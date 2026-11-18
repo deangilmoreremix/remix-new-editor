@@ -177,7 +177,7 @@ export class ElementsLibrary {
     for (const angle of angles) {
       try {
         const prompt = `Generate a ${angle} view reference panel for a ${category}. Use consistency from reference images.`;
-        const result = await AiMuAPI.generateImage(prompt, 'flux-dev');
+        const result = await AiMuAPI.generateImage(prompt, 'gpt-image-2.6-flare');
         panels.push(result.url || result);
       } catch (error) {
         console.error(`Failed to generate panel for ${angle}:`, error);
@@ -209,7 +209,7 @@ export class ElementsLibrary {
 
     try {
       const prompt = `Regenerate the ${angle} panel for a ${category}. Maintain visual consistency with the reference.`;
-      const result = await AiMuAPI.generateImage(prompt, 'flux-dev');
+      const result = await AiMuAPI.generateImage(prompt, 'gpt-image-2.6-flare');
 
       element.panels[panelIndex] = result.url || result;
       this.elements.set(element.id, element);

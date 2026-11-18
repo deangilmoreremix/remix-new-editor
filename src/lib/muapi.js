@@ -570,11 +570,29 @@ export class MuapiClient {
                         notFound.terminal = true;
                         throw notFound;
                     }
-                    const errText = await response.text();
-                    throw new Error(`Poll Failed: ${response.status} - ${errText.slice(0, 100)}`);
+                    // MuAPI answers a failed job with a 4xx and { detail: { status: 'failed', error } }. It will never
+                    // succeed on retry, so report the real reason now instead of polling until the attempt limit.
+                    // Bounded: a stuck proxy must not hang the poll loop on the error body.
+                    const errText = await Promise.race([
+                        response.text(),
+                        new Promise((resolve) => setTimeout(() => resolve(''), 10_000)),
+                    ]).catch(() => '');
+                    let detail = null;
+                    try { detail = JSON.parse(errText)?.detail ?? null; } catch { /* not JSON */ }
+                    const rawReason = typeof detail === 'string' ? detail : (detail?.error?.message || detail?.error || null);
+                    const reason = rawReason && typeof rawReason !== 'string' ? JSON.stringify(rawReason) : rawReason;
+                    const failed = new Error(reason ? `Generation failed: ${reason}` : `Poll Failed: ${response.status} - ${errText.slice(0, 100)}`);
+                    failed.requestId = requestId;
+                    // Terminal when MuAPI says the job failed, or the request can never succeed (auth). Other 4xx
+                    // (409/425/...) may be transient while a long job runs, so they keep polling.
+                    const providerFailed = ['failed', 'error'].includes(String(detail?.status || '').toLowerCase());
+                    failed.terminal = (providerFailed && response.status !== 429 && response.status !== 408) || response.status === 401 || response.status === 403;
+                    throw failed;
                 }
 
-                const data = await response.json();
+                let data = await response.json();
+                // The same failure shape can arrive through a proxy as a 200 { detail: { status: 'failed', ... } }.
+                if (data && !data.status && data.detail && typeof data.detail === 'object' && data.detail.status) data = data.detail;
 
                 // NEW: Validate output integrity before accepting completed results
                 const status = data.status?.toLowerCase();
@@ -1279,7 +1297,9 @@ export class MuapiClient {
         const finalPayload = {};
 
         if (params.model) finalPayload.model = params.model;
-        if (params.prompt) finalPayload.prompt = params.prompt;
+        // Speech callers pass the text as `text`; it was never forwarded. Send it as `prompt`.
+        const spokenText = params.prompt || params.text;
+        if (spokenText) finalPayload.prompt = spokenText;
         if (params.duration) finalPayload.duration = params.duration;
         if (params.style) finalPayload.style = params.style;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
@@ -1609,6 +1629,26 @@ export class MuapiClient {
             output_format: opts.outputFormat ?? 'png',
         }, signal);
         return MuapiClient.extractMediaUrl(r);
+    }
+
+    // nano-banana text-to-image (Open-Pomelli `muapi.image`).
+    async image(prompt, aspectRatio = '1:1', signal) {
+        const r = await this._runPrediction('nano-banana', { prompt, aspect_ratio: aspectRatio }, signal);
+        const url = MuapiClient.extractMediaUrl(r);
+        if (!url) throw new Error('No image URL in response');
+        return url;
+    }
+
+    // nano-banana-edit with reference images, e.g. the brand logo (Open-Pomelli `muapi.imageEdit`).
+    async imageEdit(prompt, imagesList, aspectRatio = 'Auto', signal) {
+        const r = await this._runPrediction('nano-banana-edit', {
+            prompt,
+            images_list: imagesList,
+            aspect_ratio: aspectRatio,
+        }, signal);
+        const url = MuapiClient.extractMediaUrl(r);
+        if (!url) throw new Error('No image URL in response');
+        return url;
     }
 
     async image2(prompt, opts = {}, signal) {

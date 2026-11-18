@@ -6,6 +6,19 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// The SSRF gate resolves the host with dns.promises.resolve4/resolve6. Mock it
+// (as researchProviderSsrf.test.ts does) so these tests do not need real DNS
+// and pass without network access.
+const mockResolve4 = vi.hoisted(() => vi.fn())
+const mockResolve6 = vi.hoisted(() => vi.fn())
+
+vi.mock('node:dns', async (importOriginal) => {
+  const actual = (await importOriginal()) as typeof import('dns') & { default: { promises: { resolve4: typeof import('dns').promises.resolve4; resolve6: typeof import('dns').promises.resolve6 } } }
+  const promises = { ...actual.default.promises, resolve4: mockResolve4, resolve6: mockResolve6 }
+  return { ...actual, default: { ...actual.default, promises } }
+})
+
 import axios from 'axios'
 import { geocodeLocation } from '../nominatimProvider'
 import { discoverBusinesses } from '../overpassProvider'
@@ -426,6 +439,9 @@ describe('Website status handling', () => {
 describe('Research provider', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    // A public address (8.8.8.8) so the SSRF gate accepts example.com.
+    mockResolve4.mockReset().mockResolvedValue(['8.8.8.8'])
+    mockResolve6.mockReset().mockResolvedValue([])
   })
 
   it('returns reachable=false when website is unreachable', async () => {

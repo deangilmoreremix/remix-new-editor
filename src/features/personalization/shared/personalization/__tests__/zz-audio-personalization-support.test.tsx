@@ -32,7 +32,7 @@ import {
 
 // ── Provider dependency mocks (same set as DemoPersonalizeProvider.test.tsx) ──
 
-vi.mock('@ohb/packages/studio/src/muapi', () => ({
+vi.mock('studio/src/muapi', () => ({
   uploadFile: vi.fn(),
 }))
 
@@ -40,7 +40,7 @@ vi.mock('../assetUploadService', () => ({
   uploadPersonalizationAsset: vi.fn(),
 }))
 
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -110,7 +110,7 @@ vi.mock('@remotion/media', () => ({
   Audio: ({ src }: { src: string }) => <div data-testid="media-audio" data-src={src} />,
 }))
 
-vi.mock('remotion', () => ({
+vi.mock('remotion', async () => ({
   AbsoluteFill: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
   Img: ({ src }: { src: string }) => <img src={src} alt="" />,
   Sequence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
@@ -123,7 +123,9 @@ vi.mock('remotion', () => ({
   useVideoConfig: () => ({ width: 1920, height: 1080, fps: 30, durationInFrames: 150 }),
   interpolate: (_i: number, _r: number[], out: number[]) => out[out.length - 1] ?? 1,
   spring: () => 1,
-  Easing: { out: () => (t: number) => t, cubic: 0 },
+  // The real easing functions: some upstream designs build eased curves
+  // when their module loads, so a stub would crash the import.
+  Easing: (await vi.importActual<typeof import('remotion')>('remotion')).Easing,
 }))
 
 const { PersonalizationComposition } = await import('../preview/PersonalizationComposition')
@@ -499,5 +501,15 @@ describe('TASK 4 — provider wires the upload through the durable asset path', 
     expect(ctx.previewSettings.audio?.url.startsWith('blob:')).toBe(true)
     expect(ctx.assets.audio).toHaveLength(1)
     void ctxHandle
+  })
+})
+
+describe('audio mix persistence', () => {
+  it('does not save a track that is still a local blob: URL, but keeps uploaded ones', async () => {
+    const { stripSessionScopedUrls } = await import('../supabaseProjectPersistence')
+    const out = stripSessionScopedUrls({
+      previewSettings: { audioTracks: [{ id: 'a', url: 'blob:abc', name: 'a', kind: 'music', volume: 1, fadeIn: 0, fadeOut: 0, start: 0, trimStart: 0, muted: false }, { id: 'b', url: 'https://cdn/x.mp3', name: 'b', kind: 'music', volume: 1, fadeIn: 0, fadeOut: 0, start: 0, trimStart: 0, muted: false }] },
+    } as never)
+    expect((out.previewSettings as { audioTracks: { id: string }[] }).audioTracks.map((t) => t.id)).toEqual(['b'])
   })
 })

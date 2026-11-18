@@ -1,0 +1,4 @@
+{
+ "_doc": "Block ids hidden from the library (catalog disable). Saved projects that already use them keep working. Emergency runtime disable is separate (featureFlag.js).",
+ "ids": []
+}

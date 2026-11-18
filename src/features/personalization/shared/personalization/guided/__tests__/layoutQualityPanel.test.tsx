@@ -1,0 +1,147 @@
+// @vitest-environment jsdom
+import React, { act } from 'react'
+import { describe, it, expect, vi, afterEach, beforeAll } from 'vitest'
+import { createRoot } from 'react-dom/client'
+import { LayoutQualityPanel } from '../LayoutQualityPanel'
+import type { LayoutQualityState } from '../useLayoutQuality'
+import type { QualityReport } from '../../preview/placement'
+import { createLayer } from '../../preview/presets'
+
+beforeAll(() => { (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true })
+
+const analysis = { protectedZones: 1, frameSamples: 12, subjectVerified: true, contrastVerified: true }
+const report = (over: Partial<QualityReport>): QualityReport => ({ status: 'ready', issues: [], blocksExport: false, notes: ['baked note'], analysis, ...over })
+const layers = [{ ...createLayer('headline'), id: 'headline' }, { ...createLayer('logo'), id: 'logo' }]
+
+function quality(r: QualityReport, extra: Partial<LayoutQualityState> = {}): LayoutQualityState {
+  return {
+    report: r, sampling: 'done', zones: [], rightsNeedConfirmation: false,
+    profile: {} as never, canFixIssue: () => false, applyIssueFix: () => false, show: vi.fn(), applyRecommended: vi.fn(() => 0), restoreRecommended: vi.fn(() => 0), markSubject: vi.fn(),
+    ...extra,
+  }
+}
+const mounted: { root: ReturnType<typeof createRoot>; el: HTMLElement }[] = []
+function mount(q: LayoutQualityState, compact = false) {
+  const el = document.createElement('div'); document.body.appendChild(el)
+  const root = createRoot(el); mounted.push({ root, el })
+  act(() => { root.render(<LayoutQualityPanel quality={q} layers={layers} compact={compact} />) })
+  return el
+}
+afterEach(() => { for (const { root, el } of mounted.splice(0)) { act(() => root.unmount()); el.remove() } })
+const click = (el: Element | null) => act(() => { (el as HTMLElement).click() })
+
+describe('LayoutQualityPanel', () => {
+  it('shows the three statuses with their own wording', () => {
+    for (const [status, label] of [['ready', 'Ready'], ['needs-adjustment', 'Needs adjustment'], ['review-required', 'Review required']] as const) {
+      const el = mount(quality(report({ status })))
+      const badge = el.querySelector('[data-testid="layout-quality-status"]')!
+      expect(badge.textContent).toBe(label)
+      expect(badge.getAttribute('data-status')).toBe(status)
+    }
+  })
+
+  it('names the affected layer and time, and "Show" jumps there', () => {
+    const q = quality(report({
+      status: 'needs-adjustment',
+      issues: [{ code: 'low-contrast', severity: 'adjust', layerId: 'headline', tStart: 3.5, tEnd: 5, fixable: true, message: 'Headline is hard to read at 3.5 s.' }],
+    }))
+    const el = mount(q)
+    expect(el.textContent).toContain('Headline is hard to read at 3.5 s.')
+    expect(el.textContent).toContain('0:03.5–0:05.0 s')
+    click(el.querySelector('[data-testid="layout-quality-show"]'))
+    expect(q.show).toHaveBeenCalledWith('headline', 3.5)
+    click(el.querySelector('[data-testid="layout-quality-fix"]'))
+    expect(q.applyRecommended).toHaveBeenCalledWith('headline')
+  })
+
+  it('offers a one-click Fix for a readability issue the placement engine cannot fix, and applies it', () => {
+    const issue = { code: 'text-contrast-bright' as const, severity: 'review' as const, layerId: 'headline', fixable: false, message: 'May be hard to read on bright footage.' }
+    const q = quality(report({ status: 'review-required', issues: [issue] }), { canFixIssue: () => true, applyIssueFix: vi.fn(() => true) })
+    const el = mount(q)
+    click(el.querySelector('[data-testid="layout-quality-fix-issue"]'))
+    expect(q.applyIssueFix).toHaveBeenCalledWith(issue)
+    expect(el.querySelector('[data-testid="layout-quality-fix"]')).toBeNull()
+  })
+  it('shows no Fix button when no fix exists', () => {
+    const issue = { code: 'reading-speed' as const, severity: 'review' as const, layerId: 'headline', fixable: false, message: 'Quick to read.' }
+    const el = mount(quality(report({ status: 'review-required', issues: [issue] })))
+    expect(el.querySelector('[data-testid="layout-quality-fix-issue"]')).toBeNull()
+  })
+
+  it('only a critical issue shows "Blocks export"; a review item does not', () => {
+    const critical = mount(quality(report({ status: 'needs-adjustment', blocksExport: true, issues: [{ code: 'missing-media', severity: 'critical', layerId: 'logo', fixable: false, message: 'Logo has no image.' }] })))
+    expect(critical.querySelector('[data-testid="layout-quality-blocks"]')).toBeTruthy()
+    const review = mount(quality(report({ status: 'review-required', issues: [{ code: 'subject-unknown', severity: 'review', fixable: false, message: 'Subject area not marked.' }] })))
+    expect(review.querySelector('[data-testid="layout-quality-blocks"]')).toBeNull()
+    expect(review.querySelector('[data-testid="layout-quality-fix"]')).toBeNull()
+  })
+
+  it('is honest about what could not be measured', () => {
+    const el = mount(quality(report({ status: 'review-required', analysis: { ...analysis, frameSamples: 0, subjectVerified: false, protectedZones: 0 } }), { sampling: 'unavailable' }))
+    const scope = el.querySelector('[data-testid="layout-quality-scope"]')!.textContent!
+    expect(scope).toMatch(/could not be measured/)
+    expect(scope).toMatch(/No subject area is marked/)
+    expect(el.querySelector('[data-testid="layout-quality-note"]')!.textContent).toBe('baked note')
+  })
+
+  it('offers recommend, restore and subject marking', () => {
+    const q = quality(report({}))
+    const el = mount(q)
+    click(el.querySelector('[data-testid="layout-quality-apply"]'))
+    click(el.querySelector('[data-testid="layout-quality-restore"]'))
+    click(el.querySelector('[data-testid="layout-quality-subject-left"]'))
+    click(el.querySelector('[data-testid="layout-quality-subject-clear"]'))
+    expect(q.applyRecommended).toHaveBeenCalledWith()
+    expect(q.restoreRecommended).toHaveBeenCalled()
+    expect(q.markSubject).toHaveBeenNthCalledWith(1, 'left')
+    expect(q.markSubject).toHaveBeenNthCalledWith(2, 'clear')
+  })
+
+  describe('compact bar (under the video)', () => {
+    const issue = { code: 'low-contrast' as const, severity: 'adjust' as const, layerId: 'headline', fixable: true, message: 'Headline is hard to read.' }
+    it('shows a one-line summary with Fix all, and hides the issue list until Review is opened', () => {
+      const q = quality(report({ status: 'needs-adjustment', issues: [issue] }))
+      const el = mount(q, true)
+      expect(el.querySelector('[data-testid="layout-quality-bar"]')).toBeTruthy()
+      expect(el.textContent).toContain('1 to fix')
+      expect(el.querySelector('[data-testid="layout-quality-issues"]')).toBeNull()
+      click(el.querySelector('[data-testid="layout-quality-fix-all"]'))
+      expect(q.applyRecommended).toHaveBeenCalledWith()
+      click(el.querySelector('[data-testid="layout-quality-toggle"]'))
+      expect(el.querySelector('[data-testid="layout-quality-issues"]')).toBeTruthy()
+    })
+    it('opens by itself when export is blocked', () => {
+      const el = mount(quality(report({ status: 'needs-adjustment', blocksExport: true, issues: [{ ...issue, severity: 'critical', fixable: false }] })), true)
+      expect(el.querySelector('[data-testid="layout-quality-issues"]')).toBeTruthy()
+    })
+  })
+})
+
+describe('LayoutQualityPanel subject finder', () => {
+  const finder = (over: Record<string, unknown> = {}) => ({
+    ai: { phase: 'idle', info: null, progress: null, message: null, error: null, request: vi.fn(), confirm: vi.fn(), cancel: vi.fn(), dismiss: vi.fn() },
+    hasAuto: false, hasCustomerMark: false, message: null, find: vi.fn(async () => {}), clear: vi.fn(), ...over,
+  }) as unknown as NonNullable<LayoutQualityState['subjectFinder']>
+  const open = (f: ReturnType<typeof finder>) => mount(quality(report({ status: 'review-required' }), { subjectFinder: f }))
+
+  it('offers "Find the subject for me" and starts it on click', () => {
+    const f = finder(); const el = open(f)
+    click(el.querySelector('[data-testid="subject-find"]'))
+    expect(f.find).toHaveBeenCalledTimes(1)
+    expect(el.textContent).toMatch(/Free, on this device/)
+  })
+  it('is not shown when the host provides no finder', () => {
+    expect(mount(quality(report({ status: 'review-required' }))).querySelector('[data-testid="subject-finder"]')).toBeNull()
+  })
+  it('is disabled while the customer\'s own mark is set, and while it is working', () => {
+    expect((open(finder({ hasCustomerMark: true })).querySelector('[data-testid="subject-find"]') as HTMLButtonElement).disabled).toBe(true)
+    const busy = finder(); (busy.ai as { phase: string }).phase = 'running'
+    expect((open(busy).querySelector('[data-testid="subject-find"]') as HTMLButtonElement).disabled).toBe(true)
+  })
+  it('shows the result, and lets the person clear a found subject', () => {
+    const f = finder({ hasAuto: true, message: 'Found a person (92% sure, in 4 of 5 frames).' }); const el = open(f)
+    expect(el.querySelector('[data-testid="subject-find-message"]')!.textContent).toContain('Found a person')
+    click(el.querySelector('[data-testid="subject-find-clear"]'))
+    expect(f.clear).toHaveBeenCalled()
+  })
+})

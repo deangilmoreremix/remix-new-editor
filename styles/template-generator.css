@@ -1,0 +1,51 @@
+/* Template Generator wizard (all nine steps). The wizard markup has always used these tg-* classes; no stylesheet for them was ever
+   committed, so it rendered as plain text. Cyan editor palette; works inside BaseModal and in the Timeline Studio Editor. */
+.template-gen-workflow { display: flex; flex-direction: column; gap: 14px; color: #e5edf5; font-size: 13px; min-height: 420px; }
+.tg-progress-bar { display: flex; flex-wrap: wrap; gap: 6px; }
+.tg-step-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); color: rgba(229,237,245,.6); font-size: 11px; }
+.tg-step-pill .tg-step-num { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,.1); font-size: 10px; }
+.tg-step-pill.active { border-color: #22d3ee; color: #22d3ee; background: rgba(34,211,238,.1); }
+.tg-step-pill.done { border-color: rgba(52,211,153,.5); color: #34d399; }
+.tg-step-content { flex: 1; overflow: auto; max-height: 56vh; padding-right: 4px; }
+.tg-step-content h3 { margin: 0 0 4px; font-size: 16px; }
+.tg-step-desc, .tg-hint { color: rgba(229,237,245,.65); margin: 0 0 12px; font-size: 12px; }
+.tg-nav-buttons { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.1); }
+.tg-step-info { font-size: 11px; color: rgba(229,237,245,.55); }
+.tg-btn { border-radius: 8px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: inherit; padding: 7px 14px; font: inherit; cursor: pointer; }
+.tg-btn:hover:not(:disabled) { border-color: #22d3ee; }
+.tg-btn:disabled { opacity: .4; cursor: not-allowed; }
+.tg-btn-primary { background: #22d3ee; border-color: #22d3ee; color: #06121a; font-weight: 600; }
+.tg-btn-ai { border-color: rgba(34,211,238,.5); color: #22d3ee; }
+.tg-btn-sm { padding: 4px 10px; font-size: 11px; }
+.tg-input, .tg-select, .tg-textarea { width: 100%; box-sizing: border-box; background: rgba(255,255,255,.05); color: inherit; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; padding: 7px 10px; font: inherit; }
+.tg-textarea { resize: vertical; }
+.tg-form-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; align-items: end; }
+.tg-form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 160px; margin-bottom: 8px; }
+.tg-form-group label, .tg-section-label { font-size: 11px; color: rgba(229,237,245,.7); }
+.tg-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
+.tg-ai-tools, .tg-script-tools, .tg-preview-actions, .tg-edit-actions, .tg-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tg-suggestion-chip { border-radius: 999px; border: 1px solid rgba(255,255,255,.18); background: transparent; color: inherit; padding: 3px 10px; font-size: 11px; cursor: pointer; }
+.tg-niche-grid, .tg-template-grid, .tg-media-grid, .tg-overlay-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.tg-niche-card, .tg-template-card, .tg-media-card, .tg-generated-card { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); color: inherit; cursor: pointer; font: inherit; }
+.tg-niche-card:hover, .tg-template-card:hover, .tg-media-card:hover { border-color: rgba(34,211,238,.6); }
+.tg-niche-card.selected, .tg-template-card.selected, .tg-media-card.selected { border-color: #22d3ee; background: rgba(34,211,238,.12); }
+.tg-niche-icon { font-size: 20px; } .tg-niche-name, .tg-template-name { font-weight: 600; font-size: 12px; } .tg-template-meta { font-size: 11px; color: rgba(229,237,245,.6); }
+.tg-template-thumb, .tg-stock-thumb, .tg-preview-thumb, .tg-scene-media-preview { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 6px; background: #0b1016; }
+.tg-media-tabs, .tg-scene-tabs, .tg-template-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.tg-media-tab, .tg-scene-tab { border-radius: 8px; border: 1px solid rgba(255,255,255,.16); background: transparent; color: inherit; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+.tg-media-tab.active, .tg-scene-tab.active { border-color: #22d3ee; color: #22d3ee; background: rgba(34,211,238,.1); }
+.tg-scene-table { width: 100%; border-collapse: collapse; } .tg-scene-table td, .tg-scene-table th { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+.tg-scene-status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.3); } .tg-scene-status-dot.ready { background: #34d399; }
+.tg-stock-search-bar { display: flex; gap: 8px; margin-bottom: 10px; }
+.tg-overlay-card { align-items: center; padding: 10px 6px; } .tg-overlay-card.is-selected { border-color: #22d3ee; background: rgba(34,211,238,.14); }
+.tg-preview-display, .tg-preview-player-wrapper, .tg-preview-player-container { background: #05080d; border-radius: 10px; overflow: hidden; }
+.tg-preview-video, .tg-preview-image { width: 100%; max-height: 40vh; object-fit: contain; background: #000; }
+.tg-preview-playlist { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; } .tg-playlist-item { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,.04); font-size: 11px; }
+.tg-preview-progress-container { height: 6px; background: rgba(255,255,255,.12); border-radius: 3px; } .tg-preview-progress-fill { height: 100%; background: #22d3ee; border-radius: 3px; }
+.tg-preview-timeline-track { display: flex; gap: 2px; height: 22px; } .tg-preview-timeline-clip { background: rgba(34,211,238,.3); border: 1px solid #22d3ee; border-radius: 4px; font-size: 10px; overflow: hidden; }
+.tg-summary-section, .tg-add-summary, .tg-voice-config, .tg-personalization-config { padding: 10px; border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); }
+.tg-empty-state, .tg-preview-placeholder, .tg-preview-player-empty { padding: 24px; text-align: center; color: rgba(229,237,245,.55); }
+.tg-error-icon, .tg-preview-error { color: #f87171; }
+.tg-spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.2); border-top-color: #22d3ee; border-radius: 50%; display: inline-block; animation: tg-spin 1s linear infinite; }
+@keyframes tg-spin { to { transform: rotate(360deg); } }
+.tg-token { display: inline-block; padding: 1px 6px; border-radius: 4px; background: rgba(34,211,238,.15); color: #22d3ee; font-size: 11px; }

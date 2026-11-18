@@ -1,0 +1,343 @@
+{
+  "id": "viral",
+  "name": "Smart Video Viral",
+  "route": "#/viral",
+  "description": "Smart Video Viral is a browsable feed of trending AI image and video prompts collected from X (Twitter), with preview media and source links. You copy a prompt, or send it straight to a creation studio, to make your own version.",
+  "shortDescription": "Continuously refreshed feed of trending AI prompts from X - copy any prompt into your studio and create.",
+  "fullDescription": "Smart Video Viral does not generate media itself. It is a prompt-inspiration library. It loads a feed of prompts from several sources (an upstream visual prompt feed on GitHub, a bundled Seedance prompt list and a bundled overflow list), shows each one as a card with a preview image or video, tags, a recommended model and a link to the original post, and lets you search, filter and sort. At the top you see counts of prompts, videos, images and providers and a carousel preview; below the controls are horizontal rails for Trending, Categories and Providers. On any card you can copy the prompt, open it in a creation studio with the prompt prefilled (Create This Style), personalize the demo for a business (Personalize This Demo), or open the original post (Source). The feed refreshes itself every 5 minutes and you can refresh it manually or export the filtered list as JSON.",
+  "bestFor": "Anyone who wants prompt ideas that are already working for other creators: beginners who do not know what to write, marketers looking for ad and product prompt styles, and creators who want to recreate a trending look.",
+  "whenToUse": [
+    "You do not know what prompt to write and want proven examples.",
+    "You want to see which AI image and video styles are trending and which model they were made with.",
+    "You want to start from a prompt and open it directly in Image Studio, Video Studio or another studio.",
+    "You want to collect or export prompts for a category such as product ads, cinematic or character.",
+    "You want to personalize a viral-style demo for a specific business."
+  ],
+  "whenToUseAnother": [
+    "Use Image Studio (#/image) when you already have a prompt and want to generate an image.",
+    "Use Video Studio (#/video) when you want to generate a video from a prompt.",
+    "Use Cinema Studio (#/cinema) for cinematic style shots.",
+    "Use Character Studio (#/character) for consistent characters.",
+    "Use Commercial Studio (#/commercial) for product ads.",
+    "Use Personalizer (#/personalizer) for personalized video at scale.",
+    "Use Templates (#/templates) or Explore (#/explore) for ready-made starting points that are not from X."
+  ],
+  "keyFeatures": [
+    "Feed of trending AI image and video prompts with preview media.",
+    "Hero stats: prompts, videos, images and providers counts, plus a trending preview carousel.",
+    "Search box: 'Search prompts, tags, or authors… (press /)'.",
+    "Media filter buttons: All, Images, Videos.",
+    "Category dropdown (All Categories) with 15 categories.",
+    "Model dropdown (All Models), built from the models seen in the feed.",
+    "Sort options: Newest First, Most Popular, Most Likes.",
+    "Exclude Chinese / Include Chinese toggle (Chinese-language prompts are excluded by default).",
+    "Horizontal rails: Trending, Categories, Providers.",
+    "Card buttons: Copy Prompt, Personalize This Demo, Create This Style, Source, and 'View Full Prompt ›' for long prompts.",
+    "Refresh button, 'Updated ...' timestamp and automatic refresh every 5 minutes.",
+    "Export of the currently filtered prompts as a JSON file.",
+    "Infinite scroll in pages of 30 cards.",
+    "Keyboard shortcuts: / search, r refresh, c toggle Chinese, ? help.",
+    "On small screens a Filters button opens a bottom sheet with the same controls and an Apply Filters button."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Search",
+      "explanation": "Type in the search box to match prompt titles, prompt text, tags and authors. Press / to jump to the box (when you are not typing in another field). Searching waits a moment after you stop typing.",
+      "whyToUse": "Find prompts about a subject such as 'sneaker' or 'rain'.",
+      "inputRequired": "Any text.",
+      "restrictions": "Matches only the loaded feed."
+    },
+    {
+      "feature": "Filters and sorting",
+      "explanation": "Use All / Images / Videos, the Category list, the Model list and the Sort list together. Sort offers Newest First, Most Popular and Most Likes.",
+      "whyToUse": "Narrow thousands of prompts to the few you need.",
+      "inputRequired": "None.",
+      "restrictions": "If nothing matches you see 'No prompts match your filters.' with a 'Reset All Filters' button."
+    },
+    {
+      "feature": "Categories",
+      "explanation": "The 15 categories are: Animation, Architecture, Camera Moves, Character, Cinematic, Food & Drink, Illustration 3D, Nature, Photography, Poster Design, Product Ads, Product Brand, Travel, UGC and UI Graphic. You can also click a category pill in the Categories rail.",
+      "whyToUse": "Browse by type of content.",
+      "inputRequired": "None.",
+      "restrictions": "A prompt can belong to more than one category."
+    },
+    {
+      "feature": "Exclude Chinese toggle",
+      "explanation": "Hides prompts marked as Chinese language. It is ON by default. The button reads 'Exclude Chinese' when on and 'Include Chinese' when off. The count line shows how many were excluded.",
+      "whyToUse": "Keep the feed in a language you can read, or include them for more ideas.",
+      "inputRequired": "None.",
+      "restrictions": "Only affects items the feed marks as Chinese."
+    },
+    {
+      "feature": "Copy Prompt",
+      "explanation": "Copies the full prompt text to your clipboard and shows the toast 'Prompt copied to clipboard!'.",
+      "whyToUse": "Paste it into any studio.",
+      "inputRequired": "None.",
+      "restrictions": "If the browser blocks copying you see 'Failed to copy'."
+    },
+    {
+      "feature": "Create This Style",
+      "explanation": "Opens a creation studio and passes the prompt (and, when available, a mapped model, aspect ratio, duration and audio setting). Video prompts open Video Studio and image prompts open Image Studio; for items without a clear type, categories decide (cinematic -> Cinema, character -> Character, product ads/brand -> Commercial, UGC/animation -> Video).",
+      "whyToUse": "Go from inspiration to your own generation in one click.",
+      "inputRequired": "None.",
+      "restrictions": "You still click Generate in the studio you land in, and you need credits there."
+    },
+    {
+      "feature": "Personalize This Demo",
+      "explanation": "Opens a personalization dialog for that viral demo so you can adapt it for a business.",
+      "whyToUse": "Turn a trending style into a customized sales or outreach demo.",
+      "inputRequired": "Details you enter in the dialog.",
+      "restrictions": "The dialog's own steps are not documented in this studio's code."
+    },
+    {
+      "feature": "Source and View Full Prompt",
+      "explanation": "'Source' opens the original post on X in a new tab. 'View Full Prompt ›' opens a detail viewer for long prompts.",
+      "whyToUse": "Credit the author and read the whole prompt.",
+      "inputRequired": "None.",
+      "restrictions": "Some items may lack a source link."
+    },
+    {
+      "feature": "Video preview",
+      "explanation": "Video cards have a play toggle on the preview. If no video is available you see 'No video source available'.",
+      "whyToUse": "Watch what the prompt produced.",
+      "inputRequired": "None.",
+      "restrictions": "Depends on the media host being reachable."
+    },
+    {
+      "feature": "Refresh and Export",
+      "explanation": "The refresh button (tooltip 'Refresh feed from upstream') reloads the feed; it also reloads automatically every 5 minutes. The export button (tooltip 'Export filtered prompts as JSON') downloads viral-prompts-YYYY-MM-DD.json with title, prompt, media type, categories, model, author and source URL, and shows 'Exported N prompts'.",
+      "whyToUse": "Keep a local copy of prompts for a category.",
+      "inputRequired": "None.",
+      "restrictions": "Export contains only what is currently filtered, as JSON."
+    }
+  ],
+  "howToUse": "1. Open Smart Video Viral from the side menu (#/viral). 2. Look at the hero numbers and the Trending, Categories and Providers rails for ideas. 3. Use the search box ('Search prompts, tags, or authors… (press /)') to find a subject. 4. Narrow results with All / Images / Videos, All Categories, All Models and the sort list (Newest First, Most Popular, Most Likes). 5. Leave 'Exclude Chinese' on, or click it to switch to 'Include Chinese'. 6. Click a card to see it; use 'View Full Prompt ›' for long prompts. 7. Click 'Copy Prompt' to copy it, or click 'Create This Style' to open the right studio with the prompt filled in. 8. In that studio click Generate. 9. Optionally click 'Personalize This Demo' to adapt a demo for a business, or 'Source' to see the original post. 10. Click the refresh button to reload the feed or the export button to download the filtered list as JSON.",
+  "howToSteps": [
+    "Browse or search the feed.",
+    "Filter by media type, category, model and sort order.",
+    "Open a card and read the full prompt.",
+    "Copy the prompt or click Create This Style.",
+    "Generate in the studio that opens.",
+    "Optional: Personalize This Demo, view the Source, or export JSON."
+  ],
+  "gettingStarted": [
+    "Scroll the feed and click Videos or Images to pick what you want to make.",
+    "Pick a category such as Product Ads or Cinematic.",
+    "Click Create This Style on a card you like and press Generate in the studio that opens."
+  ],
+  "inputs": ["Search text", "Media type filter", "Category", "Model", "Sort", "Exclude Chinese toggle"],
+  "requiredInputs": [],
+  "optionalInputs": ["Search text", "Media type filter", "Category", "Model", "Sort", "Exclude Chinese toggle"],
+  "inputDetails": [
+    {
+      "name": "Search",
+      "description": "Free text matched against titles, prompt text, tags and authors.",
+      "required": false,
+      "whenToUse": "When you know the subject you want.",
+      "restrictions": "Press / to focus the box when no input is active."
+    },
+    {
+      "name": "Media type",
+      "description": "All, Images or Videos.",
+      "required": false,
+      "whenToUse": "To see only images or only videos.",
+      "restrictions": "Default All."
+    },
+    {
+      "name": "Category",
+      "description": "One of 15 categories or All Categories.",
+      "required": false,
+      "whenToUse": "To browse a content type.",
+      "restrictions": "Default All Categories."
+    },
+    {
+      "name": "Model",
+      "description": "The recommended model attached to the prompt (for example seedance, kling, nanobanana, gptimage, minimax, ideogram, flux).",
+      "required": false,
+      "whenToUse": "To see prompts made with a particular model.",
+      "restrictions": "The list is built from the loaded data."
+    },
+    {
+      "name": "Sort",
+      "description": "Newest First (default), Most Popular, Most Likes.",
+      "required": false,
+      "whenToUse": "To find fresh or highly liked prompts.",
+      "restrictions": "Popularity depends on engagement data from the source post."
+    },
+    {
+      "name": "Exclude Chinese",
+      "description": "Toggle that hides Chinese-language prompts.",
+      "required": false,
+      "whenToUse": "To include or exclude them.",
+      "restrictions": "On by default."
+    }
+  ],
+  "generationModes": [],
+  "modeExplanations": [],
+  "modelCapabilities": "Smart Video Viral does not run models. Each card shows a 'recommended model' label from the prompt's source data, and the Model filter and Providers rail list these labels. Colors are defined in the code for gptimage, nanobanana, seedance, kling, minimax, ideogram and flux. When you click Create This Style the studio maps some labels to a studio model id: seedance -> seedance-v2.0-t2v, nanobanana or nano-banana -> nano-banana-2, gptimage or gpt-image -> nano-banana-2, kling -> kling, minimax -> minimax; other labels are passed through as written. Video items open Video Studio, image items open Image Studio. No prices, speeds or quality scores are available for these labels in the code.",
+  "outputs": ["Copied prompt text", "A creation studio opened with the prompt prefilled", "An exported JSON file of filtered prompts (viral-prompts-YYYY-MM-DD.json)", "A personalized demo (via Personalize This Demo)"],
+  "limitations": [
+    "It only shows prompts; it does not generate images or videos itself.",
+    "Content depends on external sources (a GitHub-hosted feed, a bundled Seedance list and a bundled overflow list) and on media hosts being reachable.",
+    "Export is JSON only.",
+    "Prompts were written for specific models; results can differ when run in another model.",
+    "The feed shows 30 cards at a time and loads more as you scroll."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Feed can fail to load",
+      "impact": "You may see 'Failed to load the prompt feed' with a Retry button.",
+      "workaround": "Click Retry or the refresh button. If the remote feed stays unavailable, the studio falls back to its bundled overflow prompts when available."
+    },
+    {
+      "limitation": "Different model, different result",
+      "impact": "A prompt that looked great on one model may look different on another.",
+      "workaround": "Use the card's recommended model in the studio, or adjust the prompt."
+    },
+    {
+      "limitation": "Chinese prompts hidden by default",
+      "impact": "Fewer results than the total.",
+      "workaround": "Click 'Exclude Chinese' to switch to 'Include Chinese'."
+    }
+  ],
+  "troubleshooting": [
+    "'Failed to load the prompt feed' with a Retry button: click Retry or the refresh button; check your connection.",
+    "'No prompts match your filters.': click 'Reset All Filters' or widen the search.",
+    "Toast 'No video source available': that card has no playable video; use the image preview or the Source link.",
+    "Toast 'Failed to copy': your browser blocked clipboard access; allow clipboard permission or select and copy the text from the full prompt viewer.",
+    "Video does not play: the media host may block it or be slow; open the Source link to watch it on X.",
+    "Fewer prompts than expected: 'Exclude Chinese' is on by default; click it to include them.",
+    "Feed looks old: click the refresh button; the studio also refreshes every 5 minutes and shows 'Updated ...' with the time.",
+    "Cards load slowly: they load in pages of 30; keep scrolling to load more.",
+    "Keyboard shortcut does nothing: shortcuts do not work while you are typing in a box; click outside it first."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Feed does not load",
+      "steps": ["Check your internet connection.", "Click Retry (or the refresh button).", "Reload the page if it still fails."]
+    },
+    {
+      "issue": "Cannot find a good prompt",
+      "steps": ["Click Reset All Filters.", "Pick a category from the Categories rail.", "Sort by Most Popular.", "Switch Include Chinese on for more results."]
+    },
+    {
+      "issue": "Create This Style opened an empty-looking studio",
+      "steps": ["Check the prompt box in the studio; the prompt should be filled in.", "If not, go back and use Copy Prompt, then paste it.", "Choose the recommended model manually."]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "I expected to generate here",
+      "whyItHappens": "Smart Video Viral is a prompt library, not a generator.",
+      "howToFix": "Click Create This Style to open a studio and generate there."
+    },
+    {
+      "problem": "The count says fewer prompts than the hero number",
+      "whyItHappens": "Your filters and the Chinese exclusion reduce the list; the count line shows 'N prompts loaded of Total'.",
+      "howToFix": "Reset filters or toggle Include Chinese."
+    },
+    {
+      "problem": "Prompt is cut off on the card",
+      "whyItHappens": "Long prompts are shortened on the card.",
+      "howToFix": "Click 'View Full Prompt ›'."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Recreate a trending video style",
+      "steps": ["Click Videos.", "Sort by Most Popular.", "Open a card you like.", "Click 'Create This Style'.", "In Video Studio click Generate."]
+    },
+    {
+      "title": "Collect product-ad prompts",
+      "steps": ["Choose the Category 'Product Ads'.", "Click Images or leave All.", "Click the export button to download the filtered prompts as JSON."]
+    },
+    {
+      "title": "Personalize a demo for a prospect",
+      "steps": ["Find a demo you like.", "Click 'Personalize This Demo'.", "Fill in the business details in the dialog."]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Prompt inspiration for beginners",
+      "description": "See what good prompts look like and learn from them.",
+      "steps": ["Browse Trending.", "Open a card and read the full prompt.", "Copy it and adapt it in your studio."],
+      "expectedOutput": "A better first prompt in Image or Video Studio."
+    },
+    {
+      "title": "Style research for a campaign",
+      "description": "Collect prompts and recommended models for one category.",
+      "steps": ["Select a category.", "Filter by model.", "Export the filtered list as JSON."],
+      "expectedOutput": "A JSON file of prompts, categories, models and source links."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Where do the prompts come from?",
+      "answer": "They are collected from posts on X and shown with author and source link. The feed combines an upstream GitHub-hosted prompt feed, a bundled Seedance prompt list and a bundled overflow list."
+    },
+    {
+      "question": "Does it cost credits to browse?",
+      "answer": "Browsing, copying and exporting prompts does not generate anything. Generating in a studio uses that studio's credits."
+    },
+    {
+      "question": "How often does the feed update?",
+      "answer": "Automatically every 5 minutes while the page is open, or when you click the refresh button."
+    },
+    {
+      "question": "Can I use the prompt in any studio?",
+      "answer": "Yes. Copy it and paste it into any studio, or click Create This Style to send it to Image Studio or Video Studio (or another studio chosen by category)."
+    },
+    {
+      "question": "What are the keyboard shortcuts?",
+      "answer": "/ focuses search, r refreshes, c toggles Chinese content, and ? shows a reminder. They do not work while typing in a box."
+    },
+    {
+      "question": "Can I export prompts?",
+      "answer": "Yes, as a JSON file of the currently filtered list using the export button."
+    }
+  ],
+  "glossary": {
+    "Prompt": "The text you give an AI model to describe what to create.",
+    "Feed": "The scrolling list of prompt cards that updates over time.",
+    "Recommended model": "The AI model the prompt author used or that the feed suggests.",
+    "Rail": "A horizontal scrolling row such as Trending, Categories or Providers.",
+    "Source": "The original post on X where the prompt was shared."
+  },
+  "tips": [
+    "Sort by Most Popular to see what has the most engagement.",
+    "Use the same recommended model first, then try others.",
+    "Change names, products and details in the prompt to make it your own.",
+    "Click View Full Prompt before copying a long prompt so you know what is in it."
+  ],
+  "bestPractices": [
+    "Credit the original author when you share a recreated style.",
+    "Test a prompt on the recommended model first.",
+    "Keep a JSON export of your favorite category for later."
+  ],
+  "relatedStudios": ["image", "video", "cinema", "character", "commercial", "personalizer", "templates", "explore"],
+  "relatedStudioGuidance": [
+    {"studio": "image", "relationship": "Generates images from prompts.", "whenToMove": "After copying an image prompt.", "why": "Smart Video Viral does not generate."},
+    {"studio": "video", "relationship": "Generates videos from prompts.", "whenToMove": "After choosing a video prompt.", "why": "Create This Style opens it for video items."},
+    {"studio": "commercial", "relationship": "Product ad creation.", "whenToMove": "For Product Ads or Product Brand prompts.", "why": "Create This Style may route there for those categories."},
+    {"studio": "personalizer", "relationship": "Personalized videos at scale.", "whenToMove": "When you want to send customized videos to contacts.", "why": "Goes beyond a single demo."}
+  ],
+  "notConfirmed": [
+    "How often the upstream GitHub feed itself is updated (the page only polls every 5 minutes).",
+    "How prompt engagement and Most Popular ranking are calculated beyond using likes and engagement counts from the source post.",
+    "The detailed steps inside the Personalize This Demo dialog.",
+    "Whether the landing-page claim of JSONL and CSV dataset export exists; the studio itself only exports JSON.",
+    "Licensing or reuse rights for the prompts and preview media shown from X.",
+    "The total number of prompts (it changes with the feed)."
+  ],
+  "sourceFiles": [
+    "src/components/SmartVideoViral.js",
+    "src/data/studioLandingPages.js",
+    "src/lib/studioRoutes.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read SmartVideoViral.js controls, filters, card actions, data loading, shortcuts and export, plus the viral entry in studioLandingPages.js.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

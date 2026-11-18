@@ -11,11 +11,13 @@
 import { getAddon } from './registry.js';
 import { BLEND_MODES } from './overlayData.js';
 
-const IMG = (name) => `/assets/blend/${name}.jpg`;
-const THUMB = (name) => `/assets/blend/${name}-thumb.jpg`;
+// Image looks use the overlay pictures that ship in public/assets/overlay/items (the originals for the earlier look set were never
+// committed, so only looks backed by a real file are offered; colour washes below need no files).
+const FILE = (name) => `/assets/overlay/items/imgly_overlay_${name}.jpg`;
+const THUMB = (name) => `/assets/overlay/items/imgly_overlay_${name}_thumb.jpg`;
 
-const image = (id, label, blendMode, opacity = 100) => ({
-  id, label, kind: 'image', blendMode, opacity, src: IMG(id), thumb: THUMB(id),
+const image = (id, label, file, blendMode, opacity = 100) => ({
+  id, label, kind: 'image', blendMode, opacity, src: FILE(file), thumb: THUMB(file),
 });
 const wash = (id, label, gradient, blendMode, opacity = 70) => ({
   id, label, kind: 'wash', blendMode, opacity, gradient,
@@ -26,37 +28,24 @@ export const BLEND_CATEGORIES = [
     id: 'light-leaks',
     label: 'Light leaks',
     items: [
-      image('leak-amber', 'Amber leak', 'screen'),
-      image('leak-rose', 'Rose leak', 'screen'),
-      image('leak-teal', 'Teal leak', 'screen'),
-      image('leak-sunset', 'Sunset leak', 'screen'),
+      image('leak-1', 'Light leak 1', 'lightleak1', 'screen'),
+      image('leak-2', 'Light leak 2', 'lightleak2', 'screen'),
     ],
   },
   {
     id: 'bokeh',
-    label: 'Bokeh',
+    label: 'Bokeh & glow',
     items: [
-      image('bokeh-gold', 'Gold bokeh', 'screen', 85),
-      image('bokeh-city', 'City lights', 'screen', 85),
-      image('bokeh-snow', 'Snow', 'screen', 90),
-    ],
-  },
-  {
-    id: 'flares',
-    label: 'Lens flares',
-    items: [
-      image('flare-warm', 'Warm flare', 'screen'),
-      image('flare-blue', 'Blue flare', 'screen'),
+      image('bokeh', 'Bokeh', 'bokeh', 'screen', 85),
+      image('golden', 'Golden glow', 'golden', 'screen', 85),
+      image('hearts', 'Hearts', 'hearts', 'screen', 85),
     ],
   },
   {
     id: 'texture',
-    label: 'Film & texture',
+    label: 'Texture',
     items: [
-      image('film-grain', 'Film grain', 'overlay', 55),
-      image('dust-scratches', 'Dust & scratches', 'screen', 70),
-      image('paper', 'Paper', 'multiply', 80),
-      image('vignette', 'Vignette', 'multiply', 90),
+      image('paper', 'Paper', 'paper', 'multiply', 80),
     ],
   },
   {

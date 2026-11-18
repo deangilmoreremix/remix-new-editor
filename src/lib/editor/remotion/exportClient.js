@@ -63,7 +63,7 @@ export async function inlineLocalMedia(model) {
  * Render `model` to a video Blob.
  * @returns {Promise<Blob>}
  */
-export async function exportModel(model, { container = 'mp4', quality = '1080p', onProgress, signal } = {}) {
+export async function exportModel(model, { container = 'mp4', quality = '1080p', videoBitrate, onProgress, signal } = {}) {
   const r = ensureRunner();
   const payload = await inlineLocalMedia(model);
   await r.ready;
@@ -77,13 +77,18 @@ export async function exportModel(model, { container = 'mp4', quality = '1080p',
       if (e.source !== r.iframe.contentWindow || e.data?.id !== id) return;
       const msg = e.data;
       if (msg.type === 'progress') onProgress?.(msg.progress, msg);
-      else if (msg.type === 'done') { cleanup(); resolve(msg.blob); }
+      else if (msg.type === 'done') {
+        cleanup();
+        const hf = Object.values(msg.hfErrors || {});
+        if (hf.length) reject(Object.assign(new Error(`Export stopped: ${hf.map((m) => String(m).replace('[hyperframes:error] ', '')).join(' ')}`), { hyperframes: true, hfErrors: msg.hfErrors })); // fail closed: no MP4 is handed back
+        else resolve(msg.blob);
+      }
       else if (msg.type === 'error') { cleanup(); reject(new Error(msg.message)); }
     };
     const onAbort = () => r.iframe.contentWindow?.postMessage({ type: 'cancel', id }, '*');
     window.addEventListener('message', onMsg);
     signal?.addEventListener('abort', onAbort, { once: true });
-    r.iframe.contentWindow.postMessage({ type: 'render', id, model: payload, options: { container, quality } }, '*');
+    r.iframe.contentWindow.postMessage({ type: 'render', id, model: payload, options: { container, quality, ...(Number.isFinite(videoBitrate) ? { videoBitrate } : {}) } }, '*');
   });
 }
 

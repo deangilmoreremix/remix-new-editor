@@ -1,0 +1,247 @@
+{
+  "id": "cinema-template",
+  "name": "Cinema Templates",
+  "route": "#/cinema-template",
+  "description": "Cinema Templates is a library of 46 ready-made cinematic templates (short films, trailers, brand films, ad films, genre scenes, a movie poster and more). You pick one, fill in a few simple fields, optionally add a start image, and the studio builds a full cinematic prompt and generates the video or image.",
+  "shortDescription": "Ready-made cinematic templates: pick one, add your media and generate.",
+  "fullDescription": "Cinema Templates (page title 'CINEMATIC TEMPLATES', banner 'Cinema Template Studio') opens on a grid of template cards with filters for Favorites, Recent and My Templates. Opening a card shows a create screen with a Quick Mode and an Advanced mode, a Video Intent panel, the template's own fields, a model picker, Media Sources for a start image or source video, an AI Enhancer switch, a Generate button and an Output panel with editable tabs (Enhanced Prompt, Scene Beats, Voiceover, Negative Prompt). Video templates also show a Scene Timeline that is auto-built from the template, and some have a Scene Builder where you can add scenes or open the Storyboard. The studio assembles and enriches the prompt for you, then routes the run by the media you attached: text only goes to text-to-video, an image goes to image-to-video, a video goes to video-to-video. Results open in a preview with Open in new tab, Download, Publish to Social, a scrubber, Regenerate / Extend and a history strip.",
+  "bestFor": "Beginners and small-business owners who want a polished cinematic result (brand film, ad, trailer, restaurant promo, real estate tour, and so on) without writing a technical prompt.",
+  "whenToUse": [
+    "You know the kind of video you want (trailer, brand film, ad film, testimonial, founder story, documentary-style, genre scene) and want a template to structure it.",
+    "You want the studio to expand a few answers into a full cinematic prompt, scene beats, voiceover and negative prompt.",
+    "You want industry-flavoured templates such as Restaurant/Cafe Cinematic Film, Real Estate Cinematic Property, Automotive Cinematic Promo, Fitness Transformation Video, Fashion & Lifestyle Film, Event Recap Film or Local Business Cinematic Promo.",
+    "You want a movie poster image from a title, genre and tagline.",
+    "You already planned frames in Storyboard Studio and want to continue with them ('Send to video studio')."
+  ],
+  "whenToUseAnother": [
+    "Use Cinema Studio (#/cinema) when you want to choose camera body, lens, focal length, aperture, movement and film look yourself.",
+    "Use Video Studio (#/video) when you just want a prompt bar with a model picker and workflows like Edit video, Extend uploaded video or Motion transfer.",
+    "Use Storyboard Studio (#/storyboard) when you want to plan frames first.",
+    "Use Templates (#/templates) for the broader template library (image and non-cinematic video templates)."
+  ],
+  "keyFeatures": [
+    "46 cinematic templates: 45 video templates and 1 image template (Movie Poster).",
+    "Browse filters: Favorites (heart on a card), Recent, My Templates; '← Show All' returns to the full grid.",
+    "Quick Mode and Advanced mode buttons on the create screen; a Save button stores your project ('Project saved!').",
+    "Video Intent panel (Video Type, Aspect Ratio, Tone, Style Preset, Lighting Preset, Color Grade, Target Audience, CTA, Subject, Premise) that is saved automatically and has a Reset button.",
+    "AI Enhancer switch (on by default) with an Advanced Controls area: Template Type, Niche, Business Type, Audience, Subject, Setting, Visual Style, CTA.",
+    "Creative Intelligence cards: Auto-Detected Niche, Scene Structure, Cinematic Enrichment, Visual Style, Enhancer Keywords.",
+    "Editable output tabs: Enhanced Prompt, Scene Beats, Voiceover, Negative Prompt, with a prompt length counter.",
+    "Scene Timeline (with a Refresh button) and Scene Builder (+ Add Scene, Storyboard).",
+    "Media Sources: a start/reference image and a source video; a route badge shows Text -> Video, Image -> Video, Video -> Video, Text -> Image or Image -> Image.",
+    "Model picker (same catalog family as Video Studio), Thumbnail, Advanced, Personalize and GTM Boost.",
+    "Result preview with Regenerate, Extend (Seedance 2.0 results only), Open in new tab, Download and Publish to Social."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Template browser",
+      "explanation": "The first screen is a grid of template cards showing a thumbnail, name and description. Templates are grouped by category such as Cinematic Films, Business & Brand, Commercial & Ads, Social Media, Documentary, Personal Story, Industry Specific, Narrative & Story, Film Genres, Scene Construction and Movie Poster & Promo. Click a card to open it.",
+      "whyToUse": "Pick the right structure for your video type.",
+      "inputRequired": "None.",
+      "restrictions": "Favorites and Recent are empty until you use them ('No favorites yet' / 'No recent templates')."
+    },
+    {
+      "feature": "Quick Mode vs Advanced",
+      "explanation": "Quick Mode shows only the template's essential questions (for example Brand Film: Brand Name, Brand Story, Core Values). Advanced adds extra fields (for example a Cinematic Short Film adds Main Character, Setting/Location, Central Conflict, Visual Style). Switching mode resets the form to that mode's defaults.",
+      "whyToUse": "Start simple; go Advanced when you want more control.",
+      "inputRequired": "Required fields are marked by the template.",
+      "restrictions": "If a required field is empty Generate shows 'Please fill in required fields: ...' with the field names."
+    },
+    {
+      "feature": "Video Intent panel",
+      "explanation": "A shared set of creative choices: Video Type (commercial, brand film, trailer, social reel, testimonial, documentary, short film, explainer), Aspect Ratio (16:9, 9:16, 1:1, 4:5), Tone (dramatic, cinematic, upbeat, luxury, gritty, minimal, emotional, humorous), Style Preset (None, Photorealistic, Cinematic, Noir, Anime, Watercolor, Oil Painting, Cyberpunk, Fantasy, Documentary), Lighting Preset (None, Golden Hour, Neon, Studio, Dramatic, Soft, Volumetric, High Key, Low Key), Color Grade (None, Warm, Cool, Desaturated, Vibrant, Monochrome, Sepia, Teal & Orange), plus Target Audience, CTA, Subject and Premise. The note 'Video intent is saved automatically' appears. The same intent is shared with Storyboard Studio. Reset clears it ('Video intent reset').",
+      "whyToUse": "Set the creative direction once and reuse it.",
+      "inputRequired": "Optional.",
+      "restrictions": "Fields you typed yourself are not overwritten by the panel."
+    },
+    {
+      "feature": "AI Enhancer",
+      "explanation": "A switch (default on) that keeps the simple template flow but auto-detects the niche, expands the prompt cinematically, applies scene logic and cleans up in the background. If enhancement fails you see 'AI enhancement failed, using raw prompt' and generation continues with the plain prompt.",
+      "whyToUse": "Better prompts with no extra effort.",
+      "inputRequired": "None.",
+      "restrictions": "Very long prompts trigger a warning: 'Prompt is N characters - this may exceed model limits. Consider shortening.'"
+    },
+    {
+      "feature": "Editable Output tabs",
+      "explanation": "Under Output you can read and edit the generated Enhanced Prompt, Scene Beats, Voiceover and Negative Prompt. Edits to the Enhanced Prompt are used when you generate; a reset button restores the built prompt.",
+      "whyToUse": "Fine-tune wording before spending credits.",
+      "inputRequired": "None.",
+      "restrictions": "If the prompt box is empty you get 'Please enter a prompt or description before generating.'"
+    },
+    {
+      "feature": "Media Sources and routing",
+      "explanation": "For video templates a start/reference image field and a source video field are shown. A badge shows which path Generate will take. Image attached means image-to-video (or image-to-image for the poster), a video attached means video-to-video, nothing attached means text-to-video. Most cinematic templates are image-to-video templates and treat the start image as required.",
+      "whyToUse": "Use your own picture or footage as the base.",
+      "inputRequired": "An image when the route is image-driven ('Please upload an image before generating.'); a video when you chose video-to-video ('Please upload a video before generating.').",
+      "restrictions": "If you add an end frame but the chosen model has no end-frame input, a warning says the end frame is not used and suggests a model with start and end frames such as Seedance 2.5."
+    },
+    {
+      "feature": "Scene Timeline and Scene Builder",
+      "explanation": "Video templates auto-pick scenes and list them in a Scene Timeline; 'Refresh' re-picks them ('Scene timeline refreshed'). Templates with a scene builder show '+ Add Scene' and a 'Storyboard' button that opens Storyboard Studio inside this screen. You can edit scene number, beat/description and shots, and move or remove scenes.",
+      "whyToUse": "Shape the story structure.",
+      "inputRequired": "None.",
+      "restrictions": "Errors show as 'Failed to add scene', 'Failed to remove scene' or 'Failed to move scene'."
+    },
+    {
+      "feature": "Storyboard hand-off",
+      "explanation": "When you arrive from Storyboard Studio with 'Send to video studio', a 'Storyboard Loaded' banner (with a Clear button) appears and the toast 'Storyboard applied to template' is shown.",
+      "whyToUse": "Use planned shots as the template's scenes.",
+      "inputRequired": "A storyboard from Storyboard Studio.",
+      "restrictions": "'Storyboard cleared' appears after Clear."
+    },
+    {
+      "feature": "Result preview",
+      "explanation": "After generation you see the result with a frame scrubber for video, buttons for Open in new tab, Download and Publish to Social, Regenerate and Extend controls, and a history strip that is shared across Cinema Templates.",
+      "whyToUse": "Review and export.",
+      "inputRequired": "A finished generation.",
+      "restrictions": "Extend works only for Seedance 2.0 videos ('Only Seedance 2.0 videos can be extended.')."
+    }
+  ],
+  "howToUse": "1. Open Cinema Templates (#/cinema-template). 2. Browse the grid (or use Favorites, Recent, My Templates) and click a template card. 3. Choose 'Quick Mode' for the essentials or 'Advanced' for more fields. 4. Optionally set the Video Intent panel (Video Type, Aspect Ratio, Tone, Style Preset, Lighting Preset, Color Grade, Target Audience, CTA, Subject, Premise). 5. Fill the template fields under 'Basic Information' (and 'Brand Context' if shown). 6. Under 'Media Sources' add a start image (needed for most cinematic templates) or a source video. 7. Check the model (model picker) and leave AI Enhancer on. 8. Optionally edit the Enhanced Prompt, Scene Beats, Voiceover or Negative Prompt tabs in the Output panel and adjust the Scene Timeline. 9. Click Generate. 10. On the preview screen use Download, Open in new tab, Publish to Social, Regenerate or Extend. Use the Save button to keep the project.",
+  "howToSteps": [
+    "Open Cinema Templates and pick a template card.",
+    "Choose Quick Mode or Advanced.",
+    "Fill in the required fields.",
+    "Add a start image under Media Sources if the template needs one.",
+    "Review the Enhanced Prompt in the Output panel.",
+    "Click Generate and wait.",
+    "Download, share, regenerate or extend the result."
+  ],
+  "gettingStarted": [
+    "Start with Brand Film, Ad Film or Social Cinematic Reel in Quick Mode.",
+    "Have one clear image ready (a product, a place or a person) to use as the start frame.",
+    "Leave the AI Enhancer on for your first try.",
+    "You need to be signed in with a working API key; the header shows 'No API key' until one is detected, and Generate opens a sign-in box if there is none."
+  ],
+  "inputs": ["Template choice", "Quick Mode / Advanced mode", "Template fields (for example Brand Name, Brand Story, Genre, Story Premise, Tone)", "Video Intent fields", "Start / reference image", "Source video", "Model", "Aspect ratio", "Duration / resolution / native audio (video settings)", "AI Enhancer switch and Advanced Controls", "Extra Instructions", "Edited prompt tabs"],
+  "requiredInputs": ["The template's required fields (marked required; example: Brand Name and Brand Story for Brand Film; Genre and Story Premise for Cinematic Short Film; Movie Title for Movie Poster)", "A start image for image-driven templates", "A source video for video-to-video"],
+  "optionalInputs": ["Video Intent panel", "Advanced fields", "Brand Context", "Extra Instructions", "Source video", "End frame", "Scene edits"],
+  "inputDetails": [
+    {"name": "Template fields", "description": "Each template defines its own questions, for example Genre, Story Premise and Tone for Cinematic Short Film, or Movie Title and Genre for Movie Poster.", "required": true, "whenToUse": "Always fill the required ones.", "restrictions": "Missing required fields give 'Please fill in required fields: ...'."},
+    {"name": "Start / reference image", "description": "Image used as the first frame (video) or as the base (image-to-image).", "required": true, "whenToUse": "For image-to-video templates, which includes all 45 cinematic video templates according to their template data.", "restrictions": "Shared upload limit for images is 10MB."},
+    {"name": "Source video", "description": "A video for video-to-video runs.", "required": false, "whenToUse": "When you want to transform existing footage.", "restrictions": "Shared upload limit for videos is 50MB. Video-to-video can require a prompt."},
+    {"name": "Aspect ratio", "description": "Each template lists allowed ratios (for example Cinematic Short Film: 16:9, 21:9, 9:16; Movie Poster: 2:3, 1:1). The Video Intent panel offers 16:9, 9:16, 1:1, 4:5 and your explicit choice wins over the template default; 16:9 is the last fallback.", "required": false, "whenToUse": "Match the platform.", "restrictions": "The ratio is snapped to what the chosen model supports."},
+    {"name": "Video Intent", "description": "Shared creative direction fields.", "required": false, "whenToUse": "To steer tone, style and lighting.", "restrictions": "Saved automatically in the browser."}
+  ],
+  "generationModes": ["Text-to-video", "Image-to-video (default for cinematic templates)", "Video-to-video", "Text-to-image (Movie Poster)", "Image-to-image (poster with an image)"],
+  "modeExplanations": [
+    {"mode": "Image-to-video", "description": "A start image plus the enriched prompt. Default fallback model if none valid is kling-v2.6-pro-i2v.", "useCase": "Most cinematic templates."},
+    {"mode": "Text-to-video", "description": "No media attached. Fallback model kling-v2.6-pro-t2v.", "useCase": "When no image is needed or required by the chosen route."},
+    {"mode": "Video-to-video", "description": "A source video is attached.", "useCase": "Transform existing footage."},
+    {"mode": "Movie Poster (text-to-image)", "description": "The only image template; produces a poster from title, genre, optional tagline and poster style.", "useCase": "Key art."}
+  ],
+  "modelCapabilities": "The model picker uses the same catalog family as Video Studio (115 text-to-video, 188 image-to-video and 74 video-to-video entries in the catalog) plus image models for the poster. Template data says 45 cinematic video templates are image-to-video and the Movie Poster is text-to-image. Default fallbacks in code: kling-v2.6-pro-i2v, kling-v2.6-pro-t2v and flux-dev for images. Families include Seedance (including 2.5 start-and-end-frame models), Kling, Google Veo, OpenAI Sora, Wan, Hunyuan, Runway, Pixverse, MiniMax Hailuo, Vidu, LTX and others; one-line descriptions in the app call Kling V3.0 Pro 'cinematic' and Wan 2.2 Fast 'fast'. Relative comparison scores exist (price, speed, quality) but are not real prices. Extend is available only for Seedance 2.0 videos.",
+  "outputs": ["A generated video (or a movie poster image)", "Editable Enhanced Prompt, Scene Beats, Voiceover and Negative Prompt text", "Download link and Open in new tab link", "Saved project (Save button) and history strip entries"],
+  "limitations": [
+    "Most cinematic video templates need a start image.",
+    "Extend only works for Seedance 2.0 results.",
+    "Template duration ranges (for example 60-180s, default 90 for Cinematic Short Film) describe the intended story length; the actual clip length depends on the model.",
+    "Very long prompts may exceed model limits (a warning is shown).",
+    "Retry after a failed generation is offered up to 2 times.",
+    "You need an API key and credits."
+  ],
+  "limitationDetails": [
+    {"limitation": "Start image requirement", "impact": "Generate says 'Please upload an image before generating.' if no image is attached.", "workaround": "Upload a picture or pick a text-to-video-capable route/model."},
+    {"limitation": "Clip length versus template duration", "impact": "A 90-second template does not guarantee a 90-second clip.", "workaround": "Generate scenes separately and assemble in Render or Timeline."},
+    {"limitation": "End frame support", "impact": "The end frame is ignored on models without an end-frame input.", "workaround": "Choose a model with start and end frames such as Seedance 2.5."}
+  ],
+  "troubleshooting": [
+    "'Please fill in required fields: ...': fill in each field listed before pressing Generate.",
+    "'Please upload an image before generating.': attach a start image under Media Sources.",
+    "'Please upload a video before generating.': you are on a video-to-video route; attach a source video or remove the video/model choice.",
+    "'Please enter a prompt or description before generating.': the Enhanced Prompt is empty; fill the template fields or type in the Enhanced Prompt tab.",
+    "'AI enhancement failed, using raw prompt': the enhancer could not run; generation continues with the basic prompt, which you can edit.",
+    "'Prompt is N characters - this may exceed model limits. Consider shortening.': trim the prompt in the Output panel.",
+    "A red error box appears under Generate with a Retry link: click Retry (up to 2 retries) or change the model; the box disappears after about 5 seconds.",
+    "'Generation cancelled.': you or the app cancelled the run; click Generate again.",
+    "Warning about the end frame not used: choose a model that has start and end frames, for example Seedance 2.5.",
+    "'Only Seedance 2.0 videos can be extended.': use a Seedance 2.0 model, or use Video Studio's 'Extend uploaded video'.",
+    "Header shows 'No API key': sign in and add credits; Generate also opens a sign-in box."
+  ],
+  "troubleshootingSteps": [
+    {"issue": "Generate shows a toast and nothing happens", "steps": ["Read the toast text.", "Fill missing fields or add the image/video it asks for.", "Click Generate again."]},
+    {"issue": "Result failed", "steps": ["Click Retry in the red box (up to 2 times).", "If it still fails choose a different model in the picker.", "Shorten the prompt in the Enhanced Prompt tab."]},
+    {"issue": "I cannot find my earlier work", "steps": ["Open the browse grid and click 'Recent' or 'My Templates'.", "Use the history strip below the Output panel.", "Use Save to keep a project explicitly."]},
+    {"issue": "Storyboard not applied", "steps": ["In Storyboard Studio click 'Send to video studio'.", "Look for the 'Storyboard Loaded' banner; if missing, send it again."]}
+  ],
+  "commonProblems": [
+    {"problem": "My model choice changed", "whyItHappens": "Attaching media changes the route (text, image or video) and the picker switches to a model that fits that route unless you picked one yourself.", "howToFix": "Pick the model after attaching media."},
+    {"problem": "My typed prompt edits disappeared", "whyItHappens": "Changing fields or switching mode rebuilds the prompt (mode switch resets inputs).", "howToFix": "Edit the Enhanced Prompt last, just before Generate."},
+    {"problem": "Aspect ratio different from the template", "whyItHappens": "Your explicit choice wins, and it is then snapped to a ratio the model supports.", "howToFix": "Pick a model that supports your ratio."}
+  ],
+  "exampleWorkflows": [
+    {"title": "Brand film from a product photo", "steps": ["Open Brand Film.", "Quick Mode: Brand Name, Brand Story, Core Values.", "Add a product or location photo under Media Sources.", "Set Video Intent Tone to luxury and Lighting Preset to Golden Hour.", "Generate and download."]},
+    {"title": "Movie poster", "steps": ["Open Movie Poster.", "Enter Movie Title and Genre; in Advanced add Tagline and pick a Poster Style (dramatic_cinematic, luxury_elegant or bold_color_grade).", "Generate; poster ratios are 2:3 or 1:1."]},
+    {"title": "From storyboard to video", "steps": ["Plan frames in Storyboard Studio.", "Click 'Send to video studio'.", "Confirm the 'Storyboard Loaded' banner.", "Pick a Scene Construction or Cinematic Films template and Generate."]}
+  ],
+  "useCases": [
+    {"title": "Local business promo", "description": "Restaurant, salon, dental, real estate or fitness promos.", "steps": ["Pick the Industry Specific template.", "Add a photo of the place.", "Generate."], "expectedOutput": "A short cinematic promo clip."},
+    {"title": "Short film scenes", "description": "Opening Scene, Conflict Scene, Climax Scene and other Narrative & Story templates.", "steps": ["Generate each scene.", "Assemble in Render or Timeline."], "expectedOutput": "Scene clips for a story."}
+  ],
+  "faqs": [
+    {"question": "How many templates are there?", "answer": "46 cinematic templates: 45 video templates and 1 image template (Movie Poster). The browse header shows the live count."},
+    {"question": "Do I need a picture?", "answer": "Most cinematic video templates are image-to-video, so yes, add a start image under Media Sources. The route badge shows what Generate will do."},
+    {"question": "What is the difference between Quick Mode and Advanced?", "answer": "Quick Mode asks only the essentials. Advanced shows extra fields for more control."},
+    {"question": "What does the AI Enhancer do?", "answer": "It detects the niche, expands the prompt cinematically, applies scene logic and cleans up the text. It is on by default and you can switch it off."},
+    {"question": "Can I edit the prompt before generating?", "answer": "Yes. Use the Output tabs (Enhanced Prompt, Scene Beats, Voiceover, Negative Prompt)."},
+    {"question": "Where are my saved projects?", "answer": "Click Save to store a project ('Project saved!'). Templates you used appear under Recent, and hearted templates under Favorites."},
+    {"question": "Can I extend a result?", "answer": "Only Seedance 2.0 videos can be extended from the preview."},
+    {"question": "How is this different from Cinema Studio?", "answer": "Cinema Templates gives guided formats with forms and auto-built prompts. Cinema Studio gives manual camera, lens and film-look controls."},
+    {"question": "Can I turn a storyboard into a template video?", "answer": "Yes. In Storyboard Studio click 'Send to video studio'; this studio opens with a 'Storyboard Loaded' banner."}
+  ],
+  "glossary": {
+    "Template": "A pre-built format with its own questions and scene structure.",
+    "Quick Mode": "Shows only essential template fields.",
+    "Video Intent": "Shared creative settings (type, tone, style, lighting, grade).",
+    "AI Enhancer": "Automatic prompt expansion and clean-up.",
+    "Scene Beats": "The story points for each scene.",
+    "Scene Timeline": "The ordered list of scenes the video will cover.",
+    "Negative Prompt": "Things you want the model to avoid.",
+    "Route": "Which kind of generation will run: text, image or video based.",
+    "Start frame": "The first image of the clip."
+  },
+  "tips": [
+    "Use Favorites (the heart on a card) for your go-to templates.",
+    "Write a clear one-paragraph story or brand story; the enhancer builds on it.",
+    "Check the Enhanced Prompt tab before generating to avoid wasted runs.",
+    "Pick Tone and Lighting Preset in Video Intent for a quick look change.",
+    "Use a high-quality, well-lit start image."
+  ],
+  "bestPractices": [
+    "Start in Quick Mode, then move to Advanced.",
+    "Keep the prompt below the model's limit; watch the length counter warning.",
+    "Generate scenes individually for longer stories."
+  ],
+  "relatedStudios": ["cinema", "video", "storyboard", "templates", "render", "timeline"],
+  "relatedStudioGuidance": [
+    {"studio": "storyboard", "relationship": "Storyboard Studio plans scene frames and can send them here.", "whenToMove": "When you want to plan shots first.", "why": "Frames become the scene structure."},
+    {"studio": "cinema", "relationship": "Manual cinematography controls.", "whenToMove": "When you want to pick camera and lens yourself.", "why": "More hands-on."},
+    {"studio": "video", "relationship": "General video generator.", "whenToMove": "When you need other video workflows.", "why": "Edit, extend, motion transfer, watermark removal."}
+  ],
+  "notConfirmed": [
+    "How many credits or what price each template run costs.",
+    "Actual clip length produced for each template (template duration ranges describe story length).",
+    "Which models are enabled for your account in the picker.",
+    "Details of Template Studio (#/templates) behaviour; only the cinematic template screen was reviewed.",
+    "docs/TEMPLATE_CINEMA_PRODUCTION_ACCEPTANCE.md reports every template as passing in testing; this guide did not treat that as a guarantee of results.",
+    "Exact behaviour of the Personalize and GTM Boost buttons inside this studio."
+  ],
+  "sourceFiles": [
+    "src/components/CinemaTemplateStudio.js",
+    "src/lib/cinematicTemplates.js",
+    "src/lib/templateMedia.js",
+    "src/lib/templateGenerationOrchestrator.js",
+    "src/lib/router.js",
+    "src/lib/models.js",
+    "src/lib/modelDescriptions.js",
+    "src/lib/modelComparisonData.js",
+    "public/api/model-catalog.json",
+    "docs/TEMPLATE_CINEMA_PRODUCTION_ACCEPTANCE.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read CinemaTemplateStudio.js (browse view, create view, media routing, generate validation, preview view), template registry data (46 templates, categories, modelType), templateMedia route labels and the acceptance doc.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

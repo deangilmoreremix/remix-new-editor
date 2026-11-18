@@ -1,0 +1,2 @@
+Motion-graphics template packs from OpenChatCut (0xsline/OpenChatCut, assets/templates), AGPL-3.0-or-later.
+Each template is a no-import `({ item }) => JSX` component; it only ever runs in the sandboxed code renderer after the static code gate.

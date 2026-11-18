@@ -246,3 +246,43 @@ export function getCinemaStudioAsset({
     },
   };
 }
+
+
+/**
+ * Timeline / Projects adapter: a retargeting follow-up brief as a
+ * PersonalizableAsset. Carries only strings and ids (never media blobs); the
+ * original timeline's media stay referenced by the follow-up PROJECT that was
+ * created from it.
+ *
+ * @param {Object} opts
+ * @param {string} opts.originalProjectId
+ * @param {string} [opts.originalProjectName]
+ * @param {string} [opts.followupProjectId]   the new, linked project
+ * @param {string} [opts.interest]
+ * @param {string} [opts.interestType]
+ * @param {string} [opts.ctaPurpose]
+ * @param {string} [opts.suggestedMessage]
+ * @param {string} [opts.originalVideoUrl]
+ * @param {string} [opts.thumbnailUrl]
+ */
+export function getTimelineFollowupAsset({
+  originalProjectId, originalProjectName, followupProjectId, interest, interestType,
+  ctaPurpose, suggestedMessage, originalVideoUrl, thumbnailUrl,
+} = {}) {
+  const fields = [
+    field({ id: 'topic', label: 'Topic of interest', type: 'text', value: interest || '', supportsPersonalization: true }),
+    interestType === 'product' && field({ id: 'product', label: 'Product', type: 'text', value: interest || '', supportsPersonalization: true }),
+    interestType === 'service' && field({ id: 'service', label: 'Service', type: 'text', value: interest || '', supportsPersonalization: true }),
+    field({ id: 'cta_purpose', label: 'Call-to-action purpose', type: 'text', value: ctaPurpose || '', supportsPersonalization: true }),
+    field({ id: 'message', label: 'Suggested message', type: 'text', value: suggestedMessage || '', supportsPersonalization: true }),
+    originalVideoUrl && field({ id: 'original_video', label: 'Original video', type: 'url', value: originalVideoUrl, supportsPersonalization: false, readonly: true }),
+  ].filter(Boolean);
+  return {
+    id: followupProjectId || originalProjectId,
+    type: 'timeline',
+    title: originalProjectName ? `${originalProjectName}: ${interest || 'follow-up'}` : 'Follow-up video',
+    thumbnailUrl: thumbnailUrl || undefined,
+    fields,
+    metadata: { originalProjectId, followupProjectId: followupProjectId || null, interest: interest || null, interestType: interestType || null, createdFrom: 'retarget' },
+  };
+}

@@ -180,17 +180,20 @@ describe('Timeline Editor Mask Integration', () => {
     const source = fs.readFileSync(sourcePath, 'utf-8');
     expect(source).toContain("'x': 'mask'");
     expect(source).toContain('state.selectedTool = toolMap[toolKey]');
-    expect(source).toContain("showToast('Mask tool active — select a clip and open AI Tools to segment')");
+    expect(source).toContain("showToast('Mask tool: click an object, or drag a box around it, on the preview')");
   });
 
   it('preview stage has maskOverlay for click/box capture', async () => {
     const sourcePath = path.join(process.cwd(), 'src/components/TimelineEditorPage.jsx');
     const source = fs.readFileSync(sourcePath, 'utf-8');
     expect(source).toContain('id="maskOverlay"');
-    expect(source).toContain('maskClickPoint');
-    expect(source).toContain('maskSelectionBox');
-    expect(source).toContain('normStartX');
-    expect(source).toContain('normStartY');
+    // Click / box capture now runs on pointer events and hands the normalized
+    // coordinates to the on-device masker (no server, no fal).
+    expect(source).toContain("maskOverlay.addEventListener('pointerdown'");
+    expect(source).toContain("maskOverlay.addEventListener('pointerup'");
+    expect(source).toContain('function runMaskTool');
+    expect(source).toContain('actions.maskObject(');
+    expect(source).toContain('function syncMaskOverlay');
   });
 
   it('click on maskOverlay captures normalized coordinates', async () => {

@@ -10,6 +10,14 @@ export type BeforeAfterMode = 'toggle' | 'split'
 export interface BeforeAfterPreviewProps {
   inputProps: PreviewInputProps
   defaultMode?: BeforeAfterMode
+  /** Which side the single-view (toggle) mode opens on. Defaults to before. */
+  initialSide?: 'before' | 'after'
+  /**
+   * The original video for BEFORE when the AFTER video itself was changed
+   * (a Full Body Recast swaps the person, so BEFORE must show who was there).
+   * Omitted, both panes render the same video and differ only by overlays.
+   */
+  beforeVideoUrl?: string | null
 }
 
 /**
@@ -117,19 +125,22 @@ export function syncPreviewPlaying(
  * differ — so that switching Before/After is a pure overlay change on the very
  * same source media and never a different (or missing) video.
  */
-export function buildBeforeInputProps(inputProps: PreviewInputProps): PreviewInputProps {
+export function buildBeforeInputProps(inputProps: PreviewInputProps, beforeVideoUrl?: string | null): PreviewInputProps {
   const beforeInputProps: PreviewInputProps = {
     ...inputProps,
     settings: {
       ...inputProps.settings,
       layers: inputProps.settings.layers.map((layer) => ({ ...layer, visible: false })),
       showEndCard: false,
+      // "Before" is the footage as it was: no colour look, no background removal, no burned-in captions.
+      look: undefined,
+      cutout: undefined,
+      captions: undefined,
     },
   }
-  // Guard: the comparison is only honest when both panes show one source.
-  if (beforeInputProps.videoUrl !== inputProps.videoUrl) {
-    beforeInputProps.videoUrl = inputProps.videoUrl
-  }
+  // Guard: the comparison is only honest when both panes show one source —
+  // unless the caller says the AFTER video replaced the original (a recast).
+  beforeInputProps.videoUrl = beforeVideoUrl || inputProps.videoUrl
   return beforeInputProps
 }
 
@@ -147,16 +158,16 @@ function resolveInitialMode(defaultMode?: BeforeAfterMode): BeforeAfterMode {
  * renders the personalized scene.
  */
 export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.Element {
-  const { inputProps, defaultMode } = props
+  const { inputProps, defaultMode, initialSide = 'before', beforeVideoUrl } = props
   const [mode, setMode] = useState<BeforeAfterMode>(() => resolveInitialMode(defaultMode))
-  const [showingBefore, setShowingBefore] = useState(true)
+  const [showingBefore, setShowingBefore] = useState(initialSide === 'before')
   const beforeRef = useRef<PlayerRef | null>(null)
   const afterRef = useRef<PlayerRef | null>(null)
   const syncStateRef = useRef<PreviewSyncState>(createPreviewSyncState())
 
   const beforeInputProps = useMemo<PreviewInputProps>(
-    () => buildBeforeInputProps(inputProps),
-    [inputProps],
+    () => buildBeforeInputProps(inputProps, beforeVideoUrl),
+    [inputProps, beforeVideoUrl],
   )
 
   // Both panes render the same source media; only overlays and the end card
@@ -196,8 +207,8 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
     padding: '6px 12px',
     borderRadius: 999,
     border: `1px solid ${active ? '#d9ff00' : 'rgba(161,161,170, 0.35)'}`,
-    background: active ? 'rgba(217,255,0, 0.15)' : 'rgba(10,10,10, 0.8)',
-    color: active ? '#f7ffd6' : '#d4d4d8',
+    background: 'transparent',
+    color: active ? '#d9ff00' : '#d4d4d8',
     fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',

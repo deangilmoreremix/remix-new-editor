@@ -16,19 +16,24 @@ import { apiKeyManager } from '../../../lib/apiKeyManager.js'
 const PREFIXES = [
   '/api/personalization/',
   '/api/demo/discover',
+  '/api/demo/download-image',
   '/api/video/record',
   '/api/proxy/openai-enhance',
+  // Social Publish thumbnails (OpenAI Images): needs the signed-in user and their own OpenAI key.
+  '/api/proxy/thumbnail-generate',
   // OpenHiggsBolt's MuAPI proxy and upload route (generation + uploads).
   '/api/api/v1/',
   '/api/v1/upload_file',
   // Motion Director (director chat + page capture).
   '/api/motion-studio/',
+  '/api/outreach/',
 ]
 const OPENAI_KEY_ROUTES = [
   '/api/personalization/image-analyze',
   '/api/personalization/image-edit',
   '/api/personalization/image-smart-edit',
   '/api/proxy/openai-enhance',
+  '/api/proxy/thumbnail-generate',
   // The Motion Director's AI director runs on the user's own OpenAI key.
   '/api/motion-studio/director',
 ]

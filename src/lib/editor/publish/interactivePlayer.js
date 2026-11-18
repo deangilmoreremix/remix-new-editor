@@ -10,10 +10,12 @@
 import '../addons/index.js'; // registers the addon descriptors the runtime reads
 import { AddonRuntime } from '../addons/runtime.js';
 import { clipTimeRange } from '../addons/registry.js';
-import { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay } from '../addons/addonOverlay.js';
+import { ensureOverlayLayer, clearOverlay, showPauseOverlay, showOptinOverlay } from '../addons/addonOverlay.js';
+import { normalizeListBuilder, leadFormToOptin } from '../addons/listBuilder.js';
+import { pickVariant, applyVariant, hasVariantB } from '../addons/abTest.js';
 import { addonOptions } from '../addons/registry.js';
 import { timelineToComposition } from '../remotion/timelineToComposition.js';
-import { showLeadForm, ctaElement, linkBoxElement } from './viewerOverlays.js';
+import { showLeadForm, ctaElement, linkBoxElement, hotspotElement } from './viewerOverlays.js';
 import { ctaTarget } from '../addons/ctaLink.js';
 import { profileWithAnswers } from '../personalize/perContact.js';
 
@@ -32,7 +34,7 @@ export function stripUnresolvedTokens(value, key = '') {
 }
 
 export function buildViewerModel(project, profile, { fps = 30, quality = '1080p' } = {}) {
-  const model = timelineToComposition(project, { fps, quality, profile });
+  const model = timelineToComposition(project, { fps, quality, profile, ...(project?.aspect ? { aspect: project.aspect } : {}) });
   return { ...model, layers: stripUnresolvedTokens(model.layers) };
 }
 
@@ -47,13 +49,29 @@ export { profileWithAnswers };
  *   profile        token profile from the link (?firstname=…)
  *   onLead({ clipId, kind, data }) → Promise<{ stored, error }>
  *   onChange({ playing, time, duration })
+ *   onHotspot({ clip, action, label, time })   a viewer clicked a hotspot (for analytics)
  *   voiceFor(clip, profile) → Promise<url|null>   personalized Smart Speech audio
+ *   rememberKey    id used to remember (in this browser) that the viewer already
+ *                  filled in the List Builder, so they aren't asked again
  *   fps
  */
-export function createInteractivePlayer({ project, stage, frame, createEngine, profile = null, onLead, onChange, voiceFor, fps = 30 }) {
+export function createInteractivePlayer({ project, stage, frame, createEngine, profile = null, onLead, onChange, onHotspot, voiceFor, rememberKey = null, fps = 30 }) {
   const T = Number(project.timelineSeconds) || 60;
   const clips = (project.tracks || []).flatMap((t) => t.items || t.clips || []);
-  const listBuilder = project.listBuilder ? { ...project.listBuilder } : null;
+  const listBuilder = project.listBuilder ? normalizeListBuilder({ ...project.listBuilder }) : null;
+  // A/B test: this viewer's version of any form that has one (kept in this browser, sent with the lead).
+  // Assigned only when a form actually has a version B (so nothing is stored for untested forms).
+  let assigned = null;
+  const variantFor = (config) => (hasVariantB(config) ? (assigned ??= pickVariant(rememberKey)) : '');
+  const versionOf = (config) => { const v = variantFor(config); return v ? { variant: v } : {}; };
+  // A returning viewer who already filled the form in doesn't get the wall again.
+  const storeKey = rememberKey ? `remix-optin:${rememberKey}` : null;
+  if (listBuilder?.enabled && storeKey && !listBuilder.askEveryVisit) {
+    try { if (globalThis.localStorage?.getItem(storeKey) === '1') listBuilder._submitted = true; } catch { /* storage blocked */ }
+  }
+  // The List Builder is a registration wall: until it is submitted the video
+  // engine isn't even created, so nothing can load or play behind the form.
+  const wallUp = () => !!(listBuilder?.enabled && !listBuilder._submitted);
   const runtime = new AddonRuntime();
   const layer = ensureOverlayLayer(frame);
   layer.classList.add('wf-layer');
@@ -77,7 +95,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
 
   const emit = () => onChange?.({ playing, time, duration: model.durationInFrames / fps, gating: gateOpen });
 
-  const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || ctaTarget(addonOptions(c)));
+  const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || c.type === 'addon-hotspot' || ctaTarget(addonOptions(c)));
   const onCall = ({ clip, phone }) => {
     // Upstream "Email to notify about call attempt": recorded as a lead for the owner.
     onLead?.({ clipId: clip.id, kind: 'call-attempt', data: { PHONE: phone, CALLED_AT: new Date().toISOString() } });
@@ -89,7 +107,9 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       const on = sec >= start && sec < end;
       const id = String(clip.id);
       if (on && !live.has(id)) {
-        const el = clip.type === 'click-to-call' ? ctaElement(clip, { onCall, frameAspect: model.width / model.height }) : linkBoxElement(clip, { onCall });
+        const el = clip.type === 'click-to-call' ? ctaElement(clip, { onCall, frameAspect: model.width / model.height })
+          : clip.type === 'addon-hotspot' ? hotspotElement(clip, { onCall, onSeek: jumpTo, onClick: (h) => onHotspot?.({ ...h, time }) })
+            : linkBoxElement(clip, { onCall });
         if (el) { layer.appendChild(el); live.set(id, el); }
       } else if (!on && live.has(id)) {
         live.get(id).remove();
@@ -98,7 +118,8 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     });
   }
 
-  const engine = createEngine(stage, {
+  let engine = null;
+  const makeEngine = () => createEngine(stage, {
     model,
     onFrame: (f) => {
       if (destroyed) return;
@@ -117,16 +138,25 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     onReady: () => engine?.seekToFrame?.(Math.round(time * fps)),
     onError: (err) => console.warn('[watch] playback error', err),
   });
+  const ensureEngine = () => { if (!engine) engine = makeEngine(); return engine; };
+  if (!wallUp()) ensureEngine();
 
   function seekEngine(sec) {
     time = Math.max(0, Math.min(T, sec));
-    engine.seekToFrame(Math.round(time * fps));
+    engine?.seekToFrame(Math.round(time * fps));
     updateInteractive(time);
+  }
+
+  // A hotspot's "jump to" action: go there and keep playing (a form that is open blocks it, as scrubbing does).
+  function jumpTo(sec) {
+    if (gateOpen) return;
+    seek(sec);
+    play();
   }
 
   function pauseInternal() {
     playing = false;
-    engine.pause();
+    engine?.pause();
     emit();
   }
 
@@ -163,17 +193,20 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   function applyAnswers(data) {
     currentProfile = profileWithAnswers(currentProfile, data);
     model = buildViewerModel(voicedProject(), currentProfile, { fps });
-    engine.update(model);
+    engine?.update(model);
     loadVoices();
   }
 
   function openLeadForm(clip) {
     gateOpen = true;
     showLeadForm(layer, clip, {
+      allowRedirect: true,
+      isActive: () => !destroyed,
       profile: currentProfile,
-      onSubmit: async (data) => {
-        const res = await onLead?.({ clipId: clip.id, kind: 'lead-form', data });
-        if (res?.error && !res.stored) return { ok: false, message: 'Sorry, that didn’t go through — please try again.' };
+      variant: variantFor(leadFormToOptin(clip)) || 'A',
+      onSubmit: async (data, signals) => {
+        const res = await onLead?.({ clipId: clip.id, kind: 'lead-form', data, signals, ...versionOf(leadFormToOptin(clip)) });
+        if (res?.error && !res.stored) return { ok: false, message: res.fix || 'Sorry, that didn’t go through — please try again.' };
         clip._submitted = true;
         runtime.markSubmitted(clip.id);
         applyAnswers(data);
@@ -185,36 +218,62 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     });
   }
 
+  // Lead Generators whose trigger is an event instead of a place on the timeline: 'pause' (the viewer pauses the video) and
+  // 'exit' (the pointer leaves through the top of the window, desktop only). Each shows once, and never over another form.
+  const firedTriggers = new Set();
+  function openTriggered(kind) {
+    if (destroyed || gateOpen || wallUp()) return false;
+    const clip = clips.find((c) => c.type === 'lead-form' && c.trigger === kind && !c._submitted && !firedTriggers.has(String(c.id)));
+    if (!clip) return false;
+    firedTriggers.add(String(clip.id));
+    if (playing) { clearTimeout(resumeTimer); pauseInternal(); }
+    openLeadForm(clip);
+    emit();
+    return true;
+  }
+  const onExitIntent = (e) => { if (e.clientY <= 0 && !e.relatedTarget && time > 0) openTriggered('exit'); };
+  const canHover = typeof globalThis.matchMedia === 'function' ? globalThis.matchMedia('(pointer: fine)').matches : true;
+  if (canHover && clips.some((c) => c.type === 'lead-form' && c.trigger === 'exit')) globalThis.document?.addEventListener('mouseout', onExitIntent);
+
   function openListBuilder() {
     gateOpen = true;
+    emit(); // tells the page a form is up (hides the big play button)
     const prefill = currentProfile?.variables || {};
-    showListBuilderOverlay(layer, listBuilder, {
+    showOptinOverlay(layer, applyVariant(listBuilder, variantFor(listBuilder) || 'A'), {
+      allowRedirect: true,
+      isActive: () => !destroyed,
       prefill,
-      onSkip: () => { gateOpen = false; play(); },
-      onSubmit: async (data) => {
-        await onLead?.({ clipId: 'list-builder', kind: listBuilder.kind === 'personalizer' ? 'personalizer' : 'list-builder', data });
+      onSkip: () => { gateOpen = false; ensureEngine(); play(); },
+      onSubmit: async (data, signals) => {
+        const res = await onLead?.({ clipId: 'list-builder', kind: listBuilder.kind === 'personalizer' ? 'personalizer' : 'list-builder', data, signals, ...versionOf(listBuilder) });
+        // Like the Lead Generator: if the lead was not saved, keep the form open for a retry instead of
+        // marking it done (which would also suppress it on return and send the viewer away on a redirect).
+        if (res?.error && !res.stored) throw new Error(res.fix || 'Sorry, that didn\u2019t go through \u2014 please try again.');
         listBuilder._submitted = true;
+        if (storeKey) { try { globalThis.localStorage?.setItem(storeKey, '1'); } catch { /* storage blocked */ } }
         applyAnswers(data);
         gateOpen = false;
-        play();
+        play(); // creates the engine now that the viewer is through the wall
         return '';
       },
     });
   }
 
   function play() {
-    if (destroyed || gateOpen) return;
+    if (destroyed) return;
+    if (gateOpen) { emit(); return; }
     clearTimeout(resumeTimer);
     clearOverlay(layer, 'pause-continue');
     if (time >= T - 0.05) seek(0);
     playing = true;
     // A List Builder at the very start gates before the first frame.
     if (apply(runtime.tick(time, time, { clips, timelineSeconds: T, listBuilder }))) return;
-    engine.play();
+    ensureEngine().play();
     emit();
   }
 
   function seek(sec) {
+    if (gateOpen) return; // no scrubbing past an open form
     clearTimeout(resumeTimer);
     seekEngine(sec);
     runtime.handleSeek(time, clips, T);
@@ -235,17 +294,25 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
         if (!url || destroyed) return;
         voices.set(String(clip.id), url);
         model = buildViewerModel(voicedProject(), currentProfile, { fps });
-        engine.update(model);
+        engine?.update(model);
       }).catch(() => {});
     });
   }
   loadVoices();
 
   updateInteractive(0);
+  if (wallUp()) {
+    runtime.listBuilderShown = true;
+    runtime.lastTime = 0;
+    openListBuilder();
+  }
   return {
     play,
-    pause: () => { clearTimeout(resumeTimer); pauseInternal(); },
-    toggle: () => (playing ? (clearTimeout(resumeTimer), pauseInternal()) : play()),
+    pause: () => { const was = playing; clearTimeout(resumeTimer); pauseInternal(); if (was) openTriggered('pause'); },
+    toggle: () => {
+      if (!playing) { play(); return; }
+      clearTimeout(resumeTimer); pauseInternal(); openTriggered('pause');
+    },
     seek,
     get playing() { return playing; },
     get time() { return time; },
@@ -255,7 +322,8 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     destroy() {
       destroyed = true;
       clearTimeout(resumeTimer);
-      engine.destroy?.();
+      globalThis.document?.removeEventListener('mouseout', onExitIntent);
+      engine?.destroy?.();
       layer.remove();
     },
   };

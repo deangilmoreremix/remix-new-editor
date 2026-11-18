@@ -1,0 +1,371 @@
+[
+ {
+  "block": "bar-chart-race",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "camcorder-hud",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0017,
+  "logs": []
+ },
+ {
+  "block": "code-snippet-apple-terminal-pro",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0005,
+  "logs": []
+ },
+ {
+  "block": "hw-path-text",
+  "edited": [
+   "cfg_text",
+   "text"
+  ],
+  "changedFraction": 0.0154,
+  "logs": []
+ },
+ {
+  "block": "hw-title",
+  "edited": [
+   "cfg_text",
+   "text"
+  ],
+  "changedFraction": 0.0197,
+  "logs": []
+ },
+ {
+  "block": "hw-write-title",
+  "edited": [
+   "cfg_text",
+   "text"
+  ],
+  "changedFraction": 0.0127,
+  "logs": []
+ },
+ {
+  "block": "lower-third-bild",
+  "edited": [
+   "c1",
+   "color"
+  ],
+  "changedFraction": 0.023,
+  "logs": []
+ },
+ {
+  "block": "lt-accent-underline",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0111,
+  "logs": []
+ },
+ {
+  "block": "lt-bold-block",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0064,
+  "logs": []
+ },
+ {
+  "block": "lt-clean-bar",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0115,
+  "logs": []
+ },
+ {
+  "block": "lt-color-block",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0109,
+  "logs": []
+ },
+ {
+  "block": "lt-dark-card",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0106,
+  "logs": []
+ },
+ {
+  "block": "lt-kicker-name",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0019,
+  "logs": []
+ },
+ {
+  "block": "lt-mask-reveal",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0097,
+  "logs": []
+ },
+ {
+  "block": "lt-neon-border",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "lt-side-rule",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0097,
+  "logs": []
+ },
+ {
+  "block": "lt-soft-pill",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0087,
+  "logs": []
+ },
+ {
+  "block": "lt-stack-bars",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0079,
+  "logs": []
+ },
+ {
+  "block": "mk-background",
+  "edited": [
+   "cfg_frostBlur",
+   "number"
+  ],
+  "changedFraction": 1.0,
+  "logs": []
+ },
+ {
+  "block": "mk-callout-highlight",
+  "edited": [
+   "cfg_text",
+   "text"
+  ],
+  "changedFraction": 0.0142,
+  "logs": []
+ },
+ {
+  "block": "mk-placeholder-grid",
+  "edited": [
+   "cfg_stagger",
+   "number"
+  ],
+  "changedFraction": 0.3205,
+  "logs": []
+ },
+ {
+  "block": "mk-progress-stat",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "notification-cascade",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0012,
+  "logs": []
+ },
+ {
+  "block": "oscilloscope-trace",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0022,
+  "logs": []
+ },
+ {
+  "block": "share-sheet-carousel",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "slack-notification-ad",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0055,
+  "logs": []
+ },
+ {
+  "block": "snow",
+  "edited": [
+   "var_speed",
+   "select"
+  ],
+  "changedFraction": 0.0166,
+  "logs": []
+ },
+ {
+  "block": "split-flap-board",
+  "edited": [
+   "var_boardText",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "starfield",
+  "edited": [
+   "var_speed",
+   "select"
+  ],
+  "changedFraction": 0.0011,
+  "logs": []
+ },
+ {
+  "block": "transitions-blur",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "transitions-cover",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "transitions-dissolve",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "transitions-distortion",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "transitions-grid",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "transitions-light",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "transitions-other",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "transitions-push",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "transitions-radial",
+  "edited": [
+   "t1",
+   "text"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "vfx-anamorphic-flare",
+  "edited": [
+   "var_tint",
+   "color"
+  ],
+  "changedFraction": 0.0,
+  "logs": []
+ },
+ {
+  "block": "week-in-merges",
+  "edited": [
+   "var_eyebrow",
+   "text"
+  ],
+  "changedFraction": 0.0014,
+  "logs": []
+ },
+ {
+  "block": "yt-logo-intro",
+  "edited": [
+   "c1",
+   "color"
+  ],
+  "changedFraction": 0.0178,
+  "logs": []
+ }
+]

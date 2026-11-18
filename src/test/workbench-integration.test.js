@@ -134,6 +134,23 @@ describe('workbench: "Edit in Workbench" notification', () => {
     expect(consumeWorkbenchHandoff().assets[0]).toMatchObject({ url: 'https://x/out.mp4', kind: 'video' });
   });
 
+  it('every studio video also offers Create landing page, even where Edit in Workbench is not offered', () => {
+    mountGenerationNotifications(vi.fn());
+    saveGeneration({ studio: 'videoagent', type: 'video', url: 'https://x/agent.mp4', prompt: 'agent clip' });
+    expect(document.querySelector('[data-action="create-landing-page"]')).toBeTruthy();
+    expect(document.querySelector('[data-action="edit-in-workbench"]')).toBeNull();
+  });
+
+  it('a saved picture gets the landing page button too; audio and non-https files do not', () => {
+    mountGenerationNotifications(vi.fn());
+    saveGeneration({ studio: 'audio', type: 'audio', url: 'https://x/a.mp3' });
+    saveGeneration({ studio: 'video', type: 'video', url: 'blob:http://x/1' });
+    saveGeneration({ studio: 'image', type: 'image', url: 'blob:http://x/2.png' });
+    expect(document.querySelector('[data-action="create-landing-page"]')).toBeNull();
+    saveGeneration({ studio: 'image', type: 'image', url: 'https://x/a.png' });
+    expect(document.querySelector('[data-action="create-landing-page"]')).toBeTruthy();
+  });
+
   it('does not offer it for Video Agent output', () => {
     mountGenerationNotifications(vi.fn());
     saveGeneration({ studio: 'videoagent', type: 'video', url: 'https://x/agent.mp4' });

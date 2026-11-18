@@ -246,15 +246,18 @@ describe('generation', () => {
 });
 
 describe('save and load', () => {
-  it('round-trips through local storage and jumps straight to the board', async () => {
-    globalThis.fetch = vi.fn(() => Promise.reject(new Error('no route')));
+  const saveDemo = async (text = 'Saved scene') => {
     const root = mountBoard();
-    type(cards(root)[0].querySelector('textarea'), 'Saved scene');
+    type(cards(root)[0].querySelector('textarea'), text);
     root.querySelector('input[aria-label="Project name"]').value = 'demo';
     click(btn(root, 'Save'));
     await vi.waitFor(() => expect(JSON.parse(localStorage.getItem('storyboard_projects_v1')).demo).toBeTruthy());
-
     root.remove(); // only one studio is ever on screen
+  };
+
+  it('round-trips through local storage and jumps straight to the board', async () => {
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('no route')));
+    await saveDemo();
     const root2 = mount();
     expect(cards(root2)).toHaveLength(0);
     // The toolbar is hidden on the describe view; loading must reveal the board.
@@ -262,5 +265,39 @@ describe('save and load', () => {
     click(btn(root2, 'Load'));
     await vi.waitFor(() => expect(cards(root2)[0].querySelector('textarea').value).toBe('Saved scene'));
     expect(isHidden(root2.querySelector('[aria-label="Storyboard tools"]'))).toBe(false);
+  });
+
+  it('typing after reopening never overwrites the saved project with an empty board', async () => {
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('no route')));
+    await saveDemo();
+    vi.useFakeTimers();
+    try {
+      const root2 = mount();
+      // The last project name is suggested in the box, but is not the active project.
+      expect(root2.querySelector('input[aria-label="Project name"]').value).toBe('demo');
+      type(root2.querySelector('#vi-premise'), 'A completely different idea');
+      vi.advanceTimersByTime(5000);
+      const stored = JSON.parse(localStorage.getItem('storyboard_projects_v1')).demo;
+      expect(stored.frames).toHaveLength(3);
+      expect(stored.frames[0].prompt).toBe('Saved scene');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('offers saved storyboards on the describe view and opens one onto the board', async () => {
+    await saveDemo('Open me');
+    const root2 = mount();
+    const box = root2.querySelector('#saved-projects');
+    expect(isHidden(box)).toBe(false);
+    expect(root2.querySelector('#saved-select').value).toBe('demo');
+    click(root2.querySelector('#open-saved'));
+    await vi.waitFor(() => expect(cards(root2)[0].querySelector('textarea').value).toBe('Open me'));
+    expect(isHidden(root2.querySelector('#saved-projects'))).toBe(true);
+  });
+
+  it('hides the saved-storyboards opener when nothing is saved', () => {
+    const root = mount();
+    expect(isHidden(root.querySelector('#saved-projects'))).toBe(true);
   });
 });

@@ -17,7 +17,7 @@
  */
 import './sandboxShims.js';
 import { renderMediaOnWeb, renderStillOnWeb } from '@remotion/web-renderer';
-import { TimelineComposition, registerGoogleFonts } from '../lib/editor/remotion/TimelineComposition.jsx';
+import { TimelineComposition, registerGoogleFonts, registerUserFont } from '../lib/editor/remotion/TimelineComposition.jsx';
 import { loadEffects, effectIdsInModel } from '../lib/editor/remotion/effects.js';
 import { takeCodeErrors } from '../lib/editor/remotion/codeLayer.jsx';
 
@@ -50,11 +50,16 @@ async function render(id, rawModel, options = {}) {
   const urls = [];
   const model = materializeBlobs(rawModel, urls);
   try {
-    if (typeof window.VideoEncoder !== 'function') {
+    takeCodeErrors(); // [hyperframes] this runner frame is reused: start every export with a clean error list
+    // [remix] Stage 11: mkv and audio-only containers (wav / mp3 / aac / flac / ogg) are written by the same renderer; an audio-only file needs no video encoder
+    const container = ['mp4', 'webm', 'mov', 'mkv', 'wav', 'mp3', 'aac', 'flac', 'ogg'].includes(options.container) ? options.container : 'mp4';
+    const audioOnly = ['wav', 'mp3', 'aac', 'flac', 'ogg'].includes(container);
+    if (!audioOnly && typeof window.VideoEncoder !== 'function') {
       throw new Error('This browser cannot encode video. Use Chrome or Edge 94+, Firefox 130+ or Safari 26+.');
     }
-    const container = ['mp4', 'webm', 'mov'].includes(options.container) ? options.container : 'mp4';
     // Fonts first, so frame 0 already uses them (HTML and Lottie SVG text).
+    // [remix] user-imported caption fonts arrive as data URLs
+    await Promise.race([Promise.all((model.userFonts || []).map(registerUserFont)), new Promise((r) => setTimeout(r, 15000))]);
     await Promise.race([registerGoogleFonts(model.fonts || []), new Promise((r) => setTimeout(r, 15000))]);
     await loadEffects(effectIdsInModel(model));
     const result = await renderMediaOnWeb({
@@ -69,14 +74,18 @@ async function render(id, rawModel, options = {}) {
       },
       inputProps: { model },
       container,
-      videoCodec: options.videoCodec || (container === 'webm' ? 'vp9' : 'h264'),
-      videoBitrate: BITRATE[options.quality] || 'high',
+      videoCodec: audioOnly ? undefined : (options.videoCodec || (container === 'webm' ? 'vp9' : 'h264')),
+      // [remix] explicit bitrate (OpenChatCut export/bitrate.ts) overrides the quality preset
+      videoBitrate: Number.isFinite(options.videoBitrate) ? options.videoBitrate : (BITRATE[options.quality] || 'high'),
       signal: controller.signal,
       licenseKey: 'free-license',
       onProgress: (p) => post({ type: 'progress', id, progress: p.progress, encodedFrames: p.encodedFrames }),
     });
     const blob = await result.getBlob();
-    post({ type: 'done', id, blob, mimeType: blob.type, codeErrors: takeCodeErrors() });
+    const codeErrors = takeCodeErrors();
+    // [hyperframes] fatal HyperFrames problems make the export fail instead of producing a video that silently lacks or garbles an animation
+    const hfErrors = Object.fromEntries(Object.entries(codeErrors).filter(([, m]) => String(m).startsWith('[hyperframes:error] ')));
+    post({ type: 'done', id, blob, mimeType: blob.type, codeErrors, hfErrors });
   } catch (err) {
     post({ type: 'error', id, message: controller.signal.aborted ? 'Export cancelled' : (err?.message || String(err)) });
   } finally {
@@ -91,6 +100,8 @@ async function still(id, rawModel, frame) {
   const model = materializeBlobs(rawModel, urls);
   try {
     takeCodeErrors();
+    // [remix] user-imported caption fonts arrive as data URLs
+    await Promise.race([Promise.all((model.userFonts || []).map(registerUserFont)), new Promise((r) => setTimeout(r, 15000))]);
     await Promise.race([registerGoogleFonts(model.fonts || []), new Promise((r) => setTimeout(r, 15000))]);
     await loadEffects(effectIdsInModel(model));
     const result = await renderStillOnWeb({

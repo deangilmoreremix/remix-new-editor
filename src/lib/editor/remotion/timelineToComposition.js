@@ -22,6 +22,7 @@ import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
 import { defaultCaptionStyle } from './captions.js';
 import { buildCtaLottie } from '../addons/ctaLottie.js';
+import { resolveStudioDesignOptions } from '../addons/studioDesignAddon.js';
 
 function ctaOptions(clip, profile) {
   const style = clip.style || {};
@@ -90,6 +91,9 @@ function overlayLayer(clip, opts, profile, base) {
     case 'overlay-transition':
       o.resolvedSrc = safeImageUrl(o.src);
       break;
+    case 'overlay-studio-design':
+      Object.assign(o, resolveStudioDesignOptions(o, profile));
+      break;
     case 'overlay-background':
       o.resolvedStyles = sanitizeWrapperStyles(o.styles);
       break;
@@ -106,8 +110,23 @@ function overlayLayer(clip, opts, profile, base) {
  * @param {object} state      editor state
  * @param {object} opts       { fps=30, quality='1080p', profile=null }
  */
-export function timelineToComposition(state, { fps = 30, quality = '1080p', profile = null } = {}) {
-  const { width, height } = QUALITY_PRESETS[quality] || QUALITY_PRESETS['1080p'];
+/**
+ * options.proxies: Map(src → low-res proxy URL) used by the editor preview
+ * when proxy playback is on. Never pass it for export.
+ */
+/** [remix] output frame for a quality preset and aspect ratio ("16:9" default): the preset's short edge is kept, the long edge follows the ratio. */
+export function frameForAspect(quality, aspect) {
+  const base = QUALITY_PRESETS[quality] || QUALITY_PRESETS['1080p'];
+  const m = /^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$/.exec(String(aspect || '16:9'));
+  const a = m ? Number(m[1]) / Number(m[2]) : 16 / 9;
+  if (!(a > 0)) return base;
+  const short = Math.min(base.width, base.height);
+  const even = (n) => Math.max(2, Math.round(n / 2) * 2);
+  return a >= 1 ? { width: even(short * a), height: short } : { width: short, height: even(short / a) };
+}
+
+export function timelineToComposition(state, { fps = 30, quality = '1080p', aspect = '16:9', profile = null, proxies = null } = {}) {
+  const { width, height } = frameForAspect(quality, aspect);
   const T = Number(state?.timelineSeconds) || 60;
   const tracks = Array.isArray(state?.tracks) ? state.tracks : [];
   const audible = audibleTracks(tracks);
@@ -137,10 +156,25 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
         from,
         durationInFrames,
         effects: Array.isArray(clip.effects) ? clip.effects : [],
+        // [remix] OpenChatCut GL effects / LUT ({ id, overrides }[]), burned in by <OccClipFx>
+        ...(Array.isArray(clip.occFx) && clip.occFx.length ? { occFx: clip.occFx } : {}),
+        ...(clip.blendMode && clip.blendMode !== 'normal' ? { clipBlend: clip.blendMode } : {}),
+        ...(clip.zoom ? { clipZoom: clip.zoom } : {}),
+        ...(clip.transform ? { clipTransform: clip.transform } : {}),
+        ...(clip.anim ? { clipAnim: clip.anim } : {}), // [remix] Stage 2 keyframes + motion modifiers
         keyframes: clip.keyframes || null,
+        // [remix] OpenChatCut clip fades (seconds)
+        ...(clip.fadeIn > 0 ? { fadeIn: clip.fadeIn } : {}),
+        ...(clip.fadeOut > 0 ? { fadeOut: clip.fadeOut } : {}),
       };
       const addon = getAddon(clip.type);
 
+      // [remix] Fix E: a compound rendered as ONE group: its own look (fx, opacity, blend, transform, crop, fades, zoom, flip) applies to the offscreen
+      // render of its children (collected below); it sits at its own track's z position
+      if (clip.type === 'group') {
+        layers.push({ ...base, kind: 'group', groupKey: String(clip.groupKey || clip.id), ...(clip.flipH || clip.flipV ? { flip: { h: !!clip.flipH, v: !!clip.flipV } } : {}), children: [] });
+        return;
+      }
       // CTA buttons are drawn in the video (animated or plain); clicking them
       // works in the interactive player only.
       if (clip.type === 'click-to-call') {
@@ -171,23 +205,35 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
 
       // Personalized Smart Speech: the rendered contact's own voice line.
       // AI video clip per contact: the rendered contact's own version.
-      const src = clip.tts?.variants ? voiceSrcFor(clip, profile)
+      const fullSrc = clip.tts?.variants ? voiceSrcFor(clip, profile)
         : clip.aiPerContact ? clipSrcFor(clip, profile)
           : clip.src ? String(clip.src) : '';
+      const src = (clip.type === 'video' && proxies?.get?.(fullSrc)) || fullSrc;
+      // Mirror (flip) — omitted when off so models stay unchanged.
+      const flip = clip.flipH || clip.flipV ? { flip: { h: !!clip.flipH, v: !!clip.flipV } } : {};
       const volume = Math.max(0, Math.min(1, clip.volume ?? 1));
       const trimBefore = toFrame(Number(clip.trimIn ?? clip.sourceStart ?? 0));
+      // Playback speed (0.1–8×); omitted at normal speed so models stay unchanged.
+      const rate = Math.max(0.1, Math.min(8, Number(clip.playbackRate ?? clip.speed ?? 1) || 1));
+      const speed = Math.abs(rate - 1) > 1e-3 ? { playbackRate: rate } : {};
       if ((clip.type === 'audio' || isAudioTrack(track)) && clip.type !== 'video') {
-        if (src) audio.push({ ...base, kind: 'audio', src, trimBefore, volume: audible.has(track.id) ? volume : 0 });
+        if (src) audio.push({ ...base, kind: 'audio', src, trimBefore, ...speed, volume: audible.has(track.id) ? volume : 0 });
         return;
       }
       if (clip.type === 'video' && src) {
-        const layer = { ...base, kind: 'video', src, trimBefore, fit: clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0 };
+        const layer = { ...base, kind: 'video', src, trimBefore, ...speed, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0, ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
         layers.push(layer);
         if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;
       }
       if (clip.type === 'image' && src) {
-        const layer = { ...base, kind: 'image', src, fit: clip.fit || 'cover' };
+        // A personalized image clip ({{websiteShotUrl}}, {{logoUrl}}, …): this contact's image, else
+        // the clip's fallback (Video Outreach website backgrounds). Same rule as personalized overlays.
+        const personal = /\{\{/.test(src);
+        const resolved = personal ? safeImageUrl(resolveOverlayText(src, profile)) : src;
+        const imageSrc = personal ? ((resolved && !/\{\{/.test(resolved) ? resolved : null) || safeImageUrl(clip.fallbackSrc)) : src;
+        if (!imageSrc) return;
+        const layer = { ...base, kind: 'image', src: imageSrc, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', ...(clip.scroll ? { scroll: true } : {}), ...(clip.cursor ? { cursor: true } : {}), ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
         layers.push(layer);
         if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;
@@ -208,6 +254,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
     tr.outgoingId = out?.id || null;
     tr.incomingId = into?.id || null;
   });
+
+  // [remix] Fix E: the picture children of a group are drawn by the group (in layer order = z order), not as layers of their own
+  const groupLayers = new Map(layers.filter((l) => l.kind === 'group').map((l) => [l.groupKey, l]));
+  if (groupLayers.size) {
+    for (const l of layers) if (l.compoundGroup && groupLayers.has(l.compoundGroup)) groupLayers.get(l.compoundGroup).children.push(l);
+    for (const l of [...layers]) if (l.compoundGroup && groupLayers.has(l.compoundGroup)) layers.splice(layers.indexOf(l), 1);
+  }
 
   const lastFrame = Math.max(
     toFrame(T),

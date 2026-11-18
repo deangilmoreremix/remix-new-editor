@@ -1,13 +1,17 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { cutoutAssetIds } from '../backgroundRemoval/useAutoCutout'
 import { Building2, Globe, MapPin, Search, Star } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { BUSINESS_NICHES } from '../businessNiches'
 import { ownershipBadgeStyle, ownershipLabel } from '../ownershipBadge'
+import { isOwnedWebsite, nonOwnedWebsiteMessage } from '../websiteClassification'
 import type { BusinessOwnership, DiscoveredAsset } from '../types'
 import { DiscoveredAssetGrid, type DiscoveredAssetDropZone } from '../DiscoveredAssetGrid'
 import { ResumeProjectBanner } from '../ResumeProjectBanner'
+import { SocialIcons } from '../SocialIcons'
+import { foundSocialLinks } from './foundSocialLinks'
 
 // Simple mode has no client-asset section cards on screen, so the grid shows
 // its own drop zones; dropping an asset imports it into that section.
@@ -59,11 +63,11 @@ export function StepFindBusiness({
     businessSearchError,
     selectedBusiness,
     businessResearch,
+    contactSources,
     findBusinesses,
     selectBusiness,
     researchBusiness,
     runDiscoveryWorkflow,
-    discoverAssets,
     discoveryStatus,
     discoveryError,
     discoveredAssets = [],
@@ -71,6 +75,7 @@ export function StepFindBusiness({
     rejectDiscoveredAsset,
     updateDiscoveredAssetCategory,
     revertDiscoveredAssetEdit,
+    autoCutout,
     removeDiscoveredAssetFromSection,
     moveDiscoveredAssetToSection,
     setDiscoveredAssets,
@@ -78,6 +83,7 @@ export function StepFindBusiness({
     importConfirmation,
     access,
     setViewMode,
+    websiteLookup,
   } = ctx
 
   const [searchNiche, setSearchNiche] = useState('')
@@ -91,7 +97,14 @@ export function StepFindBusiness({
 
   const businessName = clientForm.businessName || clientForm.name || ''
   const website = clientForm.website || ''
+  // A pasted Facebook/Instagram/Yelp URL is not the business's own website.
+  const websiteHint = website.trim() ? nonOwnedWebsiteMessage(website.trim()) : null
+  const lookupForSelected = websiteLookup && selectedBusiness && websiteLookup.businessId === selectedBusiness.id
+    ? websiteLookup
+    : null
   const research = businessResearch
+  const foundSocial = foundSocialLinks({ research: research?.status === 'done' ? research.result : null, clientForm, contactSources })
+  const hasFoundSocial = Object.keys(foundSocial.links).length > 0
   const discoveredCount = discoveredAssets.filter((asset) => !asset.rejected).length
   // "Logo found" must reflect the DISCOVERED assets: a discovery run that
   // found logos reports them here, and this step is exactly where the
@@ -101,6 +114,7 @@ export function StepFindBusiness({
     (asset) => !asset.rejected && asset.category === 'logo'
   )
   const logoCount = discoveredLogos.length
+  const cutoutIds = cutoutAssetIds(discoveredAssets)
   const selectedDiscoveredCount = discoveredAssets.filter(
     (asset) => asset.selected && !asset.rejected
   ).length
@@ -141,7 +155,9 @@ export function StepFindBusiness({
     if (!website.trim() || busy) return
     setBusy(true)
     try {
-      await discoverAssets(website.trim())
+      // The full workflow (as in Advanced Editing's Find My Brand): fills the
+      // business name and details, then finds and places the logo and photos.
+      await runDiscoveryWorkflow(website.trim())
     } catch {
       /* errors surface through discoveryError */
     } finally {
@@ -213,7 +229,7 @@ export function StepFindBusiness({
                     padding: '0 12px',
                     borderRadius: 999,
                     border: `1px solid ${searchRadius === radius ? C.cyanBorder : C.border}`,
-                    background: searchRadius === radius ? C.cyanSoft : 'transparent',
+                    background: searchRadius === radius ? 'transparent' : 'transparent',
                     color: searchRadius === radius ? C.cyan : C.muted,
                     fontSize: 11,
                     fontWeight: 700,
@@ -251,6 +267,9 @@ export function StepFindBusiness({
                       {[business.category, [business.city, business.region].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
                     </div>
                     {business.phone && <div style={{ color: C.muted2, fontSize: 11 }}>{business.phone}</div>}
+                    {!isOwnedWebsite(business.website) && (business.facebook || business.instagram || business.website) && (
+                      <div style={{ color: C.muted2, fontSize: 11 }}>Social page only — we'll look for its website</div>
+                    )}
                     {business.ownership && (
                       <div style={{ marginTop: 4 }}>
                         <span style={ownershipBadgeStyle(business.ownership)}>
@@ -287,6 +306,14 @@ export function StepFindBusiness({
         </div>
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto]" style={{ gap: 10, alignItems: 'end' }}>
           <div>
+            <label style={labelStyle} htmlFor="guided-business-name-step1">Business name</label>
+            <input
+              id="guided-business-name-step1"
+              value={clientForm.businessName || ''}
+              onChange={(event) => updateClientForm({ ...clientForm, businessName: event.target.value })}
+              placeholder="Your business name"
+              style={{ ...inputStyle, marginBottom: 10 }}
+            />
             <label style={labelStyle} htmlFor="guided-business-website">Website</label>
             <input
               id="guided-business-website"
@@ -301,6 +328,7 @@ export function StepFindBusiness({
               type="button"
               onClick={handleWebsiteDiscovery}
               disabled={!website.trim() || busy}
+              title={!website.trim() ? 'Enter your website first' : undefined}
               style={{ ...primaryButtonStyle, opacity: !website.trim() || busy ? 0.5 : 1 }}
             >
               {busy && discoveryStatus === 'discovering' ? 'Finding…' : 'Find my brand'}
@@ -310,6 +338,7 @@ export function StepFindBusiness({
               type="button"
               onClick={handleFindAssets}
               disabled={!website.trim() || busy}
+              title={!website.trim() ? 'Enter your website first' : undefined}
               style={{ ...primaryButtonStyle, opacity: !website.trim() || busy ? 0.5 : 1 }}
             >
               {busy && discoveryStatus === 'discovering' ? 'Finding…' : 'Find business assets'}
@@ -319,6 +348,20 @@ export function StepFindBusiness({
         <p style={hintStyle}>
           We read the public page for your logo, photos and business details. Nothing is generated and nothing is charged.
         </p>
+        {websiteHint && (
+          <p style={{ ...hintStyle, color: C.danger }}>{websiteHint}</p>
+        )}
+        {lookupForSelected?.status === 'searching' && (
+          <p style={{ ...hintStyle, color: C.cyan }}>Looking for {lookupForSelected.businessName}'s website…</p>
+        )}
+        {lookupForSelected?.status === 'found' && lookupForSelected.website && (
+          <p style={{ ...hintStyle, color: C.cyan }}>Found {lookupForSelected.businessName}'s website: {lookupForSelected.website}</p>
+        )}
+        {(lookupForSelected?.status === 'not_found' || lookupForSelected?.status === 'error') && !website.trim() && (
+          <p style={hintStyle}>
+            We couldn't find {lookupForSelected.businessName}'s own website{selectedBusiness?.facebook || selectedBusiness?.instagram ? ' — only a social media page is listed' : ''}. Enter it above to find its brand assets.
+          </p>
+        )}
         {research && research.status === 'researching' && (
           <p style={{ ...hintStyle, color: C.cyan }}>Reading your website…</p>
         )}
@@ -446,6 +489,13 @@ export function StepFindBusiness({
             </div>
           )}
 
+          {hasFoundSocial && (
+            <div data-testid="pz-found-social" style={{ ...softPanelStyle, marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={labelStyle}>Social media found</span>
+              <SocialIcons size={18} name={businessName} links={foundSocial.links} titles={foundSocial.titles} />
+            </div>
+          )}
+
           {/* ── Inline discovery review ────────────────────────────────────
               The customer reviews and imports the discovered assets HERE,
               without being sent to Advanced Editing. This is the same
@@ -471,6 +521,8 @@ export function StepFindBusiness({
                 onCategoryChange={updateDiscoveredAssetCategory}
                 onEdit={onEditAsset}
                 onRevert={revertDiscoveredAssetEdit}
+                cutout={autoCutout}
+                onSaveToAssets={isAnonymous ? undefined : (id) => importDiscoveredAssets({ ids: [id] })}
                 onRemoveFromSection={removeDiscoveredAssetFromSection}
                 onRestoreAll={() => setDiscoveredAssets(discoveredAssets.map((a) => ({ ...a, rejected: false })))}
                 dropZones={SIMPLE_MODE_DROP_ZONES}
@@ -516,6 +568,25 @@ export function StepFindBusiness({
                 >
                   {discoveryStatus === 'importing' ? 'Importing…' : `Use ${selectedDiscoveredCount || 'selected'} asset${selectedDiscoveredCount === 1 ? '' : 's'}`}
                 </button>
+                {!isAnonymous && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idSet = new Set(cutoutIds)
+                      setDiscoveredAssets((prev) => prev.map((a) => (idSet.has(a.id) ? { ...a, selected: true } : a)))
+                      void importDiscoveredAssets({ ids: cutoutIds })
+                    }}
+                    disabled={cutoutIds.length === 0 || discoveryStatus === 'importing'}
+                    title={cutoutIds.length === 0 ? 'No cutouts are ready yet' : 'Adds every cutout to your assets. The video uses your logo and first 2 products.'}
+                    style={{
+                      ...secondaryButtonStyle,
+                      minHeight: 34,
+                      opacity: cutoutIds.length === 0 || discoveryStatus === 'importing' ? 0.5 : 1,
+                    }}
+                  >
+                    {`Add all cutouts to assets (${cutoutIds.length})`}
+                  </button>
+                )}
               </div>
             </div>
           )}

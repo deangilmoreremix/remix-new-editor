@@ -4,6 +4,7 @@
 // to current MuAPI model IDs. They are retained for UI metadata only.
 // Real generation routes are resolved explicitly in handleGenerate().
 import { uploadFileToStorage } from '../supabase.js';
+import { generateImages, DEFAULT_IMAGE_MODEL, DETAIL_IMAGE_MODEL } from './ai/openaiImages.js';
 
 export const AI_FEATURES = [
   {
@@ -122,7 +123,8 @@ export function resolveFeatureRoute(featureId) {
     case 'generate-video':
       return { provider: 'muapi', operation: 'text-to-video', model: 'veo3-text-to-video', mediaType: 'video' };
     case 'generate-image':
-      return { provider: 'muapi', operation: 'generate-image', model: 'google-imagen4', mediaType: 'image' };
+      // Images 2.6 on the user's own OpenAI key (no MuAPI).
+      return { provider: 'openai', operation: 'generate-image', model: DEFAULT_IMAGE_MODEL, mediaType: 'image' };
     case 'bg-remove':
       return { provider: 'muapi', operation: 'generate-image', model: 'ai-background-remover', mediaType: 'image' };
     case 'replace-bg':
@@ -130,7 +132,8 @@ export function resolveFeatureRoute(featureId) {
     case 'enhance':
       return { provider: 'muapi', operation: 'generate-image', model: 'ai-image-upscaler', mediaType: 'image' };
     case 'colorize':
-      return { provider: 'muapi', operation: 'generate-image', model: 'ai-color-photo', mediaType: 'image' };
+      // Colorize = an Images 2.6 Sunburst edit of the uploaded photo.
+      return { provider: 'openai', operation: 'edit-image', model: DETAIL_IMAGE_MODEL, mediaType: 'image' };
     case 'cartoon':
       return null; // no configured model in models.js
     case 'text-to-speech':
@@ -329,6 +332,19 @@ export async function handleGenerate(selectedFeature, selectedFile, showToast) {
           text: `Upload failed: ${uploadError.message || 'Could not upload file for generation.'}`
         };
       }
+    }
+
+    if (route.provider === 'openai') {
+      const prompt = document.getElementById('promptInput')?.value || selectedFeature.defaultPrompt;
+      if (route.operation === 'edit-image' && !remoteReferences) {
+        return { type: 'text', text: `Upload an image to use "${selectedFeature.title}".` };
+      }
+      const { assets } = await generateImages(
+        route.operation === 'edit-image' ? `Colorize this photo naturally and realistically. ${prompt || ''}`.trim() : prompt,
+        { model: route.model, aspectRatio: document.getElementById('aspectSelect')?.value || '16:9', refs: remoteReferences || [] }
+      );
+      if (!assets.length) return { type: 'text', text: 'Generation completed but no output URL was returned.' };
+      return { type: 'image', url: assets[0].url };
     }
 
     const request = {

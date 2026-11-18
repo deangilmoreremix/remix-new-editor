@@ -133,7 +133,7 @@ function post(body: unknown, headers: Record<string, string> = {}) {
   const req = new NextRequest('http://localhost/api/personalization/find-businesses', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...headers },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ backfill: false, ...(body as object) }),
   })
   return POST(req)
 }

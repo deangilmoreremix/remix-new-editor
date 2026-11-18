@@ -4,6 +4,9 @@
  * so saved placements correspond to the actual video resolution.
  */
 
+import type { ImageHints, ImageRole, ImageStyle } from './imageStyle'
+import type { StudioCaptions } from '../captions/studioCaptions'
+
 export type PreviewLayoutId =
   | 'business-introduction'
   | 'product-showcase'
@@ -47,6 +50,18 @@ export interface PreviewLayer {
   endFrame?: number
   /** 0..1 layer opacity. */
   opacity: number
+  /**
+   * Rotation in degrees, clockwise, about the center of the drawn box, normalized to (-180, 180]. Absent = not rotated.
+   * Only text, CTA and image layers rotate (see `userRotatable` in mediaRoles).
+   */
+  rotation?: number
+  /**
+   * Values the layer takes at chosen moments (move, size, fade, tilt). Changes to the layer's own values, not
+   * absolutes, so a layout change still applies. Optional so saved projects restore unchanged.
+   */
+  keyframes?: import('./keyframes').LayerKeyframe[]
+  /** Brightness, contrast, saturation, blur, glow and shadow for this layer. Optional so saved projects restore unchanged. */
+  effects?: import('./effects').LayerEffects
   /** Text content for text-bearing layers. */
   text?: string
   /** Accent/text color (hex). Falls back to brandColors.text. */
@@ -73,6 +88,44 @@ export interface PreviewLayer {
    * Absent => the slot falls back to its brand field.
    */
   textSlotOverrides?: Record<string, string>
+  /**
+   * The customer locked this layer: placement and reflow never move it, and
+   * the editor will not drag it until it is unlocked.
+   */
+  locked?: boolean
+  /**
+   * How an image layer is drawn (shape, corner radius, border, shadow, fit, crop,
+   * exit). Absent or `auto` = the system chooses from the role and what is known
+   * about the image; a customer edit makes it theirs. Overlay-only: the original
+   * file is never modified.
+   */
+  imageStyle?: ImageStyle
+  /** Extra pictures for the multi-image presets (collage), customer-picked from the library (≤ 4 with the main one). */
+  imageUrls?: string[]
+  /** The customer's explicit role for this picture (food, real estate, portrait…); wins over the discovery category. */
+  imageRole?: ImageRole
+  /**
+   * Who decided the layer's current position: `manual` = the customer (drag,
+   * resize or a position preset) — the placement engine never moves it on its
+   * own; `recommended` = the placement engine. Absent = the template default.
+   */
+  placementSource?: 'manual' | 'recommended'
+}
+
+/** A rectangle in normalized frame coordinates; (x, y) is the TOP-LEFT corner. */
+export interface NormRect {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/** A region overlays must not cover (the footage's subject, a baked-in graphic…). */
+export interface ProtectedZone extends NormRect {
+  id: string
+  label: string
+  /** `template` = declared by the template/source, `user` = marked by the customer. */
+  source: 'template' | 'user'
 }
 
 export interface PreviewBrandColors {
@@ -87,7 +140,7 @@ export interface PreviewVideoRef {
   url: string
   poster: string | null
   title: string
-  kind: 'demo' | 'uploaded' | 'saved' | 'source' | 'motion-template'
+  kind: 'demo' | 'uploaded' | 'saved' | 'source' | 'motion-template' | 'recast'
   demoId?: string
   /** For `kind: 'motion-template'`: the canonical component name of the selected
    *  Motion Studio shot, used to resolve the recipe in `/studio/motion-studio`
@@ -100,12 +153,49 @@ export interface PreviewVideoRef {
    *  `"motion-studio"` for catalog-derived templates; the studio handoff uses
    *  this to locate the matching recipe. */
   sourceRepo?: string
+  /** For `kind: 'recast'`: the video shown before the recast, so "Use
+   *  original video" goes back to this project's own footage. Saved and
+   *  restored with the preview, so it never comes from another project. */
+  beforeRecast?: PreviewVideoRef | null
+  /** Sound played under this video when it has none of its own: a Full Body
+   *  Recast comes back silent, so "Keep the original video's sound" plays
+   *  the performance clip's sound with it. A chosen audio track wins. */
+  audioUrl?: string | null
 }
 
 /** Optional customer audio track applied to the personalized preview. */
 export interface PreviewAudioSelection {
   url: string
   name: string
+}
+
+/** Look of burned-in captions. */
+export type BuiltInCaptionStyleId = 'bold' | 'bar' | 'clean'
+/** A built-in look, or the id of one of the 27 Capite looks (captions/capiteStyles.ts). Checked when a project is read back. */
+export type CaptionStyleId = BuiltInCaptionStyleId | (string & {})
+export type CaptionPosition = 'bottom' | 'middle' | 'top'
+
+export interface PreviewCaptionWord { text: string; startMs: number; endMs: number }
+export interface PreviewCaptionCue { startMs: number; endMs: number; text: string; words?: PreviewCaptionWord[] }
+
+/**
+ * Captions drawn INTO the video (preview and export), made on the customer's own device from the video's speech.
+ * `forUrl` is the video they were written for: they are drawn only over that video, never over a different one.
+ */
+export interface PreviewCaptions {
+  enabled: boolean
+  forUrl: string
+  style: CaptionStyleId
+  position: CaptionPosition
+  cues: PreviewCaptionCue[]
+  /**
+   * Captions made in the Caption Studio: ready-made pages plus the full style (font, colours, outline, height, motion). When present the
+   * preview and every export draw THESE, so what was designed in the Studio is what is exported; `cues` still carry the text for the list,
+   * SRT/VTT and as the fallback.
+   */
+  studio?: StudioCaptions
+  /** Language of the words (ISO code such as `es` or `pt-BR`), when known: sets the font fallback, size and reading direction. Absent = work it out from the text. */
+  language?: string
 }
 
 export interface PersonalizationPreviewSettings {
@@ -123,12 +213,42 @@ export interface PersonalizationPreviewSettings {
   /** Customer-selected audio track, or null when none is chosen. */
   audio: PreviewAudioSelection | null
   /**
+   * The audio mix: tracks (music, voiceover) with volume, fades, start and trim, plus the video's own sound.
+   * Optional so projects saved before the mix existed restore unchanged; `audio` above keeps working as one track.
+   */
+  audioTracks?: import('./audioMix').AudioTrack[]
+  videoVolume?: number
+  videoMuted?: boolean
+  audioSolo?: string
+  /**
    * Id of the Remotion design currently applied to the preview, or null.
    *
    * Optional so projects saved before the design registry existed still
    * restore; the normalizer falls back to `null`.
    */
   remotionDesignId?: string | null
+  /**
+   * Regions of the footage the overlays must not cover. Optional so projects
+   * saved before placement checks existed still restore.
+   */
+  protectedZones?: ProtectedZone[]
+  /**
+   * What is known about each assigned image, keyed by URL (measured aspect ratio,
+   * transparent corners, an existing frame). Lets every surface — gallery card,
+   * editor, preview and export — style the same image the same way.
+   */
+  imageHints?: Record<string, ImageHints>
+  /** Burned-in captions (optional: absent = none). */
+  captions?: PreviewCaptions
+  /** A color and film look for the footage (not the brand overlays). Optional so saved projects restore unchanged. */
+  look?: import('./effects').LookSettings
+  /** Named looks for text layers and captions, saved with the project. Optional so saved projects restore unchanged. */
+  textStyles?: import('./textStyles').SavedTextStyle[]
+  /**
+   * Presenter background removal. Optional so projects saved before it existed restore unchanged.
+   * Settings only: the measured masks live in memory (preview/cutout/maskStore.ts), never in the project.
+   */
+  cutout?: import('./cutout/cutoutSettings').CutoutSettings
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */
@@ -145,12 +265,19 @@ export interface PreviewInputProps {
     cta: string
     phone: string
     website: string
+    /** Optional extra end-card line (email / @handle) built from found contact details. */
+    contactExtra?: string
     logoUrl: string | null
     productUrl: string | null
     serviceUrl: string | null
   }
   /** Durable audio track to mix into the composition, or null. */
   audioUrl: string | null
+  /**
+   * Measured luminance grids of the source footage (from the Layout Quality sampler), when known.
+   * Lets text scrims scale with how bright the footage is behind the text. Absent = default strength.
+   */
+  lumaSamples?: import('./placement/types').LumaSample[]
 }
 
 export const DEFAULT_PREVIEW_FPS = 30

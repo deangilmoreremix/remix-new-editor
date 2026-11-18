@@ -1,9 +1,17 @@
+/* global Request, Headers, FormData, Blob */
 // @vitest-environment node
 /**
  * Dispatcher + auth shim for netlify/functions/personalization-api.mts, the
  * Netlify home of the OpenHiggsBolt personalization / lead-finder routes.
  */
 import { describe, it, expect, vi } from 'vitest'
+
+// The Lead Finder continuity routes validate the server configuration before they authenticate, and that check is cached
+// on first use, so a complete (fake) configuration has to be in place before the handler is imported.
+process.env.NEXT_PUBLIC_SUPABASE_URL ||= 'https://example.supabase.co'
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= 'anon-key'
+process.env.SUPABASE_SERVICE_ROLE_KEY ||= 'service-role-key'
+process.env.INTERNAL_FUNCTION_SECRET ||= 'internal-secret'
 
 vi.mock('../_shared/clerkAuth.js', () => ({
   verifyClerkToken: vi.fn(async (token) => (token === 'good-token' ? { userId: 'user_123', claims: { sid: 'sess_1' } } : null)),
@@ -28,10 +36,26 @@ describe('personalization-api dispatcher', () => {
     expect(res.headers.get('allow')).toBe('PATCH, DELETE')
   })
 
-  it('acknowledges /api/video/record', async () => {
+  it('requires a signed-in user for /api/video/record (it writes generated_videos)', async () => {
     const res = await call('POST', '/api/video/record', { body: '{}' })
-    expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, recorded: false })
+    expect(res.status).toBe(401)
+  })
+
+  it('routes every personalization endpoint the modal calls (none may 404)', async () => {
+    // A route missing from the dispatcher table 404s in production even though its handler exists.
+    for (const [method, path] of [
+      ['POST', '/api/personalization/enrich-business'],
+      ['POST', '/api/personalization/resolve-website'],
+      ['GET', '/api/personalization/saved-searches'],
+      ['POST', '/api/personalization/lead-feedback'],
+      ['GET', '/api/personalization/provider-status'],
+      ['POST', '/api/personalization/persist-edited-asset'],
+      ['POST', '/api/demo/download-image'],
+      ['GET', '/api/media/remote'],
+    ]) {
+      const res = await call(method, path, method === 'POST' ? { body: '{}' } : {})
+      expect([method, path, res.status === 404]).toEqual([method, path, false])
+    }
   })
 
   it('validates find-businesses input before any network call', async () => {
@@ -107,6 +131,273 @@ describe('/api/proxy/openai-enhance', () => {
   })
 })
 
+describe('/api/proxy/thumbnail-generate (Images 2.6)', () => {
+  const headers = { 'content-type': 'application/json', authorization: 'Bearer good-token', 'x-openai-key': 'sk-user-key-1234567890' }
+  const post = (body, h = headers) => call('POST', '/api/proxy/thumbnail-generate', { headers: h, body: JSON.stringify(body) })
+  const withFetch = async (impl, run) => {
+    const realFetch = globalThis.fetch
+    const upstream = vi.fn(impl)
+    globalThis.fetch = upstream
+    try {
+      await run(upstream)
+    } finally {
+      globalThis.fetch = realFetch
+    }
+  }
+  const image = () => new Response(JSON.stringify({ data: [{ b64_json: 'iVBORw0KGgo=' }] }), { status: 200 })
+
+  it('requires a signed-in user', async () => {
+    const res = await post({ action: 'generate', prompt: 'a thumbnail' }, { 'content-type': 'application/json' })
+    expect(res.status).toBe(401)
+  })
+
+  it('asks for an OpenAI key when none is available', async () => {
+    const res = await post({ action: 'generate', prompt: 'a thumbnail' }, { 'content-type': 'application/json', authorization: 'Bearer good-token' })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects an unsupported image size before calling OpenAI', async () => {
+    await withFetch(image, async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', size: '100x100' })
+      expect(res.status).toBe(400)
+      expect(upstream).not.toHaveBeenCalled()
+    })
+  })
+
+  it('sends an Images 2.6 request with the 2.6 controls and returns image urls', async () => {
+    await withFetch(image, async (upstream) => {
+      const res = await post({
+        action: 'generate', prompt: 'a launch video thumbnail', model: 'gpt-image-2.6-flare', aspect_ratio: '16:9',
+        quality: 'xhigh', complexity: 'high', output_format: 'webp',
+      })
+      expect(res.status).toBe(200)
+      const out = await res.json()
+      expect(Array.isArray(out.urls) && out.urls.length).toBeGreaterThan(0)
+      const [url, init] = upstream.mock.calls[0]
+      expect(String(url)).toContain('api.openai.com/v1/images/generations')
+      const sent = JSON.parse(init.body)
+      expect(sent.model).toBe('gpt-image-2.6-flare')
+      expect(sent.quality).toBe('xhigh')
+      expect(sent.complexity).toBe('high')
+    })
+  })
+
+  const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+
+  it('sends the drawing as an Images 2.6 markup layer, with the picture untouched', async () => {
+    await withFetch(image, async (upstream) => {
+      const res = await post({ action: 'refine', prompt: 'apply the notes', image_url: PNG, markup_url: PNG, model: 'gpt-image-2.6-flare' })
+      expect(res.status).toBe(200)
+      const [url, init] = upstream.mock.calls[0]
+      expect(String(url)).toContain('/images/edits')
+      expect(init.body.get('markup')).toBeTruthy()
+      expect(init.body.get('mask')).toBeNull()
+      expect(init.body.get('model')).toBe('gpt-image-2.6-flare')
+    })
+  })
+
+  it('rejects a drawing combined with a painted area, a non-PNG drawing, and non-2.6 models', async () => {
+    await withFetch(image, async (upstream) => {
+      const both = await post({ action: 'refine', prompt: 'p', image_url: PNG, markup_url: PNG, mask_url: PNG, model: 'gpt-image-2.6-flare' })
+      expect(both.status).toBe(400)
+      const jpeg = await post({ action: 'refine', prompt: 'p', image_url: PNG, markup_url: 'data:image/jpeg;base64,AAAA', model: 'gpt-image-2.6-flare' })
+      expect(jpeg.status).toBe(400)
+      const old = await post({ action: 'refine', prompt: 'p', image_url: PNG, markup_url: PNG, model: 'gpt-image-2' })
+      expect(old.status).toBe(400)
+      expect(upstream).not.toHaveBeenCalled()
+    })
+  })
+
+  it('does not silently drop the drawing when it would have to fall back to GPT Image 2', async () => {
+    await withFetch(async () => new Response(JSON.stringify({ error: { message: 'The model does not exist or you do not have access to it.' } }), { status: 404 }), async (upstream) => {
+      const res = await post({ action: 'refine', prompt: 'p', image_url: PNG, markup_url: PNG, model: 'gpt-image-2.6-sunburst' })
+      expect(res.status).toBe(400)
+      expect((await res.json()).error).toMatch(/Images 2\.6/)
+      expect(upstream).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('sends a hashed safety_identifier, never the raw user id', async () => {
+    await withFetch(image, async (upstream) => {
+      await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare' })
+      await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare' })
+      const ids = upstream.mock.calls.map(([, init]) => JSON.parse(init.body).safety_identifier)
+      expect(ids[0]).toMatch(/^[0-9a-f]{64}$/)
+      expect(ids[1]).toBe(ids[0]) // stable per user
+      expect(JSON.stringify(upstream.mock.calls.map(([, init]) => init.body))).not.toMatch(/user_|@/)
+    })
+  })
+
+  it('passes the content-filter setting and rejects unknown values', async () => {
+    await withFetch(image, async (upstream) => {
+      const ok = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', moderation: 'low' })
+      expect(ok.status).toBe(200)
+      expect(JSON.parse(upstream.mock.calls[0][1].body).moderation).toBe('low')
+      const bad = await post({ action: 'generate', prompt: 'p', moderation: 'off' })
+      expect(bad.status).toBe(400)
+      expect(upstream).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('explains a moderation block, includes the details, and does not retry', async () => {
+    const blocked = {
+      error: { code: 'moderation_blocked', type: 'image_generation_user_error', message: 'blocked', moderation_details: { moderation_stage: 'input', categories: ['violence'] } },
+    }
+    await withFetch(async () => new Response(JSON.stringify(blocked), { status: 400 }), async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-sunburst' })
+      expect(res.status).toBe(400)
+      const out = await res.json()
+      expect(out.code).toBe('moderation_blocked')
+      expect(out.error).toMatch(/prompt or picture/)
+      expect(out.error).toMatch(/violence/)
+      expect(out.moderation_details.moderation_stage).toBe('input')
+      expect(upstream).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  const sse = (events) => new Response(new ReadableStream({ start(c) { const e = new TextEncoder(); for (const ev of events) c.enqueue(e.encode(`event: x\ndata: ${JSON.stringify(ev)}\n\n`)); c.close() } }), { status: 200, headers: { 'content-type': 'text/event-stream' } })
+  const readEvents = async (res) => (await res.text()).split('\n\n').filter(Boolean).map((b) => JSON.parse(b.replace(/^data: /, '')))
+
+  it('streams partial images then a final result with usage', async () => {
+    await withFetch(async () => sse([
+      { type: 'image_generation.partial_image', partial_image_index: 0, b64_json: 'PART0' },
+      { type: 'image_generation.partial_image', partial_image_index: 1, b64_json: 'PART1' },
+      { type: 'image_generation.completed', b64_json: 'FINAL', usage: { output_tokens: 1234 } },
+    ]), async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', stream: true, partial_images: 2 })
+      expect(res.status).toBe(200)
+      expect(res.headers.get('content-type')).toContain('text/event-stream')
+      const sent = JSON.parse(upstream.mock.calls[0][1].body)
+      expect(sent.stream).toBe(true)
+      expect(sent.partial_images).toBe(2)
+      const events = await readEvents(res)
+      expect(events.map((e) => e.type)).toEqual(['partial', 'partial', 'done'])
+      expect(events[0].url).toBe('data:image/png;base64,PART0')
+      expect(events[2].urls[0]).toBe('data:image/png;base64,FINAL')
+      expect(events[2].usage.output_tokens).toBe(1234)
+      expect(events[2].model).toBe('gpt-image-2.6-flare')
+    })
+  })
+
+  it('refuses streaming for several images, bad partial counts, SVG/GIF and DALL-E', async () => {
+    await withFetch(image, async (upstream) => {
+      expect((await post({ action: 'generate', prompt: 'p', stream: true, n: 2 })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', stream: true, partial_images: 5 })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', stream: true, model: 'dall-e-3' })).status).toBe(400)
+      expect(upstream).not.toHaveBeenCalled()
+    })
+  })
+
+  it('reports an early end of the stream as an error event', async () => {
+    await withFetch(async () => sse([{ type: 'image_generation.partial_image', partial_image_index: 0, b64_json: 'P' }]), async () => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', stream: true })
+      const events = await readEvents(res)
+      expect(events[events.length - 1].type).toBe('error')
+    })
+  })
+
+  it('still falls back to GPT Image 2 for a streamed request when 2.6 is unavailable', async () => {
+    let call = 0
+    await withFetch(async () => {
+      call += 1
+      return call === 1
+        ? new Response(JSON.stringify({ error: { message: 'The model does not exist or you do not have access to it.' } }), { status: 404 })
+        : sse([{ type: 'image_generation.completed', b64_json: 'FINAL' }])
+    }, async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', stream: true })
+      const events = await readEvents(res)
+      expect(events[events.length - 1].fallback_from).toBe('gpt-image-2.6-flare')
+      expect(JSON.parse(upstream.mock.calls[1][1].body).model).toBe('gpt-image-2')
+    })
+  })
+
+  const b64 = (text) => Buffer.from(text).toString('base64')
+  const SAFE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="#d9ff00"/></svg>'
+  const imageWith = (data, extra = {}) => async () => new Response(JSON.stringify({ data: [{ b64_json: data }], ...extra }), { status: 200 })
+
+  it('draws an SVG from a prompt: one image, svg file type, usage passed through', async () => {
+    await withFetch(imageWith(b64(SAFE_SVG), { output_format: 'svg', usage: { output_tokens: 321 } }), async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'a badge', model: 'gpt-image-2.6-flare', output_format: 'svg', n: 3 })
+      expect(res.status).toBe(200)
+      const sent = JSON.parse(upstream.mock.calls[0][1].body)
+      expect(sent.output_format).toBe('svg')
+      expect(sent.n).toBe(1)
+      const out = await res.json()
+      expect(out.urls[0].startsWith('data:image/svg+xml;base64,')).toBe(true)
+      expect(out.usage.output_tokens).toBe(321)
+    })
+  })
+
+  it('refuses an unsafe SVG from OpenAI', async () => {
+    await withFetch(imageWith(b64('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'), { output_format: 'svg' }), async () => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'svg' })
+      expect(res.status).toBe(502)
+    })
+  })
+
+  it('rejects SVG with a picture, with compression, or without an Images 2.6 model', async () => {
+    await withFetch(image, async (upstream) => {
+      expect((await post({ action: 'refine', prompt: 'p', image_url: PNG, model: 'gpt-image-2.6-flare', output_format: 'svg' })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'svg', output_compression: 50 })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2', output_format: 'svg' })).status).toBe(400)
+      expect(upstream).not.toHaveBeenCalled()
+    })
+  })
+
+  it('makes an animated GIF with frame count and duration (duration rounded to 10 ms)', async () => {
+    await withFetch(imageWith('R0lGODlh', { output_format: 'gif' }), async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-sunburst', output_format: 'gif', frame_count: 5, frame_duration_ms: 205, size: '512x512' })
+      expect(res.status).toBe(200)
+      const sent = JSON.parse(upstream.mock.calls[0][1].body)
+      expect(sent.output_format).toBe('gif')
+      expect(sent.frame_count).toBe(5)
+      expect(sent.frame_duration_ms).toBe(210)
+      expect(sent.size).toBe('512x512')
+      expect((await res.json()).urls[0].startsWith('data:image/gif;base64,')).toBe(true)
+    })
+  })
+
+  it('validates GIF settings and does not fall back to another model for GIF', async () => {
+    await withFetch(image, async (upstream) => {
+      expect((await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'gif', frame_count: 20 })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'gif', frame_duration_ms: 5 })).status).toBe(400)
+      expect((await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'png', frame_count: 4 })).status).toBe(400)
+      expect(upstream).not.toHaveBeenCalled()
+    })
+    await withFetch(async () => new Response(JSON.stringify({ error: { message: 'The model does not exist or you do not have access to it.' } }), { status: 404 }), async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare', output_format: 'gif' })
+      expect(res.status).toBe(400)
+      expect((await res.json()).error).toMatch(/Images 2\.6/)
+      expect(upstream).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('returns token usage for normal images too', async () => {
+    await withFetch(imageWith('iVBORw0KGgo=', { usage: { output_tokens: 1000, input_tokens: 50 } }), async () => {
+      const out = await (await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-flare' })).json()
+      expect(out.usage.output_tokens).toBe(1000)
+    })
+  })
+
+  it('falls back to GPT Image 2 when the key has no Images 2.6 access', async () => {
+    let call = 0
+    await withFetch(async () => {
+      call += 1
+      return call === 1
+        ? new Response(JSON.stringify({ error: { message: 'The model does not exist or you do not have access to it.' } }), { status: 404 })
+        : image()
+    }, async (upstream) => {
+      const res = await post({ action: 'generate', prompt: 'p', model: 'gpt-image-2.6-sunburst', quality: 'max' })
+      expect(res.status).toBe(200)
+      const out = await res.json()
+      expect(out.fallback_from).toBe('gpt-image-2.6-sunburst')
+      const retry = JSON.parse(upstream.mock.calls[1][1].body)
+      expect(retry.model).toBe('gpt-image-2')
+      expect(retry.quality).toBe('high')
+    })
+  })
+})
+
 describe('client IP normalisation', () => {
   it("replaces caller-supplied forwarding headers with Netlify's connection IP", async () => {
     const { withTrustedClientIp } = await import('../personalization-api.mts')
@@ -126,6 +417,28 @@ describe('client IP normalisation', () => {
     const { withTrustedClientIp } = await import('../personalization-api.mts')
     const original = new Request('http://localhost/x', { headers: { 'x-forwarded-for': '1.2.3.4' } })
     expect(withTrustedClientIp(original)).toBe(original)
+  })
+})
+
+describe('Lead Finder continuity routes', () => {
+  it.each([
+    ['GET', '/api/personalization/saved-searches'],
+    ['POST', '/api/personalization/saved-searches'],
+    ['DELETE', '/api/personalization/saved-searches'],
+    ['GET', '/api/personalization/lead-feedback'],
+    ['POST', '/api/personalization/lead-feedback'],
+    ['DELETE', '/api/personalization/lead-feedback'],
+    ['POST', '/api/personalization/persist-edited-asset'],
+  ])('requires a signed-in user for %s %s', async (method, path) => {
+    const res = await call(method, path, method === 'GET' ? {} : { body: '{}' })
+    expect(res.status, await res.clone().text()).toBe(401)
+  })
+
+  it('reports which discovery providers are configured without needing a user', async () => {
+    const res = await call('GET', '/api/personalization/provider-status')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(typeof body).toBe('object')
   })
 })
 

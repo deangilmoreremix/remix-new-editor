@@ -44,6 +44,8 @@ export default defineConfig({
       // `instanceof` holds). Vite only matches a string alias when the
       // importee equals it or starts with it + '/', so scoped packages such
       // as @clerk/*, @supabase/* and @vue/* are unaffected.
+      // Vendored CineGen source (see src/cinegen/NOTICE.md): its own `@/` imports are `@cinegen/`.
+      '@cinegen': path.resolve(__dirname, 'src/cinegen'),
       '@': path.resolve(__dirname),
     },
   },

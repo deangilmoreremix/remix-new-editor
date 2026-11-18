@@ -266,6 +266,13 @@ export class MediaDetailView {
         </a>
       `);
     }
+    if (this.mediaUrl && this.mediaType === 'video') {
+      actions.push(`
+        <button class="mdv-action-btn" data-action="free-captions">
+          <span>💬 Free Captions</span>
+        </button>
+      `);
+    }
     if (this.prompt) {
       actions.push(`
         <button class="mdv-action-btn" data-action="copy-prompt">
@@ -315,6 +322,9 @@ export class MediaDetailView {
     switch (action) {
       case 'close':
         this.hide();
+        break;
+      case 'free-captions':
+        import('../lib/editor/captionActions.js').then(({ addCaptionButton }) => addCaptionButton({ videoUrl: this.mediaUrl, appTheme: 'library' }));
         break;
       case 'copy-prompt':
         this._copyPrompt();

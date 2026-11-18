@@ -1,0 +1,210 @@
+// [remix] The Leads tab's logic, kept free of React: which forms a video has, filtering / counting / searching lead rows,
+// the answer columns, the CSV, and the "this published video includes" summary.
+import type { OverlayClip } from '@cinegen/types/workspace';
+// @ts-expect-error plain JS opt-in form helpers
+import { leadFormToOptin, normalizeListBuilder } from '../../../lib/editor/addons/listBuilder.js';
+// @ts-expect-error plain JS pointer registry
+import { getPointerDesign } from '../../../lib/editor/addons/pointerDesigns.js';
+// @ts-expect-error plain JS lead helpers
+import { leadsToCsv } from '../../../lib/editor/addons/leadClient.js';
+// @ts-expect-error plain JS attribution helpers
+import { sourceLabel as rawSourceLabel } from '../../../lib/editor/publish/attribution.js';
+
+export interface LeadSource { utm?: Record<string, string>; referrer?: string; page?: string | null; variant?: string }
+export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string>; source?: LeadSource; status?: string; notes?: string; tags?: string[] }
+
+/** "google / spring-sale", else the referring host, else "". */
+export const sourceLabel = (row: LeadRow): string => String(rawSourceLabel(row.source) || '');
+export interface LeadForm { key: string; label: string; short: string; tone: 'wall' | 'lead' }
+
+export const LEAD_STATUSES: Array<[string, string]> = [['new', 'New'], ['contacted', 'Contacted'], ['qualified', 'Qualified'], ['won', 'Won'], ['lost', 'Lost']];
+/** Follow-up (status, notes, tags) is available once the database has those columns, i.e. when rows carry a status. */
+export const hasFollowUp = (rows: LeadRow[]): boolean => rows.some((r) => r.status !== undefined);
+export const statusLabel = (status?: string): string => LEAD_STATUSES.find(([id]) => id === status)?.[1] ?? 'New';
+
+/** What the database accepts for follow-up: a known status, a note up to 2,000 characters, up to 10 tags of 30 characters. Unknown keys are dropped. */
+export function cleanFollowUp(patch: { status?: unknown; notes?: unknown; tags?: unknown }): { status?: string; notes?: string; tags?: string[] } {
+  const out: { status?: string; notes?: string; tags?: string[] } = {};
+  if (patch.status !== undefined && LEAD_STATUSES.some(([id]) => id === patch.status)) out.status = String(patch.status);
+  if (patch.notes !== undefined) out.notes = String(patch.notes ?? '').slice(0, 2000);
+  if (patch.tags !== undefined) {
+    const raw = Array.isArray(patch.tags) ? patch.tags : String(patch.tags ?? '').split(',');
+    out.tags = [...new Set(raw.map((t) => String(t).trim().toLowerCase().replace(/\s+/g, '-').slice(0, 30)).filter(Boolean))].slice(0, 10);
+  }
+  return out;
+}
+
+export const WALL_KEY = 'list-builder';
+const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+/** The forms in a video that collect leads: the List Builder wall and each Lead Generator (named by when it appears). */
+export function leadForms(overlays: OverlayClip[]): LeadForm[] {
+  const out: LeadForm[] = [];
+  const wall = overlays.find((o) => o.type === 'list-builder');
+  if (wall) {
+    const personalizer = (wall.config as { kind?: string } | undefined)?.kind === 'personalizer';
+    out.push({ key: WALL_KEY, label: personalizer ? 'Personalizer' : 'List Builder', short: personalizer ? 'Personalizer' : 'List Builder', tone: 'wall' });
+  }
+  overlays.filter((o) => o.type === 'lead-form').sort((a, b) => a.start - b.start).forEach((o) => {
+    out.push({ key: o.id, label: `Lead Generator · ${mmss(o.start)}`, short: 'Lead Generator', tone: 'lead' });
+  });
+  return out;
+}
+
+/** Which form a stored row came from (the wall is stored under clip "list-builder", Lead Generators under their overlay id). */
+export function rowFormKey(row: LeadRow): string {
+  if (row.kind === 'list-builder' || row.kind === 'personalizer' || row.clipId === WALL_KEY) return WALL_KEY;
+  return row.clipId ?? 'unknown';
+}
+
+/** Where the viewer came from: "mp4" when they followed the QR / link on an exported video (`?src=mp4` on the page they submitted from). */
+export function rowSource(row: LeadRow): string {
+  const page = row.source?.page;
+  if (!page) return '';
+  try { return new URL(page).searchParams.get('src') ?? ''; } catch { return ''; }
+}
+/** 'A' or 'B' when the viewer saw one version of an A/B-tested form, else ''. */
+export const variantOf = (row: LeadRow): string => (row.source?.variant === 'A' || row.source?.variant === 'B' ? row.source.variant : '');
+/** Leads per version, for forms being A/B tested (null when no lead carries a version). */
+export function variantCounts(rows: LeadRow[]): { A: number; B: number } | null {
+  const out = { A: 0, B: 0 };
+  rows.forEach((r) => { const v = variantOf(r); if (v === 'A' || v === 'B') out[v] += 1; });
+  return out.A + out.B ? out : null;
+}
+export const fromMp4 = (row: LeadRow): boolean => rowSource(row) === 'mp4';
+
+/** Leads per day for the last `days` days (oldest first), zero-filled, in the viewer's local time. */
+export function leadsPerDay(rows: LeadRow[], days = 14, now = new Date()): Array<{ day: string; label: string; n: number }> {
+  const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const out: Array<{ day: string; label: string; n: number }> = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    out.push({ day: key(d), label: `${d.toLocaleString('en', { month: 'short' })} ${d.getDate()}`, n: 0 });
+  }
+  const at = new Map(out.map((o) => [o.day, o]));
+  rows.forEach((r) => { const d = new Date(r.createdAt); if (!Number.isNaN(d.getTime())) { const slot = at.get(key(d)); if (slot) slot.n += 1; } });
+  return out;
+}
+
+/** The email a lead gave (any answer whose name contains "email"), lower-cased, or ''. */
+export const leadEmail = (row: LeadRow): string => {
+  const k = Object.keys(row.data).find((x) => /e-?mail/i.test(x));
+  return k ? String(row.data[k]).trim().toLowerCase() : '';
+};
+
+/**
+ * Repeat sign-ups (the same email on the same form) collapsed to one row, the newest, with how many times it came in.
+ * Rows without an email are never merged. Order is kept.
+ */
+export function collapseRepeats(rows: LeadRow[]): { rows: LeadRow[]; counts: Record<string, number> } {
+  const seen = new Map<string, LeadRow>();
+  const counts: Record<string, number> = {};
+  const out: LeadRow[] = [];
+  rows.forEach((r) => {
+    const email = leadEmail(r);
+    if (!email) { out.push(r); return; }
+    const key = `${rowFormKey(r)}|${email}`;
+    const first = seen.get(key);
+    if (!first) { seen.set(key, r); counts[r.id] = 1; out.push(r); return; }
+    counts[first.id] += 1;
+  });
+  return { rows: out, counts };
+}
+
+export function countsByForm(rows: LeadRow[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  rows.forEach((r) => { const k = rowFormKey(r); out[k] = (out[k] ?? 0) + 1; });
+  return out;
+}
+
+export type LeadRange = 'all' | 'today' | '7d' | '30d';
+export const LEAD_RANGES: Array<[LeadRange, string]> = [['all', 'All time'], ['today', 'Today'], ['7d', 'Last 7 days'], ['30d', 'Last 30 days']];
+
+/** Earliest allowed timestamp (ms) for a range, or null for "all". "today" is since local midnight; N days is a rolling window. */
+function rangeStart(range: LeadRange, now: Date): number | null {
+  if (range === 'today') return new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  if (range === '7d') return now.getTime() - 7 * 86400000;
+  if (range === '30d') return now.getTime() - 30 * 86400000;
+  return null;
+}
+
+export function filterRows(rows: LeadRow[], { form = 'all', query = '', range = 'all', status = 'all', now = new Date() }: { form?: string; query?: string; range?: LeadRange; status?: string; now?: Date } = {}): LeadRow[] {
+  const q = query.trim().toLowerCase();
+  const since = rangeStart(range, now);
+  return rows.filter((r) => {
+    if (form !== 'all' && rowFormKey(r) !== form) return false;
+    if (status !== 'all' && (r.status ?? 'new') !== status) return false;
+    if (since !== null) {
+      const t = new Date(r.createdAt).getTime();
+      if (Number.isNaN(t) || t < since) return false;
+    }
+    if (!q) return true;
+    return Object.values(r.data).some((v) => String(v).toLowerCase().includes(q)) || sourceLabel(r).toLowerCase().includes(q)
+      || String(r.notes ?? '').toLowerCase().includes(q) || (r.tags ?? []).some((t) => t.includes(q));
+  });
+}
+
+/** One column per answer, in the order they first appear (EMAIL, FIRST NAME, …), shown in Title Case. */
+export function answerColumns(rows: LeadRow[]): Array<{ key: string; label: string }> {
+  const seen: string[] = [];
+  rows.forEach((r) => Object.keys(r.data).forEach((k) => { if (!seen.includes(k)) seen.push(k); }));
+  return seen.map((key) => ({ key, label: key.replace(/_\d+$/, '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()) }));
+}
+
+/** A viewer controls utm_* and the referrer; a leading = + - @ (or tab/CR) would be read as a formula by spreadsheets. */
+export const csvSafe = (v: string): string => (/^[=+\-@\t\r]/.test(v) ? `'${v}` : v);
+
+export function rowsToCsv(rows: LeadRow[], forms: LeadForm[]): string {
+  const name = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r))?.label ?? 'Form';
+  // Source columns only appear when at least one lead has them, so older exports keep their shape.
+  return leadsToCsv(rows.map((r) => {
+    const utm = r.source?.utm ?? {};
+    const src: Record<string, string> = {};
+    if (utm.source) src['UTM Source'] = csvSafe(utm.source);
+    if (utm.medium) src['UTM Medium'] = csvSafe(utm.medium);
+    if (utm.campaign) src['UTM Campaign'] = csvSafe(utm.campaign);
+    if (utm.term) src['UTM Term'] = csvSafe(utm.term);
+    if (utm.content) src['UTM Content'] = csvSafe(utm.content);
+    if (r.source?.referrer) src.Referrer = csvSafe(r.source.referrer);
+    if (fromMp4(r)) src['From MP4'] = 'Yes';
+    if (variantOf(r)) src.Version = variantOf(r);
+    if (r.status !== undefined) { src.Status = statusLabel(r.status); if (r.notes) src.Notes = csvSafe(r.notes); if (r.tags?.length) src.Tags = csvSafe(r.tags.join(', ')); }
+    return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src };
+  }));
+}
+
+/** "Today 14:02" / "Yesterday 19:05" / "Nov 3 09:12" */
+export function whenLabel(iso: string, now = new Date()): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const day = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(now) - day(d)) / 86400000);
+  if (diff === 0) return `Today ${hm}`;
+  if (diff === 1) return `Yesterday ${hm}`;
+  return `${d.toLocaleString('en', { month: 'short' })} ${d.getDate()} ${hm}`;
+}
+
+export interface IncludeItem { icon: string; title: string; detail: string; note?: string }
+
+/** What a published video gives viewers: the wall, each Lead Generator, each CTA. */
+export function publishIncludes(overlays: OverlayClip[]): IncludeItem[] {
+  const out: IncludeItem[] = [];
+  const wall = overlays.find((o) => o.type === 'list-builder');
+  if (wall) {
+    const cfg = normalizeListBuilder({ ...(wall.config as object) }) as { elements?: unknown[]; pointerEnabled?: boolean; pointerStyle?: string; kind?: string };
+    const boxes = (cfg.elements ?? []).length;
+    out.push({
+      icon: '🔒', title: cfg.kind === 'personalizer' ? 'Personalizer' : 'List Builder', detail: 'viewers sign up before the video plays',
+      note: `${boxes} ${boxes === 1 ? 'box' : 'boxes'}${cfg.pointerEnabled ? ` · ${String(getPointerDesign(cfg.pointerStyle).label).toLowerCase()} pointer` : ''}`,
+    });
+  }
+  overlays.filter((o) => o.type === 'lead-form').sort((a, b) => a.start - b.start).forEach((o) => {
+    const boxes = (leadFormToOptin(o) as { elements: unknown[] }).elements.length;
+    out.push({ icon: '📝', title: `Lead Generator at ${mmss(o.start)}`, detail: 'pauses the video', note: `${boxes} ${boxes === 1 ? 'box' : 'boxes'}` });
+  });
+  overlays.filter((o) => o.type === 'click-to-call').sort((a, b) => a.start - b.start).forEach((o) => {
+    out.push({ icon: '📞', title: `CTA button at ${mmss(o.start)}`, detail: String(o.buttonText ?? 'Call Now') });
+  });
+  return out;
+}

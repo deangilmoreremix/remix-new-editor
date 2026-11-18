@@ -1,0 +1,295 @@
+// [remix] Real browser implementations of the parts of CineGen's `window.electronAPI` this editor needs.
+// Registered into the shim (electron-shim.ts) so CineGen's own code paths run unchanged.
+// @ts-expect-error plain JS interactive player helper
+import { stripUnresolvedTokens } from '../../lib/editor/publish/interactivePlayer.js';
+import { registerElectronApi } from './electron-shim';
+import { webMediaApi } from './web-media';
+import { uploadFileToStorage } from '../../lib/supabase.js';
+
+import { responsesChat } from './llm-responses';
+import { authHeader } from './llm-responses';
+import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
+export { responsesChat };
+import { CAPTION_STYLE_BY_ID } from '../../openchatcut/captions/styles';
+import { userFontsFor } from '@cinegen/lib/occ/user-fonts';
+import { exportItem, type ExportTrackInfo } from '@cinegen/lib/editor/export-mapping';
+import { buildExportStateWithAudio } from '@cinegen/lib/audio/export-prepare'; // [remix] Stage 4: EQ bake + master volume
+import { containerInfo } from '@cinegen/lib/export/containers'; // [remix] Stage 11
+import { buildGlTransitionLayers, attachGlSideLooks } from '@cinegen/lib/editor/gl-transition-export'; // [remix] Stage 6
+import { glSideLayerFrom } from '../../lib/editor/remotion/glSideLook.js'; // [remix] Fix A
+type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
+const transcriptionListeners = new Set<(e: TranscriptionEvent) => void>();
+const emitTranscription = (e: TranscriptionEvent) => transcriptionListeners.forEach((fn) => fn(e));
+
+/** Whisper words -> CineGen transcript segments (sentence-ish lines with word timings). */
+function toSegments(words: Array<{ text: string; start: number; end: number }>) {
+  const segments: Array<{ start: number; end: number; text: string; words: Array<{ word: string; start: number; end: number }> }> = [];
+  let cur: (typeof segments)[number] | null = null;
+  for (const w of words) {
+    const gap = cur ? w.start - cur.end : 0;
+    if (!cur || gap > 0.8 || cur.words.length >= 18 || /[.!?]$/.test(cur.text)) {
+      cur = { start: w.start, end: w.end, text: w.text, words: [{ word: w.text, start: w.start, end: w.end }] };
+      segments.push(cur);
+    } else {
+      cur.text += ` ${w.text}`;
+      cur.end = w.end;
+      cur.words.push({ word: w.text, start: w.start, end: w.end });
+    }
+  }
+  return segments;
+}
+
+type ExportJobState = { done?: number; total?: number; label?: string; failures?: string[]; id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; warnings?: string[]; qaStatus?: string; qa?: unknown; createdAt: string; completedAt?: string };
+const exportJobs = new Map<string, ExportJobState>();
+
+const batchListeners = new Set<(e: unknown) => void>();
+
+export function registerWebApi() {
+  registerElectronApi('vision', {
+    // CineGen's visual index: OpenAI vision on the user's key (adapters/main-process/vision.ts)
+    indexAsset: async (p: unknown) => (await import('./main-process/vision')).analyzeAssetVisualSummary(p as never),
+    detectObjects: async (p: unknown) => (await import('./main-process/vision')).detectObjectsInImage(p as never),
+  });
+  // [remix] Desktop-only Python runners (local SAM 3 server, local model runner): no browser equivalent.
+  // The web editor's Cloud/main mask mode and the model nodes run on-device or on MuAPI/OpenAI instead.
+  registerElectronApi('sam3', {
+    start: async () => { throw new Error('The local SAM 3 server is desktop-only. Use the default mode: it masks on your device in the browser.'); },
+  });
+  registerElectronApi('localModel', {
+    run: async () => { throw new Error('Local Python models are desktop-only. Pick the MuAPI or on-device version of this node.'); },
+    readTranscript: async () => null,
+  });
+  registerElectronApi('acoustic', {
+    analyzeAsset: async (p: unknown) => (await import('./main-process/acoustic')).analyzeAssetAcoustics(p as never),
+  });
+  registerElectronApi('sync', {
+    // CineGen's audio sync, in the browser (adapters/main-process/audio-sync.ts)
+    computeOffset: async (p: unknown) => {
+      const a = p as { sourceFilePath: string; targetFilePath: string };
+      return (await import('./main-process/audio-sync')).computeSyncOffset(a.sourceFilePath, a.targetFilePath);
+    },
+    batchMatch: async (p: unknown) => {
+      const a = p as { videoAssets: Array<{ id: string; filePath: string; name: string }>; audioAssets: Array<{ id: string; filePath: string; name: string }> };
+      return (await import('./main-process/audio-sync')).computeBatchMatch(a.videoAssets, a.audioAssets, '', '', '', (pr) => batchListeners.forEach((fn) => fn(pr)));
+    },
+    onBatchProgress: (cb: unknown) => { const fn = cb as (e: unknown) => void; batchListeners.add(fn); return () => batchListeners.delete(fn); },
+  });
+  registerElectronApi('music', {
+    generatePrompt: async (p: unknown) => (await import('./main-process/music-prompt')).generateMusicPrompt(p as never),
+  });
+  registerElectronApi('prompts', {
+    // CineGen's own message builder + edit applier; only the model call is local (OpenAI, user's key).
+    rewrite: async (input: unknown) => {
+      const { studioRewriteMessages, applyStudioPromptEdits } = await import('@cinegen/lib/studio/prompt-rewrite');
+      const req = input as { text: string };
+      const [system, user] = studioRewriteMessages(input as never);
+      try {
+        const r = await responsesChat({ system: system.content, user: user.content, json: true });
+        return { status: 'complete', text: applyStudioPromptEdits(JSON.parse(r.message), req.text) };
+      } catch (err) {
+        return { status: 'error', error: err instanceof Error ? err.message : String(err) };
+      }
+    },
+  });
+  registerElectronApi('llm', {
+    // Frame Chat / prompt enhancer (was the Gemini CLI): OpenAI vision on the user's key.
+    geminiChat: async (p: unknown) => {
+      const a = p as { userMessage: string; visualRefs?: Array<{ fileRef?: string; framePaths?: string[]; mediaType?: string }> };
+      const { toVisionImage } = await import('./main-process/vision');
+      const urls = (a.visualRefs ?? []).flatMap((r) => (r.mediaType === 'image' && r.fileRef ? [r.fileRef] : r.framePaths ?? []));
+      const images = (await Promise.all(urls.slice(0, 6).map((u) => toVisionImage(u)))).filter((u): u is string => Boolean(u));
+      const r = await responsesChat({ user: a.userMessage, images });
+      return { message: r.message, sessionId: undefined };
+    },
+    // Assistant canvas attachments: a CORS-safe resized JPEG of an image the user already has.
+    canvasImagePreview: async (source: unknown) => (await import('./main-process/vision')).toVisionImage(String(source), 1280),
+  });
+  registerElectronApi('llm', {
+    // CineGen's cut workflow, run in the browser (src/cinegen/adapters/main-process/llm-chat.ts)
+    runCutWorkflow: async (p: unknown) => (await import('./main-process/llm-chat')).runCutWorkflow(p as never),
+  });
+  for (const [ns, methods] of Object.entries(webMediaApi)) registerElectronApi(ns, methods as Record<string, (...a: unknown[]) => unknown>);
+  registerElectronApi('export', {
+    // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
+    start: async (p: unknown) => {
+      const a = p as { container?: string; preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; tracks?: ExportTrackInfo[]; clips: Array<{ id?: string; name?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; contactIds?: string[]; title?: string; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; glType?: string; glDef?: unknown; glParams?: Record<string, number | boolean | number[]>; clipAId: string; clipBId?: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
+      const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
+      const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
+      exportJobs.set(job.id, job);
+      void (async () => {
+        try {
+          const [{ timelineToComposition }, { exportModel, downloadBlob }] = await Promise.all([
+            import('../../lib/editor/remotion/timelineToComposition.js'),
+            import('../../lib/editor/remotion/exportClient.js'),
+          ]);
+          // [remix] The composition for the whole timeline, optionally filled in for one contact (Personalized output).
+          const buildModel = async (profile?: unknown) => {
+          // [remix] track mute/solo/volume/visibility, clip opacity/flip/volume and plain dissolve/fades (see lib/editor/export-mapping.ts)
+          const { state, warnings } = await buildExportStateWithAudio({ clips: a.clips as never, tracks: a.tracks, transitions: a.transitions, overlays: a.overlays, totalDuration: a.totalDuration, masterVolume: (a as { masterVolume?: number }).masterVolume }, exportItem as never);
+          if (warnings.length) job.warnings = warnings;
+          const model = timelineToComposition(state, { fps: a.fps, quality, aspect: a.aspect, ...(profile ? { profile } : {}) });
+          // [remix] a generic export has no contact profile: unfilled {{tokens}} are removed from text, as the published player does
+          (model as { layers: unknown[] }).layers = stripUnresolvedTokens((model as { layers: unknown[] }).layers) as unknown[];
+          // [remix] OpenChatCut motion-graphics templates → code layers on top (the sandboxed renderer runs them; the code gate still applies)
+          {
+            const { mgOverlayLayer } = await import('@cinegen/lib/occ/mg-templates');
+            const m = model as { layers: unknown[]; durationInFrames: number };
+            for (const o of a.mgOverlays ?? []) { const l = mgOverlayLayer({ ...o, type: 'mg-template' } as never, a.fps); m.layers.push(l); m.durationInFrames = Math.max(m.durationInFrames, l.from + l.durationInFrames); }
+          }
+          // [hyperframes] verified HyperFrames animations → layers on top (rendered by the sandboxed runner; only enabled, pinned blocks execute)
+          if ((a.hfOverlays ?? []).length) {
+            const { hyperframesOverlayLayer } = await import('@cinegen/lib/hyperframes/overlay');
+            const m = model as { layers: unknown[]; durationInFrames: number };
+            for (const o of a.hfOverlays ?? []) { const l = hyperframesOverlayLayer({ ...o, type: 'hyperframes' } as never, a.fps); m.layers.push(l); m.durationInFrames = Math.max(m.durationInFrames, l.from + l.durationInFrames); }
+          }
+          // [remix] OpenChatCut captions (words already in timeline ms) → one caption layer per captioned clip
+          (model as { occCaptions?: unknown[] }).occCaptions = a.clips.flatMap((c) => (c.captions ? [c.captions] : []));
+          for (const c of a.clips) { const cap = c.captions as { template?: string; styleOverride?: { fontFamily?: string } } | undefined; const tpl = cap?.template; const fam = cap?.styleOverride?.fontFamily || (tpl && (CAPTION_STYLE_BY_ID as Record<string, { fontFamily?: string } | undefined>)[tpl]?.fontFamily); if (fam) { const m = model as { fonts?: string[] }; m.fonts = [...new Set([...(m.fonts ?? []), fam])]; } }
+          // [remix] imported caption fonts travel with the render
+          (model as { userFonts?: unknown[] }).userFonts = userFontsFor(a.clips.map((c) => (c.captions as { styleOverride?: { fontFamily?: string } } | undefined)?.styleOverride?.fontFamily));
+          // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
+          (model as { glTransitions?: unknown[] }).glTransitions = attachGlSideLooks(buildGlTransitionLayers(a.transitions, a.clips as never, a.fps), a.clips as never, (model as { layers: never[] }).layers, glSideLayerFrom as never); // [remix] Fix A: each side keeps its clip's own transform / keys / effects / opacity
+          return model;
+          };
+          // [remix] One video per contact: each person's details fill the text and images; one failing render must not lose the rest.
+          const wanted = new Set((a.contactIds ?? []).map(String));
+          if (wanted.size) {
+            const [store, per] = await Promise.all([import('../../lib/contactStore.js'), import('../../lib/editor/personalize/perContact.js')]);
+            const contacts = (per.listContactProfiles(store) as Array<{ id: unknown }>).filter((p) => wanted.has(String(p.id)));
+            if (!contacts.length) throw new Error('Pick at least one contact');
+            job.total = contacts.length; job.done = 0; job.failures = [];
+            const used = new Set<string>();
+            const title = String(a.title || 'timeline').replace(/[^a-z0-9 _-]+/gi, '').trim() || 'timeline';
+            for (let i = 0; i < contacts.length; i += 1) {
+              const who = String(per.contactName(contacts[i]));
+              job.label = `Video ${i + 1} of ${contacts.length} \u00b7 ${who}`;
+              try {
+                const part = await exportModel(await buildModel(contacts[i]), { container: 'mp4', quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(((i + pr) / contacts.length) * 100); } });
+                let base = `${title} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || String(contacts[i].id)}`;
+                if (used.has(base.toLowerCase())) base = `${base} (${String(contacts[i].id).slice(0, 8)})`;
+                used.add(base.toLowerCase());
+                downloadBlob(part, `${base}.mp4`);
+                job.done = (job.done ?? 0) + 1;
+                job.fileSize = (job.fileSize ?? 0) + part.size;
+              } catch (err) { (job.failures ??= []).push(`${who}: ${err instanceof Error ? err.message : String(err)}`); }
+            }
+            job.label = undefined;
+            job.progress = 100;
+            if (!job.done) throw new Error(job.failures[0] || 'No video could be made');
+            job.status = 'complete';
+            job.completedAt = new Date().toISOString();
+            return;
+          }
+          const model = await buildModel();
+          const ctn = containerInfo(a.container); // [remix] Stage 11: mkv / mov / webm video and wav / mp3 / aac / flac / ogg audio-only
+          const blob = await exportModel(model, { container: ctn.id, quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
+          job.outputUrl = URL.createObjectURL(blob);
+          job.fileSize = blob.size;
+          job.progress = 100;
+          downloadBlob(blob, `cinegen-export.${ctn.ext}`);
+          // [remix] OpenChatCut export QA, run on the rendered blob in the browser (their server FFmpeg step replaced)
+          if (a.qa !== false && !ctn.audioOnly) {
+            job.qaStatus = 'Checking the render…';
+            try {
+              const { runExportQaInBrowser } = await import('@cinegen/lib/occ/export-qa');
+              const model2 = model as { width: number; height: number; durationInFrames: number; fps: number };
+              job.qa = await runExportQaInBrowser(blob, {
+                durationSeconds: model2.durationInFrames / model2.fps, width: model2.width, height: model2.height, fps: model2.fps,
+                expectsAudio: a.clips.some((c) => (c.volume ?? 1) > 0 && c.type !== 'image'),
+              });
+              job.qaStatus = undefined;
+            } catch (qaErr) { job.qaStatus = `Render check unavailable: ${qaErr instanceof Error ? qaErr.message : String(qaErr)}`; }
+          }
+          job.status = 'complete';
+          job.completedAt = new Date().toISOString();
+        } catch (err) {
+          job.status = 'failed';
+          job.error = err instanceof Error ? err.message : String(err);
+          if ((err as { hyperframes?: boolean })?.hyperframes) void import('@cinegen/lib/hyperframes/notify').then((m) => m.notifyHyperframes({ id: 'hf:export', title: 'Export stopped', message: job.error as string }));
+        }
+      })();
+      return { ...job };
+    },
+    poll: async (id: unknown) => {
+      const job = exportJobs.get(String(id));
+      if (!job) throw new Error('Unknown export');
+      return { ...job };
+    },
+  });
+  registerElectronApi('transcription', {
+    // On-device Whisper (Transformers.js). The engine CineGen asks for (cloud / python) is ignored on the web.
+    start: async (p: unknown) => {
+      const a = p as { assetId: string; filePath: string };
+      const jobId = `whisper-${Date.now().toString(36)}`;
+      const base = { jobId, assetId: a.assetId, engine: 'whisper-web' };
+      void (async () => {
+        try {
+          emitTranscription({ ...base, type: 'status', message: 'Loading speech model…' });
+          // [remix] Port I1: the Local AI pipeline (installed Whisper model, chunked, word timings, cancellable); no implicit download.
+          const { transcribeAsset } = await import('../lib/local-ai/clip-transcribe');
+          const out = await transcribeAsset(a.filePath, {
+            onProgress: (pr) => emitTranscription({ ...base, type: 'progress', message: `Transcribing ${Math.round(pr.progress * 100)}%` }),
+          });
+          const words = out.captions.map((c) => ({ text: c.text, start: c.startMs / 1000, end: c.endMs / 1000 }));
+          emitTranscription({ ...base, type: 'done', text: out.text, segments: toSegments(words), language: out.language ?? 'auto' });
+        } catch (err) {
+          emitTranscription({ ...base, type: 'error', error: err instanceof Error ? err.message : String(err) });
+        }
+      })();
+      return { jobId };
+    },
+    onProgress: (cb: unknown) => {
+      const fn = cb as (e: TranscriptionEvent) => void;
+      transcriptionListeners.add(fn);
+      return () => transcriptionListeners.delete(fn);
+    },
+  });
+  registerElectronApi('llm', {
+    // CineGen's OpenAI path: { apiKey, model, systemPrompt, userMessage, imageUrls, jsonObject } -> { message, usage }
+    openaiChat: async (p: unknown) => {
+      const a = p as { systemPrompt?: string; userMessage: string; imageUrls?: string[]; jsonObject?: boolean };
+      return responsesChat({ system: a.systemPrompt, user: a.userMessage, images: a.imageUrls, json: a.jsonObject !== false });
+    },
+    // LLM tab / skills chat: { apiKey, model, systemPrompt, messages, maxTokens, temperature } -> { message, usage }
+    chat: async (p: unknown) => {
+      const a = p as { systemPrompt?: string; messages: Array<{ role: string; content: string }>; userMessage?: string };
+      const turns = (a.messages ?? []).map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}:\n${m.content}`).join('\n\n');
+      return responsesChat({ system: a.systemPrompt, user: turns || a.userMessage || '' });
+    },
+    // Voice Director: CineGen's session logic, run server-side so the key stays off the page.
+    openaiRealtimeSession: async (p: unknown) => {
+      const a = p as { sdp: string; voice?: string };
+      const res = await fetch('/api/timeline-voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeader()), ...openaiKeyHeader() },
+        body: JSON.stringify({ action: 'call', sdp: a.sdp, voice: a.voice }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) throw new Error(data?.error?.message || 'Add your OpenAI key in Settings to use Voice Director.');
+      return { sdp: data.sdp as string };
+    },
+    // Detected CLIs (Claude Code / Codex / Gemini) are desktop-only.
+    cliDetect: async () => ({ providers: [] }),
+    localModels: async () => [],
+  });
+  registerElectronApi('elements', {
+    // CineGen uploads reference images/frames and expects { url }. We store them in our storage bucket.
+    upload: async (file: unknown) => {
+      const f = file as { buffer: ArrayBuffer; name: string; type: string };
+      const blob = new File([f.buffer], f.name, { type: f.type });
+      try {
+        const url = await uploadFileToStorage(blob);
+        if (url) return { url: url as string };
+      } catch { /* storage unavailable: not signed in, no Supabase configuration, or offline */ }
+      // Fallback that keeps the Element usable and persistent: the image is stored in the project itself as a data URL (the project
+      // lives in this browser's IndexedDB), so it survives reload; it is uploaded to a provider only when a generation uses it.
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result));
+        r.onerror = () => reject(r.error ?? new Error('Could not read the image'));
+        r.readAsDataURL(blob);
+      });
+      return { url: dataUrl };
+    },
+  });
+}

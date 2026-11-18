@@ -1,0 +1,47 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored with [remix] edits only where marked.
+import type { CubeLut } from './fx/cube.js';
+import type { TransitionSourceOpacity } from './sourceOpacity.js';
+
+export type UniformValue = number | number[];
+
+export interface FxPass {
+  frag: string;
+  uniforms?: Record<string, UniformValue>;
+  /** Read u_input from an earlier pass instead of the immediately previous one. */
+  inputFrom?: number;
+  /** [remix] Fix G: FBO slot this pass writes to (default: its own index). Lets long ping-pong chains reuse two textures. A pass must not read its own slot. */
+  slot?: number;
+  /** Bind named sampler uniforms to earlier pass outputs. */
+  samplers?: Record<string, number>;
+  /** 3D LUT bound to the u_lut sampler3D uniform. */
+  lut3d?: CubeLut;
+}
+
+export interface GlRuntime {
+  canvas: HTMLCanvasElement;
+  render: (
+    frag: string,
+    outgoing: TexImageSource,
+    incoming: TexImageSource,
+    progress: number,
+    extra?: Record<string, UniformValue>,
+  ) => void;
+  renderTransitionWithFx: (
+    frag: string,
+    outgoing: TexImageSource,
+    incoming: TexImageSource,
+    outgoingPasses: FxPass[],
+    incomingPasses: FxPass[],
+    progress: number,
+    extra?: Record<string, UniformValue>,
+    sourceOpacity?: TransitionSourceOpacity,
+  ) => void;
+  renderFx: (
+    frag: string,
+    input: TexImageSource,
+    extra?: Record<string, UniformValue>,
+    lut3d?: CubeLut,
+  ) => void;
+  renderFxChain: (passes: FxPass[], input: TexImageSource) => void;
+  dispose: () => void;
+}

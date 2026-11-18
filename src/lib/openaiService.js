@@ -1351,6 +1351,9 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     const openaiKey = this._getOpenAIKey();
     if (!openaiKey) throw new Error(this.missingKeyMessage);
 
+    // Fail fast so callers (storyboard planning) can fall back instead of hanging.
+    const timeout = typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(45000) : undefined;
+    const effectiveSignal = signal && timeout && AbortSignal.any ? AbortSignal.any([signal, timeout]) : (signal || timeout);
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
@@ -1364,7 +1367,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
         max_tokens: maxTokens,
         ...(json ? { response_format: { type: 'json_object' } } : {}),
       }),
-      signal,
+      signal: effectiveSignal,
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));

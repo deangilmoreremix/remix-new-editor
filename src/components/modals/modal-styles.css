@@ -4083,6 +4083,9 @@
 .gtm-prompt-modal { max-width: 480px; }
 .contacts-content { padding: 0; }
 .lead-generator { max-width: 600px; }
+.lead-status { min-height: 1.2em; margin: 0; font-size: 13px; }
+.lead-status--error { color: #f87171; }
+.lead-status--idle { color: var(--text-dim, rgba(255,255,255,.6)); }
 .landing-page-builder { max-width: 900px; }
 
 .connect-btn,
@@ -4246,4 +4249,24 @@
 .screenshot-image {
   max-width: 100%;
   display: block;
+}
+
+/* Lead Generator modal: dark controls instead of browser defaults */
+.lead-generator h4 { margin: 0 0 8px; font-size: 14px; }
+.lead-generator .source-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.lead-generator .source-option {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--border, rgba(255,255,255,.12)); background: rgba(255,255,255,.04); font-size: 13px;
+}
+.lead-generator .source-option.selected { border-color: var(--cyan, #22d3ee); background: rgba(34,211,238,.1); }
+.lead-generator .source-option input { accent-color: var(--cyan, #22d3ee); }
+.lead-generator .tags-container { display: flex; flex-wrap: wrap; gap: 6px; }
+.lead-generator .tag-btn {
+  padding: 5px 10px; border-radius: 999px; cursor: pointer; font-size: 12px; color: #fff;
+  border: 1px solid var(--border, rgba(255,255,255,.12)); background: rgba(255,255,255,.04);
+}
+.lead-generator .tag-btn.selected { border-color: var(--cyan, #22d3ee); background: rgba(34,211,238,.15); }
+.lead-generator .form-textarea {
+  width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; resize: vertical;
+  border: 1px solid var(--border, rgba(255,255,255,.12)); background: rgba(255,255,255,.04); color: #fff; font: inherit; font-size: 13px;
 }

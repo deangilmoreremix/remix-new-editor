@@ -11,6 +11,7 @@
  * mix-blend-mode (Remotion ≥ 4.0.540). Things the renderer can't draw
  * directly (Text Mask's SVG mask) are pre-rendered to an image.
  */
+import { cursorAt, cursorStops } from './websiteCursor.js';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   AbsoluteFill, Sequence, Img, useCurrentFrame, useVideoConfig, delayRender, continueRender,
@@ -33,6 +34,21 @@ import { stretchLowerThird } from '../addons/lowerThirds.js';
 import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './keyframes.js';
 import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
+// [hyperframes] additive layer kind; renders nothing unless a layer of kind 'hyperframes' exists in the model
+import { HyperframesLayer } from './hyperframes/HyperframesLayer.jsx';
+import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
+import { zoomAt } from '../../../openchatcut/editor/zoom';
+import { clipPoseCss } from '../../../cinegen/lib/editor/stage2/anim';
+import { applyLottieEdits } from '../../../cinegen/lib/editor/stage2/lottie-edit';
+import { backgroundFillAppearance, backgroundFillFilter } from '../../../openchatcut/editor/backgroundFill';
+import { sampleKeyframes as sampleFxKey } from '../../../openchatcut/editor/keyframes';
+import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
+import { CaptionsLayer as OccCaptionsLayer } from '../../../openchatcut/captions/CaptionsLayer';
+import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
+import { GroupLayer } from '../../../openchatcut/gl/GroupLayer';
+import { resolveSideLook, glSideLayerFrom } from './glSideLook.js';
+import { registerUserLut } from '../../../cinegen/lib/occ/user-luts';
+import { registerSnapshot } from '../../../cinegen/lib/occ/plugins';
 import { ctaBox, CTA_FPS } from '../addons/ctaLottie.js';
 
 // ------------------------------------------------------------------ fonts
@@ -56,7 +72,18 @@ export function registerGoogleFonts(families = []) {
   return Promise.all(families.map(registerGoogleFont));
 }
 
+/** [remix] user-imported fonts (TTF/OTF/WOFF2 chosen in the caption font control). Registered through the same Remotion loader; the export
+ *  carries the font bytes as a data URL because the sandboxed runner has no access to the editor's IndexedDB. */
+const userFontPromises = new Map();
+export function registerUserFont({ family, dataUrl }) {
+  if (!userFontPromises.has(family)) {
+    userFontPromises.set(family, loadFont({ family, url: dataUrl, weight: '100 900' }).catch(() => null).then(() => { registeredDone.add(family); }));
+  }
+  return userFontPromises.get(family);
+}
+
 export function registerGoogleFont(family) {
+  if (userFontPromises.has(family)) return userFontPromises.get(family);
   if (registered.has(family)) return registered.get(family);
   const p = fetch(googleFontHref(family))
     .then((r) => (r.ok ? r.text() : ''))
@@ -79,7 +106,8 @@ export function registerGoogleFont(family) {
 }
 
 /** Load the Google fonts the timeline uses before any text is measured or drawn. */
-function FontGate({ fonts, children }) {
+function FontGate({ fonts, userFonts, children }) {
+  (userFonts || []).forEach(registerUserFont);
   // The export runner registers fonts before rendering starts, so this is
   // normally ready immediately; the delayRender path covers the Player.
   const initiallyReady = !fonts?.length || fonts.every((f) => registeredDone.has(f));
@@ -215,12 +243,14 @@ function useJson(url) {
 }
 
 function StickerOverlay({ o, durationInFrames, effects }) {
-  const lottieData = useJson(o.kind === 'lottie' ? o.resolvedSrc : null);
+  const rawLottie = useJson(o.kind === 'lottie' ? o.resolvedSrc : null);
+  // [remix] Stage 2: colour / text replacement of the Lottie (same patcher as the editor preview)
+  const lottieData = useMemo(() => applyLottieEdits(rawLottie, { colors: o.lottieColors, texts: o.lottieTexts, values: o.lottieValues, hidden: o.lottieHidden }), [rawLottie, o.lottieColors, o.lottieTexts, o.lottieValues, o.lottieHidden]); // [remix] Stage 11
   if (!o.resolvedSrc) return null;
   return (
     <Animated o={o} durationInFrames={durationInFrames}>
       {o.kind === 'lottie'
-        ? (lottieData ? <Lottie animationData={lottieData} loop style={{ width: '100%', height: '100%' }} /> : null)
+        ? (lottieData ? <Lottie animationData={lottieData} loop playbackRate={Number(o.lottieSpeed) > 0 ? Number(o.lottieSpeed) : 1} style={{ width: '100%', height: '100%' }} /> : null)
         : <Img src={o.resolvedSrc} effects={effects} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
     </Animated>
   );
@@ -334,7 +364,28 @@ function CtaButton({ o }) {
   );
 }
 
+/**
+ * A Personalization Studio design. The design catalog is loaded on demand, and
+ * the render is held (delayRender) until it has, so an export never captures a
+ * frame before the design exists.
+ */
+function StudioDesign({ o, durationInFrames }) {
+  const [mod, setMod] = useState(null);
+  const [handle] = useState(() => delayRender('Loading Studio design'));
+  useEffect(() => {
+    let alive = true;
+    import('./StudioDesignOverlay.jsx')
+      .then((m) => { if (alive) setMod(m); })
+      .catch((err) => { console.warn('[timeline] Studio design failed to load', err); if (alive) setMod({}); });
+    return () => { alive = false; };
+  }, []);
+  useEffect(() => { if (mod) continueRender(handle); }, [mod, handle]);
+  const Inner = mod?.StudioDesignOverlay;
+  return Inner ? <Inner o={o} durationInFrames={durationInFrames} /> : null;
+}
+
 const OVERLAYS = {
+  'overlay-studio-design': StudioDesign,
   'cta-button': CtaButton,
   'overlay-text': SmartText,
   'overlay-image': (p) => <ImageOverlay {...p} />,
@@ -424,22 +475,103 @@ function KeyframeWrap({ layer, seqFrom, origin, children }) {
 function CameraBox({ box, children }) {
   const border = box.border ? `${box.border}px solid rgba(255,255,255,0.9)` : undefined;
   return (
-    <div style={{ position: 'absolute', left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%`, overflow: 'hidden', borderRadius: box.radius ? `${box.radius}px` : undefined, border, boxSizing: 'border-box', boxShadow: box.radius ? '0 6px 24px rgba(0,0,0,0.5)' : undefined }}>
+    <div style={{ position: 'absolute', left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%`, overflow: 'hidden', borderRadius: box.radius ? (typeof box.radius === 'string' ? box.radius : `${box.radius}px`) : undefined, border, boxSizing: 'border-box', boxShadow: box.radius ? '0 6px 24px rgba(0,0,0,0.5)' : undefined }}>
       <AbsoluteFill>{children}</AbsoluteFill>
     </div>
   );
 }
 
-function MediaLayer({ layer, seqFrom }) {
+/** [remix] OpenChatCut zoom / follow-subject reframe: scale about the focal point (their TimelineMediaLayer transform). */
+function OccZoom({ zoom, durationInFrames, children }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  // zoom frames are authored on a 30 fps basis (editor preview), so convert to this render's fps
+  const z = zoomAt(zoom, (frame * 30) / fps, Math.max(1, (durationInFrames * 30) / fps));
+  return <AbsoluteFill style={{ transform: `scale(${z.magnification})`, transformOrigin: `${z.focalX * 100}% ${z.focalY * 100}%` }}>{children}</AbsoluteFill>;
+}
+
+/** [remix] OpenChatCut clip fades: volume (number or per-frame function) with the fade-in/out multiplier applied. */
+function fadedVolume(layer, fps, base, kf) {
+  const fi = layer.fadeIn || 0; const fo = layer.fadeOut || 0;
+  if (!fi && !fo && !kf?.length) return base;
+  const dur = layer.durationInFrames / fps;
+  return (f) => Math.max(0, Math.min(1, base * (kf?.length ? valueAt(kf, f / fps, 1) : 1) * clipFadeFactor(f / fps, dur, fi, fo)));
+}
+
+/** [remix] fade-in/out of a visual clip = opacity multiplier over the whole layer. */
+/** [remix] clip position / scale / rotation (+ tracked path): same CSS as the editor viewer (cinegen/lib/occ/transform.ts). */
+/** [remix] OpenChatCut backgroundFill: blurred, darkened, over-scanned cover copy of the clip behind the contained picture. */
+function OccFill({ layer, trimBefore, seqFrom }) {
+  const { width: W, height: H } = useVideoConfig();
+  const a = backgroundFillAppearance(W, H, layer.clipTransform.fill);
+  return (
+    <AbsoluteFill style={{ filter: backgroundFillFilter(a), transform: `scale(${a.overscanScale})` }}>
+      <MediaLayer layer={{ ...layer, trimBefore, occFx: undefined, fit: 'cover', volume: 0, fadeIn: 0, fadeOut: 0 }} seqFrom={seqFrom} />
+    </AbsoluteFill>
+  );
+}
+
+function OccTransform({ transform, anim, children }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  // [remix] Stage 2: same pure pose function as the editor preview (keys, easing, motion modifiers); no anim = the previous transform CSS
+  const { transform: css, clipPath } = clipPoseCss({ transform, anim }, frame / fps);
+  return css || clipPath ? <AbsoluteFill style={{ ...(css ? { transform: css } : {}), ...(clipPath ? { clipPath } : {}) }}>{children}</AbsoluteFill> : children;
+}
+
+function MediaLayer(props) {
+  const { layer, seqFrom } = props;
   const t = useLayerTime(layer, seqFrom);
+  const { fps } = useVideoConfig();
+  if (!layer.fadeIn && !layer.fadeOut) return <MediaLayerBody {...props} />;
+  const f = clipFadeFactor(t, layer.durationInFrames / fps, layer.fadeIn || 0, layer.fadeOut || 0);
+  return <AbsoluteFill style={{ opacity: f }}><MediaLayerBody {...props} /></AbsoluteFill>;
+}
+
+function MediaLayerBody({ layer, seqFrom }) {
+  const t = useLayerTime(layer, seqFrom);
+  const { width: W, height: H, fps } = useVideoConfig();
   const fit = layer.fit === 'contain' ? 'contain' : 'cover';
   const fx = useLayerEffects(layer, t);
-  if (layer.kind === 'video') {
-    const kfVolume = layer.keyframes?.volume?.length ? valueAt(layer.keyframes.volume, t, 1) : 1;
-    const volume = Math.max(0, Math.min(1, (layer.volume ?? 1) * kfVolume));
-    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%' }} />;
+  const mirror = layer.flip ? { transform: `scale(${layer.flip.h ? -1 : 1}, ${layer.flip.v ? -1 : 1})` } : {};
+  // [remix] OpenChatCut effects / LUT: render through the GL pipeline (also during export, so they are burned in).
+  if (layer.occFx?.length && (layer.kind === 'video' || layer.kind === 'image')) {
+    for (const e of layer.occFx) { if (e.cubeText) registerUserLut({ id: e.id, name: e.name || e.id, text: e.cubeText }); if (e.def) registerSnapshot(e.def); }
+    return (
+      <AbsoluteFill style={mirror}>
+        <OccClipFx
+          item={{ id: layer.id, kind: layer.kind, src: layer.src, trimBefore: layer.trimBefore || 0, playbackRate: layer.playbackRate || 1,
+            // [remix] animated effect properties: keyframed values (30 fps from the clip start) override the static sliders each frame
+            effects: layer.occFx.map((e) => (e.keys ? { ...e, overrides: { ...(e.overrides || {}), ...Object.fromEntries(Object.entries(e.keys).filter(([, l]) => l?.length).map(([k, l]) => [k, sampleFxKey(l, t * 30)])) } } : e)) }}
+          fit={fit} width={W} height={H}
+        />
+        {layer.kind === 'video' && <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={fadedVolume(layer, fps, Math.max(0, Math.min(1, layer.volume ?? 1)), layer.keyframes?.volume)} />}
+      </AbsoluteFill>
+    );
   }
-  return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit }} />;
+  if (layer.kind === 'video') {
+    const volume = fadedVolume(layer, fps, Math.max(0, Math.min(1, layer.volume ?? 1)), layer.keyframes?.volume);
+    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%', ...mirror }} />;
+  }
+  // A scrolling page (e.g. a website screenshot behind the presenter): top of the image at the start,
+  // bottom at the end of the clip.
+  const scroll = layer.scroll ? { objectPosition: `50% ${Math.round(Math.max(0, Math.min(1, t / Math.max(0.001, layer.durationInFrames / fps))) * 1000) / 10}%` } : {};
+  const img = <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...scroll, ...mirror }} />;
+  if (!layer.cursor) return img;
+  // A pointer moving over the page (src/lib/editor/remotion/websiteCursor.js).
+  const pos = cursorAt(t, cursorStops(layer.id));
+  const size = Math.round(H * 0.045);
+  return (
+    <AbsoluteFill>
+      {img}
+      <div style={{ position: 'absolute', left: `${pos.x * 100}%`, top: `${pos.y * 100}%`, width: 0, height: 0 }}>
+        {pos.click > 0 ? <div style={{ position: 'absolute', left: -size * 0.9, top: -size * 0.9, width: size * 1.8, height: size * 1.8, borderRadius: '50%', border: `${Math.max(2, size / 10)}px solid rgba(79,70,229,${0.8 * pos.click})`, transform: `scale(${1.6 - 0.6 * pos.click})` }} /> : null}
+        <svg width={size} height={size} viewBox="0 0 24 24" style={{ position: 'absolute', left: 0, top: 0, filter: 'drop-shadow(0 2px 3px rgba(0,0,0,.45))' }}>
+          <path d="M3 2l7.5 19 2.6-7.9L21 10.5z" fill="#fff" stroke="#111" strokeWidth="1.4" strokeLinejoin="round" />
+        </svg>
+      </div>
+    </AbsoluteFill>
+  );
 }
 
 function OverlayLayer({ layer, Comp }) {
@@ -459,8 +591,8 @@ export function AudioLayer({ layer }) {
   const { fps } = useVideoConfig();
   const kf = layer.keyframes?.volume;
   const base = Math.max(0, Math.min(1, layer.volume ?? 1));
-  const volume = kf?.length ? (f) => Math.max(0, Math.min(1, base * valueAt(kf, f / fps, 1))) : base;
-  return <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} volume={volume} />;
+  const volume = fadedVolume(layer, fps, base, kf);
+  return <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} />;
 }
 
 // ------------------------------------------------------------------ captions
@@ -478,22 +610,22 @@ export function CaptionsLayer({ layer }) {
   const page = pageAt(pages, ms);
   if (!page) return null;
   const fontSize = (Math.max(1, Number(s.fontSize) || 6) / 100) * H;
-  const stroke = s.stroke ? strokeShadow('#000000', fontSize * 0.06) : undefined;
+  const stroke = s.stroke ? strokeShadow(s.strokeColor || '#000000', fontSize * 0.06) : undefined;
   const shadow = [stroke, '0 2px 10px rgba(0,0,0,0.55)'].filter(Boolean).join(', ');
-  const boxedWords = s.preset === 'box';
+  const boxedWords = s.preset === 'box' || s.boxed === true;
   const lineBg = s.background && !boxedWords ? (s.backgroundColor || 'rgba(0,0,0,0.6)') : undefined;
   return (
     <AbsoluteFill style={{ pointerEvents: 'none' }}>
-      <div style={{ position: 'absolute', left: '6%', right: '6%', top: CAPTION_TOP[s.position] || CAPTION_TOP.bottom, transform: 'translateY(-50%)', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ position: 'absolute', left: '6%', right: '6%', top: Number.isFinite(s.positionY) ? `${Math.max(4, Math.min(96, s.positionY * 100))}%` : (CAPTION_TOP[s.position] || CAPTION_TOP.bottom), transform: 'translateY(-50%)', display: 'flex', justifyContent: 'center' }}>
         <div style={{
-          fontFamily: `"${s.fontFamily || 'Inter'}", Arial, sans-serif`, fontWeight: s.bold ? 800 : 500, fontSize, lineHeight: 1.25,
+          fontFamily: `"${s.fontFamily || 'Inter'}", Arial, sans-serif`, fontWeight: s.bold ? 800 : 500, fontStyle: s.italic ? 'italic' : 'normal', fontSize, lineHeight: 1.25,
           textAlign: 'center', color: s.color || '#fff', textTransform: s.uppercase ? 'uppercase' : 'none', textShadow: lineBg ? undefined : shadow,
           background: lineBg, padding: lineBg ? `${fontSize * 0.12}px ${fontSize * 0.35}px` : undefined, borderRadius: lineBg ? fontSize * 0.18 : undefined,
           whiteSpace: 'pre-wrap',
         }}>
           {page.tokens.map((tk, i) => {
             const active = s.highlightActive !== false && ms >= tk.fromMs && ms < tk.toMs;
-            const spoken = s.preset === 'karaoke' && ms >= tk.fromMs;
+            const spoken = (s.preset === 'karaoke' || s.karaoke === true) && ms >= tk.fromMs;
             const color = active || spoken ? (s.highlightColor || '#FFE14D') : (s.color || '#fff');
             const box = boxedWords ? { background: active ? (s.highlightColor || '#EB5054') : (s.backgroundColor || 'rgba(0,0,0,0.6)'), color: '#fff', borderRadius: fontSize * 0.15, padding: `0 ${fontSize * 0.15}px`, textShadow: 'none' } : null;
             return <span key={i} style={{ color, ...(box || {}) }}>{tk.text}</span>;
@@ -506,8 +638,36 @@ export function CaptionsLayer({ layer }) {
 
 // ------------------------------------------------------------------ root
 
+/** [remix] Fix E: nothing of a clip's own layer is drawn while a GL transition window covers it (the window draws both sides itself, with the clip's look). */
+function GlHidden({ windows, layerFrom, children }) {
+  const frame = useCurrentFrame();
+  const abs = layerFrom + frame;
+  if (windows.some((w) => abs >= w.from && abs < w.from + w.durationInFrames)) return null;
+  return children;
+}
+
+/** [remix] Fix E: one GL transition window, composited like a clip: at the incoming clip's z position, with the clips' blend mode (the more visible side's), over what is below. */
+function GlWindow({ g }) {
+  const frame = useCurrentFrame();
+  const p = frame / Math.max(1, g.durationInFrames - 1);
+  const blend = (p < 0.5 ? g.outLook?.clipBlend : g.innLook?.clipBlend) || undefined;
+  return (
+    <AbsoluteFill style={blend ? { mixBlendMode: blend } : undefined}>
+      <GlTransitionLayer out={g.out} inn={g.inn} glType={g.glType} durationInFrames={g.durationInFrames} customDef={g.customDef} glParams={g.glParams} outLook={g.outLook} innLook={g.innLook} resolveLook={resolveSideLook} windowFrom={g.from} />
+    </AbsoluteFill>
+  );
+}
+
 export function TimelineComposition({ model }) {
   const m = model || { layers: [], audio: [], transitions: [], fonts: [] };
+  // GL transitions whose clips are in the model draw inline (see GlWindow / GlHidden); the others keep the old top layer
+  const inline = (m.glTransitions || []).filter((g) => g.outLook && g.innLook && g.outLayerId && g.innLayerId);
+  const hiddenIn = new Map(); const windowAfter = new Map();
+  inline.forEach((g) => {
+    for (const id of [g.outLayerId, g.innLayerId]) hiddenIn.set(id, [...(hiddenIn.get(id) || []), g]);
+    windowAfter.set(g.innLayerId, [...(windowAfter.get(g.innLayerId) || []), g]);
+  });
+  const topGl = (m.glTransitions || []).filter((g) => !inline.includes(g));
   const byOutgoing = new Map();
   const byIncoming = new Map();
   (m.transitions || []).forEach((tr) => {
@@ -517,7 +677,7 @@ export function TimelineComposition({ model }) {
 
   return (
     <AbsoluteFill style={{ backgroundColor: m.background || '#000' }}>
-      <FontGate fonts={m.fonts}>
+      <FontGate fonts={m.fonts} userFonts={m.userFonts}>
         {(m.layers || []).map((layer) => {
           if (layer.kind === 'video' || layer.kind === 'image') {
             const outTr = byOutgoing.get(layer.id);
@@ -532,18 +692,50 @@ export function TimelineComposition({ model }) {
               trimBefore = Math.max(0, trimBefore - (from - inTr.from));
               from = inTr.from;
             }
+            // [remix] clip blend mode (CSS mix-blend-mode, burned into export). Fix E: it is the OUTER element, so the keyframe / static opacity group
+            // (an isolated group in CSS) is blended as a whole with what is below; inside the opacity group the blend had nothing to blend with.
             const content = (
-              <KeyframeWrap layer={layer} seqFrom={from}>
-                <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />
-              </KeyframeWrap>
+              <AbsoluteFill style={layer.clipBlend ? { mixBlendMode: layer.clipBlend } : undefined}>
+                <KeyframeWrap layer={layer} seqFrom={from}>
+                  <AbsoluteFill>
+                    {layer.clipTransform?.fill !== undefined && layer.kind !== 'audio' && <OccFill layer={layer} trimBefore={trimBefore} seqFrom={from} />}
+                    <OccTransform transform={layer.clipTransform} anim={layer.clipAnim}>
+                    {layer.clipZoom
+                      ? <OccZoom zoom={layer.clipZoom} durationInFrames={layer.durationInFrames}><MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} /></OccZoom>
+                      : <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />}
+                    </OccTransform>
+                  </AbsoluteFill>
+                </KeyframeWrap>
+              </AbsoluteFill>
             );
-            return (
-              <Sequence key={layer.id} from={from} durationInFrames={Math.max(1, end - from)} layout="absolute-fill">
-                <InTransition tr={inTr} direction="entering" layerFrom={from}>
-                  <InTransition tr={outTr} direction="exiting" layerFrom={from}>
-                    {layer.box ? <CameraBox box={layer.box}>{content}</CameraBox> : <AbsoluteFill>{content}</AbsoluteFill>}
-                  </InTransition>
+            const hide = hiddenIn.get(layer.id);
+            const body = (
+              <InTransition tr={inTr} direction="entering" layerFrom={from}>
+                <InTransition tr={outTr} direction="exiting" layerFrom={from}>
+                  {layer.box ? <CameraBox box={layer.box}>{content}</CameraBox> : <AbsoluteFill>{content}</AbsoluteFill>}
                 </InTransition>
+              </InTransition>
+            );
+            const seq = (
+              <Sequence key={layer.id} from={from} durationInFrames={Math.max(1, end - from)} layout="absolute-fill">
+                {hide ? <GlHidden windows={hide} layerFrom={from}>{body}</GlHidden> : body}
+              </Sequence>
+            );
+            const wins = windowAfter.get(layer.id);
+            if (!wins) return seq;
+            return (
+              <React.Fragment key={layer.id}>
+                {seq}
+                {wins.map((g) => (
+                  <Sequence key={g.id} from={g.from} durationInFrames={g.durationInFrames} layout="absolute-fill"><GlWindow g={g} /></Sequence>
+                ))}
+              </React.Fragment>
+            );
+          }
+          if (layer.kind === 'group') { // [remix] Fix E: a compound rendered as one group
+            return (
+              <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
+                <GroupLayer group={layer} items={layer.children || []} resolveLook={resolveSideLook} sideOf={glSideLayerFrom} from={layer.from} />
               </Sequence>
             );
           }
@@ -576,6 +768,13 @@ export function TimelineComposition({ model }) {
               </Sequence>
             );
           }
+          if (layer.kind === 'hyperframes') {
+            return (
+              <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
+                <HyperframesLayer layer={layer} />
+              </Sequence>
+            );
+          }
           if (layer.kind === 'captions') {
             return (
               <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
@@ -587,6 +786,18 @@ export function TimelineComposition({ model }) {
           }
           return null;
         })}
+        {/* [remix] OpenChatCut captions, burned into the render */}
+        {(m.occCaptions || []).map((c, i) => (
+          <Sequence key={`occ-cap-${i}`} from={0} durationInFrames={m.durationInFrames} layout="absolute-fill">
+            <OccCaptionsLayer captions={c} items={[]} />
+          </Sequence>
+        ))}
+        {/* [remix] OpenChatCut GL transitions between CineGen clips */}
+        {topGl.map((g) => (
+          <Sequence key={g.id} from={g.from} durationInFrames={g.durationInFrames} layout="absolute-fill">
+            <GlTransitionLayer out={g.out} inn={g.inn} glType={g.glType} durationInFrames={g.durationInFrames} customDef={g.customDef} glParams={g.glParams} outLook={g.outLook} innLook={g.innLook} resolveLook={resolveSideLook} windowFrom={g.from} />
+          </Sequence>
+        ))}
       </FontGate>
       {(m.audio || []).map((a) => (
         <Sequence key={a.id} from={a.from} durationInFrames={a.durationInFrames}>

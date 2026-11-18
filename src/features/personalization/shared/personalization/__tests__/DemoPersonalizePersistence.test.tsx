@@ -67,7 +67,7 @@ vi.mock('../supabaseProjectPersistence', async (importOriginal) => {
 
 vi.mock('@ohb/packages/studio/src/muapi', () => ({ uploadFile: vi.fn() }))
 vi.mock('../assetUploadService', () => ({ uploadPersonalizationAsset: vi.fn() }))
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
 }))
 vi.mock('@ohb/components/SocialPublishProvider', () => ({
@@ -511,5 +511,115 @@ describe('DemoPersonalizeProvider debounced project persistence', () => {
     await settle()
     expect(persistenceSpy.persist).not.toHaveBeenCalled()
     expect(projectWrites()).toHaveLength(0)
+  })
+})
+
+describe('saved recast videos and the "Continue with …" offer', () => {
+  const RECAST = { id: 'rv-1', url: 'https://cdn.example.com/recast.mp4', name: 'Recast', sourceUrl: 'https://cdn.example.com/performance.mp4' }
+
+  async function savedRecastsKey() {
+    const { recastOwnerKey } = await import('../recast/recastJob')
+    return `pz_recast_videos:${recastOwnerKey('test-key')}:${SOURCE.id}`
+  }
+
+  beforeEach(async () => {
+    localStorage.setItem(await savedRecastsKey(), JSON.stringify([RECAST]))
+    persistenceSpy.loadProject.mockResolvedValue({
+      ok: true,
+      data: {
+        id: RESTORED_ID,
+        sourceType: 'go-ai-viral-video',
+        sourceDemoId: SOURCE.id,
+        originalPrompt: 'Original prompt',
+        personalizedPrompt: 'Restored prompt',
+        identityAssetIds: [],
+        logoAssetIds: [],
+        productAssetIds: [],
+        brandReferenceAssetIds: [],
+        outputUrls: [],
+        outputType: 'video',
+      },
+    })
+  })
+
+  it('loading saved recasts still offers the saved project and writes nothing over it', async () => {
+    await mount()
+    await open()
+
+    expect((ctx().assets.presenterVideos || []).map((v) => v.url)).toContain(RECAST.url)
+    expect(ctx().resumableProject).not.toBeNull()
+    expect(projectWrites()).toHaveLength(0)
+  })
+
+  it('continuing the saved project keeps the saved recasts', async () => {
+    await mount()
+    await open()
+    await act(async () => {
+      await ctx().resumeLastProject()
+    })
+    await settle()
+
+    expect(ctx().promptState.personalized).toBe('Restored prompt')
+    expect((ctx().assets.presenterVideos || []).map((v) => v.url)).toContain(RECAST.url)
+    expect(JSON.parse(localStorage.getItem(await savedRecastsKey()) || '[]')).toHaveLength(1)
+  })
+})
+
+describe('the output belongs to the customer it was made for', () => {
+  const projectFor = (extra: Record<string, unknown> = {}) => ({
+    ok: true,
+    data: {
+      id: RESTORED_ID,
+      sourceType: 'go-ai-viral-video',
+      sourceDemoId: SOURCE.id,
+      originalPrompt: 'Original prompt',
+      personalizedPrompt: 'Restored prompt',
+      identityAssetIds: [],
+      logoAssetIds: [],
+      productAssetIds: [],
+      brandReferenceAssetIds: [],
+      outputUrls: ['https://cdn.example.com/customer-a.png'],
+      outputType: 'image',
+      clientId: 'client-a',
+      guidedStep: 2,
+      viewMode: 'advanced',
+      ...extra,
+    },
+  })
+  const lastWrite = () => {
+    const writes = projectWrites()
+    return writes[writes.length - 1].project as { client?: { clientId?: string | null }; generation?: { outputUrls?: string[]; outputGeneratedAt?: string } }
+  }
+  async function restoreCustomerA(extra: Record<string, unknown> = {}) {
+    localStorage.setItem('smartvideo_clients', JSON.stringify({ 'client-a': { id: 'client-a', name: 'Customer A', businessName: 'Customer A', updatedAt: '2026-01-01T00:00:00.000Z', createdAt: '2026-01-01T00:00:00.000Z' }, 'client-b': { id: 'client-b', name: 'Customer B', businessName: 'Customer B', updatedAt: '2026-01-02T00:00:00.000Z', createdAt: '2026-01-02T00:00:00.000Z' } }))
+    persistenceSpy.loadProject.mockResolvedValue(projectFor(extra))
+    await mount()
+    await act(async () => { ctx().openPersonalize({ source: SOURCE }) })
+    await settle()
+    await act(async () => { await ctx().resumeLastProject() })
+    await settle()
+    expect(lastWrite().client?.clientId).toBe('client-a')
+    expect(lastWrite().generation?.outputUrls).toEqual(['https://cdn.example.com/customer-a.png'])
+  }
+
+  it("never saves the previous customer's picture under the customer picked next", async () => {
+    await restoreCustomerA()
+    await act(async () => { ctx().selectClient('client-b') })
+    await settle()
+    const saved = lastWrite()
+    expect(saved.client?.clientId).toBe('client-b')
+    expect(saved.generation?.outputUrls ?? []).toEqual([])
+  })
+
+  it('keeps the picture while the same customer stays selected', async () => {
+    await restoreCustomerA()
+    await act(async () => { ctx().selectClient('client-a') })
+    await settle()
+    expect(lastWrite().generation?.outputUrls).toEqual(['https://cdn.example.com/customer-a.png'])
+  })
+
+  it('saves when the output was generated, and keeps a restored stamp', async () => {
+    await restoreCustomerA({ generation: undefined, outputGeneratedAt: '2026-11-09T10:00:00.000Z' })
+    expect(lastWrite().generation?.outputGeneratedAt).toBe('2026-11-09T10:00:00.000Z')
   })
 })

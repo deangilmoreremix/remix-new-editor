@@ -1,0 +1,555 @@
+{
+  "id": "edit",
+  "name": "Edit Studio",
+  "route": "#/edit",
+  "description": "Edit Studio is a gallery of 16 focused AI photo-editing tools. You pick a tool, upload a photo, adjust a few settings and click Apply Edit to get a before/after result.",
+  "shortDescription": "16 AI photo tools: remove objects and backgrounds, extend, reframe, effects, face swap and more.",
+  "fullDescription": "Edit Studio opens on a grid of 16 tool cards. Clicking a card opens that tool's own mini-studio with a 'Source image' upload, any extra inputs the tool needs (a mask, an outfit photo, a face photo, a logo), an optional prompt, a Settings panel and an 'Apply Edit' button. A Preview panel on the right shows your photo, then a Before / After comparison slider with Download, Generate Again and 'Use result as new source' buttons. Five of the tools (AI Edit, Upscale, Product Shot, Photo Effects, Character & Reference) have a Model dropdown so you can choose between several AI models; the screen adapts to the model (prompt box, number of extra reference images, settings). Edit Studio works on images only in the current code; the upload picker does not accept video.",
+  "bestFor": "Beginners who want to fix or change a photo with a single clear tool, without writing long prompts: removing something from a picture, cutting out a background, putting a product in a scene, trying an outfit, adding a logo, or giving a photo a one-click look.",
+  "whenToUse": [
+    "You have a photo and want one specific change (remove an object, remove the background, extend it, change the aspect ratio).",
+    "You want a one-click look such as 3D figurine, cyberpunk or 1980s (Photo Effects).",
+    "You want to describe a change in plain words and apply it to a photo (AI Edit).",
+    "You want a product photo placed in a new scene (Product Shot).",
+    "You want to swap a face, change an outfit, colorize an old black-and-white photo or add a watermark.",
+    "You want to compare the original and edited photo side by side."
+  ],
+  "whenToUseAnother": [
+    "Use Image Studio (#/image) when you want to create a new picture from a text prompt, or do free-form image-to-image with many models.",
+    "Use Upscale Suite (#/upscale) when you only want a larger, sharper copy of an image with a dedicated method picker.",
+    "Use Character Studio (#/character) when you need one character kept consistent across many images and scenes.",
+    "Use Commercial Studio (#/commercial) for ad-style product and commercial content.",
+    "Use Video Tools (#/videotools) or Video Studio (#/video) when you are working with video clips; Edit Studio does not accept video uploads."
+  ],
+  "keyFeatures": [
+    "16 tool cards: Remove Object, Remove Background, Extend Image, AI Edit, Reframe, Change Dress, Enhance Skin, Colorize, Add Watermark, Upscale, Face Swap, Product Shot, Ghibli Style, Photo Effects, Change Angle, Character & Reference.",
+    "Each tool has a one-line how-to under its title and its own thumbnail.",
+    "'Switch tool' dropdown to jump between tools without going back, and '← All tools' to return to the grid.",
+    "Deep links: opening /?tool=<slug>#/edit (for example tool=remove-object) opens that tool straight away.",
+    "Model dropdown on five tools, grouped by maker, with a short note about the selected model.",
+    "Built-in mask painter for Remove Object (Brush, Erase, Clear, Brush size).",
+    "Before / After preview with Compare slider, Before and After buttons.",
+    "Result actions: Download, Generate Again, 'Use result as new source' (chain edits).",
+    "'This session' strip of earlier results (appears once you have 2 or more results).",
+    "Pexels stock photo browser as a source (button titled 'Browse stock photos from Pexels').",
+    "Cancel button while an edit is running."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Remove Object",
+      "explanation": "Upload a photo, then paint over what you want gone using the mask painter (hint: 'Paint over everything you want removed.'). Tools: Brush, Erase, Clear and a Brush size slider (default 48). You can instead upload a ready-made mask under 'Mask image (optional)': white means remove, black means keep.",
+      "whyToUse": "Clean up photobombers, wires, text or clutter.",
+      "inputRequired": "Source image plus either a painted mask or an uploaded mask.",
+      "restrictions": "Without a mask you see 'Paint over the object you want removed (or upload a mask).' Paint a bit beyond the object so the AI has context."
+    },
+    {
+      "feature": "Remove Background",
+      "explanation": "Upload a photo and get a clean cut-out with a transparent background.",
+      "whyToUse": "Product shots, profile pictures, stickers.",
+      "inputRequired": "Source image only.",
+      "restrictions": "No settings. Works best when the subject is clearly separated from the background."
+    },
+    {
+      "feature": "Extend Image",
+      "explanation": "AI paints in more scene around the edges of your photo (outpainting).",
+      "whyToUse": "Widen a crop or add space around a subject.",
+      "inputRequired": "Source image only.",
+      "restrictions": "No prompt or settings are shown for this tool."
+    },
+    {
+      "feature": "AI Edit",
+      "explanation": "Instruction-based editing: upload a photo and describe the change, for example 'make it night time'. Prompt placeholder: 'Describe the edit...'. Has Aspect Ratio (1:1, 16:9, 9:16, 4:3, 3:4, 2:3, 3:2, 21:9; default 1:1) and Quality (basic or high; default basic) for the default model, and a Model dropdown with 30 editors.",
+      "whyToUse": "The most flexible tool: change colors, add or remove things, change the time of day or style.",
+      "inputRequired": "Source image and a prompt.",
+      "restrictions": "Prompt is required: 'Describe the edit you want.' Some models accept extra reference images (up to 14 for Nano Banana 2 Edit)."
+    },
+    {
+      "feature": "Reframe",
+      "explanation": "Pick a new aspect ratio and AI fills the new space. Settings: Aspect Ratio (16:9, 9:16, 1:1, 4:3, 3:4; default 1:1), Render Speed (Turbo, Balanced, Quality; default Balanced), Style (Auto, General, Realistic, Design; default Auto), Variations (1 to 4).",
+      "whyToUse": "Turn a landscape photo into a vertical one or the reverse.",
+      "inputRequired": "Source image.",
+      "restrictions": "No prompt."
+    },
+    {
+      "feature": "Change Dress",
+      "explanation": "Upload a photo of a person and a photo of the outfit to put on them.",
+      "whyToUse": "Virtual try-on.",
+      "inputRequired": "Source image and 'Outfit image' (a clear photo of the clothing item).",
+      "restrictions": "If the outfit is missing: 'Upload the outfit image.'"
+    },
+    {
+      "feature": "Enhance Skin",
+      "explanation": "Natural, professional skin retouching for a portrait.",
+      "whyToUse": "Portrait cleanup.",
+      "inputRequired": "Source image of a portrait.",
+      "restrictions": "No settings."
+    },
+    {
+      "feature": "Colorize",
+      "explanation": "Adds color to a black-and-white photo.",
+      "whyToUse": "Bring old photos to life.",
+      "inputRequired": "Source image.",
+      "restrictions": "No settings."
+    },
+    {
+      "feature": "Add Watermark",
+      "explanation": "Overlay your logo on a photo. Settings: Position (top-left, top-right, bottom-left, bottom-right, center; default bottom-right), Opacity (0-100%, default 70%), Size (5-100%, default 20%).",
+      "whyToUse": "Brand or protect photos.",
+      "inputRequired": "Source image and 'Watermark / logo image' (a PNG with a transparent background works best).",
+      "restrictions": "If the logo is missing: 'Upload the watermark / logo image.'"
+    },
+    {
+      "feature": "Upscale (inside Edit Studio)",
+      "explanation": "Sharpens and increases resolution. Model dropdown: AI Image Upscaler (quick, clean, good default), Topaz Image Upscale (choose factor 1, 2, 4 or 8; default 2) and Seedvr2 Image Upscale (resolution 2k, 4k or 8k; default 4k).",
+      "whyToUse": "Quick resolution boost without leaving Edit Studio.",
+      "inputRequired": "Source image.",
+      "restrictions": "The 'Upscale Suite' (#/upscale) is the dedicated studio for this."
+    },
+    {
+      "feature": "Face Swap",
+      "explanation": "Upload the photo to change, then a clear photo of the new face. Setting: Target Face Index (0 to 10, default 0) chooses which face in a group photo is replaced.",
+      "whyToUse": "Replace one person's face with another.",
+      "inputRequired": "Source image and 'New face photo' (front-facing, well-lit works best).",
+      "restrictions": "If missing: 'Upload the new face photo.' Use only photos you have the right to use."
+    },
+    {
+      "feature": "Product Shot",
+      "explanation": "Upload a product photo and describe the scene to place it in (field label 'Scene description', placeholder 'Describe the product scene...'). Models: AI Product Shot (places your product in a scene you describe) and AI Product Photography (turns a product photo into a polished studio or lifestyle shot).",
+      "whyToUse": "E-commerce and ad visuals.",
+      "inputRequired": "Source image and a scene description.",
+      "restrictions": "If empty: 'Describe the product scene.'"
+    },
+    {
+      "feature": "Ghibli Style",
+      "explanation": "Redraws any photo in a hand-painted anime style.",
+      "whyToUse": "Fun stylization.",
+      "inputRequired": "Source image.",
+      "restrictions": "No settings."
+    },
+    {
+      "feature": "Photo Effects",
+      "explanation": "One-click looks chosen from a grid of presets. Three models: Image Effects (18 looks, default Angel Figurine; includes Acrylic Ornaments, American Comic Style, Cyberpunk, Felt 3D Polaroid, Glass Ball, Plastic Bubble Figure and more), Nano Banana Effects (17 looks, default 3D Figurine; includes 16bit Game Character, decade looks 1920s to 1980s, Action Figure, landmark and famous-art looks; also an Aspect Ratio setting with Auto default) and Flux Kontext Effects (13 edits, default Age Progression; includes Background Change, Cartoonify, Hair Change, Expression Change, Time of Day, Weather Effect, and a prompt box).",
+      "whyToUse": "Quick creative looks without writing prompts.",
+      "inputRequired": "Source image and a preset (a default is preselected).",
+      "restrictions": "The list of presets depends on the model."
+    },
+    {
+      "feature": "Change Angle",
+      "explanation": "Re-shoot a photo from a new camera angle using the Qwen Camera Angle model: rotate left/right (-90 to 90), move forward (0 to 10), vertical angle (-1 to 1), a wide-angle lens switch and output width/height (256 to 1536, default 1024).",
+      "whyToUse": "See the subject from another side or closer.",
+      "inputRequired": "Source image (the model can take up to 3 images).",
+      "restrictions": "Large rotations may look less natural."
+    },
+    {
+      "feature": "Character & Reference",
+      "explanation": "Upload a person, product or style as the 'Reference image', then describe a new scene (placeholder: 'Describe the new scene, e.g. \"standing on a beach at sunset\"...'). Models: Ideogram Character, Minimax Image 01 Subject Reference, Midjourney v7 Omni Reference (weight sets strength), Midjourney v7 Style Reference, Vidu Q2 Reference To Image (combines up to 7 reference images).",
+      "whyToUse": "Keep the same person, product or style in new scenes.",
+      "inputRequired": "Reference image and a scene prompt.",
+      "restrictions": "If empty: 'Describe the scene you want the reference placed in.'"
+    }
+  ],
+  "howToUse": "1. Open Edit Studio from the side menu (Edit). 2. Click the card of the tool you want, for example Remove Background. 3. Under 'Source image' click the upload button (or the Pexels button) and add your photo; it shows in Preview and the hint changes to 'Image ready'. 4. If the tool shows an extra panel (mask painter, 'Outfit image', 'New face photo', 'Watermark / logo image'), fill it in. 5. If a Model dropdown is shown, choose a model; read the note under it. 6. If a Prompt or 'Scene description' box is shown, type what you want. 7. Adjust anything in the Settings panel. 8. Click Apply Edit. 9. Use the Compare slider, or the Before and After buttons, to check the result. 10. Click Download to save, Generate Again to retry, or 'Use result as new source' to keep editing the result with another tool.",
+  "howToSteps": [
+    "Choose a tool card (or use 'Switch tool' later).",
+    "Upload the Source image.",
+    "Add any extra image or mask the tool needs.",
+    "Choose a Model if the dropdown is shown.",
+    "Fill the Prompt or Settings if shown.",
+    "Click Apply Edit and wait for the preview.",
+    "Compare Before and After, then Download."
+  ],
+  "gettingStarted": [
+    "Try Remove Background first: it needs only a photo and no settings.",
+    "Then try AI Edit with a simple instruction such as 'make the sky a sunset'.",
+    "Use 'Use result as new source' to chain two edits, for example Remove Background then Product Shot."
+  ],
+  "inputs": [
+    "Source image",
+    "Mask (painted or uploaded)",
+    "Outfit image",
+    "New face photo",
+    "Watermark / logo image",
+    "More reference images",
+    "Model",
+    "Prompt / Scene description",
+    "Settings"
+  ],
+  "requiredInputs": [
+    "Source image (every tool)",
+    "Painted or uploaded mask (Remove Object)",
+    "Outfit image (Change Dress)",
+    "New face photo (Face Swap)",
+    "Watermark / logo image (Add Watermark)",
+    "Prompt (AI Edit, Character & Reference)",
+    "Scene description (Product Shot)"
+  ],
+  "optionalInputs": [
+    "Mask image upload (Remove Object, instead of painting)",
+    "More reference images (models that accept several)",
+    "Model choice",
+    "Settings such as aspect ratio, quality, render speed, opacity"
+  ],
+  "inputDetails": [
+    {
+      "name": "Source image",
+      "description": "The photo to edit. Labelled 'Reference image' in Character & Reference. Hint: 'Upload the image to edit'.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "Images only (no video or documents). Up to 10MB per image. You can also pick a stock photo with the Pexels button, or send an image here from the Library."
+    },
+    {
+      "name": "Mask",
+      "description": "Remove Object only. Paint with Brush; use Erase to undo parts, Clear to reset, Brush size to change the stroke width.",
+      "required": true,
+      "whenToUse": "To tell the AI exactly what to remove.",
+      "restrictions": "Or upload a mask image: white = remove, black = keep."
+    },
+    {
+      "name": "Second image",
+      "description": "Outfit image (Change Dress), New face photo (Face Swap) or Watermark / logo image (Add Watermark).",
+      "required": true,
+      "whenToUse": "Only for those tools.",
+      "restrictions": "Use a clear photo; a transparent PNG for logos."
+    },
+    {
+      "name": "More reference images",
+      "description": "Appears as 'More reference images (up to N)' for models that accept several images.",
+      "required": false,
+      "whenToUse": "Blend or guide edits with extra photos.",
+      "restrictions": "N depends on the model (for example 14 total for Nano Banana 2 Edit, so up to 13 extra)."
+    },
+    {
+      "name": "Model",
+      "description": "Dropdown grouped by maker, with a one-line note.",
+      "required": false,
+      "whenToUse": "When you want a different quality, speed or style.",
+      "restrictions": "Only on AI Edit, Upscale, Product Shot, Photo Effects and Character & Reference."
+    },
+    {
+      "name": "Prompt",
+      "description": "Text instruction. Shown only when the chosen model takes one.",
+      "required": false,
+      "whenToUse": "AI Edit, Product Shot, Character & Reference (required there).",
+      "restrictions": "{{token}} placeholders are replaced with the selected contact's details if you use Personalize elsewhere."
+    },
+    {
+      "name": "Settings",
+      "description": "Controls built from the tool and model (selects, sliders, numbers, switches, preset grids).",
+      "required": false,
+      "whenToUse": "To fine-tune.",
+      "restrictions": "The panel is hidden when a tool has no settings."
+    }
+  ],
+  "generationModes": [
+    "Single-tool edit with before/after preview",
+    "Chained edits (Use result as new source)",
+    "Model-switching within multi-model tools"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Gallery view",
+      "description": "The grid of 16 tool cards (each shows 'Open studio ->' on hover).",
+      "useCase": "Browse and choose a tool."
+    },
+    {
+      "mode": "Tool studio view",
+      "description": "Inputs on the left, Preview on the right.",
+      "useCase": "Do the edit."
+    },
+    {
+      "mode": "Compare / Before / After",
+      "description": "Toggle buttons above the preview. Compare shows a draggable divider labelled BEFORE and AFTER.",
+      "useCase": "Judge exactly what changed."
+    }
+  ],
+  "modelCapabilities": "Edit Studio uses image-editing models from src/lib/models.js; the plain-English notes below come from src/components/edit/editModels.js. AI Edit (default Seedream 5.0 Edit, described as 'sharp and follows instructions closely. A good default') offers 30 models: ByteDance (Seedream 5.0 Edit, SeedEdit v3 for precise single-instruction edits, Seedream Edit v4 and v4.5), Google (Nano Banana Edit - fast everyday editor that keeps faces consistent; Nano Banana Pro Edit - higher quality, up to 8 images, choose output resolution; Nano Banana 2 Edit - up to 14 reference images and optional Google Search), OpenAI (GPT-4o Edit, GPT-4o Image To Image from up to 5 images, GPT Image 1.5 Edit - best at text and logos inside images), Flux (Kontext Dev - cheapest and keeps the rest of the photo untouched, Kontext Pro, Kontext Max - highest quality, Flux 2 Dev/Flex/Pro, Flux 2 Klein 4B and 9B - small and fast, Flux 3 - Strength setting), Qwen (Qwen Image Edit - very good with text, Edit Plus up to 3 images, Edit 2511), Wan (2.5, 2.6, 3.0), and Reve, Kling O1 Edit Image, Grok Imagine (two models) and Midjourney v7 Image To Image. Upscale: AI Image Upscaler, Topaz Image Upscale (2x, 4x or 8x) and Seedvr2 Image Upscale (up to 8k). Product Shot: AI Product Shot and AI Product Photography. Photo Effects: Image Effects, Nano Banana Effects, Flux Kontext Effects. Change Angle: Qwen Camera Angle. Character & Reference: Ideogram Character, Minimax Image 01 Subject Reference, Midjourney v7 Omni Reference and Style Reference, Vidu Q2 Reference To Image. Single-model tools use dedicated MuAPI tools (AI Object Eraser, AI Background Remover, AI Image Extension, Ideogram v3 Reframe, AI Dress Change, AI Skin Enhancer, AI Color Photo, Add Image Watermark, AI Image Face Swap, AI Ghibli Style). No prices, credit costs or speed numbers for these are stated in the Edit Studio code.",
+  "outputs": [
+    "An edited image shown in the Preview with a before/after comparison",
+    "A Download link for the result",
+    "A 'This session' thumbnail strip of your results (after the second result)",
+    "The result is also registered in your generation history (Library)"
+  ],
+  "limitations": [
+    "Images only: the upload picker does not accept video or documents.",
+    "There are no separate Inpaint or Relight tools; the 16 tools are the ones listed.",
+    "Each upload is limited to 10MB.",
+    "Edits are applied one at a time; the progress bar is an estimate that moves up to about 90% until the result arrives.",
+    "The 'This session' history is not saved if you refresh the page (the results themselves are registered in your generation history).",
+    "An API key must be present; otherwise a sign-in dialog opens."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "No video editing",
+      "impact": "Uploading an MP4 is not possible in this studio.",
+      "workaround": "Use Video Tools (#/videotools), Video Studio (#/video) or the Timeline editor for video."
+    },
+    {
+      "limitation": "Remove Object needs a mask",
+      "impact": "Clicking Apply Edit without painting or uploading a mask shows an error.",
+      "workaround": "Paint over the object with the Brush, or upload a white-on-black mask."
+    },
+    {
+      "limitation": "Result quality depends on the model",
+      "impact": "Different models change different amounts of the photo.",
+      "workaround": "Try another model in the Model dropdown or use Generate Again."
+    }
+  ],
+  "troubleshooting": [
+    "'Upload a source image first.': you clicked Apply Edit before adding a photo. Upload one in the Source image panel.",
+    "'Paint over the object you want removed (or upload a mask).': in Remove Object, paint on the photo with Brush or upload a mask.",
+    "'Describe the edit you want.' / 'Describe the product scene.' / 'Describe the scene you want the reference placed in.': the selected model needs a prompt. Type one and apply again.",
+    "'Upload the outfit image.' / 'Upload the new face photo.' / 'Upload the watermark / logo image.': the tool needs its second image. Upload it in the extra panel.",
+    "'Could not read the painted mask. Try painting again.': click Clear in the mask painter and paint again.",
+    "'Edit completed, but no result image was returned. Please try again.': the model finished without an image. Click Generate Again or choose another model.",
+    "A red message appears over the preview after Apply Edit: it shows the error text from the AI service. Read it, adjust the input or model and try again.",
+    "A sign-in / API key dialog opens when you click Apply Edit: complete it; the edit then restarts automatically.",
+    "Nothing seems to happen: check the progress area below Apply Edit; use Cancel to stop and retry.",
+    "I do not see the Model dropdown: only AI Edit, Upscale, Product Shot, Photo Effects and Character & Reference have one.",
+    "My painted mask is gone: the mask painter resets when you change tool or source image. Paint it again."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Object removal leaves traces",
+      "steps": [
+        "Click Clear in the mask painter.",
+        "Increase Brush size and paint a little beyond the object edges.",
+        "Click Apply Edit again, or click 'Use result as new source' and run Remove Object a second time."
+      ]
+    },
+    {
+      "issue": "Edit changed more than I wanted",
+      "steps": [
+        "Switch to a model noted for leaving the rest of the photo alone, such as Flux Kontext Dev or SeedEdit v3.",
+        "Make the prompt more specific about the one thing to change.",
+        "Try Generate Again."
+      ]
+    },
+    {
+      "issue": "Upload will not start",
+      "steps": [
+        "Check the image is under 10MB and is a normal image file.",
+        "Try the Pexels button as a test to confirm the rest of the studio works.",
+        "Reload the page and try again."
+      ]
+    },
+    {
+      "issue": "Result is not what the tool says it does",
+      "steps": [
+        "Confirm you opened the right tool (see the title above the form).",
+        "Use the 'Switch tool' dropdown if needed.",
+        "Check the second image slot is filled with the right picture."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Apply Edit shows a validation message in red",
+      "whyItHappens": "A required input is missing.",
+      "howToFix": "Read the message: it names the missing item (source image, mask, outfit, face, logo or prompt)."
+    },
+    {
+      "problem": "Face Swap changes the wrong face",
+      "whyItHappens": "The photo has several faces.",
+      "howToFix": "Change Target Face Index (0 to 10) in Settings and try again."
+    },
+    {
+      "problem": "Watermark is too strong or too big",
+      "whyItHappens": "Defaults are Opacity 70% and Size 20%.",
+      "howToFix": "Lower Opacity or Size and apply again."
+    },
+    {
+      "problem": "Background removal edges look rough",
+      "whyItHappens": "Subject and background are too similar.",
+      "howToFix": "Use a photo with clearer separation or clean up with Remove Object."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Clean product cut-out then place it in a scene",
+      "steps": [
+        "Open Remove Background and upload the product photo; click Apply Edit.",
+        "Click 'Use result as new source'.",
+        "Use 'Switch tool' to open Product Shot.",
+        "Type a scene such as 'on a marble counter with soft morning light' and click Apply Edit.",
+        "Click Download."
+      ]
+    },
+    {
+      "title": "Remove a person from a travel photo",
+      "steps": [
+        "Open Remove Object and upload the photo.",
+        "Paint over the person with Brush (use a larger Brush size).",
+        "Click Apply Edit and use Compare to check the result.",
+        "Click Download."
+      ]
+    },
+    {
+      "title": "Turn a landscape photo into a vertical story",
+      "steps": [
+        "Open Reframe and upload the photo.",
+        "Set Aspect Ratio to 9:16 and Render Speed to Quality.",
+        "Click Apply Edit, then Download."
+      ]
+    },
+    {
+      "title": "Add your logo to photos",
+      "steps": [
+        "Open Add Watermark and upload the photo.",
+        "Upload a transparent PNG as the 'Watermark / logo image'.",
+        "Set Position, Opacity and Size, then click Apply Edit."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "E-commerce product images",
+      "description": "Remove backgrounds and place products in lifestyle scenes.",
+      "steps": [
+        "Remove Background",
+        "Product Shot with a scene description",
+        "Download"
+      ],
+      "expectedOutput": "A polished product image."
+    },
+    {
+      "title": "Photo restoration and fun",
+      "description": "Colorize old photos, retouch skin or apply a Ghibli or figurine look.",
+      "steps": [
+        "Open Colorize, Enhance Skin, Ghibli Style or Photo Effects",
+        "Upload the photo",
+        "Apply Edit"
+      ],
+      "expectedOutput": "A transformed copy of your photo."
+    },
+    {
+      "title": "Virtual try-on",
+      "description": "Show a person in a different outfit.",
+      "steps": [
+        "Open Change Dress",
+        "Upload the person and the outfit image",
+        "Apply Edit"
+      ],
+      "expectedOutput": "The person wearing the new outfit."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Can Edit Studio edit videos?",
+      "answer": "No. In the current studio the upload accepts images only. For video use Video Tools or Video Studio."
+    },
+    {
+      "question": "How many tools are there?",
+      "answer": "16: Remove Object, Remove Background, Extend Image, AI Edit, Reframe, Change Dress, Enhance Skin, Colorize, Add Watermark, Upscale, Face Swap, Product Shot, Ghibli Style, Photo Effects, Change Angle and Character & Reference."
+    },
+    {
+      "question": "How do I switch tools without losing my photo?",
+      "answer": "Use the 'Switch tool' dropdown at the top of the tool screen; your uploaded source image stays loaded."
+    },
+    {
+      "question": "How do I apply a second edit to the result?",
+      "answer": "Click 'Use result as new source', then open another tool."
+    },
+    {
+      "question": "What is the difference between Upscale here and Upscale Suite?",
+      "answer": "Both run the same three upscalers (AI Image Upscaler, Topaz, SeedVR2). Edit Studio shows each model's own settings (Topaz factor 1/2/4/8, SeedVR2 resolution 2k/4k/8k). Upscale Suite is a dedicated page with its own method picker."
+    },
+    {
+      "question": "Which model should I use for AI Edit?",
+      "answer": "The default Seedream 5.0 Edit is described as a good default. Nano Banana Edit is a fast everyday editor, GPT Image 1.5 Edit is best at text and logos, and Flux Kontext Dev is good at leaving the rest of the photo untouched."
+    },
+    {
+      "question": "How do I link directly to one tool?",
+      "answer": "Open the studio with ?tool=<slug> before the #/edit part, for example tool=remove-background, remove-object, extend-image, ai-edit, reframe, change-dress, enhance-skin, colorize, add-watermark, upscale, face-swap, product-shot, ghibli-style, photo-effects, change-angle or character-reference."
+    },
+    {
+      "question": "Why is there a Cancel button?",
+      "answer": "It appears while an edit runs so you can stop waiting and start again."
+    }
+  ],
+  "glossary": {
+    "Mask": "A black-and-white image that marks the area to change; white is the area to remove or change.",
+    "Outpainting": "AI drawing new content beyond the original edges (Extend Image).",
+    "Reframe": "Changing the aspect ratio and letting AI fill the new area.",
+    "Source image": "The photo you are editing.",
+    "Reference image": "A photo the AI should keep a person, product or style from.",
+    "Before / After": "The original photo and the edited result shown for comparison.",
+    "Model": "The AI engine that performs the edit."
+  },
+  "tips": [
+    "Use a larger brush for Remove Object so the AI sees surrounding context.",
+    "Remove Background works best when the subject clearly stands out from the background.",
+    "Use a clear, front-facing, well-lit face for Face Swap.",
+    "Use a transparent PNG for the watermark.",
+    "Write short, specific instructions in AI Edit, one change at a time.",
+    "Use the Compare slider before you download."
+  ],
+  "bestPractices": [
+    "Start from the highest-quality source image you have.",
+    "Chain small edits with 'Use result as new source' rather than one huge instruction.",
+    "Keep each upload under 10MB.",
+    "Download results you want to keep."
+  ],
+  "relatedStudios": [
+    "image",
+    "upscale",
+    "character",
+    "commercial",
+    "brand",
+    "videotools",
+    "library"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "image",
+      "relationship": "Create or transform images with a prompt",
+      "whenToMove": "When you want a brand-new image or free-form image-to-image with many models.",
+      "why": "Image Studio has the full model picker and prompt bar."
+    },
+    {
+      "studio": "upscale",
+      "relationship": "Dedicated upscaling",
+      "whenToMove": "When the only goal is more resolution.",
+      "why": "Upscale Suite is built just for that."
+    },
+    {
+      "studio": "character",
+      "relationship": "Consistent characters",
+      "whenToMove": "When the same person must appear across many images.",
+      "why": "Character Studio focuses on that."
+    },
+    {
+      "studio": "videotools",
+      "relationship": "Video editing tools",
+      "whenToMove": "When your media is a video.",
+      "why": "Edit Studio does not take video."
+    }
+  ],
+  "notConfirmed": [
+    "Real credit/price per edit: not stated in code.",
+    "Whether the server enforces a plan check for Edit Studio (the code only checks for an API key; older docs mention an entitlement check).",
+    "Exact on-screen labels of some model-specific settings (they come from each model's schema titles, for example for Change Angle).",
+    "Whether the studio's Library 'use in studio' hand-off works in every case (the code says the source picker is mounted first to receive it).",
+    "Output file format and exact resolution of each result.",
+    "Whether the AI Image Upscaler honours a scale factor (Edit Studio shows no factor setting for it)."
+  ],
+  "sourceFiles": [
+    "src/components/EditStudio.js",
+    "src/components/edit/editModels.js",
+    "src/components/edit/maskPainter.js",
+    "src/components/UploadPicker.js",
+    "src/lib/editor/uploadLimits.js",
+    "src/lib/models.js",
+    "src/lib/instructions.js",
+    "src/data/studioLandingPages.js",
+    "docs/EDIT_STUDIO_CURRENT_SPEC.md",
+    "public/api/model-catalog.json",
+    "src/lib/modelDescriptions.js",
+    "src/lib/modelComparisonData.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read EditStudio.js in full, edit/editModels.js, edit/maskPainter.js (labels), loaded model specs from models.js, UploadPicker limits, instructions.js, landing page data and the current spec doc. Code trusted over docs: the doc is out of date (it describes a static-control version) and the landing page text describes video editing that the code does not have.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

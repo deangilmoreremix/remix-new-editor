@@ -1,0 +1,214 @@
+# Personalization modal parity matrix (OpenHiggsBolt -> remix-new-editor)
+
+Generated from `diff` of `OpenHiggsBolt/src/shared/personalization` against `src/features/personalization/shared/personalization`.
+Status: MISSING = not in remix; DRIFTED = differs (value = changed lines); IDENTICAL = byte-equal. The Port column is updated as work lands.
+
+Decisions: keep the remix palette/tokens; port OHB features and code; full stack (front-end, routes, migrations written but not applied live).
+
+## Core files (templates and tests excluded)
+
+| Status | File | Changed lines | Port |
+|---|---|---|---|
+| MISSING | `advanced/AdvancedWorkspace.tsx` | - | ported |
+| MISSING | `advanced/FullBodyRecastPanel.tsx` | - | ported |
+| MISSING | `advanced/ReadinessChecklist.tsx` | - | ported |
+| MISSING | `businessContentFromResearch.ts` | - | ported |
+| MISSING | `guided/AssetUsagePanel.tsx` | - | ported |
+| MISSING | `guided/DesignLayerPlayer.tsx` | - | ported |
+| MISSING | `guided/DesignRecommendations.tsx` | - | ported |
+| MISSING | `guided/ImageStyleControls.tsx` | - | ported |
+| MISSING | `guided/LayoutQualityPanel.tsx` | - | ported |
+| MISSING | `guided/RecastOption.tsx` | - | ported |
+| MISSING | `guided/useLayoutQuality.ts` | - | ported |
+| MISSING | `preview/StyledBusinessImage.tsx` | - | ported |
+| MISSING | `preview/assetUsage.ts` | - | ported |
+| MISSING | `preview/endCard.ts` | - | ported |
+| MISSING | `preview/fitSettingsToClip.ts` | - | ported |
+| MISSING | `preview/imageHintsLoader.ts` | - | ported |
+| MISSING | `preview/imagePixels.ts` | - | ported |
+| MISSING | `preview/imagePresets.ts` | - | ported |
+| MISSING | `preview/imageStyle.ts` | - | ported |
+| MISSING | `preview/layerContent.ts` | - | ported |
+| MISSING | `preview/mediaRoles.ts` | - | ported |
+| MISSING | `preview/placement/buildInput.ts` | - | ported |
+| MISSING | `preview/placement/engine.ts` | - | ported |
+| MISSING | `preview/placement/frameSampler.ts` | - | ported |
+| MISSING | `preview/placement/geometry.ts` | - | ported |
+| MISSING | `preview/placement/index.ts` | - | ported |
+| MISSING | `preview/placement/quality.ts` | - | ported |
+| MISSING | `preview/placement/restore.ts` | - | ported |
+| MISSING | `preview/placement/types.ts` | - | ported |
+| MISSING | `preview/remoteMedia.ts` | - | ported |
+| MISSING | `preview/sourceProfile.ts` | - | ported |
+| MISSING | `recast/recastJob.ts` | - | ported |
+| MISSING | `recast/useRecastJob.ts` | - | ported |
+| MISSING | `researchHelpers.ts` | - | ported |
+| MISSING | `websiteClassification.ts` | - | ported |
+| DRIFTED | `PersonalizationModal.tsx` | 2033 | ported |
+| DRIFTED | `DemoPersonalizeProvider.tsx` | 1824 | ported |
+| DRIFTED | `guided/PersonalizationTemplateBrowser.tsx` | 659 | ported |
+| DRIFTED | `image-editor/ImageEditorModal.tsx` | 273 | ported |
+| DRIFTED | `guided/OverlayEditor.tsx` | 259 | ported |
+| DRIFTED | `preview/presets.ts` | 254 | ported |
+| DRIFTED | `preview/PersonalizationComposition.tsx` | 172 | ported |
+| DRIFTED | `modelCapabilityResolver.ts` | 111 | ported |
+| DRIFTED | `guided/StepPreviewApprove.tsx` | 105 | ported |
+| DRIFTED | `generationRouter.ts` | 99 | ported |
+| DRIFTED | `preview/types.ts` | 65 | ported |
+| DRIFTED | `ai/AIAssistPanel.tsx` | 58 | ported |
+| DRIFTED | `ai/toolExecutor.ts` | 50 | ported |
+| DRIFTED | `guided/tokens.ts` | 49 | ported |
+| DRIFTED | `guided/buildPreviewInput.ts` | 46 | ported |
+| DRIFTED | `preview/BeforeAfterPreview.tsx` | 43 | ported |
+| DRIFTED | `DiscoveredAssetGrid.tsx` | 40 | ported |
+| DRIFTED | `guided/StepFindBusiness.tsx` | 39 | ported |
+| DRIFTED | `guided/TemplateBrowser.tsx` | 39 | ported |
+| DRIFTED | `preview/designSlots.ts` | 39 | ported |
+| DRIFTED | `guided/StepPersonalize.tsx` | 31 | ported |
+| DRIFTED | `sharedMedia.ts` | 31 | ported |
+| DRIFTED | `guided/overlayGeometry.ts` | 28 | ported |
+| DRIFTED | `preview/PersonalizationPlayer.tsx` | 26 | ported |
+| DRIFTED | `types.ts` | 23 | ported |
+| DRIFTED | `postProcessor.ts` | 22 | ported |
+| DRIFTED | `guided/StepChooseVideo.tsx` | 18 | ported |
+| DRIFTED | `image-editor/MaskEditor.tsx` | 18 | ported |
+| DRIFTED | `assetUploadService.ts` | 16 | ported |
+| DRIFTED | `ownershipBadge.ts` | 14 | ported |
+| DRIFTED | `openaiPersonalizationClient.ts` | 11 | ported |
+| DRIFTED | `promptPersonalizer.ts` | 10 | ported |
+| DRIFTED | `ai/contextProvider.ts` | 8 | ported |
+| DRIFTED | `demoSources.ts` | 8 | ported |
+| DRIFTED | `supabaseProjectPersistence.ts` | 7 | ported |
+| DRIFTED | `guided/demoCategories.ts` | 6 | ported |
+| DRIFTED | `sourceNormalizer.ts` | 6 | ported |
+| DRIFTED | `guided/curatedDemos.ts` | 4 | ported |
+| DRIFTED | `ai/responseBuilder.ts` | 2 | ported |
+| DRIFTED | `guided/SimpleModeWizard.tsx` | 2 | ported |
+| DRIFTED | `image-editor/imageEditApi.ts` | 2 | ported |
+| DRIFTED | `imageLoadProbe.ts` | 1 | ported |
+
+Identical already (33 files): ResumeProjectBanner.tsx, ai/index.ts, ai/toolRegistry.ts, ai/types.ts, aiAssist/toolRegistry.ts, alphaVerification.ts, businessNiches.ts, clientAssets.ts, clientProfile.ts, editedAssetPersistence.ts, finalOutput.ts, guided/AudioTrackPicker.tsx, guided/CardPreviewVideo.tsx, guided/DemoGalleryControls.tsx, guided/audioTrack.ts, guided/index.ts, image-editor/batchVideoReady.ts, image-editor/imageEditRegistry.ts, image-editor/imageEditSupport.ts, image-editor/normalizeImage.ts, image-editor/responsesVisionApi.ts, index.ts, leadStages.ts, preview/PreviewControls.tsx, preview/index.ts, preview/previewAssets.ts, preview/previewMediaEvents.ts, projectRestore.ts, studioEntry.ts, supabaseGeneratedVideos.ts, supabaseSharedMedia.ts, urlNormalizer.ts, webExport.ts
+
+## Templates
+
+OHB `templates/`: 313 files; remix: 61 files.
+
+## Backend routes (`netlify/functions/_personalization/app/api`)
+
+| Route | Status |
+|---|---|
+| `demo/discover/route.ts` | DRIFTED (17 lines) |
+| `media/remote/route.ts` | MISSING |
+| `media/shotcraft/[styleKey]/route.ts` | DRIFTED (2 lines) |
+| `personalization/discover-assets/route.ts` | DRIFTED (20 lines) |
+| `personalization/discover-assets/status/route.ts` | DRIFTED (10 lines) |
+| `personalization/download-image/route.ts` | DRIFTED (12 lines) |
+| `personalization/find-businesses/route.ts` | DRIFTED (14 lines) |
+| `personalization/image-analyze/route.ts` | DRIFTED (12 lines) |
+| `personalization/image-edit/route.ts` | DRIFTED (10 lines) |
+| `personalization/image-smart-edit/route.ts` | DRIFTED (8 lines) |
+| `personalization/leads/[id]/route.ts` | DRIFTED (14 lines) |
+| `personalization/leads/route.ts` | DRIFTED (16 lines) |
+| `personalization/persist-edited-asset/route.ts` | MISSING |
+| `personalization/project/route.ts` | DRIFTED (32 lines) |
+| `personalization/record/route.ts` | DRIFTED (10 lines) |
+| `personalization/research-business/route.ts` | DRIFTED (10 lines) |
+| `personalization/resolve-website/route.ts` | MISSING |
+| `v1/[...slug]/route.ts` | MISSING |
+| `v1/upload_file/route.ts` | DRIFTED (19 lines) |
+| `video/record/route.ts` | MISSING |
+
+## Supabase migrations
+
+Correction to the first audit: remix does not lack these by content. The consolidated
+`20261102000000_lead_finder_personalization.sql` already defines `personalization_saved_projects` (+ `_list`, `_get`,
+`_upsert`, `_delete`, `_list_by_source`), `personalization_demo_discovery_limits` / `_cache` and their RPCs
+(including the `pz_demo_limits_request_count_non_negative` constraint), `lead_finder_leads` + RPCs,
+`smartvideo_go_personalization_outputs` and the owner policies. Matching by file name overstated the gap.
+
+| OHB migration | Status |
+|---|---|
+| `20260905000000_create_personalization_outputs` | present (`20261012000000_...`) |
+| `20260919000000_create_smartvideo_go_personalization_outputs` | present (consolidated) |
+| `20260928000000_create_personalization_discovery_jobs` | present (`20261013000000_...`) |
+| `20261010160100_personalization_projects_owner_rls` | present (consolidated policies) |
+| `20261013000000_personalization_saved_projects`, `20261024000000_..._list_by_source` | present (consolidated) |
+| `20261014000000_demo_discovery_limits`, `20261014010000_pz_demo_constraint_name` | present (consolidated) |
+| `20261021000000_lead_finder_leads` | present (consolidated) |
+| `20261031000000_generated_videos` | **added** as `20261112120000_generated_videos.sql` (not applied to any database) |
+
+## Intentional remix divergences (allow-list)
+
+- Remix palette and tokens (`guided/tokens.ts`, `--cyan:#d9ff00`, `--bg:#050505`).
+- `@ohb/...` import aliases and remix glue: `mount.jsx`, `lib/apiAuth.ts`, `SocialPublishContext` bridge, studio-id maps, `hashchange` auto-close.
+- `renderStrongMarkup`, `mergeIntoClientLibrary`, `importDiscoveredAssets(options)`; Motion Director integration.
+
+## Baseline (before port)
+
+`npx vitest run src/features/personalization`: 131 files, 1199 passed, 1 failed, 8 skipped, 13 unhandled rejections ("Durable storage is not configured").
+Pre-existing failure: `apps/motion-director/__tests__/legacyCards.test.ts` (retired recipes textures) - unrelated to the modal.
+
+## Port status (after the port)
+
+- Front-end: all 35 missing core files and the template tree added; 42 drifted files merged (three-way, base = closest OHB
+  revision); provider and modal keep the remix palette, `renderStrongMarkup`, session guards and OpenAI/MuAPI key gating.
+- Backend: `src/server` refreshed from OHB (remix `createRequire` kept in `browserDiscovery.ts`); new routes
+  `personalization/resolve-website`, `media/remote` and a real `video/record` (replaces the acknowledge-only stub).
+  Not ported on purpose: `v1/[...slug]` (entitlement-gated; remix serves the MuAPI proxy through `api/api/v1`),
+  Stripe / design-agent / access routes and their tests.
+- Vendored studio package: `muapi.js` merged (adds `resumeGeneration`, keeps remix Clerk upload auth); `lib/assetStore.js`
+  added as a no-op shim because remix already stores originals (`personalization-assets`) and approved results (Asset Library).
+- Verification: personalization suite 2128 tests (2117 pass, 10 skipped, 1 pre-existing `legacyCards` failure); server suite
+  572/572; `vite build` succeeds; scoped `tsc` at baseline (+3 `.js` declaration warnings).
+- Skipped tests (documented in-file): jsdom 27 limits (image load, Blob/Response, computed CSS) - re-enable after a jsdom upgrade.
+
+## Sync 2: OpenHiggsBolt `main` @ `cc01e08d` (14 Nov)
+
+The first port (PR #120) was made from an OpenHiggsBolt checkout dated 11 Nov. `main` was then 101 commits ahead; this sync ports the
+changes since, by three-way merging each file (base = the 11 Nov file, theirs = `main`, ours = remix `develop`) after the same remix
+rewrites (`@ohb/` aliases, remix palette, server shims). Remix `develop` had meanwhile ported part of Asset Finder background removal
+itself; those hunks merged without conflict.
+
+**Ported**
+- Overlay editor: eight resize handles, rotation handle and field, layer rotation in the composition, timeline, undo/redo and shortcuts,
+  inspector tabs, first-run tour, edit on the live animated video (`guided/editor/*`, `preview/rotation.ts`, `layerOrder.ts`, `motion.ts`,
+  `scrim.ts`, `textStyle.ts`, shared luma-sample cache).
+- Asset Finder background removal for signed-out visitors (public image route `POST /api/demo/download-image`, `BeforeAfterSlider`).
+- "Remove branding (AI)" (`guided/RemoveBrandingControl.tsx`, `useBrandingRemoval.ts`, `brandingRemoval.ts`) - a paid, confirm-first action.
+- Business Finder: enrichment (`POST /api/personalization/enrich-business`, `useBusinessEnrichment`, `SocialIcons`), backfill with per-stage
+  timeouts and resume, client-IP rate-limit key, chain registry additions, streaming byte limit for `download-image`, with their tests.
+
+**Not ported on purpose**
+- Academy (course player, progress API, `academy_progress` migrations) - excluded by request.
+- Social publishing / thumbnail designer (`components/social-publishing`, `thumbnail-generate`, `socialPayloads`, `src/lib/thumbnailUpload`,
+  `openaiImage*`) and the social-connect change in `src/lib/muapi.js` - OpenHiggsBolt's own publish dialog; remix publishes through
+  `src/lib/socialPublishHelpers.js`.
+
+**Remix-specific adjustments kept**: still-image sources stay out of `videoUrl`; footage is measured on the cover crop of the frame shape
+(`sampleCacheKey`); `enrich-business` and `demo/download-image` are registered in `personalization-api.mts`, the Vite proxy and the auth prefix
+list; the enrichment integration test reads its local fixture with `node:http` because remix's test setup mocks global `fetch`.
+
+## Remix-only additions (captions layer also ported to OpenHiggsBolt, see below)
+
+Free, in-browser tools added on top of the port. They need no server and no paid API; the on-device AI ones download their model once, only
+after the person agrees, and reuse the Timeline Editor's local AI (`src/lib/editor/ml`, `src/lib/editor/remotion`).
+
+- Brand kit, wording ideas, saved looks ("My templates"), readability checks with one-click fixes, design ranking with reasons, extra export
+  shapes, logo tracing (`brand/`, `copy/`, `guided/editor/savedTemplates.ts`, `preview/placement/a11y.ts`, `templates/recommendations.ts`,
+  `preview/exportFormats.ts`, `preview/logoVectorize.ts`).
+- On-device AI: find the subject (`preview/placement/subjectDetect.ts`), sharpen small pictures 2x (`preview/imageUpscale.ts`), captions
+  (`captions/`, `guided/CaptionsPanel.tsx`): written from the video's speech, editable, drawn INTO the video (`preview/CaptionsLayer.tsx`,
+  `settings.captions`, so they appear in the preview and in every export) and downloadable as SRT/VTT. Shared consent/progress control:
+  `localAI/`.
+- Caption looks: 27 extra looks (`captions/capiteStyles.ts`, pure data + CSS builders) in the personalization captions layer and as presets in the
+  Timeline Editor (`src/lib/editor/remotion/captions.js`). Personalization draws every look fully; the Timeline Editor maps scale/pop/bounce/glow to a plain
+  word highlight. Personalization uses only its bundled font (no network), so a look's own font shows only if installed. SRT/VTT parser in
+  `captions/captionCues.ts` (`parseCaptionFile`).
+- Languages and more downloads for captions (`captions/scripts.ts`, `captions/assExport.ts`, `captions/textTools.ts`, `captions/captionAss.ts`): a language
+  picker (Detect automatically + Whisper's languages) is passed to the on-device transcription and saved with the captions (`settings.captions.language`);
+  Arabic and Hebrew are set right to left, other scripts get their font stack and a size for wide letters (read from the letters when no language is saved);
+  `.txt` and `.ass` downloads next to `.srt`/`.vtt`. The three shared files are identical in OpenHiggsBolt, where the language is chosen by hand (no speech
+  engine there). The Timeline Editor's language list is the same full list. The script table follows ai-video-captions (MIT).
+- **Also in OpenHiggsBolt (ported):** the burned-in captions layer, 27 looks, editable lines and SRT/VTT export. OpenHiggsBolt has no speech engine, so its
+  captions come from a loaded .srt/.vtt file or typed lines instead of "write captions from the video's sound". `capiteStyles.ts`, `captionStyle.ts` and
+  `CaptionsLayer.tsx` are byte-identical in both repos; keep them in sync.

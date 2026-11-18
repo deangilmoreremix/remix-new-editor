@@ -21,7 +21,7 @@ import { createRoot } from 'react-dom/client'
 // ── Provider dependency mocks (same set as DemoPersonalizeProvider.test.tsx) ──
 vi.mock('@ohb/packages/studio/src/muapi', () => ({ uploadFile: vi.fn() }))
 vi.mock('../assetUploadService', () => ({ uploadPersonalizationAsset: vi.fn() }))
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -98,6 +98,8 @@ export function configureCapableBrowser() {
 }
 
 export function resetRendererMocks() {
+  // These tests start renders that are never resolved; forget them so the next test is not refused as "busy".
+  webExportModule.resetActiveExport()
   vi.clearAllMocks()
   configureCapableBrowser()
 }
