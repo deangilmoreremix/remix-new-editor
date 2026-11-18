@@ -3,7 +3,7 @@
  * classes. Hidden behind a short message when the site has no VAPID key; never throws.
  *
  *   mountPushCard(host, { getClient, pushEnabled, onPushPref, vapidKey?, env?, onToast? }) -> { destroy, ready }
- *   getClient()          Supabase client (verified identity) used for the push_subscriptions row
+ *   getClient()          Supabase client (verified identity) used for the owner_push_subscriptions row
  *   pushEnabled          current retarget_preferences.push value
  *   onPushPref(boolean)  persists retarget_preferences.push (rejects -> the toggle is put back)
  */

@@ -22,7 +22,7 @@ function setup({ note = NOTE, prefs = PREFS, subs = [SUB], send } = {}) {
     let data = null;
     if (u.includes('owner_notifications')) data = note ? [note] : [];
     else if (u.includes('retarget_preferences')) data = prefs ? [prefs] : [];
-    else if (u.includes('push_subscriptions') && method === 'GET') data = subs;
+    else if (u.includes('owner_push_subscriptions') && method === 'GET') data = subs;
     return { ok: true, status: 200, text: async () => (data ? JSON.stringify(data) : '') };
   });
   const webpush = { setVapidDetails: vi.fn(), sendNotification: vi.fn(send || (async () => ({ statusCode: 201 }))) };

@@ -9,7 +9,7 @@ is documented separately; this page covers what runs in the browser.
 1. Open Timeline Editor, Analytics, Notifications. The **Browser push notifications** card sits under Preferences.
 2. **Enable on this device** (a click, never on page load) asks the browser for permission, calls
    `pushManager.subscribe({ userVisibleOnly: true, applicationServerKey })` and stores the subscription in
-   `public.push_subscriptions` (delete-then-insert on the endpoint, there is no UPDATE policy). It also switches on
+   `public.owner_push_subscriptions` (delete-then-insert on the endpoint, there is no UPDATE policy). It also switches on
    `retarget_preferences.push`.
 3. **Send test notification** shows a local notification through the service worker, so you can check OS and browser
    settings without the server.

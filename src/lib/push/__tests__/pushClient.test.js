@@ -91,8 +91,8 @@ describe('subscribe', () => {
     expect(opts.userVisibleOnly).toBe(true);
     expect(opts.applicationServerKey).toBeInstanceOf(Uint8Array);
     expect(client.calls).toEqual([
-      ['delete', 'push_subscriptions', 'endpoint', 'https://push.example/abc'],
-      ['insert', 'push_subscriptions', { endpoint: 'https://push.example/abc', p256dh: 'P', auth: 'A', user_agent: 'Chrome' }],
+      ['delete', 'owner_push_subscriptions', 'endpoint', 'https://push.example/abc'],
+      ['insert', 'owner_push_subscriptions', { endpoint: 'https://push.example/abc', p256dh: 'P', auth: 'A', user_agent: 'Chrome' }],
     ]);
   });
   it('retries once when an old subscription used a different server key', async () => {
@@ -118,7 +118,7 @@ describe('unsubscribe, test notification, inspect', () => {
     const reg = makeRegistration(); reg._set(reg.sub); const client = makeClient();
     const r = await unsubscribe({ registration: reg, client });
     expect(r.status).toBe('unsubscribed');
-    expect(client.calls).toEqual([['delete', 'push_subscriptions', 'endpoint', 'https://push.example/abc']]);
+    expect(client.calls).toEqual([['delete', 'owner_push_subscriptions', 'endpoint', 'https://push.example/abc']]);
     expect(reg.sub.unsubscribe).toHaveBeenCalled();
   });
   it('keeps the browser subscription if the row delete fails', async () => {

@@ -11,7 +11,7 @@
 -- ===========================================================================
 
 -- ---------------------------------------------------------------- subscriptions
-create table if not exists public.push_subscriptions (
+create table if not exists public.owner_push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   clerk_user_id text not null default (auth.jwt() ->> 'sub'),
   endpoint text not null unique check (char_length(endpoint) <= 2048 and endpoint like 'https://%'),
@@ -22,21 +22,21 @@ create table if not exists public.push_subscriptions (
   last_success_at timestamptz,
   failure_count integer not null default 0
 );
-create index if not exists push_subscriptions_owner_idx on public.push_subscriptions (clerk_user_id);
+create index if not exists owner_push_subscriptions_owner_idx on public.owner_push_subscriptions (clerk_user_id);
 
-alter table public.push_subscriptions enable row level security;
+alter table public.owner_push_subscriptions enable row level security;
 
-drop policy if exists "Owners read own push subscriptions" on public.push_subscriptions;
-drop policy if exists "Owners add own push subscriptions" on public.push_subscriptions;
-drop policy if exists "Owners delete own push subscriptions" on public.push_subscriptions;
-create policy "Owners read own push subscriptions" on public.push_subscriptions for select to authenticated
+drop policy if exists "Owners read own push subscriptions" on public.owner_push_subscriptions;
+drop policy if exists "Owners add own push subscriptions" on public.owner_push_subscriptions;
+drop policy if exists "Owners delete own push subscriptions" on public.owner_push_subscriptions;
+create policy "Owners read own push subscriptions" on public.owner_push_subscriptions for select to authenticated
   using ((select auth.jwt() ->> 'sub') = clerk_user_id);
-create policy "Owners add own push subscriptions" on public.push_subscriptions for insert to authenticated
+create policy "Owners add own push subscriptions" on public.owner_push_subscriptions for insert to authenticated
   with check ((select auth.jwt() ->> 'sub') = clerk_user_id);
-create policy "Owners delete own push subscriptions" on public.push_subscriptions for delete to authenticated
+create policy "Owners delete own push subscriptions" on public.owner_push_subscriptions for delete to authenticated
   using ((select auth.jwt() ->> 'sub') = clerk_user_id);
-revoke all on public.push_subscriptions from anon, authenticated;
-grant select, insert, delete on public.push_subscriptions to authenticated; -- no update; service role bypasses
+revoke all on public.owner_push_subscriptions from anon, authenticated;
+grant select, insert, delete on public.owner_push_subscriptions to authenticated; -- no update; service role bypasses
 
 -- ---------------------------------------------------------------- owner opt-in
 -- The existing "Owners manage own settings" policy and the table-level

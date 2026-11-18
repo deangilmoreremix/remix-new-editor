@@ -1,10 +1,10 @@
 /**
  * Browser side of Web Push: feature detection, permission state, subscribe / unsubscribe for THIS device and the
- * `push_subscriptions` row the server sends to. Every browser dependency is injected (`env`, `registration`,
+ * `owner_push_subscriptions` row the server sends to. Every browser dependency is injected (`env`, `registration`,
  * `client`) so it is unit-testable. Subscription endpoints and keys are never logged.
  */
 
-export const PUSH_TABLE = 'push_subscriptions';
+export const PUSH_TABLE = 'owner_push_subscriptions';
 
 export function urlBase64ToUint8Array(base64) {
   const padded = `${base64}${'='.repeat((4 - (base64.length % 4)) % 4)}`.replace(/-/g, '+').replace(/_/g, '/');

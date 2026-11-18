@@ -40,7 +40,7 @@ describe('push card', () => {
     host.querySelector('[data-push-toggle]').click();
     await tick(); await tick(); await tick();
     expect(Notification.requestPermission).toHaveBeenCalledTimes(1);
-    expect(calls).toEqual([['delete', 'push_subscriptions'], ['insert', 'push_subscriptions', 'https://push.example/abc']]);
+    expect(calls).toEqual([['delete', 'owner_push_subscriptions'], ['insert', 'owner_push_subscriptions', 'https://push.example/abc']]);
     expect(onPushPref).toHaveBeenCalledWith(true);
     expect(host.querySelector('[data-push-toggle]').textContent).toBe('Disable on this device');
     expect(host.querySelector('[data-push-test]')).not.toBeNull();

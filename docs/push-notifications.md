@@ -11,7 +11,7 @@ covers lead-generator / list-builder leads (`new_lead`), the retarget feature (`
  owner device (service worker + subscribe UI)
    | PushManager.subscribe(VAPID public key)
    v   insert (RLS: own rows only)
- public.push_subscriptions  <-----------------------------+
+ public.owner_push_subscriptions  <-----------------------------+
                                                           | read / cleanup (service role)
  public.owner_notifications --AFTER INSERT trigger-->  pg_net http_post
    (type != daily_digest; no-op if pg_net or           POST {notification_id}
@@ -36,7 +36,7 @@ The in-app bell also receives the row live: `owner_notifications` is added to th
 
 ## Database (migration `20261118210000_web_push_notifications.sql`)
 
-- `push_subscriptions`: `id`, `clerk_user_id` (default `auth.jwt()->>'sub'`), `endpoint` (unique, https, <= 2048),
+- `owner_push_subscriptions`: `id`, `clerk_user_id` (default `auth.jwt()->>'sub'`), `endpoint` (unique, https, <= 2048),
   `p256dh`, `auth`, `user_agent` (<= 300), `created_at`, `last_success_at`, `failure_count`. Owners can select, insert
   and delete their own rows; no update. The service role bypasses RLS.
 - `retarget_preferences.push boolean not null default false`: per-account opt-in (existing owner policy and grants cover it).
@@ -88,3 +88,5 @@ on conflict (id) do update set url = excluded.url, secret = excluded.secret;
 - Endpoints and keys are never logged. Subscriptions are per device and owner-deletable (RLS); dead or failing
   subscriptions are removed automatically.
 - Owners control delivery with `push`, `enabled_types` and `quiet_hours`; with no preferences row nothing is pushed.
+
+Note: the table is named `owner_push_subscriptions` because a different feature (the personalization app) already owns a `push_subscriptions` table in the same database, with a different shape (`endpoint_hash`, server-written).

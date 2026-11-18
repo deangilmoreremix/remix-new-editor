@@ -23,7 +23,7 @@ Prerequisites that should already be applied (check the Migrations list): `20261
 | 2 | `20261118130000_video_leads_email_dedupe.sql` | Repeat sign-up dedupe (`email_key` + unique index). Forward-only: old leads are not backfilled |
 | 3 | `20261118131000_video_leads_followup_hardening.sql` | `updated_at`, tag length check, trigger bumping `updated_at` |
 | 4 | `20261118200000_video_audience_country_versions.sql` | Country capture, "Where your viewers come from", "Compare versions" |
-| 5 | `20261118210000_web_push_notifications.sql` | `push_subscriptions`, `retarget_preferences.push`, `push_dispatch_config`, push trigger, Realtime on `owner_notifications` |
+| 5 | `20261118210000_web_push_notifications.sql` | `owner_push_subscriptions`, `retarget_preferences.push`, `push_dispatch_config`, push trigger, Realtime on `owner_notifications` |
 
 - [ ] 1–3 applied (Leads)
 - [ ] 4 applied (Analytics)

@@ -94,7 +94,7 @@ export async function dispatchPush({ notificationId, env = process.env, fetchImp
   if (!Array.isArray(prefs.enabled_types) || !prefs.enabled_types.includes(note.type)) return { sent: 0, reason: 'type_disabled' };
   if (inQuietHours(prefs.quiet_hours, now)) return { sent: 0, reason: 'quiet_hours' };
 
-  const subs = await call(`push_subscriptions?select=id,endpoint,p256dh,auth,failure_count&clerk_user_id=eq.${owner}&limit=50`);
+  const subs = await call(`owner_push_subscriptions?select=id,endpoint,p256dh,auth,failure_count&clerk_user_id=eq.${owner}&limit=50`);
   if (!subs?.length) return { sent: 0, reason: 'no_subscriptions' };
 
   const wp = await loadWebPush(webpush);
@@ -106,17 +106,17 @@ export async function dispatchPush({ notificationId, env = process.env, fetchImp
     try {
       await wp.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, body, { TTL: 3600, urgency: 'normal' });
       out.sent += 1;
-      await call(`push_subscriptions?id=eq.${s.id}`, { method: 'PATCH', body: { last_success_at: now.toISOString(), failure_count: 0 } }).catch(() => {});
+      await call(`owner_push_subscriptions?id=eq.${s.id}`, { method: 'PATCH', body: { last_success_at: now.toISOString(), failure_count: 0 } }).catch(() => {});
     } catch (err) {
       const status = Number(err?.statusCode);
       if (status === 404 || status === 410) {
         out.removed += 1;
-        await call(`push_subscriptions?id=eq.${s.id}`, { method: 'DELETE' }).catch(() => {});
+        await call(`owner_push_subscriptions?id=eq.${s.id}`, { method: 'DELETE' }).catch(() => {});
         return;
       }
       out.failed += 1;
       const failures = (Number(s.failure_count) || 0) + 1;
-      await call(`push_subscriptions?id=eq.${s.id}`, failures >= MAX_FAILURES ? { method: 'DELETE' } : { method: 'PATCH', body: { failure_count: failures } }).catch(() => {});
+      await call(`owner_push_subscriptions?id=eq.${s.id}`, failures >= MAX_FAILURES ? { method: 'DELETE' } : { method: 'PATCH', body: { failure_count: failures } }).catch(() => {});
     }
   }));
   return out;
