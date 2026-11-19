@@ -70,10 +70,10 @@ const FALLBACK_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="non
 // All SPA route -> { label, category }. Icons resolved from ICONS above.
 // 'category' groups the drawer the same way the global sidebar is grouped.
 // Retired from the menus: Training, Chat, Assist, Stock Media, Community
-// (their routes redirect, see RETIRED_ROUTES in router.js).
+// (their routes redirect, see RETIRED_ROUTES in router.js). Explore is retired
+// too: its prompt library now lives on the Templates page.
 export const STUDIO_ROUTES = {
   apps: { label: 'Apps', category: 'Home' },
-  explore: { label: 'Explore', category: 'Home' },
   templates: { label: 'Templates', category: 'Home' },
   image: { label: 'Image Studio', category: 'Image' },
   edit: { label: 'Edit Studio', category: 'Image' },
@@ -167,7 +167,6 @@ export function getGroupedStudioRoutes() {
 export const NAV_GROUPS = [
   { title: '', items: [
     { id: 'apps', label: 'Apps' },
-    { id: 'explore', label: 'Explore' },
     { id: 'templates', label: 'Templates' },
     { id: 'academy', label: 'Academy' },
   ] },
@@ -176,6 +175,7 @@ export const NAV_GROUPS = [
     { id: 'edit', label: 'Edit' },
     { id: 'upscale', label: 'Upscale' },
     { id: 'character', label: 'Character' },
+    { id: 'influencer', label: 'AI Influencer' },
     { id: 'commercial', label: 'Product Shot' },
     { id: 'brand', label: 'Brand' },
   ] },
@@ -195,12 +195,17 @@ export const NAV_GROUPS = [
   { title: 'Agents', items: [
     { id: 'video-agent', label: 'Video Agent' },
     { id: 'zackd', label: 'Zack D' },
+    { id: 'motion-director', label: 'Motion Director' },
     { id: 'director', label: 'Director' },
     { id: 'timeline', label: 'Timeline' },
     { id: 'workbench', label: 'Workbench' },
     { id: 'viral', label: 'Viral' },
     { id: 'personalizer', label: 'Personalizer' },
     { id: 'video-pages', label: 'Video Pages' },
+    { id: 'leadfinder', label: 'Lead Finder' },
+    { id: 'outreach', label: 'Video Outreach' },
+    { id: 'recorder', label: 'Recorder' },
+    { id: 'find-my-brand', label: 'Find My Brand' },
     { id: 'website-builder', label: 'Website' },
   ] },
   { title: 'My Work', items: [

@@ -29,7 +29,7 @@ describe('Sidebar fixes', () => {
 
   it('should not list retired studios (Training, Chat, Assist, Stock Media, Community)', async () => {
     const ids = await navIds();
-    for (const id of ['training', 'chat', 'assist', 'pexels-media', 'community']) {
+    for (const id of ['training', 'chat', 'assist', 'pexels-media', 'community', 'explore']) {
       expect(ids).not.toContain(id);
     }
     const fs = await import('node:fs');
@@ -38,7 +38,7 @@ describe('Sidebar fixes', () => {
 
   it('should redirect retired routes instead of loading them', async () => {
     const mod = await import('../lib/router.js');
-    expect(Object.keys(mod.RETIRED_ROUTES).sort()).toEqual(['assist', 'chat', 'community', 'pexels-media', 'training']);
+    expect(Object.keys(mod.RETIRED_ROUTES).sort()).toEqual(['assist', 'chat', 'community', 'explore', 'pexels-media', 'training']);
   });
 
   it('should map brand sub-routes to brand for active state', async () => {

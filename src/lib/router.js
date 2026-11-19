@@ -58,7 +58,8 @@ export const RETIRED_ROUTES = {
   training: 'apps',
   chat: 'apps',
   assist: 'apps',
-  community: 'explore',
+  community: 'templates',
+  explore: 'templates',
   'pexels-media': 'library',
 };
 
@@ -76,7 +77,6 @@ const pageLoaders = {
   character: () => import('../components/CharacterStudio.js').then(m => m.CharacterStudio()),
   influencer: () => import('../components/InfluencerStudio.js').then(m => m.InfluencerStudio()),
   commercial: () => import('../components/CommercialStudio.js').then(m => m.CommercialStudio()),
-  explore: () => import('../components/ExplorePage.js').then(m => m.ExplorePage()),
   avatar: () => import('../components/AvatarStudio.js').then(m => m.AvatarStudio()),
   'smart-video-scheduler': () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
   brightbean: () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),

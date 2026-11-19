@@ -3,11 +3,13 @@ import { getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggl
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { navigate } from '../lib/router.js';
 import { getTemplateThumbnail, createThumbnailImg, createStudioHeader } from '../lib/thumbnails.js';
+import { CURATED_PROMPTS } from '../data/curatedPrompts.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 
 const FAVORITES_FILTER = '★ Favorites';
 const RECENT_FILTER = '🕒 Recent';
+const PROMPTS_FILTER = '✨ Prompts';
 
 export function TemplatesPage() {
   const container = document.createElement('div');
@@ -45,7 +47,7 @@ export function TemplatesPage() {
     }
   })();
   const niches = Object.values(NICHE_LABELS_MAP || {});
-  const allFilters = ['All', FAVORITES_FILTER, RECENT_FILTER, 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
+  const allFilters = ['All', FAVORITES_FILTER, RECENT_FILTER, PROMPTS_FILTER, 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
   
   let activeFilter = null;
 
@@ -146,6 +148,11 @@ export function TemplatesPage() {
       }
       nicheGroups[t.niche].push(t);
     });
+
+    if (activeFilter === PROMPTS_FILTER) {
+      sectionsContainer.appendChild(createPromptsSection());
+      return;
+    }
 
     if (activeFilter === FAVORITES_FILTER || activeFilter === RECENT_FILTER) {
       const ids = activeFilter === FAVORITES_FILTER ? getFavoriteTemplateIds() : getRecentTemplateIds();
@@ -375,6 +382,37 @@ function createTemplateSection(category, catTemplates, isNiche) {
     grid.appendChild(card);
   });
 
+  section.appendChild(grid);
+  return section;
+}
+
+// Curated prompts (formerly the Explore page): "Try this prompt" opens Image Studio prefilled.
+function createPromptsSection() {
+  const section = document.createElement('div');
+  section.className = 'mb-10 animate-fade-in-up';
+  section.innerHTML = `<h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">Prompt Library <span class="text-xs font-medium text-muted">${CURATED_PROMPTS.length}</span></h2>`;
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+  CURATED_PROMPTS.forEach((p) => {
+    const card = document.createElement('div');
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 hover:bg-white/[0.06] transition-all';
+    card.dataset.searchable = `${p.prompt} ${p.category} ${p.model}`;
+    const meta = document.createElement('div');
+    meta.className = 'text-xs text-muted mb-2';
+    meta.textContent = `${p.category} / ${p.model}`;
+    const text = document.createElement('div');
+    text.className = 'text-sm text-white leading-relaxed mb-3';
+    text.textContent = p.prompt;
+    const btn = document.createElement('button');
+    btn.className = 'text-xs font-bold text-primary hover:underline';
+    btn.textContent = 'Try this prompt';
+    btn.onclick = () => {
+      try { localStorage.setItem('prefill_prompt', p.prompt); } catch { /* storage blocked */ }
+      navigate('image');
+    };
+    card.append(meta, text, btn);
+    grid.appendChild(card);
+  });
   section.appendChild(grid);
   return section;
 }
