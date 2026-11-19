@@ -20,6 +20,7 @@ export default defineConfig({
     '**/template-generator.spec.js',
     '**/website-builder-navigation.spec.js',
     '**/projects-analytics.spec.js',
+    '**/onboarding.spec.js',
   ],
   testIgnore: '**/node_modules/**',
 

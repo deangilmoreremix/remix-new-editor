@@ -140,6 +140,11 @@ const pageLoaders = {
   'photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
   'brand-photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
   animate: () => import('../components/AnimatePage.js').then(m => m.AnimatePage()),
+  // Onboarding is a full page (no side menu), mounted by main.js on load: navigating here from inside the app reloads into it.
+  onboarding: () => {
+    try { window.location.reload(); } catch { /* ignore */ }
+    return Promise.resolve(document.createElement('div'));
+  },
   // Academy: the page parses its own #/academy/track/<track>[/lesson|template/<id>] hash.
   academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
 };

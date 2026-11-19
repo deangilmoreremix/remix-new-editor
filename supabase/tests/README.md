@@ -20,7 +20,7 @@ Scripts 10-41 are independent: re-create the database between them.
 - `./run-assertions.sh` builds a throwaway database from the migrations and runs `50_assertions.sql`: every expectation raises
   on failure, so the script exits non-zero (owner A vs B isolation across projects/videos/revisions/events/notifications,
   anon cannot enumerate or ingest, forged owner, public payload carries no secrets, ingest idempotency/allowlist/limits,
-  owner-only delete of analytics).
+  owner-only delete of analytics). `53_app_onboarding_assertions.sql` covers the app-wide onboarding table (owner-only RLS, no delete, check constraints, anon denied).
 - `60_perf_seed.sql` seeds 100k sessions / 600k events; `61_perf_queries.sql` times the owner RPCs (results in `docs/video-analytics.md`).
 
 ## Hardening simulation (Stage 10)

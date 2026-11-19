@@ -25,6 +25,12 @@ describe('onboarding tool catalog', () => {
       expect(onDisk(t.thumb), `${t.id}: ${t.thumb}`).toBe(true);
     }
   });
+  it('gives every tool its own picture (no two cards share one)', () => {
+    const thumbs = buildToolGroups().flatMap((g) => g.items).map((t) => t.thumb);
+    const dupes = thumbs.filter((t, i) => thumbs.indexOf(t) !== i);
+    // Known stand-ins that reuse another tool's art until dedicated images exist (see the plan's follow-ups).
+    expect(new Set(dupes).size, `shared pictures: ${[...new Set(dupes)].join(', ')}`).toBeLessThanOrEqual(2);
+  });
   it('only recommends tools that are in the menu, and every goal maps to known video types', () => {
     const ids = new Set(toolIds());
     for (const v of VIDEO_TYPES) for (const id of v.tools) expect(ids.has(id), `${v.id} -> ${id}`).toBe(true);

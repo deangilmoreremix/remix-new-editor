@@ -19,6 +19,11 @@ const EXTRA_DESCRIPTIONS = Object.freeze({
   'ai-vfx': 'Camera moves, VFX and AI effects from a single image',
 });
 
+// These share a studio picture with another tool on the Apps page; the picker uses their own hero picture so no two
+// cards look the same (viral = Video Studio's picture, personalizer = Video Agent's).
+const PREFER_HERO = new Set(['viral', 'personalizer']);
+const thumbFor = (id) => (PREFER_HERO.has(id) && getHeroThumbnail(id)) || getStudioThumbnail(id) || getHeroThumbnail(id) || null;
+
 /** The picker's menu: [{ title, items: [{ id, label, name, description, thumb, icon, group }] }], Home skipped. */
 export function buildToolGroups() {
   return NAV_GROUPS
@@ -32,7 +37,7 @@ export function buildToolGroups() {
           label: it.label,
           name: app?.name || it.label,
           description: app?.description || EXTRA_DESCRIPTIONS[it.id] || '',
-          thumb: getStudioThumbnail(it.id) || getHeroThumbnail(it.id) || null,
+          thumb: thumbFor(it.id),
           icon: getStudioIcon(it.id),
           group: g.title,
         };

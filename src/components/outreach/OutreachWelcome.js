@@ -3,33 +3,8 @@
 // The SmartVideo welcome in Video Outreach: five short questions, one per screen, with a progress bar,
 // Back and Skip. Every answer is handed to onChange (saved straight away by the caller), so leaving
 // half-way picks up at the same question next time. Answers and options: src/lib/outreach/onboarding.js.
+import { el, svg, ICONS, LOGO, card, INPUT } from '../onboarding/ui.js';
 import { GOALS, TEAM_SIZES, VOLUMES, SOURCES, ONBOARDING_STEPS, cleanOnboarding, workReady, normalizeWebsite } from '../../lib/outreach/onboarding.js';
-
-const el = (tag, cls = '', txt) => {
-  const n = document.createElement(tag);
-  if (cls) n.className = cls;
-  if (txt !== undefined) n.textContent = txt;
-  return n;
-};
-const svg = (paths, size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
-const ICONS = {
-  camera: '<rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21 7.5v9l-5.5-3"/>',
-  sparkles: '<path d="M10 3.5 11.8 8.2 16.5 10l-4.7 1.8L10 16.5l-1.8-4.7L3.5 10l4.7-1.8z"/><path d="M18 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/>',
-  user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/>',
-  users: '<circle cx="9" cy="8.5" r="3"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M15.5 14.6c2.4.1 4.2 1.6 4.8 4.4"/>',
-  group: '<circle cx="8" cy="9" r="2.6"/><circle cx="16" cy="9" r="2.6"/><path d="M3 18.5c.5-2.6 2.4-4 5-4s4.5 1.4 5 4"/><path d="M11 18.5c.5-2.6 2.4-4 5-4s4.5 1.4 5 4"/>',
-  briefcase: '<rect x="3" y="7.5" width="18" height="12" rx="2.2"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5"/><path d="M3 12.5h18"/>',
-  building: '<path d="M4 21V9l8-5 8 5v12"/><path d="M9.5 21v-5.5h5V21"/><path d="M3 21h18"/>',
-  back: '<path d="m14.5 6-6 6 6 6"/>',
-  arrow: '<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>',
-  academy: '<path d="M2.5 9 12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11v4.5c1.5 1.4 3.4 2 5.5 2s4-.6 5.5-2V11"/><path d="M21.5 9v5"/>',
-};
-const LOGO = `<div class="grid h-8 w-8 place-items-center rounded-lg bg-white p-1.5">${svg('<path d="M12 2 2 7l10 5 10-5-10-5Z" fill="black" stroke="none"/><path d="m2 17 10 5 10-5" stroke="black" stroke-width="2"/><path d="m2 12 10 5 10-5" stroke="black" stroke-width="2"/>', 22)}</div>`;
-
-// Outlined, never filled (like the studios' prompt bar); chosen = light lime tint, like Personalize.
-const CARD = 'text-left rounded-2xl border bg-white/[0.02] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50';
-const card = (on) => `${CARD} ${on ? 'border-primary/45 bg-primary/[0.07]' : 'border-white/10 hover:border-primary/35 hover:bg-white/[0.04]'}`;
-const INPUT = 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[15px] text-white placeholder:text-white/35 outline-none focus:border-primary/50';
 
 /**
  * mountOutreachWelcome(host, { name, initial, onChange(answers), onFinish(answers), onAcademy() }) -> { destroy }
