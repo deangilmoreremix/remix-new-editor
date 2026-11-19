@@ -179,7 +179,7 @@ describe('notifications bell realtime: synchronous owner id', () => {
     const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur });
     await tick(); await tick();
     expect(bell._count()).toBe(7);
-    cur = 'user_2';                                  // another account, and an alert for the old one arrives
+    cur = 'user_2'; rt.userId = 'user_2'; srv.s.n = 0;   // another account (nothing unread), and an alert for the old one arrives
     rt.handlers.forEach((h) => h({ new: { id: 'n3', type: 'new_lead', title: 'x', read_at: null } }));
     await tick(); await tick();
     expect(bell._count()).toBe(0);
@@ -198,15 +198,26 @@ describe('notifications bell realtime: synchronous owner id', () => {
     expect(bell._count()).toBe(3);
     bell.destroy();
   });
+  it('an alert on the old channel after an account switch drops it and reconnects for the new owner', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1';
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 100000 });
+    await tick(); await tick();
+    cur = 'user_2'; rt.userId = 'user_2';
+    rt.handlers[0]({ new: { id: 'n9', type: 'new_lead', title: 'x', read_at: null } });
+    await wait(50);
+    expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
+    bell.destroy();
+  });
   it('the badge is also cleared when the owner changes during the asynchronous lookup', async () => {
     const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
     const getRealtime = vi.fn(async () => { if (slow) await gate; return rt.getRealtime(); });
-    const bell = createNotificationsBell({ getClient: async () => live(5), isSignedIn: () => true, getRealtime, getCurrentUserId: () => cur });
+    const srv = live(5);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime, getCurrentUserId: () => cur });
     await tick(); await tick();
     expect(bell._count()).toBe(5);
     slow = true;
     rt.handlers.forEach((h) => h({ new: { id: 'n4', type: 'new_lead', title: 'x', read_at: null } }));
-    cur = 'user_2'; release(); await tick(); await tick();
+    cur = 'user_2'; rt.userId = 'user_2'; srv.s.n = 0; release(); await tick(); await tick();
     expect(bell._count()).toBe(0);
     bell.destroy();
   });

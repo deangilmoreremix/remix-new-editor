@@ -84,14 +84,15 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
     try { return typeof getCurrentUserId === 'function' && (getCurrentUserId() || '') !== mine.userId; } catch { return false; } // a throwing host callback never breaks the bell
   };
   // Removes the channel AND the previous owner's unread number, so a stale badge is never shown to someone else.
+  // (guardedInsert reconnects for whoever is signed in now; the identity timer only watches a channel that still exists.)
   const dropChannel = () => { count = 0; draw(); return stopRealtime(); };
   async function guardedInsert(payload, mine) {
     if (!alive || rt !== mine) return;
-    if (!isSignedIn() || ownerChanged(mine)) { dropChannel(); return; }               // signed out or another account: drop the channel now
+    if (!isSignedIn() || ownerChanged(mine)) { dropChannel().then(() => ensureRealtime()); return; }               // signed out or another account: drop the channel now
     try {
       const info = await getRealtime();
       if (!alive || rt !== mine) return;
-      if (!isSignedIn() || ownerChanged(mine) || !info?.userId || info.userId !== mine.userId) { dropChannel(); return; } // changed while the lookup was pending
+      if (!isSignedIn() || ownerChanged(mine) || !info?.userId || info.userId !== mine.userId) { dropChannel().then(() => ensureRealtime()); return; } // changed while the lookup was pending
     } catch { return; }
     onInsert(payload);
   }
