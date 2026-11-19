@@ -1,0 +1,16 @@
+{
+  "library-media-motion-sound-themes": {
+    "text": "Motion",
+    "click": true
+  },
+  "edit-with-ai-chat": {
+    "text": "AI Chat",
+    "click": true
+  },
+  "timeline": {
+    "text": "+ Track"
+  },
+  "export-video": {
+    "text": "Export video"
+  }
+}

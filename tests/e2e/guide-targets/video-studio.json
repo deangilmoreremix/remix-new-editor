@@ -1,0 +1,8 @@
+{
+  "animate-image-image-to-video": {
+    "route": "image-to-video"
+  },
+  "edit-video-extend-uploaded-video-motion-transfer": {
+    "skip": true
+  }
+}

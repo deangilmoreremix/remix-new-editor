@@ -1,0 +1,17 @@
+{
+  "brand-dna-editor": {
+    "route": "brand-dna"
+  },
+  "campaign-studio": {
+    "route": "campaign"
+  },
+  "asset-editor": {
+    "route": "asset-edit"
+  },
+  "photo-studio": {
+    "route": "photo-studio"
+  },
+  "photo-studio-generation-mode-brand-api-direct-muapi": {
+    "route": "brand-photo-studio"
+  }
+}

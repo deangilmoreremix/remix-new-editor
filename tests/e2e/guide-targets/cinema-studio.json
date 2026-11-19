@@ -1,0 +1,11 @@
+{
+  "camera-and-lens-controls": {
+    "skip": true
+  },
+  "camera-movement": {
+    "skip": true
+  },
+  "video-image-switch": {
+    "skip": true
+  }
+}

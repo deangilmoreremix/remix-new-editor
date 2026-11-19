@@ -1,0 +1,10 @@
+{
+  "text-to-image": {
+    "text": "Describe the image you want to create",
+    "selector": "textarea"
+  },
+  "model-picker": {
+    "text": "Nano Banana",
+    "click": true
+  }
+}

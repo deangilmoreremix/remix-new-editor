@@ -22,7 +22,8 @@ import { TARGETS, DANGEROUS, SKIP_STUDIOS } from './guide-screenshot-targets.js'
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, 'public/guides');
-const MANIFEST = path.join(ROOT, 'src/data/guideScreenshots.json');
+// GUIDE_MANIFEST lets parallel trial runs write somewhere else.
+const MANIFEST = process.env.GUIDE_MANIFEST || path.join(ROOT, 'src/data/guideScreenshots.json');
 const BASE = process.env.GUIDE_BASE_URL || 'http://localhost:3100';
 const MAX_LOAD_MS = Number(process.env.GUIDE_MAX_LOAD_MS || 45000);
 
@@ -142,8 +143,11 @@ async function open(page, route) {
 // Find the best visible control for a feature. Returns an element handle or null.
 async function findControl(page, feature, target) {
   if (target?.selector) {
-    const el = page.locator(target.selector).filter({ visible: true }).first();
-    if (await el.count()) return el.elementHandle();
+    for (const frame of page.frames()) {
+      const el = frame.locator(target.selector).filter({ visible: true }).first();
+      if (await el.count().catch(() => 0)) return el.elementHandle();
+    }
+    if (!target.text) return null;
   }
   if (target?.text) return matchControl(page, [target.text.toLowerCase()], []);
   return (await matchControl(page, null, tokens(feature.name)))
@@ -230,7 +234,33 @@ for (const guide of GUIDES) {
       const target = targets[f.id];
       if (target?.skip) continue;
       const route = target?.route || guide.route;
-      if (route !== here) { await open(page, route); here = route; }
+      const fresh = Boolean(target?.setup || target?.steps);
+      if (route !== here || fresh) { await open(page, route); here = route; }
+
+      // Optional setup: run code in the page (e.g. seed a sample result), then reload.
+      if (target?.setup) {
+        await page.evaluate(target.setup).catch((e) => console.log(`    setup error: ${e.message.split('\n')[0]}`));
+        if (target.reload !== false) await open(page, route);
+      }
+      // Optional steps: clicks (text or selector) to reach the feature (menus, sub-tabs, wizard steps).
+      for (const step of target?.steps || []) {
+        const loc = step.selector
+          ? page.locator(step.selector).filter({ visible: true }).first()
+          : page.getByText(step.text, { exact: Boolean(step.exact) }).filter({ visible: true }).first();
+        await loc.click({ timeout: 4000 }).catch(() => console.log(`    step not found: ${step.text || step.selector}`));
+        await page.waitForTimeout(step.wait || 1200);
+        await closeApiModal(page);
+      }
+      if ((target?.steps || target?.setup) && !target.text && !target.selector) {
+        try {
+          shot.features[f.id] = await save(f.id);
+          console.log(`  ✓ ${guide.slug}/${f.id} ← after steps`);
+        } catch (e) {
+          console.log(`  - ${guide.slug}/${f.id}: capture failed (${e.message.split('\n')[0]}), uses overview`);
+        }
+        here = null; // page state changed: reopen for the next feature
+        continue;
+      }
 
       // The feature is its own page (e.g. Brand → Campaign Studio at #/campaign).
       if (target?.route && !target.text && !target.selector) {
@@ -261,7 +291,7 @@ for (const guide of GUIDES) {
       // A click that navigated away: reload the studio and move on.
       if (page.url() !== urlBefore) {
         console.log(`  - ${guide.slug}/${f.id}: "${label.slice(0, 30)}" navigates away, uses overview`);
-        await open(page, here);
+        here = null;
         continue;
       }
       try {
@@ -270,14 +300,14 @@ for (const guide of GUIDES) {
         console.log(`  ✓ ${guide.slug}/${f.id} ← "${label.slice(0, 40).replace(/\s+/g, ' ')}"${opened ? ' (opened)' : ''}${needsKey ? ' (needs API key: modal closed)' : ''}`);
       } catch (e) {
         console.log(`  - ${guide.slug}/${f.id}: capture failed (${e.message.split('\n')[0]}), uses overview`);
-        await open(page, here);
+        here = null;
         continue;
       }
       await clearHighlight(page);
       // Close whatever was opened: Escape, and if the page still changed, reload.
       await page.keyboard.press('Escape').catch(() => {});
       await page.keyboard.press('Escape').catch(() => {});
-      if (opened) await open(page, here);
+      if (opened || fresh) here = null; // reopen the studio before the next feature
       else await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
     }
 
