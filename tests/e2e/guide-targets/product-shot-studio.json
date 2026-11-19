@@ -1,1 +1,42 @@
-{}
+{
+  "ad-video-script-and-image-references": {
+    "steps": [
+      {
+        "text": "Ad video",
+        "exact": true
+      }
+    ],
+    "selector": "textarea[aria-label=\"Ad script\"]"
+  },
+  "ad-video-avatar-and-references": {
+    "steps": [
+      {
+        "text": "Ad video",
+        "exact": true
+      },
+      {
+        "text": "Select Avatar",
+        "exact": true
+      }
+    ],
+    "selector": "[data-ad-controls] [role=\"dialog\"]"
+  },
+  "ad-video-format-ratio-resolution-duration": {
+    "steps": [
+      {
+        "text": "Ad video",
+        "exact": true
+      }
+    ],
+    "selector": "[data-ad-controls]",
+    "click": false
+  },
+  "three-dot-tools-menu": {
+    "steps": [
+      {
+        "selector": "button[aria-label=\"More enhancement tools\"]"
+      }
+    ],
+    "selector": ".overflow-menu.is-open .overflow-menu__panel"
+  }
+}

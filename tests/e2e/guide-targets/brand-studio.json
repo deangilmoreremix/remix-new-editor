@@ -13,5 +13,9 @@
   },
   "photo-studio-generation-mode-brand-api-direct-muapi": {
     "route": "brand-photo-studio"
+  },
+  "recent-brands": {
+    "setup": "localStorage.setItem('brand_dna_list', JSON.stringify([{\"id\": \"guide-b1\", \"brandName\": \"Lumen Coffee Co.\", \"industry\": \"Food & Beverage\"}, {\"id\": \"guide-b2\", \"brandName\": \"Northpeak Outdoors\", \"industry\": \"Outdoor Gear\"}, {\"id\": \"guide-b3\", \"brandName\": \"Velora Skincare\", \"industry\": \"Beauty\"}, {\"id\": \"guide-b4\", \"brandName\": \"Brightside Dental\", \"industry\": \"Healthcare\"}, {\"id\": \"guide-b5\", \"brandName\": \"Kinetic Fitness\", \"industry\": \"Fitness\"}, {\"id\": \"guide-b6\", \"brandName\": \"Harbor & Pine Realty\", \"industry\": \"Real Estate\"}]))",
+    "selector": "xpath=//div[normalize-space(text())=\"Recent Brands\"]/.."
   }
 }

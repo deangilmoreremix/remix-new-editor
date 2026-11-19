@@ -1,1 +1,9 @@
-{}
+{
+  "recently-used": {
+    "setup": "localStorage.setItem('recent_tools', JSON.stringify([{id:'image',name:'Image Studio'},{id:'video',name:'Video Studio'},{id:'audio',name:'Audio Studio'},{id:'upscale',name:'Upscale Suite'}]))",
+    "selector": "div.mb-8:has(> h2:text-is(\"Recently Used\"))"
+  },
+  "section-groups": {
+    "selector": "[data-app-section]"
+  }
+}

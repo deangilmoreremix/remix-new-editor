@@ -1,5 +1,43 @@
 {
+  "element-palette": {
+    "selector": ".dom-palette-grid"
+  },
+  "tokens": {
+    "selector": "div:has(> button.dom-token-chip)"
+  },
+  "properties-panel": {
+    "steps": [
+      {
+        "selector": "button.dom-palette-item:has-text(\"Text\")",
+        "wait": 1500
+      }
+    ],
+    "selector": ".dom-properties-panel"
+  },
+  "image-upload": {
+    "steps": [
+      {
+        "selector": "button.dom-palette-item:has-text(\"Image\")",
+        "wait": 1500
+      }
+    ],
+    "selector": ".dom-properties-panel button:has-text(\"Upload image\")",
+    "click": false
+  },
   "personalization-hub": {
-    "skip": true
+    "selector": ".personalization-hub"
+  },
+  "source-handoff-from-other-studios": {
+    "setup": "(async()=>{const m=await import('/src/lib/personalizerHandoff.js');m.savePersonalizerHandoff(m.createPersonalizerHandoff({studioId:'video',studioName:'Video Studio',route:'video',returnRoute:'video',project:{title:'Spring launch promo'},asset:{type:'video',title:'Spring launch promo',previewUrl:'/media/recast-example/result-poster.jpg',fields:[{id:'headline',label:'Headline',value:'Hi {{firstName}}, meet the new {{product}}'},{id:'cta',label:'Call to action',value:'Book a demo with {{company}}'},{id:'logo',label:'Logo',value:'{{logoUrl}}'},{id:'voiceover',label:'Voiceover script',value:'{{firstName}}, this was made for {{companyName}}.'}]}}));location.hash='#/home';await new Promise(r=>setTimeout(r,1500));location.hash='#/personalizer';await new Promise(r=>setTimeout(r,5000));})()",
+    "reload": false,
+    "selector": "div:has(> div.dom-sidebar-title:has-text(\"Source Content\"))"
+  },
+  "personalization-modal-in-other-studios": {
+    "steps": [
+      {
+        "selector": "#v-contact-btn",
+        "wait": 3000
+      }
+    ]
   }
 }

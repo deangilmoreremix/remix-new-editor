@@ -3,6 +3,20 @@
     "text": "Standard"
   },
   "template-studio-model-and-media-sources": {
-    "skip": true
+    "route": "template/tiktok-video",
+    "selector": "div.mt-6:has(> div > div:text-is(\"Media Sources\"))"
+  },
+  "ai-enhancer": {
+    "route": "template/tiktok-video",
+    "selector": "div:has(> div > #enhancerToggle)"
+  },
+  "advanced-controls": {
+    "route": "template/tiktok-video",
+    "steps": [{ "selector": "#advancedToggle", "wait": 1200 }],
+    "selector": "#advancedControls"
+  },
+  "output-tabs": {
+    "route": "template/tiktok-video",
+    "selector": "div:has(> #outputTabs)"
   }
 }

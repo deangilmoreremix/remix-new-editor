@@ -65,5 +65,39 @@
   },
   "track-15-15-ai-agents-and-vibe-coding-ai-agents-and-vibe-coding-for-creators-4-lessons-4-templates": {
     "route": "academy/track/15-ai-agents-and-vibe-coding"
+  },
+  "bookmarks": {
+    "setup": "localStorage.setItem('academy_bookmarks', JSON.stringify(['how-ugc-works','character-consistency','02-ai-filmmaking::01-screenplay-and-story']))",
+    "selector": "div.mb-6:has(> p:text-matches(\"^Bookmarks \\\\(\"))",
+    "click": false
+  },
+  "template-editor": {
+    "route": "academy/track/01-ai-video-ads-ugc/template/ugc-script",
+    "steps": [
+      {
+        "text": "Show example",
+        "exact": true,
+        "wait": 1500
+      },
+      {
+        "selector": "h2",
+        "wait": 1000
+      }
+    ]
+  },
+  "try-this-in-studio-on-example-media": {
+    "route": "academy/track/07-ai-product-photography/lesson/07-ai-product-photography::01-product-photography",
+    "steps": [
+      {
+        "selector": "button:has-text(\"See\") >> nth=0",
+        "wait": 1500
+      },
+      {
+        "selector": "button.group.block.w-full >> nth=0",
+        "wait": 2000
+      }
+    ],
+    "selector": "button:has-text(\"Try this in\")",
+    "click": false
   }
 }

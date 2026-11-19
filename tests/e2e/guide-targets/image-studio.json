@@ -6,5 +6,40 @@
   "model-picker": {
     "text": "Nano Banana",
     "click": true
+  },
+  "aspect-ratio-and-resolution": {
+    "setup": "localStorage.setItem('image_studio_settings', JSON.stringify({ model: 'nano-banana-pro', ar: '16:9' }))",
+    "selector": "#ar-btn",
+    "click": true
+  },
+  "tools-panel-quick-starters-and-prompt-enhancer": {
+    "steps": [
+      {
+        "selector": "button[data-tooltip=\"Quick starters & prompt enhancer\"]"
+      }
+    ],
+    "selector": "#tools-panel"
+  },
+  "effect-menu-and-swap-face-image": {
+    "steps": [
+      {
+        "selector": "#model-btn"
+      },
+      {
+        "text": "Image to Image",
+        "exact": true
+      },
+      {
+        "text": "Nano Banana Effects",
+        "exact": true
+      }
+    ],
+    "selector": "#effect-btn",
+    "click": true
+  },
+  "result-canvas-history-and-publish": {
+    "setup": "new Promise((done) => { localStorage.setItem('muapi_history', JSON.stringify([{\"id\": \"guide-0\", \"url\": \"/thumbnails/gallery/1765359675191_mabnp6_d4ff0ab7b9e83178bdb7e5546de94745d68c03ddaa5d94b504aefe6a50e0d7f4-600x900.webp\", \"prompt\": \"Sample generation 1\", \"model\": \"nano-banana\", \"timestamp\": 1763000000000}, {\"id\": \"guide-1\", \"url\": \"/thumbnails/gallery/1765359647934_s6cd50_4eb3bcd431d809253c682482e40d34148f4c9fdf5ba65b00c11eaa279fe3230a-600x800.webp\", \"prompt\": \"Sample generation 2\", \"model\": \"nano-banana\", \"timestamp\": 1762999940000}, {\"id\": \"guide-2\", \"url\": \"/thumbnails/gallery/1765359647153_218ang_18e85e9a2161677e43484cb9cd7b1887218ccf8c936d1d72f58fef6c121a3ea8-600x900.webp\", \"prompt\": \"Sample generation 3\", \"model\": \"nano-banana\", \"timestamp\": 1762999880000}, {\"id\": \"guide-3\", \"url\": \"/thumbnails/gallery/1765359699721_02hotm_a51c96ee3424f33d0b56d9c5ecd63f2ec580c0cd121f9eade399c950ed035404-600x900.webp\", \"prompt\": \"Sample generation 4\", \"model\": \"nano-banana\", \"timestamp\": 1762999820000}])); location.hash = '#/apps'; setTimeout(() => { location.hash = '#/image'; let n = 0; const iv = setInterval(() => { const th = document.querySelector('#history-sidebar img'); if (!th && ++n < 80) return; clearInterval(iv); if (th) th.parentElement.click(); setTimeout(done, 2500); }, 250); }, 1500); })",
+    "selector": "xpath=//button[normalize-space(.)=\"Publish to Social\"]/..",
+    "reload": false
   }
 }

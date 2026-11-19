@@ -1,5 +1,18 @@
 {
   "prompt-box": {
     "selector": "textarea"
+  },
+  "image-input-upload-or-url": {
+    "selector": "[data-vfx-image]",
+    "click": false
+  },
+  "aspect-duration-size-quality-dropdowns": {
+    "selector": "xpath=//select[@data-vfx-control=\"aspect_ratio\"]/../..",
+    "click": false
+  },
+  "results-grid": {
+    "setup": "new Promise((done) => { let n = 0; const t = setInterval(() => { const el = document.querySelector('[data-vfx-results]'); if (!el && ++n < 80) return; clearInterval(t); if (el) { el.classList.remove('hidden'); el.innerHTML = '<div class=\"rounded-2xl border border-white/10 bg-card-bg aspect-video flex items-center justify-center text-xs text-white/60\"><span class=\"animate-pulse\">Rendering Cakeify\u2026</span></div><div class=\"rounded-2xl overflow-hidden border border-white/10 bg-card-bg\"><video preload=\"none\" src=\"/media/awesome-seedance/videos/john1.mp4\" poster=\"/media/awesome-seedance/previews/john1.webp\" class=\"w-full aspect-video bg-black object-contain\" controls playsinline loop></video><div class=\"p-3 flex items-center justify-between gap-2\"><span class=\"text-xs font-bold text-white truncate\">360 Rotation</span><a href=\"#\" class=\"text-xs font-bold text-primary hover:underline\">Download</a></div></div><div class=\"rounded-2xl overflow-hidden border border-white/10 bg-card-bg\"><video preload=\"none\" src=\"/media/awesome-seedance/videos/vicky.mp4\" poster=\"/media/awesome-seedance/previews/vicky.webp\" class=\"w-full aspect-video bg-black object-contain\" controls playsinline loop></video><div class=\"p-3 flex items-center justify-between gap-2\"><span class=\"text-xs font-bold text-white truncate\">Boxing</span><a href=\"#\" class=\"text-xs font-bold text-primary hover:underline\">Download</a></div></div>'; } done(); }, 250); })",
+    "reload": false,
+    "selector": "[data-vfx-results]"
   }
 }

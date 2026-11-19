@@ -1,1 +1,32 @@
-{}
+{
+  "filters-and-counts": {
+    "setup": "(()=>{const t=Date.now();const img=(u,p,m,i)=>({id:'guide-'+i,url:u,prompt:p,model:m,type:'image',timestamp:new Date(t-i*60000).toISOString()});localStorage.setItem('muapi_history',JSON.stringify([img('/media/minimax-h3/previews/kintsugi-sword-seamless-loop.jpg','A kintsugi katana on black velvet, molten gold seams, slow macro light sweep','flux-2-pro',0),img('/media/minimax-h3/previews/porto-francesinha-comedy-recipe.jpg','Overloaded Porto francesinha sandwich, melted cheese, cinematic food shot','nano-banana-pro',2),img('/media/minimax-h3/previews/black-and-gold-perfume-commercial.jpg','Black and gold perfume bottle, luxury studio commercial lighting','seedream-4',3),img('/media/minimax-h3/previews/bamboo-forest-wuxia-mystery.jpg','Wuxia swordsman in a misty bamboo forest at dawn','flux-2-pro',5)]));localStorage.setItem('video_history',JSON.stringify([{id:'guide-v1',url:'/media/awesome-seedance/videos/adam.mp4',prompt:'Handheld street interview, natural light, 9:16','model':'seedance-2.0',type:'video',timestamp:new Date(t-60000).toISOString()},{id:'guide-a1',url:'/media/outreach-sample/hi-there.mp3',prompt:'Friendly hello voice line','model':'elevenlabs-v3',type:'audio',timestamp:new Date(t-4*60000).toISOString()}]));return 'ok'})()",
+    "selector": "div:has(> [data-library-filter])",
+    "click": false
+  },
+  "quick-actions": {
+    "setup": "(()=>{const t=Date.now();const img=(u,p,m,i)=>({id:'guide-'+i,url:u,prompt:p,model:m,type:'image',timestamp:new Date(t-i*60000).toISOString()});localStorage.setItem('muapi_history',JSON.stringify([img('/media/minimax-h3/previews/kintsugi-sword-seamless-loop.jpg','A kintsugi katana on black velvet, molten gold seams, slow macro light sweep','flux-2-pro',0),img('/media/minimax-h3/previews/porto-francesinha-comedy-recipe.jpg','Overloaded Porto francesinha sandwich, melted cheese, cinematic food shot','nano-banana-pro',2),img('/media/minimax-h3/previews/black-and-gold-perfume-commercial.jpg','Black and gold perfume bottle, luxury studio commercial lighting','seedream-4',3),img('/media/minimax-h3/previews/bamboo-forest-wuxia-mystery.jpg','Wuxia swordsman in a misty bamboo forest at dawn','flux-2-pro',5)]));localStorage.setItem('video_history',JSON.stringify([{id:'guide-v1',url:'/media/awesome-seedance/videos/adam.mp4',prompt:'Handheld street interview, natural light, 9:16','model':'seedance-2.0',type:'video',timestamp:new Date(t-60000).toISOString()},{id:'guide-a1',url:'/media/outreach-sample/hi-there.mp3',prompt:'Friendly hello voice line','model':'elevenlabs-v3',type:'audio',timestamp:new Date(t-4*60000).toISOString()}]));return 'ok'})();(()=>{const s=document.createElement('style');s.textContent='#content-area .grid > .group:first-child > .opacity-0{opacity:1!important}';document.head.appendChild(s);location.hash='#/apps';setTimeout(()=>{location.hash='#/library'},800);})()",
+    "reload": false,
+    "steps": [
+      {
+        "selector": "h1",
+        "wait": 6000
+      }
+    ],
+    "selector": "#content-area .grid > .group:first-child > div.absolute.top-2.left-2",
+    "click": false
+  },
+  "preview": {
+    "setup": "(()=>{const t=Date.now();const img=(u,p,m,i)=>({id:'guide-'+i,url:u,prompt:p,model:m,type:'image',timestamp:new Date(t-i*60000).toISOString()});localStorage.setItem('muapi_history',JSON.stringify([img('/media/minimax-h3/previews/kintsugi-sword-seamless-loop.jpg','A kintsugi katana on black velvet, molten gold seams, slow macro light sweep','flux-2-pro',0),img('/media/minimax-h3/previews/porto-francesinha-comedy-recipe.jpg','Overloaded Porto francesinha sandwich, melted cheese, cinematic food shot','nano-banana-pro',2),img('/media/minimax-h3/previews/black-and-gold-perfume-commercial.jpg','Black and gold perfume bottle, luxury studio commercial lighting','seedream-4',3),img('/media/minimax-h3/previews/bamboo-forest-wuxia-mystery.jpg','Wuxia swordsman in a misty bamboo forest at dawn','flux-2-pro',5)]));localStorage.setItem('video_history',JSON.stringify([{id:'guide-v1',url:'/media/awesome-seedance/videos/adam.mp4',prompt:'Handheld street interview, natural light, 9:16','model':'seedance-2.0',type:'video',timestamp:new Date(t-60000).toISOString()},{id:'guide-a1',url:'/media/outreach-sample/hi-there.mp3',prompt:'Friendly hello voice line','model':'elevenlabs-v3',type:'audio',timestamp:new Date(t-4*60000).toISOString()}]));return 'ok'})()",
+    "steps": [
+      {
+        "selector": "h1",
+        "wait": 2500
+      },
+      {
+        "selector": "#content-area .grid > .group >> nth=0",
+        "wait": 2500
+      }
+    ]
+  }
+}

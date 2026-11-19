@@ -1,5 +1,35 @@
 {
   "website-url-discovery": {
-    "skip": true
+    "steps": [
+      {
+        "selector": "button:has-text(\"Find My Brand\")",
+        "wait": 6000
+      }
+    ],
+    "selector": "[data-testid='find-my-brand']"
+  },
+  "search-for-a-business-instead": {
+    "steps": [
+      {
+        "selector": "button:has-text(\"Find My Brand\")",
+        "wait": 6000
+      }
+    ],
+    "selector": "button:has-text(\"find a local business by niche\")",
+    "click": true
+  },
+  "review-and-arrange": {
+    "setup": "(async()=>{[...document.querySelectorAll('button')].find(b=>/find my brand/i.test(b.textContent)).click();await new Promise(r=>setTimeout(r,3500));return (()=>{const el=document.querySelector('#pz-tab-client');const k=Object.keys(el).find(k=>k.startsWith('__reactFiber$'));let f=el[k];while(f){const v=f.memoizedProps&&f.memoizedProps.value;if(v&&typeof v.setDiscoveredAssets==='function'){const b='/landing-art/pa-bistro/';const mk=(id,file,category,assignedSection,s)=>({id,sourceUrl:'https://bistro.example.com/'+file,previewUrl:b+file,sourceType:'website',category,confidence:0.9,qualityScore:s,relevanceScore:s,selected:true,recommended:s>0.7,rejected:false,assignedSection,autoAssigned:true,bgOptOut:true});v.setDiscoveredAssets([mk('d1','logo.webp','logo','logo',0.95),mk('d2','avatar.webp','person','person',0.9),mk('d3','hero.webp','storefront','brand',0.85),mk('d4','poster.webp','product','products',0.8),mk('d5','/landing-art/pa-business/hero.webp'.replace(b,''),'office',null,0.6)]);return 'ok'}f=f.return}return 'nf'})()})()",
+    "reload": false,
+    "steps": [
+      {
+        "selector": "#pz-tab-assets",
+        "wait": 1200
+      },
+      {
+        "text": "Found on website",
+        "wait": 1500
+      }
+    ]
   }
 }

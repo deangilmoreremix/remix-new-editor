@@ -2,5 +2,15 @@
   "video-effects-tab": {
     "text": "Video Effects",
     "click": true
+  },
+  "video-fx-v2-tab": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Video FX v2')]",
+    "click": true
+  },
+  "result-actions": {
+    "setup": "new Promise((done) => { let n = 0; const t = setInterval(() => { const el = document.querySelector('div.flex-1.flex.flex-col.gap-3[role=\"status\"]'); if (!el && ++n < 80) return; clearInterval(t); if (el) { const w = el.children[1]; const mc = w.firstElementChild; mc.innerHTML = ''; mc.style.position = 'relative'; const v = document.createElement('video'); v.src = '/media/awesome-seedance/videos/vicky.mp4#t=2'; v.muted = true; v.controls = true; v.playsInline = true; v.preload = 'auto'; v.className = 'w-full object-contain'; v.style.maxHeight = '15vh'; v.style.width = '100%'; v.style.maxWidth = '100%'; mc.appendChild(v); const b = document.createElement('div'); b.className = 'absolute top-3 right-3 bg-blue-500/80 backdrop-blur-sm px-2 py-0.5 rounded-md text-[10px] font-bold text-white pointer-events-none'; b.textContent = 'VIDEO'; mc.appendChild(b); const mb = w.lastElementChild; if (mb !== mc) { mb.classList.remove('hidden'); if (mb.firstElementChild) mb.firstElementChild.textContent = 'Blow Kiss / 1280x720 / 0:05 / Video FX v2'; if (mb.lastElementChild) mb.lastElementChild.innerHTML = '<a class=\"text-[10px] font-bold text-primary hover:underline\" href=\"#\">Download</a>'; } const cap = [...el.querySelectorAll('button')].find((x) => x.textContent.includes('Add AI Captions')); if (cap) cap.classList.remove('hidden'); v.addEventListener('loadeddata', () => setTimeout(done, 300)); setTimeout(done, 8000); return; } done(); }, 250); })",
+    "reload": false,
+    "selector": "div.flex-1.flex.flex-col.gap-3[role=\"status\"]",
+    "click": false
   }
 }

@@ -1,1 +1,22 @@
-{}
+{
+  "style-intensity-and-seed-lock-advanced": {
+    "steps": [
+      {
+        "selector": "#influencer-advanced-btn"
+      }
+    ],
+    "selector": "[data-studio-advanced-panel]"
+  },
+  "additional-instructions": {
+    "selector": "textarea[placeholder=\"Additional instructions (optional)\"]"
+  },
+  "history-strip": {
+    "setup": "localStorage.setItem('influencer_history', JSON.stringify([{id:'s1',url:'/media/recast-example/character.jpg',prompt:'Fashion editorial portrait'},{id:'s2',url:'/landing-art/05/presenter.webp',prompt:'Creator waving at camera'},{id:'s3',url:'/landing-art/01/presenter.webp',prompt:'Tech creator studio shot'},{id:'s4',url:'/media/recast-example/result-poster.jpg',prompt:'Full body studio shot'}]))",
+    "selector": "#influencer-history-sidebar"
+  },
+  "result-preview-and-save": {
+    "setup": "new Promise((done) => { let n = 0; const t = setInterval(() => { const el = document.querySelector('img[alt=\"Generated AI Character\"]'); if (!el && ++n < 80) return; clearInterval(t); if (el) { const a = el.parentElement; el.src = '/landing-art/01/presenter.webp'; el.classList.remove('hidden'); a.firstElementChild.classList.add('hidden'); const b = a.querySelector('button'); b.classList.remove('hidden'); b.classList.add('flex'); } done(); }, 250); })",
+    "reload": false,
+    "selector": "div:has(> img[alt=\"Generated AI Character\"])"
+  }
+}

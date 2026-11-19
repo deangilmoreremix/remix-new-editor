@@ -1,5 +1,158 @@
 {
   "wan-2-2-animate": {
-    "skip": true
+    "steps": [
+      {
+        "selector": "div.mt-4.mb-4.flex-col > button",
+        "wait": 800
+      },
+      {
+        "selector": "div.fixed button:has-text(\"WAN 2.2 Animate\")",
+        "wait": 1200
+      },
+      {
+        "selector": "h1:has-text(\"Video Tools\")",
+        "wait": 800
+      }
+    ],
+    "selector": "div.mt-4.mb-4.flex-col > button",
+    "click": false
+  },
+  "tool-selector-tools-tab": {
+    "steps": [
+      {
+        "selector": "div.mt-4.mb-4.flex-col > button",
+        "wait": 1000
+      }
+    ],
+    "selector": "div.fixed.opacity-100.rounded-2xl"
+  },
+  "wan-2-2-edit-video-and-luma-modify-video": {
+    "steps": [
+      {
+        "selector": "div.mt-4.mb-4.flex-col > button",
+        "wait": 800
+      },
+      {
+        "selector": "div.fixed button:has-text(\"WAN 2.2 Edit Video\")",
+        "wait": 1200
+      },
+      {
+        "selector": "h1:has-text(\"Video Tools\")",
+        "wait": 800
+      }
+    ],
+    "selector": "textarea[placeholder^='Describe the transformation']"
+  },
+  "luma-flash-reframe": {
+    "steps": [
+      {
+        "selector": "div.mt-4.mb-4.flex-col > button",
+        "wait": 800
+      },
+      {
+        "selector": "div.fixed button:has-text(\"Luma Flash Reframe\")",
+        "wait": 1200
+      },
+      {
+        "selector": "h1:has-text(\"Video Tools\")",
+        "wait": 800
+      }
+    ],
+    "selector": "div.mt-4.mb-4.flex-col > button",
+    "click": false
+  },
+  "ai-clipping": {
+    "steps": [
+      {
+        "selector": "div.mt-4.mb-4.flex-col > button",
+        "wait": 800
+      },
+      {
+        "selector": "div.fixed button:has-text(\"AI Clipping\")",
+        "wait": 1200
+      },
+      {
+        "selector": "h1:has-text(\"Video Tools\")",
+        "wait": 800
+      }
+    ],
+    "selector": "div.mt-4.mb-4.flex-col > button",
+    "click": false
+  },
+  "remix-video": {
+    "steps": [
+      {
+        "selector": "div.mt-4.mb-4.flex-col > button",
+        "wait": 800
+      },
+      {
+        "selector": "div.fixed button:has-text(\"Remix Video\")",
+        "wait": 1200
+      },
+      {
+        "selector": "h1:has-text(\"Video Tools\")",
+        "wait": 800
+      }
+    ],
+    "selector": "div.mt-4.mb-4.flex-col > button",
+    "click": false
+  },
+  "heygen-video-translate": {
+    "steps": [
+      {
+        "selector": "div.mt-4.mb-4.flex-col > button",
+        "wait": 800
+      },
+      {
+        "selector": "div.fixed button:has-text(\"HeyGen Video Translate\")",
+        "wait": 1200
+      },
+      {
+        "selector": "h1:has-text(\"Video Tools\")",
+        "wait": 800
+      }
+    ],
+    "selector": "div.mt-4.mb-4.flex-col > button",
+    "click": false
+  },
+  "seedance-watermark-remover": {
+    "steps": [
+      {
+        "selector": "div.mt-4.mb-4.flex-col > button",
+        "wait": 800
+      },
+      {
+        "selector": "div.fixed button:has-text(\"Seedance Watermark Remover\")",
+        "wait": 1200
+      },
+      {
+        "selector": "h1:has-text(\"Video Tools\")",
+        "wait": 800
+      }
+    ],
+    "selector": "div.mt-4.mb-4.flex-col > button",
+    "click": false
+  },
+  "ai-captions-vadoo": {
+    "steps": [
+      {
+        "selector": "div.mt-4.mb-4.flex-col > button",
+        "wait": 800
+      },
+      {
+        "selector": "div.fixed button:has-text(\"AI Captions (Vadoo)\")",
+        "wait": 1200
+      },
+      {
+        "selector": "h1:has-text(\"Video Tools\")",
+        "wait": 800
+      }
+    ],
+    "selector": "div.mt-4.mb-4.flex-col > button",
+    "click": false
+  },
+  "ai-captions-window-the-add-ai-captions-button-also-in-avatar-cinema-effects-lip-sync-video-and-template-studios": {
+    "setup": "import('/src/lib/editor/captionActions.js').then(m=>{m.addCaptionButton({videoUrl:'/media/recast-example/recast-result.mp4',appTheme:'video-tools-studio'});return new Promise(r=>setTimeout(r,3000))})",
+    "reload": false
   }
 }

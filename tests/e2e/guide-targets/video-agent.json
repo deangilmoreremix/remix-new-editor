@@ -1,8 +1,29 @@
 {
   "follow-up-chat-tune-your-animation": {
-    "skip": true
+    "setup": "(async()=>{document.querySelector('iframe[title=\"SmartVid Video Agent\"]').contentWindow.location.hash='#/generate';await new Promise(r=>setTimeout(r,9000));})()",
+    "reload": false,
+    "selector": "textarea[placeholder^='Tune your animation']"
   },
   "auto-save-to-library": {
-    "skip": true
+    "setup": "(async()=>{document.querySelector('iframe[title=\"SmartVid Video Agent\"]').contentWindow.location.hash='#/generate';await new Promise(r=>setTimeout(r,9000));const s=document.querySelector('span.mr-3[aria-live=\"polite\"]');if(s)s.textContent='Saved to your library';})()",
+    "reload": false,
+    "selector": "span.mr-3[aria-live='polite']"
+  },
+  "use-current-frame-as-image": {
+    "setup": "(async()=>{document.querySelector('iframe[title=\"SmartVid Video Agent\"]').contentWindow.location.hash='#/generate';await new Promise(r=>setTimeout(r,9000));})()",
+    "reload": false,
+    "selector": "button[title='Use current frame of Preview as image in chat']"
+  },
+  "settings-duration-and-fps": {
+    "setup": "(async()=>{document.querySelector('iframe[title=\"SmartVid Video Agent\"]').contentWindow.location.hash='#/generate';await new Promise(r=>setTimeout(r,9000));})()",
+    "reload": false,
+    "selector": "button.inline-flex.items-center.justify-center:text-is('Settings')",
+    "click": true
+  },
+  "render-and-download": {
+    "setup": "(async()=>{document.querySelector('iframe[title=\"SmartVid Video Agent\"]').contentWindow.location.hash='#/generate';await new Promise(r=>setTimeout(r,9000));})()",
+    "reload": false,
+    "selector": "button:has-text('Render & Download')",
+    "click": false
   }
 }

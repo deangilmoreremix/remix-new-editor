@@ -1,1 +1,12 @@
-{}
+{
+  "processing-panel-and-cancel": {
+    "setup": "(()=>{const s=['Analyzing video content…','Extracting key frames…','Generating summary…','Finalizing…'];document.querySelector('#processing-status').classList.remove('hidden');document.querySelector('#cancel-btn').classList.remove('hidden');document.querySelector('#processing-title').textContent='Video Summarizer';document.querySelector('#processing-steps').innerHTML=s.map((t,i)=>'<div class=\"flex items-center gap-2 '+(i<3?'text-white':'text-secondary')+'\"><span class=\"w-1.5 h-1.5 rounded-full '+(i<2?'bg-primary':i==2?'bg-primary animate-pulse':'bg-secondary')+'\"></span><span>'+t+'</span></div>').join('');document.querySelector('#progress-bar').style.width='75%';document.querySelector('#progress-percent').textContent='75%';})()",
+    "reload": false,
+    "selector": "#processing-status"
+  },
+  "extra-input-forms": {
+    "setup": "(()=>{window.__smartvideo_entitlement__={hasFullAccess:true};document.querySelector('#command-input').value='Compare two videos with the comparison agent';document.querySelector('#send-command-btn').click();return new Promise(r=>setTimeout(r,1500))})()",
+    "reload": false,
+    "selector": "[data-agent-prompt='1']"
+  }
+}
