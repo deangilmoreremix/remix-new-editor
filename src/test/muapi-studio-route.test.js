@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 
-describe('Muapi Studio registration', () => {
+describe('Studio registration', () => {
   it('has a router loader for the page', () => {
     const router = fs.readFileSync('src/lib/router.js', 'utf-8');
     expect(router).toContain("'muapi-studio': () => import('../components/MuapiStudioPage.js')");
-    expect(router).toContain("'Muapi Studio': 'muapi-studio'");
+    expect(router).toContain("'Studio': 'muapi-studio'");
   });
 
   it('is listed once in the shared side menu, with a label, icon and category', async () => {
     const { NAV_GROUPS, STUDIO_ROUTES, getStudioIcon } = await import('../lib/studioRoutes.js');
     const ids = NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id));
     expect(ids.filter((id) => id === 'muapi-studio')).toHaveLength(1);
-    expect(STUDIO_ROUTES['muapi-studio']).toMatchObject({ label: 'Muapi Studio' });
+    expect(STUDIO_ROUTES['muapi-studio']).toMatchObject({ label: 'Studio' });
     expect(getStudioIcon('muapi-studio')).toContain('<svg');
   });
 

@@ -3,7 +3,7 @@ const ROUTE_MAP = {
   'Image': 'image',
   'Video': 'video',
   'Storyboard': 'storyboard',
-  'Muapi Studio': 'muapi-studio',
+  'Studio': 'muapi-studio',
   'Edit': 'edit',
   'Character': 'character',
   'Commercial': 'commercial',

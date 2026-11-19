@@ -1,6 +1,6 @@
 // src/components/MuapiStudioPage.js
 //
-// Muapi Studio (route: #/muapi-studio): a muapi.ai/studio-style studio (Image, Video, Audio, Avatar, 3D, Tools,
+// Studio (route: #/muapi-studio): a muapi.ai/studio-style studio (Image, Video, Audio, Avatar, 3D, Tools,
 // Text, More) that generates with any model in the MuAPI catalog.
 //
 // The studio itself is the vendored React component in vendor/muapi-studio. This page only hosts it:
