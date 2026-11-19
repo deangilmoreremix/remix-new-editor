@@ -112,6 +112,7 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
       const channel = info.client.channel(`owner-notifications-${info.userId}`);
       const mine = { client: info.client, channel, userId: info.userId, token: info.token };
       rt = mine;
+      refresh(true); // a replaced channel (account switch) starts from the new owner's real unread count, not an empty badge
       channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'owner_notifications', filter: `clerk_user_id=eq.${info.userId}` }, (payload) => guardedInsert(payload, mine))
         .subscribe((status) => {
           // Unauthorised / unavailable: drop the channel and let polling carry on; the next check retries.

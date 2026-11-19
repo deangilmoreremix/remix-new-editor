@@ -186,6 +186,18 @@ describe('notifications bell realtime: synchronous owner id', () => {
     expect(bell.element.querySelector('[role=status]').classList.contains('hidden')).toBe(true);   // the badge is hidden, not showing the old owner's number
     bell.destroy();
   });
+  it('after an account switch the new owner\'s existing unread count appears without waiting for another alert', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1';
+    const srv = live(7);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 20 });
+    await tick(); await tick();
+    expect(bell._count()).toBe(7);
+    cur = 'user_2'; rt.userId = 'user_2'; srv.s.n = 3;   // the other account already has 3 unread
+    await wait(150);
+    expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
+    expect(bell._count()).toBe(3);
+    bell.destroy();
+  });
   it('the badge is also cleared when the owner changes during the asynchronous lookup', async () => {
     const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
     const getRealtime = vi.fn(async () => { if (slow) await gate; return rt.getRealtime(); });
