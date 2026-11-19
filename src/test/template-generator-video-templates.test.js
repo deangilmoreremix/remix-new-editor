@@ -4,7 +4,7 @@ import fixture from './fixtures/template-video-catalog.json';
 import { TemplateGeneratorModal } from '../components/modals/TemplateGeneratorModal.jsx';
 import { createTemplateStore } from '../components/modals/template-generator/templates.js';
 import {
-  normalizeClip, normalizeCatalog, loadTemplateCatalog, searchTemplateClips, resetTemplateCatalogCache, orientationOf, TEMPLATE_CATALOG_URL,
+  normalizeClip, normalizeCatalog, loadTemplateCatalog, searchTemplateClips, resetTemplateCatalogCache, orientationOf, safeHttpUrl, TEMPLATE_CATALOG_URL,
 } from '../components/modals/template-generator/videoTemplates.js';
 
 // `fixture` is a small slice of real entries from the public demo-template-videos catalog.
@@ -39,7 +39,8 @@ describe('video templates catalog', () => {
     const ok = vi.fn(async () => ({ ok: true, json: async () => fixture }));
     await loadTemplateCatalog({ fetchImpl: ok }); await loadTemplateCatalog({ fetchImpl: ok });
     expect(ok).toHaveBeenCalledTimes(1);
-    expect(ok.mock.calls[0]).toEqual([TEMPLATE_CATALOG_URL]);
+    expect(ok.mock.calls[0][0]).toBe(TEMPLATE_CATALOG_URL);
+    expect(Object.keys(ok.mock.calls[0][1] || {})).toEqual(['signal']); // only an abort signal: no headers, no key, no body
     resetTemplateCatalogCache();
     const bad = vi.fn(async () => ({ ok: false, status: 503 }));
     await expect(loadTemplateCatalog({ fetchImpl: bad })).rejects.toThrow(/503/);
@@ -144,5 +145,39 @@ describe('Template Generator — real footage instead of text', () => {
     expect(document.querySelector('.tg-start__collage')).toBeNull();
     expect(document.querySelector('[data-act="start"]')).toBeTruthy();
     off.destroy();
+  });
+});
+
+describe('catalog links and timeout', () => {
+  beforeEach(() => resetTemplateCatalogCache());
+  afterEach(() => vi.useRealTimers());
+
+  it('only http(s) pages are kept as links', () => {
+    expect(safeHttpUrl('https://example.com/post/1')).toBe('https://example.com/post/1');
+    expect(safeHttpUrl('http://example.com/')).toBe('http://example.com/');
+    ['javascript:alert(1)', ' JavaScript:alert(1)', 'data:text/html,<b>x</b>', 'vbscript:x', '//evil.example/x', '/relative', 'blob:https://x/1', '', null, undefined, 42].forEach((u) => expect(safeHttpUrl(u)).toBe(''));
+  });
+  it('a catalog entry with a javascript: credit link loses the link but keeps its name', () => {
+    const clip = normalizeClip({ id: 'x1', videoUrl: 'https://v.example/x.mp4', credit: { author: 'Ann', url: 'javascript:alert(1)' } });
+    expect(clip.pageURL).toBe('');
+    expect(clip.user).toBe('Ann');
+    expect(normalizeClip({ id: 'x2', videoUrl: 'https://v.example/y.mp4', credit: { url: 'https://example.com/p' } }).pageURL).toBe('https://example.com/p');
+  });
+  it('a catalog host that never answers fails after the timeout and is not cached', async () => {
+    vi.useFakeTimers();
+    const hang = vi.fn(() => new Promise(() => {}));
+    const first = loadTemplateCatalog({ fetchImpl: hang, timeoutMs: 1000 });
+    const caught = expect(first).rejects.toThrow(/took too long/);
+    await vi.advanceTimersByTimeAsync(1001);
+    await caught;
+    vi.useRealTimers();
+    const ok = vi.fn(async () => ({ ok: true, json: async () => fixture }));
+    await expect(loadTemplateCatalog({ fetchImpl: ok })).resolves.toBeTruthy(); // the next try asks again
+    expect(hang).toHaveBeenCalledTimes(1); expect(ok).toHaveBeenCalledTimes(1);
+  });
+  it('passes an abort signal to the request', async () => {
+    const ok = vi.fn(async () => ({ ok: true, json: async () => fixture }));
+    await loadTemplateCatalog({ fetchImpl: ok });
+    expect(ok.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
   });
 });

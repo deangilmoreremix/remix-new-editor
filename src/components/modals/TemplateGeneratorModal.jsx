@@ -16,7 +16,7 @@ import {
 import {
   PROVIDERS, MEDIA_FILTERS, STOCK_HOME, createStockClient, remoteItem, probeVideo, kindFromUrlOrType,
 } from './template-generator/stock.js';
-import { loadTemplateCatalog, searchTemplateClips, TEMPLATE_SOURCE } from './template-generator/videoTemplates.js';
+import { loadTemplateCatalog, searchTemplateClips, safeHttpUrl, TEMPLATE_SOURCE } from './template-generator/videoTemplates.js';
 import { LOWER_THIRD_TEMPLATES, buildLowerThirdLottie, LT_HOLD_FRAME } from '../../lib/editor/addons/lowerThirds.js';
 import { snapshotTemplate, restoreTemplate, splitDurable } from './template-generator/templates.js';
 import { createSyncedTemplateStore, SYNC_STATUS } from './template-generator/sync.js';
@@ -1339,8 +1339,8 @@ export class TemplateGeneratorModal extends BaseModal {
       const it = this.itemsById.get(p.id);
       if (!it) return '';
       const selected = this.s.selectedVideos.some((v) => v.id === it.id);
-      const credit = it.source === TEMPLATE_SOURCE ? (it.user || it.pageURL ? `Original by ${esc(it.user || 'the author')}${it.pageURL ? ` · <a href="${esc(it.pageURL)}" target="_blank" rel="noopener">original post</a>` : ''}` : '')
-        : it.user ? `${it.kind === 'video' ? 'Video' : 'Photo'} by ${esc(it.user)}${it.source === 'pexels' || it.source === 'pixabay' ? ` on <a href="${esc(it.pageURL || STOCK_HOME[it.source])}" target="_blank" rel="noopener">${it.source === 'pexels' ? 'Pexels' : 'Pixabay'}</a>` : ''}` : '';
+      const credit = it.source === TEMPLATE_SOURCE ? (it.user || it.pageURL ? `Original by ${esc(it.user || 'the author')}${safeHttpUrl(it.pageURL) ? ` · <a href="${esc(safeHttpUrl(it.pageURL))}" target="_blank" rel="noopener">original post</a>` : ''}` : '')
+        : it.user ? `${it.kind === 'video' ? 'Video' : 'Photo'} by ${esc(it.user)}${it.source === 'pexels' || it.source === 'pixabay' ? ` on <a href="${esc(safeHttpUrl(it.pageURL) || STOCK_HOME[it.source])}" target="_blank" rel="noopener">${it.source === 'pexels' ? 'Pexels' : 'Pixabay'}</a>` : ''}` : '';
       return `
         <div class="tg-popup" role="dialog" aria-modal="true" aria-label="Preview ${esc(it.title)}" data-act="popup-backdrop">
           <div class="tg-popup__card">
