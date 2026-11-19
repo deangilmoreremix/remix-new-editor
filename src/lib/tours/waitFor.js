@@ -44,8 +44,21 @@ export function waitForTarget(target, { timeout = 6000, root = document, signal 
   });
 }
 
-/** True when something modal is VISIBLE (API-key popup, Settings, a welcome overlay): a tour should wait for it. */
+// Inside the viewport, not transparent: a sheet parked below the screen edge (translateY(100%)) is not "open".
+const onScreen = (el) => {
+  if (!isVisible(el)) return false;
+  try {
+    const r = el.getBoundingClientRect();
+    const w = globalThis.innerWidth || 0;
+    const h = globalThis.innerHeight || 0;
+    if (r.width <= 0 || r.height <= 0 || r.bottom <= 0 || r.right <= 0 || (h && r.top >= h) || (w && r.left >= w)) return false;
+    if (Number(globalThis.getComputedStyle(el).opacity) === 0) return false;
+  } catch { /* if it cannot be measured, treat it as open */ }
+  return true;
+};
+
+/** True when something modal is ON SCREEN (API-key popup, Settings, a welcome overlay): a tour should wait for it. */
 export function blockingOverlayOpen(root = document) {
   const sel = '[data-onboarding],[data-outreach-welcome],[role="dialog"][aria-modal="true"],div.fixed.inset-0[class*="z-[100]"],.driver-popover';
-  return [...root.querySelectorAll(sel)].some((el) => isVisible(el));
+  return [...root.querySelectorAll(sel)].some((el) => onScreen(el));
 }
