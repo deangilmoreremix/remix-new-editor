@@ -53,7 +53,9 @@ test.describe('Apps page: the 38 studios', () => {
       // chunk ignores the first click, so retry until the Apps page is back.
       let back = false;
       for (let attempt = 0; attempt < 8 && !back; attempt += 1) {
-        await page.locator('[aria-label="All apps"]').click();
+        // Find My Brand opens its own full-screen dialog on arrival; close it first (Escape), then use the logo.
+        await page.keyboard.press('Escape');
+        await page.locator('[aria-label="All apps"]').click({ timeout: 5_000 }).catch(() => {});
         back = await page.waitForSelector('[data-studio-card]', { timeout: 5_000 }).then(() => true, () => false);
       }
       expect(back, `could not return to the Apps page from ${id}`).toBe(true);
