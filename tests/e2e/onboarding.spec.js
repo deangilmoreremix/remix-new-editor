@@ -26,7 +26,7 @@ test.describe('App-wide onboarding', () => {
     await expect(page.locator('h1')).toContainText('What do you want to do first?');
     await expect(stepText(page)).toHaveText('Step 1 of 6');
     await answerUpToSource(page);
-    await expect(page.locator('h1')).toContainText('How did you hear about us?');
+    await expect(page.locator('h1')).toContainText('how did you hear about us?');
     await page.click('[data-onb-heard="linkedin"]');
 
     // 6a: the goal's own video types come first; Continue needs a choice
