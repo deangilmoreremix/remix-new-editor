@@ -17,7 +17,7 @@ const KEY = 'remix.cinegen.published.v1';
 const readIds = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
 const signedIn = () => !!(window as unknown as { Clerk?: { user?: unknown } }).Clerk?.user;
 
-export interface PublishInfo { id: string; title: string; published: boolean; view_count: number; updated_at?: string }
+export interface PublishInfo { id: string; title: string; published: boolean; view_count: number; updated_at?: string; slug?: string | null; privacy?: string; business?: string | null; customDomain?: string | null; customDomainVerified?: boolean }
 
 /**
  * The client that owns the published video: the account's when signed in, otherwise a private guest identity
@@ -89,7 +89,8 @@ export function usePublished() {
   useEffect(() => { setLoaded(false); void reload(); }, [reload]);
   useEffect(() => { void offerGuestClaim().then((moved) => { if (moved) void reload(); }); }, [reload]);
 
-  const run = async (fn: () => Promise<void>) => { setBusy(true); setError(''); try { await fn(); } catch (e) { setError(friendlyPublishError(e)); } finally { setBusy(false); } };
+  /** Runs an action, showing its error on failure. Resolves to whether it succeeded (it never throws). */
+  const run = async (fn: () => Promise<void>): Promise<boolean> => { setBusy(true); setError(''); try { await fn(); return true; } catch (e) { setError(friendlyPublishError(e)); return false; } finally { setBusy(false); } };
   const publish = (title: string) => run(async () => {
     const c = await getClient();
     const { tl: t, state: s } = latest.current;
@@ -121,5 +122,18 @@ export function usePublished() {
     if (linked) void captureRowThumbnail(c, linked, built, { aspect: t?.aspect ?? null, force: true });
   });
   const setLive = (on: boolean) => run(async () => { await pub.setPublished(await getClient(), id, on); setInfo((i) => (i ? { ...i, published: on } : i)); });
-  return { id, info, busy, error, loaded, publish, setLive, reload, title: tl?.name || 'Untitled video', signedIn: signedIn(), guest: !signedIn() };
+  /** Readable link /v/<business>/<slug>: claim the business name once (if given), then set this video's slug. */
+  const saveLink = (business: string, slug: string) => run(async () => {
+    const c = await getClient();
+    if (business) await pub.claimBusinessSlug(c, business);
+    await pub.setVideoSlug(c, id, slug);
+    setInfo(await pub.getMyVideo(c, id));
+  });
+  const setDomain = (domain: string) => run(async () => {
+    const c = await getClient();
+    await pub.setCustomDomain(c, domain);
+    setInfo(await pub.getMyVideo(c, id));
+  });
+  const setPrivacy = (privacy: 'public' | 'unlisted') => run(async () => { await pub.setVideoPrivacy(await getClient(), id, privacy); setInfo((i) => (i ? { ...i, privacy } : i)); });
+  return { id, info, busy, error, loaded, publish, setLive, saveLink, setDomain, setPrivacy, reload, title: tl?.name || 'Untitled video', signedIn: signedIn(), guest: !signedIn() };
 }
