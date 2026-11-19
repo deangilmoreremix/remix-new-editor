@@ -48,10 +48,15 @@ test.describe('Apps page: the 38 studios', () => {
       await page.locator(`[data-studio-card="${id}"]`).click();
       await page.waitForFunction((x) => location.hash.startsWith(`#/${x}`), id, { timeout: 15_000 });
       await expect(page.locator('#content-area > *').first()).toBeAttached(); // some studios are a frame or canvas with no text
-      // Back to the Apps page through the logo (the browser Back button is not used: with ?dev in the URL the
-      // router's own history entries differ by more than the hash, which is a test-only artifact).
-      await page.locator('[aria-label="All apps"]').click();
-      await page.waitForSelector('[data-studio-card]', { timeout: 20_000 });
+      // Back to the Apps page through the logo. (Not the browser Back button: with ?dev in the URL the router's own
+      // history entries differ by more than the hash, a test-only artifact.) A studio that is still loading its lazy
+      // chunk ignores the first click, so retry until the Apps page is back.
+      let back = false;
+      for (let attempt = 0; attempt < 8 && !back; attempt += 1) {
+        await page.locator('[aria-label="All apps"]').click();
+        back = await page.waitForSelector('[data-studio-card]', { timeout: 5_000 }).then(() => true, () => false);
+      }
+      expect(back, `could not return to the Apps page from ${id}`).toBe(true);
     }
   });
 
