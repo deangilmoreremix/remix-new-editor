@@ -52,6 +52,56 @@ describe('rail panels for personalization', () => {
     await vi.waitFor(() => expect(e.querySelector('[data-rp="status"]').textContent).toMatch(/Added 3 scenes/));
   });
 
+  it('Personalized output: pick contacts, then download MP4s or create links for exactly those', async () => {
+    const e = el();
+    const s = {
+      contacts: () => [ann, raj], tokensUsed: () => ['firstName'], issues: (p) => (p.id === 'c-raj' ? ['no logo'] : []),
+      exportSelected: vi.fn(), createLinks: vi.fn(async (ids) => ({ rows: ids.map((id) => ({ name: id, link: `https://app.test/watch/v?p=${id}`, note: '' })), notice: '1 new, 0 refreshed.' })),
+      copy: vi.fn(async () => {}), downloadCsv: vi.fn(), openShare: vi.fn(),
+    };
+    renderBatchHub(e, s);
+    expect(e.textContent).toMatch(/1 of 2 contacts ready/i);
+    expect(e.textContent).toContain('no logo');
+    expect(e.querySelector('[data-rp="export"]').textContent).toContain('Download MP4s (2)');
+    // untick one contact: the counts and what the buttons act on follow
+    e.querySelector('[data-pick="c-raj"]').click();
+    expect(e.querySelector('[data-rp="export"]').textContent).toContain('Download MP4s (1)');
+    e.querySelector('[data-rp="export"]').click();
+    expect(s.exportSelected).toHaveBeenCalledWith([String(ann.id)]);
+    e.querySelector('[data-rp="links"]').click();
+    await vi.waitFor(() => expect(e.textContent).toContain('1 link ready'));
+    expect(s.createLinks).toHaveBeenCalledWith([String(ann.id)]);
+    e.querySelector('[data-rp="copy"]').click();
+    await vi.waitFor(() => expect(s.copy).toHaveBeenCalledWith(`https://app.test/watch/v?p=${ann.id}`));
+    e.querySelector('[data-rp="csv"]').click();
+    expect(s.downloadCsv).toHaveBeenCalled();
+  });
+
+  it('Personalized output: "Ready only" ticks just the ready contacts; "Links + MP4s" starts the export only after the links work', async () => {
+    const e = el();
+    const createLinks = vi.fn()
+      .mockRejectedValueOnce(Object.assign(new Error('Publish the video first'), { code: 'not_published' }))
+      .mockResolvedValueOnce({ rows: [{ name: 'Ann', link: 'https://x/y', note: '' }] });
+    const s = { contacts: () => [ann, raj], tokensUsed: () => ['firstName', 'businessName'], exportSelected: vi.fn(), createLinks, openShare: vi.fn() };
+    renderBatchHub(e, s);
+    e.querySelector('[data-rp="readyonly"]').click();
+    expect(e.querySelector('[data-rp="count"]').textContent).toContain('1 selected');
+    e.querySelector('[data-rp="both"]').click();
+    await vi.waitFor(() => expect(e.textContent).toContain('Publish the video first'));
+    expect(s.exportSelected).not.toHaveBeenCalled(); // links failed: no MP4s started
+    expect(e.querySelector('[data-rp="share"]')).not.toBeNull();
+    e.querySelector('[data-rp="both"]').click();
+    await vi.waitFor(() => expect(s.exportSelected).toHaveBeenCalledWith([String(ann.id)]));
+  });
+
+  it('Personalized output: with nobody selected nothing can be started', () => {
+    const e = el();
+    renderBatchHub(e, { contacts: () => [ann, raj], tokensUsed: () => [], exportSelected: vi.fn(), createLinks: vi.fn(), openShare: vi.fn() });
+    e.querySelector('[data-rp="none"]').click();
+    expect(e.querySelector('[data-rp="export"]').disabled).toBe(true);
+    expect(e.querySelector('[data-rp="links"]').disabled).toBe(true);
+  });
+
   it('Batch Generator: readiness per contact, then export one video each or open Share', () => {
     const e = el();
     const s = { contacts: () => [ann, raj], tokensUsed: () => ['firstName', 'businessName'], exportEach: vi.fn(), openShare: vi.fn() };

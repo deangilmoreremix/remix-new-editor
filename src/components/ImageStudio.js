@@ -176,7 +176,7 @@ export function ImageStudio() {
     promptWrapper.style.animationDelay = '0.2s';
 
     const bar = document.createElement('div');
-    bar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
+    bar.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
 
     // Top Row: Input
     const topRow = document.createElement('div');
@@ -757,7 +757,7 @@ generateBtn.type = 'button';
     
     // Build tools panel HTML
     toolsPanel.innerHTML = `
-        <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
+        <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
             <div class="flex items-center justify-between pb-3 border-b border-white/5">
                 <h3 class="text-sm font-bold text-white">Quick Tools</h3>
                 <button id="close-tools-btn" class="text-white/40 hover:text-white transition-colors">
@@ -824,7 +824,7 @@ generateBtn.type = 'button';
     advancedPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
     advancedPanel.id = 'advanced-panel';
     const advancedCard = document.createElement('div');
-    advancedCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
+    advancedCard.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
     advancedPanel.appendChild(advancedCard);
 
     const advHeader = document.createElement('div');

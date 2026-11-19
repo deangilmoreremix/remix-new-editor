@@ -77,7 +77,7 @@ export function LeadsCard({ data, published, views, insights }: { data: LeadsDat
                 {LEAD_STATUSES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
               </select>
             )}
-            <button type="button" className="leads-btn" onClick={() => void data.reload()} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
+            <button type="button" className="leads-btn" onClick={() => { void data.reload(); void insights?.reload?.(); }} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
             <button type="button" className="leads-btn" onClick={download} disabled={!shown.length} data-testid="leads-csv">Download CSV</button>
           </div>
           {hasRepeats && (
@@ -91,6 +91,7 @@ export function LeadsCard({ data, published, views, insights }: { data: LeadsDat
               <tbody>{shown.map((r) => (
                 <tr key={r.id}><td>{whenLabel(r.createdAt)}{merge && (repeats.counts[r.id] ?? 1) > 1 && <span className="leads-tag leads-tag--rep" data-testid="repeat-tag" title="Times this email signed up on this form">×{repeats.counts[r.id]}</span>}</td><td><span className={`leads-tag leads-tag--${tag(r)?.tone ?? 'lead'}`}>{tag(r)?.short ?? 'Form'}</span>{fromMp4(r) && <span className="leads-tag leads-tag--mp4" data-testid="mp4-tag">MP4</span>}{variantOf(r) && <span className="leads-tag leads-tag--ab" data-testid="ab-tag">{variantOf(r)}</span>}</td>
                   {cols.map((c) => <td key={c.key}>{r.data[c.key] ?? ''}</td>)}
+                  {showSource && <td data-testid="lead-source" title={r.source?.referrer ?? ''}>{sourceLabel(r)}</td>}
                   {showWatch && (
                     <td data-testid="lead-watched">{watch[sessionOf(r)] ? <><span>{watchPercent(watch[sessionOf(r)])}</span><span className={`leads-tag leads-tag--${watchTag(watch[sessionOf(r)]).toLowerCase()}`}>{watchTag(watch[sessionOf(r)])}</span></> : ''}</td>
                   )}
@@ -103,7 +104,6 @@ export function LeadsCard({ data, published, views, insights }: { data: LeadsDat
                       <input key={`t-${r.id}-${(r.tags ?? []).join(',')}`} placeholder="tags, comma separated" defaultValue={(r.tags ?? []).join(', ')} aria-label="Tags" onBlur={(e) => { const next = e.target.value; if (next !== (r.tags ?? []).join(', ')) void data.update(r.id, { tags: next }); }} />
                     </td>
                   )}
-                  {showSource && <td data-testid="lead-source" title={r.source?.referrer ?? ''}>{sourceLabel(r)}</td>}
                   <td><button type="button" className="leads-x" aria-label="Delete lead" onClick={() => { if (window.confirm('Delete this lead?')) void data.remove(r.id); }}>✕</button></td></tr>
               ))}</tbody>
             </table></div>

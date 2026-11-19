@@ -565,8 +565,7 @@ describe('protected applications — upload import surface', () => {
       './dragDrop.js',
     ];
     // Files with live upload call sites. Superset of the byte baseline: it also
-    // covers non-byte-pinned upload call sites (the shared caption modal and
-    // its action wrapper), so a re-route there stays visible even though those
+    // covers non-byte-pinned upload call sites (the caption action wrapper), so a re-route there stays visible even though those
     // files are not protected application files.
     const uploadCallSiteFiles = [
       'src/components/TimelineEditorPage.jsx',
@@ -575,7 +574,6 @@ describe('protected applications — upload import surface', () => {
       'src/lib/editor/mediaLibrary.js',
       'src/lib/editor/aiTools.js',
       'src/lib/editor/captionActions.js',
-      'src/components/modals/AICaptionsModal.jsx',
       'src/components/ChatStudio.js',
       'src/components/chat/ChatStudio.jsx',
       'src/components/chat/ChatInput.jsx',
@@ -656,7 +654,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', '7c00f6614c38f5259d6a0b4611f87380e464d60c5f4a27dbb5a1b8b003c7dd84'], // re-recorded after the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels). Semantic coverage in section 5.
+        ['src/components/TimelineEditorPage.jsx', '6b3fcef5f44af64da7540152c7f8524eaf9c6ef54fc4575aefed1255f07b8836'], // re-recorded after the approved free Caption Studio entry point (openCaptionStudio: on-device Whisper, no upload or provider call; the inline captions panel is now a summary that opens it and the unused cloud whisper-client import was removed), together with the approved personalized-videos work (Studio design clips, hotspot clips, the Personalized output panel, a guest identity) and, earlier, the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels). Semantic coverage in section 5.
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -972,6 +970,22 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
   });
 
+  it('TimelineEditorPage.jsx opens the free on-device Caption Studio without a new upload or provider path', () => {
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    // Subtitle entry points open the studio through the shared caption action (dynamic import, no static upload import).
+    expect(source).toContain('async function openCaptionStudio(source, existing)');
+    expect(source).toContain("import('../lib/editor/captionActions.js')");
+    // The result becomes a captions clip through the existing timeline helpers.
+    expect(source).toContain("insertClipIntoTrack(clip, textTrack?.name || 'Text')");
+    // Captions are made on the user's device: nothing here uploads media or calls a provider.
+    const block = source.slice(source.indexOf('async function openCaptionStudio'), source.indexOf('async function suggestBRoll'));
+    expect(block).not.toMatch(/uploadFileToStorage|supabase|muapi|fetch\(/);
+    // One captions window: the old cloud transcription client is gone and the inline panel only opens the studio.
+    expect(source).not.toContain('whisper-client');
+    expect(source).toContain('onOpenStudio: () => openCaptionStudio(');
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+  });
+
   it('TimelineEditorPage.jsx adds Lead Generator / List Builder integrations without a new upload or provider path', () => {
     // Re-recorded for the approved lead-form integrations: webhook test / delivery log / signing
     // secret, up to 3 notification emails, Kit / MailerLite, after-submit actions, UTM, extra pixels.
@@ -999,6 +1013,24 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain("value=\"${escapeHtml(clip.successMessage || '')}\"");
     expect(source).toContain("value=\"${escapeHtml(clip.afterSubmitUrl || '')}\"");
     expect(source).toContain("value=\"${escapeHtml(clip.notificationEmail2 || '')}\"");
+  });
+
+  it('TimelineEditorPage.jsx adds Studio design / hotspot / personal-link wiring without a new upload or provider path', () => {
+    // Re-recorded for the approved personalized-videos work: Studio design clips with a design picker, hotspot
+    // clips, the Personalized output panel (one MP4 and one stored personal link per contact) and a guest identity.
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    // The existing upload entry points are untouched and still used.
+    expect(source).toContain("import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';");
+    expect(source).toContain('uploadFileToStorage');
+    // The new editor wiring is present.
+    for (const name of ['overlay-studio-design', 'isEditorOverlay', 'switchDesignOptions', 'studioLayersToPlan', 'personalVariables', 'Personalized output']) {
+      expect(source, `TimelineEditorPage.jsx lost the personalized-videos wiring "${name}"`).toContain(name);
+    }
+    // The guest identity lives in its own module, loaded on demand: the page itself adds no endpoint, no key and no provider call.
+    expect(source).toContain("import('../lib/guestIdentity.js')");
+    expect(source).not.toMatch(/guest-token/);
+    expect(source).not.toMatch(/import\.meta\.env\.VITE_[A-Z0-9_]*(KEY|SECRET|TOKEN)/);
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
   });
 
   it('TimelineEditorPage.jsx keeps the image-finder personalization wiring', () => {

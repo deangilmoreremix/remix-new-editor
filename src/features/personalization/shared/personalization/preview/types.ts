@@ -5,6 +5,7 @@
  */
 
 import type { ImageHints, ImageRole, ImageStyle } from './imageStyle'
+import type { StudioCaptions } from '../captions/studioCaptions'
 
 export type PreviewLayoutId =
   | 'business-introduction'
@@ -187,6 +188,12 @@ export interface PreviewCaptions {
   style: CaptionStyleId
   position: CaptionPosition
   cues: PreviewCaptionCue[]
+  /**
+   * Captions made in the Caption Studio: ready-made pages plus the full style (font, colours, outline, height, motion). When present the
+   * preview and every export draw THESE, so what was designed in the Studio is what is exported; `cues` still carry the text for the list,
+   * SRT/VTT and as the fallback.
+   */
+  studio?: StudioCaptions
   /** Language of the words (ISO code such as `es` or `pt-BR`), when known: sets the font fallback, size and reading direction. Absent = work it out from the text. */
   language?: string
 }
@@ -205,6 +212,14 @@ export interface PersonalizationPreviewSettings {
   height: number
   /** Customer-selected audio track, or null when none is chosen. */
   audio: PreviewAudioSelection | null
+  /**
+   * The audio mix: tracks (music, voiceover) with volume, fades, start and trim, plus the video's own sound.
+   * Optional so projects saved before the mix existed restore unchanged; `audio` above keeps working as one track.
+   */
+  audioTracks?: import('./audioMix').AudioTrack[]
+  videoVolume?: number
+  videoMuted?: boolean
+  audioSolo?: string
   /**
    * Id of the Remotion design currently applied to the preview, or null.
    *
@@ -227,6 +242,8 @@ export interface PersonalizationPreviewSettings {
   captions?: PreviewCaptions
   /** A color and film look for the footage (not the brand overlays). Optional so saved projects restore unchanged. */
   look?: import('./effects').LookSettings
+  /** Named looks for text layers and captions, saved with the project. Optional so saved projects restore unchanged. */
+  textStyles?: import('./textStyles').SavedTextStyle[]
   /**
    * Presenter background removal. Optional so projects saved before it existed restore unchanged.
    * Settings only: the measured masks live in memory (preview/cutout/maskStore.ts), never in the project.

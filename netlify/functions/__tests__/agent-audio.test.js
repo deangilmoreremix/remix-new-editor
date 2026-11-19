@@ -67,3 +67,57 @@ describe('agent-audio OpenAI speech', () => {
     expect(JSON.parse(init.body)).toMatchObject({ input: 'Hello', voice: 'marin' });
   });
 });
+
+describe('agent-audio voice cloning', () => {
+  const keys = { muapi: 'mu_test_key_0123456789' };
+  const clone = { kind: 'voice-clone', audioUrl: 'https://cdn.example.com/me.webm', voiceId: 'my_voice_001', consent: true };
+  beforeEach(() => { muapiPost.mockReset(); });
+
+  it('builds a MiniMax clone request from the sample', () => {
+    expect(buildRequest(clone)).toMatchObject({
+      endpoint: '/minimax-voice-clone',
+      payload: { audio_url: 'https://cdn.example.com/me.webm', custom_voice_id: 'my_voice_001', model: 'speech-2.6-hd', need_noise_reduction: true },
+    });
+  });
+
+  it('refuses to clone without consent or with an unsafe sample or id', () => {
+    expect(buildRequest({ ...clone, consent: false }).error).toMatch(/your own voice/);
+    expect(buildRequest({ ...clone, consent: undefined }).error).toMatch(/your own voice/);
+    expect(buildRequest({ ...clone, audioUrl: 'http://cdn.example.com/me.webm' }).error).toMatch(/https/);
+    expect(buildRequest({ ...clone, audioUrl: 'data:audio/webm;base64,AAAA' }).error).toMatch(/https/);
+    expect(buildRequest({ ...clone, audioUrl: 'https://localhost/me.webm' }).error).toMatch(/https/);
+    expect(buildRequest({ ...clone, voiceId: '1bad' }).error).toMatch(/voiceId/);
+    expect(buildRequest({ ...clone, voiceId: '../etc/passwd' }).error).toMatch(/voiceId/);
+  });
+
+  it('speaks with a cloned voice id, and rejects a malformed one', () => {
+    expect(buildRequest({ kind: 'tts', text: 'Hi Mike', cloneVoiceId: 'my_voice_001' }).payload.voice_id).toBe('my_voice_001');
+    expect(buildRequest({ kind: 'tts', text: 'Hi', cloneVoiceId: 'x y' }).error).toMatch(/cloneVoiceId/);
+  });
+
+  it('needs the user key and sends the clone to MuAPI', async () => {
+    expect((await handle({ action: 'submit', ...clone }, 'u1')).statusCode).toBe(401);
+    muapiPost.mockResolvedValueOnce({ request_id: 'clone42' });
+    expect(JSON.parse((await handle({ action: 'submit', ...clone }, 'u2', { keys })).body)).toEqual({ ok: true, requestId: 'clone42' });
+    expect(muapiPost.mock.calls[0][0]).toBe('/minimax-voice-clone');
+    expect(muapiPost.mock.calls[0][3]).toBe('mu_test_key_0123456789');
+    expect((await handle({ action: 'submit', ...clone, consent: false }, 'u3', { keys })).statusCode).toBe(400);
+  });
+
+  it('reports a finished clone as done even with no audio file', async () => {
+    muapiPost.mockResolvedValueOnce({ status: 'completed', outputs: [] });
+    expect(JSON.parse((await handle({ action: 'status', requestId: 'clone42', kind: 'voice-clone' }, 'u4', { keys })).body)).toEqual({ ok: true, status: 'done' });
+    muapiPost.mockResolvedValueOnce({ status: 'completed', outputs: [] });
+    expect(JSON.parse((await handle({ action: 'status', requestId: 'tts9' }, 'u4', { keys })).body).status).toBe('failed');
+  });
+});
+
+describe('spoken language', () => {
+  it('passes an allowed language to MiniMax as language_boost, and drops anything else', async () => {
+    const mod = await import('../agent-audio.js');
+    const build = mod.buildRequest || mod.default?.buildRequest;
+    const es = build({ kind: 'tts', text: 'Hola', voice: 'Wise_Woman', languageBoost: 'Spanish' });
+    expect(es.payload.language_boost).toBe('Spanish');
+    expect(build({ kind: 'tts', text: 'Hi', voice: 'Wise_Woman', languageBoost: 'Klingon' }).payload.language_boost).toBeUndefined();
+  });
+});

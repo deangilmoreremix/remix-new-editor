@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// Reverse audit: everything a visitor SEES (text, alt text, placeholders, pictures) must come from a Puck prop,
+// Reverse audit: everything a visitor SEES (text, alt text, placeholders, pictures) must come from an editor prop,
 // so it can be edited in the editor. (The forward audit, newDesignsEditable, proves every prop has a field.)
 import { describe, it, expect, vi } from 'vitest';
 
@@ -8,13 +8,13 @@ vi.hoisted(() => {
   globalThis.matchMedia = globalThis.matchMedia || (() => ({ matches: false, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
 });
 import { renderToString } from 'react-dom/server';
-import { Render } from '@puckeditor/core';
-import { puckConfig } from '../puck/config.jsx';
-import { PageContext } from '../puck/context.js';
-import { PUCK_TEMPLATES } from '../puck/designs.js';
+import { Render } from '@page-editor/core';
+import { editorConfig } from '../editor/config.jsx';
+import { PageContext } from '../editor/context.js';
+import { EDITABLE_TEMPLATES } from '../editor/designs.js';
 
 const page = { id: 'abc12345', title: 'Intro', video_url: '', poster_url: null };
-const html = (data) => renderToString(<PageContext.Provider value={{ page, tokens: {}, handlers: {}, preview: false }}><Render config={puckConfig} data={data} /></PageContext.Provider>);
+const html = (data) => renderToString(<PageContext.Provider value={{ page, tokens: {}, handlers: {}, preview: false }}><Render config={editorConfig} data={data} /></PageContext.Provider>);
 const norm = (s) => String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 // Pure interface words that are not page content (screen-reader names for controls, video chrome).
 const CHROME = new Set(['playvideo', 'site', 'email', 'loading', 'close', 'menu', 'search', 'videoplaceholderyourvideogoeshere'].map(norm));
@@ -32,10 +32,10 @@ const stripTokens = (s) => String(s).replace(/\{\{[^}|]*\|([^}]*)\}\}/g, '$1').r
 
 function offenders(t) {
   // Match against each prop value on its own, so text that is hard-coded cannot pass by straddling two props.
-  const props = strings(t.puckData).map((s) => norm(stripTokens(s))).filter(Boolean);
+  const props = strings(t.editorData).map((s) => norm(stripTokens(s))).filter(Boolean);
   const known = { includes: (v) => props.some((s) => s.includes(v)) };
-  const urls = strings(t.puckData).join(' ');
-  const root = document.createElement('div'); root.innerHTML = html(t.puckData);
+  const urls = strings(t.editorData).join(' ');
+  const root = document.createElement('div'); root.innerHTML = html(t.editorData);
   const bad = [];
   const w = document.createTreeWalker(root, 4 /* NodeFilter.SHOW_TEXT */);
   for (let n = w.nextNode(); n; n = w.nextNode()) {
@@ -59,7 +59,7 @@ function offenders(t) {
 }
 
 describe('every visible piece of content comes from an editable prop', () => {
-  PUCK_TEMPLATES.forEach((t) => {
+  EDITABLE_TEMPLATES.forEach((t) => {
     it(t.id, () => { expect(offenders(t)).toEqual([]); });
   });
 });
@@ -141,9 +141,9 @@ function mutate(templateData, config) {
 }
 
 describe('every editable text and picture prop is used by the page', () => {
-  PUCK_TEMPLATES.forEach((t) => {
+  EDITABLE_TEMPLATES.forEach((t) => {
     it(t.id, () => {
-      const { data, probes } = mutate(t.puckData, puckConfig);
+      const { data, probes } = mutate(t.editorData, editorConfig);
       const out = html(data);
       const unused = probes.filter((p) => !NOT_SHOWN.has(p.where) && !out.includes(p.needle)).map((p) => p.where);
       expect([...new Set(unused)]).toEqual([]);

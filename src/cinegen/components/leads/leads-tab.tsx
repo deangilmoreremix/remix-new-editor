@@ -3,6 +3,7 @@ import { usePublished } from './use-publish';
 import { useLeads } from './use-leads';
 import { useInsights } from './use-insights';
 import { PublishCard } from './publish-card';
+import { PersonalLinksCard } from './personal-links-card';
 import { LeadsCard } from './leads-card';
 import '../../styles/leads.css';
 
@@ -13,7 +14,10 @@ export function LeadsTab() {
   return (
     <div className="leads-tab" data-testid="leads-tab">
       <div className="leads-tab__grid">
-        <PublishCard pub={pub} leadCount={data.rows.length} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
+          <PublishCard pub={pub} leadCount={data.rows.length} />
+          {pub.info?.published && <PersonalLinksCard pub={pub} />}
+        </div>
         <LeadsCard data={data} insights={insights} published={!!pub.info} views={pub.info?.view_count ?? 0} />
       </div>
     </div>

@@ -361,7 +361,7 @@ export async function InfluencerStudio() {
   });
 
   const formCard = document.createElement('div');
-  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
+  formCard.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.15s';
 
   const uploadRow = document.createElement('div');
@@ -839,7 +839,7 @@ export async function InfluencerStudio() {
   container.appendChild(formCard);
 
   const previewCard = document.createElement('div');
-  previewCard.className = 'w-full bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-4 animate-fade-in-up';
+  previewCard.className = 'w-full bg-card-bg/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-4 animate-fade-in-up';
   previewCard.style.animationDelay = '0.2s';
 
   const previewHeader = document.createElement('div');
@@ -1082,7 +1082,7 @@ export async function InfluencerStudio() {
         }
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
-          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+          <div class="bg-card-bg/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
             <img src="${entry.url}" class="w-full rounded-xl mb-3">
             <div class="flex gap-3">
               <a href="${entry.url}" download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>

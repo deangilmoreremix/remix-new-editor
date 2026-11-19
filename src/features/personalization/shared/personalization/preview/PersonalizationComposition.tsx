@@ -23,6 +23,7 @@ import { rotateCss, rotatedExtent } from './rotation'
 import { isNeutralKeyframeState, keyframeStateFor, keyframeTransformParts } from './keyframes'
 import { layerEffectsFilter, lookFilter } from './effects'
 import { LookLayers } from './LookLayers'
+import { effectiveTracks, isAudible, trackGainAt, trackWindow, videoGain } from './audioMix'
 import { accentRuleStyle, ctaPillStyle, endCardBackground, isSingleLineBox, layerTextStyle, textAlignFor, type TextStyleKind } from './textStyle'
 import { hasTextScrim, scrimForBox, scrimPeakAt, scrimStyle } from './scrim'
 import { layerBoxMetrics } from '../guided/overlayGeometry'
@@ -356,6 +357,11 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
   const lookCss = lookFilter(settings.look)
   const cutoutActive = Boolean(settings.cutout?.enabled && videoUrl && !isImageSource && !mediaFailed)
 
+  // The audio mix: the video's own sound and any number of tracks, each with its own gain per frame (volume, fades, start,
+  // mute and solo). The same numbers drive the live Player and the browser export.
+  const sourceGain = videoGain(settings)
+  const mixTracks = effectiveTracks(settings, audioUrl)
+
   const renderBackground = () => {
     if (cutoutActive && videoUrl && settings.cutout) {
       // The presenter is cut out of every frame and drawn over the chosen background by CutoutBackdrop.
@@ -363,7 +369,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       return (
         <>
           <CutoutBackdrop videoUrl={videoUrl} cutout={settings.cutout} width={compW} height={compH} filter={lookCss} />
-          <Audio src={toPlayablePreviewMediaUrl(videoUrl)} />
+          <Audio src={toPlayablePreviewMediaUrl(videoUrl)} volume={sourceGain} />
         </>
       )
     }
@@ -389,6 +395,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           // streamed through the same-origin /api/media/remote proxy.
           src={toPlayablePreviewMediaUrl(videoUrl)}
           muted={false}
+          volume={sourceGain}
           onError={handleMediaError}
           style={{ width: '100%', height: '100%', objectFit: 'cover', filter: lookCss }}
         />
@@ -473,7 +480,20 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
     <AbsoluteFill style={{ background: '#05070a' }}>
       {renderBackground()}
       <LookLayers look={settings.look} />
-      {audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
+      {mixTracks.map((track) => {
+        // A muted (or not soloed) track mounts nothing, so it costs nothing and cannot leak into the export.
+        const w = trackWindow(track, settings.fps, settings.durationInFrames)
+        if (!isAudible(track, settings.audioSolo)) return null
+        return (
+          <Sequence key={track.id} from={w.startFrame} durationInFrames={w.endFrame !== undefined ? w.endFrame - w.startFrame : undefined} layout="none">
+            <Audio
+              src={toPlayablePreviewMediaUrl(track.url)}
+              trimBefore={w.trimFrames || undefined}
+              volume={(localFrame: number) => trackGainAt(track, localFrame + w.startFrame, settings.fps, settings.durationInFrames, settings.audioSolo)}
+            />
+          </Sequence>
+        )
+      })}
       <AbsoluteFill
           style={{
             background: '#000',

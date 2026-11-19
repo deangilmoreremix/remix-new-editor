@@ -40,7 +40,7 @@ const bolt = {
 describe('image tokens', () => {
   it('lists the image tokens for pickers', () => {
     expect(IMAGE_TOKEN_DEFS.map((d) => d.key)).toEqual([
-      'logoUrl', 'avatarUrl', 'productImageUrl', 'brandImageUrl', 'ctaImageUrl', 'firstFrameUrl', 'lastFrameUrl',
+      'logoUrl', 'avatarUrl', 'productImageUrl', 'brandImageUrl', 'ctaImageUrl', 'firstFrameUrl', 'lastFrameUrl', 'websiteShotUrl',
     ]);
   });
 

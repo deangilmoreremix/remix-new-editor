@@ -16,7 +16,7 @@ const V4_VOICES = new Set(['voice_daniel', 'voice_liam']);
 const SOUND_MODEL = 'suno-generate-sounds';
 // [remix] More MuAPI text-to-speech models (live catalog + MuAPI's text-to-speech page). Voice ids carry a prefix so one
 // voice picker can address every model; only voices MuAPI documents are listed (MiniMax Friendly_Person, Fish
-// voice_fish_narrator, Gemini Kore / Puck), plus the user's own cloned voices.
+// voice_fish_narrator, Gemini Kore / Upbeat), plus the user's own cloned voices.
 const MINIMAX_SPEECH = 'minimax-speech-2.6-hd';
 const FISH_SPEECH = 'fish-s2-1-pro';
 const GEMINI_SPEECH = 'gemini-3-1-flash-tts';
@@ -58,7 +58,7 @@ export const PREMADE_VOICES: ElevenLabsVoice[] = [
   { id: 'minimax:Friendly_Person', name: 'MiniMax — Friendly Person', description: 'MiniMax Speech 2.6 HD (multilingual, supports emotion)' },
   { id: 'fish:voice_fish_narrator', name: 'Fish — Narrator', description: 'Fish Audio S2.1 Pro, long-form narration' },
   { id: 'gemini:Kore', name: 'Gemini — Kore', description: 'Gemini 3.1 Flash TTS' },
-  { id: 'gemini:Puck', name: 'Gemini — Puck', description: 'Gemini 3.1 Flash TTS' },
+  { id: 'gemini:Puck', name: 'Gemini — Upbeat', description: 'Gemini 3.1 Flash TTS' },
   { id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', description: 'Crisp, middle-aged male' },
   { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', description: 'Strong, young adult female' },
   { id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli', description: 'Emotional, young adult female' },

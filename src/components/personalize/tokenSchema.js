@@ -83,6 +83,7 @@ export const TOKEN_DEFS = [
     aliases: ['summary'],
   },
   { key: 'brandColor', label: 'Brand Color', paths: ['brand.colors.primary'], aliases: ['primaryColor'] },
+  { key: 'accentColor', label: 'Accent Color', paths: ['brand.colors.accent'], aliases: ['secondaryColor'] },
   // Image tokens. `resolve` reads the images saved by the Personalize
   // window's image finder (profile.personalization.assets) live, so a logo
   // replaced or edited there shows up immediately; `paths` keep older
@@ -110,6 +111,8 @@ export const TOKEN_DEFS = [
   { key: 'ctaImageUrl', label: 'CTA Graphic', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).ctaGraphic), aliases: ['ctaImage', 'ctaGraphic'] },
   { key: 'firstFrameUrl', label: 'Opening Frame', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).firstFrame), aliases: ['firstFrame'] },
   { key: 'lastFrameUrl', label: 'Closing Frame', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).lastFrame), aliases: ['lastFrame'] },
+  // A screenshot of the contact's website (Video Outreach studio: the background behind the presenter).
+  { key: 'websiteShotUrl', label: 'Website Screenshot', kind: 'image', paths: ['website.screenshotUrl'], aliases: ['websiteShot', 'websiteScreenshot', 'siteShot'] },
   { key: 'github', label: 'GitHub', paths: ['social.github'] },
   { key: 'linkedin', label: 'LinkedIn', paths: ['social.linkedin'] },
   { key: 'twitter', label: 'X / Twitter', paths: ['social.twitter'], aliases: ['x'] },

@@ -9,7 +9,7 @@
  *   dedupeCustomers(list)          same id, or same business/person name, becomes one entry
  *   customerTokens(c)              the public page tokens ({{firstname}}, {{company}}, {{companylogo}}, ...)
  *   toContactFields(c)             a page contact row (email included; it stays owner-only)
- *   applyCustomerToPuck(data, c)   write brand name/logo/colour/links into a page's data (pure, returns what changed)
+ *   applyCustomerToEditor(data, c)   write brand name/logo/colour/links into a page's data (pure, returns what changed)
  *
  * Pure functions, no storage or network: each app gathers the raw records (customerSources.js / useCustomers.ts).
  * Everything is clipped and checked here (https logos only, valid colours, no scripts in links).
@@ -229,11 +229,11 @@ export function attachPersonalImages(customers, projects) {
 const DEFAULT_FOOTER = /^Sent by \{\{sender\|us\}\}/;
 
 /**
- * Write one customer's brand into a page's Puck data. Pure: returns { data, applied }.
+ * Write one customer's brand into a page's page data. Pure: returns { data, applied }.
  * Only brand slots change (page colour, menu-bar name and logo, the default footer line, empty links); no other copy.
  */
-export function applyCustomerToPuck(puckData, customer, { useImage = true, brand: writeBrand = true } = {}) {
-  const data = JSON.parse(JSON.stringify(puckData || {}));
+export function applyCustomerToEditor(editorData, customer, { useImage = true, brand: writeBrand = true } = {}) {
+  const data = JSON.parse(JSON.stringify(editorData || {}));
   const applied = [];
   if (!customer || !Array.isArray(data.content)) return { data, applied };
   const { business, brand } = customer;

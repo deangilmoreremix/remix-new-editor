@@ -8,12 +8,14 @@
  */
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
-import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery } from '../lib/editor/publish/publishClient.js';
+import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery, profileFromLink, personalLinkIdFromQuery, fetchPersonalization } from '../lib/editor/publish/publishClient.js';
 import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createHeatmapCapture, singleLeadClipId } from '../lib/editor/publish/heatmapCapture.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
+import { fillTemplate, calendarEmbedUrl } from '../lib/outreach/draft.js';
+import { cleanTranscript, clock } from '../lib/outreach/transcript.js';
 import { captureEarlyPlay } from '../lib/editor/publish/earlyPlay.js';
 import { trackersFor, fireLeadTrackers } from '../lib/editor/publish/pixel.js';
 import { captureAttribution } from '../lib/editor/publish/attribution.js';
@@ -59,6 +61,27 @@ export async function mountWatchPage(container, ref, deps = {}) {
     message(container, 'Video not found', 'This video was removed or is no longer shared.');
     return null;
   }
+  // The viewer's details: a stored personal link (?p=<id>, values kept on the server and not editable in the
+  // address), else the details carried in the address (?c=…&firstname=…). A personal link that is unknown,
+  // revoked or for another video is not played unpersonalized — the sender gave it to someone specific.
+  const linkId = personalLinkIdFromQuery();
+  let viewerProfile;
+  if (linkId) {
+    let stored;
+    try {
+      stored = await (deps.fetchPersonalization || fetchPersonalization)(linkId);
+    } catch (err) {
+      message(container, 'Video unavailable', err?.message || 'Please try again later.');
+      return null;
+    }
+    if (!stored || stored.videoId !== video.id) {
+      message(container, 'This link is no longer active', 'Ask the person who sent it for a new link.');
+      return null;
+    }
+    viewerProfile = profileFromLink(stored);
+  } else {
+    viewerProfile = profileFromQuery();
+  }
   const title = video.title || video.project.title || 'Video';
   document.title = title;
   // Unlisted videos are reachable by link only: keep them out of search results.
@@ -76,9 +99,48 @@ export async function mountWatchPage(container, ref, deps = {}) {
     }
   } catch { /* non-browser env */ }
 
+  // Video Outreach campaigns carry landing text: a header and message filled with the viewer's
+  // details from their personal link (fallbacks when missing) and a booking button.
+  const landing = video.project.landing && typeof video.project.landing === 'object' ? video.project.landing : null;
+  const linkValues = profileFromQuery()?.variables || {};
+  const fill = (text) => fillTemplate(text, linkValues, landing?.fallbacks || {});
+  const heading = landing?.header ? fill(landing.header) || title : title;
+  const ctaHref = (() => { try { const u = new URL(String(landing?.cta?.url || '')); return u.protocol === 'https:' ? u.toString() : null; } catch { return null; } })();
+  // The booking page itself, shown under the button, for known calendar hosts only.
+  const calendarSrc = landing?.cta?.embed && ctaHref ? calendarEmbedUrl(ctaHref) : null;
+  const landingBody = landing && !embed && (landing.message || (ctaHref && landing.cta?.label))
+    ? `<section class="watch-landing">
+        ${landing.message ? `<p class="watch-landing-msg">${esc(fill(landing.message))}</p>` : ''}
+        ${ctaHref && landing.cta?.label ? `<a class="watch-landing-cta" data-landing-cta href="${esc(ctaHref)}" target="_blank" rel="noopener noreferrer">${esc(landing.cta.label)}</a>` : ''}
+        ${calendarSrc ? `<iframe class="watch-landing-calendar" data-landing-calendar src="${esc(calendarSrc)}" title="${esc(landing.cta.label || 'Book a time')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>` : ''}
+      </section>`
+    : '';
+
+  // The transcript (Video Outreach captions), under the video: each line jumps the video to its moment, the line
+  // being spoken is highlighted, and translations can be picked. Not in the embedded player.
+  const transcript = embed ? null : cleanTranscript(video.project.transcript);
+  const LANG_NAMES = { en: 'English', es: 'Spanish', fr: 'French', de: 'German', pt: 'Portuguese', it: 'Italian', nl: 'Dutch', ja: 'Japanese', ko: 'Korean', zh: 'Chinese', hi: 'Hindi', ar: 'Arabic' };
+  const transcriptLangs = transcript ? [transcript.lang, ...Object.keys(transcript.translations)] : [];
+  const transcriptBody = transcript
+    ? `<section class="watch-transcript" data-transcript>
+        <div class="watch-transcript-head">
+          <h2>Transcript</h2>
+          ${transcriptLangs.length > 1 ? `<select data-transcript-lang aria-label="Transcript language">${transcriptLangs.map((c) => `<option value="${esc(c)}">${esc(LANG_NAMES[c] || c)}</option>`).join('')}</select>` : ''}
+        </div>
+        <ol class="watch-transcript-lines" data-transcript-lines></ol>
+      </section>`
+    : '';
+
+  // Chapters (made in the Video Outreach editor from the captions): click one to jump there.
+  const chapters = embed ? [] : (Array.isArray(video.project.chapters) ? video.project.chapters : [])
+    .filter((c) => Number.isFinite(c?.startMs) && typeof c.title === 'string' && c.title.trim()).slice(0, 20);
+  const chaptersBody = chapters.length > 1
+    ? `<nav class="watch-chapters" data-chapters aria-label="Chapters"><h2>Chapters</h2><ol>${chapters.map((c, i) => `<li><button type="button" class="watch-chapter" data-chapter="${i}"><span class="watch-transcript-time">${esc(clock(c.startMs))}</span><span>${esc(c.title)}</span></button></li>`).join('')}</ol></nav>`
+    : '';
+
   container.innerHTML = `
     <main class="watch">
-      ${embed ? '' : `<header class="watch-head"><h1>${esc(title)}</h1></header>`}
+      ${embed ? '' : `<header class="watch-head"><h1>${esc(heading)}</h1></header>`}
       <section class="watch-player" aria-label="${esc(title)}">
         <div class="watch-frame" data-frame>
           <div class="watch-stage" data-stage></div>
@@ -93,6 +155,9 @@ export async function mountWatchPage(container, ref, deps = {}) {
           <button type="button" class="watch-btn" data-fs aria-label="Full screen">⛶</button>
         </div>
       </section>
+      ${chaptersBody}
+      ${landingBody}
+      ${transcriptBody}
     </main>`;
   const $ = (s) => container.querySelector(s);
   const frame = $('[data-frame]');
@@ -105,8 +170,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
 
   let codePreview = null;
   let scrubbing = false;
-  // Per-contact analytics (personal links carry ?c=<contactId>).
-  const viewerProfile = profileFromQuery();
+  // Per-contact analytics (a personal link knows its contact).
   // Campaign tags + referrer, captured once when the page loads (first touch) and sent with each lead.
   const attribution = deps.attribution ?? captureAttribution();
   // First-party analytics (netlify/functions/video-events.js): batched, idempotent,
@@ -139,8 +203,11 @@ export async function mountWatchPage(container, ref, deps = {}) {
       }
       return res;
     },
+    // A viewer clicked a hotspot: its own event type (not a CTA click), labelled with the owner's text.
+    onHotspot: ({ clip, label, time }) => analytics.track('overlay_click', { clip: String(clip.id), t: time, props: (label || labelFor(String(clip.id))) ? { label: label || labelFor(String(clip.id)) } : undefined }),
     onChange: ({ playing, time, duration, gating }) => {
       analytics.onPlayerChange({ playing, time, duration });
+      $('.watch-player')?.toggleAttribute('data-playing', !!playing);
       heat.onPlayerChange({ playing, time, duration });
       $('[data-play]').textContent = playing ? '❚❚' : '▶';
       $('[data-play]').setAttribute('aria-label', playing ? 'Pause' : 'Play');
@@ -164,6 +231,38 @@ export async function mountWatchPage(container, ref, deps = {}) {
   }
 
   const start = () => { player.play(); };
+  if (transcript) {
+    const list = $('[data-transcript-lines]');
+    const draw = (code) => {
+      const lines = code === transcript.lang ? transcript.lines : transcript.translations[code] || transcript.lines;
+      list.replaceChildren(...lines.map((l) => {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'watch-transcript-line'; b.dataset.start = String(l.startMs); b.dataset.end = String(l.endMs);
+        const t = document.createElement('span'); t.className = 'watch-transcript-time'; t.textContent = clock(l.startMs);
+        const w = document.createElement('span'); w.textContent = l.text;
+        b.append(t, w);
+        b.addEventListener('click', () => { player.seek(l.startMs / 1000); player.play(); });
+        li.appendChild(b);
+        return li;
+      }));
+    };
+    draw(transcript.lang);
+    $('[data-transcript-lang]')?.addEventListener('change', (e) => draw(e.target.value));
+    let shown = -1;
+    const mark = () => {
+      if (!list.isConnected) { clearInterval(follow); return; }
+      const ms = player.time * 1000;
+      const rows = [...list.querySelectorAll('.watch-transcript-line')];
+      const i = rows.findIndex((r) => ms >= Number(r.dataset.start) && ms < Number(r.dataset.end));
+      if (i === shown) return;
+      rows[shown]?.removeAttribute('aria-current');
+      if (i >= 0) rows[i].setAttribute('aria-current', 'true');
+      shown = i;
+    };
+    const follow = setInterval(mark, 250);
+  }
+  container.querySelectorAll('[data-chapter]').forEach((b) => b.addEventListener('click', () => { player.seek(chapters[Number(b.dataset.chapter)].startMs / 1000); player.play(); }));
   $('[data-bigplay]').addEventListener('click', start);
   $('[data-play]').addEventListener('click', () => player.toggle());
   const seekInput = $('[data-seek]');
@@ -191,13 +290,17 @@ export async function mountWatchPage(container, ref, deps = {}) {
   // CTA buttons and links in the video (click-to-call, Smart Text links…).
   frame.addEventListener('click', (e) => {
     const a = e.target.closest('a[href]');
-    if (!a || !frame.contains(a)) return;
+    if (!a || !frame.contains(a) || a.dataset.hotspot) return; // hotspots report overlay_click themselves
     const clip = a.closest('[data-clip-id]')?.dataset.clipId || null;
     const label = labelFor(clip) || String(a.textContent || '').trim().slice(0, 60) || null;
     const isCall = /^tel:/i.test(a.getAttribute('href') || '');
     const props = { ...(label ? { label } : {}), ...(isPricingLabel(label) ? { pricing: true } : {}) };
     analytics.track(isCall ? 'call_click' : 'cta_click', { clip, t: player.time, props: Object.keys(props).length ? props : undefined });
   }, true);
+  // The landing page's booking button (Video Outreach) counts as a CTA click.
+  container.querySelector('[data-landing-cta]')?.addEventListener('click', () => {
+    analytics.track('cta_click', { t: player.time, props: { label: String(landing.cta.label).slice(0, 60) } });
+  });
   // Playback errors are measured too (the viewer sees the player's own message).
   frame.addEventListener('error', (e) => { if (e.target?.tagName === 'VIDEO' || e.target?.tagName === 'AUDIO') analytics.track('error', { props: { reason: 'media' } }); }, true);
   globalThis.addEventListener?.('pagehide', () => { heat.destroy(); analytics.destroy(); }, { once: true });

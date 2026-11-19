@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 
 vi.mock('@cinegen/components/leads/use-publish', () => ({ getClient: vi.fn() }));
 import { useInsights } from '@cinegen/components/leads/use-insights';
@@ -46,5 +46,17 @@ describe('useInsights', () => {
     const b = mount(off.client, [row('1', S1)], false);
     await new Promise((r) => setTimeout(r, 20));
     expect(off.calls.rpc).toHaveLength(0); expect(b.result.current.formStats).toBeNull();
+  });
+  it('an older, slower response never overwrites a newer one', async () => {
+    let n = 0; const slow: Array<() => void> = [];
+    const client = {
+      rpc: (_n: string, _a: unknown) => { const mine = ++n; return new Promise((res) => { const go = () => res({ data: { min_cohort: 5, ctas: [{ cta_key: 'list-builder', suppressed: false, impressions: mine === 1 ? 111 : 222, clicks: 9, ctr: 0.3 }] }, error: null }); if (mine === 2) go(); else slow.push(go); }); },
+      from: () => ({ select: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }) }),
+    };
+    const { result } = mount(client, [row('1')]);        // first load starts and waits
+    await act(async () => { await result.current.reload(); }); // a newer reload finishes first
+    const after = result.current.formStats; expect(after?.byKey['list-builder']?.seen).toBe(222);
+    await act(async () => { slow.forEach((f) => f()); await new Promise((r) => setTimeout(r, 10)); }); // now the old one resolves
+    expect(result.current.formStats).toEqual(after);     // still the newer numbers
   });
 });

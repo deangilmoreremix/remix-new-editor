@@ -500,9 +500,10 @@ function securityHeaders() {
                 
                 // Permissions Policy
                 // [remix] microphone=(self): the timeline's voice-over recorder and Voice Director use the mic (same origin only)
+                // camera=(self): the Video Outreach studio and the recorders record the webcam (same origin only)
                 res.setHeader(
                     'Permissions-Policy',
-                    'camera=(), microphone=(self)'
+                    'camera=(self), microphone=(self)'
                 );
                 
                 next();
@@ -1470,6 +1471,11 @@ export default defineConfig({
             },
             // Motion Director: director chat + page capture (netlify/functions/personalization-api.mts).
             '/api/motion-studio/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            // Video Outreach: website screenshots for backgrounds (netlify/functions/personalization-api.mts).
+            '/api/outreach/': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },

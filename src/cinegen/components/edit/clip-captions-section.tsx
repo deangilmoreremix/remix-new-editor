@@ -10,7 +10,7 @@ import { CAPTION_STYLES } from '../../../openchatcut/captions/styles';
 import { backfillCueIdentities } from '../../../openchatcut/transcript/identity';
 import { DESIGN_STYLE_PRESETS } from '../../../openchatcut/editor/design-presets';
 import { CAPTION_FONT_FAMILIES, presetCaptionOverride } from '@cinegen/lib/occ/design-style';
-import { captionsToSrt, captionsToTxt } from '../../../openchatcut/captions/exportCaptions';
+import { captionsToSrt, captionsToTxt, captionsToVtt } from '../../../openchatcut/captions/exportCaptions';
 import { parseSrt } from '../../../openchatcut/captions/srt';
 import { deleteCaptionPreset, listCaptionPresets, saveCaptionPreset, type CaptionPreset } from '../../../openchatcut/captions/presetStore';
 import { importFontFile, loadUserFonts, userFontFamilies } from '@cinegen/lib/occ/user-fonts';
@@ -147,6 +147,7 @@ export function ClipCaptionsSection({ clip, asset, onUpdate, onSeek }: { clip: C
             <button className="clip-properties-panel__toggle-btn" onClick={() => fontRef.current?.click()}>Import font…</button>
             <button className="clip-properties-panel__toggle-btn" onClick={() => srtRef.current?.click()}>Import .srt</button>
             <button className="clip-properties-panel__toggle-btn" data-testid="caption-export-srt" onClick={() => download(`${clip.name || 'captions'}.srt`, captionsToSrt(c, noItems, 30), 'application/x-subrip')}>Export .srt</button>
+            <button className="clip-properties-panel__toggle-btn" data-testid="caption-export-vtt" onClick={() => download(`${clip.name || 'captions'}.vtt`, captionsToVtt(c, noItems, 30), 'text/vtt')}>.vtt</button>
             <button className="clip-properties-panel__toggle-btn" onClick={() => download(`${clip.name || 'captions'}.txt`, captionsToTxt(c, noItems, 30), 'text/plain')}>.txt</button>
           </div>
           <div className="cc-cap-host" data-testid="caption-cue-editor"><CaptionCueEditor captions={c} items={noItems} fps={30} onUpdate={patch} onSeekMs={onSeek ? (ms) => onSeek(ms / 1000) : undefined} /></div>

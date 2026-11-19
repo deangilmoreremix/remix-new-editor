@@ -7,6 +7,15 @@
  * No timeline state is touched.
  */
 
+// The text on the video is drawn by the editor's own overlay renderer (the same fonts, outline, box and entrance the timeline gets), so the
+// preview is what you will get, and a selected text can be moved and resized with the editor's drag handles.
+import '../../../lib/editor/addons/overlayAddons.js';
+import { captionPages, captionTextCss, captionPageHTML, captionAt } from './captionPreview.js';
+import { buildOverlayElement, finishOverlayElement, destroyOverlayElement, playInAnimation } from '../../../lib/editor/addons/overlayRender.js';
+import { attachDragResize } from '../../../lib/editor/addons/dragResize.js';
+import { lowerThirdFrame, LOWER_THIRD_DEFAULTS } from '../../../lib/editor/addons/lowerThirds.js';
+import '../../../../styles/timeline-addons.css';
+
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 export const formatTime = (sec) => {
@@ -39,6 +48,7 @@ export function renderPlayerHTML(playlist) {
         <video class="tg-player__video" playsinline muted preload="metadata" ${playlist[0].type === 'video' ? '' : 'hidden'}></video>
         <img class="tg-player__image" alt="" ${playlist[0].type === 'image' ? '' : 'hidden'}>
         <div class="tg-player__caption" hidden></div>
+        <div class="tg-player__layer addon-overlay-layer" data-player="layer"></div>
       </div>
       <div class="tg-player__bar">
         <button type="button" class="tg-player__btn" data-player="toggle" aria-label="Play">▶</button>
@@ -52,12 +62,14 @@ export function renderPlayerHTML(playlist) {
 }
 
 /** Wire a rendered player. Returns { destroy }. */
-export function createPreviewPlayer(root, playlist, { captions = [] } = {}) {
+export function createPreviewPlayer(root, playlist, { captions = [], texts = null, captionTrack = null, audio = [], onSelect, onChange } = {}) {
   const host = root?.querySelector?.('#tg-player');
   if (!host || !playlist.length) return { destroy() {} };
   const video = host.querySelector('.tg-player__video');
   const image = host.querySelector('.tg-player__image');
   const captionEl = host.querySelector('.tg-player__caption');
+  const layer = host.querySelector('[data-player="layer"]');
+  const screen = host.querySelector('.tg-player__screen');
   const toggleBtn = host.querySelector('[data-player="toggle"]');
   const fill = host.querySelector('.tg-player__fill');
   const timeEl = host.querySelector('.tg-player__time');
@@ -65,6 +77,77 @@ export function createPreviewPlayer(root, playlist, { captions = [] } = {}) {
   const total = playlist.reduce((n, p) => n + p.duration, 0);
   const starts = [];
   { let acc = 0; for (const p of playlist) { starts.push(acc); acc += p.duration; } }
+
+  // ---- text on the video: drawn at the playhead, selectable, draggable ----
+  let textItems = Array.isArray(texts) ? texts : null;     // null = the old one-caption-per-clip fallback
+  let selectedRole = null;
+  const mounted = new Map();                           // item id → { el, sig, detach }
+  const sigOf = (t) => JSON.stringify([t.text, t.style, t.lowerThird, t.role === selectedRole]);
+  const drop = (id) => { const m = mounted.get(id); if (!m) return; try { m.detach?.(); } catch { /* ignore */ } destroyOverlayElement(m.el); mounted.delete(id); };
+  const buildFor = (t) => {
+    const lt = t.lowerThird;
+    const clip = lt
+      ? { id: t.id, type: 'overlay-lower-third', addon: { ...LOWER_THIRD_DEFAULTS, template: lt.template, name: lt.name || '', title: lt.title || '' } }
+      : { id: t.id, type: 'overlay-text', addon: { ...t.style, text: t.text } };
+    const el = buildOverlayElement(clip, { editor: false });
+    return { el, clip };
+  };
+  const renderTexts = (now) => {
+    if (!textItems || !layer) return;
+    layer.style.setProperty('--ovl-w', `${layer.clientWidth || 640}px`);
+    layer.style.setProperty('--ovl-h', `${layer.clientHeight || 360}px`);
+    const active = textItems.filter((t) => now >= t.start - 1e-6 && now < t.start + Math.max(t.duration, 0.1));
+    for (const id of [...mounted.keys()]) if (!active.some((t) => t.id === id)) drop(id);
+    for (const t of active) {
+      const have = mounted.get(t.id);
+      const sig = sigOf(t);
+      if (have && have.sig === sig) {
+        if (t.lowerThird && have.el._lottie) have.el._lottie.goToAndStop(lowerThirdFrame(now - t.start, t.duration), true);
+        continue;
+      }
+      if (have) drop(t.id);
+      const built = buildFor(t);
+      if (!built.el) continue;
+      layer.appendChild(built.el);
+      const entry = { el: built.el, sig, detach: null };
+      mounted.set(t.id, entry);
+      built.el.style.cursor = 'pointer';
+      built.el.addEventListener('pointerdown', () => { if (selectedRole !== t.role) { selectedRole = t.role; pause(); onSelect?.(t.role); renderTexts(now); } });
+      void finishOverlayElement(built.el).then(() => { if (t.lowerThird && built.el._lottie) built.el._lottie.goToAndStop(lowerThirdFrame(now - t.start, t.duration), true); });
+      if (t.lowerThird) built.el._pendingFrame = lowerThirdFrame(now - t.start, t.duration);
+      else if (!selectedRole) playInAnimation(built.el, t.style?.animation);
+      if (t.role === selectedRole && !t.lowerThird && t.style?.geometry) {
+        entry.detach = attachDragResize(built.el, layer, { geometry: t.style.geometry, onCommit: (g) => onChange?.(t.role, { geometry: g }) });
+      }
+    }
+  };
+  // ---- word-timed captions: the active word picked out, in the chosen caption look ----
+  let capTrack = null;
+  let capPages = [];
+  let capEl = null;
+  const setCapTrack = (track) => {
+    capTrack = track && track.words?.length && track.style ? track : null;
+    capPages = capTrack ? captionPages(capTrack.words, capTrack.style) : [];
+    if (!capTrack && capEl) capEl.hidden = true;
+  };
+  const renderCaps = (now) => {
+    if (!capTrack || !screen) return;
+    if (!capEl) {
+      capEl = document.createElement('div');
+      capEl.className = 'tg-capwords';
+      capEl.setAttribute('aria-live', 'off');
+      screen.appendChild(capEl);
+    }
+    const page = captionAt(capPages, now * 1000);
+    capEl.hidden = !page;
+    if (!page) return;
+    const h = screen.clientHeight || 360;
+    const st = capTrack.style;
+    capEl.style.cssText = `${captionTextCss(st, h)};${st.wholeLine && st.background ? `background:${st.background};` : ''}`;
+    capEl.innerHTML = captionPageHTML(st, page, now * 1000, { motion: capTrack.motion });
+  };
+  setCapTrack(captionTrack);
+  screen?.addEventListener('pointerdown', (e) => { if (e.target === screen || e.target.classList?.contains('tg-player__video') || e.target === layer) { if (selectedRole) { selectedRole = null; onSelect?.(null); renderTexts(timeNow()); } } });
 
   let index = 0;
   let elapsed = 0; // seconds into the current clip
@@ -88,16 +171,56 @@ export function createPreviewPlayer(root, playlist, { captions = [] } = {}) {
       image.src = clip.src;
     }
     items.forEach((el, n) => el.classList.toggle('is-active', n === index));
-    const cap = captions.find((c) => c.index === index);
-    captionEl.hidden = !cap;
-    captionEl.textContent = cap?.text || '';
+    if (!textItems) {
+      const cap = captions.find((c) => c.index === index);
+      captionEl.hidden = !cap;
+      captionEl.textContent = cap?.text || '';
+    } else captionEl.hidden = true;
     paint();
   };
+  const timeNow = () => (starts[index] || 0) + Math.min(elapsed, playlist[index].duration);
+
+  // ---- voiceover / music: one audio element per track, kept at the playhead, volume from the mix (and the music's duck curve) ----
+  const audioEls = new Map();                          // id → { el, def }
+  const kfAt = (list, t, fallback) => {
+    if (!Array.isArray(list) || !list.length) return fallback;
+    if (t <= list[0].t) return list[0].v;
+    for (let k = 0; k < list.length - 1; k += 1) {
+      const a = list[k]; const b = list[k + 1];
+      if (t <= b.t) return b.t === a.t ? b.v : a.v + ((b.v - a.v) * (t - a.t)) / (b.t - a.t);
+    }
+    return list[list.length - 1].v;
+  };
+  const dropAudio = () => { for (const { el } of audioEls.values()) { try { el.pause(); el.removeAttribute('src'); el.load?.(); } catch { /* ignore */ } } audioEls.clear(); };
+  const setAudioDefs = (defs) => {
+    dropAudio();
+    for (const def of Array.isArray(defs) ? defs : []) {
+      if (!def?.url) continue;
+      const el = new Audio();
+      el.preload = 'auto';
+      el.src = def.url;
+      audioEls.set(def.id, { el, def });
+    }
+  };
+  const syncAudio = (t) => {
+    for (const { el, def } of audioEls.values()) {
+      const rel = t - (def.start || 0);
+      const inside = rel >= 0 && rel < def.duration;
+      if (!inside || !playing) { if (!el.paused) el.pause(); continue; }
+      el.volume = Math.min(1, Math.max(0, def.keyframes?.length ? kfAt(def.keyframes, rel, 1) : (def.volume ?? 1)));   // a curve already includes the track volume
+      if (el.paused) { try { el.currentTime = rel; } catch { /* not loaded yet */ } el.play?.()?.catch?.(() => {}); }
+      else if (Math.abs(el.currentTime - rel) > 0.4) { try { el.currentTime = rel; } catch { /* ignore */ } }
+    }
+  };
+  setAudioDefs(audio);
 
   const paint = () => {
     const t = (starts[index] || 0) + Math.min(elapsed, playlist[index].duration);
     fill.style.width = `${Math.min(100, (t / total) * 100)}%`;
     timeEl.textContent = `${formatTime(t)} / ${formatTime(total)}`;
+    renderTexts(t);
+    renderCaps(t);
+    syncAudio(t);
     toggleBtn.textContent = playing ? '❚❚' : '▶';
     toggleBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
   };
@@ -146,8 +269,33 @@ export function createPreviewPlayer(root, playlist, { captions = [] } = {}) {
   host.addEventListener('click', onClick);
   show(0);
 
+  /** Jump the playhead to time t (seconds) and show that moment. */
+  const seek = (t) => {
+    let i = starts.findIndex((st, n) => t >= st && t < st + playlist[n].duration);
+    if (i < 0) i = playlist.length - 1;
+    const was = playing; pause(); show(i); elapsed = Math.max(0, t - starts[i]);
+    try { if (playlist[i].type === 'video') video.currentTime = elapsed; } catch { /* metadata not loaded yet */ }
+    paint(); if (was) play();
+  };
+
   return {
+    /** Replace the voice / music tracks (after a change in the mix) and resync them to the playhead. */
+    setAudio(defs) { setAudioDefs(defs); paint(); },
+    /** Replace the texts (after an edit) and redraw them at the current moment. */
+    /** Replace the word-timed caption track (`{ style, words, motion }` or null) and redraw it. */
+    setCaptionTrack(track) { setCapTrack(track); paint(); },
+    setTexts(next) { textItems = Array.isArray(next) ? next : null; for (const id of [...mounted.keys()]) drop(id); paint(); },
+    /** Select a text role: pause, jump to where it first shows, and give it handles. */
+    selectRole(role) {
+      selectedRole = role || null;
+      if (role && textItems) { const t = textItems.find((x) => x.role === role); if (t) { pause(); seek(t.start + 0.05); } }
+      for (const id of [...mounted.keys()]) drop(id);
+      paint();
+    },
+    seek,
     destroy() {
+      for (const id of [...mounted.keys()]) drop(id);
+      dropAudio();
       playing = false;
       cancelAnimationFrame(raf);
       host.removeEventListener('click', onClick);

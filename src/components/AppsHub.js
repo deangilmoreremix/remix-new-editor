@@ -74,7 +74,7 @@ export function AppsHub() {
         ['2', 'Create', 'Describe what you want, pick a model and press Generate.'],
         ['3', 'Keep it', 'Results land in your Library, ready to edit, render or publish.'],
       ].map(([n, t, d]) => `
-        <div class="rounded-2xl p-6 bg-[#111]/80 border border-white/10">
+        <div class="rounded-2xl p-6 bg-card-bg/80 border border-white/10">
           <div class="w-7 h-7 rounded-full bg-primary/15 text-primary text-xs font-black flex items-center justify-center mb-3">${n}</div>
           <div class="text-sm font-bold text-white mb-1">${t}</div>
           <div class="text-xs text-white/50 leading-relaxed">${d}</div>
@@ -150,7 +150,7 @@ function createSection(title, items, isStudio = false) {
 
   items.forEach(item => {
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group overflow-hidden';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group overflow-hidden';
     card.dataset.searchable = `${item.name} ${item.description || ''}`;
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
