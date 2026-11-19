@@ -173,4 +173,41 @@ describe('notifications bell realtime: synchronous owner id', () => {
     expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
     bell.destroy();
   });
+  it('the previous owner\'s unread number is cleared when the channel is dropped', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1';
+    const srv = live(7);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur });
+    await tick(); await tick();
+    expect(bell._count()).toBe(7);
+    cur = 'user_2';                                  // another account, and an alert for the old one arrives
+    rt.handlers.forEach((h) => h({ new: { id: 'n3', type: 'new_lead', title: 'x', read_at: null } }));
+    await tick(); await tick();
+    expect(bell._count()).toBe(0);
+    expect(bell.element.querySelector('[role=status]').classList.contains('hidden')).toBe(true);   // the badge is hidden, not showing the old owner's number
+    bell.destroy();
+  });
+  it('the badge is also cleared when the owner changes during the asynchronous lookup', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
+    const getRealtime = vi.fn(async () => { if (slow) await gate; return rt.getRealtime(); });
+    const bell = createNotificationsBell({ getClient: async () => live(5), isSignedIn: () => true, getRealtime, getCurrentUserId: () => cur });
+    await tick(); await tick();
+    expect(bell._count()).toBe(5);
+    slow = true;
+    rt.handlers.forEach((h) => h({ new: { id: 'n4', type: 'new_lead', title: 'x', read_at: null } }));
+    cur = 'user_2'; release(); await tick(); await tick();
+    expect(bell._count()).toBe(0);
+    bell.destroy();
+  });
+  it('a getCurrentUserId that throws never breaks alerts or the identity timer', async () => {
+    const rt = fakeRealtime(); let boom = false;
+    const srv = live(0);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => { if (boom) throw new Error('host failure'); return 'user_1'; }, identityCheckMs: 20 });
+    await tick(); await tick();
+    boom = true; srv.s.n = 1;
+    await insert(rt, { id: 'n5', type: 'milestone', title: 'still works', read_at: null });
+    await wait(80);                                   // the timer ran several times without an uncaught error
+    expect(bell._count()).toBe(1);
+    expect(rt.removed.length).toBe(0);                // an unreadable id is treated as "unchanged"
+    bell.destroy();
+  });
 });

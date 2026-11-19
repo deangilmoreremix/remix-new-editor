@@ -80,14 +80,18 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   // the old channel can outlive the change until the next periodic check, so each alert re-checks who is signed in.
   // getCurrentUserId() is a synchronous source of the signed-in owner's id (when the host provides one), so a channel that
   // belongs to someone else is noticed immediately, without waiting for the asynchronous lookup below.
-  const ownerChanged = (mine) => typeof getCurrentUserId === 'function' && (getCurrentUserId() || '') !== mine.userId;
+  const ownerChanged = (mine) => {
+    try { return typeof getCurrentUserId === 'function' && (getCurrentUserId() || '') !== mine.userId; } catch { return false; } // a throwing host callback never breaks the bell
+  };
+  // Removes the channel AND the previous owner's unread number, so a stale badge is never shown to someone else.
+  const dropChannel = () => { count = 0; draw(); return stopRealtime(); };
   async function guardedInsert(payload, mine) {
     if (!alive || rt !== mine) return;
-    if (!isSignedIn() || ownerChanged(mine)) { stopRealtime(); return; }              // signed out or another account: drop the channel now
+    if (!isSignedIn() || ownerChanged(mine)) { dropChannel(); return; }               // signed out or another account: drop the channel now
     try {
       const info = await getRealtime();
       if (!alive || rt !== mine) return;
-      if (!isSignedIn() || ownerChanged(mine) || !info?.userId || info.userId !== mine.userId) { stopRealtime(); return; } // changed while the lookup was pending
+      if (!isSignedIn() || ownerChanged(mine) || !info?.userId || info.userId !== mine.userId) { dropChannel(); return; } // changed while the lookup was pending
     } catch { return; }
     onInsert(payload);
   }
@@ -123,7 +127,7 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   const rtTimer = getRealtime ? setInterval(ensureRealtime, realtimeCheckMs) : null;
   // A sign-out or account switch removes the channel within seconds, even when no alert arrives to trigger the check.
   const identityTimer = getRealtime && typeof getCurrentUserId === 'function'
-    ? setInterval(() => { const cur = rt; if (cur && (!isSignedIn() || ownerChanged(cur))) { stopRealtime().then(() => ensureRealtime()); } }, identityCheckMs)
+    ? setInterval(() => { const cur = rt; if (cur && (!isSignedIn() || ownerChanged(cur))) { dropChannel().then(() => ensureRealtime()); } }, identityCheckMs)
     : null;
   refresh(true); ensureRealtime();
   // Clerk usually finishes loading after the header is created: re-check a few times so a signed-in owner sees the bell soon.
