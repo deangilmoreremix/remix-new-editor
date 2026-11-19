@@ -42,7 +42,8 @@ export async function measureLogoFor(profile: Profile | null): Promise<void> {
   measuring.delete(logo.url);
   if (lum == null) return;
   // the logo may have been replaced (Video Ready) while this was measured: only keep a measurement of the picture that is still there
-  const fresh = (contactStore.getProfile?.(profile.id) as Profile) || profile;
+  const fresh = contactStore.getProfile?.(profile.id) as Profile | null;
+  if (!fresh) return; // the contact was deleted meanwhile
   if ((assetForImageToken(fresh, 'logoUrl') as { url?: string } | null)?.url !== logo.url) return;
   saveContactAsset(fresh, logo.id, (a) => ({ ...a, luminance: lum }));
 }
@@ -60,12 +61,15 @@ export async function makeContactImageVideoReady(profile: Profile, key: string, 
   try {
     const result = await makePersonalizationAssetVideoReady(asset, { businessContext: { businessName: business.businessName, industry: business.industry, productService: business.productService, brandDescription: business.brandDescription } });
     const stored = await persistPersonalizationAssetVersion({ sourceUrl: result.url, role: asset.role, name: `${asset.name || asset.role} — Video Ready` });
-    const fresh = (contactStore.getProfile?.(profile.id) as Profile) || profile;
+    const fresh = contactStore.getProfile?.(profile.id) as Profile | null;
+    if (!fresh) return false; // the contact was deleted while this ran: drop the result instead of bringing the contact back
+    // only what the cleanup produced is applied, so a crop focus or an approval changed meanwhile survives
+    const changed = Object.fromEntries(Object.entries(result as Record<string, unknown>).filter(([k, v]) => v !== (asset as Record<string, unknown>)[k]));
     saveContactAsset(fresh, asset.id, (a) => ({
-      ...a, ...result, url: stored.url, originalUrl: (a as { originalUrl?: string }).originalUrl || asset.url, luminance: undefined,
+      ...a, ...changed, url: stored.url, originalUrl: (a as { originalUrl?: string }).originalUrl || asset.url, luminance: undefined,
       versions: [...(Array.isArray((a as { versions?: unknown[] }).versions) ? (a as { versions: unknown[] }).versions : []), { id: `${a.id}:video-ready:${Date.now()}`, url: stored.url, type: 'video_ready', createdAt: new Date().toISOString() }],
     }));
-    if (key === 'logoUrl') void measureLogoFor((contactStore.getProfile?.(profile.id) as Profile) || fresh);
+    if (key === 'logoUrl') void measureLogoFor(contactStore.getProfile?.(profile.id) as Profile | null);
     notify(`${contactName(profile)}'s ${key === 'avatarUrl' ? 'photo' : 'image'} is Video Ready.`, 'success');
     return true;
   } catch (err) {
