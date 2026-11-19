@@ -8,7 +8,7 @@
 // The header "?" button and Settings replay tours on demand (`tour:replay`), ignoring "seen".
 import { shellTour, tourForPage, TOURS, TOUR_LIST, routeId } from './registry.js';
 import { loadBestTours, markTourSeen, setToursDisabled, resetTours, hasSeen, toursDisabled } from './tourState.js';
-import { blockingOverlayOpen } from './waitFor.js';
+import { blockingOverlayOpen, resolveTarget } from './waitFor.js';
 
 const defaultDeps = () => ({
   userId: () => globalThis.window?.Clerk?.user?.id || '',
@@ -94,6 +94,8 @@ export function initTours({ getPage = () => '', pollMs = 700, maxWaitMs = 40000,
   const api = {
     schedule, replay,
     start: (id, opts) => (TOURS[id] ? run(TOURS[id], { replay: true, ...opts }) : Promise.resolve(null)),
+    // Diagnostics (and the e2e): which steps of a tour have a visible target on the page right now.
+    resolve: (id) => (TOURS[id] ? TOURS[id].steps.map((st) => ({ title: st.title, ok: !st.target || !!resolveTarget(st.target) })) : []),
     list: () => TOUR_LIST.map((t) => ({ id: t.id, route: t.route, version: t.version, steps: t.steps.length })),
     destroy() {
       if (typeof window === 'undefined') return;

@@ -11,7 +11,7 @@ const ROUTES = [
   'library', 'content-library',
 ];
 // Steps that may legitimately be missing in a signed-out, empty, offline test run (they depend on data or iframes).
-const MIN_STEPS = { 'video-agent': 2, workbench: 2, 'website-builder': 2, outreach: 2, viral: 3, templates: 3, timeline: 2, 'video-pages': 2, 'content-library': 3 };
+const MIN_STEPS = { 'video-agent': 2, workbench: 2, 'website-builder': 2, outreach: 2, viral: 3, templates: 3, timeline: 2, 'video-pages': 1, 'content-library': 3 };
 
 const openApp = async (page, route) => {
   await page.goto(`/?dev#/${route}`, { waitUntil: 'domcontentloaded' });

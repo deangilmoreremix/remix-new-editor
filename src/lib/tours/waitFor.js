@@ -2,7 +2,13 @@
 // Studios render their DOM in pieces (and some after a network call), and the router has no "page ready" signal.
 // These helpers wait for a target to exist and be visible, so a tour can start on a page that is still filling in.
 
-export const isVisible = (el) => !!el && el.isConnected !== false && (typeof el.getClientRects !== 'function' || el.getClientRects().length > 0) && !el.closest?.('[hidden],.hidden');
+// On screen = it has a box and is not visibility:hidden. (Not `.hidden`: Tailwind's `hidden md:flex` is visible on desktop.)
+export const isVisible = (el) => {
+  if (!el || el.isConnected === false) return false;
+  if (typeof el.getClientRects === 'function' && el.getClientRects().length === 0) return false;
+  try { if (globalThis.getComputedStyle?.(el)?.visibility === 'hidden') return false; } catch { /* ignore */ }
+  return true;
+};
 
 /** First visible element for a selector, a list of fallback selectors, or a function. Never throws. */
 export function resolveTarget(target, root = document) {
@@ -38,7 +44,8 @@ export function waitForTarget(target, { timeout = 6000, root = document, signal 
   });
 }
 
-/** True when something modal is on screen (API-key popup, Settings, a welcome overlay), so a tour should wait. */
+/** True when something modal is VISIBLE (API-key popup, Settings, a welcome overlay): a tour should wait for it. */
 export function blockingOverlayOpen(root = document) {
-  return !!root.querySelector('[data-onboarding],[data-outreach-welcome],[role="dialog"][aria-modal="true"],div.fixed.inset-0[class*="z-[100]"],.driver-popover');
+  const sel = '[data-onboarding],[data-outreach-welcome],[role="dialog"][aria-modal="true"],div.fixed.inset-0[class*="z-[100]"],.driver-popover';
+  return [...root.querySelectorAll(sel)].some((el) => isVisible(el));
 }
