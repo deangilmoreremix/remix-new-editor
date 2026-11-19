@@ -34,7 +34,7 @@ const INPUT = 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-
 /**
  * mountOutreachWelcome(host, { name, initial, onChange(answers), onFinish(answers), onAcademy() }) -> { destroy }
  */
-export function mountOutreachWelcome(host, { name = '', initial = null, onChange = () => {}, onFinish = () => {}, onAcademy = null } = {}) {
+export function mountOutreachWelcome(host, { name = '', initial = null, onChange = () => {}, onFinish = () => {}, onAcademy = null, skipAnswered = false } = {}) {
   let a = cleanOnboarding(initial || {});
   const root = el('div', 'absolute inset-0 z-40 flex flex-col overflow-y-auto bg-app-bg text-white');
   root.setAttribute('data-outreach-welcome', '');
@@ -51,7 +51,14 @@ export function mountOutreachWelcome(host, { name = '', initial = null, onChange
 
   const change = (patch) => { a = cleanOnboarding({ ...a, ...patch }); onChange(a); };
   const go = (step) => { change({ step }); paint(); root.scrollTop = 0; };
-  const next = () => (a.step >= ONBOARDING_STEPS ? finish() : go(a.step + 1));
+  // skipAnswered: the app-wide onboarding already asked team, volume, company and source, so moving forward
+  // jumps over questions that have an answer (Back still shows them).
+  const answered = (s) => (s === 2 && !!a.team) || (s === 3 && !!a.volume) || (s === 4 && workReady(a)) || (s === 5 && !!a.heard);
+  const next = () => {
+    let s = a.step + 1;
+    if (skipAnswered) while (s <= ONBOARDING_STEPS && answered(s)) s += 1;
+    return s > ONBOARDING_STEPS ? finish() : go(s);
+  };
   function finish() { change({ completedAt: new Date().toISOString() }); destroy(); onFinish(a); }
 
   function header() {

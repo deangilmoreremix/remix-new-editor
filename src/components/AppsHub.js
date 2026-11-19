@@ -43,7 +43,7 @@ const MENU_APPS = [
   { id: 'content-library', name: 'Content', description: 'Browse and reuse your saved content', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>', badge: 'My work', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
 ];
 
-const ALL_APPS = Object.fromEntries([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS, ...MENU_APPS].map((a) => [a.id, a]));
+export const ALL_APPS = Object.fromEntries([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS, ...MENU_APPS].map((a) => [a.id, a]));
 const pick = (ids) => ids.map((id) => ALL_APPS[id]).filter(Boolean);
 
 // Built from the side menu itself (NAV_GROUPS) so the two can't drift apart.

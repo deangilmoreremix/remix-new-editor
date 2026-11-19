@@ -330,6 +330,16 @@ const STUDIO_THUMBNAILS = {
   'video-agent': '/thumbnails/heroes/videoagent.webp.png',
   library: '/thumbnails/pages/library.webp',
   'content-library': '/thumbnails/categories/entertainment.webp',
+  // Side-menu studios that only had hero art (or none): reuse existing pictures so every menu item
+  // resolves one image (used by the onboarding tool picker and the Apps page). No new artwork yet.
+  'cinema-template': '/thumbnails/heroes/cinema.webp',
+  director: '/thumbnails/heroes/director.webp',
+  timeline: '/thumbnails/heroes/timeline.webp.png',
+  workbench: '/thumbnails/heroes/workbench.webp',
+  'website-builder': '/thumbnails/heroes/website-builder.webp',
+  zackd: '/zackd/templates/swallow-gum/keyframes/beat_1_a.png',
+  'video-pages': '/landing-previews/personal.jpg',
+  academy: '/screenshots/academy.png',
 };
 
 const HERO_THUMBNAILS = {

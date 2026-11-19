@@ -2503,8 +2503,12 @@ export function OutreachStudio() {
       return;
     }
     const { mountOutreachWelcome } = await import('./outreach/OutreachWelcome.js');
+    // The app-wide onboarding already asked team size, volume, company and source: do not ask twice.
+    const app = await import('../lib/onboarding/store.js');
+    const skipAnswered = app.isAppDone(app.loadLocalAppOnboarding(uid));
     let timer = null;
     mountOutreachWelcome(container, {
+      skipAnswered,
       name: String(user?.firstName || '').trim().slice(0, 40),
       initial: best,
       onChange: (a) => { ob.saveLocalOnboarding(uid, a); clearTimeout(timer); timer = setTimeout(() => saveWelcome(a), 500); },

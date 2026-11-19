@@ -53,6 +53,21 @@ describe('SmartVideo welcome', () => {
     expect(onFinish.mock.calls[0][0]).toMatchObject({ heard: 'other', heardOther: 'A billboard' });
   });
 
+  it('skipAnswered jumps over questions the app-wide onboarding already asked', () => {
+    const onFinish = vi.fn();
+    const initial = { step: 1, team: '2-5', volume: '100+', company: 'Acme', website: 'acme.com', jobTitle: 'AE', heard: 'google' };
+    mountOutreachWelcome($('#host'), { initial, onFinish, skipAnswered: true });
+    $('[data-welcome-goal="dynamic"]').click();
+    expect(onFinish).toHaveBeenCalledTimes(1); // every other question was answered
+    expect(onFinish.mock.calls[0][0]).toMatchObject({ goal: 'dynamic', team: '2-5', company: 'Acme', heard: 'google' });
+  });
+
+  it('skipAnswered stops at the first unanswered question', () => {
+    mountOutreachWelcome($('#host'), { initial: { step: 1, team: '2-5', volume: '100+' }, skipAnswered: true });
+    $('[data-welcome-goal="personal"]').click();
+    expect(document.body.textContent).toContain('Step 4 of 5'); // team and volume skipped, company next
+  });
+
   it('greets without a name when there is none', () => {
     mountOutreachWelcome($('#host'), {});
     expect($('h1').textContent).toBe('Welcome. What do you want to do first?');

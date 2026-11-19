@@ -53,7 +53,7 @@ function SignInCard() {
         path="/signin"
         signUpUrl="/signup"
         afterSignInUrl="/#/image"
-        afterSignUpUrl="/#/image"
+        afterSignUpUrl="/#/onboarding"
       />
     </div>
   );
@@ -67,7 +67,7 @@ function SignUpCard() {
         path="/signup"
         signInUrl="/signin"
         afterSignInUrl="/#/image"
-        afterSignUpUrl="/#/image"
+        afterSignUpUrl="/#/onboarding"
       />
     </div>
   );

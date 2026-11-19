@@ -32,7 +32,7 @@ export function SignUpPage() {
       return;
     }
     if (isSignedIn) {
-      window.location.href = '/#/image';
+      window.location.href = '/#/onboarding';
     }
   }, [userLoaded, isSignedIn, user]);
 
@@ -60,8 +60,8 @@ export function SignUpPage() {
     if (signUp.status === 'complete') {
       await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
+          const url = decorateUrl('/#/onboarding');
+          window.location.href = url.startsWith('http') ? url : '/#/onboarding';
         },
       });
       return;
@@ -95,8 +95,8 @@ export function SignUpPage() {
     if (signUp.status === 'complete') {
       await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
+          const url = decorateUrl('/#/onboarding');
+          window.location.href = url.startsWith('http') ? url : '/#/onboarding';
         },
       });
       return;

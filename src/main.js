@@ -202,6 +202,30 @@ try {
     return;
   }
 
+  // App-wide onboarding (#/onboarding): full page, no header or side menu. New sign-ups land here; people who
+  // reach the app's default pages without having finished or skipped it are sent here once per session.
+  // `#/onboarding?redo=1` (Settings > Redo onboarding) restarts it.
+  const onboardingParams = new URLSearchParams(`${initialPage.split('?')[1] || ''}&${window.location.search.slice(1)}`);
+  let onboardingPage = initialPage.split('?')[0];
+  if (!isDevBypass && ['image', 'apps'].includes(onboardingPage) && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY && !sessionStorage.getItem('smartvideo-onboarding-shown')) {
+    try {
+      await ensureClerkLoaded();
+      const { needsOnboarding } = await import('./lib/onboarding/store.js');
+      if (await needsOnboarding(window.Clerk?.user?.id || '')) onboardingPage = 'onboarding';
+    } catch (err) {
+      console.warn('[App] Onboarding check failed, continuing to the app:', err.message);
+    }
+  }
+  if (onboardingPage === 'onboarding') {
+    if (!isDevBypass) {
+      try { await ensureClerkLoaded(); } catch (err) { console.warn('[App] Clerk preload failed:', err.message); }
+    }
+    const { mountOnboardingPage } = await import('./components/onboarding/OnboardingPage.js');
+    await mountOnboardingPage(app, { redo: onboardingParams.get('redo') === '1' });
+    console.log('[App] Onboarding rendered');
+    return;
+  }
+
   const { header: headerEl, headerAuthSlot } = Header((page) => navigate(page));
   app.appendChild(headerEl);
   mountGenerationNotifications((page) => navigate(page));

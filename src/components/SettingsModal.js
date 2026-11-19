@@ -310,6 +310,18 @@ export function SettingsModal(onClose) {
     modal.appendChild(muapiForm);
     modal.appendChild(openaiForm);
     modal.appendChild(videodbForm);
+
+    // Restart the app-wide onboarding (answers are kept as defaults). It is a full page, so this reloads into it.
+    const redoBtn = document.createElement('button');
+    redoBtn.type = 'button';
+    redoBtn.textContent = 'Redo onboarding';
+    redoBtn.setAttribute('data-redo-onboarding', '');
+    redoBtn.className = 'self-start text-xs font-semibold text-white/45 hover:text-white underline-offset-2 hover:underline';
+    redoBtn.onclick = () => {
+        removeModal();
+        window.location.assign(`${window.location.pathname}?redo=1#/onboarding`); // the query changes, so this loads the page afresh
+    };
+    modal.appendChild(redoBtn);
     modal.appendChild(closeRow);
     modal.appendChild(closeX);
 
