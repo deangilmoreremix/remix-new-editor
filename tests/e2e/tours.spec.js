@@ -52,3 +52,84 @@ test.describe('Guided tours', () => {
     });
   }
 });
+
+test.describe('Guided tours: app tour, replay and settings', () => {
+  const clean = async (page) => {
+    await page.addInitScript(() => { try { sessionStorage.setItem('setup_popup_shown', '1'); } catch { /* ignore */ } });
+  };
+  const title = (page) => page.locator('.driver-popover-title').first();
+
+  test('the app tour runs first on a new account, then the studio tour; both are remembered', async ({ page }) => {
+    await clean(page);
+    await openApp(page, 'image');
+    await page.waitForSelector('.driver-popover.sv-tour', { timeout: 30_000 });
+    await expect(title(page)).toHaveText('Welcome to SmartVideo');
+    const seen = [];
+    for (let i = 0; i < 30; i += 1) {
+      seen.push(await title(page).textContent());
+      const done = (await page.locator('.driver-popover-next-btn').textContent()) === 'Done';
+      await page.locator('.driver-popover-next-btn').click();
+      await page.waitForTimeout(400); // driver.js animates between steps
+      if (done) break;
+    }
+    expect(seen).toEqual(expect.arrayContaining(['Image tools', 'Video tools', 'Agents', 'My Work', 'All apps', 'Settings and API keys', 'Replay this any time']));
+    // Straight on to the Image Studio tour.
+    await page.waitForFunction(() => document.querySelector('.driver-popover-title')?.textContent === 'Image Studio', null, { timeout: 15_000 });
+    const progress = await page.locator('.driver-popover-progress-text').first().textContent();
+    for (let i = 0; i < Number(progress.match(/of (\d+)/)[1]); i += 1) { await page.locator('.driver-popover-next-btn').click(); await page.waitForTimeout(120); }
+    await expect(page.locator('.driver-popover.sv-tour')).toHaveCount(0);
+    const store = await page.evaluate(() => JSON.parse(localStorage.getItem('smartvideo-tours-v1:guest')));
+    expect(Object.keys(store).sort()).toEqual(['app', 'image']);
+    // Reload: nothing starts by itself any more.
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#content-area');
+    await page.waitForTimeout(4000);
+    await expect(page.locator('.driver-popover.sv-tour')).toHaveCount(0);
+  });
+
+  test('the ? button replays this page\'s tour, even after it was seen', async ({ page }) => {
+    await clean(page);
+    await page.addInitScript(() => { try { localStorage.setItem('smartvideo-tours-v1:guest', JSON.stringify({ app: { version: 1, seenAt: new Date().toISOString() }, upscale: { version: 1, seenAt: new Date().toISOString() } })); } catch { /* ignore */ } });
+    await openApp(page, 'upscale');
+    await page.waitForTimeout(3000);
+    await expect(page.locator('.driver-popover.sv-tour')).toHaveCount(0);
+    await page.click('[data-tour="replay"]');
+    await page.waitForSelector('.driver-popover.sv-tour');
+    await expect(title(page)).toHaveText('Upscale Suite');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.driver-popover.sv-tour')).toHaveCount(0);
+  });
+
+  test('"Don\'t show tours again" turns tours off, and Settings turns them back on and resets them', async ({ page }) => {
+    await clean(page);
+    await openApp(page, 'apps');
+    await page.waitForSelector('.driver-popover.sv-tour', { timeout: 30_000 });
+    await page.click('[data-tour-off]');
+    await expect(page.locator('.driver-popover.sv-tour')).toHaveCount(0);
+    expect(await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('smartvideo-tours-v1:guest'))).includes('__disabled__'))).toBe(true);
+    await page.goto('/?dev#/video', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#content-area');
+    await page.waitForTimeout(3500);
+    await expect(page.locator('.driver-popover.sv-tour')).toHaveCount(0);
+    // Settings: reset all tours, then turn them on.
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('navigate', { detail: { page: 'settings' } })));
+    await page.waitForSelector('[data-reset-tours]');
+    await page.click('[data-toggle-tours]'); // currently off -> on
+    await page.click('[data-reset-tours]');
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => localStorage.getItem('smartvideo-tours-v1:guest'))).toBe('{}');
+  });
+
+  test('the app tour also fits a phone: the side menu opens for its steps', async ({ page }) => {
+    await clean(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openApp(page, 'apps');
+    await page.waitForSelector('.driver-popover.sv-tour', { timeout: 30_000 });
+    await page.locator('.driver-popover-next-btn').click();
+    await expect(title(page)).toHaveText('Image tools');
+    expect(await page.evaluate(() => document.querySelector('aside')?.classList.contains('fixed'))).toBe(true);
+    const r = await page.locator('.driver-popover.sv-tour').boundingBox();
+    expect(r.x).toBeGreaterThanOrEqual(0);
+    expect(r.x + r.width).toBeLessThanOrEqual(390);
+  });
+});
