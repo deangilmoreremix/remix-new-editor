@@ -347,7 +347,7 @@ export async function fetchVideoStats(client, id) {
 }
 
 /** Submit a viewer's lead for a published video (stored for its owner). */
-export async function submitViewerLead({ publishedId, clipId, kind, data, attribution = {}, signals = null, variant = '' }, { url, key, fetchImpl = fetch } = env()) {
+export async function submitViewerLead({ publishedId, clipId, kind, data, attribution = {}, signals = null, variant = '', session = null }, { url, key, fetchImpl = fetch } = env()) {
   if (!url || !key) return { stored: false, error: 'Lead service is not configured' };
   try {
     const res = await fetchImpl(`${url}/functions/v1/lead-capture`, {
@@ -362,6 +362,7 @@ export async function submitViewerLead({ publishedId, clipId, kind, data, attrib
           ...(attribution.utm ? { utm: attribution.utm } : {}),
           ...(attribution.referrer ? { referrer: attribution.referrer } : {}),
           ...(variant === 'A' || variant === 'B' ? { variant } : {}),
+          ...(typeof session === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(session) ? { session } : {}),
         },
       }),
     });

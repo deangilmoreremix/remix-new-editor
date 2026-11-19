@@ -3,9 +3,12 @@ import { useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { LEAD_STATUSES, hasFollowUp, answerColumns, collapseRepeats, countsByForm, leadsPerDay, filterRows, fromMp4, variantCounts, variantOf, leadForms, rowFormKey, rowsToCsv, sourceLabel, whenLabel, LEAD_RANGES, type LeadRange, type LeadRow } from '@cinegen/lib/leads/leads';
 import { setLeadsForm, useLeadsForm } from '@cinegen/lib/leads/leads-filter';
+import { formStatLine } from '@cinegen/lib/leads/form-stats';
+import { sessionOf, watchPercent, watchTag } from '@cinegen/lib/leads/leads';
 import type { LeadsData } from './use-leads';
+import type { Insights } from './use-insights';
 
-export function LeadsCard({ data, published, views }: { data: LeadsData; published: boolean; views: number }) {
+export function LeadsCard({ data, published, views, insights }: { data: LeadsData; published: boolean; views: number; insights?: Insights }) {
   const { state } = useWorkspace();
   const form = useLeadsForm();
   const [query, setQuery] = useState('');
@@ -27,10 +30,12 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
   const wall = counts['list-builder'] ?? 0;
   const mp4 = data.rows.filter(fromMp4).length;
   const ab = variantCounts(data.rows);
+  const watch = insights?.watch ?? {};
+  const showWatch = shown.some((r) => watch[sessionOf(r)]);
   const pct = views > 0 ? `${Math.min(100, Math.round((total / views) * 100))}%` : '—';
   const tag = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r));
   const download = () => {
-    const url = URL.createObjectURL(new Blob([rowsToCsv(shown, forms)], { type: 'text/csv' }));
+    const url = URL.createObjectURL(new Blob([rowsToCsv(shown, forms, watch)], { type: 'text/csv' }));
     const a = document.createElement('a'); a.href = url; a.download = 'leads.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 5000);
   };
   return (
@@ -55,6 +60,12 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
             <button type="button" className={`leads-chip${form === 'all' ? ' is-on' : ''}`} onClick={() => setLeadsForm('all')}>All {total}</button>
             {forms.map((f) => <button key={f.key} type="button" className={`leads-chip${form === f.key ? ' is-on' : ''}`} onClick={() => setLeadsForm(f.key)}>{f.label} {counts[f.key] ?? 0}</button>)}
           </div>
+          {insights?.formStats && forms.length > 0 && (
+            <div className="leads-perf" data-testid="form-performance">
+              {forms.map((f) => <div key={f.key} className="leads-perf__row"><b>{f.label}</b><span data-testid={`perf-${f.key}`}>{formStatLine(insights.formStats?.byKey[f.key], insights.formStats?.minCohort)}</span></div>)}
+              <p className="leads-note">Views are counted when at least half of a form is on screen (last 90 days, shown once enough viewers have seen it).</p>
+            </div>
+          )}
           <div className="leads-row">
             <input className="leads-input" placeholder="Search leads…" value={query} onChange={(e) => setQuery(e.target.value)} data-testid="leads-search" />
             <select className="leads-input leads-select" aria-label="Date range" value={range} onChange={(e) => setRange(e.target.value as LeadRange)} data-testid="leads-range">
@@ -66,7 +77,7 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
                 {LEAD_STATUSES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
               </select>
             )}
-            <button type="button" className="leads-btn" onClick={() => void data.reload()} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
+            <button type="button" className="leads-btn" onClick={() => { void data.reload(); void insights?.reload?.(); }} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
             <button type="button" className="leads-btn" onClick={download} disabled={!shown.length} data-testid="leads-csv">Download CSV</button>
           </div>
           {hasRepeats && (
@@ -76,10 +87,14 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
           {!data.error && !data.loading && shown.length === 0 && <p className="leads-note" data-testid="leads-empty">{total ? 'No leads match.' : 'No leads yet. They appear here when viewers fill out a form on your published link.'}</p>}
           {shown.length > 0 && (
             <div className="leads-tablewrap"><table className="leads-table" data-testid="leads-table">
-              <thead><tr><th>When</th><th>Form</th>{cols.map((c) => <th key={c.key}>{c.label}</th>)}{showSource && <th>Source</th>}{followUp && <th>Follow-up</th>}<th /></tr></thead>
+              <thead><tr><th>When</th><th>Form</th>{cols.map((c) => <th key={c.key}>{c.label}</th>)}{showSource && <th>Source</th>}{showWatch && <th>Watched</th>}{followUp && <th>Follow-up</th>}<th /></tr></thead>
               <tbody>{shown.map((r) => (
                 <tr key={r.id}><td>{whenLabel(r.createdAt)}{merge && (repeats.counts[r.id] ?? 1) > 1 && <span className="leads-tag leads-tag--rep" data-testid="repeat-tag" title="Times this email signed up on this form">×{repeats.counts[r.id]}</span>}</td><td><span className={`leads-tag leads-tag--${tag(r)?.tone ?? 'lead'}`}>{tag(r)?.short ?? 'Form'}</span>{fromMp4(r) && <span className="leads-tag leads-tag--mp4" data-testid="mp4-tag">MP4</span>}{variantOf(r) && <span className="leads-tag leads-tag--ab" data-testid="ab-tag">{variantOf(r)}</span>}</td>
                   {cols.map((c) => <td key={c.key}>{r.data[c.key] ?? ''}</td>)}
+                  {showSource && <td data-testid="lead-source" title={r.source?.referrer ?? ''}>{sourceLabel(r)}</td>}
+                  {showWatch && (
+                    <td data-testid="lead-watched">{watch[sessionOf(r)] ? <><span>{watchPercent(watch[sessionOf(r)])}</span><span className={`leads-tag leads-tag--${watchTag(watch[sessionOf(r)]).toLowerCase()}`}>{watchTag(watch[sessionOf(r)])}</span></> : ''}</td>
+                  )}
                   {followUp && (
                     <td className="leads-followup" data-testid="lead-followup">
                       <select aria-label="Status" value={r.status ?? 'new'} onChange={(e) => void data.update(r.id, { status: e.target.value })}>
@@ -89,7 +104,6 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
                       <input key={`t-${r.id}-${(r.tags ?? []).join(',')}`} placeholder="tags, comma separated" defaultValue={(r.tags ?? []).join(', ')} aria-label="Tags" onBlur={(e) => { const next = e.target.value; if (next !== (r.tags ?? []).join(', ')) void data.update(r.id, { tags: next }); }} />
                     </td>
                   )}
-                  {showSource && <td data-testid="lead-source" title={r.source?.referrer ?? ''}>{sourceLabel(r)}</td>}
                   <td><button type="button" className="leads-x" aria-label="Delete lead" onClick={() => { if (window.confirm('Delete this lead?')) void data.remove(r.id); }}>✕</button></td></tr>
               ))}</tbody>
             </table></div>

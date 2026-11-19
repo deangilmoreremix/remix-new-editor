@@ -84,6 +84,8 @@ export function sanitizeSource(raw: unknown): Record<string, unknown> {
   }
   if (typeof src.referrer === "string" && /^https?:\/\//i.test(src.referrer.trim())) out.referrer = cleanText(src.referrer, 300);
   if (src.variant === "A" || src.variant === "B") out.variant = src.variant; // which version of an A/B-tested form the viewer saw
+  // The viewer's analytics session (only sent when analytics is on), so the owner can see how much of the video the lead watched.
+  if (typeof src.session === "string" && /^[A-Za-z0-9_-]{16,64}$/.test(src.session)) out.session = src.session;
   return out;
 }
 
@@ -345,12 +347,40 @@ export function isDisposableEmail(raw: unknown): boolean {
 }
 
 /**
- * A short, viewer-safe message when an email answer is not acceptable, else "". Every answer whose field name contains "email"
- * must be a valid address; with `blockDisposable` (an owner setting) throwaway inboxes are refused too.
+ * The answer keys of the fields a saved form DECLARES as email fields, or null when its field types are not known.
+ * List Builder: `elements[]` (key = token, else the label upper-cased). Lead Generator: `fields[]` (key = label upper-cased,
+ * duplicates get _2, _3 like the form). So a checkbox or dropdown that merely has "email" in its label is never treated as an address.
  */
-export function emailProblem(data: Record<string, string>, opts: { blockDisposable?: boolean } = {}): string {
+export function declaredEmailKeys(config: Json | null | undefined): Set<string> | null {
+  if (!config) return null;
+  const norm = (v: unknown) => String(v ?? "").trim().toUpperCase();
+  const out = new Set<string>();
+  if (Array.isArray(config.elements)) {
+    for (const el of config.elements as Json[]) if (el?.type === "email") out.add(norm(el.token) || norm(el.label));
+    return out;
+  }
+  if (Array.isArray(config.fields)) {
+    const seen = new Map<string, number>();
+    for (const f of config.fields as Json[]) {
+      const base = norm(f?.label) || norm(f?.id) || "FIELD";
+      const n = (seen.get(base) ?? 0) + 1;
+      seen.set(base, n);
+      if (f?.type === "email") out.add(n === 1 ? base : `${base}_${n}`);
+    }
+    return out;
+  }
+  return null;
+}
+
+/**
+ * A short, viewer-safe message when an email answer is not acceptable, else "". With `emailKeys` (from the saved form) only
+ * those answers are checked; without it, every answer whose field name contains "email" is. With `blockDisposable` (an owner
+ * setting) throwaway inboxes are refused too.
+ */
+export function emailProblem(data: Record<string, string>, opts: { blockDisposable?: boolean; emailKeys?: Set<string> | null } = {}): string {
   for (const [key, value] of Object.entries(data)) {
-    if (!/e-?mail/i.test(key)) continue;
+    const isEmail = opts.emailKeys ? opts.emailKeys.has(key.trim().toUpperCase()) : /e-?mail/i.test(key);
+    if (!isEmail) continue;
     if (!isValidEmail(value)) return "Please enter a valid email address.";
     if (opts.blockDisposable && isDisposableEmail(value)) return "Please use a permanent email address.";
   }
@@ -394,7 +424,7 @@ export function savedNotifyEmail(config: Json | null | undefined, listBuilder = 
 }
 
 // ------------------------------------------------------------------------------------------------ chat alert presets
-export type ChatPreset = "slack" | "discord" | "teams";
+export type ChatPreset = "slack" | "discord" | "teams" | "teams-workflow";
 
 /** Which chat app a webhook URL belongs to (so the alert is shaped the way that app needs), or null for a normal webhook. */
 export function chatPreset(url: string): ChatPreset | null {
@@ -404,7 +434,9 @@ export function chatPreset(url: string): ChatPreset | null {
   const host = u.hostname.toLowerCase();
   if (host === "hooks.slack.com" && u.pathname.startsWith("/services/")) return "slack";
   if ((host === "discord.com" || host === "discordapp.com" || host === "canary.discord.com" || host === "ptb.discord.com") && u.pathname.startsWith("/api/webhooks/")) return "discord";
-  if ((host.endsWith(".webhook.office.com") || host === "outlook.office.com") && u.pathname.includes("/webhook")) return "teams";
+  if ((host.endsWith(".webhook.office.com") || host === "outlook.office.com") && u.pathname.includes("/webhook")) return "teams"; // legacy Office 365 connector
+  // Teams "Workflows" (Power Automate: "Post to a channel when a webhook request is received"), the replacement for connectors
+  if ((host.endsWith(".logic.azure.com") && u.pathname.includes("/workflows/")) || (host.endsWith(".powerplatform.com") && u.pathname.includes("/workflows/"))) return "teams-workflow";
   return null;
 }
 
@@ -436,6 +468,22 @@ export function chatBody(preset: ChatPreset, alert: { title: string; lines: stri
   if (preset === "discord") {
     return { content: clip([`**${safe(alert.title)}**`, ...alert.lines.map(safe)].join("\n"), 2000), allowed_mentions: { parse: [] } };
   }
+  if (preset === "teams-workflow") {
+    // The Workflows trigger takes a message with an Adaptive Card attachment.
+    return {
+      type: "message",
+      attachments: [{
+        contentType: "application/vnd.microsoft.card.adaptive", contentUrl: null,
+        content: {
+          type: "AdaptiveCard", $schema: "http://adaptivecards.io/schemas/adaptive-card.json", version: "1.4",
+          body: [
+            { type: "TextBlock", text: safe(alert.title), weight: "Bolder", size: "Medium", wrap: true },
+            ...alert.lines.map((l) => ({ type: "TextBlock", text: safe(l), wrap: true, spacing: "Small" })),
+          ],
+        },
+      }],
+    };
+  }
   return {
     "@type": "MessageCard", "@context": "https://schema.org/extensions", summary: safe(alert.title), themeColor: "22D3EE",
     title: safe(alert.title), text: alert.lines.map(safe).join("\n\n"),
@@ -454,6 +502,13 @@ export function autoReplySettings(config: Json | null | undefined): { subject: s
     return t || fallback;
   };
   return { subject: oneLine(clean(config.autoReplySubject, 120, AUTO_REPLY_DEFAULT_SUBJECT)), body: clean(config.autoReplyBody, 1000, AUTO_REPLY_DEFAULT_BODY) };
+}
+
+/** Where a lead's reply to the auto-reply goes: the owner's reply-to setting when it is a valid address, else the first notification address, else none. */
+export function autoReplyReplyTo(config: Json | null | undefined, notifyTo: string[] = []): string {
+  const own = typeof config?.autoReplyReplyTo === "string" ? config.autoReplyReplyTo.trim() : "";
+  if (own && isValidEmail(own)) return own;
+  return notifyTo[0] ?? "";
 }
 
 /**
