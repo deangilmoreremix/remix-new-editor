@@ -118,6 +118,7 @@ export function ContentLibraryPage() {
     onClear: () => {},
     maxImages: 10,
     acceptVideo: true,
+    acceptAudio: true,
   });
 
   // Wire the upload picker trigger into the visible controls

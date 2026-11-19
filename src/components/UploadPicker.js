@@ -120,11 +120,13 @@ const MUAPI_LIMITS = UPLOAD_LIMITS;
 // attribute from these so the OS dialog only offers MuAPI-supported types.
 const ACCEPT_IMAGES = 'image/jpeg,image/png,image/webp,image/gif,image/svg+xml,image/avif,image/heic,image/bmp';
 const ACCEPT_VIDEOS = 'video/mp4,video/webm,video/quicktime,video/x-matroska,video/x-msvideo,video/x-m4v';
+const ACCEPT_AUDIO = 'audio/mpeg,audio/wav,audio/aac,audio/ogg,audio/flac,audio/mp4,audio/x-m4a,.mp3,.wav,.aac,.ogg,.flac,.m4a';
 const ACCEPT_DOCUMENTS = 'application/pdf,application/json,application/zip,application/x-zip-compressed,.pdf,.json,.zip';
 
-function buildAcceptString({ acceptVideo, acceptDocuments }) {
+function buildAcceptString({ acceptVideo, acceptDocuments, acceptAudio }) {
     const parts = [ACCEPT_IMAGES];
     if (acceptVideo) parts.push(ACCEPT_VIDEOS);
+    if (acceptAudio) parts.push(ACCEPT_AUDIO);
     if (acceptDocuments) parts.push(ACCEPT_DOCUMENTS);
     return parts.join(',');
 }
@@ -167,6 +169,7 @@ export function createUploadPicker({
     maxImages: initialMaxImages = 1,
     acceptVideo = true,
     acceptDocuments = true,
+    acceptAudio = false,
     frameMode = false,
     onFilePreview = null,
     singleLabel,
@@ -230,7 +233,7 @@ export function createUploadPicker({
 
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = buildAcceptString({ acceptVideo, acceptDocuments });
+    fileInput.accept = buildAcceptString({ acceptVideo, acceptDocuments, acceptAudio });
     fileInput.className = 'hidden';
 
     // ── Trigger button ────────────────────────────────────────────────────────
@@ -1067,8 +1070,9 @@ export function createUploadPicker({
                 if (!acceptVideo && !isImage) {
                     throw new Error('Only image URLs are supported here.');
                 }
-                if (acceptVideo && !isImage && !isVideo) {
-                    throw new Error('Only image or video URLs are supported here.');
+                const isAudio = acceptAudio && file.type.startsWith('audio/');
+                if (acceptVideo && !isImage && !isVideo && !isAudio) {
+                    throw new Error(acceptAudio ? 'Only image, video or audio URLs are supported here.' : 'Only image or video URLs are supported here.');
                 }
                 // Reuse the same upload pipeline as a local file selection
                 uploadFiles([file]);
