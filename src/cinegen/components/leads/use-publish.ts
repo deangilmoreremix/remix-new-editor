@@ -11,7 +11,7 @@ import { supabase, uploadFileToStorage } from '../../../lib/hybrid-supabase.js';
 // @ts-expect-error plain JS
 import { friendlyPublishError } from '../../../lib/editor/publish/guestMessages.js';
 // @ts-expect-error plain JS
-import { getSupabaseAccessToken, primeSupabaseIdentity } from '../../../lib/supabase.js';
+import { getSupabaseAccessToken, getTokenExchangeFailure, primeSupabaseIdentity } from '../../../lib/supabase.js';
 
 const KEY = 'remix.cinegen.published.v1';
 const readIds = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
@@ -26,6 +26,11 @@ export interface PublishInfo { id: string; title: string; published: boolean; vi
 export async function getClient() {
   if (!signedIn()) return (await import('../../../lib/guestIdentity.js')).getGuestOwnerClient();
   await supabase.refreshUserHeader?.();
+  // Signed in but no verified database token: every owner-only query would be rejected by row-level security with
+  // a generic "sign in" error. Stop here and say what is actually wrong.
+  if (!(await getSupabaseAccessToken())) {
+    throw new Error(`Could not verify your account with the video service. ${getTokenExchangeFailure() || 'Try again.'}`);
+  }
   if (!supabase.supabase) throw new Error('The video service is unavailable — check your connection');
   return supabase.supabase;
 }

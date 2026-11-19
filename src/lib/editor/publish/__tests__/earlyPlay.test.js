@@ -10,6 +10,27 @@ const markup = () => {
   return box;
 };
 
+describe('captureEarlyPlay: hand-off leaves the player\'s UI alone', () => {
+  it('does not bring the big-play button back when the player hid it (a List Builder wall is up)', () => {
+    const box = markup();
+    const early = captureEarlyPlay(box);
+    const big = box.querySelector('[data-bigplay]');
+    big.hidden = true; // what the player does when it opens a registration wall
+    early.release({ play: vi.fn() });
+    expect(big.hidden).toBe(true);
+  });
+  it('clears its pending spinner on hand-off, even when the player does not start', () => {
+    const box = markup();
+    const early = captureEarlyPlay(box);
+    box.querySelector('[data-bigplay]').click();
+    expect(box.querySelector('[data-stage]').hasAttribute('data-play-pending')).toBe(true);
+    const player = { play: vi.fn() };
+    expect(early.release(player)).toBe(true);
+    expect(player.play).toHaveBeenCalledTimes(1);
+    expect(box.querySelector('[data-stage]').hasAttribute('data-play-pending')).toBe(false);
+  });
+});
+
 describe('captureEarlyPlay', () => {
   it('big play before wiring: pending state, then exactly one play() on release', () => {
     const box = markup();

@@ -25,9 +25,9 @@
 //   -> answers { ok, stored } as soon as the lead is saved; webhooks (with retries),
 //      emails, Kit/MailerLite and the delivery log finish in the background.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
-  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
+  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, verifyTurnstile, parseExtraDomains, emailKeyOf, emailDomain, domainAcceptsMail, isGuestOwner, needsHumanCheck, isDuplicateError, isMissingColumnError, type DnsResolver, declaredEmailKeys, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, autoReplyReplyTo, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
   isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, hostOf, deriveSigningSecret,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, deliverWebhook, type Delivery, type DeliverDeps, type HttpCall, type Json,
 } from "./logic.ts";
@@ -62,6 +62,13 @@ const PUBLIC_APP_URL = (Deno.env.get("PUBLIC_APP_URL") ?? "").replace(/\/+$/, ""
 const WEBHOOK_SIGNING_MASTER = Deno.env.get("WEBHOOK_SIGNING_SECRET") ?? "";
 // Kit / MailerLite API keys are stored AES-GCM encrypted with this key (any long random string).
 const INTEGRATIONS_KEY = Deno.env.get("INTEGRATIONS_ENCRYPTION_KEY") ?? "";
+
+// Optional Cloudflare Turnstile: with this secret set, published-video submissions must carry a valid `cf-turnstile-response`.
+const TURNSTILE_SECRET = Deno.env.get("TURNSTILE_SECRET_KEY") ?? "";
+// Optional: comma-separated extra throwaway domains for the "block throwaway emails" setting.
+const EXTRA_DISPOSABLE = parseExtraDomains(Deno.env.get("LEAD_EXTRA_DISPOSABLE_DOMAINS"));
+// The MX check on the lead's email domain is on unless LEAD_MX_CHECK=off. It only rejects a domain with no MX/A/AAAA records.
+const MX_CHECK = (Deno.env.get("LEAD_MX_CHECK") ?? "on").toLowerCase() !== "off";
 
 const KINDS = new Set(["lead-form", "list-builder", "personalizer", "call-attempt"]);
 const WEBHOOK_TIMEOUT_MS = 8000; // email requests
@@ -115,6 +122,12 @@ function clientKey(req: Request): string {
     req.headers.get("authorization")?.slice(-24) ?? "anonymous";
 }
 
+/** Deno's DNS resolver, or null where the runtime has none (the MX check is then skipped). */
+const dnsResolver = (): DnsResolver | null => {
+  const resolve = (Deno as unknown as { resolveDns?: DnsResolver }).resolveDns;
+  return resolve ? (name, type) => resolve(name, type) : null;
+};
+
 /** Best-effort DNS check: refuse hosts that resolve to private addresses (rebinding / split-horizon DNS). */
 async function resolvesPublic(url: string): Promise<boolean> {
   const host = new URL(url).hostname;
@@ -128,7 +141,9 @@ async function resolvesPublic(url: string): Promise<boolean> {
   } catch { return false; } // deny on resolver errors: only forward when every resolved address is public
 }
 
-type Db = ReturnType<typeof createClient>;
+// The untyped client (no generated schema): every table is `any`, which is what the code below expects.
+// deno-lint-ignore no-explicit-any
+type Db = SupabaseClient<any, "public", any>;
 
 /** The real network, clock and DNS guard behind deliverWebhook (tests inject fakes instead). */
 const realDeliverDeps: DeliverDeps = {
@@ -316,26 +331,67 @@ Deno.serve(async (req: Request) => {
       .select("id, clerk_user_id, config").eq("id", pageId).eq("published", true).maybeSingle();
     if (pageError || !pageRow) return json(req, { ok: false, error: "Unknown page" }, 404);
     const form = ((pageRow.config as Json | null)?.form ?? null) as Json | null;
-    if (!form || form.enabled !== true) return json(req, { ok: false, error: "This page has no form" }, 400);
+    // A Puck page keeps its forms inside the design (no config.form); only the old template pages can switch the form off.
+    if (form && form.enabled === false) return json(req, { ok: false, error: "This page has no form" }, 400);
+    // The same kinds as the timeline: Lead Generator = lead-form, List Builder = list-builder, Personalizer = personalizer.
+    const pageKind = typeof body.kind === "string" && KINDS.has(body.kind) && body.kind !== "call-attempt" ? body.kind : "lead-form";
+    const pageClip = pageKind === "list-builder" || pageKind === "personalizer" ? "list-builder" : "landing-page";
+    // The OpenHiggsBolt app stores its own copy and asks only for delivery, with the service key (a visitor can never do this).
+    const trusted = !!SUPABASE_SERVICE_ROLE_KEY && req.headers.get("authorization") === `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`;
+    const deliverOnly = trusted && body.skipStore === true;
+    if (!deliverOnly) {
+      const [perPage, perClient] = await Promise.all([
+        admin.rpc("rate_limit_check", { p_scope: "lead-page", p_key: pageId, p_limit: 60, p_window_seconds: 60 }),
+        admin.rpc("rate_limit_check", { p_scope: "lead-page-client", p_key: await hashKey(clientKey(req), pageId), p_limit: 8, p_window_seconds: 60 }),
+      ]);
+      if (perPage.data?.allowed === false || perClient.data?.allowed === false) {
+        return json(req, { ok: false, error: "Too many submissions — try again shortly" }, 429);
+      }
+    }
     const contactId = typeof body.contactId === "string" && /^[A-Za-z0-9_-]{6,40}$/.test(body.contactId) ? body.contactId : null;
     const src = body.source && typeof body.source === "object" ? body.source as Json : {};
-    const { error: insertError } = await admin.from("video_leads").insert({
-      clerk_user_id: pageRow.clerk_user_id,
-      project_id: pageId,
-      clip_id: "landing-page",
-      kind: "lead-form",
-      data: leadData,
-      source: {
-        page: typeof src.page === "string" ? src.page.slice(0, 512) : null,
-        userAgent: typeof src.userAgent === "string" ? src.userAgent.slice(0, 512) : null,
-        published: true,
-        landingPage: true,
-        contactId,
-      },
-      preview: false,
-    });
-    if (insertError) console.warn("[lead-capture] landing page insert failed:", insertError.code);
-    return json(req, { ok: true, stored: !insertError, forwarded: 0, failed: 0, email: null });
+    const attribution = attributionOf(sanitizeSource(body.source));
+    let insertError: { code?: string } | null = null;
+    if (!deliverOnly) {
+      const r = await admin.from("video_leads").insert({
+        clerk_user_id: pageRow.clerk_user_id,
+        project_id: pageId,
+        clip_id: pageClip,
+        kind: pageKind,
+        data: leadData,
+        source: {
+          page: typeof src.page === "string" ? src.page.slice(0, 512) : null,
+          userAgent: typeof src.userAgent === "string" ? src.userAgent.slice(0, 512) : null,
+          published: true,
+          landingPage: true,
+          contactId,
+        },
+        preview: false,
+      });
+      insertError = r.error;
+      if (insertError) console.warn("[lead-capture] landing page insert failed:", insertError.code);
+    }
+    const ownerId = String(pageRow.clerk_user_id ?? "");
+    const afterSave = (async () => {
+      const { data: row } = await admin.from("landing_page_form_settings").select("settings").eq("page_id", pageId).maybeSingle();
+      const settings = ((row?.settings ?? null) as Json | null);
+      if (!settings) return;
+      // The settings use the List Builder's shape (webhookEnabled/webhook..., emailEnabled/emailAddress..., espProvider/espListId).
+      // Guest-owned pages (no account) never relay to webhooks, the same rule the published-video path has.
+      const hooks = isGuestOwner(ownerId) ? [] : savedWebhooks(settings, true);
+      const notifyTo = savedNotifyEmails(settings, true);
+      const [sent] = await Promise.all([
+        hooks.length
+          // The same event and payload the timeline's forms send, so one receiver can serve both.
+          ? forward(hooks, { event: "video_opted_in", kind: pageKind, projectId: pageId, clipId: pageClip, pageId, contactId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
+          : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
+        notify(notifyTo, pageKind, leadData, attribution),
+        pushToEsp(admin, ownerId, savedEsp(settings), leadData),
+      ]);
+      await logDeliveries(admin, ownerId, { projectId: pageId, clipId: pageClip, kind: pageKind }, sent.deliveries);
+    })().catch((err) => console.warn("[lead-capture] landing page after-save work failed:", (err as Error)?.name));
+    await afterResponse(afterSave);
+    return json(req, { ok: true, stored: deliverOnly ? true : !insertError });
   }
 
   if (body.publishedId !== undefined) {
@@ -344,6 +400,10 @@ Deno.serve(async (req: Request) => {
     if (!SUPABASE_SERVICE_ROLE_KEY) return json(req, { ok: false, error: "Lead backend not configured" }, 500);
     // Bots get the same answer a real viewer gets, but nothing is stored or forwarded.
     if (looksAutomated(body.signals)) return json(req, { ok: true, stored: true });
+    if (needsHumanCheck(body.kind)) {
+      const human = await verifyTurnstile(TURNSTILE_SECRET, body["cf-turnstile-response"], clientKey(req), (url, init) => fetch(url, init));
+      if (!human.ok) return json(req, { ok: false, error: "Please complete the verification and try again." }, 400);
+    }
     const leadData = sanitizeData(body.data);
     if (!Object.keys(leadData).length) return json(req, { ok: false, error: "Empty submission" }, 400);
     // Shared (database) limits survive across function instances: per video
@@ -363,11 +423,15 @@ Deno.serve(async (req: Request) => {
     if (videoError || !video) return json(req, { ok: false, error: "Unknown video" }, 404);
     const { config, listBuilder } = leadConfigFor(video.project as Json, leadKind, clipId);
     if (!config) return json(req, { ok: false, error: "This video has no such form" }, 400);
-    const emailIssue = emailProblem(leadData, { blockDisposable: config.blockDisposableEmails === true });
+    const emailIssue = emailProblem(leadData, { blockDisposable: config.blockDisposableEmails === true, emailKeys: declaredEmailKeys(config), extraDisposable: EXTRA_DISPOSABLE });
     if (emailIssue) return json(req, { ok: false, error: emailIssue }, 400);
+    const emailKey = leadKind === "call-attempt" ? "" : emailKeyOf(leadData);
+    if (emailKey && MX_CHECK && !(await domainAcceptsMail(emailDomain(emailKey), dnsResolver()))) {
+      return json(req, { ok: false, error: "That email address doesn't look reachable. Please check it." }, 400);
+    }
     const src = sanitizeSource(body.source);
     const attribution = attributionOf(src);
-    const { error: insertError } = await admin.from("video_leads").insert({
+    const row = {
       clerk_user_id: video.clerk_user_id,
       project_id: publishedId,
       clip_id: leadKind === "list-builder" || leadKind === "personalizer" ? "list-builder" : clipId,
@@ -375,13 +439,17 @@ Deno.serve(async (req: Request) => {
       data: leadData,
       source: { ...src, published: true },
       preview: false,
-    });
+    };
+    // email_key + its unique index (migration 20261118130000) make a repeat sign-up (same email, same form) a no-op.
+    let { error: insertError } = await admin.from("video_leads").insert(emailKey ? { ...row, email_key: emailKey } : row);
+    if (isMissingColumnError(insertError)) ({ error: insertError } = await admin.from("video_leads").insert(row)); // migration not applied yet
+    if (isDuplicateError(insertError)) return json(req, { ok: true, stored: true, duplicate: true });
     if (insertError) console.warn("[lead-capture] published insert failed:", insertError.code);
     const callNotify = leadKind === "call-attempt"
       ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "").trim()
       : "";
     // Guest-owned videos (no account) never have webhooks relayed on their behalf.
-    const guestOwned = String(video.clerk_user_id ?? "").startsWith("guest_");
+    const guestOwned = isGuestOwner(video.clerk_user_id);
     const hooks = leadKind === "call-attempt" || guestOwned ? [] : savedWebhooks(config, listBuilder);
     // The recipients always come from the saved project, never from the request.
     const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? [callNotify] : []) : savedNotifyEmails(config, listBuilder);
@@ -395,7 +463,7 @@ Deno.serve(async (req: Request) => {
           ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
           : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
         notify(notifyTo, leadKind, leadData, attribution),
-        leadKind === "call-attempt" ? Promise.resolve() : sendAutoReply(admin, { publishedId, config, data: leadData, replyTo: notifyTo[0] ?? "" }),
+        leadKind === "call-attempt" ? Promise.resolve() : sendAutoReply(admin, { publishedId, config, data: leadData, replyTo: autoReplyReplyTo(config, notifyTo) }),
         leadKind === "call-attempt" ? Promise.resolve(null) : pushToEsp(admin, ownerId, savedEsp(config), leadData),
       ]);
       await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);
@@ -413,8 +481,10 @@ Deno.serve(async (req: Request) => {
       if (clipId) q = q.eq("clip_id", clipId);
       return q;
     };
-    // The follow-up columns (status, notes, tags) exist once 20261118120000_video_leads_followup.sql is applied; until then fall back.
-    let { data, error } = await load(`${base}, status, notes, tags`);
+    // The follow-up columns exist once 20261118120000_video_leads_followup.sql (status, notes, tags) and
+    // 20261118131000_video_leads_followup_hardening.sql (updated_at) are applied; until then fall back a step at a time.
+    let { data, error } = await load(`${base}, status, notes, tags, updated_at`);
+    if (error) ({ data, error } = await load(`${base}, status, notes, tags`));
     if (error) ({ data, error } = await load(base));
     if (error) return json(req, { ok: false, error: "Could not load leads" }, 500);
     return json(req, { ok: true, leads: data ?? [] });
