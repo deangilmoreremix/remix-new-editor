@@ -75,9 +75,21 @@ export function pushTypeBlock(prefs, type) {
 export const loadSubscriptions = (call, ownerId) => call(`owner_push_subscriptions?select=id,endpoint,p256dh,auth,failure_count&clerk_user_id=eq.${encodeURIComponent(ownerId)}&limit=50`);
 
 /**
- * Whether a stored push endpoint may be connected to. The owner supplies it, and this function makes the request from the
- * server, so it must be a public https address: no credentials, the standard port, a real domain name, and never an IP
- * address, localhost or an internal-looking name (those could reach the server's own network).
+ * The browsers' own push services. The server connects to whatever endpoint an owner stored, so only these hosts are allowed:
+ * a hostname alone cannot be trusted (a domain the owner controls can point at a private address), but these are run by
+ * Google (Chrome, Edge, Brave, Opera, Samsung Internet), Mozilla (Firefox), Apple (Safari) and Microsoft (legacy Edge/Windows).
+ */
+const PUSH_SERVICE_HOSTS = [
+  /^fcm\.googleapis\.com$/, /^android\.googleapis\.com$/,
+  /(^|\.)push\.services\.mozilla\.com$/,
+  /(^|\.)push\.apple\.com$/,
+  /\.notify\.windows\.com$/,
+];
+
+/**
+ * Whether a stored push endpoint may be connected to: an https address on one of the browser push services above, with no
+ * credentials and the standard port. Anything else (other domains, IP addresses, localhost, internal names) is refused, so a
+ * stored endpoint can never make the server reach its own network.
  */
 export function isSafePushEndpoint(raw) {
   let u;
@@ -85,11 +97,8 @@ export function isSafePushEndpoint(raw) {
   if (u.protocol !== 'https:' || u.username || u.password) return false;
   if (u.port && u.port !== '443') return false;
   const host = u.hostname.toLowerCase();
-  if (!host.includes('.') || host.endsWith('.')) return false;                 // single-label names and trailing-dot forms
-  if (host.startsWith('[') || host.includes(':')) return false;                // IPv6 literals
-  if (/^\d+(\.\d+){0,3}$/.test(host)) return false;                            // IPv4 literals (the URL parser normalises 0x7f.1, 2130706433, ...)
-  if (host === 'localhost' || /\.(localhost|local|internal|lan|home|corp|intranet)$/.test(host)) return false;
-  return true;
+  if (host.endsWith('.')) return false;
+  return PUSH_SERVICE_HOSTS.some((re) => re.test(host));
 }
 
 /** Send one JSON payload to every subscription; prunes gone (404/410) endpoints and counts other failures. Returns { sent, failed, removed }. */

@@ -79,11 +79,12 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   // An alert is only shown while the channel still belongs to the signed-in owner. After a sign-out or an account switch
   // the old channel can outlive the change until the next periodic check, so each alert re-checks who is signed in.
   async function guardedInsert(payload, mine) {
-    if (!alive || rt !== mine || !isSignedIn()) return;
+    if (!alive || rt !== mine) return;
+    if (!isSignedIn()) { stopRealtime(); return; }                                   // signed out: drop the channel now
     try {
       const info = await getRealtime();
       if (!alive || rt !== mine) return;
-      if (!info?.userId || info.userId !== mine.userId) { stopRealtime(); return; } // signed out, or another account: drop it
+      if (!isSignedIn() || !info?.userId || info.userId !== mine.userId) { stopRealtime(); return; } // signed out meanwhile, or another account
     } catch { return; }
     onInsert(payload);
   }

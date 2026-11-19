@@ -122,6 +122,7 @@ describe('notifications bell realtime: owner changes', () => {
     await insert(rt, { id: 'n9', type: 'new_lead', title: 'Previous owner lead', read_at: null });
     expect(bell._count()).toBe(0);
     expect(toast()).toBeNull();
+    expect(rt.removed.length).toBeGreaterThan(0);   // the channel itself is removed, not just ignored
     bell.destroy();
   });
   it('an alert for the previous account after a switch is dropped and that channel is removed', async () => {

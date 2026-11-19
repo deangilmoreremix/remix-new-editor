@@ -12,7 +12,7 @@ const NOOP = { configured: false, resolveRecipient: async () => null, send: vi.f
 const QUIET_NOW = { start: '11:00', end: '13:00' }; // 12:00Z is inside
 const QUIET_OVER = { start: '07:00', end: '08:00' }; // 12:00Z is outside
 const PREFS = { clerk_user_id: 'user_1', push: true, email: false, enabled_types: ['new_lead', 'high_interest', 'milestone', 'pricing_cta'], push_types: null, quiet_hours: QUIET_OVER };
-const sub = (id, extra = {}) => ({ id, clerk_user_id: 'user_1', endpoint: `https://push.example/${id}`, p256dh: 'k', auth: 'a', failure_count: 0, ...extra });
+const sub = (id, extra = {}) => ({ id, clerk_user_id: 'user_1', endpoint: `https://fcm.googleapis.com/fcm/send/${id}`, p256dh: 'k', auth: 'a', failure_count: 0, ...extra });
 const def = (id, type, extra = {}) => ({ id, clerk_user_id: 'user_1', notification_id: `n-${id}`, type, created_at: new Date(NOW.getTime() - 3600_000).toISOString(), ...extra });
 const ROWS = [def('d1', 'new_lead'), def('d2', 'new_lead'), def('d3', 'high_interest'), def('d4', 'milestone')];
 
