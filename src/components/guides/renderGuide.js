@@ -11,12 +11,12 @@ const guideHref = (slug) => `/studios/${slug}`;
 const studioHref = (route) => `/#/${route}`;
 
 export const GUIDE_CSS = `
-.sg{--bg:#020205;--panel:#0b0d14;--panel2:#11141d;--line:rgba(255,255,255,.09);--text:#e7e9ee;--mute:#9aa1ae;--accent:#22d3ee;--accent2:#34d399;
+.sg{--bg:#050505;--panel:#0a0a0a;--panel2:#141414;--line:rgba(255,255,255,.09);--text:#e7e9ee;--mute:#9aa1ae;--accent:#d9ff00;--accent2:#c4e600;
   background:var(--bg);color:var(--text);min-height:100vh;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
 .sg *{box-sizing:border-box}
 .sg a{color:inherit}
 .sg-wrap{max-width:1180px;margin:0 auto;padding:0 20px}
-.sg-top{position:sticky;top:0;z-index:20;background:rgba(10,11,15,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.sg-top{position:sticky;top:0;z-index:20;background:rgba(5,5,5,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .sg-top .sg-wrap{display:flex;align-items:center;gap:16px;height:60px}
 .sg-logo{font-weight:800;text-decoration:none;letter-spacing:-.01em;white-space:nowrap}
 .sg-logo span{color:var(--accent)}
@@ -24,16 +24,16 @@ export const GUIDE_CSS = `
 .sg-top nav a{text-decoration:none;color:var(--mute);font-size:14px;padding:6px 10px;border-radius:8px;white-space:nowrap}
 .sg-top nav a:hover{color:var(--text)}
 .sg-btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:700;border-radius:12px;padding:12px 20px;font-size:15px;border:1px solid transparent;transition:.2s}
-.sg-btn.primary{background:var(--accent);color:#031015 !important}
-.sg-btn.primary:hover{background:#67e8f9}
-.sg-btn.ghost{border-color:rgba(52,211,153,.45);color:#d1fae5 !important}
-.sg-btn.ghost:hover{background:rgba(52,211,153,.1)}
+.sg-btn.primary{background:var(--accent);color:#000 !important}
+.sg-btn.primary:hover{background:var(--accent2);box-shadow:0 0 20px rgba(196,230,0,.4)}
+.sg-btn.ghost{border-color:rgba(217,255,0,.45);color:#f4ffcc !important}
+.sg-btn.ghost:hover{background:rgba(217,255,0,.1)}
 .sg-top .sg-btn{padding:8px 14px;font-size:14px}
 .sg-crumbs{font-size:13px;color:var(--mute);padding:20px 0 0}
 .sg-crumbs a{text-decoration:none;color:var(--mute)}
 .sg-crumbs a:hover{color:var(--accent)}
 .sg-hero{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center;padding:28px 0 48px}
-.sg-eyebrow{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.08);padding:5px 12px;border-radius:999px;margin-bottom:16px}
+.sg-eyebrow{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);border:1px solid rgba(217,255,0,.3);background:rgba(217,255,0,.08);padding:5px 12px;border-radius:999px;margin-bottom:16px}
 .sg h1{font-size:clamp(32px,5vw,54px);line-height:1.08;margin:0 0 16px;font-weight:900;letter-spacing:-.02em}
 .sg h1 em{font-style:normal;color:var(--accent)}
 .sg-tag{font-size:20px;font-weight:600;color:var(--text);margin:0 0 12px}
@@ -72,14 +72,14 @@ export const GUIDE_CSS = `
 .sg-card .meta{font-size:13px;color:var(--mute);margin-top:8px}
 .sg-steps{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;gap:12px;max-width:860px}
 .sg-steps li{counter-increment:s;position:relative;padding:14px 16px 14px 56px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
-.sg-steps li::before{content:counter(s);position:absolute;left:14px;top:12px;width:28px;height:28px;border-radius:50%;background:rgba(34,211,238,.15);color:var(--accent);font-weight:800;display:grid;place-items:center;font-size:14px}
+.sg-steps li::before{content:counter(s);position:absolute;left:14px;top:12px;width:28px;height:28px;border-radius:50%;background:rgba(217,255,0,.15);color:var(--accent);font-weight:800;display:grid;place-items:center;font-size:14px}
 .sg-small{list-style:decimal;margin:8px 0 0 18px;padding:0;color:#c7cbd3;font-size:14px}
 .sg-ul{margin:0;padding:0 0 0 20px;color:#c7cbd3;display:grid;gap:6px;max-width:860px}
 .sg-table{width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .sg-table th,.sg-table td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
 .sg-table th{background:var(--panel2);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 .sg-table td{color:#d4d7de}
-.sg-req{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(34,211,238,.15);color:var(--accent);white-space:nowrap}
+.sg-req{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(217,255,0,.15);color:var(--accent);white-space:nowrap}
 .sg-opt{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--mute);white-space:nowrap}
 .sg-scroll{overflow-x:auto}
 .sg-gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin:0}
@@ -94,13 +94,13 @@ export const GUIDE_CSS = `
 .sg-faq details p{margin:0;padding:0 18px 16px;color:#c7cbd3}
 .sg-rel{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
 .sg-tile{display:block;text-decoration:none;border:1px solid var(--line);background:var(--panel);border-radius:14px;overflow:hidden;transition:.2s}
-.sg-tile:hover{border-color:rgba(34,211,238,.6);transform:translateY(-2px)}
+.sg-tile:hover{border-color:rgba(217,255,0,.6);transform:translateY(-2px)}
 .sg-tile img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:top center;background:var(--panel2)}
 .sg-tile div{padding:14px 16px}
 .sg-tile strong{display:block;margin-bottom:4px}
 .sg-tile p{margin:0;font-size:14px;color:var(--mute)}
 .sg-tile .count{display:inline-block;margin-top:10px;font-size:12px;color:var(--accent);font-weight:700}
-.sg-band{border:1px solid rgba(34,211,238,.3);background:linear-gradient(135deg,rgba(34,211,238,.08),rgba(52,211,153,.06),rgba(168,85,247,.08));border-radius:22px;padding:40px;text-align:center;margin:0 0 56px}
+.sg-band{border:1px solid rgba(217,255,0,.3);background:linear-gradient(135deg,rgba(217,255,0,.08),rgba(217,255,0,.06),rgba(255,255,255,.02));border-radius:22px;padding:40px;text-align:center;margin:0 0 56px}
 .sg-band p{color:#c7cbd3;max-width:640px;margin:8px auto 20px}
 .sg-band .sg-cta{justify-content:center}
 .sg-foot{border-top:1px solid var(--line);padding:28px 0 40px;font-size:13px;color:var(--mute)}

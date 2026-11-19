@@ -1,3 +1,4 @@
+import { guideHrefFor } from '../guideLinks.js';
 // Six Creative Engines Section - Animated with parallax and hover effects
 
 export function SixEnginesSection() {
@@ -123,14 +124,17 @@ export function SixEnginesSection() {
               
               <!-- App Tags with stagger animation -->
               <div class="flex flex-wrap gap-2">
-                ${engine.apps.map((app, i) => `
-                  <span 
-                    class="engine-app-tag text-xs px-2 py-1 bg-white/5 rounded-full text-gray-300 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
+                ${engine.apps.map((app, i) => {
+                  const href = guideHrefFor(app);
+                  const tag = href ? 'a' : 'span';
+                  return `
+                  <${tag} ${href ? `href="${href}" title="${app} feature guide"` : ''}
+                    class="engine-app-tag text-xs px-2 py-1 bg-white/5 rounded-full text-gray-300 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300${href ? ' hover:text-[#d9ff00] hover:bg-white/10' : ''}"
                     style="transition-delay: ${i * 50}ms;"
                   >
                     ${app}
-                  </span>
-                `).join('')}
+                  </${tag}>`;
+                }).join('')}
               </div>
             </div>
 

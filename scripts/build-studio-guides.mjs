@@ -32,7 +32,7 @@ const groups = groupByCategory(guides);
 // Small index for the landing page section (the full guide data is ~1MB).
 const index = groups.map((c) => ({
   id: c.id, title: c.title, blurb: c.blurb,
-  guides: c.guides.map((g) => ({ slug: g.slug, name: g.name, shortDescription: g.shortDescription, features: g.features.length, thumbnail: g.thumbnail })),
+  guides: c.guides.map((g) => ({ slug: g.slug, name: g.name, route: g.route, shortDescription: g.shortDescription, features: g.features.length, thumbnail: g.thumbnail })),
 }));
 const indexFile = path.join(root, 'src/data/studioGuideIndex.json');
 const indexJson = JSON.stringify(index, null, 2) + '\n';

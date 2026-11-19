@@ -11,6 +11,7 @@
 // click handler that calls `e.preventDefault()` + `navigate(route)` to keep
 // navigation in-app.
 import { navigate } from "../../../lib/router.js";
+import { guideHrefFor } from '../guideLinks.js';
 
 // The standalone landing route never calls initRouter() (src/main.js returns
 // early before the app shell is built), so the in-app navigate() is a no-op
@@ -88,13 +89,9 @@ const CTA_LINKS = [
 function buildNavLink(item) {
   const a = document.createElement('a');
   a.className = 'py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm whitespace-nowrap';
-  // Public pages with a real path (e.g. /studios guides) are plain links.
-  if (item.href) {
-    a.href = item.href;
-    a.textContent = item.label;
-    return a;
-  }
-  a.href = `#/${item.route}`;
+  // Public pages with a real path are plain, crawlable links: the /studios hub and,
+  // for every studio that has one, its feature guide (which has an "Open studio" button).
+  const href = item.href || guideHrefFor(item.route);
   a.textContent = item.label;
   if (item.isNew) {
     a.setAttribute('data-new', 'true');
@@ -103,6 +100,11 @@ function buildNavLink(item) {
     pill.textContent = 'New';
     a.appendChild(pill);
   }
+  if (href) {
+    a.href = href;
+    return a;
+  }
+  a.href = `#/${item.route}`;
   a.addEventListener('click', (e) => {
     // Prevent the browser from following the `#/...` href as a fragment-only
     // navigation (which would scroll but skip our page-loader); route via the

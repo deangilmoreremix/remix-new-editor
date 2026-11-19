@@ -7,6 +7,7 @@
       {
         "slug": "ai-influencer",
         "name": "AI Influencer",
+        "route": "influencer",
         "shortDescription": "Design a consistent AI influencer and their content",
         "features": 9,
         "thumbnail": "/guides/ai-influencer/overview.webp"
@@ -14,6 +15,7 @@
       {
         "slug": "brand-studio",
         "name": "Brand Studio",
+        "route": "brand",
         "shortDescription": "Paste any website URL - get your Brand DNA, on-brand campaigns, product photos and videos",
         "features": 8,
         "thumbnail": "/guides/brand-studio/overview.webp"
@@ -21,6 +23,7 @@
       {
         "slug": "character-studio",
         "name": "Character Studio",
+        "route": "character",
         "shortDescription": "Consistent characters with face ID preservation",
         "features": 10,
         "thumbnail": "/guides/character-studio/overview.webp"
@@ -28,6 +31,7 @@
       {
         "slug": "edit-studio",
         "name": "Edit Studio",
+        "route": "edit",
         "shortDescription": "16 AI photo tools: remove objects and backgrounds, extend, reframe, effects, face swap and more.",
         "features": 16,
         "thumbnail": "/guides/edit-studio/overview.webp"
@@ -35,6 +39,7 @@
       {
         "slug": "image-studio",
         "name": "Image Studio",
+        "route": "image",
         "shortDescription": "Generate images from text or reference photos with 80+ AI models.",
         "features": 9,
         "thumbnail": "/guides/image-studio/overview.webp"
@@ -42,6 +47,7 @@
       {
         "slug": "product-shot-studio",
         "name": "Product Shot Studio",
+        "route": "commercial",
         "shortDescription": "Studio-quality product photos from a single image",
         "features": 10,
         "thumbnail": "/guides/product-shot-studio/overview.webp"
@@ -49,6 +55,7 @@
       {
         "slug": "upscale-suite",
         "name": "Upscale Suite",
+        "route": "upscale",
         "shortDescription": "Enlarge and sharpen images with AI (AI Upscaler, Topaz, Seed Upscale).",
         "features": 6,
         "thumbnail": "/guides/upscale-suite/overview.webp"
@@ -63,6 +70,7 @@
       {
         "slug": "ai-vfx-studio",
         "name": "AI VFX Studio",
+        "route": "ai-vfx",
         "shortDescription": "Hollywood camera moves, explosive VFX and AI effects from a single image.",
         "features": 7,
         "thumbnail": "/guides/ai-vfx-studio/overview.webp"
@@ -70,6 +78,7 @@
       {
         "slug": "animate-studio",
         "name": "Animate Studio",
+        "route": "animate",
         "shortDescription": "Turn any image or product shot into a 3-12s video with AI motion.",
         "features": 8,
         "thumbnail": "/guides/animate-studio/overview.webp"
@@ -77,6 +86,7 @@
       {
         "slug": "audio-studio",
         "name": "Audio Studio",
+        "route": "audio",
         "shortDescription": "Generate music, speech and sound effects.",
         "features": 9,
         "thumbnail": "/guides/audio-studio/overview.webp"
@@ -84,6 +94,7 @@
       {
         "slug": "avatar-studio",
         "name": "Avatar Studio",
+        "route": "avatar",
         "shortDescription": "Create talking avatars and lip sync videos.",
         "features": 7,
         "thumbnail": "/guides/avatar-studio/overview.webp"
@@ -91,6 +102,7 @@
       {
         "slug": "cinema-studio",
         "name": "Cinema Studio",
+        "route": "cinema",
         "shortDescription": "Cinematic shots with real camera, lens and movement controls.",
         "features": 9,
         "thumbnail": "/guides/cinema-studio/overview.webp"
@@ -98,6 +110,7 @@
       {
         "slug": "cinema-templates",
         "name": "Cinema Templates",
+        "route": "cinema-template",
         "shortDescription": "Ready-made cinematic templates: pick one, add your media and generate.",
         "features": 9,
         "thumbnail": "/guides/cinema-templates/overview.webp"
@@ -105,6 +118,7 @@
       {
         "slug": "effects-studio",
         "name": "Effects Studio",
+        "route": "effects",
         "shortDescription": "Pick a preset effect, upload a photo or clip, and generate a styled image or an effect video.",
         "features": 10,
         "thumbnail": "/guides/effects-studio/overview.webp"
@@ -112,6 +126,7 @@
       {
         "slug": "lip-sync-studio",
         "name": "Lip Sync Studio",
+        "route": "lipsync",
         "shortDescription": "Make a portrait talk or re-sync any video to new audio.",
         "features": 7,
         "thumbnail": "/guides/lip-sync-studio/overview.webp"
@@ -119,6 +134,7 @@
       {
         "slug": "storyboard-studio",
         "name": "Storyboard Studio",
+        "route": "storyboard",
         "shortDescription": "Plan scenes as AI storyboard frames, then turn them into video.",
         "features": 11,
         "thumbnail": "/guides/storyboard-studio/overview.webp"
@@ -126,6 +142,7 @@
       {
         "slug": "video-studio",
         "name": "Video Studio",
+        "route": "video",
         "shortDescription": "Create AI videos from text, images or existing videos with a large catalog of models.",
         "features": 10,
         "thumbnail": "/guides/video-studio/overview.webp"
@@ -133,6 +150,7 @@
       {
         "slug": "video-tools",
         "name": "Video Tools",
+        "route": "videotools",
         "shortDescription": "Upscale, extend, translate, clean up and enhance videos, plus Recast and Motion control.",
         "features": 13,
         "thumbnail": "/guides/video-tools/overview.webp"
@@ -147,6 +165,7 @@
       {
         "slug": "director",
         "name": "Director",
+        "route": "director",
         "shortDescription": "AI agentic editor with 48 agents that analyse and edit an existing video through chat.",
         "features": 8,
         "thumbnail": "/guides/director/overview.webp"
@@ -154,6 +173,7 @@
       {
         "slug": "find-my-brand",
         "name": "Find My Brand",
+        "route": "find-my-brand",
         "shortDescription": "Free: paste a website and pull its logo, photos and branding.",
         "features": 4,
         "thumbnail": "/guides/find-my-brand/overview.webp"
@@ -161,6 +181,7 @@
       {
         "slug": "lead-finder",
         "name": "Lead Finder",
+        "route": "leadfinder",
         "shortDescription": "Search local businesses by niche and location and save them as leads.",
         "features": 8,
         "thumbnail": "/guides/lead-finder/overview.webp"
@@ -168,6 +189,7 @@
       {
         "slug": "motion-director",
         "name": "Motion Director",
+        "route": "motion-director",
         "shortDescription": "Chat that plans a film from a prompt and your website using shot recipes, then lets you edit and export it.",
         "features": 9,
         "thumbnail": "/guides/motion-director/overview.webp"
@@ -175,6 +197,7 @@
       {
         "slug": "personalizer",
         "name": "Personalizer",
+        "route": "personalizer",
         "shortDescription": "Build a page on a canvas and personalize it per contact with tokens.",
         "features": 11,
         "thumbnail": "/guides/personalizer/overview.webp"
@@ -182,6 +205,7 @@
       {
         "slug": "recorder",
         "name": "Recorder",
+        "route": "recorder",
         "shortDescription": "Record webcam and screen together, add captions and scenes, export a finished video.",
         "features": 6,
         "thumbnail": "/guides/recorder/overview.webp"
@@ -189,6 +213,7 @@
       {
         "slug": "smart-video-viral",
         "name": "Smart Video Viral",
+        "route": "viral",
         "shortDescription": "Continuously refreshed feed of trending AI prompts from X - copy any prompt into your studio and create.",
         "features": 10,
         "thumbnail": "/guides/smart-video-viral/overview.webp"
@@ -196,6 +221,7 @@
       {
         "slug": "timeline-editor",
         "name": "Timeline Editor",
+        "route": "timeline",
         "shortDescription": "Multi-track timeline for editing and rendering your videos, with built-in AI tools.",
         "features": 18,
         "thumbnail": "/guides/timeline-editor/overview.webp"
@@ -203,6 +229,7 @@
       {
         "slug": "video-agent",
         "name": "Video Agent",
+        "route": "video-agent",
         "shortDescription": "Describe an animation and the agent writes, previews and renders it as an MP4.",
         "features": 8,
         "thumbnail": "/guides/video-agent/overview.webp"
@@ -210,6 +237,7 @@
       {
         "slug": "video-outreach",
         "name": "Video Outreach",
+        "route": "outreach",
         "shortDescription": "Record once, greet every contact by name in your own voice, and add a booking button.",
         "features": 24,
         "thumbnail": "/guides/video-outreach/overview.webp"
@@ -217,6 +245,7 @@
       {
         "slug": "video-pages",
         "name": "Video Pages",
+        "route": "video-pages",
         "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
         "features": 3,
         "thumbnail": "/thumbnails/pages/placeholder.webp"
@@ -224,6 +253,7 @@
       {
         "slug": "video-render",
         "name": "Video Render",
+        "route": "render",
         "shortDescription": "Export and finish a generated video with presets and format options.",
         "features": 11,
         "thumbnail": "/guides/video-render/overview.webp"
@@ -231,6 +261,7 @@
       {
         "slug": "website-builder",
         "name": "Website Builder",
+        "route": "website-builder",
         "shortDescription": "Build and publish a full website from a prompt using your own AI key.",
         "features": 8,
         "thumbnail": "/thumbnails/heroes/website-builder.webp"
@@ -238,6 +269,7 @@
       {
         "slug": "workbench",
         "name": "Workbench",
+        "route": "workbench",
         "shortDescription": "Edit your generations with motion cards, sound and AI chat on a multi-track timeline.",
         "features": 9,
         "thumbnail": "/guides/workbench/overview.webp"
@@ -245,6 +277,7 @@
       {
         "slug": "zack-d-studio",
         "name": "Zack D Studio",
+        "route": "zackd",
         "shortDescription": "One question to a finished short video: script, characters, keyframes, clips and final cut.",
         "features": 4,
         "thumbnail": "/guides/zack-d-studio/overview.webp"
@@ -259,6 +292,7 @@
       {
         "slug": "smart-video-academy",
         "name": "Academy",
+        "route": "academy",
         "shortDescription": "Learn AI creator skills in 15 tracks, 66 lessons and 77 templates, then jump into SmartVideo studios to make things.",
         "features": 25,
         "thumbnail": "/guides/smart-video-academy/overview.webp"
@@ -266,6 +300,7 @@
       {
         "slug": "apps",
         "name": "Apps",
+        "route": "apps",
         "shortDescription": "Searchable grid of all 26 tools. Pick one to open it.",
         "features": 3,
         "thumbnail": "/guides/apps/overview.webp"
@@ -273,6 +308,7 @@
       {
         "slug": "explore",
         "name": "Explore",
+        "route": "explore",
         "shortDescription": "Inspiration: trending templates, 12 sample prompts, category cards.",
         "features": 3,
         "thumbnail": "/guides/explore/overview.webp"
@@ -280,6 +316,7 @@
       {
         "slug": "templates",
         "name": "Templates",
+        "route": "templates",
         "shortDescription": "Ready-made templates: pick one, add your media, generate.",
         "features": 6,
         "thumbnail": "/guides/templates/overview.webp"
@@ -294,6 +331,7 @@
       {
         "slug": "content-library",
         "name": "Content",
+        "route": "content-library",
         "shortDescription": "Your saved content: saved generations, uploads, PDFs and stock media.",
         "features": 5,
         "thumbnail": "/guides/content-library/overview.webp"
@@ -301,6 +339,7 @@
       {
         "slug": "library",
         "name": "Library",
+        "route": "library",
         "shortDescription": "Everything you generated and uploaded, in one place.",
         "features": 5,
         "thumbnail": "/guides/library/overview.webp"
