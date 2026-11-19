@@ -146,7 +146,7 @@ const pageLoaders = {
 };
 
 // Sub-paths like 'academy/track/<t>/lesson/<id>' are handled by the Academy page itself.
-// 'guide/<slug>' is the studio guide page, which reads its own slug from the hash.
+// 'guide/<anything>' (older per-studio links) opens the Get started guide.
 export const academyKey = (page) => {
   if (typeof page !== 'string') return page;
   if (page.startsWith('academy/')) return 'academy';

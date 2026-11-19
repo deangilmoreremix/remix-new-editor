@@ -41,9 +41,6 @@ export const GUIDE_ROUTES = {
   'zack-d-studio': 'zackd',
 };
 
-const ROUTE_TO_SLUG = Object.fromEntries(Object.entries(GUIDE_ROUTES).map(([slug, route]) => [route, slug]));
-
-export const guideSlugForRoute = (route) => (ROUTE_TO_SLUG[route] && screenshots[ROUTE_TO_SLUG[route]] ? ROUTE_TO_SLUG[route] : null);
 export const getGuide = (slug) => screenshots[slug] || null;
 
 /** "photo-studio-generation-mode-brand-api-direct-muapi" -> "Photo studio generation mode brand api direct muapi" */

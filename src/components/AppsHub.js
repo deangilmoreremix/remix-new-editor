@@ -3,7 +3,6 @@ import { getStudioThumbnail, getHeroThumbnail, createThumbnailImg } from '../lib
 import { NAV_GROUPS } from '../lib/studioRoutes.js';
 import { COLLAB_APPS } from '../lib/collabSuite.js';
 import { getStudioIcon } from '../lib/studioRoutes.js';
-import { guideSlugForRoute } from '../data/guideRoutes.js';
 
 const CORE_STUDIOS = [
   { id: 'image', name: 'Image Studio', description: 'Generate images with 20+ AI models', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: '20+ models', color: 'bg-primary/10 text-primary border-primary/20' },
@@ -105,6 +104,14 @@ export function AppsHub() {
   `;
   inner.appendChild(heroSection);
 
+  const started = document.createElement('a');
+  started.href = '#/guide';
+  started.dataset.getStarted = '';
+  started.className = 'mb-8 mx-auto flex w-full max-w-4xl items-center justify-between gap-4 rounded-2xl border border-primary/30 bg-primary/10 px-5 py-4 text-left hover:bg-primary/15 transition-colors';
+  started.innerHTML = '<span><span class="block text-sm font-bold text-white">New here? Get started</span><span class="block text-xs text-white/60">A short walkthrough from your first picture to a finished video.</span></span><span class="shrink-0 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-black">Start the guide</span>';
+  started.addEventListener('click', (e) => { e.preventDefault(); navigate('guide'); });
+  inner.appendChild(started);
+
   const searchWrapper = document.createElement('div');
   searchWrapper.className = 'mb-8 animate-fade-in-up flex justify-center';
   searchWrapper.style.animationDelay = '0.1s';
@@ -122,7 +129,6 @@ export function AppsHub() {
     inner.appendChild(createSection(title, apps.map(s => ({
       ...s,
       thumbnail: getStudioThumbnail(s.id) || getHeroThumbnail(s.id),
-      guide: guideSlugForRoute(s.id),
       onClick: () => (s.href ? window.open(s.href, '_blank', 'noopener') : (saveRecent(s.id, s.name), navigate(s.id))),
     })), true));
   });
@@ -206,21 +212,10 @@ function createSection(title, items, isStudio = false) {
       </div>
       ${item.badge ? `<div class="text-[10px] font-bold text-muted mt-1 ml-11">${item.badge}</div>` : ''}
     `;
-    if (item.guide) {
-      const guideLink = document.createElement('a');
-      guideLink.href = `#/guide/${item.guide}`;
-      guideLink.textContent = 'Guide';
-      guideLink.dataset.guideLink = item.guide;
-      guideLink.setAttribute('aria-label', `${item.name} guide`);
-      guideLink.className = 'inline-block mt-1.5 ml-11 text-[11px] font-bold text-primary hover:underline';
-      guideLink.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); navigate(`guide/${item.guide}`); });
-      content.appendChild(guideLink);
-    }
     card.appendChild(content);
 
     card.onclick = item.onClick;
     card.onkeydown = (e) => {
-      if (e.target !== card) return; // the Guide link handles its own keys
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         item.onClick();
