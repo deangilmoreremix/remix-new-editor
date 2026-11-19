@@ -74,11 +74,34 @@ export function pushTypeBlock(prefs, type) {
 
 export const loadSubscriptions = (call, ownerId) => call(`owner_push_subscriptions?select=id,endpoint,p256dh,auth,failure_count&clerk_user_id=eq.${encodeURIComponent(ownerId)}&limit=50`);
 
+/**
+ * Whether a stored push endpoint may be connected to. The owner supplies it, and this function makes the request from the
+ * server, so it must be a public https address: no credentials, the standard port, a real domain name, and never an IP
+ * address, localhost or an internal-looking name (those could reach the server's own network).
+ */
+export function isSafePushEndpoint(raw) {
+  let u;
+  try { u = new URL(String(raw ?? '')); } catch { return false; }
+  if (u.protocol !== 'https:' || u.username || u.password) return false;
+  if (u.port && u.port !== '443') return false;
+  const host = u.hostname.toLowerCase();
+  if (!host.includes('.') || host.endsWith('.')) return false;                 // single-label names and trailing-dot forms
+  if (host.startsWith('[') || host.includes(':')) return false;                // IPv6 literals
+  if (/^\d+(\.\d+){0,3}$/.test(host)) return false;                            // IPv4 literals (the URL parser normalises 0x7f.1, 2130706433, ...)
+  if (host === 'localhost' || /\.(localhost|local|internal|lan|home|corp|intranet)$/.test(host)) return false;
+  return true;
+}
+
 /** Send one JSON payload to every subscription; prunes gone (404/410) endpoints and counts other failures. Returns { sent, failed, removed }. */
 export async function sendToSubscriptions({ call, wp, subs, payload, now = new Date() }) {
   const body = JSON.stringify(payload);
   const out = { sent: 0, failed: 0, removed: 0 };
   await Promise.all(subs.map(async (s) => {
+    if (!isSafePushEndpoint(s.endpoint)) {          // never connect to it; a subscription like this is removed
+      out.removed += 1;
+      await call(`owner_push_subscriptions?id=eq.${s.id}`, { method: 'DELETE' }).catch(() => {});
+      return;
+    }
     try {
       await wp.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, body, { TTL: 3600, urgency: 'normal' });
       out.sent += 1;

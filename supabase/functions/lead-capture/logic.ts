@@ -387,6 +387,20 @@ export function emailProblem(data: Record<string, string>, opts: { blockDisposab
   return "";
 }
 
+/** The owner of a published page or video is a guest (a visitor with no account). Guests may not have leads relayed to webhooks. */
+export function isGuestOwner(ownerId: unknown): boolean {
+  return String(ownerId ?? "").startsWith("guest_");
+}
+
+/**
+ * Whether a submission must pass the human check (Turnstile) when it is configured. A call-attempt is only the record of a
+ * viewer tapping "call": it comes from a button with no form or widget to complete, carries no email, and is rate limited,
+ * so it is not asked for a token (otherwise every call-attempt would be rejected once Turnstile is switched on).
+ */
+export function needsHumanCheck(kind: unknown): boolean {
+  return kind !== "call-attempt";
+}
+
 /** Extra throwaway domains an operator can add without a code change (comma-separated, e.g. env LEAD_EXTRA_DISPOSABLE_DOMAINS). */
 export function parseExtraDomains(raw: string | undefined | null): string[] {
   return String(raw ?? "").split(",").map((d) => d.trim().toLowerCase().replace(/^@/, "")).filter((d) => /^[a-z0-9.-]+\.[a-z]{2,}$/.test(d));

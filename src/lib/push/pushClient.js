@@ -47,14 +47,27 @@ function rowFor(subscription, env) {
   return { endpoint: json.endpoint, p256dh, auth, user_agent: String(env?.navigator?.userAgent || '').slice(0, 300) };
 }
 
-/** Saves this device's subscription. There is no UPDATE policy, so an existing row is deleted first. */
+/**
+ * Saves this device's subscription. There is no UPDATE policy, so an existing row is deleted first; if the new row cannot be
+ * saved, the previous one is put back so a working registration is never lost to a failed refresh.
+ */
 export async function storeSubscription({ client, subscription, env = globalThis }) {
   const row = rowFor(subscription, env);
   if (!row) throw new Error('The browser returned an incomplete push subscription.');
+  let previous = null;
+  try {
+    const found = await client.from(PUSH_TABLE).select?.('endpoint, p256dh, auth, user_agent')?.eq?.('endpoint', row.endpoint)?.limit?.(1);
+    previous = Array.isArray(found?.data) && found.data[0] ? found.data[0] : null;
+  } catch { /* best effort: without it a failed save simply cannot be rolled back */ }
   const del = await client.from(PUSH_TABLE).delete().eq('endpoint', row.endpoint);
   if (del?.error) throw new Error(del.error.message || 'Could not refresh this device registration');
   const ins = await client.from(PUSH_TABLE).insert(row);
-  if (ins?.error) throw new Error(ins.error.message || 'Could not save this device registration');
+  if (ins?.error) {
+    if (previous) { try { await client.from(PUSH_TABLE).insert(previous); } catch { /* nothing more to do */ } }
+    const err = new Error(ins.error.message || 'Could not save this device registration');
+    err.code = ins.error.code;
+    throw err;
+  }
 }
 
 export const HOW_TO_REENABLE = 'Notifications are blocked for this site. Open your browser\'s site settings (the lock or tune icon next to the address), set Notifications to Allow, then reload this page and try again.';
@@ -91,7 +104,15 @@ export async function subscribe({ vapidKey, registration, client, env = globalTh
       await old?.unsubscribe?.();
       subscription = await registration.pushManager.subscribe(options);
     }
-    await storeSubscription({ client, subscription, env });
+    try {
+      await storeSubscription({ client, subscription, env });
+    } catch (err) {
+      // This browser's subscription is already registered to another account (unique endpoint): start a fresh one for this account.
+      if (err?.code !== '23505' || typeof subscription?.unsubscribe !== 'function') throw err;
+      await subscription.unsubscribe();
+      subscription = await registration.pushManager.subscribe(options);
+      await storeSubscription({ client, subscription, env });
+    }
     return { status: 'subscribed', message: 'Push notifications are on for this device.' };
   } catch (err) {
     return { status: 'error', message: err?.message ? `Could not turn on push notifications: ${err.message}` : 'Could not turn on push notifications.' };
@@ -129,13 +150,23 @@ export async function sendTestNotification({ registration, env = globalThis } = 
  * One call for the UI: what to show. state is one of
  * hidden (no VAPID key) | unsupported | no-service-worker | blocked | off | on.
  */
-export async function inspectPush({ vapidKey, env = globalThis } = {}) {
+export async function inspectPush({ vapidKey, env = globalThis, client } = {}) {
   if (!vapidKey) return { state: 'hidden', message: 'Push notifications aren\'t set up on this site yet.' };
   if (!pushSupported(env)) return { state: 'unsupported', message: unsupportedMessage(env) };
   const registration = await getPushRegistration(env);
   if (!registration) return { state: 'no-service-worker', registration: null, message: 'Push works on the deployed site.' };
   if (permissionState(env) === 'denied') return { state: 'blocked', registration, message: HOW_TO_REENABLE };
   const subscription = permissionState(env) === 'granted' ? await currentSubscription({ registration }) : null;
+  // The browser may hold a subscription that was registered for another account. With a client, "on" means this account
+  // has a saved row for it (row level security only shows the signed-in owner's rows).
+  if (subscription && client?.from) {
+    try {
+      const found = await client.from(PUSH_TABLE).select('endpoint').eq('endpoint', subscription.endpoint).limit(1);
+      if (!found?.error && Array.isArray(found?.data) && found.data.length === 0) {
+        return { state: 'off', registration, message: 'Push notifications are off for this account on this device.' };
+      }
+    } catch { /* could not check: keep what the browser says */ }
+  }
   return subscription
     ? { state: 'on', registration, message: 'Push notifications are on for this device.' }
     : { state: 'off', registration, message: 'Push notifications are off for this device.' };
